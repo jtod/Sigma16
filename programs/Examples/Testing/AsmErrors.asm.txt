@@ -1,0 +1,32 @@
+     add      R1,R2,R3  ; ok
+
+     addemup  R1,R2,R3  ; invalid mnemonic
+
+     add      1,2,3     ; bad operands
+     add      R4,R5,R6  ; ok
+     load     R1,x[R2]  ; ok
+     load     R1,R2,R3  ; wrong form of operands
+
+label?bad
+label/err   aid R1,R2,R3
+label*err   add R1,x
+label&err   add R1,R2,R3
+
+     load/2  R1,R2,R3
+
+     store
+
+     load  R1,3[R4]
+     load  R1,-3[R4]
+     load  R1,3{R17]
+     load  R1,3{R-7]
+
+x    data     2
+y    data   $01a3
+v1   data   -23
+
+
+x    data     3
+
+     jumpf R0,x[R0]
+     jumpf R0,nowhere[R0]

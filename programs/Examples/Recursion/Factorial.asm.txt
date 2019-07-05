@@ -1,0 +1,98 @@
+;---------------------------------------------------------------------
+; Program Factorial
+;---------------------------------------------------------------------
+
+; This program for the Sigma16 architecture uses a recursive function
+; to compute x! (factorial of x), where x is defined as a static
+; variable.
+
+; Register usage
+;   R15 is reserved by architecture for special instructions
+;   R14 is stack pointer
+;   R13 is return address
+;   R2, R3, R4 are temporaries used by factorial function
+;   R1 is function parameter and result
+;   R0 is reserved by architecture for constant 0
+
+;---------------------------------------------------------------------
+; Main program
+
+; The main program computes result := factorial x and terminates.
+
+; Structure of stack frame for main program
+;    1[R14]   origin of next frame
+;    0[R14]   pointer to previous stack frame = nil
+
+; Initialise stack
+     lea    R14,stack[R0]      ; initialise stack pointer
+     store  R0,0[R14]          ; previous frame pointer := nil
+
+; Call the function to compute factorial x
+     load   R1,x[R0]           ; function parameter := x
+     store  R14,1[R14]         ; point to current frame
+     lea    R14,1[R14]         ; push stack frame
+     jal    R13,factorial[R0]  ; R1 := factorial x
+
+; Save result and terminate
+     store  R1,result[R0]      ; result := factorial x
+     trap   R0,R0,R0           ; terminate
+
+;---------------------------------------------------------------------
+factorial
+; Function that computes n!
+;   Input parameter n is passed in R1
+;   Result is returned in R1
+
+; Structure of stack frame for fact function
+;    6[R14]   origin of next frame
+;    5[R14]   save R4
+;    4[R14]   save R3
+;    3[R14]   save R2
+;    2[R14]   save R1 (parameter n)
+;    1[R14]   return address
+;    0[R14]   pointer to previous stack frame
+
+; Create stack frame  
+     store  R13,1[R14]         ; save return address
+     store  R1,2[R14]          ; save R1
+     store  R2,3[R14]          ; save R2
+     store  R3,4[R14]          ; save R3
+     store  R4,5[R14]          ; save R4
+
+; Initialise
+     lea    R2,1[R0]           ; R2 := 1
+
+; Determine whether we have base case or recursion case
+     cmp  R1,R2                ; compare n, 1
+     jumpgt recursion[R0]      ; if n>1 then go to recursion
+
+; Base case.  n<=1 so the result is 1
+     lea    R1,1[R0]           ; factorial n = 1
+     jump   return[R0]         ; go to end of function
+
+; Recursion case.  n>1 so factorial n = n * factorial (n-1)
+recursion
+     sub    R1,R1,R2           ; function paramemter := n-1
+
+; Call function to compute factorial (n-1)
+     store  R14,6[R14]         ; point to current frame
+     lea    R14,6[R14]         ; push stack frame
+     jal    R13,factorial[R0]  ; R1 := factorial (n-1)
+     load   R2,2[R14]          ; R2 := saved R1 = n
+     mul    R1,R2,R1           ; R1 := n * fact (n-1)
+
+; Restore registers and return; R1 contains result
+return
+     load   R2,3[R14]          ; restore R3
+     load   R3,4[R14]          ; restore R4
+     load   R4,5[R14]          ; restore R5
+     load   R13,1[R14]         ; restore return address
+     load   R14,0[R14]         ; pop stack frame
+     jump   0[R13]             ; return
+
+;---------------------------------------------------------------------
+; Static data segment
+
+x       data   5
+result  data   0
+stack   data   0   ; stack extends from here on...

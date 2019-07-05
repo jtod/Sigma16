@@ -1,0 +1,9 @@
+;  Demonstrate addition
+
+     load   R1,k1[R0]   ; R1 = k1 = -73
+     load   R2,k2[R0]   ; R2 = k2 = 250
+     add    R3,R1,R2    ; -73 + 250 = 177    = $00b1
+
+     trap   R0,R0,R0    ; terminate
+k1   data   -73
+k2   data   250

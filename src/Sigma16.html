@@ -1,0 +1,322 @@
+<!-- Implementation of Sigma16 system
+     John T. O'Donnell
+     2019
+ -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="author" content="John O'Donnell">
+    <meta name="description" content="computer architecture emulator">
+    <meta name="keywords" content="machine language, assembly language,
+				   computer architecture, assembler,
+				   emulator, application">
+    <title>Sigma16</title>
+    <script src="./datatypes.js"> </script>
+    <script src="./system.js"> </script>
+    <script src="./assembler.js"> </script>
+    <script src="./linker.js"> </script>
+    <script src="./emulator.js"> </script>
+    <script src="./gui.js"> </script>
+    <link rel="stylesheet" href="./gui.css" type="text/css">
+  </head>
+  <body>
+    <div class="FullFrame">
+      <div class="TopSection">
+	<button onclick="welcome_pane_button()"> Welcome </button>
+	<button onclick="file_pane_button()"> File </button>
+	<button onclick="editor_pane_button()"> Editor </button>
+	<button onclick="assembler_pane_button()"> Assembler </button>
+	<button onclick="linker_pane_button()"> Linker </button>
+	<button onclick="processor_pane_button()"> Processor </button>
+	<button > User Guide </button>
+	<button onclick="user_guide_resize(1)">Guide -</button>
+	<button onclick="user_guide_resize(-1)">Guide +</button>
+      </div>
+      <div class="MiddleSection" id="MiddleSection">
+	<div class="MidMainSection">
+	  <div class="MidMainLeft" id="MidMainLeft">
+
+	    <div class="Pane" id="WelcomePane">
+	      <div class="PaneButtons">
+		<button onclick="springen('control-registers');"> ctl-regs </button>
+		<button> File 2 </button>
+		<button> File 3 </button>
+	      </div>
+	      <div id="WelcomeHtml">
+		<iframe src="./welcome.html"
+			name="WelcomeIframe"
+			id="WelcomeIframeId">
+		</iframe>
+	      </div>
+	    </div>
+	    <div class="Pane" id="FilePane">
+	      <div class="PaneButtons">
+		<button> File 1 </button>
+		<button> File 2 </button>
+		<button> File 3 </button>
+	      </div>
+	      File
+	      <input type="file" id="FileInput"
+		     name="myfileselector"
+		     onchange="handleSelectedFile(this.files);">
+              </input>
+	      <div id="FileInputResultDiv">initial file input div</div>
+	      <textarea id="DownloadFileTextBox">
+Type something here
+	      </textarea>
+	      <button id="CreateFileForDownload">Create file</button>
+	      <a download="S16DownloadFile.txt" id="downloadlink"
+		 style="display: none">Download
+	      </a>
+	    </div>
+	    <div class="Pane" id="EditorPane">
+	      <div class="PaneButtons">
+		<button onclick="editorButton1()">Clear</button>
+		<button onclick="editorButton2()">Open</button>
+		<button>Reread</button>
+		<button onclick="insert_example(example_add);">Example: Add</button>
+	      </div>
+	      <textarea class="PaneTextArea" id="EditorTextArea">
+	      </textarea>
+	    </div>
+	    <div class="Pane" id="AssemblerPane">
+	      <div class="PaneButtons">
+		<button onclick="assembler();">Assemble</button>
+		<button> Asm 2 </button>
+		<button> Asm 3 </button>
+	      </div>
+	      <div id="AssemblerText">
+		<html>
+		  <body>
+		    <div class="HighlightedTextAsHtml" id="AsmTextHtml">
+		    </div>
+		  </body>
+		</html>
+	      </div>
+	    </div>
+	    <div class="Pane" id="LinkerPane">
+	      <div class="PaneButtons">
+		<button> Link </button>
+		<button onclick="boot()"> Boot </button>
+		<button> Link 3 </button>
+	      </div>
+	      <textarea id="LinkerText">
+  hexdata  0312
+  hexdata  18c3
+  hexdata  a3f9
+	      </textarea>
+	    </div>
+	    <div class="Pane" id="ProcessorPane">
+	      <div class="PaneButtons">
+		<button>Reset</button>
+		<button>Boot</button>
+		<button>Step</button>
+		<button>Run</button>
+		<button>Interrupt</button>
+		<button>Pause</button>
+		<button>Breakpoint</button>
+	      </div>
+	      <div id="ProcessorState">
+		<div class="ProcStateSection" id="InstructionRegisters">
+		  <div class="Registers">
+		    <div class="NewRegSecName">Control</div>
+		    <div class="RegisterName">pc</div>
+		    <div class="RegisterValue" id='pcElt'></div>
+		    <div class="RegisterName">ir</div>
+		    <div class="RegisterValue" id='irElt'></div>
+		    <div class="RegisterName">adr</div>
+		    <div class="RegisterValue" id='adrElt'></div>
+		    <div class="RegisterName">dat</div>
+		    <div class="RegisterValue" id='datElt'></div>
+		    <div class="RegisterName">spc</div>
+		    <div class="RegisterValue" id='spcElt'></div>
+		  </div>
+		</div>
+		<div class="ProcStateSection" id="InterruptRegisters">
+		  <div class="Registers">
+		    <div class="NewRegSecName">Interrupt</div>
+		    <div class="RegisterName">ien</div>
+		    <div class="RegisterValue" id="ienElt"></div>
+		    <div class="RegisterName">mask</div>
+		    <div class="RegisterValue"></div>
+		    <div class="RegisterName">req</div>
+		    <div class="RegisterValue"></div>
+		    <div class="RegisterName">status</div>
+		    <div class="RegisterValue"></div>
+		    <div class="RegisterName">spc</div>
+		    <div class="RegisterValue"></div>
+		  </div>
+		</div>
+		<div class="ProcStateSection" id="SegmentRegisters">
+		  <div class="Registers">
+		    <div class="NewRegSecName">Segment</div>
+		    <div class="RegisterName">en</div>
+		    <div class="RegisterValue">03ac</div>
+		    <div class="RegisterName">mask</div>
+		    <div class="RegisterValue">031f</div>
+		    <div class="RegisterName">req</div>
+		    <div class="RegisterValue">ca34</div>
+		    <div class="RegisterName">status</div>
+		    <div class="RegisterValue">ca34</div>
+		    <div class="RegisterName">spc</div>
+		    <div class="RegisterValue">ca34</div>
+		  </div>
+		</div>
+		<div class="ProcStateSection" id="RegisterFile">
+		  <div class="Registers">
+		    <div class="NewRegSecName">Reg File</div>
+		    <div class="RegisterName">R0</div>
+		    <div class="RegisterValue" id="R0">0123</div>
+		    <div class="RegisterName">R1</div>
+		    <div class="RegisterValue" id="R1">0123</div>
+		    <div class="RegisterName">R2</div>
+		    <div class="RegisterValue" id="R2">0123</div>
+		    <div class="RegisterName">R3</div>
+		    <div class="RegisterValue" id="R3">0123</div>
+		    <div class="RegisterName">R4</div>
+		    <div class="RegisterValue" id="R4">0123</div>
+		    <div class="RegisterName">R5</div>
+		    <div class="RegisterValue" id="R5">0123</div>
+		    <div class="RegisterName">R6</div>
+		    <div class="RegisterValue" id="R6">0123</div>
+		    <div class="RegisterName">R7</div>
+		    <div class="RegisterValue" id="R7">0123</div>
+		    <div class="RegisterName">R8</div>
+		    <div class="RegisterValue" id="R8">0123</div>
+		    <div class="RegisterName">R9</div>
+		    <div class="RegisterValue" id="R9">0123</div>
+		    <div class="RegisterName">R10</div>
+		    <div class="RegisterValue" id="R10">0123</div>
+		    <div class="RegisterName">R11</div>
+		    <div class="RegisterValue" id="R11">0123</div>
+		    <div class="RegisterName">R12</div>
+		    <div class="RegisterValue" id="R12">0123</div>
+		    <div class="RegisterName">R13</div>
+		    <div class="RegisterValue" id="R13">0123</div>
+		    <div class="RegisterName">R14</div>
+		    <div class="RegisterValue" id="R14">0123</div>
+		    <div class="RegisterName">R15</div>
+		    <div class="RegisterValue" id="R15">0123</div>
+		  </div>
+		</div>
+		<div class="ProcStateSection" id="InstructionDecode">
+		  <div class="Decode">
+		    <div class="NewRegSecName">Instruction</div>
+		    <div class="RegisterName">Code</div>
+		    <div class="RegisterValue">0123 dc3f</div>
+		    <div class="RegisterName">Fmt</div>
+		    <div class="RegisterValue">RX</div>
+		    <div class="RegisterName">Op</div>
+		    <div class="RegisterValue">load</div>
+		    <div class="RegisterName">Args</div>
+		    <div class="RegisterValue">R3,2345[R4]</div>
+		    <div class="RegisterName">EA</div>
+		    <div class="RegisterValue">0bc4</div>
+		    <div class="RegisterName">Action</div>
+		    <div class="RegisterValue">R3 := abcd</div>
+		    <div class="RegisterName">Action</div>
+		    <div class="RegisterValue">R15 := xxxx</div>
+		  </div>
+		</div>
+		<div class="ProcStateSection" id="Emulator">
+		  <div class="Registers">
+		    <div class="NewRegSecName">Emulator</div>
+		    <div class="RegisterName">s</div>
+		    <div class="RegisterValue">halted</div>
+		    <div class="RegisterName">n</div>
+		    <div class="RegisterValue">29000</div>
+		    <div class="RegisterName">m</div>
+		    <div class="RegisterValue">break</div>
+		  </div>
+		</div>
+		<div class="ProcStateSection" id="MemSection">
+		  <div class="MemSecName">Memory</div>
+		  <div class='MemDisplay' id="MemDisplay1"></div>
+		  <div class='MemDisplay' id="MemDisplay2"></div>
+		</div>
+		<div class="ProcStateSection" id="IOSection">
+		  <div class="IOSecName">Input/Output</div>
+		  <div class="IOlog" id="IOlog"></div>
+                  <textarea id="IOinputBuffer"></textarea>
+		  <div id="IOInbufLabel">Input Buffer</div>
+		</div>
+	      </div>
+	      <div id="ProcessorAssemblerText">
+		<html>
+		  <body>
+		    <div class="HighlightedTextAsHtml" id="ProcTextHtml">
+This is the processor assembly listing (line 1)<br>
+listing (line 2)
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+another line<br>
+		    </div>
+		  </body>
+		</html>
+	      </div>
+	    </div>
+
+	  </div>
+	  <div class="MiddleSectionResizeHandle" id="MiddleSectionResizeHandle">
+	  </div>
+	  <div class="MidMainRight" id="MidMainRight">
+	    <iframe src="../doc/html/index.html"
+		    name="UserGuideIframe"
+		    id="UserGuideIframeId">
+	    </iframe>
+	  </div>
+	</div>
+      </div>
+      <div class="BottomSection">
+      </div>
+    </div>
+  </body>
+</html>

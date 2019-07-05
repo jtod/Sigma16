@@ -1,0 +1,12 @@
+; Program CmpJump
+; Test the cmp and jump instructions
+
+      lea     R1,5[R0]
+      lea     R2,23[R0]
+      cmp     R1,R2
+      jumpgt  yes1[R0]
+      jumplt  yes2[R0]
+      add     R0,R0,R0
+yes1  add     R0,R0,R0
+yes2  add     R0,R0,R0
+      trap    R0,R0,R0

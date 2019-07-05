@@ -1,0 +1,186 @@
+; Program StackArray_Simple
+; Illustrate a stack implemented using an array
+; John O'Donnell
+
+; This is a simple implementation of a stack using an array; there is
+; no error checking and no saving/restoring of registers.
+
+
+;------------------------------------------------------------------------
+; Main program
+
+; push 'a'  -- stack = [a]
+       load   R1,char_a[R0]    ; R1 = character to push
+       jal    R13,push[R0]     ; push(R1)
+
+; push 'b'  -- stack = [a,b]
+       load   R1,char_b[R0]    ; R1 = character to push
+       jal    R13,push[R0]     ; push(R1)
+
+; push 'c'  -- stack = [a,b,c]
+       load   R1,char_c[R0]    ; R1 = character to push
+       jal    R13,push[R0]     ; push(R1)
+
+; pop and print  -- print c, stack = [a,b]
+       jal    R13,pop[R0]      ; R1 := pop()
+       jal    R13,printx[R0]   ; print character in R1
+
+; push 'd'  -- stack = [a,b,d]
+       load   R1,char_d[R0]    ; R1 = character to push
+       jal    R13,push[R0]     ; push(R1)
+
+; pop and print  -- print d, stack = [a,b]
+       jal    R13,pop[R0]      ; R1 := pop()
+       jal    R13,printx[R0]   ; print character in R1
+
+; pop and print  -- print b, stack = [a]
+       jal    R13,pop[R0]      ; R1 := pop()
+       jal    R13,printx[R0]   ; print character in R1
+
+; pop and print  -- print a, stack = []
+       jal    R13,pop[R0]      ; R1 := pop()
+       jal    R13,printx[R0]   ; print character in R1
+
+; finish
+       trap   R0,R0,R0   ; request terminate
+
+
+;------------------------------------------------------------------------
+; procedure printx
+printx
+        store  R1,x[R0]   ; x := R1 (result of pop)
+        lea    R1,2[R0]   ; trap code for write
+        lea    R2,x[R0]   ; address of string to write
+        lea    R3,2[R0]   ; length of string to write
+        trap   R1,R2,R3   ; request the write operation
+        jump   0[R13]     ; return
+
+
+;------------------------------------------------------------------------
+; Representation of stack
+;   stLim  = maximum number of elements allowed
+;   stTop  = current number of elements
+;   stack  = first element of array representing the stack
+
+
+; procedure push (x)
+; Argument x is in R1, return address in R13
+;   stack[stTop] := x; stTop := stTop + 1
+
+push    load   R2,stTop[R0]   ; R2 := stTop
+        store  R1,stack[R2]   ; stack[stTop] := x
+        lea    R3,1[R0]       ; R3 := constant 1
+        add    R2,R2,R3       ; R2 := stTop + 1
+        store  R2,stTop[R0]   ; stTop := stTop + 1
+        jump   0[R13]         ; return
+
+; function pop()
+; Result is returned in R1, return address in R13
+;   stTop := stTop - 1; x := stack[stTop]
+
+pop     load   R2,stTop[R0]   ; R2 := stTop
+        lea    R3,1[R0]       ; R3 := constant 1
+        sub    R2,R2,R3       ; R2 := stTop - 1
+        load   R1,stack[R2]   ; R1 := stack[stTop-1]
+        store  R2,stTop[R0]   ; stTop := stTop - 1
+        jump   0[R13]         ; return
+
+
+;------------------------------------------------------------------------
+; Data
+
+; x is the string that will be printed
+x       data   0      ; dummy initial value
+        data  10      ; character code for newline
+
+; Unicode character definitions
+char_a  data   97     ; character code for 'a'
+char_b  data   98     ; character code for 'b'
+char_c  data   99     ; character code for 'c'
+char_d  data  100     ; character code for 'd'
+char_e  data  101     ; character code for 'e'
+
+; Stack
+stLim   data   100     ; maximum number of elements in stack
+stTop   data     0     ; current number of elements
+stack   data     0     ; first location in array of elements
+
+;------------------------------------------------------------------------
+; error checking
+
+
+; Error handling.  Operations on a stack can fail: if push is called
+; when the stack is full it fails because there is no space to store
+; the new element; if pop is called when the stack is empty it fails
+; because there is no element to return.  Ideally, we would like to
+; handle errors either by returning an error code or by throwing an
+; exception.  However, for simplicity this program simply terminates
+; if an error occurs.
+
+
+; push (v)
+; if stTop >= stLim
+;     then
+;       { terminate because the stack is full: cannot push }
+;     else
+;       { stack[stTop] := v;
+;         stTop := stTop + 1;
+;         return ();
+;       }
+
+
+; push
+;       lea    R2,1[R0]       ; R2 = constant 1
+;       load   R3,stTop[R0]   ; R3 = stTop
+;       load   R4,stLim[R0]   ; R4 = stLim
+;       cmplt R5,R3,R4       ; R5 = (stTop < stLim)
+;       jumpt R5,pushOk[R0]  ; if (stTop < stLim) then goto pushOk
+
+
+; push (v)
+; if stTop >= stLim
+;     then
+;       { terminate because the stack is full: cannot push }
+;     else
+;       { stack[stTop] := v;
+;         stTop := stTop + 1;
+;         return ();
+;       }
+
+
+; push failed because stack is full, so terminate.
+
+; v = pop ()
+;   if
+;     then
+;       { terminate because the stack is empty: cannot pop }
+;     else
+;       { stTop := stTop - 1;
+;         v := stack[stTop];
+;         return (v);
+;       }
+
+
+; v = pop ()
+;   if
+;     then
+;       { terminate because the stack is empty: cannot pop }
+;     else
+;       { stTop := stTop - 1;
+;         v := stack[stTop];
+;         return (v);
+;       }
+
+
+; push
+;       store  R2,pushSave2[R0]     ; save R2
+;       store  R3,pushSave3[R0]     ; save R3
+; 
+; ... do the actual work for the push ...
+; 
+;       load     R2,pushSave2[R0]    ; restore R2
+;       load     R3,pushSave3[R0]    ; restore R3
+;       jump    0[R13]              ; return
+; ...
+; pushSave2  data  0  ; place for push to save R2
+; pushSave3  data  0  ; place for push to save R3

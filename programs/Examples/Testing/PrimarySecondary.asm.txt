@@ -1,0 +1,9 @@
+; Program RFwrite
+; Test loading of primary and secondary into register file
+
+   lea   R15,$c20b[R0]  ; primary = R15
+   lea   R1,$00ab[R0]   ; R1 = constant
+   lea   R2,5[R0]       ; R2 = small constant
+   add   R3,R1,R2       ; primary = R3, secondary = R15
+   cmp   R1,R2          ; primary = none, secondary = R15
+   trap  R0,R0,R0       ; terminate
