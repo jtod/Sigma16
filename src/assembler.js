@@ -250,19 +250,20 @@ function assembler () {
     m.asmStmt = [];
     m.symbols = [];
     m.asmListing = [];
+    m.objectCode = [];
     m.locationCounter = 0;
+    clearObjectCode ();
     document.getElementById('AsmTextHtml').innerHTML = "";
     symbolTable.clear();
     m.asmListing.push("<pre>");
     m.asmListing.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
+
     asmPass1 ();
     asmPass2 ();
     //    printAsmStmts();
     showSymbolTable();
     m.asmListing.push("</pre>");
-
-//    console.log(asmListing.join('\n'));
     setAsmListing ();
 }
 
@@ -460,6 +461,7 @@ function testWd(op,d,a,b) {
 function asmPass2 () {
     console.log('assembler pass 2');
     let s, fmt,op,x;
+    initializeObjectLineBuffer ();
     for (let i = 0; i < m.asmStmt.length; i++) {
 	s = m.asmStmt[i];
 	fmt = s.operation.format;
@@ -467,29 +469,36 @@ function asmPass2 () {
 	if (fmt==RRR) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
+	    pushObjectWord (s.codeWord1);
 //	    console.log('pass2 RRR ' + intToHex4(s.codeWord1));
 	} else if (fmt==RR) { // like RRR but with b=0
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,0);
+	    pushObjectWord (s.codeWord1);
 //	    console.log('pass2 RR ' + intToHex4(s.codeWord1));
 	} else if (fmt==RX) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
 	    let aaa = s.dispField;
 	    let bbb = evaluate(s,s.dispField);
-//	    console.log('pas2 rx aaa=' + aaa + ' bbb=' + bbb);
 	    s.codeWord2 = evaluate(s,s.dispField);
+	    pushObjectWord (s.codeWord1);
+	    pushObjectWord (s.codeWord2);
+//	    console.log('pas2 rx aaa=' + aaa + ' bbb=' + bbb);
 //	    console.log('pass2 RX ' + intToHex4(s.codeWord1)
 //			+ intToHex4(s.codeWord2));
 	} else if (fmt==JX) { // like RX but with d=0
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
 	    s.codeWord2 = evaluate(s,s.dispField);
+	    pushObjectWord (s.codeWord1);
+	    pushObjectWord (s.codeWord2);
 //	    console.log('pass2 JX ' + intToHex4(s.codeWord1)
 //			+ intToHex4(s.codeWord2));
 	} else if (fmt==DATA && s.operandDATA) {
 //	    console.log('fmt is DATA and operandDATA=' + s.dat);
 	    s.codeWord1 = evaluate(s,s.dat);
+	    pushObjectWord (s.codeWord1);
 //	    console.log('pass2 DATA ' + intToHex4(s.codeWord1));
 	} else {
 //	    console.log('pass2 other, noOperation');
@@ -504,9 +513,39 @@ function asmPass2 () {
 	    m.asmListing.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	}
     }
-
+    flushObjectLine ();
 }
 
+// Object lines
+
+// The code generator outputs lines of object code containing up to
+// nobjWordsOnLine words.  Each word is added to a buffer by calling
+// pushObjectWord, and when the buffer reaches the limit (or when all
+// object code has been pushed) the buffer is flushed.
+
+var objectLineBuffer = "";
+var objBufferSize = 0;
+var objBufferLimit = 5;
+
+function initializeObjectLineBuffer () {
+    objectLineBuffer = " hexdata ";
+    objBufferSize = 0;
+}
+
+// Generate object code line for module m and clear the buffer for next code line
+function flushObjectLine() {
+    console.log('flushObjectLine ' + objectLineBuffer);
+    if (objBufferSize > 0) { m.objectCode.push (objectLineBuffer) };
+    initializeObjectLineBuffer ();
+}
+
+// Add object word x to buffer for next object code line in module m
+function pushObjectWord (x) {
+    if (objBufferSize > 0) { objectLineBuffer += ',' };
+    objectLineBuffer += intToHex4(x);
+    objBufferSize++;
+    if (objBufferSize >= objBufferLimit) { flushObjectLine() };
+}
 
 
 // Evaluate a displacement or data value.  This may be a decimal

@@ -98,25 +98,29 @@ Type something here
 	    </div>
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
-		<button> Link </button>
-		<button onclick="boot()"> Boot </button>
-		<button> Link 3 </button>
+		<button onclick="setCurrentObjectCode()"> Current object </button>
+		<button onclick="boot()"> test Boot </button>
+		<button> Linker 3 </button>
 	      </div>
-	      <textarea id="LinkerText">
-  hexdata  0312
-  hexdata  18c3
-  hexdata  a3f9
-	      </textarea>
+	      <div id="LinkerText">
+		<html>
+		  <body>
+		    <div class="HighlightedTextAsHtml"
+			 id="LinkerTextHtml">
+		    </div>
+		  </body>
+		</html>
+	      </div>
 	    </div>
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
-		<button>Reset</button>
-		<button>Boot</button>
-		<button>Step</button>
-		<button>Run</button>
-		<button>Interrupt</button>
-		<button>Pause</button>
-		<button>Breakpoint</button>
+		<button onclick="procReset()"> Reset </button>
+		<button onclick="procBoot()"> Boot </button>
+		<button onclick="procStep()"> Step </button>
+		<button onclick="procRun()"> Run </button>
+		<button onclick="procInterrupt()">Interrupt</button>
+		<button onclick="procPause()">Pause</button>
+		<button onclick="procBreakpoint()">Breakpoint</button>
 	      </div>
 	      <div id="ProcessorState">
 		<div class="ProcStateSection" id="InstructionRegisters">

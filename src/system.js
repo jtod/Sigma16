@@ -19,7 +19,8 @@ function mkModule () {
 	asmStmt : [],
 	symbols : [],
 	locationCounter : 0,
-	asmListing : []
+	asmListing : [],
+	objectCode : []
     }
 }
 
@@ -38,4 +39,18 @@ function showModule (m) {
     let n = m.src ? m.src.length : 0;
     let xs = m.modName + ' (' +  n + ' characters)\n';
     return xs;
+}
+
+// linker
+
+function clearObjectCode () {
+    document.getElementById('LinkerTextHtml').innerHTML	= "";
+}
+
+function setCurrentObjectCode () {
+    let objHeader = "Module " + currentModNum + " object code"
+    document.getElementById('LinkerTextHtml').innerHTML	=
+	"<pre><span class='ListingHeader'>" + objHeader + "</span>\n"
+	+ s16modules[currentModNum].objectCode.join('\n')
+	+ "</pre>";
 }
