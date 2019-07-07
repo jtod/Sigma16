@@ -14,6 +14,8 @@ function clearObject () {
 // Check whether the current module contains an executable; if so boot it
 function bootCurrentModule () {
     console.log ('procCurrentModule');
+    resetRegisters ();
+    memClearAccesses();
     let m = s16modules[currentModNum];   // check that it exists ??
     let stmt = m.asmStmt;
     let locationCounter = 0;
