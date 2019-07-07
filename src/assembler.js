@@ -528,7 +528,7 @@ var objBufferSize = 0;
 var objBufferLimit = 5;
 
 function initializeObjectLineBuffer () {
-    objectLineBuffer = " hexdata ";
+    objectLineBuffer = "  hexdata  ";
     objBufferSize = 0;
 }
 
