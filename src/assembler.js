@@ -186,8 +186,8 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    disp : 0,                       // displacement value
 	    dat : 0,                        // data value
 	    codeSize : 0,                   // number of words generated
-	    codeWord1 : 0,                  // first word of object
-	    codeWord2 : 0,                  // second word of object
+	    codeWord1 : -1,                  // first word of object
+	    codeWord2 : -1,                  // second word of object
 	    errors : []                     // array of lines of error messages
 	   }
 }
