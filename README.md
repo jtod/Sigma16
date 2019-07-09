@@ -9,7 +9,59 @@
   datafiles/doc/html/index.html.  If that file doesn't exist, you can
   read the markdown source in src/docsrc.index.md.
 
+# Required software tools
+
+The following tools are required:
+
+    git
+    javascript
+    html5
+    css
+
+# Standalone executable using electron
+
+The following software needs to be installed in order to build the executable
+
+    node.js
+    npm
+
+The following files are required
+
+    src/main.js
+    src/package.json
+    src/package-lock.json
+    src/preload.js
+    src/renderer.hs
+    src/node_modules/
+
+
+
+# Compiling a standalone executable;  requires Node.js and npm
+
+    cd src
+	npm install
+	npm start
+
+    # Clone this repository
+    git clone https://github.com/electron/electron-quick-start
+    # Go into the repository
+    cd electron-quick-start
+    # Install dependencies
+    npm install
+    # Run the app
+    npm start
+
+
 ## Launching Sigma16
+
+* Running as a web page
+
+* Running as a standalone app on your computer
+
+    npm install
+    npm start
+
+
 
 * Launch the executable file Sigma16.exe.
 

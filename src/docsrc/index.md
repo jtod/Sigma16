@@ -21,10 +21,24 @@ environment.
 
 ## How to run the program
 
-Launch *Sigma16.exe* and visit *http://localhost:8023* in
-your browser.  See the section Installation and Troubleshooting for
-more detail.
+### Running in a browser.
 
+### Running a standalone pre-compiled executable
+
+### Compiling a standalone executable;  requires Node.js and npm
+
+    cd src
+	npm install
+	npm start
+
+    # Clone this repository
+    git clone https://github.com/electron/electron-quick-start
+    # Go into the repository
+    cd electron-quick-start
+    # Install dependencies
+    npm install
+    # Run the app
+    npm start
 
 ## Tutorial: Run an example program
 
