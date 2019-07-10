@@ -2,6 +2,14 @@
 
 ## Log
 
+2019-07-10 Wednesday
+* 
+
+2019-07-09 Tuesday
+* Installed node.js, npm, and electron, got an electron demo working,
+  and got Sigma16 to run in a standalone app.  There are some problems
+  with fonts etc but it now runs both in the browser and standalone.
+  
 2019-07-08 Monday
 * Created branch modularize for changing the program from script files
   to modules, in order to avoid dumping all the definitions in all the

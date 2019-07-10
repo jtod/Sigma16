@@ -4,7 +4,8 @@
 // module (if the linker has been run).
 
 var instr = 0;
-var ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;
+var ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
+var ea = 0;  // effective address
 
 function clearCtlRegs () {
 }
@@ -22,6 +23,7 @@ function procStep () {
 function executeInstruction () {
     console.log ('executeInstruction');
     memClearAccesses ();
+    memDisplay ();
     regClearAccesses ();
 
     ir.put (memFetch (pc.get()));
@@ -39,13 +41,9 @@ function executeInstruction () {
 
     opDispatch [ir_op] ();
     
-    refreshRegisters();
     regShowAccesses()
     memShowAccesses();
-}
-
-function rrr (op) {
-    console.log ('rrr ' + op);
+    memDisplay ();
 }
 
 var opDispatch =
@@ -64,16 +62,20 @@ var opDispatch =
      function () {rrr(rrr_div)},
      function () {rrr(rrr_div)},
      function () {xx()},
-     function () {rx()} ]
+     function () {handle_rx()} ]
 
-function rrr (f) {
+
+function rrr (op) {
     console.log ('rrr');
-    f ();
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let cc = regFile[15].get();
+    let [ primary, secondary ] = op (a,b,cc);
+    console.log ('rrr primary = ' + primary + ' secondary = ' + secondary);
+    regFile[ir_d].put(primary);
+    if (ir_d<15) { regFile[15].put(secondary) }
 }
 
-function rrr_add () {
-    console.log ('rrr_add');
-}
 
 function rrr_sub () {
     console.log ('rrr_sub');
@@ -91,9 +93,40 @@ function xx () {
     console.log ('xx');
 }
 
-function rx () {
-    console.log ('rx');
+function handle_rx () {
+    console.log ('handle rx' + ir_b);
+    rxDispatch[ir_b]();
 }
 
 
+var rxDispatch =
+    [function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)},
+     function () {rx(rx_lea)}]
 
+function rx(f) {
+    console.log('rx');
+    adr.put (memFetch (pc.get()));
+    pc.put (pc.get() + 1);
+    ea = regFile[ir_a].get() + adr.get();
+    console.log('rx ea = ' + intToHex4(ea));
+    f();
+}
+
+function rx_lea () {
+    console.log('rx_lea');
+    regFile[ir_d].put(ea);
+}

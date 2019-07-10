@@ -13,7 +13,8 @@
 				   computer architecture, assembler,
 				   emulator, application">
     <title>Sigma16</title>
-    <script src="./datatypes.js"> </script>
+    <script src="./arithmetic.js"> </script>
+    <script src="./subsystems.js"> </script>
     <script src="./system.js"> </script>
     <script src="./assembler.js"> </script>
     <script src="./linker.js"> </script>
@@ -53,7 +54,6 @@
 	    </div>
 	    <div class="Pane" id="FilePane">
 	      <div class="PaneButtons">
-		<button> File 1 </button>
 		<button> File 2 </button>
 		<button> File 3 </button>
 	      </div>
@@ -77,6 +77,7 @@ Type something here
 		<button onclick="editorButton2()">Open</button>
 		<button>Reread</button>
 		<button onclick="insert_example(example_add);">Example: Add</button>
+		<button onclick="tryMainFcn()"> try def in main </button>
 	      </div>
 	      <textarea class="PaneTextArea" id="EditorTextArea">
 	      </textarea>

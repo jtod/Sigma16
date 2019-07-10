@@ -268,8 +268,15 @@ function insert_example(exampleText) {
     document.getElementById('EditorTextArea').value = exampleText;
 };
 
+
 // Simple example program: add
 const example_add = `; Program Add
+
+  add R4,R5,R6
+
+  lea   R4,23[R0]
+  lea   R9,5[R0]
+  add   R7,R4,R9
 
 ; result := x + y
     load  R1,x[R0]       ; R1 := x
@@ -493,11 +500,15 @@ window.onload = function () {
 
 // Initialize the registers
 
-// Register file
+    // Register file
+    // R0 is built specially as it is constant; all others are built with mkReg
+    
     for (var i = 0; i<16; i++) {
 	let regname = 'R' + i; // also the id for element name
 //	console.log('xx' + regname + 'xx');
-	thisReg = mkReg (regname, regname, intToHex4);
+	thisReg = (i==0) ?
+	    mkReg0 (regname, regname, intToHex4)
+	    : mkReg (regname, regname, intToHex4);
 	thisReg.regIdx = i;
 	regFile[i] = thisReg;
 	register[i] = thisReg;
