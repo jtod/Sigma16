@@ -9,20 +9,15 @@
 #    make very-clean
 
 # Provide version number in generated html documentation
-Sigma16Version = 3.0.4
+Sigma16Version = version???
 VersionDate = $(Sigma16Version)
 
 # Requires: ghc, stack, pandoc. Usage:
 
-#  make doc               same as make user-guide
-#  make user-guide        create doc/html files from markdown source
-#  make compile-windows   build on Windows
+#  make doc               generate html from user guide markdown source
 #  make clean             delete object code and backup files
 #  make very-clean        also delete generated doc/html files
-#  make listing           make listing.pdf showing Haskell and pandoc source
 #  make archive-tarball   save a .tgz tarball in archive directory
-#  make archive-copy      save a full copy in archive directory
-#  make list-archive      list the archive directory
 
 # See README.txt for file and directory layout.  The ArchiveLocation
 # is relative to the parent directory of Sigma16-i.j.k
@@ -66,15 +61,15 @@ listing :
 # make doc -- generate the html documentation from markdown source
 .PHONY : doc
 doc :
-	mkdir -p doc/html
-	cp -r src/docsrc/figures doc/html
-	cp src/docsrc/Sigma16doc.css doc/html
+	mkdir -p ../build/doc/html
+	cp -r docsrc/figures ../build/doc/html
+	cp docsrc/Sigma16doc.css ../build/doc/html
 	pandoc --standalone \
           --table-of-contents --toc-depth=3 \
           --variable=date:'$(VersionDate)' \
           --variable=css:Sigma16doc.css \
-          -o doc/html/index.html \
-	  src/docsrc/index.md
+          -o ../build/doc/html/index.html \
+	  docsrc/index.md
 
 #---------------------------------------------------------------------
 # Maintaining the directories

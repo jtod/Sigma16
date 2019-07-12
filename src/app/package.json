@@ -1,6 +1,6 @@
 {
   "name": "Sigma16",
-  "version": "3.0.16",
+  "version": "3.0.17",
   "description": "Computer architecture tools",
   "main": "main.js",
   "scripts": {
