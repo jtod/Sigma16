@@ -24,7 +24,11 @@
 <nav id="TOC">
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
-<li><a href="#how-to-run-the-program">How to run the program</a></li>
+<li><a href="#how-to-run-the-program">How to run the program</a><ul>
+<li><a href="#running-in-a-browser.">Running in a browser.</a></li>
+<li><a href="#running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</a></li>
+<li><a href="#compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</a></li>
+</ul></li>
 <li><a href="#tutorial-run-an-example-program">Tutorial: Run an example program</a></li>
 <li><a href="#using-the-user-interface">Using the user interface</a><ul>
 <li><a href="#editor">Editor</a></li>
@@ -89,11 +93,26 @@
 </ul></li>
 </ul>
 </nav>
+<p>Version</p>
 <h1 id="introduction">Introduction</h1>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
 <p>This reference manual is organised by topic, with chapters on the architecture, the assembly language, and the emulator. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program, and how to use the programming environment.</p>
 <h2 id="how-to-run-the-program">How to run the program</h2>
-<p>Launch <em>Sigma16.exe</em> and visit <em>http://localhost:8023</em> in your browser. See the section Installation and Troubleshooting for more detail.</p>
+<h3 id="running-in-a-browser.">Running in a browser.</h3>
+<h3 id="running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</h3>
+<h3 id="compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</h3>
+<pre><code>cd src
+npm install
+npm start
+
+# Clone this repository
+git clone https://github.com/electron/electron-quick-start
+# Go into the repository
+cd electron-quick-start
+# Install dependencies
+npm install
+# Run the app
+npm start</code></pre>
 <h2 id="tutorial-run-an-example-program">Tutorial: Run an example program</h2>
 <p>A good way to get started is to go through the entire process of entering a simple program, assembling it, and running it. This section shows you how. For now, we focus just on how to use the software tools; an explanation of the Sigma16 architecture comes later.</p>
 <p>When you launch the application, a window will appear in your browser. It has several panes, with buttons at the top to switch between panes. The Welcome pane will be visible.</p>

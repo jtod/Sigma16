@@ -2,8 +2,22 @@
 
 ## Log
 
+2019-07-11 Thursday
+* Worked just on jtod.github.io page.  It's awkward to edit manually
+  on the web interface (just one file at a time, and can't copy a
+  directory into it).  I made a local git repository
+  homepage/jtod.github.io and cloned the github page into that.  Then
+  I edited this by copying the relevant files from the current Sigma16
+  repository, and made an index.html and a directory Sigma16 with its
+  own index.html, and then created a subdirectory for a testing
+  version; that's where the files were copied into.  Then, visiting my
+  github page in the browser, I got the home page (my index.html), and
+  navigated to the Sigma16 directory and from there to the testing
+  directory.  This launched and ran correctly.  So this is basically
+  how to provide a release that can be run directly from the web.
+
 2019-07-10 Wednesday
-* 
+* Worked on the emulator; lea and add are implemented and working.
 
 2019-07-09 Tuesday
 * Installed node.js, npm, and electron, got an electron demo working,

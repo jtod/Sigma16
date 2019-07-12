@@ -1,5 +1,7 @@
 % User Guide
 
+Version
+
 # Introduction
 
 Sigma16 is a computer architecture designed for research and teaching
@@ -20,6 +22,38 @@ you how to enter and run a program, and how to use the programming
 environment.
 
 ## How to run the program
+
+### Making a release on github pages
+
+make a local directory for editing the project page on github pages.
+cd into this directory.
+
+    git clone https://github.com/jtod/jtod.github.io
+	git add jtod.github.io
+	cd jtod.github.io
+	git branch adds16dir
+	git checkout adds16dir
+	git status
+	mkdir Sigma16
+	using emacs, create index.html and Sigma16/index.html
+
+To build a release, the necessary files in the current version need to
+be copied from the development directory into the web page directory
+in jtod.github.io/Sigma16.  However, it doesn't work very well simply
+to copy the contents of the Sigma16 development directory into the
+release directory because all the .gitignore files should be skipped.
+Consequently a script is used to automate the construction of a
+release, and the script will copy exactly the required files.
+	
+    git remote add webpage https://github.com/jtod/jtod.github.io
+	git remote
+	git status
+	git push webpage adds16dir         adds16dir is the local branch
+	
+On github page, made a pull request and selected adds1dir.  There were
+no merge conflicts and the pull request was executed and cleared.  The
+home page seems to come from the README file but refreshing it gives
+my index.html.
 
 ### Running in a browser.
 

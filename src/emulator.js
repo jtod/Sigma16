@@ -20,6 +20,8 @@ function procStep () {
     executeInstruction();
 }
 
+// memClearAccesses, memShowAccesses, and memDisplay are very slow...
+
 function executeInstruction () {
     console.log ('executeInstruction');
     memClearAccesses ();

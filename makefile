@@ -66,14 +66,14 @@ listing :
 # make doc -- generate the html documentation from markdown source
 .PHONY : doc
 doc :
-	mkdir -p datafiles/doc/html
-	cp -r src/docsrc/figures datafiles/doc/html
-	cp src/docsrc/Sigma16doc.css datafiles/doc/html
+	mkdir -p doc/html
+	cp -r src/docsrc/figures doc/html
+	cp src/docsrc/Sigma16doc.css doc/html
 	pandoc --standalone \
           --table-of-contents --toc-depth=3 \
           --variable=date:'$(VersionDate)' \
           --variable=css:Sigma16doc.css \
-          -o datafiles/doc/html/index.html \
+          -o doc/html/index.html \
 	  src/docsrc/index.md
 
 #---------------------------------------------------------------------
