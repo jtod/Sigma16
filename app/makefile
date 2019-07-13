@@ -1,8 +1,9 @@
 # makefile for Sigma16
 
-# Provide version number in generated html documentation
+# Extract the version from the package.json file; it's on the line
+# consisting of "version: : "1.2.3",
 
-VERSION := 3.0.17.1-test
+S16VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 #  make all               build everything from source
 #  make doc               generate html from user guide markdown source
@@ -34,6 +35,7 @@ FullCopyName := $(PackageName)-on-$(DateTimeStamp)
 .PHONY : all
 all :
 	make doc
+	make version-file
 	make dependencies
 	make executable
 	make release
@@ -41,6 +43,7 @@ all :
 # make show-parameters -- print calculated parameters
 .PHONY : show-parameters
 show-parameters :
+	echo S16VERSION = $(S16VERSION)
 	echo PackagePath = $(PackagePath)
 	echo PackageName = $(PackageName)
 	echo DateTimeStamp = $(DateTimeStamp)
@@ -60,7 +63,9 @@ doc :
 	cp -r doc/src/figures doc/html
 	cp doc/src/doc.css doc/html
 	pandoc --standalone \
+          --template=doc/src/userguide-template.html \
           --table-of-contents --toc-depth=3 \
+          --variable=version:'$(S16VERSION)' \
           --variable=date:'$(VersionDate)' \
           --variable=css:doc.css \
           -o doc/html/index.html \
@@ -70,6 +75,11 @@ doc :
 .PHONY : dependencies
 dependencies :
 	npm install
+
+.PHONY : version-file
+version-file :
+	echo $(S16VERSION) > ../VERSION
+	echo "const s16version = \"$(S16VERSION)\";" > version.js
 
 .PHONY : run
 run :
