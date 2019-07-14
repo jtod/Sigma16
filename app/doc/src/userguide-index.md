@@ -1,7 +1,5 @@
 % User Guide
 
-Version
-
 # Introduction
 
 Sigma16 is a computer architecture designed for research and teaching
