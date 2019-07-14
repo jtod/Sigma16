@@ -102,7 +102,17 @@ Trying electron-builder
     npm install electron-builder --save-dev   in src/app
     npm run mkdist
 	
-	
+
+### Version number
+
+The version number is needed in several places.  To keep it
+consistent, there is only one primary place where it should be
+specified manually: in the version property in app/package.json.
+
+The makefile extracts the version number from that file, and (1)
+defines a make variable; (2) writes the Sigma16/VERSION file with just
+the version number, and (3) writes Sigma16/app/version.js which is
+just defines the version number as a global constant.  
 
 ### Running in a browser.
 
