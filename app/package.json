@@ -2,6 +2,7 @@
     "name": "sigma16",
     "version": "3.0.18",
     "description": "Computer architecture with assembler and emulator",
+    "repository" : "Sigma/current/Sigma16",
     "homepage": "./",
     "main": "main.js",
     "bin": "main.js",
