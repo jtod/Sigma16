@@ -3,7 +3,7 @@
 # Extract the version from the package.json file; it's on the line
 # consisting of "version: : "1.2.3",
 
-S16VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 #  make all               build everything from source
 #  make userguide               generate html from user guide markdown source
@@ -43,7 +43,7 @@ all :
 # make show-parameters -- print calculated parameters
 .PHONY : show-parameters
 show-parameters :
-	echo S16VERSION = $(S16VERSION)
+	echo VERSION = $(VERSION)
 	echo PackagePath = $(PackagePath)
 	echo PackageName = $(PackageName)
 	echo DateTimeStamp = $(DateTimeStamp)
@@ -66,7 +66,7 @@ userguide :
 	pandoc --standalone \
           --template=doc/src/userguide-template.html \
           --table-of-contents --toc-depth=3 \
-          --variable=version:'$(S16VERSION)' \
+          --variable=version:'$(VERSION)' \
           --variable=date:'$(VersionDate)' \
           --variable=css:doc.css \
           -o doc/html/userguide-index.html \
@@ -77,7 +77,7 @@ release-index :
 	mkdir -p ../release
 	pandoc --standalone \
           --template=doc/src/release-index-template.html \
-          --variable=version:'$(S16VERSION)' \
+          --variable=version:'$(VERSION)' \
           --variable=date:'this is version date $(VersionDate)' \
           --variable=css:'./app/doc/src/doc.css' \
           -o ../release/index.html \
@@ -90,8 +90,8 @@ dependencies :
 
 .PHONY : version-file
 version-file :
-	echo $(S16VERSION) > ../VERSION
-	echo "const s16version = \"$(S16VERSION)\";" > version.js
+	echo $(VERSION) > ../VERSION
+	echo "const s16version = \"$(VERSION)\";" > version.js
 
 .PHONY : run
 run :
@@ -103,21 +103,22 @@ executable :
 
 .PHONY : release
 release :
-	mkdir -p ../release/$(VERSION)
-	cp ../LICENSE.txt ../release/$(VERSION)
-	cp ../README.md ../release/$(VERSION)
-	cp ../VERSION ../release/$(VERSION)
-	mkdir -p ../release/$(VERSION)/app
-	cp makefile ../release/$(VERSION)/app
-	cp *.html ../release/$(VERSION)/app
-	cp *.css ../release/$(VERSION)/app
-	cp *.js ../release/$(VERSION)/app
-	cp *.json ../release/$(VERSION)/app
-	cp -r datafiles ../release/$(VERSION)/app
-	cp -r doc ../release/$(VERSION)/app
-	cp -r programs ../release/$(VERSION)/app
-	mv dist/*.exe ../release/$(VERSION)/Sigma16-$(S16VERSION)-win.exe
+	mkdir -p ../release/Sigma16-$(VERSION)
+	cp ../LICENSE.txt ../release/Sigma16-$(VERSION)
+	cp ../README.md ../release/Sigma16-$(VERSION)
+	cp ../VERSION ../release/Sigma16-$(VERSION)
+	mkdir -p ../release/Sigma16-$(VERSION)/app
+	cp makefile ../release/Sigma16-$(VERSION)/app
+	cp *.html ../release/Sigma16-$(VERSION)/app
+	cp *.css ../release/Sigma16-$(VERSION)/app
+	cp *.js ../release/Sigma16-$(VERSION)/app
+	cp *.json ../release/Sigma16-$(VERSION)/app
+	cp -r datafiles ../release/Sigma16-$(VERSION)/app
+	cp -r doc ../release/Sigma16-$(VERSION)/app
+	cp -r programs ../release/Sigma16-$(VERSION)/app
+	zip -r ../release/Sigma16-$(VERSION).zip ../release/Sigma16-$(VERSION)
 	make release-index
+	mv dist/*.exe ../release/Sigma16-Sigma16-$(VERSION)-win.exe
 
 # There is a bug in Electron-builder: it gives a bad name to the exe
 # file; for example it produces 'sigma16 3.0.1-7.2.exe' including the
