@@ -1,8 +1,5 @@
 % Sigma16
 
-# Sigma16
-
-
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture, including an editor,
@@ -14,8 +11,7 @@ language programs can run on both the emulator and the circuit.  </p>
 
 ## Running in a browser connected to Internet
 
-	<a href="./app/Sigma16.html"><strong>Click here to launch
-	  the application</strong>
+[*Click here to launch the program*](./app/Sigma16.html)
 
 ## Running standalone app on a computer without Internet access
 
@@ -25,10 +21,9 @@ There is a standalone executable program
 
 ## Documentation
 
+The User Guide is displayed in the running application, and you can
+also read it here without launching the program:
 
-The User Guide is displayed in the running
-application, but you can also read it here:
+*  [User Guide (html)](app/doc/html/userguide-index.html)
 
-*  <a href="app/doc/html/index.html"> User Guide (html)
-
-*  <a href="app/doc/src/index.md"> User Guide (plain text)
+*  [User Guide (plain text)](app/doc/src/userguide-index.md)
