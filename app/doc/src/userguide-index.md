@@ -21,6 +21,81 @@ environment.
 
 ## How to run the program
 
+The software is available on the Internet at the [Sigma16 home
+page](https://jtod.github.io/Sigma16/), which contains a link to the
+latest version, some previous versions, related documents, and more
+information about the project.
+
+There are a number of ways to run the software, but it's recommended
+that you try the easiest way.
+
+### The easiest (and recommended) way: just click a link
+
+Run the app with two clicks:
+
+  1. Visit the [Sigma16 homepage](https://jtod.github.io/Sigma16/index.html)
+  2. Click on *Launch the latest release*
+
+This will run the app in your browser, and you don't need to download
+or install anything.  For most users this is the recommended method.
+
+### If you don't always have Internet access: copy to your computer
+
+You can also download the software onto your computer and run it
+locally.  This exactly like the first method, except the web pages are
+coming from your computer's files rather than the Internet.
+
+Visit the [Sigma16 home
+page](https://jtod.github.io/Sigma16/index.html) and download the zip
+file for the latest release.  Unzip and click on index.html in the
+folder and follow the directions.
+
+You might also be able to launch it by [clicking this
+link](../../Sigma16.html) although that might not work; it depends on
+whether all the necessary files are accessible.
+
+### Offers enhanced file access: Local installation
+
+The previous methods run the app in a browser.  There are some
+security restrictions on what a browser can do, and these make it
+slightly awkward for the program to read and write files.  You can
+perform a local installation which will run Sigma16 as a standalone
+app on your computer, rather than in a browser, and this makes it a
+little more convenient to use.
+
+If you don't want to bother with downloading some software tools and
+running an installation script, you can skip to the next method, which
+is to download a precompiled executable for your platform.  But it's
+straightforward to build Sigma16 on your computer:
+
+  * You need a shell such as bash or Windows PowerShell.  Every
+    computer will have one.
+	
+  * Install the npm package manager for JavaScript, available at
+    [https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm).
+    Download the installer and follow the instructions.
+
+  * Install the *electron* package.  In your shell, enter *npm install
+    electron --save-dev*.  (Why is it called "electron"?  Originally,
+    there was a text editor named *Atom* written in JavaScript, and it
+    needed a shell.  So it's the electron shell for atom...
+	
+  * Download the source for Sigma16.  Unzip it, and cd into the app
+    directory.  Enter *make all*.
+	
+  * To launch Sigma16, enter *npm run start*.  Now you'll have
+    enhanced file access, as well as a few other minor enhancements,
+    and you don't need Internet access.
+
+### Download a precompiled executable for your platform
+
+The Sigma16 home page provides pre-compiled executable apps for some
+platforms.  You can download one of these and it should "just work".
+
+It is always prudent to be careful about what executable software you
+download and install on your computer.  If you don't feel comfortable
+with doing so, try the previous method (Local installation).  It's
+actually quite straightforward!
 
 ### Making a release on github pages
 

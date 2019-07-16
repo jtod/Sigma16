@@ -25,6 +25,10 @@ Version 3.0.19
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
 <li><a href="#how-to-run-the-program">How to run the program</a><ul>
+<li><a href="#the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</a></li>
+<li><a href="#if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</a></li>
+<li><a href="#offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</a></li>
+<li><a href="#download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</a></li>
 <li><a href="#making-a-release-on-github-pages">Making a release on github pages</a></li>
 <li><a href="#version-number">Version number</a></li>
 <li><a href="#running-in-a-browser.">Running in a browser.</a></li>
@@ -99,6 +103,32 @@ Version 3.0.19
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
 <p>This reference manual is organised by topic, with chapters on the architecture, the assembly language, and the emulator. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program, and how to use the programming environment.</p>
 <h2 id="how-to-run-the-program">How to run the program</h2>
+<p>The software is available on the Internet at the <a href="https://jtod.github.io/Sigma16/">Sigma16 home page</a>, which contains a link to the latest version, some previous versions, related documents, and more information about the project.</p>
+<p>There are a number of ways to run the software, but it’s recommended that you try the easiest way.</p>
+<h3 id="the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</h3>
+<p>Run the app with two clicks:</p>
+<ol type="1">
+<li>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 homepage</a></li>
+<li>Click on <em>Launch the latest release</em></li>
+</ol>
+<p>This will run the app in your browser, and you don’t need to download or install anything. For most users this is the recommended method.</p>
+<h3 id="if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</h3>
+<p>You can also download the software onto your computer and run it locally. This exactly like the first method, except the web pages are coming from your computer’s files rather than the Internet.</p>
+<p>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 home page</a> and download the zip file for the latest release. Unzip and click on index.html in the folder and follow the directions.</p>
+<p>You might also be able to launch it by <a href="../../Sigma16.html">clicking this link</a> although that might not work; it depends on whether all the necessary files are accessible.</p>
+<h3 id="offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</h3>
+<p>The previous methods run the app in a browser. There are some security restrictions on what a browser can do, and these make it slightly awkward for the program to read and write files. You can perform a local installation which will run Sigma16 as a standalone app on your computer, rather than in a browser, and this makes it a little more convenient to use.</p>
+<p>If you don’t want to bother with downloading some software tools and running an installation script, you can skip to the next method, which is to download a precompiled executable for your platform. But it’s straightforward to build Sigma16 on your computer:</p>
+<ul>
+<li><p>You need a shell such as bash or Windows PowerShell. Every computer will have one.</p></li>
+<li><p>Install the npm package manager for JavaScript, available at <a href="https://www.npmjs.com/get-npm">https://www.npmjs.com/get-npm</a>. Download the installer and follow the instructions.</p></li>
+<li><p>Install the <em>electron</em> package. In your shell, enter <em>npm install electron –save-dev</em>. (Why is it called “electron”? Originally, there was a text editor named <em>Atom</em> written in JavaScript, and it needed a shell. So it’s the electron shell for atom…</p></li>
+<li><p>Download the source for Sigma16. Unzip it, and cd into the app directory. Enter <em>make all</em>.</p></li>
+<li><p>To launch Sigma16, enter <em>npm run start</em>. Now you’ll have enhanced file access, as well as a few other minor enhancements, and you don’t need Internet access.</p></li>
+</ul>
+<h3 id="download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</h3>
+<p>The Sigma16 home page provides pre-compiled executable apps for some platforms. You can download one of these and it should “just work”.</p>
+<p>It is always prudent to be careful about what executable software you download and install on your computer. If you don’t feel comfortable with doing so, try the previous method (Local installation). It’s actually quite straightforward!</p>
 <h3 id="making-a-release-on-github-pages">Making a release on github pages</h3>
 <p>make a local directory for editing the project page on github pages. cd into this directory.</p>
 <pre><code>git clone https://github.com/jtod/jtod.github.io
