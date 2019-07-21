@@ -7,6 +7,12 @@ var instr = 0;
 var ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
 var ea = 0;  // effective address
 
+function setProcAsmListing (xs) {
+    console.log ('setProcAsmListing');
+//    console.log(xs);
+    document.getElementById('ProcListingHtml').innerHTML = xs;
+}
+
 function clearCtlRegs () {
 }
 

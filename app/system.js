@@ -49,8 +49,10 @@ function clearObjectCode () {
 
 function setCurrentObjectCode () {
     let objHeader = "Module " + currentModNum + " object code"
-    document.getElementById('LinkerTextHtml').innerHTML	=
+    let objText =
 	"<pre><span class='ListingHeader'>" + objHeader + "</span>\n"
 	+ s16modules[currentModNum].objectCode.join('\n')
 	+ "</pre>";
+    document.getElementById('LinkerTextHtml').innerHTML	= objText;
+
 }

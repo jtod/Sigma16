@@ -2,119 +2,303 @@
 
 /* Define symbolic names for colors and dimensions */
 
+
+/* Heights of elements from top to bottom add up to the viewport height
+
+     frameHBorderThickness
+     topSectionHeight
+     topMidSecSkip
+     botSecHeight
+     frameHBorderThickness
+
+
+Calculated values
+     midSecOffsetBelowTop =
+        frameHBorderThickness + topSectionHeight
+        + topMidSecSkip
+
+
+pane height
+  vframeheight - (midSecOffsetBelowTop _ midSecOffsetAboveBot)
+
+ */
+
 :root {
-/* Color definitions */
+/* Aliases for some colors */
     --light-blue: #e6ffff;
     --dark-blue: blue;
     --dark-green: green;
-    --window-background-color: blue;
-    --button-box-background-color: var(--light-blue);
-    --bottom-section-background-color: var(--light-blue);
-    --wrapper-background-color: var(--dark-green);
-/* Size definitions */
+    --dark-blue : blue;
+/* Aliases for sizes */
     --thin-separation: 0.15em;
-    --main-section-top-skip: 2.1em;
+/* Sections of the GUI */
+    --frameHBorderThickness: 0.25em;
+    --full-frame-background-color: var(--dark-blue);
+    --topSectionHeight: 1.5em;
+    --top-section-background-color: yellow;
+    --topMidSecSkip: 0.25em;
+    --midSecOffsetBelowTop: calc(var(--frameHBorderThickness) +
+			     var(--topSectionHeight) +
+			     var(--topMidSecSkip));
+    --wrapper-background-color: var(--dark-green);
+    --middle-section-background-color: yellow;
+    --mid-main-background-color: green;
+    --mid-main-separator-color: yellow;
+    --mid-main-left-background-color: red;
+    --mid-main-right-background-color: red;
+    --paneHeight: calc(100vh
+		       - (var(--midSecOffsetBelowTop)
+			  + var(--midSecOffsetAboveBot)));
+    --paneBodyMarginTop: 0.3em;
+    --paneBodyHeight: calc(var(--paneHeight) -
+			   (var(--paneBodyMarginTop) + 3em)); /* ??? */
+    --middle-section-separator-color: blue;
+    --midBotSecSkip: 0.25em;
+    --midSecOffsetAboveBot: calc(var(--frameHBorderThickness) +
+			     var(--botSecHeight) +
+			     var(--midBotSecSkip));
+    --botSecHeight: 1.2em;
+    --bottom-section-background-color: yellow;
+/* Basic GUI elements */
+    --button-box-background-color: var(--light-blue);
+    --subpanel-background-color: ivory;
     --mem-display-width: 7em;
     --reg-name-val-sep: 0.7em;
+    --IOinputbuffer-background: yellow;
+/* fonts */    
+    --main-font-family: 'Lucida Console',monospace;
+    --main-font-size: 0.9em;
+    --text-color-get: blue;
+    --text-color-put: red;
+    --text-color-err: red;
 }
 
 .RegisterName {
-    font-family: 'Lucida Console',monospace;
-    font-size: 0.9em;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
     font-weight: bold;
 }
 
 .RegisterValue {
-    font-family: 'Lucida Console',monospace;
-    font-size: 0.9em;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
 }
 
 .FullFrame {
     position: fixed;
-    background-color: blue;
+    background-color: var(--full-frame-background-color);
     top: 0em;
     bottom: 0em;
     left: 0em;
     right: 0em;
 }
 
+/* Top section ------------------------------------------------------- */
 /* The top section contains the tab buttons and global controls */
+
 .TopSection {
     position: absolute;
-    top: 1em;
+    top: var(--frameHBorderThickness);
     left: 1em; 
     right: 1em;
-    height: 1.5em;
-    background-color: orange;
+    height: var(--topSectionHeight);
+    background-color: var(--top-section-background-color);
 }
 
-/* The middle section is the main part of the gui */
-.MiddleSection {
-    position: absolute;
-    top: 4em;
-    bottom: 4em;
-    left: 1em; 
-    right: 1em;
-    background-color: green;
-}
+/* Middle section ------------------------------------------------------- */
+/* The middle section is the main part of the gui.  It contains two
+parts, mid main left (containing the panes, which are defined in
+separate sections later) and mid main right (containing the user
+guide). */
 
 /* The middle/main section is split into the system display and documentation */
 
+.MiddleSection {
+    position: absolute;
+    top: var(--midSecOffsetBelowTop);
+    bottom: var(--midSecOffsetAboveBot);
+    left: 1em; 
+    right: 1em;
+    background-color: var(--middle-section-background-color);
+}
+
+
 .MidMainSection {
-    background-color: red;
+    position: absolute;
+    left: 0em;
+    top: 0em;
+    right: 0em;
+    bottom: 0em;
+    background-color: var(--mid-main-background-color);
     display: flex;
     flex-direction: row;
-    position: relative;
-    bottom: 1em;
 }
 
 /* The left part of middle/main holds the various panes */
 
 .MidMainLeft {
     flex: 1 1 auto;
-    background-color: brown;
+    background-color: var(--mid-main-left-background-color);
     box-sizing: border-box;
+
 }
 
+/* Panes(separate tabs in the Middle section) --------------------------- */
 /* There are separate panes for the editor, assembler, etc. Normally
    one is visible and the others are hidden */
 
 .Pane {
-    display: absolute;
-    background-color: purple;
-    top: 0em;
-    bottom: 0em;
-    left: 0em;
-    right: 0em;
-/*    width: 100%; */
-    margin: 0em;
+   display: absolute;
+   background-color: pink;
+   height: 100%;
+   width: 100%;
+   box-sizing: border-box;
+   padding: 4px;
+   border-style: solid;
+   border-color: white;
+   border-width: 2px;
 }
 
 .PaneButtons {
+    box-sizing: border-box;
     background-color: beige;
-    height: 2em;
-    margin: 1em;
 }
 
+/* maybe don't need this */
+
+.PaneBody {
+    margin-top: var(--paneBodyMarginTop);
+    /*    height: calc(100vh - 15em); */
+    height: var(--paneBodyHeight);
+    background-color: orange;
+}
+
+
+/* A narrow vertical bar separating mid main left from mid main right */
+
+.MidLeftRightSeparator {
+    flex: 0 0 1em;
+    width: 15px;
+    padding: 0;
+    background-color: var(--middle-section-separator-color);
+}
+
+/* User guide section */
+
+.MidMainRight {
+    flex: 1 1 20em;
+    background-color: var(--mid-main-right-background-color);
+/*    height: calc(100vh - 8em); */
+}
+
+#UserGuideIframeId {
+    height:  100%;
+    width: 100%;
+    box-sizing: border-box; /* prevent scrollbar from encroaching to the right */
+}
+
+/* Bottom section ------------------------------------------------------- */
+/* The bottom section provides status information */
+
+.BottomSection {
+    position: absolute;
+    bottom: var(--frameHBorderThickness);
+    left: 1em; 
+    right: 1em;
+    height: var(--botSecHeight);
+    background-color: var(--bottom-section-background-color);
+}
+
+
+
+/* Several panes use Html to display text with formatting */
+
+
+.HtmlContent {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+#AsmTextHtml, #ProcTextHtml, #ProcListingHtml {
+    /*
+    height: 100%;
+    width: 100%;
+    overflow: auto; */
+}
+
+.HighlightedTextAsHtml {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: ivory;
+    overflow: auto;
+}
+
+/* Welcome pane -------------------------------------------------- */
+
 #WelcomePane {
+    /*
     height: calc(100vh - 10em);
     left: 0em;
     right: 0em;
     background: ivory;
+*/
 }
+
+#WelcomeHtml {
+    /*
+    width: 100%;
+    height: 100%;
+*/
+}
+
+#WelcomeIframeId {
+    width: 100%;
+    height:  100%;
+    /*
+*/
+}
+
+/* Test pane -------------------------------------------------- */
+
+#TestPaneBody {
+/*    height: calc(100vh - 25em); */
+    background-color: violet;
+}
+
+/* Editor pane -------------------------------------------------- */
 
 #EditorTextArea {
-    background-color: white;
-    height: calc(100vh - 12em - 3em);
-    margin-left: 1em;
-    margin-right: 1em;
+    background-color: ivory;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    wrap: "off";
+    overflow: scroll;
 }
 
-#AssemblerText {
-    height: calc(100vh - 12em);
-    margin: 1em;
-    background-color: white;
+/* Assembler pane -------------------------------------------------- */
+
+#AssemblerPane {
 }
+
+#AsmTextHtml {
+/*    height: calc(100vh - 12em); */
+}
+
+#ProcessorAssemblerText {
+    height: 8em;   /* ????? calc */
+    margin: 1em;   /* ???? parameter */
+    overflow: auto;
+    box-sizing: border-box;
+
+/*    height: calc(100vh - 35em);
+    margin: 1em;
+    background-color: white; */
+}
+
+/* Linker pane -------------------------------------------------- */
 
 #LinkerText {
     height: calc(100vh - 25em);
@@ -122,80 +306,17 @@
     background-color: white;
 }
 
-#ProcessorAssemblerText {
-    height: calc(100vh - 35em);
-    margin: 1em;
-    background-color: white;
-}
 
-#AsmTextHtml, #LinkerTextHtml, #ProcTextHtml {
-    height: 100%;
-    width: 100%;
-    overflow: auto;
-}
+/* Processor pane ------------------------------------------------------------*/
 
-#HighlightedTextAsHtml {
-    margin-left: 1em;
-    margin-right: 1em;
-}
 
-.MidMainSeparator {
-    flex: 0 0 1em;
-    background-color: yellow;
-}
-
-.MiddleSectionResizeHandle {
-  width: 10px;
-  padding: 0;
-  background: black;
-  cursor: ew-resize;
-  flex: 0 0 auto;
-}
-
-.MiddleSectionResizeHandle::before {
-  content: '';
-  display: block;
-  width: 4px;
-  height: 100%;
-  background: blue;
-  margin: 0 auto;
-}
-
-.MidMainRight {
-    flex: 1 1 20em;
-    background-color: pink;
-    height: calc(100vh - 8em);
-}
-
-#UserGuideIframeId, #WelcomeIframeId {
-    height:  100%;
-    width: 100%;
-}
-
-/* The bottom section provides status information */
-
-.BottomSection {
-    position: absolute;
-    bottom: 1em;
-    left: 1em; 
-    right: 1em;
-    height: 1.5em;
-    background-color: orange;
-}
-
-#WelcomeHtml {
-    width: 100%;
-    height: 100%;
-}
-
-.HtmlContent {
-    width: 100%;
-    height: 100%;
+#ProcessorBody {
 }
 
 /* Processor state layout */
 
 #ProcessorState {
+    overflow: auto;
     display: grid;
     grid-template-rows:  [ProcStateHlineStart] min-content
 			 [ProcStateHlineControlEnd] 1fr
@@ -247,11 +368,11 @@
 }
 
 .MemDisplay {
-    font-family: 'Lucida Console',monospace;
-    font-size: 0.9em;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
     overflow-y: scroll;
     overflow-x: visible;
-    background-color: ivory;
+    background-color: var(--subpanel-background-color);
     height: calc(100vh - 35em);  /* 15em; */
 }
 
@@ -260,7 +381,7 @@
     grid-column-end: MemVlineEnd;
     text-align: center;
     font-family: sans-serif;
-    font-size: 0.9em;
+    font-size: var(--main-font-size);
     font-weight: bold;
 }
 
@@ -285,7 +406,7 @@
     display: grid;
     height: auto;
     width: auto;
-    background-color: ivory;
+    background-color: var(--subpanel-background-color);
     color: black;
     grid-template-rows: [RegHlineStart] min-content [RegHlineEnd];
     grid-template-columns: [RegVlineStart] min-content
@@ -343,7 +464,7 @@
     grid-column-end: RegVlineEnd;
     text-align: center;
     font-family: sans-serif;
-    font-size: 0.9em;
+    font-size: var(--main-font-size);
     font-weight: bold;
 }
 
@@ -384,7 +505,7 @@
     grid-column-end: IOVlineEnd;
     text-align: center;
     font-family: sans-serif;
-    font-size: 0.9em;
+    font-size: var(--main-font-size);
     font-weight: bold;
 }
 
@@ -406,7 +527,7 @@
     grid-row-end: IOHlineInbufLabelStart;
     grid-column-start: IOVlineStart;
     grid-column-end:  IOVlineEnd;
-    background: yellow;
+    background: var(--IOinputbuffer-background);
 }
 #IOInbufLabel {
     grid-row-start: IOHlineInbufLabelStart;
@@ -416,7 +537,7 @@
     background: beige;
     text-align: center;
     font-family: sans-serif;
-    font-size: 0.9em;
+    font-size: var(--main-font-size);
     font-weight: bold;
 
 }
@@ -424,15 +545,15 @@
 /* Highlighting */
 
 .GET {
-    color: blue;
+    color: var(--text-color-get);
 }
 .PUT {
-    color: red;
+    color: var(--text-color-put);
 }
 
 .ERR {
     font-weight: bold;
-    color: red;
+    color: var(--text-color-err);
 }
 
 

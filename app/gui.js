@@ -11,16 +11,106 @@
 var globalObject = this; // to enable script in userguide to define glob var
 var myglobalvar = 9876; // can script in userguide see this?
 
-var isHandlerDragging = false;
-var handler;
-var wrapper;
-var boxA;
 var fileContents = "file not read yet"
 var editorBufferTextArea; /* set when window.onload */
 const fileReader = new FileReader();
 var textFile = null; /* for save download */
 var create;  /* for save download */
 var textbox; /* for save download */
+
+//---------------------------------------------------------------------------
+// Window sizing: adjust relative size of system and user guide
+//---------------------------------------------------------------------------
+
+// For the window resizing: relative size of system and user guide
+// sections.  All the code implementing feature appears here, apart
+// from a one line call to the initialization function within the
+// onload event handler
+
+// Commented out the div class="MiddleSectionResizeHandle" in
+// Sigma16.html.  Any mentions of this in the css file should be
+// ignorable.  When this was commented out, the system and doc
+// sections run up right against each other, but should be possible
+// later to get some space between them.
+
+// foobarbb = 498.5
+// full frame width = 997.2
+// middle section width = 965.2
+// mid main left width = 571.85
+// mid main rigth width = 393.35
+//   left + right width = 965.2
+
+// Declare the persistent variables
+
+var wrapper;  // the middle section of the window; set in onload
+var boxA;     // mid-main-left; set in onload
+var boxB;     // mid-main-right; set in onload, not used anywhere
+
+var testPaneBodyElt;
+
+// Initialize the variables (wrapper, boxA, boxB) in the onload event,
+// because the DOI elements must exist before the variables are
+// assigned.
+
+function initialize_mid_main_resizing () {
+    console.log ('initializing mid-main resizing')
+    wrapper = document.getElementById("MiddleSection");
+    boxA = document.getElementById("MidMainLeft");
+    boxB = document.getElementById("MidMainRight");
+    testPaneBodyElt = document.getElementById('TestPaneBody');
+/* initialize sizes of left and right parts of middle section */
+    let foobarb =  window.innerWidth;
+    console.log ('foobarb = window.innerWidth = ' + foobarb);
+    let foobarb2 = foobarb * 0.5;
+    let foobarb3 = foobarb2 + "px";
+    console.log ('foobarb3 = ' + foobarb3);
+    boxA.style.width = foobarb3;
+    console.log ('finished initializing mid-main resizing')
+}
+
+
+
+function checkTestBody () {
+    console.log ('checkTestBody width = ' + testPaneBodyElt.style.width);
+}
+
+// When the - or + button is clicked in the GUI, user_guide_resize (x)
+// is called: x>0 means expand the user guide by x px; x<0 means shrink it.
+
+function user_guide_resize(x) {
+    let containerOffsetLeft = wrapper.offsetLeft;
+    let w = parseInt(boxA.style.width,10);
+    let y = (w + x) + "px";
+    let z = w;   // w-30;
+    boxA.style.width = y;
+    boxA.style.flexGrow = 0; // without this they don't grow/shrink together
+    document.getElementById("EditorTextArea").style.width= z + 'px';
+    console.log('user_guide_resize ' + x
+		+ ' containerOffsetLeft=' + containerOffsetLeft
+		+ ' w=' + w + ' y=' + y + ' z=' + z);
+//    let y = (w+ 10*x) + "px";
+//    document.getElementById("AssemblerText").style.width = z + 'px';
+}
+
+
+function testpane1 () {
+    console.log ('testpane 1 clicked');
+    checkTestBody();
+}
+
+function testpane2 () {
+    console.log ('testpane 2 clicked');
+}
+
+
+function testpane3 () {
+    console.log ('testpane 3 clicked');
+}
+
+// not using this
+function showSizeParameters () {
+    console.log('boxA.style.width = ' + boxA.style.width);
+}
 
 
 //---------------------------------------------------------------------------
@@ -208,6 +298,7 @@ function hideAllTabbedPanes() {
     hideTabbedPane("AssemblerPane");
     hideTabbedPane("LinkerPane");
     hideTabbedPane("ProcessorPane");
+    hideTabbedPane("TestPane");
 }
 
 function showTabbedPane(paneId) {
@@ -252,6 +343,12 @@ function processor_pane_button() {
 //    console.log("processor_pane button clicked")
     hideAllTabbedPanes();
     showTabbedPane("ProcessorPane");
+}
+
+function test_pane_button() {
+//    console.log("test_pane button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("TestPane");
 }
 
 function userman_pane_button() {
@@ -320,171 +417,7 @@ z    data   -1
 `;
 
 
-//---------------------------------------------------------------------------
-// Display for the user guide
-//---------------------------------------------------------------------------
 
-// Side-by-side frames that can be resized by dragging bounary between them
-
-// Resizing the two parts of the middle section: gui and user guide
-// https://stackoverflow.com/questions/46931103/
-//   making-a-dragbar-to-resize-divs-inside-css-grids
-
-/*
-document.addEventListener('mousedown', function(e) {
-  // If mousedown event is fired from .handler, toggle flag to true
-  if (e.target === handler) {
-    isHandlerDragging = true;
-  }
-});
-
-document.addEventListener('mousemove', function(e) {
-  // Don't do anything if dragging flag is false
-  if (!isHandlerDragging) {
-    return false;
-  }
-
-  // Set boxA width properly
-    // [...more logic here...]
-// Get offset
-var containerOffsetLeft = wrapper.offsetLeft;
-
-// Get x-coordinate of pointer relative to container
-var pointerRelativeXpos = e.clientX - containerOffsetLeft;
-
-// Resize box A
-// * 8px is the left/right spacing between .handler and its inner pseudo-element
-// * Set flex-grow to 0 to prevent it from growing
-boxA.style.width = (pointerRelativeXpos - 8) + 'px';
-boxA.style.flexGrow = 0;
-    
-});
-
-document.addEventListener('mouseup', function(e) {
-  // Turn off dragging flag when user mouse is up
-  isHandlerDragging = false;
-});
-
-*/
-
-//var handler = document.querySelector('.MiddleSectionResizeHandle');
-//var handler = document.getElementById("foobar");
-//var wrapper = document.querySelector('.MiddleSection');
-//var wrapper = document.getElementById("foobarbaz");
-
-//var boxA = document.getElementById('GuiSectionID');
-//var isHandlerDragging = false;
-/*
-function changeMiddleSizes() {
-    console.log('changeMiddleSizes');
-    boxA.style.width = "300px";
-    boxA.style.flexGrow = 0;
-
-}
-*/
-
-// Initialize the GUI
-// It's necessary to do this only after window.onload occurs, in order to
-// ensure that the operations have been defined before trying to run them.
-
-/* from stack overflow, so of course it doesn't work
-const fileobj = document.getElementById("FileInput").files[0];
-const fileresult = document.getElementById("FileInputResultDiv");
-const filereader = new FileReader;
-filereader.addEventListener("load", () => {
-    console.log("file reader load activated");
-    console.log(filereader.result);
-})
-filereader.readAsText(fileobj, "UTF-8");
-
-*/
-
-var handler = document.querySelector('.MiddleSectionResizeHandle');
-var isHandlerDragging = false;
-
-// x>0 means expand the user guide; x<0 means shrink it
-function user_guide_resize(x) {
-    let containerOffsetLeft = wrapper.offsetLeft;
-    let w = parseInt(boxA.style.width,10);
-    let y = (w+ 10*x) + "px";
-    let z = w-30;
-    boxA.style.width = y;
-    boxA.style.flexGrow = 0; // without this they don't grow/shrink together
-    document.getElementById("EditorTextArea").style.width= z + 'px';
-    document.getElementById("AssemblerText").style.width = z + 'px';
-    console.log('user_guide_resize ' + x
-		+ ' containerOffsetLeft=' + containerOffsetLeft
-		+ ' w=' + w + ' y=' + y + ' z=' + z);
-}
-
-function showSizeParameters () {
-    console.log('boxA.style.width = ' + boxA.style.width);
-}
-
-document.addEventListener('mousedown', function(e) {
-  // If mousedown event is fired from .handler, toggle flag to true
-  if (e.target === handler) {
-    isHandlerDragging = true;
-  }
-});
-
-document.addEventListener('mouseup', function(e) {
-  // Turn off dragging flag when user mouse is up
-  isHandlerDragging = false;
-});
-
-document.addEventListener('mousemove', function(e) {
-  // Don't do anything if dragging flag is false
-  if (!isHandlerDragging) {
-    return false;
-  }
-
-  // Get offset
-  var containerOffsetLeft = wrapper.offsetLeft;
-
-  // Get x-coordinate of pointer relative to container
-  var pointerRelativeXpos = e.clientX - containerOffsetLeft;
-  
-  // Arbitrary minimum width set on box A, otherwise its inner content will collapse to width of 0
-  var boxAminWidth = 60;
-
-  // Resize middle left section (the system display) box A
-  // * 8px is the left/right spacing between .handler and its inner pseudo-element
-    // * Set flex-grow to 0 to prevent it from growing
-    let boxAnewWidth = Math.max(boxAminWidth, pointerRelativeXpos - 8);
-    console.log ('boxAnewWidth = ' + boxAnewWidth);
-    boxA.style.width = boxAnewWidth + 'px';
-
-// What is the purpose of setting flexGrow to 0?  why just boxA?
-    boxA.style.flexGrow = 0;
-
-    let textbufferwidth = boxAnewWidth - 30;  // how many px to use?
-// The following works!!!  Need to do this in the onload initialization too
-    document.getElementById("EditorTextArea").style.width
-	= textbufferwidth + 'px';
-    document.getElementById("AssemblerText").style.width
-	= textbufferwidth + 'px';
-    
-// Experiment with commenting the following out; do both boxes need resizing?
-    // Resize the middle right section (user guide)
-    let boxBnewWidth = window.innerWidth - boxAnewWidth - 150;
-    let boxBnewWidthpx = boxBnewWidth + "px";
-    console.log ('boxBnewWidth = ' + boxBnewWidthpx);
-    boxB.style.width = boxBnewWidthpx;
-
-/*
-  boxA.style.width = (Math.max(boxAminWidth, pointerRelativeXpos - 8)) + 'px';
-    let widA = boxA.style.width;
-    console.log("Resizing, boxA.style.width = " + widA);
-    let widB = boxB.style.width;
-    console.log("Resizing, boxB.style.width = " + widB);
-
-
-    let welcomeElt = document.getElementById("WelcomeHtml");
-    let temp = welcomeElt.style;
-    console.log("temp WelcomeHtml.style.width = " + temp);
-*/    
-});
 
 //---------------------------------------------------------------------------
 // Complete initialization when onload occurs
@@ -534,20 +467,9 @@ window.onload = function () {
     
     editorBufferTextArea = document.getElementById("EditorTextArea");
 
-    handler = document.getElementById("MiddleSectionResizeHandle");
-    wrapper = document.getElementById("MiddleSection");
-    /*    boxA = document.getElementById("GuiSectionID"); */
-    boxA = document.getElementById("MidMainLeft");
-    boxB = document.getElementById("MidMainRight");
-    isHandlerDragging = false;
+    initialize_mid_main_resizing ();
 
-    /* initialize sizes of left and right parts of middle section */
-    let foobarb =  window.innerWidth;
-    let foobarb2 = foobarb * 0.5;
-    let foobarb3 = foobarb2 + "px";
-    console.log ('foobarb3 = ' + foobarb3);
-    boxA.style.width = foobarb3;
-
+    
     /* for save download */
     create = document.getElementById('CreateFileForDownload'),
     textbox = document.getElementById('DownloadFileTextBox');
@@ -565,9 +487,5 @@ window.onload = function () {
 
     console.log("Initialization experiments");
     run();  // run current test case
-//    let eltUG = document.getElementById("MidMainRight");
-//    let settings = eltUG.getElementsByClassName('even');
-//    console.log('settings = ' + settings);
-//    console.log('settings length = ' + settings.length);
 }
 

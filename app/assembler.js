@@ -585,6 +585,9 @@ function setAsmListing () {
     document.getElementById('AsmTextHtml').innerHTML =
 	m.asmListing.join('\n');
 
+    setProcAsmListing (	m.asmListing.join('\n'));
+ // ??? temp, just for testing proc layout
+
 }
 
 //----------------------------------------------------------------------
