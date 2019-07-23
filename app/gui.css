@@ -33,32 +33,37 @@ pane height
     --thin-separation: 0.15em;
 /* Sections of the GUI */
     --frameHBorderThickness: 0.25em;
+    --frameVBorderThickness: 0.25em;
     --full-frame-background-color: var(--dark-blue);
     --topSectionHeight: 1.5em;
-    --top-section-background-color: yellow;
+    --top-section-background-color: ivory;
     --topMidSecSkip: 0.25em;
     --midSecOffsetBelowTop: calc(var(--frameHBorderThickness) +
 			     var(--topSectionHeight) +
 			     var(--topMidSecSkip));
+    --midSecOffsetAboveBot: calc(var(--frameHBorderThickness) +
+			     var(--botSecHeight) +
+			     var(--midBotSecSkip));
+    --midBotSecSkip: 0.25em;
     --wrapper-background-color: var(--dark-green);
     --middle-section-background-color: yellow;
     --mid-main-background-color: green;
     --mid-main-separator-color: yellow;
     --mid-main-left-background-color: red;
     --mid-main-right-background-color: red;
+    --paneBackgroundColor: green;
+    --paneButtonsHeight: 1.5em;
+    --paneSecVskip: 2px; /* 0.25em; vspace between buttons and body */
+    --paneSecPadding: 4px;
     --paneHeight: calc(100vh
 		       - (var(--midSecOffsetBelowTop)
 			  + var(--midSecOffsetAboveBot)));
-    --paneBodyMarginTop: 0.3em;
     --paneBodyHeight: calc(var(--paneHeight) -
-			   (var(--paneBodyMarginTop) + 3em)); /* ??? */
+			   (var(--paneButtonsHeight) +
+			    (8 * var(--paneSecVskip))));  /* ????? */
     --middle-section-separator-color: blue;
-    --midBotSecSkip: 0.25em;
-    --midSecOffsetAboveBot: calc(var(--frameHBorderThickness) +
-			     var(--botSecHeight) +
-			     var(--midBotSecSkip));
     --botSecHeight: 1.2em;
-    --bottom-section-background-color: yellow;
+    --bottom-section-background-color: beige;
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: ivory;
@@ -99,8 +104,8 @@ pane height
 .TopSection {
     position: absolute;
     top: var(--frameHBorderThickness);
-    left: 1em; 
-    right: 1em;
+    left: var(--frameVBorderThickness);  /* 1em;  */
+    right: var(--frameVBorderThickness);  /* 1em; */
     height: var(--topSectionHeight);
     background-color: var(--top-section-background-color);
 }
@@ -117,11 +122,10 @@ guide). */
     position: absolute;
     top: var(--midSecOffsetBelowTop);
     bottom: var(--midSecOffsetAboveBot);
-    left: 1em; 
-    right: 1em;
+    left: var(--frameVBorderThickness);  /* 1em;  */
+    right: var(--frameVBorderThickness);  /* 1em; */
     background-color: var(--middle-section-background-color);
 }
-
 
 .MidMainSection {
     position: absolute;
@@ -137,18 +141,16 @@ guide). */
 /* The left part of middle/main holds the various panes */
 
 .MidMainLeft {
-    /*    flex: 1 1 auto; */
     flex: 1 0 auto;
     background-color: var(--mid-main-left-background-color);
     box-sizing: border-box;
-
 }
 
 /* A narrow vertical bar separating mid main left from mid main right */
 
 .MidLeftRightSeparator {
-    flex: 0 0 1em;
-    width: 15px;
+    flex: 0 0 var(--frameVBorderThickness);
+    width: var(--frameVBorderThickness);
     padding: 0;
     background-color: var(--middle-section-separator-color);
 }
@@ -156,10 +158,9 @@ guide). */
 /* User guide section */
 
 .MidMainRight {
-    flex: 1 0 auto;
-/*    flex: 1 1 auto; */
+    /* shrink=1 allows user guide to get smaller before overlap */
+    flex: 1 1 auto;
     background-color: var(--mid-main-right-background-color);
-/*    height: calc(100vh - 8em); */
 }
 
 /* Panes(separate tabs in the Middle section) --------------------------- */
@@ -168,36 +169,31 @@ guide). */
 
 .Pane {
    display: absolute;
-   background-color: pink;
+   background-color: var(--paneBackgroundColor);
    height: 100%;
    width: 100%;
    box-sizing: border-box;
-   padding: 4px;
+   padding: var(--paneSecPadding);
    border-style: solid;
    border-color: white;
-   border-width: 2px;
+   border-width: var(--paneSecVskip);
 }
 
 .PaneButtons {
+    height: var(--paneButtonsHeight);
     box-sizing: border-box;
     background-color: beige;
 }
 
-/* maybe don't need this */
-
 .PaneBody {
-    margin-top: var(--paneBodyMarginTop);
-    /*    height: calc(100vh - 15em); */
+    margin-top: var(--paneSecVskip);
     height: var(--paneBodyHeight);
     background-color: orange;
 }
 
-
-
 #UserGuideIframeId {
     height:  100%;
     width: 100%;
-    min-width: 10em;
     box-sizing: border-box; /* prevent scrollbar from encroaching to the right */
 }
 
@@ -207,16 +203,13 @@ guide). */
 .BottomSection {
     position: absolute;
     bottom: var(--frameHBorderThickness);
-    left: 1em; 
-    right: 1em;
+    left: var(--frameVBorderThickness);  /* 1em;  */
+    right: var(--frameVBorderThickness);  /* 1em; */
     height: var(--botSecHeight);
     background-color: var(--bottom-section-background-color);
 }
 
-
-
 /* Several panes use Html to display text with formatting */
-
 
 .HtmlContent {
     width: 100%;
@@ -225,10 +218,6 @@ guide). */
 }
 
 #AsmTextHtml, #ProcTextHtml, #ProcListingHtml {
-    /*
-    height: 100%;
-    width: 100%;
-    overflow: auto; */
 }
 
 .HighlightedTextAsHtml {
@@ -260,14 +249,11 @@ guide). */
 #WelcomeIframeId {
     width: 100%;
     height:  100%;
-    /*
-*/
 }
 
 /* Test pane -------------------------------------------------- */
 
 #TestPaneBody {
-/*    height: calc(100vh - 25em); */
     background-color: violet;
 }
 
@@ -296,10 +282,6 @@ guide). */
     margin: 1em;   /* ???? parameter */
     overflow: auto;
     box-sizing: border-box;
-
-/*    height: calc(100vh - 35em);
-    margin: 1em;
-    background-color: white; */
 }
 
 /* Linker pane -------------------------------------------------- */
@@ -310,9 +292,7 @@ guide). */
     background-color: white;
 }
 
-
 /* Processor pane ------------------------------------------------------------*/
-
 
 #ProcessorBody {
 }
@@ -559,7 +539,6 @@ guide). */
     font-weight: bold;
     color: var(--text-color-err);
 }
-
 
 .ListingHeader {
     font-weight: bold;
