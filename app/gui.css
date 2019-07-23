@@ -137,10 +137,29 @@ guide). */
 /* The left part of middle/main holds the various panes */
 
 .MidMainLeft {
-    flex: 1 1 auto;
+    /*    flex: 1 1 auto; */
+    flex: 1 0 auto;
     background-color: var(--mid-main-left-background-color);
     box-sizing: border-box;
 
+}
+
+/* A narrow vertical bar separating mid main left from mid main right */
+
+.MidLeftRightSeparator {
+    flex: 0 0 1em;
+    width: 15px;
+    padding: 0;
+    background-color: var(--middle-section-separator-color);
+}
+
+/* User guide section */
+
+.MidMainRight {
+    flex: 1 0 auto;
+/*    flex: 1 1 auto; */
+    background-color: var(--mid-main-right-background-color);
+/*    height: calc(100vh - 8em); */
 }
 
 /* Panes(separate tabs in the Middle section) --------------------------- */
@@ -174,26 +193,11 @@ guide). */
 }
 
 
-/* A narrow vertical bar separating mid main left from mid main right */
-
-.MidLeftRightSeparator {
-    flex: 0 0 1em;
-    width: 15px;
-    padding: 0;
-    background-color: var(--middle-section-separator-color);
-}
-
-/* User guide section */
-
-.MidMainRight {
-    flex: 1 1 20em;
-    background-color: var(--mid-main-right-background-color);
-/*    height: calc(100vh - 8em); */
-}
 
 #UserGuideIframeId {
     height:  100%;
     width: 100%;
+    min-width: 10em;
     box-sizing: border-box; /* prevent scrollbar from encroaching to the right */
 }
 

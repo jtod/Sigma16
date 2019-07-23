@@ -33,65 +33,157 @@ var textbox; /* for save download */
 // sections run up right against each other, but should be possible
 // later to get some space between them.
 
-// foobarbb = 498.5
+// windowWidthb = 498.5
 // full frame width = 997.2
 // middle section width = 965.2
 // mid main left width = 571.85
 // mid main rigth width = 393.35
 //   left + right width = 965.2
 
-// Declare the persistent variables
+// Persistent variables given values by initialize_mid_main_resizing ()
 
-var wrapper;  // the middle section of the window; set in onload
-var boxA;     // mid-main-left; set in onload
-var boxB;     // mid-main-right; set in onload, not used anywhere
+var windowWidth;     // inner width of entire browser window
+var middleSection;  // the middle section of the window; set in onload
+var midMainLeft;     // mid-main-left; set in onload
+var midMainRight;     // mid-main-right; set in onload, not used anywhere
+var midLRratio = 0.5;  // ratio of width of midMainLeft and midMainRight
+var midSecExtraWidth = 15;  // width of borders in px
 
-var testPaneBodyElt;
-
-// Initialize the variables (wrapper, boxA, boxB) in the onload event,
-// because the DOI elements must exist before the variables are
-// assigned.
+// Initialize the variables (middleSection, midMainLeft, midMainRight)
+// in the onload event, because the DOI elements must exist before the
+// variables are assigned.
 
 function initialize_mid_main_resizing () {
     console.log ('initializing mid-main resizing')
-    wrapper = document.getElementById("MiddleSection");
-    boxA = document.getElementById("MidMainLeft");
-    boxB = document.getElementById("MidMainRight");
-    testPaneBodyElt = document.getElementById('TestPaneBody');
-/* initialize sizes of left and right parts of middle section */
-    let foobarb =  window.innerWidth;
-    console.log ('foobarb = window.innerWidth = ' + foobarb);
-    let foobarb2 = foobarb * 0.5;
-    let foobarb3 = foobarb2 + "px";
-    console.log ('foobarb3 = ' + foobarb3);
-    boxA.style.width = foobarb3;
-    console.log ('finished initializing mid-main resizing')
+    middleSection = document.getElementById("MiddleSection");
+    midMainLeft = document.getElementById("MidMainLeft");
+    midMainRight = document.getElementById("MidMainRight");
+    windowWidth =  window.innerWidth;
 }
 
+// Update the saved ratio
+function setMidMainLRratio (r) {
+    console.log ('setMidMainLRratio:  midLRratio = ' + r)
+    midLRratio = r;
+}
 
+// Readjust the widths of left and right sections to match ratio r
+function adjustToMidMainLRratio () {
+    console.log ('adjustToMidMainLRratio:  midLRratio = ' + midLRratio)
+    let ww =  window.innerWidth - midSecExtraWidth;
+    let x = midLRratio * ww;
+    console.log ('  windowWidth = ' + windowWidth);
+    console.log ('  setting left width = ' + x);
+    console.log ('  about to call set left width');
+    setMidMainLeftWidth (x);
+    console.log ('  back from calling set left width');
+}
+
+// grow/shrink the left section to w pixels
+function setMidMainLeftWidth (newxl) {
+    console.log ('setMidMainLeftWidth ' + newxl);
+
+    let ww =  window.innerWidth - midSecExtraWidth;
+    let oldxl = midMainLeft.style.width;
+    let oldratio = midLRratio;
+    console.log ('  old dimensions: ww = ' + ww +
+		 ' oldxl=' + oldxl + ' oldratio=' + oldratio);
+
+    let newxr = ww - newxl;
+    let newxlp = newxl + "px";
+    let newratio = newxl / (newxl + newxr);
+    console.log ('  new dimensions: ww = ' + ww +
+		 ' newxl=' + newxl + ' newxr=' + newxr + ' newratio=' + newratio);
+
+    setMidMainLRratio (newratio);
+
+    console.log ('  setting left = ' + newxl + '  right = ' + newxr);
+    midMainLeft.style.width = newxlp;
+    midMainLeft.style.flexGrow = 0; // without this they don't grow/shrink together
+
+    console.log ('  left width:   old=' + oldxl + ' new=' + newxl);
+    console.log ('  ratio:  old=' + oldratio + '  new=' + newratio);
+    console.log ('setMidMainLeftWidth finished');
+
+    /*
+    midMainLeft.style.width = xl;
+    midMainRight.style.width = xl;
+    midMainLeft.style.flexGrow = 0; // without this they don't grow/shrink together
+
+    midMainLeft.style.flexGrow = xlp
+    midMainRight.style.flexGrow = xrp;
+
+    midMainLeft.style.flexBasis = xlp
+    midMainRight.style.flexBasis = xrp;
+    */
+    
+
+}
+
+function expLRflex (xl) {
+    console.log ('expLRflex');
+    let ww =  window.innerWidth - midSecExtraWidth;
+    let xr = ww - xl;
+    let xlp = xl + 'px';
+    let xrp = xr + 'px';
+    midMainLeft.style.flexBasis = xlp;
+    midMainLeft.style.flexGrow = '0px';
+    midMainRight.style.flexBasis = xrp;
+    midMainRight.style.flexGrow = '0px';
+}
+
+function showSizeParameters () {
+    console.log ('showSizeParameters');
+    let ww =  window.innerWidth - midSecExtraWidth;
+    let y = midMainLeft.style.width;
+    console.log ('  windowWidth = ' + ww);
+    console.log ('  midMainLeftWidth = ' + y);
+    console.log ('  midLRratio = ' + midLRratio);
+}
+
+// Resize the system (midMainLeft) and user guide (midMainRight)
+// sections.  When the - or + button is clicked in the GUI,
+// user_guide_resize (x) is called: x>0 means expand the user guide by
+// x px; x<0 means shrink it.
+
+function user_guide_resize(x) {
+    console.log ('user_guide_resize ' + x);
+//    showSizeParameters ();
+    let old_width = midMainLeft.style.width;
+    console.log ('  old width = ' + old_width);
+    let w = parseInt(midMainLeft.style.width,10);
+    console.log ('  old width number = ' + w);
+    let new_width = w+x;
+    console.log ('  new_width = ' + new_width)
+    setMidMainLeftWidth (new_width);
+//    let z = (w + x) + "px";
+//    console.log (' mml z = ' + z);
+//    midMainLeft.style.width = z;
+//    midMainLeft.style.flexGrow = 0; // without this they don't grow/shrink together
+    showSizeParameters ();
+}
+
+//    let containerOffsetLeft = middleSection.offsetLeft;
+//		+ ' containerOffsetLeft=' + containerOffsetLeft
+
+//    document.getElementById("EditorTextArea").style.width= z + 'px';
+
+// Diagnostics
 
 function checkTestBody () {
     console.log ('checkTestBody width = ' + testPaneBodyElt.style.width);
 }
 
-// When the - or + button is clicked in the GUI, user_guide_resize (x)
-// is called: x>0 means expand the user guide by x px; x<0 means shrink it.
-
-function user_guide_resize(x) {
-    let containerOffsetLeft = wrapper.offsetLeft;
-    let w = parseInt(boxA.style.width,10);
-    let y = (w + x) + "px";
-    let z = w;   // w-30;
-    boxA.style.width = y;
-    boxA.style.flexGrow = 0; // without this they don't grow/shrink together
-    document.getElementById("EditorTextArea").style.width= z + 'px';
-    console.log('user_guide_resize ' + x
-		+ ' containerOffsetLeft=' + containerOffsetLeft
-		+ ' w=' + w + ' y=' + y + ' z=' + z);
+// deprecated, delete
+/* initialize sizes of left and right parts of middle section */
 //    let y = (w+ 10*x) + "px";
 //    document.getElementById("AssemblerText").style.width = z + 'px';
-}
+// var testPaneBodyElt;
+//    testPaneBodyElt = document.getElementById('TestPaneBody');
 
+//---------------------------------------------------------------------------
+// Testing
+//---------------------------------------------------------------------------
 
 function testpane1 () {
     console.log ('testpane 1 clicked');
@@ -102,20 +194,9 @@ function testpane2 () {
     console.log ('testpane 2 clicked');
 }
 
-
 function testpane3 () {
     console.log ('testpane 3 clicked');
 }
-
-// not using this
-function showSizeParameters () {
-    console.log('boxA.style.width = ' + boxA.style.width);
-}
-
-
-//---------------------------------------------------------------------------
-// Testing
-//---------------------------------------------------------------------------
 
 function displayHello() {
     var msg;
@@ -423,6 +504,14 @@ z    data   -1
 // Complete initialization when onload occurs
 //---------------------------------------------------------------------------
 
+window.onresize = function () {
+    console.log ('window.onresize');
+//    showSizeParameters ();
+    //    setMidMainLRratio (midLRratio);  // preserve ratio as window is resized
+    adjustToMidMainLRratio ();
+    console.log ('window.onresize finished');
+}
+
 window.onload = function () {
     
     console.log("window.onload activated");
@@ -467,8 +556,6 @@ window.onload = function () {
     
     editorBufferTextArea = document.getElementById("EditorTextArea");
 
-    initialize_mid_main_resizing ();
-
     
     /* for save download */
     create = document.getElementById('CreateFileForDownload'),
@@ -482,10 +569,15 @@ window.onload = function () {
     resetRegisters();
 
     insert_example(example_errors);     // For testing and debugging
-    
+
+    initialize_mid_main_resizing ();
+    setMidMainLRratio(0.6);
+    showSizeParameters();
+    adjustToMidMainLRratio();
+
     console.log("Initialization complete");
 
-    console.log("Initialization experiments");
-    run();  // run current test case
+//    console.log("Initialization experiments");
+//    run();  // run current test case
 }
 
