@@ -333,7 +333,7 @@ guide). */
 			    [ProcStateVlineSegStart] min-content
 			    [ProcStateVlineRegFileStart] min-content
 			    [ProcStateVlineMemStart] min-content
-			    [ProcStateVlineIOstart] 1fr
+			    [ProcStateVlineIOstart] min-content  /* 1fr */
 			    [ProcStateVlineEnd] ;
     grid-row-gap: 0.1em;
     grid-column-gap: 0.2em;
@@ -491,12 +491,13 @@ guide). */
     grid-column-end: ProcStateVlineEnd;
     grid-row-start: ProcStateHlineStart;
     grid-row-end: ProcStateHlineEnd;
+    
     background-color: beige;
-    display: grid;
+    color: black;
     height: auto;
     width: auto;
-    min-width: 20em;
-    color: black;
+    display: grid;
+    min-width: 15em;
     grid-template-rows: [IOHlineStart] 1em
 				       [IOHlineLogStart] 4fr
 				       [IOHlineInbufStart] 1fr

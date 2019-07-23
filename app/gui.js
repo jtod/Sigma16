@@ -501,8 +501,32 @@ z    data   -1
 
 
 //---------------------------------------------------------------------------
-// Complete initialization when onload occurs
+//  Handle window events
 //---------------------------------------------------------------------------
+
+// This doesn't seem to work.  Want to ask user to confirm if they click back
+// when it would abort the session
+
+//window.addEventListener('beforeunload', function () {
+//    console.log ('Really???');
+  // Cancel the event
+//  e.preventDefault();
+//    console.log ('Really????????????');
+  // Chrome requires returnValue to be set
+//    e.returnValue = '';
+//    return 'you hit back button do you mean it?';
+// });
+
+window.onbeforeunload = function(event) {
+    event.returnValue = "Write something clever here..";
+};
+
+// Warning before leaving the page (back button, or outgoinglink)
+//window.onbeforeunload = function() {
+//   return "Do you really want to leave our brilliant application?";
+   //if we return nothing here (just calling return;) then there will be no pop-up question at all
+   //return;
+//};
 
 window.onresize = function () {
     console.log ('window.onresize');
@@ -511,6 +535,10 @@ window.onresize = function () {
     adjustToMidMainLRratio ();
     console.log ('window.onresize finished');
 }
+
+//---------------------------------------------------------------------------
+// Complete initialization when onload occurs
+//---------------------------------------------------------------------------
 
 window.onload = function () {
     
