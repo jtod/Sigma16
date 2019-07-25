@@ -18,9 +18,11 @@ function mkModule () {
 	modSrc : '',
 	asmStmt : [],
 	symbols : [],
+	symbolTable : new Map (),
 	locationCounter : 0,
 	asmListing : [],
-	objectCode : []
+	objectCode : [],
+	asmap : []  // array mapping address to source statement
     }
 }
 

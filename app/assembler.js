@@ -15,6 +15,13 @@ comments field
    contains any characters
 */
 
+// Don't want this to be global; use s16modules and currentModNum instead
+
+// var m; // set to current module, used to access key asm variables m.asmStmt etc
+
+
+// ?????????????????????? inconsistent args parseAsmLine
+
 //----------------------------------------------------------------------
 // Running and testing
 //----------------------------------------------------------------------
@@ -29,9 +36,10 @@ function run () {
 // Symbol table
 //----------------------------------------------------------------------
 
+// remove globals
 var symbolTable = new Map();;
 
-function showSymbolTable() {
+function showSymbolTable (m) {
     m.asmListing.push('');
 //    m.asmListing.push("<span class='ListingHeader'>Symbol table</span>");
     m.asmListing.push("<span class='ListingHeader'>Name      Val   Def   Used</span>");
@@ -196,7 +204,7 @@ const missing = 0;  // indicates that a component of a statement is missing
 
 // Print the object representing a source line; for testing
 
-function printAsmStmt (x) {
+function printAsmStmt (m,x) {
     console.log('Statement ' + x.lineNumber + ' = /' + x.srcLine + '/');
     console.log('  label field /' + x.fieldLabel + '/');
     console.log('  spaces after label /' + x.fieldSpacesAfterLabel + '/');
@@ -235,8 +243,6 @@ function printAsmStmt (x) {
 // var locationCounter = 0;
 // var asmListing = [];
 
-var m; // set to current module, used to access key asm variables m.asmStmt etc
-
 function mkErrMsg (s,err) {
     //    let errline = '<span class="ERR">' + err + '</span>';
     let errline = err;
@@ -252,6 +258,7 @@ function assembler () {
     m.asmListing = [];
     m.objectCode = [];
     m.locationCounter = 0;
+    m.asmap = [];
     clearObjectCode ();
     document.getElementById('AsmTextHtml').innerHTML = "";
     symbolTable.clear();
@@ -259,12 +266,12 @@ function assembler () {
     m.asmListing.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
 
-    asmPass1 ();
-    asmPass2 ();
-    //    printAsmStmts();
-    showSymbolTable();
+    asmPass1 (m);
+    asmPass2 (m);
+    //    printAsmStmts(m);
+    showSymbolTable(m);
     m.asmListing.push("</pre>");
-    setAsmListing ();
+    setAsmListing (m);
 }
 
 //----------------------------------------------------------------------
@@ -289,18 +296,18 @@ const datParser =
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
 
-function asmPass1 () {
+function asmPass1 (m) {
     let asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
     console.log('assembler pass 1: ' + asmSrcLines.length + ' source lines');
     for (let i = 0; i < asmSrcLines.length; i++) {
 	m.asmStmt[i] = mkAsmStmt (i+1, m.locationCounter, asmSrcLines[i]);
-	parseAsmLine (i);
+	parseAsmLine (m,i);
 	m.locationCounter += m.asmStmt[i].codeSize;
 //	printAsmStmt(m.asmStmt[i]);
     }
 }
 
-function printAsmStmts () {
+function printAsmStmts (m) {
 //    console.log('printAsmStmts');
     for (let i = 0; i < m.asmStmt.length; i++) {
 	printAsmStmt(m.asmStmt[i]);
@@ -310,10 +317,13 @@ function printAsmStmts () {
 
 // Parse the source for line i and update the object with the results
 
-function parseAsmLine (i) {
+
+// ?????????????????????? inconsistent args parseAsmLine
+
+function parseAsmLine (m,i) {
     let s = m.asmStmt[i];
 //    console.log('parseAsmLine, m.asmStmt = ');
-//    printAsmStmt(s);
+//    printAsmStmt(m,s);
     let p = splitParser.exec(s.srcLine);
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
@@ -458,7 +468,7 @@ function testWd(op,d,a,b) {
     console.log(intToHex4(mkWord(op,d,a,b)));
 }
 
-function asmPass2 () {
+function asmPass2 (m) {
     console.log('assembler pass 2');
     let s, fmt,op,x;
     initializeObjectLineBuffer ();
@@ -469,12 +479,12 @@ function asmPass2 () {
 	if (fmt==RRR) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
-	    pushObjectWord (s.codeWord1);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
 //	    console.log('pass2 RRR ' + intToHex4(s.codeWord1));
 	} else if (fmt==RR) { // like RRR but with b=0
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,0);
-	    pushObjectWord (s.codeWord1);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
 //	    console.log('pass2 RR ' + intToHex4(s.codeWord1));
 	} else if (fmt==RX) {
 	    op = s.operation.opcode;
@@ -482,8 +492,8 @@ function asmPass2 () {
 	    let aaa = s.dispField;
 	    let bbb = evaluate(s,s.dispField);
 	    s.codeWord2 = evaluate(s,s.dispField);
-	    pushObjectWord (s.codeWord1);
-	    pushObjectWord (s.codeWord2);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pas2 rx aaa=' + aaa + ' bbb=' + bbb);
 //	    console.log('pass2 RX ' + intToHex4(s.codeWord1)
 //			+ intToHex4(s.codeWord2));
@@ -491,14 +501,14 @@ function asmPass2 () {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
 	    s.codeWord2 = evaluate(s,s.dispField);
-	    pushObjectWord (s.codeWord1);
-	    pushObjectWord (s.codeWord2);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pass2 JX ' + intToHex4(s.codeWord1)
 //			+ intToHex4(s.codeWord2));
 	} else if (fmt==DATA && s.operandDATA) {
 //	    console.log('fmt is DATA and operandDATA=' + s.dat);
 	    s.codeWord1 = evaluate(s,s.dat);
-	    pushObjectWord (s.codeWord1);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
 //	    console.log('pass2 DATA ' + intToHex4(s.codeWord1));
 	} else {
 //	    console.log('pass2 other, noOperation');
@@ -513,14 +523,14 @@ function asmPass2 () {
 	    m.asmListing.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	}
     }
-    flushObjectLine ();
+    flushObjectLine (m);
 }
 
 // Object lines
 
 // The code generator outputs lines of object code containing up to
 // nobjWordsOnLine words.  Each word is added to a buffer by calling
-// pushObjectWord, and when the buffer reaches the limit (or when all
+// generateObjectWord, and when the buffer reaches the limit (or when all
 // object code has been pushed) the buffer is flushed.
 
 var objectLineBuffer = "";
@@ -533,18 +543,21 @@ function initializeObjectLineBuffer () {
 }
 
 // Generate object code line for module m and clear the buffer for next code line
-function flushObjectLine() {
+function flushObjectLine(m) {
     console.log('flushObjectLine ' + objectLineBuffer);
     if (objBufferSize > 0) { m.objectCode.push (objectLineBuffer) };
     initializeObjectLineBuffer ();
 }
 
-// Add object word x to buffer for next object code line in module m
-function pushObjectWord (x) {
+// Add object word x to buffer for next object code line in module m.
+// The asm statement is s, and the object word will be loaded at
+// address a.
+function generateObjectWord (m, s, a, x) {
+    m.asmap[a] = s.srcLine;
     if (objBufferSize > 0) { objectLineBuffer += ',' };
     objectLineBuffer += intToHex4(x);
     objBufferSize++;
-    if (objBufferSize >= objBufferLimit) { flushObjectLine() };
+    if (objBufferSize >= objBufferLimit) { flushObjectLine(m) };
 }
 
 
@@ -576,7 +589,7 @@ function evaluate (s,x) {
     }
 }
 
-function setAsmListing () {
+function setAsmListing (m) {
     console.log('setAsmListing');
 //    let listing = [];
 //    for (let i = 0; i < asmSrcLines.length; i++) {
@@ -620,8 +633,8 @@ function boot() {
 // Should check the operation, implement org, and provide suitable
 // error messages, but that's for later.  For now, just assume it is
 // hexdata with valid argument
-function linkerBootLine (i,x) {
-    let y = parseAsmLine (i,x);
+function linkerBootLine (m,i,x) {
+    let y = parseAsmLine (m,i,x);
 //    printAsmLine (y);
     let w = y.fieldOperands;
     let n =  hex4ToInt(w);
