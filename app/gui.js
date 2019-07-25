@@ -599,10 +599,11 @@ window.onload = function () {
     insert_example(example_errors);     // For testing and debugging
 
     initialize_mid_main_resizing ();
-    setMidMainLRratio(0.6);
+    setMidMainLRratio(0.9);  // normally 0.6, this is for quick testing ??????
     showSizeParameters();
     adjustToMidMainLRratio();
-
+    initializeSubsystems ();
+    
     console.log("Initialization complete");
 
 //    console.log("Initialization experiments");

@@ -1,7 +1,21 @@
-// Sigma16   Copyright (c) John T. O'Donnell, 2019
+// Sigma16: subsystems.js defines registers and memory
 
-// Define subsystems of the architecture: registers and memory
+const pxPerChar = 14.4;  // found by trial and error; measuring it would be better
 
+function initializeSubsystems () {
+    memDisplayModeFull = false;
+    document.getElementById('FullDisplayToggleButton').value = "Fast display";
+}
+
+function toggleFullDisplay () {
+    console.log ('toggleFullDisplay clicked');
+    memDisplayModeFull = ! memDisplayModeFull;
+    document.getElementById('FullDisplayToggleButton').value =
+	memDisplayModeFull ? "Full display" : "Fast display";
+    if (memDisplayModeFull) { memDisplayFull () }
+    else { memDisplayFast ()
+	 }  // loses info but makes tab switching faster
+}
 
 //----------------------------------------------------------------------
 //  Registers
@@ -196,15 +210,41 @@ function clearRegisterHighlighting () {
 //  Memory
 //----------------------------------------------------------------------
 
-// The memory is represented with separate arrays, to enable the contents
-// to be represented as a typed array
+// Usage
+//   General operations
+//     memInitialize              get html elements, clear refresh, display
+//     memClear ()                set each location to 0
+//     memRefresh ()              recalculate the memory strings
+
+//   During instruction execution
+//     memClearAccesses ()        remove get/put highligting
+//     ir = memFetchInstr (a)     instruction fetch
+//     adr = memFetchData (a)     data fetch
+//     memStore (a,x)             store
+//     memShowAccesses ()         update array of hex strings
+//     memDisplayFast ()          render html elements showing only accessed area
+//     memDisplayFull ()          render html elements showing full memory
+//     memDisplay ()              use display mode to select fast or full
+
+
+// The memory is represented as array of words (represented as an
+// integer between 0 and 2^16-q) and a corresponding array of strings
+// showing each word as a hex number.  There are html elements for
+// displaying the memory contents, and two arrays to track memory
+// accesses (fetches and stores) in order to generate the displays.
 
 var memSize = 65536; // number of memory locations = 2^16
 var memory = [];  // the memory contents, indexed by address
 var memString = []; // a string for each location, to be displayed
-var memStoredAddresses = []
-var memFetchedAddresses = []
 var memElt1, memElt2;  // html elements for two views into the memory
+var memFetchInstrLog = [];
+var memFetchDataLog = [];
+var memStoreLog = [];
+var memDisplayModeFull = false;  // show entire memory? or just a little of it?
+var memDisplayFastWindow = 16;   // how many locations to show in fast mode
+var memDispOffset = 5;    // how many locations above highligted one
+
+// Must wait until onload event
 
 function memInitialize () {
     memElt1 = document.getElementById('MemDisplay1');
@@ -214,64 +254,39 @@ function memInitialize () {
     memDisplay();  // put the strings into the gui display elements
 }
 
-// Fetch and return a word from memory at address a, and record the
-// address so the display can show this access.
-function memFetch (a) {
-    memFetchedAddresses.push(a);
-    return memory[a];
-}
+// There are two primary memory accesses: fetch and store.  These
+// functions record the operation to enable the user interface to show
+// the access by using colors to highlight the accessed location.
 
-// Store a word x into memory at address a, and record the address so
-// the display can show this access.
-function memStore (a,x) {
-    memStoredAddresses.push(a);
-    memory[a] = x;
-}
+// There is just one memory, but the gui contains two windows into the
+// memory: by convention, display 1 shows instruction fetches and
+// display 2 shows data fetches and stores.  In the hardware (the
+// digital circuit that implements the processor) there may be no
+// distinction between memory and data accesses (although there could
+// be if the machine has separate instruction and data caches).
 
-// Update the memory string for each location that has been accessed,
-// so that it contains an html div element which can be used to
-// highlight the memory location.  Do the fetches first, then the
-// stores: this ensures that if a location has both been fetched and
-// stored, the highlighting for the store will take precedence.
-function memShowAccesses () {
-    let i, a;
-    for (i = 0; i < memFetchedAddresses.length; i++) {
-	a = memFetchedAddresses[i];
-	highlightMemString(a,"GET");
-    }
-    for (i = 0; i < memStoredAddresses.length; i++) {
-	a = memStoredAddresses[i];
-	highlightMemString(a,"PUT");
-    }
-}
-
-// Remove the highlighting for the memory locations that have been accessed
-function memClearAccesses () {
-    let a;
-    for (i=0; i<memFetchedAddresses.length; i++) {
-	a = memFetchedAddresses[i];
-	setMemString(a);
-    }
-    for (i=0; i<memStoredAddresses.length; i++) {
-	a = memStoredAddresses[i];
-	setMemString(a);
-    }
-    memFetchedAddresses = [];
-    memStoredAddresses = [];
-}
+// All memory stores are considered to be data stores.  Howver, there
+// are two variants of fetch: instruction fetch and data fetch.  Both
+// of these record the operation in the array memFetchInstrLog, but
+// they record the address in separate scalar vairables to enable the
+// gui to scroll the two displays to show the instruction access in
+// disply 1 and the data access in display 2.
 
 // Set all memory locations to 0
+
 function memClear () {
     for (var i = 0; i < memSize; i++) {
 	memory[i] = 0;
     }
-    memRefresh();
-    memFetchedAddresses = [];
-    memStoredAddresses = [];
+    memFetchInstrLog = [];
+    memFetchDataLog = [];
+    memStoreLog = [];
+    memRefresh ();
 }
 
 // Refresh all the memory strings; the memString array should be accurate
 // but this function will recalculate all elements of that array
+
 function memRefresh () {
     for (var i = 0; i < memSize; i++) {
 	setMemString(i);
@@ -281,13 +296,79 @@ function memRefresh () {
 // Create a string to represent a memory location; the actual value is
 // in the memory array, and the string is placed in the memString
 // array.
+
 function setMemString(a) {
     memString[a] = intToHex4(a) + ' ' + intToHex4(memory[a]);
+}
+
+// Fetch and return a word from memory at address a, and record the
+// address so the display can show this access.
+
+function memFetchInstr (a) {
+    memFetchInstrLog.push(a);
+    return memory[a];
+}
+
+function memFetchData (a) {
+    memFetchDataLog.push(a);
+    return memory[a];
+}
+
+// Store a word x into memory at address a, and record the address so
+// the display can show this access.
+
+function memStore (a,x) {
+    memStoreLog.push(a);
+    memory[a] = x;
+}
+
+// Update the memory string for each location that has been accessed,
+// so that it contains an html div element which can be used to
+// highlight the memory location.  Do the fetches first, then the
+// stores: this ensures that if a location has both been fetched and
+// stored, the highlighting for the store will take precedence.
+
+function memShowAccesses () {
+    let i, a;
+    for (i = 0; i < memFetchInstrLog.length; i++) {
+	a = memFetchInstrLog[i];
+	highlightMemString(a,"GET");
+    }
+    for (i = 0; i < memFetchDataLog.length; i++) {
+	a = memFetchDataLog[i];
+	highlightMemString(a,"GET");
+    }
+    for (i = 0; i < memStoreLog.length; i++) {
+	a = memStoreLog[i];
+	highlightMemString(a,"PUT");
+    }
+}
+
+// Remove the highlighting for the memory locations that have been accessed
+
+function memClearAccesses () {
+    let a;
+    for (i=0; i<memFetchInstrLog.length; i++) {
+	a = memFetchInstrLog[i];
+	setMemString(a);
+    }
+    for (i=0; i<memFetchDataLog.length; i++) {
+	a = memFetchDataLog[i];
+	setMemString(a);
+    }
+    for (i=0; i<memStoreLog.length; i++) {
+	a = memStoreLog[i];
+	setMemString(a);
+    }
+    memFetchInstrLog = [];
+    memFetchDataLog = [];
+    memStoreLog = [];
 }
 
 // Create a string with a span class to represent a memory location
 // with highlighting; the actual value is in the memory array, and the
 // string is placed in the memString array.
+
 function highlightMemString(a,highlight) {
     memString[a] =
 	"<span class='" + highlight + "'>"
@@ -295,42 +376,88 @@ function highlightMemString(a,highlight) {
         + "</span>";
 }
 
-// Set the memory displays, using the memString array
+// Set the memory displays, using the memString array.  Check mode to
+// determine whether the display should be partial and fast or
+// complete but slow.
+
 function memDisplay () {
-    let xs = memString.join('\n');
-    memElt1.innerHTML = xs;
-    memElt2.innerHTML = xs;
+    if (memDisplayModeFull) { memDisplayFull () }
+    else { memDisplayFast () }
 }
 
+// Set the memory displays, showing only part of the memory to save time
 
-//----------------------------------------------------------------------
-//  Testing
-//----------------------------------------------------------------------
+function memDisplayFast () {
+    console.log ('memDisplayFast');
+    let xa, xb, xs, yafet, yasto, ya, yb, ys;
 
-function testMem1() {
-    console.log('testMem1');
+    xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
+    xa = xa < 0 ? 0 : xa;
+    xb = xa + memDisplayFastWindow;
+    xs = memString.slice(xa,xb).join('\n');
+    console.log ('  xa=' + xa + '  xb=' + xb);
+    memElt1.innerHTML = xs;
+
+    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
+    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
+    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
+    ya = ya < 0 ? 0 : ya;
+    yb = ya + memDisplayFastWindow;
+    ys = memString.slice(ya,yb).join('\n');
+    console.log ('  ya=' + ya + '  yb=' + yb);
+    memElt2.innerHTML = ys;
+}
+
+// Set the memory displays, showing the full memory
+
+function memDisplayFull () {
+    let xs;                 // display text
+    let xt, xo;             // display 1 targets and offsets
+    let yafet, yasto, ya, yo
+    console.log ('memDisplayFull');
+    xs = memString.join('\n');
+    memElt1.innerHTML = xs;
+    xt = (memFetchInstrLog.length===0)? 0 : memFetchInstrLog[0] - memDispOffset;
+    xo = xt * pxPerChar;
+    console.log('  target1 xt = ' + xt + '   offset1 = ' + xo);
+    memElt1.scroll(0,xo);
+    
+    memElt2.innerHTML = xs;
+    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
+    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
+    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
+    yt = yt < 0 ? 0 : yt;
+    yo = yt * pxPerChar;
+    console.log('  yafet=' + yafet + ' yasto=' + yasto + '  target1 yt = ' + yt + '   offset1 = ' + yo);
+    memElt2.scroll(0,yo);
+}
+
+function memTest1a () {
+    console.log('testMem1a');
+    memClear ();
     memStore(3,7);
     memStore(6,2);
-    let x = memFetch(1)
-    let y = memFetch(3);
-    memStore(7,20);
-    memShowAccesses();  // put highligh spans into memString
-    memDisplay();      // update the display
-    console.log('testMem1 x = ' + x);  // should be 0, highlight Fetch
-    console.log('testMem1 y = ' + y);  // should be 7, highlight Store
+    memShowAccesses ();
+    memDisplay ();
 }
 
-function testMem2() {
+function memTest1b () {
+    console.log('testMem1b');
+    memClearAccesses ();
+    let y = memFetchInstr(6);
+    memStore(300,20);
+    memShowAccesses();
+    memDisplay ();
+//    console.log('testMem1 x = ' + x);  // should be 0, highlight Fetch
+//    console.log('testMem1 y = ' + y);  // should be 7, highlight Store
+}
+
+function memTest2 () {
     console.log('testMem2');
-    memClearAccesses();
-    memStore(3,37);
-    let a = memFetch(4);
-    let b = memFetch(5);
-    memStore(9,1);
-    let x = memFetch(6);
-    memStore(7,20);
-    memStore(6,255);
-    memShowAccesses();  // put highligh spans into memString
-    memDisplay();      // update the display
-    console.log('testMem1 x = ' + x);  // should be 2
+    memClear ();
+    let y = memFetchInstr (32768);
+    let q = memFetchData (50);
+    memStore (65520, 7);
+    memShowAccesses ();
+    memDisplay ();
 }

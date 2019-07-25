@@ -34,7 +34,7 @@ function executeInstruction () {
     memDisplay ();
     regClearAccesses ();
 
-    ir.put (memFetch (pc.get()));
+    ir.put (memFetchInstr (pc.get()));
     pc.put (pc.get() + 1);
     console.log('pc = ' + intToHex4(pc.get()) + ' ir = ' + intToHex4(instr));
     let tempinstr = ir.get();
@@ -127,7 +127,7 @@ var rxDispatch =
 
 function rx(f) {
     console.log('rx');
-    adr.put (memFetch (pc.get()));
+    adr.put (memFetchInstr (pc.get()));
     pc.put (pc.get() + 1);
     ea = regFile[ir_a].get() + adr.get();
     console.log('rx ea = ' + intToHex4(ea));

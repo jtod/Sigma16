@@ -1,7 +1,19 @@
 # makefile for Sigma16
 
+# Non-source files.  The following files are written by various
+# compilation tools; they are not source and shouldn't be edited.  The
+# files marked optional are produced when a standalone version is
+# generated, but are not necessaryand can be deleted.
+
+#  dist                directory produced by npm (optional)
+#  node_modules        directory of packages downloaed by npm (optional)
+#  package-lock.json   records package versions; produced by npm (optional)
+#  version.js          written by make set-version
+#  doc/html            written by make doc
+
+
 # make all                  build everything from source
-# make disseminate-version  get version number from package.json
+# make set-version          get version number from package.json
 # make userguide            generate html from markdown source
 # make top-index            generate html from markdown source
 # make release-index        generate html from markdown source
@@ -41,7 +53,7 @@ FullCopyName := $(PackageName)-on-$(DateTimeStamp)
 
 .PHONY : all
 all :
-	make disseminate-version
+	make set-version
 	make userguide
 	make top-index
 	make dependencies
@@ -49,15 +61,15 @@ all :
 	make executable
 	make move-executable
 
-# make disseminate-version --- The version number is defined in
+# make set-version --- The version number is defined in
 # app/package.json; this makefile finds the number there and defines a
 # make variable $(VERSION).  This is used in several places, including
 # writing a VERSION file in the top directory (not essential but
 # helpful for users) and app/version.js (which makes the version
 # number available to the JavaScript program).
 
-.PHONY : disseminate-version
-disseminate-version :
+.PHONY : set-version
+set-version :
 	echo $(VERSION) > ../VERSION
 	echo "const s16version = \"$(VERSION)\";" > version.js
 
@@ -129,7 +141,7 @@ run :
 .PHONY : release
 release :
 	mkdir -p ../release/Sigma16-$(VERSION)
-	make disseminate-version
+	make set-version
 	cp ../VERSION ../release/Sigma16-$(VERSION)
 	cp ../LICENSE.txt ../release/Sigma16-$(VERSION)
 	cp ../README.md ../release/Sigma16-$(VERSION)

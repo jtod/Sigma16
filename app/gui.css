@@ -376,6 +376,7 @@ guide). */
     font-size: var(--main-font-size);
     overflow-y: scroll;
     overflow-x: visible;
+/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
     background-color: var(--subpanel-background-color);
     height: var(--ProcStateHeight);  /* 16em calculate this?????? */
 }
@@ -470,6 +471,12 @@ guide). */
     font-family: sans-serif;
     font-size: var(--main-font-size);
     font-weight: bold;
+}
+
+/* controls that take full line, rather than label/content fields */
+.EmCtlLine {
+    grid-column-start: RegVlineStart;
+    grid-column-end: RegVlineeND;
 }
 
 .RegisterName {
