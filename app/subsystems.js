@@ -288,17 +288,22 @@ function memClear () {
 // but this function will recalculate all elements of that array
 
 function memRefresh () {
+    memString = [];  // clear out and collect any existing elements
+    memString[0] = "<pre class='HighlightedTextAsHtml'>"
     for (var i = 0; i < memSize; i++) {
 	setMemString(i);
     }
+    memString.push("</pre>");
+
 }
 
 // Create a string to represent a memory location; the actual value is
 // in the memory array, and the string is placed in the memString
-// array.
+// array.  memString[0] = <pre class="HighlightedTextAsHtml"> and
+// mem[a] corresponds to memString[a+1].
 
 function setMemString(a) {
-    memString[a] = intToHex4(a) + ' ' + intToHex4(memory[a]);
+    memString[a+1] = intToHex4(a) + ' ' + intToHex4(memory[a]);
 }
 
 // Fetch and return a word from memory at address a, and record the
@@ -370,7 +375,7 @@ function memClearAccesses () {
 // string is placed in the memString array.
 
 function highlightMemString(a,highlight) {
-    memString[a] =
+    memString[a+1] =
 	"<span class='" + highlight + "'>"
 	+ intToHex4(a) + " " + intToHex4(memory[a])
         + "</span>";
@@ -389,12 +394,23 @@ function memDisplay () {
 
 function memDisplayFast () {
     console.log ('memDisplayFast');
-    let xa, xb, xs, yafet, yasto, ya, yb, ys;
+    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
 
     xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
     xa = xa < 0 ? 0 : xa;
     xb = xa + memDisplayFastWindow;
-    xs = memString.slice(xa,xb).join('\n');
+//    xs1 = [];
+//    xs1.push("<pre class='HighlightedTextAsHtml'>");
+//    xs1.push(memString[xa+1]);
+//    xs1.push(memString[xa+2]);
+//    xs1.push(memString[xa+3]);
+//    xs1.push("</pre>");
+    xs1 = memString.slice(xa+1,xb-1);
+    xs1[0] = "<pre class='HighlightedTextAsHtml'>" + xs1[0];
+    xs1.push("</pre>");
+    xs = xs1.join('\n');
+//    xs = memString.slice(xa,xb).join('\n');
+//    xs = "<pre class='HighlightedTextAsHtml'>" + xs + "</pre>";
     console.log ('  xa=' + xa + '  xb=' + xb);
     memElt1.innerHTML = xs;
 
@@ -403,10 +419,16 @@ function memDisplayFast () {
     ya = yafet > 0 && yafet < yasto ? yafet : yasto;
     ya = ya < 0 ? 0 : ya;
     yb = ya + memDisplayFastWindow;
-    ys = memString.slice(ya,yb).join('\n');
+    ys1 = memString.slice(ya+1,yb-1);
+    ys1[0] = "<pre class='HighlightedTextAsHtml'>" + ys1[0];
+    ys1.push("</pre>");
+    ys = ys1.join('\n');
     console.log ('  ya=' + ya + '  yb=' + yb);
     memElt2.innerHTML = ys;
+    console.log('memElt2.innerHTML = ' + ys);
+    console.log('  NOTE memString[ya] = ' + memString[ya]);
 }
+
 
 // Set the memory displays, showing the full memory
 

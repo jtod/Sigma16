@@ -171,7 +171,7 @@ function user_guide_resize(x) {
 // Diagnostics
 
 function checkTestBody () {
-    console.log ('checkTestBody width = ' + testPaneBodyElt.style.width);
+//    console.log ('checkTestBody width = ' + testPaneBodyElt.style.width);
 }
 
 // deprecated, delete
@@ -185,18 +185,6 @@ function checkTestBody () {
 // Testing
 //---------------------------------------------------------------------------
 
-function testpane1 () {
-    console.log ('testpane 1 clicked');
-    checkTestBody();
-}
-
-function testpane2 () {
-    console.log ('testpane 2 clicked');
-}
-
-function testpane3 () {
-    console.log ('testpane 3 clicked');
-}
 
 function displayHello() {
     var msg;
@@ -447,6 +435,19 @@ function insert_example(exampleText) {
 };
 
 
+// Default example program for testing
+const example_default =  `; Program test
+
+       add R4,R5,R6
+
+       lea   R4,23[R0]
+       lea   R9,5[R0]
+       trap   R0,R0,R0      ; system request to terminate
+x      data   2
+y      data   3
+`;
+
+
 // Simple example program: add
 const example_add = `; Program Add
 
@@ -596,7 +597,8 @@ window.onload = function () {
 
     resetRegisters();
 
-    insert_example(example_errors);     // For testing and debugging
+    //    insert_example(example_errors);     // For testing and debugging
+    insert_example(example_default);     // For testing and debugging
 
     initialize_mid_main_resizing ();
     setMidMainLRratio(0.9);  // normally 0.6, this is for quick testing ??????

@@ -3,6 +3,10 @@
 var s16modules = [];
 var currentModNum = 0;
 
+function getCurrentModule () {
+    return s16modules[currentModNum]
+}
+
 // s16modules[0].src = 'abcd';    testing for non-0 src length
 
 // Create one initial module and make it the current module
@@ -22,7 +26,8 @@ function mkModule () {
 	locationCounter : 0,
 	asmListing : [],
 	objectCode : [],
-	asmap : []  // array mapping address to source statement
+	asmap : [],  // array mapping address to source statement
+	isExecutable : true  // until proven otherwise
     }
 }
 

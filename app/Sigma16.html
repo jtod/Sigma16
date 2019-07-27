@@ -49,10 +49,28 @@
 		<button onclick="testpane3();"> testpane 3 </button>
 	      </div>
 	      <div class="PaneBody" id="TestPaneBody">
-		some content in test pane body
+		<pre class="HighlightedTextAsHtml">
+a first line
+second line
+0000 03f1
+0001 abcd
+0002 16ce
+0003 024b
+0004 2456
+<span class='CUR'>0005 23ca</span>
+0006 2345
+0007 1234
+0008 6326
+0009 abcd
+000a 34da
+<span class='NEXT'>000b 38cf</span>
+000c ffff
+000d 45fa
+000e 3456
+000f 0000
+last line</pre>
 	      </div>
 	    </div>
-	    
 	    <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
 		<button onclick="springen('control-registers');"> ctl-regs </button>
@@ -140,7 +158,7 @@ Type something here
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
 		<button onclick="procReset()"> Reset </button>
-		<button onclick="procBoot()"> Boot </button>
+		<button onclick="boot()"> Boot </button>
 		<button onclick="procStep()"> Step </button>
 		<button onclick="procRun()"> Run </button>
 		<button onclick="procInterrupt()">Interrupt</button>
@@ -267,8 +285,10 @@ Type something here
 		  </div>
 		  <div class="ProcStateSection" id="MemSection">
 		    <div class="MemSecName">Memory</div>
-		    <div class='MemDisplay' id="MemDisplay1"></div>
-		    <div class='MemDisplay' id="MemDisplay2"></div>
+		    <div class="MemDisplay" id="MemDisplay1">
+		    </div>
+		    <div class="MemDisplay" id="MemDisplay2">
+		    </div>
 		  </div>
 		  <div class="ProcStateSection" id="IOSection">
 		    <div class="IOSecName">Input/Output</div>
@@ -277,13 +297,9 @@ Type something here
 		    <div id="IOInbufLabel">Input Buffer</div>
 		  </div>
 		</div>
-		<div id="ProcessorAssemblerText">
-		  <html>
-		    <body>
-		      <div class="HighlightedTextAsHtml" id="ProcListingHtml">
-		      </div>
-		    </body>
-		  </html>
+		<div>
+		  <div id="ProcAsmListing">
+		  </div>
 		</div>
 	      </div>
 	    </div>

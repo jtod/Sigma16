@@ -72,15 +72,23 @@ pane height
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: ivory;
-    --mem-display-width: 7em;
+    --mem-display-width: 6.1em;
     --reg-name-val-sep: 0.7em;
     --IOinputbuffer-background: yellow;
 /* fonts */    
     --main-font-family: 'Lucida Console',monospace;
     --main-font-size: 0.9em;
+    --pre-font-size: 0.9em;
     --text-color-get: blue;
     --text-color-put: red;
+    --text-color-cur: red;
+    --text-color-next: blue;
     --text-color-err: red;
+}
+
+#TestingPRE {
+    font-family: var(--main-font-family);
+    font-size: var(--pre-font-size);
 }
 
 .RegisterName {
@@ -216,6 +224,8 @@ guide). */
 
 /* Several panes use Html to display text with formatting */
 
+
+
 .HtmlContent {
     width: 100%;
     height: 100%;
@@ -232,6 +242,12 @@ guide). */
     box-sizing: border-box;
     background-color: ivory;
     overflow: auto;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
+    background-color: var(--subpanel-background-color);
 }
 
 
@@ -369,16 +385,21 @@ guide). */
     grid-template-columns: [MemVlineStart] min-content
 					   [MemVlineMiddle] min-content
 					   [MemvlineEnd];
+    height: var(--ProcStateHeight);  /* 16em calculate this?????? */
 }
 
 .MemDisplay {
+    background-color: pink;
+    height: 14em;
+/*    height: var(--ProcStateHeight); */  /* 16em calculate this?????? */ 
+/*
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
     overflow-y: scroll;
     overflow-x: visible;
-/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
     background-color: var(--subpanel-background-color);
-    height: var(--ProcStateHeight);  /* 16em calculate this?????? */
+*/
+/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
 }
 
 .MemSecName {
@@ -562,6 +583,13 @@ guide). */
 }
 .PUT {
     color: var(--text-color-put);
+}
+
+.CUR {
+    color: var(--text-color-cur);
+}
+.NEXT {
+    color: var(--text-color-next);
 }
 
 .ERR {

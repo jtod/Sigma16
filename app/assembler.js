@@ -15,11 +15,6 @@ comments field
    contains any characters
 */
 
-// Don't want this to be global; use s16modules and currentModNum instead
-
-// var m; // set to current module, used to access key asm variables m.asmStmt etc
-
-
 // ?????????????????????? inconsistent args parseAsmLine
 
 //----------------------------------------------------------------------
@@ -169,7 +164,7 @@ statementSpec.set("jumpnco",  {format:JX,  opcode:[15,1]});
 // Representation of assembly language statement
 
 function mkAsmStmt (lineNumber, address, srcLine) {
-    return {lineNumber,                     // 1 + array index of statement
+    return {lineNumber,                     // array index of statement
 	    address,                        // address where code goes
 	    srcLine,                        // source line
 	    fieldLabel : '',                // label
@@ -300,7 +295,7 @@ function asmPass1 (m) {
     let asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
     console.log('assembler pass 1: ' + asmSrcLines.length + ' source lines');
     for (let i = 0; i < asmSrcLines.length; i++) {
-	m.asmStmt[i] = mkAsmStmt (i+1, m.locationCounter, asmSrcLines[i]);
+	m.asmStmt[i] = mkAsmStmt (i, m.locationCounter, asmSrcLines[i]);
 	parseAsmLine (m,i);
 	m.locationCounter += m.asmStmt[i].codeSize;
 //	printAsmStmt(m.asmStmt[i]);
@@ -513,7 +508,7 @@ function asmPass2 (m) {
 	} else {
 //	    console.log('pass2 other, noOperation');
 	}
-	s.listingLine = s.lineNumber.toString().padStart(4,' ')
+	s.listingLine = (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + intToHex4(s.address)
 	    + ' ' + (s.codeSize>0 ? intToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize>1 ? intToHex4(s.codeWord2) : '    ')
@@ -524,8 +519,18 @@ function asmPass2 (m) {
 	}
     }
     flushObjectLine (m);
+    console.log('part of asmap')
+    for (let i = 0; i<20; i++) {
+	tempshow(m,i)
+    }
+		 
 }
 
+// linenumber indexed from 0 but add1 for asm listing
+function tempshow(m,a) {
+    console.log( '  ' + a + '  ' +  (m.asmap[a] + 1) );
+    }
+    
 // Object lines
 
 // The code generator outputs lines of object code containing up to
@@ -552,8 +557,9 @@ function flushObjectLine(m) {
 // Add object word x to buffer for next object code line in module m.
 // The asm statement is s, and the object word will be loaded at
 // address a.
+
 function generateObjectWord (m, s, a, x) {
-    m.asmap[a] = s.srcLine;
+    m.asmap[a] = s.lineNumber;
     if (objBufferSize > 0) { objectLineBuffer += ',' };
     objectLineBuffer += intToHex4(x);
     objBufferSize++;
@@ -597,51 +603,7 @@ function setAsmListing (m) {
 //    }
     document.getElementById('AsmTextHtml').innerHTML =
 	m.asmListing.join('\n');
-
-    setProcAsmListing (	m.asmListing.join('\n'));
- // ??? temp, just for testing proc layout
-
-}
-
-//----------------------------------------------------------------------
-//  Boot
-//----------------------------------------------------------------------
-
-var bootCurrentLocation = 0;  // global, used by booter
-
-function boot() {
-    console.log('boot');
-    let objText = document.getElementById("LinkerText").value;
-    console.log('objText = ' + objText);
-    let xs = objText.split("\n");
-    console.log("linker boot: " + xs.length + " lines");
-//    console.log(xs);
-//    line1 = xs[0];
-//    console.log('line1 = ' + line1);
-//    fields = line1.split(" ");
-//    console.log('fields = ' + fields);
-//    console.log('field0 = ' + fields[0]);
-//    console.log('field1 = ' + fields[1]);
-    //    console.log('field2 = ' + fields[2]);
-    bootCurrentLocation = 0;
-    for (var i = 0; i < xs.length; i++) {
-	linkerBootLine(i, xs[i]);
-//	experiment(xs[i]);
-    }
-}
-
-// Should check the operation, implement org, and provide suitable
-// error messages, but that's for later.  For now, just assume it is
-// hexdata with valid argument
-function linkerBootLine (m,i,x) {
-    let y = parseAsmLine (m,i,x);
-//    printAsmLine (y);
-    let w = y.fieldOperands;
-    let n =  hex4ToInt(w);
-//    console.log('linkerBootLine ' + w + ' = ' + n);
-    console.log('linkerBootLine ' + i + ' ---' + x + '--- = ' + n);
-    updateMem2(bootCurrentLocation,n);
-    bootCurrentLocation++;
+    console.log (' Set asm listing m.asmListing = ' + m.asmListing);
 }
 
 //----------------------------------------------------------------------
