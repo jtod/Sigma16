@@ -393,24 +393,16 @@ function memDisplay () {
 // Set the memory displays, showing only part of the memory to save time
 
 function memDisplayFast () {
-    console.log ('memDisplayFast');
+//    console.log ('memDisplayFast');
     let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
 
     xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
     xa = xa < 0 ? 0 : xa;
     xb = xa + memDisplayFastWindow;
-//    xs1 = [];
-//    xs1.push("<pre class='HighlightedTextAsHtml'>");
-//    xs1.push(memString[xa+1]);
-//    xs1.push(memString[xa+2]);
-//    xs1.push(memString[xa+3]);
-//    xs1.push("</pre>");
-    xs1 = memString.slice(xa+1,xb-1);
+    xs1 = memString.slice(xa+1,xb+1);
     xs1[0] = "<pre class='HighlightedTextAsHtml'>" + xs1[0];
     xs1.push("</pre>");
     xs = xs1.join('\n');
-//    xs = memString.slice(xa,xb).join('\n');
-//    xs = "<pre class='HighlightedTextAsHtml'>" + xs + "</pre>";
     console.log ('  xa=' + xa + '  xb=' + xb);
     memElt1.innerHTML = xs;
 
@@ -419,14 +411,14 @@ function memDisplayFast () {
     ya = yafet > 0 && yafet < yasto ? yafet : yasto;
     ya = ya < 0 ? 0 : ya;
     yb = ya + memDisplayFastWindow;
-    ys1 = memString.slice(ya+1,yb-1);
+    ys1 = memString.slice(ya+1,yb+1);
     ys1[0] = "<pre class='HighlightedTextAsHtml'>" + ys1[0];
     ys1.push("</pre>");
     ys = ys1.join('\n');
     console.log ('  ya=' + ya + '  yb=' + yb);
     memElt2.innerHTML = ys;
-    console.log('memElt2.innerHTML = ' + ys);
-    console.log('  NOTE memString[ya] = ' + memString[ya]);
+//    console.log('memElt2.innerHTML = ' + ys);
+//    console.log('  NOTE memString[ya] = ' + memString[ya]);
 }
 
 

@@ -257,7 +257,7 @@ function assembler () {
     clearObjectCode ();
     document.getElementById('AsmTextHtml').innerHTML = "";
     symbolTable.clear();
-    m.asmListing.push("<pre>");
+    m.asmListing.push("<pre class='HighlightedTextAsHtml'>");
     m.asmListing.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
 

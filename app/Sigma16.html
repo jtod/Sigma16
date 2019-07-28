@@ -116,8 +116,7 @@ Type something here
 		<button onclick="tryMainFcn()"> try def in main </button>
 	      </div>
 	      <div class="PaneBody" id="EditorBody">
-		<textarea class="PaneTextArea" id="EditorTextArea">
-		</textarea>
+		<textarea class="Editor" id="EditorTextArea"></textarea>
 	      </div>
 	    </div>
 
@@ -128,12 +127,7 @@ Type something here
 		<button> Asm 3 </button>
 	      </div>
 	      <div class="PaneBody" id="AssemblerBody">
-		<html>
-		  <body>
-		    <div class="HighlightedTextAsHtml" id="AsmTextHtml">
-		    </div>
-		  </body>
-		</html>
+		<div id="AsmTextHtml"></div>
 	      </div>
 	    </div>
 
@@ -144,14 +138,7 @@ Type something here
 		<button> Linker 3 </button>
 	      </div>
 	      <div class="PaneBody" id="LinkerBody">
-		<html>
-		  <body>
-		    <div class="HighlightedTextAsHtml"
-			 id="LinkerTextHtml">
-		      some linker text
-		    </div>
-		  </body>
-		</html>
+		<div id="LinkerText"></div>
 	      </div>
 	    </div>
 	    
@@ -285,10 +272,8 @@ Type something here
 		  </div>
 		  <div class="ProcStateSection" id="MemSection">
 		    <div class="MemSecName">Memory</div>
-		    <div class="MemDisplay" id="MemDisplay1">
-		    </div>
-		    <div class="MemDisplay" id="MemDisplay2">
-		    </div>
+		    <div class="MemDisplay" id="MemDisplay1"></div>
+		    <div class="MemDisplay" id="MemDisplay2"></div>
 		  </div>
 		  <div class="ProcStateSection" id="IOSection">
 		    <div class="IOSecName">Input/Output</div>
@@ -298,8 +283,7 @@ Type something here
 		  </div>
 		</div>
 		<div>
-		  <div id="ProcAsmListing">
-		  </div>
+		  <div id="ProcAsmListing"></div>
 		</div>
 	      </div>
 	    </div>

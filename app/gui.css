@@ -62,7 +62,7 @@ pane height
 			   (var(--paneButtonsHeight) +
 			    (8 * var(--paneSecVskip))));  /* ????? */
     --PaneBodyBackgroundColor: violet;
-    --ProcStateHeight: 16em;
+    --ProcStateHeight: 15.5em; /* 16em; */
     --ProcAsmTextHeight: calc(var(--paneBodyHeight)
 			      - (var(--ProcStateHeight)
 				 + 1.2em)); // allow for scrollbar and borders */
@@ -73,6 +73,7 @@ pane height
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: ivory;
     --mem-display-width: 6.1em;
+    --mem-display-height: 14em;
     --reg-name-val-sep: 0.7em;
     --IOinputbuffer-background: yellow;
 /* fonts */    
@@ -232,16 +233,23 @@ guide). */
     overflow: auto;
 }
 
-#AsmTextHtml, #ProcTextHtml, #ProcListingHtml {
+#AsmTextHtml {
+    height: 100%;
 }
 
+#LinkerText {
+    height: 100%;
+}
+
+#ProcTextHtml, #ProcListingHtml {
+}
 
 .HighlightedTextAsHtml {
     width: 100%;
     height: 100%;
+    margin: 0em;  /* needed to make the text fill its box */
     box-sizing: border-box;
     background-color: ivory;
-    overflow: auto;
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
     overflow-y: scroll;
@@ -289,11 +297,13 @@ guide). */
 
 /* Editor pane -------------------------------------------------- */
 
-#EditorTextArea {
+.Editor {
     background-color: ivory;
     box-sizing: border-box;
     width: 100%;
     height: 100%;
+    font-family: var(--main-font-family);
+    font-size: var(--pre-font-size);
     wrap: "off";
     overflow: scroll;
 }
@@ -323,10 +333,12 @@ guide). */
 /* Linker pane -------------------------------------------------- */
 
 #LinkerText {
+}
+/*
     height: calc(100vh - 25em);
     margin: 1em;
     background-color: white;
-}
+*/
 
 /* Processor pane ------------------------------------------------------------*/
 
@@ -388,20 +400,6 @@ guide). */
     height: var(--ProcStateHeight);  /* 16em calculate this?????? */
 }
 
-.MemDisplay {
-    background-color: pink;
-    height: 14em;
-/*    height: var(--ProcStateHeight); */  /* 16em calculate this?????? */ 
-/*
-    font-family: var(--main-font-family);
-    font-size: var(--main-font-size);
-    overflow-y: scroll;
-    overflow-x: visible;
-    background-color: var(--subpanel-background-color);
-*/
-/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
-}
-
 .MemSecName {
     grid-column-start: MemVlineStart;
     grid-column-end: MemVlineEnd;
@@ -411,6 +409,9 @@ guide). */
     font-weight: bold;
 }
 
+.MemDisplay {
+    height: var(--mem-display-height);
+}
 
 #MemDisplay1 {
     grid-row-start: MemHlineDisplayStart;
@@ -574,6 +575,10 @@ guide). */
     font-size: var(--main-font-size);
     font-weight: bold;
 
+}
+
+#ProcAsmListing {
+    height: var(--ProcAsmTextHeight);
 }
 
 /* Highlighting */
