@@ -72,7 +72,12 @@ pane height
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: ivory;
-    --mem-display-width:  8em; /* 6.1em; */
+    --mem-display-width: 12.5em; /* 6.1em; */  /* try wide to see if pre needed */
+
+    /* YES???????????  with wide size we get several locations per line,
+that's why I need <pre> but if <pre> is in a separate array element it prevents
+scroll from working */
+
     --mem-display-height: 14em;
     --reg-name-val-sep: 0.7em;
     --IOinputbuffer-background: yellow;
@@ -85,6 +90,10 @@ pane height
     --text-color-cur: red;
     --text-color-next: blue;
     --text-color-err: red;
+}
+
+.pre .code {
+    top: 0em;
 }
 
 #TestingPRE {
@@ -409,13 +418,15 @@ guide). */
 }
 
 .MemDisplay {
-    font-family: var(--main-font-family);
-    font-size: var(--main-font-size);
     overflow-y: scroll;
     overflow-x: visible;
     background-color: var(--subpanel-background-color);
     height: var(--ProcStateHeight);
 }
+/*
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+*/
 
 #MemDisplay1 {
     grid-row-start: MemHlineDisplayStart;
@@ -582,6 +593,11 @@ guide). */
 }
 
 #ProcAsmListing {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+    background-color: var(--subpanel-background-color);
     height: var(--ProcAsmTextHeight);
 }
 

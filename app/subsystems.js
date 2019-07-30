@@ -242,7 +242,7 @@ var memFetchDataLog = [];
 var memStoreLog = [];
 var memDisplayModeFull = false;  // show entire memory? or just a little of it?
 var memDisplayFastWindow = 16;   // how many locations to show in fast mode
-var memDispOffset = 5;    // how many locations above highligted one
+var memDispOffset = 3;    // how many locations above highligted one
 
 // Must wait until onload event
 
@@ -405,7 +405,9 @@ function memDisplayFast () {
     xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
     xa = xa < 0 ? 0 : xa;
     xb = xa + memDisplayFastWindow;
-    xs = memString.slice(xa,xb).join('\n');
+    xs = "<pre><code class='HighlightedTextAsHtml'>"
+    	+ memString.slice(xa,xb).join('\n')
+	+ "</code></pre>";
     console.log ('  xa=' + xa + '  xb=' + xb);
     memElt1.innerHTML = xs;
 
@@ -414,20 +416,37 @@ function memDisplayFast () {
     ya = yafet > 0 && yafet < yasto ? yafet : yasto;
     ya = ya < 0 ? 0 : ya;
     yb = ya + memDisplayFastWindow;
-    ys = memString.slice(ya,yb).join('\n');
+    ys = "<pre><code class='HighlightedTextAsHtml'>"
+	+ memString.slice(ya,yb).join('\n')
+	+ "</code></pre>";
     console.log ('  ya=' + ya + '  yb=' + yb);
     memElt2.innerHTML = ys;
 }
 
-
 // Set the memory displays, showing the full memory
+
+// Need <pre> to get the formatting correct with line breaks.  but
+// <pre> prevents scrolling from working.  Could try not using pre,
+// but putting <br> after each line, but that still wouldn't work
+// because multiple spaces in code wouldn't work..  Try <code>; With
+// <code class=... scrolling works, but the line breaks aren't
+// there.. Is there a problem with HighlightedTextAsHtml?
+
+// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
+
+//    xs = "<pre><code class='HighlightedTextAsHtml'>"
+//	+ memString.join('\n')
+//	+ "</code></pre>";
+
 
 function memDisplayFull () {
     let xs;                 // display text
     let xt, xo;             // display 1 targets and offsets
     let yafet, yasto, ya, yo
     console.log ('memDisplayFull');
-    xs = memString.join('\n');
+    xs = "<pre><code class='HighlightedTextAsHtml'>"
+	+ memString.join('\n')
+	+ "</code></pre>";
     memElt1.innerHTML = xs;
     xt = (memFetchInstrLog.length===0)? 0 : memFetchInstrLog[0] - memDispOffset;
     xo = xt * pxPerChar;
@@ -440,7 +459,8 @@ function memDisplayFull () {
     yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
     yt = yt < 0 ? 0 : yt;
     yo = yt * pxPerChar;
-    console.log('  yafet=' + yafet + ' yasto=' + yasto + '  target1 yt = ' + yt + '   offset1 = ' + yo);
+    console.log('  yafet=' + yafet + ' yasto=' + yasto
+		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
     memElt2.scroll(0,yo);
 }
 

@@ -9,6 +9,8 @@
 // use <pre class="HighlightedTextAsHtml"> but don't put it inside a
 // div with HighlightedTExtAsHtml
 
+var procAsmListingElt;  // set during onLoad event
+
 function testpane1() {
     console.log ('testpane 1 clicked')
     let xs = ["<pre class='HighlightedTextAsHtml'>", 'line 1 text',
@@ -156,12 +158,13 @@ function initListing () {
     saveCurSrcLine = "";
     saveNextSrcLine = "";
     srcLine = [];
-    srcLine.push("<pre class='HighlightedTextAsHtml'>");
+//    srcLine.push("<pre class='HighlightedTextAsHtml'>");
     for (let i = 0; i < exMod.asmStmt.length; i++) {
 	srcLine.push(exMod.asmStmt[i].srcLine);
     }
-    srcLine.push("</pre>");
-    setProcAsmListing (srcLine.join('\n'));
+//    srcLine.push("</pre>");
+    //    setProcAsmListing (srcLine.join('\n'));
+    setProcAsmListing ();
 }
 
 // Prepare the running listing before starting instruction: remove any
@@ -202,17 +205,19 @@ function highlightListingAfterInstr () {
     }
 
     if (memDisplayModeFull) {
-	//	setProcAsmListing (srcLine.join('\n'))
 	highlightListingFull ()
     } else {
-	//	setProcAsmListing (srcLine.join('\n'));
 	highlightListingFull ()    // temp ?????
     }
 }
 
 function highlightListingFull () {
     console.log ('highlightListingFull');
-    setProcAsmListing (srcLine.join('\n'));
+//    let xs = "<pre><code class='HighlightedTextAsHtml'>"
+//	+ srcLine.join('\n')
+//	+ "</code></pre>";
+//    setProcAsmListing (xs);
+    setProcAsmListing ();
     let scrollOffset = curInstrLineNo * pxPerChar;
     console.log ('curInstrLineNo = ' + curInstrLineNo
 		 + '  scrollOffset = ' + scrollOffset);
@@ -226,9 +231,13 @@ function highlightListingLine (i,highlight) {
     console.log ('highlightListingLine : ' + srcLine[i]);
 }
 
-function setProcAsmListing (xs) {
+function setProcAsmListing () {
 //    console.log ('setProcAsmListing');
 //    console.log(' procAsmListing.innerHTML = xs = ' + xs);
+    let xs = "<pre><code class='HighlightedTextAsHtml'>"
+	+ srcLine.join('\n')
+	+ "</code></pre>";
+
     document.getElementById('ProcAsmListing').innerHTML = xs;
 
 }
