@@ -19,6 +19,130 @@ var create;  /* for save download */
 var textbox; /* for save download */
 
 //---------------------------------------------------------------------------
+// Experiments and testing
+//---------------------------------------------------------------------------
+
+function displayHello() {
+    var msg;
+    msg = document.getElementById("message");
+    msg.outerHTML = "<h1>Hello, world!</h1>"; }
+
+// Set width of help section
+    
+    /* try loading this directly with iframe tag
+    document.getElementById("WelcomeHtml").innerHTML=
+	'<object type="text/html" class="HtmlContent" data="welcome.html"></object>';
+    document.getElementById("MidMainRight").innerHTML=
+	'<object type="text/html" class="HtmlContent" data="../../datafiles/doc/html/index.html"></object>';
+*/
+
+// For testing, set the editor buffer to a text file
+// This doesn't work, just puts a description of the object into the value
+// but doesn't read the file.  Maybe try making the file a js statement
+// that assigns a text constant to a variable?
+// Alternative might be to read innerhtml and then to extract this?
+// experiment result: can set innerHTML of a div, but not of a textarea
+// Can I read the textinto the div, and then obtain the value of this,
+// print it, and then set it into the value of the text area???
+
+// Doesn't work because of cross-origin restriction
+
+
+function setEdBuf1 () {
+    console.log("setEdBuf1");
+    document.getElementById("EdTextBufferDummyDiv").innerHTML=
+	'<object type="text/html" class="UserManContent" data="../docsrc/index.md"></object>';
+    var xyztemp = "xyztemp initial value";
+    var xyztemp = document.getElementById("EdTextBufferDummyDiv").innerHTML;
+    console.log("xyztemp = " + xyztemp);
+    var foobar = xyztemp.data;
+    console.log("foobar = " + foobar);
+    var ifrm = document.getElementById("myIframe");
+    console.log("ifrm = " + ifrm);
+    var ifr_doc = ifrm.contentWindow.document;
+    console.log("ifr_doc = " + ifr_doc);
+    // Doesn't work because of cross-origin restriction
+}
+
+function tryfoobar () {
+/* Try to make button go to a point in the user guide */
+    console.log ('trySearchUserguide');    
+/*
+    var midmainright = document.getElementById('MidMainRight');
+    console.log ('midmainright = ' + midmainright);
+    usrguidecontent = document.getElementById("WelcomeHtml").innerHTML;
+    console.log ('usrguidecontent = ' + usrguidecontent);
+ */
+    let e = document.getElementById("THISISIT");
+    console.log('e = ' + e);
+}
+
+function jumpToAnchor (target){
+    console.log( 'jumpToAnchor ' + target);
+    console.log('about to do it');
+    let elt = document.getElementById('WelcomeHtml');
+    console.log('did it');
+    console.log('elt = ' + elt);
+    let loc = elt.location;
+    console.log('loc = ' + loc);
+    elt.location.hash=target;
+}
+
+/* onclick="jumpToAnchor('itemAttributes');jumpToAnchor('x')"> */
+
+// find out how slow it is to refresh a register
+// is it worthwhile avoiding refreshing a register if it will also be highlighted?
+// For n=10000 the time is about 88ms, fine for interactive use
+
+// measure time for n register put operations
+function measureRegPut (n) {
+    var tstart = performance.now();
+    for (var i = 0; i<n; i++) {
+	pc.put(i);
+    }
+    var tend = performance.now();
+    console.log('measureRegRefresh (' + n + ') took '
+		+ (tend - tstart) + ' ms');
+}
+
+// try to jump to a position in user guide
+// doesn't work because of security restriction
+// try springen('control-registers')
+// conclusion: really cannot do this
+
+function springen(anker) { 
+    var childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
+    childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
+}
+
+// Want to make Editor button 1 go to an anchor in the User Guide
+// Doesn't work yet
+// I put this manually into the user guide: <a href="HREFTESTING">dummy href</a>
+function editorButton1() {
+    console.log("Editor button 1 clicked");
+    // Try to visit <a  href="file:Readme"> in the user guide
+    let userGuideElt = document.getElementById("MidMainRight");
+    console.log("UserGuideElt = " + userGuideElt);
+    window.location.hash = "#HREFTESTING";
+	
+//    var loc = userGuideElt.location;
+//    console.log ("ed button 1, loc = " + loc);
+//    loc.href = "#HREFTESTING";
+    
+}
+
+function editorButton2() {
+    console.log("Editor button 2 clicked");
+
+    // this gives description of the object, not the file contents
+    document.getElementById('EditorTextArea').value =
+	'<object type="text" data="./Sigma16gui.css"></object>';
+    let xs = fileReader.readAsText("./Sigma16gui.css");
+    console.lot(xs);
+
+}
+
+//---------------------------------------------------------------------------
 // Window sizing: adjust relative size of system and user guide
 //---------------------------------------------------------------------------
 
@@ -46,7 +170,7 @@ var windowWidth;     // inner width of entire browser window
 var middleSection;  // the middle section of the window; set in onload
 var midMainLeft;     // mid-main-left; set in onload
 var midMainRight;     // mid-main-right; set in onload, not used anywhere
-var midLRratio = 0.5;  // ratio of width of midMainLeft and midMainRight
+var midLRratio = 0.6;  // width of midMainLeft / midMainRight; set in onLoad
 var midSecExtraWidth = 15;  // width of borders in px
 
 // Initialize the variables (middleSection, midMainLeft, midMainRight)
@@ -181,174 +305,6 @@ function checkTestBody () {
 // var testPaneBodyElt;
 //    testPaneBodyElt = document.getElementById('TestPaneBody');
 
-//---------------------------------------------------------------------------
-// Testing
-//---------------------------------------------------------------------------
-
-
-function displayHello() {
-    var msg;
-    msg = document.getElementById("message");
-    msg.outerHTML = "<h1>Hello, world!</h1>"; }
-
-//---------------------------------------------------------------------------
-// Experiments
-//---------------------------------------------------------------------------
-
-// Set width of help section
-    
-    /* try loading this directly with iframe tag
-    document.getElementById("WelcomeHtml").innerHTML=
-	'<object type="text/html" class="HtmlContent" data="welcome.html"></object>';
-    document.getElementById("MidMainRight").innerHTML=
-	'<object type="text/html" class="HtmlContent" data="../../datafiles/doc/html/index.html"></object>';
-*/
-
-// For testing, set the editor buffer to a text file
-// This doesn't work, just puts a description of the object into the value
-// but doesn't read the file.  Maybe try making the file a js statement
-// that assigns a text constant to a variable?
-// Alternative might be to read innerhtml and then to extract this?
-// experiment result: can set innerHTML of a div, but not of a textarea
-// Can I read the textinto the div, and then obtain the value of this,
-// print it, and then set it into the value of the text area???
-
-// Doesn't work because of cross-origin restriction
-
-
-function setEdBuf1 () {
-    console.log("setEdBuf1");
-    document.getElementById("EdTextBufferDummyDiv").innerHTML=
-	'<object type="text/html" class="UserManContent" data="../docsrc/index.md"></object>';
-    var xyztemp = "xyztemp initial value";
-    var xyztemp = document.getElementById("EdTextBufferDummyDiv").innerHTML;
-    console.log("xyztemp = " + xyztemp);
-    var foobar = xyztemp.data;
-    console.log("foobar = " + foobar);
-    var ifrm = document.getElementById("myIframe");
-    console.log("ifrm = " + ifrm);
-    var ifr_doc = ifrm.contentWindow.document;
-    console.log("ifr_doc = " + ifr_doc);
-    // Doesn't work because of cross-origin restriction
-}
-
-function tryfoobar () {
-/* Try to make button go to a point in the user guide */
-    console.log ('trySearchUserguide');    
-/*
-    var midmainright = document.getElementById('MidMainRight');
-    console.log ('midmainright = ' + midmainright);
-    usrguidecontent = document.getElementById("WelcomeHtml").innerHTML;
-    console.log ('usrguidecontent = ' + usrguidecontent);
- */
-    let e = document.getElementById("THISISIT");
-    console.log('e = ' + e);
-}
-
-function jumpToAnchor (target){
-    console.log( 'jumpToAnchor ' + target);
-    console.log('about to do it');
-    let elt = document.getElementById('WelcomeHtml');
-    console.log('did it');
-    console.log('elt = ' + elt);
-    let loc = elt.location;
-    console.log('loc = ' + loc);
-    elt.location.hash=target;
-}
-
-/* onclick="jumpToAnchor('itemAttributes');jumpToAnchor('x')"> */
-
-// find out how slow it is to refresh a register
-// is it worthwhile avoiding refreshing a register if it will also be highlighted?
-// For n=10000 the time is about 88ms, fine for interactive use
-
-// measure time for n register put operations
-function measureRegPut (n) {
-    var tstart = performance.now();
-    for (var i = 0; i<n; i++) {
-	pc.put(i);
-    }
-    var tend = performance.now();
-    console.log('measureRegRefresh (' + n + ') took '
-		+ (tend - tstart) + ' ms');
-}
-
-// try to jump to a position in user guide
-// doesn't work because of security restriction
-// try springen('control-registers')
-// conclusion: really cannot do this
-
-function springen(anker) { 
-    var childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
-    childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
-}
-
-// Want to make Editor button 1 go to an anchor in the User Guide
-// Doesn't work yet
-// I put this manually into the user guide: <a href="HREFTESTING">dummy href</a>
-function editorButton1() {
-    console.log("Editor button 1 clicked");
-    // Try to visit <a  href="file:Readme"> in the user guide
-    let userGuideElt = document.getElementById("MidMainRight");
-    console.log("UserGuideElt = " + userGuideElt);
-    window.location.hash = "#HREFTESTING";
-	
-//    var loc = userGuideElt.location;
-//    console.log ("ed button 1, loc = " + loc);
-//    loc.href = "#HREFTESTING";
-    
-}
-
-function editorButton2() {
-    console.log("Editor button 2 clicked");
-
-    // this gives description of the object, not the file contents
-    document.getElementById('EditorTextArea').value =
-	'<object type="text" data="./Sigma16gui.css"></object>';
-    let xs = fileReader.readAsText("./Sigma16gui.css");
-    console.lot(xs);
-
-}
-
-//---------------------------------------------------------------------------
-// File handling
-//---------------------------------------------------------------------------
-
-function handleSelectedFile (flist) {
-    console.log("handleSelectedFile");
-    console.log(flist);
-    let selectedFile = flist[0];
-    console.log("selected file = " + selectedFile);
-//    console.log("created fileReader" + fr);
-    fileContents = fileReader.readAsText(selectedFile);
-}
-
-fileReader.onload = function (e) {
-    console.log("fileReader.onload activated");
-    let xs = e.target.result;
-    console.log(xs);
-    editorBufferTextArea.value = xs;
-}
-
-// Save a file by downloading it to user default Downloads folder
-
-
-
-/* var textFile = null, */
-
-  makeTextFile = function (text) {
-    var data = new Blob([text], {type: 'text/plain'});
-
-    // If we are replacing a previously generated file we need to
-    // manually revoke the object URL to avoid memory leaks.
-    if (textFile !== null) {
-      window.URL.revokeObjectURL(textFile);
-    }
-
-    textFile = window.URL.createObjectURL(data);
-
-    return textFile;
-  };
 
 
 //---------------------------------------------------------------------------
@@ -546,6 +502,16 @@ window.onload = function () {
     console.log("window.onload activated");
     showTabbedPane("WelcomePane");
 
+// Initialize file/module
+
+    fileReader.onload = function (e) {
+    console.log("fileReader.onload activated");
+    let xs = e.target.result;
+    console.log(xs);
+    editorBufferTextArea.value = xs;
+}
+
+    
 // Initialize the modules
     initModules ();
 
@@ -582,6 +548,7 @@ window.onload = function () {
 
 // Initialize the memory
     memInitialize();
+    procAsmListingElt = document.getElementById('ProcAsmListing');
     
     editorBufferTextArea = document.getElementById("EditorTextArea");
 
@@ -596,19 +563,13 @@ window.onload = function () {
   }, false);
 
     resetRegisters();
-
-    //    insert_example(example_errors);     // For testing and debugging
-    insert_example(example_default);     // For testing and debugging
-
+    insert_example(example_add);     // For testing and debugging
     initialize_mid_main_resizing ();
-    setMidMainLRratio(0.9);  // normally 0.6, this is for quick testing ??????
+    setMidMainLRratio(0.65);
     showSizeParameters();
     adjustToMidMainLRratio();
     initializeSubsystems ();
     
     console.log("Initialization complete");
-
-//    console.log("Initialization experiments");
-//    run();  // run current test case
 }
 

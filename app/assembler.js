@@ -585,7 +585,7 @@ function evaluate (s,x) {
 	console.log('evaluate returning ' + parseInt(x,10));
 	return tcAdjust(parseInt(x,10));
     } else if (x.search(hexParser) == 0) {
-	return hex4ToInt(x.slice(1));
+	return hex4ToWord(x.slice(1));
 	console.log('evaluate returning ' + 0);
 	return 0;
     } else {

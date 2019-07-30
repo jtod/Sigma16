@@ -14,6 +14,7 @@
     <script src="./arithmetic.js"> </script>
     <script src="./subsystems.js"> </script>
     <script src="./system.js"> </script>
+    <script src="./module.js"> </script>
     <script src="./assembler.js"> </script>
     <script src="./linker.js"> </script>
     <script src="./emulator.js"> </script>
@@ -42,40 +43,11 @@
 	<div class="MidMainSection">
 	  <div class="MidMainLeft" id="MidMainLeft">
 
-	    <div class="Pane" id="TestPane">
-	      <div class="PaneButtons">
-		<button onclick="testpane1();"> testpane 1 </button>
-		<button onclick="testpane2();"> testpane 2 </button>
-		<button onclick="testpane3();"> testpane 3 </button>
-	      </div>
-	      <div class="PaneBody" id="TestPaneBody">
-		<pre class="HighlightedTextAsHtml">
-a first line
-second line
-0000 03f1
-0001 abcd
-0002 16ce
-0003 024b
-0004 2456
-<span class='CUR'>0005 23ca</span>
-0006 2345
-0007 1234
-0008 6326
-0009 abcd
-000a 34da
-<span class='NEXT'>000b 38cf</span>
-000c ffff
-000d 45fa
-000e 3456
-000f 0000
-last line</pre>
-	      </div>
-	    </div>
 	    <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
 		<button onclick="springen('control-registers');"> ctl-regs </button>
-		<button> File 2 </button>
-		<button> File 3 </button>
+		<button> welcome button 2 </button>
+		<button>  welcome button 3 </button>
 	      </div>
 	      <div class="PaneBody" id="WelcomeHtml">
 		<div class="HtmlUnscrolled">
@@ -89,22 +61,27 @@ last line</pre>
 
 	    <div class="Pane" id="FilePane">
 	      <div class="PaneButtons">
-		<button> File 2 </button>
-		<button> File 3 </button>
+		<button onclick="fileExamples()"> Examples </button>
+		<button onclick="fileFactorial()"> factorial example </button>
+		<button onclick="fileButton3()"> window loc </button>
+		<button onclick="fileButton4()"> file button 4 </button>
 	      </div>
-	      File
-	      <input type="file" id="FileInput"
-		     name="myfileselector"
-		     onchange="handleSelectedFile(this.files);">
-              </input>
-	      <div id="FileInputResultDiv">initial file input div</div>
-	      <textarea id="DownloadFileTextBox">
+	      <div class="PaneBody" id="FilePane">
+		File
+		<input type="file" id="FileInput"
+		       name="myfileselector"
+		       onchange="handleSelectedFile(this.files);"></input>
+		<div id="FileInputResultDiv">initial file input div</div>
+		<textarea id="DownloadFileTextBox">
 Type something here
-	      </textarea>
-	      <button id="CreateFileForDownload">Create file</button>
-	      <a download="S16DownloadFile.txt" id="downloadlink"
-		 style="display: none">Download
-	      </a>
+		</textarea>
+		<button id="CreateFileForDownload">Create file</button>
+		<a download="S16DownloadFile.txt" id="downloadlink"
+		   style="display: none">Download
+		</a>
+		<div id="ExamplesDirectory">
+		</div>
+	      </div>
 	    </div>
 	    
 	    <div class="Pane" id="EditorPane">
@@ -272,7 +249,9 @@ Type something here
 		  </div>
 		  <div class="ProcStateSection" id="MemSection">
 		    <div class="MemSecName">Memory</div>
-		    <div class="MemDisplay" id="MemDisplay1"></div>
+		    <div class="MemDisplay">
+		      <div id="MemDisplay1"></div>
+		    </div>
 		    <div class="MemDisplay" id="MemDisplay2"></div>
 		  </div>
 		  <div class="ProcStateSection" id="IOSection">
@@ -287,6 +266,19 @@ Type something here
 		</div>
 	      </div>
 	    </div>
+
+	    <div class="Pane" id="TestPane">
+	      <div class="PaneButtons">
+		<button onclick="testpane1();"> testpane 1 </button>
+		<button onclick="testpane2();"> testpane 2 </button>
+		<button onclick="testpane3();"> testpane 3 </button>
+	      </div>
+	      <div class="PaneBody" id="TestPaneBody">
+		<pre class="HighlightedTextAsHtml"><pre>
+	      </div>
+	    </div>
+
+
 
 	  </div>
 	  <div class="MidLeftRightSeparator">

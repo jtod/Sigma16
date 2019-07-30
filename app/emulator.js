@@ -117,7 +117,7 @@ function linkerBootLine (m,i,x) {
     let y = parseAsmLine (m,i,x);
 //    printAsmLine (y);
     let w = y.fieldOperands;
-    let n =  hex4ToInt(w);
+    let n =  hex4ToWord(w);
 //    console.log('linkerBootLine ' + w + ' = ' + n);
     console.log('linkerBootLine ' + i + ' ---' + x + '--- = ' + n);
     updateMem2(bootCurrentLocation,n);
@@ -202,14 +202,21 @@ function highlightListingAfterInstr () {
     }
 
     if (memDisplayModeFull) {
-	setProcAsmListing (srcLine.join('\n'))
+	//	setProcAsmListing (srcLine.join('\n'))
+	highlightListingFull ()
     } else {
-	setProcAsmListing (srcLine.join('\n'));   // temp ?????
+	//	setProcAsmListing (srcLine.join('\n'));
+	highlightListingFull ()    // temp ?????
     }
 }
 
 function highlightListingFull () {
+    console.log ('highlightListingFull');
     setProcAsmListing (srcLine.join('\n'));
+    let scrollOffset = curInstrLineNo * pxPerChar;
+    console.log ('curInstrLineNo = ' + curInstrLineNo
+		 + '  scrollOffset = ' + scrollOffset);
+    procAsmListingElt.scroll (0, scrollOffset);
     console.log ('   NOTE srcLine[0] = ' + srcLine[0]);
 }
 
@@ -266,7 +273,7 @@ function executeInstruction () {
 
     curInstrAddr = pc.get();
     ir.put (memFetchInstr (curInstrAddr));
-    nextInstrAddr = curInstrAddr + 1;
+    nextInstrAddr = binAdd (curInstrAddr, 1);
     pc.put (nextInstrAddr);
     console.log('pc = ' + intToHex4(pc.get()) + ' ir = ' + intToHex4(instr));
     let tempinstr = ir.get();
@@ -360,9 +367,9 @@ var rxDispatch =
 function rx(f) {
     console.log('rx');
     adr.put (memFetchInstr (pc.get()));
-    nextInstrAddr = nextInstrAddr + 1;
+    nextInstrAddr = binAdd (nextInstrAddr, 1);
     pc.put (nextInstrAddr);
-    ea = regFile[ir_a].get() + adr.get();
+    ea = binAdd (regFile[ir_a].get(), adr.get());
     console.log('rx ea = ' + intToHex4(ea));
     f();
 }

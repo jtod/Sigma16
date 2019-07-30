@@ -400,7 +400,7 @@ function memDisplayFast () {
     xa = xa < 0 ? 0 : xa;
     xb = xa + memDisplayFastWindow;
     xs1 = memString.slice(xa+1,xb+1);
-    xs1[0] = "<pre class='HighlightedTextAsHtml'>" + xs1[0];
+    xs1[0] = "<pre class='HighlightedTextAsHtml' id='MEMDISPLAY1'>" + xs1[0];
     xs1.push("</pre>");
     xs = xs1.join('\n');
     console.log ('  xa=' + xa + '  xb=' + xb);
