@@ -410,6 +410,7 @@ guide). */
 }
 
 .MemDisplay {
+    height: var(--mem-display-height);
 }
 
 #MemDisplay1 {
@@ -418,7 +419,7 @@ guide). */
     grid-column-start: MemVlineStart;
     grid-column-end: MemVlineMiddle;
     width: var(--mem-display-width);
-    height: var(--mem-display-height);
+    height: 100%;
 }
 
 #MemDisplay2 {
