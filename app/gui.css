@@ -72,7 +72,7 @@ pane height
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: ivory;
-    --mem-display-width: 6.1em;
+    --mem-display-width:  8em; /* 6.1em; */
     --mem-display-height: 14em;
     --reg-name-val-sep: 0.7em;
     --IOinputbuffer-background: yellow;
@@ -397,7 +397,6 @@ guide). */
     grid-template-columns: [MemVlineStart] min-content
 					   [MemVlineMiddle] min-content
 					   [MemvlineEnd];
-    height: var(--ProcStateHeight);  /* 16em calculate this?????? */
 }
 
 .MemSecName {
@@ -410,7 +409,12 @@ guide). */
 }
 
 .MemDisplay {
-    height: var(--mem-display-height);
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+    background-color: var(--subpanel-background-color);
+    height: var(--ProcStateHeight);
 }
 
 #MemDisplay1 {
@@ -419,7 +423,6 @@ guide). */
     grid-column-start: MemVlineStart;
     grid-column-end: MemVlineMiddle;
     width: var(--mem-display-width);
-    height: 100%;
 }
 
 #MemDisplay2 {

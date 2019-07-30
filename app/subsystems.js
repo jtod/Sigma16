@@ -287,13 +287,19 @@ function memClear () {
 // Refresh all the memory strings; the memString array should be accurate
 // but this function will recalculate all elements of that array
 
+// Note on data structure.  I tried having a preliminary element [0]
+// containing just "<pre class='HighlightedTextAsHtml'>", so address a
+// is shown in memString[a+1].  The indexing was fine but the
+// scrolling didn't work, possibly because of this dummy element with
+// its newline inserted when the array is joined up.
+
 function memRefresh () {
     memString = [];  // clear out and collect any existing elements
-    memString[0] = "<pre class='HighlightedTextAsHtml'>"
+//    memString[0] =  "hello";  // "<pre class='HighlightedTextAsHtml'>"
     for (var i = 0; i < memSize; i++) {
 	setMemString(i);
     }
-    memString.push("</pre>");
+//    memString.push("bye");    // "</pre>");
 
 }
 
@@ -303,7 +309,7 @@ function memRefresh () {
 // mem[a] corresponds to memString[a+1].
 
 function setMemString(a) {
-    memString[a+1] = intToHex4(a) + ' ' + intToHex4(memory[a]);
+    memString[a] = intToHex4(a) + ' ' + intToHex4(memory[a]);
 }
 
 // Fetch and return a word from memory at address a, and record the
@@ -375,7 +381,7 @@ function memClearAccesses () {
 // string is placed in the memString array.
 
 function highlightMemString(a,highlight) {
-    memString[a+1] =
+    memString[a] =
 	"<span class='" + highlight + "'>"
 	+ intToHex4(a) + " " + intToHex4(memory[a])
         + "</span>";
@@ -399,10 +405,7 @@ function memDisplayFast () {
     xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
     xa = xa < 0 ? 0 : xa;
     xb = xa + memDisplayFastWindow;
-    xs1 = memString.slice(xa+1,xb+1);
-    xs1[0] = "<pre class='HighlightedTextAsHtml' id='MEMDISPLAY1'>" + xs1[0];
-    xs1.push("</pre>");
-    xs = xs1.join('\n');
+    xs = memString.slice(xa,xb).join('\n');
     console.log ('  xa=' + xa + '  xb=' + xb);
     memElt1.innerHTML = xs;
 
@@ -411,14 +414,9 @@ function memDisplayFast () {
     ya = yafet > 0 && yafet < yasto ? yafet : yasto;
     ya = ya < 0 ? 0 : ya;
     yb = ya + memDisplayFastWindow;
-    ys1 = memString.slice(ya+1,yb+1);
-    ys1[0] = "<pre class='HighlightedTextAsHtml'>" + ys1[0];
-    ys1.push("</pre>");
-    ys = ys1.join('\n');
+    ys = memString.slice(ya,yb).join('\n');
     console.log ('  ya=' + ya + '  yb=' + yb);
     memElt2.innerHTML = ys;
-//    console.log('memElt2.innerHTML = ' + ys);
-//    console.log('  NOTE memString[ya] = ' + memString[ya]);
 }
 
 
