@@ -72,7 +72,7 @@ pane height
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: ivory;
-    --mem-display-width: 12.5em; /* 6.1em; */  /* try wide to see if pre needed */
+    --mem-display-width: 6.1em;  /* try 12em to confirm line breaks are there */
 
     /* YES???????????  with wide size we get several locations per line,
 that's why I need <pre> but if <pre> is in a separate array element it prevents
@@ -92,8 +92,19 @@ scroll from working */
     --text-color-err: red;
 }
 
-.pre .code {
-    top: 0em;
+/* Specifying margin:0 for .pre doesn't work, as it is overridden by a
+   setting of margin: 1em 0em.  But using <pre class="CodePre"> works:
+   the following margin settings are applied and they override the
+   default, which leaves space above and below the text. */
+
+.CodePre {
+    margin-top: 0em;
+    margin-right: 0em;
+    margin-bottom: 0em;
+    margin-left: 0em;
+}
+
+.code {
 }
 
 #TestingPRE {
@@ -268,6 +279,20 @@ guide). */
 }
 
 
+.HighlightedTextAsHtmlExperiment {
+    width: 100%;
+    height: 100%;
+    margin: 0em;  /* needed to make the text fill its box */
+    box-sizing: border-box;
+    background-color: yellow;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
+}
+
+
 .HtmlUnscrolled {
     width: 100%;
     height: 100%;
@@ -429,6 +454,7 @@ guide). */
 */
 
 #MemDisplay1 {
+    margin: 0em;
     grid-row-start: MemHlineDisplayStart;
     grid-row-end: MemHlineEnd;
     grid-column-start: MemVlineStart;
@@ -443,6 +469,7 @@ guide). */
     grid-column-end: MemVlineEnd;
     width: var(--mem-display-width);
 }
+
 
 .Registers, .Decode {
     display: grid;
@@ -593,6 +620,15 @@ guide). */
 }
 
 #ProcAsmListing {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+    background-color: var(--subpanel-background-color);
+    height: var(--ProcAsmTextHeight);
+}
+
+#TestListing {
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
     overflow-y: scroll;

@@ -1,5 +1,15 @@
 // Sigma16: subsystems.js defines registers and memory
 
+// Fixed spacing issue: got rid of a blank line above the processor
+// memory displays by using <pre class="PreCode"> where the css for
+// .PreCode sets the margins to 0em.  Just giving a css definition of
+// .pre { margin: 0em; } doesn't work; for some reason that setting is
+// overridden.
+
+// Scolling is now working in the memory display, and partly in the
+// processor asm listing.  However, the font size is wrong in the proc
+// asm listing (why?) and the scroll distance is inadequate.
+
 const pxPerChar = 14.4;  // found by trial and error; measuring it would be better
 
 function initializeSubsystems () {
@@ -405,9 +415,14 @@ function memDisplayFast () {
     xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
     xa = xa < 0 ? 0 : xa;
     xb = xa + memDisplayFastWindow;
-    xs = "<pre><code class='HighlightedTextAsHtml'>"
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
     	+ memString.slice(xa,xb).join('\n')
 	+ "</code></pre>";
+
+//    xs = "<pre><code class='HighlightedTextAsHtml'>TEST</code></pre>";
+//    xs = "<pre><code>TEST</code></pre>";
+//    xs = "<code>TEST</code>";
+//    xs = "<pre>TEST</pre>";
     console.log ('  xa=' + xa + '  xb=' + xb);
     memElt1.innerHTML = xs;
 
@@ -416,7 +431,7 @@ function memDisplayFast () {
     ya = yafet > 0 && yafet < yasto ? yafet : yasto;
     ya = ya < 0 ? 0 : ya;
     yb = ya + memDisplayFastWindow;
-    ys = "<pre><code class='HighlightedTextAsHtml'>"
+    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
 	+ memString.slice(ya,yb).join('\n')
 	+ "</code></pre>";
     console.log ('  ya=' + ya + '  yb=' + yb);
@@ -444,7 +459,7 @@ function memDisplayFull () {
     let xt, xo;             // display 1 targets and offsets
     let yafet, yasto, ya, yo
     console.log ('memDisplayFull');
-    xs = "<pre><code class='HighlightedTextAsHtml'>"
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
 	+ memString.join('\n')
 	+ "</code></pre>";
     memElt1.innerHTML = xs;

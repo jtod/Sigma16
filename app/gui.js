@@ -398,7 +398,57 @@ const example_default =  `; Program test
 
        lea   R4,23[R0]
        lea   R9,5[R0]
-       trap   R0,R0,R0      ; system request to terminate
+       add   R8,R4,R9
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
+
+       lea   R3,1[R0]
+       add   R8,R3,R8
+       lea   R2,2[R0]
+       add   R8,R2,R8
 x      data   2
 y      data   3
 `;
@@ -563,9 +613,10 @@ window.onload = function () {
   }, false);
 
     resetRegisters();
-    insert_example(example_add);     // For testing and debugging
+    insert_example(example_default);     // For testing and debugging
     initialize_mid_main_resizing ();
-    setMidMainLRratio(0.65);
+    // setMidMainLRratio(0.65);  // 0.65 is reasonable value for normal use
+    setMidMainLRratio(0.9);  // useful for dev to keep mem display visible
     showSizeParameters();
     adjustToMidMainLRratio();
     initializeSubsystems ();

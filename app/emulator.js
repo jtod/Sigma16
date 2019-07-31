@@ -234,7 +234,7 @@ function highlightListingLine (i,highlight) {
 function setProcAsmListing () {
 //    console.log ('setProcAsmListing');
 //    console.log(' procAsmListing.innerHTML = xs = ' + xs);
-    let xs = "<pre><code class='HighlightedTextAsHtml'>"
+    let xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
 	+ srcLine.join('\n')
 	+ "</code></pre>";
 
