@@ -1,5 +1,30 @@
-// Sigma16
-// John O'Donnell, 2019
+// Sigma16.  Copyright (c) 2019 John O'Donnell
+
+// General notes and issues
+
+// To get code to display properly <pre> is needed.  Could use <br>
+// for line breaks without <pre> but to get the spacing to appear
+// correctly, <pre> is necessary.  A statis layout with just <pre>
+// works, but to get scrolling to work, the following is needed:
+// <pre><code class='HighlightedTextAsHtml'>....</code></pre>.
+
+// There was a problem with some blank space appearing above and below
+// the formatted text.  This came from a non-zero default margin.
+// However, a declaration of the form .pre { margin: 0em; } didn't
+// work; this setting was overridden, probably when JS modified the
+// innerHTML of the container.  Therefore I introduced a class
+// CodePre.  However, it isn't clear yet where that is needed, or
+// whether it's relaly needed at all.  In this version, CodePre is
+// used in some places but not consistently.  More experiments might
+// clarify this.
+
+// There is an issue with scope and nesting of css declarations.  The
+// HighlightedTextAsHtml class needs to be set in the innermost Html
+// tag.  Thus <pre><code class='HighlightedTextAsHtml'> is ok butnot
+// <pre class='HightlightedTextAsHtml'><code> and also not setting
+// that class in a surronding container.  It's possible that the issue
+// comes up because the innerHTML is set by JS and isn't present
+// statically in the html file.
 
 //---------------------------------------------------------------------------
 // Global variables

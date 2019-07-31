@@ -190,14 +190,14 @@ function highlightListingAfterInstr () {
     console.log ('  curInstrAddr = ' + curInstrAddr);
     console.log ('  nextInstrAddr = ' + nextInstrAddr);
 
-    curInstrLineNo = curAsmap[curInstrAddr] + 1; // +1 because 1st line is <pre>
+    curInstrLineNo = curAsmap[curInstrAddr];
     console.log ('  curInstrLineNo = ' + curInstrLineNo);
     if (curInstrLineNo) {
 	saveCurSrcLine = srcLine[curInstrLineNo];
 	highlightListingLine (curInstrLineNo, "CUR");
     }
 
-    nextInstrLineNo = curAsmap[nextInstrAddr] + 1; // +1 because 1st line is <pre>
+    nextInstrLineNo = curAsmap[nextInstrAddr];
     console.log ('  nextInstrLineNo = ' + nextInstrLineNo);
     if (nextInstrLineNo) {
 	saveNextSrcLine = srcLine[nextInstrLineNo];
@@ -211,6 +211,8 @@ function highlightListingAfterInstr () {
     }
 }
 
+const asmScrollOffsetAbove = 5;  // how many lines above scroll target
+
 function highlightListingFull () {
     console.log ('highlightListingFull');
 //    let xs = "<pre><code class='HighlightedTextAsHtml'>"
@@ -218,7 +220,9 @@ function highlightListingFull () {
 //	+ "</code></pre>";
 //    setProcAsmListing (xs);
     setProcAsmListing ();
-    let scrollOffset = curInstrLineNo * pxPerChar;
+    let xa = curInstrLineNo - asmScrollOffsetAbove;
+    xa = xa < 0 ? 0 : xa;
+    let scrollOffset = xa * pxPerChar;
     console.log ('curInstrLineNo = ' + curInstrLineNo
 		 + '  scrollOffset = ' + scrollOffset);
     procAsmListingElt.scroll (0, scrollOffset);
@@ -233,15 +237,12 @@ function highlightListingLine (i,highlight) {
 
 function setProcAsmListing () {
 //    console.log ('setProcAsmListing');
-//    console.log(' procAsmListing.innerHTML = xs = ' + xs);
-    let xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+// scrolling doesn't work if it just uses <pre> but not <code>
+    let xs = "<pre><code class='HighlightedTextAsHtml'>"
 	+ srcLine.join('\n')
 	+ "</code></pre>";
-
     document.getElementById('ProcAsmListing').innerHTML = xs;
-
 }
-
 
 // Given address a, the corresponding source statement is
 //   i = curAsmap[a]

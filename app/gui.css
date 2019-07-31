@@ -616,12 +616,14 @@ guide). */
     font-family: sans-serif;
     font-size: var(--main-font-size);
     font-weight: bold;
-
 }
 
-#ProcAsmListing {
+/*
+don't include fonts as these are specified by HighlightedTextAsHtml
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
+*/
+#ProcAsmListing {
     overflow-y: scroll;
     overflow-x: visible;
     background-color: var(--subpanel-background-color);
