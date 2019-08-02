@@ -285,7 +285,7 @@ function executeInstruction () {
     ir.put (memFetchInstr (curInstrAddr));
     nextInstrAddr = binAdd (curInstrAddr, 1);
     pc.put (nextInstrAddr);
-    console.log('pc = ' + intToHex4(pc.get()) + ' ir = ' + intToHex4(instr));
+    console.log('pc = ' + wordToHex4(pc.get()) + ' ir = ' + wordToHex4(instr));
     let tempinstr = ir.get();
     ir_b = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
@@ -304,25 +304,44 @@ function executeInstruction () {
 }
 
 var opDispatch =
-    [function () {rrr(rrr_add)},
-     function () {rrr(rrr_sub)},
-     function () {rrr(rrr_mul)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {rrr(rrr_div)},
-     function () {xx()},
-     function () {handle_rx()} ]
+    [function () {rrr2 (add)},       // 0
+     function () {rrr2 (sub)},       // 1
+     function () {rrr2 (mul)},       // 2
+     function () {rrr2 (div)},       // 3
+     function () {rrr2 (cmp)},       // 4
+     function () {rrr2 (cmplt)},     // 5
+     function () {rrr2 (cmpeq)},     // 6
+     function () {rrr2 (cmpgt)},     // 7
+     function () {rrr1 (inv)},       // 8
+     function () {rrr2 (and)},       // 9
+     function () {rrr2 (or)},        // a
+     function () {rrr2 (xor)},       // b
+     function () {rrr3 (addc)},      // c
+     function () {rrrd (trap)},      // d
+     function () {handle_xx ()},     // e
+     function () {handle_rx ()} ]    // f
 
+// rrr2 performs RRR operations that take two arguments, reg[a] and
+// reg[b].  The condition code reg[15] is not used as an argument, and
+// it isn't fetched, so R15 will not be highlighted in single step
+// mode.
 
-function rrr (op) {
+function rrr2 (op) {
+    console.log ('rrr');
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let [primary, secondary] = op (a,b);
+    console.log ('rrr2 primary = ' + primary + ' secondary = ' + secondary);
+    regFile[ir_d].put(primary);
+    if (ir_d<15) { regFile[15].put(secondary) }
+}
+
+// rrr3 performs RRR operations that take three arguments, reg[a],
+// reg[b], and cc.  The condition code reg[15] is used as an argument,
+// so it must be fetched, soR15 will be highlighted in single step
+// mode.
+
+function rrr3 (op) {
     console.log ('rrr');
     let a = regFile[ir_a].get();
     let b = regFile[ir_b].get();
@@ -346,7 +365,7 @@ function rrr_div () {
     console.log ('rrr_div');
 }
 
-function xx () {
+function handle_xx () {
     console.log ('xx');
 }
 
@@ -380,7 +399,7 @@ function rx(f) {
     nextInstrAddr = binAdd (nextInstrAddr, 1);
     pc.put (nextInstrAddr);
     ea = binAdd (regFile[ir_a].get(), adr.get());
-    console.log('rx ea = ' + intToHex4(ea));
+    console.log('rx ea = ' + wordToHex4(ea));
     f();
 }
 

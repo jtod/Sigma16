@@ -65,21 +65,30 @@
 		<button onclick="fileFactorial()"> factorial example </button>
 		<button onclick="fileButton3()"> window loc </button>
 		<button onclick="fileButton4()"> file button 4 </button>
+		<button onclick="copyExampleText()"> Copy example text </button>
+		<button onclick="fileButton5)"> File button 5 </button>
 	      </div>
 	      <div class="PaneBody" id="FilePane">
-		File
-		<input type="file" id="FileInput"
-		       name="myfileselector"
-		       onchange="handleSelectedFile(this.files);"></input>
-		<div id="FileInputResultDiv">initial file input div</div>
-		<textarea id="DownloadFileTextBox">
-Type something here
-		</textarea>
-		<button id="CreateFileForDownload">Create file</button>
-		<a download="S16DownloadFile.txt" id="downloadlink"
-		   style="display: none">Download
-		</a>
-		<div id="ExamplesDirectory">
+		<div id="FilePaneTopSection">
+		  File
+		  <input type="file" id="FileInput"
+			 name="myfileselector"
+			 onchange="handleSelectedFile(this.files);"></input>
+		  <div id="FileInputResultDiv">initial file input div</div>
+		  <textarea id="DownloadFileTextBox">
+		    Type something here
+		  </textarea>
+		  <button id="CreateFileForDownload">Create file</button>
+		  <a download="S16DownloadFile.txt" id="downloadlink"
+		     style="display: none">Download</a>
+		</div>
+		<div id="FilePaneBottomSection">
+		  <div id="ExamplesDirectory">
+		    <iframe src="programs/Examples/"
+			    name="ExamplesIframe"
+			    id="ExamplesIframeId">
+		    </iframe>
+		  </div>
 		</div>
 	      </div>
 	    </div>

@@ -47,6 +47,37 @@ var textbox; /* for save download */
 // Experiments and testing
 //---------------------------------------------------------------------------
 
+function copyExampleText() {
+    console.log ('copyExampleText');
+    let exElt = document.getElementById('ExamplesIframeId');
+    let exText = exElt.contentWindow.document.body;
+    console.log(exText);
+    return exelt;
+}
+
+// trying to select the text from js fails because of cross domain
+// restriction so there's no point; in an enviromnetnt such as a
+// server which doesn't have that problem, the js could just copy the
+// text itself and paste it into the editor window.
+
+function copyExampleSelect () {  // deprecated, remove this...
+    console.log ('copyExampleSelect');
+    let exElt = document.getElementById('ExamplesIframeId');
+    let exText = exElt.contentWindow.document.body;
+    exText.select();
+    
+}
+
+function fileButton5 () {
+    console.log ('fileButton5');
+}
+
+// from stackoverflow...
+// var myIFrame = document.getElementById("myIframe");
+// var content = myIFrame.contentWindow.document.body.innerHTML;
+
+
+
 function displayHello() {
     var msg;
     msg = document.getElementById("message");
@@ -426,6 +457,44 @@ const example_default =  `; Program test
        add   R8,R4,R9
        lea   R3,1[R0]
        add   R8,R3,R8
+
+       lea   R2,15[R0]
+       lea   R3,49[R0]
+       cmplt R4,R2,R3
+       cmpeq R5,R2,R3
+       cmpgt R6,R2,R3
+
+       lea   R2,15[R0]
+       lea   R3,15[R0]
+       cmplt R4,R2,R3
+       cmpeq R5,R2,R3
+       cmpgt R6,R2,R3
+
+
+       lea   R2,15[R0]
+       lea   R3,-3[R0]
+       cmplt R4,R2,R3
+       cmpeq R5,R2,R3
+       cmpgt R6,R2,R3
+
+
+
+       lea   R2,-39[R0]
+       lea   R3,-53[R0]
+       cmplt R4,R2,R3
+       cmpeq R5,R2,R3
+       cmpgt R6,R2,R3
+
+
+       lea   R2,-53[R0]
+       lea   R3,-39[R0]
+       cmplt R4,R2,R3
+       cmpeq R5,R2,R3
+       cmpgt R6,R2,R3
+
+
+
+
        lea   R2,2[R0]
        add   R8,R2,R8
 
@@ -599,18 +668,18 @@ window.onload = function () {
 	let regname = 'R' + i; // also the id for element name
 //	console.log('xx' + regname + 'xx');
 	thisReg = (i==0) ?
-	    mkReg0 (regname, regname, intToHex4)
-	    : mkReg (regname, regname, intToHex4);
+	    mkReg0 (regname, regname, wordToHex4)
+	    : mkReg (regname, regname, wordToHex4);
 	thisReg.regIdx = i;
 	regFile[i] = thisReg;
 	register[i] = thisReg;
     }
 //Control registers
-    pc  = mkReg ('pc',  'pcElt',  intToHex4);
-    ir  = mkReg ('ir',  'irElt',  intToHex4);
-    adr = mkReg ('adr', 'adrElt', intToHex4);
-    dat = mkReg ('dat', 'datElt', intToHex4);
-    spc = mkReg ('spc', 'spcElt', intToHex4);
+    pc  = mkReg ('pc',  'pcElt',  wordToHex4);
+    ir  = mkReg ('ir',  'irElt',  wordToHex4);
+    adr = mkReg ('adr', 'adrElt', wordToHex4);
+    dat = mkReg ('dat', 'datElt', wordToHex4);
+    spc = mkReg ('spc', 'spcElt', wordToHex4);
     ien = mkReg ('ien', 'ienElt', intToBit);
     controlRegisters = [pc,ir,adr,dat,spc,ien];
     nRegisters = 16;

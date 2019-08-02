@@ -319,7 +319,7 @@ function memRefresh () {
 // mem[a] corresponds to memString[a+1].
 
 function setMemString(a) {
-    memString[a] = intToHex4(a) + ' ' + intToHex4(memory[a]);
+    memString[a] = wordToHex4(a) + ' ' + wordToHex4(memory[a]);
 }
 
 // Fetch and return a word from memory at address a, and record the
@@ -393,7 +393,7 @@ function memClearAccesses () {
 function highlightMemString(a,highlight) {
     memString[a] =
 	"<span class='" + highlight + "'>"
-	+ intToHex4(a) + " " + intToHex4(memory[a])
+	+ wordToHex4(a) + " " + wordToHex4(memory[a])
         + "</span>";
 }
 

@@ -43,7 +43,7 @@ function showSymbolTable (m) {
     for (let i = 0; i < m.symbols.length; i++) {
 	let x = symbolTable.get(m.symbols[i]);
 	m.asmListing.push(m.symbols[i].padEnd(10)
-			+ intToHex4(x.val)
+			+ wordToHex4(x.val)
 			+ x.defLine.toString().padStart(5));
     }
 //    let xs = [];
@@ -331,7 +331,8 @@ function parseAsmLine (m,i) {
     parseOperand (s);
     if (s.hasLabel) {
 	if (symbolTable.has(s.fieldLabel)) {
-	    s.errors.push(s.fieldLabel + ' has already been defined');
+	    //	    s.errors.push(s.fieldLabel + ' has already been defined');
+	    mkErrMsg (s.fieldLabel + ' has already been defined');
 	} else {
 	    symbolTable.set (s.fieldLabel,
 	     {symbol : s.fieldLabel, val : m.locationCounter,
@@ -460,7 +461,7 @@ function mkWord (op,d,a,b) {
 }
 
 function testWd(op,d,a,b) {
-    console.log(intToHex4(mkWord(op,d,a,b)));
+    console.log(wordToHex4(mkWord(op,d,a,b)));
 }
 
 function asmPass2 (m) {
@@ -475,12 +476,12 @@ function asmPass2 (m) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-//	    console.log('pass2 RRR ' + intToHex4(s.codeWord1));
+//	    console.log('pass2 RRR ' + wordToHex4(s.codeWord1));
 	} else if (fmt==RR) { // like RRR but with b=0
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,0);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-//	    console.log('pass2 RR ' + intToHex4(s.codeWord1));
+//	    console.log('pass2 RR ' + wordToHex4(s.codeWord1));
 	} else if (fmt==RX) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
@@ -490,28 +491,28 @@ function asmPass2 (m) {
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pas2 rx aaa=' + aaa + ' bbb=' + bbb);
-//	    console.log('pass2 RX ' + intToHex4(s.codeWord1)
-//			+ intToHex4(s.codeWord2));
+//	    console.log('pass2 RX ' + wordToHex4(s.codeWord1)
+//			+ wordToHex4(s.codeWord2));
 	} else if (fmt==JX) { // like RX but with d=0
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
 	    s.codeWord2 = evaluate(s,s.dispField);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-//	    console.log('pass2 JX ' + intToHex4(s.codeWord1)
-//			+ intToHex4(s.codeWord2));
+//	    console.log('pass2 JX ' + wordToHex4(s.codeWord1)
+//			+ wordToHex4(s.codeWord2));
 	} else if (fmt==DATA && s.operandDATA) {
 //	    console.log('fmt is DATA and operandDATA=' + s.dat);
 	    s.codeWord1 = evaluate(s,s.dat);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-//	    console.log('pass2 DATA ' + intToHex4(s.codeWord1));
+//	    console.log('pass2 DATA ' + wordToHex4(s.codeWord1));
 	} else {
 //	    console.log('pass2 other, noOperation');
 	}
 	s.listingLine = (s.lineNumber+1).toString().padStart(4,' ')
-	    + ' ' + intToHex4(s.address)
-	    + ' ' + (s.codeSize>0 ? intToHex4(s.codeWord1) : '    ')
-	    + ' ' + (s.codeSize>1 ? intToHex4(s.codeWord2) : '    ')
+	    + ' ' + wordToHex4(s.address)
+	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
+	    + ' ' + (s.codeSize>1 ? wordToHex4(s.codeWord2) : '    ')
 	    + ' ' + s.srcLine;
 	m.asmListing.push(s.listingLine);
 	for (let i = 0; i < s.errors.length; i++) {
@@ -561,7 +562,7 @@ function flushObjectLine(m) {
 function generateObjectWord (m, s, a, x) {
     m.asmap[a] = s.lineNumber;
     if (objBufferSize > 0) { objectLineBuffer += ',' };
-    objectLineBuffer += intToHex4(x);
+    objectLineBuffer += wordToHex4(x);
     objBufferSize++;
     if (objBufferSize >= objBufferLimit) { flushObjectLine(m) };
 }
@@ -577,19 +578,21 @@ function evaluate (s,x) {
 	    console.log('evaluate returning ' + r.val);
 	    return r.val;
 	} else {
-	    s.errors.push('symbol ' + x + ' is not defined');
+	    //	    s.errors.push('symbol ' + x + ' is not defined');
+	    mkErrMsg ('symbol ' + x + ' is not defined');
 	    console.log('evaluate returning ' + 0);
 	    return 0;
 	}
     } else if (x.search(intParser) == 0) {
 	console.log('evaluate returning ' + parseInt(x,10));
-	return tcAdjust(parseInt(x,10));
+	return intToWord(parseInt(x,10));
     } else if (x.search(hexParser) == 0) {
 	return hex4ToWord(x.slice(1));
 	console.log('evaluate returning ' + 0);
 	return 0;
     } else {
-	s.errors.push('expression ' + x + ' has invalid syntax');
+	//	s.errors.push('expression ' + x + ' has invalid syntax');
+	mkErrMsg ('expression ' + x + ' has invalid syntax');
 //	console.log('evaluate returning ' + 0);
 	return 0;
     }
