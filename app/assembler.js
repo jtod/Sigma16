@@ -296,6 +296,9 @@ function asmPass1 (m) {
     console.log('assembler pass 1: ' + asmSrcLines.length + ' source lines');
     for (let i = 0; i < asmSrcLines.length; i++) {
 	m.asmStmt[i] = mkAsmStmt (i, m.locationCounter, asmSrcLines[i]);
+	let s = m.asmStmt[i];
+	console.log(`pass1 i=  ${i} s= + ${s}`);
+
 	parseAsmLine (m,i);
 	m.locationCounter += m.asmStmt[i].codeSize;
 //	printAsmStmt(m.asmStmt[i]);
@@ -470,8 +473,8 @@ function asmPass2 (m) {
     initializeObjectLineBuffer ();
     for (let i = 0; i < m.asmStmt.length; i++) {
 	s = m.asmStmt[i];
+	console.log(`pass2 i= + ${i} s= + ${s}`);
 	fmt = s.operation.format;
-//	console.log('pass2 i=' + i + ' fmt=' + showFormat(fmt));
 	if (fmt==RRR) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
@@ -520,10 +523,10 @@ function asmPass2 (m) {
 	}
     }
     flushObjectLine (m);
-    console.log('part of asmap')
-    for (let i = 0; i<20; i++) {
-	tempshow(m,i)
-    }
+//    console.log('part of asmap')
+//    for (let i = 0; i<20; i++) {
+//	tempshow(m,i)
+//    }
 		 
 }
 
@@ -599,14 +602,14 @@ function evaluate (s,x) {
 }
 
 function setAsmListing (m) {
-    console.log('setAsmListing');
+//    console.log('setAsmListing');
 //    let listing = [];
 //    for (let i = 0; i < asmSrcLines.length; i++) {
 //	listing[i] = asmStmet[i].listingLine;
 //    }
     document.getElementById('AsmTextHtml').innerHTML =
 	m.asmListing.join('\n');
-    console.log (' Set asm listing m.asmListing = ' + m.asmListing);
+//    console.log (' Set asm listing m.asmListing = ' + m.asmListing);
 }
 
 //----------------------------------------------------------------------

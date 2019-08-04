@@ -62,26 +62,38 @@
 	    <div class="Pane" id="FilePane">
 	      <div class="PaneButtons">
 		<button onclick="fileExamples()"> Examples </button>
+
 		<button onclick="fileFactorial()"> factorial example </button>
 		<button onclick="fileButton3()"> window loc </button>
 		<button onclick="fileButton4()"> file button 4 </button>
 		<button onclick="copyExampleText()"> Copy example text </button>
-		<button onclick="fileButton5)"> File button 5 </button>
+		<button onclick="selectExample()"> Select example text </button>
 	      </div>
 	      <div class="PaneBody" id="FilePane">
 		<div id="FilePaneTopSection">
-		  File
-		  <input type="file" id="FileInput"
-			 name="myfileselector"
-			 onchange="handleSelectedFile(this.files);"></input>
-		  <div id="FileInputResultDiv">initial file input div</div>
-		  <textarea id="DownloadFileTextBox">
-		    Type something here
-		  </textarea>
-		  <button id="CreateFileForDownload">Create file</button>
-		  <a download="S16DownloadFile.txt" id="downloadlink"
-		     style="display: none">Download</a>
+
+		  <div id="OpenFileSection">
+		    <span>Open file
+		    <input type="file" id="FileInput"
+			   name="myfileselector"
+			   onchange="handleSelectedFile(this.files);"></input>
+		    </span>
+		  </div>
+
+		  <div id="SaveFileSection">
+		    <span>
+		      Save file in Downloads folder
+		      <textarea id="DownloadFileTextBox">
+			Type something here
+		      </textarea>
+		      <button id="CreateFileForDownload">Create file</button>
+		      <a download="S16DownloadFile.txt" id="downloadlink"
+			 style="display: none">Download</a>
+		    </span>
+		  </div>
+		  
 		</div>
+
 		<div id="FilePaneBottomSection">
 		  <div id="ExamplesDirectory">
 		    <iframe src="programs/Examples/"

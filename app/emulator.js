@@ -296,73 +296,127 @@ function executeInstruction () {
     ir_op = tempinstr & 0x000f;
     console.log('instr fields = ' + ir_op + ' ' + ir_d + ' ' + ir_a + ' ' + ir_b);
 
-    opDispatch [ir_op] ();
+    dispatch_RRR [ir_op] ();
     
     regShowAccesses()
     memShowAccesses();
     memDisplay ();
 }
 
-var opDispatch =
-    [function () {rrr2 (add)},       // 0
-     function () {rrr2 (sub)},       // 1
-     function () {rrr2 (mul)},       // 2
-     function () {rrr2 (div)},       // 3
-     function () {rrr2 (cmp)},       // 4
-     function () {rrr2 (cmplt)},     // 5
-     function () {rrr2 (cmpeq)},     // 6
-     function () {rrr2 (cmpgt)},     // 7
-     function () {rrr1 (inv)},       // 8
-     function () {rrr2 (and)},       // 9
-     function () {rrr2 (or)},        // a
-     function () {rrr2 (xor)},       // b
-     function () {rrr3 (addc)},      // c
-     function () {rrrd (trap)},      // d
-     function () {handle_xx ()},     // e
-     function () {handle_rx ()} ]    // f
+// RRR instructions have three specified registers, and may also use
+// the condition code cc, which is R15.
 
-// rrr2 performs RRR operations that take two arguments, reg[a] and
-// reg[b].  The condition code reg[15] is not used as an argument, and
-// it isn't fetched, so R15 will not be highlighted in single step
-// mode.
+// a = reg[ir_sa]
+// b = reg[ir_sb]
+// d = reg[ir_d]
+// c = reg[15] (condition code)
 
-function rrr2 (op) {
-    console.log ('rrr');
+//  There are some variations in how different instructions use the
+//  register operands, and there is a generic function for each
+//  variation (e.g rrd) which takes a function argument (e.g add) that
+//  performs the specific operation for that instruction.  The generic
+//  functions access the registers, and the operation functions
+//  perform the calculations.  This approach ensures that the correct
+//  registers are highlighted: for example, an instruction that
+//  doesn't need rb will not highlight rb.
+
+// Convention: rr refers to the normal operands a and b; c refers to
+// the condition code which is in R15; d refers to the destination
+// register.
+
+// rrd   -- use ra and rb as operands, place result in rd
+// rrdc  -- use ra and rb as operands, place results in rd and cc
+// crrdc -- use cc, ra and rb as operands, place results in rd and cc
+// rd    -- use ra as operand, place result in rd, ignore rb and cc
+// rrc   -- use ra and rb as operands, place result in cc, ignore rd
+// rrrc  -- use ra, rb, and cc as operands, place results in rd and cc
+// trap  -- perform trap; instruction ignores all registers but OS may use them
+
+var dispatch_RRR =
+    [function () {rrdc (op_add)},     // 0
+     function () {rrdc (op_sub)},     // 1
+     function () {rrdc (op_mul)},     // 2
+     function () {rrdc (op_div)},     // 3
+     function () {rrc (op_cmp)},      // 4
+     function () {rrd (op_cmplt)},    // 5
+     function () {rrd (op_cmpeq)},    // 6
+     function () {rrd (op_cmpgt)},    // 7
+     function () {rd (op_inv)},       // 8
+     function () {rrd (op_and)},      // 9
+     function () {rrd (op_or)},       // a
+     function () {rrd (op_xor)},      // b
+     function () {crrdc (op_addc)},   // c
+     function () {op_trap ()},        // d
+     function () {handle_xx ()},      // e
+     function () {handle_rx ()} ]     // f
+
+// Some instructions load the primary result into rd and the secondary
+// into cc (which is R15).  If the d field of the instruction is 15,
+// the primary result is loaded into rd and the secondary result is
+// discarded.
+
+// It is legal for the destiation register rd to be R0.  However, R0
+// always contains 0; i.e. any time it is fetched the result is 0.  In
+// effect, any value loaded into R0 is discarded.  Any implementation
+// that satisfies these rules is conformant.  Any of the following
+// approaches is acceptable: (1) don't load into R0; (2) go ahead and
+// load into R0 but produce 0 on readout; (3) don't even implement R0
+// with state bits, but ensure that its readout produces 0.
+
+// Apply f to a and load primary result into d (e.g. inv)
+
+function rd (f) {
+    let a = regFile[ir_a].get();
+    let primary = f (a);
+    regFile[ir_d].put(primary);
+}
+
+// Apply f to a and b, and load primary result into d (e.g. cmplt)
+
+function rrd (f) {
     let a = regFile[ir_a].get();
     let b = regFile[ir_b].get();
-    let [primary, secondary] = op (a,b);
-    console.log ('rrr2 primary = ' + primary + ' secondary = ' + secondary);
+    let primary = f (a,b);
+    regFile[ir_d].put(primary);
+}
+
+// Apply f to a and b, and load primary result into c (e.g. cmp)
+
+function rrc (f) {
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let primary = f (a,b);
+    regFile[15].put(primary);
+}
+
+// Apply f to a and b, load primary result into d, and load secondary
+// result into c (e.g. add)
+
+function rrdc (f) {
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let [primary, secondary] = f (a,b);
     regFile[ir_d].put(primary);
     if (ir_d<15) { regFile[15].put(secondary) }
 }
 
-// rrr3 performs RRR operations that take three arguments, reg[a],
-// reg[b], and cc.  The condition code reg[15] is used as an argument,
-// so it must be fetched, soR15 will be highlighted in single step
-// mode.
+// Apply f to c, a and b, load primary result into d, and load
+// secondary result into c (e.g. addc)
 
-function rrr3 (op) {
-    console.log ('rrr');
+function op_crrdc (f) {
+    let c = regFile[15].get();
     let a = regFile[ir_a].get();
     let b = regFile[ir_b].get();
-    let cc = regFile[15].get();
-    let [ primary, secondary ] = op (a,b,cc);
-    console.log ('rrr primary = ' + primary + ' secondary = ' + secondary);
+    let [primary, secondary] = f (c,a,b);
     regFile[ir_d].put(primary);
     if (ir_d<15) { regFile[15].put(secondary) }
 }
 
-
-function rrr_sub () {
-    console.log ('rrr_sub');
-}
-
-function rrr_mul () {
-    console.log ('rrr_mul');
-}
-
-function rrr_div () {
-    console.log ('rrr_div');
+function op_trap () {
+    let d = regFile[ir_d].get();
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    console.log (`trap ${d} ${a} ${b}`);
 }
 
 function handle_xx () {
@@ -374,24 +428,23 @@ function handle_rx () {
     rxDispatch[ir_b]();
 }
 
-
 var rxDispatch =
-    [function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)},
-     function () {rx(rx_lea)}]
+    [function () {rx(rx_lea)},       // 0
+     function () {rx(rx_load)},      // 1
+     function () {rx(rx_store)},     // 2
+     function () {rx(rx_jump)},      // 3
+     function () {rx(rx_jumpc0)},    // 4
+     function () {rx(rx_jumpc1)},    // 5
+     function () {rx(rx_jumpf)},     // 6
+     function () {rx(rx_jumpt)},     // 7
+     function () {rx(rx_jal)},       // 8
+     function () {rx(rx_nop)},       // 0
+     function () {rx(rx_nop)},       // 0
+     function () {rx(rx_nop)},       // 0
+     function () {rx(rx_nop)},       // 0
+     function () {rx(rx_nop)},       // 0
+     function () {rx(rx_nop)},       // 0
+     function () {rx(rx_nop)}];       // 0
 
 function rx(f) {
     console.log('rx');
@@ -403,7 +456,60 @@ function rx(f) {
     f();
 }
 
+function rx_nop () {
+    console.log ('rx_nop');
+}
+
 function rx_lea () {
     console.log('rx_lea');
     regFile[ir_d].put(ea);
+}
+
+function rx_load () {
+    console.log('rx_load');
+    regFile[ir_d].put (memFetchData(ea));
+}
+
+function rx_store () {
+    console.log('rx_store');
+    memStore (ea, regFile[ir_d].get());
+}
+
+function rx_jump () {
+    console.log('rx_jump');
+    pc.put (ea);
+}
+
+function rx_jumpc0 () {
+    console.log('rx_jumpc0');
+    if (true) {
+	pc.put (ea);
+    }
+}
+
+function rx_jumpc1 () {
+    console.log('rx_jumpc1');
+    if (true) {
+	pc.put (ea);
+    }
+}
+
+function rx_jumpf () {
+    console.log('rx_jumpf');
+    if (! wordToBool (regFile[ir_d].get())) {
+	pc.put (ea);
+    }
+}
+
+function rx_jumpt () {
+    console.log('rx_jumpt');
+    if (wordToBool (regFile[ir_d].get())) {
+	pc.put (ea);
+    }
+}
+
+function rx_jal () {
+    console.log('rx_jal');
+    regFile[ir_d].put (pc.get());
+    pc.put (ea);
 }

@@ -53,7 +53,7 @@ pane height
     --mid-main-right-background-color: red;
     --paneBackgroundColor: green;
     --paneButtonsHeight: 1.5em;
-    --fileTopSecHeight: 57px;
+    --fileTopSecHeight: 9em;
 
     --paneSecVskip: 2px; /* 0.25em; vspace between buttons and body */
     --paneSecPadding: 4px;

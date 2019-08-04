@@ -72,6 +72,13 @@ function fileButton5 () {
     console.log ('fileButton5');
 }
 
+function selectExample () {
+    console.log ('selectExample');
+    let elt = document.getElementById('ExamplesIframeId');
+    elt.focus ();
+    elt.select ();
+}
+
 // from stackoverflow...
 // var myIFrame = document.getElementById("myIframe");
 // var content = myIFrame.contentWindow.document.body.innerHTML;
