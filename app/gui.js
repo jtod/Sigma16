@@ -652,7 +652,9 @@ window.onload = function () {
     
     console.log("window.onload activated");
     showTabbedPane("WelcomePane");
-
+    initializeProcessorElements ();  // so far, it's just instr decode
+    clearInstrDecode ();
+    
 // Initialize file/module
 
     fileReader.onload = function (e) {
@@ -714,7 +716,7 @@ window.onload = function () {
   }, false);
 
     resetRegisters();
-    insert_example(example_default);     // For testing and debugging
+    insert_example(example_add);     // For testing and debugging
     initialize_mid_main_resizing ();
     // setMidMainLRratio(0.65);  // 0.65 is reasonable value for normal use
     setMidMainLRratio(0.9);  // useful for dev to keep mem display visible

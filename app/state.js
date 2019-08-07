@@ -1,14 +1,85 @@
-// Sigma16: subsystems.js defines registers and memory
+// Sigma16: state.js defines registers and memory
 
-// Fixed spacing issue: got rid of a blank line above the processor
-// memory displays by using <pre class="PreCode"> where the css for
-// .PreCode sets the margins to 0em.  Just giving a css definition of
-// .pre { margin: 0em; } doesn't work; for some reason that setting is
-// overridden.
 
-// Scolling is now working in the memory display, and partly in the
-// processor asm listing.  However, the font size is wrong in the proc
-// asm listing (why?) and the scroll distance is inadequate.
+
+// Global variables for instruction decode; used in emulator
+
+let displayInstrDecode = true;
+let instrCode, instrDisp, instrCodeStr; // record the values
+let instrFmtStr = "";
+let instrOpStr = "";
+let instrArgsStr = "";
+let instrEA, instrEAStr;
+let instrAct = [];
+
+
+//---------------------------------------------------------------------------
+// State variables
+
+// let st =
+//     { ir_op : 0,
+//       ir_d : 0,
+//       ir_a : 0,
+//       ir_b : 0
+//    }
+
+// Is it better to keep registers, memory, etc, as globals?  Or to
+// make them fields in a state record?  Changed ir_d to st.ir_d in
+// state.js and emulator.js.  Reconsider which approach is better, and
+// make it consistent. ?????
+
+
+// Processor elements: html elements for displaying instruction decode
+
+let instrCodeElt;
+let instrFmtElt;
+let instrOpElt;
+let instrArgsElt;
+let instrEAElt;
+let instrAct1Elt;
+let instrAct2Elt;
+
+function initializeProcessorElements () {
+    console.log ('initializeProcessorElements');
+    instrCodeElt = document.getElementById("InstrCode");
+    instrFmtElt  = document.getElementById("InstrFmt");
+    instrOpElt   = document.getElementById("InstrOp");
+    instrArgsElt = document.getElementById("InstrArgs");
+    instrEAElt   = document.getElementById("InstrEA");
+    instrAct1Elt = document.getElementById("InstrAct1");
+    instrAct2Elt = document.getElementById("InstrAct2");
+}
+
+
+// Fields of the current instruction
+
+var instr = 0;
+var ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
+
+// The value of the effective addresss pecified by an RX instruction
+
+var ea = 0;  // effective address
+
+// Global variables for handling listing display as program runs.
+// Uses global variables set by linker: exMod is executing module and
+// curAsmap is map from addresses to source lines
+
+var srcLine;        // copy of source statements
+
+
+// Keep track of the address of the currently executing instruction,
+// the address of the next instruction, and the line numbers where
+// these instructions appear in the assembly listing.  -1 indicates no
+// line has been highlighted
+
+var curInstrAddr, curInstrLineNo, saveCurSrcLine;
+var nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
+
+// asmScrollOffsetAbove specifies the preferred number of lines that
+// should appear above the scroll target in the processor assembly
+// listing
+
+const asmScrollOffsetAbove = 5;
 
 const pxPerChar = 14.4;  // found by trial and error; measuring it would be better
 
@@ -508,3 +579,16 @@ function memTest2 () {
     memShowAccesses ();
     memDisplay ();
 }
+
+
+// Notes, obsolete
+
+// Fixed spacing issue: got rid of a blank line above the processor
+// memory displays by using <pre class="PreCode"> where the css for
+// .PreCode sets the margins to 0em.  Just giving a css definition of
+// .pre { margin: 0em; } doesn't work; for some reason that setting is
+// overridden.
+
+// Scolling is now working in the memory display, and partly in the
+// processor asm listing.  However, the font size is wrong in the proc
+// asm listing (why?) and the scroll distance is inadequate.

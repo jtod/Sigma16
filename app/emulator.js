@@ -1,47 +1,62 @@
 // Emulator
 
-// Find solution for problem of displaying highlighted text as html
+//---------------------------------------------------------------------------
+// Architecture
 
-// in mem display, the size and font is ok but when <pre> </pre> is
-// added around the text, then the font and size are wrong.  Perhaps <pre>
-// has a default style I don't like, and it overrides the existing font?
+let mnemonicRRR = ["add",    "sub",    "mul",    "div",
+		   "cmp",    "cmplt",  "cmpeq",  "cmpgt",
+		   "inv",    "and",    "or",     "xor",
+		   "addc",   "trap",   "XX",     "RX"]
 
-// use <pre class="HighlightedTextAsHtml"> but don't put it inside a
-// div with HighlightedTExtAsHtml
+let mnemonicRX =  ["lea",    "load",   "store",  "jump",
+		   "jumpc0", "jumpc1", "jumpf",  "jumpt",
+		   "jal",    "nop",    "nop",    "nop",
+		   "nop",    "nop",    "nop",    "nop"]
 
-var procAsmListingElt;  // set during onLoad event
+let mnemonicxX =  ["nop",    "nop",    "nop",    "nop",
+		   "nop",    "nop",    "nop",    "nop",
+		   "nop",    "nop",    "nop",    "nop",
+		   "nop",    "nop",    "nop",    "nop"]
 
-function testpane1() {
-    console.log ('testpane 1 clicked')
-    let xs = ["<pre class='HighlightedTextAsHtml'>", 'line 1 text',
-	      "<span class='CUR'>this is line 2 text</span>",
-	      'and finally line 3', '</pre>'];
-    console.log ('xs = ' + xs);
-    let ys = xs.join('\n');
-    console.log ('ys = ' + ys);
+//---------------------------------------------------------------------------
+// Instruction decode
 
-    let qs = ys;
-    console.log ('qs = ' + qs);
-    document.getElementById('TestPaneBody').innerHTML = qs;
+function showInstrDecode () {
+    instrCodeStr = (instrCode ? wordToHex4 (instrCode) : "")
+	+ " " + (instrDisp ? wordToHex4 (instrDisp) : "");
+    instrEAStr = instrEA ? wordToHex4 (instrEA) : "";
+    console.log (`showInstrDecode fmt = ${instrFmtStr}`);
+    refreshInstrDecode ();
+}
+
+function clearInstrDecode () {
+    instrOpCode = null;
+    instrDisp = null;
+    instrCodeStr  = "";
+    instrFmtStr   = "";
+    instrOp    = "";
+    instrArgs  = "";
+    instrEA = null;
+    instrEAStr    = "";
+    instrAct = [];
+}
+function refreshInstrDecode () {
+    instrCodeElt.innerHTML = instrCodeStr;
+    instrFmtElt.innerHTML  = instrFmtStr;
+    instrOpElt.innerHTML   = instrOpStr;
+    instrArgsElt.innerHTML = instrArgsStr;
+    instrEAElt.innerHTML   = instrEAStr;
+    instrAct1Elt.innerHTML = ""; // ???????
+    instrAct2Elt.innerHTML = ""; // ???????????
 }
 
 
-function testpane2 () {
-    console.log ('testpane 2 clicked');
-}
 
-function testpane3 () {
-    console.log ('testpane 3 clicked');
-}
-
-
-
-//-----------------------------------------------------------------------
-// boot
+//---------------------------------------------------------------------------
+// Boot
 
 // Boot from either the current module (without linking) or the load
 // module (if the linker has been run).
-
 
 // Attempt to copy an executable into memory for execution.  A module
 // is executable if it contains object code but doesn't have any
@@ -126,27 +141,13 @@ function linkerBootLine (m,i,x) {
     bootCurrentLocation++;
 }
 
-
 // Parse the object code
 function parseObject () {
     console.log('parseObject');
 }
 
-
-
-// ------------------------------------------------------------------
-// Highlighting current and next instruction
-
-// Global variables for handling listing display as program runs
-
-// Uses global variables set by linker: exMod is executing module and
-// curAsmap is map from addresses to source lines
-
-var srcLine;        // copy of source statements
-
-// -1 indicates no line has been highlighted
-var curInstrAddr, curInstrLineNo, saveCurSrcLine;
-var nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
+//---------------------------------------------------------------------------
+// Highlighting current and next instruction in processor assembly listing
 
 // Initialize the running listing display
 
@@ -211,8 +212,6 @@ function highlightListingAfterInstr () {
     }
 }
 
-const asmScrollOffsetAbove = 5;  // how many lines above scroll target
-
 function highlightListingFull () {
     console.log ('highlightListingFull');
 //    let xs = "<pre><code class='HighlightedTextAsHtml'>"
@@ -249,13 +248,7 @@ function setProcAsmListing () {
 //   if i=null then no source is avaiable
 //     else currentModule.asmStmt[i].srcLine
 
-// ------------------------------------------------------------------
-
-
-var instr = 0;
-var ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
-var ea = 0;  // effective address
-
+//---------------------------------------------------------------------------
 
 function clearCtlRegs () {
 }
@@ -268,7 +261,9 @@ function clearCtlRegs () {
 
 function procStep () {
     console.log ('procStep');
-    executeInstruction();
+    clearInstrDecode ();
+    executeInstruction ();
+    showInstrDecode ();
     highlightListingAfterInstr ();
 }
 
@@ -282,7 +277,8 @@ function executeInstruction () {
     regClearAccesses ();
 
     curInstrAddr = pc.get();
-    ir.put (memFetchInstr (curInstrAddr));
+    instrCode = memFetchInstr (curInstrAddr);
+    ir.put (instrCode);
     nextInstrAddr = binAdd (curInstrAddr, 1);
     pc.put (nextInstrAddr);
     console.log('pc = ' + wordToHex4(pc.get()) + ' ir = ' + wordToHex4(instr));
@@ -296,6 +292,8 @@ function executeInstruction () {
     ir_op = tempinstr & 0x000f;
     console.log('instr fields = ' + ir_op + ' ' + ir_d + ' ' + ir_a + ' ' + ir_b);
 
+    instrFmtStr = "RRR";             // Replace if opcode expands to RX or XX
+    instrOpStr = mnemonicRRR[ir_op]  // Replace if opcode expands to RX or XX
     dispatch_RRR [ir_op] ();
     
     regShowAccesses()
@@ -421,10 +419,12 @@ function op_trap () {
 
 function handle_xx () {
     console.log ('xx');
+    instrFmtStr = "XX";
 }
 
 function handle_rx () {
     console.log ('handle rx' + ir_b);
+    instrFmtStr = "RX";
     rxDispatch[ir_b]();
 }
 
@@ -448,10 +448,13 @@ var rxDispatch =
 
 function rx(f) {
     console.log('rx');
-    adr.put (memFetchInstr (pc.get()));
+    instrOpStr = mnemonicRX[ir_b];
+    instrDisp = memFetchInstr (pc.get());
+    adr.put (instrDisp);
     nextInstrAddr = binAdd (nextInstrAddr, 1);
     pc.put (nextInstrAddr);
     ea = binAdd (regFile[ir_a].get(), adr.get());
+    instrEA = ea;
     console.log('rx ea = ' + wordToHex4(ea));
     f();
 }
@@ -512,4 +515,51 @@ function rx_jal () {
     console.log('rx_jal');
     regFile[ir_d].put (pc.get());
     pc.put (ea);
+}
+
+function xx(f) {
+    console.log('xx');
+    instrOpStr = mnemonicXX[ir_b];
+    instrDisp = memFetchInstr (pc.get());
+    adr.put (instrDisp);
+    nextInstrAddr = binAdd (nextInstrAddr, 1);
+    pc.put (nextInstrAddr);
+    f();
+}
+
+//---------------------------------------------------------------------------
+// Test pane
+
+// From emulator.js
+
+// In the mem display, the formatting is ok when the container
+// specifies the style class.  However, when <pre> ... </pre> are
+// added around the text, the font and size are wrong and the
+// specified style is ignored.  Perhaps <pre> has an inappropriate
+// default style that overrides the existing font.  Solution is to use
+// <pre class="HighlightedTextAsHtml"> but don't put it inside a div
+// with HighlightedTExtAsHtml
+
+var procAsmListingElt;  // set during onLoad event
+
+function testpane1() {
+    console.log ('testpane 1 clicked')
+    let xs = ["<pre class='HighlightedTextAsHtml'>", 'line 1 text',
+	      "<span class='CUR'>this is line 2 text</span>",
+	      'and finally line 3', '</pre>'];
+    console.log ('xs = ' + xs);
+    let ys = xs.join('\n');
+    console.log ('ys = ' + ys);
+
+    let qs = ys;
+    console.log ('qs = ' + qs);
+    document.getElementById('TestPaneBody').innerHTML = qs;
+}
+
+function testpane2 () {
+    console.log ('testpane 2 clicked');
+}
+
+function testpane3 () {
+    console.log ('testpane 3 clicked');
 }

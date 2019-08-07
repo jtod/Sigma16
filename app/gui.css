@@ -65,7 +65,7 @@ pane height
 			    (8 * var(--paneSecVskip))));  /* ????? */
     --PaneBodyBackgroundColor: violet;
 
- --ProcStateHeight: 15.5em; /* 16em; */
+    --ProcStateHeight: 14.5em; /* 15.5em; */ /* 16em; */
     --ProcAsmTextHeight: calc(var(--paneBodyHeight)
 			      - (var(--ProcStateHeight)
 				 + 2.7em)); // allow for scrollbar and borders */
@@ -517,7 +517,7 @@ guide). */
 }
 
 
-.Registers, .Decode {
+.Registers {
     display: grid;
     height: auto;
     width: auto;
@@ -530,6 +530,7 @@ guide). */
 					   [RegVlineRValStart] min-content
 					   [RegVlineEnd];
 }
+
 
 #InstructionRegisters {
     grid-row-start: ProcStateHlineStart;
@@ -559,11 +560,51 @@ guide). */
     grid-column-end: ProcStateVlineMemStart;
 }
 
+
+
 #InstructionDecode {
     grid-row-start: ProcStateHlineDecodeStart;
     grid-row-end: ProcStateHlineEnd;
     grid-column-start: ProcStateVlineStart;
     grid-column-end: ProcStateVlineSegStart;
+}
+
+.Decode {
+    display: grid;
+    height: auto;
+    width: auto;
+    background-color: var(--subpanel-background-color);
+    color: black;
+    grid-template-rows: [DecodeHlineStart] min-content [DecodeHlineEnd];
+    grid-template-columns: [DecodeVlineStart] min-content
+					   [DecodeVlineNameEnd]
+					   1fr
+					   [DecodeVlineEnd];
+}
+
+.DecodeSecName {
+    grid-column-start: DecodeVlineStart;
+    grid-column-end: DecodeVlineEnd;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
+.DecodeName {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    font-weight: bold;
+    grid-column-start: DecodeVlineStart;
+    grid-column-end: DecodeVlineNameEnd;
+
+}
+
+.DecodeValue {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    grid-column-start: DecodeVlineNameEnd;
+    grid-column-end: DecodeVlineEnd;
 }
 
 
