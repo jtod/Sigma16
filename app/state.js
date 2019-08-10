@@ -10,7 +10,7 @@ let instrFmtStr = "";
 let instrOpStr = "";
 let instrArgsStr = "";
 let instrEA, instrEAStr;
-let instrAct = [];
+let instrEffect = [];
 
 
 //---------------------------------------------------------------------------
@@ -36,8 +36,8 @@ let instrFmtElt;
 let instrOpElt;
 let instrArgsElt;
 let instrEAElt;
-let instrAct1Elt;
-let instrAct2Elt;
+let instrEffect1Elt;
+let instrEffect2Elt;
 
 function initializeProcessorElements () {
     console.log ('initializeProcessorElements');
@@ -46,8 +46,8 @@ function initializeProcessorElements () {
     instrOpElt   = document.getElementById("InstrOp");
     instrArgsElt = document.getElementById("InstrArgs");
     instrEAElt   = document.getElementById("InstrEA");
-    instrAct1Elt = document.getElementById("InstrAct1");
-    instrAct2Elt = document.getElementById("InstrAct2");
+    instrEffect1Elt = document.getElementById("InstrEffect1");
+    instrEffect2Elt = document.getElementById("InstrEffect2");
 }
 
 
@@ -117,6 +117,7 @@ var nRegisters = 0;          // total number of registers
 // Global variables for accessing the registers
 
 var register = [];              // all the registers, control and regfile
+var registerIndex = 0;          // unique index for each reg
 var regStored = [];
 var regFetched = [];
 
@@ -163,13 +164,21 @@ function testReg2 () {
 
 function mkReg (rn,eltName,showfcn) {
     r = Object.create({
+	regIdx : 0, // will be overwritten with actual index
 	regName : rn,
 	show : showfcn,
 	val : 0,
 	elt : document.getElementById(eltName),
 	put : function (x) {
-		this.val = x;
-	        if (modeHighlight) { regStored.push(this) } },
+	    this.val = x;
+	    console.log (`reg put rn=${rn} idx=${this.regIdx} x=${x}`);
+	    if (this.regIdx<16) {
+		// record regfile put
+		instrEffect.push (["R", this.regIdx, x, this.regName]);
+	    console.log (`mkReg put recording effect 0 ${instrEffect[0]}`);
+	    console.log (`mkReg put recording effect 1 ${instrEffect[1]}`);
+	    }
+	    if (modeHighlight) { regStored.push(this) } },
         get : function () {
 	        x = this.val;
 	        if (modeHighlight) { regFetched.push(this) };
@@ -177,7 +186,8 @@ function mkReg (rn,eltName,showfcn) {
 	refresh : function() {this.elt.innerHTML = this.show(this.val);},
 	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
     });
-    
+//    register[nRegisters] = this;
+//    nRegisters++;
     return r;
 }
 
@@ -411,6 +421,7 @@ function memFetchData (a) {
 
 function memStore (a,x) {
     memStoreLog.push(a);
+    instrEffect.push(["M", a, x]);
     memory[a] = x;
 }
 

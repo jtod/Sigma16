@@ -167,6 +167,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
     return {lineNumber,                     // array index of statement
 	    address,                        // address where code goes
 	    srcLine,                        // source line
+	    listingLine : "",               // listing with object and source
 	    fieldLabel : '',                // label
 	    fieldSpacesAfterLabel : '',     // white space
 	    fieldOperation : '',            // operation mnemonic

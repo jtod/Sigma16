@@ -38,16 +38,42 @@ function clearInstrDecode () {
     instrArgs  = "";
     instrEA = null;
     instrEAStr    = "";
-    instrAct = [];
+    instrEffect = [];
 }
 function refreshInstrDecode () {
+    console.log ("refreshInstrDecode");
     instrCodeElt.innerHTML = instrCodeStr;
     instrFmtElt.innerHTML  = instrFmtStr;
     instrOpElt.innerHTML   = instrOpStr;
-    instrArgsElt.innerHTML = instrArgsStr;
+    instrArgsElt.innerHTML = showArgs(); // instrArgsStr;
     instrEAElt.innerHTML   = instrEAStr;
-    instrAct1Elt.innerHTML = ""; // ???????
-    instrAct2Elt.innerHTML = ""; // ???????????
+    instrEffect1Elt.innerHTML = showEffect(0);
+    instrEffect2Elt.innerHTML = showEffect(1);
+}
+
+function showArgs () {
+    if (instrFmtStr==="RRR") {
+	return `R${ir_d},R${ir_a},R${ir_b}`;
+    } else if (instrFmtStr==="RX") {
+	return `R${ir_d},${wordToHex4(instrDisp)}[R${ir_a}]`;
+    } else {
+	return "?";
+    }
+}
+
+function showEffect (i) {
+    console.log(`showEffect ${i}`);
+    if (instrEffect[i]) {
+	let [dest,idx,val,name] = instrEffect[i];
+	if (dest==="R") {
+	    console.log (`showEffect ${i} ${instrEffect[i]}`);
+//	    console.log (`showEffect ${i}  ${dest} ${idx} := ${val});
+	    return `${name} := ${wordToHex4(val)}`;
+	} else if (dest==="M") {
+	    console.log ("showEffect M");
+	    return `M[${wordToHex4(idx)}]:=${wordToHex4(val)}`;
+	}
+    } else { return ""; }
 }
 
 
@@ -161,7 +187,8 @@ function initListing () {
     srcLine = [];
 //    srcLine.push("<pre class='HighlightedTextAsHtml'>");
     for (let i = 0; i < exMod.asmStmt.length; i++) {
-	srcLine.push(exMod.asmStmt[i].srcLine);
+	srcLine.push(exMod.asmStmt[i].listingLine);
+//	srcLine.push(exMod.asmStmt[i].srcLine);
     }
 //    srcLine.push("</pre>");
     //    setProcAsmListing (srcLine.join('\n'));

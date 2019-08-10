@@ -575,6 +575,7 @@ guide). */
     width: auto;
     background-color: var(--subpanel-background-color);
     color: black;
+    grid-column-gap: 0.7em;
     grid-template-rows: [DecodeHlineStart] min-content [DecodeHlineEnd];
     grid-template-columns: [DecodeVlineStart] min-content
 					   [DecodeVlineNameEnd]

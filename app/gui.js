@@ -672,7 +672,8 @@ window.onload = function () {
 
     // Register file
     // R0 is built specially as it is constant; all others are built with mkReg
-    
+
+    nRegisters = 0;
     for (var i = 0; i<16; i++) {
 	let regname = 'R' + i; // also the id for element name
 //	console.log('xx' + regname + 'xx');
@@ -691,13 +692,14 @@ window.onload = function () {
     spc = mkReg ('spc', 'spcElt', wordToHex4);
     ien = mkReg ('ien', 'ienElt', intToBit);
     controlRegisters = [pc,ir,adr,dat,spc,ien];
-    nRegisters = 16;
+    nRegisters = 16;  // now it's incremented in mkReg
     controlRegisters.forEach (function (r) {
-//	console.log('making reg ' + nRegisters + ' = ' + r.regName);
+	console.log('making reg ' + nRegisters + ' = ' + r.regName);
 	register[nRegisters] = r;
 	r.regIdx = nRegisters;
 	nRegisters++;
-    });
+        });
+
 
 // Initialize the memory
     memInitialize();
