@@ -146,8 +146,8 @@
 		<button onclick="boot()"> Boot </button>
 		<button onclick="procStep()"> Step </button>
 		<button onclick="procRun()"> Run </button>
-		<button onclick="procInterrupt()">Interrupt</button>
 		<button onclick="procPause()">Pause</button>
+		<button onclick="procInterrupt()">Interrupt</button>
 		<button onclick="procBreakpoint()">Breakpoint</button>
 	      </div>
 	      <div class="PaneBody" id="ProcessorBody">
@@ -257,9 +257,9 @@
 		    <div class="Registers">
 		      <div class="NewRegSecName">Emulator</div>
 		      <div class="RegisterName">s</div>
-		      <div class="RegisterValue">halted</div>
+		      <div class="RegisterValue" id="procStatus"></div>
 		      <div class="RegisterName">n</div>
-		      <div class="RegisterValue">29000</div>
+		      <div class="RegisterValue" id="nInstrExecuted"></div>
 		      <div class="RegisterName">m</div>
 		      <div class="RegisterValue">break</div>
 		      <input class="EmCtlLine" id="FullDisplayToggleButton"

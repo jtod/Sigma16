@@ -1,5 +1,8 @@
 // Emulator
 
+
+
+
 //---------------------------------------------------------------------------
 // Architecture
 
@@ -100,6 +103,8 @@ function boot () {
 	memClearAccesses();
 	copyExecutableToMemory (m);
 	initListing ();
+	nInstructionsExecuted = 0;
+	document.getElementById("nInstrExecuted").innerHTML = nInstructionsExecuted;
     } else {
 	console.log ('cannot boot')
     }
@@ -129,6 +134,7 @@ function copyExecutableToMemory (m) {
     memShowAccesses();
     memDisplay();
     curAsmap = m.asmap;
+    setProcStatus ("Ready");
 }
 
 function parseCopyObjectModuleToMemory () {
@@ -288,16 +294,109 @@ function clearCtlRegs () {
 
 function procStep () {
     console.log ('procStep');
-    clearInstrDecode ();
-    executeInstruction ();
-    showInstrDecode ();
-    highlightListingAfterInstr ();
+    if (procStatus==="Stopped") { setProcStatus ("Ready"); }
+    if (procStatus==="Ready") {
+	clearInstrDecode ();
+	executeInstruction ();
+	showInstrDecode ();
+	highlightListingAfterInstr ();
+    }
 }
 
+function procRun () {
+    console.log ("procRun");
+    if (procStatus==="Stopped") { setProcStatus ("Ready"); }
+    clearInstrDecode ();
+    regClearAccesses ();
+    memClearAccesses ();
+    clearInstrDecode ();
+    instructionLooper ();
+}
+
+// Promises don't allow pause button click to break in, need setTimer for that
+
+//    return new Promise (function (resolve,reject) {
+//	resolve (instructionLooper ());
+//    });
+
+//---------------------------------------------------------------------------
+// Processor status
+
+// Reset   -- registers and memory have been cleared
+//               result of Reset button
+//               can Boot or Reset
+// Ready   -- can execute instruction
+//               result of boot, step
+//               can Step, Run, Reset, Boot
+// Stopped -- processor would be running but emulator has stopped
+//               result of pause or breakpoint
+//               can restart with step or run
+// Halted  -- processor has halted because trap 0 was executed
+//               result of trap 0
+//               can boot or reset
+
+let procStatus = "Reset"
+
+function setProcStatus (s) {
+    procStatus = s;
+    document.getElementById("procStatus").innerHTML=s;
+}
+
+function procReset() {
+    console.log ("reset the processor");
+    setProcStatus ("Reset");
+    resetRegisters ();
+    refreshRegisters ();
+    memClear ();
+    memClearAccesses ();
+    memDisplay ();
+    document.getElementById('ProcAsmListing').innerHTML = "";
+    clearInstrDecode ();
+    refreshInstrDecode ();
+    nInstructionsExecuted = 0;
+    document.getElementById("nInstrExecuted").innerHTML = nInstructionsExecuted;
+}
+
+//---------------------------------------------------------------------------
+// Controlling instruction execution
+
+let nInstructionsExecuted = 0;
+let instrLooperDelay = 1000;
+let instrLooperShow = true;
+
+
+function procPause () {
+    console.log ("procPause");
+    setProcStatus ("Stopped");
+}
+
+function instructionLooper () {
+    if (procStatus==="Ready") {
+	if (instrLooperShow) {
+	    clearInstrDecode ();
+	}
+	executeInstruction ();
+	if (instrLooperShow) {
+	    showInstrDecode ();
+	    highlightListingAfterInstr ();
+	}
+	setTimeout (instructionLooper, instrLooperDelay);
+    } else { return; }
+}
+
+
+//    while (procStatus==="Ready") {
+//	executeInstruction ();
+//    }
 // memClearAccesses, memShowAccesses, and memDisplay are very slow...
+
+//---------------------------------------------------------------------------
+// Machine language semantics
 
 function executeInstruction () {
     console.log ('executeInstruction');
+    nInstructionsExecuted++;
+    document.getElementById("nInstrExecuted").innerHTML = nInstructionsExecuted;
     prepareListingBeforeInstr ();
     memClearAccesses ();
     memDisplay ();
@@ -442,6 +541,10 @@ function op_trap () {
     let a = regFile[ir_a].get();
     let b = regFile[ir_b].get();
     console.log (`trap ${d} ${a} ${b}`);
+    if (d===0) {
+	console.log ("Trap: halt");
+	setProcStatus ("Halted");
+    }
 }
 
 function handle_xx () {
@@ -507,41 +610,47 @@ function rx_store () {
 
 function rx_jump () {
     console.log('rx_jump');
-    pc.put (ea);
+    nextInstrAddr = ea;
+    pc.put (nextInstrAddr);
 }
 
 function rx_jumpc0 () {
     console.log('rx_jumpc0');
     if (true) {
-	pc.put (ea);
+	nextInstrAddr = ea;
+	pc.put (nextInstrAddr);
     }
 }
 
 function rx_jumpc1 () {
     console.log('rx_jumpc1');
     if (true) {
-	pc.put (ea);
+	nextInstrAddr = ea;
+	pc.put (nextInstrAddr);
     }
 }
 
 function rx_jumpf () {
     console.log('rx_jumpf');
     if (! wordToBool (regFile[ir_d].get())) {
-	pc.put (ea);
+	nextInstrAddr = ea;
+	pc.put (nextInstrAddr);
     }
 }
 
 function rx_jumpt () {
     console.log('rx_jumpt');
     if (wordToBool (regFile[ir_d].get())) {
-	pc.put (ea);
+	nextInstrAddr = ea;
+	pc.put (nextInstrAddr);
     }
 }
 
 function rx_jal () {
     console.log('rx_jal');
     regFile[ir_d].put (pc.get());
-    pc.put (ea);
+    nextInstrAddr = ea;
+    pc.put (nextInstrAddr);
 }
 
 function xx(f) {
