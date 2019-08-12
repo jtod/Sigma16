@@ -36,6 +36,7 @@ let instrFmtElt;
 let instrOpElt;
 let instrArgsElt;
 let instrEAElt;
+let instrCCElt;
 let instrEffect1Elt;
 let instrEffect2Elt;
 
@@ -46,6 +47,7 @@ function initializeProcessorElements () {
     instrOpElt   = document.getElementById("InstrOp");
     instrArgsElt = document.getElementById("InstrArgs");
     instrEAElt   = document.getElementById("InstrEA");
+    instrCCElt   = document.getElementById("InstrCC");
     instrEffect1Elt = document.getElementById("InstrEffect1");
     instrEffect2Elt = document.getElementById("InstrEffect2");
 }

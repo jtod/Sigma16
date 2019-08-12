@@ -50,6 +50,8 @@ function refreshInstrDecode () {
     instrOpElt.innerHTML   = instrOpStr;
     instrArgsElt.innerHTML = showArgs(); // instrArgsStr;
     instrEAElt.innerHTML   = instrEAStr;
+    let ccval = regFile[15].val;
+    instrCCElt.innerHTML      = showCC(ccval);
     instrEffect1Elt.innerHTML = showEffect(0);
     instrEffect2Elt.innerHTML = showEffect(1);
 }
@@ -509,8 +511,8 @@ function rrd (f) {
 function rrc (f) {
     let a = regFile[ir_a].get();
     let b = regFile[ir_b].get();
-    let primary = f (a,b);
-    regFile[15].put(primary);
+    let cc = f (a,b);
+    regFile[15].put(cc);
 }
 
 // Apply f to a and b, load primary result into d, and load secondary

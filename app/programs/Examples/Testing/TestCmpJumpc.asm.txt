@@ -1,0 +1,78 @@
+; TestCmpJumpc.asm.txt: test comparisons and conditional jumps
+
+    load    R1,veryneg[R0]        ; << 0
+    load    R2,slightlyneg[R0]    ; < 0
+    lea     R3,13[R0]             ; > 0
+    lea     R4,28749[R0]          ; >> 0
+
+; cmplt
+    cmplt   R9,R1,R2     ; 1
+    cmplt   R9,R2,R0     ; 1
+    cmplt   R9,R0,R3     ; 1
+    cmplt   R9,R3,R4     ; 1
+    cmplt   R9,R1,R4     ; 1
+
+    cmplt   R9,R1,R1     ; 0
+    cmplt   R9,R0,R0     ; 0
+    cmplt   R9,R4,R4     ; 0
+    
+    cmplt   R9,R2,R1     ; 0
+    cmplt   R9,R0,R2     ; 0
+    cmplt   R9,R3,R0     ; 0
+    cmplt   R9,R4,R3     ; 0
+    cmplt   R9,R4,R1     ; 0
+
+; cmpeq
+    cmpeq   R9,R1,R2     ; 0
+    cmpeq   R9,R2,R0     ; 0
+    cmpeq   R9,R0,R3     ; 0
+    cmpeq   R9,R3,R4     ; 0
+    cmpeq   R9,R1,R4     ; 0
+
+    cmpeq   R9,R1,R1     ; 1
+    cmpeq   R9,R0,R0     ; 1
+    cmpeq   R9,R4,R4     ; 1
+    
+    cmpeq   R9,R2,R1     ; 0
+    cmpeq   R9,R0,R2     ; 0
+    cmpeq   R9,R3,R0     ; 0
+    cmpeq   R9,R4,R3     ; 0
+    cmpeq   R9,R4,R1     ; 0
+
+; cmpgt
+    cmpgt   R9,R1,R2     ; 0
+    cmpgt   R9,R2,R0     ; 0
+    cmpgt   R9,R0,R3     ; 0
+    cmpgt   R9,R3,R4     ; 0
+    cmpgt   R9,R1,R4     ; 0
+
+    cmpgt   R9,R1,R1     ; 0
+    cmpgt   R9,R0,R0     ; 0
+    cmpgt   R9,R4,R4     ; 0
+    
+    cmpgt   R9,R2,R1     ; 1
+    cmpgt   R9,R0,R2     ; 1
+    cmpgt   R9,R3,R0     ; 1
+    cmpgt   R9,R4,R3     ; 1
+    cmpgt   R9,R4,R1     ; 1
+
+; cmp
+
+    cmp     R1,R2   ; <    two negatives
+    cmp     R2,R1   ; >    two negatives
+    cmp     R1,R1   ; =    two negatives
+    cmp     R2,R0   ; <    neg 0
+    cmp     R0,R2   ; >    0 neg
+    cmp     R0,R0   ; =    0 0
+    cmp     R3,R0   ; >    pos 0
+    cmp     R0,R3   ; <    0 pos
+    cmp     R2,R3   ; <    neg pos
+    cmp     R3,R2   ; >    pos neg
+    cmp     R3,R4   ; <    pos pos
+    cmp     R4,R3   ; >    pos pos
+    cmp     R4,R4   ; =    pos pos
+
+    trap   R0,R0,R0
+   
+veryneg       data  -27541
+slightlyneg   data  -23

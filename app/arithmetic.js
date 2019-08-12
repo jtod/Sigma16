@@ -362,61 +362,61 @@ function test_div () {
 function op_cmp (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
-    let primary = 0; // unused
-    let secondary = ( a > b ? ccG : 0)
+    let ltBin = a < b;
+    let gtBin = a > b;
+    let eq    = a===b;
+    let ltTc  = aint < bint;
+    let gtTc  = aint > bint;
+    let cc = ( a > b ? ccG : 0)
  	| (aint > bint ? ccg : 0)
  	| (a === b ? ccE : 0)
  	| (aint < bint ? ccl : 0)
         | ( a < b ? ccL : 0) ;
-    return [primary, secondary];
+    console.log (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`);
+    console.log (`op_cmp ltBin=${ltBin} gtBin${gtBin}`);
+    console.log (`op_cmp ltTc=${ltTc} gtTc${gtTc}`);
+    console.log (`op_cmp eq=${eq}`);
+    console.log (`op_cmp cc=${cc} showCC(cc)`);
+    return cc;
 }
 
 function op_cmplt (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
-    let primary = boolToWord (a < b)
-    let secondary = 0;  // unused
-    return [primary, secondary];
+    let primary = boolToWord (aint < bint);
+    return primary;
 }
 
 function op_cmpeq (a,b) {
-    let aint = wordToInt (a);
-    let bint = wordToInt (b);
     let primary = boolToWord (a === b)
-    let secondary = 0;  // unused
-    return [primary, secondary];
+    return primary;
 }
 
 function op_cmpgt (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
-    let primary = boolToWord (a > b)
-    let secondary = 0;  // unused
-    return [primary, secondary];
+    let primary = boolToWord (aint > bint)
+    return primary;
 }
 
 function op_inv (a) {
     let primary = wordInvert (a);
-    let secondary = 0;  // unused
-    return [primary, secondary];
+    return primary;
 }
 
 function op_and (a,b) {
     let primary = a & b;
-    let secondary = 0;  // unused
-    return [primary, secondary];
+    return primary;
 }
 
 function op_or (a,b) {
     let primary = a | b;
-    let secondary = 0;  // unused
-    return [primary, secondary];
+    return primary;
 }
 
 function op_xor (a,b) {
     let primary = a ^ b;
-    let secondary = 0;  // unused
-    return [primary, secondary];
+    return primary;
 }
 
 function op_addc (c,a,b) {
@@ -431,62 +431,6 @@ function op_addc (c,a,b) {
         | (carryOut ? ccC : 0);
     return [primary, secondary];
 }
-
-
-//---------------------------------------------------------------------------
-// Comparison
-
-function cmp (x,y) {
-}
-
-// Arithmetic for the cmplt instruction.  The primary result is a
-// boolean represented as a word, which goes into the destination
-// register.  The secondary is discarded: this instruction doesn't
-// change the condition code.  To do that, use the cmp instruction.
-
-function cmplt (x,y) {
-    let xi = wordToInt (x);
-    let yi = wordToInt (y);
-    let primary = xi < yi ? wordTrue : wordFalse;
-    let result = [primary, 0];
-    return result;
-}
-
-function cmpeq (x,y) {
-    let xi = wordToInt (x);
-    let yi = wordToInt (y);
-    let primary = xi === yi ? wordTrue : wordFalse;
-    let result = [primary, 0];
-    return result;
-}
-
-function cmpgt (x,y) {
-    let xi = wordToInt (x);
-    let yi = wordToInt (y);
-    let primary = xi > yi ? wordTrue : wordFalse;
-    let result = [primary, 0];
-    return result;
-}
-
-
-function inv (x) {
-}
-
-function and (x,y) {
-}
-
-function or (x,y) {
-}
-
-function xor (x,y) {
-}
-
-function addc (x,y,cc) {
-}
-
-function trap (x,y,z) {
-}
-
 
 //--------------------------------------------------------------------------
 // Condition codes
@@ -518,11 +462,12 @@ const ccv = setBit(bit_ccv);
 const ccC = setBit(bit_ccc);
 
 function showCC (c) {
+    console.log (`showCC ${c}`);
     return (extractBool (c,bit_ccc) ? 'c' : '')
 	+ (extractBool (c,bit_ccv) ? 'v' : '')
 	+ (extractBool (c,bit_ccV) ? 'V' : '')
 	+ (extractBool (c,bit_ccL) ? 'L' : '')
-	+ (extractBool (c,bit_ccl) ? '<' : '')
+	+ (extractBool (c,bit_ccl) ? '&lt;' : '')
 	+ (extractBool (c,bit_ccE) ? '=' : '')
 	+ (extractBool (c,bit_ccg) ? '>' : '')
 	+ (extractBool (c,bit_ccG) ? 'G' : '') ;

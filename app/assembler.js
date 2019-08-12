@@ -64,7 +64,7 @@ function showSymbol (s) {
 // Instruction formats and assembly language statement codes
 
 const RRR         = 0     // R1,R2,R3
-const RR          = 1     // R1,R2        RRR format omitting b field (e.g. inv)
+const RR          = 1     // R1,R2        RRR format omitting d or b field
 const RX          = 2;    // R1,xyz[R2]
 const JX          = 3;    // loop[R0]     RX format omitting d field (e.g. jump)
 const DATA        = 4;    // -42
@@ -101,11 +101,11 @@ statementSpec.set("add",   {format:RRR, opcode:[0]});
 statementSpec.set("sub",   {format:RRR, opcode:[1]});
 statementSpec.set("mul",   {format:RRR, opcode:[2]});
 statementSpec.set("div",   {format:RRR, opcode:[3]});
-statementSpec.set("cmp",   {format:RRR, opcode:[4]});
+statementSpec.set("cmp",   {format:RR,  opcode:[4]});
 statementSpec.set("cmplt", {format:RRR, opcode:[5]});
 statementSpec.set("cmpeq", {format:RRR, opcode:[6]});
 statementSpec.set("cmpgt", {format:RRR, opcode:[7]});
-statementSpec.set("inv",   {format:RRR, opcode:[8]});
+statementSpec.set("inv",   {format:RR,  opcode:[8]});
 statementSpec.set("and",   {format:RRR, opcode:[9]});
 statementSpec.set("or",    {format:RRR, opcode:[10]});
 statementSpec.set("xor",   {format:RRR, opcode:[11]});
@@ -185,7 +185,9 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    op : 0,                         // operation
 	    d : 0,                          // destination
 	    a : 0,                          // source a
-	    b : 0,                          // sourc b
+	    b : 0,                          // source b
+	    rr1 : 0,                        // first reg in rr asm format
+	    rr2 : 0,                        // second reg in rr asm format
 	    dispField : '0',                // displacement field
 	    disp : 0,                       // displacement value
 	    dat : 0,                        // data value
@@ -405,11 +407,13 @@ function parseOperand (s) {
 	s.d = rrr[1];
 	s.a = rrr[2];
 	s.b = rrr[3];
-    } else if (rr) {
+    } else if (rr) {   // can omit d for cmp, omit b for inv
 	s.hasOperand = true;
 	s.operandRR = true;
-	s.d = rr[1];
-	s.a = rr[2];
+	s.rr1 = rr[1];
+	s.rr2 = rr[2];
+//	s.d = rr[1];
+//	s.a = rr[2];
     } else if (rx) {
 	s.hasOperand = true;
 	s.operandRX = true;
@@ -476,17 +480,26 @@ function asmPass2 (m) {
 	s = m.asmStmt[i];
 	console.log(`pass2 i= + ${i} s= + ${s}`);
 	fmt = s.operation.format;
+	console.log (`pass2 fmt=${fmt} opcode=${s.operation.opcode}`);
 	if (fmt==RRR) {
+	    console.log (`pass2 RRR`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 //	    console.log('pass2 RRR ' + wordToHex4(s.codeWord1));
 	} else if (fmt==RR) { // like RRR but with b=0
+	    console.log (`pass2 RR`);
 	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord(op[0],s.d,s.a,0);
+	    if (op[0]==4) { // cmp, where d is omitted
+		s.codeWord1 = mkWord(op[0],0,s.rr1,s.rr2);
+	    } else { // inc, where b is omitted
+		s.codeWord1 = mkWord(op[0],s.rr1,s.rr2,0);
+	    }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    console.log (`pass2 op=${op} ${wordToHex4(s.codeWord1)}`);
 //	    console.log('pass2 RR ' + wordToHex4(s.codeWord1));
 	} else if (fmt==RX) {
+	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
 	    let aaa = s.dispField;
@@ -498,6 +511,7 @@ function asmPass2 (m) {
 //	    console.log('pass2 RX ' + wordToHex4(s.codeWord1)
 //			+ wordToHex4(s.codeWord2));
 	} else if (fmt==JX) { // like RX but with d=0
+	    console.log (`pass2 JX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
 	    s.codeWord2 = evaluate(s,s.dispField);
@@ -506,12 +520,12 @@ function asmPass2 (m) {
 //	    console.log('pass2 JX ' + wordToHex4(s.codeWord1)
 //			+ wordToHex4(s.codeWord2));
 	} else if (fmt==DATA && s.operandDATA) {
-//	    console.log('fmt is DATA and operandDATA=' + s.dat);
+	    console.log('fmt is DATA and operandDATA=' + s.dat);
 	    s.codeWord1 = evaluate(s,s.dat);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 //	    console.log('pass2 DATA ' + wordToHex4(s.codeWord1));
 	} else {
-//	    console.log('pass2 other, noOperation');
+	    console.log('pass2 other, noOperation');
 	}
 	s.listingLine = (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + wordToHex4(s.address)
