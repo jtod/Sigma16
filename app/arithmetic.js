@@ -35,6 +35,14 @@ function wordToBool (x) {
     return ! (x === 0);
 }
 
+// return bit i from word w, result is number (0 or 1)
+function extractBit (w,i) {
+    let foo = 1 << i;
+    let bar = foo & w;
+    console.log (`foo = ${foo}`);
+    return bar===0 ? 0 : 1;
+}
+
 // Determine whether a JavaScript number is a valid Sigma16 word
 // (which is represented using binary).  If not, print an error
 // message and treat the number as 0.

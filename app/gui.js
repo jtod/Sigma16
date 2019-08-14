@@ -374,6 +374,19 @@ function checkTestBody () {
 // Top level tab buttons control which pane is visible and active
 //---------------------------------------------------------------------------
 
+let breakDialogueVisible = false;
+
+function procBreakpoint () {
+    console.log ("procBreakpoint");
+    document.getElementById("BreakDialogue").style.display
+	= breakDialogueVisible ? "none" : "block";
+    breakDialogueVisible = !breakDialogueVisible;
+}
+
+function hideBreakDialogue () {
+    document.getElementById("BreakDialogue").style.display = "none";
+}
+
 function hideTabbedPane(paneId) {
 //    console.log("hiding tabbed pane " + paneId);
     document.getElementById(paneId).style.display = "none";
@@ -725,6 +738,10 @@ window.onload = function () {
     showSizeParameters();
     adjustToMidMainLRratio();
     initializeSubsystems ();
+
+    // Hide the dialogues and popups
+    document.getElementById("BreakDialogue").style.display = "none";
+    breakDialogueVisible = false;
     
     console.log("Initialization complete");
 }

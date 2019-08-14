@@ -591,10 +591,6 @@ function rx(f) {
     f();
 }
 
-function rx_nop () {
-    console.log ('rx_nop');
-}
-
 function rx_lea () {
     console.log('rx_lea');
     regFile[ir_d].put(ea);
@@ -602,7 +598,7 @@ function rx_lea () {
 
 function rx_load () {
     console.log('rx_load');
-    regFile[ir_d].put (memFetchData(ea));
+    regFile[ir_d].put(memFetchData(ea));
 }
 
 function rx_store () {
@@ -613,22 +609,24 @@ function rx_store () {
 function rx_jump () {
     console.log('rx_jump');
     nextInstrAddr = ea;
-    pc.put (nextInstrAddr);
+    pc.put(nextInstrAddr);
 }
 
 function rx_jumpc0 () {
     console.log('rx_jumpc0');
-    if (true) {
+    let cc = regFile[15].get();
+    if (extractBit (cc,ir_d)===0) {
 	nextInstrAddr = ea;
-	pc.put (nextInstrAddr);
+	pc.put(nextInstrAddr);
     }
 }
 
 function rx_jumpc1 () {
     console.log('rx_jumpc1');
-    if (true) {
+    let cc = regFile[15].get();
+    if (extractBit (cc,ir_d)===1) {
 	nextInstrAddr = ea;
-	pc.put (nextInstrAddr);
+	pc.put(nextInstrAddr);
     }
 }
 
@@ -639,6 +637,7 @@ function rx_jumpf () {
 	pc.put (nextInstrAddr);
     }
 }
+
 
 function rx_jumpt () {
     console.log('rx_jumpt');
@@ -653,6 +652,10 @@ function rx_jal () {
     regFile[ir_d].put (pc.get());
     nextInstrAddr = ea;
     pc.put (nextInstrAddr);
+}
+
+function rx_nop () {
+    console.log ('rx_nop');
 }
 
 function xx(f) {
