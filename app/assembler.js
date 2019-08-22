@@ -286,7 +286,7 @@ const rrrParser =
 const rrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 const rxParser =
-    /^R([0-9a-f]|(?:1[0-5])),([a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+    /^R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const jxParser =
     /^([a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const datParser =
@@ -294,13 +294,29 @@ const datParser =
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
 
+// The rrxParser accepts any string that contains the characters that
+// are legal for the displacement field, but the field needs to be
+// checked for validity (e.g. 23xy is not a valid displacement).
+
+// Test a parser p on a string s and print the fields that are extracted.
+// Example: testParser (rxParser, "R7,$2d3[R5]")
+
+function testParser (p,s) {
+    console.log (`testParser ${p} on ${s}`);
+    let result = p.exec(s);
+    console.log (`testParser result[0] = ${result[0]}`);
+    console.log (`testParser result[1] = ${result[1]}`);
+    console.log (`testParser result[2] = ${result[2]}`);
+    console.log (`testParser result[3] = ${result[3]}`);
+}
+
 function asmPass1 (m) {
     let asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
     console.log('assembler pass 1: ' + asmSrcLines.length + ' source lines');
     for (let i = 0; i < asmSrcLines.length; i++) {
 	m.asmStmt[i] = mkAsmStmt (i, m.locationCounter, asmSrcLines[i]);
 	let s = m.asmStmt[i];
-	console.log(`pass1 i=  ${i} s= + ${s}`);
+	console.log(`pass1 i=  ${i} src= + ${s.srcLine}`);
 
 	parseAsmLine (m,i);
 	m.locationCounter += m.asmStmt[i].codeSize;

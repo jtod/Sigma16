@@ -72,6 +72,8 @@ pane height
     --middle-section-separator-color: blue;
     --botSecHeight: 1.2em;
     --bottom-section-background-color: beige;
+    --examplesTopSecHeight: 4em;
+    --examplesBotSecHeight: 30em; /* calc or make full height */
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: ivory;
@@ -364,30 +366,17 @@ guide). */
 
 /* File pane -------------------------------------------------- */
 
-#FilePaneTopSection {
-    height: var(--fileTopSecHeight);
+#ExamplesPaneTopSection {
+    height: var(--examplesTopSecHeight);
     background-color: orange;
 }
-
-#FilePaneBottomSection {
-    height: var(--fileBotSecHeight);
-    background-color: yellow;
-    /*    height: 340px; works but using the var doesn't work??? */
-}
-
-#ExmaplesDirectory {
-/*    height: 100%; */
-    width: 100%;
-    overflow: auto;
-}
-
+ 
 #ExamplesIframeId {
-    height: var(--fileBotSecHeight);
-    /*    height: 20em; */
-/*    height: 100%; */
+    height: var(--paneBodyHeight);
     width: 100%;
     background-color: beige;
 }
+
 
 /* Test pane -------------------------------------------------- */
 

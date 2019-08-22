@@ -1,31 +1,5 @@
 // Sigma16.  Copyright (c) 2019 John O'Donnell
 
-// General notes and issues
-
-// To get code to display properly <pre> is needed.  Could use <br>
-// for line breaks without <pre> but to get the spacing to appear
-// correctly, <pre> is necessary.  A statis layout with just <pre>
-// works, but to get scrolling to work, the following is needed:
-// <pre><code class='HighlightedTextAsHtml'>....</code></pre>.
-
-// There was a problem with some blank space appearing above and below
-// the formatted text.  This came from a non-zero default margin.
-// However, a declaration of the form .pre { margin: 0em; } didn't
-// work; this setting was overridden, probably when JS modified the
-// innerHTML of the container.  Therefore I introduced a class
-// CodePre.  However, it isn't clear yet where that is needed, or
-// whether it's relaly needed at all.  In this version, CodePre is
-// used in some places but not consistently.  More experiments might
-// clarify this.
-
-// There is an issue with scope and nesting of css declarations.  The
-// HighlightedTextAsHtml class needs to be set in the innermost Html
-// tag.  Thus <pre><code class='HighlightedTextAsHtml'> is ok butnot
-// <pre class='HightlightedTextAsHtml'><code> and also not setting
-// that class in a surronding container.  It's possible that the issue
-// comes up because the innerHTML is set by JS and isn't present
-// statically in the html file.
-
 //---------------------------------------------------------------------------
 // Global variables
 //---------------------------------------------------------------------------
@@ -47,85 +21,16 @@ var textbox; /* for save download */
 // Experiments and testing
 //---------------------------------------------------------------------------
 
-function copyExampleText() {
-    console.log ('copyExampleText');
-    let exElt = document.getElementById('ExamplesIframeId');
-    let exText = exElt.contentWindow.document.body;
-    console.log(exText);
-    return exelt;
+
+function jumpToAnchorInGuide () {
+    console.log ("jumpToAnchorInGuide");
+    let anchor = "#how-to-run-the-program";
+    let elt = document.getElementById("UserGuideIframeId");
+    let elthtml = elt.contentWindow.document.body.innerHTML;
+    console.log (`anchor = ${anchor} elt=${elthtml}`);
+    elthtml.location.hash = anchor;
 }
 
-// trying to select the text from js fails because of cross domain
-// restriction so there's no point; in an enviromnetnt such as a
-// server which doesn't have that problem, the js could just copy the
-// text itself and paste it into the editor window.
-
-function copyExampleSelect () {  // deprecated, remove this...
-    console.log ('copyExampleSelect');
-    let exElt = document.getElementById('ExamplesIframeId');
-    let exText = exElt.contentWindow.document.body;
-    exText.select();
-    
-}
-
-function fileButton5 () {
-    console.log ('fileButton5');
-}
-
-function selectExample () {
-    console.log ('selectExample');
-    let elt = document.getElementById('ExamplesIframeId');
-    elt.focus ();
-    elt.select ();
-}
-
-// from stackoverflow...
-// var myIFrame = document.getElementById("myIframe");
-// var content = myIFrame.contentWindow.document.body.innerHTML;
-
-
-
-function displayHello() {
-    var msg;
-    msg = document.getElementById("message");
-    msg.outerHTML = "<h1>Hello, world!</h1>"; }
-
-// Set width of help section
-    
-    /* try loading this directly with iframe tag
-    document.getElementById("WelcomeHtml").innerHTML=
-	'<object type="text/html" class="HtmlContent" data="welcome.html"></object>';
-    document.getElementById("MidMainRight").innerHTML=
-	'<object type="text/html" class="HtmlContent" data="../../datafiles/doc/html/index.html"></object>';
-*/
-
-// For testing, set the editor buffer to a text file
-// This doesn't work, just puts a description of the object into the value
-// but doesn't read the file.  Maybe try making the file a js statement
-// that assigns a text constant to a variable?
-// Alternative might be to read innerhtml and then to extract this?
-// experiment result: can set innerHTML of a div, but not of a textarea
-// Can I read the textinto the div, and then obtain the value of this,
-// print it, and then set it into the value of the text area???
-
-// Doesn't work because of cross-origin restriction
-
-
-function setEdBuf1 () {
-    console.log("setEdBuf1");
-    document.getElementById("EdTextBufferDummyDiv").innerHTML=
-	'<object type="text/html" class="UserManContent" data="../docsrc/index.md"></object>';
-    var xyztemp = "xyztemp initial value";
-    var xyztemp = document.getElementById("EdTextBufferDummyDiv").innerHTML;
-    console.log("xyztemp = " + xyztemp);
-    var foobar = xyztemp.data;
-    console.log("foobar = " + foobar);
-    var ifrm = document.getElementById("myIframe");
-    console.log("ifrm = " + ifrm);
-    var ifr_doc = ifrm.contentWindow.document;
-    console.log("ifr_doc = " + ifr_doc);
-    // Doesn't work because of cross-origin restriction
-}
 
 function tryfoobar () {
 /* Try to make button go to a point in the user guide */
@@ -194,16 +99,60 @@ function editorButton1() {
     
 }
 
-function editorButton2() {
-    console.log("Editor button 2 clicked");
 
-    // this gives description of the object, not the file contents
-    document.getElementById('EditorTextArea').value =
-	'<object type="text" data="./Sigma16gui.css"></object>';
-    let xs = fileReader.readAsText("./Sigma16gui.css");
-    console.lot(xs);
+//---------------------------------------------------------------------------
+// Examples pane
+//---------------------------------------------------------------------------
 
+// Errors in displaying the directories: GET 404:
+// www.dcs.gla.ac.uk/icons/blank.gif
+// www.dcs.gla.ac.uk/:9uk/icons/text.gif
+
+function examplesHome() {
+    console.log ("examplesHome");
+    document.getElementById("ExamplesIframeId").src = "./programs/Examples/";
 }
+
+function copyExampleText() {
+    console.log ('copyExampleText');
+    let exElt = document.getElementById('ExamplesIframeId');
+    document.getElementById('EditorTextArea').value
+	= exElt.contentWindow.document.body.innerHTML;
+}
+
+//    let exElt = document.getElementById('ExamplesIframeId');
+//    fileContents = exElt.contentWindow.document.body.innerHTML;
+//    console.log(fileContents);
+//    document.getElementById('EditorTextArea').value = fileContents;
+
+/*
+
+function copyExampleSelect () {  // deprecated, remove this...
+    console.log ('copyExampleSelect');
+    let exElt = document.getElementById('ExamplesIframeId');
+    let exText = exElt.contentWindow.document.body;
+    exText.select();
+    
+}
+
+function fileButton5 () {
+    console.log ('fileButton5');
+}
+
+function selectExample () {
+    console.log ('selectExample');
+    let elt = document.getElementById('ExamplesIframeId');
+    elt.focus ();
+    elt.select ();
+}
+*/
+
+// from stackoverflow...
+// var myIFrame = document.getElementById("myIframe");
+// var content = myIFrame.contentWindow.document.body.innerHTML;
+
+
+
 
 //---------------------------------------------------------------------------
 // Window sizing: adjust relative size of system and user guide
@@ -394,7 +343,7 @@ function hideTabbedPane(paneId) {
 
 function hideAllTabbedPanes() {
     hideTabbedPane("WelcomePane");
-    hideTabbedPane("FilePane");
+    hideTabbedPane("ExamplesPane");
     hideTabbedPane("EditorPane");
     hideTabbedPane("AssemblerPane");
     hideTabbedPane("LinkerPane");
@@ -416,10 +365,9 @@ function welcome_pane_button() {
     showTabbedPane("WelcomePane");
 }
 
-function file_pane_button() {
-//    console.log("file_pane_button clicked")
+function examples_pane_button() {
     hideAllTabbedPanes();
-    showTabbedPane("FilePane");
+    showTabbedPane("ExamplesPane");
 }
 
 function editor_pane_button() {
@@ -721,20 +669,20 @@ window.onload = function () {
     editorBufferTextArea = document.getElementById("EditorTextArea");
 
     
-    /* for save download */
-    create = document.getElementById('CreateFileForDownload'),
-    textbox = document.getElementById('DownloadFileTextBox');
-  create.addEventListener('click', function () {
-    var link = document.getElementById('downloadlink');
-    link.href = makeTextFile(textbox.value);
-    link.style.display = 'block';
-  }, false);
+/* for save download */
+//    create = document.getElementById('CreateFileForDownload'),
+//    textbox = document.getElementById('DownloadFileTextBox');
+//  create.addEventListener('click', function () {
+//    var link = document.getElementById('downloadlink');
+//    link.href = makeTextFile(textbox.value);
+//    link.style.display = 'block';
+//  }, false);
 
     resetRegisters();
     insert_example(example_add);     // For testing and debugging
     initialize_mid_main_resizing ();
     // setMidMainLRratio(0.65);  // 0.65 is reasonable value for normal use
-    setMidMainLRratio(0.9);  // useful for dev to keep mem display visible
+    setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
     showSizeParameters();
     adjustToMidMainLRratio();
     initializeSubsystems ();

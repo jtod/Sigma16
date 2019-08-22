@@ -1,6 +1,7 @@
 ; Test program
 ; Comparison, condition codes, conditional jumps
 
+; change
     lea    R1,-1[R0]
     lea    R2,3[R0]
     lea    R3,7[R0]

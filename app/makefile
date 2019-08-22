@@ -11,7 +11,6 @@
 #  version.js          written by make set-version
 #  doc/html            written by make doc
 
-
 # make all                  build everything from source
 # make set-version          get version number from package.json
 # make userguide            generate html from markdown source
@@ -39,6 +38,8 @@ VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2
 
 # The ArchiveLocation is relative to Sigma16/app
 ArchiveLocation := ../../../archive
+
+RELEASELOCATION := jtod@sibu:/users/staff/jtod/public_html/Sigma16/
 
 PackagePath := $(shell pwd)
 PackageName := Sigma16
@@ -109,6 +110,7 @@ top-index :
 
 .PHONY : release-index
 release-index :
+	rm -rf ../release/*
 	mkdir -p ../release
 	pandoc --standalone \
           --template=doc/src/release-index-template.html \
@@ -140,22 +142,31 @@ run :
 
 .PHONY : release
 release :
-	mkdir -p ../release/Sigma16-$(VERSION)
+	rm -rf ../release/*
+	mkdir -p ../release/$(VERSION)
 	make set-version
-	cp ../VERSION ../release/Sigma16-$(VERSION)
-	cp ../LICENSE.txt ../release/Sigma16-$(VERSION)
-	cp ../README.md ../release/Sigma16-$(VERSION)
-	mkdir -p ../release/Sigma16-$(VERSION)/app
-	cp makefile ../release/Sigma16-$(VERSION)/app
-	cp *.html ../release/Sigma16-$(VERSION)/app
-	cp *.css ../release/Sigma16-$(VERSION)/app
-	cp *.js ../release/Sigma16-$(VERSION)/app
-	cp *.json ../release/Sigma16-$(VERSION)/app
-	cp -r datafiles ../release/Sigma16-$(VERSION)/app
-	cp -r doc ../release/Sigma16-$(VERSION)/app
-	cp -r programs ../release/Sigma16-$(VERSION)/app
-	zip -r ../release/Sigma16-$(VERSION).zip ../release/Sigma16-$(VERSION)
-	make release-index
+	cp ../VERSION ../release/$(VERSION)
+	cp ../LICENSE.txt ../release/$(VERSION)
+	cp ../README.md ../release/$(VERSION)
+	mkdir -p ../release/$(VERSION)/app
+	cp makefile ../release/$(VERSION)/app
+	cp *.html ../release/$(VERSION)/app
+	cp *.css ../release/$(VERSION)/app
+	cp *.js ../release/$(VERSION)/app
+	cp *.json ../release/$(VERSION)/app
+	cp -r datafiles ../release/$(VERSION)/app
+	cp -r doc ../release/$(VERSION)/app
+	cp -r programs ../release/$(VERSION)/app
+	zip -r ../release/$(VERSION).zip ../release/$(VERSION)
+	pandoc --standalone \
+          --template=doc/src/release-index-template.html \
+          --variable=version:'$(VERSION)' \
+          --variable=date:'this is version date $(VersionDate)' \
+          --variable=css:'./doc.css' \
+          -o ../release/$(VERSION)/index.html \
+	  doc/src/release-index.md
+	cp doc/src/doc.css ../release/$(VERSION)
+	scp -r ../release/$(VERSION) $(RELEASELOCATION)
 
 # make executable -- use electron-builder to generate a native
 # executable for the current platform.  This allows the program to be
@@ -176,7 +187,7 @@ executable :
 
 .PHONY : move-executable
 move-executable :
-	mv dist/*.exe ../release/Sigma16-Sigma16-$(VERSION)-win.exe
+	mv dist/*.exe ../release/Sigma16-$(VERSION)-win.exe
 
 # make clean -- Remove backup and object files, and temporary
 # compilation files.  Leaves executable, documentation, and source in

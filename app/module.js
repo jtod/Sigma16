@@ -36,24 +36,12 @@ function fileButton3 () {
     console.log ('fileButton3 finishing');
 }
 
+
 function fileButton4 () {
     console.log ('fileButton4');
     document.getElementById('ExamplesDirectory').innerHTML =
 	"hello this is great";
 }
-
-function handleSelectedFile (flist) {
-    console.log("handleSelectedFile");
-    console.log(flist);
-    let selectedFile = flist[0];
-    console.log("selected file = " + selectedFile);
-//    console.log("created fileReader" + fr);
-    fileContents = fileReader.readAsText(selectedFile);
-}
-
-// fileReader.onload is defined in gui.js during the onLoad event
-
-// Save a file by downloading it to user default Downloads folder
 
 
 
