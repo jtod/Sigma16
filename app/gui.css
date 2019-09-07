@@ -95,11 +95,29 @@ scroll from working */
     --text-color-cur: red;
     --text-color-next: blue;
     --text-color-err: red;
+/* Solarized colors https://ethanschoonover.com/solarized/ */
+    --color-solarized-base03:    #002b36;
+    --color-solarized-base02:    #073642;
+    --color-solarized-base01:    #586e75;
+    --color-solarized-base00:    #657b83;
+    --color-solarized-base0:     #839496;
+    --color-solarized-base1:     #93a1a1;
+    --color-solarized-base2:     #eee8d5;
+    --color-solarized-base3:     #fdf6e3;
+    --color-solarized-yellow:    #b58900;
+    --color-solarized-orange:    #cb4b16;
+    --color-solarized-red:       #dc322f;
+    --color-solarized-magenta:   #d33682;
+    --color-solarized-violet:    #6c71c4;
+    --color-solarized-blue:      #268bd2;
+    --color-solarized-cyan:      #2aa198;
+    --color-solarized-green:     #859900;
+
+}
 
 /*
-
-      --fileBotSecHeight: 357px; works
-    --fileBotSecHeight: calc(100vh - 25em);  adapts to resize 
+   --fileBotSecHeight:: 357px; works
+   --fileBotSecHeight:: calc(100vh - 25em);  adapts to resize 
     --fileBotSecHeight: calc(100vh - (var(--fileTopSecHeight) + 5em)); 
     paneHeight doesn't seem to work ????????????????????????
     --fileBotSecHeight: calc(var(--paneHeight) - 25em);  ??adapts to resize
@@ -111,7 +129,6 @@ scroll from working */
 				 + 2.7em));
  */
 
-}
 
 /* Specifying margin:0 for .pre doesn't work, as it is overridden by a
    setting of margin: 1em 0em.  But using <pre class="CodePre"> works:
@@ -760,4 +777,20 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 .ListingHeader {
     font-weight: bold;
     color: blue;
+}
+
+.FIELDLABEL {
+   color: var(--color-solarized-orange);
+}
+
+.FIELDOPERATION {
+   color: var(--color-solarized-red);
+}
+
+.FIELDOPERAND {
+   color: var(--color-solarized-violet);
+}
+
+.FIELDCOMMENT {
+   color: var(--color-solarized-cyan);
 }

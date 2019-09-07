@@ -20,25 +20,18 @@
 <header id="title-block-header">
 <h1 class="title">User Guide</h1>
 </header>
-Version 3.0.20
+Version 3.0.22
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
-<li><a href="#how-to-run-the-program">How to run the program</a><ul>
-<li><a href="#the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</a></li>
-<li><a href="#if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</a></li>
-<li><a href="#offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</a></li>
-<li><a href="#download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</a></li>
-<li><a href="#making-a-release-on-github-pages">Making a release on github pages</a></li>
-<li><a href="#version-number">Version number</a></li>
-<li><a href="#running-in-a-browser.">Running in a browser.</a></li>
-<li><a href="#running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</a></li>
-<li><a href="#compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</a></li>
+<li><a href="#tutorial">Tutorial</a><ul>
+<li><a href="#the-user-interface">The user interface</a></li>
+<li><a href="#r-running-a-simple-program">R running a simple program</a></li>
 </ul></li>
 <li><a href="#tutorial-run-an-example-program">Tutorial: Run an example program</a></li>
 <li><a href="#using-the-user-interface">Using the user interface</a><ul>
 <li><a href="#editor">Editor</a></li>
-<li><a href="#assembler">Assembler</a></li>
+<li><a href="#assembly-language">Assembly language</a></li>
 <li><a href="#processor">Processor</a></li>
 </ul></li>
 </ul></li>
@@ -72,7 +65,7 @@ Version 3.0.20
 <li><a href="#control">Control</a></li>
 <li><a href="#summary-of-the-instruction-set">Summary of the instruction set</a></li>
 </ul></li>
-<li><a href="#assembly-language">Assembly Language</a><ul>
+<li><a href="#assembly-language-1">Assembly Language</a><ul>
 <li><a href="#notation">Notation</a></li>
 <li><a href="#assembly-instruction-fields">Assembly instruction fields</a></li>
 <li><a href="#expressions">Expressions</a></li>
@@ -93,6 +86,17 @@ Version 3.0.20
 <li><a href="#license">License</a></li>
 <li><a href="#browser-compatibility">Browser compatibility</a></li>
 <li><a href="#how-to-run-the-application">How to run the application</a></li>
+<li><a href="#how-to-run-the-program">How to run the program</a><ul>
+<li><a href="#the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</a></li>
+<li><a href="#if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</a></li>
+<li><a href="#offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</a></li>
+<li><a href="#download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</a></li>
+<li><a href="#making-a-release-on-github-pages">Making a release on github pages</a></li>
+<li><a href="#version-number">Version number</a></li>
+<li><a href="#running-in-a-browser.">Running in a browser.</a></li>
+<li><a href="#running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</a></li>
+<li><a href="#compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#reference">Reference</a><ul>
 <li><a href="#summary-of-notation">Summary of notation</a></li>
@@ -102,96 +106,14 @@ Version 3.0.20
 <h1 id="introduction">Introduction</h1>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
 <p>This reference manual is organised by topic, with chapters on the architecture, the assembly language, and the emulator. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program, and how to use the programming environment.</p>
-<h2 id="how-to-run-the-program">How to run the program</h2>
-<p>The software is available on the Internet at the <a href="https://jtod.github.io/Sigma16/">Sigma16 home page</a>, which contains a link to the latest version, some previous versions, related documents, and more information about the project.</p>
-<p>There are a number of ways to run the software, but it’s recommended that you try the easiest way.</p>
-<h3 id="the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</h3>
-<p>Run the app with two clicks:</p>
-<ol type="1">
-<li>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 homepage</a></li>
-<li>Click on <em>Launch the latest release</em></li>
-</ol>
-<p>This will run the app in your browser, and you don’t need to download or install anything. For most users this is the recommended method.</p>
-<h3 id="if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</h3>
-<p>You can also download the software onto your computer and run it locally. This exactly like the first method, except the web pages are coming from your computer’s files rather than the Internet.</p>
-<p>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 home page</a> and download the zip file for the latest release. Unzip and click on index.html in the folder and follow the directions.</p>
-<p>You might also be able to launch it by <a href="../../Sigma16.html">clicking this link</a> although that might not work; it depends on whether all the necessary files are accessible.</p>
-<h3 id="offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</h3>
-<p>The previous methods run the app in a browser. There are some security restrictions on what a browser can do, and these make it slightly awkward for the program to read and write files. You can perform a local installation which will run Sigma16 as a standalone app on your computer, rather than in a browser, and this makes it a little more convenient to use.</p>
-<p>If you don’t want to bother with downloading some software tools and running an installation script, you can skip to the next method, which is to download a precompiled executable for your platform. But it’s straightforward to build Sigma16 on your computer:</p>
-<ul>
-<li><p>You need a shell such as bash or Windows PowerShell. Every computer will have one.</p></li>
-<li><p>Install the npm package manager for JavaScript, available at <a href="https://www.npmjs.com/get-npm">https://www.npmjs.com/get-npm</a>. Download the installer and follow the instructions.</p></li>
-<li><p>Install the <em>electron</em> package. In your shell, enter <em>npm install electron –save-dev</em>. (Why is it called “electron”? Originally, there was a text editor named <em>Atom</em> written in JavaScript, and it needed a shell. So it’s the electron shell for atom…</p></li>
-<li><p>Download the source for Sigma16. Unzip it, and cd into the app directory. Enter <em>make all</em>.</p></li>
-<li><p>To launch Sigma16, enter <em>npm run start</em>. Now you’ll have enhanced file access, as well as a few other minor enhancements, and you don’t need Internet access.</p></li>
-</ul>
-<h3 id="download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</h3>
-<p>The Sigma16 home page provides pre-compiled executable apps for some platforms. You can download one of these and it should “just work”.</p>
-<p>It is always prudent to be careful about what executable software you download and install on your computer. If you don’t feel comfortable with doing so, try the previous method (Local installation). It’s actually quite straightforward!</p>
-<h3 id="making-a-release-on-github-pages">Making a release on github pages</h3>
-<p>make a local directory for editing the project page on github pages. cd into this directory.</p>
-<pre><code>git clone https://github.com/jtod/jtod.github.io
-git add jtod.github.io
-cd jtod.github.io
-git branch adds16dir
-git checkout adds16dir
-git status
-mkdir Sigma16
-using emacs, create index.html and Sigma16/index.html</code></pre>
-<p>To build a release, the necessary files in the current version need to be copied from the development directory into the web page directory in jtod.github.io/Sigma16. However, it doesn’t work very well simply to copy the contents of the Sigma16 development directory into the release directory because all the .gitignore files should be skipped. Consequently a script is used to automate the construction of a release, and the script will copy exactly the required files.</p>
-<pre><code>git remote add webpage https://github.com/jtod/jtod.github.io
-git remote
-git status
-git push webpage adds16dir         adds16dir is the local branch</code></pre>
-<p>On github page, made a pull request and selected adds1dir. There were no merge conflicts and the pull request was executed and cleared. The home page seems to come from the README file but refreshing it gives my index.html.</p>
-<p>To build standalone version using Node.hs and electron. In the src/app directory, use the following commands. They create a file package-lock.json and a directory node_modules, both in src/app.</p>
-<pre><code>npm install
-npm start</code></pre>
-<p>The pkg program can generate a native executable which doesn’t require the user to have npm installed.</p>
-<pre><code>npm install -g pkg 
-pkg --help
-pkg main.js</code></pre>
-<p>Maybe the bin entry in package.json would allow the command to be just pkg . ? In src directory tried this:</p>
-<pre><code>$ pkg  -t win-x64 app</code></pre>
-<p>Lots of warnings:</p>
-<pre><code>&gt; Warning Cannot include directory %1 into executable.
-  The directory must be distributed with executable as %2.
-  app\node_modules\electron\dist
-  path-to-executable/electron/dist
-&gt; Warning Cannot include file %1 into executable.
-  The file must be distributed with executable as %2.
-  app\node_modules\sliced\index.js
-  path-to-executable/node_modules/sliced/index.js
-&gt; Warning Cannot include file %1 into executable.
-  The file must be distributed with executable as %2.
-  app\node_modules\deep-defaults\lib\index.js
-  path-to-executable/node_modules/deep-defaults/index.js</code></pre>
-<p>Turns out that to build an app with electron one of the following specific tools is needed:</p>
-<pre><code>electron-forge
-electron-builder
-electron-packager</code></pre>
-<p>Trying electron-builder</p>
-<pre><code>npm install electron-builder --save-dev   in src/app
-npm run mkdist</code></pre>
-<h3 id="version-number">Version number</h3>
-<p>The version number is needed in several places. To keep it consistent, there is only one primary place where it should be specified manually: in the version property in app/package.json.</p>
-<p>The makefile extracts the version number from that file, and (1) defines a make variable; (2) writes the Sigma16/VERSION file with just the version number, and (3) writes Sigma16/app/version.js which is just defines the version number as a global constant.</p>
-<h3 id="running-in-a-browser.">Running in a browser.</h3>
-<h3 id="running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</h3>
-<h3 id="compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</h3>
-<pre><code>cd src
-npm install
-npm start
-
-# Clone this repository
-git clone https://github.com/electron/electron-quick-start
-# Go into the repository
-cd electron-quick-start
-# Install dependencies
-npm install
-# Run the app
-npm start</code></pre>
+<h2 id="tutorial">Tutorial</h2>
+<p>These short and simple tutorials show you how to use the system. You can keep the tutorials visible in the right panel while following along with the exercises in the main panel.</p>
+<h3 id="the-user-interface">The user interface</h3>
+<p><em>Topics:</em> components of the user interface, adjusting size of the user guide, the tabs for switching among the working areas</p>
+<p>Let’s start by looking at the different parts of the user interface. The main window contains three main sections. The largest area, on the left side, is the <em>main working area</em>. When the program launches, this will show the Welcome pane. The <em>user guide</em> is on the right side. At the top is a row of buttons (Welcome, Examples, …). These select which page is displayed in the main working area.</p>
+<p>You can adjust how much space is used for the working area and the user guide by clicking the arrow buttons on the right side of the button row. These move the boundary between the two areas left or right. If you reisze the window, the relative sizes of the working area and the user guide will remain the same.</p>
+<h3 id="r-running-a-simple-program">R running a simple program</h3>
+<p><em>Topics:</em> steps for running a program, registers, constants and addition</p>
 <h2 id="tutorial-run-an-example-program">Tutorial: Run an example program</h2>
 <p>A good way to get started is to go through the entire process of entering a simple program, assembling it, and running it. This section shows you how. For now, we focus just on how to use the software tools; an explanation of the Sigma16 architecture comes later.</p>
 <p>When you launch the application, a window will appear in your browser. It has several panes, with buttons at the top to switch between panes. The Welcome pane will be visible.</p>
@@ -211,7 +133,8 @@ npm start</code></pre>
 </ul>
 <h2 id="using-the-user-interface">Using the user interface</h2>
 <h3 id="editor">Editor</h3>
-<h3 id="assembler">Assembler</h3>
+<h3 id="assembly-language">Assembly language</h3>
+<p>Each line of source code is an assembly language statement. Each statement must appear on one line. Most statements specify code, either an instruction or some constant data. Some statements are full line comments. Other statements are directives, which control the behavior of the assembler but don’t generate any code.</p>
 <h3 id="processor">Processor</h3>
 <h1 id="programs-modules-and-files">Programs, modules, and files</h1>
 <p>The system is designed to allow programs that consist of several modules, but also to allow programs consisting of one standalone module. In addition, an aim is to do this simply and intuitively, so that you can ignore the issues of modules and linking if you just want to write a andalone program.</p>
@@ -944,7 +867,7 @@ assembly listing   MyProgram.lst.txt
 </tbody>
 </table>
 <hr />
-<h1 id="assembly-language">Assembly Language</h1>
+<h1 id="assembly-language-1">Assembly Language</h1>
 <p>An assembly language provides a reasonably readable notation for writing machine language programs. An instruction in machine language is just one or more words (often written in hexadecimal notation), while the corresponding instruction in assembly language uses mnemonic names so the programmer doesn’t have to memorise all the operation codes, addresses of variables, and so on. However, the assembly language still gives the programmer complete control over a program, down to the last bit.</p>
 <p>Computer hardware executes machine language, which is hard for humans to read because it consists entirely of numbers. Assembly language is a way of expressing a machine language program in a readable way. It uses names for instructions and variables, as well as other notations to make the code easier to understand.</p>
 <h2 id="notation">Notation</h2>
@@ -1018,8 +941,97 @@ myprog    module</code></pre>
 <h2 id="browser-compatibility">Browser compatibility</h2>
 <p>The application currently works with Chrome and Firefox, and possible Edge.</p>
 <h2 id="how-to-run-the-application">How to run the application</h2>
-<p>The program uses a web browser to display the graphical user interface. Unzip the installation file and enter the directory.</p>
-<p>Visit the following address in your browser: http://localhost:8023 If you get an error on your browser, something like <em>This site can’t be reached, localhost refused to connect</em>, that means the program isn’t running. Launch it and the web page should connect.</p>
+<p>The program uses a web browser to display the graphical user interface.</p>
+<h2 id="how-to-run-the-program">How to run the program</h2>
+<p>The software is available on the Internet at the <a href="https://jtod.github.io/Sigma16/">Sigma16 home page</a>, which contains a link to the latest version, some previous versions, related documents, and more information about the project.</p>
+<p>There are a number of ways to run the software, but it’s recommended that you try the easiest way.</p>
+<h3 id="the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</h3>
+<p>Run the app with two clicks:</p>
+<ol type="1">
+<li>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 homepage</a></li>
+<li>Click on <em>Launch the latest release</em></li>
+</ol>
+<p>This will run the app in your browser, and you don’t need to download or install anything. For most users this is the recommended method.</p>
+<h3 id="if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</h3>
+<p>You can also download the software onto your computer and run it locally. This exactly like the first method, except the web pages are coming from your computer’s files rather than the Internet.</p>
+<p>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 home page</a> and download the zip file for the latest release. Unzip and click on index.html in the folder and follow the directions.</p>
+<p>You might also be able to launch it by <a href="../../Sigma16.html">clicking this link</a> although that might not work; it depends on whether all the necessary files are accessible.</p>
+<h3 id="offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</h3>
+<p>The previous methods run the app in a browser. There are some security restrictions on what a browser can do, and these make it slightly awkward for the program to read and write files. You can perform a local installation which will run Sigma16 as a standalone app on your computer, rather than in a browser, and this makes it a little more convenient to use.</p>
+<p>If you don’t want to bother with downloading some software tools and running an installation script, you can skip to the next method, which is to download a precompiled executable for your platform. But it’s straightforward to build Sigma16 on your computer:</p>
+<ul>
+<li><p>You need a shell such as bash or Windows PowerShell. Every computer will have one.</p></li>
+<li><p>Install the npm package manager for JavaScript, available at <a href="https://www.npmjs.com/get-npm">https://www.npmjs.com/get-npm</a>. Download the installer and follow the instructions.</p></li>
+<li><p>Install the <em>electron</em> package. In your shell, enter <em>npm install electron –save-dev</em>. (Why is it called “electron”? Originally, there was a text editor named <em>Atom</em> written in JavaScript, and it needed a shell. So it’s the electron shell for atom…</p></li>
+<li><p>Download the source for Sigma16. Unzip it, and cd into the app directory. Enter <em>make all</em>.</p></li>
+<li><p>To launch Sigma16, enter <em>npm run start</em>. Now you’ll have enhanced file access, as well as a few other minor enhancements, and you don’t need Internet access.</p></li>
+</ul>
+<h3 id="download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</h3>
+<p>The Sigma16 home page provides pre-compiled executable apps for some platforms. You can download one of these and it should “just work”.</p>
+<p>It is always prudent to be careful about what executable software you download and install on your computer. If you don’t feel comfortable with doing so, try the previous method (Local installation). It’s actually quite straightforward!</p>
+<h3 id="making-a-release-on-github-pages">Making a release on github pages</h3>
+<p>make a local directory for editing the project page on github pages. cd into this directory.</p>
+<pre><code>git clone https://github.com/jtod/jtod.github.io
+git add jtod.github.io
+cd jtod.github.io
+git branch adds16dir
+git checkout adds16dir
+git status
+mkdir Sigma16
+using emacs, create index.html and Sigma16/index.html</code></pre>
+<p>To build a release, the necessary files in the current version need to be copied from the development directory into the web page directory in jtod.github.io/Sigma16. However, it doesn’t work very well simply to copy the contents of the Sigma16 development directory into the release directory because all the .gitignore files should be skipped. Consequently a script is used to automate the construction of a release, and the script will copy exactly the required files.</p>
+<pre><code>git remote add webpage https://github.com/jtod/jtod.github.io
+git remote
+git status
+git push webpage adds16dir         adds16dir is the local branch</code></pre>
+<p>On github page, made a pull request and selected adds1dir. There were no merge conflicts and the pull request was executed and cleared. The home page seems to come from the README file but refreshing it gives my index.html.</p>
+<p>To build standalone version using Node.hs and electron. In the src/app directory, use the following commands. They create a file package-lock.json and a directory node_modules, both in src/app.</p>
+<pre><code>npm install
+npm start</code></pre>
+<p>The pkg program can generate a native executable which doesn’t require the user to have npm installed.</p>
+<pre><code>npm install -g pkg 
+pkg --help
+pkg main.js</code></pre>
+<p>Maybe the bin entry in package.json would allow the command to be just pkg . ? In src directory tried this:</p>
+<pre><code>$ pkg  -t win-x64 app</code></pre>
+<p>Lots of warnings:</p>
+<pre><code>&gt; Warning Cannot include directory %1 into executable.
+  The directory must be distributed with executable as %2.
+  app\node_modules\electron\dist
+  path-to-executable/electron/dist
+&gt; Warning Cannot include file %1 into executable.
+  The file must be distributed with executable as %2.
+  app\node_modules\sliced\index.js
+  path-to-executable/node_modules/sliced/index.js
+&gt; Warning Cannot include file %1 into executable.
+  The file must be distributed with executable as %2.
+  app\node_modules\deep-defaults\lib\index.js
+  path-to-executable/node_modules/deep-defaults/index.js</code></pre>
+<p>Turns out that to build an app with electron one of the following specific tools is needed:</p>
+<pre><code>electron-forge
+electron-builder
+electron-packager</code></pre>
+<p>Trying electron-builder</p>
+<pre><code>npm install electron-builder --save-dev   in src/app
+npm run mkdist</code></pre>
+<h3 id="version-number">Version number</h3>
+<p>The version number is needed in several places. To keep it consistent, there is only one primary place where it should be specified manually: in the version property in app/package.json.</p>
+<p>The makefile extracts the version number from that file, and (1) defines a make variable; (2) writes the Sigma16/VERSION file with just the version number, and (3) writes Sigma16/app/version.js which is just defines the version number as a global constant.</p>
+<h3 id="running-in-a-browser.">Running in a browser.</h3>
+<h3 id="running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</h3>
+<h3 id="compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</h3>
+<pre><code>cd src
+npm install
+npm start
+
+# Clone this repository
+git clone https://github.com/electron/electron-quick-start
+# Go into the repository
+cd electron-quick-start
+# Install dependencies
+npm install
+# Run the app
+npm start</code></pre>
 <h1 id="reference">Reference</h1>
 <h2 id="summary-of-notation">Summary of notation</h2>
 <p>ea m[ea] r[d] r[a] r[b] q#r[d] lsb q</p>

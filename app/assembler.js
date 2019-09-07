@@ -173,7 +173,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    fieldOperation : '',            // operation mnemonic
 	    fieldSpacesAfterOperation : '', // white space
 	    fieldOperands : '',             // operands
-	    fieldComments : '',             // comments are after operand or ;
+	    fieldComment : '',             // comments are after operand or ;
 	    hasLabel : false,               // statement has a valid label
 	    operation : noOperation,        // spec of the operation if exists
 	    hasOperand : false,             // statement contains an operand
@@ -210,7 +210,7 @@ function printAsmStmt (m,x) {
     console.log('  spaces after operation /' +
 		x.fieldSpacesAfterOperation + '/');
     console.log('  operand field /' + x.fieldOperands + '/');
-    console.log('  comment /' + x.fieldComments + '/');
+    console.log('  comment /' + x.fieldComment + '/');
     console.log (x.hasLabel ? ('  label = ' + x.fieldLabel) : '  no label');
     console.log (x.operation ?
 		 '  operation requires ' + showFormat(x.operation.format)
@@ -273,16 +273,12 @@ function assembler () {
 }
 
 //----------------------------------------------------------------------
-//  Assembler Pass 1
+//  Parser
 //----------------------------------------------------------------------
 
 // Syntax of assembly language
 
-const splitParser =
-    /(^[^\s;]*)((?:\s+)?)((?:[^\s;]+)?)((?:\s+)?)((?:[^\s;]+)?)(.*$)/;
 const nameParser = /^[a-zA-Z][a-zA-Z0-9]*$/;
-const rrrParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 const rrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 const rxParser =
@@ -294,6 +290,49 @@ const datParser =
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
 
+// A register is R followed by register number, which must be either
+// a 1 or 2 digit decimal number between 0 and 15, or a hex digit.
+
+const parseReg = /R[0-9a-f]|(?:1[0-5])/;
+
+// An RRR operand consists of three registers, separated by comma
+const rrrParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
+
+// A string literal consists of arbitrary text enclosed in "...", for
+// example "hello".  String literals are most commonly used in data
+// statements, but a string literal containing just one character can
+// also be used in a lea instruction.  If a string literal contains a
+// double quote ", this must be preceded by a backslash to escape it.
+
+// parseString: match " followed by any number of (\" or ^") followed
+// by ".  It's important to check for the 2-character sequence \"
+// before checking for the single character ^" --- otherwise the \
+// will match the ^" so the following " will end the string
+// prematurely.
+
+// a quoted character is \x where x is any character; backslash is \\
+
+const parseString = /"((\\")|[^"])*"/;
+
+// testParser (parseString, '"abc123"')
+// testParser (parseString, '"ab\\"c123"')
+
+// Split into line fields: non-space characters but space can appear in string
+// A field is (non-whitespace | string) *
+// String is " (non" | \" )* "
+
+// name: may contain letters, digits, underscore; must begin with letter
+// decimal number: optional - followed by digits
+// hex number: $ followed by four hex digits (a/A are both ok)
+// character: 'x' where x is any character. a quote is '\''. ',' is ok
+
+// field: continguous non-space characters, separated from other
+// fields by white space.  The first field must begin in the first
+// column, i.e. cannot follow any white space.  A field may contain a
+// string literal, which might contain one or more white space
+// characters.
+
 // The rrxParser accepts any string that contains the characters that
 // are legal for the displacement field, but the field needs to be
 // checked for validity (e.g. 23xy is not a valid displacement).
@@ -301,14 +340,175 @@ const hexParser = /^\$([0-9a-f]{4})$/;
 // Test a parser p on a string s and print the fields that are extracted.
 // Example: testParser (rxParser, "R7,$2d3[R5]")
 
+
+// A statement consists of a sequence of fields and whitespace-fields.
+// Each is optional.  The structure is:
+
+// label, whitespace, operation, whitespace, operands, whitespace
+
+// optional label field.
+
+// if label: label.  optional space. operation. optional
+// space. operands.  if no label.  A field consists of normal
+// characters (non space, non ;) or strings
+
+// White space is matched by (\s+)
+
+// experiment.
+
+// const splitParser =
+//    /(^[^\s;]*)((?:\s+)?)((?:[^\s;]+)?)((?:\s+)?)((?:[^\s;]+)?)(.*$)/;
+
+
+// const parseSplitFields =
+//     /^ ((?:\w+)?) ((?:\s+)?) ((?:\w+)?) ((?:\s+)?) (.*) $/;
+
+// const regexpSplitFields =
+//      '^((?:\\w+)?)((?:\\s+)?)((?:\\w+)?)((?:\\s+)?)((?:\\w+)?)((?:\\s+)?)(.*)$';
+
+     // '((?:\\w+)?)';  field
+// const regExpComment = '((?:(?:(;(?:.*))|(?:.*))?)';
+
+// Field is    (  (" (\" | ^")*  ")   |  (^ ";) ) +
+// Field is    (  ("((\\")|[^"])*")   |  [^\\s";]) ) +
+
+
+const regExpString = '"((\")|[^"])*"';
+
+function testParseString () {
+    let p = new RegExp(regExpString);
+    testParser (p, '"abc"');
+    testParser (p, '"abc def"');
+    testParser (p, '"abc\\"hithere"');
+
+}
+
+const regExpField = '((?:(?:(?:"(?:(?:\\")|[^"])*")|[^\\s";])+)?)';
+//                             " (    \"   | ^")*")
+
+
+// ........
+
+// A field may contain non-space characters, and may contain a string
+// literal, but cannot contain a space or ; (unless those appear in a
+// string literal).  The field terminates as soon as a space or ; or
+// end of the line is encountered.
+
+// Simplified version of field: don't allow string literals
+const regexpFieldNoStringLit =  '((?:[^\\s";]*)?)'
+
+function runTestFieldNoStringLit () {
+    let p = new RegExp(regexpFieldSimpleNoStringLit);
+    testParser (p, 'abc');
+    testParser (p, 'abc,def');
+    testParser (p, 'abc def');
+    testParser (p, 'abc;def');
+    testParser (p, 'abc"def');
+}
+
+const regExpWhiteSpace = '((?:\\s+)?)';
+const regExpComment = '((?:.*))';
+
+const regexpSplitFields =
+      '^'                             // anchor to beginning of line
+      + regexpFieldNoStringLit        // label
+      + regExpWhiteSpace              // separator
+      + regexpFieldNoStringLit        // operation
+      + regExpWhiteSpace              // separator
+      + regexpFieldNoStringLit        // operands
+      + regExpComment                 // comment
+      + '$';                          // anchor to end of line
+
+const parseField = new RegExp(regExpField);
+const parseSplitFields = new RegExp(regexpSplitFields);
+
+function runTestParser () {
+    testParser (parseSplitFields, 'abc');
+    testParser (parseSplitFields, 'abc def');
+    testParser (parseSplitFields, 'abc def ghi');
+    testParser (parseSplitFields, 'abc def ghi jkl');
+
+    testParser (parseSplitFields, '  abc');
+    testParser (parseSplitFields, '  abc def');
+    testParser (parseSplitFields, '  abc def ghi');
+    testParser (parseSplitFields, '  abc def ghi jkl');
+
+    testParser (parseSplitFields, ';  abc');
+    testParser (parseSplitFields, '  abc ; def');
+    testParser (parseSplitFields, '  abc def ; ghi');
+    testParser (parseSplitFields, '  abc def ghi ; jkl');
+
+    testParser (parseSplitFields, 'loop');
+    testParser (parseSplitFields, '     load   R1,x[R2]  R1 := x');
+    testParser (parseSplitFields, 'lbl  load   R1,x[R2]  R1 := x');
+    testParser (parseSplitFields, 'lbl  load   R1,x[R2]  ; R1 := x');
+
+    testParser (parseSplitFields, 'arr  data  3,9,-12,$03bf,42  initial data');
+    testParser (parseSplitFields, '  data  "hello world"');
+    testParser (parseSplitFields, 'lbl  lea  R3,","[R0]   R3 := comma ');
+    testParser (parseSplitFields, 'lbl lea  R3," "[R0]   R3 := space ');
+    testParser (parseSplitFields, 'lbl lea  R3," "[R0]');
+    testParser (parseSplitFields, 'lbl lea  R3," "[R0] foo');
+    testParser (parseSplitFields, 'lbl lea  R3," "[R0] foo ","');
+    testParser (parseSplitFields, 'lbl lea  R3," "[R0] foo ",');
+    testParser (parseSplitFields, 'lbl lea  R3," "[R0] foo " "');
+    testParser (parseSplitFields, 'lbl  lea  R3," "[R0]   ; R3 := " " ');
+    testParser (parseSplitFields, 'lbl  lea  R3," "[R0]   R3 := " " ');
+
+    testParser (parseField, 'abc');
+    testParser (parseField, 'abc def');
+    testParser (parseField, 'abc" "def');
+    testParser (parseSplitFields, 'abc" "def"  "ghi  123 456');
+    testParser (parseSplitFields, 'abc" "def"  "ghi  123 456  R1 := " " ha');
+    testParser (parseSplitFields, 'abc" "def"  "ghi  123 456  R1 := "," ha');
+}
+
+
+// const parseSplitFields =
+//       /^((?:[^;\s]|(?:"(?:(?:\\")|[^"])*"))*)((?:\s+)?)(.*)$/;
+
+// testParser (parseSplitFields, 'loop_23')
+// testParser (parseSplitFields, 'loop_23 add')
+// testParser (parseSplitFields, '*,3x)2r')
+// testParser (parseSplitFields, 'label load R1,x[R0] hello')
+// testParser (parseSplitFields, '12"abc123"xy')
+// testParser (parseSplitFields, 'ab;comment')
+// testParser (parseSplitFields, 'ab"cd;ef"gh')
+
+
+// testParser (parseSplitFields, '   load')
+
+
+//    / (^[^\s;]*) ((?:\s+)?) ((?:[^\s;]+)?) ((?:\s+)?) ((?:[^\s;]+)?) (.*$)/;
+
 function testParser (p,s) {
     console.log (`testParser ${p} on ${s}`);
     let result = p.exec(s);
-    console.log (`testParser result[0] = ${result[0]}`);
-    console.log (`testParser result[1] = ${result[1]}`);
-    console.log (`testParser result[2] = ${result[2]}`);
-    console.log (`testParser result[3] = ${result[3]}`);
+    console.log (`testParser result[0] = /${result[0]}/`);
+    console.log (`testParser result[1] = /${result[1]}/`);
+    console.log (`testParser result[2] = /${result[2]}/`);
+    console.log (`testParser result[3] = /${result[3]}/`);
+    console.log (`testParser result[4] = /${result[4]}/`);
+    console.log (`testParser result[5] = /${result[5]}/`);
+    console.log (`testParser result[6] = /${result[6]}/`);
+    console.log (`testParser result[7] = /${result[7]}/`);
+    console.log (`testParser result[8] = /${result[8]}/`);
+    console.log (`testParser result[9] = /${result[9]}/`);
+    console.log (`testParser result[10] = /${result[10]}/`);
+    console.log (`testParser result[11] = /${result[11]}/`);
+    console.log (`testParser result[12] = /${result[12]}/`);
 }
+
+
+// similar to highlightListingLine in emulator
+
+function highlightField (xs,highlight) {
+    return "<span class='" + highlight + "'>" + xs + "</span>";
+}
+
+//----------------------------------------------------------------------
+//  Assembler Pass 1
+//----------------------------------------------------------------------
 
 function asmPass1 (m) {
     let asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
@@ -341,13 +541,18 @@ function parseAsmLine (m,i) {
     let s = m.asmStmt[i];
 //    console.log('parseAsmLine, m.asmStmt = ');
 //    printAsmStmt(m,s);
-    let p = splitParser.exec(s.srcLine);
+//    let p = splitParser.exec(s.srcLine);
+    let p = parseSplitFields.exec(s.srcLine);
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
     s.fieldOperation = p[3];
     s.fieldSpacesAfterOperation = p[4];
     s.fieldOperands = p[5];
-    s.fieldComments = p[6];
+    s.fieldComment = p[6];
+    console.log(`label = /${s.fieldLabel}/`);
+    console.log(`operation = /${s.fieldOperation}/`);
+    console.log(`operands = /${s.fieldOperands}/`);
+    console.log(`comments = /${s.fieldComment}/`);
     parseLabel (s);
     parseOperation (s);
     parseOperand (s);
@@ -547,7 +752,14 @@ function asmPass2 (m) {
 	    + ' ' + wordToHex4(s.address)
 	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize>1 ? wordToHex4(s.codeWord2) : '    ')
-	    + ' ' + s.srcLine;
+//	    + ' ' + s.srcLine
+	    + highlightField (s.fieldLabel, "FIELDLABEL")
+	    + s.fieldSpacesAfterLabel
+	    + highlightField (s.fieldOperation, "FIELDOPERATION")
+	    + s.fieldSpacesAfterOperation
+	    + highlightField (s.fieldOperands, "FIELDOPERAND")
+	    + highlightField (s.fieldComment, "FIELDCOMMENT") ;
+
 	m.asmListing.push(s.listingLine);
 	for (let i = 0; i < s.errors.length; i++) {
 	    m.asmListing.push(highlightText('Error: ' + s.errors[i],'ERR'));

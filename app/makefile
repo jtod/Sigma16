@@ -166,7 +166,6 @@ release :
           -o ../release/$(VERSION)/index.html \
 	  doc/src/release-index.md
 	cp doc/src/doc.css ../release/$(VERSION)
-	scp -r ../release/$(VERSION) $(RELEASELOCATION)
 
 # make executable -- use electron-builder to generate a native
 # executable for the current platform.  This allows the program to be

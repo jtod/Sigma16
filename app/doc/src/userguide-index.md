@@ -19,193 +19,34 @@ the details.  For a quick start, begin with the tutorials, which show
 you how to enter and run a program, and how to use the programming
 environment.
 
-## How to run the program
+## Tutorial
 
-The software is available on the Internet at the [Sigma16 home
-page](https://jtod.github.io/Sigma16/), which contains a link to the
-latest version, some previous versions, related documents, and more
-information about the project.
+These short and simple tutorials show you how to use the system.  You
+can keep the tutorials visible in the right panel while following
+along with the exercises in the main panel.
 
-There are a number of ways to run the software, but it's recommended
-that you try the easiest way.
+### The user interface
 
-### The easiest (and recommended) way: just click a link
+*Topics:* components of the user interface, adjusting size of the user
+guide, the tabs for switching among the working areas
 
-Run the app with two clicks:
+Let's start by looking at the different parts of the user interface.
+The main window contains three main sections.  The largest area, on
+the left side, is the *main working area*.  When the program launches,
+this will show the Welcome pane.  The *user guide* is on the right
+side.  At the top is a row of buttons (Welcome, Examples, ...).  These
+select which page is displayed in the main working area.
 
-  1. Visit the [Sigma16 homepage](https://jtod.github.io/Sigma16/index.html)
-  2. Click on *Launch the latest release*
+You can adjust how much space is used for the working area and the
+user guide by clicking the arrow buttons on the right side of the
+button row.  These move the boundary between the two areas left or
+right.  If you reisze the window, the relative sizes of the working
+area and the user guide will remain the same.
 
-This will run the app in your browser, and you don't need to download
-or install anything.  For most users this is the recommended method.
+### R running a simple program
 
-### If you don't always have Internet access: copy to your computer
-
-You can also download the software onto your computer and run it
-locally.  This exactly like the first method, except the web pages are
-coming from your computer's files rather than the Internet.
-
-Visit the [Sigma16 home
-page](https://jtod.github.io/Sigma16/index.html) and download the zip
-file for the latest release.  Unzip and click on index.html in the
-folder and follow the directions.
-
-You might also be able to launch it by [clicking this
-link](../../Sigma16.html) although that might not work; it depends on
-whether all the necessary files are accessible.
-
-### Offers enhanced file access: Local installation
-
-The previous methods run the app in a browser.  There are some
-security restrictions on what a browser can do, and these make it
-slightly awkward for the program to read and write files.  You can
-perform a local installation which will run Sigma16 as a standalone
-app on your computer, rather than in a browser, and this makes it a
-little more convenient to use.
-
-If you don't want to bother with downloading some software tools and
-running an installation script, you can skip to the next method, which
-is to download a precompiled executable for your platform.  But it's
-straightforward to build Sigma16 on your computer:
-
-  * You need a shell such as bash or Windows PowerShell.  Every
-    computer will have one.
-	
-  * Install the npm package manager for JavaScript, available at
-    [https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm).
-    Download the installer and follow the instructions.
-
-  * Install the *electron* package.  In your shell, enter *npm install
-    electron --save-dev*.  (Why is it called "electron"?  Originally,
-    there was a text editor named *Atom* written in JavaScript, and it
-    needed a shell.  So it's the electron shell for atom...
-	
-  * Download the source for Sigma16.  Unzip it, and cd into the app
-    directory.  Enter *make all*.
-	
-  * To launch Sigma16, enter *npm run start*.  Now you'll have
-    enhanced file access, as well as a few other minor enhancements,
-    and you don't need Internet access.
-
-### Download a precompiled executable for your platform
-
-The Sigma16 home page provides pre-compiled executable apps for some
-platforms.  You can download one of these and it should "just work".
-
-It is always prudent to be careful about what executable software you
-download and install on your computer.  If you don't feel comfortable
-with doing so, try the previous method (Local installation).  It's
-actually quite straightforward!
-
-### Making a release on github pages
-
-make a local directory for editing the project page on github pages.
-cd into this directory.
-
-    git clone https://github.com/jtod/jtod.github.io
-	git add jtod.github.io
-	cd jtod.github.io
-	git branch adds16dir
-	git checkout adds16dir
-	git status
-	mkdir Sigma16
-	using emacs, create index.html and Sigma16/index.html
-
-To build a release, the necessary files in the current version need to
-be copied from the development directory into the web page directory
-in jtod.github.io/Sigma16.  However, it doesn't work very well simply
-to copy the contents of the Sigma16 development directory into the
-release directory because all the .gitignore files should be skipped.
-Consequently a script is used to automate the construction of a
-release, and the script will copy exactly the required files.
-	
-    git remote add webpage https://github.com/jtod/jtod.github.io
-	git remote
-	git status
-	git push webpage adds16dir         adds16dir is the local branch
-	
-On github page, made a pull request and selected adds1dir.  There were
-no merge conflicts and the pull request was executed and cleared.  The
-home page seems to come from the README file but refreshing it gives
-my index.html.
-
-To build standalone version using Node.hs and electron.  In the
-src/app directory, use the following commands.  They create a file
-package-lock.json and a directory node_modules, both in src/app.
-
-    npm install
-    npm start
-
-The pkg program can generate a native executable which doesn't require
-the user to have npm installed.
-	
-    npm install -g pkg 
-	pkg --help
-	pkg main.js
-	
-Maybe the bin entry in package.json would allow the command to be just
-pkg . ?  In src directory tried this:
-
-    $ pkg  -t win-x64 app
-	
-	
-Lots of warnings:
-
-    > Warning Cannot include directory %1 into executable.
-      The directory must be distributed with executable as %2.
-      app\node_modules\electron\dist
-      path-to-executable/electron/dist
-    > Warning Cannot include file %1 into executable.
-      The file must be distributed with executable as %2.
-      app\node_modules\sliced\index.js
-      path-to-executable/node_modules/sliced/index.js
-    > Warning Cannot include file %1 into executable.
-      The file must be distributed with executable as %2.
-      app\node_modules\deep-defaults\lib\index.js
-      path-to-executable/node_modules/deep-defaults/index.js
-
-Turns out that to build an app with electron one of the following
-specific tools is needed:
-
-    electron-forge
-    electron-builder
-    electron-packager
-
-Trying electron-builder
-
-    npm install electron-builder --save-dev   in src/app
-    npm run mkdist
-	
-
-### Version number
-
-The version number is needed in several places.  To keep it
-consistent, there is only one primary place where it should be
-specified manually: in the version property in app/package.json.
-
-The makefile extracts the version number from that file, and (1)
-defines a make variable; (2) writes the Sigma16/VERSION file with just
-the version number, and (3) writes Sigma16/app/version.js which is
-just defines the version number as a global constant.  
-
-### Running in a browser.
-
-### Running a standalone pre-compiled executable
-
-### Compiling a standalone executable;  requires Node.js and npm
-
-    cd src
-	npm install
-	npm start
-
-    # Clone this repository
-    git clone https://github.com/electron/electron-quick-start
-    # Go into the repository
-    cd electron-quick-start
-    # Install dependencies
-    npm install
-    # Run the app
-    npm start
+*Topics:* steps for running a program, registers, constants and
+addition
 
 ## Tutorial: Run an example program
 
@@ -278,7 +119,43 @@ The Welcome pane will be visible.
 ### Editor
 
   
-### Assembler
+### Assembly language
+
+Each line of source code is an assembly language statement.  Each
+statement must appear on one line.  Most statements specify code,
+either an instruction or some constant data.  Some statements are full
+line comments.  Other statements are directives, which control the
+behavior of the assembler but don't generate any code.
+
+A statement may contain several fields.  A field consists of non-space
+characters (with one exception: a space may appear in a string
+literal).  Fields are separated from each other by one or more white
+space characters.
+
+  * Label.  The label field is optional; if it appears, it must begin
+    in the first character of the line.  The label field, if present,
+    must be a name.
+	
+  * Operation.  The operation field specifies an instruction or
+    assembler directive.  It must be preceded by one or more white
+    space characters.  Every statement (apart from a full line
+    comment) must have an operation field, which must be a name.
+	
+  * Operands.  The operands field specifies operands for an
+    instruction or arguments for assembly directive.  All instructions
+    have an operand field, and some assembler directives do.
+	
+  * Comment.  All text that follows white space after the operands
+    field is a comment, and is ignored by the assembler.  If one or
+    more of the other fields (label, operation, operands) is missing,
+    the comment must be preceded by a semicolon (to prevent it from
+    being interpreted as operands).  The rule is: all text after a
+    semicolon is a comment, and all text after white space following
+    operands is a comment.  A statement where the first non-space
+    character is a semicolon is a full line comment.
+
+A name must begin with a letter (a-z or A-Z), and may contain letters,
+digits, or underscore characters.
 
 ### Processor
 
@@ -1024,12 +901,198 @@ possible Edge.
 ## How to run the application
 
 The program uses a web browser to display
-the graphical user interface.  Unzip the installation file and enter the directory.
+the graphical user interface.
 
-Visit the following address in your browser: http://localhost:8023 If
-you get an error on your browser, something like *This site can't be
-reached, localhost refused to connect*, that means the program isn't
-running.  Launch it and the web page should connect.
+
+
+## How to run the program
+
+The software is available on the Internet at the [Sigma16 home
+page](https://jtod.github.io/Sigma16/), which contains a link to the
+latest version, some previous versions, related documents, and more
+information about the project.
+
+There are a number of ways to run the software, but it's recommended
+that you try the easiest way.
+
+### The easiest (and recommended) way: just click a link
+
+Run the app with two clicks:
+
+  1. Visit the [Sigma16 homepage](https://jtod.github.io/Sigma16/index.html)
+  2. Click on *Launch the latest release*
+
+This will run the app in your browser, and you don't need to download
+or install anything.  For most users this is the recommended method.
+
+### If you don't always have Internet access: copy to your computer
+
+You can also download the software onto your computer and run it
+locally.  This exactly like the first method, except the web pages are
+coming from your computer's files rather than the Internet.
+
+Visit the [Sigma16 home
+page](https://jtod.github.io/Sigma16/index.html) and download the zip
+file for the latest release.  Unzip and click on index.html in the
+folder and follow the directions.
+
+You might also be able to launch it by [clicking this
+link](../../Sigma16.html) although that might not work; it depends on
+whether all the necessary files are accessible.
+
+### Offers enhanced file access: Local installation
+
+The previous methods run the app in a browser.  There are some
+security restrictions on what a browser can do, and these make it
+slightly awkward for the program to read and write files.  You can
+perform a local installation which will run Sigma16 as a standalone
+app on your computer, rather than in a browser, and this makes it a
+little more convenient to use.
+
+If you don't want to bother with downloading some software tools and
+running an installation script, you can skip to the next method, which
+is to download a precompiled executable for your platform.  But it's
+straightforward to build Sigma16 on your computer:
+
+  * You need a shell such as bash or Windows PowerShell.  Every
+    computer will have one.
+	
+  * Install the npm package manager for JavaScript, available at
+    [https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm).
+    Download the installer and follow the instructions.
+
+  * Install the *electron* package.  In your shell, enter *npm install
+    electron --save-dev*.  (Why is it called "electron"?  Originally,
+    there was a text editor named *Atom* written in JavaScript, and it
+    needed a shell.  So it's the electron shell for atom...
+	
+  * Download the source for Sigma16.  Unzip it, and cd into the app
+    directory.  Enter *make all*.
+	
+  * To launch Sigma16, enter *npm run start*.  Now you'll have
+    enhanced file access, as well as a few other minor enhancements,
+    and you don't need Internet access.
+
+### Download a precompiled executable for your platform
+
+The Sigma16 home page provides pre-compiled executable apps for some
+platforms.  You can download one of these and it should "just work".
+
+It is always prudent to be careful about what executable software you
+download and install on your computer.  If you don't feel comfortable
+with doing so, try the previous method (Local installation).  It's
+actually quite straightforward!
+
+### Making a release on github pages
+
+make a local directory for editing the project page on github pages.
+cd into this directory.
+
+    git clone https://github.com/jtod/jtod.github.io
+	git add jtod.github.io
+	cd jtod.github.io
+	git branch adds16dir
+	git checkout adds16dir
+	git status
+	mkdir Sigma16
+	using emacs, create index.html and Sigma16/index.html
+
+To build a release, the necessary files in the current version need to
+be copied from the development directory into the web page directory
+in jtod.github.io/Sigma16.  However, it doesn't work very well simply
+to copy the contents of the Sigma16 development directory into the
+release directory because all the .gitignore files should be skipped.
+Consequently a script is used to automate the construction of a
+release, and the script will copy exactly the required files.
+	
+    git remote add webpage https://github.com/jtod/jtod.github.io
+	git remote
+	git status
+	git push webpage adds16dir         adds16dir is the local branch
+	
+On github page, made a pull request and selected adds1dir.  There were
+no merge conflicts and the pull request was executed and cleared.  The
+home page seems to come from the README file but refreshing it gives
+my index.html.
+
+To build standalone version using Node.hs and electron.  In the
+src/app directory, use the following commands.  They create a file
+package-lock.json and a directory node_modules, both in src/app.
+
+    npm install
+    npm start
+
+The pkg program can generate a native executable which doesn't require
+the user to have npm installed.
+	
+    npm install -g pkg 
+	pkg --help
+	pkg main.js
+	
+Maybe the bin entry in package.json would allow the command to be just
+pkg . ?  In src directory tried this:
+
+    $ pkg  -t win-x64 app
+	
+	
+Lots of warnings:
+
+    > Warning Cannot include directory %1 into executable.
+      The directory must be distributed with executable as %2.
+      app\node_modules\electron\dist
+      path-to-executable/electron/dist
+    > Warning Cannot include file %1 into executable.
+      The file must be distributed with executable as %2.
+      app\node_modules\sliced\index.js
+      path-to-executable/node_modules/sliced/index.js
+    > Warning Cannot include file %1 into executable.
+      The file must be distributed with executable as %2.
+      app\node_modules\deep-defaults\lib\index.js
+      path-to-executable/node_modules/deep-defaults/index.js
+
+Turns out that to build an app with electron one of the following
+specific tools is needed:
+
+    electron-forge
+    electron-builder
+    electron-packager
+
+Trying electron-builder
+
+    npm install electron-builder --save-dev   in src/app
+    npm run mkdist
+	
+
+### Version number
+
+The version number is needed in several places.  To keep it
+consistent, there is only one primary place where it should be
+specified manually: in the version property in app/package.json.
+
+The makefile extracts the version number from that file, and (1)
+defines a make variable; (2) writes the Sigma16/VERSION file with just
+the version number, and (3) writes Sigma16/app/version.js which is
+just defines the version number as a global constant.  
+
+### Running in a browser.
+
+### Running a standalone pre-compiled executable
+
+### Compiling a standalone executable;  requires Node.js and npm
+
+    cd src
+	npm install
+	npm start
+
+    # Clone this repository
+    git clone https://github.com/electron/electron-quick-start
+    # Go into the repository
+    cd electron-quick-start
+    # Install dependencies
+    npm install
+    # Run the app
+    npm start
+
 
 # Reference
 
