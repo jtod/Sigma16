@@ -199,7 +199,7 @@ function initialize_mid_main_resizing () {
 
 // Update the saved ratio
 function setMidMainLRratio (r) {
-    console.log ('setMidMainLRratio:  midLRratio = ' + r)
+//    console.log ('setMidMainLRratio:  midLRratio = ' + r)
     midLRratio = r;
 }
 
@@ -208,11 +208,11 @@ function adjustToMidMainLRratio () {
     console.log ('adjustToMidMainLRratio:  midLRratio = ' + midLRratio)
     let ww =  window.innerWidth - midSecExtraWidth;
     let x = midLRratio * ww;
-    console.log ('  windowWidth = ' + windowWidth);
-    console.log ('  setting left width = ' + x);
-    console.log ('  about to call set left width');
+//    console.log ('  windowWidth = ' + windowWidth);
+//    console.log ('  setting left width = ' + x);
+//    console.log ('  about to call set left width');
     setMidMainLeftWidth (x);
-    console.log ('  back from calling set left width');
+//    console.log ('  back from calling set left width');
 }
 
 // grow/shrink the left section to w pixels
@@ -269,12 +269,12 @@ function expLRflex (xl) {
 }
 
 function showSizeParameters () {
-    console.log ('showSizeParameters');
+//    console.log ('showSizeParameters');
     let ww =  window.innerWidth - midSecExtraWidth;
     let y = midMainLeft.style.width;
-    console.log ('  windowWidth = ' + ww);
-    console.log ('  midMainLeftWidth = ' + y);
-    console.log ('  midLRratio = ' + midLRratio);
+//    console.log ('  windowWidth = ' + ww);
+//    console.log ('  midMainLeftWidth = ' + y);
+//    console.log ('  midLRratio = ' + midLRratio);
 }
 
 // Resize the system (midMainLeft) and user guide (midMainRight)
@@ -518,26 +518,23 @@ y      data   3
 
 // Simple example program: add
 const example_add = `; Program Add
-
-  add R4,R5,R6
-
-  lea   R4,23[R0]
-  lea   R9,5[R0]
-  add   R7,R4,R9
+     lea    R4,23[R0]      ; R4 := 23
+     lea    R9,5[R0]       ; R9 := 5
+     add    R7,R4,R9       ; R7 := 23 + 5
 
 ; result := x + y
-    load  R1,x[R0]       ; R1 := x
-    load  R2,y[R0]       ; R2 := y
-    add   R3,R1,R2       ; R3 := x + y
-    store R3,result[R0]  ; result := x + y
+     load   R1,x[R0]       ; R1 := x
+     load   R2,y[R0]       ; R2 := y
+     add    R3,R1,R2       ; R3 := x + y
+     store  R3,result[R0]  ; result := x + y
 
 ; Terminate execution
-    trap   R0,R0,R0      ; system request to terminate
+     trap   R0,R0,R0       ; system request to terminate
 
 ; Variables
-x       data   2
-y       data   3
-result  ; good label
+x         data   2
+y         data   3
+result    data   0
 `;
 
 // Test program for assembly language error checking

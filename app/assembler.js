@@ -69,10 +69,14 @@ const RX          = 2;    // R1,xyz[R2]
 const JX          = 3;    // loop[R0]     RX format omitting d field (e.g. jump)
 const DATA        = 4;    // -42
 const COMMENT     = 5;    // ; full line comment, or blank line
-const NOOPERATION = 6;
+const DIRECTIVE   = 6;    // assembler directive
+const NOOPERATION = 7;    // error
+const NOOPERAND   = 8;    // statement has no operand
 
 function showFormat (n) {
-    return ['RRR','RR','RX','JX','DATA','COMMENT','NOOPERATION'] [n]
+    let f = ['RRR','RR','RX','JX','DATA','COMMENT','NOOPERATION'] [n];
+    let r = f ? f : 'UNKNOWN';
+    return r;
 }
 
 // Give the size of generated code for an instruction format
@@ -92,6 +96,11 @@ var statementSpec = new Map();
 // Each statement is initialized as noOperation; this is overridden if a
 // valid operation field exists (by the parseOperation function)
 var noOperation = {format:NOOPERATION, opcode:[]};
+
+statementSpec.set("module", {format:DIRECTIVE, opcode:[]})
+statementSpec.set("import", {format:DIRECTIVE, opcode:[]})
+statementSpec.set("export", {format:DIRECTIVE, opcode:[]})
+statementSpec.set("org",    {format:DIRECTIVE, opcode:[]})
 
 // Data statements
 statementSpec.set("data",  {format:DATA, opcode:[]});
@@ -125,41 +134,32 @@ statementSpec.set("trap",  {format:RRR, opcode:[13]});
 statementSpec.set("lea",      {format:RX,  opcode:[15,0]});
 statementSpec.set("load",     {format:RX,  opcode:[15,1]});
 statementSpec.set("store",    {format:RX,  opcode:[15,2]});
-statementSpec.set("jump",     {format:JX,  opcode:[15,3,0]});
+statementSpec.set("jump",     {format:RX,  opcode:[15,3]});
 statementSpec.set("jumpc0",   {format:RX,  opcode:[15,4]});
 statementSpec.set("jumpc1",   {format:RX,  opcode:[15,5]});
 statementSpec.set("jumpf",    {format:RX,  opcode:[15,6]});
 statementSpec.set("jumpt",    {format:RX,  opcode:[15,7]});
 statementSpec.set("jal",      {format:RX,  opcode:[15,8]});
 
-// Mnemonics for jumpc0/jumpc1 based on signed comparisons
-statementSpec.set("jumplt",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumple",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpeq",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpne",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpge",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpgt",   {format:JX,  opcode:[15,1]});
+// Mnemonics for jumpc0 based on signed comparisons, overflow, carry
+statementSpec.set("jumple",   {format:JX,  opcode:[15,4,bit_ccg]});
+statementSpec.set("jumpne",   {format:JX,  opcode:[15,4,bit_ccE]});
+statementSpec.set("jumpge",   {format:JX,  opcode:[15,4,bit_ccl]});
+statementSpec.set("jumpnv",   {format:JX,  opcode:[15,4,bit_ccv]});
+statementSpec.set("jumpnvu",  {format:JX,  opcode:[15,4,bit_ccV]});
+statementSpec.set("jumpnco",  {format:JX,  opcode:[15,4,bit_ccc]});
 
-// Mnemonics for jumpc0/jumpc1 based on unsigned comparisons
-statementSpec.set("jumplt",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumple",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpeq",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpne",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpge",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpgt",   {format:JX,  opcode:[15,1]});
-
-// Mnemonics for jumpc0/jumpc1 based on signed/unsigned overflow and carry
-statementSpec.set("jumpv",    {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpnv",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpvu",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpnvu",  {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpco",   {format:JX,  opcode:[15,1]});
-statementSpec.set("jumpnco",  {format:JX,  opcode:[15,1]});
+// Mnemonics for jumpc1 based on signed comparisons
+statementSpec.set("jumplt",   {format:JX,  opcode:[15,5,bit_ccl]});
+statementSpec.set("jumpeq",   {format:JX,  opcode:[15,5,bit_ccE]});
+statementSpec.set("jumpgt",   {format:JX,  opcode:[15,5,bit_ccg]});
+statementSpec.set("jumpv",    {format:JX,  opcode:[15,5,bit_ccv]});
+statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
+statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
 
 //----------------------------------------------------------------------
 // Assembly language
 //----------------------------------------------------------------------
-
 
 // Representation of assembly language statement
 
@@ -176,7 +176,9 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    fieldComment : '',             // comments are after operand or ;
 	    hasLabel : false,               // statement has a valid label
 	    operation : noOperation,        // spec of the operation if exists
+	    format : NOOPERATION,
 	    hasOperand : false,             // statement contains an operand
+	    operandType : NOOPERAND,        // type of operand actually present
 	    operandRRR : false,             // statement contains RRR operand
 	    operandRR : false,              // statement contains RR operand
 	    operandRX : false,              // statement contains RX operand
@@ -241,16 +243,20 @@ function printAsmStmt (m,x) {
 // var locationCounter = 0;
 // var asmListing = [];
 
+let nErrors = 0;
+
 function mkErrMsg (s,err) {
     //    let errline = '<span class="ERR">' + err + '</span>';
     let errline = err;
 //    console.log('mkErrMsg ' + errline);
     s.errors.push(errline);
+    nErrors++;
 }
 
 function assembler () {
     console.log('assembler');
     m = s16modules[currentModNum];
+    nErrors = 0;   // ??? should be m.nErrors
     m.asmStmt = [];
     m.symbols = [];
     m.asmListing = [];
@@ -260,13 +266,14 @@ function assembler () {
     clearObjectCode ();
     document.getElementById('AsmTextHtml').innerHTML = "";
     symbolTable.clear();
-    m.asmListing.push("<pre class='HighlightedTextAsHtml'>");
     m.asmListing.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
-
     asmPass1 (m);
     asmPass2 (m);
-    //    printAsmStmts(m);
+    if (nErrors > 0) {
+	m.asmListing.unshift(highlightText(`\n ${nErrors} errors detected\n`,'ERR'));
+    }
+    m.asmListing.unshift("<pre class='HighlightedTextAsHtml'>");
     showSymbolTable(m);
     m.asmListing.push("</pre>");
     setAsmListing (m);
@@ -559,7 +566,7 @@ function parseAsmLine (m,i) {
     if (s.hasLabel) {
 	if (symbolTable.has(s.fieldLabel)) {
 	    //	    s.errors.push(s.fieldLabel + ' has already been defined');
-	    mkErrMsg (s.fieldLabel + ' has already been defined');
+	    mkErrMsg (s, s.fieldLabel + ' has already been defined');
 	} else {
 	    symbolTable.set (s.fieldLabel,
 	     {symbol : s.fieldLabel, val : m.locationCounter,
@@ -568,11 +575,26 @@ function parseAsmLine (m,i) {
     }
 }
 
+// If operand isn't correct type for the operation, give an error
+// message.  The operations that need to have the operand checked jave
+// code <= DATA.  The higher operations either don't need an operand
+// (COMMENT) or need to be checked individually (DIRECTIVE).
+
+function checkOpOp (s) {
+    console.log(`checkOpOp line ${s.lineNumber}`);
+    let format = s.format;
+    let operandType = s.operandType;
+    console.log (`checkOpOp operation=${s.operation} format=${format} operandType=${operandType}`);
+    if (format <= DATA && format != operandType) {
+	let msg = `${s.fieldOperation} is ${showFormat(format)} format, but operand type is ${showFormat(operandType)}`;
+	mkErrMsg (s,msg);
+    }
+}
+
 // Set hasLabel to true iff there is a syntactically valid label.  If
 // the label field isn't blank but is not syntactically valid
 // (i.e. doesn't match the regular expression for names), then
 // generate an error message.
-
 
 function parseLabel (s) {
     if (s.fieldLabel == '') {
@@ -582,7 +604,6 @@ function parseLabel (s) {
     } else {
 	s.hasLabel = false;
 	mkErrMsg(s, s.fieldLabel + ' is not a valid label');
-//	s.errors.push(s.fieldLabel + ' is not a valid label');
     }
 }
 
@@ -593,13 +614,23 @@ function parseLabel (s) {
 // well as the specification of the operation if it exists.
 
 function parseOperation (s) {
-    x = statementSpec.get(s.fieldOperation);
-    if (x) {
-	s.operation = x;
-	s.codeSize = formatSize(x.format);
+    let op = s.fieldOperation;
+    if (op !== '') {
+	let x = statementSpec.get(op);
+	if (x) {
+	    s.operation = x;
+	    s.format = s.operation.format;
+	    console.log(`parse operation ${s.srcLine} fmt=${s.format}`);
+	    s.codeSize = formatSize(x.format);
+	} else {
+	    if (op.search(nameParser) == 0) {
+		mkErrMsg (s, `${op} is not a valid operation`);
+	    } else {
+		mkErrMsg (s, `syntax error: operation ${op} must be a name`);
+	    }
+	}
     }
 }
-
 
 // a constant value is
 // a label is   (?:[a-zA-Z][a-zA-Z0-9]*)
@@ -624,12 +655,14 @@ function parseOperand (s) {
     let dat = datParser.exec(s.fieldOperands);
     if (rrr) {
 	s.hasOperand = true;
+	s.operandType = RRR;
 	s.operandRRR = true;
 	s.d = rrr[1];
 	s.a = rrr[2];
 	s.b = rrr[3];
     } else if (rr) {   // can omit d for cmp, omit b for inv
 	s.hasOperand = true;
+	s.operandType = RR;
 	s.operandRR = true;
 	s.rr1 = rr[1];
 	s.rr2 = rr[2];
@@ -637,17 +670,20 @@ function parseOperand (s) {
 //	s.a = rr[2];
     } else if (rx) {
 	s.hasOperand = true;
+	s.operandType = RX;
 	s.operandRX = true;
 	s.d = rx[1];
 	s.dispField = rx[2];
 	s.a = rx[3];
     } else if (jx) {
 	s.hasOperand = true;
+	s.operandType = JX;
 	s.operandJX = true;
 	s.dispField = jx[1];
 	s.a = jx[2];
     } else if (dat) {
 	s.hasOperand = true;
+	s.operandType = DATA;
 	s.operandDATA = true;
 	s.dat = dat[1];
 //	console.log('data 0' + dat[0]);
@@ -660,7 +696,6 @@ function parseOperand (s) {
     }
     return;
 }
-
 
 function showOperand (x) {
     if (x.hasOperand) {
@@ -699,9 +734,11 @@ function asmPass2 (m) {
     initializeObjectLineBuffer ();
     for (let i = 0; i < m.asmStmt.length; i++) {
 	s = m.asmStmt[i];
-	console.log(`pass2 i= + ${i} s= + ${s}`);
-	fmt = s.operation.format;
-	console.log (`pass2 fmt=${fmt} opcode=${s.operation.opcode}`);
+	fmt = s.format;
+	console.log(`pass2 line=${s.lineNumber} s=/${s.srcLine}/`);
+	console.log(`pass2 line=${s.lineNumber} fmt=${fmt} opcode=${s.operation.opcode}`);
+	console.log(`pass2 line=${s.lineNumber} operation=${s.operation} operandType=${s.operandType}`);
+	checkOpOp (s);
 	if (fmt==RRR) {
 	    console.log (`pass2 RRR`);
 	    op = s.operation.opcode;
@@ -849,9 +886,10 @@ function setAsmListing (m) {
 //    let listing = [];
 //    for (let i = 0; i < asmSrcLines.length; i++) {
 //	listing[i] = asmStmet[i].listingLine;
-//    }
-    document.getElementById('AsmTextHtml').innerHTML =
-	m.asmListing.join('\n');
+    //    }
+    let listing = m.asmListing.join('\n');
+    document.getElementById('AsmTextHtml').innerHTML = listing;
+//	m.asmListing.join('\n');
 //    console.log (' Set asm listing m.asmListing = ' + m.asmListing);
 }
 

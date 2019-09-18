@@ -794,3 +794,29 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 .FIELDCOMMENT {
    color: var(--color-solarized-cyan);
 }
+
+.solarized-green {
+    color: var(--color-solarized-green);
+}
+
+.solarized-blue {
+    color: var(--color-solarized-blue);
+}
+.solarized-red {
+    color: var(--color-solarized-red);
+}
+.solarized-cyan {
+    color: var(--color-solarized-cyan);
+}
+.solarized-violet {
+    color: var(--color-solarized-violet);
+}
+.solarized-magenta {
+    color: var(--color-solarized-magenta);
+}
+.solarized-orange {
+    color: var(--color-solarized-orange);
+}
+.solarized-yellow {
+    color: var(--color-solarized-yellow);
+}

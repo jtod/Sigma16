@@ -1,0 +1,119 @@
+; Asembler test
+
+main module
+     import  foobar
+     export  goodlabel
+     org     $00ff
+
+     add    R5,R12,R7
+     sub    R12,R3,R15
+     mul    R1,R2,R3
+     div    R1,R2,R3
+     cmp    R1,R2
+     cmplt  R1,R2,R3
+     cmpeq  R1,R2,R3
+     cmpgt  R1,R2,R3
+     inv    R1,R2
+     and    R1,R2,R3
+     or     R1,R2,R3
+     xor    R1,R2,R3
+     nop    R1,R2,R3
+     trap   R1,R2,R3
+
+     lea    R3,goodlabel[R3]
+     load   R8,$abcd[R0]
+     store  R9,$2b7f[R10]
+     jumpt  R3,23[R2]
+
+     jumpc0 R13,10[R0]
+     jumpc1 R14,11[R1]
+     jumpf  R7,12[R2]
+     jumpt  R8,13[R3]
+     jal    R13,goodlabel[R0]
+
+     jumplt  16[R0]
+     jumple  17[R1]
+     jumpeq  18[R2]
+     jumpne  19[R3]
+     jumpgt  20[R4]
+     jumpge  21[R5]
+     jumpv   22[R6]
+     jumpnv  23[R7]
+     jumpvu  24[R8]
+     jumpnvu 25[R9]
+     jumpco  26[R10]
+     jumpnco 27[R11]
+
+goodlabel
+
+ab   data    3
+x    data    389
+     data    -5
+sum  data    $03f2
+
+; Labels
+
+label?bad
+label/err   aid R1,R2,R3
+label*err   add R1,x
+label&err   add R1,R2,R3
+*?5
+goodlabel
+
+; Operations
+     lode   R1,3[R0]
+     &*?    R1,R2,R3
+
+; Operands
+     add    R3,goodlabel[R2]   ; should be RRR, this is RX
+     inv    R1,R2,R3           ; should be RR, this is RRR
+     cmplt  R3,R4              ; should be three operand registers
+     cmp    R3,R4,R5           ; should be just two operand registers
+     load   R1,R3,R3           ; should be RX, this is RRR
+     load   R1,R3              ; should be RX, this is RR
+     data   R1,R2              ; should be data word, this is RR
+     data   R1,R2,R3           ; should be data word, this is RRR
+     data   R1,3[R4]           ; should be data word, this is RX
+     add    23                 ; should be RRR, this is data
+     load   24                 ; should be RX, this is data
+     cmp    25                 ; should be RR, this is data
+     jumplt R1,26[R5]          ; should be JX, this is RX
+
+
+; operation field
+
+     load/2   R1,R2,R3        ; bad syntax for operation field
+     addemup  R1,R2,R3        ; invalid mnemonic
+
+; RRR
+
+     add      R1,R2,R3        ; ok
+     add      1,2,3           ; bad operands
+     add      R4, R5,R6       ; bad operands
+
+; RX
+
+     lea      R3,$b3c2[R4]    ; ok
+     lea      R1,23[R2]       ; ok
+     lea      R5,-1[R5]       ; ok
+abcd lea      R5,abcd[R12]    ; ok
+     load     R1,3{R17]       ; bad register
+     load     R1,3{R-7]       ; bad register
+     load     R1,x[R2]  ; ok
+     load     R1,R2,R3  ; wrong form of operands
+
+
+
+     store
+
+; data
+
+x    data     2
+y    data   $01a3
+v1   data   -23
+
+
+; x    data     3
+
+;     jumpf R0,x[R0]
+;     jumpf R0,nowhere[R0]
