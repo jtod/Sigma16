@@ -163,11 +163,18 @@ statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
 
 // Representation of assembly language statement
 
+// Each statement has a listing line which contains the line number,
+// object code, and source code.  There are two versions of this:
+// listingLinePlain just contains the text of the listing line, while
+// listingLineHighlightedFields contains <span> elements to enable the
+// various fields to be highlighted with colors.
+
 function mkAsmStmt (lineNumber, address, srcLine) {
     return {lineNumber,                     // array index of statement
 	    address,                        // address where code goes
 	    srcLine,                        // source line
-	    listingLine : "",               // listing with object and source
+	    listingLinePlain: "",           // object and source text
+	    listingLineHighlightedFields : "", // listing with src field spans
 	    fieldLabel : '',                // label
 	    fieldSpacesAfterLabel : '',     // white space
 	    fieldOperation : '',            // operation mnemonic
@@ -785,7 +792,7 @@ function asmPass2 (m) {
 	} else {
 	    console.log('pass2 other, noOperation');
 	}
-	s.listingLine = (s.lineNumber+1).toString().padStart(4,' ')
+	s.listingLineHighlightedFields = (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + wordToHex4(s.address)
 	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize>1 ? wordToHex4(s.codeWord2) : '    ')
@@ -797,7 +804,7 @@ function asmPass2 (m) {
 	    + highlightField (s.fieldOperands, "FIELDOPERAND")
 	    + highlightField (s.fieldComment, "FIELDCOMMENT") ;
 
-	m.asmListing.push(s.listingLine);
+	m.asmListing.push(s.listingLineHighlightedFields);
 	for (let i = 0; i < s.errors.length; i++) {
 	    m.asmListing.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	}
@@ -885,7 +892,7 @@ function setAsmListing (m) {
 //    console.log('setAsmListing');
 //    let listing = [];
 //    for (let i = 0; i < asmSrcLines.length; i++) {
-//	listing[i] = asmStmet[i].listingLine;
+//	listing[i] = asmStmet[i].listingLineHighlightedFields;
     //    }
     let listing = m.asmListing.join('\n');
     document.getElementById('AsmTextHtml').innerHTML = listing;

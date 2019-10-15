@@ -182,8 +182,20 @@ function parseObject () {
 
 //---------------------------------------------------------------------------
 // Highlighting current and next instruction in processor assembly listing
+//---------------------------------------------------------------------------
+
+// The assembler provides an array of source lines, which it passes on
+// to the linker and thence to the emulator.  There are two strings
+// for each source line: one contains <span> elements to enable the
+// fields to be highlighted, just as in the assembly listing.  The
+// other omits these elements, so the entire line can be highlighted
+// to indicate (with just one color for the line) the instruction that
+// has just executed and the instruction that will be executed next.
 
 // Initialize the running listing display
+
+let srcLinePlain = [];
+let srcLineHighlightedFields = [];
 
 function initListing () {
     curInstrAddr = 0;
@@ -192,10 +204,12 @@ function initListing () {
     nextInstrLineNo = -1;
     saveCurSrcLine = "";
     saveNextSrcLine = "";
-    srcLine = [];
+    srcLinePlain = [];
+    srcLineHighlightedFields = [];
 //    srcLine.push("<pre class='HighlightedTextAsHtml'>");
     for (let i = 0; i < exMod.asmStmt.length; i++) {
-	srcLine.push(exMod.asmStmt[i].listingLine);
+	srcLinePlain.push(exMod.asmStmt[i].listingLinePlain);
+	srcLineHighlightedFields.push(exMod.asmStmt[i].listingLineHighlightedFields);
 //	srcLine.push(exMod.asmStmt[i].srcLine);
     }
 //    srcLine.push("</pre>");
