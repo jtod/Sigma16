@@ -1,21 +1,22 @@
 // Representation of source and object modules
 
 
-var s16modules = [];
-var currentModNum = 0;
+var s16modules = [];    // All the modules in the system
+var currentModNum = 0;  // The module shown in editor and assembler
 
+// Get the data structure for the current module
 function getCurrentModule () {
     return s16modules[currentModNum]
 }
 
-// s16modules[0].src = 'abcd';    testing for non-0 src length
-
-// Create one initial module and make it the current module
+// Initialize the modules: create one initial (empty) module and make
+// it the current module
 function initModules () {
     s16modules = [mkModule()];
     currentModNum = 0;
 }
 
+// Make a new module with empty contents
 function mkModule () {
     console.log('mkModule');
     return {
@@ -32,6 +33,7 @@ function mkModule () {
     }
 }
 
+// Return brief descriptions of all the modules
 function showModules () {
     //    let xs = s16modules.length + ' modules\n';
     let xs = ' modules\n';
@@ -43,19 +45,15 @@ function showModules () {
     return xs;
 }
 
+// Return a brief description of a module
 function showModule (m) {
     let n = m.src ? m.src.length : 0;
     let xs = m.modName + ' (' +  n + ' characters)\n';
     return xs;
 }
 
-// linker
 
-
-
-
-// modules and files pane
-
+// The modules and files pane
 
 function fileExamples () {
     document.getElementById('EditorTextArea').innerHTML = "hello";

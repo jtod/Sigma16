@@ -1,5 +1,8 @@
 # makefile for Sigma16
 
+# make web     prepare web version
+
+
 # Non-source files.  The following files are written by various
 # compilation tools; they are not source and shouldn't be edited.  The
 # files marked optional are produced when a standalone version is
@@ -47,6 +50,14 @@ DateTimeStamp := $(shell date +%Y-%m-%d-at-%H-%M)
 BuildDate != date +%d\ %b\ %Y
 TarballName := $(PackageName)-on-$(DateTimeStamp).tgz
 FullCopyName := $(PackageName)-on-$(DateTimeStamp)
+
+# make web - make the files needed for running as a web page
+
+.PHONY : web
+web :
+	make set-version
+	make userguide
+	make top-index
 
 # make all --- Build everything from just the source.  When publishing
 # a release, an option would be to build the documentation (user guide

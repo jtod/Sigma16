@@ -20,7 +20,7 @@
 <header id="title-block-header">
 <h1 class="title">User Guide</h1>
 </header>
-Version 3.0.22
+Version 3.0.23
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
@@ -135,6 +135,14 @@ Version 3.0.22
 <h3 id="editor">Editor</h3>
 <h3 id="assembly-language">Assembly language</h3>
 <p>Each line of source code is an assembly language statement. Each statement must appear on one line. Most statements specify code, either an instruction or some constant data. Some statements are full line comments. Other statements are directives, which control the behavior of the assembler but don’t generate any code.</p>
+<p>A statement may contain several fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
+<ul>
+<li><p>Label. The label field is optional; if it appears, it must begin in the first character of the line. The label field, if present, must be a name.</p></li>
+<li><p>Operation. The operation field specifies an instruction or assembler directive. It must be preceded by one or more white space characters. Every statement (apart from a full line comment) must have an operation field, which must be a name.</p></li>
+<li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directive. All instructions have an operand field, and some assembler directives do.</p></li>
+<li><p>Comment. All text that follows white space after the operands field is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon (to prevent it from being interpreted as operands). The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment.</p></li>
+</ul>
+<p>A name must begin with a letter (a-z or A-Z), and may contain letters, digits, or underscore characters.</p>
 <h3 id="processor">Processor</h3>
 <h1 id="programs-modules-and-files">Programs, modules, and files</h1>
 <p>The system is designed to allow programs that consist of several modules, but also to allow programs consisting of one standalone module. In addition, an aim is to do this simply and intuitively, so that you can ignore the issues of modules and linking if you just want to write a andalone program.</p>
