@@ -17,6 +17,9 @@ var textFile = null; /* for save download */
 var create;  /* for save download */
 var textbox; /* for save download */
 
+// global variables for emulator
+var procAsmListingElt;
+
 //---------------------------------------------------------------------------
 // Experiments and testing
 //---------------------------------------------------------------------------
@@ -611,7 +614,7 @@ window.onload = function () {
     console.log("window.onload activated");
     showTabbedPane("WelcomePane");
     initializeProcessorElements ();  // so far, it's just instr decode
-    clearInstrDecode ();
+    clearInstrDecode (emulatorState);
     
 // Initialize file/module
 
@@ -669,7 +672,7 @@ window.onload = function () {
 /* for save download */
 //    create = document.getElementById('CreateFileForDownload'),
 //    textbox = document.getElementById('DownloadFileTextBox');
-//  create.addEventListener('click', function () {
+//  create.addEven
 //    var link = document.getElementById('downloadlink');
 //    link.href = makeTextFile(textbox.value);
 //    link.style.display = 'block';

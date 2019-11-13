@@ -1,36 +1,30 @@
-// Representation of source and object modules
+//------------------------------------------------------------------------------
+// module.js -- representation of source and object modules
+//------------------------------------------------------------------------------
 
+// The working program is a list of modules, one of which is the
+// current working module visible in the editor and assembler.  A
+// module data structure contains everything known about the module,
+// whether it is source or object.
+
+//------------------------------------------------------------------------------
+// List of all modules
 
 var s16modules = [];    // All the modules in the system
 var currentModNum = 0;  // The module shown in editor and assembler
 
-// Get the data structure for the current module
-function getCurrentModule () {
-    return s16modules[currentModNum]
-}
-
 // Initialize the modules: create one initial (empty) module and make
 // it the current module
+
 function initModules () {
     s16modules = [mkModule()];
     currentModNum = 0;
 }
 
-// Make a new module with empty contents
-function mkModule () {
-    console.log('mkModule');
-    return {
-	modName : '',
-	modSrc : '',
-	asmStmt : [],
-	symbols : [],
-	symbolTable : new Map (),
-	locationCounter : 0,
-	asmListing : [],
-	objectCode : [],
-	asmap : [],  // array mapping address to source statement
-	isExecutable : true  // until proven otherwise
-    }
+// Get the full data structure for the current module
+
+function getCurrentModule () {
+    return s16modules[currentModNum]
 }
 
 // Return brief descriptions of all the modules
@@ -45,6 +39,29 @@ function showModules () {
     return xs;
 }
 
+//------------------------------------------------------------------------------
+// Representation of a module
+
+// Make a new module with empty contents; this defines the fields of a module
+
+function mkModule () {
+    console.log('mkModule');
+    return {
+	modName : '',              // name of module: module stmt, file name, none
+	modSrc : '',               // source code
+	asmStmt : [],              // statements correspond to lines of source
+	symbols : [],              // symbols used in the source
+	symbolTable : new Map (),  // symbol table
+	nAsmErrors : 0,            // number of errors in assembly source code
+	locationCounter : 0,       // address where next code will be placed
+	objectCode : [],           // string hex representation of object
+	asmap : [],                // array mapping address to source statement
+	isExecutable : true,       // until proven otherwise
+	asmListingPlain : [],      // assembler listing
+	asmListingDec : []         // decorated assembler listing
+    }
+}
+
 // Return a brief description of a module
 function showModule (m) {
     let n = m.src ? m.src.length : 0;
@@ -53,6 +70,7 @@ function showModule (m) {
 }
 
 
+//------------------------------------------------------------------------------
 // The modules and files pane
 
 function fileExamples () {
@@ -97,8 +115,6 @@ function fileButton4 () {
 	"hello this is great";
 }
 
-
-
 /* var textFile = null, */
 
   makeTextFile = function (text) {
@@ -114,4 +130,3 @@ function fileButton4 () {
 
     return textFile;
   };
-

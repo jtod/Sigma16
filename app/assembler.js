@@ -1,3 +1,28 @@
+//------------------------------------------------------------------------------
+// assembler.js -- translate assembly language to machine language
+//------------------------------------------------------------------------------
+
+// remove globals
+
+// The instruction set is represented by a map from mnemonic to statementSpec spec
+var statementSpec = new Map();
+
+// var symbolTable = new Map();;   ??? use m.symbolTable instead of global
+
+// Object lines
+var objectLineBuffer = "";
+var objBufferSize = 0;
+var objBufferLimit = 5;
+
+// assembler
+// var asmStmt = [];
+// var symbols = [];
+// var locationCounter = 0;
+// var asmListingPlain = [];
+
+
+// Notes...
+// ??? inconsistent args parseAsmLine
 
 /* An assembly language line consists of four fields separated by
 white space.  Everything following a semicolon ; is a comment.
@@ -15,8 +40,6 @@ comments field
    contains any characters
 */
 
-// ?????????????????????? inconsistent args parseAsmLine
-
 //----------------------------------------------------------------------
 // Running and testing
 //----------------------------------------------------------------------
@@ -25,35 +48,6 @@ comments field
 function run () {
     console.log('run()');
 //    assembler();
-}
-
-//----------------------------------------------------------------------
-// Symbol table
-//----------------------------------------------------------------------
-
-// remove globals
-var symbolTable = new Map();;
-
-function showSymbolTable (m) {
-    m.asmListing.push('');
-//    m.asmListing.push("<span class='ListingHeader'>Symbol table</span>");
-    m.asmListing.push("<span class='ListingHeader'>Name      Val   Def   Used</span>");
-    m.symbols =[ ...symbolTable.keys() ].sort();
-    console.log('symbols = ' + m.symbols);
-    for (let i = 0; i < m.symbols.length; i++) {
-	let x = symbolTable.get(m.symbols[i]);
-	m.asmListing.push(m.symbols[i].padEnd(10)
-			+ wordToHex4(x.val)
-			+ x.defLine.toString().padStart(5));
-    }
-//    let xs = [];
-//    symbolTable.forEach(function(sym,key,owner) {
-//	console.log(key + ' val=' + sym.val + ' def=' + sym.defLine);
-//    })
-}
-
-function showSymbol (s) {
-    return (s.symbol + ' val=' + s.val + ' def ' + s.defLine);
 }
 
 
@@ -90,12 +84,10 @@ function formatSize (fmt) {
     }
 }
 
-// The instruction set is represented by a map from mnemonic to statementSpec spec
-var statementSpec = new Map();
 
 // Each statement is initialized as noOperation; this is overridden if a
 // valid operation field exists (by the parseOperation function)
-var noOperation = {format:NOOPERATION, opcode:[]};
+const noOperation = {format:NOOPERATION, opcode:[]};
 
 statementSpec.set("module", {format:DIRECTIVE, opcode:[]})
 statementSpec.set("import", {format:DIRECTIVE, opcode:[]})
@@ -157,8 +149,41 @@ statementSpec.set("jumpv",    {format:JX,  opcode:[15,5,bit_ccv]});
 statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
 statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
 
+
 //----------------------------------------------------------------------
-// Assembly language
+// Symbol table
+//----------------------------------------------------------------------
+
+function showSymbolTable (m) {
+    m.asmListingPlain.push('');
+    m.asmListingDec.push('');
+    m.asmListingPlain.push("<span class='ListingHeader'>Symbol table</span>");
+    m.asmListingDec.push("<span class='ListingHeader'>Symbol table</span>");
+    m.asmListingPlain.push("<span class='ListingHeader'>Name      Val   Def   Used</span>");
+    m.asmListingDec.push("<span class='ListingHeader'>Name      Val   Def   Used</span>");
+    m.symbols =[ ...m.symbolTable.keys() ].sort();
+    console.log('symbols = ' + m.symbols);
+    for (let i = 0; i < m.symbols.length; i++) {
+	let x = m.symbolTable.get(m.symbols[i]);
+	m.asmListingPlain.push(m.symbols[i].padEnd(10)
+			+ wordToHex4(x.val)
+			+ x.defLine.toString().padStart(5));
+	m.asmListingDec.push(m.symbols[i].padEnd(10)
+			+ wordToHex4(x.val)
+			+ x.defLine.toString().padStart(5));
+    }
+//    let xs = [];
+//    symbolTable.forEach(function(sym,key,owner) {
+//	console.log(key + ' val=' + sym.val + ' def=' + sym.defLine);
+//    })
+}
+
+function showSymbol (s) {
+    return (s.symbol + ' val=' + s.val + ' def ' + s.defLine);
+}
+
+//----------------------------------------------------------------------
+// Assembly language statement
 //----------------------------------------------------------------------
 
 // Representation of assembly language statement
@@ -245,44 +270,46 @@ function printAsmStmt (m,x) {
 //  Assembler
 //----------------------------------------------------------------------
 
-// var asmStmt = [];
-// var symbols = [];
-// var locationCounter = 0;
-// var asmListing = [];
-
-let nErrors = 0;
+// Report an assembly error: s is an assembly source line, err is an
+// error message
 
 function mkErrMsg (s,err) {
-    //    let errline = '<span class="ERR">' + err + '</span>';
     let errline = err;
-//    console.log('mkErrMsg ' + errline);
     s.errors.push(errline);
     nErrors++;
 }
+//    console.log('mkErrMsg ' + errline);
+//    let errline = '<span class="ERR">' + err + '</span>';
 
 function assembler () {
     console.log('assembler');
-    m = s16modules[currentModNum];
-    nErrors = 0;   // ??? should be m.nErrors
+    m = s16modules[currentModNum];  // info about assembly will be stored in m
+    m.nAsmErrors = 0;
     m.asmStmt = [];
     m.symbols = [];
-    m.asmListing = [];
+    m.asmListingPlain = [];
+    m.asmListingDec = [];
     m.objectCode = [];
     m.locationCounter = 0;
     m.asmap = [];
     clearObjectCode ();
     document.getElementById('AsmTextHtml').innerHTML = "";
-    symbolTable.clear();
-    m.asmListing.push(
+    m.symbolTable.clear();
+    m.asmListingPlain.push(
+	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
+    m.asmListingDec.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
     asmPass1 (m);
     asmPass2 (m);
-    if (nErrors > 0) {
-	m.asmListing.unshift(highlightText(`\n ${nErrors} errors detected\n`,'ERR'));
+    if (m.nAsmErrors > 0) {
+	m.asmListingPlain.unshift(highlightText(`\n ${m.nAsmErrors} errors detected\n`,'ERR'));
+	m.asmListingDec.unshift(highlightText(`\n ${m.nAsmErrors} errors detected\n`,'ERR'));
     }
-    m.asmListing.unshift("<pre class='HighlightedTextAsHtml'>");
+    m.asmListingPlain.unshift("<pre class='HighlightedTextAsHtml'>");
+    m.asmListingDec.unshift("<pre class='HighlightedTextAsHtml'>");
     showSymbolTable(m);
-    m.asmListing.push("</pre>");
+    m.asmListingPlain.push("</pre>");
+    m.asmListingDec.push("</pre>");
     setAsmListing (m);
 }
 
@@ -571,11 +598,11 @@ function parseAsmLine (m,i) {
     parseOperation (s);
     parseOperand (s);
     if (s.hasLabel) {
-	if (symbolTable.has(s.fieldLabel)) {
+	if (m.symbolTable.has(s.fieldLabel)) {
 	    //	    s.errors.push(s.fieldLabel + ' has already been defined');
 	    mkErrMsg (s, s.fieldLabel + ' has already been defined');
 	} else {
-	    symbolTable.set (s.fieldLabel,
+	    m.symbolTable.set (s.fieldLabel,
 	     {symbol : s.fieldLabel, val : m.locationCounter,
 	      defLine : s.lineNumber});
 	}
@@ -768,8 +795,8 @@ function asmPass2 (m) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
 	    let aaa = s.dispField;
-	    let bbb = evaluate(s,s.dispField);
-	    s.codeWord2 = evaluate(s,s.dispField);
+	    let bbb = evaluate(m,s,s.dispField);
+	    s.codeWord2 = evaluate(m,s,s.dispField);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pas2 rx aaa=' + aaa + ' bbb=' + bbb);
@@ -779,19 +806,30 @@ function asmPass2 (m) {
 	    console.log (`pass2 JX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
-	    s.codeWord2 = evaluate(s,s.dispField);
+	    s.codeWord2 = evaluate(m,s,s.dispField);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pass2 JX ' + wordToHex4(s.codeWord1)
 //			+ wordToHex4(s.codeWord2));
 	} else if (fmt==DATA && s.operandDATA) {
 	    console.log('fmt is DATA and operandDATA=' + s.dat);
-	    s.codeWord1 = evaluate(s,s.dat);
+	    s.codeWord1 = evaluate(m,s,s.dat);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 //	    console.log('pass2 DATA ' + wordToHex4(s.codeWord1));
 	} else {
 	    console.log('pass2 other, noOperation');
 	}
+	s.listingLinePlain =  (s.lineNumber+1).toString().padStart(4,' ')
+	    + ' ' + wordToHex4(s.address)
+	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
+	    + ' ' + (s.codeSize>1 ? wordToHex4(s.codeWord2) : '    ')
+//	    + ' ' + s.srcLine
+	    + s.fieldLabel
+	    + s.fieldSpacesAfterLabel
+	    + s.fieldOperation
+	    + s.fieldSpacesAfterOperation
+	    + s.fieldOperands
+	    + s.fieldComment;
 	s.listingLineHighlightedFields = (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + wordToHex4(s.address)
 	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
@@ -804,23 +842,21 @@ function asmPass2 (m) {
 	    + highlightField (s.fieldOperands, "FIELDOPERAND")
 	    + highlightField (s.fieldComment, "FIELDCOMMENT") ;
 
-	m.asmListing.push(s.listingLineHighlightedFields);
+	m.asmListingPlain.push(s.listingLinePlain);
+	m.asmListingDec.push(s.listingLineHighlightedFields);
 	for (let i = 0; i < s.errors.length; i++) {
-	    m.asmListing.push(highlightText('Error: ' + s.errors[i],'ERR'));
+	    m.asmListingPlain.push(highlightText('Error: ' + s.errors[i],'ERR'));
+	    m.asmListingDec.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	}
     }
     flushObjectLine (m);
-//    console.log('part of asmap')
-//    for (let i = 0; i<20; i++) {
-//	tempshow(m,i)
-//    }
-		 
 }
 
-// linenumber indexed from 0 but add1 for asm listing
-function tempshow(m,a) {
-    console.log( '  ' + a + '  ' +  (m.asmap[a] + 1) );
-    }
+// linenumber indexed from 0 but add1 for asm listing header and add1
+// for html <span>
+// function tempshow(m,a) {
+//     console.log( '  ' + a + '  ' +  (m.asmap[a] + 2) );
+//     }
     
 // Object lines
 
@@ -829,9 +865,6 @@ function tempshow(m,a) {
 // generateObjectWord, and when the buffer reaches the limit (or when all
 // object code has been pushed) the buffer is flushed.
 
-var objectLineBuffer = "";
-var objBufferSize = 0;
-var objBufferLimit = 5;
 
 function initializeObjectLineBuffer () {
     objectLineBuffer = "  hexdata  ";
@@ -847,23 +880,33 @@ function flushObjectLine(m) {
 
 // Add object word x to buffer for next object code line in module m.
 // The asm statement is s, and the object word will be loaded at
-// address a.
+// address a.  The line number entered into asmap is ln = s.lineNumber
+// + 1 to account for the header line that is inserted before the
+// statements in the listing.
 
 function generateObjectWord (m, s, a, x) {
-    m.asmap[a] = s.lineNumber;
+    let ln = s.lineNumber + 2;  // adjust for <span> line and header line
+    m.asmap[a] = ln;
+    console.log ('generateObjectWord entered asmap[' + a + '] = ' + ln);
     if (objBufferSize > 0) { objectLineBuffer += ',' };
     objectLineBuffer += wordToHex4(x);
     objBufferSize++;
     if (objBufferSize >= objBufferLimit) { flushObjectLine(m) };
 }
 
+function showAsmap (m) {
+    console.log ('showAsmap');
+    for (var i in m) {
+	console.log ('[' + i + '] = ' + m[i]);
+    }
+}
 
 // Evaluate a displacement or data value.  This may be a decimal
 // constant, a hex constant, or a label.
-function evaluate (s,x) {
+function evaluate (m,s,x) {
     console.log('evaluate ' + x);
     if (x.search(nameParser) == 0) {
-	r = symbolTable.get(x);
+	r = m.symbolTable.get(x);
 	if (r) {
 	    console.log('evaluate returning ' + r.val);
 	    return r.val;
@@ -894,10 +937,12 @@ function setAsmListing (m) {
 //    for (let i = 0; i < asmSrcLines.length; i++) {
 //	listing[i] = asmStmet[i].listingLineHighlightedFields;
     //    }
-    let listing = m.asmListing.join('\n');
+    let listing = m.asmListingDec.join('\n');
+//    let listing = m.asmListingPlain.join('\n');
+    console.log ('setAsmListing ' + listing);
     document.getElementById('AsmTextHtml').innerHTML = listing;
-//	m.asmListing.join('\n');
-//    console.log (' Set asm listing m.asmListing = ' + m.asmListing);
+//	m.asmListingPlain.join('\n');
+//    console.log (' Set asm listing m.asmListingPlain = ' + m.asmListingPlain);
 }
 
 //----------------------------------------------------------------------

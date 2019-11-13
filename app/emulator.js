@@ -1,77 +1,124 @@
-// Emulator
+//------------------------------------------------------------------------------
+// emulator.js
+//------------------------------------------------------------------------------
+
+// This module defines the emulator, which interprets machine language
+// programs and displays effects in the gui.
+
+// should be in es
+// let nInstructionsExecuted = 0;
+// let instrLooperDelay = 1000;
+// let instrLooperShow = true;
 
 
 
+//------------------------------------------------------------------------------
+// Interface to the gui
+//------------------------------------------------------------------------------
 
-//---------------------------------------------------------------------------
+// The functions receive a parameter 'es' which carries the current
+// emulator state.  The gui, when it calls one of the main interface
+// functions, passes the global emulatorState.
+
+// The machine state (registers and memory) are global and initialized
+// by gui.  The emulator state is a global variable named
+// emulatorState, defined in state.js.
+
+// The interface to the emulator consists of the following functions,
+// which are called directly by the gui. When they call other
+// functions, es is passed as a parameter.  Thus only the following
+// interface functions access a global variable.
+
+// Called by ?
+//   parseCopyObjectModuleToMemory (es)
+    
+// Called by gui.js
+//   clearInstrDecode ()
+
+// Called by events in Sigma16.html
+//   procReset(es)       -- put processor into initial state
+//   boot(es)            -- copy the executable into memory
+//   procStep(es)        -- execute one instruction
+//   procRun(es)         -- execute instructions repeatedly until halted
+//   procPause(es)       -- halt execution (can resume execution later)
+//   procInterrupt()   -- not implemented yet
+//   procBreakpoint()  -- not implemented yet
+
+//------------------------------------------------------------------------------
 // Architecture
+//------------------------------------------------------------------------------
 
-let mnemonicRRR = ["add",    "sub",    "mul",    "div",
-		   "cmp",    "cmplt",  "cmpeq",  "cmpgt",
-		   "inv",    "and",    "or",     "xor",
-		   "addc",   "trap",   "XX",     "RX"]
+const mnemonicRRR =
+  ["add",    "sub",    "mul",    "div",
+   "cmp",    "cmplt",  "cmpeq",  "cmpgt",
+   "inv",    "and",    "or",     "xor",
+   "addc",   "trap",   "XX",     "RX"]
 
-let mnemonicRX =  ["lea",    "load",   "store",  "jump",
-		   "jumpc0", "jumpc1", "jumpf",  "jumpt",
-		   "jal",    "nop",    "nop",    "nop",
-		   "nop",    "nop",    "nop",    "nop"]
+const mnemonicRX =
+  ["lea",    "load",   "store",  "jump",
+   "jumpc0", "jumpc1", "jumpf",  "jumpt",
+   "jal",    "nop",    "nop",    "nop",
+   "nop",    "nop",    "nop",    "nop"]
 
-let mnemonicxX =  ["nop",    "nop",    "nop",    "nop",
-		   "nop",    "nop",    "nop",    "nop",
-		   "nop",    "nop",    "nop",    "nop",
-		   "nop",    "nop",    "nop",    "nop"]
+const mnemonicxX =
+  ["nop",    "nop",    "nop",    "nop",
+   "nop",    "nop",    "nop",    "nop",
+   "nop",    "nop",    "nop",    "nop",
+   "nop",    "nop",    "nop",    "nop"]
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Instruction decode
+//------------------------------------------------------------------------------
 
-function showInstrDecode () {
-    instrCodeStr = (instrCode ? wordToHex4 (instrCode) : "")
-	+ " " + (instrDisp ? wordToHex4 (instrDisp) : "");
-    instrEAStr = instrEA ? wordToHex4 (instrEA) : "";
-    console.log (`showInstrDecode fmt = ${instrFmtStr}`);
-    refreshInstrDecode ();
+function showInstrDecode (es) {
+    es.instrCodeStr = (instrCode ? wordToHex4 (instrCode) : "")
+	+ " " + (es.instrDisp ? wordToHex4 (es.instrDisp) : "");
+    es.instrEAStr = es.instrEA ? wordToHex4 (es.instrEA) : "";
+    console.log (`showInstrDecode fmt = ${es.instrFmtStr}`);
+    refreshInstrDecode (es);
 }
 
-function clearInstrDecode () {
-    instrOpCode = null;
-    instrDisp = null;
-    instrCodeStr  = "";
-    instrFmtStr   = "";
-    instrOp    = "";
-    instrArgs  = "";
-    instrEA = null;
-    instrEAStr    = "";
-    instrEffect = [];
+function clearInstrDecode (es) {
+    es.instrOpCode = null;
+    es.instrDisp = null;
+    es.instrCodeStr  = "";
+    es.instrFmtStr   = "";
+    es.instrOp    = "";
+    es.instrArgs  = "";
+    es.instrEA = null;
+    es.instrEAStr    = "";
+    es.instrEffect = [];
 }
-function refreshInstrDecode () {
+
+function refreshInstrDecode (es) {
     console.log ("refreshInstrDecode");
-    instrCodeElt.innerHTML = instrCodeStr;
-    instrFmtElt.innerHTML  = instrFmtStr;
-    instrOpElt.innerHTML   = instrOpStr;
-    instrArgsElt.innerHTML = showArgs(); // instrArgsStr;
-    instrEAElt.innerHTML   = instrEAStr;
+    instrCodeElt.innerHTML = es.instrCodeStr;
+    instrFmtElt.innerHTML  = es.instrFmtStr;
+    instrOpElt.innerHTML   = es.instrOpStr;
+    instrArgsElt.innerHTML = showArgs(es); // instrArgsStr;
+    instrEAElt.innerHTML   = es.instrEAStr;
     let ccval = regFile[15].val;
     instrCCElt.innerHTML      = showCC(ccval);
-    instrEffect1Elt.innerHTML = showEffect(0);
-    instrEffect2Elt.innerHTML = showEffect(1);
+    instrEffect1Elt.innerHTML = showEffect(es,0);
+    instrEffect2Elt.innerHTML = showEffect(es,1);
 }
 
-function showArgs () {
-    if (instrFmtStr==="RRR") {
+function showArgs (es) {
+    if (es.instrFmtStr==="RRR") {
 	return `R${ir_d},R${ir_a},R${ir_b}`;
-    } else if (instrFmtStr==="RX") {
-	return `R${ir_d},${wordToHex4(instrDisp)}[R${ir_a}]`;
+    } else if (es.instrFmtStr==="RX") {
+	return `R${ir_d},${wordToHex4(es.instrDisp)}[R${ir_a}]`;
     } else {
 	return "?";
     }
 }
 
-function showEffect (i) {
+function showEffect (es,i) {
     console.log(`showEffect ${i}`);
-    if (instrEffect[i]) {
-	let [dest,idx,val,name] = instrEffect[i];
+    if (es.instrEffect[i]) {
+	let [dest,idx,val,name] = es.instrEffect[i];
 	if (dest==="R") {
-	    console.log (`showEffect ${i} ${instrEffect[i]}`);
+	    console.log (`showEffect ${i} ${es.instrEffect[i]}`);
 //	    console.log (`showEffect ${i}  ${dest} ${idx} := ${val});
 	    return `${name} := ${wordToHex4(val)}`;
 	} else if (dest==="M") {
@@ -81,13 +128,9 @@ function showEffect (i) {
     } else { return ""; }
 }
 
-
-
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Boot
-
-// Boot from either the current module (without linking) or the load
-// module (if the linker has been run).
+//------------------------------------------------------------------------------
 
 // Attempt to copy an executable into memory for execution.  A module
 // is executable if it contains object code but doesn't have any
@@ -95,7 +138,10 @@ function showEffect (i) {
 // come from either the assembler, or it can be read in as an object
 // file.  The presence of an assembly listing and asmap is optional.
 
-function boot () {
+// (Interface: called from gui) Boot from either the current module
+// (without linking) or the load module (if the linker has been run).
+
+function boot(es) {
     console.log ('boot');
     let m = getCurrentModule ();
     exMod = m;
@@ -103,10 +149,16 @@ function boot () {
 	console.log ('Current module is executable: booting');
 	resetRegisters ();
 	memClearAccesses();
-	copyExecutableToMemory (m);
-	initListing ();
-	nInstructionsExecuted = 0;
-	document.getElementById("nInstrExecuted").innerHTML = nInstructionsExecuted;
+	copyExecutableToMemory (es,m);
+	es.asmListingPlain = m.asmListingPlain;
+	es.asmListingDec = m.asmListingDec;
+	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
+	    es.asmListingCurrent[i] = es.asmListingDec[i];
+	}
+	initListing (es);
+	es.nInstructionsExecuted = 0;
+	document.getElementById("nInstrExecuted").innerHTML =
+	    es.nInstructionsExecuted;
     } else {
 	console.log ('cannot boot')
     }
@@ -118,7 +170,8 @@ function boot () {
 // org and it requires the module to be assembled (rather than read
 // in).
 
-function copyExecutableToMemory (m) {
+function copyExecutableToMemory (es,m) {
+    console.log ('copyExecutableToMemory');
     let stmt = m.asmStmt;
     let locationCounter = 0;
     for (let i = 0; i < stmt.length; i++) {
@@ -135,11 +188,13 @@ function copyExecutableToMemory (m) {
     }
     memShowAccesses();
     memDisplay();
-    curAsmap = m.asmap;
-    setProcStatus ("Ready");
+    es.curAsmap = m.asmap;
+    showAsmap (es.curAsmap);
+    setProcStatus (es,"Ready");
+    console.log ('copyExecutableToMemory done');
 }
 
-function parseCopyObjectModuleToMemory () {
+function parseCopyObjectModuleToMemory (es) {
     console.log('boot');
     let objText = document.getElementById("LinkerText").value;
     console.log('objText = ' + objText);
@@ -155,7 +210,7 @@ function parseCopyObjectModuleToMemory () {
     //    console.log('field2 = ' + fields[2]);
     bootCurrentLocation = 0;
     for (var i = 0; i < xs.length; i++) {
-	linkerBootLine(i, xs[i]);
+	linkerBootLine(es, i, xs[i]);
 //	experiment(xs[i]);
     }
 }
@@ -164,7 +219,7 @@ function parseCopyObjectModuleToMemory () {
 // error messages, but that's for later.  For now, just assume it is
 // hexdata with valid argument
 
-function linkerBootLine (m,i,x) {
+function linkerBootLine (es,m,i,x) {
     let y = parseAsmLine (m,i,x);
 //    printAsmLine (y);
     let w = y.fieldOperands;
@@ -180,9 +235,9 @@ function parseObject () {
     console.log('parseObject');
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Highlighting current and next instruction in processor assembly listing
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 // The assembler provides an array of source lines, which it passes on
 // to the linker and thence to the emulator.  There are two strings
@@ -192,112 +247,110 @@ function parseObject () {
 // to indicate (with just one color for the line) the instruction that
 // has just executed and the instruction that will be executed next.
 
-// Initialize the running listing display
+// The assembler produces listing lines with <span> elements to allow
+// the fields of the line to be highlighted. These are stored in
+// listingHighlightedFields.  However, the emulator highlights an
+// entire listing line to indicate the instruction that is currently
+// executing, or that will execute next.  In order to prevent the
+// highlighting of fields from overriding the highlighting of the
+// current/next instruction, that is done using listingPlain.
 
-let srcLinePlain = [];
-let srcLineHighlightedFields = [];
+// Given address a, the corresponding source statement is
+//   i = es.curAsmap[a]
+//   if i=null then no source is avaiable
+//     else currentModule.asmStmt[i].srcLine
 
-function initListing () {
-    curInstrAddr = 0;
-    nextInstrAddr = 0;
-    curInstrLineNo = -1;  // -1 indicates no line has been highlighted
-    nextInstrLineNo = -1;
-    saveCurSrcLine = "";
-    saveNextSrcLine = "";
-    srcLinePlain = [];
-    srcLineHighlightedFields = [];
-//    srcLine.push("<pre class='HighlightedTextAsHtml'>");
-    for (let i = 0; i < exMod.asmStmt.length; i++) {
-	srcLinePlain.push(exMod.asmStmt[i].listingLinePlain);
-	srcLineHighlightedFields.push(exMod.asmStmt[i].listingLineHighlightedFields);
-//	srcLine.push(exMod.asmStmt[i].srcLine);
-    }
-//    srcLine.push("</pre>");
-    //    setProcAsmListing (srcLine.join('\n'));
-    setProcAsmListing ();
+function initListing (es) {
+    es.curInstrAddr = 0;
+    es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+    es.nextInstrAddr = 0;
+    es.nextInstrLineNo = es.curAsmap[0];
+    highlightListingLine (es, es.nextInstrLineNo, "NEXT");
+    setProcAsmListing (es,m);
 }
 
-// Prepare the running listing before starting instruction: remove any
-// existing highlighting of current and next instruction
+function showListingParameters (es) {
+    console.log ('showListingParameters'
+		 + ' es.curInstrAddr=' + es.curInstrAddr
+		 + ' es.curInstrLineNo=' + es.curInstrLineNo
+		 + ' es.nextInstrAddr=' + es.nextInstrAddr
+		 + ' es.nextInstrLineNo=' + es.nextInstrLineNo);
+}
 
-function prepareListingBeforeInstr () {
+// Prepare the running listing before starting instructionby removing
+// any existing highlighting of current and next instruction
+
+function prepareListingBeforeInstr (es) {
     console.log ('prepareListingBeforeInstr');
-    if (curInstrLineNo >= 0) { srcLine[curInstrLineNo] = saveCurSrcLine };
-    if (nextInstrLineNo >= 0) {	srcLine[nextInstrLineNo] = saveNextSrcLine };
-    curInstrLineNo = -1;
-    nextInstrLineNo = -1;
+    if (es.curInstrLineNo >= 0) {
+	es.asmListingCurrent[es.curInstrLineNo] =
+	    es.asmListingDec[es.curInstrLineNo];
+    }
+    if (es.nextInstrLineNo >= 0) {
+	es.asmListingCurrent[es.nextInstrLineNo] =
+	    es.asmListingDec[es.nextInstrLineNo];
+    }
+    es.curInstrLineNo = -1;
+    es.nextInstrLineNo = -1;
+    showListingParameters(es);
 }
 
 // As it executes an instruction, the emulator sets curInstrAddr and
-// nextInstrAddr.  These two simple assignments are the only overhead
-// during the interpretation of an instruction.
+// nextInstrAddr.  After the instruction has finished, these
+// instructions are highlighted in the listing
 
-// After the instruction has finished, highlight the current and next
-// instructions in the listing
-
-function highlightListingAfterInstr () {
+function highlightListingAfterInstr (es) {
     console.log ('highlightListingAfterInstr');
-    console.log ('  curInstrAddr = ' + curInstrAddr);
-    console.log ('  nextInstrAddr = ' + nextInstrAddr);
+    console.log ('  curInstrAddr = ' + es.curInstrAddr);
+    console.log ('  nextInstrAddr = ' + es.nextInstrAddr);
 
-    curInstrLineNo = curAsmap[curInstrAddr];
-    console.log ('  curInstrLineNo = ' + curInstrLineNo);
-    if (curInstrLineNo) {
-	saveCurSrcLine = srcLine[curInstrLineNo];
-	highlightListingLine (curInstrLineNo, "CUR");
+    es.curInstrLineNo = es.curAsmap[es.curInstrAddr];
+    console.log ('  curInstrLineNo = ' + es.curInstrLineNo);
+    if (es.curInstrLineNo >= 0) {
+	highlightListingLine (es, es.curInstrLineNo, "CUR");
     }
 
-    nextInstrLineNo = curAsmap[nextInstrAddr];
-    console.log ('  nextInstrLineNo = ' + nextInstrLineNo);
-    if (nextInstrLineNo) {
-	saveNextSrcLine = srcLine[nextInstrLineNo];
-	highlightListingLine (nextInstrLineNo, "NEXT");
+    es.nextInstrLineNo = es.curAsmap[es.nextInstrAddr];
+    console.log ('  nextInstrLineNo = ' + es.nextInstrLineNo);
+    if (es.nextInstrLineNo >= 0) {
+	highlightListingLine (es, es.nextInstrLineNo, "NEXT");
     }
 
     if (memDisplayModeFull) {
-	highlightListingFull ()
+	highlightListingFull (es)
     } else {
-	highlightListingFull ()    // temp ?????
+	highlightListingFull (es)    // temp ?????
     }
 }
 
-function highlightListingFull () {
+function highlightListingFull (es,m) {
     console.log ('highlightListingFull');
-//    let xs = "<pre><code class='HighlightedTextAsHtml'>"
-//	+ srcLine.join('\n')
-//	+ "</code></pre>";
-//    setProcAsmListing (xs);
-    setProcAsmListing ();
-    let xa = curInstrLineNo - asmScrollOffsetAbove;
+    setProcAsmListing (es);
+    let xa = es.curInstrLineNo - asmScrollOffsetAbove;
     xa = xa < 0 ? 0 : xa;
     let scrollOffset = xa * pxPerChar;
-    console.log ('curInstrLineNo = ' + curInstrLineNo
+    console.log ('curInstrLineNo = ' + es.curInstrLineNo
 		 + '  scrollOffset = ' + scrollOffset);
     procAsmListingElt.scroll (0, scrollOffset);
-    console.log ('   NOTE srcLine[0] = ' + srcLine[0]);
 }
 
-function highlightListingLine (i,highlight) {
-    let xs = srcLine[i];
-    srcLine[i] = "<span class='" + highlight + "'>" + xs + "</span>";
-    console.log ('highlightListingLine : ' + srcLine[i]);
+
+function highlightListingLine (es,i,highlight) {
+    es.asmListingCurrent[i] =
+	"<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
 }
 
-function setProcAsmListing () {
-//    console.log ('setProcAsmListing');
 // scrolling doesn't work if it just uses <pre> but not <code>
+
+function setProcAsmListing (es) {
+    console.log ('setProcAsmListing');
     let xs = "<pre><code class='HighlightedTextAsHtml'>"
-	+ srcLine.join('\n')
+    	+ es.asmListingCurrent.join('\n')
 	+ "</code></pre>";
     document.getElementById('ProcAsmListing').innerHTML = xs;
 }
 
-// Given address a, the corresponding source statement is
-//   i = curAsmap[a]
-//   if i=null then no source is avaiable
-//     else currentModule.asmStmt[i].srcLine
-
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 function clearCtlRegs () {
 }
@@ -308,35 +361,36 @@ function clearCtlRegs () {
 //     bootCurrentModule ();
 // }
 
-function procStep () {
+function procStep(es) {
     console.log ('procStep');
-    if (procStatus==="Stopped") { setProcStatus ("Ready"); }
-    if (procStatus==="Ready") {
-	clearInstrDecode ();
-	executeInstruction ();
-	showInstrDecode ();
-	highlightListingAfterInstr ();
+    if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
+    if (es.procStatus==="Ready") {
+	clearInstrDecode (es);
+	executeInstruction (es);
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
     }
 }
 
-function procRun () {
+function procRun(es) {
     console.log ("procRun");
-    if (procStatus==="Stopped") { setProcStatus ("Ready"); }
-    clearInstrDecode ();
-    regClearAccesses ();
-    memClearAccesses ();
-    clearInstrDecode ();
-    instructionLooper ();
+    if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
+    clearInstrDecode (es);
+    regClearAccesses (es);
+    memClearAccesses (es);
+    clearInstrDecode (es);
+    instructionLooper (es);
 }
 
 // Promises don't allow pause button click to break in, need setTimer for that
 
 //    return new Promise (function (resolve,reject) {
-//	resolve (instructionLooper ());
+//	resolve (instructionLooper (es));
 //    });
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Processor status
+//------------------------------------------------------------------------------
 
 // Reset   -- registers and memory have been cleared
 //               result of Reset button
@@ -351,78 +405,74 @@ function procRun () {
 //               result of trap 0
 //               can boot or reset
 
-let procStatus = "Reset"
-
-function setProcStatus (s) {
-    procStatus = s;
+function setProcStatus (es,s) {
+    es.procStatus = s;
     document.getElementById("procStatus").innerHTML=s;
 }
 
-function procReset() {
+function procReset(es) {
     console.log ("reset the processor");
-    setProcStatus ("Reset");
+    setProcStatus (es,"Reset");
     resetRegisters ();
     refreshRegisters ();
     memClear ();
     memClearAccesses ();
     memDisplay ();
     document.getElementById('ProcAsmListing').innerHTML = "";
-    clearInstrDecode ();
-    refreshInstrDecode ();
-    nInstructionsExecuted = 0;
-    document.getElementById("nInstrExecuted").innerHTML = nInstructionsExecuted;
+    clearInstrDecode (es);
+    refreshInstrDecode (es);
+    es.nInstructionsExecuted = 0;
+    document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Controlling instruction execution
-
-let nInstructionsExecuted = 0;
-let instrLooperDelay = 1000;
-let instrLooperShow = true;
+//------------------------------------------------------------------------------
 
 
-function procPause () {
+function procPause(es) {
     console.log ("procPause");
-    setProcStatus ("Stopped");
+    setProcStatus (es,"Stopped");
 }
 
-function instructionLooper () {
-    if (procStatus==="Ready") {
-	if (instrLooperShow) {
-	    clearInstrDecode ();
+function instructionLooper (es) {
+    if (es.procStatus==="Ready") {
+	if (es.instrLooperShow) {
+	    clearInstrDecode (es);
 	}
-	executeInstruction ();
-	if (instrLooperShow) {
-	    showInstrDecode ();
-	    highlightListingAfterInstr ();
+	executeInstruction (es);
+	if (es.instrLooperShow) {
+	    showInstrDecode (es);
+	    highlightListingAfterInstr (es);
 	}
-	setTimeout (instructionLooper, instrLooperDelay);
+	setTimeout (instructionLooper, es.instrLooperDelay);
     } else { return; }
 }
 
 
-//    while (procStatus==="Ready") {
+//    while (es.procStatus==="Ready") {
 //	executeInstruction ();
 //    }
 // memClearAccesses, memShowAccesses, and memDisplay are very slow...
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Machine language semantics
+//------------------------------------------------------------------------------
 
-function executeInstruction () {
+function executeInstruction (es) {
     console.log ('executeInstruction');
-    nInstructionsExecuted++;
-    document.getElementById("nInstrExecuted").innerHTML = nInstructionsExecuted;
-    prepareListingBeforeInstr ();
+    es.nInstructionsExecuted++;
+    document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
+    prepareListingBeforeInstr (es);
     memClearAccesses ();
     memDisplay ();
     regClearAccesses ();
 
-    curInstrAddr = pc.get();
-    instrCode = memFetchInstr (curInstrAddr);
+    es.curInstrAddr = pc.get();
+    instrCode = memFetchInstr (es.curInstrAddr);
     ir.put (instrCode);
-    nextInstrAddr = binAdd (curInstrAddr, 1);
-    pc.put (nextInstrAddr);
+    es.nextInstrAddr = binAdd (es.curInstrAddr, 1);
+    pc.put (es.nextInstrAddr);
     console.log('pc = ' + wordToHex4(pc.get()) + ' ir = ' + wordToHex4(instr));
     let tempinstr = ir.get();
     ir_b = tempinstr & 0x000f;
@@ -434,9 +484,9 @@ function executeInstruction () {
     ir_op = tempinstr & 0x000f;
     console.log('instr fields = ' + ir_op + ' ' + ir_d + ' ' + ir_a + ' ' + ir_b);
 
-    instrFmtStr = "RRR";             // Replace if opcode expands to RX or XX
-    instrOpStr = mnemonicRRR[ir_op]  // Replace if opcode expands to RX or XX
-    dispatch_RRR [ir_op] ();
+    es.instrFmtStr = "RRR";             // Replace if opcode expands to RX or XX
+    es.instrOpStr = mnemonicRRR[ir_op]  // Replace if opcode expands to RX or XX
+    dispatch_RRR [ir_op] (es);
     
     regShowAccesses()
     memShowAccesses();
@@ -472,24 +522,104 @@ function executeInstruction () {
 // rrrc  -- use ra, rb, and cc as operands, place results in rd and cc
 // trap  -- perform trap; instruction ignores all registers but OS may use them
 
-var dispatch_RRR =
-    [function () {rrdc (op_add)},     // 0
-     function () {rrdc (op_sub)},     // 1
-     function () {rrdc (op_mul)},     // 2
-     function () {rrdc (op_div)},     // 3
-     function () {rrc (op_cmp)},      // 4
-     function () {rrd (op_cmplt)},    // 5
-     function () {rrd (op_cmpeq)},    // 6
-     function () {rrd (op_cmpgt)},    // 7
-     function () {rd (op_inv)},       // 8
-     function () {rrd (op_and)},      // 9
-     function () {rrd (op_or)},       // a
-     function () {rrd (op_xor)},      // b
-     function () {crrdc (op_addc)},   // c
-     function () {op_trap ()},        // d
-     function () {handle_xx ()},      // e
-     function () {handle_rx ()} ]     // f
 
+// demonstrate lambda expressions, and a curried lambda
+/*
+const foobar = (x) => (y) => x+y;
+let baz = foobar (5);
+let bar = foobar (41);
+let abc = foobar (7) (50);
+*/
+
+// Apply f to a and b, load primary result into d, and load secondary
+// result into c (e.g. add)
+
+const rrdc = (f) => (es) => {
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let [primary, secondary] = f (a,b);
+    regFile[ir_d].put(primary);
+    if (ir_d<15) { regFile[15].put(secondary) }
+}
+
+// Apply f to a and load primary result into d (e.g. inv)
+
+const rd = (f) => (es) => {
+    let a = regFile[ir_a].get();
+    let primary = f (a);
+    regFile[ir_d].put(primary);
+}
+
+// Apply f to a and b, and load primary result into d (e.g. cmplt)
+
+const rrd = (f) => (es) => {
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let primary = f (a,b);
+    regFile[ir_d].put(primary);
+}
+
+// Apply f to a and b, and load primary result into c (e.g. cmp)
+
+const rrc = (f) => (es) => {
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let cc = f (a,b);
+    regFile[15].put(cc);
+}
+
+// Apply f to c, a and b, load primary result into d, and load
+// secondary result into c (e.g. addc)
+
+const crrdc = (f) => (es) => {
+    let c = regFile[15].get();
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    let [primary, secondary] = f (c,a,b);
+    regFile[ir_d].put(primary);
+    if (ir_d<15) { regFile[15].put(secondary) }
+}
+
+const op_trap = (es) => {
+    let d = regFile[ir_d].get();
+    let a = regFile[ir_a].get();
+    let b = regFile[ir_b].get();
+    console.log (`trap ${d} ${a} ${b}`);
+    if (d===0) {
+	console.log ("Trap: halt");
+	setProcStatus (es,"Halted");
+    }
+}
+
+const handle_xx = (es) => {
+    console.log ('xx');
+    es.instrFmtStr = "XX";
+}
+
+const handle_rx = (es) => {
+    console.log ('handle rx' + ir_b);
+    es.instrFmtStr = "RX";
+    dispatch_RX [ir_b] (es);
+}
+
+const dispatch_RRR =
+      [ rrdc (op_add),     // 0
+        rrdc (op_sub),     // 1
+        rrdc (op_mul),     // 2
+        rrdc (op_div),     // 3
+        rrc (op_cmp),      // 4
+        rrd (op_cmplt),    // 5
+        rrd (op_cmpeq),    // 6
+        rrd (op_cmpgt),    // 7
+        rd  (op_inv),      // 8
+        rrd (op_and),      // 9
+        rrd (op_or),       // a
+        rrd (op_xor),      // b
+        crrdc (op_addc),   // c
+        op_trap,           // d
+        handle_xx,         // e
+        handle_rx ]        // f
+	
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
 // the primary result is loaded into rd and the secondary result is
@@ -503,107 +633,36 @@ var dispatch_RRR =
 // load into R0 but produce 0 on readout; (3) don't even implement R0
 // with state bits, but ensure that its readout produces 0.
 
-// Apply f to a and load primary result into d (e.g. inv)
-
-function rd (f) {
-    let a = regFile[ir_a].get();
-    let primary = f (a);
-    regFile[ir_d].put(primary);
-}
-
-// Apply f to a and b, and load primary result into d (e.g. cmplt)
-
-function rrd (f) {
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
-    let primary = f (a,b);
-    regFile[ir_d].put(primary);
-}
-
-// Apply f to a and b, and load primary result into c (e.g. cmp)
-
-function rrc (f) {
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
-    let cc = f (a,b);
-    regFile[15].put(cc);
-}
-
-// Apply f to a and b, load primary result into d, and load secondary
-// result into c (e.g. add)
-
-function rrdc (f) {
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
-    let [primary, secondary] = f (a,b);
-    regFile[ir_d].put(primary);
-    if (ir_d<15) { regFile[15].put(secondary) }
-}
-
-// Apply f to c, a and b, load primary result into d, and load
-// secondary result into c (e.g. addc)
-
-function op_crrdc (f) {
-    let c = regFile[15].get();
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
-    let [primary, secondary] = f (c,a,b);
-    regFile[ir_d].put(primary);
-    if (ir_d<15) { regFile[15].put(secondary) }
-}
-
-function op_trap () {
-    let d = regFile[ir_d].get();
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
-    console.log (`trap ${d} ${a} ${b}`);
-    if (d===0) {
-	console.log ("Trap: halt");
-	setProcStatus ("Halted");
-    }
-}
-
-function handle_xx () {
-    console.log ('xx');
-    instrFmtStr = "XX";
-}
-
-function handle_rx () {
-    console.log ('handle rx' + ir_b);
-    instrFmtStr = "RX";
-    rxDispatch[ir_b]();
-}
-
-var rxDispatch =
-    [function () {rx(rx_lea)},       // 0
-     function () {rx(rx_load)},      // 1
-     function () {rx(rx_store)},     // 2
-     function () {rx(rx_jump)},      // 3
-     function () {rx(rx_jumpc0)},    // 4
-     function () {rx(rx_jumpc1)},    // 5
-     function () {rx(rx_jumpf)},     // 6
-     function () {rx(rx_jumpt)},     // 7
-     function () {rx(rx_jal)},       // 8
-     function () {rx(rx_nop)},       // 0
-     function () {rx(rx_nop)},       // 0
-     function () {rx(rx_nop)},       // 0
-     function () {rx(rx_nop)},       // 0
-     function () {rx(rx_nop)},       // 0
-     function () {rx(rx_nop)},       // 0
-     function () {rx(rx_nop)}];       // 0
-
-function rx(f) {
+const rx = (f) => (es) => {
     console.log('rx');
-    instrOpStr = mnemonicRX[ir_b];
-    instrDisp = memFetchInstr (pc.get());
-    adr.put (instrDisp);
-    nextInstrAddr = binAdd (nextInstrAddr, 1);
-    pc.put (nextInstrAddr);
+    es.instrOpStr = mnemonicRX[ir_b];
+    es.instrDisp = memFetchInstr (pc.get());
+    adr.put (es.instrDisp);
+    es.nextInstrAddr = binAdd (es.nextInstrAddr, 1);
+    pc.put (es.nextInstrAddr);
     ea = binAdd (regFile[ir_a].get(), adr.get());
-    instrEA = ea;
+    es.instrEA = ea;
     console.log('rx ea = ' + wordToHex4(ea));
     f();
 }
+
+const dispatch_RX =
+    [ rx (rx_lea),       // 0
+      rx (rx_load),      // 1
+      rx (rx_store),     // 2
+      rx (rx_jump),      // 3
+      rx (rx_jumpc0),    // 4
+      rx (rx_jumpc1),    // 5
+      rx (rx_jumpf),     // 6
+      rx (rx_jumpt),     // 7
+      rx (rx_jal),       // 8
+      rx (rx_nop),       // 9
+      rx (rx_nop),       // a
+      rx (rx_nop),       // b
+      rx (rx_nop),       // c
+      rx (rx_nop),       // d
+      rx (rx_nop),       // e
+      rx (rx_nop) ];     // f
 
 function rx_lea () {
     console.log('rx_lea');
@@ -622,16 +681,16 @@ function rx_store () {
 
 function rx_jump () {
     console.log('rx_jump');
-    nextInstrAddr = ea;
-    pc.put(nextInstrAddr);
+    es.nextInstrAddr = ea;
+    pc.put(es.nextInstrAddr);
 }
 
 function rx_jumpc0 () {
     console.log('rx_jumpc0');
     let cc = regFile[15].get();
     if (extractBit (cc,ir_d)===0) {
-	nextInstrAddr = ea;
-	pc.put(nextInstrAddr);
+	es.nextInstrAddr = ea;
+	pc.put(es.nextInstrAddr);
     }
 }
 
@@ -639,51 +698,52 @@ function rx_jumpc1 () {
     console.log('rx_jumpc1');
     let cc = regFile[15].get();
     if (extractBit (cc,ir_d)===1) {
-	nextInstrAddr = ea;
-	pc.put(nextInstrAddr);
+	es.nextInstrAddr = ea;
+	pc.put(es.nextInstrAddr);
     }
 }
 
 function rx_jumpf () {
     console.log('rx_jumpf');
     if (! wordToBool (regFile[ir_d].get())) {
-	nextInstrAddr = ea;
-	pc.put (nextInstrAddr);
+	es.nextInstrAddr = ea;
+	pc.put (es.nextInstrAddr);
     }
 }
-
 
 function rx_jumpt () {
     console.log('rx_jumpt');
     if (wordToBool (regFile[ir_d].get())) {
-	nextInstrAddr = ea;
-	pc.put (nextInstrAddr);
+	es.nextInstrAddr = ea;
+	pc.put (es.nextInstrAddr);
     }
 }
 
 function rx_jal () {
     console.log('rx_jal');
     regFile[ir_d].put (pc.get());
-    nextInstrAddr = ea;
-    pc.put (nextInstrAddr);
+    es.nextInstrAddr = ea;
+    pc.put (es.nextInstrAddr);
 }
 
 function rx_nop () {
     console.log ('rx_nop');
 }
 
-function xx(f) {
+// function xx(f) {
+const xx = (f) => (es) => {
     console.log('xx');
-    instrOpStr = mnemonicXX[ir_b];
-    instrDisp = memFetchInstr (pc.get());
-    adr.put (instrDisp);
-    nextInstrAddr = binAdd (nextInstrAddr, 1);
-    pc.put (nextInstrAddr);
+    es.instrOpStr = mnemonicXX[ir_b];
+    es.instrDisp = memFetchInstr (pc.get());
+    adr.put (es.instrDisp);
+    es.nextInstrAddr = binAdd (es.nextInstrAddr, 1);
+    pc.put (es.nextInstrAddr);
     f();
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Test pane
+//------------------------------------------------------------------------------
 
 // From emulator.js
 
@@ -695,7 +755,6 @@ function xx(f) {
 // <pre class="HighlightedTextAsHtml"> but don't put it inside a div
 // with HighlightedTExtAsHtml
 
-var procAsmListingElt;  // set during onLoad event
 
 function testpane1() {
     console.log ('testpane 1 clicked')

@@ -4,6 +4,8 @@ var exMod;           // the module that is executing
 var curAsmap = [];
 
 
+// Clear the display of the object code in the linker pane
+
 function clearObjectCode () {
     document.getElementById('LinkerText').innerHTML	= "";
 }

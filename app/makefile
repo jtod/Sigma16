@@ -39,18 +39,9 @@
 
 VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
-# The ArchiveLocation is relative to Sigma16/app
-ArchiveLocation := ../../../archive
-
 RELEASELOCATION := jtod@sibu:/users/staff/jtod/public_html/Sigma16/
 
-PackagePath := $(shell pwd)
-PackageName := Sigma16
-DateTimeStamp := $(shell date +%Y-%m-%d-at-%H-%M)
-BuildDate != date +%d\ %b\ %Y
-TarballName := $(PackageName)-on-$(DateTimeStamp).tgz
-FullCopyName := $(PackageName)-on-$(DateTimeStamp)
-
+#---------------------------------------------------------------------
 # make web - make the files needed for running as a web page
 
 .PHONY : web
@@ -132,6 +123,7 @@ release-index :
 	  doc/src/release-index.md
 	cp doc/src/doc.css ../release/
 
+#---------------------------------------------------------------------
 # make npm -- download JavaScript dependencies
 
 .PHONY : dependencies
@@ -226,34 +218,3 @@ super-clean :
 	rm -rf doc/html
 	rm -rf node_modules
 	rm ../index.html
-
-# make show-parameters -- print calculated parameters, for maintaining
-# this makefile
-
-.PHONY : show-parameters
-show-parameters :
-	echo VERSION = $(VERSION)
-	echo PackagePath = $(PackagePath)
-	echo PackageName = $(PackageName)
-	echo DateTimeStamp = $(DateTimeStamp)
-	echo BuildDate = $(BuildDate)
-	echo TarballName = $(TarballName)
-	echo FullCopyName = $(FullCopyName)
-	echo ArchiveLocation = $(ArchiveLocation)
-	echo Sigma16Version = $(Sigma16Version)
-
-# make archive-tarball -- create a tgz file of the entire
-# Sigma16-i.j.k directory and place it in the archive directory.  See
-# README.txt for directory layout.
-
-.PHONY : archive-tarball
-archive-tarball :
-	cd ../.. ; \
-	  pwd ; \
-	  tar -czf $(TarballName) $(PackageName) ; \
-	  mv $(TarballName) $(ArchiveLocation)
-
-# make list-archive -- list contents of the archive directory
-.PHONY : list-archive
-list-archive :
-	ls -lctr $(ArchiveLocation)

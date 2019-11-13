@@ -115,8 +115,9 @@
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
-		<button onclick="setCurrentObjectCode()"> Current object </button>
-		<button onclick="boot()"> test Boot </button>
+		<button onclick="setCurrentObjectCode(emulatorState)">
+		  Current object </button>
+		<button onclick="boot(emulatorState)"> test Boot </button>
 		<button> Linker 3 </button>
 	      </div>
 	      <div class="PaneBody" id="LinkerBody">
@@ -126,13 +127,13 @@
 	    
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
-		<button onclick="procReset()"> Reset </button>
-		<button onclick="boot()"> Boot </button>
-		<button onclick="procStep()"> Step </button>
-		<button onclick="procRun()"> Run </button>
-		<button onclick="procPause()">Pause</button>
-		<button onclick="procInterrupt()">Interrupt</button>
-		<button onclick="procBreakpoint()">Breakpoint</button>
+		<button onclick="procReset(emulatorState)"> Reset </button>
+		<button onclick="boot(emulatorState)"> Boot </button>
+		<button onclick="procStep(emulatorState)"> Step </button>
+		<button onclick="procRun(emulatorState)"> Run </button>
+		<button onclick="procPause(emulatorState)">Pause</button>
+		<button onclick="procInterrupt(emulatorState)">Interrupt</button>
+		<button onclick="procBreakpoint(emulatorState)">Breakpoint</button>
 	      </div>
 	      <div class="PaneBody" id="ProcessorBody">
 		<div id="ProcessorState">

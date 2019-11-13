@@ -1,4 +1,54 @@
-// Sigma16: state.js defines registers and memory
+//------------------------------------------------------------------------------
+// state.js defines global state
+//------------------------------------------------------------------------------
+
+// The main components of the program avoid using global variables;
+// instead the necessary state is organized into records and passed as
+// needed to the functions.  This module defines those records.  The
+// gui operations, defined in Sigma16.html, call the emulator's
+// interface functios with the state, for example boot(emulatorState).
+
+
+//------------------------------------------------------------------------------
+// Emulator state
+//------------------------------------------------------------------------------
+
+// This is the global emulator state.  The functions in the emulator
+// don't use it directly, in order to avoid excessive use of globals.
+// The current emulator state is passed as needed to functions (the
+// convention is that the parameter name is 'es').
+
+let emulatorState =
+    {
+// Processor
+	procStatus : "Reset",
+	nInstructionsExecuted : 0,
+	instrLooperDelay : 1000,
+	instrLooperShow : true,
+// Instruction being executed
+	instrOpCode   : null,
+	instrDisp     : null,
+	instrCodeStr  : "",
+	instrFmtStr   : "",
+	instrOp       : "",
+	instrArgs     : "",
+	instrEA       : null,
+	instrEAStr    : "",
+	instrEffect   : [],
+	// Tracking source lines corresponding to current instruction
+	curAsmap : [],
+	asmListingPlain : [],  // plain listing shows address, code, source
+	asmListingDec : [],    // decorated listing uses highlighting for fields
+	asmListingCurrent : [], // version of listing displayed in emulator pane
+	curInstrAddr       : 0,
+	nextInstrAddr      : 0,
+	curInstrLineNo     : -1,  // -1 indicates no line has been highlighted
+	nextInstrLineNo    : -1,
+	saveCurSrcLine     : "",
+	saveNextSrcLine    : "",
+//	srcLinePlain       : [],
+//	srcLineHighlightedFields : []
+    }
 
 
 

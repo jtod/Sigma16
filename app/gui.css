@@ -112,7 +112,6 @@ scroll from working */
     --color-solarized-blue:      #268bd2;
     --color-solarized-cyan:      #2aa198;
     --color-solarized-green:     #859900;
-
 }
 
 /*
@@ -764,9 +763,11 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 
 .CUR {
     color: var(--text-color-cur);
+    font-weight: bold;
 }
 .NEXT {
     color: var(--text-color-next);
+    font-weight: bold;
 }
 
 .ERR {
@@ -784,7 +785,7 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 }
 
 .FIELDOPERATION {
-   color: var(--color-solarized-red);
+   color: var(--color-solarized-cyan);
 }
 
 .FIELDOPERAND {
@@ -792,7 +793,7 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 }
 
 .FIELDCOMMENT {
-   color: var(--color-solarized-cyan);
+   color: var(--color-solarized-magenta);
 }
 
 .solarized-green {
