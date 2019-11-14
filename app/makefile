@@ -7,6 +7,11 @@
 # git tag -a v3.0.26 -m 'move to version v3.0.26'
 # git push  origin v3.0.26
 
+# It seemed to work after this:
+# git push -u origin master
+
+# Try this:    git push -u origin v3.0.27
+
 # Does github automatically build the web page?  Do I need to touch it
 # on settings?
 

@@ -1,1 +1,1 @@
-const s16version = "3.0.26";
+const s16version = "3.0.27";

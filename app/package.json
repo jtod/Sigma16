@@ -1,6 +1,6 @@
 {
    "name": "sigma16",
-   "version": "3.0.26",
+   "version": "3.0.27",
    "description": "Computer architecture with assembler and emulator",
    "repository": "Sigma/current/Sigma16",
    "homepage": "./",
