@@ -1,5 +1,15 @@
 # makefile for Sigma16
 
+
+# edit package.json to change version number
+# make set-version
+# make userguide
+# git tag -a v3.0.26 -m 'move to version v3.0.26'
+# git push  origin v3.0.26
+
+# Does github automatically build the web page?  Do I need to touch it
+# on settings?
+
 # make web     prepare web version
 
 
