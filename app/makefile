@@ -10,6 +10,14 @@
 # Does github automatically build the web page?  Do I need to touch it
 # on settings?
 
+# On github project page, select current tag, go to settings, select
+# master (evern though it is already selected)
+
+
+# On gitghb project page, https://github.com/jtod/Sigma16/settings,
+# this message appears (soon after pushing): "Your GitHub Pages site
+# is currently being built from the master branch. Learn more."
+
 # make web     prepare web version
 
 
