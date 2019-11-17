@@ -643,7 +643,7 @@ const rx = (f) => (es) => {
     ea = binAdd (regFile[ir_a].get(), adr.get());
     es.instrEA = ea;
     console.log('rx ea = ' + wordToHex4(ea));
-    f();
+    f (es);
 }
 
 const dispatch_RX =
@@ -664,28 +664,28 @@ const dispatch_RX =
       rx (rx_nop),       // e
       rx (rx_nop) ];     // f
 
-function rx_lea () {
+function rx_lea (es) {
     console.log('rx_lea');
     regFile[ir_d].put(ea);
 }
 
-function rx_load () {
+function rx_load (es) {
     console.log('rx_load');
     regFile[ir_d].put(memFetchData(ea));
 }
 
-function rx_store () {
+function rx_store (es) {
     console.log('rx_store');
     memStore (ea, regFile[ir_d].get());
 }
 
-function rx_jump () {
+function rx_jump (es) {
     console.log('rx_jump');
     es.nextInstrAddr = ea;
     pc.put(es.nextInstrAddr);
 }
 
-function rx_jumpc0 () {
+function rx_jumpc0 (es) {
     console.log('rx_jumpc0');
     let cc = regFile[15].get();
     if (extractBit (cc,ir_d)===0) {
@@ -694,7 +694,7 @@ function rx_jumpc0 () {
     }
 }
 
-function rx_jumpc1 () {
+function rx_jumpc1 (es) {
     console.log('rx_jumpc1');
     let cc = regFile[15].get();
     if (extractBit (cc,ir_d)===1) {
@@ -703,7 +703,7 @@ function rx_jumpc1 () {
     }
 }
 
-function rx_jumpf () {
+function rx_jumpf (es) {
     console.log('rx_jumpf');
     if (! wordToBool (regFile[ir_d].get())) {
 	es.nextInstrAddr = ea;
@@ -711,7 +711,7 @@ function rx_jumpf () {
     }
 }
 
-function rx_jumpt () {
+function rx_jumpt (es) {
     console.log('rx_jumpt');
     if (wordToBool (regFile[ir_d].get())) {
 	es.nextInstrAddr = ea;
@@ -719,14 +719,14 @@ function rx_jumpt () {
     }
 }
 
-function rx_jal () {
+function rx_jal (es) {
     console.log('rx_jal');
     regFile[ir_d].put (pc.get());
     es.nextInstrAddr = ea;
     pc.put (es.nextInstrAddr);
 }
 
-function rx_nop () {
+function rx_nop (es) {
     console.log ('rx_nop');
 }
 

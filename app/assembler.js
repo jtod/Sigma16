@@ -126,7 +126,7 @@ statementSpec.set("trap",  {format:RRR, opcode:[13]});
 statementSpec.set("lea",      {format:RX,  opcode:[15,0]});
 statementSpec.set("load",     {format:RX,  opcode:[15,1]});
 statementSpec.set("store",    {format:RX,  opcode:[15,2]});
-statementSpec.set("jump",     {format:RX,  opcode:[15,3]});
+statementSpec.set("jump",     {format:JX,  opcode:[15,3]});
 statementSpec.set("jumpc0",   {format:RX,  opcode:[15,4]});
 statementSpec.set("jumpc1",   {format:RX,  opcode:[15,5]});
 statementSpec.set("jumpf",    {format:RX,  opcode:[15,6]});
@@ -273,10 +273,10 @@ function printAsmStmt (m,x) {
 // Report an assembly error: s is an assembly source line, err is an
 // error message
 
-function mkErrMsg (s,err) {
+function mkErrMsg (m,s,err) {
     let errline = err;
     s.errors.push(errline);
-    nErrors++;
+    m.nAsmErrors++;
 }
 //    console.log('mkErrMsg ' + errline);
 //    let errline = '<span class="ERR">' + err + '</span>';
@@ -594,13 +594,13 @@ function parseAsmLine (m,i) {
     console.log(`operation = /${s.fieldOperation}/`);
     console.log(`operands = /${s.fieldOperands}/`);
     console.log(`comments = /${s.fieldComment}/`);
-    parseLabel (s);
-    parseOperation (s);
-    parseOperand (s);
+    parseLabel (m,s);
+    parseOperation (m,s);
+    parseOperand (m,s);
     if (s.hasLabel) {
 	if (m.symbolTable.has(s.fieldLabel)) {
 	    //	    s.errors.push(s.fieldLabel + ' has already been defined');
-	    mkErrMsg (s, s.fieldLabel + ' has already been defined');
+	    mkErrMsg (m, s, s.fieldLabel + ' has already been defined');
 	} else {
 	    m.symbolTable.set (s.fieldLabel,
 	     {symbol : s.fieldLabel, val : m.locationCounter,
@@ -614,14 +614,14 @@ function parseAsmLine (m,i) {
 // code <= DATA.  The higher operations either don't need an operand
 // (COMMENT) or need to be checked individually (DIRECTIVE).
 
-function checkOpOp (s) {
+function checkOpOp (m,s) {
     console.log(`checkOpOp line ${s.lineNumber}`);
     let format = s.format;
     let operandType = s.operandType;
     console.log (`checkOpOp operation=${s.operation} format=${format} operandType=${operandType}`);
     if (format <= DATA && format != operandType) {
 	let msg = `${s.fieldOperation} is ${showFormat(format)} format, but operand type is ${showFormat(operandType)}`;
-	mkErrMsg (s,msg);
+	mkErrMsg (m,s,msg);
     }
 }
 
@@ -630,14 +630,14 @@ function checkOpOp (s) {
 // (i.e. doesn't match the regular expression for names), then
 // generate an error message.
 
-function parseLabel (s) {
+function parseLabel (m,s) {
     if (s.fieldLabel == '') {
 	s.hasLabel = false;
     } else if (s.fieldLabel.search(nameParser) == 0) {
 	s.hasLabel = true;
     } else {
 	s.hasLabel = false;
-	mkErrMsg(s, s.fieldLabel + ' is not a valid label');
+	mkErrMsg(m, s, s.fieldLabel + ' is not a valid label');
     }
 }
 
@@ -647,7 +647,7 @@ function parseLabel (s) {
 // be used as a Boolean to determine whether the operation exists, as
 // well as the specification of the operation if it exists.
 
-function parseOperation (s) {
+function parseOperation (m,s) {
     let op = s.fieldOperation;
     if (op !== '') {
 	let x = statementSpec.get(op);
@@ -658,9 +658,9 @@ function parseOperation (s) {
 	    s.codeSize = formatSize(x.format);
 	} else {
 	    if (op.search(nameParser) == 0) {
-		mkErrMsg (s, `${op} is not a valid operation`);
+		mkErrMsg (m, s, `${op} is not a valid operation`);
 	    } else {
-		mkErrMsg (s, `syntax error: operation ${op} must be a name`);
+		mkErrMsg (m, s, `syntax error: operation ${op} must be a name`);
 	    }
 	}
     }
@@ -681,7 +681,7 @@ function parseOperation (s) {
 // rrr, rx, or data
 
 // s is an AsmStmt object; parse the operand and update s
-function parseOperand (s) {
+function parseOperand (m,s) {
     let rrr = rrrParser.exec(s.fieldOperands);
     let rr = rrParser.exec(s.fieldOperands);
     let rx = rxParser.exec(s.fieldOperands);
@@ -772,7 +772,7 @@ function asmPass2 (m) {
 	console.log(`pass2 line=${s.lineNumber} s=/${s.srcLine}/`);
 	console.log(`pass2 line=${s.lineNumber} fmt=${fmt} opcode=${s.operation.opcode}`);
 	console.log(`pass2 line=${s.lineNumber} operation=${s.operation} operandType=${s.operandType}`);
-	checkOpOp (s);
+	checkOpOp (m,s);
 	if (fmt==RRR) {
 	    console.log (`pass2 RRR`);
 	    op = s.operation.opcode;
@@ -912,7 +912,7 @@ function evaluate (m,s,x) {
 	    return r.val;
 	} else {
 	    //	    s.errors.push('symbol ' + x + ' is not defined');
-	    mkErrMsg ('symbol ' + x + ' is not defined');
+	    mkErrMsg (m, s, 'symbol ' + x + ' is not defined');
 	    console.log('evaluate returning ' + 0);
 	    return 0;
 	}
@@ -925,7 +925,7 @@ function evaluate (m,s,x) {
 	return 0;
     } else {
 	//	s.errors.push('expression ' + x + ' has invalid syntax');
-	mkErrMsg ('expression ' + x + ' has invalid syntax');
+	mkErrMsg (m, s, 'expression ' + x + ' has invalid syntax');
 //	console.log('evaluate returning ' + 0);
 	return 0;
     }
@@ -1004,8 +1004,8 @@ function testOperands () {
 }
 
 // Try to parse string x as an operand and print the result
-function testOperand (x) {
-    showOperand(parseOperand(x));
+function testOperand (m,x) {
+    showOperand(parseOperand(m,x));
 }
 
 

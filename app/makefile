@@ -1,35 +1,47 @@
+#-------------------------------------------------------------------------------
 # makefile for Sigma16
+#-------------------------------------------------------------------------------
 
 
-# edit package.json to change version number
-# make set-version
-# make userguide
+#-------------------------------------------------------------------------------
+# Workflow for web version
+
+# Edit source files in git repository, add and commit the files
+# To change version number to v3.0.26 or whatever it is...
+# edit package.json     This contains the master definition of version number
+# make set-version      Reads package.json and defines two auxiliary files
+# make userguide        Reads an auxiliary file to include version nmber
 # git tag -a v3.0.26 -m 'move to version v3.0.26'
-# git push  origin v3.0.26
 
-# It seemed to work after this:
-# git push -u origin master
+# To serve the application under jtod.github.io, the personal home
+# page which is ale to serve html files rather than just show the
+# source text...
 
-# Try this:    git push -u origin v3.0.27
+# Need to copy the relevant files from the git repository for Sigma16
+# over to the git repository for jtod.github.io.  Don't copy all
+# files, as these will include library files downloaded by npm for
+# compiling the system.  make copy-app-to-homepage
+
+# Not sure the best way to push to github
+# git push  origin v3.0.26    Seems to take forever to update page (days or more)
+# git push -u origin master   It seemed to work after this:
+# git push -u origin v3.0.27   Try this, does it work better?
 
 # Does github automatically build the web page?  Do I need to touch it
-# on settings?
-
-# On github project page, select current tag, go to settings, select
-# master (evern though it is already selected)
-
+# on settings?  On github project page, select current tag, go to
+# settings, select master (evern though it is already selected)
 
 # On gitghb project page, https://github.com/jtod/Sigma16/settings,
 # this message appears (soon after pushing): "Your GitHub Pages site
 # is currently being built from the master branch. Learn more."
 
-# make web     prepare web version
+#-------------------------------------------------------------------------------
+# Non-source files
 
-
-# Non-source files.  The following files are written by various
-# compilation tools; they are not source and shouldn't be edited.  The
-# files marked optional are produced when a standalone version is
-# generated, but are not necessaryand can be deleted.
+# The following files are written by various compilation tools; they
+# are not source and shouldn't be edited.  The files marked optional
+# are produced when a standalone version is generated, but are not
+# necessaryand can be deleted.
 
 #  dist                directory produced by npm (optional)
 #  node_modules        directory of packages downloaed by npm (optional)
@@ -98,6 +110,79 @@ all :
 set-version :
 	echo $(VERSION) > ../VERSION
 	echo "const s16version = \"$(VERSION)\";" > version.js
+
+
+# make program-indices --- Generate the index.html files for the
+# programs directory
+
+.PHONY : program-indices
+program-indices :
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../doc/src/doc.css \
+	  --metadata pagetitle="Example programs" \
+          -o programs/Examples/index.html \
+	  programs/Examples/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Arithmetic examples" \
+          -o programs/Examples/Arithmetic/index.html \
+	  programs/Examples/Arithmetic/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Simple examples" \
+          -o programs/Examples/Simple/index.html \
+	  programs/Examples/Simple/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Array examples" \
+          -o programs/Examples/Arrays/index.html \
+	  programs/Examples/Arrays/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Data structures" \
+          -o programs/Examples/DataStructures/index.html \
+	  programs/Examples/DataStructures/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Input/Output" \
+          -o programs/Examples/IO/index.html \
+	  programs/Examples/IO/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Recursion" \
+          -o programs/Examples/Recursion/index.html \
+	  programs/Examples/Recursion/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Sorting examples" \
+          -o programs/Examples/Sorting/index.html \
+	  programs/Examples/Sorting/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Subroutines" \
+          -o programs/Examples/Subroutines/index.html \
+	  programs/Examples/Subroutines/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Testing" \
+          -o programs/Examples/Testing/index.html \
+	  programs/Examples/Testing/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Type conversion" \
+          -o programs/Examples/TypeConversion/index.html \
+	  programs/Examples/TypeConversion/index.md
 
 # make userguide --- Generate the user guide html file from markdown
 # source

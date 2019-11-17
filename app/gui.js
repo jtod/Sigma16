@@ -113,7 +113,8 @@ function editorButton1() {
 
 function examplesHome() {
     console.log ("examplesHome");
-    document.getElementById("ExamplesIframeId").src = "./programs/Examples/";
+    document.getElementById("ExamplesIframeId").src =
+	"./programs/Examples/index.html";
 }
 
 function copyExampleText() {
@@ -156,6 +157,13 @@ function selectExample () {
 
 
 
+//---------------------------------------------------------------------------
+// Editor pane
+//---------------------------------------------------------------------------
+
+function editorClear () {
+    document.getElementById('EditorTextArea').value = "";
+}
 
 //---------------------------------------------------------------------------
 // Window sizing: adjust relative size of system and user guide
