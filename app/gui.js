@@ -21,7 +21,8 @@ var ioLogBuffer = "";
 
 function refreshIOlogBuffer() {
     console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
-    document.getElementById("IOlog").innerHTML = ioLogBuffer;
+    document.getElementById("IOlog").innerHTML =
+	"<pre>" + ioLogBuffer + "</pre>";
 }
 
 

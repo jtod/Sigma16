@@ -763,11 +763,9 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 
 .CUR {
     color: var(--text-color-cur);
-    font-weight: bold;
 }
 .NEXT {
     color: var(--text-color-next);
-    font-weight: bold;
 }
 
 .ERR {

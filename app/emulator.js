@@ -159,7 +159,7 @@ function boot(es) {
 	es.nInstructionsExecuted = 0;
 	document.getElementById("nInstrExecuted").innerHTML =
 	    es.nInstructionsExecuted;
-	ioLogBuffer = "hello";
+	ioLogBuffer = "";
 	refreshIOlogBuffer();
     } else {
 	console.log ('cannot boot')
@@ -597,6 +597,12 @@ const op_trap = (es) => {
 	trapWrite(es,a,b);
     } else { // Undefined trap is nop
     }
+}
+
+// Read the contents of the input buffer
+function trapRead (es,a,b) {
+    let xs = document.getElementById("IOinputBuffer").value;
+    console.log (`Read a=${a} b=${b} >>> /${xs}/`);
 }
 
 // Write b characters starting from address a
