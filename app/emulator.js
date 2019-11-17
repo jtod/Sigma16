@@ -159,10 +159,13 @@ function boot(es) {
 	es.nInstructionsExecuted = 0;
 	document.getElementById("nInstrExecuted").innerHTML =
 	    es.nInstructionsExecuted;
+	ioLogBuffer = "hello";
+	refreshIOlogBuffer();
     } else {
 	console.log ('cannot boot')
     }
 }
+
 
 // Copy a module's object code into memory.  Should use objectCode
 // rather than codeWord, but objectCode will need to support org.  So
@@ -585,10 +588,28 @@ const op_trap = (es) => {
     let a = regFile[ir_a].get();
     let b = regFile[ir_b].get();
     console.log (`trap ${d} ${a} ${b}`);
-    if (d===0) {
+    if (d===0) { // Halt
 	console.log ("Trap: halt");
 	setProcStatus (es,"Halted");
+    } else if (d==1) { // Read
+	trapRead(es,a,b);
+    } else if (d==2) { // Write
+	trapWrite(es,a,b);
+    } else { // Undefined trap is nop
     }
+}
+
+// Write b characters starting from address a
+function trapWrite (es,a,b) {
+    let xs = "";
+    for (let i = 0; i<b; i++) {
+	xs += String.fromCharCode(memFetchData(a));
+	a++
+    }
+    console.log (`Write a=${a} b=${b} >>> /${xs}/`);
+    ioLogBuffer += xs;
+    console.log (ioLogBuffer);
+    refreshIOlogBuffer();
 }
 
 const handle_xx = (es) => {

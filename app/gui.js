@@ -17,6 +17,14 @@ var textFile = null; /* for save download */
 var create;  /* for save download */
 var textbox; /* for save download */
 
+var ioLogBuffer = "";
+
+function refreshIOlogBuffer() {
+    console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
+    document.getElementById("IOlog").innerHTML = ioLogBuffer;
+}
+
+
 // global variables for emulator
 var procAsmListingElt;
 
