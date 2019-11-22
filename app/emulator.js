@@ -2,15 +2,8 @@
 // emulator.js
 //------------------------------------------------------------------------------
 
-// This module defines the emulator, which interprets machine language
-// programs and displays effects in the gui.
-
-// should be in es
-// let nInstructionsExecuted = 0;
-// let instrLooperDelay = 1000;
-// let instrLooperShow = true;
-
-
+// The emulator interprets machine language programs and displays
+// effects in the gui.
 
 //------------------------------------------------------------------------------
 // Interface to the gui
@@ -52,7 +45,7 @@ const mnemonicRRR =
   ["add",    "sub",    "mul",    "div",
    "cmp",    "cmplt",  "cmpeq",  "cmpgt",
    "inv",    "and",    "or",     "xor",
-   "addc",   "trap",   "XX",     "RX"]
+   "nop",    "trap",   "EX",     "RX"]
 
 const mnemonicRX =
   ["lea",    "load",   "store",  "jump",
@@ -60,7 +53,7 @@ const mnemonicRX =
    "jal",    "nop",    "nop",    "nop",
    "nop",    "nop",    "nop",    "nop"]
 
-const mnemonicxX =
+const mnemonicEX =
   ["nop",    "nop",    "nop",    "nop",
    "nop",    "nop",    "nop",    "nop",
    "nop",    "nop",    "nop",    "nop",
@@ -165,7 +158,6 @@ function boot(es) {
 	console.log ('cannot boot')
     }
 }
-
 
 // Copy a module's object code into memory.  Should use objectCode
 // rather than codeWord, but objectCode will need to support org.  So
@@ -438,25 +430,81 @@ function procPause(es) {
     setProcStatus (es,"Stopped");
 }
 
+
+//	setTimeout (instructionLooper, es.instrLooperDelay); // when to do it ???
+//    if (es.procStatus==="Ready") {
+//    } else { return; }
+
 function instructionLooper (es) {
-    if (es.procStatus==="Ready") {
+    while (es.procStatus==="Ready") {
+	console.log ('LOOPER');
+	// Clean up instruction display if enabled
 	if (es.instrLooperShow) {
 	    clearInstrDecode (es);
 	}
 	executeInstruction (es);
+	// Generate instruction display if enabled
 	if (es.instrLooperShow) {
 	    showInstrDecode (es);
 	    highlightListingAfterInstr (es);
 	}
-	setTimeout (instructionLooper, es.instrLooperDelay);
-    } else { return; }
+	// Check for breakpoint
+	if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+	    // should not highlight fetch pc ???
+	    console.log ("Breakpoint");
+	    setProcStatus (es,"Break");
+	}
+    }
 }
-
 
 //    while (es.procStatus==="Ready") {
 //	executeInstruction ();
 //    }
 // memClearAccesses, memShowAccesses, and memDisplay are very slow...
+
+//---------------------------------------------------------------------------
+// Breakpoint
+//---------------------------------------------------------------------------
+
+// Temporary: enter a hex constant e.g. $02c9 into the text area and
+// click Refresh.  The emulator will break when the pc reaches this
+// value.  Spaces before the constant are not allowed, and the $ is
+// required.  Later this will be replaced by a richer language for
+// specifying the break condition.
+
+function breakRefresh (es) {
+    console.log ("breakRefresh");
+//    let x = "$00a3";
+    let x = document.getElementById('BreakTextArea').value;
+    if (x.search(hexParser) == 0) {
+	let w = hex4ToWord (x.slice(1));
+	es.breakPCvalue = w;
+	console.log (`breakPCvalue = + ${w}`);
+    } else {
+	console.log (`breakRefresh cannot parse + x`);
+    }
+}
+
+function breakEnable (es) {
+    console.log ("breakEnable");
+    es.breakEnabled = true;
+    console.log (`breakEnable ${es.breakPCvalue}`);
+//    if (es) {
+//	console.log ("have emulatorState")
+//    } else {
+//	console.log ("do NOT have emulatorState")
+//    }
+}
+
+function breakDisable (es) {
+    console.log ("breakDisable");
+    es.breakEnabled = false;
+}
+
+function breakClose () {
+    console.log ("breakClose");
+    hideBreakDialogue ();
+}
 
 //------------------------------------------------------------------------------
 // Machine language semantics
@@ -487,8 +535,8 @@ function executeInstruction (es) {
     ir_op = tempinstr & 0x000f;
     console.log('instr fields = ' + ir_op + ' ' + ir_d + ' ' + ir_a + ' ' + ir_b);
 
-    es.instrFmtStr = "RRR";             // Replace if opcode expands to RX or XX
-    es.instrOpStr = mnemonicRRR[ir_op]  // Replace if opcode expands to RX or XX
+    es.instrFmtStr = "RRR";             // Replace if opcode expands to RX or EX
+    es.instrOpStr = mnemonicRRR[ir_op]  // Replace if opcode expands to RX or EX
     dispatch_RRR [ir_op] (es);
     
     regShowAccesses()
@@ -599,10 +647,32 @@ const op_trap = (es) => {
     }
 }
 
-// Read the contents of the input buffer
+// trapRead performs in input from the contents of the input buffer: a
+// = address of the buffer, and b = size of buffer.  If the number of
+// characters entered by the user into the input buffer exceeds b,
+// then only b characters are stored into the buffer, and thse b
+// characters are removed from the input buffer.  The user types input
+// into the IOinputBuffer, and the input operation obtains up to b
+// characters, stores them into memory starting from location a, and
+// removes those characters from IOinputBuffer.
+
 function trapRead (es,a,b) {
     let xs = document.getElementById("IOinputBuffer").value;
-    console.log (`Read a=${a} b=${b} >>> /${xs}/`);
+    let n = xs.length; // number of chars available in buffer
+    let m = n <= b ? n : b; // number of chars actually input
+    let xs2 = xs.substring (m,n); // excess chars from input window are not used
+    let ys = xs.substring (0,m);  // input string to store into memory
+    let charcode = 0;
+    document.getElementById("IOinputBuffer").value = xs2;
+    console.log (`Read: a=${a} b=${b} m=${m} >>> /${ys}/`);
+    console.log (`Read: n=${n} m=${m}`);
+    console.log (`Read: xs2=/${xs2}/ ys=/${ys}/`);
+    for (let i = 0; i<m; i++) {
+	charcode = ys.charCodeAt(i);
+	memStore (a, charcode);
+	console.log (`Read: mem[${a}] := ${charcode}`);
+	a++;
+    }
 }
 
 // Write b characters starting from address a
@@ -618,9 +688,9 @@ function trapWrite (es,a,b) {
     refreshIOlogBuffer();
 }
 
-const handle_xx = (es) => {
-    console.log ('xx');
-    es.instrFmtStr = "XX";
+const handle_EX = (es) => {
+    console.log ('EX');
+    es.instrFmtStr = "EX";
 }
 
 const handle_rx = (es) => {
@@ -644,7 +714,7 @@ const dispatch_RRR =
         rrd (op_xor),      // b
         crrdc (op_addc),   // c
         op_trap,           // d
-        handle_xx,         // e
+        handle_EX,         // e
         handle_rx ]        // f
 	
 // Some instructions load the primary result into rd and the secondary
@@ -757,10 +827,10 @@ function rx_nop (es) {
     console.log ('rx_nop');
 }
 
-// function xx(f) {
-const xx = (f) => (es) => {
-    console.log('xx');
-    es.instrOpStr = mnemonicXX[ir_b];
+// function ex(f) {
+const ex = (f) => (es) => {
+    console.log('EX');
+    es.instrOpStr = mnemonicEX[ir_b];
     es.instrDisp = memFetchInstr (pc.get());
     adr.put (es.instrDisp);
     es.nextInstrAddr = binAdd (es.nextInstrAddr, 1);

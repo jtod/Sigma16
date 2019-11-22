@@ -209,6 +209,7 @@ guide). */
     padding: 1em;
     background: ivory;
     z-index: 20; /* put it on top */
+    display: none;
 }
 
 .DialogueBody {

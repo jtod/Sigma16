@@ -1,0 +1,16 @@
+; Program Logic
+; Demonstrate the bitwise logic instructions
+
+     lea   R1,$0f96[R0]     ; 0000 1111 1001 0110
+     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
+     and   R3,R1,R2         ; 0000 0011 0000 0010   expected
+
+     lea   R1,$0f96[R0]     ; 0000 1111 1001 0110
+     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
+     or    R3,R1,R2         ; 0011 1111 1011 0110   expected
+
+     lea   R1,$0f96[R0]     ; 0000 1111 1001 0110
+     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
+     xor   R3,R1,R2         ; 0011 1100 1011 0100   expected
+
+     trap  R0,R0,R0

@@ -1,0 +1,47 @@
+; AsmErrors -- test error messages
+
+; labels
+
+goodlabel
+label?bad
+label/err   aid R1,R2,R3
+label*err   add R1,x
+label&err   add R1,R2,R3
+
+; operation field
+
+     load/2   R1,R2,R3        ; bad syntax for operation field
+     addemup  R1,R2,R3        ; invalid mnemonic
+
+; RRR
+
+     add      R1,R2,R3        ; ok
+     add      1,2,3           ; bad operands
+     add      R4, R5,R6       ; bad operands
+
+; RX
+
+     lea      R3,$b3c2[R4]    ; ok
+     lea      R1,23[R2]       ; ok
+     lea      R5,-1[R5]       ; ok
+abcd lea      R5,abcd[R12]    ; ok
+     load     R1,3{R17]       ; bad register
+     load     R1,3{R-7]       ; bad register
+     load     R1,x[R2]  ; ok
+     load     R1,R2,R3  ; wrong form of operands
+
+
+
+     store
+
+; data
+
+x    data     2
+y    data   $01a3
+v1   data   -23
+
+
+; x    data     3
+
+;     jumpf R0,x[R0]
+;     jumpf R0,nowhere[R0]

@@ -1,0 +1,13 @@
+; Program LoadStore
+; Demonstrate the load, store, and lea instructions
+
+     lea    R1,1[R0]   ; R1 = 1
+     load   R2,a[R0]   ; R2 = a = 23
+     add    R2,R2,R1   ; R2 = a + 1 = 24
+     add    R2,R2,R2   ; R2 = (a+1) + (a+1) = 48
+     store  R2,b[R0]   ; b = (a+1) + (a+1) = 48
+     trap   R0,R0,R0   ; terminate
+
+a    data   23
+b    data   14
+c    data   99

@@ -111,7 +111,6 @@ function editorButton1() {
     
 }
 
-
 //---------------------------------------------------------------------------
 // Examples pane
 //---------------------------------------------------------------------------
@@ -129,6 +128,10 @@ function examplesHome() {
 function copyExampleText() {
     console.log ('copyExampleText');
     let exElt = document.getElementById('ExamplesIframeId');
+    let xs = exElt.contentWindow.document.body.innerHTML;
+    console.log (`xs = ${xs}`);
+    let ys = exElt.contentWindow.document.body.value;
+    console.log (`xs = ${xs}`);
     document.getElementById('EditorTextArea').value
 	= exElt.contentWindow.document.body.innerHTML;
 }
@@ -354,6 +357,7 @@ function procBreakpoint () {
 
 function hideBreakDialogue () {
     document.getElementById("BreakDialogue").style.display = "none";
+    breakDialogueVisible = false;
 }
 
 function hideTabbedPane(paneId) {
@@ -633,7 +637,11 @@ window.onload = function () {
     initializeProcessorElements ();  // so far, it's just instr decode
     clearInstrDecode (emulatorState);
     
-// Initialize file/module
+    // Hide the dialogues and popups
+//    document.getElementById("BreakDialogue").style.display = "none";
+    hideBreakDialogue ();
+
+    // Initialize file/module
 
     fileReader.onload = function (e) {
     console.log("fileReader.onload activated");
@@ -704,9 +712,6 @@ window.onload = function () {
     adjustToMidMainLRratio();
     initializeSubsystems ();
 
-    // Hide the dialogues and popups
-    document.getElementById("BreakDialogue").style.display = "none";
-    breakDialogueVisible = false;
     
     console.log("Initialization complete");
 }

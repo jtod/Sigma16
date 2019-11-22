@@ -25,6 +25,13 @@
     <div class="FullFrame">
 
       <div class="DialoguePopup" id="BreakDialogue">
+	<div class="PaneButtons">
+	  <button onclick="breakRefresh(emulatorState)">Refresh</button>
+	  <button onclick="breakEnable(emulatorState)">Enable</button>
+	  <button onclick="breakDisable(emulatorState)">Disable</button>
+	  <button onclick="breakClose()">Close</button>
+	</div>
+	<textarea class="Editor" id="BreakTextArea"></textarea>
       </div>
 
       <div class="TopSection">
