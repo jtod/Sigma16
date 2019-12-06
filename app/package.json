@@ -1,6 +1,6 @@
 {
    "name": "sigma16",
-   "version": "3.0.29",
+   "version": "3.0.33",
    "description": "Computer architecture with assembler and emulator",
    "repository": "Sigma/current/Sigma16",
    "homepage": "./",
@@ -30,7 +30,7 @@
    "author": "John T. O'Donnell",
    "license": "CC0-1.0",
    "devDependencies": {
-      "electron": "^5.0.6",
+      "electron": "^5.0.12",
       "electron-builder": "^21.0.15"
    }
 }

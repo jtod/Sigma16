@@ -1,7 +1,50 @@
-// Sigma16   Copyright (c) 2019 by John T. O'Donnell
+//------------------------------------------------------------------------------
+// Bit manipulation
+//------------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------
+// Bits are numbered from right to left, where the least significant
+// bit has index 0 and the most significant (leftmost) bit has index
+// 15
+
+// return bit i in word w
+function getBitInWord (w,i) {
+    let x = (w >>> i) & 0x0001;
+    console.log (x);
+    return x;
+}
+
+// return bit i in register r
+function getBitInReg (r,i) {
+    let x = (r.get() >>> i) & 0x0001;
+    console.log (x);
+    return x;
+}
+
+// Set bit i to 0 in register r, leaving other bits unchanged
+function clearBitInReg (r,i) {
+    r.put (r.get() & (0xffff ^ (1 << i)));
+}
+
+// Set or clear a bit in a register r, where the bit is specified by a
+// mask.  The architecture module defines masks for quick access to a
+// number of constrol register bits.
+
+function clearBitInRegMask (r,m) { r.put (r.get() & m) }
+function setBitInRegMask   (r,m) { r.put (r.get() | m) }
+
+//------------------------------------------------------------------------------
+// Setting and clearing a bit in a word
+//------------------------------------------------------------------------------
+
+// To set bit i of word x to 1:    x | maskToSetBit(i)
+function maskToSetBit (i) { return 1 << i }
+
+// To clear bit i of word x to 0:  x & maskToSetBit(i)
+function maskToClearBit (i) { return ~(1<<i) & 0xffff }
+
+//------------------------------------------------------------------------------
 // Words, binary numbers, and two's complement integers
+//------------------------------------------------------------------------------
 
 // Sigma16 uses 16-bit words.  A word is represented as a JavaScript
 // integer whose value is the binary interpretation of the word.  Thus
@@ -69,8 +112,9 @@ function validateInt (x) {
     }
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Converting between binary words and two's complement integers
+//------------------------------------------------------------------------------
 
 // Natural numbers are represented in binary.  The binary value of a
 // word w is just s (i.e. the value of the JavaScript int).
@@ -116,8 +160,9 @@ function showWord (w) {
         : `word ${w} is invalid: out of range`;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //  Operating on fields of a word
+//------------------------------------------------------------------------------
 
 // Return the 4-bit fields of a word
 
@@ -133,8 +178,9 @@ function splitWord (x) {
     return [p,q,r,s];
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Operating on individual bits in a word
+//------------------------------------------------------------------------------
 
 // Return a word where bit i is 1
 function setBit(i) { return 1 << i }
@@ -159,8 +205,9 @@ var intToBit = function (x) {
     return x===0 ? '0' : '1';
 }
 
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Hexadecimal notation
+//------------------------------------------------------------------------------
 
 // The assembly language allows hex numbers to be written with either
 // lower case a-f or upper case A-F.  When it outputs hex numbers, the
@@ -187,6 +234,10 @@ const hexDigit =
 var wordToHex4 = function (x) {
     let [p,q,r,s] = splitWord (x);
     return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
+}
+
+function showBit (b) {
+    return b==0 ? '0' : 1
 }
 
 // Convert a string with four hex digits to a word.  If the string
@@ -221,8 +272,9 @@ function hexCharToInt (cx) {
     return y;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Bitwise logic on words
+//------------------------------------------------------------------------------
 
 // Invert each bit in a word
 
@@ -231,8 +283,9 @@ function wordInvert (x) {
 }
 
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Testing arithmetic operations
+//------------------------------------------------------------------------------
 
 // Example: test_rrdc ("op_add", op_add, 49, -7)
 
@@ -270,8 +323,9 @@ const g_rr  = (op,c,a,b) => op (a,b);
 const g_crr = (op,c,a,b) => op (c,a,b);
 
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Basic addition and subtraction
+//------------------------------------------------------------------------------
 
 // Add two binary numbers.  If there is a carry out, that is
 // discarded: instead of overflow, the result wraps around.  For
@@ -283,8 +337,9 @@ function binAdd (x, y) {
     return r & 0x0000ffff;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Operations for the instructions
+//------------------------------------------------------------------------------
 
 // Arithmetic for the add instruction (rrdc).  There is no carry input
 // bit, so the condition code is not needed as an argument.  The
@@ -302,6 +357,7 @@ function op_add (a,b) {
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
+    if (tcOverflow) { setBitInRegMask (req,setOverflowMask) }
     return [primary, secondary];
 }
 
@@ -344,6 +400,7 @@ function op_mul (a,b) {
     let primary = p & 0x0000ffff;
     let tcOverflow = ! (minTC <= p && p <= maxTC)
     let secondary = (tcOverflow ? ccv : 0);
+    if (tcOverflow) { setBitInRegMask (req,setOverflowMask) }
     return [primary, secondary];
 }
 
@@ -358,6 +415,7 @@ function op_div (a,b) {
     let bint = wordToInt (b);
     let primary = intToWord (Math.trunc (aint / bint));
     let secondary = intToWord (aint % bint);
+    if (bint==0) { setBitInRegMask (req,setZDivMask) };
     return [primary, secondary];
 }
 
@@ -440,8 +498,9 @@ function op_addc (c,a,b) {
     return [primary, secondary];
 }
 
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Condition codes
+//------------------------------------------------------------------------------
 
 // Bits are numbered from right to left, starting with 0.  Thus the
 // least significant bit has index 0, and the most significant bit has

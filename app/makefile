@@ -38,7 +38,7 @@ showparams :
 #-------------------------------------------------------------------------------
 
 # Build the app
-#   make web-release        build web page for posting on Internet
+#   make release            build web page for posting on Internet
 #   make compile            build executable using npm to compile from source
 
 # Needed to build both web and compiled version
@@ -73,17 +73,45 @@ showparams :
 # Make a release for posting on the web
 #-------------------------------------------------------------------------------
 
-#  1.  make release
-#  2.  cd ../../homepage/jtod.github.io/S16
-#  3.  edit README.md to point to the new release
-#  4.  git push origin release
+# Although JavaScript can be executed directly in a browser, there are
+# some files that need to be built.  These include parsing the current
+# version number (from package.json), generating the user guide and
+# other html pages from markdown source.
+
+# Once the files are all built, the system can be given a release
+# number (as a tag) and uploaded to the Sigma16 project page for
+# download.  The release itself is then copied to the
+# jtod.github.io/Sigma16/releases page for running the app directly
+# from the web, without downloading anything.
+
+# (1) Local editing in Sigma/current/Sigma16
+#    a. Edit version number in app/package.json
+#    b. make release
+#    c. git status, git add...
+#    d. git commit -m "S16 <release number>"
+
+# (2) Upload to project page for users to download
+#    a. Upload to project page: git push origin master
+#    b. Visit https://github.com/jtod/Sigma16
+#    b. Click New pull request
+#    c. Merge the commit and confirm
+
+# (2) Upload executable version In Sigma/current/homepage/jtod.github.io
+#    a. Edit S16/index.md to point to the new release
+#    b. git status, git add...
+#    d. git push origin releases
+
+# (3) On jtod.github.io
+#    a. pull: compare master with releases (select releases from dropdown)
+#    b. pull request
+#    c. merge and confirm
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
 # without needing to download anything.
 
-.PHONY : web-release
-web-release :
+.PHONY : release
+release :
 	make set-version
 	make top-index
 	make userguide
@@ -249,6 +277,12 @@ program-indices :
 	pandoc --standalone \
           --template=doc/src/programindex-template.html \
           --variable=css:../../../doc/src/doc.css \
+	  --metadata pagetitle="Interrupt examples" \
+          -o programs/Examples/Interrupt/index.html \
+	  programs/Examples/Interrupt/index.md
+	pandoc --standalone \
+          --template=doc/src/programindex-template.html \
+          --variable=css:../../../doc/src/doc.css \
 	  --metadata pagetitle="Data structures" \
           -o programs/Examples/DataStructures/index.html \
 	  programs/Examples/DataStructures/index.md
@@ -319,8 +353,22 @@ top-index :
 	  -o ../index.html ../README.md
 
 #-------------------------------------------------------------------------------
-# make npm -- download JavaScript dependencies
+# Running as standalone program on local machine with npm
 #-------------------------------------------------------------------------------
+
+# Download and install npm
+#   https://electronjs.org/docs/tutorial/installation
+#   install npm from the electronjs.org web page
+# In order to compile a native executable, electron is also needed
+#   npm install electron --save-dev       ------ install electron
+
+# Run Sigma16 as a standalone app (independent of a browser)
+#   npm install                           ------ download dependencies
+#   npm start                             ------ run on local machine
+
+# Compile an executable which will run as standalone app
+#   npm run mkdist                        ------ build executable
+
 
 .PHONY : dependencies
 dependencies :
@@ -332,7 +380,6 @@ dependencies :
 .PHONY : run
 run :
 	npm start
-
 
 
 # make executable -- use electron-builder to generate a native

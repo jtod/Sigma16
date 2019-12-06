@@ -1,3 +1,7 @@
+
+
+
+
 //------------------------------------------------------------------------------
 // state.js defines global state
 //------------------------------------------------------------------------------
@@ -27,7 +31,13 @@ let emulatorState =
 	instrLooperShow : true,
 	breakEnabled : false,
 	breakPCvalue : 0,
-// Instruction being executed
+	// Instruction being executed
+	doInterrupt   : 0,
+	ir_op         : 0,
+	ir_d          : 0,
+	ir_a          : 0,
+	ir_b          : 0,
+//	disp          : 0,
 	instrOpCode   : null,
 	instrDisp     : null,
 	instrCodeStr  : "",
@@ -162,11 +172,26 @@ function toggleFullDisplay () {
 
 var modeHighlightAccess = true;  // for tracing: highlight reg/mem that is accessed
 
-var pc, ir, adr, dat, spc;   // instruction control
-var ien;                     // interrupt control
-                             // segmentation control
-var regFile = [];            // user registers R0,..., R15
+
+// Define the control registers as global variables
+var pc, ir, adr, dat, sysStat;                 // instruction control
+var enable, mask, req, isys, ipc, handle;           // interrupt control
+var sEnable, sProg, sProgEnd, sDat, sDatEnd;   // segmentation control
+var ctlRegIndexOffset = 0;  // update in gui.js when registers are created
+
+var regFile = [];            // register file R0,..., R15
 var nRegisters = 0;          // total number of registers
+var sysCtlRegIdx = 0;        // index of first system control reg
+
+function showSysStat (s) {
+    return s===0 ? 'Usr' : 'Sys'
+}
+
+// Instructions refer to the system control registers by a 4-bit
+// index, but the system control register that has instruction index 0
+// will actually have a higher index (16) in the emulator's array of
+// registers.  To refer to sysctl reg i, it can be accessed as
+// register [sysCtlRegIdx + i].
 
 // Global variables for accessing the registers
 
@@ -237,11 +262,14 @@ function mkReg (rn,eltName,showfcn) {
 	        x = this.val;
 	        if (modeHighlight) { regFetched.push(this) };
 	        return x },
-	refresh : function() {this.elt.innerHTML = this.show(this.val);},
+	refresh : function() {
+	    console.log (`refresh register ${rn}`);
+	    this.elt.innerHTML = this.show(this.val);
+	},
 	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
     });
 //    register[nRegisters] = this;
-//    nRegisters++;
+    nRegisters++;
     return r;
 }
 
@@ -257,7 +285,7 @@ function mkReg0 (rn,eltName,showfcn) {
 	refresh : function() {this.elt.innerHTML = this.show(this.val);},
 	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
     });
-    
+    nRegisters++;
     return r;
 }
 

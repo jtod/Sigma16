@@ -1,8 +1,8 @@
 # Testing
 
-* [AddSub](AddSub.asm.txt)
+* [LogicShift](LogicShift.asm.txt)
 
-* [AddSub2](AddSub2.asm.txt)
+* [Arithmetic](Arithmetic.asm.txt)
 
 * [AsmTest](AsmTest.asm.txt)
 

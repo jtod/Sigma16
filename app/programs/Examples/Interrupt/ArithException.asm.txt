@@ -1,0 +1,44 @@
+; Arithmetic exceptions: overflow and division by 0
+
+; Request exception for overflow and divide by zero
+
+   load   R1,zdivFlag[R0]    ; flag for division by 0
+   load   R2,ovflFlag[R0]    ; flag for overflow
+   or     R3,R1,R2           ; flag for either zdiv of overflow
+   putctl R3,mask            ; set interrupt mask for either zdiv of overflow
+
+; Enable interrupts and prepare interrupt vector
+
+   load   R1,intEnable[R0]   ; flag for interrupt enable
+   putctl R1,system          ; enable interrupts
+   lea    R1,intVector[R0]   ; address of vector
+   putctl R1,vector          ; initialize vector register
+
+; Do some arithmetic that generates exceptions
+
+   lea    R4,25[R0]           ; some test data
+   lea    R5,26[R0]           ; some test data
+   lea    R6,27[R0]           ; some test data
+   lea    R7,7000[R0]
+   lea    R8,8000[R0]
+   mul    R9,R4,R5            ; no overflow
+;   mul    R10,R7,R8           ; result is too big
+   div    R10,R4,R0          ; divide by 0
+   add    R4,R4,R4           ; did we get here?
+   trap   R0,R0,R0
+
+intVector
+   jump   handleOverflow[R0]
+   jump   handleDiv0[R0]
+
+handleOverflow
+   add    R5,R5,R5     ; did we get here?
+   trap   R0,R0,R0
+
+handleDiv0
+   add    R6,R6,R6     ; did we get here?
+   trap   R0,R0,R0
+
+intEnable  data   2    ; enable is bit 1 in system register
+ovflFlag   data  16    ; overflow bit is 4 in mask/req
+zdivFlag   data  32    ; zdiv is bit 5 in mask/req

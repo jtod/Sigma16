@@ -12,6 +12,7 @@
     <title>Sigma16</title>
     <script src="./version.js"> </script>
     <script src="./arithmetic.js"> </script>
+    <script src="./architecture.js"> </script>
     <script src="./state.js"> </script>
     <script src="./module.js"> </script>
     <script src="./editor.js"> </script>
@@ -31,7 +32,8 @@
 	  <button onclick="breakDisable(emulatorState)">Disable</button>
 	  <button onclick="breakClose()">Close</button>
 	</div>
-	<textarea class="Editor" id="BreakTextArea"></textarea>
+	<textarea class="Editor" spellcheck="false" id="BreakTextArea">
+	</textarea>
       </div>
 
       <div class="TopSection">
@@ -105,7 +107,8 @@
 		</button>
 	      </div>
 	      <div class="PaneBody" id="EditorBody">
-		<textarea class="Editor" id="EditorTextArea"></textarea>
+		<textarea class="Editor" spellcheck="false" id="EditorTextArea">
+		</textarea>
 	      </div>
 	    </div>
 
@@ -155,38 +158,38 @@
 		      <div class="RegisterValue" id='adrElt'></div>
 		      <div class="RegisterName">dat</div>
 		      <div class="RegisterValue" id='datElt'></div>
-		      <div class="RegisterName">spc</div>
-		      <div class="RegisterValue" id='spcElt'></div>
+		      <div class="RegisterName">system</div>
+		      <div class="RegisterValue" id="systemElt"></div>
 		    </div>
 		  </div>
 		  <div class="ProcStateSection" id="InterruptRegisters">
 		    <div class="Registers">
 		      <div class="NewRegSecName">Interrupt</div>
-		      <div class="RegisterName">ien</div>
-		      <div class="RegisterValue" id="ienElt"></div>
 		      <div class="RegisterName">mask</div>
-		      <div class="RegisterValue"></div>
+		      <div class="RegisterValue" id="maskElt"></div>
 		      <div class="RegisterName">req</div>
-		      <div class="RegisterValue"></div>
-		      <div class="RegisterName">status</div>
-		      <div class="RegisterValue"></div>
-		      <div class="RegisterName">spc</div>
-		      <div class="RegisterValue"></div>
+		      <div class="RegisterValue" id="reqElt"></div>
+		      <div class="RegisterName">isys</div>
+		      <div class="RegisterValue" id='isysElt'></div>
+		      <div class="RegisterName">ipc</div>
+		      <div class="RegisterValue" id='ipcElt'></div>
+		      <div class="RegisterName">vector</div>
+		      <div class="RegisterValue" id="vectorElt"></div>
 		    </div>
 		  </div>
 		  <div class="ProcStateSection" id="SegmentRegisters">
 		    <div class="Registers">
 		      <div class="NewRegSecName">Segment</div>
-		      <div class="RegisterName">en</div>
-		      <div class="RegisterValue">03ac</div>
-		      <div class="RegisterName">mask</div>
-		      <div class="RegisterValue">031f</div>
-		      <div class="RegisterName">req</div>
-		      <div class="RegisterValue">ca34</div>
-		      <div class="RegisterName">status</div>
-		      <div class="RegisterValue">ca34</div>
-		      <div class="RegisterName">spc</div>
-		      <div class="RegisterValue">ca34</div>
+		      <div class="RegisterName">seg</div>
+		      <div class="RegisterValue" id="sEnableElt"></div>
+		      <div class="RegisterName">prog</div>
+		      <div class="RegisterValue" id="sProg">0000</div>
+		      <div class="RegisterName">progEnd</div>
+		      <div class="RegisterValue" id="sProgEnd">ffff</div>
+		      <div class="RegisterName">data</div>
+		      <div class="RegisterValue" id="sDat">0000</div>
+		      <div class="RegisterName">dataEnd</div>
+		      <div class="RegisterValue" id="sDatEndElt">ffff</div>
 		    </div>
 		  </div>
 		  <div class="ProcStateSection" id="RegisterFile">
@@ -256,6 +259,11 @@
 		      <div class="RegisterValue" id="nInstrExecuted"></div>
 		      <div class="RegisterName">m</div>
 		      <div class="RegisterValue">break</div>
+		      <input class="EmCtlLine" id="TimerButton"
+			     type="button"
+			     value="Timer interrupt"
+			     onclick="timerInterrupt()">
+		      </input>
 		      <input class="EmCtlLine" id="FullDisplayToggleButton"
 			      type="button"
 			      onclick="toggleFullDisplay()">
@@ -270,7 +278,7 @@
 		  <div class="ProcStateSection" id="IOSection">
 		    <div class="IOSecName">Input/Output</div>
 		    <div class="IOlog" id="IOlog"></div>
-                    <textarea id="IOinputBuffer"></textarea>
+                    <textarea spellcheck="false" id="IOinputBuffer"></textarea>
 		    <div id="IOInbufLabel">Input Buffer</div>
 		  </div>
 		</div>

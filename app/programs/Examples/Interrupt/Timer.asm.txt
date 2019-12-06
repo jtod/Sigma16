@@ -1,0 +1,44 @@
+; Timer: interrupt a loop when the timer goes off
+
+; Request exception for timer
+
+   load   R1,timerFlag[R0]   ; flag for timer interrupt
+   putctl R1,mask            ; set interrupt mask
+
+; Enable interrupts and prepare interrupt vector
+
+   load   R1,intEnable[R0]   ; flag for interrupt enable
+   putctl R1,system          ; enable interrupts
+   lea    R1,intVector[R0]   ; address of vector
+   putctl R1,vector          ; initialize vector register
+
+; Run a loop
+
+   load   R1,nIterations[R0]     ; n := 1000
+   add    R2,R0,R0               ; i := 0
+   lea    R3,1[R0]               ; R3 := constant 1
+
+loop
+   cmpgt  R4,R2,R1               ; R4 := i>n
+   jumpt  R4,done[R0]
+   add    R2,R2,R3               ; i := i+1
+   jump   loop[R0]               ; goto loop
+
+done
+   trap   R0,R0,R0
+
+nIterations   data   1000
+
+intVector
+   jump   handleTimer[R0]
+
+handleTimer
+   lea    R5,2[R0]           ; trap code for write
+   lea    R6,message[R0]     ; address of string
+   lea    R7,5[R0]           ; length of string
+   trap   R5,R6,R7           ; print the string
+   rfi                       ; return from interrupt and resume the loop
+
+intEnable   data   2     ; enable is bit 1 in system register
+timerFlag   data   1     ; timer bit is 0 in mask/req
+

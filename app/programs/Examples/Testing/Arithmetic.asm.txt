@@ -1,4 +1,4 @@
-;  Demonstrate addition
+; Arithmetic
 
      load   R1,k1[R0]   ; R1 = k1 = -73
      load   R2,k2[R0]   ; R2 = k2 = 250

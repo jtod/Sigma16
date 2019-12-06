@@ -4,8 +4,6 @@
 
 // remove globals
 
-// The instruction set is represented by a map from mnemonic to statementSpec spec
-var statementSpec = new Map();
 
 // var symbolTable = new Map();;   ??? use m.symbolTable instead of global
 
@@ -49,105 +47,6 @@ function run () {
     console.log('run()');
 //    assembler();
 }
-
-
-//----------------------------------------------------------------------
-// Instruction set architecture and assembly language
-// ---------------------------------------------------------------------
-
-// Instruction formats and assembly language statement codes
-
-const RRR         = 0     // R1,R2,R3
-const RR          = 1     // R1,R2        RRR format omitting d or b field
-const RX          = 2;    // R1,xyz[R2]
-const JX          = 3;    // loop[R0]     RX format omitting d field (e.g. jump)
-const DATA        = 4;    // -42
-const COMMENT     = 5;    // ; full line comment, or blank line
-const DIRECTIVE   = 6;    // assembler directive
-const NOOPERATION = 7;    // error
-const NOOPERAND   = 8;    // statement has no operand
-
-function showFormat (n) {
-    let f = ['RRR','RR','RX','JX','DATA','COMMENT','NOOPERATION'] [n];
-    let r = f ? f : 'UNKNOWN';
-    return r;
-}
-
-// Give the size of generated code for an instruction format
-function formatSize (fmt) {
-    if (fmt==RRR || fmt==RR || fmt==DATA) {
-	return 1
-    } else if (fmt==RX | fmt==JX) {
-	return 2
-    } else {
-	return 0
-    }
-}
-
-
-// Each statement is initialized as noOperation; this is overridden if a
-// valid operation field exists (by the parseOperation function)
-const noOperation = {format:NOOPERATION, opcode:[]};
-
-statementSpec.set("module", {format:DIRECTIVE, opcode:[]})
-statementSpec.set("import", {format:DIRECTIVE, opcode:[]})
-statementSpec.set("export", {format:DIRECTIVE, opcode:[]})
-statementSpec.set("org",    {format:DIRECTIVE, opcode:[]})
-
-// Data statements
-statementSpec.set("data",  {format:DATA, opcode:[]});
-
-// Opcodes (in the op field) of 0-13 denote RRR instructions
-statementSpec.set("add",   {format:RRR, opcode:[0]});
-statementSpec.set("sub",   {format:RRR, opcode:[1]});
-statementSpec.set("mul",   {format:RRR, opcode:[2]});
-statementSpec.set("div",   {format:RRR, opcode:[3]});
-statementSpec.set("cmp",   {format:RR,  opcode:[4]});
-statementSpec.set("cmplt", {format:RRR, opcode:[5]});
-statementSpec.set("cmpeq", {format:RRR, opcode:[6]});
-statementSpec.set("cmpgt", {format:RRR, opcode:[7]});
-statementSpec.set("inv",   {format:RR,  opcode:[8]});
-statementSpec.set("and",   {format:RRR, opcode:[9]});
-statementSpec.set("or",    {format:RRR, opcode:[10]});
-statementSpec.set("xor",   {format:RRR, opcode:[11]});
-statementSpec.set("nop",   {format:RRR, opcode:[12]});  // reserved
-statementSpec.set("trap",  {format:RRR, opcode:[13]});
-
-// If op=14, escape to EXP format
-// arithmetic with control of carry, shifting, privileged instructions
-
-// If op=15, escape to RX format.  JX is an assembly language
-// statement format which omits the d field, but the machine language
-// format is RX, where R0 is used for the d field.  For example, jump
-// loop[R5] doesn't require d field in assembly language, but the
-// machine language uses d=R0.
-
-// Core instructions
-statementSpec.set("lea",      {format:RX,  opcode:[15,0]});
-statementSpec.set("load",     {format:RX,  opcode:[15,1]});
-statementSpec.set("store",    {format:RX,  opcode:[15,2]});
-statementSpec.set("jump",     {format:JX,  opcode:[15,3]});
-statementSpec.set("jumpc0",   {format:RX,  opcode:[15,4]});
-statementSpec.set("jumpc1",   {format:RX,  opcode:[15,5]});
-statementSpec.set("jumpf",    {format:RX,  opcode:[15,6]});
-statementSpec.set("jumpt",    {format:RX,  opcode:[15,7]});
-statementSpec.set("jal",      {format:RX,  opcode:[15,8]});
-
-// Mnemonics for jumpc0 based on signed comparisons, overflow, carry
-statementSpec.set("jumple",   {format:JX,  opcode:[15,4,bit_ccg]});
-statementSpec.set("jumpne",   {format:JX,  opcode:[15,4,bit_ccE]});
-statementSpec.set("jumpge",   {format:JX,  opcode:[15,4,bit_ccl]});
-statementSpec.set("jumpnv",   {format:JX,  opcode:[15,4,bit_ccv]});
-statementSpec.set("jumpnvu",  {format:JX,  opcode:[15,4,bit_ccV]});
-statementSpec.set("jumpnco",  {format:JX,  opcode:[15,4,bit_ccc]});
-
-// Mnemonics for jumpc1 based on signed comparisons
-statementSpec.set("jumplt",   {format:JX,  opcode:[15,5,bit_ccl]});
-statementSpec.set("jumpeq",   {format:JX,  opcode:[15,5,bit_ccE]});
-statementSpec.set("jumpgt",   {format:JX,  opcode:[15,5,bit_ccg]});
-statementSpec.set("jumpv",    {format:JX,  opcode:[15,5,bit_ccv]});
-statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
-statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
 
 
 //----------------------------------------------------------------------
@@ -224,6 +123,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    rr2 : 0,                        // second reg in rr asm format
 	    dispField : '0',                // displacement field
 	    disp : 0,                       // displacement value
+	    k : 0,                          // constant in RRKX format
 	    dat : 0,                        // data value
 	    codeSize : 0,                   // number of words generated
 	    codeWord1 : -1,                  // first word of object
@@ -339,6 +239,17 @@ const parseReg = /R[0-9a-f]|(?:1[0-5])/;
 // An RRR operand consists of three registers, separated by comma
 const rrrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
+
+const rrkParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
+
+// RCX asm format (register, control reg name): getctl R3,mask
+const rcxParser =
+    /^R([0-9a-f]|(?:1[0-5])),([a-zA-Z][a-zA-Z0-9]*)$/;
+
+// CRX asm format (control reg name, register): putctl mask,R3
+// const crxParser =
+//    /^([a-zA-Z][a-zA-Z0-9]*),R([0-9a-f]|(?:1[0-5]))$/;
 
 // A string literal consists of arbitrary text enclosed in "...", for
 // example "hello".  String literals are most commonly used in data
@@ -682,11 +593,13 @@ function parseOperation (m,s) {
 
 // s is an AsmStmt object; parse the operand and update s
 function parseOperand (m,s) {
-    let rrr = rrrParser.exec(s.fieldOperands);
-    let rr = rrParser.exec(s.fieldOperands);
-    let rx = rxParser.exec(s.fieldOperands);
-    let jx = jxParser.exec(s.fieldOperands);
-    let dat = datParser.exec(s.fieldOperands);
+    let rrr = rrrParser.exec (s.fieldOperands);
+    let rrk = rrkParser.exec (s.fieldOperands);
+    let rr  = rrParser.exec  (s.fieldOperands);
+    let rx  = rxParser.exec  (s.fieldOperands);
+    let jx  = jxParser.exec  (s.fieldOperands);
+    let rcx = rcxParser.exec (s.fieldOperands);
+    let dat = datParser.exec (s.fieldOperands);
     if (rrr) {
 	s.hasOperand = true;
 	s.operandType = RRR;
@@ -715,6 +628,21 @@ function parseOperand (m,s) {
 	s.operandJX = true;
 	s.dispField = jx[1];
 	s.a = jx[2];
+    } else if (rrk) {
+	console.log ('rrk');
+	s.hasOperand = true;
+	s.operandType = RRKX;
+	s.operandRRKX = true;
+	s.d = rrk[1];
+	s.a = rrk[2];
+	s.k = rrk[3];
+    } else if (rcx) {
+	console.log ('rcx');
+	s.d = rcx[1];
+	let ctlRegName = rcx[2]
+	let ctlRegIdx = findCtlIdx (m,s,ctlRegName);
+	s.ctlReg = ctlRegIdx;
+	console.log (`rcx d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
     } else if (dat) {
 	s.hasOperand = true;
 	s.operandType = DATA;
@@ -729,6 +657,22 @@ function parseOperand (m,s) {
 	s.hasOperand = false;
     }
     return;
+}
+
+// Given a string xs, either return the control register index for it
+// if xs is indeed a valid control register name; otherwise generate
+// an error message.
+
+function findCtlIdx (m,s,xs) {
+    let c = ctlReg.get(xs);
+    let i = 0;
+    if (c) {
+	i = c.ctlRegIndex;
+    } else {
+	mkErrMsg (m,s,`${xs} is not a valid control register`);
+    }
+    console.log (`findCtlIdx ${xs} => ${i}`);
+    return i;
 }
 
 function showOperand (x) {
@@ -753,9 +697,17 @@ function showOperand (x) {
 //  Pass 2
 //----------------------------------------------------------------------
 
+// Make a code word from four 4-bit fields
 function mkWord (op,d,a,b) {
     let clear = 0x000f;
     return ((op&clear)<<12) | ((d&clear)<<8) | ((a&clear)<<4) | (b&clear);
+}
+
+// Make a code word from two 4-bit fields and an 8 bit field (EXP format)
+function mkWord448 (op,d,k) {
+    let clear4 = 0x000f;
+    let clear8 = 0x00ff;
+    return ((op&clear4)<<12) | ((d&clear4)<<8) | (k&clear8);
 }
 
 function testWd(op,d,a,b) {
@@ -789,7 +741,15 @@ function asmPass2 (m) {
 	    }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    console.log (`pass2 op=${op} ${wordToHex4(s.codeWord1)}`);
-//	    console.log('pass2 RR ' + wordToHex4(s.codeWord1));
+	    //	    console.log('pass2 RR ' + wordToHex4(s.codeWord1));
+	} else if (fmt==RRKX) {
+	    console.log (`pass2 RRKX`);
+	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+	    s.codeWord2 = mkWord(s.a,s.k,0,0);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RX) {
 	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
@@ -810,7 +770,14 @@ function asmPass2 (m) {
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pass2 JX ' + wordToHex4(s.codeWord1)
-//			+ wordToHex4(s.codeWord2));
+	    //			+ wordToHex4(s.codeWord2));
+	} else if (fmt==RCX) {
+	    console.log ("pass2 RCX");
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(14,s.d,op[1]);
+	    s.codeWord2 = s.ctlReg;
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==DATA && s.operandDATA) {
 	    console.log('fmt is DATA and operandDATA=' + s.dat);
 	    s.codeWord1 = evaluate(m,s,s.dat);

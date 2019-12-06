@@ -8,6 +8,8 @@
 
 * [Input/Output](IO/index.html)
 
+* [Interrupt](Interrupt/index.html)
+
 * [Recursion](Recursion/index.html)
 
 * [Simple](Simple/index.html)  Small and simple programs that

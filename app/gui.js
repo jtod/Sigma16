@@ -125,49 +125,29 @@ function examplesHome() {
 	"./programs/Examples/index.html";
 }
 
+// Copy the example text to the editor.  The example is shown as a web
+// page and its content is obtained using innerHTML.  The innerHTML
+// string is <pre ...>text of example</pre>.  The pre and pre tags
+// need to be removed: they would confuse the assembler.
+
+const openingPreTag = /^<[^>]*>/;   // <pre...> at beginning
+const closingPreTag = /<[^>]*>$/;   // ...</pre> at end
+
 function copyExampleText() {
     console.log ('copyExampleText');
     let exElt = document.getElementById('ExamplesIframeId');
     let xs = exElt.contentWindow.document.body.innerHTML;
     console.log (`xs = ${xs}`);
-    let ys = exElt.contentWindow.document.body.value;
-    console.log (`xs = ${xs}`);
-    document.getElementById('EditorTextArea').value
-	= exElt.contentWindow.document.body.innerHTML;
+    let skipPreOpen = xs.replace(openingPreTag,"");
+    let skipPreClose = skipPreOpen.replace(closingPreTag,"");
+    console.log (`skipPreOpen = ${skipPreOpen}`);
+    let ys = skipPreClose;
+    document.getElementById('EditorTextArea').value = ys;
+    console.log (`ys = ${ys}`);
 }
 
-//    let exElt = document.getElementById('ExamplesIframeId');
-//    fileContents = exElt.contentWindow.document.body.innerHTML;
-//    console.log(fileContents);
-//    document.getElementById('EditorTextArea').value = fileContents;
-
-/*
-
-function copyExampleSelect () {  // deprecated, remove this...
-    console.log ('copyExampleSelect');
-    let exElt = document.getElementById('ExamplesIframeId');
-    let exText = exElt.contentWindow.document.body;
-    exText.select();
-    
-}
-
-function fileButton5 () {
-    console.log ('fileButton5');
-}
-
-function selectExample () {
-    console.log ('selectExample');
-    let elt = document.getElementById('ExamplesIframeId');
-    elt.focus ();
-    elt.select ();
-}
-*/
-
-// from stackoverflow...
 // var myIFrame = document.getElementById("myIframe");
 // var content = myIFrame.contentWindow.document.body.innerHTML;
-
-
 
 //---------------------------------------------------------------------------
 // Editor pane
@@ -670,15 +650,44 @@ window.onload = function () {
 	regFile[i] = thisReg;
 	register[i] = thisReg;
     }
-//Control registers
-    pc  = mkReg ('pc',  'pcElt',  wordToHex4);
-    ir  = mkReg ('ir',  'irElt',  wordToHex4);
-    adr = mkReg ('adr', 'adrElt', wordToHex4);
-    dat = mkReg ('dat', 'datElt', wordToHex4);
-    spc = mkReg ('spc', 'spcElt', wordToHex4);
-    ien = mkReg ('ien', 'ienElt', intToBit);
-    controlRegisters = [pc,ir,adr,dat,spc,ien];
-    nRegisters = 16;  // now it's incremented in mkReg
+
+// Instruction control registers
+    pc       = mkReg ('pc',       'pcElt',       wordToHex4);
+    ir       = mkReg ('ir',       'irElt',       wordToHex4);
+    adr      = mkReg ('adr',      'adrElt',      wordToHex4);
+    dat      = mkReg ('dat',      'datElt',      wordToHex4);
+    //    sysStat  = mkReg ('sysStat',  'sysStatElt',  showSysStat);
+    // bit 0 (lsb) :  0 = User state, 1 = System state
+    // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
+    // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
+
+    // Interrupt control registers
+    ctlRegIndexOffset = nRegisters;
+    system   = mkReg ('system',  'systemElt',  wordToHex4);
+//    ienable  = mkReg ('ienable',  'enableElt',  showBit);
+    mask     = mkReg ('mask',     'maskElt',    wordToHex4);
+    req      = mkReg ('req',      'reqElt',     wordToHex4);
+    // mask and request
+    // bit 0 (lsb)  overflow
+    // bit 1        divide by 0
+    // bit 2        trap 3
+    // bit 3        
+    isys     = mkReg ('isys',      'isysElt',      wordToHex4);
+    ipc      = mkReg ('ipc',      'ipcElt',      wordToHex4);
+    vector   = mkReg ('vector',   'vectorElt', wordToHex4);
+
+// Segment control registers
+    sEnable  = mkReg ('sEnable',  'sEnableElt',  showBit);
+    sProg    = mkReg ('sProg',    'sProglt',     wordToHex4);
+    sProgEnd = mkReg ('sProgEnd', 'sProgEndElt', wordToHex4);
+    sDat     = mkReg ('sDat',     'sDatlt',      wordToHex4);
+    sDatEnd  = mkReg ('sDatEnd',  'sDatEndElt',  wordToHex4);
+
+// Record the control registers    
+    nRegisters = 16;  // Start after the first 16 (the regfile)
+    controlRegisters =
+	[pc,ir,adr,dat, system,
+	 mask, req, save, vector];
     controlRegisters.forEach (function (r) {
 	console.log('making reg ' + nRegisters + ' = ' + r.regName);
 	register[nRegisters] = r;

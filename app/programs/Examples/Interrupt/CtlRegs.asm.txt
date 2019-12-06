@@ -1,0 +1,39 @@
+; Control registers
+
+; Test putctl and getctl
+   lea    R3,$03bc[R0]
+   putctl R3,mask
+   getctl R4,mask
+
+; Set up exception for divide by zero
+   load   R1,zdivFlag[R0]    ; flag for division by 0
+   putctl R1,mask            ; watch for zero division
+   lea    R1,intVector[R0]
+   putctl R1,vector
+   load   R1,intEnable[R0]   ; flag for interrupt enable
+   putctl R1,system          ; enable interrupts
+   lea    R4,25[R0]           ; some test data
+   lea    R5,26[R0]           ; some test data
+   lea    R6,27[R0]           ; some test data
+
+   load   R1,zdivFlag[R0]    ; flag for division by 0
+   putctl R1,req             ; generate zero division
+   add    R4,R4,R4           ; did we get here?
+   trap   R0,R0,R0
+
+intVector
+   jump   handleOverflow[R0]
+   jump   handleDiv0[R0]
+
+
+handleOverflow
+   add    R5,R5,R5     ; did we get here?
+   trap   R0,R0,R0
+
+handleDiv0
+   add    R6,R6,R6     ; did we get here?
+   trap   R0,R0,R0
+
+
+intEnable  data 2        ; enable is bit 1 in system register
+zdivFlag   data 2        ; zdiv is bit 1 in mask/req registers

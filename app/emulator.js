@@ -5,6 +5,13 @@
 // The emulator interprets machine language programs and displays
 // effects in the gui.
 
+
+function timerInterrupt() {
+    console.log ("Timer Interrupt clicked");
+    setBitInRegMask (req, setTimerMask);
+    req.refresh();
+}
+
 //------------------------------------------------------------------------------
 // Interface to the gui
 //------------------------------------------------------------------------------
@@ -36,28 +43,6 @@
 //   procPause(es)       -- halt execution (can resume execution later)
 //   procInterrupt()   -- not implemented yet
 //   procBreakpoint()  -- not implemented yet
-
-//------------------------------------------------------------------------------
-// Architecture
-//------------------------------------------------------------------------------
-
-const mnemonicRRR =
-  ["add",    "sub",    "mul",    "div",
-   "cmp",    "cmplt",  "cmpeq",  "cmpgt",
-   "inv",    "and",    "or",     "xor",
-   "nop",    "trap",   "EX",     "RX"]
-
-const mnemonicRX =
-  ["lea",    "load",   "store",  "jump",
-   "jumpc0", "jumpc1", "jumpf",  "jumpt",
-   "jal",    "nop",    "nop",    "nop",
-   "nop",    "nop",    "nop",    "nop"]
-
-const mnemonicEX =
-  ["nop",    "nop",    "nop",    "nop",
-   "nop",    "nop",    "nop",    "nop",
-   "nop",    "nop",    "nop",    "nop",
-   "nop",    "nop",    "nop",    "nop"]
 
 //------------------------------------------------------------------------------
 // Instruction decode
@@ -98,9 +83,9 @@ function refreshInstrDecode (es) {
 
 function showArgs (es) {
     if (es.instrFmtStr==="RRR") {
-	return `R${ir_d},R${ir_a},R${ir_b}`;
+	return `R${es.ir_d},R${es.ir_a},R${es.ir_b}`;
     } else if (es.instrFmtStr==="RX") {
-	return `R${ir_d},${wordToHex4(es.instrDisp)}[R${ir_a}]`;
+	return `R${es.ir_d},${wordToHex4(es.instrDisp)}[R${es.ir_a}]`;
     } else {
 	return "?";
     }
@@ -148,7 +133,7 @@ function boot(es) {
 	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
 	    es.asmListingCurrent[i] = es.asmListingDec[i];
 	}
-	initListing (es);
+	initListing (m,es);
 	es.nInstructionsExecuted = 0;
 	document.getElementById("nInstrExecuted").innerHTML =
 	    es.nInstructionsExecuted;
@@ -255,7 +240,7 @@ function parseObject () {
 //   if i=null then no source is avaiable
 //     else currentModule.asmStmt[i].srcLine
 
-function initListing (es) {
+function initListing (m,es) {
     es.curInstrAddr = 0;
     es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
     es.nextInstrAddr = 0;
@@ -510,6 +495,9 @@ function breakClose () {
 // Machine language semantics
 //------------------------------------------------------------------------------
 
+
+// Execute one instruction and return
+
 function executeInstruction (es) {
     console.log ('executeInstruction');
     es.nInstructionsExecuted++;
@@ -519,6 +507,59 @@ function executeInstruction (es) {
     memDisplay ();
     regClearAccesses ();
 
+// Check for interrupt    
+    if ((getBitInReg (system,intEnableBit) ? (req.get() & mask.get()) : 0) != 0) {
+	let i = 0; // interrupt that is taken
+	while (i<16 && getBitInReg(req,i)==0 && getBitInReg(mask,i)==0) {
+	    console.log(`find interrupt i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
+	    i++
+	};
+	console.log (`Interrupt ${i}`);
+	save.put(pc.get());           // save the pc
+	console.log (`req=${wordToHex4(req.get())}`);
+	clearBitInReg (req,i);        // clear the interrupt that was taken
+	console.log (`req=${wordToHex4(req.get())}`);
+	console.log (`pc=${wordToHex4(pc.get())}`);
+	pc.put (vector.get() + 2*i);  // jump to handler
+	console.log (`pc=${wordToHex4(pc.get())}`);
+        // Disable interrupts and enter system state
+	console.log (`system=${wordToHex4(system.get())}`);
+	system.put ((system.get() & clearIntEnable) | setSystemState);
+	console.log (`system=${wordToHex4(system.get())}`);
+	regShowAccesses()
+	return;
+    };
+
+//    else {
+//	console.log ("Not interrupting");
+//    }
+//    let doInterrupt =
+//	getBitInReg (system,intEnableBit)
+//        ? (req.get() & mask.get())
+//        : 0;
+//    if (doInterrupt != 0) {
+//	console.log (`pc=${pc.get()} vector=${vector.get()}`);
+//	let s = system.get();
+//	let s1 = (s & clearIntEnable) | setSystemState;
+//	system.put(s1);
+//	console.log (`req = ${req.get()}`);
+//	console.log (`pc=${pc.get()} vector=${vector.get()}`);
+//	console.log (`req = ${req.get()}`);
+//	console.log (`req = ${req.get()}`);
+//	let target = vector.get() + 2*i; // vectorr for interrupt taken
+//	pc.put(target);
+//	console.log ("Interrupt");
+//	console.log (1 << i);
+//	req.put (req.get() & (1 << i));
+//    let t1 = getBitInReg (system,interruptBit);
+//    let t2 = req.get();
+//    let t3 = mask.get();
+//    let t4 = t1 ? (t2 & t3) : 0;
+//    console.log (`t1=${t1} t2=${t2} t3=${t3} t4=${t4} do=${es.doInterrupt}`);
+//	console.log (`pc=${pc.get()} vector=${vector.get()}`);
+//	memShowAccesses();   interrupt doesn't use memory
+//	memDisplay ();
+
     es.curInstrAddr = pc.get();
     instrCode = memFetchInstr (es.curInstrAddr);
     ir.put (instrCode);
@@ -526,18 +567,18 @@ function executeInstruction (es) {
     pc.put (es.nextInstrAddr);
     console.log('pc = ' + wordToHex4(pc.get()) + ' ir = ' + wordToHex4(instr));
     let tempinstr = ir.get();
-    ir_b = tempinstr & 0x000f;
+    es.ir_b = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
-    ir_a = tempinstr & 0x000f;
+    es.ir_a = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
-    ir_d = tempinstr & 0x000f;
+    es.ir_d = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
-    ir_op = tempinstr & 0x000f;
-    console.log('instr fields = ' + ir_op + ' ' + ir_d + ' ' + ir_a + ' ' + ir_b);
+    es.ir_op = tempinstr & 0x000f;
+    console.log('instr fields = ' + es.ir_op + ' ' + es.ir_d + ' ' + es.ir_a + ' ' + es.ir_b);
 
-    es.instrFmtStr = "RRR";             // Replace if opcode expands to RX or EX
-    es.instrOpStr = mnemonicRRR[ir_op]  // Replace if opcode expands to RX or EX
-    dispatch_RRR [ir_op] (es);
+    es.instrFmtStr = "RRR";             // Replace if opcode expands to RX or EXP
+    es.instrOpStr = mnemonicRRR[es.ir_op]  // Replace if opcode expands to RX or EXP
+    dispatch_RRR [es.ir_op] (es);
     
     regShowAccesses()
     memShowAccesses();
@@ -586,35 +627,35 @@ let abc = foobar (7) (50);
 // result into c (e.g. add)
 
 const rrdc = (f) => (es) => {
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
+    let a = regFile[es.ir_a].get();
+    let b = regFile[es.ir_b].get();
     let [primary, secondary] = f (a,b);
-    regFile[ir_d].put(primary);
-    if (ir_d<15) { regFile[15].put(secondary) }
+    regFile[es.ir_d].put(primary);
+    if (es.ir_d<15) { regFile[15].put(secondary) }
 }
 
 // Apply f to a and load primary result into d (e.g. inv)
 
 const rd = (f) => (es) => {
-    let a = regFile[ir_a].get();
+    let a = regFile[es.ir_a].get();
     let primary = f (a);
-    regFile[ir_d].put(primary);
+    regFile[es.ir_d].put(primary);
 }
 
 // Apply f to a and b, and load primary result into d (e.g. cmplt)
 
 const rrd = (f) => (es) => {
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
+    let a = regFile[es.ir_a].get();
+    let b = regFile[es.ir_b].get();
     let primary = f (a,b);
-    regFile[ir_d].put(primary);
+    regFile[es.ir_d].put(primary);
 }
 
 // Apply f to a and b, and load primary result into c (e.g. cmp)
 
 const rrc = (f) => (es) => {
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
+    let a = regFile[es.ir_a].get();
+    let b = regFile[es.ir_b].get();
     let cc = f (a,b);
     regFile[15].put(cc);
 }
@@ -624,17 +665,17 @@ const rrc = (f) => (es) => {
 
 const crrdc = (f) => (es) => {
     let c = regFile[15].get();
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
+    let a = regFile[es.ir_a].get();
+    let b = regFile[es.ir_b].get();
     let [primary, secondary] = f (c,a,b);
-    regFile[ir_d].put(primary);
-    if (ir_d<15) { regFile[15].put(secondary) }
+    regFile[es.ir_d].put(primary);
+    if (es.ir_d<15) { regFile[15].put(secondary) }
 }
 
 const op_trap = (es) => {
-    let d = regFile[ir_d].get();
-    let a = regFile[ir_a].get();
-    let b = regFile[ir_b].get();
+    let d = regFile[es.ir_d].get();
+    let a = regFile[es.ir_a].get();
+    let b = regFile[es.ir_b].get();
     console.log (`trap ${d} ${a} ${b}`);
     if (d===0) { // Halt
 	console.log ("Trap: halt");
@@ -688,15 +729,22 @@ function trapWrite (es,a,b) {
     refreshIOlogBuffer();
 }
 
-const handle_EX = (es) => {
-    console.log ('EX');
-    es.instrFmtStr = "EX";
+const handle_rx = (es) => {
+    console.log ('handle rx' + es.ir_b);
+    es.instrFmtStr = "RX";
+    dispatch_RX [es.ir_b] (es);
 }
 
-const handle_rx = (es) => {
-    console.log ('handle rx' + ir_b);
-    es.instrFmtStr = "RX";
-    dispatch_RX [ir_b] (es);
+const handle_EXP = (es) => {
+    console.log (`handle_EXP ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+    es.instrFmtStr = "EXP";
+    let code = 16*es.ir_a + es.ir_b;
+    if (code <= maxEXPcode) {
+	console.log (`handle_EXP dispatch code=${code} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+	dispatch_EXP [code] (es);
+    } else {
+	console.log (`EXP bad code ${wordToHex4(code)}`);
+    }
 }
 
 const dispatch_RRR =
@@ -714,7 +762,7 @@ const dispatch_RRR =
         rrd (op_xor),      // b
         crrdc (op_addc),   // c
         op_trap,           // d
-        handle_EX,         // e
+        handle_EXP,         // e
         handle_rx ]        // f
 	
 // Some instructions load the primary result into rd and the secondary
@@ -732,12 +780,12 @@ const dispatch_RRR =
 
 const rx = (f) => (es) => {
     console.log('rx');
-    es.instrOpStr = mnemonicRX[ir_b];
+    es.instrOpStr = mnemonicRX[es.ir_b];
     es.instrDisp = memFetchInstr (pc.get());
     adr.put (es.instrDisp);
     es.nextInstrAddr = binAdd (es.nextInstrAddr, 1);
     pc.put (es.nextInstrAddr);
-    ea = binAdd (regFile[ir_a].get(), adr.get());
+    ea = binAdd (regFile[es.ir_a].get(), adr.get());
     es.instrEA = ea;
     console.log('rx ea = ' + wordToHex4(ea));
     f (es);
@@ -763,17 +811,17 @@ const dispatch_RX =
 
 function rx_lea (es) {
     console.log('rx_lea');
-    regFile[ir_d].put(ea);
+    regFile[es.ir_d].put(ea);
 }
 
 function rx_load (es) {
     console.log('rx_load');
-    regFile[ir_d].put(memFetchData(ea));
+    regFile[es.ir_d].put(memFetchData(ea));
 }
 
 function rx_store (es) {
     console.log('rx_store');
-    memStore (ea, regFile[ir_d].get());
+    memStore (ea, regFile[es.ir_d].get());
 }
 
 function rx_jump (es) {
@@ -785,7 +833,7 @@ function rx_jump (es) {
 function rx_jumpc0 (es) {
     console.log('rx_jumpc0');
     let cc = regFile[15].get();
-    if (extractBit (cc,ir_d)===0) {
+    if (extractBit (cc,es.ir_d)===0) {
 	es.nextInstrAddr = ea;
 	pc.put(es.nextInstrAddr);
     }
@@ -794,7 +842,7 @@ function rx_jumpc0 (es) {
 function rx_jumpc1 (es) {
     console.log('rx_jumpc1');
     let cc = regFile[15].get();
-    if (extractBit (cc,ir_d)===1) {
+    if (extractBit (cc,es.ir_d)===1) {
 	es.nextInstrAddr = ea;
 	pc.put(es.nextInstrAddr);
     }
@@ -802,7 +850,7 @@ function rx_jumpc1 (es) {
 
 function rx_jumpf (es) {
     console.log('rx_jumpf');
-    if (! wordToBool (regFile[ir_d].get())) {
+    if (! wordToBool (regFile[es.ir_d].get())) {
 	es.nextInstrAddr = ea;
 	pc.put (es.nextInstrAddr);
     }
@@ -810,7 +858,7 @@ function rx_jumpf (es) {
 
 function rx_jumpt (es) {
     console.log('rx_jumpt');
-    if (wordToBool (regFile[ir_d].get())) {
+    if (wordToBool (regFile[es.ir_d].get())) {
 	es.nextInstrAddr = ea;
 	pc.put (es.nextInstrAddr);
     }
@@ -818,7 +866,7 @@ function rx_jumpt (es) {
 
 function rx_jal (es) {
     console.log('rx_jal');
-    regFile[ir_d].put (pc.get());
+    regFile[es.ir_d].put (pc.get());
     es.nextInstrAddr = ea;
     pc.put (es.nextInstrAddr);
 }
@@ -827,16 +875,70 @@ function rx_nop (es) {
     console.log ('rx_nop');
 }
 
-// function ex(f) {
-const ex = (f) => (es) => {
-    console.log('EX');
-    es.instrOpStr = mnemonicEX[ir_b];
+// EXP format
+
+function exp_shl (es) {
+    console.log ("exp_shl");
+    console.log (`exp_shl ${wordToHex4(es.instrDisp)}`);
+    let a = (es.instrDisp & 0xf000) >>> 12;
+    let aa = regFile[a].get();
+    let k = (es.instrDisp & 0x0f00) >>> 8;
+    let result = aa << k;  // logical shift
+    console.log (`shl shift ${aa} left by ${k} bits => ${result}`);
+    regFile[es.ir_d].put(result);
+    console.log (`exp_shl d=${es.ir_d} a=${a} k=${k} result=${result}`);
+}
+
+function exp_shr (es) {
+    console.log ("exp_shr");
+    console.log (`exp_shr ${wordToHex4(es.instrDisp)}`);
+    let a = (es.instrDisp & 0xf000) >>> 12;
+    let aa = regFile[a].get();
+    let k = (es.instrDisp & 0x0f00) >>> 8;
+    let result = aa >>> k;  // logical shift
+    console.log (`shr shift ${aa} right by ${k} bits => ${result}`);
+    regFile[es.ir_d].put(result);
+    console.log (`exp_shr d=${es.ir_d} a=${a} k=${k} result=${result}`);
+}
+
+function exp_putctl (es) {
+    console.log ('exp_putctl');
+    let cregn = es.instrDisp;
+    let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
+    console.log (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
+    console.log (`es.ir_d=${es.ir_d}`);
+    register[cregidx].put(regFile[es.ir_d].get());
+    register[cregidx].refresh();
+}
+
+// temp like put
+function exp_getctl (es) {
+    console.log ('exp_putctl');
+    let cregn = es.instrDisp;
+    let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
+    console.log (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
+    regFile[es.ir_d].put(register[cregidx].get());
+}
+
+const expf = (f) => (es) => {
+    let expCode = 16*es.ir_a + es.ir_b;
+    es.instrOpStr = mnemonicEXP[expCode];
     es.instrDisp = memFetchInstr (pc.get());
-    adr.put (es.instrDisp);
     es.nextInstrAddr = binAdd (es.nextInstrAddr, 1);
     pc.put (es.nextInstrAddr);
-    f();
+    console.log(`EXPF code=${expCode} d=${es.ir_d} es.instrDisp=${wordToHex4(es.instrDisp)}`);
+    f(es);
 }
+
+
+const maxEXPcode = 3;  // any code above this is nop
+const dispatch_EXP =
+    [ expf (exp_shl),       // 0
+      expf (exp_shr),       // 1
+      expf (exp_putctl),    // 2
+      expf (exp_getctl)     // 3
+    ]
+
 
 //------------------------------------------------------------------------------
 // Test pane
