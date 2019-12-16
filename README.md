@@ -4,10 +4,14 @@ Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
-*Note: The software is currently being revised; this is a development
-version.  There are several earlier releases but those are available
-only on a protected Moodle server.  The new version is expected to be
-available on github around February 2020.*
+*Note (autumn 2019): The architecture, software, and documentation are
+currently being revised; this is a development version and it is not
+ready for general use.  There are several earlier releases, as well as
+extensive documentation, but those are available only on a protected
+Moodle server.  The new version is expected to be available on github
+around the beginning of February 2020.  The notes below, as well as
+the user guide, are incomplete and refer to previous versions, so the
+current documentation is inconsistent witht he current software.*
 
 ## Quick start
 
