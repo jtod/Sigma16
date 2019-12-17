@@ -513,7 +513,7 @@ function executeInstruction (es) {
     memDisplay ();
     regClearAccesses ();
 
-    // Check for interrupt
+// Check for interrupt
     let mr = imask.get() & ireq.get();
     console.log (`interrupt mr = ${wordToHex4(mr)}`);
     if (getBitInReg (statusreg,intEnableBit) && mr) {
@@ -540,36 +540,7 @@ function executeInstruction (es) {
 	return;
     };
 
-//    else {
-//	console.log ("Not interrupting");
-//    }
-//    let doInterrupt =
-//	getBitInReg (system,intEnableBit)
-//        ? (req.get() & mask.get())
-//        : 0;
-//    if (doInterrupt != 0) {
-//	console.log (`pc=${pc.get()} ivect=${ivect.get()}`);
-//	let s = system.get();
-//	let s1 = (s & clearIntEnable) | setSystemState;
-//	system.put(s1);
-//	console.log (`req = ${req.get()}`);
-//	console.log (`pc=${pc.get()} ivect=${ivect.get()}`);
-//	console.log (`req = ${req.get()}`);
-//	console.log (`req = ${req.get()}`);
-//	let target = ivect.get() + 2*i; // ivectr for interrupt taken
-//	pc.put(target);
-//	console.log ("Interrupt");
-//	console.log (1 << i);
-//	req.put (req.get() & (1 << i));
-//    let t1 = getBitInReg (system,interruptBit);
-//    let t2 = req.get();
-//    let t3 = mask.get();
-//    let t4 = t1 ? (t2 & t3) : 0;
-//    console.log (`t1=${t1} t2=${t2} t3=${t3} t4=${t4} do=${es.doInterrupt}`);
-//	console.log (`pc=${pc.get()} ivect=${ivect.get()}`);
-//	memShowAccesses();   interrupt doesn't use memory
-//	memDisplay ();
-
+// No interrupt, go ahead with instruction
     es.curInstrAddr = pc.get();
     instrCode = memFetchInstr (es.curInstrAddr);
     ir.put (instrCode);
@@ -930,6 +901,12 @@ function exp_getctl (es) {
     regFile[es.ir_d].put(register[cregidx].get());
 }
 
+function exp_rfi (es) {
+    console.log ('exp_rfi');
+    statusreg.put (istat.get());
+    pc.put (ipc.get());
+}
+
 const expf = (f) => (es) => {
     let expCode = 16*es.ir_a + es.ir_b;
     es.instrOpStr = mnemonicEXP[expCode];
@@ -941,12 +918,13 @@ const expf = (f) => (es) => {
 }
 
 
-const maxEXPcode = 3;  // any code above this is nop
+const maxEXPcode = 4;  // any code above this is nop
 const dispatch_EXP =
     [ expf (exp_shl),       // 0
       expf (exp_shr),       // 1
       expf (exp_putctl),    // 2
-      expf (exp_getctl)     // 3
+      expf (exp_getctl),    // 3
+      expf (exp_rfi)       // 4
     ]
 
 

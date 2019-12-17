@@ -53,6 +53,8 @@ function formatSize (fmt) {
 	return 1
     } else if (fmt==RRKX | fmt==RX | fmt==JX | fmt==RCX) {
 	return 2
+    } else if (fmt==NOOPERAND) {
+	return 1
     } else {
 	return 0
     }

@@ -46,9 +46,36 @@ handleOverflow
    trap   R0,R0,R0
 
 handleDiv0
-   add    R6,R6,R6     ; did we get here?
-   trap   R0,R0,R0
+   store  R1,save1[R0]        ; save state
+   store  R2,save2[R0]        ; save state
+   store  R3,save3[R0]        ; save state
+   lea    R1,2[R0]            ; trap code for write
+   lea    R2,zDivMsg[R0]      ; message: divide by 0
+   lea    R3,12[R0]           ; length of message
+   trap   R1,R2,R3            ; print the message
+   load   R1,save1[R0]        ; restore state
+   load   R2,save2[R0]        ; restore state
+   load   R3,save3[R0]        ; restore state
+   rfi                        ; resume
 
 intEnable  data   2    ; enable is bit 1 in system register
 ovflFlag   data  16    ; overflow bit is 4 in mask/req
 zdivFlag   data  32    ; zdiv is bit 5 in mask/req
+
+save1      data   0
+save2      data   0
+save3      data   0
+
+zDivMsg    data   100    ; d
+           data   105    ; i
+	   data   118    ; v
+           data   105    ; i
+           data   100    ; d
+           data   101    ; e
+	   data    32    ; space
+	   data    98    ; b
+	   data   121    ; y
+	   data    32    ; space
+	   data    48    ; 0
+	   data    10    ; newline
+	   

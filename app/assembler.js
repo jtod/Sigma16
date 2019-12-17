@@ -483,17 +483,12 @@ function printAsmStmts (m) {
     }
 }
 
-
 // Parse the source for line i and update the object with the results
-
-
-// ?????????????????????? inconsistent args parseAsmLine
 
 function parseAsmLine (m,i) {
     let s = m.asmStmt[i];
 //    console.log('parseAsmLine, m.asmStmt = ');
 //    printAsmStmt(m,s);
-//    let p = splitParser.exec(s.srcLine);
     let p = parseSplitFields.exec(s.srcLine);
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
@@ -778,6 +773,11 @@ function asmPass2 (m) {
 	    s.codeWord2 = s.ctlReg;
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==NOOPERAND) {
+	    console.log ('pass2 NOOPERAND');
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
 	} else if (fmt==DATA && s.operandDATA) {
 	    console.log('fmt is DATA and operandDATA=' + s.dat);
 	    s.codeWord1 = evaluate(m,s,s.dat);
