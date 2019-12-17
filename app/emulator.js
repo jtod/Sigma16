@@ -8,8 +8,8 @@
 
 function timerInterrupt() {
     console.log ("Timer Interrupt clicked");
-    setBitInRegMask (req, setTimerMask);
-    req.refresh();
+    setBitInReg (ireq, timerBit);
+    ireq.refresh();
 }
 
 //------------------------------------------------------------------------------
@@ -495,8 +495,14 @@ function breakClose () {
 // Machine language semantics
 //------------------------------------------------------------------------------
 
-
 // Execute one instruction and return
+
+// kludge check... remove
+//    if ((getBitInReg (statusreg,intEnableBit) ? (mr ?ireq.get() & imask.get()) : 0) != 0) {
+//	while (i<16 && getBitInReg(ireq,i)==0 && getBitInReg(imask,i)==0) {
+
+// console.log (`interrupt priority search imask=${wordToHex4(imask.get())} ireq=${wordToHex4(ireq.get())}`);
+//	    console.log(`find interrupt trying i=${i} r=${getBitInReg(ireq,i)} m=${getBitInReg(imask,i)}`);
 
 function executeInstruction (es) {
     console.log ('executeInstruction');
@@ -507,26 +513,30 @@ function executeInstruction (es) {
     memDisplay ();
     regClearAccesses ();
 
-// Check for interrupt    
-    if ((getBitInReg (system,intEnableBit) ? (req.get() & mask.get()) : 0) != 0) {
+    // Check for interrupt
+    let mr = imask.get() & ireq.get();
+    console.log (`interrupt mr = ${wordToHex4(mr)}`);
+    if (getBitInReg (statusreg,intEnableBit) && mr) {
 	let i = 0; // interrupt that is taken
-	while (i<16 && getBitInReg(req,i)==0 && getBitInReg(mask,i)==0) {
-	    console.log(`find interrupt i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
-	    i++
-	};
-	console.log (`Interrupt ${i}`);
-	save.put(pc.get());           // save the pc
-	console.log (`req=${wordToHex4(req.get())}`);
-	clearBitInReg (req,i);        // clear the interrupt that was taken
-	console.log (`req=${wordToHex4(req.get())}`);
+	while (i<16 && getBitInWord(mr,i)==0) { i++ };
+	console.log (`\n*** Interrupt ${i} ***`);
+	ipc.put(pc.get());           // save the pc
+	istat.put(statusreg.get());   // save the status register
+	console.log (`ipc=${ipc.get()}`);
+	console.log (`ireq=${wordToHex4(ireq.get())}`);
+	clearBitInReg (ireq,i);        // clear the interrupt that was taken
+	console.log (`ireq=${wordToHex4(ireq.get())}`);
 	console.log (`pc=${wordToHex4(pc.get())}`);
-	pc.put (vector.get() + 2*i);  // jump to handler
+	console.log (`vect=${wordToHex4(ivect.get())} i=${i}`);
+	pc.put (ivect.get() + 2*i);  // jump to handler
 	console.log (`pc=${wordToHex4(pc.get())}`);
         // Disable interrupts and enter system state
-	console.log (`system=${wordToHex4(system.get())}`);
-	system.put ((system.get() & clearIntEnable) | setSystemState);
-	console.log (`system=${wordToHex4(system.get())}`);
-	regShowAccesses()
+	console.log (`status=${wordToHex4(statusreg.get())}`);
+	statusreg.put (statusreg.get()
+		       & maskToClearBit(intEnableBit)
+		       & maskToClearBit(userStateBit));
+	console.log (`statusreg=${wordToHex4(statusreg.get())}`);
+	regShowAccesses();
 	return;
     };
 
@@ -538,15 +548,15 @@ function executeInstruction (es) {
 //        ? (req.get() & mask.get())
 //        : 0;
 //    if (doInterrupt != 0) {
-//	console.log (`pc=${pc.get()} vector=${vector.get()}`);
+//	console.log (`pc=${pc.get()} ivect=${ivect.get()}`);
 //	let s = system.get();
 //	let s1 = (s & clearIntEnable) | setSystemState;
 //	system.put(s1);
 //	console.log (`req = ${req.get()}`);
-//	console.log (`pc=${pc.get()} vector=${vector.get()}`);
+//	console.log (`pc=${pc.get()} ivect=${ivect.get()}`);
 //	console.log (`req = ${req.get()}`);
 //	console.log (`req = ${req.get()}`);
-//	let target = vector.get() + 2*i; // vectorr for interrupt taken
+//	let target = ivect.get() + 2*i; // ivectr for interrupt taken
 //	pc.put(target);
 //	console.log ("Interrupt");
 //	console.log (1 << i);
@@ -556,7 +566,7 @@ function executeInstruction (es) {
 //    let t3 = mask.get();
 //    let t4 = t1 ? (t2 & t3) : 0;
 //    console.log (`t1=${t1} t2=${t2} t3=${t3} t4=${t4} do=${es.doInterrupt}`);
-//	console.log (`pc=${pc.get()} vector=${vector.get()}`);
+//	console.log (`pc=${pc.get()} ivect=${ivect.get()}`);
 //	memShowAccesses();   interrupt doesn't use memory
 //	memDisplay ();
 

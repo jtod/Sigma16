@@ -5,6 +5,7 @@ let currentFile = null;  // Remember the current working file handle
 
 // save file in downloads
 
+
 function editorDownload () {
     console.log ("editorPrepareDownload");
     let downloadElt = document.getElementById("editorDownloadAnchor");

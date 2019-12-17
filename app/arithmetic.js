@@ -4,43 +4,21 @@
 
 // Bits are numbered from right to left, where the least significant
 // bit has index 0 and the most significant (leftmost) bit has index
-// 15
+// 15.
 
-// return bit i in word w
-function getBitInWord (w,i) {
-    let x = (w >>> i) & 0x0001;
-    console.log (x);
-    return x;
-}
+// Return bit i in word w
+function getBitInWord (w,i) { return (w >>> i) & 0x0001 }
 
-// return bit i in register r
-function getBitInReg (r,i) {
-    let x = (r.get() >>> i) & 0x0001;
-    console.log (x);
-    return x;
-}
+// Return bit i in register r
+function getBitInReg (r,i) { return (r.get() >>> i) & 0x0001 }
 
-// Set bit i to 0 in register r, leaving other bits unchanged
-function clearBitInReg (r,i) {
-    r.put (r.get() & (0xffff ^ (1 << i)));
-}
-
-// Set or clear a bit in a register r, where the bit is specified by a
-// mask.  The architecture module defines masks for quick access to a
-// number of constrol register bits.
-
-function clearBitInRegMask (r,m) { r.put (r.get() & m) }
-function setBitInRegMask   (r,m) { r.put (r.get() | m) }
-
-//------------------------------------------------------------------------------
-// Setting and clearing a bit in a word
-//------------------------------------------------------------------------------
-
-// To set bit i of word x to 1:    x | maskToSetBit(i)
-function maskToSetBit (i) { return 1 << i }
-
-// To clear bit i of word x to 0:  x & maskToSetBit(i)
+// Generate mask to clear/set bit i in a word
 function maskToClearBit (i) { return ~(1<<i) & 0xffff }
+function maskToSetBit (i) { return (1 << i) & 0xffff }
+
+// Clear/set bit i in register r
+function clearBitInReg (r,i) { r.put (r.get() & maskToClearBit(i)) }
+function setBitInReg   (r,i) { r.put (r.get() | maskToSetBit(i)) }
 
 //------------------------------------------------------------------------------
 // Words, binary numbers, and two's complement integers
@@ -357,7 +335,7 @@ function op_add (a,b) {
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
-    if (tcOverflow) { setBitInRegMask (req,setOverflowMask) }
+    if (tcOverflow) { setBitInReg (ireq,overflowBit) }
     return [primary, secondary];
 }
 
@@ -400,7 +378,7 @@ function op_mul (a,b) {
     let primary = p & 0x0000ffff;
     let tcOverflow = ! (minTC <= p && p <= maxTC)
     let secondary = (tcOverflow ? ccv : 0);
-    if (tcOverflow) { setBitInRegMask (req,setOverflowMask) }
+    if (tcOverflow) { setBitInReg (ireq,overflowBit) }
     return [primary, secondary];
 }
 
@@ -415,7 +393,7 @@ function op_div (a,b) {
     let bint = wordToInt (b);
     let primary = intToWord (Math.trunc (aint / bint));
     let secondary = intToWord (aint % bint);
-    if (bint==0) { setBitInRegMask (req,setZDivMask) };
+    if (bint==0) { setBitInReg (ireq,zDivBit) };
     return [primary, secondary];
 }
 

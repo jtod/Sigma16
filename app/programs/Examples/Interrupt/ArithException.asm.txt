@@ -5,14 +5,14 @@
    load   R1,zdivFlag[R0]    ; flag for division by 0
    load   R2,ovflFlag[R0]    ; flag for overflow
    or     R3,R1,R2           ; flag for either zdiv of overflow
-   putctl R3,mask            ; set interrupt mask for either zdiv of overflow
+   putctl R3,imask           ; set interrupt mask for either zdiv of overflow
 
 ; Enable interrupts and prepare interrupt vector
 
    load   R1,intEnable[R0]   ; flag for interrupt enable
-   putctl R1,system          ; enable interrupts
+   putctl R1,status          ; enable interrupts
    lea    R1,intVector[R0]   ; address of vector
-   putctl R1,vector          ; initialize vector register
+   putctl R1,ivect          ; initialize vector register
 
 ; Do some arithmetic that generates exceptions
 
@@ -28,8 +28,18 @@
    trap   R0,R0,R0
 
 intVector
+   jump   handleTimer[R0]
+   jump   handleSegFault[R0]
+   jump   handleMemFault[R0]
+   jump   handleTrap[R0]
    jump   handleOverflow[R0]
    jump   handleDiv0[R0]
+
+handleTimer
+handleSegFault
+handleMemFault
+handleTrap
+   trap   R0,R0,R0
 
 handleOverflow
    add    R5,R5,R5     ; did we get here?

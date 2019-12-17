@@ -133,6 +133,17 @@ function examplesHome() {
 const openingPreTag = /^<[^>]*>/;   // <pre...> at beginning
 const closingPreTag = /<[^>]*>$/;   // ...</pre> at end
 
+
+// This does not work.  Perhaps because it's an iframe, not an input?
+// Copy text of example buffer to clipboard
+function copyExampleToClipboard () {
+    console.log ('Copy example to clipboard');
+    let exElt = document.getElementById('ExamplesIframeId');
+    exElt.select();
+    exElt.setSelectionRange(0,5);
+    document.execCommand('copy');
+}
+
 function copyExampleText() {
     console.log ('copyExampleText');
     let exElt = document.getElementById('ExamplesIframeId');
@@ -663,18 +674,18 @@ window.onload = function () {
 
     // Interrupt control registers
     ctlRegIndexOffset = nRegisters;
-    system   = mkReg ('system',  'systemElt',  wordToHex4);
+    statusreg   = mkReg ('statusreg',  'statusElt',  wordToHex4);
 //    ienable  = mkReg ('ienable',  'enableElt',  showBit);
-    mask     = mkReg ('mask',     'maskElt',    wordToHex4);
-    req      = mkReg ('req',      'reqElt',     wordToHex4);
-    // mask and request
+    imask     = mkReg ('imask',     'imaskElt',    wordToHex4);
+    ireq      = mkReg ('ireq',      'ireqElt',     wordToHex4);
+    // imask and irequest
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
-    isys     = mkReg ('isys',      'isysElt',      wordToHex4);
+    istat    = mkReg ('istat',    'istatElt',      wordToHex4);
     ipc      = mkReg ('ipc',      'ipcElt',      wordToHex4);
-    vector   = mkReg ('vector',   'vectorElt', wordToHex4);
+    ivect   = mkReg ('ivect',   'ivectElt', wordToHex4);
 
 // Segment control registers
     sEnable  = mkReg ('sEnable',  'sEnableElt',  showBit);
@@ -686,8 +697,11 @@ window.onload = function () {
 // Record the control registers    
     nRegisters = 16;  // Start after the first 16 (the regfile)
     controlRegisters =
-	[pc,ir,adr,dat, system,
-	 mask, req, save, vector];
+	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
+	 // the following can be used for getctl/getctl, indexing from 0
+	 statusreg,
+	 imask, ireq, istat, ipc, ivect
+	];
     controlRegisters.forEach (function (r) {
 	console.log('making reg ' + nRegisters + ' = ' + r.regName);
 	register[nRegisters] = r;

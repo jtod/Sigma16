@@ -39,7 +39,7 @@ const NOOPERAND   = 8;    // statement has no operand
 
 const RRRX        = 9;    // R1,R2,R3    (EXP)
 const RRKX        = 10;    // R1,R2,3    (EXP)
-const RCX         = 11;    // getcth R4,mask
+const RCX         = 11;    // getcth R4,imask
 
 function showFormat (n) {
     let f = ['RRR','RR','RX','JX','DATA','COMMENT','NOOPERATION'] [n];
@@ -141,17 +141,22 @@ statementSpec.set("rfi",      {format:NOOPERAND,  opcode:[14,4]});
 
 // Mnemonics for control registers
 
-var ctlReg = new Map();
-ctlReg.set ("system",  {ctlRegIndex:0});
-ctlReg.set ("mask",    {ctlRegIndex:1});
-ctlReg.set ("req",     {ctlRegIndex:2});
-ctlReg.set ("save",    {ctlRegIndex:3});
-ctlReg.set ("vector",  {ctlRegIndex:4});
-ctlReg.set ("prog",    {ctlRegIndex:5});
-ctlReg.set ("progEnd", {ctlRegIndex:6});
-ctlReg.set ("data",    {ctlRegIndex:7});
-ctlReg.set ("dataEnd", {ctlRegIndex:8});
+// The getctl and putctl instructions contain a field indicating which
+// control register to use. This record defines the names of those
+// control registers (used in the assembly language) and the numeric
+// index for the control register (used in the machine language).
 
+var ctlReg = new Map();
+ctlReg.set ("status",   {ctlRegIndex:0});
+ctlReg.set ("imask",    {ctlRegIndex:1});
+ctlReg.set ("ireq",     {ctlRegIndex:2});
+ctlReg.set ("istat",    {ctlRegIndex:3});
+ctlReg.set ("ipc",      {ctlRegIndex:4});
+ctlReg.set ("ivect",    {ctlRegIndex:5});
+ctlReg.set ("prog",     {ctlRegIndex:6});
+ctlReg.set ("progEnd",  {ctlRegIndex:7});
+ctlReg.set ("data",     {ctlRegIndex:8});
+ctlReg.set ("dataEnd",  {ctlRegIndex:9});
 
 //------------------------------------------------------------------------------
 // System register bits
@@ -162,19 +167,19 @@ ctlReg.set ("dataEnd", {ctlRegIndex:8});
 // defined for setting or clearing the flags
 
 // When the machine boots, the registers are initialized to 0.  The
-// system state flag is defined so that sysStateBit=0 indicates system
+// system state flag is defined so that userStateBit=0 indicates system
 // (or supervisor) state.  The reason for this is that the system
 // should boot into a state that enables the operating system to
 // initialize itself.
 
-const sysStateBit  = 0;   // 0 - system state,  1 - user state
+const userStateBit  = 0;   // 0 - system state,  1 - user state
 const intEnableBit = 1;   // 0 - disabled,      1 - enabled
 
 const clearIntEnable = maskToClearBit (intEnableBit);
-const setSystemState = maskToClearBit (sysStateBit);
+const setSystemState = maskToClearBit (userStateBit);
 
 //------------------------------------------------------------------------------
-// Interrupt request and mask bits
+// Interrupt irequest and imask bits
 //------------------------------------------------------------------------------
 
 const timerBit         = 0;   // timer has gone off
@@ -183,12 +188,3 @@ const memFaultBit      = 2;   // invalid memory virtual address
 const trapBit          = 3;   // user trap
 const overflowBit      = 4;   // overflow occurred
 const zDivBit          = 5;   // division by 0
-
-const setTimerMask     = maskToSetBit (timerBit);
-const setSegFaultMask  = maskToSetBit (segFaultBit);
-const setMemFaultMask  = maskToSetBit (memFaultBit);
-const setOverflowMask  = maskToSetBit (overflowBit);
-const setZDivMask      = maskToSetBit (zDivBit);
-const setTrapMask      = maskToSetBit (trapBit);
-
-//Example: to signal overflow: setBitInRegMask (req,setOverflowMask);
