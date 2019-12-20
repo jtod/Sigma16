@@ -1,4 +1,4 @@
-% Sigma16 source repository
+# Sigma16 source repository
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
@@ -13,8 +13,8 @@ home page** at
 
 Quick start:
 
-* [Launch Sigma16 to run in your browser]
-  (https://jtod.github.io/S16/dev/app/Sigma16.html)
+* [Launch Sigma16 to run in your
+  browser](https://jtod.github.io/S16/dev/app/Sigma16.html)
 * [Read the User
   Guide](https://jtod.github.io/S16/dev/app/doc/html/userguide.html)
   This includes documentation of the architecture, programming, and
