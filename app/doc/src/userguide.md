@@ -19,16 +19,15 @@ the details.  For a quick start, begin with the tutorials, which show
 you how to enter and run a program, and how to use the programming
 environment.
 
-## Tutorial
+The following short tutorials show you how to use the system.  You can
+keep the tutorials visible in the right panel while following along
+with the exercises in the main panel.
 
-These short and simple tutorials show you how to use the system.  You
-can keep the tutorials visible in the right panel while following
-along with the exercises in the main panel.
-
-### The user interface
+## Tutorial: Run an example program
 
 *Topics:* components of the user interface, adjusting size of the user
-guide, the tabs for switching among the working areas
+guide, the tabs for switching among the working areas, and the steps
+for running a program.  Registers, constants and addition.
 
 Let's start by looking at the different parts of the user interface.
 The main window contains three main sections.  The largest area, on
@@ -42,13 +41,6 @@ user guide by clicking the arrow buttons on the right side of the
 button row.  These move the boundary between the two areas left or
 right.  If you reisze the window, the relative sizes of the working
 area and the user guide will remain the same.
-
-### R running a simple program
-
-*Topics:* steps for running a program, registers, constants and
-addition
-
-## Tutorial: Run an example program
 
 A good way to get started is to go through the entire process of
 entering a simple program, assembling it, and running it.  This
@@ -114,150 +106,13 @@ The Welcome pane will be visible.
     reaches the specified value; then it will stop so you can examine
     the state of the machine.
 
-## Using the user interface
+## Tutorial: load, store, and arithmetic
 
-### Editor
+## Tutorial: comparisons and jumps
 
-  
-### Assembly language
+## Tutorial: effective addresses and arrays
 
-Each line of source code is an assembly language statement.  Each
-statement must appear on one line.  Most statements specify code,
-either an instruction or some constant data.  Some statements are full
-line comments.  Other statements are directives, which control the
-behavior of the assembler but don't generate any code.
-
-A statement may contain several fields.  A field consists of non-space
-characters (with one exception: a space may appear in a string
-literal).  Fields are separated from each other by one or more white
-space characters.
-
-  * Label.  The label field is optional; if it appears, it must begin
-    in the first character of the line.  The label field, if present,
-    must be a name.
-	
-  * Operation.  The operation field specifies an instruction or
-    assembler directive.  It must be preceded by one or more white
-    space characters.  Every statement (apart from a full line
-    comment) must have an operation field, which must be a name.
-	
-  * Operands.  The operands field specifies operands for an
-    instruction or arguments for assembly directive.  All instructions
-    have an operand field, and some assembler directives do.
-	
-  * Comment.  All text that follows white space after the operands
-    field is a comment, and is ignored by the assembler.  If one or
-    more of the other fields (label, operation, operands) is missing,
-    the comment must be preceded by a semicolon (to prevent it from
-    being interpreted as operands).  The rule is: all text after a
-    semicolon is a comment, and all text after white space following
-    operands is a comment.  A statement where the first non-space
-    character is a semicolon is a full line comment.
-
-A name must begin with a letter (a-z or A-Z), and may contain letters,
-digits, or underscore characters.
-
-### Processor
-
-# Programs, modules, and files
-
-The system is designed to allow programs that consist of several
-modules, but also to allow programs consisting of one standalone
-module.  In addition, an aim is to do this simply and intuitively, so
-that you can ignore the issues of modules and linking if you just want
-to write a andalone program.
-
-There is a standard convention for file names.  If, for example, you
-have a program named MyProgram, then the files associated with it
-should be as follows:
-
-    -----------------  -----------
-    module name        MyProgram
-    source file        MyProgram.asm.txt
-    object file        MyProgram.obj.txt
-    assembly listing   MyProgram.lst.txt
-    -----------------  -----------
-
-## Simple standalone programs
-
-If a program does not import any names, it is *standalone*.  The text
-of the program is shown in the editor pane.  Go to the Assembler pane
-and click Assemble.  If there are no errors, go directly to the
-Processor pane (you can skip the Linker) and click Boot.  This will
-read the machine language into the memory, and now you can run the
-program.
-
-## Programs with multiple modules
-
-A module consists of program text, and it may have an optional file,
-and an optional module name.
-
-  * The module text is a sequence of assembly language statements.
-    The text may exist only in the editor buffer, or it may be
-    associated with a file.
-
-  * If there is a file, this may be specified either as a path (the
-    unique identification of the file (C:\\Users\...\prog.asm.txt), or
-    as just a filename (myprogram.asm.txt) which is relative to the
-    current directory.
-
-To edit a file, the modDir and modName are both optional.  An edited
-file may have a module name specified with a module statement.  To
-read or save a file, both the module directory and name must be known.
-
-Editor operations on files and modules
-
-Each operation that changes the editor buffer (New, Open, Close)
-checks first to see whehter the buffer has been changed since it was
-last saved.  If so, a dialogue asks whether the file should be saved.
-
-  * New -- Check whether text in the editor buffer has been saved; if
-    not, ask whether to save it.  Create a new module with empty text
-    and no file name, add it to the module set, and select it as the
-    current module.  Clear the text in the editor buffer.
-
-  * Open -- Check whether text in the editor buffer has been saved; if
-    not, ask whether to save it.  Enter the open file dialogue where
-    an existing file can be found by navigation or by typing in its
-    name.  If the dialogue is cancelled, the module set and editor
-    buffer are left unchanged.  If a file is selected in the dialogue,
-    and it is already in the module set, then it is selected in the
-    current module.  Otherwise, a new module is created with the
-    file's contents, and is selected as the current module.  and The
-    file is loaded into the editor buffer and added to the module set.
-
-  * Refresh -- The file corresponding to the current module is read,
-    and its contents are loaded into the editor buffer.
-
-  * SaveAs -- Enters the save file dialogue where the directory and
-    file name can be chosen.  The editor buffer is written into this
-    file.
-
-  * Save -- Writes the editor buffer into the current file and
-    directory.  If either the module name or directory is not known,
-    this reverts to a SaveAs.
-
-  * Select -- Opens a list of all modules; you can click one of them
-    which is then set as the current module.
-  
-  * Close -- Check whether text in the editor buffer has been saved;
-    if not, ask whether to save it. The module is removed from the
-    module set, and the editor buffer is cleared.  The first module
-    (module number 0) is selected as the current module, but if there
-    is no module at all, an empty module is created and selected as
-    current (in effect, if there is only one module and you close it,
-    an automatic New is performed).
-
-  * Example -- Reads in a very simple example program and sets it as
-    the current module.  This is a standalone program; you can simply
-    click Editor: Example, then Assembler: Assemble, then Processor:
-    Boot, and run the program.  This example is used in the first
-    "getting started" tutorial.  The example program is also available
-    in the Examples directory, accessible through Editor: Open.
-
-Select is for switching among the existing modules, while New and Open
-are for introducing a new module.
-
+## Tutorial: further instructions
 
 # Architecture of the computer
 
@@ -275,7 +130,6 @@ The bits of a word are numbered from left to right, starting with 0.
 Thus the leftmost (most significant) bit of a word is bit 0, and the
 rightmost (least significant) is bit 15.
 
-
 ## Register file
 
 The **register file** is a set of 16 general registers that hold a 16
@@ -283,14 +137,10 @@ bit word.  A register is referenced by a 4-bit binary number.  In
 assembly language, we use the notations R0, R1, R2, ..., R9, R10, R11,
 R12, R13, R14, R15 to refer to the registers.
 
-One of the registers, R0, has a special property: it always contains
-the constant 0.  It is legal to perform an instruction that attempts
-to load some other value into R0, but the register will still contain
-0 after executing such an instruction.  Such an instruction will
-simply have no lasting effect.
-
-Apart from R0, all the instructions behave exactly the same way, at
-least as far as the hardware is concerned.
+Sigma16 is a load/store style architecture; that is, it does not
+combine memory accesses with arithmetic.  All calculations are carried
+out in the register file, and explicit load and store instructions
+must be used to copy data between the memory and the register file.
 
 There are some programming conventions that use certain registers for
 special purposes.  The hardware does not enforce, or even know about,
@@ -300,23 +150,15 @@ order to use the standard software libraries in your program.  See the
 section on Programming for a discussion of these standard usage
 conventions.
 
-## Control registers
+### R0 holds the constant 0
 
-There are several **program control registers** that enable the
-processor to keep track of the state of the running program.  These
-registers are rarely used directly by the machine language program,
-but they are essential for keeping track of the execution of the
-program, and some instructions use them directly.
+One of the registers, R0, has a special property: it always contains
+the constant 0.  It is legal to perform an instruction that attempts
+to load some other value into R0, but the register will still contain
+0 after executing such an instruction.  Such an instruction will
+simply have no lasting effect.
 
- * ir -- instruction register (16-bit word)
-
- * pc -- program counter (16-bit word)
-
- * adr -- address register (16-bit word)
-
- * dat -- data register (16-bit word)
-
-## Condition codes
+### R15 is the condition code register
 
 Several instructions produce status information: the result of a
 comparison, whether there was an overflow, etc.  This information is
@@ -346,22 +188,10 @@ Table: Condition code flags
   6     **v**    signed overflow (two's complement)
   7     **C**    carry propagation (binary)
 
-
 conditional jump
 
 jumpc0  jump if cc bit is 0
 jumpc1  jump if cc bit is 1
-
-
-
-## Processor status flags
-
-The processor can be executing in several modes, which are determined
-by the **system control registers**.
-
- * ie   -- interrupts enabled (1-bit flag)
-
- * sys  -- system state (1-bit flag)
 
 ## Memory
 
@@ -370,9 +200,47 @@ A memory address is 16 bits wide, and there is one memory location
 corresponding to each address, so there are 2^16 = 64k memory
 locations.  Each memory location is a 16-bit word.
 
-## Exceptions
+The effective address is defined to be the binary sum of the
+displacement and the index register.
 
+## Instruction control registers
 
+There are several **program control registers** that enable the
+processor to keep track of the state of the running program.  These
+registers are rarely used directly by the machine language program,
+but they are essential for keeping track of the execution of the
+program, and some instructions use them directly.
+
+ * ir -- instruction register (16-bit word)
+
+ * pc -- program counter (16-bit word)
+
+ * adr -- address register (16-bit word)
+
+ * dat -- data register (16-bit word)
+ 
+ * status -- collection of control flags
+
+### Status register flags
+
+The processor can be executing in several modes, which are determined
+by the **system control registers**.
+
+ * sys (bit 0)  -- system state (1-bit flag)
+
+ * ie (bit 1)   -- interrupts enabled (1-bit flag)
+
+## Interrupts and exceptions
+
+ * imask
+ 
+ * ireq
+ 
+ * istatus
+ 
+ * ipc
+ 
+ * ivect
 
  Location  Exception   Type
 ---------- ----------- -----------
@@ -385,13 +253,7 @@ locations.  Each memory location is a 16-bit word.
      6     Input       Interrupt
      7     Output      Interrupt
 
-
-Sigma16 is a load/store style architecture; that is, it does not
-combine memory accesses with arithmetic.  All calculations are carried
-out in the register file, and explicit load and store instructions
-must be used to copy data between the memory and the register file.
-
-## Instruction formats
+## Instruction representation
 
 There are three instruction formats:
 
@@ -502,16 +364,13 @@ instruction.
 
 # Instruction set
 
-## Arithmetic
+
+## Arithmetic instructions
 
 ### add
 
 add. The two operands are fetched from registers, added, and the sum
 is loaded into the destination register.
-
-The following table shows the complete instruction set.  The
-instructions are in order of increasing operation code.
-
 
 ### mul (multiply signed integers)
 
@@ -519,6 +378,8 @@ instructions are in order of increasing operation code.
 
 The effective address is defined to be the binary sum of the
 displacement and the index register.
+
+### Copying variables between memory and registers
 
 ### load
 
@@ -554,14 +415,74 @@ format: RX
    store  R6,arrayX[R2]
 ```
 
+### Stack operations
 
-## Control
+Stack instructions use data in registers.  A stack is represented as a
+consecutive sequence of words, with addresses sb+1, sb+2, ..., sl.
 
-The effective address is defined to be the binary sum of the
-displacement and the index register.
+* Stack base (sb) = address of word just below the first element of
+  the stack.  Stack operations should never store anything at address
+  sb; the first element is stored at sb+1.
+
+* Stack limit (sl) = address of the last location that can hold a
+  stack element.
+
+* Stack top (st) = address of the element at the top of the stack, if
+  it exists.  If the stack is empty, then st=sb.  If the stack is
+  full, then st=sl.
+
+* Data being accessed (x)
+
+Generally, four registers are needed to use a stack.  However, each
+stack instruction needs only three registers, since push does not need
+to check the stack base and pop does not need to check the stack
+limit.
+
+### push
+
+    push  R1,R2,R3
+
+    R1 = value to push onto stack in memory
+    R2 = stack top
+    R3 = stack limit
+
+    if R2<R3
+      then R2 := R2+1; mem[R2] := R1
+      else R15.sovfl := 1, req.StackBounds := 1
+  
+### pop
+
+    pop R1,R3,R3
+
+    R1 = value popped from stack
+    R2 = stack top
+    R3 = stack base
+
+    if R2>R3
+      then R1 := mem[R2]; R2 := R2 - 1
+      else R15.StackUnderflow := 1, req.StackBounds := 1
+
+### top
+
+     top  R1,R2,R3
+
+     R1 = value of top of stack
+     R2 = stack top
+     R2 = stack base
+
+     if R2>R2
+       then R1 := mem[R1]
+       else R15.StackEmpty := 1, req.StackBounds := 1
+
+### Saving and restoring state
+
+### Accessing individual bits
 
 
 ## Summary of the instruction set
+
+The following table shows the complete instruction set.  The
+instructions are in order of increasing operation code.
 
 ***
 
@@ -715,6 +636,44 @@ displacement and the index register.
     
 # Assembly Language
 
+Each line of source code is an assembly language statement.  Each
+statement must appear on one line.  Most statements specify code,
+either an instruction or some constant data.  Some statements are full
+line comments.  Other statements are directives, which control the
+behavior of the assembler but don't generate any code.
+
+A statement may contain several fields.  A field consists of non-space
+characters (with one exception: a space may appear in a string
+literal).  Fields are separated from each other by one or more white
+space characters.
+
+  * Label.  The label field is optional; if it appears, it must begin
+    in the first character of the line.  The label field, if present,
+    must be a name.
+	
+  * Operation.  The operation field specifies an instruction or
+    assembler directive.  It must be preceded by one or more white
+    space characters.  Every statement (apart from a full line
+    comment) must have an operation field, which must be a name.
+	
+  * Operands.  The operands field specifies operands for an
+    instruction or arguments for assembly directive.  All instructions
+    have an operand field, and some assembler directives do.
+	
+  * Comment.  All text that follows white space after the operands
+    field is a comment, and is ignored by the assembler.  If one or
+    more of the other fields (label, operation, operands) is missing,
+    the comment must be preceded by a semicolon (to prevent it from
+    being interpreted as operands).  The rule is: all text after a
+    semicolon is a comment, and all text after white space following
+    operands is a comment.  A statement where the first non-space
+    character is a semicolon is a full line comment.
+
+A name must begin with a letter (a-z or A-Z), and may contain letters,
+digits, or underscore characters.
+
+...
+
 An assembly language provides a reasonably readable notation for
 writing machine language programs.  An instruction in machine language
 is just one or more words (often written in hexadecimal notation),
@@ -806,18 +765,6 @@ Examples
 name   import
        export   name
 
-## Object language statements
-
-hex4 means a 4-digit hexadecimal constant, such as 3b9f.
-
-name means an identifier, beginning with a letter and comprising
-letters, digits, _
-
-org  hex4                       set location counter
-data hex4 ... hex4              load words, incrementing loc counter
-relocate hex4                   add relocation to word at address
-external name                   insert value of external name
-       
 
 ## Assembly listing
 
@@ -837,9 +784,123 @@ This shows each identifier (or "symbol") that appears in the program,
 the address allocated for the symbol, the source code line where it
 was defined, and the source code lines where it was used.
 
+# Object code
+
+## Object language statements
+
+hex4 means a 4-digit hexadecimal constant, such as 3b9f.
+
+name means an identifier, beginning with a letter and comprising
+letters, digits, _
+
+org  hex4                       set location counter
+data hex4 ... hex4              load words, incrementing loc counter
+relocate hex4                   add relocation to word at address
+external name                   insert value of external name
+       
 # Linker
 
-The linker is not implemented in this version of the application.
+(The linker is not fully implemented in this version of the
+application; it's on the way.)
+
+## Programs, modules, and files
+
+The system is designed to allow programs that consist of several
+modules, but also to allow programs consisting of one standalone
+module.  In addition, an aim is to do this simply and intuitively, so
+that you can ignore the issues of modules and linking if you just want
+to write a andalone program.
+
+There is a standard convention for file names.  If, for example, you
+have a program named MyProgram, then the files associated with it
+should be as follows:
+
+    -----------------  -----------
+    module name        MyProgram
+    source file        MyProgram.asm.txt
+    object file        MyProgram.obj.txt
+    assembly listing   MyProgram.lst.txt
+    -----------------  -----------
+
+## Simple standalone programs
+
+If a program does not import any names, it is *standalone*.  The text
+of the program is shown in the editor pane.  Go to the Assembler pane
+and click Assemble.  If there are no errors, go directly to the
+Processor pane (you can skip the Linker) and click Boot.  This will
+read the machine language into the memory, and now you can run the
+program.
+
+## Programs with multiple modules
+
+A module consists of program text, and it may have an optional file,
+and an optional module name.
+
+  * The module text is a sequence of assembly language statements.
+    The text may exist only in the editor buffer, or it may be
+    associated with a file.
+
+  * If there is a file, this may be specified either as a path (the
+    unique identification of the file (C:\\Users\...\prog.asm.txt), or
+    as just a filename (myprogram.asm.txt) which is relative to the
+    current directory.
+
+To edit a file, the modDir and modName are both optional.  An edited
+file may have a module name specified with a module statement.  To
+read or save a file, both the module directory and name must be known.
+
+Editor operations on files and modules
+
+Each operation that changes the editor buffer (New, Open, Close)
+checks first to see whehter the buffer has been changed since it was
+last saved.  If so, a dialogue asks whether the file should be saved.
+
+  * New -- Check whether text in the editor buffer has been saved; if
+    not, ask whether to save it.  Create a new module with empty text
+    and no file name, add it to the module set, and select it as the
+    current module.  Clear the text in the editor buffer.
+
+  * Open -- Check whether text in the editor buffer has been saved; if
+    not, ask whether to save it.  Enter the open file dialogue where
+    an existing file can be found by navigation or by typing in its
+    name.  If the dialogue is cancelled, the module set and editor
+    buffer are left unchanged.  If a file is selected in the dialogue,
+    and it is already in the module set, then it is selected in the
+    current module.  Otherwise, a new module is created with the
+    file's contents, and is selected as the current module.  and The
+    file is loaded into the editor buffer and added to the module set.
+
+  * Refresh -- The file corresponding to the current module is read,
+    and its contents are loaded into the editor buffer.
+
+  * SaveAs -- Enters the save file dialogue where the directory and
+    file name can be chosen.  The editor buffer is written into this
+    file.
+
+  * Save -- Writes the editor buffer into the current file and
+    directory.  If either the module name or directory is not known,
+    this reverts to a SaveAs.
+
+  * Select -- Opens a list of all modules; you can click one of them
+    which is then set as the current module.
+  
+  * Close -- Check whether text in the editor buffer has been saved;
+    if not, ask whether to save it. The module is removed from the
+    module set, and the editor buffer is cleared.  The first module
+    (module number 0) is selected as the current module, but if there
+    is no module at all, an empty module is created and selected as
+    current (in effect, if there is only one module and you close it,
+    an automatic New is performed).
+
+  * Example -- Reads in a very simple example program and sets it as
+    the current module.  This is a standalone program; you can simply
+    click Editor: Example, then Assembler: Assemble, then Processor:
+    Boot, and run the program.  This example is used in the first
+    "getting started" tutorial.  The example program is also available
+    in the Examples directory, accessible through Editor: Open.
+
+Select is for switching among the existing modules, while New and Open
+are for introducing a new module.
 
 # Programming the Sigma16 architecture
 
@@ -849,73 +910,26 @@ Coming soon.
 
 Coming soon
 
-# About the software
-
-Sigma16 is built using the Haskell programming language and the Hydra
-hardware description language.  The documentation is written in
-markdown and prepared for a web browser using pandoc.
-
-  * [README](file:README.html)
-  * [LICENSE](file:LICENSE.html)
-  * [Full text of GPL3 license](file:LICENSE_GPL3.html)
-
-## Changes underway
-
-Support relocatable code
-
-* Change jump, jumpt, jumpf, jal to use pc-relative addressing
-* Introduce a jalext that uses indexed absolute address, for external
-
-User flags register
-
-* Carry output
-* Overflow
-* Carry input
-
-System flags register
-* System status
-* Interrupts enabled
-
-Arithmetic
-Add/subtract with carry
-
-Input/Output
-dma channels
-Ready
-Ack
-
 # Installation
-
-## License
-
-This is free and open source software and is distributed under the GPL
-License, either version 3 or (at your option) any later version.  See
-the LICENSE and LICENSE_GPL3 files.  This program is experimental
-software, and is under development.
 
 ## Browser compatibility
 
 The application currently works with Chrome and Firefox, and
 possible Edge.
 
-## How to run the application
-
-The program uses a web browser to display
-the graphical user interface.
-
-
-
-## How to run the program
+## Where to find the software
 
 The software is available on the Internet at the [Sigma16 home
 page](https://jtod.github.io/Sigma16/), which contains a link to the
 latest version, some previous versions, related documents, and more
 information about the project.
 
+## How to run Sigma16
+
 There are a number of ways to run the software, but it's recommended
 that you try the easiest way.
 
-### The easiest (and recommended) way: just click a link
+### The easiest way: just click a link
 
 Run the app with two clicks:
 
@@ -925,7 +939,12 @@ Run the app with two clicks:
 This will run the app in your browser, and you don't need to download
 or install anything.  For most users this is the recommended method.
 
-### If you don't always have Internet access: copy to your computer
+### Download and open file in browser
+
+If you don't always have Internet access, you can download the files
+and ope the app in your browser.  This is easy to do and allows you to
+run Sigma16 even when you don't have access to the Internet.  However,
+it is a little more awkward to run the example programs.
 
 You can also download the software onto your computer and run it
 locally.  This exactly like the first method, except the web pages are
@@ -940,7 +959,7 @@ You might also be able to launch it by [clicking this
 link](../../Sigma16.html) although that might not work; it depends on
 whether all the necessary files are accessible.
 
-### Offers enhanced file access: Local installation
+### Run locally with npm and electron
 
 The previous methods run the app in a browser.  There are some
 security restrictions on what a browser can do, and these make it
@@ -973,15 +992,25 @@ straightforward to build Sigma16 on your computer:
     enhanced file access, as well as a few other minor enhancements,
     and you don't need Internet access.
 
-### Download a precompiled executable for your platform
+### Compiling a standalone executable
 
-The Sigma16 home page provides pre-compiled executable apps for some
-platforms.  You can download one of these and it should "just work".
+Requires Node.js, npm, electron
 
-It is always prudent to be careful about what executable software you
-download and install on your computer.  If you don't feel comfortable
-with doing so, try the previous method (Local installation).  It's
-actually quite straightforward!
+    cd src
+	npm install
+	npm start
+
+    # Clone this repository
+    git clone https://github.com/electron/electron-quick-start
+    # Go into the repository
+    cd electron-quick-start
+    # Install dependencies
+    npm install
+    # Run the app
+    npm start
+
+
+## Workflow for development
 
 ### Making a release on github pages
 
@@ -1062,7 +1091,6 @@ Trying electron-builder
     npm install electron-builder --save-dev   in src/app
     npm run mkdist
 	
-
 ### Version number
 
 The version number is needed in several places.  To keep it
@@ -1078,25 +1106,66 @@ just defines the version number as a global constant.
 
 ### Running a standalone pre-compiled executable
 
-### Compiling a standalone executable;  requires Node.js and npm
+# About the software
 
-    cd src
-	npm install
-	npm start
+## Author
 
-    # Clone this repository
-    git clone https://github.com/electron/electron-quick-start
-    # Go into the repository
-    cd electron-quick-start
-    # Install dependencies
-    npm install
-    # Run the app
-    npm start
+The architecture and software tools were designed by John O'Donnell.
 
+## License
+
+This is free and open source software and is distributed under the GPL
+License, either version 3 or (at your option) any later version.  See
+the LICENSE and LICENSE_GPL3 files.  This program is experimental
+software, and is under development.
+
+See the README and LICENSE files in the Sigma16 directory.
+
+  * [README](file:README.html)
+  * [LICENSE](file:LICENSE.html)
+  * [Full text of GPL3 license](file:LICENSE_GPL3.html)
+
+## Implementation of Sigma16
+
+The program is written in JavaScript, and normally uses a web browser
+to display the graphical user interface.
+
+The circuits that implement Sigma16 are defined using the  Hydra
+hardware description language, which is an embedded domain specific
+language implemented in Haskell.
+
+The documentation is written in markdown and prepared for a web
+browser using pandoc.
+
+## Changes underway
+
+Support relocatable code
+
+* Change jump, jumpt, jumpf, jal to use pc-relative addressing
+* Introduce a jalext that uses indexed absolute address, for external
+
+User flags register
+
+* Carry output
+* Overflow
+* Carry input
+
+System flags register
+* System status
+* Interrupts enabled
+
+Arithmetic
+Add/subtract with carry
+
+Input/Output
+dma channels
+Ready
+Ack
 
 # Reference
 
 ## Summary of notation
+
   ea
   m[ea]
   r[d]

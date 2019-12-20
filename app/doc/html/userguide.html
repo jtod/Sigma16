@@ -24,48 +24,48 @@ Version 3.0.33
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
-<li><a href="#tutorial">Tutorial</a><ul>
-<li><a href="#the-user-interface">The user interface</a></li>
-<li><a href="#r-running-a-simple-program">R running a simple program</a></li>
-</ul></li>
 <li><a href="#tutorial-run-an-example-program">Tutorial: Run an example program</a></li>
-<li><a href="#using-the-user-interface">Using the user interface</a><ul>
-<li><a href="#editor">Editor</a></li>
-<li><a href="#assembly-language">Assembly language</a></li>
-<li><a href="#processor">Processor</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#programs-modules-and-files">Programs, modules, and files</a><ul>
-<li><a href="#simple-standalone-programs">Simple standalone programs</a></li>
-<li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
+<li><a href="#tutorial-load-store-and-arithmetic">Tutorial: load, store, and arithmetic</a></li>
+<li><a href="#tutorial-comparisons-and-jumps">Tutorial: comparisons and jumps</a></li>
+<li><a href="#tutorial-effective-addresses-and-arrays">Tutorial: effective addresses and arrays</a></li>
+<li><a href="#tutorial-further-instructions">Tutorial: further instructions</a></li>
 </ul></li>
 <li><a href="#architecture-of-the-computer">Architecture of the computer</a><ul>
 <li><a href="#data-representation">Data representation</a></li>
-<li><a href="#register-file">Register file</a></li>
-<li><a href="#control-registers">Control registers</a></li>
-<li><a href="#condition-codes">Condition codes</a></li>
-<li><a href="#processor-status-flags">Processor status flags</a></li>
+<li><a href="#register-file">Register file</a><ul>
+<li><a href="#r0-holds-the-constant-0">R0 holds the constant 0</a></li>
+<li><a href="#r15-is-the-condition-code-register">R15 is the condition code register</a></li>
+</ul></li>
 <li><a href="#memory">Memory</a></li>
-<li><a href="#exceptions">Exceptions</a></li>
-<li><a href="#instruction-formats">Instruction formats</a><ul>
+<li><a href="#instruction-control-registers">Instruction control registers</a><ul>
+<li><a href="#status-register-flags">Status register flags</a></li>
+</ul></li>
+<li><a href="#interrupts-and-exceptions">Interrupts and exceptions</a></li>
+<li><a href="#instruction-representation">Instruction representation</a><ul>
 <li><a href="#rrr-format">RRR format</a></li>
 <li><a href="#rx-format">RX format</a></li>
 <li><a href="#exp-format">EXP format</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#instruction-set">Instruction set</a><ul>
-<li><a href="#arithmetic">Arithmetic</a><ul>
+<li><a href="#arithmetic-instructions">Arithmetic instructions</a><ul>
 <li><a href="#add">add</a></li>
 <li><a href="#mul-multiply-signed-integers">mul (multiply signed integers)</a></li>
 </ul></li>
 <li><a href="#memory-instructions">Memory instructions</a><ul>
+<li><a href="#copying-variables-between-memory-and-registers">Copying variables between memory and registers</a></li>
 <li><a href="#load">load</a></li>
 <li><a href="#store">store</a></li>
+<li><a href="#stack-operations">Stack operations</a></li>
+<li><a href="#push">push</a></li>
+<li><a href="#pop">pop</a></li>
+<li><a href="#top">top</a></li>
+<li><a href="#saving-and-restoring-state">Saving and restoring state</a></li>
+<li><a href="#accessing-individual-bits">Accessing individual bits</a></li>
 </ul></li>
-<li><a href="#control">Control</a></li>
 <li><a href="#summary-of-the-instruction-set">Summary of the instruction set</a></li>
 </ul></li>
-<li><a href="#assembly-language-1">Assembly Language</a><ul>
+<li><a href="#assembly-language">Assembly Language</a><ul>
 <li><a href="#notation">Notation</a></li>
 <li><a href="#assembly-instruction-fields">Assembly instruction fields</a></li>
 <li><a href="#expressions">Expressions</a></li>
@@ -73,30 +73,39 @@ Version 3.0.33
 <li><a href="#instructions">Instructions</a></li>
 <li><a href="#directives">Directives</a></li>
 </ul></li>
-<li><a href="#object-language-statements">Object language statements</a></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
-<li><a href="#linker">Linker</a></li>
+<li><a href="#object-code">Object code</a><ul>
+<li><a href="#object-language-statements">Object language statements</a></li>
+</ul></li>
+<li><a href="#linker">Linker</a><ul>
+<li><a href="#programs-modules-and-files">Programs, modules, and files</a></li>
+<li><a href="#simple-standalone-programs">Simple standalone programs</a></li>
+<li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
+</ul></li>
 <li><a href="#programming-the-sigma16-architecture">Programming the Sigma16 architecture</a></li>
 <li><a href="#using-the-graphical-user-interface">Using the graphical user interface</a></li>
-<li><a href="#about-the-software">About the software</a><ul>
-<li><a href="#changes-underway">Changes underway</a></li>
-</ul></li>
 <li><a href="#installation">Installation</a><ul>
-<li><a href="#license">License</a></li>
 <li><a href="#browser-compatibility">Browser compatibility</a></li>
-<li><a href="#how-to-run-the-application">How to run the application</a></li>
-<li><a href="#how-to-run-the-program">How to run the program</a><ul>
-<li><a href="#the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</a></li>
-<li><a href="#if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</a></li>
-<li><a href="#offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</a></li>
-<li><a href="#download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</a></li>
+<li><a href="#where-to-find-the-software">Where to find the software</a></li>
+<li><a href="#how-to-run-sigma16">How to run Sigma16</a><ul>
+<li><a href="#the-easiest-way-just-click-a-link">The easiest way: just click a link</a></li>
+<li><a href="#download-and-open-file-in-browser">Download and open file in browser</a></li>
+<li><a href="#run-locally-with-npm-and-electron">Run locally with npm and electron</a></li>
+<li><a href="#compiling-a-standalone-executable">Compiling a standalone executable</a></li>
+</ul></li>
+<li><a href="#workflow-for-development">Workflow for development</a><ul>
 <li><a href="#making-a-release-on-github-pages">Making a release on github pages</a></li>
 <li><a href="#version-number">Version number</a></li>
 <li><a href="#running-in-a-browser.">Running in a browser.</a></li>
 <li><a href="#running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</a></li>
-<li><a href="#compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</a></li>
 </ul></li>
+</ul></li>
+<li><a href="#about-the-software">About the software</a><ul>
+<li><a href="#author">Author</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#implementation-of-sigma16">Implementation of Sigma16</a></li>
+<li><a href="#changes-underway">Changes underway</a></li>
 </ul></li>
 <li><a href="#reference">Reference</a><ul>
 <li><a href="#summary-of-notation">Summary of notation</a></li>
@@ -106,15 +115,11 @@ Version 3.0.33
 <h1 id="introduction">Introduction</h1>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
 <p>This reference manual is organised by topic, with chapters on the architecture, the assembly language, and the emulator. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program, and how to use the programming environment.</p>
-<h2 id="tutorial">Tutorial</h2>
-<p>These short and simple tutorials show you how to use the system. You can keep the tutorials visible in the right panel while following along with the exercises in the main panel.</p>
-<h3 id="the-user-interface">The user interface</h3>
-<p><em>Topics:</em> components of the user interface, adjusting size of the user guide, the tabs for switching among the working areas</p>
+<p>The following short tutorials show you how to use the system. You can keep the tutorials visible in the right panel while following along with the exercises in the main panel.</p>
+<h2 id="tutorial-run-an-example-program">Tutorial: Run an example program</h2>
+<p><em>Topics:</em> components of the user interface, adjusting size of the user guide, the tabs for switching among the working areas, and the steps for running a program. Registers, constants and addition.</p>
 <p>Let’s start by looking at the different parts of the user interface. The main window contains three main sections. The largest area, on the left side, is the <em>main working area</em>. When the program launches, this will show the Welcome pane. The <em>user guide</em> is on the right side. At the top is a row of buttons (Welcome, Examples, …). These select which page is displayed in the main working area.</p>
 <p>You can adjust how much space is used for the working area and the user guide by clicking the arrow buttons on the right side of the button row. These move the boundary between the two areas left or right. If you reisze the window, the relative sizes of the working area and the user guide will remain the same.</p>
-<h3 id="r-running-a-simple-program">R running a simple program</h3>
-<p><em>Topics:</em> steps for running a program, registers, constants and addition</p>
-<h2 id="tutorial-run-an-example-program">Tutorial: Run an example program</h2>
 <p>A good way to get started is to go through the entire process of entering a simple program, assembling it, and running it. This section shows you how. For now, we focus just on how to use the software tools; an explanation of the Sigma16 architecture comes later.</p>
 <p>When you launch the application, a window will appear in your browser. It has several panes, with buttons at the top to switch between panes. The Welcome pane will be visible.</p>
 <ul>
@@ -131,68 +136,21 @@ Version 3.0.33
 <li><p>To run the program slowly, click <strong>Run Display</strong>, which is similar to clicking Step repeatedly. To run the program faster but without updating the display after each instruction, click Run. At any time you can click Pause to stop the processor, and you can resume execution with any of Step, Slow, or Run.</p></li>
 <li><p>To set a breakpoint, click Breakpoint and enter the stopping condition in the dialogue box. For example, to stop when the pc register becomes $01b7, enter BPeq BPpc (BPhex “01b7”). Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p></li>
 </ul>
-<h2 id="using-the-user-interface">Using the user interface</h2>
-<h3 id="editor">Editor</h3>
-<h3 id="assembly-language">Assembly language</h3>
-<p>Each line of source code is an assembly language statement. Each statement must appear on one line. Most statements specify code, either an instruction or some constant data. Some statements are full line comments. Other statements are directives, which control the behavior of the assembler but don’t generate any code.</p>
-<p>A statement may contain several fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
-<ul>
-<li><p>Label. The label field is optional; if it appears, it must begin in the first character of the line. The label field, if present, must be a name.</p></li>
-<li><p>Operation. The operation field specifies an instruction or assembler directive. It must be preceded by one or more white space characters. Every statement (apart from a full line comment) must have an operation field, which must be a name.</p></li>
-<li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directive. All instructions have an operand field, and some assembler directives do.</p></li>
-<li><p>Comment. All text that follows white space after the operands field is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon (to prevent it from being interpreted as operands). The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment.</p></li>
-</ul>
-<p>A name must begin with a letter (a-z or A-Z), and may contain letters, digits, or underscore characters.</p>
-<h3 id="processor">Processor</h3>
-<h1 id="programs-modules-and-files">Programs, modules, and files</h1>
-<p>The system is designed to allow programs that consist of several modules, but also to allow programs consisting of one standalone module. In addition, an aim is to do this simply and intuitively, so that you can ignore the issues of modules and linking if you just want to write a andalone program.</p>
-<p>There is a standard convention for file names. If, for example, you have a program named MyProgram, then the files associated with it should be as follows:</p>
-<pre><code>-----------------  -----------
-module name        MyProgram
-source file        MyProgram.asm.txt
-object file        MyProgram.obj.txt
-assembly listing   MyProgram.lst.txt
------------------  -----------</code></pre>
-<h2 id="simple-standalone-programs">Simple standalone programs</h2>
-<p>If a program does not import any names, it is <em>standalone</em>. The text of the program is shown in the editor pane. Go to the Assembler pane and click Assemble. If there are no errors, go directly to the Processor pane (you can skip the Linker) and click Boot. This will read the machine language into the memory, and now you can run the program.</p>
-<h2 id="programs-with-multiple-modules">Programs with multiple modules</h2>
-<p>A module consists of program text, and it may have an optional file, and an optional module name.</p>
-<ul>
-<li><p>The module text is a sequence of assembly language statements. The text may exist only in the editor buffer, or it may be associated with a file.</p></li>
-<li><p>If there is a file, this may be specified either as a path (the unique identification of the file (C:\Users....asm.txt), or as just a filename (myprogram.asm.txt) which is relative to the current directory.</p></li>
-</ul>
-<p>To edit a file, the modDir and modName are both optional. An edited file may have a module name specified with a module statement. To read or save a file, both the module directory and name must be known.</p>
-<p>Editor operations on files and modules</p>
-<p>Each operation that changes the editor buffer (New, Open, Close) checks first to see whehter the buffer has been changed since it was last saved. If so, a dialogue asks whether the file should be saved.</p>
-<ul>
-<li><p>New – Check whether text in the editor buffer has been saved; if not, ask whether to save it. Create a new module with empty text and no file name, add it to the module set, and select it as the current module. Clear the text in the editor buffer.</p></li>
-<li><p>Open – Check whether text in the editor buffer has been saved; if not, ask whether to save it. Enter the open file dialogue where an existing file can be found by navigation or by typing in its name. If the dialogue is cancelled, the module set and editor buffer are left unchanged. If a file is selected in the dialogue, and it is already in the module set, then it is selected in the current module. Otherwise, a new module is created with the file’s contents, and is selected as the current module. and The file is loaded into the editor buffer and added to the module set.</p></li>
-<li><p>Refresh – The file corresponding to the current module is read, and its contents are loaded into the editor buffer.</p></li>
-<li><p>SaveAs – Enters the save file dialogue where the directory and file name can be chosen. The editor buffer is written into this file.</p></li>
-<li><p>Save – Writes the editor buffer into the current file and directory. If either the module name or directory is not known, this reverts to a SaveAs.</p></li>
-<li><p>Select – Opens a list of all modules; you can click one of them which is then set as the current module.</p></li>
-<li><p>Close – Check whether text in the editor buffer has been saved; if not, ask whether to save it. The module is removed from the module set, and the editor buffer is cleared. The first module (module number 0) is selected as the current module, but if there is no module at all, an empty module is created and selected as current (in effect, if there is only one module and you close it, an automatic New is performed).</p></li>
-<li><p>Example – Reads in a very simple example program and sets it as the current module. This is a standalone program; you can simply click Editor: Example, then Assembler: Assemble, then Processor: Boot, and run the program. This example is used in the first “getting started” tutorial. The example program is also available in the Examples directory, accessible through Editor: Open.</p></li>
-</ul>
-<p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
+<h2 id="tutorial-load-store-and-arithmetic">Tutorial: load, store, and arithmetic</h2>
+<h2 id="tutorial-comparisons-and-jumps">Tutorial: comparisons and jumps</h2>
+<h2 id="tutorial-effective-addresses-and-arrays">Tutorial: effective addresses and arrays</h2>
+<h2 id="tutorial-further-instructions">Tutorial: further instructions</h2>
 <h1 id="architecture-of-the-computer">Architecture of the computer</h1>
 <p>An <em>instruction set architecture</em> is a precise specification of all aspects of a machine that are visible to a programmer. It includes a description of the registers, memory, data representations, and all the instructions, but does not include components of the implementation that are not visible to a machine language programmer.</p>
 <h2 id="data-representation">Data representation</h2>
 <p>Sigma16 is a 16-bit architecture, and every data value is a 16-bit word. Integers are represented in 16-bit two’s complement notation. The bits of a word are numbered from left to right, starting with 0. Thus the leftmost (most significant) bit of a word is bit 0, and the rightmost (least significant) is bit 15.</p>
 <h2 id="register-file">Register file</h2>
 <p>The <strong>register file</strong> is a set of 16 general registers that hold a 16 bit word. A register is referenced by a 4-bit binary number. In assembly language, we use the notations R0, R1, R2, …, R9, R10, R11, R12, R13, R14, R15 to refer to the registers.</p>
-<p>One of the registers, R0, has a special property: it always contains the constant 0. It is legal to perform an instruction that attempts to load some other value into R0, but the register will still contain 0 after executing such an instruction. Such an instruction will simply have no lasting effect.</p>
-<p>Apart from R0, all the instructions behave exactly the same way, at least as far as the hardware is concerned.</p>
+<p>Sigma16 is a load/store style architecture; that is, it does not combine memory accesses with arithmetic. All calculations are carried out in the register file, and explicit load and store instructions must be used to copy data between the memory and the register file.</p>
 <p>There are some programming conventions that use certain registers for special purposes. The hardware does not enforce, or even know about, these conventions, and you do not have to follow the conventions in programming. However, it is necessary to obey the conventions in order to use the standard software libraries in your program. See the section on Programming for a discussion of these standard usage conventions.</p>
-<h2 id="control-registers">Control registers</h2>
-<p>There are several <strong>program control registers</strong> that enable the processor to keep track of the state of the running program. These registers are rarely used directly by the machine language program, but they are essential for keeping track of the execution of the program, and some instructions use them directly.</p>
-<ul>
-<li><p>ir – instruction register (16-bit word)</p></li>
-<li><p>pc – program counter (16-bit word)</p></li>
-<li><p>adr – address register (16-bit word)</p></li>
-<li><p>dat – data register (16-bit word)</p></li>
-</ul>
-<h2 id="condition-codes">Condition codes</h2>
+<h3 id="r0-holds-the-constant-0">R0 holds the constant 0</h3>
+<p>One of the registers, R0, has a special property: it always contains the constant 0. It is legal to perform an instruction that attempts to load some other value into R0, but the register will still contain 0 after executing such an instruction. Such an instruction will simply have no lasting effect.</p>
+<h3 id="r15-is-the-condition-code-register">R15 is the condition code register</h3>
 <p>Several instructions produce status information: the result of a comparison, whether there was an overflow, etc. This information is automatically loaded into R15, which is the condition code register. The description of each instruction states whether R15 is modified, and what goes into it.</p>
 <p>The bits in R15 are indexed from bit 0 (the least significant, or rightmost bit) to bit 15 (the most significant, or leftmost). The condition code bits that have specific meanings are called <em>flags</em>. The flags are defined to make the condition code easier to read in hex: comparison flags are in the rightmost hex digit, and the carry and overflow flags are in the hex digit to the left.</p>
 <p>—- —- CvVL lEgG</p>
@@ -250,15 +208,32 @@ assembly listing   MyProgram.lst.txt
 </table>
 <p>conditional jump</p>
 <p>jumpc0 jump if cc bit is 0 jumpc1 jump if cc bit is 1</p>
-<h2 id="processor-status-flags">Processor status flags</h2>
-<p>The processor can be executing in several modes, which are determined by the <strong>system control registers</strong>.</p>
-<ul>
-<li><p>ie – interrupts enabled (1-bit flag)</p></li>
-<li><p>sys – system state (1-bit flag)</p></li>
-</ul>
 <h2 id="memory">Memory</h2>
 <p>The memory is a hardware array of words that are accessed by address. A memory address is 16 bits wide, and there is one memory location corresponding to each address, so there are 2^16 = 64k memory locations. Each memory location is a 16-bit word.</p>
-<h2 id="exceptions">Exceptions</h2>
+<p>The effective address is defined to be the binary sum of the displacement and the index register.</p>
+<h2 id="instruction-control-registers">Instruction control registers</h2>
+<p>There are several <strong>program control registers</strong> that enable the processor to keep track of the state of the running program. These registers are rarely used directly by the machine language program, but they are essential for keeping track of the execution of the program, and some instructions use them directly.</p>
+<ul>
+<li><p>ir – instruction register (16-bit word)</p></li>
+<li><p>pc – program counter (16-bit word)</p></li>
+<li><p>adr – address register (16-bit word)</p></li>
+<li><p>dat – data register (16-bit word)</p></li>
+<li><p>status – collection of control flags</p></li>
+</ul>
+<h3 id="status-register-flags">Status register flags</h3>
+<p>The processor can be executing in several modes, which are determined by the <strong>system control registers</strong>.</p>
+<ul>
+<li><p>sys (bit 0) – system state (1-bit flag)</p></li>
+<li><p>ie (bit 1) – interrupts enabled (1-bit flag)</p></li>
+</ul>
+<h2 id="interrupts-and-exceptions">Interrupts and exceptions</h2>
+<ul>
+<li><p>imask</p></li>
+<li><p>ireq</p></li>
+<li><p>istatus</p></li>
+<li><p>ipc</p></li>
+<li><p>ivect</p></li>
+</ul>
 <table>
 <thead>
 <tr class="header">
@@ -310,8 +285,7 @@ assembly listing   MyProgram.lst.txt
 </tr>
 </tbody>
 </table>
-<p>Sigma16 is a load/store style architecture; that is, it does not combine memory accesses with arithmetic. All calculations are carried out in the register file, and explicit load and store instructions must be used to copy data between the memory and the register file.</p>
-<h2 id="instruction-formats">Instruction formats</h2>
+<h2 id="instruction-representation">Instruction representation</h2>
 <p>There are three instruction formats:</p>
 <ul>
 <li><p>RRR – (1 word) Instructions that perform operations on data in registers, but not referring to memory.</p></li>
@@ -353,13 +327,13 @@ assembly listing   MyProgram.lst.txt
 <p>The EXP instruction format is used for expanded instructions cannot be represented using the RRR or RX formats. It provides many unused opcodes, so it is useful for experimental instructions.</p>
 <p>An EXP instruction consists of two words. The first word has a constant hex e in the op field, which indicates the EXP format. The a and b fields together form an 8-bit secondary opcode, allowing for 256 distinct EXP instructions. The d field in the first word, and all of the second word, hold operands which depend on the particular instruction.</p>
 <h1 id="instruction-set">Instruction set</h1>
-<h2 id="arithmetic">Arithmetic</h2>
+<h2 id="arithmetic-instructions">Arithmetic instructions</h2>
 <h3 id="add">add</h3>
 <p>add. The two operands are fetched from registers, added, and the sum is loaded into the destination register.</p>
-<p>The following table shows the complete instruction set. The instructions are in order of increasing operation code.</p>
 <h3 id="mul-multiply-signed-integers">mul (multiply signed integers)</h3>
 <h2 id="memory-instructions">Memory instructions</h2>
 <p>The effective address is defined to be the binary sum of the displacement and the index register.</p>
+<h3 id="copying-variables-between-memory-and-registers">Copying variables between memory and registers</h3>
 <h3 id="load">load</h3>
 <p>Load copies the word in memory at the effective address into the destination register.</p>
 <p>general form: load Rd,disp[Ra]</p>
@@ -374,9 +348,49 @@ assembly listing   MyProgram.lst.txt
 <pre><code>   store  R3,$2b8e[R5]
    store  R12,count[R0]
    store  R6,arrayX[R2]</code></pre>
-<h2 id="control">Control</h2>
-<p>The effective address is defined to be the binary sum of the displacement and the index register.</p>
+<h3 id="stack-operations">Stack operations</h3>
+<p>Stack instructions use data in registers. A stack is represented as a consecutive sequence of words, with addresses sb+1, sb+2, …, sl.</p>
+<ul>
+<li><p>Stack base (sb) = address of word just below the first element of the stack. Stack operations should never store anything at address sb; the first element is stored at sb+1.</p></li>
+<li><p>Stack limit (sl) = address of the last location that can hold a stack element.</p></li>
+<li><p>Stack top (st) = address of the element at the top of the stack, if it exists. If the stack is empty, then st=sb. If the stack is full, then st=sl.</p></li>
+<li><p>Data being accessed (x)</p></li>
+</ul>
+<p>Generally, four registers are needed to use a stack. However, each stack instruction needs only three registers, since push does not need to check the stack base and pop does not need to check the stack limit.</p>
+<h3 id="push">push</h3>
+<pre><code>push  R1,R2,R3
+
+R1 = value to push onto stack in memory
+R2 = stack top
+R3 = stack limit
+
+if R2&lt;R3
+  then R2 := R2+1; mem[R2] := R1
+  else R15.sovfl := 1, req.StackBounds := 1</code></pre>
+<h3 id="pop">pop</h3>
+<pre><code>pop R1,R3,R3
+
+R1 = value popped from stack
+R2 = stack top
+R3 = stack base
+
+if R2&gt;R3
+  then R1 := mem[R2]; R2 := R2 - 1
+  else R15.StackUnderflow := 1, req.StackBounds := 1</code></pre>
+<h3 id="top">top</h3>
+<pre><code> top  R1,R2,R3
+
+ R1 = value of top of stack
+ R2 = stack top
+ R2 = stack base
+
+ if R2&gt;R2
+   then R1 := mem[R1]
+   else R15.StackEmpty := 1, req.StackBounds := 1</code></pre>
+<h3 id="saving-and-restoring-state">Saving and restoring state</h3>
+<h3 id="accessing-individual-bits">Accessing individual bits</h3>
 <h2 id="summary-of-the-instruction-set">Summary of the instruction set</h2>
+<p>The following table shows the complete instruction set. The instructions are in order of increasing operation code.</p>
 <hr />
 <table style="width:67%;">
 <colgroup>
@@ -875,7 +889,17 @@ assembly listing   MyProgram.lst.txt
 </tbody>
 </table>
 <hr />
-<h1 id="assembly-language-1">Assembly Language</h1>
+<h1 id="assembly-language">Assembly Language</h1>
+<p>Each line of source code is an assembly language statement. Each statement must appear on one line. Most statements specify code, either an instruction or some constant data. Some statements are full line comments. Other statements are directives, which control the behavior of the assembler but don’t generate any code.</p>
+<p>A statement may contain several fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
+<ul>
+<li><p>Label. The label field is optional; if it appears, it must begin in the first character of the line. The label field, if present, must be a name.</p></li>
+<li><p>Operation. The operation field specifies an instruction or assembler directive. It must be preceded by one or more white space characters. Every statement (apart from a full line comment) must have an operation field, which must be a name.</p></li>
+<li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directive. All instructions have an operand field, and some assembler directives do.</p></li>
+<li><p>Comment. All text that follows white space after the operands field is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon (to prevent it from being interpreted as operands). The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment.</p></li>
+</ul>
+<p>A name must begin with a letter (a-z or A-Z), and may contain letters, digits, or underscore characters.</p>
+<p>…</p>
 <p>An assembly language provides a reasonably readable notation for writing machine language programs. An instruction in machine language is just one or more words (often written in hexadecimal notation), while the corresponding instruction in assembly language uses mnemonic names so the programmer doesn’t have to memorise all the operation codes, addresses of variables, and so on. However, the assembly language still gives the programmer complete control over a program, down to the last bit.</p>
 <p>Computer hardware executes machine language, which is hard for humans to read because it consists entirely of numbers. Assembly language is a way of expressing a machine language program in a readable way. It uses names for instructions and variables, as well as other notations to make the code easier to understand.</p>
 <h2 id="notation">Notation</h2>
@@ -908,63 +932,71 @@ assembly listing   MyProgram.lst.txt
 main      module
 myprog    module</code></pre>
 <p>name import export name</p>
+<h2 id="assembly-listing">Assembly listing</h2>
+<p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two’s complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn’t produce any code these fields will be blank. After the code, the original source statement appears.</p>
+<p>The second section of the assembly listing is the <em>Symbol Table</em>. This shows each identifier (or “symbol”) that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
+<h1 id="object-code">Object code</h1>
 <h2 id="object-language-statements">Object language statements</h2>
 <p>hex4 means a 4-digit hexadecimal constant, such as 3b9f.</p>
 <p>name means an identifier, beginning with a letter and comprising letters, digits, _</p>
 <p>org hex4 set location counter data hex4 … hex4 load words, incrementing loc counter relocate hex4 add relocation to word at address external name insert value of external name</p>
-<h2 id="assembly-listing">Assembly listing</h2>
-<p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two’s complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn’t produce any code these fields will be blank. After the code, the original source statement appears.</p>
-<p>The second section of the assembly listing is the <em>Symbol Table</em>. This shows each identifier (or “symbol”) that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
 <h1 id="linker">Linker</h1>
-<p>The linker is not implemented in this version of the application.</p>
+<p>(The linker is not fully implemented in this version of the application; it’s on the way.)</p>
+<h2 id="programs-modules-and-files">Programs, modules, and files</h2>
+<p>The system is designed to allow programs that consist of several modules, but also to allow programs consisting of one standalone module. In addition, an aim is to do this simply and intuitively, so that you can ignore the issues of modules and linking if you just want to write a andalone program.</p>
+<p>There is a standard convention for file names. If, for example, you have a program named MyProgram, then the files associated with it should be as follows:</p>
+<pre><code>-----------------  -----------
+module name        MyProgram
+source file        MyProgram.asm.txt
+object file        MyProgram.obj.txt
+assembly listing   MyProgram.lst.txt
+-----------------  -----------</code></pre>
+<h2 id="simple-standalone-programs">Simple standalone programs</h2>
+<p>If a program does not import any names, it is <em>standalone</em>. The text of the program is shown in the editor pane. Go to the Assembler pane and click Assemble. If there are no errors, go directly to the Processor pane (you can skip the Linker) and click Boot. This will read the machine language into the memory, and now you can run the program.</p>
+<h2 id="programs-with-multiple-modules">Programs with multiple modules</h2>
+<p>A module consists of program text, and it may have an optional file, and an optional module name.</p>
+<ul>
+<li><p>The module text is a sequence of assembly language statements. The text may exist only in the editor buffer, or it may be associated with a file.</p></li>
+<li><p>If there is a file, this may be specified either as a path (the unique identification of the file (C:\Users....asm.txt), or as just a filename (myprogram.asm.txt) which is relative to the current directory.</p></li>
+</ul>
+<p>To edit a file, the modDir and modName are both optional. An edited file may have a module name specified with a module statement. To read or save a file, both the module directory and name must be known.</p>
+<p>Editor operations on files and modules</p>
+<p>Each operation that changes the editor buffer (New, Open, Close) checks first to see whehter the buffer has been changed since it was last saved. If so, a dialogue asks whether the file should be saved.</p>
+<ul>
+<li><p>New – Check whether text in the editor buffer has been saved; if not, ask whether to save it. Create a new module with empty text and no file name, add it to the module set, and select it as the current module. Clear the text in the editor buffer.</p></li>
+<li><p>Open – Check whether text in the editor buffer has been saved; if not, ask whether to save it. Enter the open file dialogue where an existing file can be found by navigation or by typing in its name. If the dialogue is cancelled, the module set and editor buffer are left unchanged. If a file is selected in the dialogue, and it is already in the module set, then it is selected in the current module. Otherwise, a new module is created with the file’s contents, and is selected as the current module. and The file is loaded into the editor buffer and added to the module set.</p></li>
+<li><p>Refresh – The file corresponding to the current module is read, and its contents are loaded into the editor buffer.</p></li>
+<li><p>SaveAs – Enters the save file dialogue where the directory and file name can be chosen. The editor buffer is written into this file.</p></li>
+<li><p>Save – Writes the editor buffer into the current file and directory. If either the module name or directory is not known, this reverts to a SaveAs.</p></li>
+<li><p>Select – Opens a list of all modules; you can click one of them which is then set as the current module.</p></li>
+<li><p>Close – Check whether text in the editor buffer has been saved; if not, ask whether to save it. The module is removed from the module set, and the editor buffer is cleared. The first module (module number 0) is selected as the current module, but if there is no module at all, an empty module is created and selected as current (in effect, if there is only one module and you close it, an automatic New is performed).</p></li>
+<li><p>Example – Reads in a very simple example program and sets it as the current module. This is a standalone program; you can simply click Editor: Example, then Assembler: Assemble, then Processor: Boot, and run the program. This example is used in the first “getting started” tutorial. The example program is also available in the Examples directory, accessible through Editor: Open.</p></li>
+</ul>
+<p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
 <h1 id="programming-the-sigma16-architecture">Programming the Sigma16 architecture</h1>
 <p>Coming soon.</p>
 <h1 id="using-the-graphical-user-interface">Using the graphical user interface</h1>
 <p>Coming soon</p>
-<h1 id="about-the-software">About the software</h1>
-<p>Sigma16 is built using the Haskell programming language and the Hydra hardware description language. The documentation is written in markdown and prepared for a web browser using pandoc.</p>
-<ul>
-<li><a href="file:README.html">README</a></li>
-<li><a href="file:LICENSE.html">LICENSE</a></li>
-<li><a href="file:LICENSE_GPL3.html">Full text of GPL3 license</a></li>
-</ul>
-<h2 id="changes-underway">Changes underway</h2>
-<p>Support relocatable code</p>
-<ul>
-<li>Change jump, jumpt, jumpf, jal to use pc-relative addressing</li>
-<li>Introduce a jalext that uses indexed absolute address, for external</li>
-</ul>
-<p>User flags register</p>
-<ul>
-<li>Carry output</li>
-<li>Overflow</li>
-<li>Carry input</li>
-</ul>
-<p>System flags register * System status * Interrupts enabled</p>
-<p>Arithmetic Add/subtract with carry</p>
-<p>Input/Output dma channels Ready Ack</p>
 <h1 id="installation">Installation</h1>
-<h2 id="license">License</h2>
-<p>This is free and open source software and is distributed under the GPL License, either version 3 or (at your option) any later version. See the LICENSE and LICENSE_GPL3 files. This program is experimental software, and is under development.</p>
 <h2 id="browser-compatibility">Browser compatibility</h2>
 <p>The application currently works with Chrome and Firefox, and possible Edge.</p>
-<h2 id="how-to-run-the-application">How to run the application</h2>
-<p>The program uses a web browser to display the graphical user interface.</p>
-<h2 id="how-to-run-the-program">How to run the program</h2>
+<h2 id="where-to-find-the-software">Where to find the software</h2>
 <p>The software is available on the Internet at the <a href="https://jtod.github.io/Sigma16/">Sigma16 home page</a>, which contains a link to the latest version, some previous versions, related documents, and more information about the project.</p>
+<h2 id="how-to-run-sigma16">How to run Sigma16</h2>
 <p>There are a number of ways to run the software, but it’s recommended that you try the easiest way.</p>
-<h3 id="the-easiest-and-recommended-way-just-click-a-link">The easiest (and recommended) way: just click a link</h3>
+<h3 id="the-easiest-way-just-click-a-link">The easiest way: just click a link</h3>
 <p>Run the app with two clicks:</p>
 <ol type="1">
 <li>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 homepage</a></li>
 <li>Click on <em>Launch the latest release</em></li>
 </ol>
 <p>This will run the app in your browser, and you don’t need to download or install anything. For most users this is the recommended method.</p>
-<h3 id="if-you-dont-always-have-internet-access-copy-to-your-computer">If you don’t always have Internet access: copy to your computer</h3>
+<h3 id="download-and-open-file-in-browser">Download and open file in browser</h3>
+<p>If you don’t always have Internet access, you can download the files and ope the app in your browser. This is easy to do and allows you to run Sigma16 even when you don’t have access to the Internet. However, it is a little more awkward to run the example programs.</p>
 <p>You can also download the software onto your computer and run it locally. This exactly like the first method, except the web pages are coming from your computer’s files rather than the Internet.</p>
 <p>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 home page</a> and download the zip file for the latest release. Unzip and click on index.html in the folder and follow the directions.</p>
 <p>You might also be able to launch it by <a href="../../Sigma16.html">clicking this link</a> although that might not work; it depends on whether all the necessary files are accessible.</p>
-<h3 id="offers-enhanced-file-access-local-installation">Offers enhanced file access: Local installation</h3>
+<h3 id="run-locally-with-npm-and-electron">Run locally with npm and electron</h3>
 <p>The previous methods run the app in a browser. There are some security restrictions on what a browser can do, and these make it slightly awkward for the program to read and write files. You can perform a local installation which will run Sigma16 as a standalone app on your computer, rather than in a browser, and this makes it a little more convenient to use.</p>
 <p>If you don’t want to bother with downloading some software tools and running an installation script, you can skip to the next method, which is to download a precompiled executable for your platform. But it’s straightforward to build Sigma16 on your computer:</p>
 <ul>
@@ -974,9 +1006,21 @@ myprog    module</code></pre>
 <li><p>Download the source for Sigma16. Unzip it, and cd into the app directory. Enter <em>make all</em>.</p></li>
 <li><p>To launch Sigma16, enter <em>npm run start</em>. Now you’ll have enhanced file access, as well as a few other minor enhancements, and you don’t need Internet access.</p></li>
 </ul>
-<h3 id="download-a-precompiled-executable-for-your-platform">Download a precompiled executable for your platform</h3>
-<p>The Sigma16 home page provides pre-compiled executable apps for some platforms. You can download one of these and it should “just work”.</p>
-<p>It is always prudent to be careful about what executable software you download and install on your computer. If you don’t feel comfortable with doing so, try the previous method (Local installation). It’s actually quite straightforward!</p>
+<h3 id="compiling-a-standalone-executable">Compiling a standalone executable</h3>
+<p>Requires Node.js, npm, electron</p>
+<pre><code>cd src
+npm install
+npm start
+
+# Clone this repository
+git clone https://github.com/electron/electron-quick-start
+# Go into the repository
+cd electron-quick-start
+# Install dependencies
+npm install
+# Run the app
+npm start</code></pre>
+<h2 id="workflow-for-development">Workflow for development</h2>
 <h3 id="making-a-release-on-github-pages">Making a release on github pages</h3>
 <p>make a local directory for editing the project page on github pages. cd into this directory.</p>
 <pre><code>git clone https://github.com/jtod/jtod.github.io
@@ -1027,19 +1071,36 @@ npm run mkdist</code></pre>
 <p>The makefile extracts the version number from that file, and (1) defines a make variable; (2) writes the Sigma16/VERSION file with just the version number, and (3) writes Sigma16/app/version.js which is just defines the version number as a global constant.</p>
 <h3 id="running-in-a-browser.">Running in a browser.</h3>
 <h3 id="running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</h3>
-<h3 id="compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</h3>
-<pre><code>cd src
-npm install
-npm start
-
-# Clone this repository
-git clone https://github.com/electron/electron-quick-start
-# Go into the repository
-cd electron-quick-start
-# Install dependencies
-npm install
-# Run the app
-npm start</code></pre>
+<h1 id="about-the-software">About the software</h1>
+<h2 id="author">Author</h2>
+<p>The architecture and software tools were designed by John O’Donnell.</p>
+<h2 id="license">License</h2>
+<p>This is free and open source software and is distributed under the GPL License, either version 3 or (at your option) any later version. See the LICENSE and LICENSE_GPL3 files. This program is experimental software, and is under development.</p>
+<p>See the README and LICENSE files in the Sigma16 directory.</p>
+<ul>
+<li><a href="file:README.html">README</a></li>
+<li><a href="file:LICENSE.html">LICENSE</a></li>
+<li><a href="file:LICENSE_GPL3.html">Full text of GPL3 license</a></li>
+</ul>
+<h2 id="implementation-of-sigma16">Implementation of Sigma16</h2>
+<p>The program is written in JavaScript, and normally uses a web browser to display the graphical user interface.</p>
+<p>The circuits that implement Sigma16 are defined using the Hydra hardware description language, which is an embedded domain specific language implemented in Haskell.</p>
+<p>The documentation is written in markdown and prepared for a web browser using pandoc.</p>
+<h2 id="changes-underway">Changes underway</h2>
+<p>Support relocatable code</p>
+<ul>
+<li>Change jump, jumpt, jumpf, jal to use pc-relative addressing</li>
+<li>Introduce a jalext that uses indexed absolute address, for external</li>
+</ul>
+<p>User flags register</p>
+<ul>
+<li>Carry output</li>
+<li>Overflow</li>
+<li>Carry input</li>
+</ul>
+<p>System flags register * System status * Interrupts enabled</p>
+<p>Arithmetic Add/subtract with carry</p>
+<p>Input/Output dma channels Ready Ack</p>
 <h1 id="reference">Reference</h1>
 <h2 id="summary-of-notation">Summary of notation</h2>
 <p>ea m[ea] r[d] r[a] r[b] q#r[d] lsb q</p>

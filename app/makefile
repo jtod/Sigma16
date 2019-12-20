@@ -1,10 +1,36 @@
 #-------------------------------------------------------------------------------
-# makefile for Sigma16
-# Sigma16 is free software, see LICENSE and README
-# Copyright (c) 2019 John O'Donnell
+# makefile for Sigma16 --- how to maintain, build, and run the system
 #-------------------------------------------------------------------------------
 
-# This makefile documents how to maintain, build, and run the system
+# For end users
+#    https://jtod.github.io/S16/
+
+# Quick reference
+#   make webdev
+#   make release
+#   make doc/homepage-index/index.html       index for Sigma16 home page
+
+# Source directories on development computer
+#    Sigma/current                              -- source for entire project
+#    Sigma/current/Sigma16                      -- source for Sigma16
+#    Sigma/current/homepage/jtod.github.io/S16  -- source for github web page
+
+# Project page on github (view or download the source)
+#    https://github.com/jtod/Sigma16
+# Sigma16 home page (run the app in your browser)
+#    https://jtod.github.io/S16/
+
+# To upload current development version to web page:
+#    cd Sigma/current/Sigma16
+#       make webdev
+#    cd Sigma/current/homepage/jtod.github.io/S16
+#       git status
+#       git add ...
+#       git commit -m '...commit message...'
+#       git push
+# To run the development version online:
+#       Visit https://jtod.github.io/S16/
+#       Click launch development version
 
 #-------------------------------------------------------------------------------
 # Define parameters
@@ -15,6 +41,8 @@
 # SIGMACURRENT contains several related projects, including Sigma16
 
 SIGMACURRENT:=../..
+S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/S16/
+WEBDEV:=$(S16HOME)/dev
 
 # S16WEBPAGE is a directory in my homepage on github; this is where
 # the web release is placed, since users can run the app by clicking a
@@ -32,6 +60,7 @@ showparams :
 	echo SIGMACURRENT = $(SIGMACURRENT)
 	echo S16WEBPAGE = $(S16WEBPAGE)
 	echo VERSION = $(VERSION)
+	echo WEBDEV = $(WEBDEV)
 
 #-------------------------------------------------------------------------------
 # Usage
@@ -44,7 +73,7 @@ showparams :
 # Needed to build both web and compiled version
 #   make set-version        get version number from package.json
 #   make top-index          generate html from markdown source
-#   make userguide          generate html from markdown source
+#   make doc/html/userguide.html          generate html from markdown source
 #   make program-indices    index for each directory in programs and examples
 
 # Needed for compilation by npm
@@ -106,6 +135,19 @@ showparams :
 #    b. pull request
 #    c. merge and confirm
 
+# make homepage-index: Convert index for Sigma16 home page from
+# markdown to html.  This should be copied to the git repository for
+# jtod.github.io/S16 (make release or make webdev will do that)
+
+doc/homepage-index/index.html : doc/homepage-index/index.md
+	pandoc --standalone \
+          --template=doc/src/readme-template.html \
+          --variable=css:doc.css \
+	  --metadata pagetitle="Sigma16 Home Page" \
+	  -o doc/homepage-index/index.html \
+	  doc/homepage-index/index.md
+	cp --update doc/src/doc.css doc/homepage-index
+
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
 # without needing to download anything.
@@ -114,7 +156,8 @@ showparams :
 release :
 	make set-version
 	make top-index
-	make userguide
+	make doc/homepage-index/index.html
+	make doc/html/userguide.html
 	make program-indices
 	mkdir -p ../release/$(VERSION)
 	cp ../VERSION ../release/$(VERSION)
@@ -129,6 +172,30 @@ release :
 	cp *.js ../release/$(VERSION)/app
 	cp *.json ../release/$(VERSION)/app
 	cp -r  ../release/$(VERSION) $(S16WEBPAGE)/releases
+
+# make webdev -- copy the files to the web page current development directory
+# Usage:
+#    In project directory:  make webdev
+#    In homepage directory: git push
+
+.PHONY : webdev
+webdev :
+	make set-version
+	make top-index
+	make doc/homepage-index/index.html
+	make doc/html/userguide.html
+	make program-indices
+	cp --update ../VERSION $(WEBDEV)
+	cp --update ../LICENSE.txt $(WEBDEV)
+	cp --update doc/homepage-index/index.html $(S16HOME)
+	cp --update doc/homepage-index/doc.css $(S16HOME)
+	mkdir -p $(WEBDEV)/app
+	cp --update -r datafiles $(WEBDEV)/app
+	cp --update -r doc $(WEBDEV)/app
+	cp --update -r programs $(WEBDEV)/app
+	cp --update *.html $(WEBDEV)/app
+	cp --update *.css $(WEBDEV)/app
+	cp --update *.js $(WEBDEV)/app
 
 #-------------------------------------------------------------------------------
 # Running Sigma16
@@ -170,7 +237,7 @@ release :
 # the source
 
 # Edit source files in git repository
-# make userguide        Reads an auxiliary file to include version nmber
+# make doc/userguide/userguide.html    Reads an auxiliary file to include version nmber
 # git status
 # git add (files that have been changed)
 # git commit 'm "purpose of these changes"
@@ -180,7 +247,7 @@ release :
 # To advance version number to to v3.0.26 or whatever it is...
 # edit package.json     This contains the master definition of version number
 # make set-version      Reads package.json and defines two auxiliary files
-# make userguide        Need to update version number in the guide (using aux file)
+# make doc/userguide/userguide.html  Need to update version number in the guide
 # git tag -a v3.0.26 -m 'move to version v3.0.26'
 
 # To upload new release
@@ -225,7 +292,7 @@ release :
 .PHONY : compile
 compile :
 	make set-version
-	make userguide
+	make doc/userguide/userguide.html
 	make top-index
 	make dependencies
 	make release
@@ -323,11 +390,10 @@ program-indices :
           -o programs/Examples/TypeConversion/index.html \
 	  programs/Examples/TypeConversion/index.md
 
-# make userguide --- Generate the user guide html file from markdown
-# source
+# make doc/html/userguide.html --- Generate the user guide html file
+# from markdown source
 
-.PHONY : userguide
-userguide :
+doc/html/userguide.html : doc/src/userguide.md
 	mkdir -p doc/html
 	cp -r doc/src/figures doc/html
 	cp doc/src/doc.css doc/html
@@ -337,8 +403,8 @@ userguide :
           --variable=version:'$(VERSION)' \
           --variable=date:'$(VersionDate)' \
           --variable=css:doc.css \
-          -o doc/html/userguide-index.html \
-	  doc/src/userguide-index.md
+          -o doc/html/userguide.html \
+	  doc/src/userguide.md
 
 # make top-index --- Generate index for the project from markdown
 # source.

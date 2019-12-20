@@ -17,74 +17,42 @@
   <![endif]-->
 </head>
 <body>
-<h1 id="sigma16">Sigma16</h1>
+<header id="title-block-header">
+<h1 class="title">Sigma16 source repository 3.0.33</h1>
+</header>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture.</p>
-<h2 id="quick-start">Quick start</h2>
-<p>You can run the software from the Internet without downloading or installing anything.</p>
+<p>This the README page for the <strong>Sigma16 source repository</strong>: <a href="https://github.com/jtod/Sigma16">https://github.com/jtod/Sigma16</a>. Here you can view the source and download it. For further information, documentation, and executable versions, see the <strong>Sigma16 home page</strong> at <a href="https://jtod.github.io/S16/">https://jtod.github.io/S16/</a>.</p>
+<p>Quick start:</p>
 <ul>
-<li><p><a href="./app/Sigma16.html">Launch the app</a></p></li>
-<li><p><a href="https://jtod.github.io/S16">Run any of the past releases</a> This web page contains links to the latest version, as well as past releases: https://jtod.github.io/S16</p></li>
+<li>[Launch Sigma16 to run in your browser] (https://jtod.github.io/S16/dev/app/Sigma16.html)</li>
+<li><a href="https://jtod.github.io/S16/dev/app/doc/html/userguide.html">Read the User Guide</a> This includes documentation of the architecture, programming, and installation.</li>
 </ul>
-<h2 id="about-the-software">About the software</h2>
-<p>The software includes an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
-<h2 id="documentation">Documentation</h2>
-<p>The User Guide is displayed in the running application, and you can also read it here without launching the program:</p>
-<ul>
-<li><p><a href="app/doc/html/userguide-index.html">User Guide (html)</a> The user manual is available as html in datafiles/doc/html/index.html.</p></li>
-<li><p><a href="app/doc/src/userguide-index.md">User Guide (plain text)</a> The markdown source for the user guide is in app/doc/src/userguide-index.md.</p></li>
-</ul>
+<p><em>Note (autumn 2019): The architecture, software, and documentation are currently being revised; this is a development version and it is not ready for general use. There are several earlier releases, as well as extensive documentation, but those are available only on a protected Moodle server. The new version is expected to be available on github around the beginning of February 2020. The notes below, as well as the user guide, are incomplete and refer to previous versions, so the current documentation is inconsistent with the current software.</em></p>
 <h2 id="download">Download</h2>
-<p>If you want to run the app when Internet is inaccessible, you can download the software and run it locally on your machine.</p>
-<ul>
-<li><p><a href="https://github.com/jtod/Sigma16">Download to run in browser without Internet access</a> The project page contains the source code which you can download and run on your local machine. You don’t need any special installation; simply store the Sigma16 folder anywhere on your computer. This page is actually the index.html file in the Sigma16 folder.</p></li>
-<li><p>Download executable to run on local machine. There is a standalone executable program that doesn’t run in a browser, and doesn’t require internet access (except to download the software one time). If the download page contains an executable for your platform, you can download this and run it. Alternatively</p></li>
-<li><p>Download the source code and compile an executable for your platform. See app/makefile</p></li>
-</ul>
-<h3 id="compiling-the-software">Compiling the software</h3>
-<p>See the section Launching Sigma16.</p>
-<ul>
-<li><p>Running as a standalone app on your computer</p>
-<p>npm install npm start</p></li>
-<li><p>Launch the executable file Sigma16.exe.</p></li>
-</ul>
-<p>If you don’t have the executable file, you can build the software. You need only download and install Haskell Tool Stack; this will automatically download and install the rest of the software you need. The installation will require several GB of secondary storage.</p>
-<ul>
-<li><p>Visit https://docs.haskellstack.org/en/stable/install_and_upgrade/</p></li>
-<li><p>This page gives instructions on how to install Stack on Linux, Macintosh, and Windows, along with download links.</p></li>
-<li><p>Open a shell, change to the Sigma directory, and enter this command:</p></li>
-</ul>
-<pre><code>stack build Sigma16</code></pre>
-<p>The following tools are required:</p>
-<pre><code>git
-javascript
-html5
-css</code></pre>
-<h3 id="standalone-executable-using-electron">Standalone executable using electron</h3>
+<p>It isn’t necessary to download, compile, and install the software: you can just run it in a browser by clicking the Quick Start link above.</p>
+<p>If you want to run the app when Internet is inaccessible, you can download the software and run it locally on your machine. You don’t need any special installation; simply store the Sigma16 folder anywhere on your computer. Then there are several options:</p>
+<h3 id="run-in-a-browser">Run in a browser</h3>
+<p>Open the file <em>index.html</em> in a browser; this contains a link to launch the app, and there may be contain release notes. Note that a few features won’t work, because browsers restrict some operations when a web page executes from a local file (as opposed to an https server). In particular, when you open an example program (in the Examples tab), the button “Copy example to editor” won’t work. But you can select the text of the example with your mouse, right-click and Copy, then Paste it into the editor.</p>
+<h3 id="run-with-npm">Run with npm</h3>
+<p>See app/makefile for notes on how to run the software as a standalone program, without using a browser.</p>
 <p>The following software needs to be installed in order to build the executable using electron</p>
 <pre><code>node.js
 npm</code></pre>
-<p>The following files are required</p>
+<h3 id="compile-using-npm">Compile using npm</h3>
+<pre><code>Clone this repository
+git clone https://github.com/electron/electron-quick-start
+cd electron-quick-start        # Go into the repository
+npm install     # Install dependencies
+npm start         # Run the app</code></pre>
+<p>The following files are required for compilation with npm, but they are not needed just to run the source program in a browser.</p>
 <pre><code>src/main.js
 src/package.json
 src/package-lock.json
 src/preload.js
 src/renderer.hs
 src/node_modules/</code></pre>
-<h3 id="compiling-a-standalone-executable-requires-node.js-and-npm">Compiling a standalone executable; requires Node.js and npm</h3>
-<pre><code>cd src
-npm install
-npm start
-
-# Clone this repository
-git clone https://github.com/electron/electron-quick-start
-# Go into the repository
-cd electron-quick-start
-# Install dependencies
-npm install
-# Run the app
-npm start</code></pre>
-<h2 id="about-the-software-1">About the software</h2>
+<h2 id="about-the-software">About the software</h2>
+<p>This is free software; see the LICENSE file.</p>
 <p>The author is John O’Donnell, john.t.odonnell9@gmail.com</p>
-<p>This is free software; see the LICENSE file</p>
 </body>
 </html>
