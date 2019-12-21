@@ -165,8 +165,8 @@ ctlReg.set ("dataEnd",  {ctlRegIndex:9});
 //------------------------------------------------------------------------------
 
 // Define the bit index for each flag in the system register, where 0
-// indicates the least significant bit.  In addition, constants are
-// defined for setting or clearing the flags
+// indicates the most significant bit (big endian).  In addition,
+// constants are defined for setting or clearing the flags
 
 // When the machine boots, the registers are initialized to 0.  The
 // system state flag is defined so that userStateBit=0 indicates system
@@ -174,11 +174,11 @@ ctlReg.set ("dataEnd",  {ctlRegIndex:9});
 // should boot into a state that enables the operating system to
 // initialize itself.
 
-const userStateBit  = 0;   // 0 - system state,  1 - user state
-const intEnableBit = 1;   // 0 - disabled,      1 - enabled
+const userStateBit     = 0;   // 0 = system state,  1 = user state
+const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
 
-const clearIntEnable = maskToClearBit (intEnableBit);
-const setSystemState = maskToClearBit (userStateBit);
+const clearIntEnable = maskToClearBitBE (intEnableBit);
+const setSystemState = maskToClearBitBE (userStateBit);
 
 //------------------------------------------------------------------------------
 // Interrupt irequest and imask bits

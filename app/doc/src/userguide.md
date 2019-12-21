@@ -166,27 +166,74 @@ automatically loaded into R15, which is the condition code register.
 The description of each instruction states whether R15 is modified,
 and what goes into it.
 
-The bits in R15 are indexed from bit 0 (the least significant, or
-rightmost bit) to bit 15 (the most significant, or leftmost).  The
+The bits in R15 are indexed from bit 0 (the most significant, or
+lefttmost bit) to bit 15 (the least significant, or rightmost).  The
 condition code bits that have specific meanings are called *flags*.
-The flags are defined to make the condition code easier to read in
-hex: comparison flags are in the rightmost hex digit, and the carry
-and overflow flags are in the hex digit to the left.
-
----- ---- CvVL lEgG
 
 Table: Condition code flags
 
- Bit   Flag       Meaning
------ ----------  ----------------------------------------------
-  0     **G**    > (or >0) unsigned (binary)
-  1     **g**    > (or >0) signed (two's complement)
-  2     **E**    = (or =0) word, signed, unsigned
-  3     **l**    < (or <0) signed (two's complement)
-  4     **L**    < (or <0) unsigned (binary)
-  5     **V**    unsigned overflow (binary)
-  6     **v**    signed overflow (two's complement)
-  7     **C**    carry propagation (binary)
+<table>
+  <tr>
+    <th>Bit</th>
+    <th>Flag</th>
+    <th>Meaning</th>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>**G**</td>
+    <td> gt (or gt 0) unsigned (binary)</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>**g**</td>
+    <td> gt (or gt 0) signed (two's complement)</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>**E**</td>
+    <td>= (or =0) word, signed, unsigned</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>**l**</td>
+    <td>   lt (or lt 0) signed (two's complement)</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>**L**</td>
+    <td>    lt (or  lt 0) unsigned (binary)</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>**V**</td>
+    <td>    unsigned overflow (binary)</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>**v**</td>
+    <td>    signed overflow (two's complement)</td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td>**C**</td>
+    <td>    carry propagation (binary)</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+
+</table>
+
+The condition code flags are defined to make the condition code easier to read in
+hex:
+
+* The first (leftmost) hex digit holds the comparison flags
+
+* The second hex digit holds the carry and overflow flags
+
+* The third hex digit holds the stack error flags
 
 conditional jump
 
@@ -199,6 +246,8 @@ The memory is a hardware array of words that are accessed by address.
 A memory address is 16 bits wide, and there is one memory location
 corresponding to each address, so there are 2^16 = 64k memory
 locations.  Each memory location is a 16-bit word.
+
+### Effective address
 
 The effective address is defined to be the binary sum of the
 displacement and the index register.
@@ -230,6 +279,26 @@ by the **system control registers**.
 
  * ie (bit 1)   -- interrupts enabled (1-bit flag)
 
+Table: Processor status flags
+
+<table>
+  <tr>
+    <th>Bit</th>
+    <th>Flag</th>
+    <th>Meaning</th>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>**U**</td>
+    <td>User state</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>**E**</td>
+    <td>Interrupts enabled</td>
+  </tr>
+</table>
+
 ## Interrupts and exceptions
 
  * imask
@@ -242,43 +311,104 @@ by the **system control registers**.
  
  * ivect
 
- Location  Exception   Type
----------- ----------- -----------
-     0     Trap        Trap
-     1     Overflow    Trap
-     2     Div0        Trap
-     3     SegFault    Trap
-     4     Privilege   Trap
-     5     Timer       Interrupt
-     6     Input       Interrupt
-     7     Output      Interrupt
+
+### Mask and request flags
+
+<table>
+  <tr>
+    <th>Bit</th>
+    <th>Flag</th>
+    <th>Meaning</th>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>Trap</td>
+    <td>Trap</td>
+  </tr>
+  <tr>
+    <td>0</td>
+    <td>Trap</td>
+    <td>Trap</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Overflow</td>
+    <td>Trap</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Div0</td>
+    <td>Trap</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>StackFault</td>
+    <td>Trap</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>SegFault</td>
+    <td>Trap</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Privelege</td>
+    <td>Trap</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>Timer</td>
+    <td>Interrupt</td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td>Input</td>
+    <td>Interrupt</td>
+  </tr>
+  <tr>
+    <td>8</td>
+    <td>Output</td>
+    <td>Interrupt</td>
+  </tr>
+</table>
 
 ## Instruction representation
 
 There are three instruction formats:
 
-  * RRR -- (1 word) Instructions that perform operations on data
-           in registers, but not referring to memory.
+* RRR -- (1 word) Instructions that perform operations on data
+         in registers, but not referring to memory.
 
-  * RX  -- (2 words) Instructions that specify a memory location,
-           as well as a register operand.
+* RX  -- (2 words) Instructions that specify a memory location,
+         as well as a register operand.
 
-  * EXP -- (2 words) Expanded instructions, for instructions that
-           cannot be encoded as RRR or RX.
+* EXP -- (2 words) Expanded (or experimental) instructions, for
+         instructions that cannot be encoded as RRR or RX.
 
 The first word of an instruction contains four 4-bit fields, named op
 (bits 0-3), d (bits 4-7), sa (bits 8-11), and sb (bits 12-15).
 
+<table class="wordlayout"">
+ <tr>
+  <th>op</th>
+  <th>d</th>
+  <th>a</th>
+  <th>b</th>
+ </tr>
+ <tr>
+  <td>0-3</td>
+  <td>4-7</td>
+  <td>8-11</td>
+  <td>12-15</td>
+ </tr>
+</table>
+
 Each instruction has a 4-bit field called the opcode (op for short).
-This gives 16 values of the opcode: 14 of them denote the 14 RRR
-instructions, while two of these values indicate that the instruction
-is either RX or EXP format, and there is then a secondary opcode in the
-sb field
-
-Expanding opcodes
-
-            e     EXP format
-            f     RX format
+This gives 16 values of the opcode: 14 of them (0 through 13) denote
+the 14 RRR instructions.  If the op field is 14 (hex e) the
+instruction is EXP format and has a secondary opcode in the a and b
+fields.  If the op field contains 15 (hex f) the instruction is RX
+format with a secondary opcode in the b field.
 
 ### RRR format
 
@@ -291,16 +421,44 @@ represented as one word, which is divided into four fields:
   * sa  (4 bits, starting from bit 8) Source a register
   * sb  (4 bits, starting from bit 12) Source b register
 
+<table class="wordlayout"">
+  <tr>
+    <th>op</th>
+    <th>d</th>
+    <th>a</th>
+    <th>b</th>
+  </tr>
+  <tr>
+    <td>d</td>
+    <td>1</td>
+    <td>2</td>
+    <td>3</td>
+  </tr>
+  <tr>
+    <td>0-3</td>
+    <td>4-7</td>
+    <td>8-11</td>
+    <td>12-15</td>
+  </tr>
+</table>
+
 The op field of an RRR instruction must be in the range from 0 through
 13 (hex 0 through d).  This allows for a total of 14 distinct RRR
 instructions.  If the op field is outside this range, it indicates an
 "expanding opcode": 14 (hex e) indicates the EXP format, and 15 (hex
 f) indicates the RX format.
 
-A typical example of an RRR instruction is add R4,R9,R2, which adds
-the contenst of registers R9 and R2, and loads the result into R4.
-It's equivalent to R4 := R9 + R2.
+A RRR instruction is written with an instruction name (menonic) and
+three register operands.  For example, the "trap" instruction has
+mnemonic 13 (and the hex value of 13 is d), so the assembly language
+"trap R4,R12,R2" is translated to machine language as d4c2.
 
+In most cases, an RRR instruction takes two operands in registers
+specified by the a and b fields and produces a result which is loaded
+into the register specified by the d field.  A typical example of an
+RRR instruction is add R4,R9,R2, which adds the contenst of registers
+R9 and R2, and loads the result into R4.  It's equivalent to R4 :=
+R9 + R2.
 
 ### RX format
 
@@ -362,39 +520,65 @@ distinct EXP instructions.  The d field in the first word, and all of
 the second word, hold operands which depend on the particular
 instruction.
 
+First word of the instruction
+
+<table class="wordlayout"">
+<tr>
+<th>op</th>
+<th>d</th>
+<th>a</th>
+<th>b</th>
+</tr>
+<tr>
+<td>0-3</td>
+<td>4-7</td>
+<td>8-11</td>
+<td>12-15</td>
+</tr>
+</table>
+
+Second word of the instruction
+
+<table class="wordlayout"">
+  <tr>
+    <th>p</th>
+    <th>q</th>
+    <th>r</th>
+    <th>s</th>
+  </tr>
+  <tr>
+    <td>0-3</td>
+    <td>4-7</td>
+    <td>8-11</td>
+    <td>12-15</td>
+  </tr>
+</table>
+
 # Instruction set
 
+The following sections describe the instructions in groups organized
+by their function.  Some of the groups contain instructions with
+different formats.  From the programmer's perspective the function is
+more important, so these groups are useful in finding the right
+instruction to use.  (From the perspective of designing a digital
+circuit to impleemnt the architecture, the format is essential.)
 
 ## Arithmetic instructions
 
-### add
+### add, sub
 
 add. The two operands are fetched from registers, added, and the sum
 is loaded into the destination register.
-
-### sub
 
 ### mul
 
 ### div
 
-## Logic instructions
+### addc
 
-### inv
+## Accessing memory
 
-### and
-
-### or
-
-### xor
-
-## Shift instructions
-
-### shiftl
-
-### shiftr
-
-## Basic memory instructions
+### lea
 
 The effective address is defined to be the binary sum of the
 displacement and the index register.
@@ -421,17 +605,21 @@ effective address.  Unlike most instructions, store treats the
 "destination register" as the source of data, and the actual
 destination is the memory location.
 
-general form: store Rd,disp[Ra]
-effect: mem[disp+reg[Ra]] := reg[Rd]
-format: RX
+    general form: store Rd,disp[Ra]
+    effect: mem[disp+reg[Ra]] := reg[Rd]
+    format: RX
 
-```
-   store  R3,$2b8e[R5]
-   store  R12,count[R0]
-   store  R6,arrayX[R2]
-```
 
-## Stack operations
+    store  R3,$2b8e[R5]
+    store  R12,count[R0]
+    store  R6,arrayX[R2]
+
+
+### save
+
+### restore
+
+### Stack operations
 
 A stack is represented as a block of words with consecutive addresses
 sb, sb+1, sb+2, ..., sl.  There are three instructions that operate on
@@ -459,24 +647,15 @@ is full, nothing is stored into memory and an error is indicated in
 the condition code and interrupt request registers; an interrupt will
 occur if interrupts are enabled and the stack mask bit is set.
 
-Assembly language:
-
-    push  R1,R2,R3
+Assembly language: push R1,R2,R3
 	
-Machine language representation:
-
 Push is an EXP format instruction comprising two words
-
-
 
 ------ ------ ------ ------
   op     d      a      b   
  **e**   R1          **5**   
   0-2    3-6   7-10  11-15  
 ------ ------ ------ ------
-
-
-
 	
 Contents of the operands:	
 
@@ -526,9 +705,47 @@ bit is not set in the mask register.
        then R1 := mem[R1]
        else R15.StackEmpty := 1, req.StackBounds := 1
 
-### Saving and restoring state
 
-### Accessing individual bits
+## Comparisons
+
+### cmplt, cmpeq, cmpgt
+
+### cmp
+
+## Jumps
+
+### jump
+
+### jumpf, jumpt
+
+### jumpc0, jumpc1
+
+### jal
+
+### Aliases for conditional jumps
+
+## Bits and Booleans
+
+### inv
+
+### and, or, xor
+
+### shiftl, shiftr
+
+### getbit
+
+### putbit
+
+### putbitinv
+
+## System control
+
+### trap
+
+### getctl, putctl
+
+### rfi
+
 
 ## Summary of the instruction set
 
@@ -589,14 +806,6 @@ instructions are in order of increasing operation code.
 
   jal     RX     f,8  E      r[d] := pc, pc := ea
 
-  inv     RRR    7           r[d] := inv r[a]
-
-  and     RRR    8           r[d] := r[a] and r[b]
-
-  or      RRR    9           r[d] := r[a] or r[b]
-
-  xor     RRR    a           r[d] := r[a] xor r[b]
-
 
   trap    RRR    d    E      xa := pc, pc := 0
 
@@ -616,70 +825,11 @@ instructions are in order of increasing operation code.
 
   test    EXP                r[d] := r[a] [bit b]
 
-  inton   EXP         P      ie := 1
-
-  intoff  EXP         P      ie := 0
-
-  sysoff  EXP         P      sys := 0
-
-  getrem  EXP    e,00        r[d] := rem
-
-  putrem  EXP    e,01        rem := r[d]
-
-  getcsa  EXP    e,02 P      r[d] := csa
-
-  putcsa  EXP    e,03 P      csa := r[d]
-
-  getcsl  EXP    e,04 P      r[d] := csl
-
-  putcsl  EXP    e,05 P      csl := r[d]
-
-  getdsa  EXP    e,06 P      r[d] := dsa
-
-  putdsa  EXP    e,07 P      dsa := r[d]
-
-  getdsl  EXP    e,08 P      r[d] := dsl
-
-  putdsl  EXP    e,09 P      dsl := r[d]
-
   addl    EXP    e,0a        rem#r[d] := r[a] + r[b] + lsb rem
 
-  subl    EXP    e,0b        rem#r[d] := r[a] - r[b] + slb rem
   shiftl  RRR    b           rem#r[d] := r[a] shl b
 
   shiftr  RRR    c           rem#r[d] := r[a] shr b
-
-  inton   EXP         P      ie := 1
-
-  intoff  EXP         P      ie := 0
-
-  sysoff  EXP         P      sys := 0
-
-  getrem  EXP    e,00        r[d] := rem
-
-  putrem  EXP    e,01        rem := r[d]
-
-  getcsa  EXP    e,02 P      r[d] := csa
-
-  putcsa  EXP    e,03 P      csa := r[d]
-
-  getcsl  EXP    e,04 P      r[d] := csl
-
-  putcsl  EXP    e,05 P      csl := r[d]
-
-  getdsa  EXP    e,06 P      r[d] := dsa
-
-  putdsa  EXP    e,07 P      dsa := r[d]
-
-  getdsl  EXP    e,08 P      r[d] := dsl
-
-  putdsl  EXP    e,09 P      dsl := r[d]
-
-  addl    EXP    e,0a        rem#r[d] := r[a] + r[b] + lsb rem
-
-  subl    EXP    e,0b        rem#r[d] := r[a] - r[b] + slb rem
-
-  test    RRR    c           r[d] := r[a] [bit b]
 
 -------------------------------------------
 

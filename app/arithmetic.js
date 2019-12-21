@@ -1,5 +1,27 @@
 //------------------------------------------------------------------------------
-// Bit manipulation
+// Bit manipulation - big endian
+//------------------------------------------------------------------------------
+
+// Bits are numbered from left to right, where the most significant
+// (leftmost) bit has index 0 and the least significant (rightmost)
+// bit has index 15.
+
+// Return bit i in word w
+function getBitInWordBE (w,i) { return (w >>> (15-i)) & 0x0001 }
+
+// Return bit i in register r
+function getBitInRegBE (r,i) { return (r.get() >>> (15-i)) & 0x0001 }
+
+// Generate mask to clear/set bit i in a word
+function maskToClearBitBE (i) { return ~(1<<(15-i)) & 0xffff }
+function maskToSetBitBE (i) { return (1 << (15-i)) & 0xffff }
+
+// Clear/set bit i in register r
+function clearBitInRegBE (r,i) { r.put (r.get() & maskToClearBitBE(i)) }
+function setBitInRegBE   (r,i) { r.put (r.get() | maskToSetBitBE(i)) }
+
+//------------------------------------------------------------------------------
+// Bit manipulation - little endian
 //------------------------------------------------------------------------------
 
 // Bits are numbered from right to left, where the least significant
@@ -7,18 +29,18 @@
 // 15.
 
 // Return bit i in word w
-function getBitInWord (w,i) { return (w >>> i) & 0x0001 }
+function getBitInWordLE (w,i) { return (w >>> i) & 0x0001 }
 
 // Return bit i in register r
-function getBitInReg (r,i) { return (r.get() >>> i) & 0x0001 }
+function getBitInRegLE (r,i) { return (r.get() >>> i) & 0x0001 }
 
 // Generate mask to clear/set bit i in a word
-function maskToClearBit (i) { return ~(1<<i) & 0xffff }
-function maskToSetBit (i) { return (1 << i) & 0xffff }
+function maskToClearBitLE (i) { return ~(1<<i) & 0xffff }
+function maskToSetBitLE (i) { return (1 << i) & 0xffff }
 
 // Clear/set bit i in register r
-function clearBitInReg (r,i) { r.put (r.get() & maskToClearBit(i)) }
-function setBitInReg   (r,i) { r.put (r.get() | maskToSetBit(i)) }
+function clearBitInRegLE (r,i) { r.put (r.get() & maskToClearBitLE(i)) }
+function setBitInRegLE   (r,i) { r.put (r.get() | maskToSetBitLE(i)) }
 
 //------------------------------------------------------------------------------
 // Words, binary numbers, and two's complement integers
@@ -335,7 +357,7 @@ function op_add (a,b) {
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
-    if (tcOverflow) { setBitInReg (ireq,overflowBit) }
+    if (tcOverflow) { setBitInRegBE (ireq,overflowBit) }
     return [primary, secondary];
 }
 
@@ -378,7 +400,7 @@ function op_mul (a,b) {
     let primary = p & 0x0000ffff;
     let tcOverflow = ! (minTC <= p && p <= maxTC)
     let secondary = (tcOverflow ? ccv : 0);
-    if (tcOverflow) { setBitInReg (ireq,overflowBit) }
+    if (tcOverflow) { setBitInRegBE (ireq,overflowBit) }
     return [primary, secondary];
 }
 
@@ -393,7 +415,7 @@ function op_div (a,b) {
     let bint = wordToInt (b);
     let primary = intToWord (Math.trunc (aint / bint));
     let secondary = intToWord (aint % bint);
-    if (bint==0) { setBitInReg (ireq,zDivBit) };
+    if (bint==0) { setBitInRegBE (ireq,zDivBit) };
     return [primary, secondary];
 }
 

@@ -8,7 +8,7 @@
 
 function timerInterrupt() {
     console.log ("Timer Interrupt clicked");
-    setBitInReg (ireq, timerBit);
+    setBitInRegBE (ireq, timerBit);
     ireq.refresh();
 }
 
@@ -516,15 +516,15 @@ function executeInstruction (es) {
 // Check for interrupt
     let mr = imask.get() & ireq.get();
     console.log (`interrupt mr = ${wordToHex4(mr)}`);
-    if (getBitInReg (statusreg,intEnableBit) && mr) {
+    if (getBitInRegBE (statusreg,intEnableBit) && mr) {
 	let i = 0; // interrupt that is taken
-	while (i<16 && getBitInWord(mr,i)==0) { i++ };
+	while (i<16 && getBitInWordBE(mr,i)==0) { i++ };
 	console.log (`\n*** Interrupt ${i} ***`);
 	ipc.put(pc.get());           // save the pc
 	istat.put(statusreg.get());   // save the status register
 	console.log (`ipc=${ipc.get()}`);
 	console.log (`ireq=${wordToHex4(ireq.get())}`);
-	clearBitInReg (ireq,i);        // clear the interrupt that was taken
+	clearBitInRegBE (ireq,i);        // clear the interrupt that was taken
 	console.log (`ireq=${wordToHex4(ireq.get())}`);
 	console.log (`pc=${wordToHex4(pc.get())}`);
 	console.log (`vect=${wordToHex4(ivect.get())} i=${i}`);
@@ -533,8 +533,8 @@ function executeInstruction (es) {
         // Disable interrupts and enter system state
 	console.log (`status=${wordToHex4(statusreg.get())}`);
 	statusreg.put (statusreg.get()
-		       & maskToClearBit(intEnableBit)
-		       & maskToClearBit(userStateBit));
+		       & maskToClearBitBE(intEnableBit)
+		       & maskToClearBitBE(userStateBit));
 	console.log (`statusreg=${wordToHex4(statusreg.get())}`);
 	regShowAccesses();
 	return;

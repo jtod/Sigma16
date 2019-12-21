@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <title>Try tables for instruction formats</title>
+    <link rel="stylesheet" type="text/css" href="tablestyle.css"/>
+  </head>
+  <body>
+
+    <h1> Fields of instruction </h1>
+    <table class="wordlayout"">
+      <tr>
+	<th>op</th>
+	<th>d</th>
+	<th>a</th>
+	<th>b</th>
+      </tr>
+      <tr>
+	<td>0-3</td>
+	<td>4-7</td>
+	<td>8-11</td>
+	<td>12-15</td>
+      </tr>
+    </table>
+
+    <h1> RRR format </h1>
+
+    An RRR instruction is written with an instruction name (menonic)
+    and three register operands> For example, the "trap" instruction
+    has mnemonic 13 (and the hex value of 13 is d), so the assembly
+    language "trap R1,R2,R3" is translated to machine language as
+    d123:
+
+    <table class="wordlayout"">
+      <tr>
+	<th>op</th>
+	<th>d</th>
+	<th>a</th>
+	<th>b</th>
+      </tr>
+      <tr>
+	<td>d</td>
+	<td>1</td>
+	<td>2</td>
+	<td>3</td>
+      </tr>
+      <tr>
+	<td>0-3</td>
+	<td>4-7</td>
+	<td>8-11</td>
+	<td>12-15</td>
+      </tr>
+    </table>
+
+    <h1> EXP format </h1>
+    First word of the instruction
+    <table class="wordlayout"">
+      <tr>
+	<th>op</th>
+	<th>d</th>
+	<th>a</th>
+	<th>b</th>
+      </tr>
+      <tr>
+	<td>0-3</td>
+	<td>4-7</td>
+	<td>8-11</td>
+	<td>12-15</td>
+      </tr>
+    </table>
+
+    Second word of the instruction
+    <table class="wordlayout"">
+      <tr>
+	<th>p</th>
+	<th>q</th>
+	<th>r</th>
+	<th>s</th>
+      </tr>
+      <tr>
+	<td>0-3</td>
+	<td>4-7</td>
+	<td>8-11</td>
+	<td>12-15</td>
+      </tr>
+    </table>
+
+  </body>
+</html>

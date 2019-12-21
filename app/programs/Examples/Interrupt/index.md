@@ -1,9 +1,9 @@
 # Simple examples
 
-* [CtlRegs](CtlRegs.asm.txt) Using the control registers
+* [CtlRegs.asm.txt](CtlRegs.asm.txt) Using the control registers
 
-* [ArithException](ArithException.asm.txt) Arithmetic that causes
-  overflow and division by zero
+* [ArithException.asm.txt](ArithException.asm.txt) Arithmetic that
+  causes overflow and division by zero
 
-* [Timer](Timer.asm.txt) Use the timer to interrupt a loop
+* [Timer.asm.txt](Timer.asm.txt) Use the timer to interrupt a loop
 

@@ -1,5 +1,7 @@
 ; Arithmetic exceptions: overflow and division by 0
 
+; Using big-endian bit indexing
+
 ; Request exception for overflow and divide by zero
 
    load   R1,zdivFlag[R0]    ; flag for division by 0
@@ -58,9 +60,9 @@ handleDiv0
    load   R3,save3[R0]        ; restore state
    rfi                        ; resume
 
-intEnable  data   2    ; enable is bit 1 in system register
-ovflFlag   data  16    ; overflow bit is 4 in mask/req
-zdivFlag   data  32    ; zdiv is bit 5 in mask/req
+intEnable  data  $4000        ; enable is bit 1 in system register
+ovflFlag   data  $0800        ; overflow bit is 4 in mask/req
+zdivFlag   data  $0400        ; zdiv is bit 5 in mask/req
 
 save1      data   0
 save2      data   0
