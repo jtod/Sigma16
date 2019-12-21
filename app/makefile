@@ -399,7 +399,7 @@ doc/html/userguide.html : doc/src/userguide.md
 	cp doc/src/doc.css doc/html
 	pandoc --standalone \
           --template=doc/src/userguide-template.html \
-          --table-of-contents --toc-depth=3 \
+          --table-of-contents --toc-depth=4 \
           --variable=version:'$(VERSION)' \
           --variable=date:'$(VersionDate)' \
           --variable=css:doc.css \

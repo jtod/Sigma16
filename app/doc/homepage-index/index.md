@@ -1,22 +1,20 @@
 % Sigma16 home page
-% John T. O'Donnell
-% December 2019
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
-This is the **Sigma16 home page**:
-[https://jtod.github.io/S16/](https://jtod.github.io/S16/).  It
+This is the **Sigma16 home page**
+([https://jtod.github.io/S16/](https://jtod.github.io/S16/)).  It
 contains general information, pointers to various resources, and an
 executable version.  To view and download the source code, see the
-**Sigma16 source repository**:
-[https://github.com/jtod/Sigma16](https://github.com/jtod/Sigma16).
+**Sigma16 source repository**
+([https://github.com/jtod/Sigma16](https://github.com/jtod/Sigma16)).
 
 Quick start:
 
-* [**Launch Sigma16 to run in your browser**]
-  (https://jtod.github.io/S16/dev/app/Sigma16.html)
+* [**Launch Sigma16 to run in your
+  browser**](https://jtod.github.io/S16/dev/app/Sigma16.html)
 * [Read the User
   Guide](https://jtod.github.io/S16/dev/app/doc/html/userguide.html)
   This includes documentation of the architecture, programming, and
@@ -27,6 +25,9 @@ commercial products making it a good vehicle for teaching and
 experimentation.
 
 * A 16-bit architecture with a simple yet powerful instruction set.
+
+* A small subset of the architecture is suitable for introductory
+  teaching, but more advanced features support systems programming.
 
 * Software tools include an assembler, linker, emulator, and IDE.
 
@@ -43,8 +44,9 @@ experimentation.
   circuit using the Hydra tools.
 
 * The User Guide is displayed in the running application, and you can
-  also read it here without launching the program: [User Guide](app/doc/html/userguide-index.html) The user
-    manual is available as html in datafiles/doc/html/index.html.
+  also read it here without launching the program: [User
+  Guide](app/doc/html/userguide-index.html) The user manual is
+  available as html in datafiles/doc/html/index.html.
 
 *Note (autumn 2019): The architecture, software, and documentation are
 currently being revised; this is a development version and it is not

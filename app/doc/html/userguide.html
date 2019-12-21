@@ -50,14 +50,26 @@ Version 3.0.33
 <li><a href="#instruction-set">Instruction set</a><ul>
 <li><a href="#arithmetic-instructions">Arithmetic instructions</a><ul>
 <li><a href="#add">add</a></li>
-<li><a href="#mul-multiply-signed-integers">mul (multiply signed integers)</a></li>
+<li><a href="#sub">sub</a></li>
+<li><a href="#mul">mul</a></li>
+<li><a href="#div">div</a></li>
 </ul></li>
-<li><a href="#memory-instructions">Memory instructions</a><ul>
-<li><a href="#copying-variables-between-memory-and-registers">Copying variables between memory and registers</a></li>
+<li><a href="#logic-instructions">Logic instructions</a><ul>
+<li><a href="#inv">inv</a></li>
+<li><a href="#and">and</a></li>
+<li><a href="#or">or</a></li>
+<li><a href="#xor">xor</a></li>
+</ul></li>
+<li><a href="#shift-instructions">Shift instructions</a><ul>
+<li><a href="#shiftl">shiftl</a></li>
+<li><a href="#shiftr">shiftr</a></li>
+</ul></li>
+<li><a href="#basic-memory-instructions">Basic memory instructions</a><ul>
 <li><a href="#load">load</a></li>
 <li><a href="#store">store</a></li>
-<li><a href="#stack-operations">Stack operations</a></li>
-<li><a href="#push">push</a></li>
+</ul></li>
+<li><a href="#stack-operations">Stack operations</a><ul>
+<li><a href="#push-r1r2r3">push R1,R2,R3</a></li>
 <li><a href="#pop">pop</a></li>
 <li><a href="#top">top</a></li>
 <li><a href="#saving-and-restoring-state">Saving and restoring state</a></li>
@@ -71,7 +83,9 @@ Version 3.0.33
 <li><a href="#expressions">Expressions</a></li>
 <li><a href="#assembly-language-statements">Assembly language statements</a><ul>
 <li><a href="#instructions">Instructions</a></li>
-<li><a href="#directives">Directives</a></li>
+<li><a href="#directives">Directives</a><ul>
+<li><a href="#module-statement">Module statement</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
@@ -330,43 +344,78 @@ Version 3.0.33
 <h2 id="arithmetic-instructions">Arithmetic instructions</h2>
 <h3 id="add">add</h3>
 <p>add. The two operands are fetched from registers, added, and the sum is loaded into the destination register.</p>
-<h3 id="mul-multiply-signed-integers">mul (multiply signed integers)</h3>
-<h2 id="memory-instructions">Memory instructions</h2>
+<h3 id="sub">sub</h3>
+<h3 id="mul">mul</h3>
+<h3 id="div">div</h3>
+<h2 id="logic-instructions">Logic instructions</h2>
+<h3 id="inv">inv</h3>
+<h3 id="and">and</h3>
+<h3 id="or">or</h3>
+<h3 id="xor">xor</h3>
+<h2 id="shift-instructions">Shift instructions</h2>
+<h3 id="shiftl">shiftl</h3>
+<h3 id="shiftr">shiftr</h3>
+<h2 id="basic-memory-instructions">Basic memory instructions</h2>
 <p>The effective address is defined to be the binary sum of the displacement and the index register.</p>
-<h3 id="copying-variables-between-memory-and-registers">Copying variables between memory and registers</h3>
 <h3 id="load">load</h3>
 <p>Load copies the word in memory at the effective address into the destination register.</p>
 <p>general form: load Rd,disp[Ra]</p>
 <p>effect: reg[Rd] := mem[disp+reg[Ra]]</p>
 <p>format: RX</p>
-<pre><code>   load  R12,count[R0]   ; R12 := count
-   load  R6,arrayX[R2]   ; R6 := arrayX[R2]
-   load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]</code></pre>
+<pre><code>load  R12,count[R0]   ; R12 := count
+load  R6,arrayX[R2]   ; R6 := arrayX[R2]
+load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]</code></pre>
 <h3 id="store">store</h3>
 <p>Store copies the word in the destination register into memory at the effective address. Unlike most instructions, store treats the “destination register” as the source of data, and the actual destination is the memory location.</p>
 <p>general form: store Rd,disp[Ra] effect: mem[disp+reg[Ra]] := reg[Rd] format: RX</p>
 <pre><code>   store  R3,$2b8e[R5]
    store  R12,count[R0]
    store  R6,arrayX[R2]</code></pre>
-<h3 id="stack-operations">Stack operations</h3>
-<p>Stack instructions use data in registers. A stack is represented as a consecutive sequence of words, with addresses sb+1, sb+2, …, sl.</p>
+<h2 id="stack-operations">Stack operations</h2>
+<p>A stack is represented as a block of words with consecutive addresses sb, sb+1, sb+2, …, sl. There are three instructions that operate on stacks: push, pop, and top. Each of these instructions checks to ensure that the operation is valid, and indicates an error condition of not. Four variables are needed to use a stack:</p>
 <ul>
-<li><p>Stack base (sb) = address of word just below the first element of the stack. Stack operations should never store anything at address sb; the first element is stored at sb+1.</p></li>
-<li><p>Stack limit (sl) = address of the last location that can hold a stack element.</p></li>
-<li><p>Stack top (st) = address of the element at the top of the stack, if it exists. If the stack is empty, then st=sb. If the stack is full, then st=sl.</p></li>
-<li><p>Data being accessed (x)</p></li>
+<li><p>sb (stack base) = address of the first word in the block</p></li>
+<li><p>sl (stack limit) = address of the last word in the block; for the stack to function properly it is necessary that sb &lt; sl.</p></li>
+<li><p>st (stack top) = pointer to the top element. There are three cases. If the stack contains at least one element, then st is its address and sb &lt;= st &lt;= sl. If the stack is empty, then st=sb-1. If the stack is full, then st=sl.</p></li>
+<li><p>x (data) = value to be pushed onto the stack, or result of a pop or top operation</p></li>
 </ul>
-<p>Generally, four registers are needed to use a stack. However, each stack instruction needs only three registers, since push does not need to check the stack base and pop does not need to check the stack limit.</p>
-<h3 id="push">push</h3>
-<pre><code>push  R1,R2,R3
-
-R1 = value to push onto stack in memory
+<h3 id="push-r1r2r3">push R1,R2,R3</h3>
+<p>Push a word in R1 onto a stack with top R2 and limit R3. If the stack is full, nothing is stored into memory and an error is indicated in the condition code and interrupt request registers; an interrupt will occur if interrupts are enabled and the stack mask bit is set.</p>
+<p>Assembly language:</p>
+<pre><code>push  R1,R2,R3</code></pre>
+<p>Machine language representation:</p>
+<p>Push is an EXP format instruction comprising two words</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">op</td>
+<td style="text-align: center;">d</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">b</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>e</strong></td>
+<td style="text-align: center;">R1</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><strong>5</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">0-2</td>
+<td style="text-align: center;">3-6</td>
+<td style="text-align: center;">7-10</td>
+<td style="text-align: center;">11-15</td>
+</tr>
+</tbody>
+</table>
+<p>Contents of the operands:</p>
+<pre><code>R1 = value to push onto stack in memory
 R2 = stack top
-R3 = stack limit
-
-if R2&lt;R3
+R3 = stack limit</code></pre>
+<p>Semantics:</p>
+<pre><code>if R2&lt;R3
   then R2 := R2+1; mem[R2] := R1
   else R15.sovfl := 1, req.StackBounds := 1</code></pre>
+<p>If R2=R3 this means the stack completely fills the block, and there is no space to store a new element. In this case, the push instruction does not store R1: it doesn’t modify memory outside the block, and it doesn’t overwrite data in the stack. Instead, the instruction indicates a stack overflow by setting the sovfl (stack overflow) bit in the condition code (R15), and it also sets the stack fault bit in the interrupt request register. If interrupts are enabled and the stack fault bit is set in the interrupt mask register, then an interrupt will occur after the push instruction completes. But there will be no interrupt if interrupts are disabled, or the stack fault bit is not set in the mask register.</p>
 <h3 id="pop">pop</h3>
 <pre><code>pop R1,R3,R3
 

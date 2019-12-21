@@ -372,14 +372,32 @@ instruction.
 add. The two operands are fetched from registers, added, and the sum
 is loaded into the destination register.
 
-### mul (multiply signed integers)
+### sub
 
-## Memory instructions
+### mul
+
+### div
+
+## Logic instructions
+
+### inv
+
+### and
+
+### or
+
+### xor
+
+## Shift instructions
+
+### shiftl
+
+### shiftr
+
+## Basic memory instructions
 
 The effective address is defined to be the binary sum of the
 displacement and the index register.
-
-### Copying variables between memory and registers
 
 ### load
 
@@ -392,11 +410,9 @@ effect: reg[Rd] := mem[disp+reg[Ra]]
 
 format: RX
 
-```
-   load  R12,count[R0]   ; R12 := count
-   load  R6,arrayX[R2]   ; R6 := arrayX[R2]
-   load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
-```
+    load  R12,count[R0]   ; R12 := count
+    load  R6,arrayX[R2]   ; R6 := arrayX[R2]
+    load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
 
 ### store
 
@@ -415,41 +431,77 @@ format: RX
    store  R6,arrayX[R2]
 ```
 
-### Stack operations
+## Stack operations
 
-Stack instructions use data in registers.  A stack is represented as a
-consecutive sequence of words, with addresses sb+1, sb+2, ..., sl.
+A stack is represented as a block of words with consecutive addresses
+sb, sb+1, sb+2, ..., sl.  There are three instructions that operate on
+stacks: push, pop, and top.  Each of these instructions checks to
+ensure that the operation is valid, and indicates an error condition
+of not.  Four variables are needed to use a stack:
 
-* Stack base (sb) = address of word just below the first element of
-  the stack.  Stack operations should never store anything at address
-  sb; the first element is stored at sb+1.
+* sb (stack base) = address of the first word in the block
 
-* Stack limit (sl) = address of the last location that can hold a
-  stack element.
+* sl (stack limit) = address of the last word in the block; for the
+  stack to function properly it is necessary that sb < sl.
 
-* Stack top (st) = address of the element at the top of the stack, if
-  it exists.  If the stack is empty, then st=sb.  If the stack is
-  full, then st=sl.
+* st (stack top) = pointer to the top element.  There are three cases.
+  If the stack contains at least one element, then st is its address
+  and sb <= st <= sl.  If the stack is empty, then st=sb-1.  If the
+  stack is full, then st=sl.
+  
+* x (data) = value to be pushed onto the stack, or result of a pop or
+  top operation
 
-* Data being accessed (x)
+### push R1,R2,R3
 
-Generally, four registers are needed to use a stack.  However, each
-stack instruction needs only three registers, since push does not need
-to check the stack base and pop does not need to check the stack
-limit.
+Push a word in R1 onto a stack with top R2 and limit R3.  If the stack
+is full, nothing is stored into memory and an error is indicated in
+the condition code and interrupt request registers; an interrupt will
+occur if interrupts are enabled and the stack mask bit is set.
 
-### push
+Assembly language:
 
     push  R1,R2,R3
+	
+Machine language representation:
+
+Push is an EXP format instruction comprising two words
+
+
+
+------ ------ ------ ------
+  op     d      a      b   
+ **e**   R1          **5**   
+  0-2    3-6   7-10  11-15  
+------ ------ ------ ------
+
+
+
+	
+Contents of the operands:	
 
     R1 = value to push onto stack in memory
     R2 = stack top
     R3 = stack limit
+	
+Semantics:
 
     if R2<R3
       then R2 := R2+1; mem[R2] := R1
       else R15.sovfl := 1, req.StackBounds := 1
   
+If R2=R3 this means the stack completely fills the block, and there is
+no space to store a new element.  In this case, the push instruction
+does not store R1: it doesn't modify memory outside the block, and it
+doesn't overwrite data in the stack.  Instead, the instruction
+indicates a stack overflow by setting the sovfl (stack overflow) bit
+in the condition code (R15), and it also sets the stack fault bit in
+the interrupt request register.  If interrupts are enabled and the
+stack fault bit is set in the interrupt mask register, then an
+interrupt will occur after the push instruction completes.  But there
+will be no interrupt if interrupts are disabled, or the stack fault
+bit is not set in the mask register.
+
 ### pop
 
     pop R1,R3,R3
@@ -477,7 +529,6 @@ limit.
 ### Saving and restoring state
 
 ### Accessing individual bits
-
 
 ## Summary of the instruction set
 
