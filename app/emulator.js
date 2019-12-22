@@ -346,7 +346,17 @@ function procStep(es) {
     if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
     if (es.procStatus==="Ready") {
 	clearInstrDecode (es);
+
+	prepareListingBeforeInstr (es);
+	memClearAccesses ();
+	memDisplay ();
+	regClearAccesses ();
+	
 	executeInstruction (es);
+
+	regShowAccesses()
+	memShowAccesses();
+	memDisplay ();
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
     }
@@ -359,7 +369,20 @@ function procRun(es) {
     regClearAccesses (es);
     memClearAccesses (es);
     clearInstrDecode (es);
+
+    prepareListingBeforeInstr (es);
+    memClearAccesses ();
+    memDisplay ();
+    regClearAccesses ();
+
     instructionLooper (es);
+
+    regShowAccesses()
+    memShowAccesses();
+    memDisplay ();
+    showInstrDecode (es);
+    highlightListingAfterInstr (es);
+
 }
 
 // Promises don't allow pause button click to break in, need setTimer for that
@@ -421,6 +444,31 @@ function procPause(es) {
 //    } else { return; }
 
 function instructionLooper (es) {
+    if (es.procStatus==="Ready") {
+	console.log ('LOOPER');
+	// Clean up instruction display if enabled
+//	if (es.instrLooperShow) {
+//	    clearInstrDecode (es);
+//	}
+	executeInstruction (es);
+	// Generate instruction display if enabled
+//	if (es.instrLooperShow) {
+//	    showInstrDecode (es);
+//	    highlightListingAfterInstr (es);
+//	}
+	// Check for breakpoint
+	if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+	    // should not highlight fetch pc ???
+	    console.log ("Breakpoint");
+	    setProcStatus (es,"Break");
+	}
+	setTimeout (function () {instructionLooper(es)});
+    }
+    console.log ('instructionLooper terminated');
+}
+
+/*
+function instructionLooper (es) {
     while (es.procStatus==="Ready") {
 	console.log ('LOOPER');
 	// Clean up instruction display if enabled
@@ -440,7 +488,9 @@ function instructionLooper (es) {
 	    setProcStatus (es,"Break");
 	}
     }
+    console.log ('instructionLooper terminated');
 }
+*/
 
 //    while (es.procStatus==="Ready") {
 //	executeInstruction ();
@@ -505,38 +555,38 @@ function breakClose () {
 //	    console.log(`find interrupt trying i=${i} r=${getBitInReg(ireq,i)} m=${getBitInReg(imask,i)}`);
 
 function executeInstruction (es) {
-    console.log ('executeInstruction');
+//    console.log ('executeInstruction');
     es.nInstructionsExecuted++;
     document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
-    prepareListingBeforeInstr (es);
-    memClearAccesses ();
-    memDisplay ();
-    regClearAccesses ();
+//    prepareListingBeforeInstr (es);
+//    memClearAccesses ();
+//    memDisplay ();
+//    regClearAccesses ();
 
 // Check for interrupt
     let mr = imask.get() & ireq.get();
-    console.log (`interrupt mr = ${wordToHex4(mr)}`);
+//    console.log (`interrupt mr = ${wordToHex4(mr)}`);
     if (getBitInRegBE (statusreg,intEnableBit) && mr) {
 	let i = 0; // interrupt that is taken
 	while (i<16 && getBitInWordBE(mr,i)==0) { i++ };
 	console.log (`\n*** Interrupt ${i} ***`);
 	ipc.put(pc.get());           // save the pc
 	istat.put(statusreg.get());   // save the status register
-	console.log (`ipc=${ipc.get()}`);
-	console.log (`ireq=${wordToHex4(ireq.get())}`);
+//	console.log (`ipc=${ipc.get()}`);
+//	console.log (`ireq=${wordToHex4(ireq.get())}`);
 	clearBitInRegBE (ireq,i);        // clear the interrupt that was taken
-	console.log (`ireq=${wordToHex4(ireq.get())}`);
-	console.log (`pc=${wordToHex4(pc.get())}`);
-	console.log (`vect=${wordToHex4(ivect.get())} i=${i}`);
+//	console.log (`ireq=${wordToHex4(ireq.get())}`);
+//	console.log (`pc=${wordToHex4(pc.get())}`);
+//	console.log (`vect=${wordToHex4(ivect.get())} i=${i}`);
 	pc.put (ivect.get() + 2*i);  // jump to handler
-	console.log (`pc=${wordToHex4(pc.get())}`);
+//	console.log (`pc=${wordToHex4(pc.get())}`);
         // Disable interrupts and enter system state
-	console.log (`status=${wordToHex4(statusreg.get())}`);
+//	console.log (`status=${wordToHex4(statusreg.get())}`);
 	statusreg.put (statusreg.get()
 		       & maskToClearBitBE(intEnableBit)
 		       & maskToClearBitBE(userStateBit));
-	console.log (`statusreg=${wordToHex4(statusreg.get())}`);
-	regShowAccesses();
+//	console.log (`statusreg=${wordToHex4(statusreg.get())}`);
+//	regShowAccesses();
 	return;
     };
 
@@ -546,7 +596,7 @@ function executeInstruction (es) {
     ir.put (instrCode);
     es.nextInstrAddr = binAdd (es.curInstrAddr, 1);
     pc.put (es.nextInstrAddr);
-    console.log('pc = ' + wordToHex4(pc.get()) + ' ir = ' + wordToHex4(instr));
+//    console.log('pc = ' + wordToHex4(pc.get()) + ' ir = ' + wordToHex4(instr));
     let tempinstr = ir.get();
     es.ir_b = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
@@ -561,9 +611,9 @@ function executeInstruction (es) {
     es.instrOpStr = mnemonicRRR[es.ir_op]  // Replace if opcode expands to RX or EXP
     dispatch_RRR [es.ir_op] (es);
     
-    regShowAccesses()
-    memShowAccesses();
-    memDisplay ();
+//    regShowAccesses()
+//    memShowAccesses();
+//    memDisplay ();
 }
 
 // RRR instructions have three specified registers, and may also use

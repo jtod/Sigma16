@@ -2,4 +2,5 @@
 app/node_modules
 app/dist
 release
-
+*.exe
+cem/testgcc

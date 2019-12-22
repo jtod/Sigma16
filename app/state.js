@@ -28,7 +28,7 @@ let emulatorState =
 	procStatus : "Reset",
 	nInstructionsExecuted : 0,
 	instrLooperDelay : 1000,
-	instrLooperShow : true,
+	instrLooperShow : false,
 	breakEnabled : false,
 	breakPCvalue : 0,
 	// Instruction being executed

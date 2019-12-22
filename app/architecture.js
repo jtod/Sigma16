@@ -161,21 +161,28 @@ ctlReg.set ("data",     {ctlRegIndex:8});
 ctlReg.set ("dataEnd",  {ctlRegIndex:9});
 
 //------------------------------------------------------------------------------
-// System register bits
+// Status register bits
 //------------------------------------------------------------------------------
 
-// Define the bit index for each flag in the system register, where 0
-// indicates the most significant bit (big endian).  In addition,
-// constants are defined for setting or clearing the flags
+// Define the bit index for each flag in the status register.  "Big
+// endian" notation is used, where 0 indicates the most significant
+// (leftmost) bit, and index 15 indicates the least significant
+// (rightmost) bit.
 
 // When the machine boots, the registers are initialized to 0.  The
-// system state flag is defined so that userStateBit=0 indicates system
-// (or supervisor) state.  The reason for this is that the system
-// should boot into a state that enables the operating system to
-// initialize itself.
+// user state flag is defined so that userStateBit=0 indicates that
+// the processor is in system (or supervisor) state.  The reason for
+// this is that the machine should boot into a state that enables the
+// operating system to initialize itself, so privileged instructions
+// need to be executable.  Furthermore, interrupts are disabled when
+// the machine boots, because interrupts are unsafe to execute until
+// the interrupt vector has been initialized.
 
 const userStateBit     = 0;   // 0 = system state,  1 = user state
 const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
+
+
+// These constants provide a faster way to set or clear the flags
 
 const clearIntEnable = maskToClearBitBE (intEnableBit);
 const setSystemState = maskToClearBitBE (userStateBit);
@@ -186,7 +193,28 @@ const setSystemState = maskToClearBitBE (userStateBit);
 
 const timerBit         = 0;   // timer has gone off
 const segFaultBit      = 1;   // access invalid virtual address
-const memFaultBit      = 2;   // invalid memory virtual address
-const trapBit          = 3;   // user trap
+const stackFaultBit    = 2;   // invalid memory virtual address
+const userTrapBit      = 3;   // user trap
 const overflowBit      = 4;   // overflow occurred
 const zDivBit          = 5;   // division by 0
+
+//------------------------------------------------------------------------------
+// Assembly language data definitions for control bits
+//------------------------------------------------------------------------------
+
+// A systems program can use the following canonical data definitions
+// to access the control bits.  These statements can be copied and
+// pasted into an assembly language program (removing, of course, the
+// // on each line).
+
+// ; Define status register control bits
+// userStateBit    data   $8000
+// intEnableBit    data   $4000
+
+// ; Define interrupt control bits
+// timerBit        data   $8000   ; bit 0
+// segFaultBit     data   $4000   ; bit 1
+// stackFaultBit   data   $2000   ; bit 2
+// userTrapBit     data   $1000   ; bit 3
+// overflowBit     data   $0800   ; bit 4
+// zDivBit         data   $0400   ; bit 5

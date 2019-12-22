@@ -567,6 +567,51 @@ circuit to impleemnt the architecture, the format is essential.)
 
 ### add, sub
 
+add R1,R2,R3
+sub R1,R2,R3
+
+The last two registers (R2 and R3) are the *operands*; the sum (for
+add) or difference (for sub) is placed in the first register (R1),
+which is called the *destination*.  The add instruction corresponds to
+an assignment statement. These are RRR instructions: add has opcode 0;
+sub has opcocde 1.
+
+    Code      Assembly          Effect
+    062c      add R6,R2,R12     ; R6 := R2 + R12
+    0d13      add R13,R1,R3     ; R13 := R1 + R3
+
+
+
+Code    Assembly          Effect
+-----   ----------------  ------------------
+062c    add R6,R2,R12     ; R6 := R2 + R12
+0d13    add R13,R1,R3     ; R13 := R1 + R3
+
+The add instruction can be used for both binary addition (on natural
+numbers) and for two's complement addition (on signed integers).
+
+* 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
+  If two natural numbers are added, the result is a natural number
+  (the result cannot be negative).  If the result is 65536 or larger,
+  it cannot be represented as a 16 bit binary number.  If this
+  happens, the destination register is set to the lower 16 bits of the
+  true result, and the binary overflow flag is set in the Condition Code.
+  
+* 16-bit two's complement numbers are signed integers -32999?, ...,
+  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
+  is a signed integer.  If the result is less than -32000 or greater
+  than 32000, then the result cannot be represented as a 16 bit two's
+  complement number.  If this happens, the destination register is set
+  to the lower 16 bits of the true result, and the two's complement
+  overflow flag is set in the Condition Code.  Furthermore, the
+  overflow flag is set in the req register.  If interrupts are enabled
+  and the overflow flag is 1 in the mask register, then an interrupt
+  will occur immediatelhy after the add instruction executes.
+
+###, sub
+
+
+
 add. The two operands are fetched from registers, added, and the sum
 is loaded into the destination register.
 

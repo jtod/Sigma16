@@ -393,7 +393,7 @@ program-indices :
 # make doc/html/userguide.html --- Generate the user guide html file
 # from markdown source
 
-doc/html/userguide.html : doc/src/userguide.md
+doc/html/userguide.html : doc/src/userguide.md doc/src/doc.css
 	mkdir -p doc/html
 	cp -r doc/src/figures doc/html
 	cp doc/src/doc.css doc/html

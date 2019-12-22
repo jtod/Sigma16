@@ -4,11 +4,11 @@ Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
-This is the **Sigma16 home page**
+This is the Sigma16 home page
 ([https://jtod.github.io/S16/](https://jtod.github.io/S16/)).  It
 contains general information, pointers to various resources, and an
 executable version.  To view and download the source code, see the
-**Sigma16 source repository**
+Sigma16 source repository
 ([https://github.com/jtod/Sigma16](https://github.com/jtod/Sigma16)).
 
 Quick start:
@@ -109,7 +109,9 @@ between the code and the documentation.
 ## About the software
 
 This is free software.  The author is [John
-O'Donnell](https://jtod.github.io/index.html).
+O'Donnell](https://jtod.github.io/index.html).  Email:
+john.t.odonnnell9@gmail.com
 
-The Sigma16 app is implemented in JavaScript, html 5, and css.  The
-digital circuit is implemented in Hydra, which requires Haskell.
+The Sigma16 app is implemented in JavaScript, html 5, and css. A fast
+emulator written in C will be available soon.  The digital circuit is
+implemented in Hydra, which requires Haskell.
