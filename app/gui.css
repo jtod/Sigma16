@@ -66,6 +66,7 @@ pane height
     --PaneBodyBackgroundColor: violet;
 
     --ProcStateHeight: 14.5em; /* 15.5em; */ /* 16em; */
+    --IOlogHeight: calc(var(--ProcStateHeight) - 4.5em); /* sub inp & label ht */
     --ProcAsmTextHeight: calc(var(--paneBodyHeight)
 			      - (var(--ProcStateHeight)
 				 + 2.7em)); // allow for scrollbar and borders */
@@ -705,12 +706,22 @@ guide). */
     grid-row-end: IOHlineInbufStart;
     grid-column-start: IOVlineStart;
     grid-column-end:  IOVlineEnd;
+    overflow-y: auto;
+    overflow-x: auto;
     background-color: white;
     border-color: blue;
     border-style: solid;
     margin: 2px;
     color: black;
+    height: var(--IOlogHeight);
     width: auto;
+}
+
+#IOlogHtmlArea {
+    overflow-y: auto;
+    overflow-x: auto;
+    background-color: pink;
+    height:  5em;
 }
 
 #IOinputBuffer {

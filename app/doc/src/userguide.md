@@ -660,11 +660,9 @@ destination is the memory location.
     store  R6,arrayX[R2]
 
 
-### save
+### save, restore
 
-### restore
-
-### Stack operations
+### Representation of stacks
 
 A stack is represented as a block of words with consecutive addresses
 sb, sb+1, sb+2, ..., sl.  There are three instructions that operate on
@@ -685,30 +683,29 @@ of not.  Four variables are needed to use a stack:
 * x (data) = value to be pushed onto the stack, or result of a pop or
   top operation
 
-### push R1,R2,R3
+There are three instructions that operate on stacks: push, pop, and
+top.  Push inserts the value in the destination register at the top of
+the stack, pop removes the top of the stack and loads it into the
+destination register, and top loads the top element into the
+destination register without removing it from the stack.  For all
+three instructions, if the operation is impossible then an error is
+signaled in the condition code register and the interrupt request
+register.
 
-Push a word in R1 onto a stack with top R2 and limit R3.  If the stack
-is full, nothing is stored into memory and an error is indicated in
-the condition code and interrupt request registers; an interrupt will
-occur if interrupts are enabled and the stack mask bit is set.
+### push
 
-Assembly language: push R1,R2,R3
-	
-Push is an EXP format instruction comprising two words
-
------- ------ ------ ------
-  op     d      a      b   
- **e**   R1          **5**   
-  0-2    3-6   7-10  11-15  
------- ------ ------ ------
-	
-Contents of the operands:	
+    push R1,R2,R3
 
     R1 = value to push onto stack in memory
     R2 = stack top
     R3 = stack limit
-	
-Semantics:
+
+Push the word in R1 onto a stack with top R2 and limit R3.  If the
+stack is full, nothing is stored into memory and an error is indicated
+in the condition code and interrupt request registers; an interrupt
+will occur if interrupts are enabled and the stack mask bit is set.
+
+Push has the following semantics:
 
     if R2<R3
       then R2 := R2+1; mem[R2] := R1
@@ -726,9 +723,21 @@ interrupt will occur after the push instruction completes.  But there
 will be no interrupt if interrupts are disabled, or the stack fault
 bit is not set in the mask register.
 
+Push is an EXP format instruction comprising two words:
+
+------ ------ ------ ------
+  op     d      a      b   
+ **e**   R1          **5**   
+  0-2    3-6   7-10  11-15  
+------ ------ ------ ------
+
 ### pop
 
-    pop R1,R3,R3
+The pop instruction removes the top element from a stack and loads it
+into the destination register.  (See push for a description of
+representation of a stack.)
+
+    pop R1,R2,R3
 
     R1 = value popped from stack
     R2 = stack top

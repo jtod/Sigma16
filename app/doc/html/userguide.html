@@ -62,10 +62,9 @@ Version 3.0.33
 <li><a href="#lea">lea</a></li>
 <li><a href="#load">load</a></li>
 <li><a href="#store">store</a></li>
-<li><a href="#save">save</a></li>
-<li><a href="#restore">restore</a></li>
-<li><a href="#stack-operations">Stack operations</a></li>
-<li><a href="#push-r1r2r3">push R1,R2,R3</a></li>
+<li><a href="#save-restore">save, restore</a></li>
+<li><a href="#representation-of-stacks">Representation of stacks</a></li>
+<li><a href="#push">push</a></li>
 <li><a href="#pop">pop</a></li>
 <li><a href="#top">top</a></li>
 </ul></li>
@@ -650,9 +649,8 @@ Interrupt
 <p>Store copies the word in the destination register into memory at the effective address. Unlike most instructions, store treats the “destination register” as the source of data, and the actual destination is the memory location.</p>
 <p>general form: store Rd,disp[Ra] effect: mem[disp+reg[Ra]] := reg[Rd] format: RX</p>
 <p>store R3,$2b8e[R5] store R12,count[R0] store R6,arrayX[R2]</p>
-<h3 id="save">save</h3>
-<h3 id="restore">restore</h3>
-<h3 id="stack-operations">Stack operations</h3>
+<h3 id="save-restore">save, restore</h3>
+<h3 id="representation-of-stacks">Representation of stacks</h3>
 <p>A stack is represented as a block of words with consecutive addresses sb, sb+1, sb+2, …, sl. There are three instructions that operate on stacks: push, pop, and top. Each of these instructions checks to ensure that the operation is valid, and indicates an error condition of not. Four variables are needed to use a stack:</p>
 <ul>
 <li><p>sb (stack base) = address of the first word in the block</p></li>
@@ -660,10 +658,15 @@ Interrupt
 <li><p>st (stack top) = pointer to the top element. There are three cases. If the stack contains at least one element, then st is its address and sb &lt;= st &lt;= sl. If the stack is empty, then st=sb-1. If the stack is full, then st=sl.</p></li>
 <li><p>x (data) = value to be pushed onto the stack, or result of a pop or top operation</p></li>
 </ul>
-<h3 id="push-r1r2r3">push R1,R2,R3</h3>
-<p>Push a word in R1 onto a stack with top R2 and limit R3. If the stack is full, nothing is stored into memory and an error is indicated in the condition code and interrupt request registers; an interrupt will occur if interrupts are enabled and the stack mask bit is set.</p>
-<p>Assembly language: push R1,R2,R3</p>
-<p>Push is an EXP format instruction comprising two words</p>
+<p>There are three instructions that operate on stacks: push, pop, and top. Push inserts the value in the destination register at the top of the stack, pop removes the top of the stack and loads it into the destination register, and top loads the top element into the destination register without removing it from the stack. For all three instructions, if the operation is impossible then an error is signaled in the condition code register and the interrupt request register.</p>
+<h3 id="push">push</h3>
+<p>push R1,R2,R3</p>
+<p>R1 = value to push onto stack in memory R2 = stack top R3 = stack limit</p>
+<p>Push the word in R1 onto a stack with top R2 and limit R3. If the stack is full, nothing is stored into memory and an error is indicated in the condition code and interrupt request registers; an interrupt will occur if interrupts are enabled and the stack mask bit is set.</p>
+<p>Push has the following semantics:</p>
+<p>if R2&lt;R3 then R2 := R2+1; mem[R2] := R1 else R15.sovfl := 1, req.StackBounds := 1</p>
+<p>If R2=R3 this means the stack completely fills the block, and there is no space to store a new element. In this case, the push instruction does not store R1: it doesn’t modify memory outside the block, and it doesn’t overwrite data in the stack. Instead, the instruction indicates a stack overflow by setting the sovfl (stack overflow) bit in the condition code (R15), and it also sets the stack fault bit in the interrupt request register. If interrupts are enabled and the stack fault bit is set in the interrupt mask register, then an interrupt will occur after the push instruction completes. But there will be no interrupt if interrupts are disabled, or the stack fault bit is not set in the mask register.</p>
+<p>Push is an EXP format instruction comprising two words:</p>
 <table>
 <tbody>
 <tr class="odd">
@@ -686,13 +689,9 @@ Interrupt
 </tr>
 </tbody>
 </table>
-<p>Contents of the operands:</p>
-<p>R1 = value to push onto stack in memory R2 = stack top R3 = stack limit</p>
-<p>Semantics:</p>
-<p>if R2&lt;R3 then R2 := R2+1; mem[R2] := R1 else R15.sovfl := 1, req.StackBounds := 1</p>
-<p>If R2=R3 this means the stack completely fills the block, and there is no space to store a new element. In this case, the push instruction does not store R1: it doesn’t modify memory outside the block, and it doesn’t overwrite data in the stack. Instead, the instruction indicates a stack overflow by setting the sovfl (stack overflow) bit in the condition code (R15), and it also sets the stack fault bit in the interrupt request register. If interrupts are enabled and the stack fault bit is set in the interrupt mask register, then an interrupt will occur after the push instruction completes. But there will be no interrupt if interrupts are disabled, or the stack fault bit is not set in the mask register.</p>
 <h3 id="pop">pop</h3>
-<p>pop R1,R3,R3</p>
+<p>The pop instruction removes the top element from a stack and loads it into the destination register. (See push for a description of representation of a stack.)</p>
+<p>pop R1,R2,R3</p>
 <p>R1 = value popped from stack R2 = stack top R3 = stack base</p>
 <p>if R2&gt;R3 then R1 := mem[R2]; R2 := R2 - 1 else R15.StackUnderflow := 1, req.StackBounds := 1</p>
 <h3 id="top">top</h3>

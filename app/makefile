@@ -1,13 +1,17 @@
 #-------------------------------------------------------------------------------
-# makefile for Sigma16 --- how to maintain, build, and run the system
+# makefile for Sigma16 --- how to run, maintain, and build the system
+# John T. O'Donnell, 2019
 #-------------------------------------------------------------------------------
 
-# For end users
-#    https://jtod.github.io/S16/
+# For documentation and to run the app, visit the Sigma16 home page
+#   https://jtod.github.io/S16/
 
-# Quick reference
-#   make webdev
-#   make release
+# To view or download the source, visit the project page
+#   https://github.com/jtod/Sigma16
+
+# Quick reference...
+#   make webdev                              prepare S16/dev
+#   make release                             prepare S16/releases/...
 #   make doc/homepage-index/index.html       index for Sigma16 home page
 
 # Source directories on development computer
@@ -15,10 +19,8 @@
 #    Sigma/current/Sigma16                      -- source for Sigma16
 #    Sigma/current/homepage/jtod.github.io/S16  -- source for github web page
 
-# Project page on github (view or download the source)
-#    https://github.com/jtod/Sigma16
-# Sigma16 home page (run the app in your browser)
-#    https://jtod.github.io/S16/
+#-------------------------------------------------------------------------------
+# How to...
 
 # To upload current development version to web page:
 #    cd Sigma/current/Sigma16
@@ -28,6 +30,7 @@
 #       git add ...
 #       git commit -m '...commit message...'
 #       git push
+
 # To run the development version online:
 #       Visit https://jtod.github.io/S16/
 #       Click launch development version
@@ -72,7 +75,7 @@ showparams :
 
 # Needed to build both web and compiled version
 #   make set-version        get version number from package.json
-#   make top-index          generate html from markdown source
+#   make source-dir-index          generate html from markdown source
 #   make doc/html/userguide.html          generate html from markdown source
 #   make program-indices    index for each directory in programs and examples
 
@@ -155,7 +158,7 @@ doc/homepage-index/index.html : doc/homepage-index/index.md
 .PHONY : release
 release :
 	make set-version
-	make top-index
+	make source-dir-index
 	make doc/homepage-index/index.html
 	make doc/html/userguide.html
 	make program-indices
@@ -181,7 +184,7 @@ release :
 .PHONY : webdev
 webdev :
 	make set-version
-	make top-index
+	make source-dir-index
 	make doc/homepage-index/index.html
 	make doc/html/userguide.html
 	make program-indices
@@ -291,11 +294,8 @@ webdev :
 
 .PHONY : compile
 compile :
-	make set-version
-	make doc/userguide/userguide.html
-	make top-index
+	make webdev
 	make dependencies
-	make release
 	make executable
 	make move-executable
 
@@ -406,11 +406,11 @@ doc/html/userguide.html : doc/src/userguide.md doc/src/doc.css
           -o doc/html/userguide.html \
 	  doc/src/userguide.md
 
-# make top-index --- Generate index for the project from markdown
+# make source-dir-index --- Generate index for the project from markdown
 # source.
 
-.PHONY : top-index
-top-index :
+.PHONY : source-dir-index
+source-dir-index :
 	pandoc --standalone \
           --template=doc/src/readme-template.html \
           --variable=version:'$(VERSION)' \

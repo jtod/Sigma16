@@ -1,24 +1,25 @@
-# Sigma16 source repository
+# Sigma16 source directory
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
-This the README page for the **Sigma16 source repository**:
-[https://github.com/jtod/Sigma16](https://github.com/jtod/Sigma16).
-Here you can view the source and download it.  For further
-information, documentation, and executable versions, see the **Sigma16
-home page** at
-[https://jtod.github.io/S16/](https://jtod.github.io/S16/).
-
-Quick start:
-
-* [Launch Sigma16 to run in your
-  browser](https://jtod.github.io/S16/dev/app/Sigma16.html)
-* [Read the User
+* **Quick start:** [Launch Sigma16 to run in your
+  browser](https://jtod.github.io/S16/dev/app/Sigma16.html).  This
+  requires Internet access and will launch the latest release.
+* [Launch from files in this directory](./app/Sigma16.html) If you
+  have copied this directory onto a local machine, this link will run
+  it.
+* [The Sigma16 Home Page](https://jtod.github.io/S16/) contains
+  further information, documentation, and executable versions.  The
+  URL is https://jtod.github.io/S16/
+* [The User
   Guide](https://jtod.github.io/S16/dev/app/doc/html/userguide.html)
-  This includes documentation of the architecture, programming, and
-  installation.
+  contains documentation of the architecture, software tools,
+  programming, and installation.
+* [The source repository](https://github.com/jtod/Sigma16).  allows
+  you to view the source and download it.  This the README page for
+  the source repository.  The URL is https://github.com/jtod/Sigma16
 
 *Note (autumn 2019): The architecture, software, and documentation are
 currently being revised; this is a development version and it is not

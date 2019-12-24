@@ -21,8 +21,9 @@ var ioLogBuffer = "";
 
 function refreshIOlogBuffer() {
     console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
-    document.getElementById("IOlog").innerHTML =
-	"<pre>" + ioLogBuffer + "</pre>";
+    let elt = document.getElementById("IOlog");
+    elt.innerHTML = "<pre>" + ioLogBuffer + "</pre>";
+    elt.scrollTop = elt.scrollHeight;
 }
 
 

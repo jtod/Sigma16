@@ -1,6 +1,7 @@
 *~
+*.exe
 app/node_modules
 app/dist
 release
-*.exe
+notes
 cem/testgcc

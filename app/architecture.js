@@ -4,22 +4,22 @@
 //------------------------------------------------------------------------------
 
 const mnemonicRRR =
-  ["add",    "sub",    "mul",    "div",
-   "cmp",    "cmplt",  "cmpeq",  "cmpgt",
-   "inv",    "and",    "or",     "xor",
+  ["add",    "sub",    "mul",     "div",
+   "cmp",    "cmplt",  "cmpeq",   "cmpgt",
+   "inv",    "and",    "or",      "xor",
    "nop",    "trap",   "EXP",     "RX"]
 
 const mnemonicRX =
-  ["lea",    "load",   "store",  "jump",
-   "jumpc0", "jumpc1", "jumpf",  "jumpt",
-   "jal",    "nop",    "nop",    "nop",
-   "nop",    "nop",    "nop",    "nop"]
+  ["lea",    "load",   "store",   "jump",
+   "jumpc0", "jumpc1", "jumpf",   "jumpt",
+   "jal",    "nop",    "nop",     "nop",
+   "nop",    "nop",    "nop",     "nop"]
 
 const mnemonicEXP =
-  ["shl",    "shr",    "getctl",    "putctl",
-   "rfi",    "nop",    "nop",    "nop",
-   "nop",    "nop",    "nop",    "nop",
-   "nop",    "nop",    "nop",    "nop"]
+  ["shl",    "shr",    "getctl",  "putctl",
+   "rfi",    "push",   "pop",     "top",
+   "nop",    "nop",    "nop",     "nop",
+   "nop",    "nop",    "nop",     "nop"]
 
 //----------------------------------------------------------------------
 // Instruction set and assembly language formats
