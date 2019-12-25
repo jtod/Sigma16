@@ -729,7 +729,8 @@ const op_trap = (es) => {
 // removes those characters from IOinputBuffer.
 
 function trapRead (es,a,b) {
-    let xs = document.getElementById("IOinputBuffer").value;
+    let inputElt = document.getElementById("IOinputBuffer")
+    let xs = inputElt.value;
     let n = xs.length; // number of chars available in buffer
     let m = n <= b ? n : b; // number of chars actually input
     let xs2 = xs.substring (m,n); // excess chars from input window are not used
@@ -745,6 +746,9 @@ function trapRead (es,a,b) {
 	console.log (`Read: mem[${a}] := ${charcode}`);
 	a++;
     }
+    ioLogBuffer += highlightField(ys,"READ");   // display chars that were read
+    refreshIOlogBuffer ();
+    inputElt.value = xs2; // leave unread characters in input buffer
 }
 
 // Write b characters starting from address a

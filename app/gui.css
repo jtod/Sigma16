@@ -766,6 +766,14 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 
 /* Highlighting */
 
+.RightButton {
+    float: right;
+}
+
+.READ {
+    color: red;
+}
+
 .GET {
     color: var(--text-color-get);
 }

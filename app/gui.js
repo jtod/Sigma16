@@ -86,14 +86,15 @@ function measureRegPut (n) {
 		+ (tend - tstart) + ' ms');
 }
 
-// try to jump to a position in user guide
-// doesn't work because of security restriction
-// try springen('control-registers')
-// conclusion: really cannot do this
+// function springen(anker) { 
+//    var childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
+//     childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
+// }
 
-function springen(anker) { 
-    var childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
-    childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
+// Scroll user guide to an anchor
+function jumpToGuideSection (anchor) {
+    let elt = document.getElementById("UserGuideIframeId").contentWindow;
+    elt.scrollTo(0,elt.document.getElementById(anchor).offsetTop);
 }
 
 // Want to make Editor button 1 go to an anchor in the User Guide

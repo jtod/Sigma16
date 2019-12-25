@@ -23,7 +23,7 @@ The following short tutorials show you how to use the system.  You can
 keep the tutorials visible in the right panel while following along
 with the exercises in the main panel.
 
-## Tutorial: Run an example program
+## Tutorial: Run an example program (#Tutorial1)
 
 *Topics:* components of the user interface, adjusting size of the user
 guide, the tabs for switching among the working areas, and the steps

@@ -43,24 +43,33 @@
 	<button onclick="assembler_pane_button()"> Assembler </button>
 	<button onclick="linker_pane_button()"> Linker </button>
 	<button onclick="processor_pane_button()"> Processor </button>
-	<button onclick="test_pane_button()"> Test </button>
-	<button > User Guide </button>
-	<button onclick="user_guide_resize(-20)"> <<- </button>
-	<button onclick="user_guide_resize(-1)"> <- </button>
-	<button onclick="user_guide_resize(1)"> -> </button>
-	<button onclick="user_guide_resize(20)"> ->> </button>
+
+	<button class="RightButton" onclick="user_guide_resize(20)">
+	  &#x27f9;
+	</button>
+	<button class="RightButton" onclick="user_guide_resize(1)">
+	  &#x2b62;
+	</button>
+	<button class="RightButton" onclick="user_guide_resize(-1)">
+	  &#x2b60;
+	</button>
+	<button class="RightButton" onclick="user_guide_resize(-20)">
+	  &#x27f8;
+	</button>
+	<button class="RightButton" onclick="test_pane_button()"> Test </button>
       </div>
       <div class="MiddleSection" id="MiddleSection">
 	<div class="MidMainSection">
 	  <div class="MidMainLeft" id="MidMainLeft">
 
-
 	    <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
-		<button onclick="jumpToAnchorInGuide()">
-		  Jump to how-to-run
+		<button onclick="jumpToGuideSection('Tutorial1')">
+		  Show Tutorial 1
 		</button>
-		<button onclick="springen('control-registers');"> ctl-regs </button>
+		<button onclick="jumpToGuideSection('control-registers');">
+		  Control registers
+		</button>
 		<button>  welcome button 3 </button>
 	      </div>
 	      <div class="PaneBody" id="WelcomeHtml">
