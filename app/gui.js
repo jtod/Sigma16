@@ -12,12 +12,17 @@ var myglobalvar = 9876; // can script in userguide see this?
 
 var fileContents = "file not read yet"
 var editorBufferTextArea; /* set when window.onload */
-const fileReader = new FileReader();
 var textFile = null; /* for save download */
 var create;  /* for save download */
 var textbox; /* for save download */
 
 var ioLogBuffer = "";
+
+const fileReader = new FileReader();
+let openFiles = [];
+let openFilesReaders = [];
+let openFilesText = [];
+let openFilesIndex = 0;
 
 function refreshIOlogBuffer() {
     console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
@@ -636,12 +641,16 @@ window.onload = function () {
 
     // Initialize file/module
 
+    // not currently using this; using openFilesReaders instead (editor&gui)
     fileReader.onload = function (e) {
-    console.log("fileReader.onload activated");
-    let xs = e.target.result;
-    console.log(xs);
-    editorBufferTextArea.value = xs;
+	console.log(`fileReader.onload activated, idx=${openFilesIndex}`);
+	openFilesText[openFilesIndex] = e.target.result;
+	editorBufferTextArea.value = openFilesText[openFilesIndex];
+	                       // change this ????
+	openFilesIndex++;
+	refreshFilesLooper ();
 }
+//    console.log(xs);
 
     
 // Initialize the modules

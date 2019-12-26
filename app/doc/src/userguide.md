@@ -19,11 +19,13 @@ the details.  For a quick start, begin with the tutorials, which show
 you how to enter and run a program, and how to use the programming
 environment.
 
+## Tutorials
+
 The following short tutorials show you how to use the system.  You can
 keep the tutorials visible in the right panel while following along
 with the exercises in the main panel.
 
-## Tutorial: Run an example program (#Tutorial1)
+### Tutorial: run an example program
 
 *Topics:* components of the user interface, adjusting size of the user
 guide, the tabs for switching among the working areas, and the steps
@@ -106,13 +108,13 @@ The Welcome pane will be visible.
     reaches the specified value; then it will stop so you can examine
     the state of the machine.
 
-## Tutorial: load, store, and arithmetic
+### Tutorial: load, store, and arithmetic
 
-## Tutorial: comparisons and jumps
+### Tutorial: comparisons and jumps
 
-## Tutorial: effective addresses and arrays
+### Tutorial: effective addresses and arrays
 
-## Tutorial: further instructions
+### Tutorial: further instructions
 
 # Architecture of the computer
 
@@ -1039,7 +1041,10 @@ This shows each identifier (or "symbol") that appears in the program,
 the address allocated for the symbol, the source code line where it
 was defined, and the source code lines where it was used.
 
-# Object code
+# Linker
+
+(The linker is not fully implemented in this version of the
+application; it's on the way.)
 
 ## Object language statements
 
@@ -1053,10 +1058,7 @@ data hex4 ... hex4              load words, incrementing loc counter
 relocate hex4                   add relocation to word at address
 external name                   insert value of external name
        
-# Linker
 
-(The linker is not fully implemented in this version of the
-application; it's on the way.)
 
 ## Programs, modules, and files
 
@@ -1157,13 +1159,9 @@ last saved.  If so, a dialogue asks whether the file should be saved.
 Select is for switching among the existing modules, while New and Open
 are for introducing a new module.
 
-# Programming the Sigma16 architecture
+# Programming
 
 Coming soon.
-
-# Using the graphical user interface
-
-Coming soon
 
 # Installation
 

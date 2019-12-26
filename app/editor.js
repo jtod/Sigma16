@@ -14,15 +14,44 @@ function editorDownload () {
     downloadElt.click();  // perform the download
 }
 
+function handleSelectedFiles (flist) {
+    console.log("handleSelectedFiles changed");
+//    console.log(flist);
+    for (let i=0; i<flist.length; i++) {
+	console.log (`file ${i}`);
+	openFiles[i] = flist[i];
+	openFilesReaders[i] = mkOfReader(i);
+	openFilesText[i] = "";
+	openFilesReaders[i].readAsText(openFiles[i]);
+    }
+}
 
-function handleSelectedFile (flist) {
-    console.log("handleSelectedFile");
-    console.log(flist);
-    currentFile = flist[0];
-    console.log("selected file = " + currentFile);
-//    console.log("created fileReader" + fr);
-    fileContents = fileReader.readAsText(currentFile);
-    console.log (fileContents);
+function mkOfReader (i) {
+    console.log (`ofReader ${i}`);
+    let fr = new FileReader();
+    fr.onload = function (e) {
+	console.log (`ofReader ${i} onload event`);
+	openFilesText[i] = e.target.result.split('\n');
+    }
+    return fr;
+}
+
+function showFiles() {
+    console.log ('showFiles');
+    let xs;
+    let ys = "";
+    for (let i=0; i<openFiles.length; i++) {
+	ys += `file ${i}\n`;
+	xs = openFilesText[i];
+	ys += xs.slice(0,4).join('\n');
+	ys += "\n\n\n";
+    }
+    editorBufferTextArea.value = ys;
+}
+
+function refreshFiles () {
+    openFilesIndex = 0;
+    refreshFilesLooper();
 }
 
 function refreshCurrentFile() {
@@ -31,7 +60,8 @@ function refreshCurrentFile() {
     console.log (fileContents);
 }
 
-// fileReader.onload is defined in gui.js during the onLoad event
-
-// Save a file by downloading it to user default Downloads folder
-
+//	console.log (xs.slice(0,100));
+//	console.log (`\n\n`);
+//	console.log (xs);
+//	console.log (ys);
+	

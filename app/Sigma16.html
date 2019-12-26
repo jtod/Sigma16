@@ -64,13 +64,28 @@
 
 	    <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
-		<button onclick="jumpToGuideSection('Tutorial1')">
-		  Show Tutorial 1
+		<button onclick="jumpToGuideSection ('tutorials)">
+		  Tutorials
 		</button>
-		<button onclick="jumpToGuideSection('control-registers');">
-		  Control registers
+		<button onclick="jumpToGuideSection('architecture);">
+		  Architecture
 		</button>
-		<button>  welcome button 3 </button>
+		<button onclick="jumpToGuideSection('instruction-set);">
+		  Instruction set
+		</button>
+		<button onclick="jumpToGuideSection('assembly-language');">
+		  Assembly language
+		</button>
+		<button onclick="jumpToGuideSection('linker');">
+		  Linker
+		</button>
+		<button onclick="jumpToGuideSection('programming);">
+		  Programming
+		</button>
+		<button onclick="jumpToGuideSection('about-sigma16);">
+		  About Sigma16
+		</button>
+
 	      </div>
 	      <div class="PaneBody" id="WelcomeHtml">
 		<div class="HtmlUnscrolled">
@@ -107,10 +122,11 @@
 		<button onclick="editorClear()">Clear</button>
 		<button onclick="insert_example(example_add);">
 		  Simple example
-		<input type="file" id="FileInput"
+		<input type="file" multiple id="FileInput"
 		       name="myfileselector"
-		       onchange="handleSelectedFile(this.files);"></input>
-		<button onclick="refreshCurrentFile()">Refresh file</button>
+		       onchange="handleSelectedFiles(this.files);"></input>
+		<button onclick="showFiles()">Show files</button>
+		<button onclick="refreshFiles()">Refresh file</button>
 		<button onclick="editorDownload()">Save in downloads</button>
 		<a download="S16DownloadFile.txt"
 		   id="editorDownloadAnchor"

@@ -24,11 +24,13 @@ Version 3.0.33
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
-<li><a href="#tutorial-run-an-example-program-tutorial1">Tutorial: Run an example program (#Tutorial1)</a></li>
+<li><a href="#tutorials">Tutorials</a><ul>
+<li><a href="#tutorial-run-an-example-program">Tutorial: run an example program</a></li>
 <li><a href="#tutorial-load-store-and-arithmetic">Tutorial: load, store, and arithmetic</a></li>
 <li><a href="#tutorial-comparisons-and-jumps">Tutorial: comparisons and jumps</a></li>
 <li><a href="#tutorial-effective-addresses-and-arrays">Tutorial: effective addresses and arrays</a></li>
 <li><a href="#tutorial-further-instructions">Tutorial: further instructions</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#architecture-of-the-computer">Architecture of the computer</a><ul>
 <li><a href="#data-representation">Data representation</a></li>
@@ -106,16 +108,13 @@ Version 3.0.33
 </ul></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
-<li><a href="#object-code">Object code</a><ul>
-<li><a href="#object-language-statements">Object language statements</a></li>
-</ul></li>
 <li><a href="#linker">Linker</a><ul>
+<li><a href="#object-language-statements">Object language statements</a></li>
 <li><a href="#programs-modules-and-files">Programs, modules, and files</a></li>
 <li><a href="#simple-standalone-programs">Simple standalone programs</a></li>
 <li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
 </ul></li>
-<li><a href="#programming-the-sigma16-architecture">Programming the Sigma16 architecture</a></li>
-<li><a href="#using-the-graphical-user-interface">Using the graphical user interface</a></li>
+<li><a href="#programming">Programming</a></li>
 <li><a href="#installation">Installation</a><ul>
 <li><a href="#browser-compatibility">Browser compatibility</a></li>
 <li><a href="#where-to-find-the-software">Where to find the software</a></li>
@@ -148,8 +147,9 @@ Version 3.0.33
 <h1 id="introduction">Introduction</h1>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
 <p>This reference manual is organised by topic, with chapters on the architecture, the assembly language, and the emulator. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program, and how to use the programming environment.</p>
+<h2 id="tutorials">Tutorials</h2>
 <p>The following short tutorials show you how to use the system. You can keep the tutorials visible in the right panel while following along with the exercises in the main panel.</p>
-<h2 id="tutorial-run-an-example-program-tutorial1">Tutorial: Run an example program (#Tutorial1)</h2>
+<h3 id="tutorial-run-an-example-program">Tutorial: run an example program</h3>
 <p><em>Topics:</em> components of the user interface, adjusting size of the user guide, the tabs for switching among the working areas, and the steps for running a program. Registers, constants and addition.</p>
 <p>Let’s start by looking at the different parts of the user interface. The main window contains three main sections. The largest area, on the left side, is the <em>main working area</em>. When the program launches, this will show the Welcome pane. The <em>user guide</em> is on the right side. At the top is a row of buttons (Welcome, Examples, …). These select which page is displayed in the main working area.</p>
 <p>You can adjust how much space is used for the working area and the user guide by clicking the arrow buttons on the right side of the button row. These move the boundary between the two areas left or right. If you reisze the window, the relative sizes of the working area and the user guide will remain the same.</p>
@@ -169,10 +169,10 @@ Version 3.0.33
 <li><p>To run the program slowly, click <strong>Run Display</strong>, which is similar to clicking Step repeatedly. To run the program faster but without updating the display after each instruction, click Run. At any time you can click Pause to stop the processor, and you can resume execution with any of Step, Slow, or Run.</p></li>
 <li><p>To set a breakpoint, click Breakpoint and enter the stopping condition in the dialogue box. For example, to stop when the pc register becomes $01b7, enter BPeq BPpc (BPhex “01b7”). Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p></li>
 </ul>
-<h2 id="tutorial-load-store-and-arithmetic">Tutorial: load, store, and arithmetic</h2>
-<h2 id="tutorial-comparisons-and-jumps">Tutorial: comparisons and jumps</h2>
-<h2 id="tutorial-effective-addresses-and-arrays">Tutorial: effective addresses and arrays</h2>
-<h2 id="tutorial-further-instructions">Tutorial: further instructions</h2>
+<h3 id="tutorial-load-store-and-arithmetic">Tutorial: load, store, and arithmetic</h3>
+<h3 id="tutorial-comparisons-and-jumps">Tutorial: comparisons and jumps</h3>
+<h3 id="tutorial-effective-addresses-and-arrays">Tutorial: effective addresses and arrays</h3>
+<h3 id="tutorial-further-instructions">Tutorial: further instructions</h3>
 <h1 id="architecture-of-the-computer">Architecture of the computer</h1>
 <p>An <em>instruction set architecture</em> is a precise specification of all aspects of a machine that are visible to a programmer. It includes a description of the registers, memory, data representations, and all the instructions, but does not include components of the implementation that are not visible to a machine language programmer.</p>
 <h2 id="data-representation">Data representation</h2>
@@ -1035,13 +1035,12 @@ Interrupt
 <h2 id="assembly-listing">Assembly listing</h2>
 <p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two’s complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn’t produce any code these fields will be blank. After the code, the original source statement appears.</p>
 <p>The second section of the assembly listing is the <em>Symbol Table</em>. This shows each identifier (or “symbol”) that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
-<h1 id="object-code">Object code</h1>
+<h1 id="linker">Linker</h1>
+<p>(The linker is not fully implemented in this version of the application; it’s on the way.)</p>
 <h2 id="object-language-statements">Object language statements</h2>
 <p>hex4 means a 4-digit hexadecimal constant, such as 3b9f.</p>
 <p>name means an identifier, beginning with a letter and comprising letters, digits, _</p>
 <p>org hex4 set location counter data hex4 … hex4 load words, incrementing loc counter relocate hex4 add relocation to word at address external name insert value of external name</p>
-<h1 id="linker">Linker</h1>
-<p>(The linker is not fully implemented in this version of the application; it’s on the way.)</p>
 <h2 id="programs-modules-and-files">Programs, modules, and files</h2>
 <p>The system is designed to allow programs that consist of several modules, but also to allow programs consisting of one standalone module. In addition, an aim is to do this simply and intuitively, so that you can ignore the issues of modules and linking if you just want to write a andalone program.</p>
 <p>There is a standard convention for file names. If, for example, you have a program named MyProgram, then the files associated with it should be as follows:</p>
@@ -1073,10 +1072,8 @@ Interrupt
 </ul></li>
 </ul>
 <p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
-<h1 id="programming-the-sigma16-architecture">Programming the Sigma16 architecture</h1>
+<h1 id="programming">Programming</h1>
 <p>Coming soon.</p>
-<h1 id="using-the-graphical-user-interface">Using the graphical user interface</h1>
-<p>Coming soon</p>
 <h1 id="installation">Installation</h1>
 <h2 id="browser-compatibility">Browser compatibility</h2>
 <p>The application currently works with Chrome and Firefox, and possible Edge.</p>
