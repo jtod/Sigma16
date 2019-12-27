@@ -15,14 +15,14 @@ function editorDownload () {
 }
 
 function handleSelectedFiles (flist) {
-    console.log("handleSelectedFiles changed");
-//    console.log(flist);
+    console.log("handleSelectedFiles");
     for (let i=0; i<flist.length; i++) {
-	console.log (`file ${i}`);
-	openFiles[i] = flist[i];
-	openFilesReaders[i] = mkOfReader(i);
-	openFilesText[i] = "";
-	openFilesReaders[i].readAsText(openFiles[i]);
+	console.log (`file ${openFilesCount}`);
+	openFiles[openFilesCount] = flist[i];
+	openFilesReaders[openFilesCount] = mkOfReader(openFilesCount);
+	openFilesText[openFilesCount] = "";
+	openFilesReaders[openFilesCount].readAsText(openFiles[openFilesCount]);
+	openFilesCount++;
     }
 }
 
@@ -31,7 +31,7 @@ function mkOfReader (i) {
     let fr = new FileReader();
     fr.onload = function (e) {
 	console.log (`ofReader ${i} onload event`);
-	openFilesText[i] = e.target.result.split('\n');
+	openFilesText[i] = e.target.result;
     }
     return fr;
 }
@@ -40,17 +40,46 @@ function showFiles() {
     console.log ('showFiles');
     let xs;
     let ys = "";
+    let sel;
+    let spanClass;
+    let modName;
     for (let i=0; i<openFiles.length; i++) {
-	ys += `file ${i}\n`;
-	xs = openFilesText[i];
-	ys += xs.slice(0,4).join('\n');
-	ys += "\n\n\n";
+	modName = "<anonymous>";
+	sel = openFilesSelected===i;
+	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
+	ys += (sel ? '* ' : '  ')
+	    + `<span${spanClass}>` + `Module ${i} </span>`
+	    + `<button onclick="filesButtonSelect(${i})">Select</button>`
+	    + `<button onclick="filesButtonClose(${i})">Close</button>`
+	    + `<button onclick="filesButtonRefresh(${i})">Refresh</button>`
+	    + '\n<pre>'
+	    + openFilesText[i].split('\n').slice(0,4).join('\n')
+	    + '</pre>\n\n\n';
     }
-    editorBufferTextArea.value = ys;
+    console.log (spanClass);
+    console.log (ys);
+    let elt = document.getElementById('FilesBody');
+    elt.innerHTML = ys;
+}
+
+function filesButtonSelect (i) {
+    console.log (`filesButtonSelect ${i}`);
+    openFilesSelected = i;
+    editorBufferTextArea.value = openFilesText[i];
+}
+
+function filesButtonClose (i) {
+    console.log (`filesButtonClose ${i}`);
+}
+
+function filesButtonRefresh (i) {
+    console.log (`filesButtonRefresh ${i}`);
+    openFilesReaders[i].readAsText(openFiles[i]);
+//	openFilesReaders[openFilesCount].readAsText(openFiles[openFilesCount]);
 }
 
 function refreshFiles () {
-    openFilesIndex = 0;
+    openFilesCount = 0;
     refreshFilesLooper();
 }
 
@@ -59,9 +88,3 @@ function refreshCurrentFile() {
     fileContents = fileReader.readAsText(currentFile);
     console.log (fileContents);
 }
-
-//	console.log (xs.slice(0,100));
-//	console.log (`\n\n`);
-//	console.log (xs);
-//	console.log (ys);
-	

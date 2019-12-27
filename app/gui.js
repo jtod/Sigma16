@@ -22,7 +22,8 @@ const fileReader = new FileReader();
 let openFiles = [];
 let openFilesReaders = [];
 let openFilesText = [];
-let openFilesIndex = 0;
+let openFilesCount = 0;   /* number of open files */
+let openFilesSelected = 0;
 
 function refreshIOlogBuffer() {
     console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
@@ -366,6 +367,7 @@ function hideTabbedPane(paneId) {
 function hideAllTabbedPanes() {
     hideTabbedPane("WelcomePane");
     hideTabbedPane("ExamplesPane");
+    hideTabbedPane("FilesPane");
     hideTabbedPane("EditorPane");
     hideTabbedPane("AssemblerPane");
     hideTabbedPane("LinkerPane");
@@ -390,6 +392,12 @@ function welcome_pane_button() {
 function examples_pane_button() {
     hideAllTabbedPanes();
     showTabbedPane("ExamplesPane");
+}
+
+function files_pane_button() {
+    console.log("files_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("FilesPane");
 }
 
 function editor_pane_button() {

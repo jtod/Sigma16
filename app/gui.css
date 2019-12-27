@@ -839,3 +839,17 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 .solarized-yellow {
     color: var(--color-solarized-yellow);
 }
+
+#FOOBARAssemblerBody {
+    background: ivory;
+}
+
+.UNSELECTEDFILE {
+    font-family: sans-serif;
+}
+
+.SELECTEDFILE {
+    color: red;
+    font-family: sans-serif;
+    font-weight: bold;
+}

@@ -4,12 +4,18 @@ Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
-* **Quick start:** [Launch Sigma16 to run in your
+*Note (autumn 2019): The architecture, software, and documentation are
+currently being revised; this is a development version and it is not
+ready for general use.  There are several earlier releases, as well as
+extensive documentation, but those are available only on a protected
+Moodle server.  The new version is expected to be available on github
+around the beginning of February 2020.  The notes below, as well as
+the user guide, are incomplete and refer to previous versions, so the
+current documentation is inconsistent with the current software.*
+
+* [Launch Sigma16 to run in your
   browser](https://jtod.github.io/S16/dev/app/Sigma16.html).  This
-  requires Internet access and will launch the latest release.
-* [Launch from files in this directory](./app/Sigma16.html) If you
-  have copied this directory onto a local machine, this link will run
-  it.
+  runs the latest release, and requires Internet access.
 * [The Sigma16 Home Page](https://jtod.github.io/S16/) contains
   further information, documentation, and executable versions.  The
   URL is https://jtod.github.io/S16/
@@ -20,15 +26,14 @@ for experimenting with the architecture.
 * [The source repository](https://github.com/jtod/Sigma16).  allows
   you to view the source and download it.  This the README page for
   the source repository.  The URL is https://github.com/jtod/Sigma16
-
-*Note (autumn 2019): The architecture, software, and documentation are
-currently being revised; this is a development version and it is not
-ready for general use.  There are several earlier releases, as well as
-extensive documentation, but those are available only on a protected
-Moodle server.  The new version is expected to be available on github
-around the beginning of February 2020.  The notes below, as well as
-the user guide, are incomplete and refer to previous versions, so the
-current documentation is inconsistent with the current software.*
+* [Launch from files in this directory](./app/Sigma16.html) If you
+  have copied this directory onto a local machine, this link will run
+  it, with some limitations on file access (the User Guide won't be
+  visible, and you have to copy examples to the editor manually).  See
+  the Installation section in the User Guide for further ways to run
+  the software.
+* [Up to the top directory](./) Show the listing of files in the
+  directory containing this version.
 
 ## Download
 

@@ -39,6 +39,7 @@
       <div class="TopSection">
 	<button onclick="welcome_pane_button()"> Welcome </button>
 	<button onclick="examples_pane_button()"> Examples </button>
+	<button onclick="files_pane_button()"> Files & Modules </button>
 	<button onclick="editor_pane_button()"> Editor </button>
 	<button onclick="assembler_pane_button()"> Assembler </button>
 	<button onclick="linker_pane_button()"> Linker </button>
@@ -56,7 +57,11 @@
 	<button class="RightButton" onclick="user_guide_resize(-20)">
 	  &#x27f8;
 	</button>
-	<button class="RightButton" onclick="test_pane_button()"> Test </button>
+<!--
+	<button class="RightButton" onclick="test_pane_button()">
+	  Test
+	</button>
+-->
       </div>
       <div class="MiddleSection" id="MiddleSection">
 	<div class="MidMainSection">
@@ -64,13 +69,13 @@
 
 	    <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
-		<button onclick="jumpToGuideSection ('tutorials)">
+		<button onclick="jumpToGuideSection ('tutorials')">
 		  Tutorials
 		</button>
-		<button onclick="jumpToGuideSection('architecture);">
+		<button onclick="jumpToGuideSection('architecture');">
 		  Architecture
 		</button>
-		<button onclick="jumpToGuideSection('instruction-set);">
+		<button onclick="jumpToGuideSection('instruction-set');">
 		  Instruction set
 		</button>
 		<button onclick="jumpToGuideSection('assembly-language');">
@@ -79,10 +84,10 @@
 		<button onclick="jumpToGuideSection('linker');">
 		  Linker
 		</button>
-		<button onclick="jumpToGuideSection('programming);">
+		<button onclick="jumpToGuideSection('programming');">
 		  Programming
 		</button>
-		<button onclick="jumpToGuideSection('about-sigma16);">
+		<button onclick="jumpToGuideSection('about-sigma16');">
 		  About Sigma16
 		</button>
 
@@ -116,17 +121,23 @@
 		</iframe>
 	      </div>
 	    </div>
+
+	    <div class="Pane" id="FilesPane">
+	      <div class="PaneButtons">
+		<input type="file" multiple id="FileInput"
+		       name="myfileselector"
+		       onchange="handleSelectedFiles(this.files);"></input>
+		<button onclick="showFiles()">Refresh list</button>
+	      </div>
+	      <div class="HighlightedTextAsHtml" id="FilesBody">
+	      </div>
+	    </div>
 	    
 	    <div class="Pane" id="EditorPane">
 	      <div class="PaneButtons">
 		<button onclick="editorClear()">Clear</button>
 		<button onclick="insert_example(example_add);">
 		  Simple example
-		<input type="file" multiple id="FileInput"
-		       name="myfileselector"
-		       onchange="handleSelectedFiles(this.files);"></input>
-		<button onclick="showFiles()">Show files</button>
-		<button onclick="refreshFiles()">Refresh file</button>
 		<button onclick="editorDownload()">Save in downloads</button>
 		<a download="S16DownloadFile.txt"
 		   id="editorDownloadAnchor"
@@ -143,10 +154,8 @@
 	    <div class="Pane" id="AssemblerPane">
 	      <div class="PaneButtons">
 		<button onclick="assembler();">Assemble</button>
-		<button> Asm 2 </button>
-		<button> Asm 3 </button>
 	      </div>
-	      <div class="PaneBody" id="AssemblerBody">
+	      <div class="HighlightedTextAsHtml" id="AssemblerBody">
 		<div id="AsmTextHtml"></div>
 	      </div>
 	    </div>
