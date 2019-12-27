@@ -1,6 +1,6 @@
-//------------------------------------------------------------------------------
-// module.js -- representation of source and object modules
-//------------------------------------------------------------------------------
+// Sigma16: module.js
+
+// Define the representation of source and object modules
 
 // The working program is a list of modules, one of which is the
 // current working module visible in the editor and assembler.  A
@@ -11,7 +11,9 @@
 // List of all modules
 
 var s16modules = [];    // All the modules in the system
-var currentModNum = 0;  // The module shown in editor and assembler
+var currentModNum = 0;  // The module shown in editor and assembler deprecated
+let nModules = 1;
+let selectedModule = 0;
 
 // Initialize the modules: create one initial (empty) module and make
 // it the current module
@@ -47,6 +49,10 @@ function showModules () {
 function mkModule () {
     console.log('mkModule');
     return {
+	hasFile : false,           // true if read from file, false if from ed:new
+	mFile : null,               // file object associated with module, if any
+	fileReader : null,         // object to read the file
+	selected : false,          // this module is selected (for edit, asm)
 	modName : '',              // name of module: module stmt, file name, none
 	modSrc : '',               // source code
 	asmStmt : [],              // statements correspond to lines of source

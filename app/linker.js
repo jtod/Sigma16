@@ -1,4 +1,6 @@
-// Linker
+// Sigma16: linker.js
+
+// Link a collection of object modules to form an executable module
 
 var exMod;           // the module that is executing
 var curAsmap = [];

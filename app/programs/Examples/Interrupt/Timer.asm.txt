@@ -56,7 +56,7 @@ handleZdiv
 
 ; Data definitions
 
-nIterations     data   100   ; stop eventually even if not interrupted
+nIterations     data   5000   ; stop eventually even if not interrupted
 
 save1           data   0
 save2           data   0

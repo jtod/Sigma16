@@ -1,10 +1,6 @@
+// Sigma16: state.js
 
-
-
-
-//------------------------------------------------------------------------------
-// state.js defines global state
-//------------------------------------------------------------------------------
+// Defines global state for the system, IDE, modules, and emulator
 
 // The main components of the program avoid using global variables;
 // instead the necessary state is organized into records and passed as
@@ -672,16 +668,3 @@ function memTest2 () {
     memShowAccesses ();
     memDisplay ();
 }
-
-
-// Notes, obsolete
-
-// Fixed spacing issue: got rid of a blank line above the processor
-// memory displays by using <pre class="PreCode"> where the css for
-// .PreCode sets the margins to 0em.  Just giving a css definition of
-// .pre { margin: 0em; } doesn't work; for some reason that setting is
-// overridden.
-
-// Scolling is now working in the memory display, and partly in the
-// processor asm listing.  However, the font size is wrong in the proc
-// asm listing (why?) and the scroll distance is inadequate.

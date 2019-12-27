@@ -1,3 +1,7 @@
+// Sigma16: main.js
+// This is the main program for standalone execution using electron,
+// rather than a browser
+
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
 const path = require('path')

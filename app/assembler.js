@@ -1,9 +1,6 @@
-//------------------------------------------------------------------------------
-// assembler.js -- translate assembly language to machine language
-//------------------------------------------------------------------------------
+// Sigma16: assembler.js
 
-// remove globals
-
+// The assembler translates assembly language to machine language
 
 // var symbolTable = new Map();;   ??? use m.symbolTable instead of global
 

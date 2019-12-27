@@ -1,10 +1,7 @@
-//------------------------------------------------------------------------------
-// emulator.js
-//------------------------------------------------------------------------------
+// Sigma16: emulator.js
 
 // The emulator interprets machine language programs and displays
 // effects in the gui.
-
 
 function timerInterrupt() {
     console.log ("Timer Interrupt clicked");

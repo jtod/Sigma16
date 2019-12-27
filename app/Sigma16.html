@@ -39,7 +39,7 @@
       <div class="TopSection">
 	<button onclick="welcome_pane_button()"> Welcome </button>
 	<button onclick="examples_pane_button()"> Examples </button>
-	<button onclick="files_pane_button()"> Files & Modules </button>
+	<button onclick="files_pane_button()"> Modules </button>
 	<button onclick="editor_pane_button()"> Editor </button>
 	<button onclick="assembler_pane_button()"> Assembler </button>
 	<button onclick="linker_pane_button()"> Linker </button>
@@ -122,12 +122,12 @@
 	      </div>
 	    </div>
 
-	    <div class="Pane" id="FilesPane">
+	    <div class="Pane" id="ModulesPane">
 	      <div class="PaneButtons">
 		<input type="file" multiple id="FileInput"
 		       name="myfileselector"
 		       onchange="handleSelectedFiles(this.files);"></input>
-		<button onclick="showFiles()">Refresh list</button>
+		<button onclick="showModules()">Refresh list</button>
 	      </div>
 	      <div class="HighlightedTextAsHtml" id="FilesBody">
 	      </div>
