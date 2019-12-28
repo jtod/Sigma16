@@ -19,7 +19,7 @@ the details.  For a quick start, begin with the tutorials, which show
 you how to enter and run a program, and how to use the programming
 environment.
 
-## Tutorials
+# Tutorials
 
 The following short tutorials show you how to use the system.  You can
 keep the tutorials visible in the right panel while following along
@@ -116,13 +116,14 @@ The Welcome pane will be visible.
 
 ### Tutorial: further instructions
 
-# Architecture of the computer
+# Architecture
 
 An *instruction set architecture* is a precise specification of all
 aspects of a machine that are visible to a programmer.  It includes a
 description of the registers, memory, data representations, and all
 the instructions, but does not include components of the
 implementation that are not visible to a machine language programmer.
+
 
 ## Data representation
 
@@ -556,6 +557,16 @@ Second word of the instruction
   </tr>
 </table>
 
+## Summary of notation
+
+  ea
+  m[ea]
+  r[d]
+  r[a]
+  r[b]
+  q#r[d]
+  lsb q
+
 # Instruction set
 
 The following sections describe the instructions in groups organized
@@ -893,62 +904,39 @@ instructions are in order of increasing operation code.
     
 # Assembly Language
 
-Each line of source code is an assembly language statement.  Each
-statement must appear on one line.  Most statements specify code,
-either an instruction or some constant data.  Some statements are full
-line comments.  Other statements are directives, which control the
-behavior of the assembler but don't generate any code.
+A computer is a digital circuit that executes programs in machine
+language, which is hard for humans to read because it consists
+entirely of numbers.  Assembly language provides a readable notation
+for writing machine language programs.  It uses names for instructions
+and variables, as well as other notations to make the code easier to
+understand.
 
-A statement may contain several fields.  A field consists of non-space
-characters (with one exception: a space may appear in a string
-literal).  Fields are separated from each other by one or more white
-space characters.
+An instruction in machine language is just one or more words (often
+written in hexadecimal notation), while the corresponding instruction
+in assembly language uses mnemonic names so the programmer doesn't
+have to memorise all the operation codes, addresses of variables, and
+so on. For example, the assembly language statement mul R12,R3,R8 is
+more readable than the corresponding machine language instruction
+2c38.  However, the assembly language still gives the programmer
+complete control over every bit a program.
 
-  * Label.  The label field is optional; if it appears, it must begin
-    in the first character of the line.  The label field, if present,
-    must be a name.
-	
-  * Operation.  The operation field specifies an instruction or
-    assembler directive.  It must be preceded by one or more white
-    space characters.  Every statement (apart from a full line
-    comment) must have an operation field, which must be a name.
-	
-  * Operands.  The operands field specifies operands for an
-    instruction or arguments for assembly directive.  All instructions
-    have an operand field, and some assembler directives do.
-	
-  * Comment.  All text that follows white space after the operands
-    field is a comment, and is ignored by the assembler.  If one or
-    more of the other fields (label, operation, operands) is missing,
-    the comment must be preceded by a semicolon (to prevent it from
-    being interpreted as operands).  The rule is: all text after a
-    semicolon is a comment, and all text after white space following
-    operands is a comment.  A statement where the first non-space
-    character is a semicolon is a full line comment.
+Each line of source code is an assembly language statement.  Unlike
+higher level languages, assembly language statements are not nested.
+There are three kinds of assembly language statement:
 
-A name must begin with a letter (a-z or A-Z), and may contain letters,
-digits, or underscore characters.
+* Most statements specify either an instruction or some constant data.
 
-...
+* Some statements are full line comments.
 
-An assembly language provides a reasonably readable notation for
-writing machine language programs.  An instruction in machine language
-is just one or more words (often written in hexadecimal notation),
-while the corresponding instruction in assembly language uses mnemonic
-names so the programmer doesn't have to memorise all the operation
-codes, addresses of variables, and so on.  However, the assembly
-language still gives the programmer complete control over a program,
-down to the last bit.
-
-Computer hardware executes machine language, which is hard for humans
-to read because it consists entirely of numbers.  Assembly language is
-a way of expressing a machine language program in a readable way.  It
-uses names for instructions and variables, as well as other notations
-to make the code easier to understand.
+* Other statements are *directives*, which control the behavior of the
+assembler but don't generate any code.
 
 ## Notation
 
-Constants can be written in decimal, hexadecimal, or binary.
+A name must begin with a letter (a-z or A-Z), and may contain letters,
+digits, or underscore characters.
+	
+Constants can be written in decimal, hexadecimal, or binary:
 
 * Decimal constants consist of a sequence of digits, with an optional
   leading - sign.  Examples: 42 55039 -1
@@ -962,54 +950,66 @@ Constants can be written in decimal, hexadecimal, or binary.
   will be padded on the left with zeros.  Examples: #1101
   #000100000001101
 
-## Assembly instruction fields
-
-An assembly language statement consists of three fields.  A field is a
-string of non-space characters, and fields must be separated by
-spaces.  The fields are:
-
-  * Label.  This field is optional: if there is a label, it must begin
-    in the first character of a line.  If the first character is a space,
-    then that line has no label.  A label is similar to  a variable name
-    in a programming language.  It must begin with a letter, and may
-    contain letters, digits, and underscore characters.
-
-  * Operation.  This is the first field that appears after white space
-    in the statement.  The operation is the name of an instruction.
-
-  * Operands.  This field specifies the registers and memory addresses
-    used by an instruction.
-
-  * Comment.  Everything on a line after a semicolon character is
-    a comment, and is ignored by the assembler.
-
-## Expressions
-
 An expression denotes a 16-bit word.  Usually they are used to specify
 a word of machine language, either an address or a data constant.
 
-Syntax of expressions
+## Statement formats
 
-## Assembly language statements
+A statement may contain several fields.  A field consists of non-space
+characters (with one exception: a space may appear in a string
+literal).  Fields are separated from each other by one or more white
+space characters.
 
-### Instructions
+  * Label.  The label field is optional.  If present, the label must
+    be a name and it must begin in the first character of the line.
+    If the first character is a space, then that line has no label.  
+	
+  * Operation.  The operation field specifies an instruction or
+    assembler directive.  It must be preceded by one or more white
+    space characters.  Every statement (apart from a full line
+    comment) must have an operation field, which must be a name.
 
-### Directives
+  * Operands.  The operands field specifies operands for an
+    instruction or arguments for assembly directive.  Most
+    instructions and assembler directives require operands, but some
+    do not.
+	
+  * Comment.  All text that follows white space after the operands
+    field is a comment, and is ignored by the assembler.  If one or
+    more of the other fields (label, operation, operands) is missing,
+    the comment must be preceded by a semicolon to prevent it from
+    being interpreted as operands.  The rule is: all text after a
+    semicolon is a comment, and all text after white space following
+    operands is a comment.  A statement where the first non-space
+    character is a semicolon is a full line comment.  If the statement
+    has no operands, then all text after the operation field is a
+    comment.  It is good practice always to begin a comment with a
+    semicolon.
+
+
+## Instructions
+
+## Directives
 
 A directive is a statement that doesn't generate an instruction, but
 which gives further information about how to translate the program to
 object code.
 
-#### Module statement
+#### module
 
-    modname   module
+A program may be organized as a collection of modules, where each
+module appears in a separate file.  When several modules are present,
+each one needs a unique name.  The purpose of the module statement is
+to specify this name.
 
+A small program can be written as just one module, and it may have a
+module name but this is not required.
 
-The module statement, if present, declares the name of the module.  It
-must be the first statement in the program, apart from full line
-comments and blank lines.  A file may contain only one module
-statement, and if the statement "foo module" is present the file name
-should be foo.asm.txt.
+The module statement defines the name of a module.  The statement is
+optional.  If present, it must be the first statement in the program,
+apart from full line comments and blank lines.  A file may contain
+only one module statement, and if the statement "MyModuleName module"
+is present the file name should be MyModuleName.asm.txt.
 
 Examples
 
@@ -1017,11 +1017,34 @@ Examples
     main      module
     myprog    module
 
+### org
+
+The org statement specifies where in memory instructions and data
+should be placed when the program is booted.  It takes an operand
+consisting of a word value, and it sets the location counter to this
+value.
+
+Examples
+
+    org   $0f20    ; subsequent instructions start from 0f20
+    org  *+50      ; skip 50 words
+
+The assembler initializes the location counter to 0 before it begins
+translating an assembly language module.  This means that, in effect,
+every module begins with org 0.
+
+### import
+
+Examples
+
+    myfunction  import
 
 
-name   import
-       export   name
+### export
 
+Examples
+
+       export   xyz,fcn,k
 
 ## Assembly listing
 
@@ -1163,6 +1186,66 @@ are for introducing a new module.
 
 Coming soon.
 
+# Circuit
+
+* Download Hydra and save it in your workspace.  Suppose its location
+  is /c/Users/me/a/b/c/Hydra.
+
+* Open a shell and enter circuit/M1.  Run a test program,
+  e.g. ArrayMax.hs, as follows:
+
+~~~~
+ghci -i/c/Users/me/a/b/c/Hydra/src/haskell/ ArrayMaxRun
+~~~~
+
+The command can be simplified by defining a .ghci file, which will be
+loaded automatically when you invoke ghci.  You can put the .ghci file
+in your $HOME directory.  See the GHC User Guide for more details
+about configuring ghci.
+
+~~~~
+:set -i/c/Users/a/b/c/Hydra/src/haskell/
+~~~~
+
+On development machine (Spectre) use this path:
+
+~~~~
+ghci -i/c/Users/johnt/OneDrive/home/docs/research/Hydra/current/Hydra/src/haskell/
+ArrayMaxRun
+~~~~
+
+$HOME/.ghci contains:
+
+~~~~
+:set -iC:\Users\johnt\OneDrive\home\docs\research\Hydra\current\Hydra\src\haskell
+~~~~
+
+## M1 circuit
+
+M1 is a relatively simple digital circuit that implements a subset of
+the Sigma16 instruction set architecture.  M1 uses sequential control
+and does not have instruction level parallelism.  The circuits
+comprising M1 are defined in **circuit/M1**.
+
+A few Sigma16 machine
+language programs, prepared to run on M1, are defined in
+**circuit/examples/M1examples**.  To run these, you need to ensure
+that both Hydra and M1 are in the ghci search path.  See above for
+making Hydra available.  The M1 circuit is placed on the search path
+by including the following file circuit/examples/M1examples/.ghci:
+
+    :set -i../../M1
+
+Enter the directory and enter these commands:
+
+    ghci
+    :load ArrayMaxRun
+    :main
+
+These will execute the ArrayMax program on the digital circuit, and
+that will produce a lot of detailed simulation output showing the
+values in key registers, flip flops, and signals.
+
 # Installation
 
 ## Browser compatibility
@@ -1247,21 +1330,20 @@ straightforward to build Sigma16 on your computer:
 
 ### Compiling a standalone executable
 
-Requires Node.js, npm, electron
+First install npm, which also gives you Node.js.  Use npm to install
+electron.
 
     cd src
-	npm install
-	npm start
-
-    # Clone this repository
-    git clone https://github.com/electron/electron-quick-start
-    # Go into the repository
-    cd electron-quick-start
-    # Install dependencies
     npm install
-    # Run the app
     npm start
 
+Clone this repository, then enter the repository, install
+dependencies, and run the program:
+	
+    git clone https://github.com/electron/electron-quick-start
+    cd electron-quick-start
+    npm install
+    npm start
 
 ## Workflow for development
 
@@ -1359,7 +1441,7 @@ just defines the version number as a global constant.
 
 ### Running a standalone pre-compiled executable
 
-# About the software
+# About Sigma16
 
 ## Author
 
@@ -1397,16 +1479,6 @@ Support relocatable code
 * Change jump, jumpt, jumpf, jal to use pc-relative addressing
 * Introduce a jalext that uses indexed absolute address, for external
 
-User flags register
-
-* Carry output
-* Overflow
-* Carry input
-
-System flags register
-* System status
-* Interrupts enabled
-
 Arithmetic
 Add/subtract with carry
 
@@ -1415,14 +1487,3 @@ dma channels
 Ready
 Ack
 
-# Reference
-
-## Summary of notation
-
-  ea
-  m[ea]
-  r[d]
-  r[a]
-  r[b]
-  q#r[d]
-  lsb q

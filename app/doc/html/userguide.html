@@ -23,7 +23,7 @@
 Version 3.0.33
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#introduction">Introduction</a></li>
 <li><a href="#tutorials">Tutorials</a><ul>
 <li><a href="#tutorial-run-an-example-program">Tutorial: run an example program</a></li>
 <li><a href="#tutorial-load-store-and-arithmetic">Tutorial: load, store, and arithmetic</a></li>
@@ -31,8 +31,7 @@ Version 3.0.33
 <li><a href="#tutorial-effective-addresses-and-arrays">Tutorial: effective addresses and arrays</a></li>
 <li><a href="#tutorial-further-instructions">Tutorial: further instructions</a></li>
 </ul></li>
-</ul></li>
-<li><a href="#architecture-of-the-computer">Architecture of the computer</a><ul>
+<li><a href="#architecture">Architecture</a><ul>
 <li><a href="#data-representation">Data representation</a></li>
 <li><a href="#register-file">Register file</a><ul>
 <li><a href="#r0-holds-the-constant-0">R0 holds the constant 0</a></li>
@@ -52,6 +51,7 @@ Version 3.0.33
 <li><a href="#rx-format">RX format</a></li>
 <li><a href="#exp-format">EXP format</a></li>
 </ul></li>
+<li><a href="#summary-of-notation">Summary of notation</a></li>
 </ul></li>
 <li><a href="#instruction-set">Instruction set</a><ul>
 <li><a href="#arithmetic-instructions">Arithmetic instructions</a><ul>
@@ -98,13 +98,13 @@ Version 3.0.33
 </ul></li>
 <li><a href="#assembly-language">Assembly Language</a><ul>
 <li><a href="#notation">Notation</a></li>
-<li><a href="#assembly-instruction-fields">Assembly instruction fields</a></li>
-<li><a href="#expressions">Expressions</a></li>
-<li><a href="#assembly-language-statements">Assembly language statements</a><ul>
+<li><a href="#statement-formats">Statement formats</a></li>
 <li><a href="#instructions">Instructions</a></li>
 <li><a href="#directives">Directives</a><ul>
-<li><a href="#module-statement">Module statement</a></li>
-</ul></li>
+<li><a href="#module">module</a></li>
+<li><a href="#org">org</a></li>
+<li><a href="#import">import</a></li>
+<li><a href="#export">export</a></li>
 </ul></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
@@ -115,6 +115,9 @@ Version 3.0.33
 <li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
 </ul></li>
 <li><a href="#programming">Programming</a></li>
+<li><a href="#circuit">Circuit</a><ul>
+<li><a href="#m1-circuit">M1 circuit</a></li>
+</ul></li>
 <li><a href="#installation">Installation</a><ul>
 <li><a href="#browser-compatibility">Browser compatibility</a></li>
 <li><a href="#where-to-find-the-software">Where to find the software</a></li>
@@ -124,8 +127,6 @@ Version 3.0.33
 <li><a href="#run-locally-with-npm-and-electron">Run locally with npm and electron</a></li>
 <li><a href="#compiling-a-standalone-executable">Compiling a standalone executable</a></li>
 </ul></li>
-</ul></li>
-<li><a href="#clone-this-repository">Clone this repository</a><ul>
 <li><a href="#workflow-for-development">Workflow for development</a><ul>
 <li><a href="#making-a-release-on-github-pages">Making a release on github pages</a></li>
 <li><a href="#version-number">Version number</a></li>
@@ -133,21 +134,18 @@ Version 3.0.33
 <li><a href="#running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#about-the-software">About the software</a><ul>
+<li><a href="#about-sigma16">About Sigma16</a><ul>
 <li><a href="#author">Author</a></li>
 <li><a href="#license">License</a></li>
 <li><a href="#implementation-of-sigma16">Implementation of Sigma16</a></li>
 <li><a href="#changes-underway">Changes underway</a></li>
-</ul></li>
-<li><a href="#reference">Reference</a><ul>
-<li><a href="#summary-of-notation">Summary of notation</a></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="introduction">Introduction</h1>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
 <p>This reference manual is organised by topic, with chapters on the architecture, the assembly language, and the emulator. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program, and how to use the programming environment.</p>
-<h2 id="tutorials">Tutorials</h2>
+<h1 id="tutorials">Tutorials</h1>
 <p>The following short tutorials show you how to use the system. You can keep the tutorials visible in the right panel while following along with the exercises in the main panel.</p>
 <h3 id="tutorial-run-an-example-program">Tutorial: run an example program</h3>
 <p><em>Topics:</em> components of the user interface, adjusting size of the user guide, the tabs for switching among the working areas, and the steps for running a program. Registers, constants and addition.</p>
@@ -173,7 +171,7 @@ Version 3.0.33
 <h3 id="tutorial-comparisons-and-jumps">Tutorial: comparisons and jumps</h3>
 <h3 id="tutorial-effective-addresses-and-arrays">Tutorial: effective addresses and arrays</h3>
 <h3 id="tutorial-further-instructions">Tutorial: further instructions</h3>
-<h1 id="architecture-of-the-computer">Architecture of the computer</h1>
+<h1 id="architecture">Architecture</h1>
 <p>An <em>instruction set architecture</em> is a precise specification of all aspects of a machine that are visible to a programmer. It includes a description of the registers, memory, data representations, and all the instructions, but does not include components of the implementation that are not visible to a machine language programmer.</p>
 <h2 id="data-representation">Data representation</h2>
 <p>Sigma16 is a 16-bit architecture, and every data value is a 16-bit word. Integers are represented in 16-bit two’s complement notation. The bits of a word are numbered from left to right, starting with 0. Thus the leftmost (most significant) bit of a word is bit 0, and the rightmost (least significant) is bit 15.</p>
@@ -598,6 +596,8 @@ Interrupt
     <td>12-15</td>
   </tr>
 </table>
+<h2 id="summary-of-notation">Summary of notation</h2>
+<p>ea m[ea] r[d] r[a] r[b] q#r[d] lsb q</p>
 <h1 id="instruction-set">Instruction set</h1>
 <p>The following sections describe the instructions in groups organized by their function. Some of the groups contain instructions with different formats. From the programmer’s perspective the function is more important, so these groups are useful in finding the right instruction to use. (From the perspective of designing a digital circuit to impleemnt the architecture, the format is essential.)</p>
 <h2 id="arithmetic-instructions">Arithmetic instructions</h2>
@@ -988,50 +988,53 @@ Interrupt
 </table>
 <hr />
 <h1 id="assembly-language">Assembly Language</h1>
-<p>Each line of source code is an assembly language statement. Each statement must appear on one line. Most statements specify code, either an instruction or some constant data. Some statements are full line comments. Other statements are directives, which control the behavior of the assembler but don’t generate any code.</p>
-<p>A statement may contain several fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
+<p>A computer is a digital circuit that executes programs in machine language, which is hard for humans to read because it consists entirely of numbers. Assembly language provides a readable notation for writing machine language programs. It uses names for instructions and variables, as well as other notations to make the code easier to understand.</p>
+<p>An instruction in machine language is just one or more words (often written in hexadecimal notation), while the corresponding instruction in assembly language uses mnemonic names so the programmer doesn’t have to memorise all the operation codes, addresses of variables, and so on. For example, the assembly language statement mul R12,R3,R8 is more readable than the corresponding machine language instruction 2c38. However, the assembly language still gives the programmer complete control over every bit a program.</p>
+<p>Each line of source code is an assembly language statement. Unlike higher level languages, assembly language statements are not nested. There are three kinds of assembly language statement:</p>
 <ul>
-<li><p>Label. The label field is optional; if it appears, it must begin in the first character of the line. The label field, if present, must be a name.</p>
-<ul>
-<li><p>Operation. The operation field specifies an instruction or assembler directive. It must be preceded by one or more white space characters. Every statement (apart from a full line comment) must have an operation field, which must be a name.</p></li>
-<li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directive. All instructions have an operand field, and some assembler directives do.</p></li>
-<li><p>Comment. All text that follows white space after the operands field is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon (to prevent it from being interpreted as operands). The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment.</p></li>
-</ul></li>
+<li><p>Most statements specify either an instruction or some constant data.</p></li>
+<li><p>Some statements are full line comments.</p></li>
+<li><p>Other statements are <em>directives</em>, which control the behavior of the assembler but don’t generate any code.</p></li>
 </ul>
-<p>A name must begin with a letter (a-z or A-Z), and may contain letters, digits, or underscore characters.</p>
-<p>…</p>
-<p>An assembly language provides a reasonably readable notation for writing machine language programs. An instruction in machine language is just one or more words (often written in hexadecimal notation), while the corresponding instruction in assembly language uses mnemonic names so the programmer doesn’t have to memorise all the operation codes, addresses of variables, and so on. However, the assembly language still gives the programmer complete control over a program, down to the last bit.</p>
-<p>Computer hardware executes machine language, which is hard for humans to read because it consists entirely of numbers. Assembly language is a way of expressing a machine language program in a readable way. It uses names for instructions and variables, as well as other notations to make the code easier to understand.</p>
 <h2 id="notation">Notation</h2>
-<p>Constants can be written in decimal, hexadecimal, or binary.</p>
+<p>A name must begin with a letter (a-z or A-Z), and may contain letters, digits, or underscore characters.</p>
+<p>Constants can be written in decimal, hexadecimal, or binary:</p>
 <ul>
 <li><p>Decimal constants consist of a sequence of digits, with an optional leading - sign. Examples: 42 55039 -1</p></li>
 <li><p>Hexadecimal constants are written with a dollar sign $ followed by four hex digits (0 1 2 3 4 5 6 7 8 9 a b c d e f). Examples: $0249 $c78a</p></li>
 <li><p>Binary constants are written with a hash sign # followed by any number of 0 or 1 characters. You can write fewer than 16 bits; they will be padded on the left with zeros. Examples: #1101 #000100000001101</p></li>
 </ul>
-<h2 id="assembly-instruction-fields">Assembly instruction fields</h2>
-<p>An assembly language statement consists of three fields. A field is a string of non-space characters, and fields must be separated by spaces. The fields are:</p>
+<p>An expression denotes a 16-bit word. Usually they are used to specify a word of machine language, either an address or a data constant.</p>
+<h2 id="statement-formats">Statement formats</h2>
+<p>A statement may contain several fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
 <ul>
-<li><p>Label. This field is optional: if there is a label, it must begin in the first character of a line. If the first character is a space, then that line has no label. A label is similar to a variable name in a programming language. It must begin with a letter, and may contain letters, digits, and underscore characters.</p>
+<li><p>Label. The label field is optional. If present, the label must be a name and it must begin in the first character of the line. If the first character is a space, then that line has no label.</p>
 <ul>
-<li><p>Operation. This is the first field that appears after white space in the statement. The operation is the name of an instruction.</p></li>
-<li><p>Operands. This field specifies the registers and memory addresses used by an instruction.</p></li>
-<li><p>Comment. Everything on a line after a semicolon character is a comment, and is ignored by the assembler.</p></li>
+<li><p>Operation. The operation field specifies an instruction or assembler directive. It must be preceded by one or more white space characters. Every statement (apart from a full line comment) must have an operation field, which must be a name.</p></li>
+<li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directive. Most instructions and assembler directives require operands, but some do not.</p></li>
+<li><p>Comment. All text that follows white space after the operands field is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon to prevent it from being interpreted as operands. The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment. If the statement has no operands, then all text after the operation field is a comment. It is good practice always to begin a comment with a semicolon.</p></li>
 </ul></li>
 </ul>
-<h2 id="expressions">Expressions</h2>
-<p>An expression denotes a 16-bit word. Usually they are used to specify a word of machine language, either an address or a data constant.</p>
-<p>Syntax of expressions</p>
-<h2 id="assembly-language-statements">Assembly language statements</h2>
-<h3 id="instructions">Instructions</h3>
-<h3 id="directives">Directives</h3>
+<h2 id="instructions">Instructions</h2>
+<h2 id="directives">Directives</h2>
 <p>A directive is a statement that doesn’t generate an instruction, but which gives further information about how to translate the program to object code.</p>
-<h4 id="module-statement">Module statement</h4>
-<p>modname module</p>
-<p>The module statement, if present, declares the name of the module. It must be the first statement in the program, apart from full line comments and blank lines. A file may contain only one module statement, and if the statement “foo module” is present the file name should be foo.asm.txt.</p>
+<h4 id="module">module</h4>
+<p>A program may be organized as a collection of modules, where each module appears in a separate file. When several modules are present, each one needs a unique name. The purpose of the module statement is to specify this name.</p>
+<p>A small program can be written as just one module, and it may have a module name but this is not required.</p>
+<p>The module statement defines the name of a module. The statement is optional. If present, it must be the first statement in the program, apart from full line comments and blank lines. A file may contain only one module statement, and if the statement “MyModuleName module” is present the file name should be MyModuleName.asm.txt.</p>
 <p>Examples</p>
 <p>quicksort module main module myprog module</p>
-<p>name import export name</p>
+<h3 id="org">org</h3>
+<p>The org statement specifies where in memory instructions and data should be placed when the program is booted. It takes an operand consisting of a word value, and it sets the location counter to this value.</p>
+<p>Examples</p>
+<p>org $0f20 ; subsequent instructions start from 0f20 org *+50 ; skip 50 words</p>
+<p>The assembler initializes the location counter to 0 before it begins translating an assembly language module. This means that, in effect, every module begins with org 0.</p>
+<h3 id="import">import</h3>
+<p>Examples</p>
+<p>myfunction import</p>
+<h3 id="export">export</h3>
+<p>Examples</p>
+<p>export xyz,fcn,k</p>
 <h2 id="assembly-listing">Assembly listing</h2>
 <p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two’s complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn’t produce any code these fields will be blank. After the code, the original source statement appears.</p>
 <p>The second section of the assembly listing is the <em>Symbol Table</em>. This shows each identifier (or “symbol”) that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
@@ -1074,6 +1077,26 @@ Interrupt
 <p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
 <h1 id="programming">Programming</h1>
 <p>Coming soon.</p>
+<h1 id="circuit">Circuit</h1>
+<ul>
+<li><p>Download Hydra and save it in your workspace. Suppose its location is /c/Users/me/a/b/c/Hydra.</p></li>
+<li><p>Open a shell and enter circuit/M1. Run a test program, e.g. ArrayMax.hs, as follows:</p></li>
+</ul>
+<pre><code>ghci -i/c/Users/me/a/b/c/Hydra/src/haskell/ ArrayMaxRun</code></pre>
+<p>The command can be simplified by defining a .ghci file, which will be loaded automatically when you invoke ghci. You can put the .ghci file in your $HOME directory. See the GHC User Guide for more details about configuring ghci.</p>
+<pre><code>:set -i/c/Users/a/b/c/Hydra/src/haskell/</code></pre>
+<p>On development machine (Spectre) use this path:</p>
+<pre><code>ghci -i/c/Users/johnt/OneDrive/home/docs/research/Hydra/current/Hydra/src/haskell/
+ArrayMaxRun</code></pre>
+<p>$HOME/.ghci contains:</p>
+<pre><code>:set -iC:\Users\johnt\OneDrive\home\docs\research\Hydra\current\Hydra\src\haskell</code></pre>
+<h2 id="m1-circuit">M1 circuit</h2>
+<p>M1 is a relatively simple digital circuit that implements a subset of the Sigma16 instruction set architecture. M1 uses sequential control and does not have instruction level parallelism. The circuits comprising M1 are defined in <strong>circuit/M1</strong>.</p>
+<p>A few Sigma16 machine language programs, prepared to run on M1, are defined in <strong>circuit/examples/M1examples</strong>. To run these, you need to ensure that both Hydra and M1 are in the ghci search path. See above for making Hydra available. The M1 circuit is placed on the search path by including the following file circuit/examples/M1examples/.ghci:</p>
+<p>:set -i../../M1</p>
+<p>Enter the directory and enter these commands:</p>
+<p>ghci :load ArrayMaxRun :main</p>
+<p>These will execute the ArrayMax program on the digital circuit, and that will produce a lot of detailed simulation output showing the values in key registers, flip flops, and signals.</p>
 <h1 id="installation">Installation</h1>
 <h2 id="browser-compatibility">Browser compatibility</h2>
 <p>The application currently works with Chrome and Firefox, and possible Edge.</p>
@@ -1106,10 +1129,10 @@ Interrupt
 </ul></li>
 </ul>
 <h3 id="compiling-a-standalone-executable">Compiling a standalone executable</h3>
-<p>Requires Node.js, npm, electron</p>
+<p>First install npm, which also gives you Node.js. Use npm to install electron.</p>
 <p>cd src npm install npm start</p>
-<h1 id="clone-this-repository">Clone this repository</h1>
-<p>git clone https://github.com/electron/electron-quick-start # Go into the repository cd electron-quick-start # Install dependencies npm install # Run the app npm start</p>
+<p>Clone this repository, then enter the repository, install dependencies, and run the program:</p>
+<p>git clone https://github.com/electron/electron-quick-start cd electron-quick-start npm install npm start</p>
 <h2 id="workflow-for-development">Workflow for development</h2>
 <h3 id="making-a-release-on-github-pages">Making a release on github pages</h3>
 <p>make a local directory for editing the project page on github pages. cd into this directory.</p>
@@ -1142,7 +1165,7 @@ Interrupt
 <p>The makefile extracts the version number from that file, and (1) defines a make variable; (2) writes the Sigma16/VERSION file with just the version number, and (3) writes Sigma16/app/version.js which is just defines the version number as a global constant.</p>
 <h3 id="running-in-a-browser.">Running in a browser.</h3>
 <h3 id="running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</h3>
-<h1 id="about-the-software">About the software</h1>
+<h1 id="about-sigma16">About Sigma16</h1>
 <h2 id="author">Author</h2>
 <p>The architecture and software tools were designed by John O’Donnell.</p>
 <h2 id="license">License</h2>
@@ -1165,17 +1188,7 @@ Interrupt
 <li>Change jump, jumpt, jumpf, jal to use pc-relative addressing</li>
 <li>Introduce a jalext that uses indexed absolute address, for external</li>
 </ul>
-<p>User flags register</p>
-<ul>
-<li>Carry output</li>
-<li>Overflow</li>
-<li>Carry input</li>
-</ul>
-<p>System flags register * System status * Interrupts enabled</p>
 <p>Arithmetic Add/subtract with carry</p>
 <p>Input/Output dma channels Ready Ack</p>
-<h1 id="reference">Reference</h1>
-<h2 id="summary-of-notation">Summary of notation</h2>
-<p>ea m[ea] r[d] r[a] r[b] q#r[d] lsb q</p>
 </body>
 </html>
