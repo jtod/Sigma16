@@ -149,7 +149,7 @@ doc/homepage-index/index.html : doc/homepage-index/index.md
 	  --metadata pagetitle="Sigma16 Home Page" \
 	  -o doc/homepage-index/index.html \
 	  doc/homepage-index/index.md
-	cp --update doc/src/doc.css doc/homepage-index
+	cp -up doc/src/doc.css doc/homepage-index
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
@@ -163,18 +163,20 @@ release :
 	make doc/html/userguide.html
 	make program-indices
 	mkdir -p ../release/$(VERSION)
-	cp ../VERSION ../release/$(VERSION)
-	cp ../LICENSE.txt ../release/$(VERSION)
-	cp ../index.html ../release/$(VERSION)
+	cp -up ../VERSION ../release/$(VERSION)
+	cp -up ../LICENSE.txt ../release/$(VERSION)
+	cp -up doc/homepage-index/index.html $(S16HOME)
+	cp -up doc/homepage-index/doc.css $(S16HOME)
+	cp -up ../index.html ../release/$(VERSION)
 	mkdir -p ../release/$(VERSION)/app
-	cp -r datafiles ../release/$(VERSION)/app
-	cp -r doc ../release/$(VERSION)/app
-	cp -r programs ../release/$(VERSION)/app
-	cp *.html ../release/$(VERSION)/app
-	cp *.css ../release/$(VERSION)/app
-	cp *.js ../release/$(VERSION)/app
-	cp *.json ../release/$(VERSION)/app
-	cp -r  ../release/$(VERSION) $(S16WEBPAGE)/releases
+	cp -upr datafiles ../release/$(VERSION)/app
+	cp -upr doc ../release/$(VERSION)/app
+	cp -upr programs ../release/$(VERSION)/app
+	cp -up *.html ../release/$(VERSION)/app
+	cp -up *.css ../release/$(VERSION)/app
+	cp -up *.js ../release/$(VERSION)/app
+	cp -up *.json ../release/$(VERSION)/app
+	cp -upr  ../release/$(VERSION) $(S16WEBPAGE)/releases
 
 # make webdev -- copy the files to the web page current development directory
 # Usage:
@@ -183,22 +185,23 @@ release :
 
 .PHONY : webdev
 webdev :
-	make set-version
-	make source-dir-index
-	make doc/homepage-index/index.html
-	make doc/html/userguide.html
-	make program-indices
-	cp --update ../VERSION $(WEBDEV)
-	cp --update ../LICENSE.txt $(WEBDEV)
-	cp --update doc/homepage-index/index.html $(S16HOME)
-	cp --update doc/homepage-index/doc.css $(S16HOME)
 	mkdir -p $(WEBDEV)/app
-	cp --update -r datafiles $(WEBDEV)/app
-	cp --update -r doc $(WEBDEV)/app
-	cp --update -r programs $(WEBDEV)/app
-	cp --update *.html $(WEBDEV)/app
-	cp --update *.css $(WEBDEV)/app
-	cp --update *.js $(WEBDEV)/app
+	make set-version
+	cp -up ../VERSION $(WEBDEV)
+	cp -up ../LICENSE.txt $(WEBDEV)
+	make source-dir-index
+	cp -up ../index.html  $(WEBDEV)/app
+	make doc/homepage-index/index.html
+	cp -up doc/homepage-index/index.html $(S16HOME)
+	cp -up doc/homepage-index/doc.css $(S16HOME)
+	make doc/html/userguide.html
+	cp -upr doc $(WEBDEV)/app
+	make program-indices
+	cp -upr programs $(WEBDEV)/app
+	cp -upr datafiles $(WEBDEV)/app
+	cp -up *.html $(WEBDEV)/app
+	cp -up *.css $(WEBDEV)/app
+	cp -up *.js $(WEBDEV)/app
 
 #-------------------------------------------------------------------------------
 # Running Sigma16
@@ -395,8 +398,8 @@ program-indices :
 
 doc/html/userguide.html : doc/src/userguide.md doc/src/doc.css
 	mkdir -p doc/html
-	cp -r doc/src/figures doc/html
-	cp doc/src/doc.css doc/html
+	cp -upr doc/src/figures doc/html
+	cp -up doc/src/doc.css doc/html
 	pandoc --standalone \
           --template=doc/src/userguide-template.html \
           --table-of-contents --toc-depth=4 \
