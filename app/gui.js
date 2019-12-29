@@ -632,8 +632,7 @@ window.onresize = function () {
 window.onload = function () {
     
     console.log("window.onload activated");
-    showTabbedPane("Welcome
-Pane");
+    showTabbedPane("WelcomePane");
     initializeProcessorElements ();  // so far, it's just instr decode
     clearInstrDecode (emulatorState);
     
