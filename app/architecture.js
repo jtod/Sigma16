@@ -32,15 +32,20 @@ const RRR         = 0     // R1,R2,R3    (RRR)
 const RR          = 1     // R1,R2       (RRR, omitting d or b field
 const RX          = 2;    // R1,xyz[R2]  (RX)
 const JX          = 3;    // loop[R0]    (RX omitting d field)
-const DATA        = 4;    // -42
-const COMMENT     = 5;    // ; full line comment, or blank line
-const DIRECTIVE   = 6;    // assembler directive
-const NOOPERATION = 7;    // error
-const NOOPERAND   = 8;    // statement has no operand
+const RRRX        = 4;    // R1,R2,R3    (EXP)
+const RRKX        = 5;    // R1,R2,3    (EXP)
+const RCX         = 6;    // getcth R4,imask
 
-const RRRX        = 9;    // R1,R2,R3    (EXP)
-const RRKX        = 10;    // R1,R2,3    (EXP)
-const RCX         = 11;    // getcth R4,imask
+const DATA        = 7;    // -42
+const COMMENT     = 8;    // ; full line comment, or blank line
+const NOOPERATION = 9;    // error
+const NOOPERAND   = 10;    // statement has no operand
+
+const ASMDIR      = 11;    // fcn module    (no operand)
+const ASMDIRX     = 12;    // org $f000     (operand is expression)
+const ASMDIRNS    = 13;   // export x,y    (operand is list of names)
+
+// const DIRECTIVE   = 6;    // assembler directive
 
 function showFormat (n) {
     let f = ['RRR','RR','RX','JX','DATA','COMMENT','NOOPERATION'] [n];
@@ -75,10 +80,10 @@ var statementSpec = new Map();
 
 const noOperation = {format:NOOPERATION, opcode:[]};
 
-statementSpec.set("module", {format:DIRECTIVE, opcode:[]})
-statementSpec.set("import", {format:DIRECTIVE, opcode:[]})
-statementSpec.set("export", {format:DIRECTIVE, opcode:[]})
-statementSpec.set("org",    {format:DIRECTIVE, opcode:[]})
+statementSpec.set("module", {format:ASMDIR, opcode:[]})
+statementSpec.set("import", {format:ASMDIRNS, opcode:[]})
+statementSpec.set("export", {format:ASMDIRNS, opcode:[]})
+statementSpec.set("org",    {format:ASMDIRX, opcode:[]})
 
 // Data statements
 statementSpec.set("data",  {format:DATA, opcode:[]});
@@ -141,6 +146,12 @@ statementSpec.set("shr",      {format:RRKX, opcode:[14,1]});
 statementSpec.set("putctl",   {format:RCX,  opcode:[14,2]});
 statementSpec.set("getctl",   {format:RCX,  opcode:[14,3]});
 statementSpec.set("rfi",      {format:NOOPERAND,  opcode:[14,4]});
+
+// Mnemonics for assembler directives
+statementSpec.set("module",  {format:ASMDIR,   opcode:[]});
+statementSpec.set("import",  {format:ASMDIRNS, opcode:[]});
+statementSpec.set("export",  {format:ASMDIRNS, opcode:[]});
+statementSpec.set("org",     {format:ASMDIRX,    opcode:[]});
 
 // Mnemonics for control registers
 

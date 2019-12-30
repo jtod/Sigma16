@@ -53,7 +53,7 @@ function mkModule () {
 	mFile : null,               // file object associated with module, if any
 	fileReader : null,         // object to read the file
 	selected : false,          // this module is selected (for edit, asm)
-	modName : '',              // name of module: module stmt, file name, none
+	modName : null,            // name of module: module stmt, file name, none
 	modSrc : '',               // source code
 	asmStmt : [],              // statements correspond to lines of source
 	symbols : [],              // symbols used in the source

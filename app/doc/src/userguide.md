@@ -995,6 +995,62 @@ A directive is a statement that doesn't generate an instruction, but
 which gives further information about how to translate the program to
 object code.
 
+Directive formats
+
+
+ASMDIR    directive with no operand:    xyz module
+ASMDIRX   directive with an expression  org 234
+ASMDIRNS  directive with a list of names   import m1,m2 export a,b,c
+
+~~~~
+abc        Module
+x          import   Mod1
+y          import   Mod1
+z          import   Mod2
+           export   x,y,z
+           org      34
+           org      $02bf
+           org      *+100
+codeWrite  equ  2
+codeRead   equ  1
+
+astart     data 5
+           data 9
+           data 78
+aend
+asize      equ  aend-astart
+~~~~
+
+#### Expressions
+
+An expression may be used in a directive (e.g. org xyz) or in an
+instruction (e.g. lea R2,aend-astart[R0]).
+
+Expressions are useful in professional systems programming.  However,
+they can easily confuse beginners.  It is essential to understand that
+the arithmetic in an expression is evaluated at assembly time, not at
+run time.  It's a good idea not even to mention expressions in the
+early stages of teaching computer systems.
+
+Consider how expressions are evaluated.  If an expression is used to
+define size of a block of memory, its value would need to be known
+before any labels appearing after the block can be resolved.  This
+could lead to unnecessary complexity.
+
+* A simple and clean rule is that an org statement must be of the form
+  constant or *+constant, but *+label is disallowed.  The principle is
+  that a first pass through the assembly source code must resolve the
+  values of all names.  But this is needlessly restrictive.
+
+* The important point is that during the second pass it should be
+  possible to evaluate all expressions without backtracking.  This can
+  be achieved by another approach: simply to disallow forward
+  references in expressions.  For example this could be allowed
+
+a  equ  123
+...
+   org  *+a
+
 #### module
 
 A program may be organized as a collection of modules, where each
@@ -1035,16 +1091,36 @@ every module begins with org 0.
 
 ### import
 
-Examples
+The import statement states that the value of an identifier is defined
+in another module.  During the assembly of the module containing the
+import, the identifier is given a provisional value of 0, but this
+will be replaced by the actual value by the linker.  For example,
 
-    myfunction  import
+~~~~
+    x          import   Mod1
+~~~~
 
+a
+
+says that x is a name that can be used in this module, but it is
+defined in Mod1 and its actual value will remain unknown until the
+linker sets it later on.    
 
 ### export
 
-Examples
+The export statement states that the value of an identifier should be
+made available for other modules to import.  For example, this module
+defines a function and exports it so other modules can import and call
+it:
 
-       export   xyz,fcn,k
+~~~~
+Mod1     module
+         export fcn
+
+fcn      add    R1,R1,R1
+         jump   0[R12]
+~~~~
+
 
 ## Assembly listing
 

@@ -1,0 +1,13 @@
+; Mod1.asm.txt
+; Sigma16 test program 
+
+Mod1    module
+        import Mod2
+
+        lea    R1,25[R0]
+        lea    R2,3[R0]
+loop    add    R1,R1,R2
+        jal    R10,fcn[R0]
+        store  R1,result[R0]
+        trap   R0,R0,R0
+result  data   0

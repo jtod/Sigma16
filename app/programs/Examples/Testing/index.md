@@ -22,5 +22,9 @@
 
 * [TestCmpJumpFT](TestCmpJumpFT.asm.txt)
 
+* [Mod1](Mod1.asm.txt)
+
+* [Mod2](Mod2.asm.txt)
+
 
 

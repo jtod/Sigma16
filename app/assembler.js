@@ -112,6 +112,10 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    operandRX : false,              // statement contains RX operand
 	    operandJX : false,              // statement contains short form RX
 	    operandDATA : false,            // statement contains data
+            operandX : false,               // expression operand for directive
+            operandNS : false,              // list of names operand for directive
+            expSrc : null,                  // expression operand if any
+            expValue : null,                // value of expression operand if any
 	    op : 0,                         // operation
 	    d : 0,                          // destination
 	    a : 0,                          // source a
@@ -227,6 +231,9 @@ const datParser =
     /^(((?:[a-zA-Z][a-zA-Z0-9]*)|(?:\$[0-9a-f]{4})|(?:-?[0-9]+)))$/;
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
+
+const expParser = /^\$([0-9a-f]{4})$/;  // temp: just allow hex const ?????
+const nsParser = /^[a-zA-Z][a-zA-Z0-9]*$/; // temp; just allow one name ?????
 
 // A register is R followed by register number, which must be either
 // a 1 or 2 digit decimal number between 0 and 15, or a hex digit.
@@ -592,6 +599,8 @@ function parseOperand (m,s) {
     let jx  = jxParser.exec  (s.fieldOperands);
     let rcx = rcxParser.exec (s.fieldOperands);
     let dat = datParser.exec (s.fieldOperands);
+    let exp = expParser.exec (s.fieldOperands);   // expression
+    let ns =  nsParser.exec (s.fieldOperands);     // list of names
     if (rrr) {
 	s.hasOperand = true;
 	s.operandType = RRR;
@@ -599,6 +608,18 @@ function parseOperand (m,s) {
 	s.d = rrr[1];
 	s.a = rrr[2];
 	s.b = rrr[3];
+    } else if (exp) { // assembler directive with expression
+        s.hasOperand = true;
+        s.operandType = ASMDIRX;
+        s.operandX = true;
+        s.expSrc = exp[1];
+        console.log (`operand EXP = ${s.expSrc}`);
+        s.expValue = evaluate (s.expSrc);
+        console.log (`operand EXP value = ${s.expValue}`);
+    } else if (ns) { // assembler directive with list of names
+        s.hasOperand = true;
+        s.operandType = ASMDIRNS;
+        s.operandNS = true;
     } else if (rr) {   // can omit d for cmp, omit b for inv
 	s.hasOperand = true;
 	s.operandType = RR;
@@ -770,16 +791,34 @@ function asmPass2 (m) {
 	    s.codeWord2 = s.ctlReg;
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==ASMDIR) {
+            console.log ('ASMDIR, should be module statement');
+            if (s.fieldOperation=="module") { // is a module statement
+                console.log ('it is a module statement');
+                if (m.modName) {
+                    mkErrMsg (m,s,'Module name already defined');
+                } else if (s.hasLabel) {
+                    m.modName = s.fieldLabel;
+                    console.log (`Module name is ${m.modName}`);
+                } else {
+                    mkErrMsg (m,s,'Module statement requires label');
+                }                        
+            } else {
+                mkErrMst (m, s, `invalid assembly directive`);
+            }
 	} else if (fmt==NOOPERAND) {
 	    console.log ('pass2 NOOPERAND');
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord448(op[0],0,op[1]);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-	} else if (fmt==DATA && s.operandDATA) {
+        } else if (fmt==DATA && s.operandDATA) {
 	    console.log('fmt is DATA and operandDATA=' + s.dat);
 	    s.codeWord1 = evaluate(m,s,s.dat);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-//	    console.log('pass2 DATA ' + wordToHex4(s.codeWord1));
+            //	    console.log('pass2 DATA ' + wordToHex4(s.codeWord1));
+        } else if (fmt==ASMDIRX) {
+        } else if (fmt==ASMDIRNS) {
+        } else if (fmt==ASMDIRX) {
 	} else {
 	    console.log('pass2 other, noOperation');
 	}
