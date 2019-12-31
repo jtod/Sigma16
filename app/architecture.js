@@ -1,8 +1,24 @@
 // Sigma16: architecture.js
+// Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
+// License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt, LICENSE-NOTICE.txt
 
-//------------------------------------------------------------------------------
+// This file is part of Sigma16.  Sigma16 is free software: you can
+// redistribute it and/or modify it under the terms of the GNU General
+// Public License as published by the Free Software Foundation, either
+// version 3 of the License, or (at your option) any later version.
+// Sigma16 is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.  You should have received
+// a copy of the GNU General Public License along with Sigma16.  If
+// not, see <https://www.gnu.org/licenses/>.
+
+//-------------------------------------------------------------------------------
+// architecture.js defines tables specifying opcodes, mnemonics, flag
+// bits, and other aspects of the architecture.
+
+//-------------------------------------------------------------------------------
 // Instruction mnemonics
-//------------------------------------------------------------------------------
 
 const mnemonicRRR =
   ["add",    "sub",    "mul",     "div",
@@ -22,9 +38,9 @@ const mnemonicEXP =
    "nop",    "nop",    "nop",     "nop",
    "nop",    "nop",    "nop",     "nop"]
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Instruction set and assembly language formats
-// ---------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // Assembly language statement formats (machine language format)
 
@@ -66,9 +82,9 @@ function formatSize (fmt) {
     }
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Assembly language statements
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // The instruction set is represented by a map from mnemonic to
 // statementSpec spec
@@ -172,9 +188,9 @@ ctlReg.set ("progEnd",  {ctlRegIndex:7});
 ctlReg.set ("data",     {ctlRegIndex:8});
 ctlReg.set ("dataEnd",  {ctlRegIndex:9});
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Status register bits
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // Define the bit index for each flag in the status register.  "Big
 // endian" notation is used, where 0 indicates the most significant
@@ -199,9 +215,9 @@ const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
 const clearIntEnable = maskToClearBitBE (intEnableBit);
 const setSystemState = maskToClearBitBE (userStateBit);
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Interrupt irequest and imask bits
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 const timerBit         = 0;   // timer has gone off
 const segFaultBit      = 1;   // access invalid virtual address
@@ -210,9 +226,9 @@ const userTrapBit      = 3;   // user trap
 const overflowBit      = 4;   // overflow occurred
 const zDivBit          = 5;   // division by 0
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Assembly language data definitions for control bits
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // A systems program can use the following canonical data definitions
 // to access the control bits.  These statements can be copied and

@@ -1,10 +1,25 @@
 // Sigma16: gui.js
-// This is the main program, lauched by Sigma16.html
-// Copyright (c) 2019 John O'Donnell
+// Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
+// License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt, LICENSE-NOTICE.txt
 
-//---------------------------------------------------------------------------
+// This file is part of Sigma16.  Sigma16 is free software: you can
+// redistribute it and/or modify it under the terms of the GNU General
+// Public License as published by the Free Software Foundation, either
+// version 3 of the License, or (at your option) any later version.
+// Sigma16 is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.  You should have received
+// a copy of the GNU General Public License along with Sigma16.  If
+// not, see <https://www.gnu.org/licenses/>.
+
+//-------------------------------------------------------------------------------
+// gui.js is the main program.  It's launched by Sigma16.html and is
+// the last JavaScript file to be loaded
+
+//-------------------------------------------------------------------------------
 // Global variables
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // Define the global variables; some are set by function initialize
 // which is executed when window.onload occurs
@@ -30,9 +45,9 @@ function refreshIOlogBuffer() {
 // global variables for emulator
 var procAsmListingElt;
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Experiments and testing
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 function jumpToAnchorInGuide () {
     console.log ("jumpToAnchorInGuide");
@@ -112,9 +127,9 @@ function editorButton1() {
     
 }
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Examples pane
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // Errors in displaying the directories: GET 404:
 // www.dcs.gla.ac.uk/icons/blank.gif
@@ -161,17 +176,17 @@ function copyExampleText() {
 // var myIFrame = document.getElementById("myIframe");
 // var content = myIFrame.contentWindow.document.body.innerHTML;
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Editor pane
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 function editorClear () {
     document.getElementById('EditorTextArea').value = "";
 }
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Window sizing: adjust relative size of system and user guide
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // For the window resizing: relative size of system and user guide
 // sections.  All the code implementing feature appears here, apart
@@ -334,9 +349,9 @@ function checkTestBody () {
 
 
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Top level tab buttons control which pane is visible and active
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 let breakDialogueVisible = false;
 
@@ -428,9 +443,9 @@ function userman_pane_button() {
 }
 
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Example programs
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 function insert_example(exampleText) {
     console.log('Inserting example add into editor text');
@@ -586,12 +601,9 @@ z    data   -1
 *ab
 `;
 
-
-
-
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 //  Handle window events
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 // This doesn't seem to work.  Want to ask user to confirm if they click back
 // when it would abort the session
@@ -625,9 +637,9 @@ window.onresize = function () {
     console.log ('window.onresize finished');
 }
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 // Complete initialization when onload occurs
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 window.onload = function () {
     

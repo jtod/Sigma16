@@ -1,5 +1,6 @@
-; AddDecimal
-; John O'Donnell, 2015
+; Sigma16: AddDecimal.asm.txt
+; Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
+; License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt & LICENSE-NOTICE.txt
 
 ; This program illustrates how to add binary coded decimal (BCD)
 ; numbers.  It follows on from WriteBCD; it's a good idea to look at
