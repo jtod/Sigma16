@@ -58,24 +58,27 @@ function mkOfReader (i) {
 function showModules() {
     console.log ('showModules');
     let xs;
-    let ys = "";
+    let ys = "\n<hr>";
     let sel;
     let spanClass;
-    let modName;
+    let mName;
     let m;
     for (let i=0; i<nModules; i++) {
 	m = s16modules[i];
-	modName = "<anonymous>";
+	mName = getModName(m);
 	sel = selectedModule===i;
 	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
-	ys += (sel ? '* ' : '  ')
-	    + `<span${spanClass}>` + `Module ${i} </span>`
+	ys += `&nbsp;`
+	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. Module ${mName}</span>`
 	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
 	    + `<button onclick="modulesButtonClose(${i})">Close</button>`
 	    + `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
-	    + '\n<pre>'
-	    + m.modSrc.split('\n').slice(0,4).join('\n')
-	    + '</pre>\n\n\n';
+            + `<br>hasFile=${m.hasFile} fileName=${m.fileName} modName=${m.modName}`
+            + `<br>nAsmErrors=${m.nAsmErrors} isExecutable=${m.isExecutable}`
+	    + '<br><pre>'
+	    + m.modSrc.split('\n').slice(0,8).join('\n')
+	    + '</pre>\n\n'
+            + '<hr>\n\n';
     }
     console.log (spanClass);
     console.log (ys);

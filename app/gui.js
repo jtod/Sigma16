@@ -746,4 +746,3 @@ window.onload = function () {
     
     console.log("Initialization complete");
 }
-

@@ -23,6 +23,11 @@
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
 
+function appQuit () {
+    console.log ('Quit in main.js');
+    app.quit();
+}
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow

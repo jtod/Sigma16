@@ -1,36 +1,43 @@
 {
-   "name": "Sigma16",
-   "version": "3.0.33",
-   "description": "Computer architecture with assembler and emulator",
-   "repository": "Sigma/current/Sigma16",
-   "homepage": "./",
-   "main": "main.js",
-   "bin": "main.js",
-   "scripts": {
-      "start": "electron .",
-      "mkdist": "electron-builder"
-   },
-   "build": {
-      "appId": "Sigma16.app.id",
-      "copyright": "Copyright (c) 2019 John T. O'Donnell",
-      "files": [
-         "**/*",
-         "../datafiles/**/*"
-      ],
-      "win": {
-         "target": "portable"
-      }
-   },
-   "keywords": [
-      "Sigma16",
-      "assembler",
-      "linker",
-      "emulator"
-   ],
-   "author": "John T. O'Donnell",
-   "license": "CC0-1.0",
-   "devDependencies": {
-      "electron": "^5.0.12",
-      "electron-builder": "^21.0.15"
-   }
+    "name": "sigma16",
+    "version": "3.0.33",
+    "description": "Computer architecture, assembler, emulator, circuit",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jtod/Sigma16"
+    },
+    "homepage": "https://jtod.github.io/S16/",
+    "main": "main.js",
+    "bin": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "mkdist": "electron-builder"
+    },
+    "build": {
+        "appId": "Sigma16.app.id",
+        "copyright": "Copyright (c) 2019,2020 John T. O'Donnell",
+        "files": [
+            "**/*",
+            "../datafiles/**/*"
+        ],
+        "win": {
+            "target": "portable"
+        }
+    },
+    "keywords": [
+        "Sigma16",
+        "Hydra",
+        "architecture",
+        "assembler",
+        "linker",
+        "emulator",
+        "processor",
+        "digital circuit"
+    ],
+    "author": "John T. O'Donnell",
+    "license": "GPL-3.0-or-later",
+    "devDependencies": {
+        "electron": "^5.0.12",
+        "electron-builder": "^21.0.15"
+    }
 }

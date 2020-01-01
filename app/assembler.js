@@ -15,25 +15,16 @@
 
 //-------------------------------------------------------------------------------
 // assembler.js translates assembly language to machine language
-
 //-------------------------------------------------------------------------------
 
-// var symbolTable = new Map();;   ??? use m.symbolTable instead of global
-
 // Object lines
-var objectLineBuffer = "";
-var objBufferSize = 0;
-var objBufferLimit = 5;
+// let objectLineBuffer = "";
+// let objBufferSize = 0;
+// let objectBuffer = [];              // list of object lines
 
-// assembler
-// var asmStmt = [];
-// var symbols = [];
-// var locationCounter = 0;
-// var asmListingPlain = [];
-
-
-// Notes...
-// ??? inconsistent args parseAsmLine
+let objBufferLimit = 8;             // how many code words to allow per line
+let objectWordBuffer = [];          // list of object code words
+let relocationAddressBuffer = [];   // list of relocation addresses
 
 /* An assembly language line consists of four fields separated by
 white space.  Everything following a semicolon ; is a comment.
@@ -61,7 +52,6 @@ function run () {
 //    assembler();
 }
 
-
 //----------------------------------------------------------------------
 // Symbol table
 //----------------------------------------------------------------------
@@ -78,11 +68,13 @@ function showSymbolTable (m) {
     for (let i = 0; i < m.symbols.length; i++) {
 	let x = m.symbolTable.get(m.symbols[i]);
 	m.asmListingPlain.push(m.symbols[i].padEnd(10)
-			+ wordToHex4(x.val)
-			+ x.defLine.toString().padStart(5));
+			       + wordToHex4(x.val)
+                               + (x.relocatable ? ' R' : ' C')
+			       + x.defLine.toString().padStart(5));
 	m.asmListingDec.push(m.symbols[i].padEnd(10)
-			+ wordToHex4(x.val)
-			+ x.defLine.toString().padStart(5));
+			     + wordToHex4(x.val)
+                             + (x.relocatable ? ' R' : ' C')
+			     + x.defLine.toString().padStart(5));
     }
 //    let xs = [];
 //    symbolTable.forEach(function(sym,key,owner) {
@@ -129,7 +121,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    operandJX : false,              // statement contains short form RX
 	    operandDATA : false,            // statement contains data
             operandX : false,               // expression operand for directive
-            operandNS : false,              // list of names operand for directive
+            operandIDENT : false,           // identifier directive
             expSrc : null,                  // expression operand if any
             expValue : null,                // value of expression operand if any
 	    op : 0,                         // operation
@@ -249,7 +241,7 @@ const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
 
 const expParser = /^\$([0-9a-f]{4})$/;  // temp: just allow hex const ?????
-const nsParser = /^[a-zA-Z][a-zA-Z0-9]*$/; // temp; just allow one name ?????
+const identParser = /^[a-zA-Z][a-zA-Z0-9]*$/; // temp; just allow one name ?????
 
 // A register is R followed by register number, which must be either
 // a 1 or 2 digit decimal number between 0 and 15, or a hex digit.
@@ -529,8 +521,10 @@ function parseAsmLine (m,i) {
 	    mkErrMsg (m, s, s.fieldLabel + ' has already been defined');
 	} else {
 	    m.symbolTable.set (s.fieldLabel,
-	     {symbol : s.fieldLabel, val : m.locationCounter,
-	      defLine : s.lineNumber});
+	                       {symbol : s.fieldLabel,
+                                relocatable : true,
+                                val : m.locationCounter,
+	                        defLine : s.lineNumber});
 	}
     }
 }
@@ -615,8 +609,8 @@ function parseOperand (m,s) {
     let jx  = jxParser.exec  (s.fieldOperands);
     let rcx = rcxParser.exec (s.fieldOperands);
     let dat = datParser.exec (s.fieldOperands);
-    let exp = expParser.exec (s.fieldOperands);   // expression
-    let ns =  nsParser.exec (s.fieldOperands);     // list of names
+    let exp = expParser.exec (s.fieldOperands);       // expression (directive)
+    let ident = identParser.exec (s.fieldOperands);  // identifier (directive)
     if (rrr) {
 	s.hasOperand = true;
 	s.operandType = RRR;
@@ -630,12 +624,14 @@ function parseOperand (m,s) {
         s.operandX = true;
         s.expSrc = exp[1];
         console.log (`operand EXP = ${s.expSrc}`);
-        s.expValue = evaluate (s.expSrc);
+        let v =  evaluate (s.expSrc);
+        s.expValue = v.evalVal;
+        // use v.evalRel
         console.log (`operand EXP value = ${s.expValue}`);
-    } else if (ns) { // assembler directive with list of names
+    } else if (ident) { // assembler directive with list of names
         s.hasOperand = true;
-        s.operandType = ASMDIRNS;
-        s.operandNS = true;
+        s.operandType = ASMDIRIDENT;
+        s.operandIDENT = true;
     } else if (rr) {   // can omit d for cmp, omit b for inv
 	s.hasOperand = true;
 	s.operandType = RR;
@@ -746,7 +742,8 @@ function testWd(op,d,a,b) {
 function asmPass2 (m) {
     console.log('assembler pass 2');
     let s, fmt,op,x;
-    initializeObjectLineBuffer ();
+    objectWordBuffer = [];
+    relocationAddressBuffer = [];
     for (let i = 0; i < m.asmStmt.length; i++) {
 	s = m.asmStmt[i];
 	fmt = s.format;
@@ -783,19 +780,24 @@ function asmPass2 (m) {
 	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
-	    let aaa = s.dispField;
-	    let bbb = evaluate(m,s,s.dispField);
-	    s.codeWord2 = evaluate(m,s,s.dispField);
+            let v = evaluate(m,s,s.dispField);
+	    s.codeWord2 = v.evalVal;
+            if (v.evalRel) {
+                console.log (`relocatable displacement`);
+                generateRelocation (m, s, s.address+1);
+            }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-//	    console.log('pas2 rx aaa=' + aaa + ' bbb=' + bbb);
-//	    console.log('pass2 RX ' + wordToHex4(s.codeWord1)
-//			+ wordToHex4(s.codeWord2));
 	} else if (fmt==JX) { // like RX but with d=0
 	    console.log (`pass2 JX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
-	    s.codeWord2 = evaluate(m,s,s.dispField);
+            let v = evaluate(m,s,s.dispField);
+	    s.codeWord2 = v.evalVal;
+            if (v.evalRel) {
+                console.log (`relocatable displacement`);
+                generateRelocation (m, s, s.address+1);
+            }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pass2 JX ' + wordToHex4(s.codeWord1)
@@ -829,12 +831,11 @@ function asmPass2 (m) {
 	    generateObjectWord (m, s, s.address, s.codeWord1);
         } else if (fmt==DATA && s.operandDATA) {
 	    console.log('fmt is DATA and operandDATA=' + s.dat);
-	    s.codeWord1 = evaluate(m,s,s.dat);
+	    s.codeWord1 = evaluate(m,s,s.dat);  // disallow relocatable expr in data
 	    generateObjectWord (m, s, s.address, s.codeWord1);
             //	    console.log('pass2 DATA ' + wordToHex4(s.codeWord1));
         } else if (fmt==ASMDIRX) {
-        } else if (fmt==ASMDIRNS) {
-        } else if (fmt==ASMDIRX) {
+        } else if (fmt==ASMDIRIDENT) {
 	} else {
 	    console.log('pass2 other, noOperation');
 	}
@@ -868,7 +869,8 @@ function asmPass2 (m) {
 	    m.asmListingDec.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	}
     }
-    flushObjectLine (m);
+    emitObjectWords (m);
+    emitRelocations (m);
 }
 
 // linenumber indexed from 0 but add1 for asm listing header and add1
@@ -881,10 +883,12 @@ function asmPass2 (m) {
 
 // The code generator outputs lines of object code containing up to
 // nobjWordsOnLine words.  Each word is added to a buffer by calling
-// generateObjectWord, and when the buffer reaches the limit (or when all
-// object code has been pushed) the buffer is flushed.
+// generateObjectWord, and when the buffer reaches the limit (or when
+// all object code has been pushed) the buffer is flushed.  The org
+// statement flushes the object word buffer and also emits any
+// relocation commands that have been collected.
 
-
+/*
 function initializeObjectLineBuffer () {
     objectLineBuffer = "  hexdata  ";
     objBufferSize = 0;
@@ -897,6 +901,12 @@ function flushObjectLine(m) {
     initializeObjectLineBuffer ();
 }
 
+function forceFlushObjectLine(m) {
+    m.objectCode.push (objectLineBuffer);
+    initializeObjectLineBuffer ();
+}
+*/
+
 // Add object word x to buffer for next object code line in module m.
 // The asm statement is s, and the object word will be loaded at
 // address a.  The line number entered into asmap is ln = s.lineNumber
@@ -907,10 +917,44 @@ function generateObjectWord (m, s, a, x) {
     let ln = s.lineNumber + 2;  // adjust for <span> line and header line
     m.asmap[a] = ln;
     console.log ('generateObjectWord entered asmap[' + a + '] = ' + ln);
-    if (objBufferSize > 0) { objectLineBuffer += ',' };
-    objectLineBuffer += wordToHex4(x);
-    objBufferSize++;
-    if (objBufferSize >= objBufferLimit) { flushObjectLine(m) };
+    objectWordBuffer.push (x);
+//    if (objBufferSize > 0) { objectLineBuffer += ',' };
+//    objectLineBuffer += wordToHex4(x);
+//    objBufferSize++;
+//    if (objBufferSize >= objBufferLimit) { flushObjectLine(m) };
+}
+
+function emitObjectWords (m) {
+    console.log (`emit object words ${objectWordBuffer}`);
+    console.log (`length = ${objectWordBuffer.length}`);
+    //    let xs = objectWordBuffer;  // just take n of them
+    let xs = objectWordBuffer.splice(0,objBufferLimit);
+    let ys = xs.map( (w) => wordToHex4(w));
+    console.log (`xs=${xs}`)
+    console.log (`ys=${ys}`)
+    let zs = '  hexdata  ' + ys.join(',')
+    console.log (`zs=${zs}`)
+    m.objectCode.push (zs);
+    if (objectWordBuffer.length > 0) { emitObjectWords(m); }
+}
+
+// Record an address that needs to be relocated
+function generateRelocation (m, s, a) {
+    console.log (`generateRelocation ${a}`);
+    relocationAddressBuffer.push (a);
+}
+
+// Generate the relocation statements in object code
+function emitRelocations (m) {
+    console.log (`emit relocations ${relocationAddressBuffer}`);
+    let xs = relocationAddressBuffer.splice(0,objBufferLimit);
+    let ys = xs.map((w) => wordToHex4(w));
+    console.log (`xs=${xs}`)
+    console.log (`ys=${ys}`)
+    let zs = '  relocate ' + ys.join(',')
+    console.log (`zs=${zs}`)
+    m.objectCode.push (zs);
+    if (relocationAddressBuffer.length > 0) { emitRelocations(m); }
 }
 
 function showAsmap (m) {
@@ -921,47 +965,47 @@ function showAsmap (m) {
 }
 
 // Evaluate a displacement or data value.  This may be a decimal
-// constant, a hex constant, or a label.
+// constant, a hex constant, or a label.  Return a tuple containing
+// the value (evalVal) and a boolean (evalRel) indicating whether the
+// value is relocatable.
 function evaluate (m,s,x) {
     console.log('evaluate ' + x);
     if (x.search(nameParser) == 0) {
 	r = m.symbolTable.get(x);
 	if (r) {
 	    console.log('evaluate returning ' + r.val);
-	    return r.val;
+	    return {evalVal : r.val, evalRel : r.relocatable};
 	} else {
 	    //	    s.errors.push('symbol ' + x + ' is not defined');
 	    mkErrMsg (m, s, 'symbol ' + x + ' is not defined');
 	    console.log('evaluate returning ' + 0);
-	    return 0;
+	    return {evalVal : 0, evalRel : false};
 	}
     } else if (x.search(intParser) == 0) {
 	console.log('evaluate returning ' + parseInt(x,10));
-	return intToWord(parseInt(x,10));
+	return {evalVal : intToWord(parseInt(x,10)), evalRel : false};
     } else if (x.search(hexParser) == 0) {
-	return hex4ToWord(x.slice(1));
-	console.log('evaluate returning ' + 0);
-	return 0;
+	return {evalVal : hex4ToWord(x.slice(1)), evalRel : false};
+//	console.log('evaluate returning ' + 0);
+//	return 0;
     } else {
 	//	s.errors.push('expression ' + x + ' has invalid syntax');
 	mkErrMsg (m, s, 'expression ' + x + ' has invalid syntax');
 //	console.log('evaluate returning ' + 0);
-	return 0;
+	return {evalVal : 0, evalRel : false};
     }
 }
 
 function setAsmListing (m) {
-//    console.log('setAsmListing');
-//    let listing = [];
-//    for (let i = 0; i < asmSrcLines.length; i++) {
-//	listing[i] = asmStmet[i].listingLineHighlightedFields;
-    //    }
-    let listing = m.asmListingDec.join('\n');
-//    let listing = m.asmListingPlain.join('\n');
-    console.log ('setAsmListing ' + listing);
+    let listing = getCurrentModule().asmListingDec.join('\n');
     document.getElementById('AsmTextHtml').innerHTML = listing;
-//	m.asmListingPlain.join('\n');
-//    console.log (' Set asm listing m.asmListingPlain = ' + m.asmListingPlain);
+}
+
+function setObjectListing (m) {
+    let listing = "<pre class='HighlightedTextAsHtml'>"
+        + getCurrentModule().objectCode.join('<br>')
+        + "</pre>";
+    document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
 //----------------------------------------------------------------------

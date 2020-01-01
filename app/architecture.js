@@ -59,7 +59,7 @@ const NOOPERAND   = 10;    // statement has no operand
 
 const ASMDIR      = 11;    // fcn module    (no operand)
 const ASMDIRX     = 12;    // org $f000     (operand is expression)
-const ASMDIRNS    = 13;   // export x,y    (operand is list of names)
+const ASMDIRIDENT    = 13;   // export x,y    (operand is list of names)
 
 // const DIRECTIVE   = 6;    // assembler directive
 
@@ -96,9 +96,10 @@ var statementSpec = new Map();
 
 const noOperation = {format:NOOPERATION, opcode:[]};
 
+// Assembler directives
 statementSpec.set("module", {format:ASMDIR, opcode:[]})
-statementSpec.set("import", {format:ASMDIRNS, opcode:[]})
-statementSpec.set("export", {format:ASMDIRNS, opcode:[]})
+statementSpec.set("import", {format:ASMDIRIDENT, opcode:[]})
+statementSpec.set("export", {format:ASMDIRIDENT, opcode:[]})
 statementSpec.set("org",    {format:ASMDIRX, opcode:[]})
 
 // Data statements
@@ -165,8 +166,8 @@ statementSpec.set("rfi",      {format:NOOPERAND,  opcode:[14,4]});
 
 // Mnemonics for assembler directives
 statementSpec.set("module",  {format:ASMDIR,   opcode:[]});
-statementSpec.set("import",  {format:ASMDIRNS, opcode:[]});
-statementSpec.set("export",  {format:ASMDIRNS, opcode:[]});
+statementSpec.set("import",  {format:ASMDIRIDENT, opcode:[]});
+statementSpec.set("export",  {format:ASMDIRIDENT, opcode:[]});
 statementSpec.set("org",     {format:ASMDIRX,    opcode:[]});
 
 // Mnemonics for control registers
