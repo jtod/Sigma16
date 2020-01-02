@@ -1,6 +1,6 @@
 // Sigma16: assembler.js
-// Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
-// License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt, LICENSE-NOTICE.txt
+// Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -134,6 +134,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    disp : 0,                       // displacement value
 	    k : 0,                          // constant in RRKX format
 	    dat : 0,                        // data value
+            identarg : '',                     // identifier operand
 	    codeSize : 0,                   // number of words generated
 	    codeWord1 : -1,                  // first word of object
 	    codeWord2 : -1,                  // second word of object
@@ -187,18 +188,18 @@ function mkErrMsg (m,s,err) {
     s.errors.push(errline);
     m.nAsmErrors++;
 }
-//    console.log('mkErrMsg ' + errline);
-//    let errline = '<span class="ERR">' + err + '</span>';
 
 function assembler () {
-    console.log('assembler');
-    m = s16modules[currentModNum];  // info about assembly will be stored in m
+    let m = s16modules[selectedModule];
+    console.log(`Assembling module ${selectedModule}`);
+    m.modName = null;  // remove name from earlier assembly, if any
     m.nAsmErrors = 0;
     m.asmStmt = [];
     m.symbols = [];
     m.asmListingPlain = [];
     m.asmListingDec = [];
     m.objectCode = [];
+    m.exports = [];
     m.locationCounter = 0;
     m.asmap = [];
     clearObjectCode ();
@@ -628,10 +629,6 @@ function parseOperand (m,s) {
         s.expValue = v.evalVal;
         // use v.evalRel
         console.log (`operand EXP value = ${s.expValue}`);
-    } else if (ident) { // assembler directive with list of names
-        s.hasOperand = true;
-        s.operandType = ASMDIRIDENT;
-        s.operandIDENT = true;
     } else if (rr) {   // can omit d for cmp, omit b for inv
 	s.hasOperand = true;
 	s.operandType = RR;
@@ -668,15 +665,25 @@ function parseOperand (m,s) {
 	let ctlRegIdx = findCtlIdx (m,s,ctlRegName);
 	s.ctlReg = ctlRegIdx;
 	console.log (`rcx d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
+    } else if (ident) { // assembler directive with identifier (export)
+        s.hasOperand = true;
+        s.operandType = ASMDIRIDENT;
+        s.operandIDENT = true;
+        s.identarg = ident[0];
+        console.log (`\n\n\nOPERAND IDENT 0 arg ${ident[0]}`);
+        console.log (`\n\n\nOPERAND IDENT 1 arg ${ident[1]}`);
+        console.log (`\n\n\nOPERAND IDENT 2 arg ${ident[2]}`);
+        console.log (`\n\n\nOPERAND IDENT arg ${s.identarg}`);
     } else if (dat) {
 	s.hasOperand = true;
 	s.operandType = DATA;
 	s.operandDATA = true;
 	s.dat = dat[1];
-//	console.log('data 0' + dat[0]);
-//	console.log('data 1' + dat[1]);
-//	console.log('data 2' + dat[2]);
-//	console.log('data 3' + dat[3]);
+        console.log (`\n\nDAT`);
+	console.log('data 0' + dat[0]);
+	console.log('data 1' + dat[1]);
+	console.log('data 2' + dat[2]);
+	console.log('data 3' + dat[3]);
 //	result.val = dat[1];
     } else {
 	s.hasOperand = false;
@@ -817,6 +824,7 @@ function asmPass2 (m) {
                     mkErrMsg (m,s,'Module name already defined');
                 } else if (s.hasLabel) {
                     m.modName = s.fieldLabel;
+                    m.objectCode.push('object   ' + s.fieldLabel);
                     console.log (`Module name is ${m.modName}`);
                 } else {
                     mkErrMsg (m,s,'Module statement requires label');
@@ -831,11 +839,22 @@ function asmPass2 (m) {
 	    generateObjectWord (m, s, s.address, s.codeWord1);
         } else if (fmt==DATA && s.operandDATA) {
 	    console.log('fmt is DATA and operandDATA=' + s.dat);
-	    s.codeWord1 = evaluate(m,s,s.dat);  // disallow relocatable expr in data
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-            //	    console.log('pass2 DATA ' + wordToHex4(s.codeWord1));
+            let v = evaluate(m,s,s.dat);
+            console.log (v);
+            if (v.evalRel) {
+                mkErrMsg (m,s,'Data value must not be relocatable');
+            } else {
+                s.codeWord1 = v.evalVal;
+	        generateObjectWord (m, s, s.address, s.codeWord1);
+            }
         } else if (fmt==ASMDIRX) {
         } else if (fmt==ASMDIRIDENT) {
+            if (s.fieldOperation=="export") { // export statement
+                console.log (`pass2 ADMDIRIDENT export ${s.identarg}`);
+                m.exports.push(s.identarg);
+            } else {
+                mkErrMsg (m,s,'Invalid directive with identifier');
+            }
 	} else {
 	    console.log('pass2 other, noOperation');
 	}
@@ -871,6 +890,7 @@ function asmPass2 (m) {
     }
     emitObjectWords (m);
     emitRelocations (m);
+    emitExports (m);
 }
 
 // linenumber indexed from 0 but add1 for asm listing header and add1
@@ -916,7 +936,7 @@ function forceFlushObjectLine(m) {
 function generateObjectWord (m, s, a, x) {
     let ln = s.lineNumber + 2;  // adjust for <span> line and header line
     m.asmap[a] = ln;
-    console.log ('generateObjectWord entered asmap[' + a + '] = ' + ln);
+    console.log (`generateObjectWord (${x}) asmap[${a}]=${ln}`);
     objectWordBuffer.push (x);
 //    if (objBufferSize > 0) { objectLineBuffer += ',' };
 //    objectLineBuffer += wordToHex4(x);
@@ -925,17 +945,13 @@ function generateObjectWord (m, s, a, x) {
 }
 
 function emitObjectWords (m) {
-    console.log (`emit object words ${objectWordBuffer}`);
-    console.log (`length = ${objectWordBuffer.length}`);
-    //    let xs = objectWordBuffer;  // just take n of them
-    let xs = objectWordBuffer.splice(0,objBufferLimit);
-    let ys = xs.map( (w) => wordToHex4(w));
-    console.log (`xs=${xs}`)
-    console.log (`ys=${ys}`)
-    let zs = '  hexdata  ' + ys.join(',')
-    console.log (`zs=${zs}`)
-    m.objectCode.push (zs);
-    if (objectWordBuffer.length > 0) { emitObjectWords(m); }
+    let xs, ys, zs;
+    while (objectWordBuffer.length > 0) {
+        xs = objectWordBuffer.splice(0,objBufferLimit);
+        ys = xs.map( (w) => wordToHex4(w));
+        zs = 'hexdata  ' + ys.join(',');
+        m.objectCode.push (zs);
+    }
 }
 
 // Record an address that needs to be relocated
@@ -946,16 +962,50 @@ function generateRelocation (m, s, a) {
 
 // Generate the relocation statements in object code
 function emitRelocations (m) {
-    console.log (`emit relocations ${relocationAddressBuffer}`);
-    let xs = relocationAddressBuffer.splice(0,objBufferLimit);
-    let ys = xs.map((w) => wordToHex4(w));
-    console.log (`xs=${xs}`)
-    console.log (`ys=${ys}`)
-    let zs = '  relocate ' + ys.join(',')
-    console.log (`zs=${zs}`)
-    m.objectCode.push (zs);
-    if (relocationAddressBuffer.length > 0) { emitRelocations(m); }
+    let xs, ys, zs;
+    while (relocationAddressBuffer.length > 0) {
+        let xs = relocationAddressBuffer.splice(0,objBufferLimit);
+        let ys = xs.map((w) => wordToHex4(w));
+        let zs = 'relocate ' + ys.join(',')
+        m.objectCode.push (zs);
+    }
 }
+
+//    console.log (`emit relocations ${relocationAddressBuffer}`);
+//    console.log (`xs=${xs}`)
+//    console.log (`ys=${ys}`)
+//    console.log (`zs=${zs}`)
+//     if (relocationAddressBuffer.length > 0) { emitRelocations(m); }
+
+function emitExports (m) {
+    let x, sym, v, r;
+    console.log ('emitExports' + m.exports);
+    while (m.exports.length > 0) {
+        x = m.exports.splice(0,1);
+        y = x[0];
+        console.log (`emit exports looking up  x=<${x}> y=${y}`);
+        console.log (m.symbolTable);
+        sym = m.symbolTable.get(y);
+        if (sym) {
+            console.log (`emitExports have s defined`);
+            r = sym.relocatable ? 'rel' : 'const';
+            v = wordToHex4(sym.val);
+            m.objectCode.push (`export   ${y},${r},${v}`);
+            console.log (`export   ${y},${r},${v}`);
+        } else {
+            console.log (`\n\n\n ERROR export error ${x}\n\n\n`);
+        }
+    }
+}
+//        console.log (`globalsym= ${globalsym}`);
+//        console.log (`symtab size = ${m.symbolTable.size}`);
+//        globalfoobar = m.symbolTable;
+//        mysym = globalfoobar.get('g');
+//        globalsym = mysym;
+//        console.log(`LOG emitExports loop x=${x}`);
+//        m.objectCode.push(`EMIT emitExports loop x=${x}`);
+        //        console.log (`showSymbol x = ${showSymbol(x)}`);
+
 
 function showAsmap (m) {
     console.log ('showAsmap');

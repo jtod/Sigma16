@@ -1,6 +1,6 @@
 // Sigma16: editor.js
-// Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
-// License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt, LICENSE-NOTICE.txt
+// Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -16,7 +16,6 @@
 //-------------------------------------------------------------------------------
 // editor.js provides a minimal text editor for writing and modifying
 // code, both assembly language and object code.
-
 //-------------------------------------------------------------------------------
 
 let currentFile = null;  // Remember the current working file handle
@@ -29,13 +28,19 @@ function editorDownload () {
     downloadElt.click();  // perform the download
 }
 
+
+
+//-------------------------------------------------------------------------------
+// Reading files
+
 function handleSelectedFiles (flist) {
     console.log("handleSelectedFiles");
     let m;
     for (let i=0; i<flist.length; i++) {
 	m = mkModule ();
 	m.mFile = flist[i];
-	m.hasFile = true;
+//	m.hasFile = true;
+        m.fileName = m.mFile.name;
 	m.selected = false;
 	m.fileReader = mkOfReader(nModules);
 	m.modSrc = "";
@@ -55,27 +60,26 @@ function mkOfReader (i) {
     return fr;
 }
 
+//            + `<br>module name = ${mName}, file name = ${fName}`
+//	mName = '///' + getModName (m) + '///' + m.modName + '///';
+//        fName = getFileName (m);
 function showModules() {
     console.log ('showModules');
-    let xs;
-    let ys = "\n<hr>";
-    let sel;
-    let spanClass;
-    let mName;
-    let m;
+    let xs, ys = "\n<hr>";
+    let m, sel, spanClass, mName, fName, mfName;
     for (let i=0; i<nModules; i++) {
 	m = s16modules[i];
-	mName = getModName(m);
+        mfName = getModFileName (m);
 	sel = selectedModule===i;
 	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
 	ys += `&nbsp;`
-	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. Module ${mName}</span>`
+	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. ${mfName}</span>`
 	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
 	    + `<button onclick="modulesButtonClose(${i})">Close</button>`
 	    + `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
-            + `<br>hasFile=${m.hasFile} fileName=${m.fileName} modName=${m.modName}`
             + `<br>nAsmErrors=${m.nAsmErrors} isExecutable=${m.isExecutable}`
 	    + '<br><pre>'
+            + (m.fileStale ? "<br>Modified, needs to be saved<br>" : "<br>")
 	    + m.modSrc.split('\n').slice(0,8).join('\n')
 	    + '</pre>\n\n'
             + '<hr>\n\n';
@@ -92,6 +96,7 @@ function modulesButtonSelect (i) {
     selectedModule = i;
     s16modules[i].selected = true;
     editorBufferTextArea.value = s16modules[i].modSrc;
+    showModules(); // refresh the display, showing this module selected
 }
 
 // Need to be careful about this affecting refresh, as i has been
@@ -104,4 +109,20 @@ function modulesButtonClose (i) {
 function modulesButtonRefresh (i) {
     console.log (`filesButtonRefresh ${i}`);
     s16modules[i].fileReader.readAsText(s16modules[i].mFile);
+}
+
+// To determine whether a file text is stale, we can't just compare
+// the strings because of different end of line conventions.
+// Therefore we convert the old and new source into an array of lines
+// and compare those arrays.
+function leaveEditor () {
+    console.log ('Leaving the editor');
+    let m = s16modules[selectedModule];
+    let oldSrc = m.modSrc;
+    let oldSrcCanonical = oldSrc.replace (/\r\n/gm, '\n');
+    let newSrc = document.getElementById("EditorTextArea").value;
+    let newSrcCanonical = newSrc.replace (/\r\n/gm, '\n');
+    if (m.mFile && (oldSrcCanonical != newSrcCanonical)) { m.fileStale = true; }
+    m.modSrc = newSrc;
+    hideTabbedPane("EditorPane");
 }

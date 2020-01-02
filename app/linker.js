@@ -1,6 +1,6 @@
 // Sigma16: linker.js
-// Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
-// License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt, LICENSE-NOTICE.txt
+// Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -16,12 +16,10 @@
 //-------------------------------------------------------------------------------
 // linker.js combines a collection of object modules to form an
 // executable module, performing address relocation as needed.
-
 //-------------------------------------------------------------------------------
 
 var exMod;           // the module that is executing
 var curAsmap = [];
-
 
 // Clear the display of the object code in the linker pane
 
@@ -30,11 +28,11 @@ function clearObjectCode () {
 }
 
 function setCurrentObjectCode () {
-    let objHeader = "Module " + currentModNum + " object code"
+    let objHeader = "Module " + selectedModule + " object code"
     let objText =
 	"<pre class='HighlightedTextAsHtml'><span class='ListingHeader'>"
 	+ objHeader + "</span>\n"
-	+ s16modules[currentModNum].objectCode.join('\n')
+	+ s16modules[selectedModule].objectCode.join('\n')
 	+ "</pre>";
     document.getElementById('LinkerText').innerHTML	= objText;
 

@@ -1,6 +1,6 @@
 // Sigma16: gui.js
-// Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
-// License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt, LICENSE-NOTICE.txt
+// Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -18,6 +18,22 @@
 // the last JavaScript file to be loaded
 
 //-------------------------------------------------------------------------------
+// Debug and test tools
+//-------------------------------------------------------------------------------
+
+// Each field controls debug/test output for one aspect of the
+// program.  The output will be produced iff the field is set to true.
+// This can be done interactively in the browser console, which is
+// toggled by shift-control-I.  For example, to give more information
+// in the Modules list, enter developer.files = true in the console.
+
+let developer = {
+    files : null,   // give full file information in Modules list
+    assembler : null
+}
+
+
+//-------------------------------------------------------------------------------
 // Global variables
 //-------------------------------------------------------------------------------
 
@@ -32,6 +48,20 @@ var editorBufferTextArea; /* set when window.onload */
 var textFile = null; /* for save download */
 var create;  /* for save download */
 var textbox; /* for save download */
+
+function makeTextFile (text) {
+    var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+
+    textFile = window.URL.createObjectURL(data);
+
+    return textFile;
+}
 
 var ioLogBuffer = "";
 
@@ -376,7 +406,7 @@ function hideAllTabbedPanes() {
     hideTabbedPane("WelcomePane");
     hideTabbedPane("ExamplesPane");
     hideTabbedPane("ModulesPane");
-    hideTabbedPane("EditorPane");
+    leaveEditor(); // will also hide editor pane
     hideTabbedPane("AssemblerPane");
     hideTabbedPane("LinkerPane");
     hideTabbedPane("ProcessorPane");
@@ -637,6 +667,51 @@ window.onresize = function () {
     console.log ('window.onresize finished');
 }
 
+
+
+// https://stackoverflow.com/questions/31048215/how-to-create-txt-file-using-javascript-html5
+
+let myblob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
+
+function foobarSaveAs () {
+    saveAs(blob, "hello-world-file.txt");
+}
+
+
+
+/*
+https://www.codeproject.com/Questions/896991/create-file-by-javascript
+So, we just need to call the script on window onload like.
+Hide   Expand    Copy Code
+window.onload = function(){
+            var textFile = null,
+
+            makeTextFile = function (text) {
+                                var data = new Blob([text], {type: 'text/plain'});
+
+                                // If we are replacing a previously generated file we need to
+                                // manually revoke the object URL to avoid memory leaks.
+                                if (textFile !== null) {
+                                  window.URL.revokeObjectURL(textFile);
+                                }
+
+                                textFile = window.URL.createObjectURL(data);
+
+                                return textFile;
+                            };
+
+            var create = document.getElementById('create'),
+            textbox = document.getElementById('textbox');
+
+            create.addEventListener('click', function () {
+                                                var link = document.getElementById('downloadlink');
+                                                link.href = makeTextFile(textbox.value);
+                                                link.style.display = 'block';
+                                            }, false);
+        };
+
+*/
+
 //-------------------------------------------------------------------------------
 // Complete initialization when onload occurs
 //-------------------------------------------------------------------------------
@@ -644,6 +719,12 @@ window.onresize = function () {
 window.onload = function () {
     
     console.log("window.onload activated");
+
+//    s16modules = [];    // All the modules in the system
+//    nModules = 1;
+//    selectedModule = 0;
+    initModules();
+
     showTabbedPane("WelcomePane");
     initializeProcessorElements ();  // so far, it's just instr decode
     clearInstrDecode (emulatorState);
@@ -723,7 +804,6 @@ window.onload = function () {
     procAsmListingElt = document.getElementById('ProcAsmListing');
     
     editorBufferTextArea = document.getElementById("EditorTextArea");
-
     
 /* for save download */
 //    create = document.getElementById('CreateFileForDownload'),
@@ -732,12 +812,11 @@ window.onload = function () {
 //    var link = document.getElementById('downloadlink');
 //    link.href = makeTextFile(textbox.value);
 //    link.style.display = 'block';
-//  }, false);
+    //  }, false);
+
 
     resetRegisters();
-    insert_example(example_add);     // For testing and debugging
     initialize_mid_main_resizing ();
-    // setMidMainLRratio(0.65);  // 0.65 is reasonable value for normal use
     setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
     showSizeParameters();
     adjustToMidMainLRratio();
@@ -746,3 +825,36 @@ window.onload = function () {
     
     console.log("Initialization complete");
 }
+
+
+/*
+https://stackoverflow.com/questions/31048215/how-to-create-txt-file-using-javascript-html5
+
+(function () {
+var textFile = null,
+  makeTextFile = function (text) {
+    var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+
+    textFile = window.URL.createObjectURL(data);
+
+    return textFile;
+  };
+
+
+  var create = document.getElementById('create'),
+    textbox = document.getElementById('textbox');
+
+  create.addEventListener('click', function () {
+    var link = document.getElementById('downloadlink');
+    link.href = makeTextFile(textbox.value);
+    link.style.display = 'block';
+  }, false);
+})();
+
+*/

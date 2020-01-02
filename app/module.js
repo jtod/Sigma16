@@ -1,6 +1,6 @@
 // Sigma16: module.js
-// Copyright (c) 2019 John T. O'Donnell.  <john dot t dot odonnell9 at gmail.com>
-// License: GNU GPL Version 3 or later. See Sigma6/ LICENSE.txt, LICENSE-NOTICE.txt
+// Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -25,23 +25,19 @@
 //------------------------------------------------------------------------------
 // List of all modules
 
-var s16modules = [];    // All the modules in the system
-var currentModNum = 0;  // The module shown in editor and assembler deprecated
+let s16modules = [];    // All the modules in the system
 let nModules = 1;
 let selectedModule = 0;
 
-// Initialize the modules: create one initial (empty) module and make
-// it the current module
-
+// Create one initial (empty) module and make it the current module
 function initModules () {
     s16modules = [mkModule()];
-    currentModNum = 0;
+    selectedModule = 0;
 }
 
 // Get the full data structure for the current module
-
 function getCurrentModule () {
-    return s16modules[currentModNum]
+    return s16modules[selectedModule]
 }
 
 // Return brief descriptions of all the modules.  A fuller description
@@ -65,10 +61,11 @@ function showModules () {
 function mkModule () {
     console.log('mkModule');
     return {
-	hasFile : false,           // true if read from file, false if from ed:new
+//	hasFile : false,           // true if read from file, false if from ed:new
 	mFile : null,              // file object associated with module, if any
         fileName : null,           // filename, if exists and is known
 	fileReader : null,         // object to read the file
+        fileStale : false,         // contents have been changed in editor
 	selected : false,          // this module is selected (for edit, asm)
 	modName : null,            // name of module specified in module stmt
 	modSrc : '',               // source code
@@ -81,6 +78,7 @@ function mkModule () {
 	asmListingPlain : [],      // assembler listing
 	asmListingDec : [],         // decorated assembler listing
 	objectCode : [],           // string hex representation of object
+        exports : [],
 	asmStmt : []               // statements correspond to lines of source
     }
 }
@@ -92,8 +90,18 @@ function showModule (m) {
     return xs;
 }
 
+// Return the module name and file name, if they exist
+function getModFileName (m) {
+    let mname = m.modName ? `${m.modName}` : '';
+    let fname = m.mFile ? `(${m.mFile.name})` : '';
+    let xs = (m.modName || m.mFile) ? mname + '  ' + fname : '<anonymous>';
+    return xs;
+}
+
 function getModName (m) {
-    return (m.modName ? m.modName
-            : (m.fileName ? m.fileName
-               : "<anonymous>"));
+    return m.modName ? m.modName : "no module statement"
+}
+
+function getFileName (m) {
+    return m.mFile ? m.mFile.name : "no file associated with module"
 }
