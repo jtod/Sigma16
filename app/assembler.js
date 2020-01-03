@@ -17,12 +17,8 @@
 // assembler.js translates assembly language to machine language
 //-------------------------------------------------------------------------------
 
-// Object lines
-// let objectLineBuffer = "";
-// let objBufferSize = 0;
-// let objectBuffer = [];              // list of object lines
-
-let objBufferLimit = 8;             // how many code words to allow per line
+// Buffers to hold generated object code
+let objBufferLimit = 8;             // how many code items to allow per line
 let objectWordBuffer = [];          // list of object code words
 let relocationAddressBuffer = [];   // list of relocation addresses
 
@@ -61,8 +57,8 @@ function showSymbolTable (m) {
     m.asmListingDec.push('');
     m.asmListingPlain.push("<span class='ListingHeader'>Symbol table</span>");
     m.asmListingDec.push("<span class='ListingHeader'>Symbol table</span>");
-    m.asmListingPlain.push("<span class='ListingHeader'>Name      Val   Def   Used</span>");
-    m.asmListingDec.push("<span class='ListingHeader'>Name      Val   Def   Used</span>");
+    m.asmListingPlain.push("<span class='ListingHeader'>Name      Val      Def   Used</span>");
+    m.asmListingDec.push("<span class='ListingHeader'>Name      Val      Def   Used</span>");
     m.symbols =[ ...m.symbolTable.keys() ].sort();
     console.log('symbols = ' + m.symbols);
     for (let i = 0; i < m.symbols.length; i++) {
@@ -862,7 +858,8 @@ function asmPass2 (m) {
 	    + ' ' + wordToHex4(s.address)
 	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize>1 ? wordToHex4(s.codeWord2) : '    ')
-//	    + ' ' + s.srcLine
+        //	    + ' ' + s.srcLine
+            + ' '
 	    + s.fieldLabel
 	    + s.fieldSpacesAfterLabel
 	    + s.fieldOperation
@@ -874,6 +871,7 @@ function asmPass2 (m) {
 	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize>1 ? wordToHex4(s.codeWord2) : '    ')
 //	    + ' ' + s.srcLine
+            + ' '
 	    + highlightField (s.fieldLabel, "FIELDLABEL")
 	    + s.fieldSpacesAfterLabel
 	    + highlightField (s.fieldOperation, "FIELDOPERATION")

@@ -13,6 +13,11 @@ around the beginning of February 2020.  The notes below, as well as
 the user guide, are incomplete and refer to previous versions, so the
 current documentation is inconsistent with the current software.*
 
+### Internet links
+
+The following links point to online resources, and they require access
+to the Internet.
+
 * [Launch Sigma16 to run in your
   browser](https://jtod.github.io/S16/dev/app/Sigma16.html).  This
   runs the latest release, and requires Internet access.
@@ -26,6 +31,12 @@ current documentation is inconsistent with the current software.*
 * [The source repository](https://github.com/jtod/Sigma16).  allows
   you to view the source and download it.  This the README page for
   the source repository.  The URL is https://github.com/jtod/Sigma16
+
+## Links to local files
+
+If you copy the Sigma16 directory onto your computer, the following
+links will run it locally, without further access to the Internet.
+
 * [Launch from files in this directory](./app/Sigma16.html) If you
   have copied this directory onto a local machine, this link will run
   it, with some limitations on file access (the User Guide won't be
