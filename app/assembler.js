@@ -72,10 +72,6 @@ function showSymbolTable (m) {
                              + (x.relocatable ? ' R' : ' C')
 			     + x.defLine.toString().padStart(5));
     }
-//    let xs = [];
-//    symbolTable.forEach(function(sym,key,owner) {
-//	console.log(key + ' val=' + sym.val + ' def=' + sym.defLine);
-//    })
 }
 
 function showSymbol (s) {
@@ -784,6 +780,11 @@ function asmPass2 (m) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
             let v = evaluate(m,s,s.dispField);
+            // if it is an import, use 0 for now and push it onto
+            // variable's import list CALL exprCode which calls
+            // evaluate and returns a number to generate, and also
+            // pushes the expression if this is a variable whicdh is
+            // an import
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {
                 console.log (`relocatable displacement`);
@@ -844,10 +845,14 @@ function asmPass2 (m) {
 	        generateObjectWord (m, s, s.address, s.codeWord1);
             }
         } else if (fmt==ASMDIRX) {
-        } else if (fmt==ASMDIRIDENT) {
+        } else if (fmt==ASMDIRIDENT) { // import, export
             if (s.fieldOperation=="export") { // export statement
                 console.log (`pass2 ADMDIRIDENT export ${s.identarg}`);
                 m.exports.push(s.identarg);
+            } else if (s.fieldOperation=="import") { // import statement
+                console.log (`pass2 ADMDIRIDENT import ${s.identarg}`);
+                // push the mod
+                // generate  import varname,module,
             } else {
                 mkErrMsg (m,s,'Invalid directive with identifier');
             }

@@ -20,9 +20,8 @@ Quick start:
   This includes documentation of the architecture, programming, and
   installation.
 
-This is not a commercial architecture; it is simpler than most
-commercial products making it a good vehicle for teaching and
-experimentation.
+This architecture is simpler than most commercial products making it a
+good vehicle for teaching and experimentation.
 
 * A 16-bit architecture with a simple yet powerful instruction set.
 
