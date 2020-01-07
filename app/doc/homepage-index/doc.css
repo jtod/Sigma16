@@ -178,3 +178,16 @@ table.wordlayout, th, td {
     border: 1px solid black;
     border-collapse: collapse;
 }
+
+.box-around-text {
+    border: 1px solid black;
+    background: ivory;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 2em;
+    padding-bottom: 2em;
+    padding-left: 3pt;
+    padding-right: 3pt;
+    text-align: center;
+}

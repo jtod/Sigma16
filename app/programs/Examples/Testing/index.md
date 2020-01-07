@@ -24,9 +24,11 @@
 
 * [TestCmpJumpFT](TestCmpJumpFT.asm.txt)
 
-* [Mod1](Mod1.asm.txt)
+* [Mod1](Mod1.asm.txt) Mod1 imports Mod2 and Mod3
 
-* [Mod2](Mod2.asm.txt)
+* [Mod2](Mod2.asm.txt) Mod1 imports Mod2 and Mod3
+
+* [Mod3](Mod3.asm.txt) Mod1 imports Mod2 and Mod3
 
 
 

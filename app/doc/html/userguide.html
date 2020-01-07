@@ -122,6 +122,7 @@ Version 3.0.33
 <li><a href="#org">org</a></li>
 <li><a href="#import">import</a></li>
 <li><a href="#export">export</a></li>
+<li><a href="#equ">equ</a></li>
 </ul></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
@@ -130,8 +131,8 @@ Version 3.0.33
 <li><a href="#module-statement">module statement</a></li>
 <li><a href="#org-statement">org statement</a></li>
 <li><a href="#data-statement">data statement</a></li>
-<li><a href="#export-statement">export statement</a></li>
 <li><a href="#import-statment">import statment</a></li>
+<li><a href="#export-statement">export statement</a></li>
 <li><a href="#relocate-statement">relocate statement</a></li>
 </ul></li>
 <li><a href="#executable-code">Executable code</a></li>
@@ -141,16 +142,11 @@ Version 3.0.33
 </ul></li>
 <li><a href="#programming">Programming</a><ul>
 <li><a href="#computer-architecture">Computer Architecture</a><ul>
-<li><a href="#machine-language">Machine language</a></li>
-<li><a href="#what-is-machine-language-like">What is machine language like?</a></li>
-<li><a href="#instructions-1">Instructions</a></li>
-<li><a href="#sigma16">Sigma16}</a></li>
+<li><a href="#machine-language-and-instructions">Machine language and instructions</a></li>
 <li><a href="#why-use-sigma16">Why use Sigma16?</a></li>
 <li><a href="#structure-of-a-computer">Structure of a computer</a></li>
-<li><a href="#register-file-1">Register file</a></li>
-<li><a href="#what-are-the-registers-actually">What are the registers actually?</a></li>
-<li><a href="#instructions-2">Instructions}</a></li>
-<li><a href="#the-rtm-instructions">The RTM instructions}</a></li>
+<li><a href="#instructions-1">Instructions}</a></li>
+<li><a href="#the-rtm-instructions">The RTM instructions</a></li>
 <li><a href="#the-add-instruction">The add instruction}</a></li>
 <li><a href="#registers-can-hold-variables">Registers can hold variables}</a></li>
 <li><a href="#notation-and-terminology">Notation and terminology}</a></li>
@@ -225,7 +221,7 @@ Version 3.0.33
 </ul></li>
 <li><a href="#comparison-of-the-two-styles">Comparison of the two styles</a></li>
 </ul></li>
-<li><a href="#machine-language-1">Machine language</a><ul>
+<li><a href="#machine-language">Machine language</a><ul>
 <li><a href="#machine-language-representing-instructions-in-memory">Machine language: representing instructions in memory</a></li>
 <li><a href="#whats-in-the-memory">What’s in the memory?</a></li>
 <li><a href="#instruction-formats-different-types-of-instruction">Instruction formats: different types of instruction</a></li>
@@ -652,7 +648,7 @@ Version 3.0.33
 <li><a href="#practical-programming-tip">Practical programming tip</a></li>
 </ul></li>
 <li><a href="#architecture-1">Architecture</a><ul>
-<li><a href="#instructions-3">Instructions</a></li>
+<li><a href="#instructions-2">Instructions</a></li>
 <li><a href="#addresses-and-data-structures">Addresses and data structures</a><ul>
 <li><a href="#compilation-patterns-3">Compilation patterns</a></li>
 </ul></li>
@@ -1825,9 +1821,11 @@ Interrupt
 </ul>
 <h2 id="instructions">Instructions</h2>
 <h2 id="directives">Directives</h2>
-<p>A directive is a statement that doesn’t generate an instruction, but which gives further information about how to translate the program to object code.</p>
+<p>A directive is an assembly language statement that doesn’t generate an instruction, but which gives further information about how to translate the program to object code.</p>
 <p>Directive formats</p>
-<p>ASMDIR directive with no operand: xyz module ASMDIRX directive with an expression org 234 ASMDIRNS directive with a list of names import m1,m2 export a,b,c</p>
+<pre><code>ASMDIR    operand:    xyz module
+ASMDIRX   expression  org 234
+ASMDIRNS  list of names   import m1,m2 export a,b,c</code></pre>
 <pre><code>abc        Module
 x          import   Mod1
 y          import   Mod1
@@ -1852,7 +1850,17 @@ asize      equ  aend-astart</code></pre>
 <li><p>A simple and clean rule is that an org statement must be of the form constant or <em>+constant, but </em>+label is disallowed. The principle is that a first pass through the assembly source code must resolve the values of all names. But this is needlessly restrictive.</p></li>
 <li><p>The important point is that during the second pass it should be possible to evaluate all expressions without backtracking. This can be achieved by another approach: simply to disallow forward references in expressions. For example this could be allowed</p></li>
 </ul>
-<p>a equ 123 … org *+a</p>
+<pre><code>a  equ  123
+...
+   org  *+a</code></pre>
+<p>An expression may be</p>
+<ul>
+<li><p>A literal constant</p></li>
+<li><p>An identifier defined within the module</p></li>
+<li><p>The sum of a local relocatable epression and a constant</p></li>
+<li><p>The difference between two local locatable expressions</p></li>
+<li><p>An identifier imported from another module. In this case, the expression may not contain any operators or other terms: the entire expression must just be that identifier.</p></li>
+</ul>
 <h4 id="module">module</h4>
 <p>A program may be organized as a collection of modules, where each module appears in a separate file. When several modules are present, each one needs a unique name. The purpose of the module statement is to specify this name.</p>
 <p>A small program can be written as just one module, and it may have a module name but this is not required.</p>
@@ -1876,6 +1884,8 @@ asize      equ  aend-astart</code></pre>
 
 fcn      add    R1,R1,R1
          jump   0[R12]</code></pre>
+<h3 id="equ">equ</h3>
+<pre><code>trapWrite   equ  2</code></pre>
 <h2 id="assembly-listing">Assembly listing</h2>
 <p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two’s complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn’t produce any code these fields will be blank. After the code, the original source statement appears.</p>
 <p>The second section of the assembly listing is the <em>Symbol Table</em>. This shows each identifier (or “symbol”) that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
@@ -1887,6 +1897,7 @@ fcn      add    R1,R1,R1
 <li><p>In the object language, hex constants are written as four characters, using digits 0-9 a-f. Unlike assembly language, a hex constant is not preceded by $.</p></li>
 <li><p>Identifiers have the same syntax as in assembly language: a string of letters, digits, and underscore characters, beginning with a letter.</p></li>
 </ul>
+<p>The object language has six statements: module, org, data, import, export, and relocate. These are related to corresponding statements in assembly language, but their syntax is different. For example, an import statement in assembly language will generate one or more import statements in the object code, but those statements have a different syntax and contain different information.</p>
 <h3 id="module-statement">module statement</h3>
 <p>Declare the name of the module. The argument must be an indentifier. The following statement says that this is the object code for module named abc.</p>
 <pre><code>module abc</code></pre>
@@ -1907,11 +1918,13 @@ data x4,x5,x6</code></pre>
 <li><p>The i’th constant (counting from 0) in a data statement is x.</p></li>
 </ul>
 <p>Then the linker will set mem[r+c+i] := x.</p>
-<pre><code>data hex4 ... hex4</code></pre>
-<h3 id="export-statement">export statement</h3>
-<pre><code>export x</code></pre>
+<p>One point to watch out for is that an assembly language data statement uses $ to indicate that a number is a hex constant (e.g. $03b7) but the object language data statement requires all numbers to be 4-digit hex constants, and does not require (or allow) a preceding $ character</p>
 <h3 id="import-statment">import statment</h3>
 <pre><code>import mod3,sqr,addr,addr,...</code></pre>
+<h3 id="export-statement">export statement</h3>
+<p>An export statement says that the module is making the value of a symbol available for use in other modules, which may import it. The statement takes two operands: the name being exported and the value, which must be a 4-digit hex constant. It makes no difference whether the name is relocatable, as the linker performs any relocation before writing the exported value into other modules that import it. Examples:</p>
+<pre><code>export  haltcode,0
+export  fcn,002c</code></pre>
 <h3 id="relocate-statement">relocate statement</h3>
 <p>The relocate statement specifies a list of addresses of words that must be relocated. Suppose the value x is specified in a relocate statement, and the linker is relocating the module by offset y. Then the linker will set mem[x+y] = obj[x]+y.</p>
 <pre><code>relocate hex4,hex4,...</code></pre>
@@ -1952,98 +1965,28 @@ data x4,x5,x6</code></pre>
 <p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
 <h1 id="programming">Programming</h1>
 <h2 id="computer-architecture">Computer Architecture</h2>
-<p>Computer Architecture defines the  and the  of a computer.</p>
-<p>This subject is in the middle of computer systems</p>
+<h3 id="machine-language-and-instructions">Machine language and instructions</h3>
+<p>Very different from Python, Java, C, etc. The designer of a machine language has to `look both up and down’:</p>
 <ul>
-<li><p>At lower levels, we have physics, transistors, digital circuits</p></li>
-<li><p>In the middle, computer architecture is implemented using digital circuits and supports compilers and operating systesm</p></li>
-<li><p>At higher levels, we have operating systems, compilers, system software, network protocols, and applications</p></li>
+<li><p>Looking up to higher levels of abstraction, the machine language must be powerful enough to provide the foundation for operating systems and programming languages.</p></li>
+<li><p>Looking down to the lower levels of implementation, the machine language must be simple enough so that a digital circuit can execute it.</p></li>
 </ul>
-<p>Understanding the principles of computer architecture is central to computer science.</p>
-<p>A practical benefit: understanding machine language will give you a deeper understanding of programming languages</p>
-<h3 id="machine-language">Machine language</h3>
-<ul>
-<li><p>There are many programming languages</p></li>
-<li><p>Each machine has one fixed </p></li>
-<li><p>How can there be many programming languages?</p></li>
-<li><p>Each PL is  to machine language by software called a </p></li>
-</ul>
-<p>A computer is a digital circuit (a piece of hardware, a machine) that executes programs</p>
-<ul>
-<li><p>A fixed digital circuit can execute one fixed </p></li>
-<li><p>Examples:</p></li>
-<li>Intel Core or Pentium (actually, there is a family of Intel processors ``x86’’ and their machine languages are related but not identical)</li>
-<li>ARM</li>
-<li>MIPS</li>
-<li>Sparc</li>
-<li><p><span class="math inline">…</span> and many more</p></li>
-<li>The details of different machine languages are quite different</li>
-<li><p>But we will focus on principles common to all of them</p></li>
-</ul>
-<h3 id="what-is-machine-language-like">What is machine language like?</h3>
-<ul>
-<li>Very different from Python, Java, C, <span class="math inline">…</span></li>
-<li><p>The designer of a machine language has to ``look both up and down’’:</p></li>
-<li>Looking up, the machine language must be  to provide the foundation for operating systems and programming languages. </li>
-<li><p>Looking down, the machine language must be  so that a digital circuit can execute it. </p></li>
-<li>Machine languages are also designed to make high performance possible</li>
-<li>But they are  intended to make programming as easy as possible!</li>
-<li><p>Today, we’ll look at a simplified notation called ; next time we’ll look at the real </p></li>
-</ul>
-<h3 id="instructions-1">Instructions</h3>
-<ul>
-<li>A machine language provides </li>
-<li><p>Analogous to statements in a programming language, with some differences</p></li>
-<li>Statements can be complex: x := 2 * (a + b/c)</li>
-<li>Instructions are simple: R2 := R1 + R3</li>
-<li><p>Each instruction just performs one operation</p></li>
-</ul>
-<h3 id="sigma16">Sigma16}</h3>
-<ul>
-<li>In this course we will study an architecture called Sigma16</li>
-<li>Sigma16 is designed to support several research projects at the University of Glasgow</li>
-<li>It’s a research machine, not a commercial product</li>
-<li>There is a complete design, including a full digital circuit</li>
-<li><p>It hasn’t been manufactured, but there are two implementations in software</p></li>
-<li>An emulator, which you will use in this course</li>
-<li><p>A simulator for the circuit</p></li>
-</ul>
+<p>Machine languages are designed to achieve high performance possible at reasonable cost. Their primary aim is not to make programming as easy as possible</p>
+<p>A machine language program consists of instructions. An instruction is analogous to a statement in a programming language. However, each instruction just performs a small fixed set of operations, while programming language statements can be complex. For example, the assignment statement x := 2 * (a + b/c) involves three arithmitic operations, and it would require at least three instructions to express in machine language.</p>
 <h3 id="why-use-sigma16">Why use Sigma16?</h3>
-<ul>
-<li>Our focus is on  and </li>
-<li>Sigma16 illustrates all the main ideas, but avoids unnecessary complexity</li>
-<li><p>Example:</p></li>
-<li>Sigma16 has just one word size — 16 bits — while commercial machines provide many</li>
-<li>Most commercial computers have  with previous versions, leading to great complexity</li>
-<li><p>Legacy architectures use an approach called , a simpler  gives better performance — Sigma16 uses this.</p></li>
-</ul>
+<p>Our focus is on fundamental concepts, ideas and principles. Sigma16 illustrates the fundementals of computer systems but it avoids unnecessary complexity. For example, Sigma16 has just one word size (16 bits) while most commercial machines provide a variety. That variety is useful for practical applications but it complicates many of the details while not adding any new fundamental ideas. Most commercial computers that achieve success in the marketplace eventually become encrusted with complications that help support backward compatibility; this can lead to great complexity.</p>
 <h3 id="structure-of-a-computer">Structure of a computer</h3>
 <p>All computers have several main subsystems</p>
 <ul>
-<li>The  is a set of 16 ``registers’’; this is the set of registers in the RTM circuit. They are often named R0, R1, R2, <span class="math inline">…</span>, R15.</li>
-<li>A register is a circuit (a little machine) that can remember a 16-bit word</li>
-<li>The  (arithmetic and logic unit) is a circuit that can do arithmetic, such as addition, subtraction, comparison, and some other operations</li>
-<li>The  can hold a large number of words. It’s similar to the register file, but significantly slower and much larger</li>
-<li>The  can transfer data from the outside world to/from the memory</li>
+<li><p>A register is a digital circuit that can retain one word of data. A new value can be loaded into a register, and the current contents may be read out.</p></li>
+<li><p>The register file is a set of 16 registers that are available to the user programmer for holding values of variables. They are named R0, R1, R2, …, R15.</p>
+<p>Register Contents ~~~~~~~~~~ ~~~~~~~~~~ R0 0000 R1 fffe R2 13c4 … … R14 03c8 R15 0020</p></li>
+<li><p>The ALU (arithmetic and logic unit) is a circuit that can do arithmetic, such as addition, subtraction, comparison, and some other operations</p></li>
+<li><p>The memory can hold a large number of words. It’s similar to the register file, but significantly slower and much larger.</p></li>
+<li><p>The Input/Output system can transfer data between the computer and the outside world.</p></li>
 </ul>
-<h3 id="register-file-1">Register file</h3>
-<ul>
-<li>There are 16 registers</li>
-<li>Each register holds a 16-bit word</li>
-<li>We’ll write the words using hexadecimal</li>
-</ul>
-
-<h3 id="what-are-the-registers-actually">What are the registers actually?</h3>
-<ul>
-<li>Recall the </li>
-<li>It contains four registers, each holding 4 bits</li>
-<li>Sigma16 is just the same, but with 16 registers and each holds 16 bits</li>
-<li>Each 16-bit register is 16 copies of the  circuit</li>
-<li><p>Why program with registers, not variables like sum, count, x, etc?</p></li>
-<li><p>In  we are </p></li>
-</ul>
-<h3 id="instructions-2">Instructions}</h3>
-<h3 id="the-rtm-instructions">The RTM instructions}</h3>
+<h3 id="instructions-1">Instructions}</h3>
+<h3 id="the-rtm-instructions">The RTM instructions</h3>
 <ul>
 <li><p>The RTM circuit can execute two instructions</p>
 <ul>
@@ -2508,7 +2451,7 @@ x = x+1+z;</code></pre>
 <li><p>The object code is concise, but it’s harder to see how it corresponds to the source code.</p></li>
 <li><p>It’s possible to have a mixture of the styles: you don’t have to follow one or the other all the time.</p></li>
 </ul>
-<h2 id="machine-language-1">Machine language</h2>
+<h2 id="machine-language">Machine language</h2>
 <h3 id="machine-language-representing-instructions-in-memory">Machine language: representing instructions in memory</h3>
 <ul>
 <li>The actual bits representing an instruction (written in hex) —  – is </li>
@@ -6064,7 +6007,7 @@ print (&#39;a = &#39;, a, &#39;  b = &#39;, b)</code></pre>
 <h3 id="practical-programming-tip">Practical programming tip</h3>
 
 <h2 id="architecture-1">Architecture</h2>
-<h3 id="instructions-3">Instructions</h3>
+<h3 id="instructions-2">Instructions</h3>
 <ul>
 <li><p>You need to know what the basic instructions do and how to use them</p>
 <ul>

@@ -37,3 +37,15 @@ function setCurrentObjectCode () {
     document.getElementById('LinkerText').innerHTML	= objText;
 
 }
+
+function showLinkerStatus () {
+    console.log ('showLinkerStatus');
+}
+
+function setLinkerModules () {
+    console.log ('setLinkerModules');
+}
+
+function link () {
+    console.log ('link');
+}

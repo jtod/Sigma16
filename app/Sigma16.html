@@ -60,7 +60,7 @@ visiting this file in a browser.
       <div class="TopSection">
 	<button onclick="welcome_pane_button()"> Welcome </button>
 	<button onclick="examples_pane_button()"> Examples </button>
-	<button onclick="files_pane_button()"> Modules </button>
+	<button onclick="modules_pane_button()"> Modules </button>
 	<button onclick="editor_pane_button()"> Editor </button>
 	<button onclick="assembler_pane_button()"> Assembler </button>
 	<button onclick="linker_pane_button()"> Linker </button>
@@ -91,6 +91,9 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
+		<button onclick="jumpToGuideTop()">
+		  Contents
+		</button>
 		<button onclick="jumpToGuideSection('tutorials')">
 		  Tutorials
 		</button>
@@ -149,7 +152,7 @@ visiting this file in a browser.
 		<input type="file" multiple id="FileInput"
 		       name="myfileselector"
 		       onchange="handleSelectedFiles(this.files);"></input>
-		<button onclick="showModules()">Refresh list</button>
+		<button onclick="refreshModulesList()">Refresh list</button>
 	      </div>
 	      <div class="HighlightedTextAsHtml" id="FilesBody">
 	      </div>
@@ -186,10 +189,12 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
-		<button onclick="setCurrentObjectCode(emulatorState)">
-		  Current object </button>
-		<button onclick="boot(emulatorState)"> test Boot </button>
-		<button> Linker 3 </button>
+                <button onclick="showLinkerStatus()">Status</button>
+		<button onclick="setLinkerModules()">
+                  Set linker modules
+                </button>
+		<button onclick="link()"> Link </button>
+		<button onclick="boot(emulatorState)"> Boot </button>
 	      </div>
 	      <div class="PaneBody" id="LinkerBody">
 		<div id="LinkerText"></div>

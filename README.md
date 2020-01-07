@@ -13,7 +13,7 @@ around the beginning of February 2020.  The notes below, as well as
 the user guide, are incomplete and refer to previous versions, so the
 current documentation is inconsistent with the current software.*
 
-### Internet links
+## Internet links
 
 The following links point to online resources, and they require access
 to the Internet.
@@ -36,6 +36,8 @@ to the Internet.
 
 If you copy the Sigma16 directory onto your computer, the following
 links will run it locally, without further access to the Internet.
+However, these links will *not* work if you're reading this page on
+the source repository via the Internet.
 
 * [Launch from files in this directory](./app/Sigma16.html) If you
   have copied this directory onto a local machine, this link will run

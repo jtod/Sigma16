@@ -52,7 +52,7 @@ function run () {
 // Symbol table
 //----------------------------------------------------------------------
 
-function showSymbolTable (m) {
+function displaySymbolTableHtml (m) {
     m.asmListingPlain.push('');
     m.asmListingDec.push('');
     m.asmListingPlain.push("<span class='ListingHeader'>Symbol table</span>");
@@ -66,14 +66,25 @@ function showSymbolTable (m) {
 	m.asmListingPlain.push(m.symbols[i].padEnd(10)
 			       + wordToHex4(x.val)
                                + (x.relocatable ? ' R' : ' C')
-			       + x.defLine.toString().padStart(5));
+			       + x.defLine.toString().padStart(5)
+                               + '  '
+                               + x.symUsageLines.join(',')
+                               + '  '
+                               + x.symUsageAddrs.map((w)=>wordToHex4(w)).join(',')
+                              );
 	m.asmListingDec.push(m.symbols[i].padEnd(10)
 			     + wordToHex4(x.val)
                              + (x.relocatable ? ' R' : ' C')
-			     + x.defLine.toString().padStart(5));
+			     + x.defLine.toString().padStart(5)
+                             + '  '
+                             + x.symUsageLines.join(',')
+                             + '  '
+                             + x.symUsageAddrs.map((w)=>wordToHex4(w)).join(',')
+                            );
     }
 }
 
+// For testing, not used normally
 function showSymbol (s) {
     return (s.symbol + ' val=' + s.val + ' def ' + s.defLine);
 }
@@ -209,7 +220,7 @@ function assembler () {
     }
     m.asmListingPlain.unshift("<pre class='HighlightedTextAsHtml'>");
     m.asmListingDec.unshift("<pre class='HighlightedTextAsHtml'>");
-    showSymbolTable(m);
+    displaySymbolTableHtml(m);
     m.asmListingPlain.push("</pre>");
     m.asmListingDec.push("</pre>");
     setAsmListing (m);
@@ -508,16 +519,21 @@ function parseAsmLine (m,i) {
     parseLabel (m,s);
     parseOperation (m,s);
     parseOperand (m,s);
+    let isImport = s.fieldOperation=="import";
     if (s.hasLabel) {
 	if (m.symbolTable.has(s.fieldLabel)) {
-	    //	    s.errors.push(s.fieldLabel + ' has already been defined');
 	    mkErrMsg (m, s, s.fieldLabel + ' has already been defined');
 	} else {
-	    m.symbolTable.set (s.fieldLabel,
-	                       {symbol : s.fieldLabel,
-                                relocatable : true,
-                                val : m.locationCounter,
-	                        defLine : s.lineNumber});
+	    m.symbolTable.set (
+                s.fieldLabel,
+	        { symbol : s.fieldLabel,
+                  symIsImport : isImport,
+                  symImportedFrom : s.identarg,
+                  relocatable : !isImport,
+                  val : isImport ? 0 : m.locationCounter,
+                  symUsageAddrs : [],
+                  symUsageLines : [],
+	          defLine : s.lineNumber+1});
 	}
     }
 }
@@ -617,7 +633,7 @@ function parseOperand (m,s) {
         s.operandX = true;
         s.expSrc = exp[1];
         console.log (`operand EXP = ${s.expSrc}`);
-        let v =  evaluate (s.expSrc);
+        let v =  evaluate (m,s,s.address,s.expSrc);  // revisit this, equ ???
         s.expValue = v.evalVal;
         // use v.evalRel
         console.log (`operand EXP value = ${s.expValue}`);
@@ -657,7 +673,7 @@ function parseOperand (m,s) {
 	let ctlRegIdx = findCtlIdx (m,s,ctlRegName);
 	s.ctlReg = ctlRegIdx;
 	console.log (`rcx d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
-    } else if (ident) { // assembler directive with identifier (export)
+    } else if (ident) { // assembler directive with identifier (export, import)
         s.hasOperand = true;
         s.operandType = ASMDIRIDENT;
         s.operandIDENT = true;
@@ -779,7 +795,7 @@ function asmPass2 (m) {
 	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
-            let v = evaluate(m,s,s.dispField);
+            let v = evaluate(m,s,s.address+1,s.dispField);
             // if it is an import, use 0 for now and push it onto
             // variable's import list CALL exprCode which calls
             // evaluate and returns a number to generate, and also
@@ -796,7 +812,7 @@ function asmPass2 (m) {
 	    console.log (`pass2 JX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
-            let v = evaluate(m,s,s.dispField);
+            let v = evaluate(m,s,s.address+1,s.dispField);
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {
                 console.log (`relocatable displacement`);
@@ -836,7 +852,7 @@ function asmPass2 (m) {
 	    generateObjectWord (m, s, s.address, s.codeWord1);
         } else if (fmt==DATA && s.operandDATA) {
 	    console.log('fmt is DATA and operandDATA=' + s.dat);
-            let v = evaluate(m,s,s.dat);
+            let v = evaluate(m,s,s.address,s.dat);
             console.log (v);
             if (v.evalRel) {
                 mkErrMsg (m,s,'Data value must not be relocatable');
@@ -893,42 +909,9 @@ function asmPass2 (m) {
     }
     emitObjectWords (m);
     emitRelocations (m);
+    emitImports (m);
     emitExports (m);
 }
-
-// linenumber indexed from 0 but add1 for asm listing header and add1
-// for html <span>
-// function tempshow(m,a) {
-//     console.log( '  ' + a + '  ' +  (m.asmap[a] + 2) );
-//     }
-    
-// Object lines
-
-// The code generator outputs lines of object code containing up to
-// nobjWordsOnLine words.  Each word is added to a buffer by calling
-// generateObjectWord, and when the buffer reaches the limit (or when
-// all object code has been pushed) the buffer is flushed.  The org
-// statement flushes the object word buffer and also emits any
-// relocation commands that have been collected.
-
-/*
-function initializeObjectLineBuffer () {
-    objectLineBuffer = "  hexdata  ";
-    objBufferSize = 0;
-}
-
-// Generate object code line for module m and clear the buffer for next code line
-function flushObjectLine(m) {
-    console.log('flushObjectLine ' + objectLineBuffer);
-    if (objBufferSize > 0) { m.objectCode.push (objectLineBuffer) };
-    initializeObjectLineBuffer ();
-}
-
-function forceFlushObjectLine(m) {
-    m.objectCode.push (objectLineBuffer);
-    initializeObjectLineBuffer ();
-}
-*/
 
 // Add object word x to buffer for next object code line in module m.
 // The asm statement is s, and the object word will be loaded at
@@ -952,7 +935,7 @@ function emitObjectWords (m) {
     while (objectWordBuffer.length > 0) {
         xs = objectWordBuffer.splice(0,objBufferLimit);
         ys = xs.map( (w) => wordToHex4(w));
-        zs = 'hexdata  ' + ys.join(',');
+        zs = 'data     ' + ys.join(',');
         m.objectCode.push (zs);
     }
 }
@@ -974,11 +957,34 @@ function emitRelocations (m) {
     }
 }
 
-//    console.log (`emit relocations ${relocationAddressBuffer}`);
-//    console.log (`xs=${xs}`)
-//    console.log (`ys=${ys}`)
-//    console.log (`zs=${zs}`)
-//     if (relocationAddressBuffer.length > 0) { emitRelocations(m); }
+// ???? improve iteration over symbol table, this is awkward.  also
+// see displaySymbolTableHtml
+function emitImports (m) {
+    console.log ('emitImports');
+    m.symbols =[ ...m.symbolTable.keys() ].sort();
+    console.log (`emitImports m.symbols=${m.symbols}`);
+    for (i in m.symbols) {
+        let x = m.symbolTable.get(m.symbols[i]);
+        console.log (`emitImports i=${i} symname=${x.symbol}`)
+        if (x.symIsImport) {
+            emitImportAddresses (m,x)
+        }
+    }
+}
+
+function emitImportAddresses (m,x) {
+    console.log (`emitImportAddresses ${x.symbol}`);
+    let xs, ys, zs;
+    while (x.symUsageAddrs.length > 0) {
+        let xs = x.symUsageAddrs.splice(0,objBufferLimit);
+        let ys = xs.map((w) => wordToHex4(w));
+        let zs = 'import   '
+            + x.symImportedFrom
+            + ',' + x.symbol
+            + ',' + ys.join(',');
+        m.objectCode.push (zs);
+    }
+}
 
 function emitExports (m) {
     let x, sym, v, r;
@@ -990,25 +996,13 @@ function emitExports (m) {
         console.log (m.symbolTable);
         sym = m.symbolTable.get(y);
         if (sym) {
-            console.log (`emitExports have s defined`);
-            r = sym.relocatable ? 'rel' : 'const';
             v = wordToHex4(sym.val);
-            m.objectCode.push (`export   ${y},${r},${v}`);
-            console.log (`export   ${y},${r},${v}`);
+            m.objectCode.push (`export   ${y},${v}`);
         } else {
             console.log (`\n\n\n ERROR export error ${x}\n\n\n`);
         }
     }
 }
-//        console.log (`globalsym= ${globalsym}`);
-//        console.log (`symtab size = ${m.symbolTable.size}`);
-//        globalfoobar = m.symbolTable;
-//        mysym = globalfoobar.get('g');
-//        globalsym = mysym;
-//        console.log(`LOG emitExports loop x=${x}`);
-//        m.objectCode.push(`EMIT emitExports loop x=${x}`);
-        //        console.log (`showSymbol x = ${showSymbol(x)}`);
-
 
 function showAsmap (m) {
     console.log ('showAsmap');
@@ -1017,34 +1011,50 @@ function showAsmap (m) {
     }
 }
 
-// Evaluate a displacement or data value.  This may be a decimal
-// constant, a hex constant, or a label.  Return a tuple containing
-// the value (evalVal) and a boolean (evalRel) indicating whether the
-// value is relocatable.
-function evaluate (m,s,x) {
+// Evaluate an expression, which may be used as a displacement, data
+// value, or equ value.  The expression may be a decimal constant, a
+// hex constant, or a label.  Return a tuple containing the value
+// (evalVal) and a boolean (evalRel) indicating whether the value is
+// relocatable.
+
+// Arguments: m is module, s is statement, a is address where the
+// value will be placed (the address a is passed in because the word
+// being evaluated could appear in the second word of an instruction
+// (for RX etc), or any word (in the case of a data statement)).
+
+// Evaluate returns a word which will be inserted into the object code
+// during pass 2.  This could be the actual final value (if it's a
+// relocatable label) or a placeholder value of 0 (if it's an import).
+// Evaluate also records additional information about any symbols that
+// appear in the expression: the definition line (used for printing
+// the symbol table in the assembly listing) and the (relocatable)
+// address where the symbol appears (to enable the linker to insert
+// the values of imports).  If an imported name appears in an
+// expression, the expression must consist entirely of that name: for
+// example, x+1 is legal if x is a local name but not if x is an
+// import.
+
+function evaluate (m,s,a,x) {
     console.log('evaluate ' + x);
-    if (x.search(nameParser) == 0) {
+    if (x.search(nameParser) == 0) { // expression is a name
 	r = m.symbolTable.get(x);
 	if (r) {
 	    console.log('evaluate returning ' + r.val);
-	    return {evalVal : r.val, evalRel : r.relocatable};
+            r.symUsageAddrs.push(a);
+            r.symUsageLines.push(s.lineNumber+1);
+	    return { evalVal : r.val, evalRel : r.relocatable };
 	} else {
-	    //	    s.errors.push('symbol ' + x + ' is not defined');
 	    mkErrMsg (m, s, 'symbol ' + x + ' is not defined');
 	    console.log('evaluate returning ' + 0);
 	    return {evalVal : 0, evalRel : false};
 	}
-    } else if (x.search(intParser) == 0) {
+    } else if (x.search(intParser) == 0) { // expression is an int literal
 	console.log('evaluate returning ' + parseInt(x,10));
 	return {evalVal : intToWord(parseInt(x,10)), evalRel : false};
-    } else if (x.search(hexParser) == 0) {
+    } else if (x.search(hexParser) == 0) { // expression is a hex literal
 	return {evalVal : hex4ToWord(x.slice(1)), evalRel : false};
-//	console.log('evaluate returning ' + 0);
-//	return 0;
-    } else {
-	//	s.errors.push('expression ' + x + ' has invalid syntax');
+    } else { // compound expression (not yet implemented)
 	mkErrMsg (m, s, 'expression ' + x + ' has invalid syntax');
-//	console.log('evaluate returning ' + 0);
 	return {evalVal : 0, evalRel : false};
     }
 }
@@ -1124,10 +1134,7 @@ function testOperand (m,x) {
     showOperand(parseOperand(m,x));
 }
 
-
 /* from Architecture.hs
-
-
 
 ----------------------------------------------------------------------
 -- Instruction formats

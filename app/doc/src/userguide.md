@@ -1210,11 +1210,29 @@ could lead to unnecessary complexity.
   be achieved by another approach: simply to disallow forward
   references in expressions.  For example this could be allowed
 
+~~~~
 a  equ  123
 ...
    org  *+a
+~~~~
+   
+   
+An expression may be
 
-#### module directive
+* A literal constant
+
+* An identifier defined within the module
+
+* The sum of a local relocatable epression and a constant
+
+* The difference between two local locatable expressions
+
+* An identifier imported from another module.  In this case, the
+  expression may not contain any operators or other terms: the entire
+  expression must just be that identifier.
+  
+
+#### module
 
 A program may be organized as a collection of modules, where each
 module appears in a separate file.  When several modules are present,
@@ -1236,7 +1254,7 @@ Examples
     main      module
     myprog    module
 
-### org directive
+### org
 
 The org statement specifies where in memory instructions and data
 should be placed when the program is booted.  It takes an operand
@@ -1252,7 +1270,7 @@ The assembler initializes the location counter to 0 before it begins
 translating an assembly language module.  This means that, in effect,
 every module begins with org 0.
 
-### import directive
+### import
 
 The import statement states that the value of an identifier is defined
 in another module.  During the assembly of the module containing the
@@ -1269,7 +1287,7 @@ says that x is a name that can be used in this module, but it is
 defined in Mod1 and its actual value will remain unknown until the
 linker sets it later on.    
 
-### export directive
+### export
 
 The export statement states that the value of an identifier should be
 made available for other modules to import.  For example, this module
@@ -1284,6 +1302,12 @@ fcn      add    R1,R1,R1
          jump   0[R12]
 ~~~~
 
+
+### equ
+
+~~~~
+trapWrite   equ  2
+~~~~
 
 ## Assembly listing
 
@@ -1402,14 +1426,15 @@ import mod3,sqr,addr,addr,...
 
 An export statement says that the module is making the value of a
 symbol available for use in other modules, which may import it.  The
-statement takes three operands: (1) the name being exported (which
-must be an identifier), (2) the type of export (which must be either
-rel or const), and (3) the value (which must be a 4-digit hex
-constant).  Examples:
+statement takes two operands: the name being exported and the value,
+which must be a 4-digit hex constant.  It makes no difference whether
+the name is relocatable, as the linker performs any relocation before
+writing the exported value into other modules that import it.
+Examples:
 
 ~~~~
-export  haltcode,const,0
-export  fcn,rel,002c
+export  haltcode,0
+export  fcn,002c
 ~~~~
 
 ### relocate statement
@@ -1546,198 +1571,74 @@ are for introducing a new module.
 
 ## Computer Architecture
 
-Computer Architecture defines the \alert{structure} and the
-  \alert{machine language} of a computer.
+### Machine language and instructions
 
-This subject is in the middle of computer systems
-
-*  At lower levels, we have physics, transistors, digital
-    circuits
-
-*  In the middle, computer architecture is implemented using
-    digital circuits and supports compilers and operating systesm
-
-* At higher levels, we have operating systems, compilers, system
-    software, network protocols, and applications
-
-Understanding the principles of computer architecture is
-    central to computer science.
-
-A practical benefit: understanding machine language will give
-  you a deeper understanding of programming languages
-
-### Machine language
-
- *  There are many programming languages
-
- *  Each machine has one fixed \alert{machine language}
-
- *  How can there be many programming languages?
-
-
-   *  Each PL is \alert{translated} to machine language by software
-    called a \alert{compiler}
-
-A computer is a digital circuit (a piece of hardware, a machine) that
-executes programs
-
-
-
- *  A fixed digital circuit can execute one fixed \alert{machine
-  language}
-
- *  Examples:
+Very different from Python, Java, C, etc.  The designer of a machine
+language has to `look both up and down':
   
-   *  Intel Core or Pentium (actually, there is a family of Intel
-    processors ``x86'' and their machine languages are related but not
-    identical)
-   *  ARM
-   *  MIPS
-   *  Sparc
-   *  $\ldots$ and many more
+* Looking up to higher levels of abstraction, the machine language
+  must be powerful enough to provide the foundation for
+  operating systems and programming languages.
+
+* Looking down to the lower levels of implementation, the machine
+  language must be simple enough so that a digital circuit can execute
+  it.
   
+Machine languages are designed to achieve high performance possible at
+reasonable cost.  Their primary aim is not to make programming as easy
+as possible
 
- *  The details of different machine languages are quite different
- *  But we will focus on principles common to all of them
-
-### What is machine language like?
-
-
- *  Very different from Python, Java, C, $\ldots$
- *  The designer of a machine language has to ``look both up and
-  down'':
-  
-   *  Looking up, the machine language must be \alert{powerful
-      enough} to provide the foundation for operating systems and
-    programming languages.  \alert{Later, we'll see what this means.}
-   *  Looking down, the machine language must be \alert{simple
-    enough} so that a digital circuit can execute it.  \alert{Example:
-    the RTM can execute very simple programs, with some help from
-    you!}
-  
- *  Machine languages are also designed to make high performance
-  possible
- *  But they are \emph{not} intended to make programming as easy as
-  possible!
- *  Today, we'll look at a simplified notation called
-  \alert{assembly language}; next time we'll look at the real
-  \alert{machine language}
-
-
-
-
-### Instructions
-
-
- *  A machine language provides \emph{instructions}
- *  Analogous to statements in a programming language, with some
-  differences
-  
-   *  Statements can be complex: x := 2 * (a + b/c)
-   *  Instructions are simple: R2 := R1 + R3
-   *  Each instruction just performs one operation
-  
-
-
-
-
-### Sigma16}
-
-
- *  In this course we will study an architecture called Sigma16
- *  Sigma16 is designed to support several research projects at the
-  University of Glasgow
- *  It's a research machine, not a commercial product
- *  There is a complete design, including a full digital circuit
- *  It hasn't been manufactured, but there are two implementations
-  in software
-  
-   *  An emulator, which you will use in this course
-   *  A simulator for the circuit
-  
-
-
-
+A machine language program consists of instructions.  An instruction
+is analogous to a statement in a programming language.  However, each
+instruction just performs a small fixed set of operations, while
+programming language statements can be complex.  For example, the
+assignment statement x := 2 * (a + b/c) involves three arithmitic
+operations, and it would require at least three instructions to
+express in machine language.
 
 ### Why use Sigma16?
 
-
- *  Our focus is on \alert{ideas} and \alert{principles}
- *  Sigma16 illustrates all the main ideas, but avoids unnecessary
-  complexity
- *  Example:
-  
-   *  Sigma16 has just one word size --- 16 bits --- while
-    commercial machines provide many
-   *  Most commercial computers have \alert{backward compatibility}
-    with previous versions, leading to great complexity
-   *  Legacy architectures use an approach called \alert{complex
-      instruction set}, a simpler \alert{reduced instruction set}
-    gives better performance --- Sigma16 uses this.
-  
-
-
-
+Our focus is on fundamental concepts, ideas and principles.  Sigma16
+illustrates the fundementals of computer systems but it avoids
+unnecessary complexity.  For example, Sigma16 has just one word size
+(16 bits) while most commercial machines provide a variety.  That
+variety is useful for practical applications but it complicates many
+of the details while not adding any new fundamental ideas.  Most
+commercial computers that achieve success in the marketplace
+eventually become encrusted with complications that help support
+backward compatibility; this can lead to great complexity.
 
 ### Structure of a computer
 
 All computers have several main subsystems
 
+* A register is a digital circuit that can retain one word of data.  A
+  new value can be loaded into a register, and the current contents
+  may be read out.
 
- *  The \alert{register file} is a set of 16 ``registers''; this is
-  the set of registers in the RTM circuit.  They are often named R0,
-  R1, R2, $\ldots$, R15.
- *  A register is a circuit (a little machine) that can remember a
-  16-bit word
- *  The \alert{ALU} (arithmetic and logic unit) is a circuit that
-  can do arithmetic, such as addition, subtraction, comparison, and
-  some other operations
- *  The \alert{memory} can hold a large number of words.  It's
-  similar to the register file, but significantly slower and much
-  larger
- *  The \alert{Input/Output} can transfer data from the outside
-  world to/from the memory
+* The register file is a set of 16 registers that are available to the
+  user programmer for holding values of variables.  They are named R0,
+  R1, R2, ..., R15.
 
+   Register    Contents
+  ~~~~~~~~~~  ~~~~~~~~~~
+     R0          0000
+     R1          fffe
+     R2          13c4
+     ...         ...
+     R14         03c8
+     R15         0020
 
+* The ALU (arithmetic and logic unit) is a circuit that can do
+  arithmetic, such as addition, subtraction, comparison, and some
+  other operations
 
+* The memory can hold a large number of words.  It's similar to the
+  register file, but significantly slower and much larger.
 
-### Register file
+* The Input/Output system can transfer data between the computer and
+  the outside world.
 
-
- *  There are 16 registers
- *  Each register holds a 16-bit word
- *  We'll write the words using hexadecimal
-
-
-
-\begin{tabular}{|c|c|}
-  \hline
-  R0   & 0000 \\
-  R1   & fffe \\
-  R2   & 13c4 \\
-  $\vdots$ & $\vdots$ \\
-  R14  & 03c8 \\
-  R15  & 0020 \\
-  \hline
-\end{tabular}
-
-
-
-
-### What are the registers actually?
-
-
- *  Recall the \stress{register transfer machine circuit}
- *  It contains four registers, each holding 4 bits
- *  Sigma16 is just the same, but with 16 registers and each holds
-  16 bits
- *  Each 16-bit register is 16 copies of the \stress{reg1} circuit
- *  Why program with registers, not variables like sum, count, x,
-  etc?
-  
-   *  In \stress{machine language} we are \important{programming
-      directly with the hardware in the computer}
-  
 
 
 
@@ -1745,7 +1646,7 @@ All computers have several main subsystems
 
 ### Instructions}
 
-### The RTM instructions}
+### The RTM instructions
 
 
  *  The RTM circuit can execute two instructions
@@ -12535,6 +12436,9 @@ Enter the directory and enter these commands:
 These will execute the ArrayMax program on the digital circuit, and
 that will produce a lot of detailed simulation output showing the
 values in key registers, flip flops, and signals.
+
+
+
 
 # Installation
 

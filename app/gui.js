@@ -141,6 +141,12 @@ function jumpToGuideSection (anchor) {
     elt.scrollTo(0,elt.document.getElementById(anchor).offsetTop);
 }
 
+// Scroll user guide to top
+function jumpToGuideTop () {
+    let elt = document.getElementById("UserGuideIframeId").contentWindow;
+    elt.scrollTo(0,0);
+}
+
 // Want to make Editor button 1 go to an anchor in the User Guide
 // Doesn't work yet
 // I put this manually into the user guide: <a href="HREFTESTING">dummy href</a>
@@ -432,9 +438,10 @@ function examples_pane_button() {
     showTabbedPane("ExamplesPane");
 }
 
-function files_pane_button() {
-    console.log("files_pane_button clicked")
+function modules_pane_button() {
+    console.log("modules_pane_button clicked")
     hideAllTabbedPanes();
+    refreshModulesList();
     showTabbedPane("ModulesPane");
 }
 
@@ -733,6 +740,7 @@ window.onload = function () {
 
 // Initialize the modules
     initModules ();
+    document.getElementById('LinkerText').innerHTML = "";    
 
 // Initialize the registers
 

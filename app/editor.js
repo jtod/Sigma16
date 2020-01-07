@@ -18,8 +18,6 @@
 // code, both assembly language and object code.
 //-------------------------------------------------------------------------------
 
-let currentFile = null;  // Remember the current working file handle
-
 function editorDownload () {
     console.log ("editorPrepareDownload");
     let downloadElt = document.getElementById("editorDownloadAnchor");
@@ -28,93 +26,13 @@ function editorDownload () {
     downloadElt.click();  // perform the download
 }
 
-
-
-//-------------------------------------------------------------------------------
-// Reading files
-
-function handleSelectedFiles (flist) {
-    console.log("handleSelectedFiles");
-    let m;
-    for (let i=0; i<flist.length; i++) {
-	m = mkModule ();
-	m.mFile = flist[i];
-//	m.hasFile = true;
-        m.fileName = m.mFile.name;
-	m.selected = false;
-	m.fileReader = mkOfReader(nModules);
-	m.modSrc = "";
-	m.fileReader.readAsText(m.mFile);
-	s16modules.push(m);
-	nModules++;
-    }
-}
-
-function mkOfReader (i) {
-    console.log (`ofReader ${i}`);
-    let fr = new FileReader();
-    fr.onload = function (e) {
-	console.log (`ofReader ${i} onload event`);
-	s16modules[i].modSrc = e.target.result;
-    }
-    return fr;
-}
-
-//            + `<br>module name = ${mName}, file name = ${fName}`
-//	mName = '///' + getModName (m) + '///' + m.modName + '///';
-//        fName = getFileName (m);
-function showModules() {
-    console.log ('showModules');
-    let xs, ys = "\n<hr>";
-    let m, sel, spanClass, mName, fName, mfName;
-    for (let i=0; i<nModules; i++) {
-	m = s16modules[i];
-        mfName = getModFileName (m);
-	sel = selectedModule===i;
-	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
-	ys += `&nbsp;`
-	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. ${mfName}</span>`
-	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
-	    + `<button onclick="modulesButtonClose(${i})">Close</button>`
-	    + `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
-            + `<br>nAsmErrors=${m.nAsmErrors} isExecutable=${m.isExecutable}`
-	    + '<br><pre>'
-            + (m.fileStale ? "<br>Modified, needs to be saved<br>" : "<br>")
-	    + m.modSrc.split('\n').slice(0,8).join('\n')
-	    + '</pre>\n\n'
-            + '<hr>\n\n';
-    }
-    console.log (spanClass);
-    console.log (ys);
-    let elt = document.getElementById('FilesBody');
-    elt.innerHTML = ys;
-}
-
-function modulesButtonSelect (i) {
-    console.log (`modulesButtonSelect ${i}`);
-    s16modules[selectedModule].selected = false;
-    selectedModule = i;
-    s16modules[i].selected = true;
-    editorBufferTextArea.value = s16modules[i].modSrc;
-    showModules(); // refresh the display, showing this module selected
-}
-
-// Need to be careful about this affecting refresh, as i has been
-// baked into the file reader
-function modulesButtonClose (i) {
-    console.log (`filesButtonClose ${i}`);
-}
-
-// need to set event handler to refresh the modules list
-function modulesButtonRefresh (i) {
-    console.log (`filesButtonRefresh ${i}`);
-    s16modules[i].fileReader.readAsText(s16modules[i].mFile);
-}
-
-// To determine whether a file text is stale, we can't just compare
-// the strings because of different end of line conventions.
+// Leave the editor but first check to see if the editor is showing a
+// file and the text has been modified, in which case the file is
+// "stale".  To determine whether a file text is stale, we can't just
+// compare the strings because of different end of line conventions.
 // Therefore we convert the old and new source into an array of lines
 // and compare those arrays.
+
 function leaveEditor () {
     console.log ('Leaving the editor');
     let m = s16modules[selectedModule];
