@@ -24,7 +24,9 @@ var curAsmap = [];
 // Clear the display of the object code in the linker pane
 
 function clearObjectCode () {
-    document.getElementById('LinkerText').innerHTML	= "";
+    let listing = "<pre class='HighlightedTextAsHtml'>"
+        + "</pre>"
+    document.getElementById('LinkerText').innerHTML = listing;
 }
 
 function setCurrentObjectCode () {
@@ -40,6 +42,10 @@ function setCurrentObjectCode () {
 
 function showLinkerStatus () {
     console.log ('showLinkerStatus');
+    let listing = "<pre class='HighlightedTextAsHtml'>"
+        + "no modules selected"
+        + "</pre>"
+    document.getElementById('LinkerText').innerHTML = listing;
 }
 
 function setLinkerModules () {
