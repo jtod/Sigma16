@@ -345,46 +345,55 @@ Table: Condition code flags
   <tr>
     <th>Bit</th>
     <th>Flag</th>
+    <th>Symbolic name</th>
     <th>Meaning</th>
   </tr>
   <tr>
     <td>0</td>
     <td>**G**</td>
+    <td>sysccG</td>
     <td> gt (or gt 0) unsigned (binary)</td>
   </tr>
   <tr>
     <td>1</td>
     <td>**g**</td>
+    <td>sysccg</td>
     <td> gt (or gt 0) signed (two's complement)</td>
   </tr>
   <tr>
     <td>2</td>
     <td>**E**</td>
+    <td>sysccE</td>
     <td>= (or =0) word, signed, unsigned</td>
   </tr>
   <tr>
     <td>3</td>
     <td>**l**</td>
+    <td>sysccl</td>
     <td>   lt (or lt 0) signed (two's complement)</td>
   </tr>
   <tr>
     <td>4</td>
     <td>**L**</td>
+    <td>sysccL</td>
     <td>    lt (or  lt 0) unsigned (binary)</td>
   </tr>
   <tr>
     <td>5</td>
     <td>**V**</td>
+    <td>sysccV</td>
     <td>    unsigned overflow (binary)</td>
   </tr>
   <tr>
     <td>6</td>
     <td>**v**</td>
+    <td>sysccv</td>
     <td>    signed overflow (two's complement)</td>
   </tr>
   <tr>
     <td>7</td>
     <td>**C**</td>
+    <td>sysccC</td>
     <td>    carry propagation (binary)</td>
   </tr>
   <tr>
@@ -767,26 +776,34 @@ numbers) and for two's complement addition (on signed integers).
 
 ### add
 
-add. The two operands are fetched from registers, added, and the sum
-is loaded into the destination register.
+The instruction add Rz,Rx,Ry  has operands Rx and Ry and destination
+Rz.  It fetches the operands reg[x] and reg[y],
+calculates the sum reg[x] + reg[y], and loads the result into the destination
+reg[z].  The effect is reg[z] := reg[x] + reg[y].  For example, add
+R5,R12,R2 performs R5 := R12 + R3.
 
-add R1,R2,R3
+The add instruction is RRR format with opcode=0.  Given destination z
+and operands x and y (where z, x, y are hex digits), add Rz,Rx,Ry is
+reprseented by 0zxy.
 
-The last two registers (R2 and R3) are the *operands*; the sum (for
-add) or difference (for sub) is placed in the first register (R1),
-which is called the *destination*.  The add instruction corresponds to
-an assignment statement. These are RRR instructions: add has opcode 0;
-sub has opcocde 1.
+  Code    Assembly          Effect
+  -----   ----------------  ------------------
+  062c    add R6,R2,R12     ; R6 := R2 + R12
+  0d13    add R13,R1,R3     ; R13 := R1 + R3
+  
+In addition to setting the destination register, the add instruction
+sets several bits in the condition code R15 and may set a bit in the
+req register.
 
-    Code      Assembly          Effect
-    062c      add R6,R2,R12     ; R6 := R2 + R12
-    0d13      add R13,R1,R3     ; R13 := R1 + R3
-
-Code    Assembly          Effect
------   ----------------  ------------------
-062c    add R6,R2,R12     ; R6 := R2 + R12
-0d13    add R13,R1,R3     ; R13 := R1 + R3
-
+---------  ---------------------
+ R15.ccG     := result >bin 0
+R15.ccg := result >tc 0
+R15.ccE := result = 0
+R15.ccl := result <tc 0
+R15.CCL := 0
+R15.ccV := bin overflow
+R15.CCv := tc overflow
+R15.CCc := carry output
 
 ### sub
 
