@@ -11,7 +11,7 @@
       span.underline{text-decoration: underline;}
       div.column{display: inline-block; vertical-align: top; width: 50%;}
   </style>
-  <link rel="stylesheet" href="doc.css" />
+  <link rel="stylesheet" href="docstyle.css" />
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -58,19 +58,6 @@ Version 3.0.33
 <li><a href="#instruction-set">Instruction set</a><ul>
 <li><a href="#arithmetic-instructions">Arithmetic instructions</a><ul>
 <li><a href="#add">add</a></li>
-<li><a href="#sub">sub</a></li>
-<li><a href="#mul">mul</a></li>
-<li><a href="#div">div</a></li>
-<li><a href="#addc">addc</a></li>
-</ul></li>
-<li><a href="#accessing-memory-1">Accessing memory</a><ul>
-<li><a href="#effective-address-1">Effective address</a></li>
-<li><a href="#lea">lea</a></li>
-<li><a href="#load">load</a></li>
-<li><a href="#store">store</a></li>
-<li><a href="#save">save</a></li>
-<li><a href="#restore">restore</a></li>
-<li><a href="#push">push</a></li>
 <li><a href="#pop">pop</a></li>
 <li><a href="#top">top</a></li>
 </ul></li>
@@ -281,7 +268,7 @@ Version 3.0.33
 <li><a href="#what-about-big-arrays">What about big arrays?</a></li>
 <li><a href="#indexed-addressing">Indexed addressing</a></li>
 <li><a href="#accessing-an-element-of-an-array">Accessing an element of an array</a></li>
-<li><a href="#effective-address-2">Effective address</a></li>
+<li><a href="#effective-address-1">Effective address</a></li>
 <li><a href="#using-the-effective-address">Using the effective address</a></li>
 <li><a href="#addressing-modes">Addressing modes</a></li>
 <li><a href="#using-effective-address-for-an-array">Using effective address for an array</a></li>
@@ -992,6 +979,9 @@ Bit
 Flag
 </th>
 <th>
+Symbolic name
+</th>
+<th>
 Meaning
 </th>
 </tr>
@@ -1001,6 +991,9 @@ Meaning
 </td>
 <td>
 <strong>G</strong>
+</td>
+<td>
+sysccG
 </td>
 <td>
 gt (or gt 0) unsigned (binary)
@@ -1014,6 +1007,9 @@ gt (or gt 0) unsigned (binary)
 <strong>g</strong>
 </td>
 <td>
+sysccg
+</td>
+<td>
 gt (or gt 0) signed (two’s complement)
 </td>
 </tr>
@@ -1023,6 +1019,9 @@ gt (or gt 0) signed (two’s complement)
 </td>
 <td>
 <strong>E</strong>
+</td>
+<td>
+sysccE
 </td>
 <td>
 = (or =0) word, signed, unsigned
@@ -1036,6 +1035,9 @@ gt (or gt 0) signed (two’s complement)
 <strong>l</strong>
 </td>
 <td>
+sysccl
+</td>
+<td>
 lt (or lt 0) signed (two’s complement)
 </td>
 </tr>
@@ -1045,6 +1047,9 @@ lt (or lt 0) signed (two’s complement)
 </td>
 <td>
 <strong>L</strong>
+</td>
+<td>
+sysccL
 </td>
 <td>
 lt (or lt 0) unsigned (binary)
@@ -1058,6 +1063,9 @@ lt (or lt 0) unsigned (binary)
 <strong>V</strong>
 </td>
 <td>
+sysccV
+</td>
+<td>
 unsigned overflow (binary)
 </td>
 </tr>
@@ -1069,6 +1077,9 @@ unsigned overflow (binary)
 <strong>v</strong>
 </td>
 <td>
+sysccv
+</td>
+<td>
 signed overflow (two’s complement)
 </td>
 </tr>
@@ -1078,6 +1089,9 @@ signed overflow (two’s complement)
 </td>
 <td>
 <strong>C</strong>
+</td>
+<td>
+sysccC
 </td>
 <td>
 carry propagation (binary)
@@ -1405,82 +1419,162 @@ Interrupt
 <li><p>16-bit two’s complement numbers are signed integers -32999?, …, -1, 0, 1, …, 32???. If two signed integers are added, the result is a signed integer. If the result is less than -32000 or greater than 32000, then the result cannot be represented as a 16 bit two’s complement number. If this happens, the destination register is set to the lower 16 bits of the true result, and the two’s complement overflow flag is set in the Condition Code. Furthermore, the overflow flag is set in the req register. If interrupts are enabled and the overflow flag is 1 in the mask register, then an interrupt will occur immediatelhy after the add instruction executes.</p></li>
 </ul>
 <h3 id="add">add</h3>
-<p>add. The two operands are fetched from registers, added, and the sum is loaded into the destination register.</p>
-<p>add R1,R2,R3</p>
-<p>The last two registers (R2 and R3) are the <em>operands</em>; the sum (for add) or difference (for sub) is placed in the first register (R1), which is called the <em>destination</em>. The add instruction corresponds to an assignment statement. These are RRR instructions: add has opcode 0; sub has opcocde 1.</p>
-<p>Code Assembly Effect 062c add R6,R2,R12 ; R6 := R2 + R12 0d13 add R13,R1,R3 ; R13 := R1 + R3</p>
+<p>The instruction add Rz,Rx,Ry has operands Rx and Ry and destination Rz. It fetches the operands reg[x] and reg[y], calculates the sum reg[x] + reg[y], and loads the result into the destination reg[z]. The effect is reg[z] := reg[x] + reg[y]. For example, add R5,R12,R2 performs R5 := R12 + R3.</p>
+<p>The add instruction is RRR format with opcode=0. Given destination z and operands x and y (where z, x, y are hex digits), add Rz,Rx,Ry is reprseented by 0zxy.</p>
 <table>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Code</th>
-<th style="text-align: left;">Assembly</th>
-<th style="text-align: left;">Effect</th>
+<th>de As</th>
+<th>sembly Ef</th>
+<th style="text-align: left;">fect</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">062c</td>
-<td style="text-align: left;">add R6,R2,R12</td>
+<td>062c</td>
+<td>add R6,R2,R12</td>
 <td style="text-align: left;">; R6 := R2 + R12</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">0d13</td>
-<td style="text-align: left;">add R13,R1,R3</td>
+<td>0d13</td>
+<td>add R13,R1,R3</td>
 <td style="text-align: left;">; R13 := R1 + R3</td>
 </tr>
 </tbody>
 </table>
-<h3 id="sub">sub</h3>
-<p>sub R1,R2,R3</p>
-<h3 id="mul">mul</h3>
-<h3 id="div">div</h3>
-<h3 id="addc">addc</h3>
-<h2 id="accessing-memory-1">Accessing memory</h2>
-<h3 id="effective-address-1">Effective address</h3>
-<h3 id="lea">lea</h3>
-<p>The effective address is defined to be the binary sum of the displacement and the index register.</p>
-<h3 id="load">load</h3>
-<p>Load copies the word in memory at the effective address into the destination register.</p>
-<p>general form: load Rd,disp[Ra]</p>
-<p>effect: reg[Rd] := mem[disp+reg[Ra]]</p>
-<p>format: RX</p>
-<p>load R12,count[R0] ; R12 := count load R6,arrayX[R2] ; R6 := arrayX[R2] load R3,$2b8e[R5] ; R3 := mem[2b8e+R5]</p>
-<h3 id="store">store</h3>
-<p>Store copies the word in the destination register into memory at the effective address. Unlike most instructions, store treats the “destination register” as the source of data, and the actual destination is the memory location.</p>
-<p>general form: store Rd,disp[Ra] effect: mem[disp+reg[Ra]] := reg[Rd] format: RX</p>
-<p>store R3,$2b8e[R5] store R12,count[R0] store R6,arrayX[R2]</p>
-<h3 id="save">save</h3>
-<h3 id="restore">restore</h3>
-<h3 id="push">push</h3>
-<p>push R1,R2,R3</p>
-<p>R1 = value to push onto stack in memory R2 = stack top R3 = stack limit</p>
-<p>Push the word in R1 onto a stack with top R2 and limit R3. If the stack is full, nothing is stored into memory and an error is indicated in the condition code and interrupt request registers; an interrupt will occur if interrupts are enabled and the stack mask bit is set.</p>
-<p>Push has the following semantics:</p>
-<p>if R2&lt;R3 then R2 := R2+1; mem[R2] := R1 else R15.sovfl := 1, req.StackBounds := 1</p>
-<p>If R2=R3 this means the stack completely fills the block, and there is no space to store a new element. In this case, the push instruction does not store R1: it doesn’t modify memory outside the block, and it doesn’t overwrite data in the stack. Instead, the instruction indicates a stack overflow by setting the sovfl (stack overflow) bit in the condition code (R15), and it also sets the stack fault bit in the interrupt request register. If interrupts are enabled and the stack fault bit is set in the interrupt mask register, then an interrupt will occur after the push instruction completes. But there will be no interrupt if interrupts are disabled, or the stack fault bit is not set in the mask register.</p>
-<p>Push is an EXP format instruction comprising two words:</p>
-<table>
+<p>In addition to setting the destination register, the add instruction sets several bits in the condition code R15 and may set a bit in the req register.</p>
+<table style="width:46%;">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 30%" />
+</colgroup>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">op</td>
-<td style="text-align: center;">d</td>
-<td style="text-align: center;">a</td>
-<td style="text-align: center;">b</td>
+<td style="text-align: center;">R15.ccG R15.ccg := R15.ccE := R15.ccl := R15.CCL := R15.ccV := R15.CCv := R15.CCc :=</td>
+<td style="text-align: center;">:= result &gt;bin 0 result &gt;tc 0 result = 0 result &lt;tc 0 0 bin overflow tc overflow carry output</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;"><strong>e</strong></td>
-<td style="text-align: center;">R1</td>
+<td style="text-align: center;">### sub</td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"><strong>5</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">0-2</td>
-<td style="text-align: center;">3-6</td>
-<td style="text-align: center;">7-10</td>
-<td style="text-align: center;">11-15</td>
+<td style="text-align: center;">sub R1,R2,R</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">### mul</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">### div</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">### addc</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">## Accessin</td>
+<td style="text-align: center;">g memory</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">### Effecti</td>
+<td style="text-align: center;">ve address</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">### lea</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">The effecti displacemen</td>
+<td style="text-align: center;">ve address is defined to be the binary sum of the t and the index register.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">### load</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Load copies destination</td>
+<td style="text-align: center;">the word in memory at the effective address into the register.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">general for</td>
+<td style="text-align: center;">m: load Rd,disp[Ra]</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">effect: reg</td>
+<td style="text-align: center;">[Rd] := mem[disp+reg[Ra]]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">format: RX</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">load R load R load R</td>
+<td style="text-align: center;">12,count[R0] ; R12 := count 6,arrayX[R2] ; R6 := arrayX[R2] 3,$2b8e[R5] ; R3 := mem[2b8e+R5]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">### store</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Store copie effective a "destinatio destination</td>
+<td style="text-align: center;">s the word in the destination register into memory at the ddress. Unlike most instructions, store treats the n register" as the source of data, and the actual is the memory location.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">general effect: format:</td>
+<td style="text-align: center;">form: store Rd,disp[Ra] mem[disp+reg[Ra]] := reg[Rd] RX</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">store store store</td>
+<td style="text-align: center;">R3,$2b8e[R5] R12,count[R0] R6,arrayX[R2]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">### save</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">### restore</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">### push</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">push R1</td>
+<td style="text-align: center;">,R2,R3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">R1 = va R2 = st R3 = st</td>
+<td style="text-align: center;">lue to push onto stack in memory ack top ack limit</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Push the wo stack is fu in the cond will occur</td>
+<td style="text-align: center;">rd in R1 onto a stack with top R2 and limit R3. If the ll, nothing is stored into memory and an error is indicated ition code and interrupt request registers; an interrupt if interrupts are enabled and the stack mask bit is set.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Push has th</td>
+<td style="text-align: center;">e following semantics:</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">if R2&lt;R then else</td>
+<td style="text-align: center;">3 R2 := R2+1; mem[R2] := R1 R15.sovfl := 1, req.StackBounds := 1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">If R2=R3 th no space to does not st doesn’t ove indicates a in the cond the interru stack fault interrupt w will be no bit is not</td>
+<td style="text-align: center;">is means the stack completely fills the block, and there is store a new element. In this case, the push instruction ore R1: it doesn’t modify memory outside the block, and it rwrite data in the stack. Instead, the instruction stack overflow by setting the sovfl (stack overflow) bit ition code (R15), and it also sets the stack fault bit in pt request register. If interrupts are enabled and the bit is set in the interrupt mask register, then an ill occur after the push instruction completes. But there interrupt if interrupts are disabled, or the stack fault set in the mask register.</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Push is an</td>
+<td style="text-align: center;">EXP format instruction comprising two words:</td>
 </tr>
 </tbody>
 </table>
+<p>op d a b<br />
+<strong>e</strong> R1 <strong>5</strong><br />
+0-2 3-6 7-10 11-15<br />
+—— —— —— ——</p>
 <h3 id="pop">pop</h3>
 <p>The pop instruction removes the top element from a stack and loads it into the destination register. (See push for a description of representation of a stack.)</p>
 <p>pop R1,R2,R3</p>
@@ -2949,7 +3043,7 @@ def   data     0       ; some other variable</code></pre>
 <li>If you try  the effect will be R4 := x[0]</li>
 <li>We need a way to access x[i] where i is a variable</li>
 </ul>
-<h3 id="effective-address-2">Effective address</h3>
+<h3 id="effective-address-1">Effective address</h3>
 <ul>
 <li><p>An RX instruction specifies addresses in two parts, for example  or  or </p>
 <ul>

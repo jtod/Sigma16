@@ -1,6 +1,6 @@
 # Sigma16: makefile
-# Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
-# License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
+# Copyright (c) 2019 John T. O'Donnell  john.t.odonnell9@gmail.com
+# License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt,NOTICE.txt
 
 # This file is part of Sigma16.  Sigma16 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU General
@@ -24,14 +24,14 @@
 #   https://github.com/jtod/Sigma16
 
 # Quick reference...
-#   make webdev                              prepare S16/dev
-#   make release                             prepare S16/releases/...
-#   make doc/homepage-index/index.html       index for Sigma16 home page
+#   make webdev                               prepare S16/dev
+#   make release                              prepare S16/releases/...
+#   make docs/homepage-index/index.html       index for Sigma16 home page
 
 # Source directories on development computer
-#    Sigma/current                              -- source for entire project
-#    Sigma/current/Sigma16                      -- source for Sigma16
-#    Sigma/current/homepage/jtod.github.io/S16  -- source for github web page
+#    Sigma/current                               source for entire project
+#    Sigma/current/Sigma16                       source for Sigma16
+#    Sigma/current/homepage/jtod.github.io/S16   source for github web page
 
 #-------------------------------------------------------------------------------
 # How to...
@@ -57,7 +57,7 @@
 
 # SIGMACURRENT contains several related projects, including Sigma16
 
-SIGMACURRENT:=../..
+SIGMACURRENT:=./..
 S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/S16/
 WEBDEV:=$(S16HOME)/dev
 
@@ -71,7 +71,7 @@ S16WEBPAGE:=$(SIGMACURRENT)/homepage/jtod.github.io/S16
 # consisting of "version: : "1.2.3".  This defines VERSION, which is
 # used for building the top level index and the user guide.
 
-VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat app/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 showparams :
 	echo SIGMACURRENT = $(SIGMACURRENT)
@@ -83,14 +83,14 @@ showparams :
 # Usage
 #-------------------------------------------------------------------------------
 
-# Build the app
+# Build the IDE app
 #   make release            build web page for posting on Internet
 #   make compile            build executable using npm to compile from source
 
 # Needed to build both web and compiled version
 #   make set-version        get version number from package.json
 #   make source-dir-index          generate html from markdown source
-#   make doc/html/userguide.html          generate html from markdown source
+#   make docs/html/userguide.html          generate html from markdown source
 #   make program-indices    index for each directory in programs and examples
 
 # Needed for compilation by npm
@@ -113,7 +113,7 @@ showparams :
 #  node_modules        directory of packages downloaed by npm (optional)
 #  package-lock.json   records package versions; produced by npm (optional)
 #  version.js          written by make set-version
-#  doc/html            written by make doc
+#  docs/html            written by make docs
 
 #-------------------------------------------------------------------------------
 # Make a release for posting on the web
@@ -156,14 +156,14 @@ showparams :
 # markdown to html.  This should be copied to the git repository for
 # jtod.github.io/S16 (make release or make webdev will do that)
 
-doc/homepage-index/index.html : doc/homepage-index/index.md
+docs/homepage-index/index.html : docs/homepage-index/index.md
 	pandoc --standalone \
-          --template=doc/src/readme-template.html \
+          --template=docs/src/readme-template.html \
           --variable=css:doc.css \
 	  --metadata pagetitle="Sigma16 Home Page" \
-	  -o doc/homepage-index/index.html \
-	  doc/homepage-index/index.md
-	cp -up doc/src/doc.css doc/homepage-index
+	  -o docs/homepage-index/index.html \
+	  docs/homepage-index/index.md
+	cp -up docs/src/doc.css docs/homepage-index
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
@@ -173,18 +173,18 @@ doc/homepage-index/index.html : doc/homepage-index/index.md
 release :
 	make set-version
 	make source-dir-index
-	make doc/homepage-index/index.html
-	make doc/html/userguide.html
+	make docs/homepage-index/index.html
+	make docs/html/userguide.html
 	make program-indices
 	mkdir -p ../release/$(VERSION)
 	cp -up ../VERSION ../release/$(VERSION)
 	cp -up ../LICENSE.txt ../release/$(VERSION)
-	cp -up doc/homepage-index/index.html $(S16HOME)
-	cp -up doc/homepage-index/doc.css $(S16HOME)
+	cp -up docs/homepage-index/index.html $(S16HOME)
+	cp -up docs/homepage-index/doc.css $(S16HOME)
 	cp -up ../index.html ../release/$(VERSION)
 	mkdir -p ../release/$(VERSION)/app
 	cp -upr datafiles ../release/$(VERSION)/app
-	cp -upr doc ../release/$(VERSION)/app
+	cp -upr docs ../release/$(VERSION)/app
 	cp -upr programs ../release/$(VERSION)/app
 	cp -up *.html ../release/$(VERSION)/app
 	cp -up *.css ../release/$(VERSION)/app
@@ -201,21 +201,21 @@ release :
 webdev :
 	mkdir -p $(WEBDEV)/app
 	make set-version
-	cp -up ../VERSION $(WEBDEV)
-	cp -up ../LICENSE.txt $(WEBDEV)
+	cp -up VERSION $(WEBDEV)
+	cp -up LICENSE.txt $(WEBDEV)
 	make source-dir-index
-	cp -up ../index.html  $(WEBDEV)/app
-	make doc/homepage-index/index.html
-	cp -up doc/homepage-index/index.html $(S16HOME)
-	cp -up doc/homepage-index/doc.css $(S16HOME)
-	make doc/html/userguide.html
-	cp -upr doc $(WEBDEV)/app
+	cp -up index.html  $(WEBDEV)/app
+	make docs/homepage-index/index.html
+	cp -up docs/homepage-index/index.html $(S16HOME)
+	cp -up docs/homepage-index/doc.css $(S16HOME)
+	make docs/html/userguide.html
+	cp -upr docs $(WEBDEV)/app
 	make program-indices
 	cp -upr programs $(WEBDEV)/app
-	cp -upr datafiles $(WEBDEV)/app
-	cp -up *.html $(WEBDEV)/app
-	cp -up *.css $(WEBDEV)/app
-	cp -up *.js $(WEBDEV)/app
+	cp -upr app/datafiles $(WEBDEV)/app
+	cp -up app/*.html $(WEBDEV)/app
+	cp -up app/*.css $(WEBDEV)/app
+	cp -up app/*.js $(WEBDEV)/app
 
 #-------------------------------------------------------------------------------
 # Running Sigma16
@@ -257,7 +257,7 @@ webdev :
 # the source
 
 # Edit source files in git repository
-# make doc/userguide/userguide.html    Reads an auxiliary file to include version nmber
+# make docs/userguide/userguide.html    Reads an auxiliary file to include version nmber
 # git status
 # git add (files that have been changed)
 # git commit 'm "purpose of these changes"
@@ -267,7 +267,7 @@ webdev :
 # To advance version number to to v3.0.26 or whatever it is...
 # edit package.json     This contains the master definition of version number
 # make set-version      Reads package.json and defines two auxiliary files
-# make doc/userguide/userguide.html  Need to update version number in the guide
+# make docs/userguide/userguide.html  Need to update version number in the guide
 # git tag -a v3.0.26 -m 'move to version v3.0.26'
 
 # To upload new release
@@ -325,8 +325,8 @@ compile :
 
 .PHONY : set-version
 set-version :
-	echo $(VERSION) > ../VERSION
-	echo "const s16version = \"$(VERSION)\";" > version.js
+	echo $(VERSION) > VERSION
+	echo "const s16version = \"$(VERSION)\";" > app/version.js
 
 
 # make program-indices --- Generate the index.html files for the
@@ -335,93 +335,93 @@ set-version :
 .PHONY : program-indices
 program-indices :
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../docs/src/docstyle.css \
 	  --metadata pagetitle="Example programs" \
           -o programs/Examples/index.html \
 	  programs/Examples/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Arithmetic examples" \
           -o programs/Examples/Arithmetic/index.html \
 	  programs/Examples/Arithmetic/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Simple examples" \
           -o programs/Examples/Simple/index.html \
 	  programs/Examples/Simple/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Array examples" \
           -o programs/Examples/Arrays/index.html \
 	  programs/Examples/Arrays/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Interrupt examples" \
           -o programs/Examples/Interrupt/index.html \
 	  programs/Examples/Interrupt/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Data structures" \
           -o programs/Examples/DataStructures/index.html \
 	  programs/Examples/DataStructures/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Input/Output" \
           -o programs/Examples/IO/index.html \
 	  programs/Examples/IO/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Recursion" \
           -o programs/Examples/Recursion/index.html \
 	  programs/Examples/Recursion/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Sorting examples" \
           -o programs/Examples/Sorting/index.html \
 	  programs/Examples/Sorting/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Subroutines" \
           -o programs/Examples/Subroutines/index.html \
 	  programs/Examples/Subroutines/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Testing" \
           -o programs/Examples/Testing/index.html \
 	  programs/Examples/Testing/index.md
 	pandoc --standalone \
-          --template=doc/src/programindex-template.html \
-          --variable=css:../../../doc/src/doc.css \
+          --template=docs/src/programindex-template.html \
+          --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Type conversion" \
           -o programs/Examples/TypeConversion/index.html \
 	  programs/Examples/TypeConversion/index.md
 
-# make doc/html/userguide.html --- Generate the user guide html file
+# make docs/html/userguide.html --- Generate the user guide html file
 # from markdown source
 
-doc/html/userguide.html : doc/src/userguide.md doc/src/doc.css
-	mkdir -p doc/html
-	cp -upr doc/src/figures doc/html
-	cp -up doc/src/doc.css doc/html
+docs/html/userguide.html : docs/src/userguide.md docs/src/docstyle.css
+	mkdir -p docs/html
+	cp -upr docs/src/figures docs/html
+	cp -up docs/src/docstyle.css docs/html
 	pandoc --standalone \
-          --template=doc/src/userguide-template.html \
+          --template=docs/src/userguide-template.html \
           --table-of-contents --toc-depth=4 \
           --variable=version:'$(VERSION)' \
           --variable=date:'$(VersionDate)' \
-          --variable=css:doc.css \
-          -o doc/html/userguide.html \
-	  doc/src/userguide.md
+          --variable=css:docstyle.css \
+          -o docs/html/userguide.html \
+	  docs/src/userguide.md
 
 # make source-dir-index --- Generate index for the project from markdown
 # source.
@@ -429,18 +429,18 @@ doc/html/userguide.html : doc/src/userguide.md doc/src/doc.css
 .PHONY : source-dir-index
 source-dir-index :
 	pandoc --standalone \
-          --template=doc/src/readme-template.html \
+          --template=docs/src/readme-template.html \
           --variable=version:'$(VERSION)' \
-          --variable=css:'./app/doc/src/doc.css' \
+          --variable=css:'./app/docs/src/docstyle.css' \
           --metadata pagetitle='Sigma16 ${VERSION}' \
-	  -o ../index.html ../README.md
+	  -o index.html README.md
 
 #-------------------------------------------------------------------------------
 # Running as standalone program on local machine with npm
 #-------------------------------------------------------------------------------
 
 # Download and install npm
-#   https://electronjs.org/docs/tutorial/installation
+#   https://electronjs.org/docss/tutorial/installation
 #   install npm from the electronjs.org web page
 # In order to compile a native executable, electron is also needed
 #   npm install electron --save-dev       ------ install electron
@@ -455,14 +455,14 @@ source-dir-index :
 
 .PHONY : dependencies
 dependencies :
-	npm install
+	cd app; npm install
 
 # make run -- run the program on the local computer, without using a
 # web page from the Internet.
 
 .PHONY : run
 run :
-	npm start
+	cd app; npm start
 
 
 # make executable -- use electron-builder to generate a native
@@ -472,7 +472,7 @@ run :
 
 .PHONY : executable
 executable :
-	npm run mkdist
+	cd app; npm run mkdist
 
 # make move-exe --- move the executable from dist directory into
 # release directory.  There is a bug in Electron-builder: it gives a
@@ -484,4 +484,4 @@ executable :
 
 .PHONY : move-executable
 move-executable :
-	mv dist/*.exe ../release/Sigma16-$(VERSION)-win.exe
+	mv app/dist/*.exe release/Sigma16-$(VERSION)-win.exe
