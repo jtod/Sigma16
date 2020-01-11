@@ -1,0 +1,14 @@
+; EXP.asm.txt
+
+   save    R3,R7,4[R14]
+   restore R1,R11,1[R14]
+
+   getbit  R2,R3,5
+   putbit  R8,R3,15
+   getbiti R7,R2,3
+   putbiti R9,R1,1
+
+   push    R1,R2,R3
+   pop     R4,R5,R6
+   top     R7,R8,R9
+   rfi

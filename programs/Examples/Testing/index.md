@@ -1,5 +1,7 @@
 # Testing
 
+* [EXP format](EXP.asm.txt)
+
 * [Small](Small.asm.txt)
 
 * [LogicShift](LogicShift.asm.txt)

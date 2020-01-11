@@ -1,6 +1,6 @@
 // Sigma16: architecture.js
 // Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
+// License: GNU GPL Version 3 or later. Sigma16/LICENSE.txt,NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -33,10 +33,12 @@ const mnemonicRX =
    "nop",    "nop",    "nop",     "nop"]
 
 const mnemonicEXP =
-  ["shl",    "shr",    "getctl",  "putctl",
-   "rfi",    "push",   "pop",     "top",
-   "nop",    "nop",    "nop",     "nop",
-   "nop",    "nop",    "nop",     "nop"]
+  ["shiftl",  "shiftr",  "getctl",  "putctl",
+   "push",    "pop",     "top",     "rfi",
+   "save",    "restore", "extract", "execute",
+   "getbit",  "getbiti", "putbit",  "putbiti",
+   "nop",     "nop",     "nop",     "nop",
+   "nop",     "nop",     "nop",     "nop"]
 
 //-------------------------------------------------------------------------------
 // Instruction set and assembly language formats
@@ -48,32 +50,46 @@ const RRR         = 0     // R1,R2,R3    (RRR)
 const RR          = 1     // R1,R2       (RRR, omitting d or b field
 const RX          = 2;    // R1,xyz[R2]  (RX)
 const JX          = 3;    // loop[R0]    (RX omitting d field)
-const RRRX        = 4;    // R1,R2,R3    (EXP)
-const RRKX        = 5;    // R1,R2,3    (EXP)
-const RCX         = 6;    // getcth R4,imask
+const RRREXP      = 4;    // R1,R2,R3    (EXP) like RRR instruction but expand op
+const RRKEXP      = 5;    // R1,R2,3    (EXP)
+const RRXEXP      = 6;    // save R4,R7,3[R14]   (EXP)
+const RCEXP       = 7;    // getctl R4,imask register,control (EXP)
 
-const DATA        = 7;    // -42
-const COMMENT     = 8;    // ; full line comment, or blank line
-const NOOPERATION = 9;    // error
-const NOOPERAND   = 10;    // statement has no operand
+const EXP0        = 8;    // EXP format with no operand
+const DATA        = 9;    // -42
+const COMMENT     = 10;    // ; full line comment, or blank line
 
-const ASMDIR      = 11;    // fcn module    (no operand)
-const ASMDIRX     = 12;    // org $f000     (operand is expression)
-const ASMDIRIDENT    = 13;   // export x,y    (operand is list of names)
+const DirModule   = 12;
+const DirImport   = 13;
+const DirExport   = 14;
+const DirOrg      = 15;
+const DirEqu      = 16;
+const UNKNOWN     = 17;
+const EMPTY       = 18;
 
-// const DIRECTIVE   = 6;    // assembler directive
+const NOOPERATION = 19;    // error
+const NOOPERAND   = 20;    // statement has no operand
 
+// kil these
+// const ASMDIR      = 12;    // fcn module    (no operand)
+// const ASMDIRX     = 13;    // org $f000     (operand is expression)
+// const ASMDIRIDENT = 14;   // export x,y    (operand is list of names)
+
+// Need to update ???
 function showFormat (n) {
-    let f = ['RRR','RR','RX','JX','DATA','COMMENT','NOOPERATION'] [n];
+    let f = ['RRR','RR','RX','JX','RRREXP', 'RRKEXP', 'RRXEXP',
+             'RCEXP', 'DATA','COMMENT','NOOPERATION', 'NOOPERAND',
+             'ASMDIR', 'ASMDIRX', 'ASMDIRIDENT'] [n];
     let r = f ? f : 'UNKNOWN';
     return r;
 }
 
 // Give the size of generated code for an instruction format
 function formatSize (fmt) {
-    if (fmt==RRR || fmt==RR || fmt==DATA) {
+    if (fmt==RRR || fmt==RR || fmt==EXP0 || fmt==DATA) {
 	return 1
-    } else if (fmt==RRKX | fmt==RX | fmt==JX | fmt==RCX) {
+    } else if (fmt==RX | fmt==JX
+               | fmt==RRREXP | fmt==RRKEXP | fmt==RRXEXP | fmt==RCEXP) {
 	return 2
     } else if (fmt==NOOPERAND) {
 	return 1
@@ -94,16 +110,15 @@ var statementSpec = new Map();
 // Each statement is initialized as noOperation; this is overridden if a
 // valid operation field exists (by the parseOperation function)
 
-const noOperation = {format:NOOPERATION, opcode:[]};
+// const noOperation = {format:NOOPERATION, opcode:[]};
 
-// Assembler directives
-statementSpec.set("module", {format:ASMDIR, opcode:[]})
-statementSpec.set("import", {format:ASMDIRIDENT, opcode:[]})
-statementSpec.set("export", {format:ASMDIRIDENT, opcode:[]})
-statementSpec.set("org",    {format:ASMDIRX, opcode:[]})
 
 // Data statements
 statementSpec.set("data",  {format:DATA, opcode:[]});
+
+// Empty statement
+statementSpec.set("",   {format:EMPTY, opcode:[]});
+let emptyStmt = statementSpec.get("");
 
 // Opcodes (in the op field) of 0-13 denote RRR instructions
 statementSpec.set("add",   {format:RRR, opcode:[0]});
@@ -158,17 +173,34 @@ statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
 statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
 
 // Mnemonics for EXP instructions
-statementSpec.set("shl",      {format:RRKX, opcode:[14,0]});
-statementSpec.set("shr",      {format:RRKX, opcode:[14,1]});
-statementSpec.set("putctl",   {format:RCX,  opcode:[14,2]});
-statementSpec.set("getctl",   {format:RCX,  opcode:[14,3]});
-statementSpec.set("rfi",      {format:NOOPERAND,  opcode:[14,4]});
+statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,0]});
+statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,1]});
+statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,2]});
+statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,3]});
+statementSpec.set("push",     {format:RRREXP,    opcode:[14,4]});
+statementSpec.set("pop",      {format:RRREXP,    opcode:[14,5]});
+statementSpec.set("top",      {format:RRREXP,    opcode:[14,6]});
+statementSpec.set("rfi",      {format:EXP0,      opcode:[14,7]});
+statementSpec.set("save",     {format:RRXEXP,    opcode:[14,8]});
+statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,9]});
+statementSpec.set("getbit",   {format:RRKEXP,    opcode:[14,10]});
+statementSpec.set("getbiti",  {format:RRKEXP,    opcode:[14,11]});
+statementSpec.set("putbit",   {format:RRKEXP,    opcode:[14,12]});
+statementSpec.set("putbiti",  {format:RRKEXP,    opcode:[14,13]});
 
+
+// Assembler directives
+statementSpec.set("module",  {format:DirModule,  opcode:[]});
+statementSpec.set("import",  {format:DirImport,  opcode:[]});
+statementSpec.set("export",  {format:DirExport,  opcode:[]});
+statementSpec.set("org",     {format:DirOrg,     opcode:[]});
+statementSpec.set("equ",     {format:DirEqu,     opcode:[]});
+
+//statementSpec.set("module", {format:ASMDIR, opcode:[]})
+//statementSpec.set("import", {format:ASMDIRIDENT, opcode:[]})
+//statementSpec.set("export", {format:ASMDIRIDENT, opcode:[]})
+//statementSpec.set("org",    {format:ASMDIRX, opcode:[]})
 // Mnemonics for assembler directives
-statementSpec.set("module",  {format:ASMDIR,   opcode:[]});
-statementSpec.set("import",  {format:ASMDIRIDENT, opcode:[]});
-statementSpec.set("export",  {format:ASMDIRIDENT, opcode:[]});
-statementSpec.set("org",     {format:ASMDIRX,    opcode:[]});
 
 // Mnemonics for control registers
 

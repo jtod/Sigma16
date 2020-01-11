@@ -34,6 +34,13 @@ Version 3.0.33
 <li><a href="#further-topics">Further topics</a></li>
 </ul></li>
 <li><a href="#architecture">Architecture</a><ul>
+<li><a href="#overview-of-computer-architecture">Overview of computer architecture</a><ul>
+<li><a href="#machine-language-and-instructions">Machine language and instructions</a></li>
+</ul></li>
+<li><a href="#overview-of-sigma16">Overview of Sigma16</a></li>
+<li><a href="#relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</a><ul>
+<li><a href="#the-rtm-instructions">The RTM instructions</a></li>
+</ul></li>
 <li><a href="#data-representation">Data representation</a></li>
 <li><a href="#register-file">Register file</a><ul>
 <li><a href="#r0-holds-the-constant-0">R0 holds the constant 0</a></li>
@@ -44,6 +51,7 @@ Version 3.0.33
 </ul></li>
 <li><a href="#instruction-control-registers">Instruction control registers</a><ul>
 <li><a href="#status-register-flags">Status register flags</a></li>
+<li><a href="#condition-codes-and-booleans">Condition codes and booleans</a></li>
 </ul></li>
 <li><a href="#interrupts-and-exceptions">Interrupts and exceptions</a><ul>
 <li><a href="#mask-and-request-flags">Mask and request flags</a></li>
@@ -58,17 +66,28 @@ Version 3.0.33
 <li><a href="#instruction-set">Instruction set</a><ul>
 <li><a href="#arithmetic-instructions">Arithmetic instructions</a><ul>
 <li><a href="#add">add</a></li>
+<li><a href="#sub">sub</a></li>
+<li><a href="#mul">mul</a></li>
+<li><a href="#div">div</a></li>
+<li><a href="#addc">addc</a></li>
+</ul></li>
+<li><a href="#accessing-memory-1">Accessing memory</a><ul>
+<li><a href="#lea">lea</a></li>
+<li><a href="#load">load</a></li>
+<li><a href="#store">store</a></li>
+<li><a href="#save">save</a></li>
+<li><a href="#restore">restore</a></li>
+<li><a href="#push">push</a></li>
 <li><a href="#pop">pop</a></li>
 <li><a href="#top">top</a></li>
 </ul></li>
 <li><a href="#comparisons">Comparisons</a><ul>
-<li><a href="#condition-codes-and-booleans">Condition codes and booleans</a></li>
 <li><a href="#cmplt">cmplt</a></li>
 <li><a href="#cmpeq">cmpeq</a></li>
 <li><a href="#cmpgt">cmpgt</a></li>
 <li><a href="#cmp">cmp</a></li>
 </ul></li>
-<li><a href="#jumps">Jumps</a><ul>
+<li><a href="#transfer-of-control">Transfer of control</a><ul>
 <li><a href="#jump">jump</a></li>
 <li><a href="#jumpf">jumpf</a></li>
 <li><a href="#jumpt">jumpt</a></li>
@@ -77,7 +96,7 @@ Version 3.0.33
 <li><a href="#jal">jal</a></li>
 <li><a href="#aliases-for-conditional-jumps">Aliases for conditional jumps</a></li>
 </ul></li>
-<li><a href="#bits-and-booleans">Bits and Booleans</a><ul>
+<li><a href="#bit-fields">Bit fields</a><ul>
 <li><a href="#inv">inv</a></li>
 <li><a href="#and">and</a></li>
 <li><a href="#or">or</a></li>
@@ -85,9 +104,9 @@ Version 3.0.33
 <li><a href="#shiftl">shiftl</a></li>
 <li><a href="#shiftr">shiftr</a></li>
 <li><a href="#getbit">getbit</a></li>
-<li><a href="#getbitinv">getbitinv</a></li>
+<li><a href="#getbiti">getbiti</a></li>
 <li><a href="#putbit">putbit</a></li>
-<li><a href="#putbitinv">putbitinv</a></li>
+<li><a href="#putbiti">putbiti</a></li>
 <li><a href="#extract">extract</a></li>
 <li><a href="#execute">execute</a></li>
 </ul></li>
@@ -96,6 +115,13 @@ Version 3.0.33
 <li><a href="#getctl">getctl</a></li>
 <li><a href="#putctl">putctl</a></li>
 <li><a href="#rfi">rfi</a></li>
+</ul></li>
+<li><a href="#trap-operations">Trap operations</a><ul>
+<li><a href="#halt">Halt</a></li>
+<li><a href="#nonblocking-read">Nonblocking read</a></li>
+<li><a href="#write">Write</a></li>
+<li><a href="#blocking-readline">Blocking readline</a></li>
+<li><a href="#nonblocking-readline">Nonblocking readline</a></li>
 </ul></li>
 <li><a href="#summary-of-the-instruction-set">Summary of the instruction set</a></li>
 </ul></li>
@@ -129,19 +155,6 @@ Version 3.0.33
 </ul></li>
 <li><a href="#programming">Programming</a><ul>
 <li><a href="#computer-architecture">Computer Architecture</a><ul>
-<li><a href="#machine-language-and-instructions">Machine language and instructions</a></li>
-<li><a href="#why-use-sigma16">Why use Sigma16?</a></li>
-<li><a href="#structure-of-a-computer">Structure of a computer</a></li>
-<li><a href="#instructions-1">Instructions}</a></li>
-<li><a href="#the-rtm-instructions">The RTM instructions</a></li>
-<li><a href="#the-add-instruction">The add instruction}</a></li>
-<li><a href="#registers-can-hold-variables">Registers can hold variables}</a></li>
-<li><a href="#notation-and-terminology">Notation and terminology}</a></li>
-<li><a href="#a-simple-program">A simple program}</a></li>
-<li><a href="#more-arithmetic-instructions">More arithmetic instructions}</a></li>
-<li><a href="#example">Example}</a></li>
-<li><a href="#general-form-of-arithmetic-instruction">General form of arithmetic instruction}</a></li>
-<li><a href="#register-r0-and-r15-are-special">Register R0 and R15 are special!}</a></li>
 <li><a href="#memory-1">Memory</a></li>
 <li><a href="#limitation-of-register-file-its-small">Limitation of register file: it’s small}</a></li>
 <li><a href="#memory-2">Memory}</a></li>
@@ -500,7 +513,7 @@ Version 3.0.33
 <li><a href="#we-have-to-be-careful">We have to be careful!</a></li>
 <li><a href="#checking-whether-the-code-is-invalid">Checking whether the code is invalid</a></li>
 <li><a href="#commands">Commands</a><ul>
-<li><a href="#example-1">Example</a></li>
+<li><a href="#example">Example</a></li>
 </ul></li>
 <li><a href="#why-are-ordered-lists-useful">Why are ordered lists useful?</a></li>
 <li><a href="#where-do-the-commands-come-from">Where do the commands come from?</a></li>
@@ -635,7 +648,7 @@ Version 3.0.33
 <li><a href="#practical-programming-tip">Practical programming tip</a></li>
 </ul></li>
 <li><a href="#architecture-1">Architecture</a><ul>
-<li><a href="#instructions-2">Instructions</a></li>
+<li><a href="#instructions-1">Instructions</a></li>
 <li><a href="#addresses-and-data-structures">Addresses and data structures</a><ul>
 <li><a href="#compilation-patterns-3">Compilation patterns</a></li>
 </ul></li>
@@ -908,6 +921,33 @@ Version 3.0.33
 <p>To exit the app, just close the browser window or tab. This should put up a dialogue box warning that any unsaved data may be lost and asking you to confirm.</p>
 <h3 id="registers-and-arithmetic">Registers and arithmetic</h3>
 <p>Registers are like variables in a programming language. They are even more similar to the registers in a calculator.</p>
+<p>Registers can hold variables</p>
+<ul>
+<li>We often think of a variable as </li>
+<li>A register can hold a variable!</li>
+<li>An add instruction (or sub, mul, div) is like an assignment statement</li>
+<li> means  \begin{enumerate}</li>
+<li>Evaluate the right hand side </li>
+<li>The operands (R8, R2) are not changed</li>
+<li>Overwrite the left hand side (destination) (R2) with the result</li>
+<li>The old value of the destination is destroyed</li>
+<li>It is </li>
+<li>It is  \end{enumerate}</li>
+<li>Assignment is often written </li>
+<li>The  operator means , and does not mean </li>
+</ul>
+<p>Why write a notation like add R5,R2,R3 instead of R5 := R2 + R3?</p>
+<ul>
+<li><p>It’s more consistent because  instruction will be written in this form: a keyword for the operation, followed by the operands</p></li>
+<li><p>The notation is related closely to the way instructions are represented in memory, which we’ll see later</p></li>
+</ul>
+<p>A simple program. The problem:</p>
+<ul>
+<li>Given three integers in R1, R2, R3</li>
+<li>Goal: calculate the sum R1+R2+R3 and put it in R4</li>
+</ul>
+<pre><code>    add  R4,R1,R2    ;  R4 := R1+R2   (this is a comment)
+    add  R4,R4,R3    ;  R4 := (R1+R2) + R3</code></pre>
 <p>There are four arithmetic instructions, to perform addition, subtraction, multiplication, and division. (There are also a few more not discussed here.)</p>
 <p>The add instruction takes the contents of two operand registers and places their sum into a destination register. It is written with the operation <em>add</em>, and the three registers separated by commas: <em>add destination,firstOperand,secondOperand</em>. For example, add R2,R5,R8 calculates the sum of R5 and R8 and places the result into R2. The effect can be described with an assignment statement: R2 := R5+R8.</p>
 <p>To place a constant into a register, use the lea instruction. The destination is a register, and the operand is a constant followed by [R0]. For example, to load 42 into register 3, write</p>
@@ -926,6 +966,12 @@ Version 3.0.33
     sub   R1,R2,R3
     mul   R1,R2,R3
     div   R1,R2,R3</code></pre>
+<p>More arithmetic instructions. There are instructions for the basic arithmetic operations</p>
+<pre><code> add  R4,R11,R0   ; R4 := R11 + R0
+ sub  R8,R2,R5    ; R8 := R2 - R5
+ mul  R10,R1,R2   ; R10 := R1 * R2
+ div  R7,R2,R12   ; R7 := R2 / R12</code></pre>
+<p>Every arithmetic operation takes its operands from registers, and loads the result into a register.</p>
 <p>In the lea instruction, the constant value can be specified using either decimal or hexadecimal notation. Indicate hexadecimal in assembly language by putting $ before the number. Thus $00a5 and 0165 both represent the integer 165.</p>
 <p>Most instructions follow a similar pattern, where the first operand is the destination where the result is placed, and the subsequent operands are the arguments to the computation. This is the same convention used in assignment statements in many programming languages: the registers in sub R1,R2,R3 appear in the same order as the varaibles in R1 := R2-R3.</p>
 <p>An arithmetic instruction performs just one operation. Several instructions are needed to evaluate a larger expression, such as 7 + 10*9:</p>
@@ -946,6 +992,56 @@ Version 3.0.33
 <li><p>A natural number between 0 and 65,535</p></li>
 <li><p>A character</p></li>
 </ul>
+<p>Example</p>
+<ul>
+<li>Suppose we have variables a, b, c, d</li>
+<li>R1=a, R2=b, R3=c, R4=d</li>
+<li>We wish to compute R5 = (a+b) * (c-d)</li>
+</ul>
+<pre><code>    add   R6,R1,R2     ; R6 := a + b
+    sub   R7,R3,R4     ; R7 := c - d
+    mul   R5,R6,R7     ; R5 := (a+b) * (c-d)</code></pre>
+<p>Good comments make the code easier to read!</p>
+<p><strong>General form of arithmetic instruction</strong></p>
+<pre><code>op d,a,b</code></pre>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">op</td>
+<td style="text-align: center;">operation: add, sub, mul,div</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">d</td>
+<td style="text-align: center;">destination register: where the result goes</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">first operand register</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">b</td>
+<td style="text-align: center;">second operand register</td>
+</tr>
+</tbody>
+</table>
+<p>Meaning R_d := R_a op  R_b</p>
+<p>Example: add R5,R2,R12 ; R5 := R2+R12</p>
+<p><strong>Register R0 and R15 are special</strong></p>
+<p>You should not use R0 or R15 to hold ordinary variables.</p>
+<p><strong>R0 always contains 0</strong></p>
+<ul>
+<li><p>Any time you need the number 0, it’s available in R0</p></li>
+<li><p>You cannot change the value of R0</p></li>
+<li><p>add R0,R2,R3 ; does nothing — R0 will not change</p></li>
+<li><p>add R5,R2,R3 ; fine - you can change all other registers</p></li>
+<li><p>It is legal to use R0 as the destination, but it will still be 0 after you do it!</p></li>
+</ul>
+<p><strong>R15 holds status information</strong></p>
+<ul>
+<li><p>Some instructions place additional information in R15 (is the result negative? was there an overflow?)</p></li>
+<li><p>Therefore the information in R15 is transient</p></li>
+<li><p>R15 is for temporary information; it’s not a safe place to keep long-term data</p></li>
+</ul>
 <h3 id="accessing-memory">Accessing memory</h3>
 <p>Only 14 registers can be used to hold variables, but most programs need many more variables.</p>
 <p>The Memory is a large set of locations</p>
@@ -958,6 +1054,36 @@ Version 3.0.33
 <p>To set a breakpoint, click Breakpoint and enter the stopping condition in the dialogue box. For example, to stop when the pc register becomes $01b7, enter BPeq BPpc (BPhex “01b7”). Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <h1 id="architecture">Architecture</h1>
 <p>An <em>instruction set architecture</em> is a precise specification of all aspects of a machine that are visible to a programmer. It includes a description of the registers, memory, data representations, and all the instructions, but does not include components of the implementation that are not visible to a machine language programmer.</p>
+<h2 id="overview-of-computer-architecture">Overview of computer architecture</h2>
+<h3 id="machine-language-and-instructions">Machine language and instructions</h3>
+<p>Very different from Python, Java, C, etc. The designer of a machine language has to `look both up and down’:</p>
+<ul>
+<li><p>Looking up to higher levels of abstraction, the machine language must be powerful enough to provide the foundation for operating systems and programming languages.</p></li>
+<li><p>Looking down to the lower levels of implementation, the machine language must be simple enough so that a digital circuit can execute it.</p></li>
+</ul>
+<p>Machine languages are designed to achieve high performance possible at reasonable cost. Their primary aim is not to make programming as easy as possible</p>
+<p>A machine language program consists of instructions. An instruction is analogous to a statement in a programming language. However, each instruction just performs a small fixed set of operations, while programming language statements can be complex. For example, the assignment statement x := 2 * (a + b/c) involves three arithmitic operations, and it would require at least three instructions to express in machine language.</p>
+<h2 id="overview-of-sigma16">Overview of Sigma16</h2>
+<p>Why use Sigma16?</p>
+<p>Our focus is on fundamental concepts, ideas and principles. Sigma16 illustrates the fundementals of computer systems but it avoids unnecessary complexity. For example, Sigma16 has just one word size (16 bits) while most commercial machines provide a variety. That variety is useful for practical applications but it complicates many of the details while not adding any new fundamental ideas. Most commercial computers that achieve success in the marketplace eventually become encrusted with complications that help support backward compatibility; this can lead to great complexity.</p>
+<p>Structure of the architecture</p>
+<p>All computers have several main subsystems</p>
+<ul>
+<li><p>A register is a digital circuit that can retain one word of data. A new value can be loaded into a register, and the current contents may be read out.</p></li>
+<li><p>The register file is a set of 16 registers that are available to the user programmer for holding values of variables. They are named R0, R1, R2, …, R15.</p>
+<p>Register Contents ~~~~~~~~~~ ~~~~~~~~~~ R0 0000 R1 fffe R2 13c4 … … R14 03c8 R15 0020</p></li>
+<li><p>The ALU (arithmetic and logic unit) is a circuit that can do arithmetic, such as addition, subtraction, comparison, and some other operations</p></li>
+<li><p>The memory can hold a large number of words. It’s similar to the register file, but significantly slower and much larger.</p></li>
+<li><p>The Input/Output system can transfer data between the computer and the outside world.</p></li>
+</ul>
+<h2 id="relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</h2>
+<h3 id="the-rtm-instructions">The RTM instructions</h3>
+<ul>
+<li><p>The RTM circuit can execute two instructions</p></li>
+<li>R2 := R1 + R0 ; add two registers and load result</li>
+<li><p>R1 := 8 ; load a constant</p></li>
+<li><p>We’ll begin with the corresponding Sigma16 instructions</p></li>
+</ul>
 <h2 id="data-representation">Data representation</h2>
 <p>Sigma16 is a 16-bit architecture, and every data value is a 16-bit word. Integers are represented in 16-bit two’s complement notation. The bits of a word are numbered from left to right, starting with 0. Thus the leftmost (most significant) bit of a word is bit 0, and the rightmost (least significant) is bit 15.</p>
 <h2 id="register-file">Register file</h2>
@@ -1169,6 +1295,7 @@ Interrupts enabled
 </td>
 </tr>
 </table>
+<h3 id="condition-codes-and-booleans">Condition codes and booleans</h3>
 <h2 id="interrupts-and-exceptions">Interrupts and exceptions</h2>
 <ul>
 <li><p>imask</p></li>
@@ -1396,10 +1523,10 @@ Interrupt
 <p>Second word of the instruction</p>
 <table class="wordlayout"">
   <tr>
-    <th>p</th>
-    <th>q</th>
-    <th>r</th>
-    <th>s</th>
+    <th>e</th>
+    <th>f</th>
+    <th>g</th>
+    <th>h</th>
   </tr>
   <tr>
     <td>0-3</td>
@@ -1409,7 +1536,15 @@ Interrupt
   </tr>
 </table>
 <h2 id="summary-of-notation">Summary of notation</h2>
-<p>ea m[ea] r[d] r[a] r[b] q#r[d] lsb q</p>
+<ul>
+<li><p>ea</p></li>
+<li><p>mem[ea]</p></li>
+<li><p>reg[d]</p></li>
+<li><p>reg[a]</p></li>
+<li><p>reg[b]</p></li>
+<li><p>reg[d]</p></li>
+<li><p>lsb q</p></li>
+</ul>
 <h1 id="instruction-set">Instruction set</h1>
 <p>The following sections describe the instructions in groups organized by their function. Some of the groups contain instructions with different formats. From the programmer’s perspective the function is more important, so these groups are useful in finding the right instruction to use. (From the perspective of designing a digital circuit to impleemnt the architecture, the format is essential.)</p>
 <h2 id="arithmetic-instructions">Arithmetic instructions</h2>
@@ -1443,138 +1578,161 @@ Interrupt
 </tbody>
 </table>
 <p>In addition to setting the destination register, the add instruction sets several bits in the condition code R15 and may set a bit in the req register.</p>
-<table style="width:46%;">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 30%" />
-</colgroup>
+<table>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">R15.ccG R15.ccg := R15.ccE := R15.ccl := R15.CCL := R15.ccV := R15.CCv := R15.CCc :=</td>
-<td style="text-align: center;">:= result &gt;bin 0 result &gt;tc 0 result = 0 result &lt;tc 0 0 bin overflow tc overflow carry output</td>
+<td style="text-align: center;">R15.ccG</td>
+<td style="text-align: center;">result &gt;bin 0</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">### sub</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;">R15.ccg</td>
+<td style="text-align: center;">result &gt;tc 0</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">sub R1,R2,R</td>
-<td style="text-align: center;">3</td>
+<td style="text-align: center;">R15.ccE</td>
+<td style="text-align: center;">result = 0</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">### mul</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;">R15.ccl</td>
+<td style="text-align: center;">result &lt;tc 0</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">### div</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;">R15.CCL</td>
+<td style="text-align: center;">0</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">### addc</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;">R15.ccV</td>
+<td style="text-align: center;">bin overflow</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">## Accessin</td>
-<td style="text-align: center;">g memory</td>
+<td style="text-align: center;">R15.CCv</td>
+<td style="text-align: center;">tc overflow</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">### Effecti</td>
-<td style="text-align: center;">ve address</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">### lea</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">The effecti displacemen</td>
-<td style="text-align: center;">ve address is defined to be the binary sum of the t and the index register.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">### load</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Load copies destination</td>
-<td style="text-align: center;">the word in memory at the effective address into the register.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">general for</td>
-<td style="text-align: center;">m: load Rd,disp[Ra]</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">effect: reg</td>
-<td style="text-align: center;">[Rd] := mem[disp+reg[Ra]]</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">format: RX</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">load R load R load R</td>
-<td style="text-align: center;">12,count[R0] ; R12 := count 6,arrayX[R2] ; R6 := arrayX[R2] 3,$2b8e[R5] ; R3 := mem[2b8e+R5]</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">### store</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Store copie effective a "destinatio destination</td>
-<td style="text-align: center;">s the word in the destination register into memory at the ddress. Unlike most instructions, store treats the n register" as the source of data, and the actual is the memory location.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">general effect: format:</td>
-<td style="text-align: center;">form: store Rd,disp[Ra] mem[disp+reg[Ra]] := reg[Rd] RX</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">store store store</td>
-<td style="text-align: center;">R3,$2b8e[R5] R12,count[R0] R6,arrayX[R2]</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">### save</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">### restore</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">### push</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">push R1</td>
-<td style="text-align: center;">,R2,R3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">R1 = va R2 = st R3 = st</td>
-<td style="text-align: center;">lue to push onto stack in memory ack top ack limit</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Push the wo stack is fu in the cond will occur</td>
-<td style="text-align: center;">rd in R1 onto a stack with top R2 and limit R3. If the ll, nothing is stored into memory and an error is indicated ition code and interrupt request registers; an interrupt if interrupts are enabled and the stack mask bit is set.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">Push has th</td>
-<td style="text-align: center;">e following semantics:</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">if R2&lt;R then else</td>
-<td style="text-align: center;">3 R2 := R2+1; mem[R2] := R1 R15.sovfl := 1, req.StackBounds := 1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">If R2=R3 th no space to does not st doesn’t ove indicates a in the cond the interru stack fault interrupt w will be no bit is not</td>
-<td style="text-align: center;">is means the stack completely fills the block, and there is store a new element. In this case, the push instruction ore R1: it doesn’t modify memory outside the block, and it rwrite data in the stack. Instead, the instruction stack overflow by setting the sovfl (stack overflow) bit ition code (R15), and it also sets the stack fault bit in pt request register. If interrupts are enabled and the bit is set in the interrupt mask register, then an ill occur after the push instruction completes. But there interrupt if interrupts are disabled, or the stack fault set in the mask register.</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Push is an</td>
-<td style="text-align: center;">EXP format instruction comprising two words:</td>
+<td style="text-align: center;">R15.CCc</td>
+<td style="text-align: center;">carry output</td>
 </tr>
 </tbody>
 </table>
-<p>op d a b<br />
-<strong>e</strong> R1 <strong>5</strong><br />
-0-2 3-6 7-10 11-15<br />
-—— —— —— ——</p>
+<h3 id="sub">sub</h3>
+<p>sub R1,R2,R3</p>
+<h3 id="mul">mul</h3>
+<h3 id="div">div</h3>
+<h3 id="addc">addc</h3>
+<h2 id="accessing-memory-1">Accessing memory</h2>
+<h3 id="lea">lea</h3>
+<p>The <strong>load effective address</strong> instruction <em>lea Rd,disp[Rx]</em> calculates the effective address of the operand disp[Rx] and places the result in the destination register Rd. The effective address is the binary sum disp+Rx.</p>
+<h3 id="load">load</h3>
+<p>The <strong>load</strong> instruction <em>load Rd,disp[Rx]</em> calculates the effective address of the operand disp[Rx] and copies the word in memory at the effective address into the destination register Rd. The effective address is the binary sum disp+Rx.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">general form</td>
+<td style="text-align: left;">load Rd,disp[Ra]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">effect</td>
+<td style="text-align: left;">reg[Rd] := mem[disp+reg[Ra]]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">machine format</td>
+<td style="text-align: left;">RX</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">assembly format</td>
+<td style="text-align: left;">RX</td>
+</tr>
+</tbody>
+</table>
+<p>Examples ~~~~ load R12,count[R0] ; R12 := count load R6,arrayX[R2] ; R6 := arrayX[R2] load R3,$2b8e[R5] ; R3 := mem[2b8e+R5] ~~~~</p>
+<h3 id="store">store</h3>
+<p>The <strong>store</strong> instruction <em>store Rd,disp[Rx]</em> calculates the effective address of the operand disp[Rx] and the value of the destination register Rd into memory at the effective address. The effective address is the binary sum disp+Rx.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">general form</td>
+<td style="text-align: left;">store Rd,disp[Ra]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">effect</td>
+<td style="text-align: left;">mem[disp+reg[Ra]] := reg[Rd]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">machine format</td>
+<td style="text-align: left;">RX</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">assembly format</td>
+<td style="text-align: left;">RX</td>
+</tr>
+</tbody>
+</table>
+<p>Store copies the word in the destination register into memory at the effective address. This instruction is unusual in that it treats the “destination register” as the source of data, and the actual destination which is modified is the memory location.</p>
+<p>Most instructions take data from the rightmost operands and modify the leftmost destination, just like an assignment statement (x := y+z). However, the store instruction operates in the opposite direction. The reason for this has to do with the circuit design of the processor. Although the “left to right” nature of the store instruction may look inconsistent from the programmer’s point of view, it actually is more consistent from the deeper perspective of circuit design.</p>
+<p>Examples</p>
+<pre><code>   store  R3,$2b8e[R5]
+   store  R12,count[R0]
+   store  R6,arrayX[R2]</code></pre>
+<h3 id="save">save</h3>
+<p>The <strong>save</strong> instruction stores a sequence of adjacent registers into memory starting from the effective address. It is equivalent to a fixed sequence of store instructions. The purpose of save is to copy the state of registers into memory during a procedure call or a context switch.</p>
+<p>Typically, save is used as part of a procedure call and restore is used as part of the return.</p>
+<p>The instruction <em>save Rd,Re,gh[Rf]</em> stores the contents of Rd, Rd+1, …, Re into memory at consecutive locations beginning with mem[gh+Rf].</p>
+<p>The instruction is EXP format, and the displacement is limited to 8 bits, because it is specified in the gh field (the rightmost 8 bits) of the second word of the instruction.</p>
+<p>For example, consider this instruction: ~~~~ save R3,R10,4[R14] ~~~~</p>
+<p>The effect is equivalent to</p>
+<pre><code>   store  R3,4[R14]
+   store  R4,5[R14]
+   store  R5,6[R14]
+   store  R6,7[R14]
+   store  R7,8[R14]
+   store  R8,9[R14]
+   store  R9,10[R14]
+   store  R10,11[R14]</code></pre>
+<h3 id="restore">restore</h3>
+<p>The <strong>restore</strong> instruction copies a sequence of consecutive memory locations starting from the effecive address into a sequence of adjacent registers. It is equivalent to a fixed sequence of load instructions. The purpose of restore is to restore the state of registers from memory after a procedure call or a context switch.</p>
+<p>Typically, save is used as part of a procedure call and restore is used as part of the return.</p>
+<p>The instruction <em>restore Rd,Re,gh[Rf]</em> copies the contents of memory at consecutive locations beginning with mem[gh+Rf] into registers Rd, Rd+1, …, Re.</p>
+<p>The instruction is EXP format, and the displacement is limited to 8 bits, because it is specified in the gh field (the rightmost 8 bits) of the second word of the instruction. The assembly language statement format is RRXEXP.</p>
+<p>For example, consider this instruction: ~~~~ restore R3,R10,4[R14] ~~~~</p>
+<p>The effect is equivalent to</p>
+<pre><code>   load  R3,4[R14]
+   load  R4,5[R14]
+   load  R5,6[R14]
+   load  R6,7[R14]
+   load  R7,8[R14]
+   load  R8,9[R14]
+   load  R9,10[R14]
+   load  R10,11[R14]</code></pre>
+<h3 id="push">push</h3>
+<p>push R1,R2,R3</p>
+<p>R1 = value to push onto stack in memory R2 = stack top R3 = stack limit</p>
+<p>Push the word in R1 onto a stack with top R2 and limit R3. If the stack is full, nothing is stored into memory and an error is indicated in the condition code and interrupt request registers; an interrupt will occur if interrupts are enabled and the stack mask bit is set.</p>
+<p>Push has the following semantics:</p>
+<p>if R2&lt;R3 then R2 := R2+1; mem[R2] := R1 else R15.sovfl := 1, req.StackBounds := 1</p>
+<p>If R2=R3 this means the stack completely fills the block, and there is no space to store a new element. In this case, the push instruction does not store R1: it doesn’t modify memory outside the block, and it doesn’t overwrite data in the stack. Instead, the instruction indicates a stack overflow by setting the sovfl (stack overflow) bit in the condition code (R15), and it also sets the stack fault bit in the interrupt request register. If interrupts are enabled and the stack fault bit is set in the interrupt mask register, then an interrupt will occur after the push instruction completes. But there will be no interrupt if interrupts are disabled, or the stack fault bit is not set in the mask register.</p>
+<p>Push is an EXP format instruction comprising two words:</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">op</td>
+<td style="text-align: center;">d</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">b</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>e</strong></td>
+<td style="text-align: center;">R1</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><strong>5</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">0-2</td>
+<td style="text-align: center;">3-6</td>
+<td style="text-align: center;">7-10</td>
+<td style="text-align: center;">11-15</td>
+</tr>
+</tbody>
+</table>
 <h3 id="pop">pop</h3>
 <p>The pop instruction removes the top element from a stack and loads it into the destination register. (See push for a description of representation of a stack.)</p>
 <p>pop R1,R2,R3</p>
@@ -1585,12 +1743,20 @@ Interrupt
 <p>R1 = value of top of stack R2 = stack top R2 = stack base</p>
 <p>if R2&gt;R2 then R1 := mem[R1] else R15.StackEmpty := 1, req.StackBounds := 1</p>
 <h2 id="comparisons">Comparisons</h2>
-<h3 id="condition-codes-and-booleans">Condition codes and booleans</h3>
 <h3 id="cmplt">cmplt</h3>
+<p>The <strong>compare for less than</strong> instruction <em>cmplt Rd,Ra,Rb</em> performs an integer comparison of the operands. If Ra&lt;Rb then the destination Rd is set to 0001; otherwise it is set to 0000.</p>
+<p>The comparison treats the operands as signed integers, not as binary numbers. For example, ffff is the two’s complement representation of -1, while 0002 is the two’s complement representation of 2, so ffff &lt; 0002.</p>
+<p>The result of a comparison is a Boolean, either false or true. False is represented as 0000, and true is represented as 0001.</p>
 <h3 id="cmpeq">cmpeq</h3>
+<p>The <strong>compare for equality</strong> instruction <em>cmpeq Rd,Ra,Rb</em> performs an bitwise comparison of the operands. If Ra and Rb contain the same value then the destination Rd is set to 0001; otherwise it is set to 0000.</p>
+<p>This instruction can be used to compare for equality of either integers (binary) numbers or integers (two’s complement).</p>
+<p>The result of a comparison is a Boolean, either false or true. False is represented as 0000, and true is represented as 0001.</p>
 <h3 id="cmpgt">cmpgt</h3>
+<p>The <strong>compare for greater than</strong> instruction <em>cmpgt Rd,Ra,Rb</em> performs an integer comparison of the operands. If Ra&gt;Rb then the destination Rd is set to 0001; otherwise it is set to 0000.</p>
+<p>The comparison treats the operands as signed integers, not as binary numbers. For example, ffff is the two’s complement representation of -1, while 0002 is the two’s complement representation of 2, so 0002 &gt; ffff.</p>
+<p>The result of a comparison is a Boolean, either false or true. False is represented as 0000, and true is represented as 0001.</p>
 <h3 id="cmp">cmp</h3>
-<h2 id="jumps">Jumps</h2>
+<h2 id="transfer-of-control">Transfer of control</h2>
 <h3 id="jump">jump</h3>
 <h3 id="jumpf">jumpf</h3>
 <h3 id="jumpt">jumpt</h3>
@@ -1598,17 +1764,34 @@ Interrupt
 <h3 id="jumpc1">jumpc1</h3>
 <h3 id="jal">jal</h3>
 <h3 id="aliases-for-conditional-jumps">Aliases for conditional jumps</h3>
-<h2 id="bits-and-booleans">Bits and Booleans</h2>
+<p>jumplt jumple jumpne jumpeq jumpge jumpgt</p>
+<h2 id="bit-fields">Bit fields</h2>
+<p>The following instructions treat a word as a sequence of bits, and operate on the individual bits.</p>
 <h3 id="inv">inv</h3>
+<p>The <strong>invert</strong> instruction <em>inv Rd,Ra</em> inverts the bits in the operand Ra and places the result in the destination Rd. The operand Ra is not changed. Inverting a bit means changing 0 to 1, and changing 1 to 0.</p>
+<p>Suppose R8 contains 035f. Then the following instruction will set R3 to fca0, and leave R8 unchanged.</p>
+<pre><code>   inv R3,R8</code></pre>
 <h3 id="and">and</h3>
+<p>The <strong>logical and</strong> instruction <em>inv Rd,Ra,Rb</em> calculates the logical “and” (conjunction) of the bits in the operands Ra and Rb, and places the result in the destination Rd. The operand registers are not changed. The logical and of two bits is 1 if both bits are 1, and 0 otherwise.</p>
 <h3 id="or">or</h3>
+<p>The <strong>logical or</strong> instruction <em>inv Rd,Ra,Rb</em> calculates the logical “inclusive or” (disjucntion) of the bits in the operands Ra and Rb, and places the result in the destination Rd. The operand registers are not changed. The logical or of two bits is 1 if either or both of the bits are 1, and 0 otherwise.</p>
 <h3 id="xor">xor</h3>
+<p>The <strong>logical exclusive or</strong> instruction <em>inv Rd,Ra,Rb</em> calculates the logical “exclusive or” of the bits in the operands Ra and Rb, and places the result in the destination Rd. The operand registers are not changed. The logical exclusive or of two bits is 1 if one or the other of the bits is 1, and 0 otherwise.</p>
+<p>The exclusive or of two bits is the same as the inclusive or if either bit is 0. The only time it is different is if both bits are 1: in that case exclusive or gives 0 but inclusive or gives 1.</p>
 <h3 id="shiftl">shiftl</h3>
+<p>The instruction shiftl Rd,Ra,k shifts the value in the operand register Ra by k bits to the left, and the result is placed in the destination register Rd. The operand Ra is not modified. During the shift, the leftmost k bits of the value are discarded and the rightmost k bits become 0.</p>
+<pre><code>   shiftl  R2,R3,5</code></pre>
+<p>The instruction format is EXP, and the assembly language statement format is RRKEXP</p>
 <h3 id="shiftr">shiftr</h3>
+<p>Shift to the right.</p>
+<p>The instruction shiftr Rd,Ra,k shifts the value in the operand register Ra by k bits to the right, and the result is placed in the destination register Rd. The operand Ra is not modified. During the shift, the rightmost k bits of the value are discarded and the leftmost k bits become 0.</p>
+<p>The following instruction shifts the value in R3 to the right by 5 bits and place the result in R2. The operand register R3 is not changed.</p>
+<pre><code>   shiftr  R2,R3,5</code></pre>
+<p>The instruction format is EXP, and the assembly language statement format is RRKEXP</p>
 <h3 id="getbit">getbit</h3>
-<h3 id="getbitinv">getbitinv</h3>
+<h3 id="getbiti">getbiti</h3>
 <h3 id="putbit">putbit</h3>
-<h3 id="putbitinv">putbitinv</h3>
+<h3 id="putbiti">putbiti</h3>
 <h3 id="extract">extract</h3>
 <h3 id="execute">execute</h3>
 <h2 id="system-control">System control</h2>
@@ -1616,6 +1799,12 @@ Interrupt
 <h3 id="getctl">getctl</h3>
 <h3 id="putctl">putctl</h3>
 <h3 id="rfi">rfi</h3>
+<h2 id="trap-operations">Trap operations</h2>
+<h3 id="halt">Halt</h3>
+<h3 id="nonblocking-read">Nonblocking read</h3>
+<h3 id="write">Write</h3>
+<h3 id="blocking-readline">Blocking readline</h3>
+<h3 id="nonblocking-readline">Nonblocking readline</h3>
 <h2 id="summary-of-the-instruction-set">Summary of the instruction set</h2>
 <p>The following table shows the complete instruction set. The instructions are in order of increasing operation code.</p>
 <hr />
@@ -2059,112 +2248,6 @@ export  fcn,002c</code></pre>
 <p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
 <h1 id="programming">Programming</h1>
 <h2 id="computer-architecture">Computer Architecture</h2>
-<h3 id="machine-language-and-instructions">Machine language and instructions</h3>
-<p>Very different from Python, Java, C, etc. The designer of a machine language has to `look both up and down’:</p>
-<ul>
-<li><p>Looking up to higher levels of abstraction, the machine language must be powerful enough to provide the foundation for operating systems and programming languages.</p></li>
-<li><p>Looking down to the lower levels of implementation, the machine language must be simple enough so that a digital circuit can execute it.</p></li>
-</ul>
-<p>Machine languages are designed to achieve high performance possible at reasonable cost. Their primary aim is not to make programming as easy as possible</p>
-<p>A machine language program consists of instructions. An instruction is analogous to a statement in a programming language. However, each instruction just performs a small fixed set of operations, while programming language statements can be complex. For example, the assignment statement x := 2 * (a + b/c) involves three arithmitic operations, and it would require at least three instructions to express in machine language.</p>
-<h3 id="why-use-sigma16">Why use Sigma16?</h3>
-<p>Our focus is on fundamental concepts, ideas and principles. Sigma16 illustrates the fundementals of computer systems but it avoids unnecessary complexity. For example, Sigma16 has just one word size (16 bits) while most commercial machines provide a variety. That variety is useful for practical applications but it complicates many of the details while not adding any new fundamental ideas. Most commercial computers that achieve success in the marketplace eventually become encrusted with complications that help support backward compatibility; this can lead to great complexity.</p>
-<h3 id="structure-of-a-computer">Structure of a computer</h3>
-<p>All computers have several main subsystems</p>
-<ul>
-<li><p>A register is a digital circuit that can retain one word of data. A new value can be loaded into a register, and the current contents may be read out.</p></li>
-<li><p>The register file is a set of 16 registers that are available to the user programmer for holding values of variables. They are named R0, R1, R2, …, R15.</p>
-<p>Register Contents ~~~~~~~~~~ ~~~~~~~~~~ R0 0000 R1 fffe R2 13c4 … … R14 03c8 R15 0020</p></li>
-<li><p>The ALU (arithmetic and logic unit) is a circuit that can do arithmetic, such as addition, subtraction, comparison, and some other operations</p></li>
-<li><p>The memory can hold a large number of words. It’s similar to the register file, but significantly slower and much larger.</p></li>
-<li><p>The Input/Output system can transfer data between the computer and the outside world.</p></li>
-</ul>
-<h3 id="instructions-1">Instructions}</h3>
-<h3 id="the-rtm-instructions">The RTM instructions</h3>
-<ul>
-<li><p>The RTM circuit can execute two instructions</p>
-<ul>
-<li>R2 := R1 + R0 ; add two registers and load result</li>
-<li>R1 := 8 ; load a constant</li>
-</ul></li>
-<li><p>We’ll begin with the corresponding Sigma16 instructions</p></li>
-</ul>
-<h3 id="the-add-instruction">The add instruction}</h3>
-<ul>
-<li>Think of the registers as variables</li>
-<li><p>Examples:</p></li>
-<li>add R5,R2,R3 ; means R5 := R2 + R3</li>
-<li><p>add R12,R1,R7 ; means R12 := R1 + R7</p></li>
-<li><p>General form:</p></li>
-<li> where dest, op1, op2 are registers</li>
-<li>The two  are added, the result is placed in the </li>
-<li><p>Meaning:  :=  + </p></li>
-<li><p>Everything after a semicolon ; is a comment</p></li>
-</ul>
-<h3 id="registers-can-hold-variables">Registers can hold variables}</h3>
-<ul>
-<li>We often think of a variable as </li>
-<li>A register can hold a variable!</li>
-<li>An add instruction (or sub, mul, div) is like an assignment statement</li>
-<li> means  \begin{enumerate}</li>
-<li>Evaluate the right hand side </li>
-<li>The operands (R8, R2) are not changed</li>
-<li>Overwrite the left hand side (destination) (R2) with the result</li>
-<li>The old value of the destination is destroyed</li>
-<li>It is </li>
-<li>It is  \end{enumerate}</li>
-<li>Assignment is often written </li>
-<li>The  operator means , and does not mean </li>
-</ul>
-<h3 id="notation-and-terminology">Notation and terminology}</h3>
-<p>Why write a notation like add R5,R2,R3 instead of R5 := R2 + R3?</p>
-<ul>
-<li>It’s actually more consistent because  instruction will be written in this form: a keyword for the operation, followed by the operands</li>
-<li>The notation is related closely to the way instructions are represented in memory, which we’ll see later</li>
-</ul>
-<h3 id="a-simple-program">A simple program}</h3>
-<p>The problem:</p>
-<ul>
-<li>Given three integers in R1, R2, R3</li>
-<li>Goal: calculate the sum R1+R2+R3 and put it in R4</li>
-</ul>
-
-<p>Solution: </p>
-<pre><code>    add  R4,R1,R2    ;  R4 := R1+R2   (this is a comment)
-    add  R4,R4,R3    ;  R4 := (R1+R2) + R3</code></pre>
-<h3 id="more-arithmetic-instructions">More arithmetic instructions}</h3>
-<p>There are instructions for the basic arithmetic operations</p>
-<pre><code> add  R4,R11,R0   ; R4 := R11 + R0
- sub  R8,R2,R5    ; R8 := R2 - R5
- mul  R10,R1,R2   ; R10 := R1 * R2
- div  R7,R2,R12   ; R7 := R2 / R12</code></pre>
-<p></p>
-<h3 id="example">Example}</h3>
-<ul>
-<li>Suppose we have variables a, b, c, d</li>
-<li>R1=a, R2=b, R3=c, R4=d</li>
-<li>We wish to compute R5 = (a+b) * (c-d)</li>
-</ul>
-<pre><code>    add   R6,R1,R2     ; R6 := a + b
-    sub   R7,R3,R4     ; R7 := c - d
-    mul   R5,R6,R7     ; R5 := (a+b) * (c-d)</code></pre>
-
-<h3 id="general-form-of-arithmetic-instruction">General form of arithmetic instruction}</h3>
-
-<h3 id="register-r0-and-r15-are-special">Register R0 and R15 are special!}</h3>
-<ul>
-<li>You should not use R0 or R15 to hold ordinary variables!</li>
-<li></li>
-<li>Any time you need the number 0, it’s available in R0</li>
-<li>You cannot change the value of R0</li>
-<li>add R0,R2,R3 ; does nothing — R0 will not change</li>
-<li>add R5,R2,R3 ; fine - you can change all other registers</li>
-<li><p>It is  to use R0 as the destination, but it will still be 0 after you do it!</p></li>
-<li></li>
-<li>Some instructions place additional information in R15 (is the result negative? was there an overflow?)</li>
-<li>Therefore the information in R15 is transient</li>
-<li><p>R15 is for temporary information; it’s not a safe place to keep long-term data</p></li>
-</ul>
 <h3 id="memory-1">Memory</h3>
 <h3 id="limitation-of-register-file-its-small">Limitation of register file: it’s small}</h3>
 <ul>
@@ -4982,7 +5065,7 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li>Search list i for x — print Yes if x is in the list, No otherwise</li>
 <li>Print i — the numbers in list[i] are printed</li>
 </ul>
-<h4 id="example-1">Example</h4>
+<h4 id="example">Example</h4>
 <ul>
 <li>Insert into list[3] the value 23 </li>
 <li>Insert into list[3]the value 6 </li>
@@ -6101,7 +6184,7 @@ print (&#39;a = &#39;, a, &#39;  b = &#39;, b)</code></pre>
 <h3 id="practical-programming-tip">Practical programming tip</h3>
 
 <h2 id="architecture-1">Architecture</h2>
-<h3 id="instructions-2">Instructions</h3>
+<h3 id="instructions-1">Instructions</h3>
 <ul>
 <li><p>You need to know what the basic instructions do and how to use them</p>
 <ul>

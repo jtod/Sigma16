@@ -114,8 +114,8 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    fieldOperands : '',             // operands
 	    fieldComment : '',             // comments are after operand or ;
 	    hasLabel : false,               // statement has a valid label
-	    operation : noOperation,        // spec of the operation if exists
-	    format : NOOPERATION,
+	    operation : NOOPERATION,        // spec of the operation if exists
+	    format : UNKNOWN,
 	    hasOperand : false,             // statement contains an operand
 	    operandType : NOOPERAND,        // type of operand actually present
 	    operandRRR : false,             // statement contains RRR operand
@@ -135,7 +135,12 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    rr2 : 0,                        // second reg in rr asm format
 	    dispField : '0',                // displacement field
 	    disp : 0,                       // displacement value
-	    k : 0,                          // constant in RRKX format
+	    k : 0,                          // constant in RRKEXP format
+            fielde : 0,                     // EXP: word 2, first 4 bits
+            fieldf : 0,                     // EXP: word 2, second 4 bits
+            fieldg : 0,                     // EXP: word 2, third 4 bits
+            fieldh : 0,                     // EXP: word 2, fourth 4 bits
+	    fieldgh : 0,                    // EXP: word 2, last 8 bits
 	    dat : 0,                        // data value
             identarg : '',                     // identifier operand
 	    codeSize : 0,                   // number of words generated
@@ -237,6 +242,8 @@ const rrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 const rxParser =
     /^R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+const rrxParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const jxParser =
     /^([a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const datParser =
@@ -244,8 +251,10 @@ const datParser =
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
 
-const expParser = /^\$([0-9a-f]{4})$/;  // temp: just allow hex const ?????
 const identParser = /^[a-zA-Z][a-zA-Z0-9]*$/; // temp; just allow one name ?????
+
+// Use data parser instead...
+// const expParser = /^\$([0-9a-f]{4})$/;  // temp: just allow hex const ?????
 
 // A register is R followed by register number, which must be either
 // a 1 or 2 digit decimal number between 0 and 15, or a hex digit.
@@ -259,8 +268,8 @@ const rrrParser =
 const rrkParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
 
-// RCX asm format (register, control reg name): getctl R3,mask
-const rcxParser =
+// RCEXP asm format (register, control reg name): getctl R3,mask
+const rcParser =
     /^R([0-9a-f]|(?:1[0-5])),([a-zA-Z][a-zA-Z0-9]*)$/;
 
 // CRX asm format (control reg name, register): putctl mask,R3
@@ -548,6 +557,12 @@ function checkOpOp (m,s) {
     let format = s.format;
     let operandType = s.operandType;
     console.log (`checkOpOp operation=${s.operation} format=${format} operandType=${operandType}`);
+    if (format==operandType
+        || (format==RRREXP && operandType==RRR)
+        || (format==EXP0)) {
+        return true;
+    }
+    if (format > 11) {return true}
     if (format <= DATA && format != operandType) {
 	let msg = `${s.fieldOperation} is ${showFormat(format)} format, but operand type is ${showFormat(operandType)}`;
 	mkErrMsg (m,s,msg);
@@ -615,11 +630,19 @@ function parseOperand (m,s) {
     let rrk = rrkParser.exec (s.fieldOperands);
     let rr  = rrParser.exec  (s.fieldOperands);
     let rx  = rxParser.exec  (s.fieldOperands);
+    let rrx = rrxParser.exec  (s.fieldOperands);
     let jx  = jxParser.exec  (s.fieldOperands);
-    let rcx = rcxParser.exec (s.fieldOperands);
+    let rc  = rcParser.exec (s.fieldOperands);
     let dat = datParser.exec (s.fieldOperands);
-    let exp = expParser.exec (s.fieldOperands);       // expression (directive)
+//  let exp = expParser.exec (s.fieldOperands);       // expression (directive)
     let ident = identParser.exec (s.fieldOperands);  // identifier (directive)
+// Check non-exclusive operand formats: ident
+    if (ident) {
+        s.hasOperand = true;
+        s.operandIDENT = true;
+        s.identarg = ident[0];
+    }
+// Check the mutually exclusive operand formats    
     if (rrr) {
 	s.hasOperand = true;
 	s.operandType = RRR;
@@ -627,16 +650,6 @@ function parseOperand (m,s) {
 	s.d = rrr[1];
 	s.a = rrr[2];
 	s.b = rrr[3];
-    } else if (exp) { // assembler directive with expression
-        s.hasOperand = true;
-        s.operandType = ASMDIRX;
-        s.operandX = true;
-        s.expSrc = exp[1];
-        console.log (`operand EXP = ${s.expSrc}`);
-        let v =  evaluate (m,s,s.address,s.expSrc);  // revisit this, equ ???
-        s.expValue = v.evalVal;
-        // use v.evalRel
-        console.log (`operand EXP value = ${s.expValue}`);
     } else if (rr) {   // can omit d for cmp, omit b for inv
 	s.hasOperand = true;
 	s.operandType = RR;
@@ -652,6 +665,17 @@ function parseOperand (m,s) {
 	s.d = rx[1];
 	s.dispField = rx[2];
 	s.a = rx[3];
+    } else if (rrx) {
+        console.log ('RRX');
+	s.hasOperand = true;
+	s.operandType = RRXEXP;
+	s.operandRX = true;
+        console.log (`rrx 1=${rrx[1]} 2=${rrx[2]} 3=${rrx[3]} 4=${rrx[4]} `)
+	s.fielde = rrx[1];      // start register
+	s.fieldf = rrx[2];      // end register
+	s.dispField = rrx[3];   // displacement
+	s.d = rrx[4];           // index register is in word 1 d field
+        console.log (`rrx e=${s.fielde} f=${s.fieldf} disp=${s.dispField} x=${s.d}`)
     } else if (jx) {
 	s.hasOperand = true;
 	s.operandType = JX;
@@ -661,27 +685,21 @@ function parseOperand (m,s) {
     } else if (rrk) {
 	console.log ('rrk');
 	s.hasOperand = true;
-	s.operandType = RRKX;
-	s.operandRRKX = true;
+	s.operandType = RRKEXP;
+	s.operandRRKEXP = true;
 	s.d = rrk[1];
 	s.a = rrk[2];
 	s.k = rrk[3];
-    } else if (rcx) {
-	console.log ('rcx');
-	s.d = rcx[1];
-	let ctlRegName = rcx[2]
+    } else if (rc) {
+	console.log ('rc');
+	s.hasOperand = true;
+	s.operandType = RCEXP;
+	s.operandRCEXP = true;
+	s.d = rc[1];
+	let ctlRegName = rc[2]
 	let ctlRegIdx = findCtlIdx (m,s,ctlRegName);
 	s.ctlReg = ctlRegIdx;
-	console.log (`rcx d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
-    } else if (ident) { // assembler directive with identifier (export, import)
-        s.hasOperand = true;
-        s.operandType = ASMDIRIDENT;
-        s.operandIDENT = true;
-        s.identarg = ident[0];
-        console.log (`\n\n\nOPERAND IDENT 0 arg ${ident[0]}`);
-        console.log (`\n\n\nOPERAND IDENT 1 arg ${ident[1]}`);
-        console.log (`\n\n\nOPERAND IDENT 2 arg ${ident[2]}`);
-        console.log (`\n\n\nOPERAND IDENT arg ${s.identarg}`);
+	console.log (`rc d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
     } else if (dat) {
 	s.hasOperand = true;
 	s.operandType = DATA;
@@ -692,7 +710,6 @@ function parseOperand (m,s) {
 	console.log('data 1' + dat[1]);
 	console.log('data 2' + dat[2]);
 	console.log('data 3' + dat[3]);
-//	result.val = dat[1];
     } else {
 	s.hasOperand = false;
     }
@@ -771,7 +788,18 @@ function asmPass2 (m) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-//	    console.log('pass2 RRR ' + wordToHex4(s.codeWord1));
+	} else if (fmt==RRREXP) {
+	    console.log (`pass2 RRREXP`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+            s.codeWord2 = mkWord(s.a,s.b,0,0);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==EXP0) {
+	    console.log (`pass2 EXP0`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
 	} else if (fmt==RR) { // like RRR but with b=0
 	    console.log (`pass2 RR`);
 	    op = s.operation.opcode;
@@ -782,9 +810,8 @@ function asmPass2 (m) {
 	    }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    console.log (`pass2 op=${op} ${wordToHex4(s.codeWord1)}`);
-	    //	    console.log('pass2 RR ' + wordToHex4(s.codeWord1));
-	} else if (fmt==RRKX) {
-	    console.log (`pass2 RRKX`);
+	} else if (fmt==RRKEXP) {
+	    console.log (`pass2 RRKEXP`);
 	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
@@ -796,15 +823,22 @@ function asmPass2 (m) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
             let v = evaluate(m,s,s.address+1,s.dispField);
-            // if it is an import, use 0 for now and push it onto
-            // variable's import list CALL exprCode which calls
-            // evaluate and returns a number to generate, and also
-            // pushes the expression if this is a variable whicdh is
-            // an import
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {
                 console.log (`relocatable displacement`);
                 generateRelocation (m, s, s.address+1);
+            }
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RRXEXP) {
+	    console.log (`pass2 RRXEXP`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+            let v = evaluate(m,s,s.address+1,s.dispField);
+            s.codeWord2 = mkWord448(s.fielde,s.fieldf,v.evalVal);
+            if (v.evalRel) {
+                mkErrMsg (m,s, `This instruction requires constant displacement\n`
+                          + `       but ${s.dispField} is relocatable`);
             }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
@@ -822,56 +856,35 @@ function asmPass2 (m) {
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 //	    console.log('pass2 JX ' + wordToHex4(s.codeWord1)
 	    //			+ wordToHex4(s.codeWord2));
-	} else if (fmt==RCX) {
-	    console.log ("pass2 RCX");
+	} else if (fmt==RCEXP) {
+	    console.log ("pass2 RCEXP");
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord448(14,s.d,op[1]);
 	    s.codeWord2 = s.ctlReg;
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==ASMDIR) {
-            console.log ('ASMDIR, should be module statement');
-            if (s.fieldOperation=="module") { // is a module statement
-                console.log ('it is a module statement');
-                if (m.modName) {
-                    mkErrMsg (m,s,'Module name already defined');
-                } else if (s.hasLabel) {
-                    m.modName = s.fieldLabel;
-                    m.objectCode.push('object   ' + s.fieldLabel);
-                    console.log (`Module name is ${m.modName}`);
-                } else {
-                    mkErrMsg (m,s,'Module statement requires label');
-                }                        
-            } else {
-                mkErrMst (m, s, `invalid assembly directive`);
-            }
-	} else if (fmt==NOOPERAND) {
-	    console.log ('pass2 NOOPERAND');
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-        } else if (fmt==DATA && s.operandDATA) {
-	    console.log('fmt is DATA and operandDATA=' + s.dat);
+        } else if (fmt==DATA) {
+            console.log (`pass2 data ${s.dat}`);
             let v = evaluate(m,s,s.address,s.dat);
             console.log (v);
+            s.codeWord1 = v.evalVal;
+	    generateObjectWord (m, s, s.address, s.codeWord1);
             if (v.evalRel) {
-                mkErrMsg (m,s,'Data value must not be relocatable');
-            } else {
-                s.codeWord1 = v.evalVal;
-	        generateObjectWord (m, s, s.address, s.codeWord1);
+                console.log (`relocatable data`);
+                generateRelocation (m, s, s.address);
             }
-        } else if (fmt==ASMDIRX) {
-        } else if (fmt==ASMDIRIDENT) { // import, export
-            if (s.fieldOperation=="export") { // export statement
-                console.log (`pass2 ADMDIRIDENT export ${s.identarg}`);
-                m.exports.push(s.identarg);
-            } else if (s.fieldOperation=="import") { // import statement
-                console.log (`pass2 ADMDIRIDENT import ${s.identarg}`);
-                // push the mod
-                // generate  import varname,module,
-            } else {
-                mkErrMsg (m,s,'Invalid directive with identifier');
-            }
+        } else if (fmt==DirModule) {
+            console.log ('pass2 module statement')
+        } else if (fmt==DirImport) {
+            console.log ('pass2 import statement, handled in pass 1')
+        } else if (fmt==DirExport) {
+            console.log ('pass2 export statement')
+            console.log (`export identarg=${s.identarg}`);
+            m.exports.push(s.identarg);
+        } else if (fmt==DirOrg) {
+            console.log ('pass2 org statement, not yet implemented')
+        } else if (fmt==DirEqu) {
+            console.log ('pass2 equ statement, not yet implemented')
 	} else {
 	    console.log('pass2 other, noOperation');
 	}
@@ -879,7 +892,7 @@ function asmPass2 (m) {
 	    + ' ' + wordToHex4(s.address)
 	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize>1 ? wordToHex4(s.codeWord2) : '    ')
-        //	    + ' ' + s.srcLine
+//	    + ' ' + s.srcLine
             + ' '
 	    + s.fieldLabel
 	    + s.fieldSpacesAfterLabel
@@ -924,10 +937,6 @@ function generateObjectWord (m, s, a, x) {
     m.asmap[a] = ln;
     console.log (`generateObjectWord (${x}) asmap[${a}]=${ln}`);
     objectWordBuffer.push (x);
-//    if (objBufferSize > 0) { objectLineBuffer += ',' };
-//    objectLineBuffer += wordToHex4(x);
-//    objBufferSize++;
-//    if (objBufferSize >= objBufferLimit) { flushObjectLine(m) };
 }
 
 function emitObjectWords (m) {

@@ -136,6 +136,53 @@ asking you to confirm.
 Registers are like variables in a programming language.  They are even
 more similar to the registers in a calculator.
 
+Registers can hold variables
+
+
+ *  We often think of a variable as \stress{a box that can hold a
+    number}
+ *  A register can hold a variable!
+ *  An add instruction (or sub, mul, div) is like an assignment
+  statement
+ *  \stress{add R2,R8,R2} means \stress{R2 := R8 + R2}
+  \begin{enumerate}
+   *  Evaluate the right hand side \stress{R8 + R2}
+   *  The operands (R8, R2) are not changed
+   *  Overwrite the left hand side (destination) (R2) with the
+    result
+   *  The old value of the destination is destroyed
+   *  It is \important{not a mathematical equation}
+   *  It is \important{a command to do an operation and put the
+      result into a register, overwriting the previous contents}
+  \end{enumerate}
+ *  Assignment is often written \stress{R2 := R8 + R2}
+ *  The \stress{:=} operator means \emph{assign}, and does not mean
+  \emph{equals}
+
+Why write a notation like add R5,R2,R3 instead of R5 := R2 + R3?
+
+* It's more consistent because \emph{every} instruction will be
+  written in this form: a keyword for the operation, followed by the
+  operands
+
+* The notation is related closely to the way instructions are
+  represented in memory, which we'll see later
+
+A simple program.  The problem:
+
+* Given three integers in R1, R2, R3
+* Goal: calculate the sum R1+R2+R3 and put it in R4
+
+~~~~
+    add  R4,R1,R2    ;  R4 := R1+R2   (this is a comment)
+    add  R4,R4,R3    ;  R4 := (R1+R2) + R3
+~~~~
+
+
+
+
+
+
 There are four arithmetic instructions, to perform addition,
 subtraction, multiplication, and division.  (There are also a few more
 not discussed here.)
@@ -186,6 +233,24 @@ Further instructions
     mul   R1,R2,R3
     div   R1,R2,R3
 ~~~~
+
+
+More arithmetic instructions.  There are instructions for the basic
+arithmetic operations
+
+~~~~
+ add  R4,R11,R0   ; R4 := R11 + R0
+ sub  R8,R2,R5    ; R8 := R2 - R5
+ mul  R10,R1,R2   ; R10 := R1 * R2
+ div  R7,R2,R12   ; R7 := R2 / R12
+~~~~
+
+Every arithmetic operation takes its operands from registers, and
+loads the result into a register.
+
+
+
+
 
 In the lea instruction, the constant value can be specified using
 either decimal or hexadecimal notation.  Indicate hexadecimal in
@@ -246,7 +311,65 @@ any of the following:
 
 * A character
 
+Example
 
+* Suppose we have variables a, b, c, d
+* R1=a, R2=b, R3=c, R4=d
+* We wish to compute R5 = (a+b) * (c-d)
+
+~~~~
+    add   R6,R1,R2     ; R6 := a + b
+    sub   R7,R3,R4     ; R7 := c - d
+    mul   R5,R6,R7     ; R5 := (a+b) * (c-d)
+~~~~
+
+Good comments make the code easier to read!
+
+**General form of arithmetic instruction**
+
+~~~~
+op d,a,b
+~~~~
+
+----  ------------------------------------------------
+ op    operation: add, sub, mul,div
+  d    destination register: where the result goes
+  a    first operand register
+  b    second operand register
+----  ------------------------------------------------
+
+Meaning  R_d := R_a  op \ R_b
+
+Example: add R5,R2,R12  ; R5 := R2+R12
+
+
+**Register R0 and R15 are special**
+
+You should not use R0 or R15 to hold ordinary variables.
+
+**R0 always contains 0**
+  
+* Any time you need the number 0, it's available in R0
+
+* You cannot change the value of R0
+
+* add R0,R2,R3 ; does nothing --- R0 will not change
+
+* add R5,R2,R3 ; fine - you can change all other registers
+
+* It is legal to use R0 as the destination, but it will still be 0
+  after you do it!
+  
+
+**R15 holds status information**
+  
+* Some instructions place additional information in R15 (is the
+  result negative? was there an overflow?)
+
+* Therefore the information in R15 is transient
+
+* R15 is for temporary information; it's not a safe place to keep
+  long-term data
 
 ### Accessing memory
 
@@ -290,6 +413,94 @@ aspects of a machine that are visible to a programmer.  It includes a
 description of the registers, memory, data representations, and all
 the instructions, but does not include components of the
 implementation that are not visible to a machine language programmer.
+
+## Overview of computer architecture
+
+### Machine language and instructions
+
+Very different from Python, Java, C, etc.  The designer of a machine
+language has to `look both up and down':
+  
+* Looking up to higher levels of abstraction, the machine language
+  must be powerful enough to provide the foundation for
+  operating systems and programming languages.
+
+* Looking down to the lower levels of implementation, the machine
+  language must be simple enough so that a digital circuit can execute
+  it.
+  
+Machine languages are designed to achieve high performance possible at
+reasonable cost.  Their primary aim is not to make programming as easy
+as possible
+
+A machine language program consists of instructions.  An instruction
+is analogous to a statement in a programming language.  However, each
+instruction just performs a small fixed set of operations, while
+programming language statements can be complex.  For example, the
+assignment statement x := 2 * (a + b/c) involves three arithmitic
+operations, and it would require at least three instructions to
+express in machine language.
+
+
+## Overview of Sigma16
+
+Why use Sigma16?
+
+Our focus is on fundamental concepts, ideas and principles.  Sigma16
+illustrates the fundementals of computer systems but it avoids
+unnecessary complexity.  For example, Sigma16 has just one word size
+(16 bits) while most commercial machines provide a variety.  That
+variety is useful for practical applications but it complicates many
+of the details while not adding any new fundamental ideas.  Most
+commercial computers that achieve success in the marketplace
+eventually become encrusted with complications that help support
+backward compatibility; this can lead to great complexity.
+
+Structure of the architecture
+
+All computers have several main subsystems
+
+* A register is a digital circuit that can retain one word of data.  A
+  new value can be loaded into a register, and the current contents
+  may be read out.
+
+* The register file is a set of 16 registers that are available to the
+  user programmer for holding values of variables.  They are named R0,
+  R1, R2, ..., R15.
+
+   Register    Contents
+  ~~~~~~~~~~  ~~~~~~~~~~
+     R0          0000
+     R1          fffe
+     R2          13c4
+     ...         ...
+     R14         03c8
+     R15         0020
+
+* The ALU (arithmetic and logic unit) is a circuit that can do
+  arithmetic, such as addition, subtraction, comparison, and some
+  other operations
+
+* The memory can hold a large number of words.  It's similar to the
+  register file, but significantly slower and much larger.
+
+* The Input/Output system can transfer data between the computer and
+  the outside world.
+
+
+## Relationship between machine language and circuit
+
+### The RTM instructions
+
+
+ *  The RTM circuit can execute two instructions
+  
+   *  R2 := R1 + R0 ; add two registers and load result
+   *  R1 := 8   ; load a constant
+  
+ *  We'll begin with the corresponding Sigma16 instructions
+
+
 
 ## Data representation
 
@@ -476,6 +687,8 @@ Table: Processor status flags
     <td>Interrupts enabled</td>
   </tr>
 </table>
+
+### Condition codes and booleans
 
 ## Interrupts and exceptions
 
@@ -719,10 +932,10 @@ Second word of the instruction
 
 <table class="wordlayout"">
   <tr>
-    <th>p</th>
-    <th>q</th>
-    <th>r</th>
-    <th>s</th>
+    <th>e</th>
+    <th>f</th>
+    <th>g</th>
+    <th>h</th>
   </tr>
   <tr>
     <td>0-3</td>
@@ -734,13 +947,19 @@ Second word of the instruction
 
 ## Summary of notation
 
-  ea
-  m[ea]
-  r[d]
-  r[a]
-  r[b]
-  q#r[d]
-  lsb q
+* ea
+
+* mem[ea]
+
+* reg[d]
+
+* reg[a]
+
+* reg[b]
+
+* reg[d]
+
+* lsb q
 
 # Instruction set
 
@@ -796,14 +1015,15 @@ sets several bits in the condition code R15 and may set a bit in the
 req register.
 
 ---------  ---------------------
- R15.ccG     := result >bin 0
-R15.ccg := result >tc 0
-R15.ccE := result = 0
-R15.ccl := result <tc 0
-R15.CCL := 0
-R15.ccV := bin overflow
-R15.CCv := tc overflow
-R15.CCc := carry output
+ R15.ccG    result >bin 0
+ R15.ccg    result >tc 0
+ R15.ccE    result = 0
+ R15.ccl    result <tc 0
+ R15.CCL    0
+ R15.ccV    bin overflow
+ R15.CCv    tc overflow
+ R15.CCc    carry output
+---------  ---------------------
 
 ### sub
 
@@ -817,49 +1037,147 @@ sub R1,R2,R3
 
 ## Accessing memory
 
-### Effective address
-
-
-
 ### lea
 
-The effective address is defined to be the binary sum of the
-displacement and the index register.
+The **load effective address** instruction *lea Rd,disp[Rx]* calculates
+the effective address of the operand disp[Rx] and places the result in
+the destination register Rd.  The effective address is the binary sum
+disp+Rx.
 
 ### load
 
-Load copies the word in memory at the effective address into the
-destination register.
+The **load** instruction *load Rd,disp[Rx]* calculates the effective
+address of the operand disp[Rx] and copies the word in memory at the
+effective address into the destination register Rd.  The effective
+address is the binary sum disp+Rx.
 
-general form: load Rd,disp[Ra]
+-----------------   -----------------------------------------
+general form        load Rd,disp[Ra]
+effect              reg[Rd] := mem[disp+reg[Ra]]
+machine format      RX
+assembly format     RX
+-----------------   -----------------------------------------
 
-effect: reg[Rd] := mem[disp+reg[Ra]]
-
-format: RX
-
-    load  R12,count[R0]   ; R12 := count
-    load  R6,arrayX[R2]   ; R6 := arrayX[R2]
-    load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
+Examples
+~~~~
+   load  R12,count[R0]   ; R12 := count
+   load  R6,arrayX[R2]   ; R6 := arrayX[R2]
+   load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
+~~~~
 
 ### store
 
+
+The **store** instruction *store Rd,disp[Rx]* calculates the effective
+address of the operand disp[Rx] and the value of the destination
+register Rd into memory at the effective address.  The effective
+address is the binary sum disp+Rx.
+
+-----------------   -----------------------------------------
+general form        store Rd,disp[Ra]
+effect              mem[disp+reg[Ra]] := reg[Rd]
+machine format      RX
+assembly format     RX
+-----------------   -----------------------------------------
+
 Store copies the word in the destination register into memory at the
-effective address.  Unlike most instructions, store treats the
+effective address.  This instruction is unusual in that it treats the
 "destination register" as the source of data, and the actual
-destination is the memory location.
+destination which is modified is the memory location.
 
-    general form: store Rd,disp[Ra]
-    effect: mem[disp+reg[Ra]] := reg[Rd]
-    format: RX
+Most instructions take data from the rightmost operands and modify the
+leftmost destination, just like an assignment statement (x := y+z).
+However, the store instruction operates in the opposite direction.
+The reason for this has to do with the circuit design of the
+processor.  Although the "left to right" nature of the store
+instruction may look inconsistent from the programmer's point of view,
+it actually is more consistent from the deeper perspective of circuit
+design.
 
 
-    store  R3,$2b8e[R5]
-    store  R12,count[R0]
-    store  R6,arrayX[R2]
+Examples
+
+~~~~
+   store  R3,$2b8e[R5]
+   store  R12,count[R0]
+   store  R6,arrayX[R2]
+~~~~
 
 ### save
 
+The **save** instruction stores a sequence of adjacent registers into
+memory starting from the effective address.  It is equivalent to a
+fixed sequence of store instructions.  The purpose of save is to copy
+the state of registers into memory during a procedure call or a
+context switch.
+
+Typically, save is used as part of a procedure call and restore is
+used as part of the return.
+
+The instruction *save Rd,Re,gh[Rf]* stores the contents of Rd, Rd+1,
+..., Re into memory at consecutive locations beginning with
+mem[gh+Rf].
+
+The instruction is EXP format, and the displacement is limited to 8
+bits, because it is specified in the gh field (the rightmost 8 bits)
+of the second word of the instruction.
+
+For example, consider this instruction:
+~~~~
+   save  R3,R10,4[R14]
+~~~~
+
+The effect is equivalent to
+
+~~~~
+   store  R3,4[R14]
+   store  R4,5[R14]
+   store  R5,6[R14]
+   store  R6,7[R14]
+   store  R7,8[R14]
+   store  R8,9[R14]
+   store  R9,10[R14]
+   store  R10,11[R14]
+~~~~
+
 ### restore
+
+The **restore** instruction copies a sequence of consecutive memory
+locations starting from the effecive address into a sequence of
+adjacent registers.  It is equivalent to a fixed sequence of load
+instructions.  The purpose of restore is to restore the state of
+registers from memory after a procedure call or a context switch.
+
+Typically, save is used as part of a procedure call and restore is
+used as part of the return.
+
+The instruction *restore Rd,Re,gh[Rf]* copies the contents of memory
+at consecutive locations beginning with mem[gh+Rf] into registers Rd,
+Rd+1, ..., Re.
+
+The instruction is EXP format, and the displacement is limited to 8
+bits, because it is specified in the gh field (the rightmost 8 bits)
+of the second word of the instruction.  The assembly language
+statement format is RRXEXP.
+
+For example, consider this instruction:
+~~~~
+   restore  R3,R10,4[R14]
+~~~~
+
+The effect is equivalent to
+
+~~~~
+   load  R3,4[R14]
+   load  R4,5[R14]
+   load  R5,6[R14]
+   load  R6,7[R14]
+   load  R7,8[R14]
+   load  R8,9[R14]
+   load  R9,10[R14]
+   load  R10,11[R14]
+~~~~
+
 
 ### push
 
@@ -930,17 +1248,51 @@ representation of a stack.)
 
 ## Comparisons
 
-### Condition codes and booleans
 
 ### cmplt
 
+The **compare for less than** instruction *cmplt Rd,Ra,Rb* performs an
+integer comparison of the operands.  If Ra<Rb then the destination Rd
+is set to 0001; otherwise it is set to 0000.
+
+The comparison treats the operands as signed integers, not as binary
+numbers.  For example, ffff is the two's complement representation of
+-1, while 0002 is the two's complement representation of 2, so ffff <
+0002.
+
+The result of a comparison is a Boolean, either false or true.  False
+is represented as 0000, and true is represented as 0001.
+
 ### cmpeq
+
+The **compare for equality** instruction *cmpeq Rd,Ra,Rb* performs an
+bitwise comparison of the operands.  If Ra and Rb contain the same
+value then the destination Rd is set to 0001; otherwise it is set to
+0000.
+
+This instruction can be used to compare for equality of either
+integers (binary) numbers or integers (two's complement).
+
+The result of a comparison is a Boolean, either false or true.  False
+is represented as 0000, and true is represented as 0001.
 
 ### cmpgt
 
+The **compare for greater than** instruction *cmpgt Rd,Ra,Rb* performs
+an integer comparison of the operands.  If Ra>Rb then the destination
+Rd is set to 0001; otherwise it is set to 0000.
+
+The comparison treats the operands as signed integers, not as binary
+numbers.  For example, ffff is the two's complement representation of
+-1, while 0002 is the two's complement representation of 2, so 0002 >
+ffff.
+
+The result of a comparison is a Boolean, either false or true.  False
+is represented as 0000, and true is represented as 0001.
+
 ### cmp
 
-## Jumps
+## Transfer of control
 
 ### jump
 
@@ -956,27 +1308,97 @@ representation of a stack.)
 
 ### Aliases for conditional jumps
 
-## Bits and Booleans
+jumplt jumple jumpne jumpeq jumpge jumpgt
+
+## Bit fields
+
+The following instructions treat a word as a sequence of bits, and
+operate on the individual bits.
 
 ### inv
 
+The **invert** instruction *inv Rd,Ra* inverts the bits in the operand Ra and
+places the result in the destination Rd.  The operand Ra is not
+changed.  Inverting a bit means changing 0 to 1, and changing 1 to 0.
+
+Suppose R8 contains 035f.  Then the following instruction will set R3
+to fca0, and leave R8 unchanged.
+
+~~~~
+   inv R3,R8
+~~~~
+
 ### and
+
+The **logical and** instruction *inv Rd,Ra,Rb* calculates the logical
+"and" (conjunction) of the bits in the operands Ra and Rb, and places
+the result in the destination Rd.  The operand registers are not
+changed.  The logical and of two bits is 1 if both bits are 1, and 0
+otherwise.
 
 ### or
 
+The **logical or** instruction *inv Rd,Ra,Rb* calculates the logical
+"inclusive or" (disjucntion) of the bits in the operands Ra and Rb,
+and places the result in the destination Rd.  The operand registers
+are not changed.  The logical or of two bits is 1 if either or both of
+the bits are 1, and 0 otherwise.
+
 ### xor
+
+The **logical exclusive or** instruction *inv Rd,Ra,Rb* calculates the
+logical "exclusive or" of the bits in the operands Ra and Rb, and
+places the result in the destination Rd.  The operand registers are
+not changed.  The logical exclusive or of two bits is 1 if one or the
+other of the bits is 1, and 0 otherwise.
+
+The exclusive or of two bits is the same as the inclusive or if either
+bit is 0.  The only time it is different is if both bits are 1: in
+that case exclusive or gives 0 but inclusive or gives 1.
 
 ### shiftl
 
+The instruction shiftl Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the left, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the leftmost k bits of the value are discarded and the
+rightmost k bits become 0.
+
+~~~~
+   shiftl  R2,R3,5
+~~~~
+
+The instruction format is EXP, and the assembly language statement format
+is RRKEXP
+
 ### shiftr
+
+Shift to the right.
+
+The instruction shiftr Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the right, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the rightmost k bits of the value are discarded and the
+leftmost k bits become 0.
+
+The following instruction shifts the value in R3 to the right by 5
+bits and place the result in R2.  The operand register R3 is not
+changed.
+
+~~~~
+   shiftr  R2,R3,5
+~~~~
+
+The instruction format is EXP, and the assembly language statement format
+is RRKEXP
 
 ### getbit
 
-### getbitinv
+### getbiti
 
 ### putbit
 
-### putbitinv
+### putbiti
 
 ### extract
 
@@ -992,6 +1414,17 @@ representation of a stack.)
 
 ### rfi
 
+## Trap operations
+
+### Halt
+
+### Nonblocking read
+
+### Write
+
+### Blocking readline
+
+### Nonblocking readline
 
 ## Summary of the instruction set
 
@@ -1588,252 +2021,21 @@ are for introducing a new module.
 
 ## Computer Architecture
 
-### Machine language and instructions
 
-Very different from Python, Java, C, etc.  The designer of a machine
-language has to `look both up and down':
-  
-* Looking up to higher levels of abstraction, the machine language
-  must be powerful enough to provide the foundation for
-  operating systems and programming languages.
 
-* Looking down to the lower levels of implementation, the machine
-  language must be simple enough so that a digital circuit can execute
-  it.
-  
-Machine languages are designed to achieve high performance possible at
-reasonable cost.  Their primary aim is not to make programming as easy
-as possible
 
-A machine language program consists of instructions.  An instruction
-is analogous to a statement in a programming language.  However, each
-instruction just performs a small fixed set of operations, while
-programming language statements can be complex.  For example, the
-assignment statement x := 2 * (a + b/c) involves three arithmitic
-operations, and it would require at least three instructions to
-express in machine language.
 
-### Why use Sigma16?
 
-Our focus is on fundamental concepts, ideas and principles.  Sigma16
-illustrates the fundementals of computer systems but it avoids
-unnecessary complexity.  For example, Sigma16 has just one word size
-(16 bits) while most commercial machines provide a variety.  That
-variety is useful for practical applications but it complicates many
-of the details while not adding any new fundamental ideas.  Most
-commercial computers that achieve success in the marketplace
-eventually become encrusted with complications that help support
-backward compatibility; this can lead to great complexity.
 
-### Structure of a computer
 
-All computers have several main subsystems
 
-* A register is a digital circuit that can retain one word of data.  A
-  new value can be loaded into a register, and the current contents
-  may be read out.
 
-* The register file is a set of 16 registers that are available to the
-  user programmer for holding values of variables.  They are named R0,
-  R1, R2, ..., R15.
 
-   Register    Contents
-  ~~~~~~~~~~  ~~~~~~~~~~
-     R0          0000
-     R1          fffe
-     R2          13c4
-     ...         ...
-     R14         03c8
-     R15         0020
 
-* The ALU (arithmetic and logic unit) is a circuit that can do
-  arithmetic, such as addition, subtraction, comparison, and some
-  other operations
 
-* The memory can hold a large number of words.  It's similar to the
-  register file, but significantly slower and much larger.
 
-* The Input/Output system can transfer data between the computer and
-  the outside world.
 
 
-
-
-
-
-### Instructions}
-
-### The RTM instructions
-
-
- *  The RTM circuit can execute two instructions
-  
-   *  R2 := R1 + R0 ; add two registers and load result
-   *  R1 := 8   ; load a constant
-  
- *  We'll begin with the corresponding Sigma16 instructions
-
-
-
-### The add instruction}
-
-
- *  Think of the registers as variables
- *  Examples:
-  
-   *  add R5,R2,R3     ; means R5 := R2 + R3
-   *  add R12,R1,R7    ; means R12 := R1 + R7
-  
- *  General form:
-  
-   *  \texttt{add dest,op1,op2} where dest, op1, op2 are registers
-   *  The two \alert{operands} are added, the result is placed in
-    the \alert{destination}
-   *  Meaning: \texttt{dest} := \texttt{op1} + \texttt{op2}
-  
- *  Everything after a semicolon ; is a comment
-
-
-
-
-
-### Registers can hold variables}
-
-
- *  We often think of a variable as \stress{a box that can hold a
-    number}
- *  A register can hold a variable!
- *  An add instruction (or sub, mul, div) is like an assignment
-  statement
- *  \stress{add R2,R8,R2} means \stress{R2 := R8 + R2}
-  \begin{enumerate}
-   *  Evaluate the right hand side \stress{R8 + R2}
-   *  The operands (R8, R2) are not changed
-   *  Overwrite the left hand side (destination) (R2) with the
-    result
-   *  The old value of the destination is destroyed
-   *  It is \important{not a mathematical equation}
-   *  It is \important{a command to do an operation and put the
-      result into a register, overwriting the previous contents}
-  \end{enumerate}
- *  Assignment is often written \stress{R2 := R8 + R2}
- *  The \stress{:=} operator means \emph{assign}, and does not mean
-  \emph{equals}
-
-
-
-
-### Notation and terminology}
-
-Why write a notation like add R5,R2,R3 instead of R5 := R2 + R3?
-
-
- *  It's actually more consistent because \emph{every} instruction
-  will be written in this form: a keyword for the operation, followed
-  by the operands
- *  The notation is related closely to the way instructions are
-  represented in memory, which we'll see later
-
-
-
-
-
-### A simple program}
-
-The problem:
-
- *  Given three integers in R1, R2, R3
- *  Goal: calculate the sum R1+R2+R3 and put it in R4
-
-
-\vspace{0.5em}
-Solution:
-\vspace{0.5em}
-
-~~~~
-    add  R4,R1,R2    ;  R4 := R1+R2   (this is a comment)
-    add  R4,R4,R3    ;  R4 := (R1+R2) + R3
-~~~~
-
-
-
-
-### More arithmetic instructions}
-
-There are instructions for the basic arithmetic operations
-
-~~~~
- add  R4,R11,R0   ; R4 := R11 + R0
- sub  R8,R2,R5    ; R8 := R2 - R5
- mul  R10,R1,R2   ; R10 := R1 * R2
- div  R7,R2,R12   ; R7 := R2 / R12
-~~~~
-
-\alert{Every arithmetic operation takes its operands from registers,
-  and loads the result into a register}
-
-
-
-
-### Example}
-
-
- *  Suppose we have variables a, b, c, d
- *  R1=a, R2=b, R3=c, R4=d
- *  We wish to compute R5 = (a+b) * (c-d)
-
-
-~~~~
-    add   R6,R1,R2     ; R6 := a + b
-    sub   R7,R3,R4     ; R7 := c - d
-    mul   R5,R6,R7     ; R5 := (a+b) * (c-d)
-~~~~
-
-\important{Good comments make the code easier to read!}
-
-
-
-
-### General form of arithmetic instruction}
-
-
-\fbox{\stress{General form:\quad} op d,a,b}
-\par\vspace{1em}
-\begin{tabular}{ll}
-op  &  operation: $+$ $-$ $\times$ $\div$ \\
-d   & destination register: where the result goes \\
-a   & first operand register \\
-b   & second operand register \\
-\end{tabular}
-\par\vspace{1em}
-\fbox{\stress{Meaning:\quad}  $R_d := R_a \ (\textit{op}) \ R_b$}
-\par\vspace{1em}
-\fbox{\stress{Example:\quad} \texttt{add R5,R2,R12  ; R5 := R2+R12}}
-
-
-
-
-
-### Register R0 and R15 are special!}
-
-
- *  You should not use R0 or R15 to hold ordinary variables!
- *  \important{R0 always contains 0}
-  
-   *  Any time you need the number 0, it's available in R0
-   *  You cannot change the value of R0
-   *  add R0,R2,R3 ; does nothing --- R0 will not change
-   *  add R5,R2,R3 ; fine - you can change all other registers
-   *  It is \stress{legal} to use R0 as the destination, but it will
-    still be 0 after you do it!
-  
- *  \important{R15 holds status information}
-  
-   *  Some instructions place additional information in R15 (is the
-    result negative? was there an overflow?)
-   *  Therefore the information in R15 is transient
-   *  R15 is for temporary information; it's not a safe place to
-    keep long-term data
   
 
 

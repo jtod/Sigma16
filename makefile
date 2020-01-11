@@ -76,7 +76,7 @@ VERSION:=$(shell cat app/package.json | grep version | head -1 | awk -F= "{ prin
 showparams :
 	echo SIGMACURRENT = $(SIGMACURRENT)
 	echo S16WEBPAGE = $(S16WEBPAGE)
-	echo VERSION = $(VERSION)
+	echo VERSION = $(VERSION).txt
 	echo WEBDEV = $(WEBDEV)
 
 #-------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ release :
 webdev :
 	mkdir -p $(WEBDEV)/app
 	make set-version
-	cp -up VERSION $(WEBDEV)
+	cp -up VERSION.txt $(WEBDEV)
 	cp -up LICENSE.txt $(WEBDEV)
 	make source-dir-index
 	cp -up index.html  $(WEBDEV)/app
@@ -325,7 +325,7 @@ compile :
 
 .PHONY : set-version
 set-version :
-	echo $(VERSION) > VERSION
+	echo $(VERSION) > VERSION.txt
 	echo "const s16version = \"$(VERSION)\";" > app/version.js
 
 
