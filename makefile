@@ -209,7 +209,7 @@ webdev :
 	cp -up docs/homepage-index/index.html $(S16HOME)
 	cp -up docs/homepage-index/doc.css $(S16HOME)
 	make docs/html/userguide.html
-	cp -upr docs $(WEBDEV)/app
+	cp -upr docs $(WEBDEV)
 	make program-indices
 	cp -upr programs $(WEBDEV)/app
 	cp -upr app/datafiles $(WEBDEV)/app
