@@ -21,8 +21,8 @@
 
 function timerInterrupt() {
     console.log ("Timer Interrupt clicked");
-    setBitInRegBE (ireq, timerBit);
-    ireq.refresh();
+    setBitInRegBE (req, timerBit);
+    req.refresh();
 }
 
 //------------------------------------------------------------------------------
@@ -561,11 +561,11 @@ function breakClose () {
 // Execute one instruction and return
 
 // kludge check... remove
-//    if ((getBitInReg (statusreg,intEnableBit) ? (mr ?ireq.get() & imask.get()) : 0) != 0) {
-//	while (i<16 && getBitInReg(ireq,i)==0 && getBitInReg(imask,i)==0) {
+//    if ((getBitInReg (statusreg,intEnableBit) ? (mr ?req.get() & mask.get()) : 0) != 0) {
+//	while (i<16 && getBitInReg(req,i)==0 && getBitInReg(mask,i)==0) {
 
-// console.log (`interrupt priority search imask=${wordToHex4(imask.get())} ireq=${wordToHex4(ireq.get())}`);
-//	    console.log(`find interrupt trying i=${i} r=${getBitInReg(ireq,i)} m=${getBitInReg(imask,i)}`);
+// console.log (`interrupt priority search mask=${wordToHex4(mask.get())} req=${wordToHex4(req.get())}`);
+//	    console.log(`find interrupt trying i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
 
 function executeInstruction (es) {
 //    console.log ('executeInstruction');
@@ -577,7 +577,7 @@ function executeInstruction (es) {
 //    regClearAccesses ();
 
 // Check for interrupt
-    let mr = imask.get() & ireq.get();
+    let mr = mask.get() & req.get();
 //    console.log (`interrupt mr = ${wordToHex4(mr)}`);
     if (getBitInRegBE (statusreg,intEnableBit) && mr) {
 	let i = 0; // interrupt that is taken
@@ -586,12 +586,12 @@ function executeInstruction (es) {
 	ipc.put(pc.get());           // save the pc
 	istat.put(statusreg.get());   // save the status register
 //	console.log (`ipc=${ipc.get()}`);
-//	console.log (`ireq=${wordToHex4(ireq.get())}`);
-	clearBitInRegBE (ireq,i);        // clear the interrupt that was taken
-//	console.log (`ireq=${wordToHex4(ireq.get())}`);
+//	console.log (`req=${wordToHex4(req.get())}`);
+	clearBitInRegBE (req,i);        // clear the interrupt that was taken
+//	console.log (`req=${wordToHex4(req.get())}`);
 //	console.log (`pc=${wordToHex4(pc.get())}`);
-//	console.log (`vect=${wordToHex4(ivect.get())} i=${i}`);
-	pc.put (ivect.get() + 2*i);  // jump to handler
+//	console.log (`vect=${wordToHex4(vect.get())} i=${i}`);
+	pc.put (vect.get() + 2*i);  // jump to handler
 //	console.log (`pc=${wordToHex4(pc.get())}`);
         // Disable interrupts and enter system state
 //	console.log (`status=${wordToHex4(statusreg.get())}`);

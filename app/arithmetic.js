@@ -379,7 +379,7 @@ function op_add (a,b) {
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
-    if (tcOverflow) { setBitInRegBE (ireq,overflowBit) }
+    if (tcOverflow) { setBitInRegBE (req,overflowBit) }
     return [primary, secondary];
 }
 
@@ -422,7 +422,7 @@ function op_mul (a,b) {
     let primary = p & 0x0000ffff;
     let tcOverflow = ! (minTC <= p && p <= maxTC)
     let secondary = (tcOverflow ? ccv : 0);
-    if (tcOverflow) { setBitInRegBE (ireq,overflowBit) }
+    if (tcOverflow) { setBitInRegBE (req,overflowBit) }
     return [primary, secondary];
 }
 
@@ -437,7 +437,7 @@ function op_div (a,b) {
     let bint = wordToInt (b);
     let primary = intToWord (Math.trunc (aint / bint));
     let secondary = intToWord (aint % bint);
-    if (bint==0) { setBitInRegBE (ireq,zDivBit) };
+    if (bint==0) { setBitInRegBE (req,zDivBit) };
     return [primary, secondary];
 }
 

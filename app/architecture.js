@@ -1,6 +1,6 @@
 // Sigma16: architecture.js
 // Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. Sigma16/LICENSE.txt,NOTICE.txt
+// License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt,NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -21,24 +21,33 @@
 // Instruction mnemonics
 
 const mnemonicRRR =
-  ["add",    "sub",    "mul",     "div",
-   "cmp",    "cmplt",  "cmpeq",   "cmpgt",
-   "inv",    "and",    "or",      "xor",
-   "nop",    "trap",   "EXP",     "RX"]
+  ["add",     "sub",     "mul",     "div",
+   "cmp",     "cmplt",   "cmpeq",   "cmpgt",
+   "inv",     "and",     "or",      "xor",
+   "nop",     "trap",    "EXP",     "RX"]
 
 const mnemonicRX =
-  ["lea",    "load",   "store",   "jump",
-   "jumpc0", "jumpc1", "jumpf",   "jumpt",
-   "jal",    "nop",    "nop",     "nop",
-   "nop",    "nop",    "nop",     "nop"]
+  ["lea",     "load",    "store",   "jump",
+   "jumpc0",  "jumpc1",  "jumpf",   "jumpt",
+   "jal",     "testset", "nop",     "nop",
+   "nop",     "nop",     "nop",     "nop"]
 
 const mnemonicEXP =
-  ["shiftl",  "shiftr",  "getctl",  "putctl",
-   "push",    "pop",     "top",     "rfi",
-   "save",    "restore", "extract", "execute",
-   "getbit",  "getbiti", "putbit",  "putbiti",
-   "nop",     "nop",     "nop",     "nop",
-   "nop",     "nop",     "nop",     "nop"]
+  [
+// EXP0
+   "rfi",
+// RREXP
+   "execute",
+// RCEXP
+   "getctl",  "putctl",
+// RRREXP
+   "push",    "pop",     "top",
+// RRKEXP
+   "shiftl",  "shiftr",  "getbit",  "getbiti",
+   "putbit",  "putbiti", "extract",
+// RRXEXP
+   "save",    "restore"
+  ]
 
 //-------------------------------------------------------------------------------
 // Instruction set and assembly language formats
@@ -46,40 +55,37 @@ const mnemonicEXP =
 
 // Assembly language statement formats (machine language format)
 
-const RRR         = 0     // R1,R2,R3    (RRR)
-const RR          = 1     // R1,R2       (RRR, omitting d or b field
-const RX          = 2;    // R1,xyz[R2]  (RX)
-const JX          = 3;    // loop[R0]    (RX omitting d field)
-const RRREXP      = 4;    // R1,R2,R3    (EXP) like RRR instruction but expand op
-const RRKEXP      = 5;    // R1,R2,3    (EXP)
-const RRXEXP      = 6;    // save R4,R7,3[R14]   (EXP)
-const RCEXP       = 7;    // getctl R4,imask register,control (EXP)
+const RRR         =  0;    // R1,R2,R3    (RRR)
+const RR          =  1;    // R1,R2       (RRR, omitting d or b field
+const RX          =  2;    // R1,xyz[R2]  (RX)
+const JX          =  3;    // loop[R0]    (RX omitting d field)
+const EXP0        =  4;    // EXP format with no operand
+const RREXP       =  5;    // R1,R2      (EXP)
+const RRREXP      =  6;    // R1,R2,R3    (EXP) like RRR instruction but expand op
+const RRKEXP      =  7;    // R1,R2,3    (EXP)
+const RRKKEXP     =  8;    // R1,R2,3    (EXP)
+const RRXEXP      =  9;    // save R4,R7,3[R14]   (EXP)
+const RCEXP       = 10;    // getctl R4,mask register,control (EXP)
+const DATA        = 11;    // -42
+const COMMENT     = 12;    // ; full line comment, or blank line
 
-const EXP0        = 8;    // EXP format with no operand
-const DATA        = 9;    // -42
-const COMMENT     = 10;    // ; full line comment, or blank line
+const DirModule   = 13;    // module directive
+const DirImport   = 14;    // import directive
+const DirExport   = 15;    // export directive
+const DirOrg      = 16;    // org directive
+const DirEqu      = 17;    // equ directive
+const UNKNOWN     = 18;    // statement format is unknown
+const EMPTY       = 19;    // empty statement
 
-const DirModule   = 12;
-const DirImport   = 13;
-const DirExport   = 14;
-const DirOrg      = 15;
-const DirEqu      = 16;
-const UNKNOWN     = 17;
-const EMPTY       = 18;
-
-const NOOPERATION = 19;    // error
-const NOOPERAND   = 20;    // statement has no operand
-
-// kil these
-// const ASMDIR      = 12;    // fcn module    (no operand)
-// const ASMDIRX     = 13;    // org $f000     (operand is expression)
-// const ASMDIRIDENT = 14;   // export x,y    (operand is list of names)
+const NOOPERATION = 20;    // error
+const NOOPERAND   = 21;    // statement has no operand
 
 // Need to update ???
 function showFormat (n) {
-    let f = ['RRR','RR','RX','JX','RRREXP', 'RRKEXP', 'RRXEXP',
-             'RCEXP', 'DATA','COMMENT','NOOPERATION', 'NOOPERAND',
-             'ASMDIR', 'ASMDIRX', 'ASMDIRIDENT'] [n];
+    let f = ['RRR','RR','RX','JX','EXP0', 'RREXP', 'RRREXP', 'RRKEXP',
+             'RRKKEXP', 'RRXEXP', 'RCEXP', 'DATA','COMMENT',
+             'DirModule', 'DirImport', 'DirOrg', 'DirEqu',
+             'UNKNOWN', 'EMPTY'] [n];
     let r = f ? f : 'UNKNOWN';
     return r;
 }
@@ -89,7 +95,8 @@ function formatSize (fmt) {
     if (fmt==RRR || fmt==RR || fmt==EXP0 || fmt==DATA) {
 	return 1
     } else if (fmt==RX | fmt==JX
-               | fmt==RRREXP | fmt==RRKEXP | fmt==RRXEXP | fmt==RCEXP) {
+               | fmt==RREXP |  fmt==RCEXP | fmt==RRREXP | fmt==RRKEXP
+               | fmt==RRKKEXP | fmt==RRXEXP) {
 	return 2
     } else if (fmt==NOOPERAND) {
 	return 1
@@ -155,6 +162,7 @@ statementSpec.set("jumpc1",   {format:RX,  opcode:[15,5]});
 statementSpec.set("jumpf",    {format:RX,  opcode:[15,6]});
 statementSpec.set("jumpt",    {format:RX,  opcode:[15,7]});
 statementSpec.set("jal",      {format:RX,  opcode:[15,8]});
+statementSpec.set("testset",  {format:RX,  opcode:[15,9]});
 
 // Mnemonics for jumpc0 based on signed comparisons, overflow, carry
 statementSpec.set("jumple",   {format:JX,  opcode:[15,4,bit_ccg]});
@@ -173,21 +181,29 @@ statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
 statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
 
 // Mnemonics for EXP instructions
-statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,0]});
-statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,1]});
-statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,2]});
-statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,3]});
-statementSpec.set("push",     {format:RRREXP,    opcode:[14,4]});
-statementSpec.set("pop",      {format:RRREXP,    opcode:[14,5]});
-statementSpec.set("top",      {format:RRREXP,    opcode:[14,6]});
-statementSpec.set("rfi",      {format:EXP0,      opcode:[14,7]});
-statementSpec.set("save",     {format:RRXEXP,    opcode:[14,8]});
-statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,9]});
-statementSpec.set("getbit",   {format:RRKEXP,    opcode:[14,10]});
-statementSpec.set("getbiti",  {format:RRKEXP,    opcode:[14,11]});
-statementSpec.set("putbit",   {format:RRKEXP,    opcode:[14,12]});
-statementSpec.set("putbiti",  {format:RRKEXP,    opcode:[14,13]});
-
+// EXP0
+statementSpec.set("rfi",      {format:EXP0,      opcode:[14,0]});
+// RREXP
+statementSpec.set("execute",  {format:RREXP,     opcode:[14,8]});
+// RCEXP
+statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,16]});
+statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,17]});
+// RRREXP
+statementSpec.set("push",     {format:RRREXP,    opcode:[14,24]});
+statementSpec.set("pop",      {format:RRREXP,    opcode:[14,25]});
+statementSpec.set("top",      {format:RRREXP,    opcode:[14,26]});
+// RRKEXP
+statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,32]});
+statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,33]});
+statementSpec.set("getbit",   {format:RRKEXP,    opcode:[14,34]});
+statementSpec.set("getbiti",  {format:RRKEXP,    opcode:[14,35]});
+statementSpec.set("putbit",   {format:RRKEXP,    opcode:[14,36]});
+statementSpec.set("putbiti",  {format:RRKEXP,    opcode:[14,37]});
+// RRKKEXP
+statementSpec.set("extract",  {format:RRKKEXP,    opcode:[14,38]});
+// RRXEXP
+statementSpec.set("save",     {format:RRXEXP,    opcode:[14,64]});
+statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,65]});
 
 // Assembler directives
 statementSpec.set("module",  {format:DirModule,  opcode:[]});
@@ -195,12 +211,6 @@ statementSpec.set("import",  {format:DirImport,  opcode:[]});
 statementSpec.set("export",  {format:DirExport,  opcode:[]});
 statementSpec.set("org",     {format:DirOrg,     opcode:[]});
 statementSpec.set("equ",     {format:DirEqu,     opcode:[]});
-
-//statementSpec.set("module", {format:ASMDIR, opcode:[]})
-//statementSpec.set("import", {format:ASMDIRIDENT, opcode:[]})
-//statementSpec.set("export", {format:ASMDIRIDENT, opcode:[]})
-//statementSpec.set("org",    {format:ASMDIRX, opcode:[]})
-// Mnemonics for assembler directives
 
 // Mnemonics for control registers
 
@@ -211,15 +221,15 @@ statementSpec.set("equ",     {format:DirEqu,     opcode:[]});
 
 var ctlReg = new Map();
 ctlReg.set ("status",   {ctlRegIndex:0});
-ctlReg.set ("imask",    {ctlRegIndex:1});
-ctlReg.set ("ireq",     {ctlRegIndex:2});
+ctlReg.set ("mask",     {ctlRegIndex:1});
+ctlReg.set ("req",      {ctlRegIndex:2});
 ctlReg.set ("istat",    {ctlRegIndex:3});
 ctlReg.set ("ipc",      {ctlRegIndex:4});
-ctlReg.set ("ivect",    {ctlRegIndex:5});
-ctlReg.set ("prog",     {ctlRegIndex:6});
-ctlReg.set ("progEnd",  {ctlRegIndex:7});
-ctlReg.set ("data",     {ctlRegIndex:8});
-ctlReg.set ("dataEnd",  {ctlRegIndex:9});
+ctlReg.set ("vect",     {ctlRegIndex:5});
+ctlReg.set ("psegBeg",  {ctlRegIndex:6});
+ctlReg.set ("psegEnd",  {ctlRegIndex:7});
+ctlReg.set ("dsegBeg",  {ctlRegIndex:8});
+ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 
 //-------------------------------------------------------------------------------
 // Status register bits
@@ -249,7 +259,7 @@ const clearIntEnable = maskToClearBitBE (intEnableBit);
 const setSystemState = maskToClearBitBE (userStateBit);
 
 //-------------------------------------------------------------------------------
-// Interrupt irequest and imask bits
+// Interrupt request and mask bits
 //-------------------------------------------------------------------------------
 
 const timerBit         = 0;   // timer has gone off

@@ -559,6 +559,7 @@ function checkOpOp (m,s) {
     console.log (`checkOpOp operation=${s.operation} format=${format} operandType=${operandType}`);
     if (format==operandType
         || (format==RRREXP && operandType==RRR)
+        || (format==RREXP && operandType==RR)
         || (format==EXP0)) {
         return true;
     }
@@ -780,25 +781,15 @@ function asmPass2 (m) {
 	s = m.asmStmt[i];
 	fmt = s.format;
 	console.log(`pass2 line=${s.lineNumber} s=/${s.srcLine}/`);
-	console.log(`pass2 line=${s.lineNumber} fmt=${fmt} opcode=${s.operation.opcode}`);
-	console.log(`pass2 line=${s.lineNumber} operation=${s.operation} operandType=${s.operandType}`);
+	console.log(`pass2 line=${s.lineNumber} fmt=${fmt}`
+                    + `opcode=${s.operation.opcode}`);
+	console.log(`pass2 line=${s.lineNumber} operation=${s.operation}`
+                    + `operandType=${s.operandType}`);
 	checkOpOp (m,s);
 	if (fmt==RRR) {
 	    console.log (`pass2 RRR`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	} else if (fmt==RRREXP) {
-	    console.log (`pass2 RRREXP`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
-            s.codeWord2 = mkWord(s.a,s.b,0,0);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==EXP0) {
-	    console.log (`pass2 EXP0`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	} else if (fmt==RR) { // like RRR but with b=0
 	    console.log (`pass2 RR`);
@@ -810,14 +801,6 @@ function asmPass2 (m) {
 	    }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    console.log (`pass2 op=${op} ${wordToHex4(s.codeWord1)}`);
-	} else if (fmt==RRKEXP) {
-	    console.log (`pass2 RRKEXP`);
-	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
-	    s.codeWord2 = mkWord(s.a,s.k,0,0);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RX) {
 	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
@@ -830,19 +813,7 @@ function asmPass2 (m) {
             }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==RRXEXP) {
-	    console.log (`pass2 RRXEXP`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
-            let v = evaluate(m,s,s.address+1,s.dispField);
-            s.codeWord2 = mkWord448(s.fielde,s.fieldf,v.evalVal);
-            if (v.evalRel) {
-                mkErrMsg (m,s, `This instruction requires constant displacement\n`
-                          + `       but ${s.dispField} is relocatable`);
-            }
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==JX) { // like RX but with d=0
+	} else if (fmt==JX) {
 	    console.log (`pass2 JX`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
@@ -854,13 +825,58 @@ function asmPass2 (m) {
             }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-//	    console.log('pass2 JX ' + wordToHex4(s.codeWord1)
-	    //			+ wordToHex4(s.codeWord2));
+	} else if (fmt==EXP0) {
+	    console.log (`pass2 EXP0`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	} else if (fmt==RREXP) {
+	    console.log (`pass2 RREXP`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+            s.codeWord2 = mkWord(s.a,s.b,0,0);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RCEXP) {
 	    console.log ("pass2 RCEXP");
 	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(14,s.d,op[1]);
-	    s.codeWord2 = s.ctlReg;
+	    s.codeWord1 = mkWord448(14,op[1]);
+	    s.codeWord2 = mkWord(s.d,s.ctlReg,0,0);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RRREXP) {
+	    console.log (`pass2 RRREXP`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+            s.codeWord2 = mkWord(0,s.d,s.a,s.b);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RRKEXP) {
+	    console.log (`pass2 RRKEXP`);
+	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+	    s.codeWord2 = mkWord(0,s.d,s.a,s.k);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RRKKEXP) {
+	    console.log (`pass2 RRKKEXP`);
+	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+	    s.codeWord2 = mkWord(s.a,s.k,0,0);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RRXEXP) {
+	    console.log (`pass2 RRXEXP`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+            let v = evaluate(m,s,s.address+1,s.dispField);
+            s.codeWord2 = mkWord448(s.fielde,s.fieldf,v.evalVal);
+            if (v.evalRel) {
+                mkErrMsg (m,s, `This instruction requires constant displacement\n`
+                          + `       but ${s.dispField} is relocatable`);
+            }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
         } else if (fmt==DATA) {

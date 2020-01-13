@@ -1,14 +1,42 @@
 ; EXP.asm.txt
 
-   save    R3,R7,4[R14]
-   restore R1,R11,1[R14]
+; EXP0
+   rfi
 
+; RREXP
+   execute R8,R4
+
+; RCEXP
+   getctl  R2,req
+   putctl  R3,req
+   getctl  R4,status
+   getctl  R4,mask
+   getctl  R4,req
+   getctl  R4,istat
+   getctl  R4,ipc
+   getctl  R4,vect
+   getctl  R4,psegBeg
+   getctl  R4,psegEnd
+   getctl  R4,dsegBeg
+   getctl  R4,dsegEnd
+   
+; RRREXP
+
+   push    R1,R2,R3
+   pop     R4,R5,R6
+   top     R7,R8,R9
+
+; RRKEXP
+   shiftl  R5,R2,7
+   shiftr  R1,R12,13
    getbit  R2,R3,5
    putbit  R8,R3,15
    getbiti R7,R2,3
    putbiti R9,R1,1
 
-   push    R1,R2,R3
-   pop     R4,R5,R6
-   top     R7,R8,R9
-   rfi
+; RRKKEXP
+   extract R2,R13,4,7   
+
+; RRXEXP
+   save    R3,R7,4[R14]
+   restore R1,R11,255[R14]

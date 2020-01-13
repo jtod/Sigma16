@@ -773,16 +773,16 @@ window.onload = function () {
     ctlRegIndexOffset = nRegisters;
     statusreg   = mkReg ('statusreg',  'statusElt',  wordToHex4);
 //    ienable  = mkReg ('ienable',  'enableElt',  showBit);
-    imask     = mkReg ('imask',     'imaskElt',    wordToHex4);
-    ireq      = mkReg ('ireq',      'ireqElt',     wordToHex4);
-    // imask and irequest
+    mask     = mkReg ('mask',     'maskElt',    wordToHex4);
+    req      = mkReg ('req',      'reqElt',     wordToHex4);
+    // mask and request
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
     istat    = mkReg ('istat',    'istatElt',      wordToHex4);
     ipc      = mkReg ('ipc',      'ipcElt',      wordToHex4);
-    ivect   = mkReg ('ivect',   'ivectElt', wordToHex4);
+    vect   = mkReg ('vect',   'vectElt', wordToHex4);
 
 // Segment control registers
     sEnable  = mkReg ('sEnable',  'sEnableElt',  showBit);
@@ -797,7 +797,7 @@ window.onload = function () {
 	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
 	 // the following can be used for getctl/getctl, indexing from 0
 	 statusreg,
-	 imask, ireq, istat, ipc, ivect
+	 mask, req, istat, ipc, vect
 	];
     controlRegisters.forEach (function (r) {
 	console.log('making reg ' + nRegisters + ' = ' + r.regName);

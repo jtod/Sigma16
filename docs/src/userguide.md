@@ -179,10 +179,6 @@ A simple program.  The problem:
 ~~~~
 
 
-
-
-
-
 There are four arithmetic instructions, to perform addition,
 subtraction, multiplication, and division.  (There are also a few more
 not discussed here.)
@@ -247,10 +243,6 @@ arithmetic operations
 
 Every arithmetic operation takes its operands from registers, and
 loads the result into a register.
-
-
-
-
 
 In the lea instruction, the constant value can be specified using
 either decimal or hexadecimal notation.  Indicate hexadecimal in
@@ -900,16 +892,26 @@ displacement, which is the entire second word of the instruction.
 
 ### EXP format
 
-The EXP instruction format is used for expanded instructions cannot be
-represented using the RRR or RX formats.  It provides many unused
-opcodes, so it is useful for experimental instructions.
+The EXP instruction format is used for expanded instructions that are
+not represented using the RRR or RX formats.  It provides many unused
+opcodes, so it is useful for experimental instructions.  The name EXP
+stands simultaneously for *expansion* and *experimental*.
 
-An EXP instruction consists of two words.  The first word has a
-constant hex e in the op field, which indicates the EXP format.  The a
-and b fields together form an 8-bit secondary opcode, allowing for 256
-distinct EXP instructions.  The d field in the first word, and all of
-the second word, hold operands which depend on the particular
-instruction.
+There are several sub-formats, or variations, of the EXP format.
+These are described in more detail below.  Most of the sub-formats
+represent an instruction with two words.
+
+* The first word has the same fields as for RRR and RX instructions:
+  the 4-bit fields op, d, a, b.  All EXP instructions have a constant
+  hex e in the op field, which indicates the EXP format.  The a and b
+  fields together form an 8-bit secondary opcode (this is called the
+  ab field), allowing for 256 distinct EXP instructions.  The d field
+  in the first word, and all of the second word (if any), hold
+  operands which depend on the particular variant of the EXP format.
+  
+* The second word (if it appears) contains four 4-bit fields named e,
+  f, g, h.  In some variants these hold separate 4-bit values, while
+  in some cases g and h form a single 8-bit value (called the gh field).
 
 First word of the instruction
 
@@ -945,21 +947,72 @@ Second word of the instruction
   </tr>
 </table>
 
-## Summary of notation
+To summarise, an EXP instruction may use the fields op, d, ab, e, f,
+g, h.  The g and h fields can be combined into a single 8-bit field gh
+All EXP instructions combine the a and b fields into a single 8-bit
+field called ab.  Some EXP instructions combine the g and h fields
+into a single 8-bit field called gh.
 
-* ea
+The EXP format has the following variants.
 
-* mem[ea]
+* EXP0 format takes no operands.  The instruction format uses just one
+  word (there is no second word with the e, f, g, h fields).  The op
+  field contains hex e, the ab field contains an 8 bit expanded
+  operation code, and the d field is ignored (the assembler sets the d
+  field to 0).  Example: *rfi* is an instruction with no operands.
+  This allows rfi to be represented in one word without using up one
+  of the limited and valuable opcodes avaiable for RRR instructions.
+  
+* The RREXP format takes two register operands, which are in the e and
+  f fields of the second word. The d field of the first word and the g
+  and h fields of the second word are ignored (the assembler will set
+  these to 0).  Any RREXP instruction could be reprsented as RRR, but
+  there are only a few RRR opcodes avaiable, so uncommon instructions
+  that require two registers are represented as RREXP.  Example:
+  *execute R5,R6* is RREXP.
 
-* reg[d]
-
-* reg[a]
-
-* reg[b]
-
-* reg[d]
-
-* lsb q
+* The RCEXP format takes two register operands, which are in the e and
+  f fields of the second word.  The d field of the first word and the
+  g and h fields of the second word are ignored (the assembler will
+  set these to 0.)  The first operand is an element of the register
+  file (for example, R4).  The second operand is a control register,
+  which is specified by a 4-bit number.  In assembly language, we
+  normally refer to the control registers by name rather than number,
+  to make it easier to remember which is which.  For example, *getctl
+  R3,status* has RCEXP format.
+  
+* The RRREXP format takes three register operands, which are in the f,
+  g, and h fields of the second word.  The d field of the first word
+  and the e field of the second word are ignored (the assembler will
+  set these to 0).  The RRREXP instructions would be a natural fit for
+  the RRR format, but there are not enough RRR opcodes available, so
+  the EXP format is used to expand the number of instructions that can
+  be represented.  For example, *push R5,R8,R9* has RRREXP format.
+  
+* The RRKEXP format takes two register operands and a 4-bit constant
+  number.  The register operands are in the f and g fields of the
+  second word, and constant is in the h field of the second word.  The
+  d field of the first word and the e field of the second word are
+  ignored (the assembler sets these to 0).  For example, *shiftr
+  R3,R6,7* has RRKEXP format.
+  
+* The RRKKEXP format takes two register operands and two 4-bit
+  constant binary number operands.  The register operands are in the e
+  and f fields of the second word, while the two constants are in the
+  g and h fields.  The d field of the first word is ignored (the
+  assembler sets it to 0).
+  
+* The RRXEXP format takes two register operands as well as a memory
+  address specified with an 8-bit offset and index register.  Thus
+  these instructions require three registers to be specified, as well
+  as the offset.  Thus every bit of both instruction words is needed
+  to represent an RRXEXP format instruction.  In assembly language,
+  the memory address is written as *offset[Rh]* where *offset* is an
+  -bit binary number and Rh is a register.  The effective memory
+  address is *offset+Rh*. This is similar to ordinary memory
+  addresses; the only difference is that it uses an 8-bit offset
+  rather than a 16-bit displacement. For example, *save R1,R9,2[R14]*
+  has RRKEXP format.  
 
 # Instruction set
 
@@ -1031,9 +1084,26 @@ sub R1,R2,R3
 
 ### mul
 
+The multiply instruction calculates the integer (two's complement)
+product of the operands Ra and Rb, and places the result in the
+destination register Rd.
+
+If the magnitude of the product is too large to be representable as a
+16 bit two's complement integer, this is an overflow.  If this
+happens, the integer overflow bit is set in the condition code (F15)
+and the integer overflow bit is also set in the interrupt request
+register (req), and the lower order 16 bits of the product are loaded
+into Rd.
+
 ### div
 
 ### addc
+
+The **binary add with carry** instruction *addc Rd,Re,Rf* calculates the sum
+of the binary numbers in the operand registers Re and Rf as well as
+the carry bit in the condition code.  The sum is loaded into the
+destination register Rd and the carry output is set in the condition
+code register.  Overflow is not possible with this instruction.
 
 ## Accessing memory
 
@@ -1248,6 +1318,12 @@ representation of a stack.)
 
 ## Comparisons
 
+The comparison instructions compare the values in two operand
+registers and produce one or more Booleans indicating the relation
+between the operands.  The result can either loaded into a register as
+a word containing a Boolean (cmplt, cmpeq, cmpgt), or it can be
+indicated by setting a number of separate Booleans in the condition
+code register R15 (cmp).
 
 ### cmplt
 
@@ -1292,19 +1368,60 @@ is represented as 0000, and true is represented as 0001.
 
 ### cmp
 
+The **compare** instruction *cmp Ra,Rb* performs both an integer (two's
+complement) and a natural (binary) comparison of the operands.  The
+results are indicated in several of the flags in the condition code
+register, which is R15.
+
 ## Transfer of control
 
 ### jump
 
+The **jump** instruction *jump disp[Ra]* transfers control to the
+instruction in memory at the effective address *disp+Ra*.
+
 ### jumpf
+
+The **jump if false** instruction *jumpf Rd,disp[Ra]* checks the
+Boolean value of Rd.  If this is *false*, the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
 
 ### jumpt
 
+The **jump if true** instruction *jumpf Rd,disp[Ra]* checks the
+Boolean value of Rd.  If this is *true*, the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
+
 ### jumpc0
+
+The **jump if condition code bit is 0** instruction *jumpc0
+k,disp[Ra]* checks the value of bit k in R15, which is the condition
+code register.  If this bit is *0*, then the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
 
 ### jumpc1
 
+The **jump if condition code bit is 1** instruction *jumpc1
+k,disp[Ra]* checks the value of bit k in R15, which is the condition
+code register.  If this bit is *1*, then the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
+
 ### jal
+
+The **jump and link** instruction *jal Rd,disp[Ra]* loads the address
+of the following instruction into the destination register Rd, and
+transfers control to the instruction in memory at the effective
+address *disp+Ra*.
+
+The value loaded into Rd is the address of the instruction that
+immediately follows the jal.  This instruction is used for calling
+procedures or functions: the effective address is the location of the
+procedure, and the return address is in Rd.  The procedure can then
+return by jumping to the return address, e.g. with *jump 0[Rd]*.
 
 ### Aliases for conditional jumps
 
@@ -1394,6 +1511,16 @@ is RRKEXP
 
 ### getbit
 
+The bit at position k in the operand Ra is converted to a Boolean and
+loaded into the destination register Rd.  Bit 0 is the leftmost (most
+significant) bit, and bit 15 is the rightmost (least significant).
+
+~~~~
+   getbit Rd,Ra,k
+~~~~
+
+
+
 ### getbiti
 
 ### putbit
@@ -1402,7 +1529,30 @@ is RRKEXP
 
 ### extract
 
+Extract a field from Rf starting in bit position g, or size h bits,
+and place the result into Re.
+
+~~~~
+   extract Re,Rf,g,h
+~~~~
+
+Format RRKKEXP.  The operands are all in the second word of the instruction.
+
+
 ### execute
+
+The *execute* instruction commands the computer to execute another
+instruction which is in the register file.  The first word of this
+target instruction is in Re and the second word (in case it's a
+two-word instruction) is in Rf.  If Re contains an RRR instruction,
+then Rf is ignored.
+
+~~~~
+   execute Re,Rf
+~~~~
+
+Format RREXP.  Both operands are in the second word of the
+instruction, in the e and f fields.
 
 ## System control
 
@@ -1413,6 +1563,26 @@ is RRKEXP
 ### putctl
 
 ### rfi
+
+The **return from interrupt** instruction performs the following
+operations simultaneously and atomically:
+
+* status := istat
+* pc := ipc
+
+It is important that this is an atomic operation.  If either of the
+two register updates were performed before the other, then the second
+one would not function correctly.  In the digital circuit implementing
+the processor, these two register updates are genuinely simultaneous:
+they happen during the same clock cycle, at exactly the same time.
+
+The instruction format is EXP0.  As there is no operand, every rfi
+instruction has the same machine language representation: e000.  The
+fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is
+unused, and ab=0 because this is the secondary opcode of rfi.
+
+This instruction is privileged.  Since the instruction changes the
+status register, it can be used to perform a context switch.
 
 ## Trap operations
 
@@ -2018,6 +2188,33 @@ Select is for switching among the existing modules, while New and Open
 are for introducing a new module.
 
 # Programming
+
+## Using the instructions
+
+**load and store**
+  
+* Use load to copy a variable (either ordinary variable x or array
+  element a[i]) from memory to register.
+
+* Use store to copy the value in a register into memory.
+  
+**lea**
+  
+* (Common usage) Use lea to put a constant into a register: *lea
+  R2,39[R0] ; R2 = 39*
+
+* (Common usage) Use lea to put the *address* of a variable into a
+  register.  (Use load to put the value of the varable into a
+  register.)
+
+* Example: to write a string, you need to (1) put the code for write
+  in R1 (this is likely to be a constant , so use lea); (2) put the
+  address of the string in R2 (use lea); and (3) put the length of the
+  string in R3 (this may be a constant, so use lea); then finally
+  *trap R1,R2,R3*
+
+* (Less common usage) Use lea to add a binary constant to a register
+  containing a binary number: *lea R5,1[R5] ; R5 = R5 + 1*.
 
 ## Computer Architecture
 
@@ -7819,18 +8016,24 @@ x := a + b * c
 ### Another application of jump tables!
 
 
- *  In complicated applications, trees normally have \alert{several
+* In complicated applications, trees normally have \alert{several
   different types of node}
- *  Examples: operations with 1 operand; operations with 2 operands;
+
+* Examples: operations with 1 operand; operations with 2 operands;
   control constructs with a boolean expression and two statements,
   etc.
- *  So there are several different kinds of record
- *  Each record has a \emph{code} in the first word
- *  The value of the code determines how many more words there are
+
+* So there are several different kinds of record
+
+* Each record has a \emph{code} in the first word
+
+* The value of the code determines how many more words there are
   in the record, and what they mean
- *  When a program has a pointer to a node, it needs to examine the
+
+* When a program has a pointer to a node, it needs to examine the
   code and take different actions depending on what the code is
- *  This is done with a jump table
+
+* This is done with a jump table
 
 
 
@@ -8715,42 +8918,39 @@ if b1 then { if b2 then S1 } else S2
 
 
 
-### goto spelled differently
 
 
- *  Some programming languages provide restricted forms of goto
   
-   *  break
-   *  continue
+
+
+
+### Implicit goto statements: break and continue
+
+* Some programming languages provide restricted forms of goto: break
+  and continue
   
- *  These are goto statements without a label, but with a predefined
+* These are goto statements without a label, but with a predefined
   destination they go to
-  
-   *  Advantage --- you may recognise the pattern being used by a
-    programmer
-   *  Disadvantage --- you need to know for sure to where your goto goes
-  
 
+* Advantage --- you may recognise the pattern being used by a
+  programmer
 
+* Disadvantage --- you need to know for sure to where your goto goes
 
-### The break statement
+* C and its descendants have break, as does Python
 
+* Break is a goto that goes to the end of the \alert{innermost} loop
+  it's in
 
- *  C and its descendants have break, as does Python
- *  Break is a goto that goes to the end of the \alert{innermost}
-  loop it's in
- *  In Python  you can have an else clause to execute when a for or
+* In Python  you can have an else clause to execute when a for or
   while loop finishes, but this is skipped if you terminate the loop
   with break
- *  What if you want to break out of several loops?
+
+* What if you want to break out of several loops?.  There is no good
+  way to do this in Python. It's best to restructure your program, to
+  avoid break
   
-   *  There is no good way to do this in Python
-   *  It's best to restructure your program, to avoid break
-  
-
-
-
-### Where does break go?
+Break is a goto that doesn't say where it goes to.
 
 ~~~~
 for i in range (1, 5):
@@ -8766,23 +8966,21 @@ for i in range (1, 5):
             print (k)
 ~~~~
 
-### The continue statement
+The continue statement
 
-
- *  In C and Python, continue goes to the end of the current loop
+* In C and Python, continue goes to the end of the current loop
   which then continues executing
- *  It's a way of staying in the loop but skipping the statements
+
+* It's a way of staying in the loop but skipping the statements
   after the continue
- *  Warning! Several programming languages have a statement that is
-  \emph{spelled} continue ---  but it does nothing and is equivalent
-  to the pass statement in Python
 
+* Warning! Several programming languages have a statement that is
+  *spelled* continue --- but it does nothing and is equivalent to the
+  pass statement in Python
 
-
-### Break and continue: translation to low level
+Break and continue: translation to low level
 
 ~~~~
-
 loop1
    if (i<n)=False then goto loop1done
    ...
@@ -8792,114 +8990,96 @@ loop1
    ...
    goto loop1
 loop1done
-
 ~~~~
 
   
-   *  continue goes to the top of the innermost loop containing the
-    continue: it skips the rest of \emph{this iteration}
-   *  break goes to right after the end of the innermost loop
-    containing the break: it \emph{exits this loop}
+* continue goes to the top of the innermost loop containing the
+  continue: it skips the rest of \emph{this iteration}
+
+* break goes to right after the end of the innermost loop containing
+  the break: it \emph{exits this loop}
   
-
-
-#### Semantics --- harder but more important
-
 ### Semantics
-
  
- *  Semantics means \emph{the meaning}
- *  The \emph{semantics} of a language is \emph{what a program in
+* Semantics means the **meaning**
+
+* The semantics of a language is \emph{what a program in
   the language means}
- *  The semantics of a program is \emph{the meaning of the program}
-   
-   *  Given its inputs, what are its outputs?
+
+* The semantics of a program is \emph{the meaning of the
+  program}. Given its inputs, what are its outputs?
+
+How is the semantics of a language defined?
+
+Using natural language to describe it.  This may be a vague
+description in English of what each construct does, or a carefully
+written description in English, written to be as precise as possible
   
-
-
-### How is the semantics of a language defined?
-
-
- *  Using natural language to describe it
+Using mathematics or program transformation
   
-   *  Vague description in English of what each construct does
-   *  A carefully written description in English, written to be as
-    precise as possible
-  
- *  Using mathematics or program transformation
-  
-   *  Denotational semantics: a precise mathematical
-    specification. Given a program, it gives a mathematical function
-    from program inputs to outputs
-   *  Operational semantics: gives a sequence of reduction rules
-    that give a precise model of the program's execution
-   *  Transformational semantics: a translation from a program into
-    a simpler language, where the semantics is assumed to be clear
-   
+* Denotational semantics: a precise mathematical specification. Given
+  a program, it gives a mathematical function from program inputs to
+  outputs
 
+* Operational semantics: gives a sequence of reduction rules that give
+  a precise model of the program's execution
 
-### Why do the translation from high to low level?
+* Transformational semantics: a translation from a program into a
+  simpler language, where the semantics is assumed to be clear
 
+Why do the translation from high to low level?
 
- *  This is the semantics of the high level constructs
- *  It explains precisely what the high level means
- *  It shows what the compiler will do with the program (compilers
+* This is the semantics of the high level constructs
+
+* It explains precisely what the high level means
+
+* It shows what the compiler will do with the program (compilers
   do intermediate level translations like this; many compilers use
   several intermedate steps)
- *  It makes explicit the execution time of the construct
- *  The low level is very close to assembly language
- *  It's easier to go from high level to assembly language in two
-  small steps, rather than one giant leap
 
+* It makes explicit the execution time of the construct
 
+* The low level is very close to assembly language
 
-### Watch out for loose explanations
+* It's easier to go from high level to assembly language in two small
+  steps, rather than one giant leap
 
+Watch out for loose explanations
 
-   *  Here's a quotation from
-    https://docs.python.org/3.7/tutorial/introduction.html
+* Here's a quotation from
+  https://docs.python.org/3.7/tutorial/introduction.html.
     
-     *  ``The while loop executes as long as the condition (here:
-      $a < 10$) remains true''
+* ``The while loop executes as long as the condition (here:
+   a < 10) remains true
     
-   *  \alert{That is wrong!}
-   *  It \alert{says} that if $a$ is changed in the middle of the
-    loop, making it less than 10, the loop will stop executing
-   *  But the computer does not continuously monitor $a<10$ and
-    break out of the loop as soon as it becomes false
-   *  To see what happens, \alert{look at the compilation pattern:
-      the translation to low level ``goto'' form}
-   *  The while loop checks the boolean $a<10$ at the top of the
-    loop; if false it exits the loop, and if true it executes
-    \emph{the entire body of the loop} even if the boolean became
-    false in the middle
-  
+That is wrong!
 
+It *says* that if a is changed in the middle of the
+loop, making it less than 10, the loop will stop executing.
+But the computer does not continuously monitor a<10 and
+break out of the loop as soon as it becomes false.
+
+To see what happens, look at the compilation pattern: the translation
+to low level ``goto'' form.  The while loop checks the boolean a<10 at
+the top of the loop; if false it exits the loop, and if true it
+executes the entire body of the loop even if the boolean became false
+in the middle
 
 ### Semantics of while
 
-{\color{red}
-~~~~
-while b do S
-~~~~
-}
-is translated to
-{\color{red}
+**while b do S** is translated to
+
 ~~~~
 L1: if not b then goto L2
     S
     goto L1
 L2:
 ~~~~
-}
 
- *  If you understand the meaning of :=, goto, if b then goto, you
-  can understand the meaning of \emph{every high level construct}
- *  b is an arbitrary boolean expression
- *  S is an arbitrary statement
- *  L1 and L2 are ``fresh'' labels: they can't be used anywhere else
-
-
+If you understand the meaning of :=, goto, if b then goto, you can
+understand the meaning of every high level construct.  Note that b is
+an arbitrary boolean expression; S is an arbitrary statement; L1 and
+L2 are *fresh labels: they can't be used anywhere else
 
 ### Lists, +, +=, iterators, and for loops
 
@@ -10968,28 +11148,6 @@ memory addresses
 
 
 
-### Applications of the instructions
-
-
- *  load and store
-  
-   *  Use load to copy a variable (either ordinary variable x or
-    array element a[i]) from memory to register 
-   *  Use store to copy from register to memory
-  
- *  lea
-  
-   *  Use it to get the \stress{address of a variable} in a register
-   *  Example: to write a string, you need to (1) put the code for
-    write in R1, (2) put the address of the string in R2
-    \stress{(using lea)}, (3) put the length of the string in R3, then
-    trap R1,R2,R3 
-   *  Use it to put a constant into a register: \stress{lea
-      R2,39[R0] ; R2 = 39}
-   *  Use it to add a constant to a register: \stress{lea R5,1[R5] ;
-      R5 = R5 + 1}
-  
-
 
 
 ### A computer is a digital circuit!}
@@ -12758,39 +12916,6 @@ dependencies, and run the program:
     npm install
     npm start
 
-## Workflow for development
-
-### Making a release on github pages
-
-make a local directory for editing the project page on github pages.
-cd into this directory.
-
-    git clone https://github.com/jtod/jtod.github.io
-	git add jtod.github.io
-	cd jtod.github.io
-	git branch adds16dir
-	git checkout adds16dir
-	git status
-	mkdir Sigma16
-	using emacs, create index.html and Sigma16/index.html
-
-To build a release, the necessary files in the current version need to
-be copied from the development directory into the web page directory
-in jtod.github.io/Sigma16.  However, it doesn't work very well simply
-to copy the contents of the Sigma16 development directory into the
-release directory because all the .gitignore files should be skipped.
-Consequently a script is used to automate the construction of a
-release, and the script will copy exactly the required files.
-	
-    git remote add webpage https://github.com/jtod/jtod.github.io
-	git remote
-	git status
-	git push webpage adds16dir         adds16dir is the local branch
-	
-On github page, made a pull request and selected adds1dir.  There were
-no merge conflicts and the pull request was executed and cleared.  The
-home page seems to come from the README file but refreshing it gives
-my index.html.
 
 To build standalone version using Node.hs and electron.  In the
 src/app directory, use the following commands.  They create a file
@@ -12856,47 +12981,61 @@ just defines the version number as a global constant.
 
 # About Sigma16
 
+This program is experimental software, and is under development.
+
 ## Author
 
-The architecture and software tools were designed by John O'Donnell.
+The architecture, software tools, and documentation were designed,
+implemented, and written by John O'Donnell.  Contact:
+john.t.odonnell9@gmail.com
 
 ## License
 
-This is free and open source software and is distributed under the GPL
-License, either version 3 or (at your option) any later version.  See
-the LICENSE and LICENSE_GPL3 files.  This program is experimental
-software, and is under development.
+See the files Sigma16/LICENSE.txt and Sigma16/NOTICE.txt.
 
-See the README and LICENSE files in the Sigma16 directory.
+Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
+License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt,NOTICE.txt
 
-  * [README](file:README.html)
-  * [LICENSE](file:LICENSE.html)
-  * [Full text of GPL3 license](file:LICENSE_GPL3.html)
+This file is part of Sigma16.  Sigma16 is free software: you can
+redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+Sigma16 is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.  You should have received a copy of the GNU General
+Public License along with Sigma16.  If not, see
+<https://www.gnu.org/licenses/>.
 
-## Implementation of Sigma16
+## Implementation
 
-The program is written in JavaScript, and normally uses a web browser
-to display the graphical user interface.
+Sigma16 consists of several components:
 
-The circuits that implement Sigma16 are defined using the  Hydra
-hardware description language, which is an embedded domain specific
-language implemented in Haskell.
+* The Integrated Development Environment (IDE) is written in
+  JavaScript, and normally uses a web browser to display the graphical
+  user interface.
 
-The documentation is written in markdown and prepared for a web
-browser using pandoc.
+* The circuits that implement Sigma16 are defined using the Hydra
+  hardware description language, which is an embedded domain specific
+  language implemented in Haskell.
 
-## Changes underway
+* The User Guide is written in markdown and prepared for a web browser
+  using pandoc.
 
-Support relocatable code
+# Reference
 
-* Change jump, jumpt, jumpf, jal to use pc-relative addressing
-* Introduce a jalext that uses indexed absolute address, for external
+## Index of notation
 
-Arithmetic
-Add/subtract with carry
+* ea
 
-Input/Output
-dma channels
-Ready
-Ack
+* mem[ea]
 
+* reg[d]
+
+* reg[a]
+
+* reg[b]
+
+* reg[d]
+
+* lsb q
