@@ -433,7 +433,6 @@ assignment statement x := 2 * (a + b/c) involves three arithmitic
 operations, and it would require at least three instructions to
 express in machine language.
 
-
 ## Overview of Sigma16
 
 Why use Sigma16?
@@ -491,8 +490,6 @@ All computers have several main subsystems
    *  R1 := 8   ; load a constant
   
  *  We'll begin with the corresponding Sigma16 instructions
-
-
 
 ## Data representation
 
@@ -971,30 +968,34 @@ The EXP format has the following variants.
   that require two registers are represented as RREXP.  Example:
   *execute R5,R6* is RREXP.
 
-* The RCEXP format takes two register operands, which are in the e and
-  f fields of the second word.  The d field of the first word and the
-  g and h fields of the second word are ignored (the assembler will
-  set these to 0.)  The first operand is an element of the register
-  file (for example, R4).  The second operand is a control register,
-  which is specified by a 4-bit number.  In assembly language, we
-  normally refer to the control registers by name rather than number,
-  to make it easier to remember which is which.  For example, *getctl
+* The RCEXP format takes two register operands; the first is a general
+  register and the second is a control register.  An example of the
+  operand field is *R3,mask*.  The operands are in the e and f fields
+  of the second word.  The d field of the first word and the g and h
+  fields of the second word are ignored (the assembler will set these
+  to 0.)  The first operand is an element of the register file (for
+  example, R4).  The second operand is a control register, which is
+  specified by a 4-bit number.  In assembly language, we normally
+  refer to the control registers by name rather than number, to make
+  it easier to remember which is which.  For example, *getctl
   R3,status* has RCEXP format.
   
 * The RRREXP format takes three register operands, which are in the f,
-  g, and h fields of the second word.  The d field of the first word
-  and the e field of the second word are ignored (the assembler will
-  set these to 0).  The RRREXP instructions would be a natural fit for
-  the RRR format, but there are not enough RRR opcodes available, so
-  the EXP format is used to expand the number of instructions that can
-  be represented.  For example, *push R5,R8,R9* has RRREXP format.
+  g, and h fields of the second word. An example of the operand field
+  is $R1,R2,R3*.  The d field of the first word and the e field of the
+  second word are ignored (the assembler will set these to 0).  The
+  RRREXP instructions would be a natural fit for the RRR format, but
+  there are not enough RRR opcodes available, so the EXP format is
+  used to expand the number of instructions that can be represented.
+  For example, *push R5,R8,R9* has RRREXP format.
   
 * The RRKEXP format takes two register operands and a 4-bit constant
-  number.  The register operands are in the f and g fields of the
-  second word, and constant is in the h field of the second word.  The
-  d field of the first word and the e field of the second word are
-  ignored (the assembler sets these to 0).  For example, *shiftr
-  R3,R6,7* has RRKEXP format.
+  number.  An example of the operand field is *R1,R2,13*.  The
+  register operands are in the f and g fields of the second word, and
+  constant is in the h field of the second word.  The d field of the
+  first word and the e field of the second word are ignored (the
+  assembler sets these to 0).  For example, *shiftr R3,R6,7* has
+  RRKEXP format.
   
 * The RRKKEXP format takes two register operands and two 4-bit
   constant binary number operands.  The register operands are in the e

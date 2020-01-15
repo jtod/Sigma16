@@ -128,6 +128,10 @@ function mkAsmStmt (lineNumber, address, srcLine) {
             expSrc : null,                  // expression operand if any
             expValue : null,                // value of expression operand if any
 	    op : 0,                         // operation
+            operand_str1 : '',
+            operand_str2 : '',
+            operand_str3 : '',
+            operand_str4 : '',
 	    d : 0,                          // destination
 	    a : 0,                          // source a
 	    b : 0,                          // source b
@@ -242,6 +246,8 @@ const rrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 const rxParser =
     /^R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+const kxParser =
+    /^([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const rrxParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const jxParser =
@@ -267,6 +273,8 @@ const rrrParser =
 
 const rrkParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
+const rrkkParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?),([0-9][0-9]?)$/;
 
 // RCEXP asm format (register, control reg name): getctl R3,mask
 const rcParser =
@@ -627,16 +635,18 @@ function parseOperation (m,s) {
 
 // s is an AsmStmt object; parse the operand and update s
 function parseOperand (m,s) {
+    let rr  = rrParser.exec  (s.fieldOperands);
+    let rc  = rcParser.exec (s.fieldOperands);
     let rrr = rrrParser.exec (s.fieldOperands);
     let rrk = rrkParser.exec (s.fieldOperands);
-    let rr  = rrParser.exec  (s.fieldOperands);
-    let rx  = rxParser.exec  (s.fieldOperands);
-    let rrx = rrxParser.exec  (s.fieldOperands);
+    let rrkk = rrkkParser.exec (s.fieldOperands);  // need this parser
     let jx  = jxParser.exec  (s.fieldOperands);
-    let rc  = rcParser.exec (s.fieldOperands);
+    let rx  = rxParser.exec  (s.fieldOperands);
+    let kx  = kxParser.exec  (s.fieldOperands);
+    let rrx = rrxParser.exec  (s.fieldOperands);
     let dat = datParser.exec (s.fieldOperands);
-//  let exp = expParser.exec (s.fieldOperands);       // expression (directive)
     let ident = identParser.exec (s.fieldOperands);  // identifier (directive)
+//  let exp = expParser.exec (s.fieldOperands);       // expression (directive)
 // Check non-exclusive operand formats: ident
     if (ident) {
         s.hasOperand = true;
@@ -644,32 +654,80 @@ function parseOperand (m,s) {
         s.identarg = ident[0];
     }
 // Check the mutually exclusive operand formats    
-    if (rrr) {
-	s.hasOperand = true;
-	s.operandType = RRR;
-	s.operandRRR = true;
-	s.d = rrr[1];
-	s.a = rrr[2];
-	s.b = rrr[3];
-    } else if (rr) {   // can omit d for cmp, omit b for inv
+    if (rr) { // Rp,Rq
 	s.hasOperand = true;
 	s.operandType = RR;
+        console.log (`Found ${s.operandType} operand`);
 	s.operandRR = true;
-	s.rr1 = rr[1];
-	s.rr2 = rr[2];
-//	s.d = rr[1];
-//	s.a = rr[2];
-    } else if (rx) {
+	s.operand_str1 = rr[1]; // Rp
+	s.operand_str2 = rr[2]; // Rq
+    } else if (rc) { // R2,mask
+	console.log ('rc');
+	s.hasOperand = true;
+	s.operandType = RCEXP;
+        console.log (`Found ${s.operandType} operand`);
+	s.operandRCEXP = true;
+	s.d = rc[1];
+	let ctlRegName = rc[2]
+	let ctlRegIdx = findCtlIdx (m,s,ctlRegName);
+	s.ctlReg = ctlRegIdx;
+	console.log (`rc d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
+    } else if (rrr) { // Rp,Rq,Rr
+	s.hasOperand = true;
+	s.operandType = RRR;
+        console.log (`Found ${s.operandType} operand`);
+	s.operandRRR = true;
+	s.operand_str1 = rrr[1]; // Rp
+	s.operand_str2 = rrr[2]; // Rq
+	s.operand_str3 = rrr[3]; // Rr
+    } else if (rrk) { // R2,R3,5
+	console.log ('rrk');
+	s.hasOperand = true;
+	s.operandType = RRKEXP;
+        console.log (`Found ${s.operandType} operand`);
+	s.operandRRKEXP = true;
+	s.d = rrk[1];
+	s.a = rrk[2];
+	s.k = rrk[3];
+    } else if (rrkk) { // R2,R3,5,3
+	console.log ('rrkk');
+	s.hasOperand = true;
+	s.operandType = RRKKEXP;
+        console.log (`Found ${s.operandType} operand`);
+	s.operandRRKEXP = true;
+	s.operand_str1 = rrkk[1];
+	s.operand_str2 = rrkk[2];
+	s.operand_str3 = rrkk[3];
+	s.operand_str4 = rrkk[4];
+        console.log (`pass1 rrkk 1=${s.operand_str1} 2=${s.operand_str2} 3=${s.operand_str3} 4=${s.operand_str4}`);
+    } else if (jx) { // xyz[R2]
+	s.hasOperand = true;
+	s.operandType = JX;
+        console.log (`Found ${s.operandType} operand`);
+	s.operandJX = true;
+	s.dispField = jx[1];
+	s.a = jx[2];
+    } else if (rx) { // R1,xyz[R2]
 	s.hasOperand = true;
 	s.operandType = RX;
+        console.log (`Found ${s.operandType} operand`);
 	s.operandRX = true;
 	s.d = rx[1];
 	s.dispField = rx[2];
 	s.a = rx[3];
-    } else if (rrx) {
+    } else if (kx) { // jumpc1 6,xyz[R2]
+	s.hasOperand = true;
+	s.operandType = KX;
+        console.log (`Found ${s.operandType} operand`);
+	s.operandRX = true;
+	s.d = kx[1];
+	s.dispField = kx[2];
+	s.a = kx[3];
+    } else if (rrx) { // R2,R3,xyz[R4]
         console.log ('RRX');
 	s.hasOperand = true;
 	s.operandType = RRXEXP;
+        console.log (`Found ${s.operandType} operand`);
 	s.operandRX = true;
         console.log (`rrx 1=${rrx[1]} 2=${rrx[2]} 3=${rrx[3]} 4=${rrx[4]} `)
 	s.fielde = rrx[1];      // start register
@@ -677,33 +735,10 @@ function parseOperand (m,s) {
 	s.dispField = rrx[3];   // displacement
 	s.d = rrx[4];           // index register is in word 1 d field
         console.log (`rrx e=${s.fielde} f=${s.fieldf} disp=${s.dispField} x=${s.d}`)
-    } else if (jx) {
-	s.hasOperand = true;
-	s.operandType = JX;
-	s.operandJX = true;
-	s.dispField = jx[1];
-	s.a = jx[2];
-    } else if (rrk) {
-	console.log ('rrk');
-	s.hasOperand = true;
-	s.operandType = RRKEXP;
-	s.operandRRKEXP = true;
-	s.d = rrk[1];
-	s.a = rrk[2];
-	s.k = rrk[3];
-    } else if (rc) {
-	console.log ('rc');
-	s.hasOperand = true;
-	s.operandType = RCEXP;
-	s.operandRCEXP = true;
-	s.d = rc[1];
-	let ctlRegName = rc[2]
-	let ctlRegIdx = findCtlIdx (m,s,ctlRegName);
-	s.ctlReg = ctlRegIdx;
-	console.log (`rc d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
-    } else if (dat) {
+    } else if (dat) { // 34
 	s.hasOperand = true;
 	s.operandType = DATA;
+        console.log (`Found ${s.operandType} operand`);
 	s.operandDATA = true;
 	s.dat = dat[1];
         console.log (`\n\nDAT`);
@@ -713,6 +748,7 @@ function parseOperand (m,s) {
 	console.log('data 3' + dat[3]);
     } else {
 	s.hasOperand = false;
+        console.log (`Found no operand`);
     }
     return;
 }
@@ -786,21 +822,46 @@ function asmPass2 (m) {
 	console.log(`pass2 line=${s.lineNumber} operation=${s.operation}`
                     + `operandType=${s.operandType}`);
 	checkOpOp (m,s);
-	if (fmt==RRR) {
-	    console.log (`pass2 RRR`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	} else if (fmt==RR) { // like RRR but with b=0
+	if (fmt==RR) { // Rp,Rq
+            // cmp, inv -- destination is Rp, operand a is Rq
 	    console.log (`pass2 RR`);
 	    op = s.operation.opcode;
-	    if (op[0]==4) { // cmp, where d is omitted
-		s.codeWord1 = mkWord(op[0],0,s.rr1,s.rr2);
-	    } else { // inc, where b is omitted
-		s.codeWord1 = mkWord(op[0],s.rr1,s.rr2,0);
-	    }
+            s.d = s.operand_str1; // Rp
+            s.a = s.operand_str2; // Rq
+            s.b = 0;              // R0 (don't care)
+	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    console.log (`pass2 op=${op} ${wordToHex4(s.codeWord1)}`);
+	} else if (fmt==RREXP) {
+	    console.log (`pass2 RREXP`);
+	    op = s.operation.opcode;
+            s.d = s.operand_str1; // Rp
+            s.a = s.operand_str2; // Rq
+            s.b = 0;              // R0 (don't care)
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+            s.codeWord2 = mkWord(s.a,s.b,0,0);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RRR) { // Rp,Rq,Rr
+	    console.log (`pass2 RRR`);
+	    op = s.operation.opcode;
+            s.d = s.operand_str1; // Rp
+            s.a = s.operand_str2; // Rq
+            s.b = s.operand_str3; // Rr
+	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	} else if (fmt==JX) {
+	    console.log (`pass2 JX`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
+            let v = evaluate(m,s,s.address+1,s.dispField);
+	    s.codeWord2 = v.evalVal;
+            if (v.evalRel) {
+                console.log (`relocatable displacement`);
+                generateRelocation (m, s, s.address+1);
+            }
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RX) {
 	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
@@ -813,10 +874,10 @@ function asmPass2 (m) {
             }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==JX) {
-	    console.log (`pass2 JX`);
+	} else if (fmt==KX) {
+	    console.log (`pass2 KX`);
 	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
+	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
             let v = evaluate(m,s,s.address+1,s.dispField);
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {
@@ -830,13 +891,6 @@ function asmPass2 (m) {
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord448(op[0],0,op[1]);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-	} else if (fmt==RREXP) {
-	    console.log (`pass2 RREXP`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-            s.codeWord2 = mkWord(s.a,s.b,0,0);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RCEXP) {
 	    console.log ("pass2 RCEXP");
 	    op = s.operation.opcode;

@@ -1,6 +1,6 @@
 # Testing
 
-* [EXP format](EXP.asm.txt)
+* [Statements](Statements.asm.txt)
 
 * [Small](Small.asm.txt)
 

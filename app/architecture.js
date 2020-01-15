@@ -58,31 +58,32 @@ const mnemonicEXP =
 const RRR         =  0;    // R1,R2,R3    (RRR)
 const RR          =  1;    // R1,R2       (RRR, omitting d or b field
 const RX          =  2;    // R1,xyz[R2]  (RX)
-const JX          =  3;    // loop[R0]    (RX omitting d field)
-const EXP0        =  4;    // EXP format with no operand
-const RREXP       =  5;    // R1,R2      (EXP)
-const RRREXP      =  6;    // R1,R2,R3    (EXP) like RRR instruction but expand op
-const RRKEXP      =  7;    // R1,R2,3    (EXP)
-const RRKKEXP     =  8;    // R1,R2,3    (EXP)
-const RRXEXP      =  9;    // save R4,R7,3[R14]   (EXP)
-const RCEXP       = 10;    // getctl R4,mask register,control (EXP)
-const DATA        = 11;    // -42
-const COMMENT     = 12;    // ; full line comment, or blank line
+const KX          =  3;    // R1,xyz[R2]  (RX)
+const JX          =  4;    // loop[R0]    (RX omitting d field)
+const EXP0        =  5;    // EXP format with no operand
+const RREXP       =  6;    // R1,R2      (EXP)
+const RRREXP      =  7;    // R1,R2,R3    (EXP) like RRR instruction but expand op
+const RRKEXP      =  8;    // R1,R2,3    (EXP)
+const RRKKEXP     =  9;    // R1,R2,3    (EXP)
+const RRXEXP      = 10;    // save R4,R7,3[R14]   (EXP)
+const RCEXP       = 11;    // getctl R4,mask register,control (EXP)
+const DATA        = 12;    // -42
+const COMMENT     = 13;    // ; full line comment, or blank line
 
-const DirModule   = 13;    // module directive
-const DirImport   = 14;    // import directive
-const DirExport   = 15;    // export directive
-const DirOrg      = 16;    // org directive
-const DirEqu      = 17;    // equ directive
-const UNKNOWN     = 18;    // statement format is unknown
-const EMPTY       = 19;    // empty statement
+const DirModule   = 14;    // module directive
+const DirImport   = 15;    // import directive
+const DirExport   = 16;    // export directive
+const DirOrg      = 17;    // org directive
+const DirEqu      = 18;    // equ directive
+const UNKNOWN     = 19;    // statement format is unknown
+const EMPTY       = 20;    // empty statement
 
-const NOOPERATION = 20;    // error
-const NOOPERAND   = 21;    // statement has no operand
+const NOOPERATION = 21;    // error
+const NOOPERAND   = 22;    // statement has no operand
 
 // Need to update ???
 function showFormat (n) {
-    let f = ['RRR','RR','RX','JX','EXP0', 'RREXP', 'RRREXP', 'RRKEXP',
+    let f = ['RRR','RR','RX', 'KX', 'JX','EXP0', 'RREXP', 'RRREXP', 'RRKEXP',
              'RRKKEXP', 'RRXEXP', 'RCEXP', 'DATA','COMMENT',
              'DirModule', 'DirImport', 'DirOrg', 'DirEqu',
              'UNKNOWN', 'EMPTY'] [n];
@@ -94,7 +95,7 @@ function showFormat (n) {
 function formatSize (fmt) {
     if (fmt==RRR || fmt==RR || fmt==EXP0 || fmt==DATA) {
 	return 1
-    } else if (fmt==RX | fmt==JX
+    } else if (fmt==RX | fmt==KX | fmt==JX
                | fmt==RREXP |  fmt==RCEXP | fmt==RRREXP | fmt==RRKEXP
                | fmt==RRKKEXP | fmt==RRXEXP) {
 	return 2
@@ -157,8 +158,8 @@ statementSpec.set("lea",      {format:RX,  opcode:[15,0]});
 statementSpec.set("load",     {format:RX,  opcode:[15,1]});
 statementSpec.set("store",    {format:RX,  opcode:[15,2]});
 statementSpec.set("jump",     {format:JX,  opcode:[15,3]});
-statementSpec.set("jumpc0",   {format:RX,  opcode:[15,4]});
-statementSpec.set("jumpc1",   {format:RX,  opcode:[15,5]});
+statementSpec.set("jumpc0",   {format:KX,  opcode:[15,4]});
+statementSpec.set("jumpc1",   {format:KX,  opcode:[15,5]});
 statementSpec.set("jumpf",    {format:RX,  opcode:[15,6]});
 statementSpec.set("jumpt",    {format:RX,  opcode:[15,7]});
 statementSpec.set("jal",      {format:RX,  opcode:[15,8]});
