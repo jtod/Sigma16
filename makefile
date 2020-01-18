@@ -91,7 +91,7 @@ showparams :
 #   make set-version        get version number from package.json
 #   make source-dir-index          generate html from markdown source
 #   make docs/html/userguide.html          generate html from markdown source
-#   make program-indices    index for each directory in programs and examples
+#   make example-indices    index for each directory in programs and examples
 
 # Needed for compilation by npm
 #   make dependencies       use npm to download Javascript dependencies
@@ -156,14 +156,16 @@ showparams :
 # markdown to html.  This should be copied to the git repository for
 # jtod.github.io/S16 (make release or make webdev will do that)
 
-docs/homepage-index/index.html : docs/homepage-index/index.md
+#          --template=docs/src/readme-template.html \
+
+docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
+	docs/src/S16homepage/homepage.css
 	pandoc --standalone \
-          --template=docs/src/readme-template.html \
-          --variable=css:doc.css \
+          --variable=css:homepage.css \
 	  --metadata pagetitle="Sigma16 Home Page" \
-	  -o docs/homepage-index/index.html \
-	  docs/homepage-index/index.md
-	cp -up docs/src/doc.css docs/homepage-index
+	  -o docs/html/S16homepage/index.html \
+	  docs/src/S16homepage/index.md
+	cp -up docs/src/S16homepage/homepage.css docs/html/S16homepage
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
@@ -174,8 +176,8 @@ release :
 	make set-version
 	make source-dir-index
 	make docs/homepage-index/index.html
-	make docs/html/userguide.html
-	make program-indices
+	make docs/html/userguide/userguide.html
+	make example-indices
 	mkdir -p ../release/$(VERSION)
 	cp -up ../VERSION ../release/$(VERSION)
 	cp -up ../LICENSE.txt ../release/$(VERSION)
@@ -205,13 +207,13 @@ webdev :
 	cp -up LICENSE.txt $(WEBDEV)
 	make source-dir-index
 	cp -up index.html  $(WEBDEV)/app
-	make docs/homepage-index/index.html
-	cp -up docs/homepage-index/index.html $(S16HOME)
-	cp -up docs/homepage-index/doc.css $(S16HOME)
-	make docs/html/userguide.html
+	make docs/html/S16homepage/index.html
+	cp -up docs/html/S16homepage/index.html $(S16HOME)
+	cp -up docs/src/S16homepage/homepage.css $(S16HOME)
+	make docs/html/userguide/userguide.html
 	cp -upr docs $(WEBDEV)
-	make program-indices
-	cp -upr programs $(WEBDEV)/app
+	make example-indices
+	cp -upr examples $(WEBDEV)
 	cp -upr app/datafiles $(WEBDEV)/app
 	cp -up app/*.html $(WEBDEV)/app
 	cp -up app/*.css $(WEBDEV)/app
@@ -329,109 +331,109 @@ set-version :
 	echo "const s16version = \"$(VERSION)\";" > app/version.js
 
 
-# make program-indices --- Generate the index.html files for the
+# make example-indices --- Generate the index.html files for the
 # programs directory
 
-.PHONY : program-indices
-program-indices :
+.PHONY : example-indices
+example-indices :
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../docs/src/docstyle.css \
-	  --metadata pagetitle="Example programs" \
-          -o programs/Examples/index.html \
-	  programs/Examples/index.md
+	  --metadata pagetitle="Example programs for core architecture" \
+          -o examples/Core/index.html \
+	  examples/Core/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Arithmetic examples" \
-          -o programs/Examples/Arithmetic/index.html \
-	  programs/Examples/Arithmetic/index.md
+          -o examples/Core/Arithmetic/index.html \
+	  examples/Core/Arithmetic/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Simple examples" \
-          -o programs/Examples/Simple/index.html \
-	  programs/Examples/Simple/index.md
+          -o examples/Core/Simple/index.html \
+	  examples/Core/Simple/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Array examples" \
-          -o programs/Examples/Arrays/index.html \
-	  programs/Examples/Arrays/index.md
+          -o examples/Core/Arrays/index.html \
+	  examples/Core/Arrays/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Interrupt examples" \
-          -o programs/Examples/Interrupt/index.html \
-	  programs/Examples/Interrupt/index.md
+          -o examples/Advanced/Interrupt/index.html \
+	  examples/Advanced/Interrupt/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Data structures" \
-          -o programs/Examples/DataStructures/index.html \
-	  programs/Examples/DataStructures/index.md
+          -o examples/Advanced/DataStructures/index.html \
+	  examples/Advanced/DataStructures/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Input/Output" \
-          -o programs/Examples/IO/index.html \
-	  programs/Examples/IO/index.md
+          -o examples/Core/IO/index.html \
+	  examples/Core/IO/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Recursion" \
-          -o programs/Examples/Recursion/index.html \
-	  programs/Examples/Recursion/index.md
+          -o examples/Advanced/Recursion/index.html \
+	  examples/Advanced/Recursion/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Sorting examples" \
-          -o programs/Examples/Sorting/index.html \
-	  programs/Examples/Sorting/index.md
+          -o examples/Core/Sorting/index.html \
+	  examples/Core/Sorting/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Subroutines" \
-          -o programs/Examples/Subroutines/index.html \
-	  programs/Examples/Subroutines/index.md
+          -o examples/Core/Subroutines/index.html \
+	  examples/Core/Subroutines/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Testing" \
-          -o programs/Examples/Testing/index.html \
-	  programs/Examples/Testing/index.md
+          -o examples/Advanced/Testing/index.html \
+	  examples/Advanced/Testing/index.md
 	pandoc --standalone \
-          --template=docs/src/programindex-template.html \
+          --template=docs/src/program-indices/programindex-template.html \
           --variable=css:../../../docs/src/docstyle.css \
 	  --metadata pagetitle="Type conversion" \
-          -o programs/Examples/TypeConversion/index.html \
-	  programs/Examples/TypeConversion/index.md
+          -o examples/Advanced/TypeConversion/index.html \
+	  examples/Advanced/TypeConversion/index.md
 
 # make docs/html/userguide.html --- Generate the user guide html file
 # from markdown source
 
-docs/html/userguide.html : docs/src/userguide.md docs/src/docstyle.css
-	mkdir -p docs/html
-	cp -upr docs/src/figures docs/html
-	cp -up docs/src/docstyle.css docs/html
+docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
+	docs/src/userguide/userguidestyle.css
+	mkdir -p docs/html/userguide
+	cp -upr docs/src/figures docs/html/userguide
+	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
 	pandoc --standalone \
-          --template=docs/src/userguide-template.html \
+          --template=docs/src/userguide/userguide-template.html \
           --table-of-contents --toc-depth=4 \
           --variable=version:'$(VERSION)' \
           --variable=date:'$(VersionDate)' \
-          --variable=css:docstyle.css \
-          -o docs/html/userguide.html \
-	  docs/src/userguide.md
+          --variable=css:userguidestyle.css \
+          -o docs/html/userguide/userguide.html \
+	  docs/src/userguide/userguide.md
 
 # make source-dir-index --- Generate index for the project from markdown
 # source.
 
-.PHONY : source-dir-index
-source-dir-index :
+source-dir-index : README.md docs/src/readme/readme.css
 	pandoc --standalone \
-          --template=docs/src/readme-template.html \
+          --template=docs/src/readme/readme-template.html \
           --variable=version:'$(VERSION)' \
-          --variable=css:'./app/docs/src/docstyle.css' \
+          --variable=css:'docs/src/readme/readme.css' \
           --metadata pagetitle='Sigma16 ${VERSION}' \
 	  -o index.html README.md
 

@@ -13,17 +13,21 @@ around the beginning of February 2020.  The notes below, as well as
 the user guide, are incomplete and refer to previous versions, so the
 current documentation is inconsistent with the current software.*
 
+## Sigma16 home page
+
+* [The Sigma16 Home Page](https://jtod.github.io/S16/) contains a link
+  to run the latest version as well as further information and
+  documentation.  The URL is https://jtod.github.io/S16/
+
 ## Internet links
 
-The following links point to online resources, and they require access
-to the Internet.
+The following links are primarily here for reference.  Go to the Home
+page (link above) to use the system and to find the most up-to-date
+information about it.
 
-* [Launch Sigma16 to run in your
-  browser](https://jtod.github.io/S16/dev/app/Sigma16.html).  This
-  runs the latest release, and requires Internet access.
-* [The Sigma16 Home Page](https://jtod.github.io/S16/) contains
-  further information, documentation, and executable versions.  The
-  URL is https://jtod.github.io/S16/
+* [Launch the development version to run in your
+  browser](https://jtod.github.io/S16/dev/app/Sigma16.html).  This is
+  for testing and development, not for general use.
 * [The User
   Guide](https://jtod.github.io/S16/dev/app/doc/html/userguide.html)
   contains documentation of the architecture, software tools,
