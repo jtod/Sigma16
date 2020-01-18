@@ -57,6 +57,9 @@ Version 3.0.33
 <li><a href="#mask-and-request-flags">Mask and request flags</a></li>
 </ul></li>
 <li><a href="#instruction-representation">Instruction representation</a><ul>
+<li><a href="#instruction-fields">Instruction fields</a></li>
+<li><a href="#machine-language-instruction-formats">Machine language instruction formats</a></li>
+<li><a href="#assembly-language-statement-formats">Assembly language statement formats</a></li>
 <li><a href="#rrr-format">RRR format</a></li>
 <li><a href="#rx-format">RX format</a></li>
 <li><a href="#exp-format">EXP format</a></li>
@@ -122,7 +125,7 @@ Version 3.0.33
 <li><a href="#blocking-readline">Blocking readline</a></li>
 <li><a href="#nonblocking-readline">Nonblocking readline</a></li>
 </ul></li>
-<li><a href="#summary-of-the-instruction-set">Summary of the instruction set</a></li>
+<li><a href="#list-of-instructions">List of instructions</a></li>
 </ul></li>
 <li><a href="#assembly-language">Assembly Language</a><ul>
 <li><a href="#notation">Notation</a></li>
@@ -1420,9 +1423,31 @@ Interrupt
 <h2 id="instruction-representation">Instruction representation</h2>
 <p>There are three instruction formats:</p>
 <ul>
-<li><p>RRR – (1 word) Instructions that perform operations on data in registers, but not referring to memory.</p></li>
-<li><p>RX – (2 words) Instructions that specify a memory location, as well as a register operand.</p></li>
-<li><p>EXP – (2 words) Expanded (or experimental) instructions, for instructions that cannot be encoded as RRR or RX.</p></li>
+<li><p>RRR – Instructions that perform operations on data in registers, but not referring to memory. The representation is one word.</p></li>
+<li><p>RX – Instructions that specify a memory location as well as a register operand. The representation is two words.</p></li>
+<li><p>EXP – Expanded (or experimental) instructions, for instructions that cannot be encoded as RRR or RX. Two of the operand fields are combined to form an 8-bit opcode. There are three variants:</p></li>
+<li><p>EXP0 – The instruction is one word, with only one 4 bit operand.</p></li>
+<li><p>EXP4 – The instruction is two words, with a 4-bit operand in the first word and four more in the second word.</p></li>
+<li><p>EXP8 – The instruction is two words, with three 4-bit operands and an 8-bit operand</p></li>
+</ul>
+<h3 id="instruction-fields">Instruction fields</h3>
+<p>An instruction may consist of one word or two words, depending on the instruction format. The first word of every instruction has the following fields.</p>
+<ul>
+<li>op (bits 0-3) opcode, determines instruction format</li>
+<li>d (bits 4-7) 4-bit destination</li>
+<li>a (bits 8-11) 4-bit operand</li>
+<li>b (bits 12-15) 4-bit operand, or expanded opcode for RX</li>
+<li>ab (bits 8-15) 8-bit expanded opcode for EXP</li>
+</ul>
+<p>An instruction may either use a and b as separate 4-bit fields, or it can combine them into a single 8-bit field called ab.</p>
+<p>The second word is used for RX and EXP formats. There are individual names for the individual 4-bit fields, as well as names (disp, gh) for larger fields.</p>
+<ul>
+<li>e (bits 0-3) 4-bit operand</li>
+<li>f (bits 4-7) 4-bit operand</li>
+<li>g (bits 8-11) 4-bit operand</li>
+<li>h (bits 12-15) 4-bit operand</li>
+<li>gh (bits 8-15) 8-bit operand</li>
+<li>disp (bits 0-15) 16 bit operand “displacement”</li>
 </ul>
 <p>The first word of an instruction contains four 4-bit fields, named op (bits 0-3), d (bits 4-7), sa (bits 8-11), and sb (bits 12-15).</p>
 <table class="wordlayout"">
@@ -1440,6 +1465,102 @@ Interrupt
  </tr>
 </table>
 <p>Each instruction has a 4-bit field called the opcode (op for short). This gives 16 values of the opcode: 14 of them (0 through 13) denote the 14 RRR instructions. If the op field is 14 (hex e) the instruction is EXP format and has a secondary opcode in the a and b fields. If the op field contains 15 (hex f) the instruction is RX format with a secondary opcode in the b field.</p>
+<h3 id="machine-language-instruction-formats">Machine language instruction formats</h3>
+<table style="width:79%;">
+<caption><strong>Machine language instruction formats</strong></caption>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 9%" />
+<col style="width: 12%" />
+<col style="width: 15%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Format</th>
+<th style="text-align: center;">Size</th>
+<th style="text-align: center;">Opcode</th>
+<th style="text-align: center;">Operands</th>
+<th style="text-align: center;">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">op</td>
+<td style="text-align: center;">d,a,b</td>
+<td style="text-align: center;">add Rd,Ra,Rb</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">EXP</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">op,ab</td>
+<td style="text-align: center;">d</td>
+<td style="text-align: center;">rfi</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">op,b</td>
+<td style="text-align: center;">d,disp,a</td>
+<td style="text-align: center;">load Rd,disp[Ra]</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">EXP4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">op,ab</td>
+<td style="text-align: center;">d,e,f,g,h</td>
+<td style="text-align: center;">extract Re,Rf,Rg,Rh</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">EXP8</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">op,ab</td>
+<td style="text-align: center;">d,e,f,gh</td>
+<td style="text-align: center;">save Rd,Re,gh[Rf]</td>
+</tr>
+</tbody>
+</table>
+<h3 id="assembly-language-statement-formats">Assembly language statement formats</h3>
+<p>Assembly language statements generally correspond to the instruction formats, but there is not an exact correspondence for several reasons:</p>
+<ul>
+<li><p>Sometimes an instruction is written in assembly language with a field omitted which exists in the machine language code but is ignored. For example, the instruction <em>inv R1,R2</em> generates an RRR instruction, but the third operand field is omitted because the invert function takes only one operand, not two.</p></li>
+<li><p>Sometimes two instructions look the same in assembly language but use different machine language instruction formats. For example, <em>add R1,R2,R3</em> and <em>push R1,R2,R3</em> look similar, but <em>add</em> uses the RRR instruction format and <em>push</em> uses the EXP4 instruction format. The reason for this is that there are not enough bits in the op field to accommodate all the instructions with three register operands, so an <em>expanding opcode</em> is used. Thus push is represented with op=14 (indicating EXP format), and the EXP4 variant is used for this instruction.</p></li>
+<li><p>The 4-bit fields are sometimes used to denote a register from the register file (R3), or a control register (mask), or a constant . In assembly language the constants are written just as a number (e.g. shiftl R1,R2,5). Control registers are written by name rather than their number in the control register file (e.g. getctl R3,mask).</p></li>
+</ul>
+<table style="width:82%;">
+<caption><strong>Assembly language statement formats</strong></caption>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 31%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Asm E</th>
+<th style="text-align: left;">xample</th>
+<th style="text-align: center;">ML formats</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">RRR RX</td>
+<td style="text-align: left;">add Rd,Ra,Rb lea Rd,disp[Ra]</td>
+<td style="text-align: center;">RRR RX</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">RR JX KX</td>
+<td style="text-align: left;">inv Rd,Ra jump disp[Ra] jumpc0 d,disp[Ra]</td>
+<td style="text-align: center;">RRR (b ignored), RREXP RX (b ignored) RX (d is constant)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">NO RRK RRKK RREXP RCEXP</td>
+<td style="text-align: left;">rfi shiftl Rd,Ra,k getbit Re,Rf,g,h execute Re,Rf getctl R1,mask</td>
+<td style="text-align: center;">R (d ignored) EXP4 EXP4 (d ignored) EXP4 EXP8</td>
+</tr>
+</tbody>
+</table>
 <h3 id="rrr-format">RRR format</h3>
 <p>An RRR instruction contains an operation code (op), and specifies three operands registers using the d, sa, and sb fields. It is represented as one word, which is divided into four fields:</p>
 <ul>
@@ -1531,11 +1652,11 @@ Interrupt
 <p>To summarise, an EXP instruction may use the fields op, d, ab, e, f, g, h. The g and h fields can be combined into a single 8-bit field gh All EXP instructions combine the a and b fields into a single 8-bit field called ab. Some EXP instructions combine the g and h fields into a single 8-bit field called gh.</p>
 <p>The EXP format has the following variants.</p>
 <ul>
-<li><p>EXP0 format takes no operands. The instruction format uses just one word (there is no second word with the e, f, g, h fields). The op field contains hex e, the ab field contains an 8 bit expanded operation code, and the d field is ignored (the assembler sets the d field to 0). Example: <em>rfi</em> is an instruction with no operands. This allows rfi to be represented in one word without using up one of the limited and valuable opcodes avaiable for RRR instructions.</p></li>
+<li><p>EXP0 format takes no operands. The instruction format uses just one word (there is no second word with the e, f, g, h fields). The op field contains 14 (hex e), the d field is ignored (the assembler sets it to 0), and the ab field contains an 8 bit expanded operation code. Example: <em>rfi</em> is an instruction with no operands and with secondary opcode 0. Its representation is e000. The EXP0 format allows rfi to be represented in one word without using up one of the limited and valuable opcodes avaiable for RRR instructions.</p></li>
 <li><p>The RREXP format takes two register operands, which are in the e and f fields of the second word. The d field of the first word and the g and h fields of the second word are ignored (the assembler will set these to 0). Any RREXP instruction could be reprsented as RRR, but there are only a few RRR opcodes avaiable, so uncommon instructions that require two registers are represented as RREXP. Example: <em>execute R5,R6</em> is RREXP.</p></li>
-<li><p>The RCEXP format takes two register operands, which are in the e and f fields of the second word. The d field of the first word and the g and h fields of the second word are ignored (the assembler will set these to 0.) The first operand is an element of the register file (for example, R4). The second operand is a control register, which is specified by a 4-bit number. In assembly language, we normally refer to the control registers by name rather than number, to make it easier to remember which is which. For example, <em>getctl R3,status</em> has RCEXP format.</p></li>
-<li><p>The RRREXP format takes three register operands, which are in the f, g, and h fields of the second word. The d field of the first word and the e field of the second word are ignored (the assembler will set these to 0). The RRREXP instructions would be a natural fit for the RRR format, but there are not enough RRR opcodes available, so the EXP format is used to expand the number of instructions that can be represented. For example, <em>push R5,R8,R9</em> has RRREXP format.</p></li>
-<li><p>The RRKEXP format takes two register operands and a 4-bit constant number. The register operands are in the f and g fields of the second word, and constant is in the h field of the second word. The d field of the first word and the e field of the second word are ignored (the assembler sets these to 0). For example, <em>shiftr R3,R6,7</em> has RRKEXP format.</p></li>
+<li><p>The RCEXP format takes two register operands; the first is a general register and the second is a control register. An example of the operand field is <em>R3,mask</em>. The operands are in the e and f fields of the second word. The d field of the first word and the g and h fields of the second word are ignored (the assembler will set these to 0.) The first operand is an element of the register file (for example, R4). The second operand is a control register, which is specified by a 4-bit number. In assembly language, we normally refer to the control registers by name rather than number, to make it easier to remember which is which. For example, <em>getctl R3,status</em> has RCEXP format.</p></li>
+<li><p>The RRREXP format takes three register operands, which are in the f, g, and h fields of the second word. An example of the operand field is $R1,R2,R3<em>. The d field of the first word and the e field of the second word are ignored (the assembler will set these to 0). The RRREXP instructions would be a natural fit for the RRR format, but there are not enough RRR opcodes available, so the EXP format is used to expand the number of instructions that can be represented. For example, </em>push R5,R8,R9* has RRREXP format.</p></li>
+<li><p>The RRKEXP format takes two register operands and a 4-bit constant number. An example of the operand field is <em>R1,R2,13</em>. The register operands are in the f and g fields of the second word, and constant is in the h field of the second word. The d field of the first word and the e field of the second word are ignored (the assembler sets these to 0). For example, <em>shiftr R3,R6,7</em> has RRKEXP format.</p></li>
 <li><p>The RRKKEXP format takes two register operands and two 4-bit constant binary number operands. The register operands are in the e and f fields of the second word, while the two constants are in the g and h fields. The d field of the first word is ignored (the assembler sets it to 0).</p></li>
 <li><p>The RRXEXP format takes two register operands as well as a memory address specified with an 8-bit offset and index register. Thus these instructions require three registers to be specified, as well as the offset. Thus every bit of both instruction words is needed to represent an RRXEXP format instruction. In assembly language, the memory address is written as <em>offset[Rh]</em> where <em>offset</em> is an -bit binary number and Rh is a register. The effective memory address is <em>offset+Rh</em>. This is similar to ordinary memory addresses; the only difference is that it uses an 8-bit offset rather than a 16-bit displacement. For example, <em>save R1,R9,2[R14]</em> has RRKEXP format.</p></li>
 </ul>
@@ -1827,275 +1948,308 @@ Interrupt
 <h3 id="write">Write</h3>
 <h3 id="blocking-readline">Blocking readline</h3>
 <h3 id="nonblocking-readline">Nonblocking readline</h3>
-<h2 id="summary-of-the-instruction-set">Summary of the instruction set</h2>
-<p>The following table shows the complete instruction set. The instructions are in order of increasing operation code.</p>
-<hr />
-<table style="width:67%;">
+<h2 id="list-of-instructions">List of instructions</h2>
+<table style="width:65%;">
+<caption><strong>Instruction set</strong></caption>
 <colgroup>
-<col style="width: 12%" />
+<col style="width: 11%" />
+<col style="width: 8%" />
 <col style="width: 9%" />
 <col style="width: 6%" />
-<col style="width: 9%" />
-<col style="width: 27%" />
+<col style="width: 29%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Mnemonic</th>
-<th>Format</th>
-<th style="text-align: left;">Op</th>
-<th>Notes</th>
-<th style="text-align: left;">Effect</th>
+<th style="text-align: center;">Mne</th>
+<th style="text-align: center;">AL</th>
+<th style="text-align: center;">ML</th>
+<th style="text-align: center;">Op</th>
+<th style="text-align: center;">Effect</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>add</td>
-<td>RRR</td>
-<td style="text-align: left;">0</td>
-<td>E</td>
-<td style="text-align: left;">r[d] := r[a] + r[b] signed +</td>
+<td style="text-align: center;">add</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">Rd := Ra + Rb</td>
 </tr>
 <tr class="even">
-<td>sub</td>
-<td>RRR</td>
-<td style="text-align: left;">1</td>
-<td>E</td>
-<td style="text-align: left;">r[d] := r[a] - r[b] signed -</td>
+<td style="text-align: center;">sub</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">Rd := r[a] - Rb</td>
 </tr>
 <tr class="odd">
-<td>mul</td>
-<td>RRR</td>
-<td style="text-align: left;">2</td>
-<td></td>
-<td style="text-align: left;">rem#r[d] := r[a] * r[b] signed *</td>
+<td style="text-align: center;">mul</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">Rd := Ra * Rb</td>
 </tr>
 <tr class="even">
-<td>div</td>
-<td>RRR</td>
-<td style="text-align: left;">3</td>
-<td>E</td>
-<td style="text-align: left;">r[d] := r[a] div r[b], R15 := r[a] rem r[b]</td>
+<td style="text-align: center;">div</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">Rd := Ra / Rb, R15 := Ra rem Rb</td>
 </tr>
 <tr class="odd">
-<td>cmplt</td>
-<td>RRR</td>
-<td style="text-align: left;">4</td>
-<td></td>
-<td style="text-align: left;">r[d] := r[a] &lt; r[b]</td>
+<td style="text-align: center;">cmp</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">R15 := Ra ? Rb</td>
 </tr>
 <tr class="even">
-<td>cmpeq</td>
-<td>RRR</td>
-<td style="text-align: left;">5</td>
-<td></td>
-<td style="text-align: left;">r[d] := r[a] = r[b]</td>
+<td style="text-align: center;">cmplt</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">Rd := Ra &lt; Rb</td>
 </tr>
 <tr class="odd">
-<td>cmpgt</td>
-<td>RRR</td>
-<td style="text-align: left;">6</td>
-<td></td>
-<td style="text-align: left;">r[d] := r[a] &gt; r[b]</td>
+<td style="text-align: center;">cmpeq</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">Rd := Ra = Rb</td>
 </tr>
 <tr class="even">
-<td>cmp</td>
-<td>RRR</td>
-<td style="text-align: left;">7</td>
-<td></td>
-<td style="text-align: left;">R15 := comparison result (both signed, unsigned)</td>
+<td style="text-align: center;">cmpgt</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">Rd := Ra &gt; Rb</td>
 </tr>
 <tr class="odd">
-<td>inv</td>
-<td>RRR</td>
-<td style="text-align: left;">8</td>
-<td></td>
-<td style="text-align: left;">r[d] := inv r[a]</td>
+<td style="text-align: center;">inv</td>
+<td style="text-align: center;">RR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">Rd := inv Ra</td>
 </tr>
 <tr class="even">
-<td>and</td>
-<td>RRR</td>
-<td style="text-align: left;">9</td>
-<td></td>
-<td style="text-align: left;">r[d] := r[a] and r[b]</td>
+<td style="text-align: center;">and</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">Rd := Ra and Rb</td>
 </tr>
 <tr class="odd">
-<td>or</td>
-<td>RRR</td>
-<td style="text-align: left;">a</td>
-<td></td>
-<td style="text-align: left;">r[d] := r[a] or r[b]</td>
+<td style="text-align: center;">or</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">Rd := Ra or Rb</td>
 </tr>
 <tr class="even">
-<td>xor</td>
-<td>RRR</td>
-<td style="text-align: left;">b</td>
-<td></td>
-<td style="text-align: left;">r[d] := r[a] xor r[b]</td>
+<td style="text-align: center;">xor</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">b</td>
+<td style="text-align: center;">Rd := Ra xor Rb</td>
 </tr>
 <tr class="odd">
-<td></td>
-<td>RRR c</td>
-<td style="text-align: left;"></td>
-<td></td>
-<td style="text-align: left;">reserved; currently nop</td>
+<td style="text-align: center;">nop</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">c</td>
+<td style="text-align: center;">no operation</td>
 </tr>
 <tr class="even">
-<td>trap</td>
-<td>RRR</td>
-<td style="text-align: left;">d</td>
-<td>E</td>
-<td style="text-align: left;">xa := pc, pc := 0</td>
+<td style="text-align: center;">trap</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">d</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
-<td>lea</td>
-<td>RX</td>
-<td style="text-align: left;">f,0</td>
-<td></td>
-<td style="text-align: left;">r[d] := ea</td>
+<td style="text-align: center;">lea</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,0</td>
+<td style="text-align: center;">Rd := Ra+disp</td>
 </tr>
 <tr class="even">
-<td>load</td>
-<td>RX</td>
-<td style="text-align: left;">f,1</td>
-<td>E</td>
-<td style="text-align: left;">r[d] := m[ea]</td>
+<td style="text-align: center;">load</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,1</td>
+<td style="text-align: center;">Rd := mem[Ra+disp]</td>
 </tr>
 <tr class="odd">
-<td>store</td>
-<td>RX</td>
-<td style="text-align: left;">f,2</td>
-<td>E</td>
-<td style="text-align: left;">m[ea] := r[d]</td>
+<td style="text-align: center;">store</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,2</td>
+<td style="text-align: center;">mem[Ra+disp] := Rd</td>
 </tr>
 <tr class="even">
-<td>jump</td>
-<td>RX</td>
-<td style="text-align: left;">f,3</td>
-<td>E</td>
-<td style="text-align: left;">pc := ea</td>
+<td style="text-align: center;">jump</td>
+<td style="text-align: center;">JX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,3</td>
+<td style="text-align: center;">pc := Ra+disp</td>
 </tr>
 <tr class="odd">
-<td>jumpc0</td>
-<td>RX</td>
-<td style="text-align: left;">f,4</td>
-<td></td>
-<td style="text-align: left;">if r[15] AND d == 0 then pc := ea</td>
+<td style="text-align: center;">jumpc0</td>
+<td style="text-align: center;">KX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,4</td>
+<td style="text-align: center;">if R15.k=1 then pc := Ra+disp</td>
 </tr>
 <tr class="even">
-<td>jumpc1</td>
-<td>RX</td>
-<td style="text-align: left;">f,5</td>
-<td></td>
-<td style="text-align: left;">if r[R15] AND d /= 0 then pc := ea</td>
+<td style="text-align: center;">jumpc1</td>
+<td style="text-align: center;">KX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,5</td>
+<td style="text-align: center;">if R15.k=0 then pc := Ra+disp</td>
 </tr>
 <tr class="odd">
-<td>jumpf</td>
-<td>RX</td>
-<td style="text-align: left;">f,6</td>
-<td>E</td>
-<td style="text-align: left;">if not r[d] then pc := ea</td>
+<td style="text-align: center;">jumpf</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,6</td>
+<td style="text-align: center;">if Rd=0 then pc := Ra+disp</td>
 </tr>
 <tr class="even">
-<td>jumpt</td>
-<td>RX</td>
-<td style="text-align: left;">f,7</td>
-<td>E</td>
-<td style="text-align: left;">if r[d] then pc := ea</td>
+<td style="text-align: center;">jumpt</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,7</td>
+<td style="text-align: center;">if Rd/=0 then pc := Ra+disp</td>
 </tr>
 <tr class="odd">
-<td>jal</td>
-<td>RX</td>
-<td style="text-align: left;">f,8</td>
-<td>E</td>
-<td style="text-align: left;">r[d] := pc, pc := ea</td>
+<td style="text-align: center;">jal</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,8</td>
+<td style="text-align: center;">Rd := pc, pc := Ra+disp</td>
 </tr>
 <tr class="even">
-<td>trap</td>
-<td>RRR</td>
-<td style="text-align: left;">d</td>
-<td>E</td>
-<td style="text-align: left;">xa := pc, pc := 0</td>
+<td style="text-align: center;">testset</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">RX</td>
+<td style="text-align: center;">f,9</td>
+<td style="text-align: center;">Rd := mem[Ra+disp], mem[Ra+disp] := 1</td>
 </tr>
 <tr class="odd">
-<td>lea</td>
-<td>RX</td>
-<td style="text-align: left;">f,0</td>
-<td></td>
-<td style="text-align: left;">r[d] := ea</td>
+<td style="text-align: center;">rfi</td>
+<td style="text-align: center;">NO</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">e,0</td>
+<td style="text-align: center;">pc := ipc, status := istatus</td>
 </tr>
 <tr class="even">
-<td>load</td>
-<td>RX</td>
-<td style="text-align: left;">f,1</td>
-<td>E</td>
-<td style="text-align: left;">r[d] := m[ea]</td>
+<td style="text-align: center;">execute</td>
+<td style="text-align: center;">RR</td>
+<td style="text-align: center;">RREXP</td>
+<td style="text-align: center;">e,8</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
-<td>store</td>
-<td>RX</td>
-<td style="text-align: left;">f,2</td>
-<td>E</td>
-<td style="text-align: left;">m[ea] := r[d]</td>
+<td style="text-align: center;">getctl</td>
+<td style="text-align: center;">RC</td>
+<td style="text-align: center;">RCEXP</td>
+<td style="text-align: center;">e,10</td>
+<td style="text-align: center;">Rd := Rc</td>
 </tr>
 <tr class="even">
-<td>jump</td>
-<td>RX</td>
-<td style="text-align: left;">f,3</td>
-<td>E</td>
-<td style="text-align: left;">pc := ea</td>
+<td style="text-align: center;">putctl</td>
+<td style="text-align: center;">RC</td>
+<td style="text-align: center;">RCEXP</td>
+<td style="text-align: center;">e,11</td>
+<td style="text-align: center;">Rc := Rd</td>
 </tr>
 <tr class="odd">
-<td>jumpf</td>
-<td>RX</td>
-<td style="text-align: left;">f,4</td>
-<td>E</td>
-<td style="text-align: left;">if not r[d] then pc := ea</td>
+<td style="text-align: center;">push</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRREXP</td>
+<td style="text-align: center;">e,18</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr class="even">
-<td>jumpt</td>
-<td>RX</td>
-<td style="text-align: left;">f,5</td>
-<td>E</td>
-<td style="text-align: left;">if r[d] then pc := ea</td>
+<td style="text-align: center;">pop</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRREXP</td>
+<td style="text-align: center;">e,19</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
-<td>jal</td>
-<td>RX</td>
-<td style="text-align: left;">f,6</td>
-<td>E</td>
-<td style="text-align: left;">r[d] := pc, pc := ea</td>
+<td style="text-align: center;">top</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRREXP</td>
+<td style="text-align: center;">e,1a</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr class="even">
-<td>test</td>
-<td>EXP</td>
-<td style="text-align: left;"></td>
-<td></td>
-<td style="text-align: left;">r[d] := r[a] [bit b]</td>
+<td style="text-align: center;">shiftl</td>
+<td style="text-align: center;">RRK</td>
+<td style="text-align: center;">RRKEXP</td>
+<td style="text-align: center;">e,20</td>
+<td style="text-align: center;">Rd := Ra shl k</td>
 </tr>
 <tr class="odd">
-<td>addl</td>
-<td>EXP</td>
-<td style="text-align: left;">e,0a</td>
-<td></td>
-<td style="text-align: left;">rem#r[d] := r[a] + r[b] + lsb rem</td>
+<td style="text-align: center;">shiftr</td>
+<td style="text-align: center;">RRK</td>
+<td style="text-align: center;">RRKEXP</td>
+<td style="text-align: center;">e,21</td>
+<td style="text-align: center;">Rd := Ra shr k</td>
 </tr>
 <tr class="even">
-<td>shiftl</td>
-<td>RRR</td>
-<td style="text-align: left;">b</td>
-<td></td>
-<td style="text-align: left;">rem#r[d] := r[a] shl b</td>
+<td style="text-align: center;">getbit</td>
+<td style="text-align: center;">RRKK</td>
+<td style="text-align: center;">RRKEXP</td>
+<td style="text-align: center;">e,22</td>
+<td style="text-align: center;">Rd := R15.k</td>
 </tr>
 <tr class="odd">
-<td>shiftr</td>
-<td>RRR</td>
-<td style="text-align: left;">c</td>
-<td></td>
-<td style="text-align: left;">rem#r[d] := r[a] shr b</td>
+<td style="text-align: center;">getbiti</td>
+<td style="text-align: center;">RRKK</td>
+<td style="text-align: center;">RRKEXP</td>
+<td style="text-align: center;">e,23</td>
+<td style="text-align: center;">Rd := inv R15.k</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">putbit</td>
+<td style="text-align: center;">RRKK</td>
+<td style="text-align: center;">RRKEXP</td>
+<td style="text-align: center;">e,24</td>
+<td style="text-align: center;">R15.k := Ra.15</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">putbiti</td>
+<td style="text-align: center;">RRKK</td>
+<td style="text-align: center;">RRKEXP</td>
+<td style="text-align: center;">e,25</td>
+<td style="text-align: center;">R15.k := inv Ra.15</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">extract</td>
+<td style="text-align: center;">RRKK</td>
+<td style="text-align: center;">RRKKEX</td>
+<td style="text-align: center;">P e,3</td>
+<td style="text-align: center;">8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">save</td>
+<td style="text-align: center;">RRX</td>
+<td style="text-align: center;">RRXEXP</td>
+<td style="text-align: center;">e,4</td>
+<td style="text-align: center;">0 mem[Rb+ofs] := Re, mem[Rb+ofs+1] := Re+1, …, mem[Rb+ofs+(f-e+1)] := Rf,</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">restore</td>
+<td style="text-align: center;">RRX</td>
+<td style="text-align: center;">RRXEXP</td>
+<td style="text-align: center;">e,4</td>
+<td style="text-align: center;">1</td>
 </tr>
 </tbody>
 </table>
-<hr />
 <h1 id="assembly-language">Assembly Language</h1>
 <p>A computer is a digital circuit that executes programs in machine language, which is hard for humans to read because it consists entirely of numbers. Assembly language provides a readable notation for writing machine language programs. It uses names for instructions and variables, as well as other notations to make the code easier to understand.</p>
 <p>An instruction in machine language is just one or more words (often written in hexadecimal notation), while the corresponding instruction in assembly language uses mnemonic names so the programmer doesn’t have to memorise all the operation codes, addresses of variables, and so on. For example, the assembly language statement mul R12,R3,R8 is more readable than the corresponding machine language instruction 2c38. However, the assembly language still gives the programmer complete control over every bit a program.</p>

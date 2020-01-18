@@ -196,12 +196,12 @@ statementSpec.set("top",      {format:RRREXP,    opcode:[14,26]});
 // RRKEXP
 statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,32]});
 statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,33]});
-statementSpec.set("getbit",   {format:RRKEXP,    opcode:[14,34]});
-statementSpec.set("getbiti",  {format:RRKEXP,    opcode:[14,35]});
-statementSpec.set("putbit",   {format:RRKEXP,    opcode:[14,36]});
-statementSpec.set("putbiti",  {format:RRKEXP,    opcode:[14,37]});
 // RRKKEXP
-statementSpec.set("extract",  {format:RRKKEXP,    opcode:[14,38]});
+statementSpec.set("getbit",   {format:RRKKEXP,   opcode:[14,34]});
+statementSpec.set("getbiti",  {format:RRKKEXP,   opcode:[14,35]});
+statementSpec.set("putbit",   {format:RRKKEXP,   opcode:[14,36]});
+statementSpec.set("putbiti",  {format:RRKKEXP,   opcode:[14,37]});
+statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,38]});
 // RRXEXP
 statementSpec.set("save",     {format:RRXEXP,    opcode:[14,64]});
 statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,65]});

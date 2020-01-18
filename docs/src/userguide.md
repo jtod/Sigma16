@@ -756,14 +756,53 @@ Table: Processor status flags
 
 There are three instruction formats:
 
-* RRR -- (1 word) Instructions that perform operations on data
-         in registers, but not referring to memory.
+* RRR -- Instructions that perform operations on data in registers,
+         but not referring to memory.  The representation is one word.
 
-* RX  -- (2 words) Instructions that specify a memory location,
-         as well as a register operand.
+* RX -- Instructions that specify a memory location as well as a
+        register operand.  The representation is two words.
 
-* EXP -- (2 words) Expanded (or experimental) instructions, for
-         instructions that cannot be encoded as RRR or RX.
+* EXP -- Expanded (or experimental) instructions, for instructions
+         that cannot be encoded as RRR or RX.  Two of the operand
+         fields are combined to form an 8-bit opcode.  There are three
+         variants:
+
+* EXP0 -- The instruction is one word, with only one 4 bit operand.
+
+* EXP4 -- The instruction is two words, with a 4-bit operand in the
+          first word and four more in the second word.
+          
+* EXP8 -- The instruction is two words, with three 4-bit operands and
+          an 8-bit operand          
+         
+
+
+### Instruction fields
+
+An instruction may consist of one word or two words, depending on the
+instruction format.  The first word of every instruction has the
+following fields.
+
+* op  (bits 0-3) opcode, determines instruction format
+* d   (bits 4-7) 4-bit destination
+* a   (bits 8-11) 4-bit operand
+* b   (bits 12-15) 4-bit operand, or expanded opcode for RX
+* ab  (bits 8-15)  8-bit expanded opcode for EXP
+
+An instruction may either use a and b as separate 4-bit fields, or it
+can combine them into a single 8-bit field called ab.
+
+The second word is used for RX and EXP formats.  There are individual
+names for the individual 4-bit fields, as well as names (disp, gh) for
+larger fields.
+
+* e (bits 0-3) 4-bit operand
+* f (bits 4-7) 4-bit operand
+* g (bits 8-11) 4-bit operand
+* h (bits 12-15) 4-bit operand
+* gh (bits 8-15) 8-bit operand
+* disp (bits 0-15) 16 bit operand "displacement"
+
 
 The first word of an instruction contains four 4-bit fields, named op
 (bits 0-3), d (bits 4-7), sa (bits 8-11), and sb (bits 12-15).
@@ -789,6 +828,73 @@ the 14 RRR instructions.  If the op field is 14 (hex e) the
 instruction is EXP format and has a secondary opcode in the a and b
 fields.  If the op field contains 15 (hex f) the instruction is RX
 format with a secondary opcode in the b field.
+
+### Machine language instruction formats
+
+Table: **Machine language instruction formats**
+
+------------------------------------------------------------
+ Format   Size   Opcode   Operands   Example
+-------- ------ -------- ---------- --------------------
+ RRR      1      op       d,a,b      add Rd,Ra,Rb
+ 
+ EXP      1      op,ab    d          rfi
+
+ RX       2      op,b     d,disp,a   load Rd,disp[Ra]
+ 
+ EXP4     2      op,ab    d,e,f,g,h  extract Re,Rf,Rg,Rh
+ 
+ EXP8     2      op,ab    d,e,f,gh   save Rd,Re,gh[Rf]
+------------------------------------------------------------
+
+### Assembly language statement formats
+
+
+Assembly language statements generally correspond to the instruction
+formats, but there is not an exact correspondence for several reasons:
+
+* Sometimes an instruction is written in assembly language with a
+  field omitted which exists in the machine language code but is
+  ignored.  For example, the instruction *inv R1,R2* generates an RRR
+  instruction, but the third operand field is omitted because the
+  invert function takes only one operand, not two.
+  
+* Sometimes two instructions look the same in assembly language but
+  use different machine language instruction formats.  For example,
+  *add R1,R2,R3* and *push R1,R2,R3* look similar, but *add* uses the
+  RRR instruction format and *push* uses the EXP4 instruction format.
+  The reason for this is that there are not enough bits in the op
+  field to accommodate all the instructions with three register
+  operands, so an *expanding opcode* is used.  Thus push is
+  represented with op=14 (indicating EXP format), and the EXP4 variant
+  is used for this instruction.
+  
+* The 4-bit fields are sometimes used to denote a register from the
+  register file (R3), or a control register (mask), or a constant .
+  In assembly language the constants are written just as a number
+  (e.g. shiftl R1,R2,5).  Control registers are written by name rather
+  than their number in the control register file (e.g. getctl
+  R3,mask).
+
+Table: **Assembly language statement formats**
+
+-------------------------------------------------------
+ Asm   Example                  ML formats
+------- ---------------------  ---------------------------
+ RRR     add Rd,Ra,Rb           RRR
+ RX      lea Rd,disp[Ra]        RX
+
+ RR      inv Rd,Ra              RRR (b ignored), RREXP
+ JX      jump disp[Ra]          RX (b ignored)
+ KX      jumpc0 d,disp[Ra]      RX (d is constant)
+
+ NO      rfi                    R (d ignored)
+ RRK     shiftl Rd,Ra,k         EXP4
+ RRKK    getbit Re,Rf,g,h       EXP4 (d ignored)
+ RREXP   execute Re,Rf          EXP4
+ RCEXP   getctl R1,mask         EXP8
+-------------------------------------------------------
+
 
 ### RRR format
 
@@ -954,11 +1060,12 @@ The EXP format has the following variants.
 
 * EXP0 format takes no operands.  The instruction format uses just one
   word (there is no second word with the e, f, g, h fields).  The op
-  field contains hex e, the ab field contains an 8 bit expanded
-  operation code, and the d field is ignored (the assembler sets the d
-  field to 0).  Example: *rfi* is an instruction with no operands.
-  This allows rfi to be represented in one word without using up one
-  of the limited and valuable opcodes avaiable for RRR instructions.
+  field contains 14 (hex e), the d field is ignored (the assembler
+  sets it to 0), and the ab field contains an 8 bit expanded operation
+  code.  Example: *rfi* is an instruction with no operands and with
+  secondary opcode 0.  Its representation is e000.  The EXP0 format
+  allows rfi to be represented in one word without using up one of the
+  limited and valuable opcodes avaiable for RRR instructions.
   
 * The RREXP format takes two register operands, which are in the e and
   f fields of the second word. The d field of the first word and the g
@@ -1597,93 +1704,101 @@ status register, it can be used to perform a context switch.
 
 ### Nonblocking readline
 
-## Summary of the instruction set
+## List of instructions
 
-The following table shows the complete instruction set.  The
-instructions are in order of increasing operation code.
+Table: **Instruction set**
 
-***
+-------------------------------------------------------
+ Mne     AL     ML    Op   Effect
+------- ----- ------ ---- --------------------
+add      RRR   RRR    0    Rd := Ra + Rb
 
- -----------------------------------------------
- Mnemonic Format Op   Notes  Effect
- -------- ------ ---  -----  -------------------
-  add     RRR    0    E      r[d] := r[a] + r[b]   signed +
+sub      RRR   RRR    1    Rd := r[a] - Rb
 
-  sub     RRR    1    E      r[d] := r[a] - r[b]   signed -
+mul      RRR   RRR    2    Rd := Ra * Rb
 
-  mul     RRR    2           rem#r[d] := r[a] * r[b] signed *
+div      RRR   RRR    3    Rd := Ra / Rb,
+                          R15 := Ra rem Rb
 
-  div     RRR    3    E      r[d] := r[a] div r[b],
-                             R15 := r[a] rem r[b]
+cmp      RRR   RRR    4       R15 := Ra ? Rb
 
-  cmplt   RRR    4           r[d] := r[a] < r[b]
+cmplt    RRR   RRR    5       Rd := Ra < Rb
 
-  cmpeq   RRR    5           r[d] := r[a] = r[b]
+cmpeq    RRR   RRR    6       Rd := Ra = Rb
 
-  cmpgt   RRR    6           r[d] := r[a] > r[b]
+cmpgt    RRR   RRR    7       Rd := Ra > Rb
 
-  cmp     RRR    7           R15 := comparison result
-                             (both signed, unsigned)
+inv      RR    RRR    8       Rd := inv Ra
 
-  inv     RRR    8           r[d] := inv r[a]
+and      RRR   RRR    9       Rd := Ra and Rb
 
-  and     RRR    9           r[d] := r[a] and r[b]
+or       RRR   RRR    a       Rd := Ra or Rb
 
-  or      RRR    a           r[d] := r[a] or r[b]
+xor      RRR   RRR    b       Rd := Ra xor Rb
 
-  xor     RRR    b           r[d] := r[a] xor r[b]
+nop      RRR   RRR    c       no operation
 
-          RRR   c            reserved; currently nop
+trap     RRR   RRR    d       
 
-  trap    RRR    d    E      xa := pc, pc := 0
+lea      RX    RX     f,0     Rd := Ra+disp
 
+load     RX    RX     f,1     Rd := mem[Ra+disp]
 
-  lea     RX     f,0         r[d] := ea
+store    RX    RX     f,2     mem[Ra+disp] := Rd
 
-  load    RX     f,1  E      r[d] := m[ea]
+jump     JX    RX     f,3     pc := Ra+disp
 
-  store   RX     f,2  E      m[ea] := r[d]
+jumpc0   KX    RX     f,4     if R15.k=1 then pc := Ra+disp
 
-  jump    RX     f,3  E      pc := ea
+jumpc1   KX    RX     f,5     if R15.k=0 then pc := Ra+disp
 
-  jumpc0  RX     f,4         if r[15] AND d == 0 then pc := ea
+jumpf    RX    RX     f,6     if Rd=0 then pc := Ra+disp
 
-  jumpc1  RX     f,5         if r[R15] AND d /= 0 then pc := ea
+jumpt    RX    RX     f,7     if Rd/=0 then pc := Ra+disp
 
-  jumpf   RX     f,6  E      if not r[d] then pc := ea
+jal      RX    RX     f,8     Rd := pc, pc := Ra+disp
 
-  jumpt   RX     f,7  E      if r[d] then pc := ea
+testset  RX    RX     f,9     Rd := mem[Ra+disp],
+                              mem[Ra+disp] := 1
+                             
+rfi      NO    R      e,0    pc := ipc,
+                             status := istatus
+                             
+execute  RR    RREXP  e,8
 
-  jal     RX     f,8  E      r[d] := pc, pc := ea
+getctl   RC    RCEXP  e,10   Rd := Rc
 
+putctl   RC    RCEXP  e,11   Rc := Rd
 
-  trap    RRR    d    E      xa := pc, pc := 0
+push     RRR   RRREXP e,18
 
-  lea     RX     f,0         r[d] := ea
+pop      RRR   RRREXP e,19
 
-  load    RX     f,1  E      r[d] := m[ea]
+top      RRR   RRREXP e,1a
 
-  store   RX     f,2  E      m[ea] := r[d]
+shiftl   RRK   RRKEXP e,20  Rd := Ra shl k
 
-  jump    RX     f,3  E      pc := ea
+shiftr   RRK   RRKEXP e,21  Rd := Ra shr k
 
-  jumpf   RX     f,4  E      if not r[d] then pc := ea
+getbit   RRKK  RRKEXP e,22  Rd := R15.k
 
-  jumpt   RX     f,5  E      if r[d] then pc := ea
+getbiti  RRKK  RRKEXP e,23  Rd := inv R15.k
 
-  jal     RX     f,6  E      r[d] := pc, pc := ea
+putbit   RRKK  RRKEXP e,24  R15.k := Ra.15
 
-  test    EXP                r[d] := r[a] [bit b]
+putbiti  RRKK  RRKEXP e,25  R15.k := inv Ra.15
 
-  addl    EXP    e,0a        rem#r[d] := r[a] + r[b] + lsb rem
+extract  RRKK  RRKKEXP e,38
 
-  shiftl  RRR    b           rem#r[d] := r[a] shl b
+save     RRX   RRXEXP  e,40 mem[Rb+ofs] := Re,
+                            mem[Rb+ofs+1] := Re+1,
+                            ...,
+                            mem[Rb+ofs+(f-e+1)] := Rf,
 
-  shiftr  RRR    c           rem#r[d] := r[a] shr b
+restore  RRX   RRXEXP  e,41 
 
--------------------------------------------
+-------------------------------------------------
 
-***
     
 # Assembly Language
 
