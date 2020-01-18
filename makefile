@@ -337,74 +337,80 @@ set-version :
 .PHONY : example-indices
 example-indices :
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
+	  --metadata pagetitle="Example programs for core architecture" \
+          -o examples/index.html \
+	  examples/index.md
+	pandoc --standalone \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Example programs for core architecture" \
           -o examples/Core/index.html \
 	  examples/Core/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Arithmetic examples" \
           -o examples/Core/Arithmetic/index.html \
 	  examples/Core/Arithmetic/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Simple examples" \
           -o examples/Core/Simple/index.html \
 	  examples/Core/Simple/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Array examples" \
           -o examples/Core/Arrays/index.html \
 	  examples/Core/Arrays/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Interrupt examples" \
           -o examples/Advanced/Interrupt/index.html \
 	  examples/Advanced/Interrupt/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Data structures" \
           -o examples/Advanced/DataStructures/index.html \
 	  examples/Advanced/DataStructures/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Input/Output" \
           -o examples/Core/IO/index.html \
 	  examples/Core/IO/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Recursion" \
           -o examples/Advanced/Recursion/index.html \
 	  examples/Advanced/Recursion/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Sorting examples" \
           -o examples/Core/Sorting/index.html \
 	  examples/Core/Sorting/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Subroutines" \
           -o examples/Core/Subroutines/index.html \
 	  examples/Core/Subroutines/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Testing" \
           -o examples/Advanced/Testing/index.html \
 	  examples/Advanced/Testing/index.md
 	pandoc --standalone \
-          --template=docs/src/program-indices/programindex-template.html \
-          --variable=css:../../../docs/src/docstyle.css \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Type conversion" \
           -o examples/Advanced/TypeConversion/index.html \
 	  examples/Advanced/TypeConversion/index.md
