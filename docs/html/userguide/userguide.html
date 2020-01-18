@@ -34,31 +34,20 @@ Version 3.0.33
 <li><a href="#further-topics">Further topics</a></li>
 </ul></li>
 <li><a href="#architecture">Architecture</a><ul>
-<li><a href="#overview-of-computer-architecture">Overview of computer architecture</a><ul>
-<li><a href="#machine-language-and-instructions">Machine language and instructions</a></li>
-</ul></li>
-<li><a href="#overview-of-sigma16">Overview of Sigma16</a></li>
-<li><a href="#relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</a><ul>
-<li><a href="#the-rtm-instructions">The RTM instructions</a></li>
-</ul></li>
-<li><a href="#data-representation">Data representation</a></li>
+<li><a href="#subsystems">Subsystems</a></li>
 <li><a href="#register-file">Register file</a><ul>
 <li><a href="#r0-holds-the-constant-0">R0 holds the constant 0</a></li>
 <li><a href="#r15-is-the-condition-code-register">R15 is the condition code register</a></li>
 </ul></li>
-<li><a href="#memory">Memory</a><ul>
-<li><a href="#effective-address">Effective address</a></li>
-</ul></li>
-<li><a href="#instruction-control-registers">Instruction control registers</a><ul>
+<li><a href="#memory">Memory</a></li>
+<li><a href="#control-registers">Control registers</a><ul>
 <li><a href="#status-register-flags">Status register flags</a></li>
-<li><a href="#condition-codes-and-booleans">Condition codes and booleans</a></li>
-</ul></li>
-<li><a href="#interrupts-and-exceptions">Interrupts and exceptions</a><ul>
+<li><a href="#interrupts-and-exceptions">Interrupts and exceptions</a></li>
 <li><a href="#mask-and-request-flags">Mask and request flags</a></li>
 </ul></li>
 <li><a href="#instruction-representation">Instruction representation</a><ul>
 <li><a href="#instruction-fields">Instruction fields</a></li>
-<li><a href="#machine-language-instruction-formats">Machine language instruction formats</a></li>
+<li><a href="#instruction-formats">Instruction formats</a></li>
 <li><a href="#assembly-language-statement-formats">Assembly language statement formats</a></li>
 <li><a href="#rrr-format">RRR format</a></li>
 <li><a href="#rx-format">RX format</a></li>
@@ -255,9 +244,9 @@ Version 3.0.33
 <li><a href="#program-structure">Program structure</a></li>
 <li><a href="#example-program-add">Example program Add</a></li>
 <li><a href="#snapshot-of-memory-example-program-add">Snapshot of memory: example program Add</a></li>
-<li><a href="#control-registers">Control registers</a></li>
-<li><a href="#boot-reading-in-the-program">Boot: reading in the program</a></li>
 <li><a href="#control-registers-1">Control registers</a></li>
+<li><a href="#boot-reading-in-the-program">Boot: reading in the program</a></li>
+<li><a href="#control-registers-2">Control registers</a></li>
 <li><a href="#keeping-track-of-where-you-are">Keeping track of where you are</a></li>
 <li><a href="#following-pc-and-ir-control-registers">Following PC and IR control registers</a></li>
 <li><a href="#assembly-language-syntax">Assembly language syntax</a></li>
@@ -284,7 +273,7 @@ Version 3.0.33
 <li><a href="#what-about-big-arrays">What about big arrays?</a></li>
 <li><a href="#indexed-addressing">Indexed addressing</a></li>
 <li><a href="#accessing-an-element-of-an-array">Accessing an element of an array</a></li>
-<li><a href="#effective-address-1">Effective address</a></li>
+<li><a href="#effective-address">Effective address</a></li>
 <li><a href="#using-the-effective-address">Using the effective address</a></li>
 <li><a href="#addressing-modes">Addressing modes</a></li>
 <li><a href="#using-effective-address-for-an-array">Using effective address for an array</a></li>
@@ -773,7 +762,7 @@ Version 3.0.33
 <li><a href="#processor-organisation">Processor organisation}</a></li>
 <li><a href="#a-computer-is-a-digital-circuit-1">A computer is a digital circuit!</a></li>
 <li><a href="#processor-organisation-1">Processor organisation</a></li>
-<li><a href="#control-registers-2">Control registers</a></li>
+<li><a href="#control-registers-3">Control registers</a></li>
 <li><a href="#the-control-algorithm-1">The control algorithm</a></li>
 <li><a href="#structure-of-the-control-algorithm">Structure of the control algorithm</a></li>
 <li><a href="#a-closer-look-at-lea">A closer look at lea</a></li>
@@ -781,7 +770,7 @@ Version 3.0.33
 <li><a href="#a-jump-is-just-a-load">A jump is just a load!</a></li>
 <li><a href="#processor-organisation-2">Processor organisation</a></li>
 <li><a href="#processor-organisation-3">Processor organisation</a></li>
-<li><a href="#control-registers-3">Control registers</a></li>
+<li><a href="#control-registers-4">Control registers</a></li>
 <li><a href="#the-control-algorithm-2">The control algorithm</a></li>
 <li><a href="#structure-of-the-control-algorithm-1">Structure of the control algorithm</a></li>
 <li><a href="#a-closer-look-at-lea-1">A closer look at lea</a></li>
@@ -854,6 +843,14 @@ Version 3.0.33
 </ul></li>
 <li><a href="#circuit">Circuit</a><ul>
 <li><a href="#m1-circuit">M1 circuit</a></li>
+</ul></li>
+<li><a href="#computer-architecture-1">Computer architecture</a><ul>
+<li><a href="#overview-of-computer-architecture">Overview of computer architecture</a><ul>
+<li><a href="#machine-language-and-instructions">Machine language and instructions</a></li>
+</ul></li>
+<li><a href="#relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</a><ul>
+<li><a href="#the-rtm-instructions">The RTM instructions</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#installation">Installation</a><ul>
 <li><a href="#browser-compatibility">Browser compatibility</a></li>
@@ -1045,41 +1042,20 @@ Version 3.0.33
 <p>There are two independent views into the memory; this is convenient for looking at the machine language code in one view and the data in the other view. (Despite the two views, there is just one memory!) At this point the pc register contains 0, meaning that the next instruction to be executed is the one in memory location 0. The ir and other registers also contain 0, but that is just the initial value.</p>
 <p>To set a breakpoint, click Breakpoint and enter the stopping condition in the dialogue box. For example, to stop when the pc register becomes $01b7, enter BPeq BPpc (BPhex “01b7”). Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <h1 id="architecture">Architecture</h1>
-<p>An <em>instruction set architecture</em> is a precise specification of all aspects of a machine that are visible to a programmer. It includes a description of the registers, memory, data representations, and all the instructions, but does not include components of the implementation that are not visible to a machine language programmer.</p>
-<h2 id="overview-of-computer-architecture">Overview of computer architecture</h2>
-<h3 id="machine-language-and-instructions">Machine language and instructions</h3>
-<p>Very different from Python, Java, C, etc. The designer of a machine language has to `look both up and down’:</p>
-<ul>
-<li><p>Looking up to higher levels of abstraction, the machine language must be powerful enough to provide the foundation for operating systems and programming languages.</p></li>
-<li><p>Looking down to the lower levels of implementation, the machine language must be simple enough so that a digital circuit can execute it.</p></li>
-</ul>
-<p>Machine languages are designed to achieve high performance possible at reasonable cost. Their primary aim is not to make programming as easy as possible</p>
-<p>A machine language program consists of instructions. An instruction is analogous to a statement in a programming language. However, each instruction just performs a small fixed set of operations, while programming language statements can be complex. For example, the assignment statement x := 2 * (a + b/c) involves three arithmitic operations, and it would require at least three instructions to express in machine language.</p>
-<h2 id="overview-of-sigma16">Overview of Sigma16</h2>
 <p>Why use Sigma16?</p>
 <p>Our focus is on fundamental concepts, ideas and principles. Sigma16 illustrates the fundementals of computer systems but it avoids unnecessary complexity. For example, Sigma16 has just one word size (16 bits) while most commercial machines provide a variety. That variety is useful for practical applications but it complicates many of the details while not adding any new fundamental ideas. Most commercial computers that achieve success in the marketplace eventually become encrusted with complications that help support backward compatibility; this can lead to great complexity.</p>
-<p>Structure of the architecture</p>
-<p>All computers have several main subsystems</p>
+<p>Sigma16 is a 16-bit architecture, and every data value is a 16-bit word. Integers are represented in 16-bit two’s complement notation. The bits of a word are numbered from left to right, starting with 0. Thus the leftmost (most significant) bit of a word is bit 0, and the rightmost (least significant) is bit 15.</p>
+<h2 id="subsystems">Subsystems</h2>
+<p>The system contains several main subsystems. The most important of these are <em>registers</em>, <em>memory</em>, and <em>logic and arithmetic</em>, and <em>Input/Output</em>. These are described in detail later, but here is a brief synopsis:</p>
 <ul>
-<li><p>A register is a digital circuit that can retain one word of data. A new value can be loaded into a register, and the current contents may be read out.</p></li>
-<li><p>The register file is a set of 16 registers that are available to the user programmer for holding values of variables. They are named R0, R1, R2, …, R15.</p>
-<p>Register Contents ~~~~~~~~~~ ~~~~~~~~~~ R0 0000 R1 fffe R2 13c4 … … R14 03c8 R15 0020</p></li>
-<li><p>The ALU (arithmetic and logic unit) is a circuit that can do arithmetic, such as addition, subtraction, comparison, and some other operations</p></li>
+<li><p>A register is a digital circuit that can retain one word of data. A new value can be loaded into a register, and the current contents may be read out. There are a number of special registers as well as a <em>register file</em> that contains 16 registers.</p></li>
 <li><p>The memory can hold a large number of words. It’s similar to the register file, but significantly slower and much larger.</p></li>
+<li><p>The ALU (arithmetic and logic unit) is a circuit that can do arithmetic, such as addition, subtraction, comparison, and some other operations</p></li>
 <li><p>The Input/Output system can transfer data between the computer and the outside world.</p></li>
 </ul>
-<h2 id="relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</h2>
-<h3 id="the-rtm-instructions">The RTM instructions</h3>
-<ul>
-<li><p>The RTM circuit can execute two instructions</p></li>
-<li>R2 := R1 + R0 ; add two registers and load result</li>
-<li><p>R1 := 8 ; load a constant</p></li>
-<li><p>We’ll begin with the corresponding Sigma16 instructions</p></li>
-</ul>
-<h2 id="data-representation">Data representation</h2>
-<p>Sigma16 is a 16-bit architecture, and every data value is a 16-bit word. Integers are represented in 16-bit two’s complement notation. The bits of a word are numbered from left to right, starting with 0. Thus the leftmost (most significant) bit of a word is bit 0, and the rightmost (least significant) is bit 15.</p>
 <h2 id="register-file">Register file</h2>
-<p>The <strong>register file</strong> is a set of 16 general registers that hold a 16 bit word. A register is referenced by a 4-bit binary number. In assembly language, we use the notations R0, R1, R2, …, R9, R10, R11, R12, R13, R14, R15 to refer to the registers.</p>
+<p>The <strong>register file</strong> is a set of 16 general registers that hold a 16 bit word. A register is referenced by a 4-bit binary number. In assembly language, we use the notations R0, R1, R2, …, R9, R10, R11, R12, R13, R14, R15 to refer to the registers. The state of the register file can be written as a table showing the value of each register:</p>
+<p>Register Contents ~~~~~~~~~~ ~~~~~~~~~~ R0 0000 R1 fffe R2 13c4 … … R14 03c8 R15 0020</p>
 <p>Sigma16 is a load/store style architecture; that is, it does not combine memory accesses with arithmetic. All calculations are carried out in the register file, and explicit load and store instructions must be used to copy data between the memory and the register file.</p>
 <p>There are some programming conventions that use certain registers for special purposes. The hardware does not enforce, or even know about, these conventions, and you do not have to follow the conventions in programming. However, it is necessary to obey the conventions in order to use the standard software libraries in your program. See the section on Programming for a discussion of these standard usage conventions.</p>
 <h3 id="r0-holds-the-constant-0">R0 holds the constant 0</h3>
@@ -1234,10 +1210,11 @@ carry propagation (binary)
 <p>jumpc0 jump if cc bit is 0 jumpc1 jump if cc bit is 1</p>
 <h2 id="memory">Memory</h2>
 <p>The memory is a hardware array of words that are accessed by address. A memory address is 16 bits wide, and there is one memory location corresponding to each address, so there are 2^16 = 64k memory locations. Each memory location is a 16-bit word.</p>
-<h3 id="effective-address">Effective address</h3>
-<p>The effective address is defined to be the binary sum of the displacement and the index register.</p>
-<h2 id="instruction-control-registers">Instruction control registers</h2>
-<p>There are several <strong>program control registers</strong> that enable the processor to keep track of the state of the running program. These registers are rarely used directly by the machine language program, but they are essential for keeping track of the execution of the program, and some instructions use them directly.</p>
+<p>Instructions specify memory addresses in two parts: the <em>displacement</em>, which is a word representing a binary number, and the <em>index</em>, which is one of the registers in the register file. For example, a memory address could be specified as $003c[R5]; the displacement is 003c and the index is R5.</p>
+<p>When the instruction is executed, the computer calculates the <em>effective address</em> by adding the value of the displacement and the value in the index register. If R5 contains 2, then the effective address of $003c[R5] is 003e.</p>
+<p>This scheme may seem more complicated than simply specifying the address directly, but it is extraordinarily flexible. If the machine language just gave the address as a single binary number, it would be limited to accessing simple static variables. The effective address mechanism is simple to implement in hardware, as you can see in the digital circuit processor, yet it allows the implementation of local variables, records, arrays, pointers and linked data structures, jump tables, and more. These techniques are described later.</p>
+<h2 id="control-registers">Control registers</h2>
+<p>There are several instruction control registers that enable the processor to keep track of the state of the running program. These registers are rarely used directly by the machine language program, but they are essential for keeping track of the execution of the program, and some instructions use them directly.</p>
 <ul>
 <li><p>ir – instruction register (16-bit word)</p></li>
 <li><p>pc – program counter (16-bit word)</p></li>
@@ -1287,14 +1264,13 @@ Interrupts enabled
 </td>
 </tr>
 </table>
-<h3 id="condition-codes-and-booleans">Condition codes and booleans</h3>
-<h2 id="interrupts-and-exceptions">Interrupts and exceptions</h2>
+<h3 id="interrupts-and-exceptions">Interrupts and exceptions</h3>
 <ul>
-<li><p>imask</p></li>
-<li><p>ireq</p></li>
-<li><p>istatus</p></li>
+<li><p>mask</p></li>
+<li><p>req</p></li>
+<li><p>istat</p></li>
 <li><p>ipc</p></li>
-<li><p>ivect</p></li>
+<li><p>vect</p></li>
 </ul>
 <h3 id="mask-and-request-flags">Mask and request flags</h3>
 <table>
@@ -1421,15 +1397,9 @@ Interrupt
 </tr>
 </table>
 <h2 id="instruction-representation">Instruction representation</h2>
-<p>There are three instruction formats:</p>
-<ul>
-<li><p>RRR – Instructions that perform operations on data in registers, but not referring to memory. The representation is one word.</p></li>
-<li><p>RX – Instructions that specify a memory location as well as a register operand. The representation is two words.</p></li>
-<li><p>EXP – Expanded (or experimental) instructions, for instructions that cannot be encoded as RRR or RX. Two of the operand fields are combined to form an 8-bit opcode. There are three variants:</p></li>
-<li><p>EXP0 – The instruction is one word, with only one 4 bit operand.</p></li>
-<li><p>EXP4 – The instruction is two words, with a 4-bit operand in the first word and four more in the second word.</p></li>
-<li><p>EXP8 – The instruction is two words, with three 4-bit operands and an 8-bit operand</p></li>
-</ul>
+<p>Instructions are represented in the memory of the computer using words, just like all other kinds of data. From the programmer’s perspective, an instruction is like a simple statement in a programming language. From the circuit designer’s perspective, however, instructions must be processed using logic gates, and the specific way it is represented as a word of bits is important.</p>
+<p>An instruction specifies several pieces of information. For example, add R1,R2,R3 is an instruction that says four things: it’s an addition, the result goes into R1, and the operands come from R2 and R3. Therefore to represent instructions we need to organize a word as a collection of several <em>fields</em>.</p>
+<p>The particular scheme for describing an instruction as a collection of fields is called an <em>instruction format</em>. The key to understanding the interface between machine language and digital circuit design is to master the instruction formats.</p>
 <h3 id="instruction-fields">Instruction fields</h3>
 <p>An instruction may consist of one word or two words, depending on the instruction format. The first word of every instruction has the following fields.</p>
 <ul>
@@ -1440,16 +1410,6 @@ Interrupt
 <li>ab (bits 8-15) 8-bit expanded opcode for EXP</li>
 </ul>
 <p>An instruction may either use a and b as separate 4-bit fields, or it can combine them into a single 8-bit field called ab.</p>
-<p>The second word is used for RX and EXP formats. There are individual names for the individual 4-bit fields, as well as names (disp, gh) for larger fields.</p>
-<ul>
-<li>e (bits 0-3) 4-bit operand</li>
-<li>f (bits 4-7) 4-bit operand</li>
-<li>g (bits 8-11) 4-bit operand</li>
-<li>h (bits 12-15) 4-bit operand</li>
-<li>gh (bits 8-15) 8-bit operand</li>
-<li>disp (bits 0-15) 16 bit operand “displacement”</li>
-</ul>
-<p>The first word of an instruction contains four 4-bit fields, named op (bits 0-3), d (bits 4-7), sa (bits 8-11), and sb (bits 12-15).</p>
 <table class="wordlayout"">
  <tr>
   <th>op</th>
@@ -1464,8 +1424,30 @@ Interrupt
   <td>12-15</td>
  </tr>
 </table>
-<p>Each instruction has a 4-bit field called the opcode (op for short). This gives 16 values of the opcode: 14 of them (0 through 13) denote the 14 RRR instructions. If the op field is 14 (hex e) the instruction is EXP format and has a secondary opcode in the a and b fields. If the op field contains 15 (hex f) the instruction is RX format with a secondary opcode in the b field.</p>
-<h3 id="machine-language-instruction-formats">Machine language instruction formats</h3>
+<p>Every instruction has a 4-bit field called the opcode (op for short). This gives 16 values of the opcode: 14 of them (0 through 13) denote the 14 RRR instructions, described later. If the op field is 14 (hex e) the instruction is EXP format and has a secondary opcode in the a and b fields. If the op field contains 15 (hex f) the instruction is RX format with a secondary opcode in the b field. The instruction formats are described below.</p>
+<p>A second word is needed to represent RX, EXP4 and EXP8 formats. There are individual names for the individual 4-bit fields, as well as names (disp, gh) for larger fields.</p>
+<ul>
+<li>e (bits 0-3) 4-bit operand</li>
+<li>f (bits 4-7) 4-bit operand</li>
+<li>g (bits 8-11) 4-bit operand</li>
+<li>h (bits 12-15) 4-bit operand</li>
+<li>gh (bits 8-15) 8-bit operand</li>
+<li>disp (bits 0-15) 16 bit operand “displacement”</li>
+</ul>
+<h3 id="instruction-formats">Instruction formats</h3>
+<p>There are several instruction formats. The core architecture (the simplest part of the system) uses two:</p>
+<ul>
+<li><p>RRR – Instructions that perform operations on data in registers, but not referring to memory. The representation is one word.</p></li>
+<li><p>RX – Instructions that specify a memory location as well as a register operand. The representation is two words.</p></li>
+</ul>
+<p>The advanced parts of the architecture provide additional instructions and these are represented with a a format called EXP. An EXP instruction contains 14 (hex e) in the op field, and the a and b fields are combined into a single 8-bit number that contains a secondary opcode. This means that the EXP format allows for 256 instructions. This greatly expands the number of instructions that can be accommodated, and it allows for experimental instructions for research purposes. (The name EXP stands simultaneously for both EXPansion and EXPerimentation.)</p>
+<p>There are three variants of the EXP format. The secondary opcode (in the a and b fields) specifies the EXP variant as well as the individual instruction. The variants are:</p>
+<ul>
+<li><p>EXP0 – An is one word, and only one operand field (the d field) is available. (There are 0 fields in the second word; hence the name EXP0.) The op field contains e, and the a and b fields are combined to form an 8-bit opcode.</p></li>
+<li><p>EXP4 – The instruction is two words, with a 4-bit operand in the first word and four more in the second word. (It’s called EXP4 because the second word contains 4 4-bit operands.)</p></li>
+<li><p>EXP8 – The instruction is two words, with three 4-bit operands and an 8-bit operand. (It’s called EXP8 because it provides an 8-bit operand.)</p></li>
+</ul>
+<p>The following table summarises the instruction formats. The core of the architecture needs only the first two (RRR and RX). The more advanced features require the</p>
 <table style="width:79%;">
 <caption><strong>Machine language instruction formats</strong></caption>
 <colgroup>
@@ -1493,18 +1475,18 @@ Interrupt
 <td style="text-align: center;">add Rd,Ra,Rb</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">EXP</td>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">op,ab</td>
-<td style="text-align: center;">d</td>
-<td style="text-align: center;">rfi</td>
-</tr>
-<tr class="odd">
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">2</td>
 <td style="text-align: center;">op,b</td>
 <td style="text-align: center;">d,disp,a</td>
 <td style="text-align: center;">load Rd,disp[Ra]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">EXP0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">op,ab</td>
+<td style="text-align: center;">d</td>
+<td style="text-align: center;">rfi</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">EXP4</td>
@@ -3064,7 +3046,7 @@ z     data  99</code></pre>
 <p>}</p>
 <h3 id="snapshot-of-memory-example-program-add">Snapshot of memory: example program Add</h3>
 
-<h3 id="control-registers">Control registers</h3>
+<h3 id="control-registers-1">Control registers</h3>
 <h3 id="boot-reading-in-the-program">Boot: reading in the program</h3>
 <ul>
 <li>The program is placed in memory starting at location 0</li>
@@ -3073,7 +3055,7 @@ z     data  99</code></pre>
 <li>After the trap R0,R0,R0 come the data statements, which tell the assembler the names of the variables and their initial values</li>
 <li>These conventions were typical for early computers; later we will discuss how the operating system interacts with user programs</li>
 </ul>
-<h3 id="control-registers-1">Control registers</h3>
+<h3 id="control-registers-2">Control registers</h3>
 <ul>
 <li>Some of the registers in the computer are accessible to the programmer: R0, R1, R2, <span class="math inline">…</span>, R15</li>
 <li>There are several more registers that {the machine uses to keep track of what it’s doing}</li>
@@ -3315,7 +3297,7 @@ def   data     0       ; some other variable</code></pre>
 <li>If you try  the effect will be R4 := x[0]</li>
 <li>We need a way to access x[i] where i is a variable</li>
 </ul>
-<h3 id="effective-address-1">Effective address</h3>
+<h3 id="effective-address">Effective address</h3>
 <ul>
 <li><p>An RX instruction specifies addresses in two parts, for example  or  or </p>
 <ul>
@@ -7310,7 +7292,7 @@ cmpgt  R1,R2,R3   R1 := R2&gt;R3</code></pre>
 <li><p>It can execute a sequence of Sigma16 add instructions</p></li>
 <li><p>We can extend this circuit to handle the entire architecture!</p></li>
 </ul>
-<h3 id="control-registers-2">Control registers</h3>
+<h3 id="control-registers-3">Control registers</h3>
 <ul>
 <li>The circuit needs to </li>
 <li><p>This is done using </p></li>
@@ -7394,7 +7376,7 @@ cmpgt  R1,R2,R3   R1 := R2&gt;R3</code></pre>
 <li><p>It can execute a sequence of Sigma16 add instructions</p></li>
 <li><p>We can extend this circuit to handle the entire architecture!</p></li>
 </ul>
-<h3 id="control-registers-3">Control registers</h3>
+<h3 id="control-registers-4">Control registers</h3>
 <ul>
 <li>The circuit needs to </li>
 <li><p>This is done using </p></li>
@@ -8060,6 +8042,27 @@ ArrayMaxRun</code></pre>
 <p>Enter the directory and enter these commands:</p>
 <p>ghci :load ArrayMaxRun :main</p>
 <p>These will execute the ArrayMax program on the digital circuit, and that will produce a lot of detailed simulation output showing the values in key registers, flip flops, and signals.</p>
+<h1 id="computer-architecture-1">Computer architecture</h1>
+<p>An <em>instruction set architecture</em> is a precise specification of all aspects of a machine that are visible to a programmer. It includes a description of the registers, memory, data representations, and all the instructions, but does not include components of the implementation that are not visible to a machine language programmer.</p>
+<h2 id="overview-of-computer-architecture">Overview of computer architecture</h2>
+<h3 id="machine-language-and-instructions">Machine language and instructions</h3>
+<p>Very different from Python, Java, C, etc. The designer of a machine language has to `look both up and down’:</p>
+<ul>
+<li><p>Looking up to higher levels of abstraction, the machine language must be powerful enough to provide the foundation for operating systems and programming languages.</p></li>
+<li><p>Looking down to the lower levels of implementation, the machine language must be simple enough so that a digital circuit can execute it.</p></li>
+</ul>
+<p>Machine languages are designed to achieve high performance possible at reasonable cost. Their primary aim is not to make programming as easy as possible</p>
+<p>A machine language program consists of instructions. An instruction is analogous to a statement in a programming language. However, each instruction just performs a small fixed set of operations, while programming language statements can be complex. For example, the assignment statement x := 2 * (a + b/c) involves three arithmitic operations, and it would require at least three instructions to express in machine language.</p>
+<h2 id="relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</h2>
+<h3 id="the-rtm-instructions">The RTM instructions</h3>
+<ul>
+<li><p>The RTM circuit can execute two instructions</p>
+<ul>
+<li>R2 := R1 + R0 ; add two registers and load result</li>
+<li>R1 := 8 ; load a constant</li>
+</ul></li>
+<li><p>We’ll begin with the corresponding Sigma16 instructions</p></li>
+</ul>
 <h1 id="installation">Installation</h1>
 <h2 id="browser-compatibility">Browser compatibility</h2>
 <p>The application currently works with Chrome and Firefox, and possible Edge.</p>
