@@ -400,41 +400,6 @@ value; then it will stop so you can examine the state of the machine.
 
 # Architecture
 
-An *instruction set architecture* is a precise specification of all
-aspects of a machine that are visible to a programmer.  It includes a
-description of the registers, memory, data representations, and all
-the instructions, but does not include components of the
-implementation that are not visible to a machine language programmer.
-
-## Overview of computer architecture
-
-### Machine language and instructions
-
-Very different from Python, Java, C, etc.  The designer of a machine
-language has to `look both up and down':
-  
-* Looking up to higher levels of abstraction, the machine language
-  must be powerful enough to provide the foundation for
-  operating systems and programming languages.
-
-* Looking down to the lower levels of implementation, the machine
-  language must be simple enough so that a digital circuit can execute
-  it.
-  
-Machine languages are designed to achieve high performance possible at
-reasonable cost.  Their primary aim is not to make programming as easy
-as possible
-
-A machine language program consists of instructions.  An instruction
-is analogous to a statement in a programming language.  However, each
-instruction just performs a small fixed set of operations, while
-programming language statements can be complex.  For example, the
-assignment statement x := 2 * (a + b/c) involves three arithmitic
-operations, and it would require at least three instructions to
-express in machine language.
-
-## Overview of Sigma16
-
 Why use Sigma16?
 
 Our focus is on fundamental concepts, ideas and principles.  Sigma16
@@ -447,17 +412,42 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
-Structure of the architecture
+Sigma16 is a 16-bit architecture, and every data value is a 16-bit
+word.  Integers are represented in 16-bit two's complement notation.
+The bits of a word are numbered from left to right, starting with 0.
+Thus the leftmost (most significant) bit of a word is bit 0, and the
+rightmost (least significant) is bit 15.
 
-All computers have several main subsystems
+## Subsystems
+
+The system contains several main subsystems.  The most important of
+these are *registers*, *memory*, and *logic and arithmetic*, and
+*Input/Output*.  These are described in detail later, but here is a
+brief synopsis:
 
 * A register is a digital circuit that can retain one word of data.  A
   new value can be loaded into a register, and the current contents
-  may be read out.
+  may be read out.  There are a number of special registers as well as
+  a *register file* that contains 16 registers.
 
-* The register file is a set of 16 registers that are available to the
-  user programmer for holding values of variables.  They are named R0,
-  R1, R2, ..., R15.
+* The memory can hold a large number of words.  It's similar to the
+  register file, but significantly slower and much larger.
+
+* The ALU (arithmetic and logic unit) is a circuit that can do
+  arithmetic, such as addition, subtraction, comparison, and some
+  other operations
+
+* The Input/Output system can transfer data between the computer and
+  the outside world.
+
+## Register file
+
+The **register file** is a set of 16 general registers that hold a 16
+bit word.  A register is referenced by a 4-bit binary number.  In
+assembly language, we use the notations R0, R1, R2, ..., R9, R10, R11,
+R12, R13, R14, R15 to refer to the registers.  The state of the
+register file can be written as a table showing the value of each
+register:
 
    Register    Contents
   ~~~~~~~~~~  ~~~~~~~~~~
@@ -467,44 +457,6 @@ All computers have several main subsystems
      ...         ...
      R14         03c8
      R15         0020
-
-* The ALU (arithmetic and logic unit) is a circuit that can do
-  arithmetic, such as addition, subtraction, comparison, and some
-  other operations
-
-* The memory can hold a large number of words.  It's similar to the
-  register file, but significantly slower and much larger.
-
-* The Input/Output system can transfer data between the computer and
-  the outside world.
-
-
-## Relationship between machine language and circuit
-
-### The RTM instructions
-
-
- *  The RTM circuit can execute two instructions
-  
-   *  R2 := R1 + R0 ; add two registers and load result
-   *  R1 := 8   ; load a constant
-  
- *  We'll begin with the corresponding Sigma16 instructions
-
-## Data representation
-
-Sigma16 is a 16-bit architecture, and every data value is a 16-bit
-word.  Integers are represented in 16-bit two's complement notation.
-The bits of a word are numbered from left to right, starting with 0.
-Thus the leftmost (most significant) bit of a word is bit 0, and the
-rightmost (least significant) is bit 15.
-
-## Register file
-
-The **register file** is a set of 16 general registers that hold a 16
-bit word.  A register is referenced by a 4-bit binary number.  In
-assembly language, we use the notations R0, R1, R2, ..., R9, R10, R11,
-R12, R13, R14, R15 to refer to the registers.
 
 Sigma16 is a load/store style architecture; that is, it does not
 combine memory accesses with arithmetic.  All calculations are carried
@@ -625,14 +577,29 @@ A memory address is 16 bits wide, and there is one memory location
 corresponding to each address, so there are 2^16 = 64k memory
 locations.  Each memory location is a 16-bit word.
 
-### Effective address
+Instructions specify memory addresses in two parts: the
+*displacement*, which is a word representing a binary number, and the
+*index*, which is one of the registers in the register file.  For
+example, a memory address could be specified as $003c[R5]; the
+displacement is 003c and the index is R5.
 
-The effective address is defined to be the binary sum of the
-displacement and the index register.
+When the instruction is executed, the computer calculates the
+*effective address* by adding the value of the displacement and the
+value in the index register.  If R5 contains 2, then the effective
+address of $003c[R5] is 003e.
 
-## Instruction control registers
+This scheme may seem more complicated than simply specifying the
+address directly, but it is extraordinarily flexible.  If the machine
+language just gave the address as a single binary number, it would be
+limited to accessing simple static variables.  The effective address
+mechanism is simple to implement in hardware, as you can see in the
+digital circuit processor, yet it allows the implementation of local
+variables, records, arrays, pointers and linked data structures, jump
+tables, and more.  These techniques are described later.
 
-There are several **program control registers** that enable the
+## Control registers
+
+There are several instruction control registers that enable the
 processor to keep track of the state of the running program.  These
 registers are rarely used directly by the machine language program,
 but they are essential for keeping track of the execution of the
@@ -677,20 +644,17 @@ Table: Processor status flags
   </tr>
 </table>
 
-### Condition codes and booleans
+### Interrupts and exceptions
 
-## Interrupts and exceptions
-
- * imask
+ * mask
  
- * ireq
+ * req
  
- * istatus
+ * istat
  
  * ipc
  
- * ivect
-
+ * vect
 
 ### Mask and request flags
 
@@ -754,28 +718,23 @@ Table: Processor status flags
 
 ## Instruction representation
 
-There are three instruction formats:
+Instructions are represented in the memory of the computer using
+words, just like all other kinds of data.  From the programmer's
+perspective, an instruction is like a simple statement in a
+programming language.  From the circuit designer's perspective,
+however, instructions must be processed using logic gates, and the
+specific way it is represented as a word of bits is important.
 
-* RRR -- Instructions that perform operations on data in registers,
-         but not referring to memory.  The representation is one word.
+An instruction specifies several pieces of information.  For example,
+add R1,R2,R3 is an instruction that says four things: it's an
+addition, the result goes into R1, and the operands come from R2 and
+R3.  Therefore to represent instructions we need to organize a word as
+a collection of several *fields*.
 
-* RX -- Instructions that specify a memory location as well as a
-        register operand.  The representation is two words.
-
-* EXP -- Expanded (or experimental) instructions, for instructions
-         that cannot be encoded as RRR or RX.  Two of the operand
-         fields are combined to form an 8-bit opcode.  There are three
-         variants:
-
-* EXP0 -- The instruction is one word, with only one 4 bit operand.
-
-* EXP4 -- The instruction is two words, with a 4-bit operand in the
-          first word and four more in the second word.
-          
-* EXP8 -- The instruction is two words, with three 4-bit operands and
-          an 8-bit operand          
-         
-
+The particular scheme for describing an instruction as a collection of
+fields is called an *instruction format*.  The key to understanding
+the interface between machine language and digital circuit design is
+to master the instruction formats.
 
 ### Instruction fields
 
@@ -792,21 +751,6 @@ following fields.
 An instruction may either use a and b as separate 4-bit fields, or it
 can combine them into a single 8-bit field called ab.
 
-The second word is used for RX and EXP formats.  There are individual
-names for the individual 4-bit fields, as well as names (disp, gh) for
-larger fields.
-
-* e (bits 0-3) 4-bit operand
-* f (bits 4-7) 4-bit operand
-* g (bits 8-11) 4-bit operand
-* h (bits 12-15) 4-bit operand
-* gh (bits 8-15) 8-bit operand
-* disp (bits 0-15) 16 bit operand "displacement"
-
-
-The first word of an instruction contains four 4-bit fields, named op
-(bits 0-3), d (bits 4-7), sa (bits 8-11), and sb (bits 12-15).
-
 <table class="wordlayout"">
  <tr>
   <th>op</th>
@@ -822,14 +766,66 @@ The first word of an instruction contains four 4-bit fields, named op
  </tr>
 </table>
 
-Each instruction has a 4-bit field called the opcode (op for short).
+Every instruction has a 4-bit field called the opcode (op for short).
 This gives 16 values of the opcode: 14 of them (0 through 13) denote
-the 14 RRR instructions.  If the op field is 14 (hex e) the
-instruction is EXP format and has a secondary opcode in the a and b
-fields.  If the op field contains 15 (hex f) the instruction is RX
-format with a secondary opcode in the b field.
+the 14 RRR instructions, described later.  If the op field is 14 (hex
+e) the instruction is EXP format and has a secondary opcode in the a
+and b fields.  If the op field contains 15 (hex f) the instruction is
+RX format with a secondary opcode in the b field.  The instruction
+formats are described below.
 
-### Machine language instruction formats
+A second word is needed to represent RX, EXP4 and EXP8 formats.  There
+are individual names for the individual 4-bit fields, as well as names
+(disp, gh) for larger fields.
+
+* e (bits 0-3) 4-bit operand
+* f (bits 4-7) 4-bit operand
+* g (bits 8-11) 4-bit operand
+* h (bits 12-15) 4-bit operand
+* gh (bits 8-15) 8-bit operand
+* disp (bits 0-15) 16 bit operand "displacement"
+
+### Instruction formats
+
+There are several instruction formats.  The core architecture (the
+simplest part of the system) uses two:
+
+* RRR -- Instructions that perform operations on data in registers,
+         but not referring to memory.  The representation is one word.
+
+* RX --  Instructions that specify a memory location as well as a
+         register operand.  The representation is two words.
+        
+The advanced parts of the architecture provide additional instructions
+and these are represented with a a format called EXP.  An EXP
+instruction contains 14 (hex e) in the op field, and the a and b
+fields are combined into a single 8-bit number that contains a
+secondary opcode.  This means that the EXP format allows for 256
+instructions.  This greatly expands the number of instructions that
+can be accommodated, and it allows for experimental instructions for
+research purposes.  (The name EXP stands simultaneously for both
+EXPansion and EXPerimentation.)
+
+There are three variants of the EXP format.  The secondary opcode (in
+the a and b fields) specifies the EXP variant as well as the
+individual instruction.  The variants are:
+
+* EXP0 -- An is one word, and only one operand field (the d field) is
+          available.  (There are 0 fields in the second word; hence
+          the name EXP0.)  The op field contains e, and the a and b
+          fields are combined to form an 8-bit opcode.
+
+* EXP4 -- The instruction is two words, with a 4-bit operand in the
+          first word and four more in the second word.  (It's called
+          EXP4 because the second word contains 4 4-bit operands.)
+          
+* EXP8 -- The instruction is two words, with three 4-bit operands and
+          an 8-bit operand.  (It's called EXP8 because it provides an
+          8-bit operand.)
+
+The following table summarises the instruction formats.  The core of
+the architecture needs only the first two (RRR and RX).  The more
+advanced features require the 
 
 Table: **Machine language instruction formats**
 
@@ -838,17 +834,16 @@ Table: **Machine language instruction formats**
 -------- ------ -------- ---------- --------------------
  RRR      1      op       d,a,b      add Rd,Ra,Rb
  
- EXP      1      op,ab    d          rfi
-
  RX       2      op,b     d,disp,a   load Rd,disp[Ra]
  
+ EXP0     1      op,ab    d          rfi
+
  EXP4     2      op,ab    d,e,f,g,h  extract Re,Rf,Rg,Rh
  
  EXP8     2      op,ab    d,e,f,gh   save Rd,Re,gh[Rf]
 ------------------------------------------------------------
 
 ### Assembly language statement formats
-
 
 Assembly language statements generally correspond to the instruction
 formats, but there is not an exact correspondence for several reasons:
@@ -894,7 +889,6 @@ Table: **Assembly language statement formats**
  RREXP   execute Re,Rf          EXP4
  RCEXP   getctl R1,mask         EXP8
 -------------------------------------------------------
-
 
 ### RRR format
 
@@ -12931,6 +12925,52 @@ that will produce a lot of detailed simulation output showing the
 values in key registers, flip flops, and signals.
 
 
+# Computer architecture
+
+An *instruction set architecture* is a precise specification of all
+aspects of a machine that are visible to a programmer.  It includes a
+description of the registers, memory, data representations, and all
+the instructions, but does not include components of the
+implementation that are not visible to a machine language programmer.
+
+## Overview of computer architecture
+
+### Machine language and instructions
+
+Very different from Python, Java, C, etc.  The designer of a machine
+language has to `look both up and down':
+  
+* Looking up to higher levels of abstraction, the machine language
+  must be powerful enough to provide the foundation for
+  operating systems and programming languages.
+
+* Looking down to the lower levels of implementation, the machine
+  language must be simple enough so that a digital circuit can execute
+  it.
+  
+Machine languages are designed to achieve high performance possible at
+reasonable cost.  Their primary aim is not to make programming as easy
+as possible
+
+A machine language program consists of instructions.  An instruction
+is analogous to a statement in a programming language.  However, each
+instruction just performs a small fixed set of operations, while
+programming language statements can be complex.  For example, the
+assignment statement x := 2 * (a + b/c) involves three arithmitic
+operations, and it would require at least three instructions to
+express in machine language.
+
+## Relationship between machine language and circuit
+
+### The RTM instructions
+
+
+ *  The RTM circuit can execute two instructions
+  
+   *  R2 := R1 + R0 ; add two registers and load result
+   *  R1 := 8   ; load a constant
+  
+ *  We'll begin with the corresponding Sigma16 instructions
 
 
 # Installation
