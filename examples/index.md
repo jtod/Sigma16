@@ -5,5 +5,5 @@
 * [Advanced](Advanced/index.html) More complex programs using the full
   architecture
   
-*[SysLib](SysLib/index.html) Library functions that can be linked with
+* [SysLib](SysLib/index.html) Library functions that can be linked with
   your programs

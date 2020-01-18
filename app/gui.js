@@ -174,7 +174,7 @@ function editorButton1() {
 function examplesHome() {
     console.log ("examplesHome");
     document.getElementById("ExamplesIframeId").src =
-	"./programs/Examples/index.html";
+	"../examples/index.html";
 }
 
 // Copy the example text to the editor.  The example is shown as a web
