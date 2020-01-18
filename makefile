@@ -369,6 +369,12 @@ example-indices :
 	pandoc --standalone \
           --template=docs/src/example-indices/exampleindex-template.html \
           --variable=css:../../docs/src/example-indices/exampleindex.css \
+	  --metadata pagetitle="Example programs for core architecture" \
+          -o examples/Advanced/index.html \
+	  examples/Advanced/index.md
+	pandoc --standalone \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Interrupt examples" \
           -o examples/Advanced/Interrupt/index.html \
 	  examples/Advanced/Interrupt/index.md
@@ -414,6 +420,12 @@ example-indices :
 	  --metadata pagetitle="Type conversion" \
           -o examples/Advanced/TypeConversion/index.html \
 	  examples/Advanced/TypeConversion/index.md
+	pandoc --standalone \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../docs/src/example-indices/exampleindex.css \
+	  --metadata pagetitle="Example programs for core architecture" \
+          -o examples/SysLib/index.html \
+	  examples/SysLib/index.md
 
 # make docs/html/userguide.html --- Generate the user guide html file
 # from markdown source
