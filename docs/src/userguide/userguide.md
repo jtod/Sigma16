@@ -400,8 +400,6 @@ value; then it will stop so you can examine the state of the machine.
 
 # Architecture
 
-Why use Sigma16?
-
 Our focus is on fundamental concepts, ideas and principles.  Sigma16
 illustrates the fundementals of computer systems but it avoids
 unnecessary complexity.  For example, Sigma16 has just one word size
@@ -412,13 +410,38 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
+## Data representation and notation
+
 Sigma16 is a 16-bit architecture, and every data value is a 16-bit
 word.  Integers are represented in 16-bit two's complement notation.
 The bits of a word are numbered from left to right, starting with 0.
 Thus the leftmost (most significant) bit of a word is bit 0, and the
 rightmost (least significant) is bit 15.
 
-## Subsystems
+The value of a word can be written in several ways:
+
+* An unsigned integer between 0 and 65,535 (2^16 - 1)
+* A signed integer between -32,768 and 32,767 (-2^15 and 2^15 - 1)
+* A 4-digit hexadecimal constant, where the digits are 0-9 a-f.
+  Sometimes, when the context is clear, this is written as just the
+  hex digits (e.g 3b2f).  In assembly language programs, hex constants
+  are written with a preceding $ sign (e.g. $3b2f).  This is necessary
+  to avoid ambiguity: 1234 is a decimal number and $1234 is a
+  hexadecimal number.  In contexts where there is no ambiguiity, the $
+  may be omitted: for example, the GUi shows register and memory
+  contents as hexadecimal without the leading $.
+  
+Some machine operations act on individual bits in a word.  We will use
+the notation word.n to indicate bit n in the word, where the bits are
+numbered from 0 at the left (most significant) position up to 15 at
+the rightmost (least significant) position.  For example the fourth bit
+of R15 can be written as R15.3.
+
+A *field* is a consecutiave sequence of bits within a word.  For
+example, we will later define a field named *op* which consists of
+bits 0-3 of a word; this means the leftmost four bits of the word.
+
+## Overview of the subsystems
 
 The system contains several main subsystems.  The most important of
 these are *registers*, *memory*, and *logic and arithmetic*, and
@@ -729,17 +752,20 @@ An instruction specifies several pieces of information.  For example,
 add R1,R2,R3 is an instruction that says four things: it's an
 addition, the result goes into R1, and the operands come from R2 and
 R3.  Therefore to represent instructions we need to organize a word as
-a collection of several *fields*.
+a collection of several *fields*, with each field giving one specific
+piece of information about the instruction.
 
 The particular scheme for describing an instruction as a collection of
-fields is called an *instruction format*.  The key to understanding
-the interface between machine language and digital circuit design is
-to master the instruction formats.
+fields is called an *instruction format*.  Like most computers,
+Sigma16 has several instruction formats and a larger number of
+instructions.  The key to understanding the interface between machine
+language and digital circuit design is to master the instruction
+formats.
 
 ### Instruction fields
 
 An instruction may consist of one word or two words, depending on the
-instruction format.  The first word of every instruction has the
+instruction format.  The first word of every instruction contains the
 following fields.
 
 * op  (bits 0-3) opcode, determines instruction format
@@ -876,18 +902,18 @@ Table: **Assembly language statement formats**
 -------------------------------------------------------
  Asm   Example                  ML formats
 ------- ---------------------  ---------------------------
- RRR     add Rd,Ra,Rb           RRR
- RX      lea Rd,disp[Ra]        RX
+ RRR     add     Rd,Ra,Rb       RRR
+ RX      lea     Rd,disp[Ra]    RX
 
- RR      inv Rd,Ra              RRR (b ignored), RREXP
- JX      jump disp[Ra]          RX (b ignored)
- KX      jumpc0 d,disp[Ra]      RX (d is constant)
+ RR      inv     Rd,Ra          RRR (b ignored), RREXP
+ JX      jump    disp[Ra]       RX (b ignored)
+ KX      jumpc0  d,disp[Ra]     RX (d is constant)
 
- NO      rfi                    R (d ignored)
- RRK     shiftl Rd,Ra,k         EXP4
- RRKK    getbit Re,Rf,g,h       EXP4 (d ignored)
+ NO      rfi                    EXP0 (d ignored)
+ RRK     shiftl  Rd,Ra,k        EXP4
+ RRKK    getbit  Re,Rf,g,h      EXP4 (d ignored)
  RREXP   execute Re,Rf          EXP4
- RCEXP   getctl R1,mask         EXP8
+ RCEXP   getctl  Re,Cf          EXP4
 -------------------------------------------------------
 
 ### RRR format

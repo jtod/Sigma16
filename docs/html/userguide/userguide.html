@@ -34,7 +34,8 @@ Version 3.0.33
 <li><a href="#further-topics">Further topics</a></li>
 </ul></li>
 <li><a href="#architecture">Architecture</a><ul>
-<li><a href="#subsystems">Subsystems</a></li>
+<li><a href="#data-representation-and-notation">Data representation and notation</a></li>
+<li><a href="#overview-of-the-subsystems">Overview of the subsystems</a></li>
 <li><a href="#register-file">Register file</a><ul>
 <li><a href="#r0-holds-the-constant-0">R0 holds the constant 0</a></li>
 <li><a href="#r15-is-the-condition-code-register">R15 is the condition code register</a></li>
@@ -1042,10 +1043,18 @@ Version 3.0.33
 <p>There are two independent views into the memory; this is convenient for looking at the machine language code in one view and the data in the other view. (Despite the two views, there is just one memory!) At this point the pc register contains 0, meaning that the next instruction to be executed is the one in memory location 0. The ir and other registers also contain 0, but that is just the initial value.</p>
 <p>To set a breakpoint, click Breakpoint and enter the stopping condition in the dialogue box. For example, to stop when the pc register becomes $01b7, enter BPeq BPpc (BPhex “01b7”). Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <h1 id="architecture">Architecture</h1>
-<p>Why use Sigma16?</p>
 <p>Our focus is on fundamental concepts, ideas and principles. Sigma16 illustrates the fundementals of computer systems but it avoids unnecessary complexity. For example, Sigma16 has just one word size (16 bits) while most commercial machines provide a variety. That variety is useful for practical applications but it complicates many of the details while not adding any new fundamental ideas. Most commercial computers that achieve success in the marketplace eventually become encrusted with complications that help support backward compatibility; this can lead to great complexity.</p>
+<h2 id="data-representation-and-notation">Data representation and notation</h2>
 <p>Sigma16 is a 16-bit architecture, and every data value is a 16-bit word. Integers are represented in 16-bit two’s complement notation. The bits of a word are numbered from left to right, starting with 0. Thus the leftmost (most significant) bit of a word is bit 0, and the rightmost (least significant) is bit 15.</p>
-<h2 id="subsystems">Subsystems</h2>
+<p>The value of a word can be written in several ways:</p>
+<ul>
+<li>An unsigned integer between 0 and 65,535 (2^16 - 1)</li>
+<li>A signed integer between -32,768 and 32,767 (-2^15 and 2^15 - 1)</li>
+<li>A 4-digit hexadecimal constant, where the digits are 0-9 a-f. Sometimes, when the context is clear, this is written as just the hex digits (e.g 3b2f). In assembly language programs, hex constants are written with a preceding $ sign (e.g. $3b2f). This is necessary to avoid ambiguity: 1234 is a decimal number and $1234 is a hexadecimal number. In contexts where there is no ambiguiity, the $ may be omitted: for example, the GUi shows register and memory contents as hexadecimal without the leading $.</li>
+</ul>
+<p>Some machine operations act on individual bits in a word. We will use the notation word.n to indicate bit n in the word, where the bits are numbered from 0 at the left (most significant) position up to 15 at the rightmost (least significant) position. For example the fourth bit of R15 can be written as R15.3.</p>
+<p>A <em>field</em> is a consecutiave sequence of bits within a word. For example, we will later define a field named <em>op</em> which consists of bits 0-3 of a word; this means the leftmost four bits of the word.</p>
+<h2 id="overview-of-the-subsystems">Overview of the subsystems</h2>
 <p>The system contains several main subsystems. The most important of these are <em>registers</em>, <em>memory</em>, and <em>logic and arithmetic</em>, and <em>Input/Output</em>. These are described in detail later, but here is a brief synopsis:</p>
 <ul>
 <li><p>A register is a digital circuit that can retain one word of data. A new value can be loaded into a register, and the current contents may be read out. There are a number of special registers as well as a <em>register file</em> that contains 16 registers.</p></li>
@@ -1398,10 +1407,10 @@ Interrupt
 </table>
 <h2 id="instruction-representation">Instruction representation</h2>
 <p>Instructions are represented in the memory of the computer using words, just like all other kinds of data. From the programmer’s perspective, an instruction is like a simple statement in a programming language. From the circuit designer’s perspective, however, instructions must be processed using logic gates, and the specific way it is represented as a word of bits is important.</p>
-<p>An instruction specifies several pieces of information. For example, add R1,R2,R3 is an instruction that says four things: it’s an addition, the result goes into R1, and the operands come from R2 and R3. Therefore to represent instructions we need to organize a word as a collection of several <em>fields</em>.</p>
-<p>The particular scheme for describing an instruction as a collection of fields is called an <em>instruction format</em>. The key to understanding the interface between machine language and digital circuit design is to master the instruction formats.</p>
+<p>An instruction specifies several pieces of information. For example, add R1,R2,R3 is an instruction that says four things: it’s an addition, the result goes into R1, and the operands come from R2 and R3. Therefore to represent instructions we need to organize a word as a collection of several <em>fields</em>, with each field giving one specific piece of information about the instruction.</p>
+<p>The particular scheme for describing an instruction as a collection of fields is called an <em>instruction format</em>. Like most computers, Sigma16 has several instruction formats and a larger number of instructions. The key to understanding the interface between machine language and digital circuit design is to master the instruction formats.</p>
 <h3 id="instruction-fields">Instruction fields</h3>
-<p>An instruction may consist of one word or two words, depending on the instruction format. The first word of every instruction has the following fields.</p>
+<p>An instruction may consist of one word or two words, depending on the instruction format. The first word of every instruction contains the following fields.</p>
 <ul>
 <li>op (bits 0-3) opcode, determines instruction format</li>
 <li>d (bits 4-7) 4-bit destination</li>
@@ -1538,8 +1547,8 @@ Interrupt
 </tr>
 <tr class="odd">
 <td style="text-align: right;">NO RRK RRKK RREXP RCEXP</td>
-<td style="text-align: left;">rfi shiftl Rd,Ra,k getbit Re,Rf,g,h execute Re,Rf getctl R1,mask</td>
-<td style="text-align: center;">R (d ignored) EXP4 EXP4 (d ignored) EXP4 EXP8</td>
+<td style="text-align: left;">rfi shiftl Rd,Ra,k getbit Re,Rf,g,h execute Re,Rf getctl Re,Cf</td>
+<td style="text-align: center;">EXP0 (d ignored) EXP4 EXP4 (d ignored) EXP4 EXP4</td>
 </tr>
 </tbody>
 </table>

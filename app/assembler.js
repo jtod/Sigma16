@@ -17,6 +17,8 @@
 // assembler.js translates assembly language to machine language
 //-------------------------------------------------------------------------------
 
+let opcode_cmp = 4; // for pass2/RR, may want to refactor this
+
 // Buffers to hold generated object code
 let objBufferLimit = 8;             // how many code items to allow per line
 let objectWordBuffer = [];          // list of object code words
@@ -140,6 +142,10 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    dispField : '0',                // displacement field
 	    disp : 0,                       // displacement value
 	    k : 0,                          // constant in RRKEXP format
+            field_d : 0,
+            field_a : 0,
+            field_b : 0,
+            field_disp : 0,
             fielde : 0,                     // EXP: word 2, first 4 bits
             fieldf : 0,                     // EXP: word 2, second 4 bits
             fieldg : 0,                     // EXP: word 2, third 4 bits
@@ -707,14 +713,17 @@ function parseOperand (m,s) {
 	s.operandJX = true;
 	s.dispField = jx[1];
 	s.a = jx[2];
-    } else if (rx) { // R1,xyz[R2]
+    } else if (rx) { // Rd,disp[Ra]
 	s.hasOperand = true;
 	s.operandType = RX;
         console.log (`Found ${s.operandType} operand`);
 	s.operandRX = true;
-	s.d = rx[1];
-	s.dispField = rx[2];
-	s.a = rx[3];
+        s.operand_str1 = rx[1]; // Rd
+        s.operand_str2 = rx[2]; // disp
+        s.operand_str3 = rx[3]; // Ra
+	s.field_d = s.operand_str1;
+	s.field_disp = s.operand_str2;
+	s.field_a = s.operand_str3;
     } else if (kx) { // jumpc1 6,xyz[R2]
 	s.hasOperand = true;
 	s.operandType = KX;
@@ -823,12 +832,13 @@ function asmPass2 (m) {
                     + `operandType=${s.operandType}`);
 	checkOpOp (m,s);
 	if (fmt==RR) { // Rp,Rq
-            // cmp, inv -- destination is Rp, operand a is Rq
+            // cmp has d=0, a=p, b=q
+            // inv has d=p, a=q, b=0
 	    console.log (`pass2 RR`);
 	    op = s.operation.opcode;
-            s.d = s.operand_str1; // Rp
-            s.a = s.operand_str2; // Rq
-            s.b = 0;              // R0 (don't care)
+            s.d = op==opcode_cmp ? 0 : s.operand_str1;
+            s.a = op==opcode_cmp ? s.operand_str1 : s.operand_str2;
+            s.b = op==opcode_cmp ? s.operand_str2 : 0;
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    console.log (`pass2 op=${op} ${wordToHex4(s.codeWord1)}`);
@@ -865,8 +875,10 @@ function asmPass2 (m) {
 	} else if (fmt==RX) {
 	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
-            let v = evaluate(m,s,s.address+1,s.dispField);
+            //	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
+            s.codeWord1 = mkWord(op[0],s.field_d,s.field_a,op[1]);
+            //            let v = evaluate(m,s,s.address+1,s.dispField);
+            let v = evaluate(m,s,s.address+1,s.field_disp);
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {
                 console.log (`relocatable displacement`);
