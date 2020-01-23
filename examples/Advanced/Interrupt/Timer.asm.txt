@@ -2,13 +2,13 @@
 
 ; Request exception for timer
      load   R1,timerBit[R0]         ; flag for timer interrupt
-     putctl R1,imask                ; set interrupt mask
+     putctl R1,mask                 ; set interrupt mask
 
 ; Enable interrupts and prepare interrupt vector
      load   R1,intEnableBit[R0]     ; flag for interrupt enable
      putctl R1,status               ; enable interrupts
      lea    R1,intVector[R0]        ; address of vector
-     putctl R1,ivect                ; initialize vector register
+     putctl R1,vect                ; initialize vector register
 
 ; Run a loop
      load   R1,nIterations[R0]      ; n := 1000

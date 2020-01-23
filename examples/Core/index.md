@@ -12,5 +12,3 @@
 * [Sorting](Sorting/index.html)
 
 * [Subroutines](Subroutines/index.html)
-
-* [Testing](Testing/index.html)

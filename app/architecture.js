@@ -18,7 +18,10 @@
 // bits, and other aspects of the architecture.
 //-------------------------------------------------------------------------------
 
-// Instruction mnemonics
+
+//-------------------------------------------------------------------------------
+// Instruction table
+//-------------------------------------------------------------------------------
 
 const mnemonicRRR =
   ["add",     "sub",     "mul",     "div",
@@ -182,29 +185,31 @@ statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
 statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
 
 // Mnemonics for EXP instructions
+// Expanded instructions with one word: opcode 0,...,7
 // EXP0
 statementSpec.set("rfi",      {format:EXP0,      opcode:[14,0]});
-// RREXP
-statementSpec.set("execute",  {format:RREXP,     opcode:[14,8]});
-// RCEXP
-statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,16]});
-statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,17]});
-// RRREXP
-statementSpec.set("push",     {format:RRREXP,    opcode:[14,24]});
-statementSpec.set("pop",      {format:RRREXP,    opcode:[14,25]});
-statementSpec.set("top",      {format:RRREXP,    opcode:[14,26]});
-// RRKEXP
-statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,32]});
-statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,33]});
-// RRKKEXP
-statementSpec.set("getbit",   {format:RRKKEXP,   opcode:[14,34]});
-statementSpec.set("getbiti",  {format:RRKKEXP,   opcode:[14,35]});
-statementSpec.set("putbit",   {format:RRKKEXP,   opcode:[14,36]});
-statementSpec.set("putbiti",  {format:RRKKEXP,   opcode:[14,37]});
-statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,38]});
+// Expanded instructions with two words: opcode >= 8
 // RRXEXP
-statementSpec.set("save",     {format:RRXEXP,    opcode:[14,64]});
-statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,65]});
+statementSpec.set("save",     {format:RRXEXP,    opcode:[14,8]});
+statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,9]});
+// RCEXP
+statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,10]});
+statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,11]});
+// RRREXP
+statementSpec.set("push",     {format:RRREXP,    opcode:[14,12]});
+statementSpec.set("pop",      {format:RRREXP,    opcode:[14,13]});
+statementSpec.set("top",      {format:RRREXP,    opcode:[14,14]});
+// RRKEXP
+statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,15]});
+statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,16]});
+statementSpec.set("getbit",   {format:RRKEXP,    opcode:[14,17]});
+statementSpec.set("getbiti",  {format:RRKEXP,    opcode:[14,18]});
+statementSpec.set("putbit",   {format:RRKEXP,    opcode:[14,19]});
+statementSpec.set("putbiti",  {format:RRKEXP,    opcode:[14,20]});
+// RREXP
+statementSpec.set("execute",  {format:RREXP,     opcode:[14,21]});
+// RRKKEXP
+statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,22]});
 
 // Assembler directives
 statementSpec.set("module",  {format:DirModule,  opcode:[]});

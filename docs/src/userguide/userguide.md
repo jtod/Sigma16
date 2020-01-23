@@ -757,25 +757,38 @@ piece of information about the instruction.
 
 The particular scheme for describing an instruction as a collection of
 fields is called an *instruction format*.  Like most computers,
-Sigma16 has several instruction formats and a larger number of
+Sigma16 has a small number of instruction formats and a larger number of
 instructions.  The key to understanding the interface between machine
 language and digital circuit design is to master the instruction
 formats.
 
+The core architecture (the simplest part of the system) uses just the
+RRR format (for instructions that perform operations in the registers)
+and the RX format (for instructions that refer to a memory location.)
+The advanced parts of the architecture provide additional instructions
+which are represented with the EXP format.
+
 ### Instruction fields
 
 An instruction may consist of one word or two words, depending on the
-instruction format.  The first word of every instruction contains the
-following fields.
+instruction format.  These words are subdivided into 4-bit *fields*,
+each with a unique name:
 
-* op  (bits 0-3) opcode, determines instruction format
-* d   (bits 4-7) 4-bit destination
-* a   (bits 8-11) 4-bit operand
-* b   (bits 12-15) 4-bit operand, or expanded opcode for RX
-* ab  (bits 8-15)  8-bit expanded opcode for EXP
+~~~~
+   ---------------------
+   | op |  d |  a |  b |
+   ---------------------
+   |  e |  f |  g |  h |
+   ---------------------
+~~~~
 
-An instruction may either use a and b as separate 4-bit fields, or it
-can combine them into a single 8-bit field called ab.
+Some instruction formats combine two of the 4-bit fields to form a
+larger field:
+
+* The a and b fields may be combined to form an 8-bit field called ab
+* The g and h fields may be combined to form an 8-bit field called gh
+* The e, f, g, h fields may be combined to form a 16-bit field called
+  disp
 
 <table class="wordlayout"">
  <tr>
@@ -800,6 +813,15 @@ and b fields.  If the op field contains 15 (hex f) the instruction is
 RX format with a secondary opcode in the b field.  The instruction
 formats are described below.
 
+The first word of every instruction contains the
+following fields.
+
+* op  (bits 0-3) opcode, determines instruction format
+* d   (bits 4-7) 4-bit destination
+* a   (bits 8-11) 4-bit operand
+* b   (bits 12-15) 4-bit operand, or expanded opcode for RX
+* ab  (bits 8-15)  8-bit expanded opcode for EXP
+
 A second word is needed to represent RX, EXP4 and EXP8 formats.  There
 are individual names for the individual 4-bit fields, as well as names
 (disp, gh) for larger fields.
@@ -811,47 +833,116 @@ are individual names for the individual 4-bit fields, as well as names
 * gh (bits 8-15) 8-bit operand
 * disp (bits 0-15) 16 bit operand "displacement"
 
-### Instruction formats
 
-There are several instruction formats.  The core architecture (the
-simplest part of the system) uses two:
+There are two kinds of format: the machine instruction formats, and
+the assembly language instruction statement formats.  There are three
+machine instruction formats: RRR, RX, EXP0, EXP4, EXP8.  However,
+there is a larger set of assembly language statement formats, because
+there are special syntaxes for some instructions, and there are
+assembler directives that aren't instructions at all.  The assembly
+language formats are described later.
 
-* RRR -- Instructions that perform operations on data in registers,
-         but not referring to memory.  The representation is one word.
+The core architecture has only two instruction formats: RRR and RX.
 
-* RX --  Instructions that specify a memory location as well as a
-         register operand.  The representation is two words.
-        
-The advanced parts of the architecture provide additional instructions
-and these are represented with a a format called EXP.  An EXP
-instruction contains 14 (hex e) in the op field, and the a and b
-fields are combined into a single 8-bit number that contains a
+### RRR format
+
+RRR instructions perform operations on data in registers,
+but not referring to memory.  The representation is one word.
+
+RRR instructions: op is the operation code which determines the
+instruction; op must be between 0 and 13 (hex 0 to hex d).  The
+destination register is Rd, the operands are Ra and Rb.
+
+~~~~
+---------------------
+| op |  d |  a |  b |
+---------------------
+~~~~
+
+### RX format
+
+RX instructions that specify a memory location as well as a
+register operand.  The representation is two words.
+
+RX instructions are two words, where op=15, b contains the secondary
+opcode which specifies which RX instruction it is, d is the
+destination, a is the index register, and the second word is a 16 bit
+constant called the displacement (often written disp for short).
+
+~~~~
+---------------------
+| op |  d |  a |  b |
+---------------------
+|    displacement   |
+---------------------
+~~~~
+
+### EXP0 format
+
+An EXP0 instruction is one word, and only one operand field (the d
+field) is available.  (There are 0 fields in the second word; hence
+the name EXP0.)  The op field contains e, and the a and b fields are
+combined to form an 8-bit opcode.
+
+An EXP instruction contains 14 (hex e) in the op field, and the a and
+b fields are combined into a single 8-bit number that contains a
 secondary opcode.  This means that the EXP format allows for 256
 instructions.  This greatly expands the number of instructions that
 can be accommodated, and it allows for experimental instructions for
 research purposes.  (The name EXP stands simultaneously for both
 EXPansion and EXPerimentation.)
 
-There are three variants of the EXP format.  The secondary opcode (in
-the a and b fields) specifies the EXP variant as well as the
-individual instruction.  The variants are:
+The EXP0 format is one word, where op=14 (hex e) and the a and b
+fields are combined into an 8-bit secondary operation code.  There is
+only one operand, Rd.
 
-* EXP0 -- An is one word, and only one operand field (the d field) is
-          available.  (There are 0 fields in the second word; hence
-          the name EXP0.)  The op field contains e, and the a and b
-          fields are combined to form an 8-bit opcode.
+~~~~
+---------------------
+| op |  d |    ab   |
+---------------------
+~~~~
 
-* EXP4 -- The instruction is two words, with a 4-bit operand in the
-          first word and four more in the second word.  (It's called
-          EXP4 because the second word contains 4 4-bit operands.)
-          
-* EXP8 -- The instruction is two words, with three 4-bit operands and
-          an 8-bit operand.  (It's called EXP8 because it provides an
-          8-bit operand.)
+### EXP4 format
+
+An EXP4 instruction instruction is two words, with a 4-bit operand in
+the first word and four more in the second word.  (It's called EXP4
+because the second word contains 4 4-bit operands.)
+
+The EXP4 format is two words.  As with all EXP instructions, ab gives
+an expanded operation code.  In EXP4, the second word contains four
+4-bit fields e, f, g, h, which may contain register numbers or 4-bit
+constants.
+
+~~~~
+---------------------
+| op |  d |    ab   |
+---------------------
+|  e |  f |  g |  h |
+---------------------
+~~~~
+
+### EXP8 format
+
+An EXP8 instruction is two words, with three 4-bit operands and an
+8-bit operand.  (It's called EXP8 because it provides an 8-bit
+operand.)
 
 The following table summarises the instruction formats.  The core of
 the architecture needs only the first two (RRR and RX).  The more
 advanced features require the 
+
+The EXP8 format is similar to EXP4, except that the g and h fields are
+combined to form n 8-bit constant.
+
+~~~~
+---------------------
+| op |  d |    ab   |
+---------------------
+|  e |  f |    gh   |
+---------------------
+~~~~
+
+### Summary of instruction formats
 
 Table: **Machine language instruction formats**
 

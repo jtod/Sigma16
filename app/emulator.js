@@ -925,8 +925,59 @@ function rx_nop (es) {
 
 // EXP format
 
-function exp_shl (es) {
-    console.log ("exp_shl");
+
+function exp1_nop (es) {
+    console.log ('exp1_nop');
+}
+
+function exp1_rfi (es) {
+    console.log ('exp1_rfi');
+    statusreg.put (istat.get());
+    pc.put (ipc.get());
+}
+
+function exp2_save (ex) {
+    console.log ('exp2_save');
+}
+
+
+function exp2_restore (ex) {
+    console.log ('exp2_restore');
+}
+
+// temp like put
+function exp2_getctl (es) {
+    console.log ('exp2_getctl');
+    let cregn = es.field_f;
+    let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
+    console.log (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
+    regFile[es.field_e].put(register[cregidx].get());
+}
+function exp2_putctl (es) {
+    console.log ('exp2_putctl');
+    let cregn = es.field_f;
+    let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
+    console.log (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
+    console.log (`es.ir_d=${es.ir_d}`);
+    register[cregidx].put(regFile[es.field_e].get());
+    register[cregidx].refresh();
+}
+
+function exp2_push (es) {
+    console.log ('exp2_push');
+}
+
+
+function exp2_pop (es) {
+    console.log ('exp2_pop');
+}
+
+function exp2_top (es) {
+    console.log ('exp2_top');
+}
+
+function exp2_shiftl (es) {
+    console.log ("exp2_shiftl");
     console.log (`exp_shl ${wordToHex4(es.instrDisp)}`);
     let a = (es.instrDisp & 0xf000) >>> 12;
     let aa = regFile[a].get();
@@ -937,8 +988,8 @@ function exp_shl (es) {
     console.log (`exp_shl d=${es.ir_d} a=${a} k=${k} result=${result}`);
 }
 
-function exp_shr (es) {
-    console.log ("exp_shr");
+function exp2_shiftr (es) {
+    console.log ("exp2_shiftr");
     console.log (`exp_shr ${wordToHex4(es.instrDisp)}`);
     let a = (es.instrDisp & 0xf000) >>> 12;
     let aa = regFile[a].get();
@@ -949,32 +1000,36 @@ function exp_shr (es) {
     console.log (`exp_shr d=${es.ir_d} a=${a} k=${k} result=${result}`);
 }
 
-function exp_putctl (es) {
-    console.log ('exp_putctl');
-    let cregn = es.instrDisp;
-    let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
-    console.log (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
-    console.log (`es.ir_d=${es.ir_d}`);
-    register[cregidx].put(regFile[es.ir_d].get());
-    register[cregidx].refresh();
+
+function exp2_getbit (es) {
+    console.log ('exp2_getbit');
 }
 
-// temp like put
-function exp_getctl (es) {
-    console.log ('exp_putctl');
-    let cregn = es.instrDisp;
-    let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
-    console.log (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
-    regFile[es.ir_d].put(register[cregidx].get());
+function exp2_getbiti (es) {
+    console.log ('exp2_getbiti');
 }
 
-function exp_rfi (es) {
-    console.log ('exp_rfi');
-    statusreg.put (istat.get());
-    pc.put (ipc.get());
+function exp2_putbit (es) {
+    console.log ('exp2_putbit');
 }
 
-const expf = (f) => (es) => {
+function exp2_putbiti (es) {
+    console.log ('exp2_putbiti');
+}
+
+
+function exp2_execute (es) {
+    console.log ('exp2_execute');
+}
+
+
+function exp2_extract (es) {
+    console.log ('exp2_extract');
+}
+
+
+// EXP format instructions that use only one word
+const exp1 = (f) => (es) => {
     let expCode = 16*es.ir_a + es.ir_b;
     es.instrOpStr = mnemonicEXP[expCode];
     es.instrDisp = memFetchInstr (pc.get());
@@ -984,14 +1039,56 @@ const expf = (f) => (es) => {
     f(es);
 }
 
+// EXP format instructions that require a second word
+const exp2 = (f) => (es) => {
+    let expCode = 16*es.ir_a + es.ir_b;
+    es.instrOpStr = mnemonicEXP[expCode];
+    es.instrDisp = memFetchInstr (pc.get());
+    adr.put (es.instrDisp);
+    es.nextInstrAddr = binAdd (es.nextInstrAddr, 1);
+    pc.put (es.nextInstrAddr);
+    let tempinstr = es.instrDisp;
+    es.field_gh = tempinstr & 0x00ff;
+    es.field_h = tempinstr & 0x000f;
+    tempinstr = tempinstr >>> 4;
+    es.field_g = tempinstr & 0x000f;
+    tempinstr = tempinstr >>> 4;
+    es.field_f = tempinstr & 0x000f;
+    tempinstr = tempinstr >>> 4;
+    es.field_e = tempinstr & 0x000f;
+    console.log(`EXPF code=${expCode} d=${es.ir_d} es.instrDisp=${wordToHex4(es.instrDisp)}`);
+    f(es);
+}
 
-const maxEXPcode = 4;  // any code above this is nop
+
+const maxEXPcode = 22;  // any code above this is nop
 const dispatch_EXP =
-    [ expf (exp_shl),       // 0
-      expf (exp_shr),       // 1
-      expf (exp_putctl),    // 2
-      expf (exp_getctl),    // 3
-      expf (exp_rfi)       // 4
+      [ exp1 (exp1_rfi),       // 0
+        exp1 (exp1_nop),       // 1
+        exp1 (exp1_nop),       // 2
+        exp1 (exp1_nop),       // 3
+        exp1 (exp1_nop),       // 4
+        exp1 (exp1_nop),       // 5
+        exp1 (exp1_nop),       // 6
+        exp1 (exp1_nop),       // 7
+        
+        exp2 (exp2_save),      // 8
+        exp2 (exp2_restore),   // 9
+        exp2 (exp2_getctl),    // 10
+        exp2 (exp2_putctl),    // 11
+        exp2 (exp2_push),      // 12
+        exp2 (exp2_pop),       // 13
+        exp2 (exp2_top),       // 14
+
+        exp2 (exp2_shiftl),    // 15
+        exp2 (exp2_shiftr),    // 16
+        exp2 (exp2_getbit),    // 17
+        exp2 (exp2_getbiti),   // 18
+        exp2 (exp2_putbit),    // 19
+        exp2 (exp2_putbiti),   // 20
+        exp2 (exp2_execute),   // 21
+        exp2 (exp2_extract),   // 22
+
     ]
 
 

@@ -134,23 +134,15 @@ function mkAsmStmt (lineNumber, address, srcLine) {
             operand_str2 : '',
             operand_str3 : '',
             operand_str4 : '',
-	    d : 0,                          // destination
-	    a : 0,                          // source a
-	    b : 0,                          // source b
-	    rr1 : 0,                        // first reg in rr asm format
-	    rr2 : 0,                        // second reg in rr asm format
-	    dispField : '0',                // displacement field
-	    disp : 0,                       // displacement value
-	    k : 0,                          // constant in RRKEXP format
             field_d : 0,
             field_a : 0,
             field_b : 0,
             field_disp : 0,
-            fielde : 0,                     // EXP: word 2, first 4 bits
-            fieldf : 0,                     // EXP: word 2, second 4 bits
-            fieldg : 0,                     // EXP: word 2, third 4 bits
-            fieldh : 0,                     // EXP: word 2, fourth 4 bits
-	    fieldgh : 0,                    // EXP: word 2, last 8 bits
+            field_e : 0,                     // EXP: word 2, first 4 bits
+            field_f : 0,                     // EXP: word 2, second 4 bits
+            field_g : 0,                     // EXP: word 2, third 4 bits
+            field_h : 0,                     // EXP: word 2, fourth 4 bits
+	    field_gh : 0,                    // EXP: word 2, last 8 bits
 	    dat : 0,                        // data value
             identarg : '',                     // identifier operand
 	    codeSize : 0,                   // number of words generated
@@ -159,6 +151,16 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    errors : []                     // array of lines of error messages
 	   }
 }
+
+/* deprecated
+	    disp : 0,                       // displacement value
+	    d : 0,                          // destination
+	    a : 0,                          // source a
+	    b : 0,                          // source b
+	    rr1 : 0,                        // first reg in rr asm format
+	    rr2 : 0,                        // second reg in rr asm format
+	    k : 0,                          // constant in RRKEXP format
+*/
 
 const missing = 0;  // indicates that a component of a statement is missing
 
@@ -183,7 +185,7 @@ function printAsmStmt (m,x) {
 		 + ' JX=' + x.operandJX
 		 + ' DATA=' + x.operandDATA);
     console.log ('  d=' + x.d + ' a=' + x.a + ' b=' + x.b
-		 + ' disp=' + x.disp + ' dat=' + x.dat);
+		 + ' disp=' + x.field_disp + ' dat=' + x.dat);
     console.log ('  address = ' + x.address
 		 + ' codesize=' + x.codeSize
 		 + ' codeWord1=' + x.codeWord1 + ' codeWord2=' + x.codeWord2);
@@ -242,10 +244,20 @@ function assembler () {
 }
 
 //----------------------------------------------------------------------
-//  Parser
+//  Regular expressions for the parser
 //----------------------------------------------------------------------
 
 // Syntax of assembly language
+
+// a constant value is
+// a label is   (?:[a-zA-Z][a-zA-Z0-9]*)
+// $ followed by 4 hex digits      (?:\$[0-9a-f]{4})
+//  a decimal number with optional sign   (?:-?[0-9]+)
+
+// parse displacement separately, for RX just use ([a-zA-Z0-9\$]+)
+// ((?:[a-zA-Z][a-zA-Z0-9]*)|(?:\$[0-9a-f]{4})|(?:-?[0-9]+))
+
+// const constParser = /^(dec number) | (hex const) $/;
 
 const nameParser = /^[a-zA-Z][a-zA-Z0-9]*$/;
 const rrParser =
@@ -328,20 +340,14 @@ const parseString = /"((\\")|[^"])*"/;
 // are legal for the displacement field, but the field needs to be
 // checked for validity (e.g. 23xy is not a valid displacement).
 
+
+//----------------------------------------------------------------------
+//  Testing the regular expressions
+//----------------------------------------------------------------------
+
 // Test a parser p on a string s and print the fields that are extracted.
 // Example: testParser (rxParser, "R7,$2d3[R5]")
 
-
-// A statement consists of a sequence of fields and whitespace-fields.
-// Each is optional.  The structure is:
-
-// label, whitespace, operation, whitespace, operands, whitespace
-
-// optional label field.
-
-// if label: label.  optional space. operation. optional
-// space. operands.  if no label.  A field consists of normal
-// characters (non space, non ;) or strings
 
 // White space is matched by (\s+)
 
@@ -362,7 +368,6 @@ const parseString = /"((\\")|[^"])*"/;
 
 // Field is    (  (" (\" | ^")*  ")   |  (^ ";) ) +
 // Field is    (  ("((\\")|[^"])*")   |  [^\\s";]) ) +
-
 
 const regExpString = '"((\")|[^"])*"';
 
@@ -497,32 +502,17 @@ function highlightField (xs,highlight) {
     return "<span class='" + highlight + "'>" + xs + "</span>";
 }
 
+
 //----------------------------------------------------------------------
-//  Assembler Pass 1
+//  Parser
 //----------------------------------------------------------------------
 
-function asmPass1 (m) {
-    let asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
-    console.log('assembler pass 1: ' + asmSrcLines.length + ' source lines');
-    for (let i = 0; i < asmSrcLines.length; i++) {
-	m.asmStmt[i] = mkAsmStmt (i, m.locationCounter, asmSrcLines[i]);
-	let s = m.asmStmt[i];
-	console.log(`pass1 i=  ${i} src= + ${s.srcLine}`);
+// Parse the source for line i and update the object with the results.
+// Each source line is a statement; a statement consists of a sequence
+// of fields and whitespace-fields.  Each is optional.  The structure
+// is:
 
-	parseAsmLine (m,i);
-	m.locationCounter += m.asmStmt[i].codeSize;
-//	printAsmStmt(m.asmStmt[i]);
-    }
-}
-
-function printAsmStmts (m) {
-//    console.log('printAsmStmts');
-    for (let i = 0; i < m.asmStmt.length; i++) {
-	printAsmStmt(m.asmStmt[i]);
-    }
-}
-
-// Parse the source for line i and update the object with the results
+// label, whitespace, operation, whitespace, operands, whitespace
 
 function parseAsmLine (m,i) {
     let s = m.asmStmt[i];
@@ -558,29 +548,6 @@ function parseAsmLine (m,i) {
                   symUsageLines : [],
 	          defLine : s.lineNumber+1});
 	}
-    }
-}
-
-// If operand isn't correct type for the operation, give an error
-// message.  The operations that need to have the operand checked jave
-// code <= DATA.  The higher operations either don't need an operand
-// (COMMENT) or need to be checked individually (DIRECTIVE).
-
-function checkOpOp (m,s) {
-    console.log(`checkOpOp line ${s.lineNumber}`);
-    let format = s.format;
-    let operandType = s.operandType;
-    console.log (`checkOpOp operation=${s.operation} format=${format} operandType=${operandType}`);
-    if (format==operandType
-        || (format==RRREXP && operandType==RRR)
-        || (format==RREXP && operandType==RR)
-        || (format==EXP0)) {
-        return true;
-    }
-    if (format > 11) {return true}
-    if (format <= DATA && format != operandType) {
-	let msg = `${s.fieldOperation} is ${showFormat(format)} format, but operand type is ${showFormat(operandType)}`;
-	mkErrMsg (m,s,msg);
     }
 }
 
@@ -625,32 +592,27 @@ function parseOperation (m,s) {
     }
 }
 
-// a constant value is
-// a label is   (?:[a-zA-Z][a-zA-Z0-9]*)
-// $ followed by 4 hex digits      (?:\$[0-9a-f]{4})
-//  a decimal number with optional sign   (?:-?[0-9]+)
 
-// parse displacement separately, for RX just use ([a-zA-Z0-9\$]+)
-// ((?:[a-zA-Z][a-zA-Z0-9]*)|(?:\$[0-9a-f]{4})|(?:-?[0-9]+))
+// parseOperand (m,s): m is the module being assembled, and s is the
+// current statement, where s.srcOperands has already been set to the
+// operand field of the statement. Parse s.srcOperands, set string
+// variables to the various operand fields, and set flags indicating
+// what type of operand field has been found.  The results are set in
+// object variables belonging to s.
 
-// const constParser = /^(dec number) | (hex const) $/;
+// An operand field contains a pattern that determines the type of operand (e.g. rrk or jx etc) and the actual text of each operand.  The function operates by checking the regular expression for every operand type against the operand field text.  Most of these are disjoint but there are some exceptions; for example a valid operand for an import statement could also be interpreted as an operand for a data statement.
 
-// parse a source operand src and return an object describing the
-// result of parsing the src text as an operand, which must be either
-// rrr, rx, or data
-
-// s is an AsmStmt object; parse the operand and update s
 function parseOperand (m,s) {
-    let rr  = rrParser.exec  (s.fieldOperands);
-    let rc  = rcParser.exec (s.fieldOperands);
-    let rrr = rrrParser.exec (s.fieldOperands);
-    let rrk = rrkParser.exec (s.fieldOperands);
+    let rr   = rrParser.exec  (s.fieldOperands);
+    let rc   = rcParser.exec (s.fieldOperands);
+    let rrr  = rrrParser.exec (s.fieldOperands);
+    let rrk  = rrkParser.exec (s.fieldOperands);
     let rrkk = rrkkParser.exec (s.fieldOperands);  // need this parser
-    let jx  = jxParser.exec  (s.fieldOperands);
-    let rx  = rxParser.exec  (s.fieldOperands);
-    let kx  = kxParser.exec  (s.fieldOperands);
-    let rrx = rrxParser.exec  (s.fieldOperands);
-    let dat = datParser.exec (s.fieldOperands);
+    let jx   = jxParser.exec  (s.fieldOperands);
+    let rx   = rxParser.exec  (s.fieldOperands);
+    let kx   = kxParser.exec  (s.fieldOperands);
+    let rrx  = rrxParser.exec  (s.fieldOperands);
+    let dat  = datParser.exec (s.fieldOperands);
     let ident = identParser.exec (s.fieldOperands);  // identifier (directive)
 //  let exp = expParser.exec (s.fieldOperands);       // expression (directive)
 // Check non-exclusive operand formats: ident
@@ -667,17 +629,14 @@ function parseOperand (m,s) {
 	s.operandRR = true;
 	s.operand_str1 = rr[1]; // Rp
 	s.operand_str2 = rr[2]; // Rq
-    } else if (rc) { // R2,mask
+    } else if (rc) { // Re,Cf
 	console.log ('rc');
 	s.hasOperand = true;
 	s.operandType = RCEXP;
         console.log (`Found ${s.operandType} operand`);
 	s.operandRCEXP = true;
-	s.d = rc[1];
-	let ctlRegName = rc[2]
-	let ctlRegIdx = findCtlIdx (m,s,ctlRegName);
-	s.ctlReg = ctlRegIdx;
-	console.log (`rc d=${s.d} ctlreg=${ctlRegName} ctlRegIdx=${ctlRegIdx}`);
+	s.operand_str1 = rc[1]; // Re
+	s.operand_str2 = rc[2]; // Cf
     } else if (rrr) { // Rp,Rq,Rr
 	s.hasOperand = true;
 	s.operandType = RRR;
@@ -686,13 +645,16 @@ function parseOperand (m,s) {
 	s.operand_str1 = rrr[1]; // Rp
 	s.operand_str2 = rrr[2]; // Rq
 	s.operand_str3 = rrr[3]; // Rr
-    } else if (rrk) { // R2,R3,5
+    } else if (rrk) { // Re,Rf,g
 	console.log ('rrk');
 	s.hasOperand = true;
 	s.operandType = RRKEXP;
         console.log (`Found ${s.operandType} operand`);
 	s.operandRRKEXP = true;
-	s.d = rrk[1];
+	s.operand_str1 = rrk[1]; // Re
+	s.operand_str2 = rrk[2]; // Rf
+	s.operand_str3 = rrk[3]; // k
+	s.field_ed = rrk[1];
 	s.a = rrk[2];
 	s.k = rrk[3];
     } else if (rrkk) { // R2,R3,5,3
@@ -706,13 +668,15 @@ function parseOperand (m,s) {
 	s.operand_str3 = rrkk[3];
 	s.operand_str4 = rrkk[4];
         console.log (`pass1 rrkk 1=${s.operand_str1} 2=${s.operand_str2} 3=${s.operand_str3} 4=${s.operand_str4}`);
-    } else if (jx) { // xyz[R2]
+    } else if (jx) { // disp[Ra]
 	s.hasOperand = true;
 	s.operandType = JX;
         console.log (`Found ${s.operandType} operand`);
 	s.operandJX = true;
-	s.dispField = jx[1];
-	s.a = jx[2];
+	s.operand_str1 = jx[1]; // disp
+	s.operand_str2 = jx[2]; // Ra
+	s.field_disp = s.operand_str1;
+	s.field_a = s.operand_str2;
     } else if (rx) { // Rd,disp[Ra]
 	s.hasOperand = true;
 	s.operandType = RX;
@@ -724,26 +688,33 @@ function parseOperand (m,s) {
 	s.field_d = s.operand_str1;
 	s.field_disp = s.operand_str2;
 	s.field_a = s.operand_str3;
-    } else if (kx) { // jumpc1 6,xyz[R2]
+    } else if (kx) { // jumpc1 Rd,disp[Ra]
 	s.hasOperand = true;
 	s.operandType = KX;
         console.log (`Found ${s.operandType} operand`);
-	s.operandRX = true;
-	s.d = kx[1];
-	s.dispField = kx[2];
-	s.a = kx[3];
-    } else if (rrx) { // R2,R3,xyz[R4]
+	s.operandKX = true;
+        s.operand_str1 = kx[1]; // Rd
+        s.operand_str2 = kx[2]; // disp
+        s.operand_str3 = kx[3]; // Ra
+	s.field_d = s.operand_str1;
+	s.field_disp = s.operand_str2;
+	s.field_a = s.operand_str3;
+    } else if (rrx) { // Rd,Re,gh[Rf]
         console.log ('RRX');
 	s.hasOperand = true;
 	s.operandType = RRXEXP;
         console.log (`Found ${s.operandType} operand`);
 	s.operandRX = true;
         console.log (`rrx 1=${rrx[1]} 2=${rrx[2]} 3=${rrx[3]} 4=${rrx[4]} `)
-	s.fielde = rrx[1];      // start register
-	s.fieldf = rrx[2];      // end register
-	s.dispField = rrx[3];   // displacement
-	s.d = rrx[4];           // index register is in word 1 d field
-        console.log (`rrx e=${s.fielde} f=${s.fieldf} disp=${s.dispField} x=${s.d}`)
+        s.operand_str1 = rrx[1]; // Rd
+        s.operand_str2 = rrx[2]; // Re
+        s.operand_str3 = rrx[3]; // gh
+        s.operand_str4 = rrx[4]; // Rf
+	s.field_d  = s.operand_str1;      // start register
+	s.field_e  = s.operand_str2;      // start register
+	s.field_gh = s.operand_str3;   // displacement
+	s.field_f  = s.operand_str4;      // end register
+        console.log (`rrx e=${s.field_e} f=${s.field_f} disp=${s.field_disp} x=${s.d}`)
     } else if (dat) { // 34
 	s.hasOperand = true;
 	s.operandType = DATA;
@@ -760,6 +731,56 @@ function parseOperand (m,s) {
         console.log (`Found no operand`);
     }
     return;
+}
+
+
+//----------------------------------------------------------------------
+//  Assembler Pass 1
+//----------------------------------------------------------------------
+
+function asmPass1 (m) {
+    let asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
+    console.log('assembler pass 1: ' + asmSrcLines.length + ' source lines');
+    for (let i = 0; i < asmSrcLines.length; i++) {
+	m.asmStmt[i] = mkAsmStmt (i, m.locationCounter, asmSrcLines[i]);
+	let s = m.asmStmt[i];
+	console.log(`pass1 i=  ${i} src= + ${s.srcLine}`);
+
+	parseAsmLine (m,i);
+	m.locationCounter += m.asmStmt[i].codeSize;
+//	printAsmStmt(m.asmStmt[i]);
+    }
+}
+
+function printAsmStmts (m) {
+//    console.log('printAsmStmts');
+    for (let i = 0; i < m.asmStmt.length; i++) {
+	printAsmStmt(m.asmStmt[i]);
+    }
+}
+
+
+// If operand isn't correct type for the operation, give an error
+// message.  The operations that need to have the operand checked jave
+// code <= DATA.  The higher operations either don't need an operand
+// (COMMENT) or need to be checked individually (DIRECTIVE).
+
+function checkOpOp (m,s) {
+    console.log(`checkOpOp line ${s.lineNumber}`);
+    let format = s.format;
+    let operandType = s.operandType;
+    console.log (`checkOpOp operation=${s.operation} format=${format} operandType=${operandType}`);
+    if (format==operandType
+        || (format==RRREXP && operandType==RRR)
+        || (format==RREXP && operandType==RR)
+        || (format==EXP0)) {
+        return true;
+    }
+    if (format > 11) {return true}
+    if (format <= DATA && format != operandType) {
+	let msg = `${s.fieldOperation} is ${showFormat(format)} format, but operand type is ${showFormat(operandType)}`;
+	mkErrMsg (m,s,msg);
+    }
 }
 
 // Given a string xs, either return the control register index for it
@@ -785,7 +806,7 @@ function showOperand (x) {
 			'---  RRR d=' + x.d + ' a=' + x.a + ' b=' + x.b);
 	} else if (x.operandRX) {
 	    console.log('Operand ---' + x.src +
-			'---  RX d=' + x.d + ' disp=' + x.disp + ' idx=' + x.idx);
+			'---  RX d=' + x.d + ' disp=' + x.field_disp + ' idx=' + x.idx);
 	} else if (x.operandDATA) {
 	    console.log('Operand ---' + x.src +	'---  Data dat=' + x.dat);
 	} else {
@@ -836,20 +857,30 @@ function asmPass2 (m) {
             // inv has d=p, a=q, b=0
 	    console.log (`pass2 RR`);
 	    op = s.operation.opcode;
-            s.d = op==opcode_cmp ? 0 : s.operand_str1;
-            s.a = op==opcode_cmp ? s.operand_str1 : s.operand_str2;
-            s.b = op==opcode_cmp ? s.operand_str2 : 0;
-	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
+            s.field_d = op==opcode_cmp ? 0 : s.operand_str1;
+            s.field_a = op==opcode_cmp ? s.operand_str1 : s.operand_str2;
+            s.field_b = op==opcode_cmp ? s.operand_str2 : 0;
+	    s.codeWord1 = mkWord(op[0],s.field_d,s.field_a,s.field_b);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    console.log (`pass2 op=${op} ${wordToHex4(s.codeWord1)}`);
 	} else if (fmt==RREXP) {
 	    console.log (`pass2 RREXP`);
 	    op = s.operation.opcode;
-            s.d = s.operand_str1; // Rp
-            s.a = s.operand_str2; // Rq
-            s.b = 0;              // R0 (don't care)
+            s.field_e = s.operand_str1; // Rp
+            s.field_f = s.operand_str2; // Rq
 	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-            s.codeWord2 = mkWord(s.a,s.b,0,0);
+            s.codeWord2 = mkWord(s.field_e,s.field_f,0,0);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RCEXP) {
+	    console.log ("pass2 RCEXP");
+	    op = s.operation.opcode;
+            s.field_e = s.operand_str1;
+	    let ctlRegName = s.operand_str2;
+	    let ctlRegIdx = findCtlIdx (m,s,s.operand_str2);
+            s.field_f = ctlRegIdx;
+	    s.codeWord1 = mkWord448(14,0,op[1]);
+	    s.codeWord2 = mkWord(s.field_e,s.field_f,0,0);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RRR) { // Rp,Rq,Rr
@@ -860,63 +891,6 @@ function asmPass2 (m) {
             s.b = s.operand_str3; // Rr
 	    s.codeWord1 = mkWord(op[0],s.d,s.a,s.b);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
-	} else if (fmt==JX) {
-	    console.log (`pass2 JX`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
-            let v = evaluate(m,s,s.address+1,s.dispField);
-	    s.codeWord2 = v.evalVal;
-            if (v.evalRel) {
-                console.log (`relocatable displacement`);
-                generateRelocation (m, s, s.address+1);
-            }
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==RX) {
-	    console.log (`pass2 RX`);
-	    op = s.operation.opcode;
-            //	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
-            s.codeWord1 = mkWord(op[0],s.field_d,s.field_a,op[1]);
-            //            let v = evaluate(m,s,s.address+1,s.dispField);
-            let v = evaluate(m,s,s.address+1,s.field_disp);
-	    s.codeWord2 = v.evalVal;
-            if (v.evalRel) {
-                console.log (`relocatable displacement`);
-                generateRelocation (m, s, s.address+1);
-            }
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==KX) {
-	    console.log (`pass2 KX`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
-            let v = evaluate(m,s,s.address+1,s.dispField);
-	    s.codeWord2 = v.evalVal;
-            if (v.evalRel) {
-                console.log (`relocatable displacement`);
-                generateRelocation (m, s, s.address+1);
-            }
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==EXP0) {
-	    console.log (`pass2 EXP0`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	} else if (fmt==RCEXP) {
-	    console.log ("pass2 RCEXP");
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(14,op[1]);
-	    s.codeWord2 = mkWord(s.d,s.ctlReg,0,0);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
-	} else if (fmt==RRREXP) {
-	    console.log (`pass2 RRREXP`);
-	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-            s.codeWord2 = mkWord(0,s.d,s.a,s.b);
-	    generateObjectWord (m, s, s.address, s.codeWord1);
-	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RRKEXP) {
 	    console.log (`pass2 RRKEXP`);
 	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
@@ -933,15 +907,66 @@ function asmPass2 (m) {
 	    s.codeWord2 = mkWord(s.a,s.k,0,0);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==JX) {
+	    console.log (`pass2 JX`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
+            let v = evaluate(m,s,s.address+1,s.field_disp);
+	    s.codeWord2 = v.evalVal;
+            if (v.evalRel) {
+                console.log (`relocatable displacement`);
+                generateRelocation (m, s, s.address+1);
+            }
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==RX) {
+	    console.log (`pass2 RX`);
+	    op = s.operation.opcode;
+            //	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
+            s.codeWord1 = mkWord(op[0],s.field_d,s.field_a,op[1]);
+            //            let v = evaluate(m,s,s.address+1,s.field_disp);
+            let v = evaluate(m,s,s.address+1,s.field_disp);
+	    s.codeWord2 = v.evalVal;
+            if (v.evalRel) {
+                console.log (`relocatable displacement`);
+                generateRelocation (m, s, s.address+1);
+            }
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==KX) {
+	    console.log (`pass2 KX`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
+            let v = evaluate(m,s,s.address+1,s.field_disp);
+	    s.codeWord2 = v.evalVal;
+            if (v.evalRel) {
+                console.log (`relocatable displacement`);
+                generateRelocation (m, s, s.address+1);
+            }
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+	} else if (fmt==EXP0) {
+	    console.log (`pass2 EXP0`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	} else if (fmt==RRREXP) {
+	    console.log (`pass2 RRREXP`);
+	    op = s.operation.opcode;
+	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+            s.codeWord2 = mkWord(0,s.d,s.a,s.b);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RRXEXP) {
 	    console.log (`pass2 RRXEXP`);
 	    op = s.operation.opcode;
 	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
-            let v = evaluate(m,s,s.address+1,s.dispField);
-            s.codeWord2 = mkWord448(s.fielde,s.fieldf,v.evalVal);
+            let v = 0;
+//            let v = evaluate(m,s,s.address+1,s.field_disp);
+            s.codeWord2 = mkWord448(s.field_e,s.field_f,v.evalVal);
             if (v.evalRel) {
                 mkErrMsg (m,s, `This instruction requires constant displacement\n`
-                          + `       but ${s.dispField} is relocatable`);
+                          + `       but ${s.field_disp} is relocatable`);
             }
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
@@ -1225,85 +1250,3 @@ function testOperand (m,x) {
     showOperand(parseOperand(m,x));
 }
 
-/* from Architecture.hs
-
-----------------------------------------------------------------------
--- Instruction formats
-----------------------------------------------------------------------
-
--- There are two kinds of format: the machine instruction formats, and
--- the assembly language instruction statement formats.  There are
--- three machine instruction formats: RRR, RX, EXP.  However, there is
--- a larger set of assembly language statement formats, because there
--- are special syntaxes for some instructions, and there are assembler
--- directives that aren't instructions at all.
-
--- Opcodes:    op, xop (if op=e), b (if op=f)
--- Registers:  d, a, b, p, q
--- Constants   disp (16 bits), k (8 bits), kp (4 bits), kq (4 bits)
-
--- The first word of every instruction is loaded into ir, and it
--- always has these fields; each is 4 bits
-
---------------------------------------------------------------------
---            Fields              Format         Pseudo format
---------------------------------------------------------------------
-
---    ---------------------
---    | op |  d |  a |  b |    RRR, if op<e      RRR, RR
---    ---------------------
-
--- If the instruction has a second word, it is loaded into adr, and it
--- has several formats, depending on op
- 
---    ---------------------
---    |   xop   |    k    |    EXP, if op=e      RRRK
---    ---------------------
---    |   xop   | kp | kq |    EXP, if op=e      RRRKK
---    ---------------------
---    |   xop   |  p | kq |    EXP, if op=e      RRRRK
---    ---------------------
---    |   xop   |  p |  q |    EXP, if op=e      RRRRR
---    ---------------------
---    |       disp        |    RX,  if op=f      RX, JX
---    ---------------------
-
--- These are the assembly language statement formats; some
--- of them are pseudo formats that map into one of the three
--- architecture formats (RR, EXP, RX).
-
-data InstrFormat
-  = Empty
-  | AsmDir  -- assembler directive
-  | Con     -- constant, for data statement        k16
-  | RRR     -- machine instruction format    op    d,a,b
-  | RR      -- pseudo RRR omit d             op    a,b
-  | EXP     -- EXP expands RRR               op,x  d,a,b
-  | RRRX    -- machine instruction format    op,x  d,a,b
-  | RRRK    -- machine instruction format    op,x  d,a,b,k8
-  | RRRRK   -- pseudo EXP                    op,x  d,a,b,p,k4
-  | RRRRR   -- pseudo EXP                    op,x  d,a,b,p,q
-  | RX      -- machine instruction format    op,b  d,k16[a]
-  | JX      -- pseudo RX cond jump (d)       op,b  k16[a]
-  deriving Show
-
-type InstrSize = Int
-
--- Return the number of words required to represent an instruction of
--- a given format
-
-fmtSize :: InstrFormat -> InstrSize
-fmtSize Empty   = 0
-fmtSize AsmDir  = 0
-fmtSize Con     = 1
-fmtSize RRR     = 1
-fmtSize RR      = 1
-fmtSize RRRX    = 2
-fmtSize RRRK    = 2
-fmtSize RRRRK   = 2
-fmtSize RRRRR   = 2
-fmtSize RX      = 2
-fmtSize JX      = 2
-
-
-*/
