@@ -36,11 +36,13 @@ function editorDownload () {
 function leaveEditor () {
     console.log ('Leaving the editor');
     let m = s16modules[selectedModule];
-    let oldSrc = m.modSrc;
-    let oldSrcCanonical = oldSrc.replace (/\r\n/gm, '\n');
-    let newSrc = document.getElementById("EditorTextArea").value;
-    let newSrcCanonical = newSrc.replace (/\r\n/gm, '\n');
-    if (m.mFile && (oldSrcCanonical != newSrcCanonical)) { m.fileStale = true; }
-    m.modSrc = newSrc;
+    if (m) {
+        let oldSrc = m.modSrc;
+        let oldSrcCanonical = oldSrc.replace (/\r\n/gm, '\n');
+        let newSrc = document.getElementById("EditorTextArea").value;
+        let newSrcCanonical = newSrc.replace (/\r\n/gm, '\n');
+        if (m.mFile && (oldSrcCanonical != newSrcCanonical)) { m.fileStale = true; }
+        m.modSrc = newSrc;
+    }
     hideTabbedPane("EditorPane");
 }

@@ -34,6 +34,9 @@ let currentFile = null;  // deprecated, Remember the current working file handle
 // Create one initial (empty) module and make it the current module
 function initModules () {
     s16modules = [mkModule()];
+    let m = s16modules[0];
+    m.mIndex = 0;
+    
     selectedModule = 0;
 }
 
@@ -51,6 +54,7 @@ function getCurrentModule () {
 function mkModule () {
     console.log('mkModule');
     return {
+        mIndex : null,             // index in s16modules list
 	mFile : null,              // file object associated with module, if any
         fileName : null,           // filename, if exists and is known
 	fileReader : null,         // object to read the file
@@ -82,10 +86,12 @@ function showModule (m) {
 
 // Return the module name and file name, if they exist
 function getModFileName (m) {
-    let mname = m.modName ? `${m.modName}` : '';
-    let fname = m.mFile ? `(${m.mFile.name})` : '';
-    let xs = (m.modName || m.mFile) ? mname + '  ' + fname : '<anonymous>';
-    return xs;
+    if (m) {
+        let mname = m.modName ? `${m.modName}` : '';
+        let fname = m.mFile ? `(${m.mFile.name})` : '';
+        let xs = (m.modName || m.mFile) ? mname + '  ' + fname : '<anonymous>';
+        return xs;
+    } else return "?"
 }
 
 function getModName (m) {
@@ -110,32 +116,44 @@ function handleSelectedFiles (flist) {
     console.log("handleSelectedFiles");
     let m;
     let idxFirstNewMod = nModules;
-    let idxLastNewMod  = nModules + flist.length;
+    let idxLastNewMod  = nModules + flist.length - 1;
     for (let i=0; i<flist.length; i++) {
 	m = mkModule ();
+        m.mIndex = nModules;
 	m.mFile = flist[i];
         m.fileName = m.mFile.name;
 	m.selected = false;
-	m.fileReader = mkOfReader(nModules);
-	m.modSrc = "";
         m.fileRead = false;
+	m.modSrc = "";
+	m.fileReader = mkOfReader(m, nModules, idxFirstNewMod, idxLastNewMod);
 	m.fileReader.readAsText(m.mFile);
 	s16modules.push(m);
 	nModules++;
     }
 }
 
-function mkOfReader (i,a,b) {
-    console.log (`ofReader ${i}`);
+function mkOfReader (m, i,a,b) {
+    console.log (`mkOfReader idx=${m.mIndex} ${i} ${a} ${b}`);
     let fr = new FileReader();
     fr.onload = function (e) {
-	console.log (`ofReader ${i} onload event`);
-	s16modules[i].modSrc = e.target.result;
+        let idx = m.mIndex; // could change after close
+	console.log (`ofReader ${idx} onload event a=${a} b=${b}`);
+        //	s16modules[i].modSrc = e.target.result;
+        m.modSrc = e.target.result;
+        //	s16modules[i].fileRead = true;
+        m.fileRead = true;
         let allOK = true;
-        for (let i=a; i<b; i++) {
-            allOk = allOK && s16modules[i].fileRead;
+//        for (let j=a; j<=b; j++) {
+//            allOK = allOK && s16modules[j].fileRead;
+//            console.log (`mkOfReader looper aok=${allOK} idx=${idx} j=${j}`);
+//        }
+//        console.log (`mkOfReader looper DONE aok=${allOK} idx=${idx}`);
+        if (allOK) {
+            console.log (`mkOfReader onload calling refresh idx=${idx}`);
+            refreshModulesList() // do after all files are in
+        } else {
+            console.log (`mkOfReader onload NOT calling refresh idx${idx}`);
         }
-        if (allOK) { refreshModulesList() } // do after all files are in
     }
     return fr;
 }
@@ -144,27 +162,13 @@ function mkOfReader (i,a,b) {
 // Display list of modules
 //-------------------------------------------------------------------------------
 
-// Return brief descriptions of all the modules.  A fuller description
-// is produced by editor . refreshModulesList()
-
-function oldshowModules () {
-    //    let xs = s16modules.length + ' modules\n';
-    let xs = ' modules\n';
-    for (let i = 0; i < s16modules.length; i++) {
-	console.log(i);
-	xs += i + '. ' + showModule (s16modules[i]);
-	console.log(xs);
-    }
-    return xs;
-}
-
 // Produce a formatted list of all open modules and display in Modules page
 
 function refreshModulesList() {
     console.log ('refreshModulesList');
     let xs, ys = "\n<hr>";
     let m, sel, spanClass, mName, fName, mfName;
-    for (let i=0; i<nModules; i++) {
+    for (let i=0; i<s16modules.length; i++) {
 	m = s16modules[i];
         mfName = getModFileName (m);
 	sel = selectedModule===i;
@@ -181,32 +185,41 @@ function refreshModulesList() {
 	    + '</pre>\n\n'
             + '<hr>\n\n';
     }
-    console.log (spanClass);
-    console.log (ys);
+//    console.log (spanClass);
+//    console.log (ys);
     let elt = document.getElementById('FilesBody');
     elt.innerHTML = ys;
 }
 
 function modulesButtonSelect (i) {
     console.log (`modulesButtonSelect ${i}`);
-    s16modules[selectedModule].selected = false;
+    let m = s16modules[i];
     selectedModule = i;
-    s16modules[i].selected = true;
-    editorBufferTextArea.value = s16modules[i].modSrc;
+    m.selected = true;
+    editorBufferTextArea.value = m.modSrc;
+    document.getElementById("AsmTextHtml").innerHTML = "";
     refreshModulesList();
 }
+    //    console.log (`modulesButtonSelect ${m.mIndex}`);
+    //    s16modules[selectedModule].selected = false;
+
 
 // Need to be careful about this affecting refresh, as i has been
-// baked into the file reader
+// baked into the file reader.  Should be fixed now...
 function modulesButtonClose (i) {
     console.log (`filesButtonClose ${i}`);
+    s16modules.splice(i,1);
+    selectedModule = 0;
     refreshModulesList();
 }
 
 // need to set event handler to refresh the modules list
 function modulesButtonRefresh (i) {
-    console.log (`filesButtonRefresh ${i}`);
-    s16modules[i].fileReader.readAsText(s16modules[i].mFile);
+    let m = s16modules[i];
+    console.log (`filesButtonRefresh ${m.mIndex}`);
+    m.fileReader.readAsText(m.mFile);
     refreshModulesList();
 }
+//    let m = s16modules[selectedModule];
+//    s16modules[i].fileReader.readAsText(s16modules[i].mFile);
 
