@@ -675,8 +675,6 @@ function parseOperand (m,s) {
 	s.operandJX = true;
 	s.operand_str1 = jx[1]; // disp
 	s.operand_str2 = jx[2]; // Ra
-	s.field_disp = s.operand_str1;
-	s.field_a = s.operand_str2;
     } else if (rx) { // Rd,disp[Ra]
 	s.hasOperand = true;
 	s.operandType = RX;
@@ -910,7 +908,9 @@ function asmPass2 (m) {
 	} else if (fmt==JX) {
 	    console.log (`pass2 JX`);
 	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord(op[0],op[2],s.a,op[1]);
+	    s.field_disp = s.operand_str1;
+	    s.field_a = s.operand_str2;
+	    s.codeWord1 = mkWord(op[0],0,s.field_a,op[1]);
             let v = evaluate(m,s,s.address+1,s.field_disp);
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {

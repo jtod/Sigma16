@@ -42,6 +42,33 @@ function maskToSetBitBE (i) { return (1 << (15-i)) & 0xffff }
 function clearBitInRegBE (r,i) { r.put (r.get() & maskToClearBitBE(i)) }
 function setBitInRegBE   (r,i) { r.put (r.get() | maskToSetBitBE(i)) }
 
+// Return a word where bit i is 1
+function setBitBE(i) { return 1 << 15-i }
+// old little endian version
+//function setBit(i) { return 1 << i }
+
+// return bit i in word x, where the rightmost bit has index 0
+function extractBitBE (x,i) {
+    return (x >>> 15-i) & 0x00000001;
+// old little endian version
+//    return (x >>> i) & 0x00000001;
+}
+
+// return Boolean from bit i in word x, where the rightmost bit has index 0
+function extractBool (x,i) {
+    return extractBitBE (x,i) === 1;
+}
+
+// Check where this is used ??????????????
+
+var intToBit = function (x) {
+    if (x < 0 || x > 1)
+    {console.log('intToBit invalid int: ' + x);
+     return('#');
+    }
+    return x===0 ? '0' : '1';
+}
+
 //------------------------------------------------------------------------------
 // Bit manipulation - little endian
 //------------------------------------------------------------------------------
@@ -101,12 +128,12 @@ function wordToBool (x) {
 }
 
 // return bit i from word w, result is number (0 or 1)
-function extractBit (w,i) {
-    let foo = 1 << i;
-    let bar = foo & w;
-    console.log (`foo = ${foo}`);
-    return bar===0 ? 0 : 1;
-}
+//function extractBit (w,i) {
+//    let foo = 1 << i;
+//    let bar = foo & w;
+//    console.log (`foo = ${foo}`);
+//    return bar===0 ? 0 : 1;
+//}
 
 // Determine whether a JavaScript number is a valid Sigma16 word
 // (which is represented using binary).  If not, print an error
@@ -200,32 +227,6 @@ function splitWord (x) {
     return [p,q,r,s];
 }
 
-//------------------------------------------------------------------------------
-// Operating on individual bits in a word
-//------------------------------------------------------------------------------
-
-// Return a word where bit i is 1
-function setBit(i) { return 1 << i }
-
-// return bit i in word x, where the rightmost bit has index 0
-function extractBit (x,i) {
-    return (x >>> i) & 0x00000001;
-}
-
-// return Boolean from bit i in word x, where the rightmost bit has index 0
-function extractBool (x,i) {
-    return extractBit (x,i) === 1;
-}
-
-// Check where this is used ??????????????
-
-var intToBit = function (x) {
-    if (x < 0 || x > 1)
-    {console.log('intToBit invalid int: ' + x);
-     return('#');
-    }
-    return x===0 ? '0' : '1';
-}
 
 //------------------------------------------------------------------------------
 // Hexadecimal notation
@@ -372,10 +373,10 @@ function binAdd (x, y) {
 function op_add (a,b) {
     let sum = a + b;
     let primary = sum & 0x0000ffff;
-    let msb = extractBit (sum, 15);
-    let carryOut = extractBit (sum,16);
+    let msb = extractBitBE (sum, 15);
+    let carryOut = extractBitBE (sum,16);
     let binOverflow = carryOut === 1;
-    let tcOverflow = ! (extractBit(sum,14) === extractBit(sum,15));
+    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
@@ -393,10 +394,10 @@ function test_add () {
 function op_sub (a,b) {
     let sum = a + wordInvert (b) + 1;
     let primary = sum & 0x0000ffff;
-    let msb = extractBit (sum, 15);
-    let carryOut = extractBit (sum,16);
+    let msb = extractBitBE (sum, 15);
+    let carryOut = extractBitBE (sum,16);
     let binOverflow = carryOut === 1;
-    let tcOverflow = ! (extractBit(sum,14) === extractBit(sum,15));
+    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
@@ -508,12 +509,12 @@ function op_xor (a,b) {
 }
 
 function op_addc (c,a,b) {
-    let sum = a + b + extractBit(c,bit_ccc);
+    let sum = a + b + extractBitBE(c,bit_ccc);
     let primary = sum & 0x0000ffff;
-    let msb = extractBit (sum, 15);
-    let carryOut = extractBit (sum,16);
+    let msb = extractBitBE (sum, 15);
+    let carryOut = extractBitBE (sum,16);
     let binOverflow = carryOut === 1;
-    let tcOverflow = ! (extractBit(sum,14) === extractBit(sum,15));
+    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
@@ -541,14 +542,14 @@ const bit_ccV = 5;   //    V   overflow   binary
 const bit_ccv = 6;   //    v   overflow   two's complement
 const bit_ccc = 7;   //    c   carry      binary
 
-const ccG = setBit(bit_ccG);
-const ccg = setBit(bit_ccg);
-const ccE = setBit(bit_ccE);
-const ccl = setBit(bit_ccl);
-const ccL = setBit(bit_ccL);
-const ccV = setBit(bit_ccV);
-const ccv = setBit(bit_ccv);
-const ccC = setBit(bit_ccc);
+const ccG = setBitBE(bit_ccG);
+const ccg = setBitBE(bit_ccg);
+const ccE = setBitBE(bit_ccE);
+const ccl = setBitBE(bit_ccl);
+const ccL = setBitBE(bit_ccL);
+const ccV = setBitBE(bit_ccV);
+const ccv = setBitBE(bit_ccv);
+const ccC = setBitBE(bit_ccc);
 
 function showCC (c) {
     console.log (`showCC ${c}`);

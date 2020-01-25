@@ -96,7 +96,7 @@ skipbad2
 
 ; jumpc0
           cmp     R3,R4       ; cc=lt (bit 3)
-          jumpc0  R3,jc0[R0]  ; shouldn't jump, R3 means bit 3 in cc (lt)
+          jumpc0  3,jc0[R0]   ; shouldn't jump, bit 3 in cc (lt)
           add     R0,R0,R0    ; GOOD! should execute
           jump    endjc0[R0]  ; skip bad instruction
 jc0       add     R0,R0,R0    ; BAD! shouldn't execute
@@ -104,7 +104,7 @@ endjc0
 
 ; jumpc1
           cmp     R3,R4       ; cc=lt (bit 3)
-          jumpc1  R3,jc1[R0]  ; should jump, R3 means bit 3 in cc (lt)
+          jumpc1  3,jc1[R0]   ; should jump, bit 3 in cc (lt)
           add     R0,R0,R0    ; BAD! should not execute
           jump    endjc1[R0]  ; skip good instruction
 jc1       add     R0,R0,R0    ; GOOD! should execute

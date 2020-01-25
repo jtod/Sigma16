@@ -49,6 +49,7 @@ let emulatorState =
 	ir_d          : 0,
 	ir_a          : 0,
 	ir_b          : 0,
+        ea            : 0,
 	instrDisp     : 0,
         field_e       : 0,
         field_f       : 0,
@@ -155,13 +156,6 @@ var srcLine;        // copy of source statements
 var curInstrAddr, curInstrLineNo, saveCurSrcLine;
 var nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
 
-// asmScrollOffsetAbove specifies the preferred number of lines that
-// should appear above the scroll target in the processor assembly
-// listing
-
-const asmScrollOffsetAbove = 5;
-
-const pxPerChar = 14.4;  // found by trial and error; measuring it would be better
 
 function initializeSubsystems () {
     memDisplayModeFull = false;

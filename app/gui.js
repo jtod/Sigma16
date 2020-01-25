@@ -18,6 +18,24 @@
 // the last JavaScript file to be loaded
 
 //-------------------------------------------------------------------------------
+// Parameters
+//-------------------------------------------------------------------------------
+
+// asmScrollOffsetAbove specifies the preferred number of lines that
+// should appear above the scroll target in the processor assembly
+// listing
+
+const asmScrollOffsetAbove = 8;
+
+// pxPerChar is the height of characters used in the processor
+// assembly listing.  This is needed to scroll the listing to keep the
+// current line visible.  There doesn't appear to be a good way to
+// measure this; the value is found by trial and error.  Measuring it
+// or extracting it from font metadata would be far better.
+
+let pxPerChar = 13.05;
+
+//-------------------------------------------------------------------------------
 // Debug and test tools
 //-------------------------------------------------------------------------------
 

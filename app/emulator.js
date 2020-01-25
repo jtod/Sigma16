@@ -701,6 +701,7 @@ const rrc = (f) => (es) => {
     let a = regFile[es.ir_a].get();
     let b = regFile[es.ir_b].get();
     let cc = f (a,b);
+    console.log (`rrc cc=${cc}`);
     regFile[15].put(cc);
 }
 
@@ -833,9 +834,12 @@ const rx = (f) => (es) => {
     adr.put (es.instrDisp);
     es.nextInstrAddr = binAdd (es.nextInstrAddr, 1);
     pc.put (es.nextInstrAddr);
-    ea = binAdd (regFile[es.ir_a].get(), adr.get());
-    es.instrEA = ea;
-    console.log('rx ea = ' + wordToHex4(ea));
+    //    es.ea = binAdd (regFile[es.ir_a].get(), adr.get());
+    es.ea = binAdd (regFile[es.ir_a].get(), es.instrDisp);
+    es.instrEA = es.ea;
+    console.log (`rx ea, disp=${wordToHex4(es.instrDisp)}`);
+    console.log (`rx ea, idx=${wordToHex4(regFile[es.ir_a].get())}`);
+    console.log('rx ea = ' + wordToHex4(es.ea));
     f (es);
 }
 
@@ -859,30 +863,30 @@ const dispatch_RX =
 
 function rx_lea (es) {
     console.log('rx_lea');
-    regFile[es.ir_d].put(ea);
+    regFile[es.ir_d].put(es.ea);
 }
 
 function rx_load (es) {
     console.log('rx_load');
-    regFile[es.ir_d].put(memFetchData(ea));
+    regFile[es.ir_d].put(memFetchData(es.ea));
 }
 
 function rx_store (es) {
     console.log('rx_store');
-    memStore (ea, regFile[es.ir_d].get());
+    memStore (es.ea, regFile[es.ir_d].get());
 }
 
 function rx_jump (es) {
     console.log('rx_jump');
-    es.nextInstrAddr = ea;
+    es.nextInstrAddr = es.ea;
     pc.put(es.nextInstrAddr);
 }
 
 function rx_jumpc0 (es) {
     console.log('rx_jumpc0');
     let cc = regFile[15].get();
-    if (extractBit (cc,es.ir_d)===0) {
-	es.nextInstrAddr = ea;
+    if (extractBitBE (cc,es.ir_d)===0) {
+	es.nextInstrAddr = es.ea;
 	pc.put(es.nextInstrAddr);
     }
 }
@@ -890,8 +894,8 @@ function rx_jumpc0 (es) {
 function rx_jumpc1 (es) {
     console.log('rx_jumpc1');
     let cc = regFile[15].get();
-    if (extractBit (cc,es.ir_d)===1) {
-	es.nextInstrAddr = ea;
+    if (extractBitBE (cc,es.ir_d)===1) {
+	es.nextInstrAddr = es.ea;
 	pc.put(es.nextInstrAddr);
     }
 }
@@ -899,7 +903,7 @@ function rx_jumpc1 (es) {
 function rx_jumpf (es) {
     console.log('rx_jumpf');
     if (! wordToBool (regFile[es.ir_d].get())) {
-	es.nextInstrAddr = ea;
+	es.nextInstrAddr = es.ea;
 	pc.put (es.nextInstrAddr);
     }
 }
@@ -907,7 +911,7 @@ function rx_jumpf (es) {
 function rx_jumpt (es) {
     console.log('rx_jumpt');
     if (wordToBool (regFile[es.ir_d].get())) {
-	es.nextInstrAddr = ea;
+	es.nextInstrAddr = es.ea;
 	pc.put (es.nextInstrAddr);
     }
 }
@@ -915,7 +919,7 @@ function rx_jumpt (es) {
 function rx_jal (es) {
     console.log('rx_jal');
     regFile[es.ir_d].put (pc.get());
-    es.nextInstrAddr = ea;
+    es.nextInstrAddr = es.ea;
     pc.put (es.nextInstrAddr);
 }
 
