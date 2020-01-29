@@ -160,7 +160,7 @@ statementSpec.set("trap",  {format:RRR, opcode:[13]});
 statementSpec.set("lea",      {format:RX,  opcode:[15,0]});
 statementSpec.set("load",     {format:RX,  opcode:[15,1]});
 statementSpec.set("store",    {format:RX,  opcode:[15,2]});
-statementSpec.set("jump",     {format:JX,  opcode:[15,3]});
+statementSpec.set("jump",     {format:JX,  opcode:[15,3,0]});
 statementSpec.set("jumpc0",   {format:KX,  opcode:[15,4]});
 statementSpec.set("jumpc1",   {format:KX,  opcode:[15,5]});
 statementSpec.set("jumpf",    {format:RX,  opcode:[15,6]});
@@ -174,7 +174,7 @@ statementSpec.set("jumpne",   {format:JX,  opcode:[15,4,bit_ccE]});
 statementSpec.set("jumpge",   {format:JX,  opcode:[15,4,bit_ccl]});
 statementSpec.set("jumpnv",   {format:JX,  opcode:[15,4,bit_ccv]});
 statementSpec.set("jumpnvu",  {format:JX,  opcode:[15,4,bit_ccV]});
-statementSpec.set("jumpnco",  {format:JX,  opcode:[15,4,bit_ccc]});
+statementSpec.set("jumpnco",  {format:JX,  opcode:[15,4,bit_ccC]});
 
 // Mnemonics for jumpc1 based on signed comparisons
 statementSpec.set("jumplt",   {format:JX,  opcode:[15,5,bit_ccl]});
@@ -182,7 +182,7 @@ statementSpec.set("jumpeq",   {format:JX,  opcode:[15,5,bit_ccE]});
 statementSpec.set("jumpgt",   {format:JX,  opcode:[15,5,bit_ccg]});
 statementSpec.set("jumpv",    {format:JX,  opcode:[15,5,bit_ccv]});
 statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
-statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccc]});
+statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccC]});
 
 // Mnemonics for EXP instructions
 // Expanded instructions with one word: opcode 0,...,7

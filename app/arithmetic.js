@@ -509,7 +509,7 @@ function op_xor (a,b) {
 }
 
 function op_addc (c,a,b) {
-    let sum = a + b + extractBitBE(c,bit_ccc);
+    let sum = a + b + extractBitBE(c,bit_ccC);
     let primary = sum & 0x0000ffff;
     let msb = extractBitBE (sum, 15);
     let carryOut = extractBitBE (sum,16);
@@ -533,6 +533,7 @@ function op_addc (c,a,b) {
 // condition code.  The arithmetic operations may or several of these
 // together to produce the final condition code.
 
+// These definitions give the bit index
 const bit_ccG = 0;   //    G   >          binary
 const bit_ccg = 1;   //    >   >          two's complement
 const bit_ccE = 2;   //    =   =          all types
@@ -540,8 +541,9 @@ const bit_ccl = 3;   //    <   <          two's complement
 const bit_ccL = 4;   //    L   <          binary
 const bit_ccV = 5;   //    V   overflow   binary
 const bit_ccv = 6;   //    v   overflow   two's complement
-const bit_ccc = 7;   //    c   carry      binary
+const bit_ccC = 7;   //    c   carry      binary
 
+// These definitions give a mask with 1 in specified bit position
 const ccG = setBitBE(bit_ccG);
 const ccg = setBitBE(bit_ccg);
 const ccE = setBitBE(bit_ccE);
@@ -549,11 +551,11 @@ const ccl = setBitBE(bit_ccl);
 const ccL = setBitBE(bit_ccL);
 const ccV = setBitBE(bit_ccV);
 const ccv = setBitBE(bit_ccv);
-const ccC = setBitBE(bit_ccc);
+const ccC = setBitBE(bit_ccC);
 
 function showCC (c) {
     console.log (`showCC ${c}`);
-    return (extractBool (c,bit_ccc) ? 'c' : '')
+    return (extractBool (c,bit_ccC) ? 'c' : '')
 	+ (extractBool (c,bit_ccv) ? 'v' : '')
 	+ (extractBool (c,bit_ccV) ? 'V' : '')
 	+ (extractBool (c,bit_ccL) ? 'L' : '')

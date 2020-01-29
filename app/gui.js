@@ -507,153 +507,32 @@ function insert_example(exampleText) {
     document.getElementById('EditorTextArea').value = exampleText;
 };
 
+const example_hello_world =
+`; Program Hello, world!
+; A simple starter program for Sigma16
 
-// Default example program for testing
-const example_default =  `; Program test
+; Calculate result := 6 * x, where x = 7
 
-       add R4,R5,R6
+     lea    R1,6[R0]       ; R1 := 6
+     load   R2,x[R0]       ; R2 := x (variable initialized to 7)
+     mul    R3,R1,R2       ; R3 := 6 * x = 42 (hex 002a)
+     store  R3,result[R0]  ; result := 6 * x
+     trap   R0,R0,R0       ; halt
 
-       lea   R4,23[R0]
-       lea   R9,5[R0]
-       add   R8,R4,R9
-       lea   R3,1[R0]
-       add   R8,R3,R8
+; How to run the program:
+;   (1) Translate to machine language: Assembler tab, click Assemble
+;   (2) Run it: Processor tab, Boot, click Step for each instruction
 
-       lea   R2,15[R0]
-       lea   R3,49[R0]
-       cmplt R4,R2,R3
-       cmpeq R5,R2,R3
-       cmpgt R6,R2,R3
+; When the program halts, we should see the following:
+;   R1 contains  6 (0006)
+;   R2 contains  7 (0007)
+;   R3 contains 42 (002a)
+;   result contains 42 (002a)
+;   result is in memory, and the assembly listing shows its address
 
-       lea   R2,15[R0]
-       lea   R3,15[R0]
-       cmplt R4,R2,R3
-       cmpeq R5,R2,R3
-       cmpgt R6,R2,R3
-
-
-       lea   R2,15[R0]
-       lea   R3,-3[R0]
-       cmplt R4,R2,R3
-       cmpeq R5,R2,R3
-       cmpgt R6,R2,R3
-
-
-
-       lea   R2,-39[R0]
-       lea   R3,-53[R0]
-       cmplt R4,R2,R3
-       cmpeq R5,R2,R3
-       cmpgt R6,R2,R3
-
-
-       lea   R2,-53[R0]
-       lea   R3,-39[R0]
-       cmplt R4,R2,R3
-       cmpeq R5,R2,R3
-       cmpgt R6,R2,R3
-
-
-
-
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-
-       lea   R3,1[R0]
-       add   R8,R3,R8
-       lea   R2,2[R0]
-       add   R8,R2,R8
-x      data   2
-y      data   3
-`;
-
-
-// Simple example program: add
-const example_add = `; Program Add
-     lea    R4,23[R0]      ; R4 := 23
-     lea    R9,5[R0]       ; R9 := 5
-     add    R7,R4,R9       ; R7 := 23 + 5
-
-; result := x + y
-     load   R1,x[R0]       ; R1 := x
-     load   R2,y[R0]       ; R2 := y
-     add    R3,R1,R2       ; R3 := x + y
-     store  R3,result[R0]  ; result := x + y
-
-; Terminate execution
-     trap   R0,R0,R0       ; system request to terminate
-
-; Variables
-x         data   2
-y         data   3
-result    data   0
-`;
-
-// Test program for assembly language error checking
-const example_errors = `; Test Errors
-     add    R1,R2,R3    ; RRR
-     xor    R15,R14,R13
-     cmplt  R1,R7,R13
-     jumpf  R1,skip[R2]
-     cmp    R4,R9       ; RR
-     load   R6,xyz[R7]  ; RX
-     lea    R7,24[R0]
-start                 ; just a label
-loop load   R9,12[R0]   ; good operands
-     jump   loop[R10]   ; 
-done trap   R11,R12,R13
-x    data   35
-y    data   $c39f
-a    data   3
-z    data   -1
-     lea              ; good operation
-     blarg  R3,R5,R9
-     add    R1,R17,R0   ; bad operands
-     load   x*y         ; bad operands
-     load   R1,R2,R3    ; operation/operand mismatch
-     add    R1,xy[R4]   ; operation/operand mismatch
-*ab
+; Variables are defined  after the program
+x         data   7         ; initial value of x = 7
+result    data   0         ; initial value of result = 0
 `;
 
 //-------------------------------------------------------------------------------

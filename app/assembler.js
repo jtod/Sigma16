@@ -910,7 +910,7 @@ function asmPass2 (m) {
 	    op = s.operation.opcode;
 	    s.field_disp = s.operand_str1;
 	    s.field_a = s.operand_str2;
-	    s.codeWord1 = mkWord(op[0],0,s.field_a,op[1]);
+	    s.codeWord1 = mkWord(op[0],op[2],s.field_a,op[1]);
             let v = evaluate(m,s,s.address+1,s.field_disp);
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {

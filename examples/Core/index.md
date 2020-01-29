@@ -1,14 +1,18 @@
 # Core example programs
 
-* [Arithmetic](Arithmetic/index.html)
-
-* [Arrays](Arrays/index.html)
-
-* [Input/Output](IO/index.html)
-
 * [Simple](Simple/index.html)  Small and simple programs that
   illustrate usage of the basic instructions.
 
-* [Sorting](Sorting/index.html)
+* [Arithmetic](Arithmetic/index.html) Demonstrate the arithmetic
+  operations.
 
-* [Subroutines](Subroutines/index.html)
+* [Arrays](Arrays/index.html) Arrays, indexing elements, and
+  traversing arrays.
+
+* [Input/Output](IO/index.html) Illustrate the simplest ways to read
+  input and write output.
+
+* [Sorting](Sorting/index.html) Sorting the elements of an array.
+
+* [Subroutines](Subroutines/index.html) Basic procedures and functions
+  with simple calling conventions.

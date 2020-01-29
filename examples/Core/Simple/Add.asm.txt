@@ -1,4 +1,4 @@
-; Program Add
+; Program Add.  See Sigma16/README.md in top folder
 ; A minimal program that adds two integer variables
 
 ; Execution starts at location 0, where the first instruction will be
@@ -10,8 +10,10 @@
       store  R3,z[R0]   ; z := x + y
       trap   R0,R0,R0   ; terminate
 
+; Expected result: z = 37 (0025)
+
 ; Static variables are placed in memory after the program
 
 x     data  23
 y     data  14
-z     data  99
+z     data   0

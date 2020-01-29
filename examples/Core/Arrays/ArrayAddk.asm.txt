@@ -1,9 +1,10 @@
-; Program ArrayAddk
+; Program ArrayAddk.   See Sigma16/README.md in top folder
+; Traverse an array and add constant k to each element
 
-; Simple example of array traversal: traverse an array x that contains
-; n elements, and add k to each element of the array.
+; An array x of n elements is defined below, as well as n (size of
+; array x) and k (a constant).  The program traverses the array and
+; adds k to each element
 
-; The algorithm
 ;   i := 0
 ;   while i < n do
 ;     x[i] := x[i] + k
@@ -23,7 +24,7 @@
       load   R4,k[R0]     ; R4 := k
 
 loop  cmplt  R5,R1,R3     ; R5 := i < n
-      jumpf  R5,done[R0]  ; if not (i<n) then goto done
+      jumpf  R5,done[R0]  ; if not (i < n) then goto done
       load   R5,x[R1]     ; R5 := x[i]
       add    R5,R5,R4     ; R5 := x[i] + k
       store  R5,x[R1]     ; x[i] := x[i] + k
@@ -32,9 +33,10 @@ loop  cmplt  R5,R1,R3     ; R5 := i < n
 
 done  trap   R0,R0,R0     ; terminate the program
 
-k     data    7           ; value to add to elements
-n     data    4           ; size of array x
-x     data   17
-      data   23
-      data  981
-      data   76
+k     data    7   ; value to add to elements
+n     data    5   ; size of array x
+x     data   17   ; expected new value =  24 (0018)
+      data   23   ; expected new value =  30 (001e)
+      data  981   ; expected new value = 988 (03dc)
+      data   -9   ; expected new value =  -2 (fffe)
+      data   76   ; expected new value =  83 (0053)

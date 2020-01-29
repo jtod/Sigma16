@@ -1,6 +1,5 @@
-; Program ArrayMax
-; Sigma16 assembly language
-; John O'Donnell, 2015
+; Program ArrayMax.  See Sigma16/README.md in top folder
+; Find the maximum element of an array
 
 ;---------------------------------------------------------------------
 ; The program finds the maximum element of an array.  It is given
@@ -78,6 +77,7 @@ done   store R4,max[R0]        ; max = R4
        trap  R0,R0,R0          ; terminate
 
 ; Data area
+; With the following data, the expected result is 40 (0028)
 
 n        data   6
 max      data   0

@@ -1,7 +1,5 @@
-; Program ArraySum
-; Sigma16 assembly language
+; Program ArraySum.  See Sigma16/README.md in top folder
 ; Find the sum of the elements of an array
-; John O'Donnell, 2015
 
 ; The program is given
 ;   *  a natural number n, assume n >= 0
