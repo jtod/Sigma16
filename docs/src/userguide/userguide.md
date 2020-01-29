@@ -26,7 +26,7 @@ appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the exercises in the main
 panel.
 
-### Hello, world!
+## Hello, world!
 
 The Sigma16 IDE (the main "app") is implemented in JavaScript and runs
 in a web browser.  There are additional components to the system that
@@ -131,7 +131,7 @@ To exit the app, just close the browser window or tab.  This should
 put up a dialogue box warning that any unsaved data may be lost and
 asking you to confirm.
 
-### Registers and arithmetic
+## Registers and arithmetic
 
 Registers are like variables in a programming language.  They are even
 more similar to the registers in a calculator.
@@ -317,7 +317,7 @@ Example
 
 Good comments make the code easier to read!
 
-**General form of arithmetic instruction**
+General form of arithmetic instruction
 
 ~~~~
 op d,a,b
@@ -363,21 +363,1794 @@ You should not use R0 or R15 to hold ordinary variables.
 * R15 is for temporary information; it's not a safe place to keep
   long-term data
 
-### Accessing memory
+## Keeping variables in memory
 
-Only 14 registers can be used to hold variables, but most programs
-need many more variables.
+Limitation of register file: it's small.
 
-The Memory is a large set of locations
+The register file is used to perform calculations.  In computing
+something like x := (2*a + 3*b) / (x-1), all the arithmetic will be
+done using the register file.  But the register file has a big
+limitation: There are only 16 registers And most programs need more
+than 16 variables!
+  
+Solution: the memory is large and can hold far more data
+than the register file.
+
+The memory is similar to the register file: it is a large
+collection of words
+A variable name (x, sum, count) refers to a word in memory
+Some differences between memory and register file:
+The memory is \alert{much larger}: 65,536 locations (the
+register file has only 16)
+The memory cannot do arithmetic
+
+So our strategy in programming:
+
+* Keep data permanently in memory
+* When you need to do arithmetic, copy a variable from memory to a
+  register
+* When finished, copy the result from a register back to memory
+  
+The register file:
+  
+*  16 registers 
+*  \stress{Can do arithmetic, but too small to hold all your
+   variables}
+*  Each register holds a 16-bit word
+*  Names are R0, R1, R2, $\ldots$, R15
+*  You can do arithmetic on data in the registers
+*  \alert{Use registers to hold data temporarily that you're
+   doing arithmetic on}
+  
+The {memory
+  
+* 65,536 memory locations
+* Each memory location holds a 16-bit word
+* Each memory location has an \alert{address} 0, 1, 2, $\ldots$,
+  65,535
+* The machine cannot do arithmetic on a memory location
+* \alert{Use memory locations to store program variables
+  permanently.  Also, use memory locations to store the program.}
+
+Copying a word between memory and register.
+There are two instructions for accessing the memory
+
+load copies a variable from memory to a register
+\stress{\texttt{load R2,x[R0]}} copies the variable \texttt{x}
+from memory to register R2
+\stress{R2 := x}
+R2 is changed; x is unchanged
+  
+store copies a variable from a register to memory
+\stress{\texttt{store R3,y[R0]}} copies the word in register
+R3 to the variable \texttt{y} in memory
+\stress{y := R3}
+y is changed; R3 is unchanged
+  
+Notice that we write [R0] after a variable name.  Later we'll see the
+reason, but for now don't worry about the [R0] -- just don't forget to
+put it in.
+
+An assignment statement in machine langauge
+
+x := a+b+c
+
+~~~~
+       load   R1,a[R0]      ; R1 := a
+       load   R2,b[R0]      ; R2 := b
+       add    R3,R1,R2      ; R3 := a+b
+       load   R4,c[R0]      ; R4 := c
+       add    R5,R3,R4      ; R5 := (a+b) + c
+       store  R5,x[R0]      ; x := a+b+c
+~~~~
+
+Use \important{load} to \stress{copy variables from memory to
+registers} Do arithmetic with \important{add, sub, mul, div} Use
+\important{store} to \stress{copy result back to memory}
+
+Why do we have registers and memory?  The programmer has to keep track
+of which variables are currently in registers, and you have to use
+load and store instructions to copy data between the registers and
+memory.  Wouldn't it be easier just to get rid of the distinction
+between registers and memory, and do all the arithmetic on memory?
+
+Yes, it's possible to design a computer that way, and there have
+actually been real computers like that.  However, this approach makes
+the computer very much slower.  With modern circuits, a computer
+without load and store instructions (where you do arithmetic on memory
+locations) would run approximately 100 times slower.
+
+Defining variables
+
+To define variables x, y, z and give them initial values
+
+~~~~
+x    data   34    ; x is a variable with initial value 34
+y    data    9    ; y is initially 9
+z    data    0    ; z is initially 0
+abc  data  $02c6  ; specify initial value as hex
+~~~~
+
+The data statements should come \emph{after} all the instructions in
+the program (we'll see why later)
+
+A complete example program
+
+~~~~
+; Program Add
+; A minimal program that adds two integer variables
+
+; Execution starts at location 0, where the first instruction will be
+; placed when the program is executed.
+
+      load   R1,x[R0]   ; R1 := x
+      load   R2,y[R0]   ; R2 := y
+      add    R3,R1,R2   ; R3 := x + y
+      store  R3,z[R0]   ; z := x + y
+      trap   R0,R0,R0   ; terminate
+
+; Static variables are placed in memory after the program
+
+x     data  23
+y     data  14
+z     data  99
+~~~~
+
+## Assembly language
+
+The syntax of assembly language is simple and rigid.
+
+Fields separated by spaces.  An assembly language statement has four
+fields, separated by space.
+  
+* label (optional) -- if present, must begin in leftmost
+  character
+* mnemonic (the name of the operation): load, add, etc.
+* operands: R1,R2,R3 or R1,x[R0]
+* comments: ; x = 2 * (a+b)
+  
+There cannot be any spaces inside a field*
+  
+* R1,R12,R5 is ok
+* R1, R12,R5 is wrong
+ 
+~~~~
+loop   load   R1,count[R0]    ; R1 = count
+       add    R1,R1,R2        ; R1 = R1 + 1
+~~~~
+
+The assember first breaks each statement into the four fields; then it
+looks at the operation and operands.
 
 
-### Comparisons and jumps
+Correct form of operand field
 
-### Instruction control
+* RRR: Exactly three registers separated by commas R8,R13,R0.
+  
+* RX:Two operands: first is a register, second is an address.  The
+  address is a name or constant followed by [register]. Example:
+  R12,array[R6]
 
-### Effective addresses and arrays
+Each of these statements is wrong!
 
-### Further topics
+~~~~
+    add   R2, R8, R9     Spaces in the operand field
+    store x[R0],R5       First operand must be register, second is address
+  loop load R1,x[R0]     Space before the label
+    jumpt R6,loop        Need register after address:  loop[R0]
+    jal   R14, fcn[R0]   Space in operand field
+~~~~
+
+If you forget some detail, look at one of the example programs
+
+
+Writing constants
+
+In assembly language, you can write constants in either decimal
+or hexadecimal.
+  
+* decimal:   50
+* hexadecimal: $0032
+
+Examples:
+
+~~~~
+   lea   R1,40[R0]      ; R1 = 40
+   lea   R2,$ffff[R0]   ; R2 = -1
+
+x  data  25
+y  data  $2c9e
+~~~~
+
+It isn't enough just to get the assembler to accept your program
+without error messages.  Your program should be clear and easy to
+read.  This requires good style.  Good style saves time writing the
+program and getting it to work A sloppy program looks unprofessional.
+
+Comments
+
+* In Sigma16, a semicolon \alert{;} indicates that the rest of the
+  line is a comment
+* You can have a full line comment: just put ; at the beginning
+* You should use good comments in all programs, regardless of
+  language
+* But they are even more important in machine language, because
+  the code needs more explanation
+* At the beginning of the program, use comments to give the name
+  of the program and to say what it does
+* Use a comment on every instruction to explain what it's doing
+
+Indent your code consistently.  Each field should be lined up
+vertically, like this:
+
+~~~~
+    load   R1,three[R0]  ; R1 = 3
+    load   R2,x[R0]      ; R2 = x
+    mul    R3,R1,R2      ; R3 = 3*x
+    store  R3,y[R0]      ; y = 3*x
+    trap   R0,R0,R0      ; stop the program
+~~~~
+
+Not like this:
+
+~~~~
+    load   R1,three[R0]     ; R1 = 3
+  load  R2,x[R0] ; R2 = x
+       mul R3,R1,R2           ; R3 = 3*x
+ store         R3,y[R0]      ; y = 3*x
+   trap  R0,R0,R0      ; stop the program
+~~~~
+
+The exact number of spaces each field is indented isn't important;
+what's important is to make the program neat and readable.
+
+To indent your code, always use spaces -- Don't use tabs!
+In general, never use tabs except in the (rare) cases
+they are actually required.
+  
+The tab character was introduced to try to mimic the tab key on old
+mechanical typewriters But \alert{software does not handle tab
+consistently}.  If you use tabs, your can look good in one application
+and a mess in another It's easy to indent with spaces, and it works
+everywhere!
+
+## Compilation
+
+There are two ways to handle variables:
+
+The statement-by-statement style: Each statement is compiled
+independently.  The pattern is: load, arithmetic, store.
+Straightforward but inefficient.
+  
+The register-variable style: Keep variables in registers across a
+group of statements.  Don't need as many loads and stores.  More
+efficient.  You have to keep track of whether variables are in memory
+or a register.  Use comments to show register usage.  Real compilers
+use this style.  Use this style if you like the shorter code it
+produces.
+  
+We'll translate the following program fragment to assembly
+language, using each style:
+
+~~~~
+x = 50;
+y = 2*z;
+x = x+1+z;
+~~~~
+
+Statement-by-statement style
+
+~~~~
+; x = 50;
+     lea    R1,$0032   ; R1 = 50
+     store  R1,x[R0]   ; x = 50
+
+; y = 2*z;
+     lea    R1,$0002   ; R1 = 2
+     load   R2,z[R0]   ; R2 = z
+     mul    R3,R1,R2   ; R3 = 2*z
+     store  R3,y[R0]   ; y = 2*z
+
+; x = x+1+z;
+     load   R1,x[R0]   ; R1 = x
+     lea    R2,1[R0]   ; R2 = 1
+     load   R3,z[R0]   ; R3 = z
+     add    R4,R1,R2   ; R4 = x+1
+     add    R4,R4,R3   ; R4 = x+1+z
+     store  R4,x[R0]   ; x = x+1+z
+~~~~
+
+Register-variable style
+
+~~~~
+; Usage of registers
+;   R1 = x
+;   R2 = y
+;   R3 = z
+
+; x = 50;
+     lea    R1,$0032   ; x = 50
+     load   R3,z[R0]   ; R3 = z
+     lea    R4,$0002   ; R4 = 2
+; y = 2*z;
+     mul    R2,R4,R3   ; y = 2*z
+; x = x+1+z;
+     lea    R4,$0001   ; R4 = 1
+     add    R1,R1,R4   ; x = x+1
+     add    R1,R1,R3   ; x = x+z
+     store  R1,x[R0]   ; move x to memory
+     store  R2,y[R0]   ; move y to memory
+~~~~
+                                
+Comparison of the styles
+
+Statement by statement.
+* Each statement is compiled into a separate block of code.
+* Each statement requires loads, computation, then stores.
+* A variable may appear in several different registers.
+* There may be a lot of redundant loading and storing.
+* The object code corresponds straightforwardly to the source
+  code, but it may be unnecessarily long.
+  
+Register variable
+* The instructions corresponding to the statemnts are mixed
+  together.
+* Some statements are executed entirely in the registers.
+* A variable is kept in the same register across many
+  statments.
+* The use of loads and stores is minimised.
+* The object code is concise, but it's harder to see how it
+  corresponds to the source code.
+* It's possible to have a mixture of the styles: you don't have
+  to follow one or the other all the time.
+
+## Conditionals
+
+if bexp then S
+
+~~~~
+if x<y
+  then {statement 1;}
+statement 2;
+~~~~
+
+Translates into
+
+~~~~
+   R7 := (x < y)
+   jumpf R7,skip[R0]
+   instructions for statement 1
+skip
+   instructions for statement 2 
+~~~~
+
+
+Example: code with if-then.  Source program fragment:
+
+~~~~
+x := 2;
+if y>x
+   then { a := 5; }
+b := 6;
+~~~~
+
+
+Translating if-then
+
+~~~~
+; x := 2;
+      lea     R1,2[R0]    ; R1 := 2
+      store   R1,x[R0]    ; x := 2
+
+; if y>x
+      load    R1,y[R0]    ; R1 := y
+      load    R2,x[R0]    ; R2 := x
+      cmpgt   R3,R1,R2    ; R3 := (y>x)
+      jumpf   R3,skip[R0] ; if y <= x then goto skip
+
+;  then { a := 5; }
+      lea    R1,5[R0]     ; R1 := 5
+      store  R1,a[R0]     ; a := 5
+
+; b := 6;
+skip  lea    R1,6[R0]     ; R1 := 6
+      store  R1,b[R0]     ; b := 6
+~~~~
+
+
+if-then-else
+
+if bexp then S1 else S2
+
+~~~~
+if x<y
+  then { S1 }
+  else { S2 }
+S3
+~~~~
+
+Compiled into:
+~~~~
+   R5 := (x<y)
+   jumpf R5,else[R0]
+; then part of the statement
+   instructions for S1
+   jump   done[R0]
+; else part of the statement
+else
+   instructions for S2 
+done
+   instructions for statement S3
+~~~~
+
+
+## Loops
+
+
+while loop
+
+while b do S
+
+~~~~
+while i<n do
+  { S1 }
+S2
+~~~~
+
+Compiled into:
+~~~~
+loop
+   R6 := (i<n)
+   jumpf  R6,done[R0]
+   ... instructions for the loop body S1 ...
+   jump   loop[R0]
+done
+  instructions for S2
+~~~~
+
+
+
+
+Infinite loops
+
+~~~~
+while (true)
+  {statements} 
+~~~~
+
+Compiled into:
+
+~~~~
+loop
+   ... instructions for the loop body ...
+   jump   loop[R0] 
+~~~~
+
+
+Nested statements
+
+For each kind of high level statement, there is a pattern for
+translating it to  Low level code (goto) and then on to  
+assembly language.
+
+In larger programs, there will be nested statements.
+
+~~~~
+if b1
+  then { S1;
+         if b2 then {S2} else {S3};
+         S4;
+       }
+  else { S5;
+         while b3 do {S6};
+       }
+S7
+~~~~
+
+
+How to compile nested statements
+
+A block is a sequence of instructions.  To execute it, always start
+with the first statement.  When it finishes, it always reaches the
+last statement.
+  
+Every statement should be compiled into a block of code.  This block
+may contain internal structure --- it may contain several smaller
+blocks --- but to execute it you should always begin at the beginning
+and it should always finish at the end.  The compilation patterns work
+for nested statements.
+
+You need to use new labels (can't have a label like ``skip'' in
+several places).
+
+
+## Machine language
+
+ *  The actual bits representing an instruction (written in hex) ---
+  \alert{0d69} -- is \alert{machine language}
+ *  The actual hardware runs the machine language --- it's just
+  looking at the numbers
+ *  The text notation with names --- \alert{add R13,R6,R9} --- is
+  \alert{assembly language}
+ *  Assembly language is for humans, machine language is for
+  machines
+ *  Both \alert{specify the program in complete detail}, down to the
+  last bit
+
+What's in the memory
+
+ *  All your program's data
+  
+   *  Variables
+   *  Data structures, arrays, lists
+  
+ *  \alert{And also the machine language program itself!}
+
+
+\begin{block}{The \textbf{stored program computer}}
+  The program is stored inside the computer's main memory, along with
+  the data.\\
+  \vspace{1em} An alternative approach is to have a separate memory to
+  hold the program, but experience has shown that to be inferior for
+  general purpose computers.  (Special-purpose computers often do
+  this.)
+\end{block}
+
+Instruction formats: different types of instruction
+
+Sigma16 has several instruction formats
+  
+*  \alert{RRR} instructions use the \alert{registers}
+*  \alert{RX} instructions use the \alert{memory}
+*  \alert{EXP} instructions use \alert{registers and constant}
+  
+Each kind of instruction is called an instruction format.  All the
+instructions with the same format are similar Each instruction format
+has a standard representation in the memory.
+ 
+The machine language program is in the memory So we need to represent
+each instruction as a word An instruction format is a systematic way
+to represent an instruction using a string of bits, on one or more
+words.  Every instruction is either RRR, RX, or EXP
+  
+* An RRR instruction is represented in one word (recall that a word is
+  16 bits).
+* An RX instruction is represented in two words.
+  
+Fields of an instruction word
+
+An instruction word has 16 bits.  There are four fields, each 4 bits.
+We write the value in a field using hexadecimal.  hex digits: 0, 1, 2,
+3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f.  These correspond to 0, 1, ...,
+15
+
+The names of the fields are:
+
+* op -- holds the operation code
+* d  -- usually holds the destination register
+* a  -- usually holds the first source operand register
+* b -- usually holds the second source operand register
+
+### Representing RRR instructions
+
+Every RRR instruction consists of
+  
+* An operation (e.g. add)
+* Three register operands: a destination and two operands
+* The instruction performs the operation on the operands and
+  puts the result in the destination
+  
+Example: add R3,R12,R5.  We need to specify \alert{which} RRR
+instruction this is.  Is it add? sub? mul? another?  This is done with
+an operation code --- a number that says what the operation is.  There
+are about a dozen RRR instructions, so a 4-bit operation code
+suffices.  We also need to specify three registers: destination and
+two source operands.  There are 16 registers, so a particular one can
+be specified by 4 bits.  Total requirements: 4 fields, each 4 bits ---
+total 16 bits.  An RRR instruction exactly fills one word.
+
+All RRR instructions have the same form, just the operation
+differs
+  
+* add  R2,R2,R5     ; R2 = R2 + R5
+* sub  R3,R1,R3     ; R3 = R1 - R3
+* mul  R8,R6,R7     ; R8 = R6 * R7
+  
+In add R2,R5,R9 we call R5 the first operand, R9 the second operand,
+and R2 the destination.  It's ok to use the same register as an
+operand and destination!  Later we'll see some more RRR instructions,
+obut they all have the same form as these do.
+
+Here are the RRR operation codes:
+
+   mnemonic   opcode
+  ---------- --------
+   add        0
+   sub        1
+   mul        2
+   div        3
+   trap       d
+
+Don't memorise this table!  You just need to understand how it's used.
+
+Example of RRR:
+
+~~~~
+add  R13,R6,R9
+~~~~
+
+* The opcode (operation code) is 0
+* Destination register is 13 (hex d)
+* Source operand registers are 6 and 9 (hex 6 and 9)
+* So the instruction is  0d69
+
+### Representing RX instructions
+
+Every RX instruction contains two operands:
+  
+* A \important{register}
+* A \important{memory location}
+  
+We have seen several so far:
+  
+*  lea  R5,19[R0]  ; R5 = 19
+*  load R1,x[R0]  ; R1 = x
+*  store R3,z[R0] ; z = R3
+*  jump  finished[R0] ; goto finished
+  
+* The first operand (e.g. R1 here) is called the destination
+  register, just like for RRR instructions
+* The second operand x[R0] specifies a memory address
+* Each variable is kept in memory at a specific location which is
+  identified by its address
+
+The memory operand has two parts:
+  
+* The variable x is a name for the address where x is kept --- called
+  the displacement.
+* The R0 part is just a register, called the index register.
+
+Format of RX instruction
+
+{\Large\color{red}
+~~~~
+load R1,x[R0]
+~~~~
+}
+
+
+ *  There are two words in the machine language code
+ *  The first word has 4 fields: op, d, a, b
+  
+   *  op contains f for every RX instruction
+   *  d contains the register operand (in the example, 1)
+   *  a contains the index register (in the example, 0)
+   *  b contains a code indicating \emph{which} RX instruction this
+    is (1 means load)
+  
+ *  The second word contains the displacement (address) (in the
+  example, the address of x)
+
+
+Suppose x has memory address 0008.  Then the machine code for load
+R1,x[R0] is:
+
+
+\color{red}
+\fbox{\Large\vbox{\hbox{f101}\hbox{0008}}}
+
+
+Operation codes for RX instructions
+
+
+ *  Recall, for RRR the op field contains a number saying
+  \emph{which} RRR instruction it is
+ *  For RX, the op field \emph{always contains f}
+ *  So how does the machine know \emph{which} RX instruction it is?
+ *  Answer: there is a secondary code in the b field
+
+
+
+\begin{tabular}{ll}
+  mnemonic  &  RX operation code (in b field) \\
+  \hline
+  lea       &  0 \\
+  load      &  1 \\
+  store     &  2 \\
+   $\vdots$ & $\vdots$ \\
+  \hline
+\end{tabular}
+
+
+
+
+## Instruction execution
+  
+Boot: reading in the program
+
+* The program is placed in memory starting at location 0
+* The program should finish by executing the instruction ``trap
+  R0,R0,R0''
+* Normally, trap R0,R0,R0 should be the last instruction of the
+  program (i.e. the program begins execution with the first
+  instruction, and ends execution with the last, although it may
+  jump around during execution)
+* After the trap R0,R0,R0 come the data statements, which tell
+  the assembler the names of the variables and their initial values
+* These conventions were typical for early computers; later we
+  will discuss how the operating system interacts with user
+  programs
+
+Control registers
+
+* Some of the registers in the computer are accessible to the
+  programmer: R0, R1, R2, $\ldots$, R15
+* There are several more registers that {\color{blue}the machine
+  uses to keep track of what it's doing}
+* These are called \alert{``control registers''}
+* They are (mostly) invisible to the program
+
+Keeping track of where you are
+
+When you hand execute a program, you need to know
+  
+*  Where you are (point a finger at the current instruction)
+*  What you're doing (read the current instruction)
+  
+The computer needs to know this too!
+
+* The \alert{PC register} (``program counter'') contains
+ \alert{the address of the next instruction} to be executed
+* The \alert{IR} (``instruction register'') contains \alert{the
+   instruction being executed right now}
+* If an RX instruction is being executed, the \alert{ADR}
+  (``address register'') contains \alert{the memory address} of the
+  second operand.
+
+
+
+
+
+Following PC and IR control registers
+
+
+ *  Try running a simple program
+ *  Step through the execution
+ *  Before each instruction executes, look at the PC and IR
+  registers
+ *  Notice that PC always contains the \alert{address of the next
+    instruction} and IR always contains the \alert{current
+    instruction}
+ *  {\color{blue}The control registers help to understand in detail
+    what the machine is doing.}
+
+## Effective addresses and arrays
+
+
+### Address arithmetic
+
+### Why [R0]?
+
+
+ *  So far, we have always been writing [R0] after constants or
+  names
+  
+   *  lea  R2,39\alert{[R0]}
+   *  load  R3,xyz\alert{[R0]}
+   *  store R4,total\alert{[R0]}
+  
+ *  Why?
+ *  This is part of a general and powerful technique called
+  \alert{address arithmetic}
+
+
+
+### Address arithmetic
+
+
+ *  Every piece of data in the computer (in registers, or memory) is
+  a \alert{word}
+ *  A word can represent several different kinds of data
+  
+   *  So far, we've just been using \alert{integers}
+   *  Represented with \alert{two's complement}: $-2^{15}, \ldots,
+    -1, 0, 1, 2, \ldots, 2^{15}-1$
+
+ *  Now, we'll start doing computations with \alert{addresses} too
+ *  Addresses are \alert{unsigned numbers}: $0, 1, 2, \ldots, 65535$
+
+
+
+### What can you do with address arithmetic?
+
+
+ *  Powerful data structures
+  
+   *  \emph{Today:} Arrays
+   *  Pointers and records
+   *  Linked lists, queues, dequeues, stacks, trees, graphs, hash
+    tables, $\ldots$ Subject of \emph{Algorithms and Data Structures}
+  
+ *  Powerful control structures
+  
+   *  Input/Output
+   *  Procedures and functions
+   *  Recursion
+   *  Case dispatch
+   *  Coroutines, classes, methods
+  
+
+
+
+
+## Effective addresses and arrays
+
+Data structures
+ 
+
+ *  An ordinary variable holds one value (e.g. an integer)
+ *  A \emph{data structure} can hold many individual elements
+ *  A data structure is a \alert{\emph{container}}
+ *  The simplest data structure: \emph{array}
+ *  There are many more data structures!
+ *  The key idea: {\redtext we will do arithmetic on addresses}
+
+
+Arrays
+
+
+ *  In mathematics, an array (vector) is a sequence of indexed
+  values $x_0, x_1, \ldots, x_{n-1}$
+  
+   *  $x$ is the entire array
+   *  $x_3$ is one specific element of the array with index 3
+   *  It's useful to refer to an arbitrary element by using an
+    integer variable as index: $x_i$
+  
+ *  Arrays are ubiquitous: used in all kinds of applications
+ *  In programming languages, we refer to $x_i$ as \texttt{x[i]}
+
+
+### Representing an array
+
+
+ *  An array is represented in a computer by placing the elements in
+  consecutive memory locations
+ *  The array x starts in memory at some location: here, it's 01a5
+ *  The address of the array x is the address of its first element
+  x[0]
+ *  The elements follow in consecutive locations
+
+
+\vspace{1em}
+
+\begin{tabular}{lccccccccccc}
+value   &          & x[0] & x[1] & x[2] & x[3]
+  & x[4] & x[5] & x[6] & \\
+address & $\ldots$ & 01a5 & 01a6 & 01a7 & 01a8
+  & 01a9 & 01aa & 01ab & $\ldots$ \\
+\end{tabular}
+
+
+\vspace{1em}
+
+\fbox{\alert{\Large The address of x[i] is x+i}}
+
+
+Allocating an array
+
+
+ *  An array is in memory along with other data --- after the trap
+  that terminates the program
+ *  You can allocate the elements and give them initial value with
+  data statements
+ *  Use the name of the array as a label on the first element (the
+  one with index 0)
+ *  Don't put labels on the other elements
+
+
+~~~~
+   ...
+      trap   R0,R0,R0  ; terminate
+
+; Variables and arrays
+
+abc   data    25       ; some variable
+n     data     6       ; size of array x
+
+x     data    13       ; x[0]
+      data   189       ; x[1]
+      data   870       ; x[2]
+      data    42       ; x[3]
+      data     0       ; x[4]
+      data  1749       ; x[5]
+
+def   data     0       ; some other variable
+~~~~
+
+What about big arrays?
+
+
+ *  In the programs we'll work with, the arrays will be small (a
+  dozen elements or so)
+ *  In real scientific computing, it's common to have large arrays
+  with thousands --- or even millions --- of elements
+ *  It would be horrible to have to write thousands of data statements!
+ *  In large scale software, arrays are allocated
+  \alert{dynamically} with help from the \alert{operating system}
+  
+   *  The user program calculates how large an array it wants, and
+    stores that in a variable (e.g. n = 40000)
+   *  It uses a trap to request (from the operating system) a block
+    of memory big enough to hold the array
+   *  The operating system returns the address of this block to the
+    user program
+  
+ *  We won't be doing this: we will just allocate small arrays using
+  data statements
+
+
+Indexed addressing
+
+ *  Suppose we have array x with elements x[0], x[1], ..., x[n-1]
+ *  Elements are stored in consecutive memory locations
+ *  Use the label x to refer to the array; x is also the location of
+  x[0]
+ *  {\redtext The address of x[i] is x+i}
+ *  To do any calculations on x[i], we must load it into a register,
+  or store a new value into it
+ *  \emph{But how?}
+ *  If you try \texttt{load R4,x[R0]} the effect will be R4 := x[0]
+ *  We need a way to access x[i] where i is a variable
+
+
+Effective address
+
+
+ *  An RX instruction specifies addresses in two parts, for example
+  \alert{result[R0]} or \alert{x[R4]} or \alert{\$00a5[R2]}
+  
+   *  The \alert{displacement} is a 16 bit constant (you can write
+    the number, or use a name --- the assembler will put in the
+    address for you)
+   *  The \alert{index register} is written in brackets
+  
+ *  The machine adds the displacement to the value in the index
+  register --- this is called the \alert{effective address}
+ *  The instruction is performed using the effective address
+
+
+Using the effective address
+
+The addressing mechanism is flexible!
+
+
+ *  You can access an ordinary variable:\\ \alert{load R2,sum[R0]}\\
+  R0 always contains 0, so the effective address is just the address
+  of sum
+ *  You can access an array element: if R8 contains an index i,
+  then\\ \alert{load R2,x[R8]}\\ will load x[i] into R2
+ *  There's more: effective addresses are used to implement
+  pointers, functions, procedures, methods, classes, instances, jump
+  tables, case dispatch, coroutines, records, interrupt vectors,
+  lists, heaps, trees, forests, graphs, hash tables, activation
+  records, stacks, queues, dequeues, $\ldots$
+
+
+Addressing modes
+
+
+ *  An \alert{addressing mode} is a scheme for specifying the
+  address of data
+ *  Sigma16 has one addressing mode: displacement[index], e.g. x[R4]
+ *  Many older computers provided many addressing modes: one for
+  variables, another for arrays, yet another for linked lists, still
+  another for stacks, and so on
+ *  It's more efficient to provide just one or two flexible
+  addressing modes, rather than a big collection of them
+
+
+Using effective address for an array
+
+Suppose we want to execute \alert{x[i] := x[i] + 50}
+
+~~~~
+    lea   R1,50[R0]   ; R1 := 50
+    load  R5,i[R0]    ; R5 := i
+    load  R6,x[R5]    ; R6 := x[i]
+    add   R6,R6,R1    ; R6 := x[i] + 50
+    store R6,x[R5]    ; x[i] := x[i] + 50
+~~~~
+
+## Array traversal and for loops
+
+A typical operation on an array is to traverse it; this means to
+perform a calculation on each element. Here's a loop that doubles each
+element of x:
+
+~~~~
+i := 0;
+while i < n do
+  { x[i] := x[i] * 2;
+    i := i + 1;
+  }
+~~~~
+  
+For loops
+
+*  A for loop is designed specifically for array traversal
+*  It handles the loop index automatically
+*  It sets the index to each array element index and executes the
+  body
+*  The intuition is do the body for every element of the
+  array
+
+~~~~
+for i := exp1 to exp2 do
+   { statements }
+~~~~
+
+Array traversal with while and for
+
+Here is the program that doubles each element of x, written with both
+constructs
+
+~~~~
+i := 0;
+while i < n do             for i := 0 to n-1 do
+  { x[i] := x[i] * 2;          { x[i] := x[i] * 2; }
+    i := i + 1;
+  }
+~~~~
+
+Translating the for loop to low level
+
+High level for loop (with any number of statements in the body)
+~~~~
+for i := exp1 to exp2 do
+   { statement1;
+     statement2;
+   }
+~~~~
+
+Translate to low level with this pattern:
+
+~~~~
+       i := exp1;
+loop:  if i > exp2 then goto loopdone;
+       statement1;
+       statement2;
+       i := i + 1;
+       goto loop;
+loopdone:
+~~~~
+
+It's straightforward to complete the translation to assembly
+language.
+
+Alternative syntax for for loops
+
+In languages derived from C (C++, Java, C\#, and many more) you will
+see for loops written like this:
+
+~~~~
+for (i=x; i<y; i++)
+   { S1; }
+S2;
+~~~~
+
+Example program ArrayMax
+
+
+ *  A complete programming example
+ *  The problem: find the maximum element of an array
+ *  To do this we need to
+  
+   *  Allocate an array
+   *  Loop over the elements
+   *  Access each element
+   *  Perform a conditional
+  
+ *  This example puts all our techniques together into one program
+
+
+State what the program does
+
+; Program ArrayMax
+
+;---------------------------------------------------------------------
+; The program finds the maximum element of an array.  It is given
+;   *  a natural number n, assume n>0
+;   *  an n-element array x[0], x[1], ..., x[n-1]
+; and it calculates
+;   * max = the maximum element of x
+
+; Since n>0, the array x contains at least one element, and a maximum
+; element is guaranteed to exist.
+~~~~
+}
+
+### High level algorithm}
+
+;---------------------------------------------------------------------
+; High level algorithm
+
+;   max := x[0];
+;   for i := 1 to n-1 do
+;       { if x[i] > max
+;           then max := x[i];
+;       }
+~~~~
+
+Translate high level code to low level ``goto form''
+
+It's easier to check that this low level is equivalent to both the
+high level algorithm and the assembly language, rather than
+translating all the way to assembly language in one giant step.
+
+~~~~
+; Low level algorithm
+
+;     max := x[0]
+;     i := 1
+; forloop:
+;     if i >= n then goto done
+;     if x[i] <= max then goto skip
+;     max := x[i]
+; skip:
+;     i := i + 1
+;     goto forloop
+; done:
+;     terminate
+~~~~
+
+Specify how the registers are used
+
+The program is written in the ``register variable style''.
+
+
+~~~~
+
+;---------------------------------------------------------------------
+; Assembly language
+
+; Register usage
+;   R1 = constant 1
+;   R2 = n
+;   R3 = i
+;   R4 = max
+~~~~
+}
+
+Block of statements to initialise registers
+
+~~~~
+; Initialise
+       lea    R1,1[R0]         ; R1 = constant 1
+       load   R2,n[R0]         ; R2 = n
+; max := x[0]
+       load   R4,x[R0]         ; R4 = max = x[0]
+; i := 1
+       lea    R3,1[R0]         ; R3 = i = 1
+~~~~
+     
+Beginning of loop
+
+~~~~
+; Top of loop, determine whether to remain in loop
+forloop
+; if i >= n then goto done
+       cmp    R3,R2            ; compare i, n
+       jumpge done[R0]         ; if i>=n then goto done
+
+Body of loop: if-then
+
+; if x[i] <= max then goto else
+       load   R5,x[R3]         ; R5 = x[i]
+       cmp    R5,R4            ; compare x[i], max
+       jumple skip[R0]         ; if x[i] <= max then goto skip
+
+; max := x[i]
+       add   R4,R5,R0          ; max := x[i]
+
+End of loop
+
+skip
+; i := i + 1
+       add    R3,R3,R1         ; i = i + 1
+; goto forloop
+       jump   forloop[R0]      ; go to top of forloop
+
+
+Finish
+
+; Exit from forloop
+done   store R4,max[R0]        ; max = R4
+; terminate
+       trap  R0,R0,R0          ; terminate
+~~~~
+
+Data definitions
+
+~~~~
+; Data area
+
+n        data   6
+max      data   0
+x        data  18
+         data   3
+         data  21
+         data  -2
+         data  40
+         data  25
+~~~~
+
+## Procedures: call and return
+
+## The call stack
+
+
+
+### Variables
+
+### Access to variables
+
+
+ *  Depending on the programming language, there are several
+  different ways that variables can be allocated
+ *  For each of these, there is a corresponding way to access the
+  variable in memory
+ *  Three key issues:
+  
+   *  The \emph{lifetime} of a variable: when it is created, when
+    it is destroyed
+   *  The \emph{scope} of a variable: which parts of the source
+    program are able to access the variable
+   *  The \emph{location} of a variable: what its address in memory
+    is
+  
+ *  The compiler generates the correct object code to access each
+  variable
+
+
+### Three classes of variable
+
+
+ *  \emph{Static variables.} (Sometimes called \emph{global
+    variables}) --- visible through the entire program
+ *  \emph{Local variables.} (Sometimes called \emph{automatic
+    variables}) --- visible only in a local procedure
+ *  \emph{Dynamic variables.} (Sometimes called \emph{heap
+    variables}) --- used in object oriented and functional languages
+
+
+### Static variables
+
+
+ *  The lifetime of a static variable is the entire execution of a
+  program
+  
+   *  When the program is launched, its static variables are created
+   *  They continue to exist, and to retain their values, until the
+    program is terminated
+  
+ *  In C, you can declare a variable to be static.  In Pascal, all
+  global variables (i.e. all variables that aren't defined locally)
+  are static
+ *  \emph{So far, we have been using static variables}
+
+
+
+
+### Combining static variables with code
+
+The simple way we have been defining variables makes them static
+
+~~~~
+     load  R1,x[R0]    ; R1 := x
+   ...
+     trap  R0,R0,R0    ; terminate
+
+; Static variables
+
+x    data    0
+n    data  100
+~~~~
+
+These variables exist for the entire program execution.  There is one
+variable x, and one variable n.
+  
+### Disadvantages of combining variables and code
+
+
+ *  The executable code cannot be shared.
+  
+   *  Suppose two users want to run the program.
+   *  Each needs to have a copy of the entire object, which
+    contains both the instructions and the data
+   *  That means the instructions are duplicated in memory
+   *  This is inefficient use of memory
+  
+ *  To avoid the duplication of instructions, we need to separate
+  the data from the code
+ *  Modern operating systems organise information into
+  \alert{segments}
+  
+   *  A \alert{code segment} is read-only, and can be shared
+   *  A \alert{data segment} is read/write, and cannot be shared
+  
+
+
+
+
+### Local variables
+
+
+ *  Local variables are defined in a function, procedure, method,
+  or in a begin...end block, or a \{...\} block
+ *  A local variable has one name, but there may be many
+  instances of it if the function is recursive
+ *  Therefore local variables cannot be stored in the static data
+  segment
+ *  They are kept in stack frames
+ *  The compiler (or assembler) works out the address of each
+  local variable \emph{relative to the address of the stack frame}
+ *  The variables are accessed using the stack frame register
+
+### Accessing local variables
+
+
+~~~~
+      load  R1,x[R14]   ; access local variable x; R14 points to frame
+~~~~
+}
+
+
+ *  The compiler (or the programmer) works out the exact format
+  of the stack frame
+ *  Each local variable has a dedicated spot in the stack frame,
+  and its address (relative to the frame) is used in the load
+  instruction
+
+
+### Dynamic variables
+
+
+ *  A \emph{dynamic variable} is created explicitly (e.g. using
+  \emph{new} in Java)
+ *  It is not limited to use in just one function
+ *  The lifetime of a dynamic variable does not need to follow the
+  order that stack frames are pushed or popped
+ *  So dynamic variables can't be kept in the static data segment,
+  and they can't be kept on the stack
+
+
+### The Heap
+
+
+ *  Languages that support dynamic variables (Lisp, Scheme, Haskell,
+  Java) have a region of memory called the \emph{heap}.
+ *  The heap typically contains a very large number of very small
+  objects
+ *  The heap contains a \emph{free space list}, a data structure
+  that points to all the free words of memory.
+ *  The heap is maintained by the language ``runtime system'', not
+  by the operating system.
+ *  When you do a \emph{new}, a (small) amount of memory is
+  allocated from the heap and a pointer (address) to the object is
+  returned
+ *  When the object is no longer required, the memory used to hold
+  it is linked back into the free space list.
+
+
+### The call stack
+
+
+ *  Each procedure call pushes information on the stack
+ *  The information needed by the procedure is in the stack frame
+  (also called activation record)
+ *  Each procedure return pops information off the stack
+ *  A register is permanently used as the \alert{stack pointer}
+  
+   *  For each computer architecture, there is a standard register
+    chosen to be the stack pointer
+   *  In Sigma16, R14 is the stack pointer
+   *  When you call, you push a new stack frame and increase R14
+   *  As a procedure runs, it access its data via R14
+   *  When you return, you set R14 to the stack frame below
+  
+
+
+### Simplest stack: return addresses
+
+
+\footnotesize
+\begin{tabular}{|c|}
+  return address \\
+  return address \\
+  return address \\
+  return address \\
+  \hline
+\end{tabular}
+
+
+Just save the return address on the stack
+
+### Saved registers
+
+
+\footnotesize
+\begin{tabular}{|c|}
+  save R4         \\
+  save R3         \\
+  save R2         \\
+  save R1         \\
+  return address \\
+  \hline
+  save R1         \\
+  return address \\
+  \hline
+  save R3         \\
+  save R2         \\
+  save R1         \\
+  return address \\
+  \hline
+\end{tabular}
+
+
+Save the registers the procedure needs to use on the stack, and
+restore them before returning.  This way the procedure won't crash the
+caller
+
+### Dynamic links
+
+
+\footnotesize
+\begin{tabular}{r|c|}
+\hline  
+4& save R3         \\
+3& save R2         \\
+2& save R1         \\
+1& return address  \\
+0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink3){dynamic link};}} \\
+\hline  
+2& save R1         \\
+1& return address  \\
+0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink2){dynamic link};}} \\
+\hline  
+3& save R2         \\
+2& save R1         \\
+1& return address  \\
+0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink1){dynamic link};}} \\
+\hline  
+  $\cdots$ \\
+\end{tabular}
+
+
+\tikz[overlay]\draw<1->[thick,red,->]
+  (dlink3.east) to [out=0, in=0] (dlink2.north east);
+\tikz[overlay]\draw<1->[thick,red,->]
+  (dlink2.east) to [out=0, in=0] (dlink1.north east);
+
+ 
+ *  Problem: since each activation record can have a different size,
+  how do we pop the top one off the stack?
+ *  Simplest solution: each activation record contains a pointer
+  (called dynamic link) to the one below
+
+
+### Local variables
+
+
+\footnotesize
+\begin{tabular}{r|c|}
+  \hline
+  6& y \\
+  5& x \\
+  4& save R3         \\
+  3& save R2         \\
+  2& save R1         \\
+  1& return address  \\
+  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink3)
+     {dynamic link};}} \\
+  \hline  
+  3& pqrs            \\
+  2& save R1         \\
+  1& return address  \\
+  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink2)
+     {dynamic link};}} \\
+  \hline
+  5& b \\
+  4& a \\
+  3& save R2 \\
+  2& save R1 \\
+  1& return address \\
+  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink1)
+     {dynamic link};}} \\
+  \hline  
+  $\cdots$ \\
+\end{tabular}
+
+
+\tikz[overlay]\draw<1->[thick,red,->]
+  (dlink3.east) to [out=0, in=0] (dlink2.north east);
+\tikz[overlay]\draw<1->[thick,red,->]
+  (dlink2.east) to [out=0, in=0] (dlink1.north east);
+
+The procedure keeps its local variables on the stack
+  
+### Static links for scoped variables
+
+
+\footnotesize
+\begin{tabular}{r|c|}
+  \hline
+  7& y \\
+  6& x \\
+  5& save R3         \\
+  4& save R2         \\
+  3& save R1         \\
+  2& static link  \\
+  1& return address  \\
+  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink3)
+     {dynamic link};}} \\
+  \hline  
+  4& pqrs            \\
+  3& save R1         \\
+  2& static link  \\
+  1& return address  \\
+  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink2)
+     {dynamic link};}} \\
+  \hline
+  6& b \\
+  5& a \\
+  4& save R2 \\
+  3& save R1 \\
+  2& static link  \\
+  1& return address \\
+  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink1)
+     {dynamic link};}} \\
+  \hline  
+  $\cdots$ \\
+\end{tabular}
+
+
+\tikz[overlay]\draw<1->[thick,red,->]
+  (dlink3.east) to [out=0, in=0] (dlink2.north east);
+\tikz[overlay]\draw<1->[thick,red,->]
+  (dlink2.east) to [out=0, in=0] (dlink1.north east);
+
+
+### Accessing a word in the stack frame
+
+
+ *  Work out a ``map'' showing the format of a stack frame
+ *  Describe this in comments (it's similar to the register usage
+  comments we've been using)
+ *  Suppose local variable, say ``avacado'', is kept at position 7
+  in the stack frame
+ *  To access the variable:
+  
+   *  load  R1,7[R14]   ; R1 := avacado
+   *  store  R1,7[R14]   ; R1 := avacado
+   *  Also, we can define the symbol ``avacodo'' to be 7, and write:
+   *  load  R1,avacado[R14]   ; R1 := avacado
+   *  store  R1,avacado[R14]   ; R1 := avacado
+  
+ *  These are called \alert{local variables} because every call to a
+  procedure has its own private copy
+
+### Example from factorial program (see below)
+
+These comments document the structure of a stack frame for the program:
+
+
+~~~~
+; Structure of stack frame for fact function
+;    6[R14]   origin of next frame
+;    5[R14]   save R4
+;    4[R14]   save R3
+;    3[R14]   save R2
+;    2[R14]   save R1 (parameter n)
+;    1[R14]   return address
+;    0[R14]   pointer to previous stack frame
+~~~~
+}
+
+### Recursive factorial
+
+
+ *  In the Sigma16 examples, there is a program called
+  \texttt{factorial}
+ *  This program illustrates the full stack frame technique
+ *  It uses recursion --- a function that calls itself
+ *  Note: the best way actually to compute a factorial is with a
+  simple loop, \emph{not} with recursion
+ *  But recursion is an important technique, and it's better to
+  study it with a simple example (like factorial) rather than a
+  complicated ``real world'' example
+
+
+### About the factorial program
+
+  
+   *  Comments are used to identify the program, describe the
+    algorithm, and document the data structures.
+   *  Blank lines and full-line comments organise the program
+    into small sections.
+   *  The caller just uses jal to call the function.
+   *  The function is responsible for building the stack frame,
+    saving and restoring registers.
+   *  The technique of using the stack for functions is general,
+    and can be used for large scale programs.
+  
+
+
+### Statement of problem, and register usage
+
+;-----------------------------------------------------------------------
+; factorial.asm.txt
+;-----------------------------------------------------------------------
+
+; This program for the Sigma16 architecture uses a recursive function
+; to compute x! (factorial of x), where x is defined as a static
+; variable.
+
+; The algorithm uses a recursive definition of factorial:
+;   if n <=1
+;     then factorial n = 1
+;     else factorial n = n * factorial (n-1)
+
+; Register usage
+;   R15 is reserved by architecture for special instructions
+;   R14 is stack pointer
+;   R13 is return address
+;   R2, R3, R4 are temporaries used by factorial function
+;   R1 is function parameter and result
+;   R0 is reserved by architecture for constant 0
+
+### Format of main program stack frame
+
+;-----------------------------------------------------------------------
+; Main program
+
+; The main program computes result := factorial x and terminates.
+
+; Structure of stack frame for main program
+;    1[R14]   origin of next frame
+;    0[R14]   pointer to previous stack frame = nil
+
+### Main program initialisation
+
+; Initialise stack
+     lea    R14,stack[R0]      ; initialise stack pointer
+     store  R0,0[R14]          ; previous frame pointer := nil
+
+### Main program calls factorial
+
+; Call the function to compute factorial x
+     load   R1,x[R0]           ; function parameter := x
+     store  R14,1[R14]         ; point to current frame
+     lea    R14,1[R14]         ; push stack frame
+     jal    R13,factorial[R0]  ; R1 := factorial x
+
+### Main program finishes
+
+; Save result and terminate
+     store  R1,result[R0]      ; result := factorial x
+     trap   R0,R0,R0           ; terminate
+
+### Description of factorial function
+
+;-----------------------------------------------------------------------
+factorial
+; Function that computes n!
+;   Input parameter n is passed in R1
+;   Result is returned in R1
+
+### Format of stack frame for factorial
+
+; Structure of stack frame for fact function
+;    6[R14]   origin of next frame
+;    5[R14]   save R4
+;    4[R14]   save R3
+;    3[R14]   save R2
+;    2[R14]   save R1 (parameter n)
+;    1[R14]   return address
+;    0[R14]   pointer to previous stack frame
+
+### Factorial: build stack frame
+
+; Create stack frame  
+     store  R13,1[R14]         ; save return address
+     store  R1,2[R14]          ; save R1
+     store  R2,3[R14]          ; save R2
+     store  R3,4[R14]          ; save R3
+     store  R4,5[R14]          ; save R4
+~~~~
+
+### Factorial: check for base or recursion case
+
+~~~~
+; Initialise
+     lea    R2,1[R0]           ; R2 := 1
+
+; Determine whether we have base case or recursion case
+     cmpgt  R10,R1,R2           ; R10 := n>1
+     jumpt  R10,recursion[R0]   ; if n>1 then go to recursion case
+~~~~
+
+### Factorial: base case
+
+~~~~
+; Base case.  n<=1 so the result is 1
+     lea    R1,1[R0]           ; factorial n = 1
+     jump   return[R0]         ; go to end of function
+~~~~
+
+### Factorial: recursion case
+
+~~~~
+; Recursion case.  n>1 so factorial n = n * factorial (n-1)
+recursion
+     sub    R1,R1,R2           ; function paramemter := n-1
+
+; Call function to compute factorial (n-1)
+     store  R14,6[R14]         ; point to current frame
+     lea    R14,6[R14]         ; push stack frame
+     jal    R13,factorial[R0]  ; R1 := factorial (n-1)
+     load   R2,2[R14]          ; R2 := saved R1 = n
+     mul    R1,R2,R1           ; R1 := n * fact (n-1)
+
+### Factorial: restore registers and return
+
+~~~~
+; Restore registers and return; R1 contains result
+return
+     load   R2,3[R14]       ; restore R2
+     load   R3,4[R14]       ; restore R3
+     load   R4,5[R14]       ; restore R4
+     load   R13,1[R14]      ; restore return address
+     load   R14,0[R14]      ; pop stack frame
+     jump   0[R13]          ; return
+~~~~
+
+Static data area
+
+~~~~
+; Static data segment
+
+x       data   5
+result  data   0
+stack   data   0   ; stack extends from here on...
+~~~~
+
+Summary
+
+
+ *  Variables defined with data statement are static
+  
+   *  Each static variable must have a unique name
+   *  Static variables exist through entire execution of program
+  
+ *  Variables defined in a procedure are local
+  
+   *  Different procedures can use the same name for different
+    variables
+   *  Local variables are kept in the stack frame
+   *  Call--push stack frame; return--pop stack frame
+   *  R14 points to current stack frame; local variables are
+    accessed using R14
+
+
+## Records
+
+
+## Pointers
+
+
+
+## Further topics
 
 To run the program slowly, click Step repeatedly.  To run the program
 faster but without updating the display after each instruction, click
@@ -1815,6 +3588,8 @@ status register, it can be used to perform a context switch.
 
 ### Nonblocking readline
 
+### Random number
+
 ## List of instructions
 
 Table: **Instruction set**
@@ -1939,6 +3714,52 @@ There are three kinds of assembly language statement:
 
 * Other statements are *directives*, which control the behavior of the
 assembler but don't generate any code.
+
+Humans write assembly language.  The program is text: red}add
+R4,R2,R12.  It's easier to read, you don't need to remember all the
+codes, and memory addresses are much easier to handle.
+  
+The computer executes machine language: The program is words
+containing 16-bit numbers: 042c.  It's possible for a digital circuit
+(the computer) to execute.  No names for instructions or variables:
+everything is a number.
+  
+A human writes a machine-level program in assembly language.  A
+software application called the *assembler* reads it in and translates
+it to machine language.  When it sees an instruction mnemonic like add
+or div, it replaces it with the operation code (0, 3, or whatever).
+The assembler helps with variable names --- the machine language needs
+addresses (numbers) and the assembler calculates them
+  
+*  You can use names (add, div) rather than numeric codes (0, 3)
+*  You can use variable names (x, y, sum) rather than memory
+  addresses (02c3, 18d2)
+*  You write a program in assemply language
+*  The \emph{assembler} translates it into machine language
+
+Compilers and assemblers are similar in some ways: both of them
+translate a program from one language to another.  The main difference
+is that compilers translate between languages that are very different,
+while assemblers translate between very similar languages.
+
+Example: a sequence of RRR instructions
+
+Assembly language
+~~~~
+    add    R3,R5,R1
+    sub    R4,R2,R3
+    mul    R1,R9,R10   
+~~~~
+
+Machine language
+~~~~
+    0351
+    1423
+    219a
+~~~~
+
+
+
 
 ## Notation
 
@@ -2077,9 +3898,53 @@ An expression may be
 * An identifier imported from another module.  In this case, the
   expression may not contain any operators or other terms: the entire
   expression must just be that identifier.
-  
 
-#### module
+### data statement
+
+The data statement specifies a sequence of constants to be placed in
+consecutive memory locations starting at the location counter, subject
+to relocation.  Its argument is a list of one or more 4-digit hex
+constants separated by commas.
+
+A long block of data can be broken up into several data statements.
+Suppose x1, x2, etc are 4-digit hex constants.  Then
+
+~~~~
+data  x1,x2,x3,x4,x5,x6
+~~~~
+
+is equivalent to
+
+~~~~
+data x1,x2,x3
+data x4,x5,x6
+~~~~
+
+Suppose
+
+* The module's relocation constant is r
+
+* The location counter has been set to c
+
+* The i'th constant (counting from 0) in a data statement is x.
+
+Then the linker will set mem[r+c+i] := x.
+
+One point to watch out for is that an assembly language data statement
+uses $ to indicate that a number is a hex constant (e.g. $03b7) but
+the object language data statement requires all numbers to be 4-digit
+hex constants, and does not require (or allow) a preceding $ character
+
+
+### module statement
+
+Declare the name of the module.  The argument must be an indentifier.
+The following statement says that this is the object code for module
+named abc.
+
+~~~~
+module abc
+~~~~
 
 A program may be organized as a collection of modules, where each
 module appears in a separate file.  When several modules are present,
@@ -2101,7 +3966,15 @@ Examples
     main      module
     myprog    module
 
-### org
+### org statement
+
+The org statement sets the location counter to a specified address.
+Currently the argument must be a a 4-digit hexadecimal constant, such
+as 3b9f.
+
+~~~~
+org  0a04
+~~~~
 
 The org statement specifies where in memory instructions and data
 should be placed when the program is booted.  It takes an operand
@@ -2117,7 +3990,11 @@ The assembler initializes the location counter to 0 before it begins
 translating an assembly language module.  This means that, in effect,
 every module begins with org 0.
 
-### import
+### import statment
+
+~~~~
+import mod3,sqr,addr,addr,...
+~~~~
 
 The import statement states that the value of an identifier is defined
 in another module.  During the assembly of the module containing the
@@ -2134,7 +4011,20 @@ says that x is a name that can be used in this module, but it is
 defined in Mod1 and its actual value will remain unknown until the
 linker sets it later on.    
 
-### export
+### export statement
+
+An export statement says that the module is making the value of a
+symbol available for use in other modules, which may import it.  The
+statement takes two operands: the name being exported and the value,
+which must be a 4-digit hex constant.  It makes no difference whether
+the name is relocatable, as the linker performs any relocation before
+writing the exported value into other modules that import it.
+Examples:
+
+~~~~
+export  haltcode,0
+export  fcn,002c
+~~~~
 
 The export statement states that the value of an identifier should be
 made available for other modules to import.  For example, this module
@@ -2181,139 +4071,6 @@ directly to raw machine language.  Instead, it produces an *object
 module* which contains some additional metadata along with the machine
 language code.  This metadata enables the linker to combine the object
 module with other modules into an *executable module*.
-
-## Object code
-
-Ojbect modules are specified in an object code language with a simple
-syntax and only a few types of statement.  Each object statement is
-written on line line.  It
-begins with a keyword indicating the type of statement, followed by
-white space, followed by an operand which must not contain any
-spaces.  Operands may contain either hex constants or identifiers.
-
-* In the object language, hex constants are written as four
-  characters, using digits 0-9 a-f.  Unlike assembly language, a hex
-  constant is not preceded by $.
-
-* Identifiers have the same syntax as in assembly language: a string
-  of letters, digits, and underscore characters, beginning with a
-  letter.
-
-The object language has six statements: module, org, data, import,
-export, and relocate.  These are related to corresponding statements
-in assembly language, but their syntax is different.  For example, an
-import statement in assembly language will generate one or more import
-statements in the object code, but those statements have a different
-syntax and contain different information.
-
-### module statement
-
-Declare the name of the module.  The argument must be an indentifier.
-The following statement says that this is the object code for module
-named abc.
-
-~~~~
-module abc
-~~~~
-
-### org statement
-
-The org statement sets the location counter to a specified address.
-Currently the argument must be a a 4-digit hexadecimal constant, such
-as 3b9f.
-
-~~~~
-org  0a04
-~~~~
-
-### data statement
-
-The data statement specifies a sequence of constants to be placed in
-consecutive memory locations starting at the location counter, subject
-to relocation.  Its argument is a list of one or more 4-digit hex
-constants separated by commas.
-
-A long block of data can be broken up into several data statements.
-Suppose x1, x2, etc are 4-digit hex constants.  Then
-
-~~~~
-data  x1,x2,x3,x4,x5,x6
-~~~~
-
-is equivalent to
-
-~~~~
-data x1,x2,x3
-data x4,x5,x6
-~~~~
-
-Suppose
-
-* The module's relocation constant is r
-
-* The location counter has been set to c
-
-* The i'th constant (counting from 0) in a data statement is x.
-
-Then the linker will set mem[r+c+i] := x.
-
-One point to watch out for is that an assembly language data statement
-uses $ to indicate that a number is a hex constant (e.g. $03b7) but
-the object language data statement requires all numbers to be 4-digit
-hex constants, and does not require (or allow) a preceding $ character
-
-### import statment
-
-~~~~
-import mod3,sqr,addr,addr,...
-~~~~
-
-
-### export statement
-
-An export statement says that the module is making the value of a
-symbol available for use in other modules, which may import it.  The
-statement takes two operands: the name being exported and the value,
-which must be a 4-digit hex constant.  It makes no difference whether
-the name is relocatable, as the linker performs any relocation before
-writing the exported value into other modules that import it.
-Examples:
-
-~~~~
-export  haltcode,0
-export  fcn,002c
-~~~~
-
-### relocate statement
-
-The relocate statement specifies a list of addresses of words that
-must be relocated.  Suppose the value x is specified in a relocate
-statement, and the linker is relocating the module by offset y.  Then
-the linker will set mem[x+y] = obj[x]+y.
-
-~~~~
-relocate hex4,hex4,...
-~~~~
-
-
-## Executable code
-
-An executable module is written in the same language as object
-modules.  The only difference is that an executable module must
-contain only these types of statement: module, data, org.  It is now
-allowed to contain any of the following statments: import, export,
-relocate.
-
-If an assembly language program doesn't contain any import or export
-directives, then its object code won't contain any import, export, or
-relcate statements.  In this case, the object code is already
-executable and does not require linking: it can be booted directly by
-the processor.
-
-The booter (invoked by clicking the Boot button in the processor page)
-reads in the currently selected module and checks to see whether it is
-a valid executable module.  If so, it loads the code into the memory.
-If not, it indicates that the program cannot be booted.
 
 ## Programs, modules, and files
 
@@ -2414,18 +4171,75 @@ last saved.  If so, a dialogue asks whether the file should be saved.
 Select is for switching among the existing modules, while New and Open
 are for introducing a new module.
 
+## Object code
+
+Ojbect modules are specified in an object code language with a simple
+syntax and only a few types of statement.  Each object statement is
+written on line line.  It
+begins with a keyword indicating the type of statement, followed by
+white space, followed by an operand which must not contain any
+spaces.  Operands may contain either hex constants or identifiers.
+
+* In the object language, hex constants are written as four
+  characters, using digits 0-9 a-f.  Unlike assembly language, a hex
+  constant is not preceded by $.
+
+* Identifiers have the same syntax as in assembly language: a string
+  of letters, digits, and underscore characters, beginning with a
+  letter.
+
+The object language has six statements: module, org, data, import,
+export, and relocate.  These are related to corresponding statements
+in assembly language, but their syntax is different.  For example, an
+import statement in assembly language will generate one or more import
+statements in the object code, but those statements have a different
+syntax and contain different information.
+
+
+
+### relocate statement
+
+The relocate statement specifies a list of addresses of words that
+must be relocated.  Suppose the value x is specified in a relocate
+statement, and the linker is relocating the module by offset y.  Then
+the linker will set mem[x+y] = obj[x]+y.
+
+~~~~
+relocate hex4,hex4,...
+~~~~
+
+
+## Executable code
+
+An executable module is written in the same language as object
+modules.  The only difference is that an executable module must
+contain only these types of statement: module, data, org.  It is now
+allowed to contain any of the following statments: import, export,
+relocate.
+
+If an assembly language program doesn't contain any import or export
+directives, then its object code won't contain any import, export, or
+relcate statements.  In this case, the object code is already
+executable and does not require linking: it can be booted directly by
+the processor.
+
+The booter (invoked by clicking the Boot button in the processor page)
+reads in the currently selected module and checks to see whether it is
+a valid executable module.  If so, it loads the code into the memory.
+If not, it indicates that the program cannot be booted.
+
 # Programming
 
 ## Using the instructions
 
-**load and store**
+### load and store
   
 * Use load to copy a variable (either ordinary variable x or array
   element a[i]) from memory to register.
 
 * Use store to copy the value in a register into memory.
   
-**lea**
+### lea
   
 * (Common usage) Use lea to put a constant into a register: *lea
   R2,39[R0] ; R2 = 39*
@@ -2443,174 +4257,7 @@ are for introducing a new module.
 * (Less common usage) Use lea to add a binary constant to a register
   containing a binary number: *lea R5,1[R5] ; R5 = R5 + 1*.
 
-## Computer Architecture
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-### Memory
-
-
-### Limitation of register file: it's small}
-
-
- *  The register file is used to perform calculations
- *  In computing somethine like \texttt{x := (2*a + 3*b) / (x-1)},
-  all the arithmetic will be done using the register file
- *  But it has a big limitation:
-  
-   *  There are only 16 registers
-   *  And most programs need more than 16 variables!
-  
- *  Solution: the \alert{memory} is large and can hold far more data
-  than the register file
-
-
-
-
-
-### Memory}
-
-
- *  The memory is similar to the register file: it is a large
-  collection of words
- *  A variable name (x, sum, count) refers to a word in memory
- *  Some differences between memory and register file:
-  
-   *  The memory is \alert{much larger}: 65,536 locations (the
-    register file has only 16)
-   *  The memory cannot do arithmetic
-  
- *  So our strategy in programming:
-  
-   *  Keep data permanently in memory
-   *  When you need to do arithmetic, copy a variable from memory to
-    a register
-   *  When finished, copy the result from a register back to memory
-  
-
-
-
-
-
-### Registers and memory
-
-
- *  The \alert{register file}
-  
-   *  16 registers 
-   *  \stress{Can do arithmetic, but too small to hold all your
-      variables}
-   *  Each register holds a 16-bit word
-   *  Names are R0, R1, R2, $\ldots$, R15
-   *  You can do arithmetic on data in the registers
-   *  \alert{Use registers to hold data temporarily that you're
-      doing arithmetic on}
-  
- *  The \alert{memory}
-  
-   *  65,536 memory locations
-   *  Each memory location holds a 16-bit word
-   *  Each memory location has an \alert{address} 0, 1, 2, $\ldots$,
-    65,535
-   *  The machine cannot do arithmetic on a memory location
-   *  \alert{Use memory locations to store program variables
-      permanently.  Also, use memory locations to store the program.}
-  
-
-
-
-
-
-### Copying a word between memory and register
-
-There are two instructions for accessing the memory
-
-
- *  \alert{load} copies a variable from memory to a register
-  
-   *  \stress{\texttt{load R2,x[R0]}} copies the variable \texttt{x}
-    from memory to register R2
-   *  \stress{R2 := x}
-   *  R2 is changed; x is unchanged
-  
- *  \alert{store} copies a variable from a register to memory
-  
-   *  \stress{\texttt{store R3,y[R0]}} copies the word in register
-    R3 to the variable \texttt{y} in memory
-   *  \stress{y := R3}
-   *  y is changed; R3 is unchanged
-  
- *  Notice that we write \alert{[R0]} after a variable name.  Later
-  we'll see the reason.
-
-
-
-
-
-### An assignment statement in machine langauge
-
-\alert{x := a+b+c}
-
-\vspace{0.5em}
-~~~~
-       load   R1,a[R0]      ; R1 := a
-       load   R2,b[R0]      ; R2 := b
-       add    R3,R1,R2      ; R3 := a+b
-       load   R4,c[R0]      ; R4 := c
-       add    R5,R3,R4      ; R5 := (a+b) + c
-       store  R5,x[R0]      ; x := a+b+c
-~~~~
-
-\begin{enumerate}
- *  Use \important{load} to \stress{copy variables from memory to
-    registers}
- *  Do arithmetic with \important{add, sub, mul, div}
- *  Use \important{store} to \stress{copy result back to memory}
-\end{enumerate}
-
-
-
-
-### Why do we have registers and memory
-
-
- *  The programmer has to keep track of which variables are
-  currently in registers
- *  You have to use load and store instructions to copy data between
-  the registers and memory
- *  Wouldn't it be easier just to get rid of the distinction between
-  registers and memory?  Do all the arithmetic on memory
- *  Short answer:
-  
-   *  Yes, it's possible to design a computer that way
-   *  But it makes the computer \emph{very much slower}
-   *  With modern circuits, a computer without load and store
-    instructions (where you do arithmetic on memory locations) would
-    run between 100 and 1,000 times slower
-  
-
-
-
-
-
-### Constants: the lea instruction
+Loading constants using lea
 
 
  *  The RTM has an instruction that loads a constant into a register
@@ -2624,12 +4271,6 @@ There are two instructions for accessing the memory
  *  You must write [R0] after the constant; we'll see the reason for
   this later on
 
-
-
-
-
-### Example using lea
-
 ~~~~
 ; R3 := R1 + 39*R2
 
@@ -2639,7 +4280,7 @@ There are two instructions for accessing the memory
 ~~~~
 
 
-
+## How to perform commmon tasks
 
 ### Stopping the program
 
@@ -2651,52 +4292,6 @@ The last instruction should be
 
 This tells the computer to halt; it stops execution of the program
 
-
-
-
-### Defining variables
-
-To define variables x, y, z and give them initial values
-
-~~~~
-x    data   34    ; x is a variable with initial value 34
-y    data    9    ; y is initially 9
-z    data    0    ; z is initially 0
-abc  data  $02c6  ; specify initial value as hex
-~~~~
-
-The data statements should come \emph{after} all the instructions in
-the program (we'll see why later)
-
-
-
-
-### A complete example program
-
-
-~~~~
-; Program Add
-; A minimal program that adds two integer variables
-
-; Execution starts at location 0, where the first instruction will be
-; placed when the program is executed.
-
-      load   R1,x[R0]   ; R1 := x
-      load   R2,y[R0]   ; R2 := y
-      add    R3,R1,R2   ; R3 := x + y
-      store  R3,z[R0]   ; z := x + y
-      trap   R0,R0,R0   ; terminate
-
-; Static variables are placed in memory after the program
-
-x     data  23
-y     data  14
-z     data  99
-~~~~
-}
-
-
-### Programming languages and Compiling
 
 
 ### Compiling
@@ -2725,6 +4320,21 @@ z     data  99
 
 #### High level constructs
 
+Control constructs determine the order of execution of statements.
+Some high level control constructs are  
+    
+* if b then S
+* if b then S1 else S2
+* while b do S
+* for var := expr1 to expr2 do S
+* procedure
+    
+These are implemented using just a couple of low level control
+constructs
+    
+* goto L 
+* if b then goto L
+  
 
 ### Statements
 
@@ -2954,711 +4564,20 @@ Load the operands; do calculations; store results
 
 
 
-#### if bexp then S
 
 
-### if bexp then S
 
-~~~~
-if x<y
-  then {statement 1;}
-statement 2;
-~~~~
 
-\alert{Translates into}
 
-~~~~
-   R7 := (x < y)
-   jumpf R7,skip[R0]
-   instructions for statement 1
-skip
-   instructions for statement 2 
-~~~~
 
 
 
 
-### Example: code with if-then
 
-Source program fragment:
 
-~~~~
-x := 2;
-if y>x
-   then { a := 5; }
-b := 6;
-~~~~
 
 
 
-
-### Example: translating if-then
-
-{\small
-~~~~
-; x := 2;
-      lea     R1,2[R0]    ; R1 := 2
-      store   R1,x[R0]    ; x := 2
-
-; if y>x
-      load    R1,y[R0]    ; R1 := y
-      load    R2,x[R0]    ; R2 := x
-      cmpgt   R3,R1,R2    ; R3 := (y>x)
-      jumpf   R3,skip[R0] ; if y <= x then goto skip
-
-;  then { a := 5; }
-      lea    R1,5[R0]     ; R1 := 5
-      store  R1,a[R0]     ; a := 5
-
-; b := 6;
-skip  lea    R1,6[R0]     ; R1 := 6
-      store  R1,b[R0]     ; b := 6
-~~~~
-}
-
-
-
-#### if bexp then S1 else S2
-
-
-### if bexp then S1 else S2
-
-~~~~
-if x<y
-  then { S1 }
-  else { S2 }
-S3
-~~~~
-
-Compiled into:
-~~~~
-   R5 := (x<y)
-   jumpf R5,else[R0]
-; then part of the statement
-   instructions for S1
-   jump   done[R0]
-; else part of the statement
-else
-   instructions for S2 
-done
-   instructions for statement S3
-~~~~
-
-
-
-#### while bexp do S
-
-
-
-### while b do S
-
-~~~~
-while i<n do
-  { S1 }
-S2
-~~~~
-
-Compiled into:
-~~~~
-loop
-   R6 := (i<n)
-   jumpf  R6,done[R0]
-   ... instructions for the loop body S1 ...
-   jump   loop[R0]
-done
-  instructions for S2
-~~~~
-
-
-
-
-### Infinite loops
-
-~~~~
-while (true)
-  {statements} 
-~~~~
-
-Compiled into:
-~~~~
-loop
-   ... instructions for the loop body ...
-   jump   loop[R0] 
-~~~~
-
-
-
-#### Nested statements
-
-
-### Nested statements
-
-
- *  For each kind of high level statement, there is a pattern for
-  translating it to
-  \begin{enumerate}
-   *  Low level code (goto)
-   *  Assembly language
-  \end{enumerate}
- *  In larger programs, there will be \alert{nested statements}
-
-
-~~~~
-if b1
-  then { S1;
-         if b2 then {S2} else {S3};
-         S4;
-       }
-  else { S5;
-         while b3 do {S6};
-       }
-S7
-~~~~
-
-
-
-
-### How to compile nested statements
-
-
- *  A \alert{block} is a sequence of instructions where
-  
-   *  To execute it, \alert{always start with the first statement}
-   *  When it finishes, it \alert{always reaches the last statement}
-  
- *  Every statement should be compiled into a block of code
- *  This block may contain internal structure --- it may contain
-  several smaller blocks --- but to execute it you should
-  \alert{always begin at the beginning and it should always finish at
-    the end}
- *  The patterns work for nested statements
- *  You need to use new labels (can't have a label like ``skip'' in
-  several places)
-
-
-
-### Programming technique
-
-
-### Programming technique
-
-There are two ways to handle variables:
-
-
- *  The \emph{statement-by-statement style}:
-  
-   *  {\color{blue}Each statement is compiled independently.}
-   *  load, arithmetic, store
-   *  Straightforward but inefficient.
-   *  {\color{blue}Use this style if you feel confused.}
-  
- *  The \emph{register-variable style}:
-  
-   *  {\color{blue}Keep variables in registers across a group of
-      statements}
-   *  Don't need as many loads and stores
-   *  More efficient
-   *  You have to keep track of whether
-    variables are in memory or a register.
-   *  \alert{Use comments to show register usage.}
-   *  Real compilers use this style.
-   *  {\color{blue}Use this style if you like the shorter code it
-      produces.}
-  
-
-
-
-
-### Examples of the two styles
-
-We'll translate the following program fragment to assembly
-language, using each style:
-
-~~~~
-x = 50;
-y = 2*z;
-x = x+1+z;
-~~~~
-
-
-
-#### Statement-by-statement style
-
-
-### Example of statement-by-statement style
-
-{\small
-~~~~
-; x = 50;
-     lea    R1,$0032   ; R1 = 50
-     store  R1,x[R0]   ; x = 50
-
-; y = 2*z;
-     lea    R1,$0002   ; R1 = 2
-     load   R2,z[R0]   ; R2 = z
-     mul    R3,R1,R2   ; R3 = 2*z
-     store  R3,y[R0]   ; y = 2*z
-
-; x = x+1+z;
-     load   R1,x[R0]   ; R1 = x
-     lea    R2,1[R0]   ; R2 = 1
-     load   R3,z[R0]   ; R3 = z
-     add    R4,R1,R2   ; R4 = x+1
-     add    R4,R4,R3   ; R4 = x+1+z
-     store  R4,x[R0]   ; x = x+1+z
-~~~~
-}
-
-
-
-#### Register-variable style}
-
-
-### Example of register-variable style
-
-{\small
-~~~~
-; Usage of registers
-;   R1 = x
-;   R2 = y
-;   R3 = z
-
-; x = 50;
-     lea    R1,$0032   ; x = 50
-     load   R3,z[R0]   ; R3 = z
-     lea    R4,$0002   ; R4 = 2
-; y = 2*z;
-     mul    R2,R4,R3   ; y = 2*z
-; x = x+1+z;
-     lea    R4,$0001   ; R4 = 1
-     add    R1,R1,R4   ; x = x+1
-     add    R1,R1,R3   ; x = x+z
-     store  R1,x[R0]   ; move x to memory
-     store  R2,y[R0]   ; move y to memory
-~~~~
-}
-
-
-                                
-#### Comparison of the styles
-
-
-### Comparison of the two styles
-
-
- *  Statement by statement
-  
-   *  Each statement is compiled into a separate block of code.
-   *  Each statement requires loads, computation, then stores.
-   *  A variable may appear in several different registers.
-   *  There may be a lot of redundant loading and storing.
-   *  The object code corresponds straightforwardly to the source
-    code, but it may be unnecessarily long.
-  
- *  Register variable
-  
-   *  The instructions corresponding to the statemnts are mixed
-    together.
-   *  Some statements are executed entirely in the registers.
-   *  A variable is kept in the same register across many
-    statments.
-   *  The use of loads and stores is minimised.
-   *  The object code is concise, but it's harder to see how it
-    corresponds to the source code.
-  
- *  It's possible to have a mixture of the styles: you don't have
-  to follow one or the other all the time.
-
-
-
-
-
-
-## Machine language
-
-### Machine language: representing instructions in memory
-
-
- *  The actual bits representing an instruction (written in hex) ---
-  \alert{0d69} -- is \alert{machine language}
- *  The actual hardware runs the machine language --- it's just
-  looking at the numbers
- *  The text notation with names --- \alert{add R13,R6,R9} --- is
-  \alert{assembly language}
- *  Assembly language is for humans, machine language is for
-  machines
- *  Both \alert{specify the program in complete detail}, down to the
-  last bit
-
-
-
-
-### What's in the memory?
-
-
- *  All your program's data
-  
-   *  Variables
-   *  Data structures, arrays, lists
-  
- *  \alert{And also the machine language program itself!}
-
-
-\begin{block}{The \textbf{stored program computer}}
-  The program is stored inside the computer's main memory, along with
-  the data.\\
-  \vspace{1em} An alternative approach is to have a separate memory to
-  hold the program, but experience has shown that to be inferior for
-  general purpose computers.  (Special-purpose computers often do
-  this.)
-\end{block}
-
-
-
-
-### Instruction formats: different types of instruction
-
-
- *  Sigma16 has \important{three kinds of instruction:}
-  
-   *  \alert{RRR} instructions use the \alert{registers}
-   *  \alert{RX} instructions use the \alert{memory}
-   *  \alert{EXP} instructions use \alert{registers and constant}
-  
- *  Each kind of instruction is called an \alert{instruction format}
- *  All the instructions with the same format are similar
- *  \alert{Each instruction format has a standard representation in
-    the memory.}
-
-
-
-
-### Instruction formats: representing instructions
-
- 
- *  The machine language program is in the memory 
- *  So we need to represent each instruction as a word
- *  An \important{instruction format} is \stress{a systematic way to
-    represent an instruction using a string of bits, on one or more
-    words}
- *  Every instruction is either RRR, RX, or EXP 
-  
-   *  An RRR instruction is represented in \alert{one word}
-    (remember, a word is 16 bits)
-   *  An RX or EXP instruction is represented in \alert{two words}
-  
- *  We just need to learn three ways to represent an instruction!
- *  For now, we just need RRR and RX (EXP is needed only for some
-  more advanced instructions, which we'll see later)
-
-
-
-
-
-### Fields of an instruction word
-
-
- *  An instruction word has 16 bits
- *  There are four fields, each 4 bits
- *  We write the value in a field using \important{hexadecimal}
-  \begin{enumerate}
-   *  hex digits: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f
-   *  represent numbers 1, $\ldots$, 15
-  \end{enumerate}
- *  The fields have standard names:
-  
-   *  op --- holds the operation code
-   *  d  --- usually holds the destination register
-   *  a  --- usually holds the first source operand register
-   *  b --- usually holds the second source operand register
-  
-
-
-
-
-#### RRR instructions
-
-
-### RRR instructions
-
-
- *  Every RRR instruction consists of
-  
-   *  An operation (e.g. add)
-   *  Three register operands: a destination and two operands
-   *  The instruction performs the operation on the operands and
-    puts the result in the destination
-  
-
-
-
-
-### Representing RRR
-
-
- *  Example:  add R3,R12,R5
- *  We need to specify \alert{which} RRR instruction this is.  Is it
-  add? sub? mul? another?
- *  This is done with an \alert{operation code} --- a number that
-  says what the operation is
- *  There are about a dozen RRR instructions, so a 4-bit operation
-  code suffices
- *  We also need to specify three registers: destination and two
-  source operands
- *  There are 16 registers, so a particular one can be specified by
-  4 bits
- *  Total requirements: 4 fields, each 4 bits --- total 16 bits
- *  An RRR instruction exactly fills one word
-
-
-
-
-
-### Some RRR instructions
-
-
- *  All RRR instructions have the same form, just the operation
-  differs
-  
-   *  add  R2,R2,R5   \qquad  ; R2 = R2 + R5
-   *  sub  R3,R1,R3   \qquad  ; R3 = R1 - R3
-   *  mul  R8,R6,R7   \qquad  ; R8 = R6 * R7
-  
- *  In ``add R2,R5,R9'' we call R5 the \alert{first operand}, R9 the
-  \alert{second operand}, and R2 the \alert{destination}
- *  It's ok to use the same register as an operand and destination!
- *  Later we'll see some more RRR instructions, but they all have
-  the same form as these do
-
-
-
-
-
-### A few RRR operation codes
-
-\begin{tabular}{lc}
-  mnemonic  &  operation code  \\
-  \hline
-  add       &  0 \\
-  sub       &  1 \\
-  mul       &  2 \\
-  div       &  3 \\
-   $\vdots$ & $\vdots$ \\
-  trap      &  d \\
-  \hline
-\end{tabular}
-
-\vspace{2em}
-\alert{Don't memorise this table!  You just need to understand how
-  it's used.}
-
-
-
-
-### Example of RRR
-
-{\Large\color{red}
-~~~~
-add  R13,R6,R9
-~~~~
-}
-
-
- *  Since each field of the instruction is 4 bits, written as a hex
-  digit
- *  The opcode (operation code) is 0
- *  Destination register is 13 (hex d)
- *  Source operand registers are 6 and 9 (hex 6 and 9)
- *  So the instruction is:
-
-
-
-\color{red}
-\fbox{\Large 0d69}
-
-
-
-
-#### RX instructions
-
-
-### RX instructions
-
-
- *  Every RX instruction contains two operands:
-  
-   *  A \important{register}
-   *  A \important{memory location}
-  
- *  We have seen several so far:
-  
-   *  lea  R5,19[R0]  ; R5 = 19
-   *  load R1,x[R0]  ; R1 = x
-   *  store R3,z[R0] ; z = R3
-   *  jump  finished[R0] ; goto finished
-  
-
-
-
-
-### RX instructions
-
-A typical RX instruction: \alert{load R1,x[R0]}
-
- *  The first operand (e.g. R1 here) is called the \emph{destination
-    register}, just like for RRR instructions
- *  The second operand \alert{x[R0]} specifies a \alert{memory
-    address}.
- *  Each variable is kept in memory at a specific location: we talk
-  about \alert{the address of a variable}
- *  The memory operand has two parts:
-  
-   *  The variable x is a name for the address where x is kept ---
-    called the \alert{displacement}
-   *  The R0 part is just a register, called the \alert{index
-      register}
-  
-
-
-
-
-### Format of RX instruction
-
-{\Large\color{red}
-~~~~
-load R1,x[R0]
-~~~~
-}
-
-
- *  There are two words in the machine language code
- *  The first word has 4 fields: op, d, a, b
-  
-   *  op contains f for every RX instruction
-   *  d contains the register operand (in the example, 1)
-   *  a contains the index register (in the example, 0)
-   *  b contains a code indicating \emph{which} RX instruction this
-    is (1 means load)
-  
- *  The second word contains the displacement (address) (in the
-  example, the address of x)
-
-
-Suppose x has memory address 0008.  Then the machine code for load
-R1,x[R0] is:
-
-
-\color{red}
-\fbox{\Large\vbox{\hbox{f101}\hbox{0008}}}
-
-
-
-
-
-### Operation codes for RX instructions
-
-
- *  Recall, for RRR the op field contains a number saying
-  \emph{which} RRR instruction it is
- *  For RX, the op field \emph{always contains f}
- *  So how does the machine know \emph{which} RX instruction it is?
- *  Answer: there is a secondary code in the b field
-
-
-
-\begin{tabular}{ll}
-  mnemonic  &  RX operation code (in b field) \\
-  \hline
-  lea       &  0 \\
-  load      &  1 \\
-  store     &  2 \\
-   $\vdots$ & $\vdots$ \\
-  \hline
-\end{tabular}
-
-
-
-
-### The assembler
-
-
-### Assembly language
-
- *  Humans write \stress{assembly language}
-  
-   *  The program is text:  {\color{red}add R4,R2,R12}
-   *  It's easier to read
-   *  You don't need to remember all the codes 
-   *  Memory addresses are \stress{\emph{much easier}} to handle
-  
- *  The machine executes \stress{machine language}
-  
-   *  The program is words containing 16-bit numbers:
-    {\color{red}042c}
-   *  It's possible for a digital circuit (the computer) to execute
-   *  No names for instructions or variables: everything is a number
-  
-
-
-
-
-### The assembler
-
-
- *  A human writes a machine-level program in assembly language
- *  A software application called the \alert{assembler} reads it in,
-  and translates it to machine language
- *  What does the assembler do?
-  
-   *  When it sees an instruction mnemonic like add or div, it
-    replaces it with the operation code (0, 3, or whatever).
-   *  The assembler helps with variable names --- the machine
-    language needs addresses (numbers) and the assembler calculates
-    them
-  
-
-
-
-
-
-### Assembly language
-
-
- *  Each statement corresponds to one instruction
- *  You can use names (add, div) rather than numeric codes (0, 3)
- *  You can use variable names (x, y, sum) rather than memory
-  addresses (02c3, 18d2)
- *  You write a program in assemply language
- *  The \emph{assembler} translates it into machine language
- *  What's the relationship between compilers and assemblers?
-  
-   *  Compilers translate between languages that are very different
-   *  Assemblers translate between very similar languages
-  
-
-
-
-
-
-### A sequence of RRR instructions
-
-\textbf{Assembly language}
-~~~~
-    add    R3,R5,R1
-    sub    R4,R2,R3
-    mul    R1,R9,R10   
-~~~~
-
-\vspace{1em}
-\alert{Run the assembler$\ldots$}
-\vspace{2em}
-
-\textbf{Machine language}
-~~~~
-    0351
-    1423
-    219a
-~~~~
 
 
 
@@ -3804,729 +4723,10 @@ z     data  99
 
 
 
-### Control registers
 
 
-### Boot: reading in the program
 
 
- *  The program is placed in memory starting at location 0
- *  The program should finish by executing the instruction ``trap
-  R0,R0,R0''
- *  Normally, trap R0,R0,R0 should be the last instruction of the
-  program (i.e. the program begins execution with the first
-  instruction, and ends execution with the last, although it may
-  jump around during execution)
- *  After the trap R0,R0,R0 come the data statements, which tell
-  the assembler the names of the variables and their initial values
- *  These conventions were typical for early computers; later we
-  will discuss how the operating system interacts with user
-  programs
-
-
-
-
-
-### Control registers
-
-
- *  Some of the registers in the computer are accessible to the
-  programmer: R0, R1, R2, $\ldots$, R15
- *  There are several more registers that {\color{blue}the machine
-    uses to keep track of what it's doing}
- *  These are called \alert{``control registers''}
- *  They are (mostly) invisible to the program
-
-
-
-
-
-### Keeping track of where you are
-
-
-
-When you ``hand execute'' a program, you need to know
-  
-   *  Where you are (point a finger at the current instruction)
-   *  What you're doing (read the current instruction)
-  
- *  \emph{The computer needs to know this too!}
- *  The \alert{PC register} (``program counter'') contains
-  \alert{the address of the next instruction} to be executed
- *  The \alert{IR} (``instruction register'') contains \alert{the
-    instruction being executed right now}
- *  If an RX instruction is being executed, the \alert{ADR}
-  (``address register'') contains \alert{the memory address} of the
-  second operand.
-
-
-
-
-
-### Following PC and IR control registers
-
-
- *  Try running a simple program
- *  Step through the execution
- *  Before each instruction executes, look at the PC and IR
-  registers
- *  Notice that PC always contains the \alert{address of the next
-    instruction} and IR always contains the \alert{current
-    instruction}
- *  {\color{blue}The control registers help to understand in detail
-    what the machine is doing.}
-
-
-
-
-### Assembly language syntax
-
-
-### Assembly language syntax
-
-
- *  The syntax of assembly language is simple and rigid
- *  See the document \important{Sigma16 Programming Reference},
-  where you will find these notes and additional tips and techniques
-
-
-
-### Fields separated by spaces
-
-
- *  An assembly language statement has \alert{four fields, separated
-    by space}
-  
-   *  label (optional) -- if present, must begin in leftmost
-    character
-   *  operation load, add, etc.
-   *  operands: R1,R2,R3 or R1,x[R0]
-   *  comments: ; x = 2 * (a+b)
-  
- *  \alert{There cannot be any spaces inside a field}
-  
-   *  R1,R12,R5 is ok
-   *  R1, R12,R5 is wrong
-  
-
-
-{\color{blue}
-~~~~
-loop   load   R1,count[R0]    ; R1 = count
-       add    R1,R1,R2        ; R1 = R1 + 1
-~~~~
-}
-
-The assember first breaks each statement into the four fields; then it
-looks at the operation and operands.
-
-
-
-### Correct form of operand field
-
-
- *  RRR
-  
-   *  Exactly three registers separated by commas
-   *  Example: \alert{R8,R13,R0}
-  
- *  RX
-  
-   *  Two operands: first is a register, second is an address
-   *  Address is a name or constant followed by [register]
-   *  Example: \alert{R12,array[R6]}
-  
-
-
-
-### Each of these statements is wrong!
-
-
-~~~~
-    add   R2, R8, R9     Spaces in the operand field
-    store x[R0],R5       First operand must be register, second is address
-  loop load R1,x[R0]     Space before the label
-    jumpt R6,loop        Need register after address:  loop[R0]
-    jal   R14, fcn[R0]   Space in operand field
-~~~~
-}
-
-If you forget some detail, look at one of the example programs
-
-
-
-### Writing constants
-
-
- *  In assembly language, you can write constants in either decimal
-  or hexadecimal
-  
-   *  \alert{decimal: }  50
-   *  \alert{hexadecimal:} \$0032
-  
-
-
-Examples:
-
-~~~~
-   lea   R1,40[R0]      ; R1 = 40
-   lea   R2,$ffff[R0]   ; R2 = -1
-
-x  data  25
-y  data  $2c9e
-~~~~
-
-
-
-### Good style
-
-
- *  It isn't enough just to get the assembler to accept your program
-  without error messages
- *  Your program should be \alert{clear and easy to read}
- *  This requires good style
- *  \alert{Good style saves time writing the program and getting it
-    to work}
- *  A sloppy program looks unprofessional
-
-
-### Comments
-
-
- *  In Sigma16, a semicolon \alert{;} indicates that the rest of the
-  line is a comment
- *  You can have a full line comment: just put ; at the beginning
- *  You should use good comments in all programs, regardless of
-  language
- *  But they are even more important in machine language, because
-  the code needs more explanation
- *  At the beginning of the program, use comments to give the name
-  of the program and to say what it does
- *  Use a comment on every instruction to explain what it's doing
-
-
-
-### Indent your code consistently
-
-Each field should be lined up vertically, like this:
-
- \color{blue}
-~~~~
-    load   R1,three[R0]  ; R1 = 3
-    load   R2,x[R0]      ; R2 = x
-    mul    R3,R1,R2      ; R3 = 3*x
-    store  R3,y[R0]      ; y = 3*x
-    trap   R0,R0,R0      ; stop the program
-~~~~
-}
-
-Not like this:
-
- \color{red}
-~~~~
-    load   R1,three[R0]     ; R1 = 3
-  load  R2,x[R0] ; R2 = x
-       mul R3,R1,R2           ; R3 = 3*x
- store         R3,y[R0]      ; y = 3*x
-   trap  R0,R0,R0      ; stop the program
-~~~~
-}
-
-{\color{blue}The exact number of spaces each field is indented isn't
-  important; what's important is to \alert{make the program neat and
-    readable.}}
-
-
-
-### Use spaces, not tabs
-
-
- *  To indent your code, always use spaces
- *  Don't use tabs!
- *  In general, \alert{never use tabs} except in the (rare) cases
-  they are actually required
-  
-   *  The tab character was introduced to try to mimic the tab key
-    on old mechanical typewriters
-   *  But \alert{software does not handle tab consistently}
-   *  If you use tabs, your can look good in one application and a
-    mess in another
-  
- *  It's easy to indent with spaces, and it works everywhere!
-
-
-
-### Address arithmetic
-
-### Why [R0]?
-
-
- *  So far, we have always been writing [R0] after constants or
-  names
-  
-   *  lea  R2,39\alert{[R0]}
-   *  load  R3,xyz\alert{[R0]}
-   *  store R4,total\alert{[R0]}
-  
- *  Why?
- *  This is part of a general and powerful technique called
-  \alert{address arithmetic}
-
-
-
-### Address arithmetic
-
-
- *  Every piece of data in the computer (in registers, or memory) is
-  a \alert{word}
- *  A word can represent several different kinds of data
-  
-   *  So far, we've just been using \alert{integers}
-   *  Represented with \alert{two's complement}: $-2^{15}, \ldots,
-    -1, 0, 1, 2, \ldots, 2^{15}-1$
-
- *  Now, we'll start doing computations with \alert{addresses} too
- *  Addresses are \alert{unsigned numbers}: $0, 1, 2, \ldots, 65535$
-
-
-
-### What can you do with address arithmetic?
-
-
- *  Powerful data structures
-  
-   *  \emph{Today:} Arrays
-   *  Pointers and records
-   *  Linked lists, queues, dequeues, stacks, trees, graphs, hash
-    tables, $\ldots$ Subject of \emph{Algorithms and Data Structures}
-  
- *  Powerful control structures
-  
-   *  Input/Output
-   *  Procedures and functions
-   *  Recursion
-   *  Case dispatch
-   *  Coroutines, classes, methods
-  
-
-
-
-
-## Arrays
-
-### Data structures
- 
-
- *  An ordinary variable holds one value (e.g. an integer)
- *  A \emph{data structure} can hold many individual elements
- *  A data structure is a \alert{\emph{container}}
- *  The simplest data structure: \emph{array}
- *  There are many more data structures!
- *  The key idea: {\redtext we will do arithmetic on addresses}
-
-
-### Arrays
-
-
- *  In mathematics, an array (vector) is a sequence of indexed
-  values $x_0, x_1, \ldots, x_{n-1}$
-  
-   *  $x$ is the entire array
-   *  $x_3$ is one specific element of the array with index 3
-   *  It's useful to refer to an arbitrary element by using an
-    integer variable as index: $x_i$
-  
- *  Arrays are ubiquitous: used in all kinds of applications
- *  In programming languages, we refer to $x_i$ as \texttt{x[i]}
-
-
-### Representing an array
-
-
- *  An array is represented in a computer by placing the elements in
-  consecutive memory locations
- *  The array x starts in memory at some location: here, it's 01a5
- *  The address of the array x is the address of its first element
-  x[0]
- *  The elements follow in consecutive locations
-
-
-\vspace{1em}
-
-\begin{tabular}{lccccccccccc}
-value   &          & x[0] & x[1] & x[2] & x[3]
-  & x[4] & x[5] & x[6] & \\
-address & $\ldots$ & 01a5 & 01a6 & 01a7 & 01a8
-  & 01a9 & 01aa & 01ab & $\ldots$ \\
-\end{tabular}
-
-
-\vspace{1em}
-
-\fbox{\alert{\Large The address of x[i] is x+i}}
-
-
-### Allocating an array
-
-
- *  An array is in memory along with other data --- after the trap
-  that terminates the program
- *  You can allocate the elements and give them initial value with
-  data statements
- *  Use the name of the array as a label on the first element (the
-  one with index 0)
- *  Don't put labels on the other elements
-
-
-### Example of array allocation
-
-~~~~
-   ...
-      trap   R0,R0,R0  ; terminate
-
-; Variables and arrays
-
-abc   data    25       ; some variable
-n     data     6       ; size of array x
-
-x     data    13       ; x[0]
-      data   189       ; x[1]
-      data   870       ; x[2]
-      data    42       ; x[3]
-      data     0       ; x[4]
-      data  1749       ; x[5]
-
-def   data     0       ; some other variable
-~~~~
-
-### What about big arrays?
-
-
- *  In the programs we'll work with, the arrays will be small (a
-  dozen elements or so)
- *  In real scientific computing, it's common to have large arrays
-  with thousands --- or even millions --- of elements
- *  It would be horrible to have to write thousands of data statements!
- *  In large scale software, arrays are allocated
-  \alert{dynamically} with help from the \alert{operating system}
-  
-   *  The user program calculates how large an array it wants, and
-    stores that in a variable (e.g. n = 40000)
-   *  It uses a trap to request (from the operating system) a block
-    of memory big enough to hold the array
-   *  The operating system returns the address of this block to the
-    user program
-  
- *  We won't be doing this: we will just allocate small arrays using
-  data statements
-
-
-### Indexed addressing
-
-### Accessing an element of an array
-
-
- *  Suppose we have array x with elements x[0], x[1], ..., x[n-1]
- *  Elements are stored in consecutive memory locations
- *  Use the label x to refer to the array; x is also the location of
-  x[0]
- *  {\redtext The address of x[i] is x+i}
- *  To do any calculations on x[i], we must load it into a register,
-  or store a new value into it
- *  \emph{But how?}
- *  If you try \texttt{load R4,x[R0]} the effect will be R4 := x[0]
- *  We need a way to access x[i] where i is a variable
-
-
-### Effective address
-
-
- *  An RX instruction specifies addresses in two parts, for example
-  \alert{result[R0]} or \alert{x[R4]} or \alert{\$00a5[R2]}
-  
-   *  The \alert{displacement} is a 16 bit constant (you can write
-    the number, or use a name --- the assembler will put in the
-    address for you)
-   *  The \alert{index register} is written in brackets
-  
- *  The machine adds the displacement to the value in the index
-  register --- this is called the \alert{effective address}
- *  The instruction is performed using the effective address
-
-
-### Using the effective address
-
-The addressing mechanism is flexible!
-
-
- *  You can access an ordinary variable:\\ \alert{load R2,sum[R0]}\\
-  R0 always contains 0, so the effective address is just the address
-  of sum
- *  You can access an array element: if R8 contains an index i,
-  then\\ \alert{load R2,x[R8]}\\ will load x[i] into R2
- *  There's more: effective addresses are used to implement
-  pointers, functions, procedures, methods, classes, instances, jump
-  tables, case dispatch, coroutines, records, interrupt vectors,
-  lists, heaps, trees, forests, graphs, hash tables, activation
-  records, stacks, queues, dequeues, $\ldots$
-
-
-### Addressing modes
-
-
- *  An \alert{addressing mode} is a scheme for specifying the
-  address of data
- *  Sigma16 has one addressing mode: displacement[index], e.g. x[R4]
- *  Many older computers provided many addressing modes: one for
-  variables, another for arrays, yet another for linked lists, still
-  another for stacks, and so on
- *  It's more efficient to provide just one or two flexible
-  addressing modes, rather than a big collection of them
-
-
-### Using effective address for an array
-
-Suppose we want to execute \alert{x[i] := x[i] + 50}
-
-~~~~
-    lea   R1,50[R0]   ; R1 := 50
-    load  R5,i[R0]    ; R5 := i
-    load  R6,x[R5]    ; R6 := x[i]
-    add   R6,R6,R1    ; R6 := x[i] + 50
-    store R6,x[R5]    ; x[i] := x[i] + 50
-~~~~
-
-### Array traversal and for loops
-
-### Array traversal
-
-
- *  A typical operation on an array is to \alert{traverse} it
- *  That means to perform a calculation on each element
-
-
-Here's a loop that doubles each element of x:
-
-~~~~
-i := 0;
-while i < n do
-  { x[i] := x[i] * 2;
-    i := i + 1;
-  }
-~~~~
-  
-### For loops
-
-
- *  A for loop is designed specifically for array traversal
- *  It handles the loop index automatically
- *  It sets the index to each array element index and executes the
-  body
- *  The intuition is \emph{``do the body for every element of the
-  array''}
-
-
-~~~~
-for i := exp1 to exp2 do
-   { statements }
-~~~~
-
-### Array traversal with while and for
-
-Here is the program that doubles each element of x, written with both
-constructs
-
-~~~~
-i := 0;
-while i < n do             for i := 0 to n-1 do
-  { x[i] := x[i] * 2;          { x[i] := x[i] * 2; }
-    i := i + 1;
-  }
-~~~~
-
-### Translating the for loop to low level
-
-High level for loop (with any number of statements in the body)
-~~~~
-for i := exp1 to exp2 do
-   { statement1;
-     statement2;
-   }
-~~~~
-
-Translate to low level with this pattern:
-
-~~~~
-       i := exp1;
-loop:  if i > exp2 then goto loopdone;
-       statement1;
-       statement2;
-       i := i + 1;
-       goto loop;
-loopdone:
-~~~~
-
-It's straightforward to complete the translation to assembly
-language.
-
-### Alternative syntax for for loops
-
-In languages derived from C (C++, Java, C\#, and many more) you will
-see for loops written like this:
-
-~~~~
-for (i=x; i<y; i++)
-   { S1; }
-S2;
-~~~~
-
-### Example program ArrayMax
-
-
- *  A complete programming example
- *  The problem: find the maximum element of an array
- *  To do this we need to
-  
-   *  Allocate an array
-   *  Loop over the elements
-   *  Access each element
-   *  Perform a conditional
-  
- *  This example puts all our techniques together into one program
-
-
-### State what the program does
-
-; Program ArrayMax
-; John O'Donnell
-
-;---------------------------------------------------------------------
-; The program finds the maximum element of an array.  It is given
-;   *  a natural number n, assume n>0
-;   *  an n-element array x[0], x[1], ..., x[n-1]
-; and it calculates
-;   * max = the maximum element of x
-
-; Since n>0, the array x contains at least one element, and a maximum
-; element is guaranteed to exist.
-~~~~
-}
-
-### High level algorithm}
-
-;---------------------------------------------------------------------
-; High level algorithm
-
-;   max := x[0];
-;   for i := 1 to n-1 do
-;       { if x[i] > max
-;           then max := x[i];
-;       }
-~~~~
-}
-
-
-%---------------------------------------------------------------------
-
-### Translate high level code to low level ``goto form''
-
-It's easier to check that this low level is equivalent to both the
-high level algorithm and the assembly language, rather than
-translating all the way to assembly language in one giant step.
-
-;---------------------------------------------------------------------
-; Low level algorithm
-
-;     max := x[0]
-;     i := 1
-; forloop:
-;     if i >= n then goto done
-;     if x[i] <= max then goto skip
-;     max := x[i]
-; skip:
-;     i := i + 1
-;     goto forloop
-; done:
-;     terminate
-~~~~
-}
-
-
-
-### Specify how the registers are used
-
-The program is written in the ``register variable style''.
-
-
-~~~~
-
-;---------------------------------------------------------------------
-; Assembly language
-
-; Register usage
-;   R1 = constant 1
-;   R2 = n
-;   R3 = i
-;   R4 = max
-~~~~
-}
-
-### Block of statements to initialise registers
-
-; Initialise
-       lea    R1,1[R0]         ; R1 = constant 1
-       load   R2,n[R0]         ; R2 = n
-; max := x[0]
-       load   R4,x[R0]         ; R4 = max = x[0]
-; i := 1
-       lea    R3,1[R0]         ; R3 = i = 1
-     
-### Beginning of loop
-
-; Top of loop, determine whether to remain in loop
-forloop
-; if i >= n then goto done
-       cmp    R3,R2            ; compare i, n
-       jumpge done[R0]         ; if i>=n then goto done
-
-### Body of loop: if-then
-
-; if x[i] <= max then goto else
-       load   R5,x[R3]         ; R5 = x[i]
-       cmp    R5,R4            ; compare x[i], max
-       jumple skip[R0]         ; if x[i] <= max then goto skip
-
-; max := x[i]
-       add   R4,R5,R0          ; max := x[i]
-
-### End of loop
-
-skip
-; i := i + 1
-       add    R3,R3,R1         ; i = i + 1
-; goto forloop
-       jump   forloop[R0]      ; go to top of forloop
-~~~~
-
-### Finish
-
-; Exit from forloop
-done   store R4,max[R0]        ; max = R4
-; terminate
-       trap  R0,R0,R0          ; terminate
-
-### Data definitions
-
-; Data area
-
-n        data   6
-max      data   0
-x        data  18
-         data   3
-         data  21
-         data  -2
-         data  40
-         data  25
 
 ## Programming tips
 
@@ -5866,554 +6066,11 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
 empty; push a; push b, push c, pop returns c, push d, push e, pop
 returns e, pop returns d, $\ldots$
 
-### Variables
-
-### Access to variables
-
-
- *  Depending on the programming language, there are several
-  different ways that variables can be allocated
- *  For each of these, there is a corresponding way to access the
-  variable in memory
- *  Three key issues:
-  
-   *  The \emph{lifetime} of a variable: when it is created, when
-    it is destroyed
-   *  The \emph{scope} of a variable: which parts of the source
-    program are able to access the variable
-   *  The \emph{location} of a variable: what its address in memory
-    is
-  
- *  The compiler generates the correct object code to access each
-  variable
-
-
-### Three classes of variable
-
-
- *  \emph{Static variables.} (Sometimes called \emph{global
-    variables}) --- visible through the entire program
- *  \emph{Local variables.} (Sometimes called \emph{automatic
-    variables}) --- visible only in a local procedure
- *  \emph{Dynamic variables.} (Sometimes called \emph{heap
-    variables}) --- used in object oriented and functional languages
-
-
-### Static variables
-
-
- *  The lifetime of a static variable is the entire execution of a
-  program
-  
-   *  When the program is launched, its static variables are created
-   *  They continue to exist, and to retain their values, until the
-    program is terminated
-  
- *  In C, you can declare a variable to be static.  In Pascal, all
-  global variables (i.e. all variables that aren't defined locally)
-  are static
- *  \emph{So far, we have been using static variables}
-
-
-
-
-### Combining static variables with code
-
-The simple way we have been defining variables makes them static
-
-~~~~
-     load  R1,x[R0]    ; R1 := x
-   ...
-     trap  R0,R0,R0    ; terminate
-
-; Static variables
-
-x    data    0
-n    data  100
-~~~~
-
-These variables exist for the entire program execution.  There is one
-variable x, and one variable n.
-  
-### Disadvantages of combining variables and code
-
-
- *  The executable code cannot be shared.
-  
-   *  Suppose two users want to run the program.
-   *  Each needs to have a copy of the entire object, which
-    contains both the instructions and the data
-   *  That means the instructions are duplicated in memory
-   *  This is inefficient use of memory
-  
- *  To avoid the duplication of instructions, we need to separate
-  the data from the code
- *  Modern operating systems organise information into
-  \alert{segments}
-  
-   *  A \alert{code segment} is read-only, and can be shared
-   *  A \alert{data segment} is read/write, and cannot be shared
-  
-
-
-
-
-### Local variables
-
-
- *  Local variables are defined in a function, procedure, method,
-  or in a begin...end block, or a \{...\} block
- *  A local variable has one name, but there may be many
-  instances of it if the function is recursive
- *  Therefore local variables cannot be stored in the static data
-  segment
- *  They are kept in stack frames
- *  The compiler (or assembler) works out the address of each
-  local variable \emph{relative to the address of the stack frame}
- *  The variables are accessed using the stack frame register
-
-### Accessing local variables
-
-
-~~~~
-      load  R1,x[R14]   ; access local variable x; R14 points to frame
-~~~~
-}
-
-
- *  The compiler (or the programmer) works out the exact format
-  of the stack frame
- *  Each local variable has a dedicated spot in the stack frame,
-  and its address (relative to the frame) is used in the load
-  instruction
-
-
-### Dynamic variables
-
-
- *  A \emph{dynamic variable} is created explicitly (e.g. using
-  \emph{new} in Java)
- *  It is not limited to use in just one function
- *  The lifetime of a dynamic variable does not need to follow the
-  order that stack frames are pushed or popped
- *  So dynamic variables can't be kept in the static data segment,
-  and they can't be kept on the stack
-
-
-### The Heap
-
-
- *  Languages that support dynamic variables (Lisp, Scheme, Haskell,
-  Java) have a region of memory called the \emph{heap}.
- *  The heap typically contains a very large number of very small
-  objects
- *  The heap contains a \emph{free space list}, a data structure
-  that points to all the free words of memory.
- *  The heap is maintained by the language ``runtime system'', not
-  by the operating system.
- *  When you do a \emph{new}, a (small) amount of memory is
-  allocated from the heap and a pointer (address) to the object is
-  returned
- *  When the object is no longer required, the memory used to hold
-  it is linked back into the free space list.
-
-
-### The call stack
-
-
- *  Each procedure call pushes information on the stack
- *  The information needed by the procedure is in the stack frame
-  (also called activation record)
- *  Each procedure return pops information off the stack
- *  A register is permanently used as the \alert{stack pointer}
-  
-   *  For each computer architecture, there is a standard register
-    chosen to be the stack pointer
-   *  In Sigma16, R14 is the stack pointer
-   *  When you call, you push a new stack frame and increase R14
-   *  As a procedure runs, it access its data via R14
-   *  When you return, you set R14 to the stack frame below
-  
-
-
-### Simplest stack: return addresses
-
-
-\footnotesize
-\begin{tabular}{|c|}
-  return address \\
-  return address \\
-  return address \\
-  return address \\
-  \hline
-\end{tabular}
-
-
-Just save the return address on the stack
-
-### Saved registers
-
-
-\footnotesize
-\begin{tabular}{|c|}
-  save R4         \\
-  save R3         \\
-  save R2         \\
-  save R1         \\
-  return address \\
-  \hline
-  save R1         \\
-  return address \\
-  \hline
-  save R3         \\
-  save R2         \\
-  save R1         \\
-  return address \\
-  \hline
-\end{tabular}
-
-
-Save the registers the procedure needs to use on the stack, and
-restore them before returning.  This way the procedure won't crash the
-caller
-
-### Dynamic links
-
-
-\footnotesize
-\begin{tabular}{r|c|}
-\hline  
-4& save R3         \\
-3& save R2         \\
-2& save R1         \\
-1& return address  \\
-0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink3){dynamic link};}} \\
-\hline  
-2& save R1         \\
-1& return address  \\
-0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink2){dynamic link};}} \\
-\hline  
-3& save R2         \\
-2& save R1         \\
-1& return address  \\
-0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink1){dynamic link};}} \\
-\hline  
-  $\cdots$ \\
-\end{tabular}
-
-
-\tikz[overlay]\draw<1->[thick,red,->]
-  (dlink3.east) to [out=0, in=0] (dlink2.north east);
-\tikz[overlay]\draw<1->[thick,red,->]
-  (dlink2.east) to [out=0, in=0] (dlink1.north east);
-
- 
- *  Problem: since each activation record can have a different size,
-  how do we pop the top one off the stack?
- *  Simplest solution: each activation record contains a pointer
-  (called dynamic link) to the one below
-
-
-### Local variables
-
-
-\footnotesize
-\begin{tabular}{r|c|}
-  \hline
-  6& y \\
-  5& x \\
-  4& save R3         \\
-  3& save R2         \\
-  2& save R1         \\
-  1& return address  \\
-  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink3)
-     {dynamic link};}} \\
-  \hline  
-  3& pqrs            \\
-  2& save R1         \\
-  1& return address  \\
-  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink2)
-     {dynamic link};}} \\
-  \hline
-  5& b \\
-  4& a \\
-  3& save R2 \\
-  2& save R1 \\
-  1& return address \\
-  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink1)
-     {dynamic link};}} \\
-  \hline  
-  $\cdots$ \\
-\end{tabular}
-
-
-\tikz[overlay]\draw<1->[thick,red,->]
-  (dlink3.east) to [out=0, in=0] (dlink2.north east);
-\tikz[overlay]\draw<1->[thick,red,->]
-  (dlink2.east) to [out=0, in=0] (dlink1.north east);
-
-The procedure keeps its local variables on the stack
-  
-### Static links for scoped variables
-
-
-\footnotesize
-\begin{tabular}{r|c|}
-  \hline
-  7& y \\
-  6& x \\
-  5& save R3         \\
-  4& save R2         \\
-  3& save R1         \\
-  2& static link  \\
-  1& return address  \\
-  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink3)
-     {dynamic link};}} \\
-  \hline  
-  4& pqrs            \\
-  3& save R1         \\
-  2& static link  \\
-  1& return address  \\
-  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink2)
-     {dynamic link};}} \\
-  \hline
-  6& b \\
-  5& a \\
-  4& save R2 \\
-  3& save R1 \\
-  2& static link  \\
-  1& return address \\
-  0& \hbox{\tikz[baseline, inner sep=0]{\node[anchor=base](dlink1)
-     {dynamic link};}} \\
-  \hline  
-  $\cdots$ \\
-\end{tabular}
-
-
-\tikz[overlay]\draw<1->[thick,red,->]
-  (dlink3.east) to [out=0, in=0] (dlink2.north east);
-\tikz[overlay]\draw<1->[thick,red,->]
-  (dlink2.east) to [out=0, in=0] (dlink1.north east);
-
-
-### Accessing a word in the stack frame
-
-
- *  Work out a ``map'' showing the format of a stack frame
- *  Describe this in comments (it's similar to the register usage
-  comments we've been using)
- *  Suppose local variable, say ``avacado'', is kept at position 7
-  in the stack frame
- *  To access the variable:
-  
-   *  load  R1,7[R14]   ; R1 := avacado
-   *  store  R1,7[R14]   ; R1 := avacado
-   *  Also, we can define the symbol ``avacodo'' to be 7, and write:
-   *  load  R1,avacado[R14]   ; R1 := avacado
-   *  store  R1,avacado[R14]   ; R1 := avacado
-  
- *  These are called \alert{local variables} because every call to a
-  procedure has its own private copy
-
-
-### Example from factorial program (see below)
-
-These comments document the structure of a stack frame for the program:
-
-
-~~~~
-; Structure of stack frame for fact function
-;    6[R14]   origin of next frame
-;    5[R14]   save R4
-;    4[R14]   save R3
-;    3[R14]   save R2
-;    2[R14]   save R1 (parameter n)
-;    1[R14]   return address
-;    0[R14]   pointer to previous stack frame
-~~~~
-}
-
-### Recursive factorial
-
-
- *  In the Sigma16 examples, there is a program called
-  \texttt{factorial}
- *  This program illustrates the full stack frame technique
- *  It uses recursion --- a function that calls itself
- *  Note: the best way actually to compute a factorial is with a
-  simple loop, \emph{not} with recursion
- *  But recursion is an important technique, and it's better to
-  study it with a simple example (like factorial) rather than a
-  complicated ``real world'' example
-
-
-### About the factorial program
-
-  
-   *  Comments are used to identify the program, describe the
-    algorithm, and document the data structures.
-   *  Blank lines and full-line comments organise the program
-    into small sections.
-   *  The caller just uses jal to call the function.
-   *  The function is responsible for building the stack frame,
-    saving and restoring registers.
-   *  The technique of using the stack for functions is general,
-    and can be used for large scale programs.
-  
-
-
-### Statement of problem, and register usage
-
-;-----------------------------------------------------------------------
-; factorial.asm.txt
-;-----------------------------------------------------------------------
-
-; This program for the Sigma16 architecture uses a recursive function
-; to compute x! (factorial of x), where x is defined as a static
-; variable.
-
-; The algorithm uses a recursive definition of factorial:
-;   if n <=1
-;     then factorial n = 1
-;     else factorial n = n * factorial (n-1)
-
-; Register usage
-;   R15 is reserved by architecture for special instructions
-;   R14 is stack pointer
-;   R13 is return address
-;   R2, R3, R4 are temporaries used by factorial function
-;   R1 is function parameter and result
-;   R0 is reserved by architecture for constant 0
-
-### Format of main program stack frame
-
-;-----------------------------------------------------------------------
-; Main program
-
-; The main program computes result := factorial x and terminates.
-
-; Structure of stack frame for main program
-;    1[R14]   origin of next frame
-;    0[R14]   pointer to previous stack frame = nil
-
-### Main program initialisation
-
-; Initialise stack
-     lea    R14,stack[R0]      ; initialise stack pointer
-     store  R0,0[R14]          ; previous frame pointer := nil
-
-### Main program calls factorial
-
-; Call the function to compute factorial x
-     load   R1,x[R0]           ; function parameter := x
-     store  R14,1[R14]         ; point to current frame
-     lea    R14,1[R14]         ; push stack frame
-     jal    R13,factorial[R0]  ; R1 := factorial x
-
-### Main program finishes
-
-; Save result and terminate
-     store  R1,result[R0]      ; result := factorial x
-     trap   R0,R0,R0           ; terminate
-
-### Description of factorial function
-
-;-----------------------------------------------------------------------
-factorial
-; Function that computes n!
-;   Input parameter n is passed in R1
-;   Result is returned in R1
-
-### Format of stack frame for factorial
-
-; Structure of stack frame for fact function
-;    6[R14]   origin of next frame
-;    5[R14]   save R4
-;    4[R14]   save R3
-;    3[R14]   save R2
-;    2[R14]   save R1 (parameter n)
-;    1[R14]   return address
-;    0[R14]   pointer to previous stack frame
-
-### Factorial: build stack frame
-
-; Create stack frame  
-     store  R13,1[R14]         ; save return address
-     store  R1,2[R14]          ; save R1
-     store  R2,3[R14]          ; save R2
-     store  R3,4[R14]          ; save R3
-     store  R4,5[R14]          ; save R4
-~~~~
-}
-
-### Factorial: check for base or recursion case
-
-; Initialise
-     lea    R2,1[R0]           ; R2 := 1
-
-; Determine whether we have base case or recursion case
-     cmpgt  R10,R1,R2           ; R10 := n>1
-     jumpt  R10,recursion[R0]   ; if n>1 then go to recursion case
-
-### Factorial: base case
-
-; Base case.  n<=1 so the result is 1
-     lea    R1,1[R0]           ; factorial n = 1
-     jump   return[R0]         ; go to end of function
-
-### Factorial: recursion case
-
-; Recursion case.  n>1 so factorial n = n * factorial (n-1)
-recursion
-     sub    R1,R1,R2           ; function paramemter := n-1
-
-; Call function to compute factorial (n-1)
-     store  R14,6[R14]         ; point to current frame
-     lea    R14,6[R14]         ; push stack frame
-     jal    R13,factorial[R0]  ; R1 := factorial (n-1)
-     load   R2,2[R14]          ; R2 := saved R1 = n
-     mul    R1,R2,R1           ; R1 := n * fact (n-1)
-
-### Factorial: restore registers and return
-
-; Restore registers and return; R1 contains result
-return
-     load   R2,3[R14]       ; restore R2
-     load   R3,4[R14]       ; restore R3
-     load   R4,5[R14]       ; restore R4
-     load   R13,1[R14]      ; restore return address
-     load   R14,0[R14]      ; pop stack frame
-     jump   0[R13]          ; return
-
-### Static data area
-
-;-----------------------------------------------------------------------
-; Static data segment
-
-x       data   5
-result  data   0
-stack   data   0   ; stack extends from here on...
-
-### Summary
-
-
- *  Variables defined with data statement are static
-  
-   *  Each static variable must have a unique name
-   *  Static variables exist through entire execution of program
-  
- *  Variables defined in a procedure are local
-  
-   *  Different procedures can use the same name for different
-    variables
-   *  Local variables are kept in the stack frame
-   *  Call--push stack frame; return--pop stack frame
-   *  R14 points to current stack frame; local variables are
-    accessed using R14
   
 
 
 ## Linked lists
+
 
 ### Review of pointers
 
@@ -6783,6 +6440,203 @@ delete (p)
    *  List: initialize $p$ to point to the list; repeatedly set
     \texttt{p := (*p).next}; terminate when \texttt{p = nil}
   
+
+## Example: Ordered lists program
+
+Concepts used in the program:
+
+Array of records, Representing a command as a records, Traversing an
+array of records, Case statement and jump table
+
+Traversing a list to print its elements, Insertion in list keeping the
+elements in ascending order, Deletion from a list, Searching a list
+
+### Ordered lists
+
+There is an array of lists, initially empty.  There are nlists of them.
+
+~~~~
+list[0] = [ ]
+list[1] = [ ]
+...
+list[nlists-1] = [ ]
+~~~~
+
+At all times as the program runs, the lists are ordered: their
+elements are increasing
+
+~~~~
+list[0] = [4, 9, 23, 51 ]
+list[1] = [7, 102, 238 ]
+...
+list[nlists-1] = [2, 87, 89, 93, 103, 195 ]
+~~~~
+
+
+### Commands
+
+The program executes commands:
+
+
+ *  Terminate --- the program finishes
+ *  Insert into list i the value x --- modify list[i] so it contains
+  x, while maintaining the ascending order
+ *  Delete from list i the value x --- modify list[i] so x is
+  removed, but don't do anything if x isn't in the list
+ *  Search list i for x --- print Yes if x is in the list, No
+  otherwise
+ *  Print i --- the numbers in list[i] are printed
+
+
+#### Example
+
+ *  Insert into list[3] the value 23  \qquad \alert{[23]}
+ *  Insert into list[3]the value 6   \qquad \alert{[6, 23]}
+ *  Insert into list[3] the value 67    \qquad \alert{[6, 23, 67]}
+ *  Insert into list[3] the value 19    \qquad \alert{[6, 19, 23, 67]}
+ *  Print list[3] \qquad \alert{6 19 23 67}
+
+### Why are ordered lists useful?
+
+
+ *  This is one way to arrange a database: think of the elements as
+  persons' names, or matriculation numbers
+ *  Sometimes you want to process all the data in a container in a
+  specified order
+ *  If the data is ordered, it's faster to find a particular item
+  (on average you only have to check half of the items)
+ *  An ordered list can be used to represent a set
+
+
+### Where do the commands come from?
+
+
+ *  In a real application, we would read the commands from input
+ *  But in this program, each command is represented as a record
+ *  The entire input is a static array of records defined with
+  \texttt{data} statements
+ *  This is easier because
+  
+   *  If you read from an input device, it's necessary to convert
+    the input character string to numbers
+   *  In testing a program, it's convenient to have input data that
+    is \alert{fixed and repeatable}
+   *  Don't want to have to type in the same input every time you
+    run the program!
+  
+
+
+
+### Representing a command
+
+
+ *  Each command is a record with three fields
+  
+   *  A code indicating which kind of command
+   *  A number i indicating which list we're operating on
+   *  A value x which might be inserted etc
+  
+ *  Each record must have these three fields
+ *  Some commands don't use them all (e.g. Print just needs i, not
+  x)
+ *  The main program uses a \alert{case} statement to handle each
+  command, and implements this with a \alert{jump table}
+
+
+
+### Reading a program before writing
+
+  
+   *  You should \emph{read and understand} the program before
+    modifying it
+    
+     *  Reading a program is an important skill you will need
+      throughout your career
+     *  The program is filled with examples so it is excellent
+      revision material
+     *  You need to understand a program before you'll be able to
+      make changes to it
+    
+   *  One of the aims of the exercise is to get experience with
+    reading a longer program---don't skip this!
+  
+
+
+### Some tips on testing and debugging
+
+  
+   *  Debugging has two phases:
+    \begin{enumerate}
+     *  Diagnosis: finding out what went wrong and why
+     *  Correction: fixing the error
+    \end{enumerate}
+   *  The most important point: don't just make random changes to
+    the code and hope for the best---instead, find out what the error
+    is and fix it cleanly
+  
+
+
+### Reading and testing a program
+
+  
+   *  A good way to understand a section of assembly language
+    instructions is to step through it, one instruction at a time
+    \begin{enumerate}
+     *  Check that the instruction did what you expected it to do
+     *  Check that the instruction is consistent with its comment
+     *  Try to relate the instruction with the bigger picture: what
+      is it doing in the context of the program?
+    \end{enumerate}
+   *  Coverage
+    \begin{enumerate}
+     *  You don't need to step through a set of instructions a huge
+      number of times
+     *  If there's a loop, step through two or three iterations
+     *  If possible, arrange test data so the loop will terminate
+      after just a few iterations
+     *  But try to step through as much of the program as possible
+     *  This is called \alert{coverage}: try to cover all of the
+      program with your testing
+    \end{enumerate}
+  
+
+
+### Breakpoints
+
+  
+   *  It's a good idea to step through a program one instruction at
+    a time, so you understand clearly what each instruction is doing
+   *  However, in a longer program this isn't always feasible
+    
+     *  The OrderedLists program has to build the heap when it
+      starts; this may take several thousand instructions before it
+      even really gets going!
+    
+   *  Solution: \alert{breakpoints}
+    
+     *  Find the address of an instruction where you want to start
+      single stepping
+     *  Enter this address as a breakpoint
+     *  Click Run to execute the program at full speed; when it
+      reaches the breakpoint it will stop
+     *  Then you can single step to examine what the instructions
+      are doing
+    
+## How to set a breakpoint
+
+(Revise - this refers to an older version of Sigma16, the current
+version is a little different.)
+
+On the Processor pane, click Breakpoint.  It will say
+`Breakpoint is off''.
+Enter the breakpoint command and click Set Breakpoint.
+BPeq BPpc (BPhex "01a6").
+It will say ``Breakpoint is on''.  Click Close.
+On Processor, click Run.  It will stop when the pc register
+gets the value you specified
+  
+## Trees
+
 
 
 ### Usage of memory
@@ -7654,9 +7508,9 @@ messages
   the software easier to read and more valuable
 
 
-### Nested conditionals
+## Nested conditionals
 
-#### Nested if-then-else
+Nested if-then-else
 
 Conditional statements can be nested deeply
 
@@ -7673,7 +7527,7 @@ if b1
        S8
 ~~~~
 
-### Special case of nested if-then-else
+Special case of nested if-then-else
 
 Often the nesting isn't random, but has this specific structure:
   
@@ -7692,7 +7546,7 @@ if b1
 ~~~~
 (Some languages require punctuation to avoid ambiguity)
 
-### Another way to write it
+Another way to write it
 
 To avoid running off the right side of the window, it's usually
 indented like this:
@@ -7711,7 +7565,7 @@ else if b5
 else S6
 ~~~~
 
-### Some programming languages have elsif or elif
+Some programming languages have elsif or elif
 
 ~~~~
 if b1 then S1
@@ -7731,9 +7585,9 @@ if b1 then S1
  *  Some languages have this, some don't
 
 
-### Case and jump tables
+Case and jump tables
 
-### A common application: numeric code
+A common application: numeric code
 
 Nested if-then-else but the boolean conditions are not arbitrary: they
 are checking the value of a code:
@@ -7752,7 +7606,7 @@ else if code = 4
 ~~~~
 
 
-### The case statement
+The case statement
 
 ~~~~
 case n of
@@ -7767,12 +7621,10 @@ case n of
 
 This means: execute the statement corresponding to the value of n
 
-\vspace{1em}
-
 Many programming languages have this; the syntax varies a lot but that
 isn't what's important
 
-### Example: numeric code specifies a command
+Example: numeric code specifies a command
 
 
 ~~~~
@@ -7789,10 +7641,11 @@ isn't what's important
 ;    3  return 1 if set[i] contains x, otherwise 0
 ;    4  print the elements of set[i]
 ~~~~
-}
 
-### Selecting the command with a case statement
 
+Selecting the command with a case statement
+
+~~~~
 ; Initialize
 ;    BuildHeap ()
 
@@ -7813,45 +7666,37 @@ isn't what's important
 ;       InputPtr := InputPtr + sizeof(Command)
 ; Terminate the program
 ;    halt
+~~~~
 
-### Finding a numeric code
+Finding a numeric code
 
-
- *  It's tedious and inefficient to go through the possible values
+* It's tedious and inefficient to go through the possible values
   of a numeric code in sequence
-  
-   *  If you're looking up Dr Zhivago in the phone book, do you look
-    at Arnold Aardvark, and Anne Anderson, on on and on?
-   *  You go straight to the end of the book
-  
- *  We want to find the statement corresponding to a numeric code
+* If you're looking up Dr Zhivago in the phone book, do you look
+  at Arnold Aardvark, and Anne Anderson, on on and on?
+* You go straight to the end of the book
+* We want to find the statement corresponding to a numeric code
   directly, without checking all the other values
 
+A problem with efficiency
 
-### A problem with efficiency
+The problem
 
-
- *  The problem
-
- *  There are many applications of case statements
- *  They are executed frequently
- *  The number of cases can be large (not just 4 or 5; can be
+* There are many applications of case statements
+* They are executed frequently
+* The number of cases can be large (not just 4 or 5; can be
   hundreds)
- *  The implementation of the if-then-else requires a separate
+* The implementation of the if-then-else requires a separate
   compare and jump for each condition
 
- *  The solution
-  
-   *  A technique called \alert{jump tables}
-  
+The solution: a technique called jump tables
 
+Jump tables: the basic idea
 
-### Jump tables: the basic idea
+For each target statement (S1, S2, S3, etc) in the conditional,
+introduce a jump to it: jump S1[R0], jump S2[R0], etc.  Make an
+\alert{array} ``jt'' of these jump instructions
 
-
- *  For each target statement (S1, S2, S3, etc) in the conditional,
-  introduce a jump to it: jump S1[R0], jump S2[R0], etc
- *  Make an \alert{array} ``jt'' of these jump instructions
 ~~~~
    jt[0] = jump S0[R0]
    jt[1] = jump S1[R0]
@@ -7859,14 +7704,13 @@ isn't what's important
    jt[3] = jump S3[R0]
    jt[4] = jump S4[R0]
 ~~~~
- *  Given the \emph{code}, Jump to jt[code]
- *  Each element of the array is an instruction that requires two
-  words
- *  So jump to \&jt + 2 $\times$ code
 
+Given the \emph{code}, Jump to jt[code], Each element of the array is
+an instruction that requires two words.  So jump to jt + 2 * code.
 
-### Jump table
+Jump table
 
+~~~~
 ; Jump to operation specified by code
     add    R4,R4,R4            ; code := 2*code
     lea    R5,CmdJumpTable[R0] ; R5 := pointer to jump table
@@ -7885,24 +7729,20 @@ CmdDone
     add    R5,R5,R6
     store  R5,InputPtr[R0]
     jump   CommandLoop[R0]
+~~~~
 
-### We have to be careful!
+We have to be careful!
 
+What if code is negative, or larger than the number of cases?  The
+jump to the jump table could go anywhere!  It might not even go to an
+instruction.  But whatever is in memory at the place it goes to, will
+be interpreted as an instruction that will be executed.  The program
+will go haywire.  Debugging it will be hard: the only way to catch the
+error is to read the code and/or to single step.  Solution: before
+jumping into the jump table, check to see if code is invalid (too big
+or too small)
 
- *  What if code is negative, or larger than the number of cases?
- *  The jump to the jump table could go anywhere!
- *  It might not even go to an instruction
- *  But whatever is in memory at the place it goes to, will be
-  interpreted as an instruction that will be executed
- *  The program will go haywire
- *  Debugging it will be hard: the only way to catch the error is to
-  read the code and/or to single step
- *  Solution: before jumping into the jump table, check to see if
-  code is invalid (too big or too small)
-
-
-### Checking whether the code is invalid
-
+Checking whether the code is invalid
 
 ~~~~
 CommandLoop
@@ -7923,8 +7763,12 @@ CmdDone
     add    R5,R5,R6
     store  R5,InputPtr[R0]
     jump   CommandLoop[R0]
+~~~~
 
-## What's the significance of root?
+
+## Privileged instructions
+
+What's the significance of root?
 
 
  *  Many \alert{processes} are running in the computer
@@ -7942,376 +7786,126 @@ CmdDone
     master copy of Linux}
 
 
-## Example: Ordered lists program
-
-Concepts used in the program:
-
-Array of records, Representing a command as a records, Traversing an
-array of records, Case statement and jump table
-
-Traversing a list to print its elements, Insertion in list keeping the
-elements in ascending order, Deletion from a list, Searching a list
-
-### Ordered lists
-
-There is an array of lists, initially empty.  There are nlists of them.
-
-~~~~
-list[0] = [ ]
-list[1] = [ ]
-...
-list[nlists-1] = [ ]
-~~~~
-
-At all times as the program runs, the lists are ordered: their
-elements are increasing
-
-~~~~
-list[0] = [4, 9, 23, 51 ]
-list[1] = [7, 102, 238 ]
-...
-list[nlists-1] = [2, 87, 89, 93, 103, 195 ]
-~~~~
-
-
-### Commands
-
-The program executes commands:
-
-
- *  Terminate --- the program finishes
- *  Insert into list i the value x --- modify list[i] so it contains
-  x, while maintaining the ascending order
- *  Delete from list i the value x --- modify list[i] so x is
-  removed, but don't do anything if x isn't in the list
- *  Search list i for x --- print Yes if x is in the list, No
-  otherwise
- *  Print i --- the numbers in list[i] are printed
-
-
-#### Example
-
- *  Insert into list[3] the value 23  \qquad \alert{[23]}
- *  Insert into list[3]the value 6   \qquad \alert{[6, 23]}
- *  Insert into list[3] the value 67    \qquad \alert{[6, 23, 67]}
- *  Insert into list[3] the value 19    \qquad \alert{[6, 19, 23, 67]}
- *  Print list[3] \qquad \alert{6 19 23 67}
-
-### Why are ordered lists useful?
-
-
- *  This is one way to arrange a database: think of the elements as
-  persons' names, or matriculation numbers
- *  Sometimes you want to process all the data in a container in a
-  specified order
- *  If the data is ordered, it's faster to find a particular item
-  (on average you only have to check half of the items)
- *  An ordered list can be used to represent a set
-
-
-### Where do the commands come from?
-
-
- *  In a real application, we would read the commands from input
- *  But in this program, each command is represented as a record
- *  The entire input is a static array of records defined with
-  \texttt{data} statements
- *  This is easier because
-  
-   *  If you read from an input device, it's necessary to convert
-    the input character string to numbers
-   *  In testing a program, it's convenient to have input data that
-    is \alert{fixed and repeatable}
-   *  Don't want to have to type in the same input every time you
-    run the program!
-  
-
-
-
-### Representing a command
-
-
- *  Each command is a record with three fields
-  
-   *  A code indicating which kind of command
-   *  A number i indicating which list we're operating on
-   *  A value x which might be inserted etc
-  
- *  Each record must have these three fields
- *  Some commands don't use them all (e.g. Print just needs i, not
-  x)
- *  The main program uses a \alert{case} statement to handle each
-  command, and implements this with a \alert{jump table}
-
-
-
-### Reading a program before writing
-
-  
-   *  You should \emph{read and understand} the program before
-    modifying it
-    
-     *  Reading a program is an important skill you will need
-      throughout your career
-     *  The program is filled with examples so it is excellent
-      revision material
-     *  You need to understand a program before you'll be able to
-      make changes to it
-    
-   *  One of the aims of the exercise is to get experience with
-    reading a longer program---don't skip this!
-  
-
-
-### Some tips on testing and debugging
-
-  
-   *  Debugging has two phases:
-    \begin{enumerate}
-     *  Diagnosis: finding out what went wrong and why
-     *  Correction: fixing the error
-    \end{enumerate}
-   *  The most important point: don't just make random changes to
-    the code and hope for the best---instead, find out what the error
-    is and fix it cleanly
-  
-
-
-### Reading and testing a program
-
-  
-   *  A good way to understand a section of assembly language
-    instructions is to step through it, one instruction at a time
-    \begin{enumerate}
-     *  Check that the instruction did what you expected it to do
-     *  Check that the instruction is consistent with its comment
-     *  Try to relate the instruction with the bigger picture: what
-      is it doing in the context of the program?
-    \end{enumerate}
-   *  Coverage
-    \begin{enumerate}
-     *  You don't need to step through a set of instructions a huge
-      number of times
-     *  If there's a loop, step through two or three iterations
-     *  If possible, arrange test data so the loop will terminate
-      after just a few iterations
-     *  But try to step through as much of the program as possible
-     *  This is called \alert{coverage}: try to cover all of the
-      program with your testing
-    \end{enumerate}
-  
-
-
-### Breakpoints
-
-  
-   *  It's a good idea to step through a program one instruction at
-    a time, so you understand clearly what each instruction is doing
-   *  However, in a longer program this isn't always feasible
-    
-     *  The OrderedLists program has to build the heap when it
-      starts; this may take several thousand instructions before it
-      even really gets going!
-    
-   *  Solution: \alert{breakpoints}
-    
-     *  Find the address of an instruction where you want to start
-      single stepping
-     *  Enter this address as a breakpoint
-     *  Click Run to execute the program at full speed; when it
-      reaches the breakpoint it will stop
-     *  Then you can single step to examine what the instructions
-      are doing
-    
-  
-
-
-### How to set a breakpoint
-
-  
-   *  On the Processor pane, click Breakpoint.  It will say
-    ``Breakpoint is off''
-   *  Enter the breakpoint command and click Set Breakpoint
-   *  \texttt{BPeq BPpc (BPhex "01a6")}
-   *  It will say ``Breakpoint is on''.  Click Close
-   *  On Processor, click Run.  It will stop when the pc register
-    gets the value you specified
-  
-
-
 
 ## Trees
 
-### Tree
+A node doesn't have to have two fields named \emph{value} and
+\emph{next} --- it's normal to define a specific node type for an
+application program.
+Nodes with \emph{value} and \emph{next} can be connected into a
+linked list.
 
+Nodes can also have with several fields containing data, not just one
+``value'' field.  And a node can have several pointer fields.  Common
+case: a \alert{binary tree} has two pointers in each node, named
+\alert{left} and \alert{right}.  Each of these can either contain nil,
+or point to another node.
 
- *  A node doesn't have to have two fields named \emph{value} and
-  \emph{next} --- it's normal to define a specific node type for an
-  application program.
- *  Nodes with \emph{value} and \emph{next} can be connected into a
-  \alert{linked list}.
- *  Nodes can also have with several fields containing data, not
-  just one ``value'' field.
- *  And a node can have several pointer fields$\ldots$
- *  Common case: a \alert{binary tree} has two pointers in each
-  node, named \alert{left} and \alert{right}.
- *  Each of these can either contain nil, or point to another node.
-
-
-
-
+~~~~
   Node : record
     value    ; the actual data in the node
     left     ; left subtree is a pointer to a Node
     right   ;  right subtree is a pointer to a Node
+~~~~
 
+* Similar to a node for a linked list, but with two pointers
+* There can also be several fields for data, not just one `value field
+* And we could have more than just two pointers
 
+A binary tree
 
- *  Similar to a node for a linked list, but with two pointers
- *  There can also be several fields for data, not just one
-  ``value'' field
- *  And we could have more than just two pointers
+~~~~
+    root
+   /   \
+  /     \
+ a       b
+        / \
+       c   d
+~~~~
 
+In computer science, for some reason we draw trees upside down, with
+the leaves down on the ground and the root up in the sky.
 
-
-### A binary tree
-
-\begin{tikzpicture}
-  \node {root}
-  child {node {a}}
-  child {node {b}
-    child {node {x}}
-    child {node {y}}
-};
-\end{tikzpicture}
-
-\vspace{1em}
-
-In computer science, for some reason we draw trees upside down
-
-\vspace{1em}
 Suppose p is a pointer to the tree
 
- *  (*p).left is the pointer to the left subtree
- *  (*p).right is the pointer to the right subtree
+* (*p).left is the pointer to the left subtree
+* (*p).right is the pointer to the right subtree
 
+Applications of trees
 
+Trees are used everywhere in programming.  They can hold structured
+data and they can often make programs run faster than with linear data
+structures like arrays and linked lists.
 
-### Applications of trees
+Holding structured data
 
-Trees are used everywhere in programming
-
- *  To hold structured data
- *  To make programs faster (\emph{much} faster)
-
-
-
-
-### Holding structured data
-
-
- *  A compiler reads in program text, which is just a character
+* A compiler reads in program text, which is just a character
   string: a sequence of characters.
- *  It needs to represent the deep structure underlying that
+* It needs to represent the deep structure underlying that
   sequence of characters.
- *  This is done by building a tree (the part of a compiler that
+* This is done by building a tree (the part of a compiler that
   takes a character string and produces a tree is called the
-  \alert{parser}).
+  parser.
 
-
-
-
-
-### Parsing
+Parse trees
 
 ~~~~
 x := a + b * c
 ~~~~
 
-\begin{tikzpicture}
-  \node {assignment}
-  child {node {x}}
-  child {node {+}
-    child {node {a}}
-    child {node {*}
-      child {node {b}}
-      child {node {c}}}};
-\end{tikzpicture}
+~~~~
+   :=
+  x   +
+     a  *
+       b  c
+~~~~
 
+Another application of jump tables!
 
+In some programs, trees normally have several different types of node.
+Examples: operations with 1 operand; operations with 2 operands;
+control constructs with a boolean expression and two statements, etc.
 
-### Another application of jump tables!
+So there are several different kinds of record.  Each record has a
+\emph{code} in the first word.  The value of the code determines how
+many more words there are in the record, and what they mean.  When a
+program has a pointer to a node, it needs to examine the code and take
+different actions depending on what the code is.  This is done with a
+jump table
 
+## Binary search trees
 
-* In complicated applications, trees normally have \alert{several
-  different types of node}
+Suppose we have a large number of records (e.g. a database).  We want
+to search the database for an entry where a field has a certain value
+(e.g. search for a record where the MatricNumber field is 123456).  If
+you just have these records in an array, or a linked list, you have to
+search them one by one.  On average, you have to look at half the
+entries in the database to find the one you want.  If you double the
+size of the database, you double the average time to look up an entry.
+Terminology: this is called \emph{linear time} or $O(n)$ complexity
 
-* Examples: operations with 1 operand; operations with 2 operands;
-  control constructs with a boolean expression and two statements,
-  etc.
+You can search the database much faster using a binary search tree.
 
-* So there are several different kinds of record
+Consider that linear search is silly if you can place the records in
+order.  Suppose you're trying to find the telephone number of John
+Smith in the phone book. Would you do this?
 
-* Each record has a \emph{code} in the first word
+* It isn't Aardvark, Aaron
+* It isn't Acton, Rebecca
+* It isn't Anderson, Susan
+* It isn't Atwater, James
+* ... 8 million more unsuccsessful searches because this is the
+  directory for a large city
 
-* The value of the code determines how many more words there are
-  in the record, and what they mean
+That's silly!
+* Open the book to the middle, notice that S is in the second half
+* Open the book to the middle of the second half...
+* Each time you look at an entry in the book, you discard half of the
+  remaining possibilities
 
-* When a program has a pointer to a node, it needs to examine the
-  code and take different actions depending on what the code is
+Example of a Binary search tree
 
-* This is done with a jump table
-
-
-
-
-### Searching
-
-
- *  Suppose we have a large number of records (e.g. a database)
- *  We want to search the database for an entry where a field has a
-  certain value (e.g. search for a record where the MatricNumber field
-  is 123456)
- *  If you just have these records in an array, or a linked list,
-  you have to search them one by one
- *  On average, you have to look at half the entries in the database
-  to find the one you want
- *  If you double the size of the database, you double the average
-  time to look up an entry
- *  Terminology: this is called \emph{linear time} or $O(n)$
-  complexity
-
-
-
-### A better approach
-
-
- *  Linear search is silly if you can place the records in order
- *  You're trying to find the telephone number of John Smith in the
-  phone book
- *  Would you do this?
-  \begin{enumerate}
-   *  It isn't Aardvark, Aaron
-   *  It isn't Acton, Rebecca
-   *  It isn't Anderson, Susan
-   *  It isn't Atwater, James
-   *  $\ldots$ 8 million more unsuccsessful searches because this is
-    the Los Angeles directory
-  \end{enumerate}
- *  That's silly!
- *  Open the book to the middle, notice that S is in the second half
- *  Open the book to the middle of the second half $\ldots$
- *  Each time you look at an entry in the book, you discard
-  \alert{half of the remaining possibilities}
-
-
-
-### Binary search tree
-
-\begin{tikzpicture}
-  [level 1/.style={sibling distance=8em},
-  level 2/.style={sibling distance=5em},
-  ]
+~~~~
   \node {31}
   child {node {7}
     child {node {5}}
@@ -8319,115 +7913,84 @@ x := a + b * c
   child {node {56}
     child {node {41}}
     child {node {78}}};
-\end{tikzpicture}
+~~~~
 
-
- *  At every level: if a node contains $x$, then
+At every level: if a node contains x, then
   
-   *  every node in the left subtree is less than $x$, and
-   *  every node in the right subtree is greater than $x$.
-  
- *  You can search the tree by starting at the root, and at every
-  step you \emph{know} whether to go left or right
+* Every node in the left subtree is less than x, and
+* Every node in the right subtree is greater than x.
+* You can search the tree by starting at the root, and at every step
+  you can easily determine whether to go left or right
 
+Algorithmic Complexity
 
-
-### Algorithmic Complexity
-
-
- *  Complexity is concerned with \alert{how the execution time grows
-    as the size of the input grows}
- *  This is expressed as a function of the input size $n$
- *  Normally we don't care about the \emph{exact} function, and we
+* Complexity is concerned with \alert{how the execution time grows
+  as the size of the input grows}
+* This is expressed as a function of the input size $n$
+* Normally we don't care about the \emph{exact} function, and we
   use O-notation.  Instead of a funciton like $f(n) = 4.823 \times n$,
   we just write  $f(n) = O(n)$
   
-   *  $O(1)$ --- if input grows, the execution time remains
-    unchanged.  This is unrealistic: the program cannot even look at
-    the input!
-   *  $O(n)$ --- if the input is 5 times bigger, the execution time
-    is 5 times bigger.  This is the best you can hope for
-   *  $O(n^2)$ --- if the input is 5 times bigger, the time is 25
-    times bigger
+* O(1) --- if input grows, the execution time remains unchanged.  This
+  is unrealistic: the program cannot even look at the input!
+* O(n) --- if the input is 5 times bigger, the execution time is 5
+  times bigger.  This is the best you can hope for
+* O(n^2) --- if the input is 5 times bigger, the time is 25 times
+  bigger
+
+Finding a good algorithm is more important than small optimisations in
+the code.  Some programmers spend lots of effort trying to save one or
+two instructions in a piece of a program.  But it doesn't matter much
+whether a program takes 2.00032 seconds or 2.00031 seconds.  It's much
+more important to use a suitable \alert{algorithm}.  On small data it
+doesn't make much differnce, but on large (realistic) data, a better
+algorithm makes a huge difference
+
+### Complexity of search
+
+Ordered lists
   
-
-
-### Algorithm is more important than small optimisation
-
-
- *  Some programmers spend lots of effort trying to save one or two
-  instructions in a piece of a program
+* The Ordered Lists program has an operation to search a list
+  for a value x
+* On average, you need to look through half of the data to find
+  out whether x is present
+* If the list were \emph{not} ordered, you would need to look
+  through \emph{all} of the data to determine whether x is present
+* So the ordered list makes the search about twice as fast
+* But in either case, this is $O(n)$ --- if you double the data size,
+  the average time is doubled
   
-   *  But it doesn't matter much whether a program takes 2.00032
-    seconds or 2.00031 seconds
+In a binary search tree, the number of comparisons needed is roughly
+the height of the tree.  If the tree is balanced, the time complexity
+is O(\log n)
   
- *  It's much more important to use a suitable \alert{algorithm}
-  
-   *  On small data it doesn't make much differnce
-   *  On large (realistic) data, a better algorithm makes a huge
-    difference
-  
-
-
-### Complexity for search
-
-
- *  Ordered lists
-  
-   *  The Ordered Lists program has an operation to search a list
-    for a value x
-   *  On average, you need to look through half of the data to find
-    out whether x is present
-   *  If the list were \emph{not} ordered, you would need to look
-    through \emph{all} of the data to determine whether x is present
-   *  So the ordered list makes the search about twice as fast
-   *  But in either case, this is $O(n)$ --- if you double the data
-    size, the average time is doubled
-  
- *  Binary search tree
-  
-   *  The number of comparisons needed is roughly the height of the
-    tree
-   *  If the tree is \emph{balanced}, the time complexity is
-    $O(\log n)$
-  
-
-
 ### How much faster?
 
-
- *  With a linear data structure (array, linked list)
+With a linear data structure (array, linked list)
   
-   *  Each time you compare a database entry with your key, you
+*  Each time you compare a database entry with your key, you
     eliminate one possibility
-   *  The time is proportional to the size of the database
-   *  It's called \emph{linear time} --- time = $O(n)$
-   *  \alert{For 2 million records, you need a million comparisons}
+*  The time is proportional to the size of the database
+*  It's called \emph{linear time} --- time = $O(n)$
+*  \alert{For 2 million records, you need a million comparisons}
   
- *  With a binary search tree
+With a binary search tree
   
-   *  Each time you compare a database entry with your key, you
-    eliminate (on average) half of the possibilities
-   *  The time is proportional to \emph{the logarithm of the size}
-    of the database
-   *  It's called \emph{log time} --- time = $O(\log n)$
-   *  \alert{For 2 million records, you need 21 comparisons}
-   *  There's a saying: \alert{``logs come from trees''}
+* Each time you compare a database entry with your key, you
+  eliminate (on average) half of the possibilities
+* The time is proportional to \emph{the logarithm of the size}
+  of the database
+* It's called \emph{log time} --- time = O(\log n).
+* For 2 million records, you need 21 comparisons.
+
+There's a saying: *logs come from trees*.
   
-
-
-### A common pitfall
-
-
- *  When you're writing a program, it's natural to test it with
-  small data
- *  Even if the algorithm has bad complexity, the testing may be
-  fast
- *  But then, when you run the program on real data, the execution
-  time is intolerable
- *  That means going back and starting over again
- *  So it's a good idea to be aware of the complexity of your
-  algorithm from the beginning
+A common pitfall: When you're writing a program, it's natural to test
+it with small data.  Even if the algorithm has bad complexity, the
+testing may be fast But then, when you run the program on real data,
+the execution time is intolerable That means going back and starting
+over again So it's a good idea to be aware of the complexity of your
+algorithm from the beginning
 
 
 ### How bad can complexity be?
@@ -8451,243 +8014,166 @@ Lots of algorithms have exponential complexity: $2^n$.
 
 ## Interrupts
 
-### Control constructs
+Another kind of control is *losing* control!  Control constructs built
+on goto and if-then-goto let the program decide what to do next.
+Sometimes we want something else --- not the program --- to decide
+what to do next.
 
-  Control constructs determine the order of execution of statements
-  
-  
-   *  We have seen some high level control constructs
-    
-     *  if b then S
-     *  if b then S1 else S2
-     *  while b do S
-     *  for var := expr1 to expr2 do S
-     *  procedure
-     *  And there are plenty more
-    
-   *  These are implemented using just a couple of low level control
-    constructs
-    
-     *  goto L 
-     *  if b then goto L
-  
-   *  But there is one more low level primitive: \alert{interrupts}
-  
-
-### Another kind of control: losing control!
-
- *  Control constructs built on goto and if-then-goto let the
-  program decide what to do next
- *  Sometimes we want \emph{something else} --- not the program ---
-  to decide what to do next
-
-### Interrupts
-
-
- *  The hardware provides \emph{interrupts} which are used to
+*  The hardware provides \emph{interrupts} which are used to
   implement processes
- *  An interrupt is an \alert{automatic jump}
- *  It goes either to the operating system or to an error handler
- *  But it is not the result of a jump instruction --- it happens
+*  An interrupt is an \alert{automatic jump}
+*  It goes either to the operating system or to an error handler
+*  But it is not the result of a jump instruction --- it happens
   automatically when an external event occurs
- *  The program that was running never jumped to the OS - the
+*  The program that was running never jumped to the OS - the
   processor just stops executing its instructions, and starts
   executing the OS instead
- *  It's like talking to a group of people, and suddenly you get
+*  It's like talking to a group of people, and suddenly you get
   interrupted!
 
+Several kinds of event can cause an interrupt.  These include
 
-### What causes an interrupt
-
-
- *  An error in a user program: e.g. overflow (result of arithmetic
+* An error in a user program: e.g. overflow (result of arithmetic
   is too large to fit in a registers)
- *  A trap: this is an explicit jump to the operating system, but
+* A trap: this is an explicit jump to the operating system, but
   the program doesn't specify the address
- *  An external event: a disk drive needs attention \emph{right
+* An external event: a disk drive needs attention \emph{right
   now}, or the timer goes off
 
+How interrupts are implemented
 
-### What happens when an interrupt occurs
+The computer is a digital circuit.  Without interrupts, it repeats
+forever:
 
+* Fetch the instruction at the address in the pc register
+* Execute the instruction
 
- *  The computer is a digital circuit
- *  Without interrupts, it repeats forever
-  \begin{enumerate}
-   *  Fetch the instruction at the address in the pc register
-   *  Execute the instruction
-  \end{enumerate}
- *  With interrupts, it repeats this forever:
-  \begin{enumerate}
-   *  Check to see if there is an interrupt request
-   *  If there is, savepc := pc, \alert{pc := address of code in
-      operating system}
-   *  Fetch the instruction at the address in the pc register
-   *  Execute the instruction
-  \end{enumerate}
- *  Since the pc has been modified, the next instruction will not be
-  part of the program that was interrupted --- it will be the
-  operating system  
+With interrupts, it repeats this forever:
 
+*  Check to see if there is an interrupt request
+*  If there is, savepc := pc, pc := address of code in operating
+   system
+*  Fetch the instruction at the address in the pc register
+*  Execute the instruction
 
-### Saving state
+Since the pc has been modified, the next instruction will not be part
+of the program that was interrupted --- it will be the
+operating system.
 
+Saving state
 
- *  Remember, an interrupt is a jump to the OS
- *  This requires setting the address of OS in the pc register
- *  But if we simply assign a value to pc, the computer has
-  forgotten where the interrupted program was
- *  Therefore the hardware must ``save state'': savepc := pc
- *  The OS has a special instruction that enables it to get the
-  value of savepc
+An interrupt is a jump to the OS.  This requires setting the address
+of OS in the pc register.  But if we simply assign a value to pc, the
+computer has forgotten where the interrupted program was.  Therefore
+the hardware must ``save state'': savepc := pc.  The OS has a special
+instruction that enables it to get the value of savepc
 
-
-### How interrupts are used
+How interrupts are used
   
-   *  Interrupts can be used to \alert{catch errors} in a program,
-    e.g. arithmetic overflow (the result is too big to fit in a
+* Interrupts can be used to \alert{catch errors} in a program,
+  e.g. arithmetic overflow (the result is too big to fit in a
     register)
+* If an overflow occurs (or divide by zero, or some other
+  error) we want the program to jump to an error handler
+* Trap is similar to an interrupt, and is used to \alert{request
+  service} from the operating system
+* User program can't halt the machine, but uses trap to ask
+  the OS to stop running the program
+* They can be used to provide \alert{quick service} to an
+  Input/Output device
+* A disk drive may generate an interrupt when the spinning platter
+  reaches a certain point, and it needs service right away --- within
+  a tight deadline
+* Interrupts are used to implement \alert{concurrent processes}
+* The operating system gives each process a \alert{time slice} in
+  round-robin order, so each process makes progress
     
-     *  If an overflow occurs (or divide by zero, or some other
-      error) we want the program to jump to an error handler
-    
-   *  Trap is similar to an interrupt, and is used to \alert{request
-      service} from the operating system
-    
-     *  User program can't halt the machine, but uses trap to ask
-      the OS to stop running the program
-    
-   *  They can be used to provide \alert{quick service} to an
-    Input/Output device
-    
-     *  A disk drive may generate an interrupt when the spinning
-      platter reaches a certain point, and it needs service right away
-      --- within a tight deadline
-    
-   *  Interrupts are used to implement \alert{concurrent processes}
-    
-     *  The operating system gives each process a \alert{time slice}
-      in round-robin order, so each process makes progress
-    
+Interrupts and programming languages
+
+* Most programming languages don't provide the ability to work
+  directly with interrupts
+* But many programming language provide \alert{exceptions}
+* Without an exception handler, a division by 0 might terminate the
+  program
+* In the program, you can set an exception handler: a procedure to
+  execute if a division by 0 occurs
+* The compiler might implement this in several different ways:
+* It could put in explicit comparison and conditional jumps to check
+  each division
+* Or it could set up an interrupt handler (this requires negotiation
+  with the operating system)
+
+Using interrupts to catch errors
+
+As a program runs, it may accidentally produce an error
   
-
-### Interrupts and programming languages
-
-
-   *  Most programming languages don't provide the ability to work
-    directly with interrupts
-   *  But many programming language provide \alert{exceptions}
-    
-     *  Without an exception handler, a division by 0 might
-      terminate the program
-     *  In the program, you can set an exception handler: a
-      procedure to execute if a division by 0 occurs
-     *  The compiler might implement this in several different ways:
-      
-       *  It could put in explicit comparison and conditional jumps
-        to check each division
-       *  Or it could set up an interrupt handler (this requires
-        negotiation with the operating system)
-      
-    
+* An arithmetic instruction produces a result that's too large
+   to fit in a register: this is called \alert{overflow}
+* A divide instruction attempted to divide by 0
   
+It's better to detect the error and do something about it, than just
+to proceed with incorrect results.  This makes software robust.  If
+the program just keeps going, it's likely to produce wrong results.
+Two approaches for catching errors (use one or the other): Explicit
+error checking, and Interrupts
 
-### Using interrupts to catch errors
+Explicit error checking
 
-### Catching errors
-
-
- *  As a program runs, it may accidentally produce an error
- *  Two examples:
-  
-   *  An arithmetic instruction produces a result that's too large
-    to fit in a register: this is called \alert{overflow}
-   *  A divide instruction attempted to divide by 0
-  
- *  It's better to \emph{detect} the error and \emph{do something
-  about it}
- *  This makes software \alert{robust}
- *  If the program just keeps going, it's likely to produce wrong
-  results and it won't tell
- *  Two approaches for catching errors (use one or the other):
-  
-   *  Explicit error checking
-   *  Interrupts
-  
-
-
-
-### Explicit error checking
-
-
- *  Most computers have a \emph{condition code register} with a bit
+* Most computers have a \emph{condition code register} with a bit
   indicating each kind of error
- *  Sigma16 uses R15, and a bit in R15 indicates whether overflow
+* Sigma16 uses R15, and a bit in R15 indicates whether overflow
   occurred
- *  Every time you do an add (or other arithmetic instruction), that
+* Every time you do an add (or other arithmetic instruction), that
   bit is set to 0 if it was ok, and 1 if there was overflow
- *  You can check for this with a conditional jump, and then take
+* You can check for this with a conditional jump, and then take
   appropriate action
- *  Of course, you have to decide what the appropriate action is!
-
+* Of course, you have to decide what the appropriate action is!
 
 ~~~~
    add      R2,R5,R4     ; x := a + b
    jumpovfl TooBig[R0]   ; if overflow then goto TooBig
 ~~~~
 
+Problems with explicit error checking
 
-### Problems with explicit error checking
-
-
- *  You have to put in the jumpovfl \emph{after every arithmetic
+* You have to put in the jumpovfl \emph{after every arithmetic
   instruction}
- *  This makes the program considerably longer
- *  It's also inefficient: those conditional jumps take time
- *  It is ``fragile'': if you forget the jumpovfl \emph{even once}
+* This makes the program considerably longer
+* It's also inefficient: those conditional jumps take time
+* It is ``fragile'': if you forget the jumpovfl \emph{even once}
   in a big program, that program can malfunction
 
+A better approach: interrupts!
 
-### A better approach: interrupts!
-
-
- *  Most computers (including Sigma16) can also perform an interrupt
+* Most computers (including Sigma16) can also perform an interrupt
   if an overflow (or other error) occurs
- *  The digital circuit checks for overflow (or other error)
-  \emph{after every arithmetic operation}
- *  If the error occurred, the circuit performs an interrupt
- *  The OS then decides what to do
- *  User program can tell the OS in advance ``in case of overflow,
-  don't kill me, but jump to this address: TooBig''
- *  There is a special trap code for making this request
- *  In some programming languages, this is called ``setting an
-  exception handler'' or ``catching exceptions''
- *  There is a special control register with a bit that specifies
+* The digital circuit checks for overflow (or other error)
+  after every arithmetic operation
+* If the error occurred, the circuit performs an interrupt
+* The OS then decides what to do
+* User program can tell the OS in advance "in case of overflow,
+  don't kill me, but jump to this address: TooBig"
+* There is a special trap code for making this request
+* In some programming languages, this is called setting an
+  exception handler or catching exceptions
+* There is a special control register with a bit that specifies
   whether overflow should trigger an interrupt
 
+Why are interrupts better than explicit checking?
 
-
-### Why are interrupts better than explicit checking?
-
-
- *  Interrupts guarantee that \emph{every} operation is checked
- *  It is faster: the circuit can do this checking with essentially
+* Interrupts guarantee that \emph{every} operation is checked
+* It is faster: the circuit can do this checking with essentially
   zero overhead
- *  It is easier: the programmer doesn't have to worry about it
- *  The program is shorter: don't need a jump after every arithmetic
+* It is easier: the programmer doesn't have to worry about it
+* The program is shorter: don't need a jump after every arithmetic
   instruction
-
-
 
 ### Concurrent processes
 
-### Interrupts and processes
-
-
- *  One of the central features provided by an operating system is
+*  One of the central features provided by an operating system is
   \emph{concurrent processes}
   
-   *  A process is a running program
+  *  A process is a running program
    *  Think of a program as a document: it's just sitting there
    *  A process is all the action that happens when a program is
     executed: it has its variables, the variables change over time,
@@ -8701,9 +8187,7 @@ Lots of algorithms have exponential complexity: $2^n$.
    *  The user is interrupted, and the OS can then run a different
     program
 
-
-### Waiting for I/O = wasted time
-
+Waiting for I/O = wasted time
 
  *  Motivation for processes comes from I/O
  *  The problem:
@@ -8722,154 +8206,108 @@ Lots of algorithms have exponential complexity: $2^n$.
   for the I/O
 
 
-### A process must sometimes wait
+A process must sometimes wait
 
-\includegraphics[scale=1.0]{../figures/png/process-running-waiting.png}
+Don't wait --- switch to another process
 
-
-### Don't wait --- switch to another process
-
-\includegraphics[scale=1.0]{../figures/png/multiple-processes.png}
-
-
-### Don't wait --- switching to another program
-
-
- *  When a program needs to perform I/O, it
+*  When a program needs to perform I/O, it
   
-   *  Requests the operating system to do the I/O
-   *  The OS \emph{starts} the I/O but doesn't wait for it to finish
-   *  The OS then allows a \emph{different program} to run for a while
-   *  Eventually, when the I/O operation finishes, the OS allows the
+*  Requests the operating system to do the I/O
+*  The OS \emph{starts} the I/O but doesn't wait for it to finish
+*  The OS then allows a \emph{different program} to run for a while
+*  Eventually, when the I/O operation finishes, the OS allows the
     original program to resume
   
- *  This leads to an operating system running a large number of
+*  This leads to an operating system running a large number of
   separate programs
- *  Each running program is called a \alert{process}
+*  Each running program is called a \alert{process}
 
+Concurrent processes
 
-### Concurrent processes
-
-
- *  A \emph{process} is a running program
- *  At an instant of time, the computer is physically executing just
+* A \emph{process} is a running program
+* At an instant of time, the computer is physically executing just
   one instruction (which belongs to one process)
- *  From time to time (around 100 or more times per second), the
+* From time to time (around 100 or more times per second), the
   system will transfer control from one process to another one ---
   this is called a \alert{process break}
- *  Time scale:
+
+Time scale:
   
-   *  At the scale of a nanosecond ($10^{-9}$ second) the computer
-    is executing just one instruction belonging to a process; all
-    other processes are doing nothing
-   *  At the scale of human perception ($10^{-2}$ second) it appears
-    that \emph{all} the processes are making smooth processes
-  
- *  A motion picture is just a sequence of still photographs but
+* At the scale of a nanosecond ($10^{-9}$ second) the computer ` is
+  executing just one instruction belonging to a process; all other
+  processes are doing nothing
+* At the scale of human perception ($10^{-2}$ second) it appears
+  that \emph{all} the processes are making smooth processes
+* A motion picture is just a sequence of still photographs but
   displaying them rapidly gives the impression of continuous motion
 
+Operating system kernel
 
-### Operating system kernel
-
-
- *  A process does not transfer control to another process
- *  How could it?  When you write a program, you don't know what
+*  A process does not transfer control to another process
+*  How could it?  When you write a program, you don't know what
   other programs will be running when this one is!
- *  A process break means
+*  A process break means
   
-   *  Running process jumps to the operating system kernel
-   *  The kernel is the innermost, core, central part of the OS
-   *  The kernel has a table of all the processes
-   *  (On Windows: right-click the toolbar, launch the Task Manager,
+*  Running process jumps to the operating system kernel
+*  The kernel is the innermost, core, central part of the OS
+*  The kernel has a table of all the processes
+*  (On Windows: right-click the toolbar, launch the Task Manager,
     click Processes tab)
-   *  The kernel chooses another process to run and jumps to it
-  
+*  The kernel chooses another process to run and jumps to it
 
+Events that can trigger an interrupt
 
-### Events that can trigger an interrupt
-
-
- *  There is a timer that ``bings'' periodically --- each time it
+* There is a timer that ``bings'' periodically --- each time it
   goes off it generates an interrupt
- *  When an Input/Output device has competed a read or write, it
+* When an Input/Output device has competed a read or write, it
   generates an interrupt
 
+Preemptive scheduling
 
-
-### Interrupts and preemptive scheduling
-
-
- *  When the operating system jumps to a user process, it sets a
+* When the operating system jumps to a user process, it sets a
   \alert{timer} which will ``go off'' after a set amount of time
   (e.g. 1ms --- $10^{-3}$ second)
- *  When does a running process jump to the operating system?
-  
-   *  When the timer goes off
-   *  When the process makes an I/O request
-  
- *  This guarantees that the process won't run forever and
+* When does a running process jump to the operating system?
+* When the timer goes off
+* When the process makes an I/O request
+* This guarantees that the process won't run forever and
   \emph{freeze the system} even if it goes into an infinite loop
 
+The Scheduler
 
-### The Scheduler
+* The core of an operating system is the scheduler
+* It maintains a list of all the processes
+* When an interrupt occurs:
+* The process that was running stops executing instructions: it
+  has been interrupted
+* The OS takes any necessary action (e.g. service the I/O
+  device)
+* Then the OS jumps to the scheduler
+* The scheduler chooses a different process to run
+* It sets the timer and jumps to that process
 
+Mouse
 
- *  The core of an operating system is the scheduler
- *  It maintains a list of all the processes
- *  When an interrupt occurs:
-  
-   *  The process that was running stops executing instructions: it
-    has been interrupted
-   *  The OS takes any necessary action (e.g. service the I/O
-    device)
-   *  Then the OS jumps to the scheduler
-   *  The scheduler chooses a different process to run
-   *  It sets the timer and jumps to that process
-  
-
-
-### Mouse
-
-
- *  The mouse isn't connected to the cursor on the screen!
- *  When you move the mouse, it generates an interrupt
- *  The OS reads the mouse movement
- *  Then it calculates where the cursor should be and redraws it
- *  This happens many times per second, giving the illusion of
-  smooth movement
-
-
-
-  %\includegraphics[scale=0.5]{../figurespng/two-mice.png}
-  \vspace{-2cm}
-  \includegraphics[scale=0.3]{../figures/pdf/two-mice-heart.pdf}
-
+The mouse isn't connected to the cursor on the screen!  When you move
+the mouse, it generates an interrupt The OS reads the mouse movement
+Then it calculates where the cursor should be and redraws it This
+happens many times per second, giving the illusion of mooth movement
 
 ### How interrupts are implemented
-
-### How interrupts are implemented
-
   
-   *  Interrupts cannot be implemented in software!
-   *  The processor (the CPU) repeatedly goes through a sequence of
-    steps to execute instructions
-   *  This is the \alert{control algorithm} and it's performed by a
-    digital circuit in the processor (the \alert{control circuit})
-   *  Interrupts are implemented by the control circuit
-  
+* Interrupts cannot be implemented in software!
+* The processor (the CPU) repeatedly goes through a sequence of
+  steps to execute instructions
+* This is the \alert{control algorithm} and it's performed by a
+  digital circuit in the processor (the \alert{control circuit})
+* Interrupts are implemented by the control circuit
 
-### Control
+Control
+ 
+ the control registers: pc, ir, adr are used to keep track of what the
+ processor is doing.
 
-
- *  We have seen the RTM, which executes operations like reg[d] :=
-  reg[a] + reg[b]
- *  This is the core of a processor!
- *  We have seen the control registers: pc, ir, adr
- *  The processor uses these to keep track of what it is doing
-
-
-### The Control Algorithm
-
+The Control Algorithm
 
  *  The behaviour of the entire processor is defined by a
   \emph{control algorithm}

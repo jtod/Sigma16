@@ -12,7 +12,7 @@ html {
 h1 {
     color: #0000ff;
     border: solid;
-    border-width: thin;
+    border-width: medium;
     border-color: green;
     padding-top: 1.5em;
     padding-bottom: 1.5em;

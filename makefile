@@ -17,21 +17,20 @@
 # makefile defines commands to run, maintain, and build the system
 #-------------------------------------------------------------------------------
 
-# For documentation and to run the app, visit the Sigma16 home page
-#   https://jtod.github.io/S16/
-
-# To view or download the source, visit the project page
+# Sigma16 home page (for documentation and to run the app)
+#   https://jtod.github.io/home/Sigma16/
+# Sigma16 source repository (to download or view the source)
 #   https://github.com/jtod/Sigma16
 
 # Quick reference...
-#   make webdev                               prepare S16/dev
-#   make release                              prepare S16/releases/...
-#   make docs/homepage-index/index.html       index for Sigma16 home page
+#   make webdev                               prepare home/Sigma16/dev
+#   make release                              prepare home/Sigma16/releases/...
+#   make docs/src/S16homepage/index.html       index for Sigma16 home page
 
 # Source directories on development computer
 #    Sigma/current                               source for entire project
 #    Sigma/current/Sigma16                       source for Sigma16
-#    Sigma/current/homepage/jtod.github.io/S16   source for github web page
+#    Sigma/current/homepage/jtod.github.io/home/Sigma16  source for github web page
 
 #-------------------------------------------------------------------------------
 # How to...
@@ -39,15 +38,9 @@
 # To upload current development version to web page:
 #    cd Sigma/current/Sigma16
 #       make webdev
-#    cd Sigma/current/homepage/jtod.github.io/S16
-#       git status
-#       git add ...
-#       git commit -m '...commit message...'
-#       git push
-
-# To run the development version online:
-#       Visit https://jtod.github.io/S16/
-#       Click launch development version
+#       git status, git add, git commit, git push
+#    cd Sigma/current/homepage/jtod.github.io/home/Sigma16
+#       git status, git add, git commit, git push
 
 #-------------------------------------------------------------------------------
 # Define parameters
@@ -55,10 +48,9 @@
 
 # File locations on development machine
 
-# SIGMACURRENT contains several related projects, including Sigma16
-
+# SIGMACURRENT contains the Sigma project, including Sigma16
 SIGMACURRENT:=./..
-S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/S16/
+S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/home/Sigma16/
 WEBDEV:=$(S16HOME)/dev
 
 # S16WEBPAGE is a directory in my homepage on github; this is where

@@ -13,35 +13,21 @@ around the beginning of February 2020.  The notes below, as well as
 the user guide, are incomplete and refer to previous versions, so the
 current documentation is inconsistent with the current software.*
 
-## Sigma16 home page
-
-* [The Sigma16 Home Page](https://jtod.github.io/S16/) contains a link
-  to run the latest version as well as further information and
-  documentation.  The URL is https://jtod.github.io/S16/
-
 ## Internet links
 
-The following links are primarily here for reference.  Go to the Home
-page (link above) to use the system and to find the most up-to-date
-information about it.
-
-* [Launch the development version to run in your
-  browser](https://jtod.github.io/S16/dev/app/Sigma16.html).  This is
-  for testing and development, not for general use.
-* [The User
-  Guide](https://jtod.github.io/S16/dev/app/doc/html/userguide.html)
-  contains documentation of the architecture, software tools,
-  programming, and installation.
-* [The source repository](https://github.com/jtod/Sigma16).  allows
-  you to view the source and download it.  This the README page for
-  the source repository.  The URL is https://github.com/jtod/Sigma16
+This page is the README for the Sigma16 source directory.  To run the
+software, visit the [Sigma16 Home
+Page](https://jtod.github.io/home/Sigma16/), which also contains links
+to documentation and past releases.  The URL for the Sigma16 Home page
+is https://jtod.github.io/home/Sigma16/ and the URL for the source
+repository is https://github.com/jtod/Sigma16
 
 ## Links to local files
 
-If you copy the Sigma16 directory onto your computer, the following
-links will run it locally, without further access to the Internet.
-However, these links will *not* work if you're reading this page on
-the source repository via the Internet.
+If you copy the Sigma16 source directory onto your computer, the
+following links will run it locally without requiring further access
+to the Internet.  However, these links will not work if you're reading
+this page on the source repository on GitHub via the Internet.
 
 * [Launch from files in this directory](./app/Sigma16.html) If you
   have copied this directory onto a local machine, this link will run
@@ -55,7 +41,8 @@ the source repository via the Internet.
 ## Download
 
 It isn't necessary to download, compile, and install the software: you
-can just run it in a browser by clicking the Quick Start link above.
+can just run it in a browser by clicking the Quick Start link in the
+Sigma16 Home Page.
 
 If you want to run the app when Internet is inaccessible, you can
 download the software and run it locally on your machine.  You don't
@@ -76,11 +63,8 @@ and Copy, then Paste it into the editor.
 ### Run with npm
 
 See app/makefile for notes on how to run the software as a standalone
-program, without using a browser.
-
-
-The following software needs to be installed in order to build the
-executable using electron
+program, without using a browser.  The following software needs to be
+installed in order to build the executable using electron
 
     node.js
     npm
@@ -89,9 +73,9 @@ executable using electron
 
     Clone this repository
     git clone https://github.com/electron/electron-quick-start
-    cd electron-quick-start        # Go into the repository
-    npm install     # Install dependencies
-    npm start         # Run the app
+    cd electron-quick-start  # Go into the repository
+    npm install   # Install dependencies
+    npm start     # Run the app
 
 The following files are required for compilation with npm, but they
 are not needed just to run the source program in a browser.

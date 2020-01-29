@@ -14,7 +14,7 @@ the user guide, are incomplete and refer to previous versions, so the
 current documentation is inconsistent with the current software.*
 
 <div class="quickstartbox"> [Click to run Sigma16 in your
-  browser](https://jtod.github.io/S16/dev/app/Sigma16.html)</div>
+  browser](https://jtod.github.io/home/Sigma16/dev/app/Sigma16.html)</div>
 
 ## Web resources
 
@@ -23,7 +23,7 @@ and download the source code, see the [source
 repository](https://github.com/jtod/Sigma16).  You can't run the app
 directly from the source repository; you need this home page to launch
 it.  The [User
-Guide](https://jtod.github.io/S16/dev/app/doc/html/userguide.html)
+Guide](https://jtod.github.io/home/Sigma16/dev/app/doc/html/userguide.html)
 includes documentation of the architecture, programming, and
 installation.
 
