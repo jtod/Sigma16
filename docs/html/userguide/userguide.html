@@ -208,58 +208,27 @@ Version 3.0.34
 </ul></li>
 <li><a href="#how-to-perform-commmon-tasks">How to perform commmon tasks</a><ul>
 <li><a href="#stopping-the-program">Stopping the program</a></li>
-<li><a href="#compiling">Compiling</a><ul>
-<li><a href="#high-level-constructs">High level constructs</a></li>
-</ul></li>
-<li><a href="#statements">Statements</a></li>
-<li><a href="#high-level-control-structures">High level control structures</a><ul>
-<li><a href="#low-level-constructs">Low level constructs</a></li>
-</ul></li>
-<li><a href="#low-level-constructs-1">Low level constructs</a></li>
-<li><a href="#the-goto-statement">The Goto statement</a></li>
-<li><a href="#using-the-goto-statement">Using the goto statement</a></li>
-<li><a href="#the-conditional-goto-statement">The conditional goto statement</a></li>
-<li><a href="#jumping-and-comparing">Jumping and comparing</a><ul>
-<li><a href="#unconditional-jump">Unconditional jump</a></li>
-</ul></li>
-<li><a href="#jumping">Jumping</a><ul>
-<li><a href="#comparison-instructions">Comparison instructions</a></li>
-</ul></li>
-<li><a href="#comparison-instruction-boolean-form">Comparison instruction: Boolean form</a><ul>
 <li><a href="#conditional-jumps">Conditional jumps</a></li>
-</ul></li>
-<li><a href="#conditional-jumps-boolean-decision">Conditional jumps: Boolean decision</a></li>
-<li><a href="#compilation-patterns">Compilation patterns</a></li>
-<li><a href="#compilation-patterns-1">Compilation patterns</a></li>
+<li><a href="#compilation-patterns">Compilation patterns</a><ul>
 <li><a href="#compiling-an-assignment-statement">Compiling an assignment statement</a></li>
+</ul></li>
 <li><a href="#variable-names-and-addresses">Variable names and addresses</a></li>
 <li><a href="#instructions-in-assembly-language">Instructions in assembly language</a></li>
 <li><a href="#how-the-assembler-allocates-memory">How the assembler allocates memory</a></li>
-<li><a href="#how-the-assembler-allocates-memory-1">How the assembler allocates memory}</a></li>
 <li><a href="#program-structure">Program structure</a></li>
 <li><a href="#example-program-add">Example program Add</a></li>
 <li><a href="#snapshot-of-memory-example-program-add">Snapshot of memory: example program Add</a></li>
 </ul></li>
 <li><a href="#programming-tips">Programming tips</a><ul>
-<li><a href="#a-useful-convention">A useful convention</a></li>
 <li><a href="#programming-tip-copying-one-register-to-another">Programming tip: Copying one register to another</a></li>
 <li><a href="#using-load-and-store">Using load and store</a></li>
-<li><a href="#compilation-patterns-2">Compilation patterns</a></li>
-<li><a href="#follow-the-patterns">Follow the patterns!</a></li>
+<li><a href="#compilation-patterns-1">Compilation patterns</a></li>
 <li><a href="#how-can-you-tell-if-youre-using-the-pattern">How can you tell if you’re using the pattern?</a></li>
 <li><a href="#are-you-using-the-pattern">Are you using the pattern?</a></li>
-<li><a href="#can-you-gain-efficiency-by-violating-the-pattern">Can you gain efficiency by violating the pattern?</a></li>
 <li><a href="#comments">Comments</a></li>
-<li><a href="#write-the-comments-first">Write the comments first!</a></li>
-<li><a href="#why-is-goto-controversial">Why is goto controversial?</a></li>
-<li><a href="#goto-considered-harmful-3-march-1968">Goto considered harmful:  (3), March 1968}</a></li>
-<li><a href="#what-happened-next">What happened next?</a></li>
 </ul></li>
-<li><a href="#records-1">Records</a><ul>
-<li><a href="#records-2">Records}</a></li>
-<li><a href="#defining-some-records">Defining some records</a></li>
-<li><a href="#naming-each-field-explicitly">Naming each field explicitly</a></li>
-<li><a href="#pointers-1">Pointers</a></li>
+<li><a href="#records-1">Records</a></li>
+<li><a href="#pointers-1">Pointers</a><ul>
 <li><a href="#expressions-using-pointers">Expressions using pointers</a></li>
 <li><a href="#the-operator-requires-only-one-instruction-lea">The &amp; operator requires only one instruction: lea!</a></li>
 <li><a href="#the-operator-requires-only-one-instruction-load">The * operator requires only one instruction: load!</a></li>
@@ -267,121 +236,61 @@ Version 3.0.34
 <li><a href="#following-a-pointer-to-the-address-of-x-gives-x">Following a pointer to the address of x gives x}</a></li>
 <li><a href="#review-accessing-a-variable-the-ordinary-way">Review: accessing a variable the ordinary way</a></li>
 <li><a href="#accessing-a-variable-through-a-pointer">Accessing a variable through a pointer</a></li>
-<li><a href="#why-is-the-pointer-helpful">Why is the pointer helpful?</a></li>
 <li><a href="#access-a-record-using-a-pointer">Access a record using a pointer</a></li>
 </ul></li>
 <li><a href="#requests-to-the-operating-system">Requests to the Operating System</a><ul>
-<li><a href="#typical-os-requests">Typical OS requests</a></li>
 <li><a href="#termination">Termination</a></li>
 <li><a href="#character-strings-pointer-to-array-of-characters">Character strings: pointer to array of characters</a></li>
-<li><a href="#write-operation-on-sigma16">Write operation on Sigma16}</a></li>
-<li><a href="#writing-a-string">Writing a string}</a></li>
+<li><a href="#write-operation-on-sigma16">Write operation on Sigma16</a></li>
 </ul></li>
 <li><a href="#procedures">Procedures</a><ul>
 <li><a href="#call-and-return">Call and return</a></li>
-<li><a href="#returning-to-the-instruction-after-the-call">Returning to the instruction after the call</a></li>
-<li><a href="#calling-and-returning">Calling and returning</a></li>
 <li><a href="#the-jump-and-link-instruction-jal">The jump-and-link instruction: jal</a></li>
-<li><a href="#jumping-1">Jumping</a></li>
-<li><a href="#implementing-call-and-return">Implementing call and return</a></li>
 <li><a href="#calling-with-jal-and-returning-with-jump">Calling with jal and returning with jump</a></li>
 <li><a href="#parameter-passage">Parameter passage</a></li>
 <li><a href="#functions">Functions</a></li>
-<li><a href="#example-passing-argument-and-result-in-r1">Example: Passing argument and result in R1</a></li>
-<li><a href="#procedure-calls-another-procedure">Procedure calls another procedure</a></li>
 <li><a href="#what-if-a-procedure-calls-another-procedure">What if a procedure calls another procedure?</a></li>
-<li><a href="#limitations-of-basic-call">Limitations of basic call</a></li>
 <li><a href="#r13-overwritten-proc1-returns-to-the-wrong-place">R13 overwritten: proc1 returns to the wrong place!</a></li>
 <li><a href="#saving-state">Saving state</a></li>
-<li><a href="#the-wrong-way-to-save-state">The wrong way to save state</a></li>
-<li><a href="#saving-registers">Saving registers</a></li>
-<li><a href="#where-can-the-registers-be-saved">Where can the registers be saved?</a></li>
-<li><a href="#who-saves-the-state-the-caller-or-the-procedure">Who saves the state: the caller or the procedure?</a></li>
 <li><a href="#stack-of-return-addresses">Stack of return addresses</a></li>
 </ul></li>
 <li><a href="#stacks">Stacks</a><ul>
-<li><a href="#initially-the-stack-is-empty">Initially the stack is empty}</a></li>
-<li><a href="#call-procedure-push-return-address-a">Call procedure, push return address <span class="math inline"><em>a</em></span></a></li>
-<li><a href="#call-another-procedure-push-return-address-b">Call another procedure, push return address <span class="math inline"><em>b</em></span></a></li>
-<li><a href="#return-pop-produces-return-address-b">Return: pop produces return address <span class="math inline"><em>b</em></span></a></li>
-<li><a href="#call-some-procedure-push-return-address-c">Call some procedure, push return address <span class="math inline"><em>c</em></span></a></li>
-<li><a href="#call-a-procedure-push-return-address-d">Call a procedure, push return address <span class="math inline"><em>d</em></span></a></li>
 <li><a href="#the-call-stack-2">The call stack</a></li>
-<li><a href="#stack-frames">Stack frames</a></li>
-<li><a href="#implementing-the-call-stack">Implementing the call stack</a></li>
 </ul></li>
 <li><a href="#retrospective">Retrospective</a><ul>
-<li><a href="#what-is-a-computer-program">What is a computer program?</a></li>
-<li><a href="#what-is-a-variable">What is a variable?</a></li>
 <li><a href="#review-of-procedures-call-with-jal-return-with-jump">Review of procedures: Call with jal, return with jump</a></li>
-<li><a href="#review-basic-calls-with-jal">Review: Basic calls with jal</a></li>
 <li><a href="#review-activation-records-a.k.a.-stack-frames">Review: Activation records, a.k.a. stack frames</a></li>
-<li><a href="#review-sequence-of-stack-operations">Review: Sequence of stack operations</a></li>
 </ul></li>
 <li><a href="#linked-lists">Linked lists</a><ul>
-<li><a href="#review-of-pointers">Review of pointers</a></li>
-<li><a href="#nodes">Nodes</a></li>
-<li><a href="#accessing-the-fields-of-a-node">Accessing the fields of a node</a></li>
-<li><a href="#representing-a-linked-list">Representing a linked list</a></li>
-<li><a href="#basic-operations-on-lists">Basic operations on lists</a></li>
 <li><a href="#is-list-p-empty">Is list p empty?</a></li>
 <li><a href="#get-value-in-node-that-p-points-at-x-p.value">Get value in node that p points at: x := *p.value</a></li>
 <li><a href="#get-pointer-to-next-node-in-a-list-q-p.next">Get pointer to next node in a list: q := *p.next</a></li>
 <li><a href="#traversing-a-list">Traversing a list</a></li>
 <li><a href="#search-a-list-p-for-a-value-x">Search a list p for a value x</a></li>
 <li><a href="#cons-constructing-a-list-be-consing-a-value-to-the-front">cons — constructing a list be consing a value to the front</a></li>
-<li><a href="#implementing-cons">Implementing cons</a></li>
-<li><a href="#getting-a-new-node-from-avail-list">Getting a new node from avail list</a></li>
-<li><a href="#inserting-a-node-with-x-where-p-points">Inserting a node with x where p points</a></li>
 <li><a href="#list-header">List header</a></li>
 <li><a href="#deleting-a-node">Deleting a node</a></li>
-<li><a href="#code-for-deleting-a-node">Code for deleting a node</a></li>
-<li><a href="#space-leaks">Space leaks</a></li>
 <li><a href="#memory-management">Memory management</a></li>
 <li><a href="#sharing-and-side-effects">Sharing and side effects</a></li>
 </ul></li>
-<li><a href="#comparing-lists-and-arrays">Comparing lists and arrays}</a><ul>
-<li><a href="#accessing-elements">Accessing elements</a></li>
-</ul></li>
-<li><a href="#example-ordered-lists-program">Example: Ordered lists program</a><ul>
-<li><a href="#ordered-lists">Ordered lists</a></li>
-<li><a href="#commands">Commands</a><ul>
-<li><a href="#example">Example</a></li>
-</ul></li>
-<li><a href="#why-are-ordered-lists-useful">Why are ordered lists useful?</a></li>
-<li><a href="#where-do-the-commands-come-from">Where do the commands come from?</a></li>
-<li><a href="#representing-a-command">Representing a command</a></li>
-<li><a href="#reading-a-program-before-writing">Reading a program before writing</a></li>
-<li><a href="#some-tips-on-testing-and-debugging">Some tips on testing and debugging</a></li>
-<li><a href="#reading-and-testing-a-program">Reading and testing a program</a></li>
+<li><a href="#comparing-lists-and-arrays">Comparing lists and arrays</a></li>
+<li><a href="#example-ordered-lists-program">Example: Ordered lists program</a></li>
+<li><a href="#testing-and-debugging">Testing and debugging</a><ul>
 <li><a href="#breakpoints">Breakpoints</a></li>
 </ul></li>
-<li><a href="#how-to-set-a-breakpoint">How to set a breakpoint</a></li>
-<li><a href="#trees">Trees</a><ul>
-<li><a href="#usage-of-memory">Usage of memory</a></li>
-<li><a href="#more-general-data-structures">More general data structures</a></li>
-</ul></li>
-<li><a href="#abstract-data-type">Abstract data type}</a><ul>
-<li><a href="#linked-list-implementation-of-stack">Linked list implementation of stack</a></li>
+<li><a href="#trees">Trees</a></li>
+<li><a href="#abstract-data-type">Abstract data type</a><ul>
 <li><a href="#array-implementation-of-stack">Array implementation of stack</a></li>
-<li><a href="#relationship-between-arrays-and-stacks">Relationship between arrays and stacks</a></li>
-<li><a href="#pushing-x-onto-a-stack">Pushing x onto a stack</a></li>
-<li><a href="#pop-a-stack-returning-x">Pop a stack, returning x</a></li>
-<li><a href="#error-checking">Error checking</a></li>
-<li><a href="#issues-with-simplest-implementation">Issues with simplest implementation}</a></li>
-<li><a href="#robust-software">Robust software</a></li>
-<li><a href="#error-checking-and-error-handling">Error checking and error handling</a></li>
-<li><a href="#error-checking-push">Error checking: push</a></li>
-<li><a href="#error-checking-pop">Error checking: pop</a></li>
 </ul></li>
+<li><a href="#error-checking">Error checking</a></li>
 <li><a href="#programming-techniques">Programming techniques</a><ul>
 <li><a href="#compound-boolean-expressions">Compound Boolean expressions</a></li>
 <li><a href="#short-circuit-expressions">``Short circuit’’ expressions</a></li>
-<li><a href="#implementing-a-compound-boolean-expression">Implementing a compound boolean expression</a></li>
 <li><a href="#condition-code">Condition code</a><ul>
 <li><a href="#repeat-until-loop">Repeat-until loop</a></li>
 </ul></li>
-<li><a href="#inputoutput">Input/Output</a></li>
+</ul></li>
+<li><a href="#inputoutput">Input/Output</a><ul>
 <li><a href="#converting-a-number-to-a-string">Converting a number to a string</a></li>
 <li><a href="#arrays-and-pointers">Arrays and pointers</a></li>
 <li><a href="#sum-of-an-array-x-using-index-high-level">Sum of an array x using index: high level</a></li>
@@ -390,22 +299,13 @@ Version 3.0.34
 <li><a href="#sum-of-an-array-x-using-pointers-high-level">Sum of an array x using pointers: high level</a></li>
 <li><a href="#sum-of-an-array-x-using-pointers-assembly-language">Sum of an array x using pointers: assembly language</a></li>
 <li><a href="#comparing-the-two-approaches">Comparing the two approaches</a></li>
-<li><a href="#records-3">Records</a></li>
+<li><a href="#records-2">Records</a></li>
 <li><a href="#traverse-array-of-records-with-indexing">Traverse array of records with indexing</a></li>
 <li><a href="#traverse-array-of-records-with-pointers-high-level">Traverse array of records with pointers: high level</a></li>
 <li><a href="#traverse-array-of-records-with-pointers-low-level">Traverse array of records with pointers: low level</a></li>
 <li><a href="#traverse-array-of-records-with-pointers-assembly-language">Traverse array of records with pointers: assembly language</a></li>
 <li><a href="#stack-overflow">Stack overflow</a></li>
-<li><a href="#register-usage">Register usage</a></li>
-<li><a href="#initialize-the-stack">Initialize the stack</a></li>
-<li><a href="#calling-a-procedure">Calling a procedure</a></li>
-<li><a href="#structure-of-procedure-stack-frame">Structure of Procedure stack frame</a></li>
-<li><a href="#called-procedure-creates-its-stack-frame">Called procedure creates its stack frame</a></li>
-<li><a href="#procedure-finishes-and-returns">Procedure finishes and returns</a></li>
-<li><a href="#stack-overflow-1">Stack overflow</a></li>
-<li><a href="#blocks">Blocks</a><ul>
-<li><a href="#syntax-for-blocks">Syntax for blocks</a></li>
-</ul></li>
+<li><a href="#blocks">Blocks</a></li>
 <li><a href="#python-syntax-style-for-blocks-layout">Python syntax style for blocks: layout</a></li>
 <li><a href="#algolpascal-style-for-blocks-beginend">Algol/Pascal style for blocks: begin—end</a></li>
 <li><a href="#c-style-for-blocks-braces">C style for blocks: braces</a></li>
@@ -413,7 +313,6 @@ Version 3.0.34
 <li><a href="#enter-at-beginning-exit-at-end">Enter at beginning, exit at end</a></li>
 <li><a href="#single-entranceexit-for-compilation-patterns">Single entrance/exit for compilation patterns</a></li>
 <li><a href="#systematic-approach-to-programming">Systematic approach to programming?</a></li>
-<li><a href="#why-use-this-systematic-approach-to-programming">Why use this systematic approach to programming?</a></li>
 </ul></li>
 <li><a href="#nested-conditionals">Nested conditionals</a></li>
 <li><a href="#privileged-instructions">Privileged instructions</a></li>
@@ -427,7 +326,6 @@ Version 3.0.34
 <li><a href="#concurrent-processes">Concurrent processes</a></li>
 <li><a href="#how-interrupts-are-implemented">How interrupts are implemented</a></li>
 <li><a href="#registers">Registers</a></li>
-<li><a href="#notation-1">Notation</a></li>
 <li><a href="#infinite-loop">Infinite loop</a></li>
 <li><a href="#case-dispatch">Case dispatch</a></li>
 <li><a href="#control-algorithm">Control algorithm</a></li>
@@ -435,99 +333,15 @@ Version 3.0.34
 <li><a href="#languages-and-systems">Languages and systems</a><ul>
 <li><a href="#advice-on-software-engineering">Advice on software engineering</a></li>
 <li><a href="#what-should-a-software-engineer-study">What should a software engineer study?</a></li>
-<li><a href="#syntax-semantics-compilation">Syntax, semantics, compilation</a><ul>
-<li><a href="#syntax-easier-but-less-important">Syntax — easier but less important</a></li>
-</ul></li>
-<li><a href="#syntax-errors">Syntax errors</a></li>
-<li><a href="#example-of-syntax-operator-precedence">Example of syntax: operator precedence</a></li>
-<li><a href="#deeper-example-of-syntax-ambiguity">Deeper example of syntax: ambiguity</a></li>
-<li><a href="#ambiguity-in-if-then-else">Ambiguity in if-then-else</a></li>
-<li><a href="#how-does-python-prevent-ambiguity">How does Python prevent ambiguity?</a></li>
-<li><a href="#goto">goto</a></li>
-<li><a href="#implicit-goto-statements-break-and-continue">Implicit goto statements: break and continue</a></li>
-<li><a href="#semantics">Semantics</a></li>
-<li><a href="#semantics-of-while">Semantics of while</a></li>
-<li><a href="#lists-iterators-and-for-loops">Lists, +, +=, iterators, and for loops</a></li>
-<li><a href="#lets-do-some-matrix-calculations">Let’s do some matrix calculations</a></li>
-<li><a href="#what-does-mean-in-python">What does += mean in Python?</a></li>
-<li><a href="#is-a-b-shorthand-for-a-a-b">Is a += b shorthand for a = a + b?</a></li>
-<li><a href="#how-do-we-figure-out-problems-like-this">How do we figure out problems like this?</a><ul>
-<li><a href="#are-two-nodes-with-the-same-value-identical">Are two nodes with the same value identical?</a></li>
-</ul></li>
-<li><a href="#are-two-nodes-with-the-same-value-identical-1">Are two nodes with the same value identical?}</a><ul>
 <li><a href="#low-level-list-manipulation">Low level list manipulation</a></li>
-</ul></li>
-<li><a href="#low-level-list-manipulation-1">Low level list manipulation</a></li>
-<li><a href="#b-a.copy">b = a.copy()</a></li>
-<li><a href="#list-is-represented-as-nodes">List is represented as nodes</a></li>
-<li><a href="#appending-to-a-list">Appending to a list</a></li>
-<li><a href="#extending-a-list">Extending a list</a><ul>
-<li><a href="#the-operator">The + operator</a></li>
-<li><a href="#the-operator-1">The += operator</a></li>
-</ul></li>
-<li><a href="#the-operator-2">The + operator}</a></li>
-<li><a href="#list-with-and">List with + and +=</a></li>
-<li><a href="#iterators">Iterators</a></li>
-<li><a href="#defining-an-iterator-for-even-numbers">Defining an iterator for even numbers</a></li>
-<li><a href="#using-the-iterator">Using the iterator</a></li>
-<li><a href="#running-the-even-iterator">Running the even iterator</a></li>
-<li><a href="#extending-a-list-with-an-iterator">Extending a list with an iterator</a><ul>
+<li><a href="#b-a.copy">b = a.copy()</a><ul>
 <li><a href="#for-loops">for loops</a></li>
 </ul></li>
 <li><a href="#for-loops-in-algol-and-descendants">for loops in Algol and descendants</a></li>
-<li><a href="#for-loops-in-python">for loops in Python</a><ul>
-<li><a href="#revisiting-the-mysteries">Revisiting the mysteries}</a></li>
-</ul></li>
-<li><a href="#compilers">Compilers</a></li>
-<li><a href="#source-and-object">Source and object</a></li>
-<li><a href="#compilation-1">{Compilation</a></li>
-<li><a href="#how-a-compiler-works">How a compiler works</a></li>
-<li><a href="#major-tasks-in-compilation">Major tasks in compilation</a></li>
-<li><a href="#parsing">Parsing</a></li>
-<li><a href="#types">Types</a></li>
-<li><a href="#integer-and-floating-point">Integer and floating point</a></li>
-<li><a href="#typechecking">Typechecking</a></li>
 <li><a href="#write-programs-at-a-high-level">Write programs at a high level</a></li>
 <li><a href="#use-patterns-to-translate-to-low-level">Use patterns to translate to low level</a></li>
 <li><a href="#translate-low-level-to-assembly-language">Translate low level to assembly language</a></li>
 <li><a href="#practical-programming-tip">Practical programming tip</a></li>
-</ul></li>
-<li><a href="#architecture-1">Architecture</a><ul>
-<li><a href="#instructions-1">Instructions</a></li>
-<li><a href="#addresses-and-data-structures">Addresses and data structures</a><ul>
-<li><a href="#compilation-patterns-3">Compilation patterns</a></li>
-</ul></li>
-<li><a href="#high-and-low-level-programming-constructs">High and low level programming constructs</a></li>
-<li><a href="#high-and-low-level-programming-constructs-1">High and low level programming constructs</a></li>
-<li><a href="#compliation-patterns">Compliation patterns</a></li>
-<li><a href="#programming-fundamentals">Programming fundamentals</a><ul>
-<li><a href="#how-do-you-learn-programming">How do you learn programming</a></li>
-</ul></li>
-<li><a href="#connections-with-other-subjects">Connections with other subjects</a></li>
-<li><a href="#basic-list-operations-extend-and-append">Basic list operations: extend and append</a></li>
-<li><a href="#effect-of-extend-and-append-on-data-structures">Effect of extend and append on data structures</a></li>
-<li><a href="#make-some-lists">Make some lists}</a></li>
-<li><a href="#xx-changed-a-yy-changed-c.">XX changed a, YY changed c.\</a></li>
-<li><a href="#list-manipulation-abc-foobarbaz">List manipulation: abc foobarbaz</a></li>
-<li><a href="#list-manipulation-abc-initial-values">List manipulation abc: initial values</a></li>
-<li><a href="#list-manipulation-abc-after-and-append">List manipulation abc: after + and append</a></li>
-<li><a href="#list-manipulation-def">List manipulation: def</a></li>
-<li><a href="#list-manipulation-def-initial-values">List manipulation: def initial values</a></li>
-<li><a href="#list-manipulation-def-after-appends">List manipulation: def after appends</a></li>
-<li><a href="#list-manipulation-ghi">List manipulation: ghi</a></li>
-<li><a href="#list-manipulation-ghi-initial-values">List manipulation: ghi initial values</a></li>
-<li><a href="#list-manipulation-ghi-after-and-append">List manipulation: ghi after += and append</a></li>
-<li><a href="#for-loop">For loop</a></li>
-<li><a href="#data-structure-used-in-for-loop">Data structure used in for loop</a></li>
-<li><a href="#a-flowchart">A flowchart</a></li>
-<li><a href="#if-statement">If statement</a></li>
-<li><a href="#data-structure-for-the-if-statement">Data structure for the if statement</a></li>
-<li><a href="#flowchart-for-the-if-statement">Flowchart for the if statement</a></li>
-<li><a href="#while-loop">While loop</a></li>
-<li><a href="#question-continue-statement">Question: Continue statement</a></li>
-<li><a href="#question-break-statement">Question: Break statement</a></li>
-<li><a href="#a-note-about-the-break-statement">A note about the break statement</a></li>
-<li><a href="#results">Results</a></li>
 <li><a href="#example-writevalchar">Example: WriteValChar</a></li>
 <li><a href="#a-simple-procedure-writevalchar">A simple procedure: WriteValChar</a></li>
 <li><a href="#calling-writevalchar">Calling WriteValChar</a></li>
@@ -549,23 +363,6 @@ Version 3.0.34
 <li><a href="#saving-state-1">Saving state</a></li>
 <li><a href="#disabling-interrupts">Disabling interrupts</a></li>
 <li><a href="#missing-interrupts">Missing interrupts</a></li>
-<li><a href="#architecture-must-support-os">Architecture must support OS</a></li>
-<li><a href="#some-historical-examples">Some historical examples</a></li>
-<li><a href="#more-recent-examples">More recent examples</a></li>
-<li><a href="#speed-of-cache-memory">Speed of cache memory</a></li>
-<li><a href="#whats-in-the-cache">What’s in the cache</a></li>
-<li><a href="#cache-lines">Cache lines</a></li>
-<li><a href="#searching-the-cache">Searching the cache</a></li>
-<li><a href="#fully-associative-cache">Fully associative cache</a></li>
-<li><a href="#associative-memory">Associative memory</a></li>
-<li><a href="#searching-in-associative-memory">Searching in associative memory</a></li>
-<li><a href="#a-compromise-set-associative-cache">A compromise: Set associative cache</a></li>
-<li><a href="#reducing-cache-misses">Reducing cache misses</a></li>
-<li><a href="#processor-after-load-x">Processor: after load x</a></li>
-<li><a href="#processor-after-load-y">Processor: after load y</a></li>
-<li><a href="#processor-after-add">Processor: after add</a></li>
-<li><a href="#processor-after-store">Processor: after store</a></li>
-<li><a href="#processor-after-termination">Processor: after termination</a></li>
 </ul></li>
 <li><a href="#data-types">Data types</a><ul>
 <li><a href="#many-kinds-of-procedure">Many kinds of procedure</a></li>
@@ -585,7 +382,7 @@ Version 3.0.34
 <li><a href="#requests-to-the-os">Requests to the OS</a></li>
 <li><a href="#the-trap-instruction">The trap instruction</a></li>
 <li><a href="#trap-is-like-jump-but-different">trap is like jump, but different</a></li>
-<li><a href="#typical-os-requests-1">Typical OS requests</a></li>
+<li><a href="#typical-os-requests">Typical OS requests</a></li>
 <li><a href="#memory-allocation">Memory allocation</a></li>
 <li><a href="#adding-a-character-to-a-string">Adding a character to a string</a></li>
 <li><a href="#memory-allocation-1">Memory allocation</a></li>
@@ -605,39 +402,19 @@ Version 3.0.34
 </ul></li>
 <li><a href="#addresses">Addresses</a><ul>
 <li><a href="#accessing-data">Accessing data</a></li>
-<li><a href="#the-multiplexer-circuit">The multiplexer circuit}</a><ul>
-<li><a href="#characteristics-of-combinational-circuits">Characteristics of combinational circuits}</a></li>
 </ul></li>
-<li><a href="#two-kinds-of-circuit">Two kinds of circuit}</a></li>
-<li><a href="#hexadecimal-numbers">Hexadecimal Numbers}</a></li>
-</ul></li>
-<li><a href="#hexadecimal-numbers-1">Hexadecimal Numbers</a><ul>
+<li><a href="#hexadecimal-numbers">Hexadecimal Numbers</a><ul>
 <li><a href="#hexadecimal-digits">Hexadecimal Digits</a></li>
 <li><a href="#hexadecimal-numbers-hex-numbers">Hexadecimal numbers (``hex numbers’’)</a></li>
 <li><a href="#hexadecimal-is-easier-to-read-than-bits">Hexadecimal is easier to read than bits</a></li>
-<li><a href="#black-boxes">Black boxes</a></li>
 </ul></li>
-<li><a href="#jumping-2">Jumping</a><ul>
+<li><a href="#jumping">Jumping</a><ul>
 <li><a href="#instruction-set-1">Instruction set</a></li>
 <li><a href="#what-can-we-learn-from-this">What can we learn from this?</a></li>
-<li><a href="#closed-source-open-source-free-1">Closed source, open source, free</a></li>
-<li><a href="#processor-organisation">Processor organisation}</a></li>
-<li><a href="#a-computer-is-a-digital-circuit-1">A computer is a digital circuit!</a></li>
-<li><a href="#processor-organisation-1">Processor organisation</a></li>
-<li><a href="#control-registers-1">Control registers</a></li>
-<li><a href="#the-control-algorithm">The control algorithm</a></li>
 <li><a href="#structure-of-the-control-algorithm">Structure of the control algorithm</a></li>
 <li><a href="#a-closer-look-at-lea">A closer look at lea</a></li>
 <li><a href="#lea-and-load-similar-but-not-identical">Lea and Load: similar but not identical!</a></li>
 <li><a href="#a-jump-is-just-a-load">A jump is just a load!</a></li>
-<li><a href="#processor-organisation-2">Processor organisation</a></li>
-<li><a href="#processor-organisation-3">Processor organisation</a></li>
-<li><a href="#control-registers-2">Control registers</a></li>
-<li><a href="#the-control-algorithm-1">The control algorithm</a></li>
-<li><a href="#structure-of-the-control-algorithm-1">Structure of the control algorithm</a></li>
-<li><a href="#a-closer-look-at-lea-1">A closer look at lea</a></li>
-<li><a href="#lea-and-load-similar-but-not-identical-1">Lea and Load: similar but not identical!</a></li>
-<li><a href="#a-jump-is-just-a-load-1">A jump is just a load!</a></li>
 <li><a href="#programming-guidelines">Programming Guidelines</a></li>
 <li><a href="#identify-the-program">Identify the program</a></li>
 <li><a href="#high-level-algorithm-as-pseudocode">High level algorithm as pseudocode</a></li>
@@ -651,13 +428,6 @@ Version 3.0.34
 <li><a href="#data-definitions">Data definitions</a></li>
 <li><a href="#static-variables-in-a-data-segment-1">Static variables in a data segment</a></li>
 <li><a href="#implementing-static-data-segment-1">Implementing static data segment</a></li>
-</ul></li>
-<li><a href="#a-digital-circuit-for-sigma16">A digital circuit for Sigma16</a><ul>
-<li><a href="#emergent-behaviour">Emergent behaviour</a></li>
-<li><a href="#some-examples-of-emergent-ultimate-causes-1">Some examples of emergent ``ultimate causes’’</a></li>
-</ul></li>
-<li><a href="#a-multi-level-systems-programming-language">A multi-level systems programming language</a><ul>
-<li><a href="#features-of-sigma-so-far">Features of Sigma (so far)</a></li>
 </ul></li>
 <li><a href="#assembly-language-2">Assembly language</a><ul>
 <li><a href="#assembly-language-notation">Assembly language notation</a></li>
@@ -673,25 +443,21 @@ Version 3.0.34
 <li><a href="#programming-techniques-1">Programming techniques</a><ul>
 <li><a href="#programming-tip-copying-one-register-to-another-1">Programming tip: Copying one register to another</a></li>
 <li><a href="#using-load-and-store-1">Using load and store</a></li>
-<li><a href="#a-useful-convention-1">A useful convention</a></li>
+<li><a href="#a-useful-convention">A useful convention</a></li>
 <li><a href="#development-by-transformation">Development by transformation}</a></li>
 <li><a href="#high-level">High level</a></li>
 <li><a href="#low-level">Low level</a></li>
-<li><a href="#assembly">Assembly</a><ul>
-<li><a href="#basic-types-and-statements">Basic types and statements}</a></li>
-</ul></li>
 <li><a href="#basic-expressions-and-statements">Basic expressions and statements</a></li>
-<li><a href="#exposing-the-architecture">Exposing the architecture</a></li>
-<li><a href="#relations-between-the-levels">Relations between the levels</a><ul>
+<li><a href="#exposing-the-architecture">Exposing the architecture</a><ul>
 <li><a href="#data-types-and-data-structures">Data types and data structures</a></li>
 </ul></li>
 <li><a href="#data-types-1">Data types</a></li>
-<li><a href="#records-4">Records</a></li>
+<li><a href="#records-3">Records</a></li>
 <li><a href="#traverse-array-of-records-with-indexing-1">Traverse array of records with indexing</a></li>
 <li><a href="#traverse-array-of-records-with-pointers">Traverse array of records with pointers</a></li>
-<li><a href="#high-level-control-structures-1">High level control structures</a></li>
+<li><a href="#high-level-control-structures">High level control structures</a></li>
 <li><a href="#low-level-control-structures">Low level control structures</a></li>
-<li><a href="#compilation-patterns-4">Compilation patterns</a></li>
+<li><a href="#compilation-patterns-2">Compilation patterns</a></li>
 <li><a href="#if-bexp-then-s">if bexp then S</a></li>
 <li><a href="#if-bexp-then-s1-else-s2">if bexp then S1 else S2</a></li>
 <li><a href="#while-b-do-s">while b do S</a></li>
@@ -706,17 +472,7 @@ Version 3.0.34
 <li><a href="#circuit">Circuit</a><ul>
 <li><a href="#m1-circuit">M1 circuit</a></li>
 </ul></li>
-<li><a href="#computer-architecture">Computer architecture</a><ul>
-<li><a href="#overview-of-computer-architecture">Overview of computer architecture</a><ul>
-<li><a href="#machine-language-and-instructions">Machine language and instructions</a></li>
-</ul></li>
-<li><a href="#relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</a><ul>
-<li><a href="#the-rtm-instructions">The RTM instructions</a></li>
-</ul></li>
-</ul></li>
 <li><a href="#installation">Installation</a><ul>
-<li><a href="#browser-compatibility">Browser compatibility</a></li>
-<li><a href="#where-to-find-the-software">Where to find the software</a></li>
 <li><a href="#how-to-run-sigma16">How to run Sigma16</a><ul>
 <li><a href="#the-easiest-way-just-click-a-link">The easiest way: just click a link</a></li>
 <li><a href="#download-and-open-file-in-browser">Download and open file in browser</a></li>
@@ -3268,125 +3024,7 @@ fcn      add    R1,R1,R1
 <p>The last instruction should be</p>
 <pre><code>     trap   R0,R0,R0   ; halt</code></pre>
 <p>This tells the computer to halt; it stops execution of the program</p>
-<h3 id="compiling">Compiling</h3>
-<ul>
-<li>The computer cannot execute programs in a high level language</li>
-<li>Therfore we must  a program into assembly language</li>
-<li>{Translating from a high level programming language to assembly language is called} </li>
-<li>This is done by software called a : it reads in a program in e.g. C++ and translates it to assembly language</li>
-<li><p>There are many benefits of using compilers</p></li>
-<li>We can have many compilers, one for each language, so a computer can run programs in  languages</li>
-<li>The compilers can make programming easier: good error messages, etc.</li>
-<li><p>Languages can be designed to fit well for different purposes</p></li>
-<li><p>For each type of high level language construct, we will translate to assembly language following a standard pattern</p></li>
-</ul>
-<h4 id="high-level-constructs">High level constructs</h4>
-<p>Control constructs determine the order of execution of statements. Some high level control constructs are</p>
-<ul>
-<li>if b then S</li>
-<li>if b then S1 else S2</li>
-<li>while b do S</li>
-<li>for var := expr1 to expr2 do S</li>
-<li>procedure</li>
-</ul>
-<p>These are implemented using just a couple of low level control constructs</p>
-<ul>
-<li>goto L</li>
-<li>if b then goto L</li>
-</ul>
-<h3 id="statements">Statements</h3>
-<p>A program contains</p>
-<ul>
-<li><p>Statements that perform calculations</p>
-<ul>
-<li>Assignment statements</li>
-</ul></li>
-<li><p>Statements that determine what order the calculations occur in</p></li>
-<li>Conditionals: if—then—else</li>
-<li>Loops: while, repeat, for</li>
-<li><p>Structuring computation: functions, procedures, coroutines, recursion</p></li>
-<li><p>These are called </p></li>
-</ul>
-<h3 id="high-level-control-structures">High level control structures</h3>
-<ul>
-<li><p>Notation</p>
-<ul>
-<li><span class="math inline"><em>S</em></span>, <span class="math inline"><em>S</em><sub>1</sub></span>, <span class="math inline"><em>S</em><sub>2</sub></span>, etc. means ``any statement’’ (e.g. an assignment statement)</li>
-<li><span class="math inline"><em>b</em><em>e</em><em>x</em><em>p</em></span> means any Boolean expression (an expression that is either True or False). Examples </li>
-</ul></li>
-<li> We can treat several consecutive statements as just a single statement: </li>
-<li> </li>
-<li> </li>
-<li> </li>
-<li><p>And there are many more</p></li>
-</ul>
-<h4 id="low-level-constructs">Low level constructs</h4>
-<h3 id="low-level-constructs-1">Low level constructs</h3>
-<ul>
-<li>Assignment statements: </li>
-<li>Goto: </li>
-<li>Conditional: </li>
-<li>First we translate high level constructs into these low level statements</li>
-<li>Then translate the low level statements into assembly language</li>
-</ul>
-<h3 id="the-goto-statement">The Goto statement</h3>
-<pre><code>        S;
-loop:   S;
-        S;
-        S;
-        goto loop;</code></pre>
-<ul>
-<li>Many (not all) programming languages have a  statement</li>
-<li>Any statement may have a  (for example ``loop’’)</li>
-<li>Normally execution proceeds from one statement to the next, on and on</li>
-<li>A  transfers control to the statement with label L</li>
-</ul>
-<h3 id="using-the-goto-statement">Using the goto statement</h3>
-<ul>
-<li>The first programming language (Fortran, 1955) didn’t have fancy control structures — you had to do nearly everything with goto</li>
-<li>But goto leads to unreadable programs and unreliable software</li>
-<li><p>The modern view:</p></li>
-<li>In a high level language, </li>
-<li><p>For low level programming — like assembly language — the goto serves as the  for implementing the higher level control statements</p></li>
-<li><p>We will use two forms:</p></li>
-<li>goto L</li>
-<li><p>if b then goto L</p></li>
-</ul>
-<h3 id="the-conditional-goto-statement">The conditional goto statement</h3>
-<ul>
-<li>if bexp then goto label</li>
-<li>bexp is a Boolean expression: <span class="math inline"><em>x</em> &lt; <em>y</em></span>, <span class="math inline"><em>j</em> = <em>k</em></span>, <span class="math inline"><em>a</em><em>b</em><em>c</em> &gt; <em>d</em><em>e</em><em>f</em></span></li>
-<li>If the bexp is True the statement goes to the label</li>
-<li>Otherwise we just move on the the next statement</li>
-<li></li>
-</ul>
-<h3 id="jumping-and-comparing">Jumping and comparing</h3>
-<h4 id="unconditional-jump">Unconditional jump</h4>
-<h3 id="jumping">Jumping</h3>
-<ul>
-<li>The foundation of control structures is  instructions</li>
-<li> is the machine language equivalent of </li>
-<li>An instruction may have a </li>
-<li>The label is a name, starting with a letter, and must appear starting in the first character of a line</li>
-<li>The unconditional instruction  means </li>
-</ul>
-<h4 id="comparison-instructions">Comparison instructions</h4>
-<h3 id="comparison-instruction-boolean-form">Comparison instruction: Boolean form</h3>
-<ul>
-<li>cmplt R2,R5,R8
-<ul>
-<li>Means ``compare for Less Than’’</li>
-<li>The operands are compared: R5 <span class="math inline">&lt;</span> R8</li>
-<li>This gives a Boolean, 0 (for False) or 1 (for True)</li>
-<li>That Boolean result is loaded into the destination R2</li>
-<li><p>There are three of these instructions</p></li>
-<li>cmplt — compare for Less Than</li>
-<li>cmpeq — compare for Equal</li>
-<li><p>cmpgt — compare for Greater Than</p></li>
-</ul></li>
-</ul>
-<h4 id="conditional-jumps">Conditional jumps</h4>
-<h3 id="conditional-jumps-boolean-decision">Conditional jumps: Boolean decision</h3>
+<h3 id="conditional-jumps">Conditional jumps</h3>
 <ul>
 <li>There are two instructions: you can jump if a Boolean is False or True</li>
 <li><p>jumpf — jump if False</p></li>
@@ -3399,7 +3037,6 @@ loop:   S;
 <li><p>Any number other than 0 means True, so this means if R5 <span class="math inline">≠</span> 0 then goto banana</p></li>
 </ul>
 <h3 id="compilation-patterns">Compilation patterns</h3>
-<h3 id="compilation-patterns-1">Compilation patterns</h3>
 <ul>
 <li>Each programming construct can be translated according to a standard pattern</li>
 <li><p>It’s useful to translate in two steps:</p></li>
@@ -3412,7 +3049,7 @@ loop:   S;
 <li><p>if not b then goto label — jumpf R5,label[R0] where R5 contains b</p></li>
 <li><p>This approach clarifies how the algorithm works</p></li>
 </ul>
-<h3 id="compiling-an-assignment-statement">Compiling an assignment statement</h3>
+<h4 id="compiling-an-assignment-statement">Compiling an assignment statement</h4>
 <p>Load the operands; do calculations; store results</p>
 <pre><code>; x := a + b*c;
    load  R1,a[R0]   ; R1 = a
@@ -3445,8 +3082,15 @@ loop:   S;
 <li><p> copies from </p></li>
 </ul>
 <h3 id="how-the-assembler-allocates-memory">How the assembler allocates memory</h3>
-<h3 id="how-the-assembler-allocates-memory-1">How the assembler allocates memory}</h3>
-
+<ul>
+<li>The assembler maintains a variable called the . This is the address where it will place the next piece of code.</li>
+<li>Initially the location counter is 0.</li>
+<li>The assembler reads through each line of code \begin{enumerate}</li>
+<li>If there is a label, it remembers that the value of the label is the current value of the location counter. This goes into the </li>
+<li>The assembler decides how many words of memory this line of assembly code will require (add needs one word, load needs two), and adds this to the location counter. \end{enumerate}</li>
+<li>Then the assembler reads through the assembly language program </li>
+<li>Now it generates the words of object code for each statement. If there is a reference to a label that appears farther on (e.g. load x, or jump loop) it looks up the value of the label in the symbol table.</li>
+</ul>
 <h3 id="program-structure">Program structure</h3>
 <ul>
 <li><p>A complete program needs</p>
@@ -3483,7 +3127,7 @@ z     data  99</code></pre>
 
 <h2 id="programming-tips">Programming tips</h2>
 <p>Standard idioms for common programming problems</p>
-<h3 id="a-useful-convention">A useful convention</h3>
+<p>A useful convention</p>
 <ul>
 <li><p>The instruction set is designed to be regular, and to follow consistent conventions</p>
 <ul>
@@ -3517,7 +3161,7 @@ z     data  99</code></pre>
 <li>The computer hardware can do arithmetic on data in registers, but it cannot do arithmetic on data in memory</li>
 <li>Therefore, to do arithmetic on variables, you must</li>
 </ul>
-<h3 id="compilation-patterns-2">Compilation patterns</h3>
+<h3 id="compilation-patterns-1">Compilation patterns</h3>
 <ul>
 <li><p>We have looked at several high level programming constructs</p>
 <ul>
@@ -3529,7 +3173,7 @@ z     data  99</code></pre>
 <li>There is a standard way to translate each to low level form: assignment, goto , if  then goto </li>
 <li><p>The low level statements correspond closely to instructions</p></li>
 </ul>
-<h3 id="follow-the-patterns">Follow the patterns!</h3>
+<p>Follow the patterns!</p>
 <p>You should use these patterns as you write your programs because</p>
 <ul>
 <li>This helps you understand  what high level language constructs mean—this is one of the aims of the course.</li>
@@ -3565,7 +3209,7 @@ z     data  99</code></pre>
 <li>There should be one comparison, one conditional jump at the start of the loop</li>
 <li>There should be one unconditional jump at the end of the loop</li>
 </ul>
-<h3 id="can-you-gain-efficiency-by-violating-the-pattern">Can you gain efficiency by violating the pattern?</h3>
+<p>Can you gain efficiency by violating the pattern?</p>
 <ul>
 <li>No! Example: avoid the cost of jumping to a test that jumps out of the loop by transforming the while loop to\ {\   \ \ \   \ }\</li>
 <li><p>But consider:</p></li>
@@ -3586,37 +3230,13 @@ z     data  99</code></pre>
 <li>In the second copy, insert the assembly language code</li>
 <li><p>Every low level statement should appear as a comment in the assembly code</p></li>
 </ul>
-<h3 id="write-the-comments-first">Write the comments first!</h3>
+<p>Write the comments first!</p>
 <ul>
 <li>The program development methodology entails writing the comments </li>
 <li>Avoid the temptation of writing code first, hacking it until it appears to work, and then adding comments</li>
 <li>The comments, the high and low level algorithms, </li>
 </ul>
-<h3 id="why-is-goto-controversial">Why is goto controversial?</h3>
-<ul>
-<li>If you develop code randomly, with goto jumping all over the place, the program is hard to understand, unlikely to work, and difficult to debug</li>
-<li>This has given the goto statement a bad reputation</li>
-<li>But goto is  for a compiler because it’s essentially the jump instruction</li>
-<li>The compilation patterns provide a  and  way to introduce goto into a program</li>
-<li>But if you ignore the patterns, you lose these advantages</li>
-<li></li>
-</ul>
-<p></p>
-<h3 id="goto-considered-harmful-3-march-1968">Goto considered harmful:  (3), March 1968}</h3>
-<p></p>
-<h3 id="what-happened-next">What happened next?</h3>
-<ul>
-<li><p>Considered harmful</p>
-<ul>
-<li>Dozens (hundreds?) of  essays</li>
-</ul></li>
-<li><p>Goto elimination</p></li>
-<li><p>Theorem:  program using goto can be expressed without goto, using while and if-then-else</p></li>
-<li><p>Structured programming</p></li>
-<li><p>A positive, effective way to develop programs (instead of focusing on eliminating goto)</p></li>
-</ul>
 <h2 id="records-1">Records</h2>
-<h3 id="records-2">Records}</h3>
 <p>A  contains several . Access a field with the dot (.) operator</p>
 <pre><code>;   x, y :
 ;     record
@@ -3628,7 +3248,7 @@ z     data  99</code></pre>
 ;   x.fieldA := x.fieldB + x.fieldC;
 ;   y.fieldA := y.fieldB + y.fieldC;</code></pre>
 <p>(Some programming languages call it a  or .)</p>
-<h3 id="defining-some-records">Defining some records</h3>
+<p>Defining some records</p>
 <pre><code>; Data definitions
 
 ; The record x
@@ -3642,7 +3262,7 @@ y
 y_fieldA   data  20    ; offset 0 from y  &amp;y_fieldA = &amp;y
 y_fieldB   data  21    ; offset 1 from y  &amp;y_fieldB = &amp;y + 1
 y_fieldC   data  22    ; offset 2 from y  &amp;y_fieldC = &amp;y + 2</code></pre>
-<h3 id="naming-each-field-explicitly">Naming each field explicitly</h3>
+<p>Naming each field explicitly</p>
 <pre><code>; ------------------------------------------------------------
 ; Simplistic approach, with every field of every record named
 ; explicitly
@@ -3655,7 +3275,7 @@ y_fieldC   data  22    ; offset 2 from y  &amp;y_fieldC = &amp;y + 2</code></pre
     add    R1,R1,R2
     store  R1,x_fieldA[R0]</code></pre>
 <p>This is awkward—but there’s a better way!</p>
-<h3 id="pointers-1">Pointers</h3>
+<h2 id="pointers-1">Pointers</h2>
 <p>So far, we have been finding a piece of data by giving it a label</p>
 <pre><code>     load    R2,xyz[R0]
 ...
@@ -3725,7 +3345,7 @@ p    data  0</code></pre>
 <p> ~~~~ ; Put a pointer to x into R3, which contains the address of x ; R3 := &amp;x lea R3,x[R0] ; R3 := &amp;x</p>
 <p>; Add 5 to whatever word R3 points to lea R1,5[R0] ; R1 := 5 (constant) load R4,0[R3] ; R4 := <em>R3 add R4,R4,R1 ; R4 := </em>R3 + 5 store R4,0[R3] ; <em>R3 := </em>R3 + 5 ~~~~</p>
 <p>Equivalent to </p>
-<h3 id="why-is-the-pointer-helpful">Why is the pointer helpful?</h3>
+<p>Why is the pointer helpful?</p>
 <ul>
 <li>We can write a block of code that accesses variables through pointers.<br />
 </li>
@@ -3756,7 +3376,7 @@ p    data  0</code></pre>
 <li> (and you don’t have to give the address to jump to)</li>
 <li><p>We use pointers to tell the operating system what to do</p></li>
 </ul>
-<h3 id="typical-os-requests">Typical OS requests</h3>
+<p>Typical OS requests</p>
 <ul>
 <li>The type of request is a number, placed in R1, and operands (if any) are in R2, R3</li>
 <li>The specific codes used to make a request are defined by the operating system, not by the hardware</li>
@@ -3781,7 +3401,7 @@ p    data  0</code></pre>
 <li>Each element of the array contains one character</li>
 <li>If you are writing a string to output, the last character of the string should be a ``newline character’’</li>
 </ul>
-<h3 id="write-operation-on-sigma16">Write operation on Sigma16}</h3>
+<h3 id="write-operation-on-sigma16">Write operation on Sigma16</h3>
 <p>To write a string of characters</p>
 <ul>
 <li>trap R1,R2,R3</li>
@@ -3790,7 +3410,7 @@ p    data  0</code></pre>
 <li>R3 — length of string (the last word should be newline character)</li>
 <li>See example program Write.asm.txt</li>
 </ul>
-<h3 id="writing-a-string">Writing a string}</h3>
+<p>Writing a string</p>
 <p>To write a string named , we use (1) lea to load a constant, (2) lea to load the address of an array, (3) load to get a variable</p>
 <pre><code>; write out (size = k)
      lea    R1,2[R0]         ; trap code: write
@@ -3807,7 +3427,6 @@ animal
      data   97   ; character code for &#39;a&#39;
      data  116   ; character code for &#39;t&#39;
      data   10   ; character code for newline</code></pre>
-<p>}</p>
 <h2 id="procedures">Procedures</h2>
 <ul>
 <li><p>Often there is a sequence of instructions that comes up again and again</p>
@@ -3831,20 +3450,19 @@ animal
 <li>One idea is just to use jump instructions for both call and return</li>
 <li>But that isn’t actually sufficient — let’s look in more detail at what happens</li>
 </ul>
-<h3 id="returning-to-the-instruction-after-the-call">Returning to the instruction after the call</h3>
+<p>Returning to the instruction after the call</p>
 <ul>
 <li>Suppose a procedure named {dowork} is used in several places</li>
 <li>Each call jumps to the same place (the address of the first instruction of the procedure</li>
 <li>But the calls </li>
 <li>Therefore the procedure must finish by </li>
 </ul>
-<h3 id="calling-and-returning">Calling and returning</h3>
+<p>Calling and returning</p>
 <p>Here is a main program that calls a procedure ``dowork’’ several times. (It takes the value in R1 and doubles it, and the main program would use the result but we ignore that here.)</p>
 
 
 
 <p></p>
-<p> (call1) to [out=180, in=175] (entry.west);  (return.east) to [out=10, in=0] (ret1.east);  (call2) to [out=2000, in=150] (entry.north west);  (return.north east) to [out=45, in=0] (ret2.east);</p>
 <h3 id="the-jump-and-link-instruction-jal">The jump-and-link instruction: jal</h3>
 <ul>
 <li>When the main program calls the subroutine, it needs to </li>
@@ -3853,14 +3471,14 @@ animal
 <li>A  — the return address — is loaded into the destination register (e.g. R5)</li>
 <li><p>Then the machine jumps to the effective address</p></li>
 </ul>
-<h3 id="jumping-1">Jumping</h3>
+<p>Jumping</p>
 <p>All jump instructions (jump, jal, jumplt, etc.) refer to </p>
 <ul>
 <li>jump  \ { goto loop}</li>
 <li>jump  \ { goto instruction whose address is in R14}</li>
 <li>jump  \ { goto instruction whose address is const+R2}</li>
 </ul>
-<h3 id="implementing-call-and-return">Implementing call and return</h3>
+<p>Implementing call and return</p>
 <ul>
 <li><p>To call a procedure : </p>
 <ul>
@@ -3897,7 +3515,7 @@ animal
 </ul></li>
 <li><p>A  is a function that doesn’t do anything else — it doesn’t change any global variables, or do any input/output</p></li>
 </ul>
-<h3 id="example-passing-argument-and-result-in-r1">Example: Passing argument and result in R1</h3>
+<p>Example: Passing argument and result in R1</p>
 <pre><code>; Main program
        load  R1,x[R0]       ; arg = x
        jal   R13,work[R0]   ; result = work (x)
@@ -3912,7 +3530,6 @@ work   lea   R2,7[R0]       ; R7 = 2
        mul   R1,R1,R2       ; result = arg * 7
        add   R1,R3,R1       ; result = 1 + 7*arg
        jump  0[R13]         ; return</code></pre>
-<h3 id="procedure-calls-another-procedure">Procedure calls another procedure</h3>
 <h3 id="what-if-a-procedure-calls-another-procedure">What if a procedure calls another procedure?</h3>
 <ul>
 <li><p>The simplest kind of procedure</p>
@@ -3921,7 +3538,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>It returns by executing </li>
 </ul></li>
 </ul>
-<h3 id="limitations-of-basic-call">Limitations of basic call</h3>
+<p>Limitations of basic call</p>
 <ul>
 <li>If the procedure modifies any registers, it may destroy data belonging to the caller
 <ul>
@@ -3941,7 +3558,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>But this new information could overwrite essential information belonging to the caller</li>
 <li><p>We need to  so the procedure won’t destroy it</p></li>
 </ul>
-<h3 id="the-wrong-way-to-save-state">The wrong way to save state</h3>
+<p>The wrong way to save state</p>
 <ul>
 <li>Suppose we just have a variable saveRetAdr</li>
 <li>Store R13 into it in the procedure, load that when we return</li>
@@ -3949,14 +3566,14 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>But if proc2 calls proc3 we are back to the same problem: it doesn’t work!</li>
 <li>The solution: a </li>
 </ul>
-<h3 id="saving-registers">Saving registers</h3>
+<p>Saving registers</p>
 <ul>
 <li>Most procedures need to use several registers</li>
 <li>It’s nearly impossible to do  without using some registers!</li>
 <li>The first thing a procedure should do is to  it will use by copying them into memory (with store instructions).</li>
 <li>The last thing it should do before returning is to  by copying their values back from memory (with load instructions).</li>
 </ul>
-<h3 id="where-can-the-registers-be-saved">Where can the registers be saved?</h3>
+<p>Where can the registers be saved?</p>
 <ul>
 <li>It won’t work to copy data from some of the registers to other registers!</li>
 <li>It’s essential to save the data into memory</li>
@@ -3964,7 +3581,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>Allocate fixed variables in memory to save the registers into — simple but doesn’t allow recursion</li>
 <li><p>Maintain a  in memory, and  the data onto the stack — this is the best approach and is used by most programming languages</p></li>
 </ul>
-<h3 id="who-saves-the-state-the-caller-or-the-procedure">Who saves the state: the caller or the procedure?</h3>
+<p>Who saves the state: the caller or the procedure?</p>
 <ul>
 <li>Two approaches:
 <ul>
@@ -3995,18 +3612,17 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>A stack allows access only to the top value; you cannot access anything below the top</li>
 <li>We can save procedure return addresses on a stack because return always needs the most recently saved return address</li>
 </ul>
-<h3 id="initially-the-stack-is-empty">Initially the stack is empty}</h3>
-
-<h3 id="call-procedure-push-return-address-a">Call procedure, push return address <span class="math inline"><em>a</em></span></h3>
-
-<h3 id="call-another-procedure-push-return-address-b">Call another procedure, push return address <span class="math inline"><em>b</em></span></h3>
-
-<h3 id="return-pop-produces-return-address-b">Return: pop produces return address <span class="math inline"><em>b</em></span></h3>
-
-<h3 id="call-some-procedure-push-return-address-c">Call some procedure, push return address <span class="math inline"><em>c</em></span></h3>
-
-<h3 id="call-a-procedure-push-return-address-d">Call a procedure, push return address <span class="math inline"><em>d</em></span></h3>
-
+<p>Initially the stack is empty</p>
+<p>Call procedure, push return address a</p>
+<p>a</p>
+<p>Call another procedure, push return address b</p>
+<p>b a</p>
+<p>Return: pop produces return address b</p>
+<p>a</p>
+<p>Call some procedure, push return address c</p>
+<p>c a</p>
+<p>Call a procedure, push return address d</p>
+<p>d c a</p>
 <h3 id="the-call-stack-2">The call stack</h3>
 <ul>
 <li><p>Central technique for</p>
@@ -4023,7 +3639,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>Computers are designed to support it</li>
 <li><p>Often referred to (Stack Overflow web site, etc.)</p></li>
 </ul>
-<h3 id="stack-frames">Stack frames</h3>
+<p>Stack frames</p>
 <ul>
 <li>There is a  or  that maintains complete information about all procedure calls and returns</li>
 <li>Every ``activation’’ of a procedure pushes a </li>
@@ -4035,7 +3651,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>The saved registers (so the procedure can use the registers without destroying information)</li>
 <li><p>Local variables (so the procedure can have some memory of its own to use)</p></li>
 </ul>
-<h3 id="implementing-the-call-stack">Implementing the call stack</h3>
+<p>Implementing the call stack</p>
 <ul>
 <li>Dedicate R14 to the </li>
 <li>This is a programming convention, not a hardware feature</li>
@@ -4045,7 +3661,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>The program should never modify R14 apart from the push and pop</li>
 </ul>
 <h2 id="retrospective">Retrospective</h2>
-<h3 id="what-is-a-computer-program">What is a computer program?</h3>
+<p>What is a computer program?</p>
 <ul>
 <li><p>A beginner’s view</p>
 <ul>
@@ -4061,7 +3677,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>Source code and object code</li>
 <li><p>Compile time and run time</p></li>
 </ul>
-<h3 id="what-is-a-variable">What is a variable?</h3>
+<p>What is a variable?</p>
 <ul>
 <li><p>Beginner’s view</p>
 <ul>
@@ -4086,7 +3702,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>The effective address is 0 + the address of the instruction after the jal</li>
 <li><p>The program jumps there and the main program resumes</p></li>
 </ul>
-<h3 id="review-basic-calls-with-jal">Review: Basic calls with jal</h3>
+<p>Review: Basic calls with jal</p>
 <ul>
 <li><p>The simplest kind of procedure</p>
 <ul>
@@ -4106,11 +3722,9 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>The saved registers (so the procedure can use the registers without destroying information)</li>
 <li><p>Local variables (so the procedure can have some memory of its own to use)</p></li>
 </ul>
-<h3 id="review-sequence-of-stack-operations">Review: Sequence of stack operations</h3>
-
 <p>empty; push a; push b, push c, pop returns c, push d, push e, pop returns e, pop returns d, <span class="math inline">…</span></p>
 <h2 id="linked-lists">Linked lists</h2>
-<h3 id="review-of-pointers">Review of pointers</h3>
+<p>Review of pointers</p>
 <ul>
 <li>p := &amp;x p is a pointer to x</li>
 </ul>
@@ -4119,7 +3733,7 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>y := *p y is the value that p points to</li>
 </ul>
 <pre><code>    load   R6,0[R5]   ; R6 := *R5</code></pre>
-<h3 id="nodes">Nodes</h3>
+<p>Nodes</p>
 <ul>
 <li>A linked list consists of a linear chain of </li>
 <li><p>A node is a </p></li>
@@ -4128,18 +3742,15 @@ work   lea   R2,7[R0]       ; R7 = 2
 <li>The last node in the list has a special value  in the  field</li>
 <li><p> is represented by 0 (so you can’t have a pointer to memory location 0, but normally that’s where the program will be so you wouldn’t want that anyway)</p></li>
 </ul>
-<h3 id="accessing-the-fields-of-a-node">Accessing the fields of a node</h3>
+<p>Accessing the fields of a node</p>
 <ul>
 <li>Suppose p is a pointer to a node</li>
 <li>load R1,p[R0] ; R1 := p</li>
 <li>load R2,0[R1] ; R2 := (*p).value</li>
 <li>load R3,1[R1] ; R3 := (*p).next</li>
 </ul>
-<h3 id="representing-a-linked-list">Representing a linked list</h3>
-
-<p>p = 5, and the list p = [24, 37, 97, 42]</p>
-<p> (ptr5.east) to [out=0, in=0] (addr2.east);  (ptr2.east) to [out=0, in=0] (addr6.east);  (ptr6.east) to [out=0, in=0] (addr3.east);</p>
-<h3 id="basic-operations-on-lists">Basic operations on lists</h3>
+<p>Representing a linked list</p>
+<p>Basic operations on lists</p>
 <ul>
 <li><p>Three key operations:</p>
 <ul>
@@ -4208,7 +3819,7 @@ pIsEmpty
 <li>q = [56, 23, 81, 62] </li>
 <li><p>p = [23, 81, 62] </p></li>
 </ul>
-<h3 id="implementing-cons">Implementing cons</h3>
+<p>Implementing cons</p>
 <pre><code>cons (x, p)
   { q := newnode ();
     (*q).value := x;
@@ -4221,14 +3832,14 @@ pIsEmpty
 <li>A pointer to the new node is returned</li>
 <li>A function like cons — which produces a new result but does not modify its arguments — is called a </li>
 </ul>
-<h3 id="getting-a-new-node-from-avail-list">Getting a new node from avail list</h3>
+<p>Getting a new node from avail list</p>
 <pre><code>if avail = nil
   then { error &quot;fatal error: out of heap&quot; }
   else { newnode := avail;
          avail := (*avail).next;
          return newnode;
        }</code></pre>
-<h3 id="inserting-a-node-with-x-where-p-points">Inserting a node with x where p points</h3>
+<p>Inserting a node with x where p points</p>
 <pre><code>r := newnode ();
 (*r).value := x;
 (*r).next := (*p).next;
@@ -4255,7 +3866,6 @@ pIsEmpty
 <li>Just change (*p).next to skip over the next node, and point to the one after</li>
 <li>The node being deleted should be returned to the avail list, so it can be reused</li>
 </ul>
-<h3 id="code-for-deleting-a-node">Code for deleting a node</h3>
 <p>If p points to a node, delete the node after that, assuming it exists</p>
 <pre><code>delete (p)
   { if p /= nil
@@ -4274,15 +3884,12 @@ pIsEmpty
 <li>It doesn’t matter whether (*q).next is nil</li>
 <li>It’s important to check whether the operation we’re performing is actually possible!</li>
 </ul>
-<h3 id="space-leaks">Space leaks</h3>
+<h3 id="memory-management">Memory management</h3>
 <ul>
 <li>If you return a deleted node to the avail list, it can be reused</li>
 <li>If you don’t, this node becomes inaccessible: it doesn’t hold useful data, yet it can’t be allocated</li>
 <li></li>
-<li>Over time, as a program runs, more and more nodes may become inaccessible: a </li>
-</ul>
-<h3 id="memory-management">Memory management</h3>
-<ul>
+<li><p>Over time, as a program runs, more and more nodes may become inaccessible: a </p></li>
 <li>It’s a bug if you delete a node that contains useful data</li>
 <li>It’s a bug if you don’t delete a node that doesn’t contain useful data</li>
 <li>With complicated data structures, this can be difficult</li>
@@ -4302,14 +3909,14 @@ pIsEmpty
 <li>This is called a </li>
 <li><p>Sometimes you want this to happen, sometimes not, so it’s important to be careful about it!</p></li>
 </ul>
-<h2 id="comparing-lists-and-arrays">Comparing lists and arrays}</h2>
+<h2 id="comparing-lists-and-arrays">Comparing lists and arrays</h2>
 <ul>
 <li>Lists and arrays are two different kinds of data structure that contain a sequence of data values</li>
 <li>How do you decide which to use?</li>
 <li>Consider the properties of lists and arrays, and the needs of your program</li>
 <li>And there are many other data structures to choose from, which you’ll encounter as you learn computer science</li>
 </ul>
-<h3 id="accessing-elements">Accessing elements</h3>
+<p>Accessing elements</p>
 <ul>
 <li><p>Direct access to an element</p>
 <ul>
@@ -4324,7 +3931,7 @@ pIsEmpty
 <p>Concepts used in the program:</p>
 <p>Array of records, Representing a command as a records, Traversing an array of records, Case statement and jump table</p>
 <p>Traversing a list to print its elements, Insertion in list keeping the elements in ascending order, Deletion from a list, Searching a list</p>
-<h3 id="ordered-lists">Ordered lists</h3>
+<p>Ordered lists</p>
 <p>There is an array of lists, initially empty. There are nlists of them.</p>
 <pre><code>list[0] = [ ]
 list[1] = [ ]
@@ -4335,7 +3942,7 @@ list[nlists-1] = [ ]</code></pre>
 list[1] = [7, 102, 238 ]
 ...
 list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
-<h3 id="commands">Commands</h3>
+<p>Commands</p>
 <p>The program executes commands:</p>
 <ul>
 <li>Terminate — the program finishes</li>
@@ -4344,7 +3951,7 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li>Search list i for x — print Yes if x is in the list, No otherwise</li>
 <li>Print i — the numbers in list[i] are printed</li>
 </ul>
-<h4 id="example">Example</h4>
+<p>Example</p>
 <ul>
 <li>Insert into list[3] the value 23 </li>
 <li>Insert into list[3]the value 6 </li>
@@ -4352,24 +3959,22 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li>Insert into list[3] the value 19 </li>
 <li>Print list[3] </li>
 </ul>
-<h3 id="why-are-ordered-lists-useful">Why are ordered lists useful?</h3>
+<p>Why are ordered lists useful?</p>
 <ul>
 <li>This is one way to arrange a database: think of the elements as persons’ names, or matriculation numbers</li>
 <li>Sometimes you want to process all the data in a container in a specified order</li>
 <li>If the data is ordered, it’s faster to find a particular item (on average you only have to check half of the items)</li>
 <li>An ordered list can be used to represent a set</li>
 </ul>
-<h3 id="where-do-the-commands-come-from">Where do the commands come from?</h3>
+<p>Where do the commands come from? * In a real application, we would read the commands from input * But in this program, each command is represented as a record * The entire input is a static array of records defined with  statements * This is easier because</p>
 <ul>
-<li>In a real application, we would read the commands from input</li>
-<li>But in this program, each command is represented as a record</li>
-<li>The entire input is a static array of records defined with  statements</li>
-<li><p>This is easier because</p></li>
-<li>If you read from an input device, it’s necessary to convert the input character string to numbers</li>
+<li>If you read from an input device, it’s necessary to convert the input character string to numbers
+<ul>
 <li>In testing a program, it’s convenient to have input data that is </li>
-<li><p>Don’t want to have to type in the same input every time you run the program!</p></li>
+<li>Don’t want to have to type in the same input every time you run the program!</li>
+</ul></li>
 </ul>
-<h3 id="representing-a-command">Representing a command</h3>
+<p>Representing a command</p>
 <ul>
 <li><p>Each command is a record with three fields</p>
 <ul>
@@ -4386,7 +3991,7 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <ul>
 <li>The main program uses a  statement to handle each command, and implements this with a </li>
 </ul>
-<h3 id="reading-a-program-before-writing">Reading a program before writing</h3>
+<p>Reading a program before writing</p>
 <ul>
 <li><p>You should  the program before modifying it</p>
 <ul>
@@ -4396,14 +4001,14 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li><p>One of the aims of the exercise is to get experience with reading a longer program—don’t skip this!</p></li>
 </ul></li>
 </ul>
-<h3 id="some-tips-on-testing-and-debugging">Some tips on testing and debugging</h3>
+<h2 id="testing-and-debugging">Testing and debugging</h2>
 <ul>
 <li>Debugging has two phases:
 <ul>
 <li>The most important point: don’t just make random changes to the code and hope for the best—instead, find out what the error is and fix it cleanly</li>
 </ul></li>
 </ul>
-<h3 id="reading-and-testing-a-program">Reading and testing a program</h3>
+<p>Reading and testing a program</p>
 <ul>
 <li>A good way to understand a section of assembly language instructions is to step through it, one instruction at a time
 <ul>
@@ -4428,11 +4033,11 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li><p>Then you can single step to examine what the instructions are doing</p></li>
 </ul></li>
 </ul>
-<h2 id="how-to-set-a-breakpoint">How to set a breakpoint</h2>
+<p>How to set a breakpoint</p>
 <p>(Revise - this refers to an older version of Sigma16, the current version is a little different.)</p>
 <p>On the Processor pane, click Breakpoint. It will say `Breakpoint is off’‘. Enter the breakpoint command and click Set Breakpoint. BPeq BPpc (BPhex “01a6”). It will say ``Breakpoint is on’’. Click Close. On Processor, click Run. It will stop when the pc register gets the value you specified</p>
 <h2 id="trees">Trees</h2>
-<h3 id="usage-of-memory">Usage of memory</h3>
+<p>Usage of memory</p>
 <ul>
 <li><p>Memory needed per element</p>
 <ul>
@@ -4444,14 +4049,14 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li>An array has fixed size and needs to be allocated fully</li>
 <li><p>A list has variable size and needs only enough memory to hold its nodes</p></li>
 </ul>
-<h3 id="more-general-data-structures">More general data structures</h3>
+<p>More general data structures</p>
 <ul>
 <li>We can put several pointer fields in each node, and produce an enormous variety of data structures, tailored for the needs of an application program</li>
 <li><p>Just a few examples</p></li>
 <li>Doubly linked list: each node contains two pointers, one to the previous node and one to the next. Allows traversal both directions.</li>
 <li><p>Circular list: there is no <code>last'' node where next=nil;     instead, \emph{every} node points to the next node, and the list     loops back to itself.  There is no</code>first’’ or ``last’’ node.</p></li>
 </ul>
-<h2 id="abstract-data-type">Abstract data type}</h2>
+<h2 id="abstract-data-type">Abstract data type</h2>
 <ul>
 <li><p>A stack is an </p>
 <ul>
@@ -4463,7 +4068,7 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li>We have already seen how to implement a stack with an array</li>
 <li><p>We can also do it with a linked list</p></li>
 </ul>
-<h3 id="linked-list-implementation-of-stack">Linked list implementation of stack</h3>
+<p>Linked list implementation of stack</p>
 <ul>
 <li>A linked list gives easy access to the front of the list, and a stack gives easy access to the top of the stack.</li>
 <li>Represent Empty stack as nil</li>
@@ -4476,7 +4081,7 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li>There is a variable  which gives the size of the array — this is the limit on the maximum number of elements that can be pushed</li>
 <li>There is a variable  that gives the current number of elements in the stack</li>
 </ul>
-<h3 id="relationship-between-arrays-and-stacks">Relationship between arrays and stacks</h3>
+<p>Relationship between arrays and stacks</p>
 <ul>
 <li><p>Array</p>
 <ul>
@@ -4490,7 +4095,7 @@ list[nlists-1] = [2, 87, 89, 93, 103, 195 ]</code></pre>
 <li>You can only access the top element, and you don’t need to know its index</li>
 <li><p>You can (and must) access the elements in  order</p></li>
 </ul>
-<h3 id="pushing-x-onto-a-stack">Pushing x onto a stack</h3>
+<p>Pushing x onto a stack</p>
 <pre><code>; push the x onto the stack
 ; stack[stTop] := R1; stTop := stTop + 1
 
@@ -4500,7 +4105,7 @@ push   load  R1,x[R0]       ; R1 := x
        lea   R3,1[R0]       ; R3 := constant 1
        add   R2,R2,R3       ; R2 := stTop + 1
        store R2,stTop[R0]   ; stTop := stTop + 1</code></pre>
-<h3 id="pop-a-stack-returning-x">Pop a stack, returning x</h3>
+<p>Pop a stack, returning x</p>
 <pre><code>; pop the stack, store top element into x
 ; stTop := stTop - 1; x := stack[stTop]
 
@@ -4510,8 +4115,8 @@ pop    load  R2,stTop[R0]   ; R2 := stTop
        load  R1,stack[R2]   ; R1 := stack[stTop-1]
        store R1,x[R0]       ; x := stack[stTop-1]
        store R2,stTop[R0]   ; stTop := stTop - 1</code></pre>
-<h3 id="error-checking">Error checking</h3>
-<h3 id="issues-with-simplest-implementation">Issues with simplest implementation}</h3>
+<h2 id="error-checking">Error checking</h2>
+<p>Issues with simplest implementation</p>
 <ul>
 <li><p>It doesn’t check for errors!</p>
 <ul>
@@ -4520,12 +4125,12 @@ pop    load  R2,stTop[R0]   ; R2 := stTop
 </ul></li>
 <li><p>Either of these errors may cause the program to get wrong answers or to crash</p></li>
 </ul>
-<h3 id="robust-software">Robust software</h3>
+<p>Robust software</p>
 <ul>
 <li>Fragile software will respond to a minor problem by going haywire: might crash, or produce wrong answers</li>
 <li> checks for all errors and does something appropriate; a minor problem doesn’t turn into a major one</li>
 </ul>
-<h3 id="error-checking-and-error-handling">Error checking and error handling</h3>
+<p>Error checking and error handling</p>
 <ul>
 <li><p>Software should not assume everything is ok — it should check for errors</p>
 <ul>
@@ -4539,7 +4144,7 @@ pop    load  R2,stTop[R0]   ; R2 := stTop
 <li><p>Throw an exception, which will interrupt the calling program, and invoke its error handler</p></li>
 </ul>
 <p>For simplicity, we will terminate the program if an error occurs.</p>
-<h3 id="error-checking-push">Error checking: push</h3>
+<p>Error checking: push</p>
 <p>If the stack is full, there is no space to store the new element, so push fails</p>
 <pre><code>; push (v)
 ; if stTop &gt;= stLim
@@ -4549,7 +4154,7 @@ pop    load  R2,stTop[R0]   ; R2 := stTop
 ;        stack[stTop] := v
 ;        stTop := stTop + 1
 ;        return ()</code></pre>
-<h3 id="error-checking-pop">Error checking: pop</h3>
+<p>Error checking: pop</p>
 <p>If the stack is empty, there is no element to return, so pop fails</p>
 <pre><code>; v = pop ()
 ;   if stTop == 0
@@ -4580,7 +4185,7 @@ i&lt;n or  j&lt;n         i&lt;n || j&lt;n        i&lt;n | x[i]&gt;0</code></pre
 <li>Big advantage: if  is False, then  does not exist and evaluating it could cause an error</li>
 <li>So it is  not to evaluate the second expression if the first one is false</li>
 </ul>
-<h3 id="implementing-a-compound-boolean-expression">Implementing a compound boolean expression</h3>
+<p>Implementing a compound boolean expression</p>
 <pre><code>while i&lt;n &amp;&amp; x[i]&gt;0 do S
 
 ; if not (i&lt;n &amp;&amp; x[i]&gt;0) then goto loopDone
@@ -4618,7 +4223,7 @@ until i&gt;n;</code></pre>
 while not (i&gt;n) do
   {S1; S2; S3}</code></pre>
 <p>The while loop is used far more often, but if you need to go through the loop at least one time, the repeat-until is useful</p>
-<h3 id="inputoutput">Input/Output</h3>
+<h2 id="inputoutput">Input/Output</h2>
 <ul>
 <li><p>A character is represented by a code using ASCII or Unicode</p>
 <ul>
@@ -4731,7 +4336,7 @@ xEnd</code></pre>
 <li>Both techniques are important</li>
 <li><p></p></li>
 </ul>
-<h3 id="records-3">Records</h3>
+<h3 id="records-2">Records</h3>
 <pre><code>program Records
  { x, y :
      record
@@ -4809,7 +4414,7 @@ RecordLoopDone</code></pre>
 <li>R12 holds stack top (the highest address in current stack frame)</li>
 <li><p>R11 holds stack limit (the stack is not allowed to grow beyond this address)</p></li>
 </ul>
-<h3 id="register-usage">Register usage</h3>
+<p>Register usage</p>
 <p>See the PrintIntegers program for examples</p>
 <pre><code>; Global register usage
 ;   R0 = constant 0
@@ -4820,7 +4425,7 @@ RecordLoopDone</code></pre>
 ;   R13 = return address
 ;   R14 = stack pointer
 ;   R15 is transient condition code</code></pre>
-<h3 id="initialize-the-stack">Initialize the stack</h3>
+<p>Initialize the stack</p>
 <pre><code>; Structure of stack frame for main program, frame size=1
 ;    0[R14]  dynamic link is nil
 
@@ -4830,7 +4435,7 @@ RecordLoopDone</code></pre>
     lea    R12,1[R14]         ; initialise stack top
     load   R1,StackSize[R0]   ; R1 := stack size
     add    R11,R14,R1         ; StackLimit := &amp;CallStack + StackSize</code></pre>
-<h3 id="calling-a-procedure">Calling a procedure</h3>
+<p>Calling a procedure</p>
 <ul>
 <li><p>To call a procedure PROC:</p>
 <ul>
@@ -4838,7 +4443,7 @@ RecordLoopDone</code></pre>
 <li>jal R13,PROC[R0]</li>
 </ul></li>
 </ul>
-<h3 id="structure-of-procedure-stack-frame">Structure of Procedure stack frame</h3>
+<p>Structure of Procedure stack frame</p>
 <p>(This is procedure PrintInt, see lab exercise)</p>
 <pre><code>; Arguments
 ;   R1 = x         = two&#39;s complement number to print
@@ -4852,7 +4457,7 @@ RecordLoopDone</code></pre>
 ;    2[R14]  save R1 = argument x
 ;    1[R14]  return address
 ;    0[R14]  dynamic link points to previous stack frame</code></pre>
-<h3 id="called-procedure-creates-its-stack-frame">Called procedure creates its stack frame</h3>
+<p>Called procedure creates its stack frame</p>
 <pre><code>PrintInt
 ; Create stack frame
     store  R14,0[R12]          ; save dynamic link
@@ -4865,7 +4470,7 @@ RecordLoopDone</code></pre>
     store  R2,3[R14]           ; save R2
     store  R3,4[R14]           ; save R3
     store  R4,5[R14]           ; save R4</code></pre>
-<h3 id="procedure-finishes-and-returns">Procedure finishes and returns</h3>
+<p>Procedure finishes and returns</p>
 <pre><code>; return
     load   R1,2[R14]        ; restore R1
     load   R2,3[R14]        ; restore R2
@@ -4873,7 +4478,7 @@ RecordLoopDone</code></pre>
     load   R13,1[R14]       ; restore return address
     load   R14,0[R14]       ; pop stack frame
     jump   0[R13]           ; return</code></pre>
-<h3 id="stack-overflow-1">Stack overflow</h3>
+<p>Stack overflow</p>
 <p>If the stack is full and a procedure is called, this is a fatal error</p>
 <pre><code>StackOverflow
     lea    R1,2[R0]
@@ -4902,7 +4507,6 @@ StackOverflowMessage
 <li>Some languages use := to mean assign, = to mean equals</li>
 <li><p>Some languages use = to mean assign, == to mean equals</p></li>
 </ul>
-<h4 id="syntax-for-blocks">Syntax for blocks</h4>
 <h3 id="python-syntax-style-for-blocks-layout">Python syntax style for blocks: layout</h3>
 <p>The layout (the indentation) determines what is inside the if statement</p>
 <pre><code>a = 1
@@ -4981,7 +4585,7 @@ f := 6;</code></pre>
 <li>Retain the high and low level code as comments</li>
 <li><p>Do hand execution at every level</p></li>
 </ul>
-<h3 id="why-use-this-systematic-approach-to-programming">Why use this systematic approach to programming?</h3>
+<p>Why use this systematic approach to programming?</p>
 <ul>
 <li>It enables you to write correct code at the outset, and minimise debugging</li>
 <li>If there is a bug, it helps you to catch it early (e.g. in translation to goto form)</li>
@@ -5487,7 +5091,7 @@ CmdDone
 <li>adr (address register) holds the effective address for RX instructions</li>
 <li>reg[a] (register file) contains 16 registers for use by user program</li>
 </ul>
-<h3 id="notation-1">Notation</h3>
+<p>Notation</p>
 <ul>
 <li>pc, ir, adr — contents of these 16-bit registers</li>
 <li>ir_op,ir_d, ir_a, ir_d — 4-bit fields in the ir</li>
@@ -5546,240 +5150,7 @@ CmdDone
 <li><p>The second subject to study is . Though few programmers use assembly language for application development, assembly language knowledge is critical if you want to make the connection between a high-level language and the low-level CPU. <span class="math inline">…</span> It doesn’t really matter which assembly language you learn nor does it matter which CPU’s instruction set you study. What you really need to learn are the basic operational costs of computation.</p></li>
 <li><p>The third important subject a software engineer should study is basic compiler construction, to learn .</p></li>
 </ul>
-<h3 id="syntax-semantics-compilation">Syntax, semantics, compilation</h3>
-<ul>
-<li><p>Primary aspects of a programming language</p>
-<ul>
-<li>Syntax is the  of a program</li>
-<li>Semantics is the  of the program</li>
-<li>Compilation (or interpretation) is how the language is implemented so it can run on a computer</li>
-</ul></li>
-</ul>
-<h4 id="syntax-easier-but-less-important">Syntax — easier but less important</h4>
-<ul>
-<li>Syntax is the  of a program</li>
-<li>Did you spell the keywords correctly? Is the punctuation right?</li>
-<li><p>Syntax is easy</p></li>
-<li>The rules are clear cut</li>
-<li>If in doubt, just look it up</li>
-<li><p>Example: various languages have different names for the same thing: ,, . These differences are superficial</p></li>
-</ul>
-<h3 id="syntax-errors">Syntax errors</h3>
-<ul>
-<li><p>Compilers insist that the syntax is right</p>
-<ul>
-<li><p>In English, if you spell a word wrong or have a missing comma you’ll (probably) still be understood</p></li>
-<li><p>But — see  by Lynn Truss. Note the comma! What was meant was {<code>The panda eats shoots and leaves''}, not {\bluetext</code>The panda eats, shoots, and leaves’’}</p></li>
-</ul></li>
-<li><p>Can’t a compiler be equally forgiving?</p></li>
-<li>There were experiments with compilers that guess what the programmer meant</li>
-<li>It was a disaster: the compiler nearly always guessed correctly<span class="math inline">…</span></li>
-<li><p>But occasionally it would guess wrong</p></li>
-</ul>
-<ul>
-<li>
-<ul>
-<li>You have to debug code that is not in the file! And you cannot see it!</li>
-<li>You  the compiler to insist that the syntax is absolutely correct</li>
-</ul></li>
-</ul>
-<h3 id="example-of-syntax-operator-precedence">Example of syntax: operator precedence</h3>
-<ul>
-<li>Expressions can contain many operations, but the computer can do only one operation at a time</li>
-<li>We can make the operations explicit by using parentheses around each operation</li>
-<li>You don’t have to write the parentheses, but the compiler needs to know where they go!</li>
-<li>a + b + c is parsed as (a + b) + c</li>
-<li>a + b * c is parsed as a + (b * c)</li>
-</ul>
-<h3 id="deeper-example-of-syntax-ambiguity">Deeper example of syntax: ambiguity</h3>
-<ul>
-<li>A language is  if a sentence in the language can have two different meanings</li>
-<li>English is full of ambiguity</li>
-<li>Programming languages are designed to avoid ambiguity, most of the time</li>
-<li>If ambiguity is possible, the compile needs to know how to resolve it, </li>
-</ul>
-<h3 id="ambiguity-in-if-then-else">Ambiguity in if-then-else</h3>
-<p>This is ambiguous:  ~~~~ if b1 then if b2 then S1 else S2 ~~~~</p>
-<p>There are two interpretations, and they lead to different results</p>
-<pre><code>if b1 then { if b2 then S1 else S2 }
-  b1 = true,  b2 = true     S1
-  b1 = true,  b2 = false    S2
-  b1 = false, b2 = true
-  b1 = false, b2 = false
-
-if b1 then { if b2 then S1 } else S2
-  b1 = true,  b2 = true     S1
-  b1 = true,  b2 = false
-  b1 = false, b2 = true     S2
-  b1 = false, b2 = false    S2</code></pre>
-<h3 id="how-does-python-prevent-ambiguity">How does Python prevent ambiguity?</h3>
-<ul>
-<li><p>The structure of the program is determined by </p>
-<ul>
-<li>This means it is essential to indent the program properly</li>
-<li>It makes the program structure highly visible to the programmer</li>
-</ul></li>
-<li><p>Some languages use braces to indicate structure (e.g. C, Java)</p></li>
-<li>The compiler ignores the indentation, and uses the braces</li>
-<li>Programmers tend to focus on the indentation and may overlook the braces</li>
-<li><p>This is more error-prone</p></li>
-</ul>
-<h3 id="goto">goto</h3>
-<ul>
-<li>Usually programs are more readable and more reliable if written with while loops, if-then-elif-elif-else, for loops, and similar higher level constructs</li>
-<li>Programs that jump around randomly with goto statements are harder to understand, and likely to contain bugs</li>
-<li>This gave the goto statement a bad reputation</li>
-<li><p>But</p></li>
-<li>The goto statement is simply a jump instruction, and it is  for use at low level</li>
-<li><p>There are some circumstances where goto may be the best solution, but these are rare</p></li>
-</ul>
-<h3 id="implicit-goto-statements-break-and-continue">Implicit goto statements: break and continue</h3>
-<ul>
-<li><p>Some programming languages provide restricted forms of goto: break and continue</p></li>
-<li><p>These are goto statements without a label, but with a predefined destination they go to</p></li>
-<li><p>Advantage — you may recognise the pattern being used by a programmer</p></li>
-<li><p>Disadvantage — you need to know for sure to where your goto goes</p></li>
-<li><p>C and its descendants have break, as does Python</p></li>
-<li><p>Break is a goto that goes to the end of the  loop it’s in</p></li>
-<li><p>In Python you can have an else clause to execute when a for or while loop finishes, but this is skipped if you terminate the loop with break</p></li>
-<li><p>What if you want to break out of several loops?. There is no good way to do this in Python. It’s best to restructure your program, to avoid break</p></li>
-</ul>
-<p>Break is a goto that doesn’t say where it goes to.</p>
-<pre><code>for i in range (1, 5):
-    print (i)
-    for j in range (20, 22):
-        print (j)
-        if i == 3:
-            break
-        for k in range (40, 43):
-            print (k)
-            if k == 41:
-                break
-            print (k)</code></pre>
-<p>The continue statement</p>
-<ul>
-<li><p>In C and Python, continue goes to the end of the current loop which then continues executing</p></li>
-<li><p>It’s a way of staying in the loop but skipping the statements after the continue</p></li>
-<li><p>Warning! Several programming languages have a statement that is <em>spelled</em> continue — but it does nothing and is equivalent to the pass statement in Python</p></li>
-</ul>
-<p>Break and continue: translation to low level</p>
-<pre><code>loop1
-   if (i&lt;n)=False then goto loop1done
-   ...
-   if ... then goto loop1      ; This is a continue statement
-   ...
-   if ... then goto loop1done  ; This is a break statement
-   ...
-   goto loop1
-loop1done</code></pre>
-<ul>
-<li><p>continue goes to the top of the innermost loop containing the continue: it skips the rest of </p></li>
-<li><p>break goes to right after the end of the innermost loop containing the break: it </p></li>
-</ul>
-<h3 id="semantics">Semantics</h3>
-<ul>
-<li><p>Semantics means the <strong>meaning</strong></p></li>
-<li><p>The semantics of a language is </p></li>
-<li><p>The semantics of a program is . Given its inputs, what are its outputs?</p></li>
-</ul>
-<p>How is the semantics of a language defined?</p>
-<p>Using natural language to describe it. This may be a vague description in English of what each construct does, or a carefully written description in English, written to be as precise as possible</p>
-<p>Using mathematics or program transformation</p>
-<ul>
-<li><p>Denotational semantics: a precise mathematical specification. Given a program, it gives a mathematical function from program inputs to outputs</p></li>
-<li><p>Operational semantics: gives a sequence of reduction rules that give a precise model of the program’s execution</p></li>
-<li><p>Transformational semantics: a translation from a program into a simpler language, where the semantics is assumed to be clear</p></li>
-</ul>
-<p>Why do the translation from high to low level?</p>
-<ul>
-<li><p>This is the semantics of the high level constructs</p></li>
-<li><p>It explains precisely what the high level means</p></li>
-<li><p>It shows what the compiler will do with the program (compilers do intermediate level translations like this; many compilers use several intermedate steps)</p></li>
-<li><p>It makes explicit the execution time of the construct</p></li>
-<li><p>The low level is very close to assembly language</p></li>
-<li><p>It’s easier to go from high level to assembly language in two small steps, rather than one giant leap</p></li>
-</ul>
-<p>Watch out for loose explanations</p>
-<ul>
-<li><p>Here’s a quotation from https://docs.python.org/3.7/tutorial/introduction.html.</p></li>
-<li><p>``The while loop executes as long as the condition (here: a &lt; 10) remains true</p></li>
-</ul>
-<p>That is wrong!</p>
-<p>It <em>says</em> that if a is changed in the middle of the loop, making it less than 10, the loop will stop executing. But the computer does not continuously monitor a&lt;10 and break out of the loop as soon as it becomes false.</p>
-<p>To see what happens, look at the compilation pattern: the translation to low level ``goto’’ form. The while loop checks the boolean a&lt;10 at the top of the loop; if false it exits the loop, and if true it executes the entire body of the loop even if the boolean became false in the middle</p>
-<h3 id="semantics-of-while">Semantics of while</h3>
-<p><strong>while b do S</strong> is translated to</p>
-<pre><code>L1: if not b then goto L2
-    S
-    goto L1
-L2:</code></pre>
-<p>If you understand the meaning of :=, goto, if b then goto, you can understand the meaning of every high level construct. Note that b is an arbitrary boolean expression; S is an arbitrary statement; L1 and L2 are *fresh labels: they can’t be used anywhere else</p>
-<h3 id="lists-iterators-and-for-loops">Lists, +, +=, iterators, and for loops</h3>
-<ul>
-<li>How are lists represented?
-<ul>
-<li>What do the + and += operators do?</li>
-<li>What is an iterator, and how does it work?</li>
-<li>What does a for loop do? How does it compare with a while loop?</li>
-</ul></li>
-</ul>
-<h3 id="lets-do-some-matrix-calculations">Let’s do some matrix calculations</h3>
-<p>Set up a list of 5 elements</p>
-<pre><code>coords = [[0,0]] * 5
-print (&#39;coords = &#39;, coords)  # [[0,0], [0,0], [0,0], [0,0], [0,0]]</code></pre>
-<p>The result is</p>
-<pre><code>coords =  [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]</code></pre>
-<p>Looks good! Now set some sub-elements:</p>
-<pre><code>coords[3][1] = 7
-coords[4][0] = 5</code></pre>
-<p>{ Result may not be what we expected, or wanted: ~~~~ coords[2] = [5, 7] coords = [[5, 7], [5, 7], [5, 7], [5, 7], [5, 7]] ~~~~ }</p>
-<p>What’s going on?</p>
-<h3 id="what-does-mean-in-python">What does += mean in Python?</h3>
-<ul>
-<li><p>Google search for </p>
-<ul>
-<li><p>``, where a and b can be numbers, or strings, or tuples, or lists (but both must be of the same type).’’</p></li>
-<li><p>Stack overflow search for </p></li>
-<li>``+= adds another value with the variable’s value and assigns the new value to the variable.’’</li>
-<li>``It adds the right operand to the left. x += 2 means x = x</li>
-<li><ol start="2" type="1">
-<li>It can also add elements to a list’’</li>
-</ol></li>
-<li><p></p></li>
-</ul></li>
-</ul>
-<h3 id="is-a-b-shorthand-for-a-a-b">Is a += b shorthand for a = a + b?</h3>
-<p>Try  ~~~~ print (‘Defining a = a + [3, 4]’) a = [1, 2] b = a print (‘a =’, a, ’ b = ‘, b) a = a + [3, 4] print (’a =’, a, ’ b = ’, b) ~~~~</p>
-<p>The results: {a = [1, 2, 3, 4] b = [1, 2]}  Now try  ~~~~ print (‘Defining a += [3, 4]’) a = [1, 2] b = a print (‘a =’, a, ’ b = ‘, b) a += [3, 4] print (’a =’, a, ’ b = ’, b) ~~~~</p>
-<p>The results: {a = [1, 2, 3, 4], b = [1, 2, 3, 4]}</p>
-<p></p>
-<h3 id="how-do-we-figure-out-problems-like-this">How do we figure out problems like this?</h3>
-<ul>
-<li>Need to understand all the fundamental concepts of the language
-<ul>
-<li>It’s best to study  source </li>
-<li>Develop a clear  for what the language constructs really mean</li>
-<li><p>And here’s some advice: from Stack Overflow</p></li>
-<li><p><code>it's a basic operator for python (and many other languages    too), you should start with google, if you never read any python    references.</code></p></li>
-<li>This may be ok if you already understand all the foundations and just want to look up a detail, but otherwise </li>
-<li><p>Let’s look in more detail at lists<span class="math inline">…</span></p></li>
-</ul></li>
-</ul>
-<h4 id="are-two-nodes-with-the-same-value-identical">Are two nodes with the same value identical?</h4>
-<h3 id="are-two-nodes-with-the-same-value-identical-1">Are two nodes with the same value identical?}</h3>
-<p>Define b = a </p>
-<pre><code>a = [1, 2, 3, 4]
-b = a
-print (&#39;(1)  a = &#39;, a, &#39; b = &#39;, b)</code></pre>
-<p>Both a and b have the value [1, 2, 3, 4], but are the actual nodes in their representations distinct, or shared? </p>
-<p>Try modifying an element of a and see if it changes b, and vice versa</p>
-<pre><code>a[1] = 100
-b[3] = 300
-print (&#39; a = &#39;, a, &#39; b = &#39;, b)
-</code></pre>
-<p>Run this, and you’ll see that changing an element of either a or b also changes the corresponding element of the other. The values of a and b are simply pointers, and .</p>
-<h4 id="low-level-list-manipulation">Low level list manipulation</h4>
-<h3 id="low-level-list-manipulation-1">Low level list manipulation</h3>
+<h3 id="low-level-list-manipulation">Low level list manipulation</h3>
 <ul>
 <li>You can assign pointers: if a is a list, b = a makes b point to the same node a points to</li>
 </ul>
@@ -5807,110 +5178,6 @@ print (&#39; a = &#39;, a, &#39; b = &#39;, b)
        *b.next := nn
        p := *p.next</code></pre>
 <p>(It’s a little more complicated, you have to remember the beginning of b — using a header node is helpful.) Now if you modify one of the lists (a, b) the other list is not affected</p>
-<h3 id="list-is-represented-as-nodes">List is represented as nodes</h3>
-
-<p></p>
-<h3 id="appending-to-a-list">Appending to a list</h3>
-
-<p></p>
-<ul>
-<li>a = [1, 2, 3]</li>
-<li>b = [4, 5, 6]</li>
-<li>a.append(b)</li>
-<li>A new node is created: call newnode()</li>
-<li>The newnode has value=b and next=nil</li>
-<li>The last node in a had next=nil; that is changed to point to the new node</li>
-<li>Result: </li>
-</ul>
-<h3 id="extending-a-list">Extending a list</h3>
-
-<p></p>
-<ul>
-<li>a = [1, 2, 3]</li>
-<li>b = [4, 5, 6]</li>
-<li>a.extend(b)<br />
-</li>
-<li>The last node in a had next=nil</li>
-<li>That nil pointer was changed to point to b</li>
-<li>Result: </li>
-</ul>
-<h4 id="the-operator">The + operator</h4>
-<ul>
-<li>You can concatenate two lists a and b with 
-<ul>
-<li>The + operator does not modify either a or b</li>
-<li>It creates a new list, with copies of the nodes in a, followed by b</li>
-<li><p>Since it doesn’t modify existing containers, you can use + on both</p></li>
-<li>mutable containers, e.g. lists</li>
-<li><p>immutable containers, e.g. string</p></li>
-</ul></li>
-</ul>
-<h4 id="the-operator-1">The += operator</h4>
-<h3 id="the-operator-2">The + operator}</h3>
-<ul>
-<li>You can concatenate two lists a and b with 
-<ul>
-<li>The += operator does not copy a, it  a by extending it</li>
-<li>Since += modifies existing containers, you cannot use += on immutable containers, e.g. strings</li>
-</ul></li>
-</ul>
-<h3 id="list-with-and">List with + and +=</h3>
-<ul>
-<li>You can write a + b where a and b are lists; if either is a list, both must be lists
-<ul>
-<li><p>You can write a += b where</p></li>
-<li>a is a list</li>
-<li><p>b is either a list or an iterator</p></li>
-</ul></li>
-</ul>
-<h3 id="iterators">Iterators</h3>
-<ul>
-<li>A container class can have an 
-<ul>
-<li>There are built-in default iterators for lists and numbers</li>
-<li><p>You can define your own class and iterator</p></li>
-<li>You define a method called  which creates a new iterator and initializes it</li>
-<li>An iterator provides a method called  and you can invoke this with </li>
-<li><p>The implementation of next</p></li>
-</ul></li>
-</ul>
-<h3 id="defining-an-iterator-for-even-numbers">Defining an iterator for even numbers</h3>
-<pre><code>class EvensClass:
-  def __iter__(self):
-    self.state = 0
-    return self
-
-  def __next__(self):
-    x = self.state
-    self.state += 2
-    return x
-
-Evens = EvensClass()
-EvenIterator = iter(Evens)</code></pre>
-<h3 id="using-the-iterator">Using the iterator</h3>
-<pre><code>for i in EvenIterator:
-    print (i)
-    if i &gt; 15:  # Try commenting this out: the iterator is unbounded
-        break
-
-print (&#39;The for loop has finished, now call next directly&#39;)
-print(next(EvenIterator))</code></pre>
-<h3 id="running-the-even-iterator">Running the even iterator</h3>
-<pre><code>Defining iterator for even numbers
-0
-2
-4
-6
-8
-10
-12
-14
-16
-The for loop has finished, now call next directly
-18</code></pre>
-<h3 id="extending-a-list-with-an-iterator">Extending a list with an iterator</h3>
-<p>You can use += to extend a list with an iterator ~~~~ a = [1, 2, 3, 4] a += range(20,25) print (‘a =’, a) ~~~~</p>
-<p>But you can’t use + on a list and an iterator: ~~~~ a = [1, 2, 3, 4]b = [1, 2, 3, 4] # b = b + range(20,25) # This line gives syntax error ~~~~</p>
 <h4 id="for-loops">for loops</h4>
 <h3 id="for-loops-in-algol-and-descendants">for loops in Algol and descendants</h3>
 <pre><code>sum := 0
@@ -5925,114 +5192,6 @@ avacodo    if i&gt;= n then goto avacododone
            goto avacado
 avacododone
            print (sum)</code></pre>
-<h3 id="for-loops-in-python">for loops in Python</h3>
-<ul>
-<li>A Python for loop traverses a sequence defined by an iterator</li>
-<li>If the iterator terminates, so does the for loop</li>
-<li>The iterator could also go on forever</li>
-<li>The iterator could give a sequence of numbers, or it could traverse a list, or some other container</li>
-<li>This is convenient but it hides what’s actually going on</li>
-</ul>
-<h4 id="revisiting-the-mysteries">Revisiting the mysteries}</h4>
-<p>Focus on:</p>
-<ul>
-<li>What low level operations are being used: pointer assignment? copy?
-<ul>
-<li>Know when you have two pointers to the same node</li>
-<li>Know when newnode has been called</li>
-</ul></li>
-</ul>
-<pre><code>a = [1, 2]
-b = a
-a = a + [3, 4]
-print (&#39;a = &#39;, a, &#39;  b = &#39;, b)</code></pre>
-<p>Here, the results are final values: a = [1, 2, 3, 4] b = [1, 2]</p>
-<pre><code>a = [1, 2]
-b = a
-a += [3, 4]
-print (&#39;a = &#39;, a, &#39;  b = &#39;, b)</code></pre>
-<p>Now the results are: a = [1, 2, 3, 4], b = [1, 2, 3, 4]</p>
-<p>In the second example,  modified the structure of a. Since b points to the same node as a, this change also affects b.</p>
-<h3 id="compilers">Compilers</h3>
-<ul>
-<li>We have been writing algorithms in high level language notation and then translating it manually to assembly language</li>
-<li>A  is a software application that performs this translation automatically</li>
-<li>A  is a precisely defined high level language</li>
-<li>The compiler makes programming easier by allowing you to think about your algorithm more abstractly, without worrying about all the details of the machine</li>
-</ul>
-<h3 id="source-and-object">Source and object</h3>
-<ul>
-<li>The original high level language program is called the  — it’s what the programmer writes</li>
-<li>The final machine language program which the compiler produces is called the  — it’s what the machine executes</li>
-</ul>
-<h3 id="compilation-1">{Compilation</h3>
-<ul>
-<li><p>A compiler translates statements in a high level language into assembly language</p></li>
-<li><p>In developing an assembly language program, it’s best to begin by writing high level pseudo-code (this becomes a comment) and then translate it</p></li>
-<li><p>This approach helps keep the program readable, and reduces the liklihood of getting confused</p></li>
-<li><p>Each kind of high level statement corresponds to a standard pattern in assembly language. </p></li>
-</ul>
-<h3 id="how-a-compiler-works">How a compiler works</h3>
-<ul>
-<li>Your high level source program is just a character string — the computer cannot execute it directly</li>
-<li>The compiler reads the source program, checks its syntax, and analyses its structure</li>
-<li>Then it checks the types of all the variables and procedures</li>
-<li>Most advanced compilers translate the program to an intermediate ``goto form’’, just as we are doing</li>
-<li>The program is finally translated to assembly language: </li>
-<li>The assembler translates the assembly language to machine language (the Sigma16 application contains an assembler)</li>
-</ul>
-<h3 id="major-tasks-in-compilation">Major tasks in compilation</h3>
-<ul>
-<li> — check the source program for correct syntax and work out the program structure (similar to ``diagramming sentences’’ in English grammar)</li>
-<li><p> — work out the data type of each variable (integer, character, etc.) — then</p></li>
-<li>Make sure the variables are used consistently</li>
-<li><p>Generate the right instructions for that data type</p></li>
-<li> — analyse the program to find opportunities to rearrange the object code to make it faster</li>
-<li><p> — produce the actual machine instructions</p></li>
-</ul>
-<h3 id="parsing">Parsing</h3>
-<ul>
-<li>The  of a language is its set of grammar rules</li>
-<li><p>If the source program contains a , the compiler will not understand what you mean</p></li>
-<li>{if x<span class="math inline">&lt;</span>y then a = 1} — ok, can be translated</li>
-<li><p> — syntax errors! what does it mean?</p></li>
-<li><p>If there is a syntax error,  — that leads to unreliable software</p></li>
-</ul>
-<h3 id="types">Types</h3>
-<ul>
-<li>Type checking is one of the most important tasks the compiler performs</li>
-<li><p>There are many data types supported by a computer</p></li>
-<li>Binary integer</li>
-<li>Two’s complement integer</li>
-<li>Floating point</li>
-<li>Character</li>
-<li><p>Instruction</p></li>
-<li></li>
-<li><p>It’s essential to use the right instruction, according to the data type</p></li>
-</ul>
-<h3 id="integer-and-floating-point">Integer and floating point</h3>
-<ul>
-<li>An integer is a whole number: <span class="math inline">23</span>, <span class="math inline"> − 47</span></li>
-<li>A floating point number may have a fraction and exponent: <span class="math inline">7.43 × 10<sup>28</sup></span></li>
-<li>We have seen how an integer is represented: two’s complement</li>
-<li>Floating point representation is different from two’s complement</li>
-<li><p>Most computers have separate instructions for arithmetic on integer and floating point</p></li>
-<li> R1,R2,R3 — integer addition</li>
-<li><p> R1,R2,R3 — floating point addition</p></li>
-<li><p> — you must use the right instruction according to the data type</p></li>
-</ul>
-<h3 id="typechecking">Typechecking</h3>
-<ul>
-<li><p>The compiler checks that each variable in the source program is used correctly</p>
-<ul>
-<li>If you add a number to a string, it’s a type error</li>
-</ul></li>
-<li><p>Then it generates the correct instructions for the type</p></li>
-<li>For integer variables it uses </li>
-<li>For floating point variables it uses </li>
-<li><p></p></li>
-<li><p>This eliminates one of the commonest kinds of error in software</p></li>
-</ul>
 <h3 id="write-programs-at-a-high-level">Write programs at a high level</h3>
 <p>Every rule has some rare exceptions, but almost always these are good principles:</p>
 <ul>
@@ -6082,270 +5241,6 @@ print (&#39;a = &#39;, a, &#39;  b = &#39;, b)</code></pre>
 </ul>
 <h3 id="practical-programming-tip">Practical programming tip</h3>
 
-<h2 id="architecture-1">Architecture</h2>
-<h3 id="instructions-1">Instructions</h3>
-<ul>
-<li><p>You need to know what the basic instructions do and how to use them</p>
-<ul>
-<li>Memory and addresses: </li>
-<li>Arithmetic: </li>
-<li>Comparison: </li>
-<li>Jumps: </li>
-<li><p>System:  (just for halting, not for I/O)</p></li>
-<li><p>Instruction representation</p></li>
-<li>You should understand the </li>
-<li><p>But you do not need to remember the details: the exam does not ask you to convert any instructions from assembly language to machine language</p></li>
-</ul></li>
-</ul>
-<h3 id="addresses-and-data-structures">Addresses and data structures</h3>
-<ul>
-<li>Effective addresses: sum of displacement and register
-<ul>
-<li>Accessing an element of an array</li>
-<li>Accessing an element of a record</li>
-<li>Pointers: the (*p) and (&amp;x) operators</li>
-<li>Linked list traversal</li>
-</ul></li>
-</ul>
-<h4 id="compilation-patterns-3">Compilation patterns</h4>
-<h3 id="high-and-low-level-programming-constructs">High and low level programming constructs</h3>
-<ul>
-<li><p>High level</p>
-<ul>
-<li><p>if then, if then else, case, while loops, for loops</p></li>
-<li><p>Low level</p></li>
-<li><p>assignment, goto, if then goto</p></li>
-</ul></li>
-</ul>
-<h3 id="high-and-low-level-programming-constructs-1">High and low level programming constructs</h3>
-<ul>
-<li>The low level statements correspond to machine instructions
-<ul>
-<li><p>Assignment statement</p></li>
-<li>Load the operands in the expression into registers</li>
-<li>Do the arithmetic</li>
-<li>Store the result into a variable in memory</li>
-<li><p>You can also keep variables in registers over a larger block of code</p></li>
-<li><p>goto label</p></li>
-<li><p>jump label[R0]</p></li>
-<li><p>if b then goto label</p></li>
-<li>Evaluate the boolean expression, put it in a register</li>
-<li><p>conditional jump: either jumpt or jumpf</p></li>
-</ul></li>
-</ul>
-<h3 id="compliation-patterns">Compliation patterns</h3>
-<ul>
-<li>Systematic pattern for translating each high level construct into low level statements
-<ul>
-<li>Most high level constructs contain a Boolean expression</li>
-<li>Translate this into goto and if-then-goto statements that cause the right blocks of instructions to be executed</li>
-<li>Check that the translation is correct by hand executing with both values of the Boolean: True, False</li>
-<li>Case statements use a jump table</li>
-</ul></li>
-</ul>
-<h3 id="programming-fundamentals">Programming fundamentals</h3>
-<h4 id="how-do-you-learn-programming">How do you learn programming</h4>
-<ul>
-<li>The approach to learning programming has changed over the years</li>
-<li><p>First programming languages</p></li>
-<li>Learn the statements and what they do</li>
-<li><p>Statements are low level</p></li>
-<li><p>Large scale software</p></li>
-<li>Software becoming complex</li>
-<li><p>goto considered harmful</p></li>
-<li><p>Problem solving</p></li>
-<li>Programming languages have complex statements, control structures and data structures</li>
-<li>Teach ``problem solving’’</li>
-<li><p>Use vague English and some examples to explain what the language constructs do</p></li>
-</ul>
-<h3 id="connections-with-other-subjects">Connections with other subjects</h3>
-<p>Similar debates occur in many subjects</p>
-<ul>
-<li><p>Natural language</p>
-<ul>
-<li>A popular idea: learning grammar impedes creativity</li>
-<li>Alternative view: knowing grammar  the ability to express your ideas</li>
-</ul></li>
-<li><p>Arts and crafts and music</p></li>
-<li>Should you learn how to use the tools of the trade?</li>
-<li><p>Or just pick up how to use them while ``expressing’’ yourself?</p></li>
-</ul>
-<h3 id="basic-list-operations-extend-and-append">Basic list operations: extend and append</h3>
-<pre class="[commandchars=\\\{\}]"><code>a = [1, 2]
-a.extend([3,4])
-b = [1, 2]
-b.append([3,4])
-
-\redtext{a =  [1, 2, 3, 4]}
-\redtext{b =  [1, 2, [3, 4]]}</code></pre>
-<h3 id="effect-of-extend-and-append-on-data-structures">Effect of extend and append on data structures</h3>
-<p></p>
-<ul>
-<li>Need to be able to read a ``box and arrow’’ diagram and work out what the lists are</li>
-<li>a = [1, 2, 3, 4]</li>
-<li>b = [1, 2, [3, 4]]</li>
-</ul>
-<p>%—————————————————————————–</p>
-<h3 id="make-some-lists">Make some lists}</h3>
-<p></p>
-<p>%—————————————————————————–</p>
-<h3 id="xx-changed-a-yy-changed-c.">XX changed a, YY changed c.\</h3>
-<p>Which is append, which extend?}</p>
-<p></p>
-<p>%—————————————————————————– [fragile]</p>
-<h3 id="list-manipulation-abc-foobarbaz">List manipulation: abc foobarbaz</h3>
-<p>a = [1, 2] b = a c = [3, 4] a = a + c c.append(5)</p>
-
-<ul>
-<li></li>
-<li>b still points to the nodes that comprised the  value of a</li>
-<li>Here the lists are mutable, but you could also use a = a + c on  data (like strings) because the + operator , it just creates a  value</li>
-</ul>
-<h3 id="list-manipulation-abc-initial-values">List manipulation abc: initial values</h3>
-<p></p>
-<h3 id="list-manipulation-abc-after-and-append">List manipulation abc: after + and append</h3>
-<p></p>
-<h3 id="list-manipulation-def">List manipulation: def</h3>
-<pre class="[commandchars=\\\{\}]"><code>d = [1, 2]
-e = d
-f = [3, 4]
-d.append(f)
-f.append(5)
-
-\redtext{d =  [1, 2, [3, 4, 5]]}
-\redtext{e =  [1, 2, [3, 4, 5]]
-  \qquad\textrm{\emph{\textbf{Almost half answered [1,2]}}}}
-\redtext{f =  [3, 4, 5]}</code></pre>
-<ul>
-<li>append modifies the data structure, it doesn’t produce a new list</li>
-<li>After the appends, e and f still point to the same nodes they did before, but those nodes now point to lists with changed data</li>
-<li>append can only be used on a mutable value such as a list, but not on an immutavle value such as a string</li>
-</ul>
-<h3 id="list-manipulation-def-initial-values">List manipulation: def initial values</h3>
-<p></p>
-<h3 id="list-manipulation-def-after-appends">List manipulation: def after appends</h3>
-<p></p>
-<h3 id="list-manipulation-ghi">List manipulation: ghi</h3>
-<pre class="[commandchars=\\\{\}]"><code>g = [1, 2]
-h = g
-i = [3, 4]
-g += i
-i.append(5)
-
-\redtext{g =  [1, 2, 3, 4]}
-\redtext{h =  [1, 2, 3, 4]
-  \qquad\textrm{\emph{\textbf{A majority answered [1,2]}}}}
-\redtext{i =  [3, 4, 5]}</code></pre>
-<ul>
-<li>g += i modifies the representation of g (unlike g+i).</li>
-<li>g (and h) still point to the same node, but the list is changed</li>
-<li>The list that i points to is copied into the end of g, extending it, but these nodes are copies of the nodes in i</li>
-<li>i.append(5) modifies the representation of i, but not g (or h)</li>
-</ul>
-<h3 id="list-manipulation-ghi-initial-values">List manipulation: ghi initial values</h3>
-<p></p>
-<h3 id="list-manipulation-ghi-after-and-append">List manipulation: ghi after += and append</h3>
-<p></p>
-<h3 id="for-loop">For loop</h3>
-<pre class="[commandchars=\\\{\}]"><code>student_marks = [[9,7,8], [2,5,1], [7,4,3], [9,7,6]]
-for student in student_marks:
-    for mark in student:
-        if mark &lt;= 5:
-            break
-print (&#39;mark = &#39;, mark)
-
-\redtext{mark =  6}</code></pre>
-<h3 id="data-structure-used-in-for-loop">Data structure used in for loop</h3>
-<p></p>
-<h3 id="a-flowchart">A flowchart</h3>
-<p></p>
-<h3 id="if-statement">If statement</h3>
-<pre class="[commandchars=\\\{\}]"><code>a = [2,3,5,7,11]
-b = 3
-c = 2
-result = 0
-
-if a[b] == 5:
-    result += 2
-elif a[c+c] &gt; 3 or a[b-c] &lt; 3:
-    result +=3
-elif a[c-c] &gt;= 2 and a[b-b] &lt;= 2:
-    result += 7
-elif a[b+c] &gt;= 11:
-    result += 11
-print (&#39;If statement result = &#39;, result)
-
-\redtext{If statement result =  3}</code></pre>
-<h3 id="data-structure-for-the-if-statement">Data structure for the if statement</h3>
-<p></p>
-<h3 id="flowchart-for-the-if-statement">Flowchart for the if statement</h3>
-<p></p>
-<h3 id="while-loop">While loop</h3>
-
-
-<ul>
-<li>Many got this wrong, and there were several different errors</li>
-<li>Some treated <span class="math inline"><em>a</em> ≥ <em>b</em></span> as if it meant <span class="math inline"><em>a</em> &gt; <em>b</em></span></li>
-<li>Some thought the while loop terminates as soon as <span class="math inline"><em>a</em> ≥ <em>b</em></span> becomes true </li>
-</ul>
-<h3 id="question-continue-statement">Question: Continue statement</h3>
-<pre class="[commandchars=\\\{\}]"><code>i = 1
-j = 5
-while i &lt; j:
-    i = i + 1
-    if i == 3:
-        \redtext{continue}
-    print (&#39;i = &#39;, i)
-\redtext{i =  2}
-\redtext{i =  4}
-\redtext{i =  5}</code></pre>
-<p>} </p>
-<ul>
-<li>Answers were all over the place</li>
-<li>That’s ok </li>
-<li>The danger is when you aren’t aware</li>
-<li>Continue is dangerous because it’s a goto statement that doesn’t say explicitly where to go — you need to know how to figure it out</li>
-<li>Continue should be used rarely if at all, just like goto</li>
-</ul>
-<h3 id="question-break-statement">Question: Break statement</h3>
-<pre class="[commandchars=\\\{\}]"><code>i = 1
-j = 5
-while i &lt; j:
-    i = i + 1
-    if i == 3:
-        \redtext{break}
-    print (&#39;i = &#39;, i)
-
-\redtext{i =  2}</code></pre>
-<p>} </p>
-<ul>
-<li>Similar to continue: lots of answers, mostly wrong</li>
-<li>Again, that’s ok </li>
-<li>Break is dangerous because it’s a goto statement that doesn’t say explicitly where to go — you need to know how to figure it out</li>
-<li>Break should be used rarely if at all, just like goto</li>
-</ul>
-<h3 id="a-note-about-the-break-statement">A note about the break statement</h3>
-<ul>
-<li>In Python, you can only break out of the innermost loop that contains the break
-<ul>
-<li>If you are in several nested loops, and you want to break out of several of them, </li>
-<li>Break and continue should be used rarely if at all</li>
-<li>Break and continue are just goto statements, spelled differently</li>
-<li>The disadvantages of goto statements apply to break and continue, only more so</li>
-<li>(Break is commonly used in the C language, because the switch (case) statement in C doesn’t work the way you normally want.)</li>
-</ul></li>
-</ul>
-<h3 id="results">Results</h3>
-<ul>
-<li>Some of the primitive operations on lists are widely misunderstood
-<ul>
-<li><p>There are some misconceptions on what operators + and += mean when applied to lists</p></li>
-<li><p>Textbooks, web pages, and Stack Overflow also get this wrong quite often</p></li>
-<li>Some misunderstandings about how nested conditionals work</li>
-<li>The break and continue statements are goto statements where you don’t say  to go, and this leads to confusion</li>
-<li><p></p></li>
-</ul></li>
-</ul>
 <h3 id="example-writevalchar">Example: WriteValChar</h3>
 <h3 id="a-simple-procedure-writevalchar">A simple procedure: WriteValChar</h3>
 <ul>
@@ -6532,101 +5427,6 @@ x    data</code></pre>
 <li>A short part that saves state, and saves an indication in memory of what work needs to be done</li>
 <li><p>A longer part that does the actual work, but this can be delayed until other interrupts are processed</p></li>
 </ul>
-<h3 id="architecture-must-support-os">Architecture must support OS</h3>
-<h3 id="some-historical-examples">Some historical examples</h3>
-<p>As computers developed, some architectures had to be abandoned because they didn’t support new ideas in programming and operating systems.</p>
-<ul>
-<li>\ Some early machines needed self-modifying code to iterate over arrays. When the disadvantages were recognised, and index registers with effective address calculation were invented, those machines became obsolete.</li>
-<li>\ Early machines had a library of I/O routines, rather than a full operating system, and lacked the ability to save  state on an interrupt. This made an OS scheduler impossible.</li>
-<li>\ Memory was expensive until the 1970s, and machines used short addresses to keep code tight. The PDP 10 computer had 18-bit addresses, and went from dominant to dead when memory hardware grew.</li>
-</ul>
-<h3 id="more-recent-examples">More recent examples</h3>
-<ul>
-<li> Virtual memory is implemented partly in hardware, and partly in software. The relevant parts of the architecture and operating system must be designed together.</li>
-<li> To be efficient, virtual memory needs information about usage patterns (``least recently used’’, etc.). This information is needed by the operating system but must be gatherd by the hardware.</li>
-<li> It is theoretically possible to implement mutex in software, but to be efficient it needs hardware support (test and set, etc.).</li>
-<li> Virtual machines require the ability to emulate key parts of code while running other parts at full speed, without losing control. This places a number of constraints on the architecture.</li>
-</ul>
-<h3 id="speed-of-cache-memory">Speed of cache memory</h3>
-<ul>
-<li>Cache is a small fast memory that mirrors the most commonly used words of the primary memory.
-<ul>
-<li>Cache may run at full processor speed.</li>
-<li>The datapath and control need to determine, for each memory access, whether the effective address refers to a word in the cache. If so, the access is quick and the primary memory is not used.</li>
-<li>The test for cache residency must be ! It happens on every memory access (more than once per instruction, on average).</li>
-<li>Extra registers are needed to give fast access to information about which addresses are in the cache.</li>
-</ul></li>
-</ul>
-<h3 id="whats-in-the-cache">What’s in the cache</h3>
-<ul>
-<li>Since the cache contains recently used data, it does not contain a sequence of words at consecutive locations</li>
-<li><p>Therefore each location in the cache contains two parts:</p></li>
-<li>A word of data</li>
-<li><p>A tag: the actual address of this data in the primary memory</p></li>
-<li><p>This enables the machine to identify whether an arbitrary address refers to data that’s already in the cache, and if so, where it is</p></li>
-</ul>
-<h3 id="cache-lines">Cache lines</h3>
-<ul>
-<li><p>In practice, we don’t just keep individual memory locations (bytes or words) in the cache</p></li>
-<li>The cache is organised by ``large words’’ called cache lines; e.g. 16 bytes at an address which is a multiple of 16.</li>
-<li>A memory access to an address <span class="math inline"><em>a</em>, <em>a</em> + 1, …, <em>a</em> + 15</span> will actually refer to the same cache line (where <span class="math inline"><em>a</em></span> is a multiple of 16).</li>
-<li><p>Size of a cache line varies: making it bigger increases probability of cache hit but also increases penalty of a cache hit</p></li>
-</ul>
-<h3 id="searching-the-cache">Searching the cache</h3>
-<ul>
-<li>The cache has to be searched on each memory access, so this search must be fast!</li>
-<li>The quickest approach:  requires each address to go into a specific cache entry.</li>
-<li><p>The most general approach: </p></li>
-<li>Each cache line has a dedicated comparitor that checks the memory address against the tag for this line</li>
-<li><p>The comparisons are done by hardware, in parallel</p></li>
-<li><p>There are also various compromises which require less hardware but offer less improvement in performance</p></li>
-</ul>
-<h3 id="fully-associative-cache">Fully associative cache</h3>
-<ul>
-<li><p>Direct mapping is inflexible: it can cause a sequence of memory operations to induce a sequence of cache misses (similar to thrashing in virtual memory).</p></li>
-<li><p>An alternative approach is to allow a word of memory to be placed in any different cache location—this is called  cache.</p></li>
-<li><p>The hardware must search the tags of the set of possible cache locations corresponding to a memory location.</p></li>
-</ul>
-<h3 id="associative-memory">Associative memory</h3>
-<p>Also called content-addressable memory.</p>
-<ul>
-<li><p>Each word contains several fields</p></li>
-<li><p>Data is not accessed by its address</p></li>
-<li><p>To fetch data, a field value is specified, and the memory returns the rest of the word that matches this field</p></li>
-<li><p>If it is possible for several matches to occur, the memory must resolve this.</p></li>
-</ul>
-<h3 id="searching-in-associative-memory">Searching in associative memory</h3>
-<ul>
-<li><p>Each location has some logic as well as state</p></li>
-<li><p>On a memory access, the specified field value is broadcast</p></li>
-<li><p>In parallel, each location compares the broadcast field with its local field value, resulting in a Boolean </p></li>
-<li><p>A tree of or-gates can determine in logarithmic time whether a match exists.</p></li>
-<li><p>If there are multiple matches, a tree circuit can also determine a unique responder in logarithmic time.</p></li>
-</ul>
-<h3 id="a-compromise-set-associative-cache">A compromise: Set associative cache</h3>
-<ul>
-<li>Instead of allowing a block of memory to go into any location of the cache, restrict it to just a subset of the cache locations.</li>
-<li>You can think of direct mapped as a special case where the subset has one element, and fully associative as a special case where the subset is the entire set.</li>
-<li>This reduces the number of comparitors needed to check tags, and the size of the tree circuit to resolve matches.</li>
-<li>Many real machines use set associative cache.</li>
-</ul>
-<h3 id="reducing-cache-misses">Reducing cache misses</h3>
-<ul>
-<li>Increasing the cache size helps, but the fixed direct mapping can cause a sequence of memory operations to induce a sequence of cache misses (similar to thrashing in virtual memory).</li>
-<li>An alternative approach is to allow a word of memory to be placed in a set of different cache locations.</li>
-<li>The hardware must then do a search through the set of possible cache locations corresponding to a memory location.</li>
-<li>This requires searching the tags. What matters is not the location of the cache entry, but the association between the tag and the value.</li>
-</ul>
-<h3 id="processor-after-load-x">Processor: after load x</h3>
-<p></p>
-<h3 id="processor-after-load-y">Processor: after load y</h3>
-<p></p>
-<h3 id="processor-after-add">Processor: after add</h3>
-<p></p>
-<h3 id="processor-after-store">Processor: after store</h3>
-<p></p>
-<h3 id="processor-after-termination">Processor: after termination</h3>
-<p></p>
 <h2 id="data-types">Data types</h2>
 <ul>
 <li>A word of memory contains a string of bits</li>
@@ -6760,7 +5560,7 @@ cmpgt  R1,R2,R3     ; R1 := R2&gt;R3</code></pre>
 <li>A trap does not specify the address to jump to: this is defined by the hardware</li>
 <li><p>A trap also sets the computer into ; this is needed for system security (we’ll discuss it later)</p></li>
 </ul>
-<h3 id="typical-os-requests-1">Typical OS requests</h3>
+<h3 id="typical-os-requests">Typical OS requests</h3>
 <ul>
 <li>Terminate execution of the program</li>
 <li>Read from a file</li>
@@ -6931,26 +5731,7 @@ Register usage:
 <li><p> gives the element of the array, <span class="math inline"><em>a</em><sub><em>i</em></sub></span> where <span class="math inline"><em>i</em></span> is the index in R2.</p></li>
 <li><p>Unassessed exercise: Complete the truth table for the mux1 circuit, by simulating it for all input combinations. Try to describe, at a more abstract and intuitive level, how it works.</p></li>
 </ul>
-<h3 id="the-multiplexer-circuit">The multiplexer circuit}</h3>
-<p>THIS ONE IS REDUNDANT, HAVE A BETTER tikz DIAGRAM</p>
-<p></p>
-<pre><code>mux1 c x y =
-   or2  (and2 (inv c) x)
-        (and2 c y)</code></pre>
-<h4 id="characteristics-of-combinational-circuits">Characteristics of combinational circuits}</h4>
-<h3 id="two-kinds-of-circuit">Two kinds of circuit}</h3>
-<ul>
-<li><p>Combinational circuits</p>
-<ul>
-<li>Consist entirely of logic gates</li>
-<li>No feedback loops</li>
-</ul></li>
-<li><p>Sequential circuits</p></li>
-<li>May contain logic gates and flip flops</li>
-<li><p>Feedback loops are allowed</p></li>
-</ul>
-<h3 id="hexadecimal-numbers">Hexadecimal Numbers}</h3>
-<h2 id="hexadecimal-numbers-1">Hexadecimal Numbers</h2>
+<h2 id="hexadecimal-numbers">Hexadecimal Numbers</h2>
 <ul>
 <li>Base-16 numbers</li>
 <li>Don’t worry! Hexadecimal numbers are used only when they are easier than binary!</li>
@@ -6976,19 +5757,7 @@ Register usage:
 <li>Each hex digit corresponds to 4 bits: Hex is 4 times more concise</li>
 <li>Long strings of bits are hard to read: it’s hard to keep your place</li>
 </ul>
-<h3 id="black-boxes">Black boxes</h3>
-<ul>
-<li>We can define a circuit as a black box by giving it a name, and specifying its ports (inputs and outputs)</li>
-<li>This is analogous to using abstraction in a programming language by defining a function for a commonly used computation</li>
-<li>It is a box, with inputs, outputs, and internal components and signals</li>
-</ul>
-<pre><code>circuit_name input1 input2 = (output1,output2)
-  where
-    output1 = ...
-    output2 = ...
-    x = ... (internal signals...)
-    y = ...</code></pre>
-<h2 id="jumping-2">Jumping</h2>
+<h2 id="jumping">Jumping</h2>
 <p>All jumps refer to effective addresses.</p>
 <ul>
 <li>jumpf R1,const[R2] \ If R1 false then goto mem[R2+const]</li>
@@ -7014,53 +5783,9 @@ cmpgt  R1,R2,R3   R1 := R2&gt;R3</code></pre>
 <li>Know your programming language</li>
 <li>Be meticulous</li>
 <li> your code carefully</li>
-<li>Do thorough testing</li>
 </ul></li>
+<li><p>Do thorough testing</p></li>
 <li><p>It was very helpful that Apple published the source code for this bug</p></li>
-</ul>
-<h3 id="closed-source-open-source-free-1">Closed source, open source, free</h3>
-<ul>
-<li> — the software is proprietary, the company doesn’t publish it (you can get the machine language code but not the high level language code)</li>
-<li> — the source code is published, although the owner has control</li>
-<li> — You can make a copy of the code and modify it</li>
-<li><p>Much controversy!</p></li>
-<li>One view: a large company can ensure high quality, and needs to ensure it gets paid for its work</li>
-<li><p>Another view: ``with many eyes studying code, every bug is visible’’ — open source and free software can be more reliable</p></li>
-</ul>
-<h3 id="processor-organisation">Processor organisation}</h3>
-<h3 id="a-computer-is-a-digital-circuit-1">A computer is a digital circuit!</h3>
-<ul>
-<li>It isn’t a magic box with a little man inside!</li>
-<li><p>A computer is a  constructed from  and </p></li>
-<li> — the entire computer is implemented down to the level of inv, and2, dff, etc.</li>
-<li>Today we’ll take a brief overview</li>
-<li>Some more detail in CS2</li>
-<li><p>Computer Architecture 4 covers the full system, along with advanced techniques: pipelining, superscalar, combinators, parallel scan, synchronisers, circuit parallelism, and more</p></li>
-</ul>
-<h3 id="processor-organisation-1">Processor organisation</h3>
-<ul>
-<li><p>The RTM circuit (register transfer machine)</p></li>
-<li>Contains a register file, and adder, and a multiplexer</li>
-<li><p>It can execute a sequence of Sigma16 add instructions</p></li>
-<li><p>We can extend this circuit to handle the entire architecture!</p></li>
-</ul>
-<h3 id="control-registers-1">Control registers</h3>
-<ul>
-<li>The circuit needs to </li>
-<li><p>This is done using </p></li>
-<li>The  contains the instruction currently being executed</li>
-<li><p>The  contains the address of the next instruction</p></li>
-<li><p>You can see these registers in the emulator window</p></li>
-</ul>
-<h3 id="the-control-algorithm">The control algorithm</h3>
-<ul>
-<li>Actions performed by the machine are </li>
-<li><p>The choice of  action to perform is determinted by the </p></li>
-<li>This is described as an ordinary algorithm, using pseudocode</li>
-<li>It determines which values get loaded into which registers at each clock tick</li>
-<li><p>The algorithm is implemented using flip flops and logic gates</p></li>
-<li><p>The algorithm is an </p></li>
-<li><p>Each iteration fetches the next instruction, decodes it, and executes it</p></li>
 </ul>
 <h3 id="structure-of-the-control-algorithm">Structure of the control algorithm</h3>
 <pre><code>repeat forever
@@ -7103,90 +5828,6 @@ cmpgt  R1,R2,R3   R1 := R2&gt;R3</code></pre>
              dat := mem [adr]
              reg [ir.d] := dat</code></pre>
 <h3 id="a-jump-is-just-a-load">A jump is just a load!</h3>
-<ul>
-<li>Calculate the effective address</li>
-<li>Load the effective address into the pc</li>
-<li>The next instruction to be executed is whatever is at that address</li>
-</ul>
-<pre><code>        3 -&gt; adr := mem [pc],  pc = pc + 1    ; jump
-             adr := adr + reg [ir.sa]
-             pc := adr</code></pre>
-<h3 id="processor-organisation-2">Processor organisation</h3>
-<p>A computer is a digital circuit!</p>
-<ul>
-<li>It isn’t a magic box with a little man inside!</li>
-<li><p>A computer is a  constructed from  and </p></li>
-<li> — the entire computer is implemented down to the level of inv, and2, dff, etc.</li>
-<li>Today we’ll take a brief overview</li>
-<li>Some more detail in CS2</li>
-<li><p>Computer Architecture 4 covers the full system, along with advanced techniques: pipelining, superscalar, combinators, parallel scan, synchronisers, circuit parallelism, and more</p></li>
-</ul>
-<h3 id="processor-organisation-3">Processor organisation</h3>
-<ul>
-<li><p>The RTM circuit (register transfer machine)</p></li>
-<li>Contains a register file, and adder, and a multiplexer</li>
-<li><p>It can execute a sequence of Sigma16 add instructions</p></li>
-<li><p>We can extend this circuit to handle the entire architecture!</p></li>
-</ul>
-<h3 id="control-registers-2">Control registers</h3>
-<ul>
-<li>The circuit needs to </li>
-<li><p>This is done using </p></li>
-<li>The  contains the instruction currently being executed</li>
-<li><p>The  contains the address of the next instruction</p></li>
-<li><p>You can see these registers in the emulator window</p></li>
-</ul>
-<h3 id="the-control-algorithm-1">The control algorithm</h3>
-<ul>
-<li>Actions performed by the machine are </li>
-<li><p>The choice of  action to perform is determinted by the </p></li>
-<li>This is described as an ordinary algorithm, using pseudocode</li>
-<li>It determines which values get loaded into which registers at each clock tick</li>
-<li><p>The algorithm is implemented using flip flops and logic gates</p></li>
-<li><p>The algorithm is an </p></li>
-<li><p>Each iteration fetches the next instruction, decodes it, and executes it</p></li>
-</ul>
-<h3 id="structure-of-the-control-algorithm-1">Structure of the control algorithm</h3>
-<pre><code>repeat forever
-  ir := mem [pc],  pc := pc+1
-  case ir.op of
-    0 -&gt; reg [ir.d] := reg [ir.sa] + reg [ir.sb]    ; add
-    1 -&gt; reg [ir.d] := reg [ir.sa] - reg [ir.sb]    ; sub
-       ...
-    4 -&gt; reg [ir.d] := reg [ir.sa] &lt; reg [ir.sb]     ; cmplt
-       ...
-   15 -&gt; case ir.sb of
-               0 -&gt; adr := mem [pc],  pc = pc + 1    ; lea
-                       adr := adr + reg [ir.sa]
-                       reg [ir.d] := adr
-               1 -&gt; adr := mem [pc],  pc = pc + 1    ; load
-                       adr := adr + reg [ir.sa]
-                       dat := mem [adr]
-                       reg [ir.d] := dat</code></pre>
-<h3 id="a-closer-look-at-lea-1">A closer look at lea</h3>
-<ul>
-<li>Fetch the second word of the instruction (the displacement) and put it in adr; also increment the pc</li>
-<li>Calculate the effective address: displacement + index register</li>
-<li>Load the effective address into the destination register</li>
-</ul>
-<pre><code>        0 -&gt; adr := mem [pc],  pc = pc + 1    ; lea
-             adr := adr + reg [ir.sa]
-             reg [ir.d] := adr</code></pre>
-<h3 id="lea-and-load-similar-but-not-identical-1">Lea and Load: similar but not identical!</h3>
-<ul>
-<li>Load starts the same as lea: it calculates the effective address</li>
-<li>Then it  and loads that into the destination register</li>
-<li>The difference is that lea just loads the effective address into the destination register</li>
-</ul>
-<pre><code>        0 -&gt; adr := mem [pc],  pc = pc + 1    ; lea
-             adr := adr + reg [ir.sa]
-             reg [ir.d] := adr
-
-        1 -&gt; adr := mem [pc],  pc = pc + 1    ; load
-             adr := adr + reg [ir.sa]
-             dat := mem [adr]
-             reg [ir.d] := dat</code></pre>
-<h3 id="a-jump-is-just-a-load-1">A jump is just a load!</h3>
 <ul>
 <li>Calculate the effective address</li>
 <li>Load the effective address into the pc</li>
@@ -7343,67 +5984,6 @@ x        data  18
 n    data
 x    data</code></pre>
 <p>}</p>
-<h2 id="a-digital-circuit-for-sigma16">A digital circuit for Sigma16</h2>
-<ul>
-<li>There is a complete digital circuit for Sigma16</li>
-<li>It’s too complicated for a schematic diagram</li>
-<li>It is fully specified in Hydra</li>
-<li>Executing the specification simulates the circuit</li>
-<li>{}</li>
-</ul>
-<h3 id="emergent-behaviour">Emergent behaviour</h3>
-<ul>
-<li><p>A computer does lots of different things</p>
-<ul>
-<li>Arithmetic</li>
-<li>Sequences of calculations</li>
-<li>Decisions</li>
-<li>Goto</li>
-</ul></li>
-<li>Yet it’s just a digital circuit made of logic gates and flip flops, which </li>
-<li><p>The interesting behaviours  from the way the basic components are connected</p></li>
-</ul>
-<h3 id="some-examples-of-emergent-ultimate-causes-1">Some examples of emergent ``ultimate causes’’</h3>
-<ul>
-<li><p>Arithmetic</p>
-<ul>
-<li>Full adder uses logic gates to calculate sum and carry</li>
-<li>Ripple carry adder transfers carry bits to get binary sum</li>
-</ul></li>
-<li><p>Sequences of calculations</p></li>
-<li><p>The pc register points to next instruction, and is incremented as each instruction is executed</p></li>
-<li><p>Decisions</p></li>
-<li>If statements are translated to </li>
-<li><p>Control algorithm uses a multiplexer to take different actions based on cond</p></li>
-<li><p>Goto</p></li>
-<li><p>Goto is just loading the pc with the effective address</p></li>
-</ul>
-<h2 id="a-multi-level-systems-programming-language">A multi-level systems programming language</h2>
-<ul>
-<li>Our focus is on , not on details of any specific programming language</li>
-<li><p>We’ll describe algorithms using a language that</p></li>
-<li>Illustrates features from several real languages</li>
-<li>Avoids some of the irrelevant complicated features that appear only in one language</li>
-<li>Encourages a good, expressive programming style</li>
-<li>Can express algorithms at both a high level and a low level</li>
-<li><p>Supports  — that means it can do things that ordinary programming languages can’t do</p></li>
-</ul>
-<h3 id="features-of-sigma-so-far">Features of Sigma (so far)</h3>
-<ul>
-<li><p>Data values</p>
-<ul>
-<li>Integer constants, variables, expressions</li>
-<li>Boolean expressions</li>
-</ul></li>
-<li><p>Low level statements</p></li>
-<li>Assignment statement</li>
-<li>goto statement</li>
-<li><p>if bexp then goto statement</p></li>
-<li><p>High level statements</p></li>
-<li>if b then S1</li>
-<li>if b then S1 else S2</li>
-<li><p>while b do S1</p></li>
-</ul>
 <h2 id="assembly-language-2">Assembly language</h2>
 <p>This section describes the syntax rules for assembly language</p>
 <h3 id="assembly-language-notation">Assembly language notation</h3>
@@ -7523,7 +6103,7 @@ y  data  $2c9e</code></pre>
 <li>The computer hardware can do arithmetic on data in registers, but it cannot do arithmetic on data in memory</li>
 <li>Therefore, to do arithmetic on variables, you must</li>
 </ul>
-<h3 id="a-useful-convention-1">A useful convention</h3>
+<h3 id="a-useful-convention">A useful convention</h3>
 <ul>
 <li><p>The instruction set is designed to be regular, and to follow consistent conventions</p>
 <ul>
@@ -7569,7 +6149,7 @@ RecordLoop
    p := p + RecordSize;
    goto recordLoop;
 RecordLoopDone</code></pre>
-<h3 id="assembly">Assembly</h3>
+<p>Assembly</p>
 <pre><code>    lea    R1,0[R0]                 ; sum := 0
     lea    R2,RecordArray[R0]       ; p := &amp;RecordArray;
     lea    R3,RecordArrayEnd[R0]    ; q := &amp;RecordArray;
@@ -7585,7 +6165,6 @@ RecordLoop
     add    R2,R2,R4                 ; p := p + RecordSize
     jump   RecordLoop[R0]           ; goto RecordLoop
 RecordLoopDone</code></pre>
-<h4 id="basic-types-and-statements">Basic types and statements}</h4>
 <h3 id="basic-expressions-and-statements">Basic expressions and statements</h3>
 <ul>
 <li><p>Expressions</p>
@@ -7611,7 +6190,7 @@ RecordLoopDone</code></pre>
 <li><p>jumpf </p></li>
 <li><p>Interface to operating system</p></li>
 </ul>
-<h3 id="relations-between-the-levels">Relations between the levels</h3>
+<p>Relations between the levels</p>
 <ul>
 <li>We could have completely separate high and low level languages</li>
 <li>Hypothesis: it’s better to allow mixing where the semantics is clear</li>
@@ -7633,7 +6212,7 @@ RecordLoopDone</code></pre>
 <li>Call stack, stack frame</li>
 <li><p>Static variables, local variables, heap variables</p></li>
 </ul>
-<h3 id="records-4">Records</h3>
+<h3 id="records-3">Records</h3>
 <pre><code>program Records
  { x, y :
      record
@@ -7657,7 +6236,7 @@ while p &lt; q do
   { *p.fieldA := *p.fieldB + *p.fieldC;
     sum := sum + *p.fieldA;
     p := p + RecordSize; }</code></pre>
-<h3 id="high-level-control-structures-1">High level control structures</h3>
+<h3 id="high-level-control-structures">High level control structures</h3>
 <ul>
 <li>if bexp then S
 <ul>
@@ -7676,7 +6255,7 @@ while p &lt; q do
 <li>if bexp then goto label</li>
 <li>if not bexp then goto label</li>
 </ul>
-<h3 id="compilation-patterns-4">Compilation patterns</h3>
+<h3 id="compilation-patterns-2">Compilation patterns</h3>
 <ul>
 <li>Each programming construct can be translated according to a standard pattern</li>
 <li><p>It’s useful to translate in two steps:</p></li>
@@ -7794,38 +6373,15 @@ ArrayMaxRun</code></pre>
 <p>Enter the directory and enter these commands:</p>
 <p>ghci :load ArrayMaxRun :main</p>
 <p>These will execute the ArrayMax program on the digital circuit, and that will produce a lot of detailed simulation output showing the values in key registers, flip flops, and signals.</p>
-<h1 id="computer-architecture">Computer architecture</h1>
-<p>An <em>instruction set architecture</em> is a precise specification of all aspects of a machine that are visible to a programmer. It includes a description of the registers, memory, data representations, and all the instructions, but does not include components of the implementation that are not visible to a machine language programmer.</p>
-<h2 id="overview-of-computer-architecture">Overview of computer architecture</h2>
-<h3 id="machine-language-and-instructions">Machine language and instructions</h3>
-<p>Very different from Python, Java, C, etc. The designer of a machine language has to `look both up and down’:</p>
-<ul>
-<li><p>Looking up to higher levels of abstraction, the machine language must be powerful enough to provide the foundation for operating systems and programming languages.</p></li>
-<li><p>Looking down to the lower levels of implementation, the machine language must be simple enough so that a digital circuit can execute it.</p></li>
-</ul>
-<p>Machine languages are designed to achieve high performance possible at reasonable cost. Their primary aim is not to make programming as easy as possible</p>
-<p>A machine language program consists of instructions. An instruction is analogous to a statement in a programming language. However, each instruction just performs a small fixed set of operations, while programming language statements can be complex. For example, the assignment statement x := 2 * (a + b/c) involves three arithmitic operations, and it would require at least three instructions to express in machine language.</p>
-<h2 id="relationship-between-machine-language-and-circuit">Relationship between machine language and circuit</h2>
-<h3 id="the-rtm-instructions">The RTM instructions</h3>
-<ul>
-<li><p>The RTM circuit can execute two instructions</p>
-<ul>
-<li>R2 := R1 + R0 ; add two registers and load result</li>
-<li>R1 := 8 ; load a constant</li>
-</ul></li>
-<li><p>We’ll begin with the corresponding Sigma16 instructions</p></li>
-</ul>
 <h1 id="installation">Installation</h1>
-<h2 id="browser-compatibility">Browser compatibility</h2>
 <p>The application currently works with Chrome and Firefox, and possible Edge.</p>
-<h2 id="where-to-find-the-software">Where to find the software</h2>
-<p>The software is available on the Internet at the <a href="https://jtod.github.io/Sigma16/">Sigma16 home page</a>, which contains a link to the latest version, some previous versions, related documents, and more information about the project.</p>
+<p>The software is available on the Internet at the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 home page</a>, which contains a link to the latest version, some previous versions, related documents, and more information about the project.</p>
 <h2 id="how-to-run-sigma16">How to run Sigma16</h2>
 <p>There are a number of ways to run the software, but it’s recommended that you try the easiest way.</p>
 <h3 id="the-easiest-way-just-click-a-link">The easiest way: just click a link</h3>
 <p>Run the app with two clicks:</p>
 <ol type="1">
-<li>Visit the <a href="https://jtod.github.io/Sigma16/index.html">Sigma16 homepage</a></li>
+<li>Visit the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 homepage</a></li>
 <li>Click on <em>Launch the latest release</em></li>
 </ol>
 <p>This will run the app in your browser, and you don’t need to download or install anything. For most users this is the recommended method.</p>

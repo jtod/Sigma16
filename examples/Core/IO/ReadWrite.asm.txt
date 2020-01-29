@@ -1,3 +1,5 @@
+; ReadWrite.  Sigma16/README.md, https://jtod.github.io/home/Sigma16/
+; Demonstrate input and output by reading a string and writig it
 
 ; Read up to 4 characters into str
         lea    R1,1[R0]       ; trap code for Read

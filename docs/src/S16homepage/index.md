@@ -23,7 +23,7 @@ and download the source code, see the [source
 repository](https://github.com/jtod/Sigma16).  You can't run the app
 directly from the source repository; you need this home page to launch
 it.  The [User
-Guide](https://jtod.github.io/home/Sigma16/dev/app/doc/html/userguide.html)
+Guide](https://jtod.github.io/home/Sigma16/dev/docs/html/userguide/userguide.html)
 includes documentation of the architecture, programming, and
 installation.
 
@@ -52,8 +52,7 @@ good vehicle for teaching and experimentation.
   circuit using the Hydra tools.
 
 * The User Guide is displayed in the running application, and you can
-  also [read it here](app/doc/html/userguide-index.html) without
-  launching the program.
+  also without launching the program (see link above).
 
 ## Running the app
 
@@ -95,7 +94,7 @@ software, and are not recommended for general use.
 
   * [Run the latest development version](./dev/app/Sigma16.html) This
     is a pre-release for the next version.  It is intended for
-    development only, may be unstable, and may not be suitable for
+    development only, may be unstable, and is not be suitable for
     general users.
 
   * [3.0.32](./releases/3.0.32/index.html) pre-release testing version

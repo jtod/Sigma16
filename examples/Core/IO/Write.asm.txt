@@ -1,4 +1,5 @@
-; Write character strings to standard output
+; Write.  See https://jtod.github.io/home/Sigma16/
+; Demonstrate output by writing several character strings
 
 ; Write str1
         lea    R1,2[R0]       ; trap code for Write
@@ -9,7 +10,7 @@
 ; Write str2
         lea    R1,2[R0]       ; trap code for Write
         lea    R2,str2[R0]    ; R3 := address of string str1
-        lea    R3,12[R0]       ; R2 := length of string = 9
+        lea    R3,12[R0]      ; R2 := length of string = 9
         trap   R1,R2,R3       ; write str1
 
         trap   R0,R0,R0       ; terminate

@@ -1,4 +1,5 @@
-; Program Subroutine
+; Subroutine.  See https://jtod.github.io/home/Sigma16/
+; Demonstrate call and return
 
 ; Small demonstration of calling a subroutine and returning from it.
 ; This is a minimal subroutine; there is no provision for saving

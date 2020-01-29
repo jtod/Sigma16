@@ -25,6 +25,17 @@
 // interface functios with the state, for example boot(emulatorState).
 
 
+let highlightedRegisters = [];
+
+// Update the display of all registers and memory (all of memory)
+function displayFullState () {
+    console.log ('displayFullState');
+    clearRegisterHighlighting ();
+    refreshRegisters ();
+    memClearAccesses ();
+    memDisplayFull ();
+}
+
 //------------------------------------------------------------------------------
 // Emulator state
 //------------------------------------------------------------------------------
@@ -299,8 +310,6 @@ function mkReg0 (rn,eltName,showfcn) {
     return r;
 }
 
-
-
 function regShowAccesses () {
     let i, r;
     for (i = 0; i < regFetched.length; i++) {
@@ -345,7 +354,16 @@ function refreshRegisters() {
     ir.refresh();
     adr.refresh();
     dat.refresh();
-    spc.refresh();
+    statusreg.refresh();
+    mask.refresh();
+    req.refresh();
+    istat.refresh();
+    ipc.refresh();
+    vect.refresh();
+    bpseg.refresh();
+    epseg.refresh();
+    bdseg.refresh();
+    edseg.refresh();
     highlightedRegisters = [];
 }
 
@@ -626,7 +644,6 @@ function memDisplayFast () {
 //    xs = "<pre><code class='HighlightedTextAsHtml'>"
 //	+ memString.join('\n')
 //	+ "</code></pre>";
-
 
 function memDisplayFull () {
     let xs;                 // display text

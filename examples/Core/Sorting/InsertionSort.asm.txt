@@ -1,6 +1,5 @@
-; Program InsertionSort
-; Sigma16 assembly language
-; John O'Donnell, 2015
+; InsertionSort.  See Sigma16/README.md, https://jtod.github.io/home/Sigma16/
+; Illustrate translation of high level algorithm to assembly language
 
 ; Statement of the problem
 ;

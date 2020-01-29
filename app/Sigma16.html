@@ -66,7 +66,6 @@ visiting this file in a browser.
 	<button onclick="linker_pane_button()"> Linker </button>
 	<button onclick="processor_pane_button()"> Processor </button>
 
-	<button class="RightButton" onclick="appQuit()">Quit</button>
 	<button class="RightButton" onclick="user_guide_resize(20)">
 	  &#x27f9;
 	</button>
@@ -243,14 +242,14 @@ visiting this file in a browser.
 		      <div class="NewRegSecName">Segment</div>
 		      <div class="RegisterName">seg</div>
 		      <div class="RegisterValue" id="sEnableElt"></div>
-		      <div class="RegisterName">progBeg</div>
-		      <div class="RegisterValue" id="sProgBeg">0000</div>
-		      <div class="RegisterName">progEnd</div>
-		      <div class="RegisterValue" id="sProgEnd">ffff</div>
-		      <div class="RegisterName">dataBeg</div>
-		      <div class="RegisterValue" id="sDat">0000</div>
-		      <div class="RegisterName">dataEnd</div>
-		      <div class="RegisterValue" id="sDatEndElt">ffff</div>
+		      <div class="RegisterName">bpseg</div>
+		      <div class="RegisterValue" id="bpsegElt">0000</div>
+		      <div class="RegisterName">epseg</div>
+		      <div class="RegisterValue" id="epsegElt">ffff</div>
+		      <div class="RegisterName">bdseg</div>
+		      <div class="RegisterValue" id="bdsegElt">0000</div>
+		      <div class="RegisterName">edseg</div>
+		      <div class="RegisterValue" id="edsegElt">ffff</div>
 		    </div>
 		  </div>
 		  <div class="ProcStateSection" id="RegisterFile">

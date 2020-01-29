@@ -474,6 +474,7 @@ function instructionLooper (es) {
 	    // should not highlight fetch pc ???
 	    console.log ("Breakpoint");
 	    setProcStatus (es,"Break");
+            displayFullState();
 	}
 	setTimeout (function () {instructionLooper(es)});
     }
@@ -718,17 +719,18 @@ const crrdc = (f) => (es) => {
 }
 
 const op_trap = (es) => {
-    let d = regFile[es.ir_d].get();
-    let a = regFile[es.ir_a].get();
-    let b = regFile[es.ir_b].get();
-    console.log (`trap ${d} ${a} ${b}`);
-    if (d===0) { // Halt
+    let code = regFile[es.ir_d].get();
+    console.log (`trap code=${code}`);
+    if (code===0) { // Halt
 	console.log ("Trap: halt");
 	setProcStatus (es,"Halted");
-    } else if (d==1) { // Read
-	trapRead(es,a,b);
-    } else if (d==2) { // Write
-	trapWrite(es,a,b);
+        displayFullState();
+    } else if (code==1) { // Read
+        //	trapRead(es,a,b);
+        trapRead(es);
+    } else if (code==2) { // Write
+        //	trapWrite(es,a,b);
+        trapWrite(es);
     } else { // Undefined trap is nop
     }
 }
@@ -740,11 +742,15 @@ const op_trap = (es) => {
 // characters are removed from the input buffer.  The user types input
 // into the IOinputBuffer, and the input operation obtains up to b
 // characters, stores them into memory starting from location a, and
-// removes those characters from IOinputBuffer.
+// removes those characters from IOinputBuffer.  Two registers are
+// updated: Ra := address just after last word stored, Rb := numbr of
+// characters (words) read.
 
-function trapRead (es,a,b) {
+function trapRead (es) {
     let inputElt = document.getElementById("IOinputBuffer")
     let xs = inputElt.value;
+    let a = regFile[es.ir_a].get(); // buffer address
+    let b = regFile[es.ir_b].get(); // buffer size
     let n = xs.length; // number of chars available in buffer
     let m = n <= b ? n : b; // number of chars actually input
     let xs2 = xs.substring (m,n); // excess chars from input window are not used
@@ -760,13 +766,17 @@ function trapRead (es,a,b) {
 	console.log (`Read: mem[${a}] := ${charcode}`);
 	a++;
     }
+    regFile[es.ir_a].put(a); // just after last address stored
+    regFile[es.ir_b].put(m); // number of chars actually input
     ioLogBuffer += highlightField(ys,"READ");   // display chars that were read
     refreshIOlogBuffer ();
     inputElt.value = xs2; // leave unread characters in input buffer
 }
 
 // Write b characters starting from address a
-function trapWrite (es,a,b) {
+function trapWrite (es) {
+    let a = regFile[es.ir_a].get(); // buffer address
+    let b = regFile[es.ir_b].get(); // buffer size
     let xs = "";
     for (let i = 0; i<b; i++) {
 	xs += String.fromCharCode(memFetchData(a));

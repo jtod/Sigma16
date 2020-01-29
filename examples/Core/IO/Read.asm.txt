@@ -23,7 +23,10 @@
 
 ; Try running the program with input shorter than the buffer size
 ; (e.g. "dog") and again with input longer than the buffer size
-; ("elephant").
+; ("elephant").  Check the results in three places: (1) the input has
+; been stored into memory; (2) the registers R2, R3 have been updated
+; to indicate how much was read; (3) the characters that were read
+; have moved from the input buffer to the I/O log.
 
      lea   R1,1[R0]         ; trap code for non-blocking read
      lea   R2,buffer[R0]    ; array to store input data

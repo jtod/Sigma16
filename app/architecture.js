@@ -88,7 +88,7 @@ const NOOPERAND   = 22;    // statement has no operand
 function showFormat (n) {
     let f = ['RRR','RR','RX', 'KX', 'JX','EXP0', 'RREXP', 'RRREXP', 'RRKEXP',
              'RRKKEXP', 'RRXEXP', 'RCEXP', 'DATA','COMMENT',
-             'DirModule', 'DirImport', 'DirOrg', 'DirEqu',
+             'DirModule', 'DirImport', 'DirExport', 'DirOrg', 'DirEqu',
              'UNKNOWN', 'EMPTY'] [n];
     let r = f ? f : 'UNKNOWN';
     return r;
@@ -212,6 +212,7 @@ statementSpec.set("execute",  {format:RREXP,     opcode:[14,21]});
 statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,22]});
 
 // Assembler directives
+statementSpec.set("data",    {format:DATA,       opcode:[]});
 statementSpec.set("module",  {format:DirModule,  opcode:[]});
 statementSpec.set("import",  {format:DirImport,  opcode:[]});
 statementSpec.set("export",  {format:DirExport,  opcode:[]});

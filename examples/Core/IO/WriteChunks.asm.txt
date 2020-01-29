@@ -1,4 +1,4 @@
-; WriteChunks
+; WriteChunks.  See Sigma16/README.md, https://jtod.github.io/home/Sigma16/
 ; Write several short strings on the same output line
 
         lea    R1,2[R0]       ; trap code for Write

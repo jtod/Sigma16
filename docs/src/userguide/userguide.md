@@ -4292,212 +4292,7 @@ The last instruction should be
 
 This tells the computer to halt; it stops execution of the program
 
-
-
-### Compiling
-
-
- *  The computer cannot execute programs in a high level language
- *  Therfore we must \emph{translate} a program into assembly
-  language
- *  {\color{blue}Translating from a high level programming language
-  to assembly language is called} \alert{compiling}
- *  This is done by software called a \alert{compiler}: it reads in
-  a program in e.g. C++ and translates it to assembly language
- *  There are many benefits of using compilers
-  
-   *  We can have many compilers, one for each language, so a
-    computer can run programs in \emph{many} languages
-   *  The compilers can make programming easier: good error
-    messages, etc.
-   *  Languages can be designed to fit well for different purposes
-  
- *  For each type of high level language construct, we will
-  translate to assembly language following a standard pattern
-
-
-
-
-#### High level constructs
-
-Control constructs determine the order of execution of statements.
-Some high level control constructs are  
-    
-* if b then S
-* if b then S1 else S2
-* while b do S
-* for var := expr1 to expr2 do S
-* procedure
-    
-These are implemented using just a couple of low level control
-constructs
-    
-* goto L 
-* if b then goto L
-  
-
-### Statements
-
-A program contains
-
- *  Statements that perform calculations
-  
-   *  Assignment statements
-  
- *  Statements that determine what order the calculations occur in
-  
-   *  Conditionals: if---then---else
-   *  Loops: while, repeat, for
-   *  Structuring computation: functions, procedures,
-    coroutines, recursion
-  
- *  These are called \alert{control structures}
-
-
-
-
-
-### High level control structures
-
-
- *  Notation
-  
-   *  $S$, $S_1$, $S_2$, etc. means ``any statement'' (e.g. an
-    assignment statement)
-   *  $bexp$ means any Boolean expression (an expression that is either
-    True or False).  Examples \texttt{x>3}
-  
- *  \textbf{Block.} We can treat several consecutive statements as
-  just a single statement: \alert{$\{ S_1; S_2; S_3; \}$}
- *  \textbf{if-then.}  \alert{\texttt{if bexp then S;}}
- *  \textbf{if-then-else.} \alert{\texttt{if bexp then $S_1$ else
-      $S_2$;}}
- *  \textbf{while-loop.} \alert{\texttt{while bexp do $S$}}
- *  And there are many more
-
-
-
-
-#### Low level constructs
-
-
-### Low level constructs
-
-
- *  Assignment statements:  \alert{x := a * 2}
- *  Goto:   \alert{goto computeTotal}
- *  Conditional:  \alert{if $x<y$ then goto loop}
- *  First we translate high level constructs into these low level
-  statements
- *  Then translate the low level statements into assembly language
-
-
-
-### The Goto statement
-
-~~~~
-        S;
-loop:   S;
-        S;
-        S;
-        goto loop;
-~~~~
-
-
- *  Many (not all) programming languages have a \alert{goto}
-  statement
- *  Any statement may have a \alert{label} (for example ``loop'')
- *  Normally execution proceeds from one statement to the next, on
-  and on
- *  A \alert{goto L} transfers control to the statement with label L
-
-
-
-
-
-### Using the goto statement
-
-
- *  The first programming language (Fortran, 1955) didn't have fancy
-  control structures --- you had to do nearly everything with goto
- *  But goto leads to unreadable programs and unreliable software
- *  The modern view:
-  
-   *  In a high level language, \alert{you should \emph{not} use
-      goto}
-   *  For low level programming --- like assembly language --- the
-    goto serves as the \alert{foundation} for implementing the higher
-    level control statements
-  
- *  We will use two forms:
-  
-   *  goto L
-   *  if b then goto L
-  
-
-
-
-
-
-### The conditional goto statement
-
-
- *  if bexp then goto label
- *  bexp is a Boolean expression: $x<y$, $j=k$, $abc>def$
- *  If the bexp is True the statement goes to the label
- *  Otherwise we just move on the the next statement
- *  \important{The only thing you can put after \bluetext{then} is a
-    \bluetext{goto} statement}
-
-
-
-
-### Jumping and comparing
-
-#### Unconditional jump
-
-
-### Jumping
-
-
- *  The foundation of control structures is \alert{jump}
-  instructions
- *  \alert{Jumping} is the machine language equivalent of
-  \alert{goto}
- *  An instruction may have a \emph{label}
- *  The label is a name, starting with a letter, and must appear
-  starting in the first character of a line
- *  The unconditional instruction \alert{jump loop[R0]} means
-  \alert{goto loop}
-
-
-
-
-#### Comparison instructions
-
-
-### Comparison instruction: Boolean form
-
-
-   *  cmplt R2,R5,R8
-   *  Means ``compare for Less Than''
-   *  The operands are compared: R5 $<$ R8
-   *  This gives a Boolean, 0 (for False) or 1 (for True)
-   *  That Boolean result is loaded into the destination R2
-   *  There are three of these instructions
-    
-     *  cmplt --- compare for Less Than
-     *  cmpeq --- compare for Equal
-     *  cmpgt --- compare for Greater Than
-    
-  
-
-
-#### Conditional jumps
-
-
-### Conditional jumps: Boolean decision
-
+### Conditional jumps
 
  *  There are two instructions: you can jump if a Boolean is False
   or True
@@ -4514,11 +4309,6 @@ loop:   S;
    *  Any number other than 0 means True, so this means if R5 $\neq$
     0 then goto banana
   
-
-
-
-
-### Compilation patterns
 
 ### Compilation patterns
 
@@ -4544,11 +4334,7 @@ loop:   S;
    *  This approach clarifies how the algorithm works
   
 
-
-
-
-
-### Compiling an assignment statement
+#### Compiling an assignment statement
 
 Load the operands; do calculations; store results
 
@@ -4562,26 +4348,6 @@ Load the operands; do calculations; store results
    store R4,x[R0]   ; x := a+(b*c)
 ~~~~
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### Variable names and addresses
 
 
@@ -4591,8 +4357,6 @@ Load the operands; do calculations; store results
   23
  *  \alert{The data statements should come after the trap
     instruction that terminates the program}
-
-
 
 
 
@@ -4620,13 +4384,8 @@ Load the operands; do calculations; store results
   
 
 
-
 ### How the assembler allocates memory
 
-
-### How the assembler allocates memory}
-
-\begin{enumerate}
  *  The assembler maintains a variable called the \important{location
     counter}.  This is the address where it will place the next piece
   of code.
@@ -4646,10 +4405,6 @@ Load the operands; do calculations; store results
   If there is a reference to a label that appears farther on
   (e.g. load x, or jump loop) it looks up the value of the label in
   the symbol table.
-\end{enumerate}
-
-
-
 
 ### Program structure
 
@@ -4669,10 +4424,6 @@ Load the operands; do calculations; store results
     pass generates the machine language code
    *  The computer will start executing at memory address 0, so
     there had better be in instruction there, not data!
-  
-
-
-
 
 ### Example program Add
 
@@ -4720,19 +4471,11 @@ z     data  99
   \hline
 \end{tabular}
 
-
-
-
-
-
-
-
-
 ## Programming tips
 
 Standard idioms for common programming problems  
 
-### A useful convention
+A useful convention
 
 
  *  The instruction set is designed to be regular, and to follow
@@ -4757,11 +4500,7 @@ Standard idioms for common programming problems
    *  Why?  Doing it this way makes the digital circuit (the
     processor) a little bit faster
   
-
-
-
 ### Programming tip: Copying one register to another
-
 
  *  Here's a useful tip --- a standard programming technique
  *  Sometimes you want to copy a value from one register to another
@@ -4776,9 +4515,7 @@ Standard idioms for common programming problems
  *  Why do it this way?  \emph{It's actually more efficient than
     providing a separate instruction just to copy the register!}
 
-
 ### Using load and store
-
 
  *  A common error is to confuse load and store
  *  The main points to remember:
@@ -4796,14 +4533,8 @@ Standard idioms for common programming problems
      *  Copy the result from registers back to memory
       (\alert{store})
     \end{enumerate}
-  
-
-
-
 
 ### Compilation patterns
-
-
 
  *  We have looked at several high level programming constructs
   
@@ -4816,12 +4547,9 @@ Standard idioms for common programming problems
   assignment, goto \emph{L}, if \emph{b} then goto \emph{L}
  *  The low level statements correspond closely to instructions
 
-
-
-### Follow the patterns!
+Follow the patterns!
 
 You should use these patterns as you write your programs because
-
 
  *  This helps you understand \emph{precisely} what high level
   language constructs mean---this is one of the aims of the course.
@@ -4840,9 +4568,7 @@ You should use these patterns as you write your programs because
  *  \alert{Experienced programmers recognise the patterns, so if you
     use them your code is easier to read and debug and maintain}
 
-
 ### How can you tell if you're using the pattern?
-
 
  *  Each pattern contains
   
@@ -4857,8 +4583,6 @@ You should use these patterns as you write your programs because
    *  There should be one comparison, one conditional jump at the
     start of the loop
    *  There should be one unconditional jump at the end of the loop
-  
-
 
 ### Are you using the pattern?
 
@@ -4887,9 +4611,7 @@ You should use these patterns as you write your programs because
   start of the loop
  *  There should be one unconditional jump at the end of the loop
 
-
-### Can you gain efficiency by violating the pattern?
-
+Can you gain efficiency by violating the pattern?
 
  *  No!  Example: avoid the cost of jumping to a test that jumps out
   of the loop by transforming the while loop to\\
@@ -4908,10 +4630,7 @@ You should use these patterns as you write your programs because
    *  And when you do this in a large program it becomes incomprehensible
    *  \alert{Aim for readability and correctness}
   
-
-
 ### Comments
-
 
  *  Initial comments to identify the program, author, date
  *  Early comments to say what the program does
@@ -4925,12 +4644,8 @@ You should use these patterns as you write your programs because
    *  In the second copy, insert the assembly language code
    *  Every low level statement should appear as a comment in the
     assembly code
-  
 
-
-
-### Write the comments first!
-
+Write the comments first!
 
  *  The program development methodology entails writing the comments
   \emph{first}
@@ -4939,57 +4654,10 @@ You should use these patterns as you write your programs because
  *  The comments, the high and low level algorithms, \emph{help you
     to get it correct!}
 
-
-### Why is goto controversial?
-
-
- *  If you develop code randomly, with goto jumping all over the
-  place, the program is hard to understand, unlikely to work, and
-  difficult to debug
- *  This has given the goto statement a bad reputation
- *  But goto is \emph{essential} for a compiler because it's
-  essentially the jump instruction
- *  The compilation patterns provide a \emph{safe} and
-  \emph{systematic} way to introduce goto into a program
- *  But if you ignore the patterns, you lose these advantages
- *  \important{Unstructured goto leads to complicated code}
-
-
-
-  \includegraphics[scale=0.35,clip=true]
-    {../figures/jpg/am_i_a_horse.jpg}
-
-
-### Goto considered harmful: \emph{CACM} \textbf{11}(3), March 1968}
-
-
-  \includegraphics[scale=0.5,clip=true]
-    {../figures/png/goto_considered_harmful.png}
-
-
-
-### What happened next?
-
-
- *  Considered harmful
-  
-   *  Dozens (hundreds?) of \emph{X considered harmful} essays
-  
- *  Goto elimination
-  
-   *  Theorem: \emph{every} program using goto can be expressed
-    without goto, using while and if-then-else
-  
- *  Structured programming
-  
-   *  A positive, effective way to develop programs (instead of
-    focusing on eliminating goto)
   
 
 
 ## Records
-
-### Records}
 
 A \alert{record} contains several \alert{fields}.  Access a field with
 the dot (.) operator
@@ -5009,7 +4677,7 @@ the dot (.) operator
 (Some programming languages call it a \alert{tuple} or
 \alert{struct}.)
 
-### Defining some records
+Defining some records
 
 ~~~~
 ; Data definitions
@@ -5027,7 +4695,7 @@ y_fieldB   data  21    ; offset 1 from y  &y_fieldB = &y + 1
 y_fieldC   data  22    ; offset 2 from y  &y_fieldC = &y + 2
 ~~~~
   
-### Naming each field explicitly
+Naming each field explicitly
 
 ~~~~
 ; ------------------------------------------------------------
@@ -5045,7 +4713,7 @@ y_fieldC   data  22    ; offset 2 from y  &y_fieldC = &y + 2
 
 This is awkward---but there's a better way!
 
-### Pointers
+## Pointers
 
 So far, we have been finding a piece of data by giving it a label
 
@@ -5090,10 +4758,7 @@ operator to any pointer.
    *  \alert{y := *p} \emph{follows the pointer} p, gets the value
     (which is x) and stores that in y
 
-
-
-
-### The \& operator requires only one instruction: lea!
+### The & operator requires only one instruction: lea!
 
 ~~~~
      lea   R5,x[R0]    ; R5 := &x
@@ -5121,14 +4786,11 @@ We have now seen two ways to use lea:
  *  To create a pointer: lea R2,x[R0] ; R2 := \&x
  *  lea can do more, too --- can you figure out what?
 
-
 And there are several ways to use load:
 
  *  To load a variable into a register: load R3,x[R0] ; R3 := x
  *  To access an array element: load R4,a[R5] ; R4 := a[R5]
  *  To follow a pointer: load R6,0[R7] ; R6 := *R7
-
-
 
 ### Following a pointer to the address of x gives x}
 
@@ -5142,7 +4804,6 @@ The value of \texttt{*(\&x)} is just \texttt{x}!
 
    load   R6,x[R0]    ; R6 := x
 ~~~~
-
 
 ### Review: accessing a variable the ordinary way
 
@@ -5184,8 +4845,7 @@ The value of \texttt{*(\&x)} is just \texttt{x}!
 
 Equivalent to \texttt{*(\&x) := *(\&x) + 5}
 
-
-### Why is the pointer helpful?
+Why is the pointer helpful?
 
 
  *  We can write a block of code that accesses variables through
@@ -5193,8 +4853,6 @@ Equivalent to \texttt{*(\&x) := *(\&x) + 5}
  *  This can be \emph{reused}, by executing it with the pointer set
   to point to different data.
  *  Later, we'll see additional benefits of using pointers.
-
-
 
 ### Access a record using a pointer
 
@@ -5211,9 +4869,7 @@ Equivalent to \texttt{*(\&x) := *(\&x) + 5}
     store  R1,0[R3]    ; *R3.fieldA := (*R3).fieldB + (*R3).fieldC
 ~~~~
 
-
 ## Requests to the Operating System
-
 
  *  Many operations cannot be performed directly by a user program
   because
@@ -5229,9 +4885,7 @@ Equivalent to \texttt{*(\&x) := *(\&x) + 5}
   have to give the address to jump to)
  *  We use pointers to tell the operating system what to do
 
-
-### Typical OS requests
-
+Typical OS requests
 
  *  The type of request is a number, placed in R1, and operands (if
   any) are in R2, R3
@@ -5245,11 +4899,8 @@ Equivalent to \texttt{*(\&x) := *(\&x) + 5}
      *  Read from a file
      *  Write to a file
      *  Allocate a block of memory
-  
-
 
 ### Termination
-
 
  *  A program cannot stop the machine; it requests the operating
   system to terminate it
@@ -5258,9 +4909,7 @@ Equivalent to \texttt{*(\&x) := *(\&x) + 5}
   program
  *  In Sigma16, you request termination by \texttt{trap R0,R0,R0}
 
-
 ### Character strings: pointer to array of characters
-
 
  *  A string like \texttt{The cat in the hat} is represented as an
   array of characters
@@ -5268,12 +4917,9 @@ Equivalent to \texttt{*(\&x) := *(\&x) + 5}
  *  If you are writing a string to output, the last character of the
   string should be a ``newline character''
 
-
-
-### Write operation on Sigma16}
+### Write operation on Sigma16
 
 To write a string of characters
-
 
  *  trap R1,R2,R3
  *  R1 --- 2 is the code that indicates a write request
@@ -5282,14 +4928,11 @@ To write a string of characters
   character)
  *  See example program Write.asm.txt
 
-
-
-### Writing a string}
+Writing a string
 
 To write a string named \stress{out}, we use (1) lea to load a
 constant, (2) lea to load the address of an array, (3) load to get a
 variable
-
 
 ~~~~
 ; write out (size = k)
@@ -5308,10 +4951,8 @@ animal
      data  116   ; character code for 't'
      data   10   ; character code for newline
 ~~~~
-}
 
 ## Procedures
-
 
  *  Often there is a sequence of instructions that comes up again
   and again
@@ -5329,8 +4970,6 @@ animal
  *  The aim: \alert{write it once} and \alert{reuse the same
     instructions many times}
 
-
-
  *  Write the code \alert{one time} --- the block of code is called
   a procedure (or subroutine, function)
  *  Put the instructions off by themselves somewhere, not in the
@@ -5343,17 +4982,14 @@ animal
     go back to the instruction \emph{\textbf{after}} the one that
     jumped to it}
 
-
 ### Call and return
-
 
  *  One idea is just to use jump instructions for both call and
   return
  *  But that isn't actually sufficient --- let's look in more detail
   at what happens
 
-
-### Returning to the instruction after the call
+Returning to the instruction after the call
 
 
  *  Suppose a procedure named {\color{blue}dowork} is used in
@@ -5364,8 +5000,7 @@ animal
  *  Therefore the procedure must finish by \alert{returning to
     different places}
 
-
-### Calling and returning
+Calling and returning
 
 Here is a main program that calls a procedure ``dowork'' several
 times.  (It takes the value in R1 and doubles it, and the main program
@@ -5395,18 +5030,7 @@ dowork &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){add};}
 \alert{The return must go to different points in the program---how can
   it do that?}
 
-\tikz[overlay]\draw<2->[thick,red,->]
-   (call1) to [out=180, in=175] (entry.west);
-\tikz[overlay]\draw<3->[thick,blue,->]
-   (return.east) to [out=10, in=0] (ret1.east);
-\tikz[overlay]\draw<4->[thick,red,->]
-   (call2) to [out=2000, in=150] (entry.north west);
-\tikz[overlay]\draw<5->[thick,blue,->]
-   (return.north east) to [out=45, in=0] (ret2.east);
-
-
 ### The jump-and-link instruction: jal
-
 
  *  When the main program calls the subroutine, it needs to
   \alert{remember where the call came from}
@@ -5418,14 +5042,11 @@ dowork &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){add};}
     the return address --- is loaded into the destination register
     (e.g. R5)
    *  Then the machine jumps to the effective address
-  
 
-
-### Jumping
+Jumping
 
 All jump instructions (jump, jal, jumplt, etc.) refer to
 \alert{effective addresses}
-
 
  *  jump \alert{loop[R0]} \\
   {\color{blue} goto loop}
@@ -5434,9 +5055,7 @@ All jump instructions (jump, jal, jumplt, etc.) refer to
  *  jump \alert{const[R2]} \\
   {\color{blue} goto instruction whose address is const+R2}
 
-
-### Implementing call and return
-
+Implementing call and return
 
  *  To call a procedure \texttt{dowork}: \alert{jal R13,dowork[R0]}
   
@@ -5451,8 +5070,6 @@ All jump instructions (jump, jal, jumplt, etc.) refer to
     after the jal
    *  The program jumps there and the main program resumes
   
-
-
 ### Calling with jal and returning with jump
 
 \begin{tabular}{llll}\large
@@ -5491,7 +5108,6 @@ dowork &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){add};}
 
 ### Parameter passage
 
-
  *  There are several different conventions for passing argument to
   the function, and passing the result back
  *  What is important is that the caller and the procedure agree on
@@ -5505,9 +5121,7 @@ dowork &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){add};}
  *  A simple convention: \alert{the argument and result are passed
     in R1}
 
-
 ### Functions
-
 
  *  A \alert{function} is a procedure that
   
@@ -5519,9 +5133,7 @@ dowork &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){add};}
   else --- it doesn't change any global variables, or do any
   input/output
 
-
-
-### Example: Passing argument and result in R1
+Example: Passing argument and result in R1
 
 ~~~~
 ; Main program
@@ -5540,20 +5152,14 @@ work   lea   R2,7[R0]       ; R7 = 2
        jump  0[R13]         ; return
 ~~~~
   
-### Procedure calls another procedure
-
 ### What if a procedure calls another procedure?
-
   
    *  The simplest kind of procedure
     
      *  Call it with \texttt{jal R13,procname[R0]}
      *  It returns by executing \texttt{jump 0[R13]}
-    
-  
 
-### Limitations of basic call
-
+Limitations of basic call
 
    *  If the procedure modifies any registers, it may destroy
     data belonging to the caller
@@ -5564,7 +5170,6 @@ work   lea   R2,7[R0]       ; R7 = 2
    *  The basic call mechanism doesn't allow a procedure to call
     itself (this is called \alert{recursion})
   
-
 ### R13 overwritten: proc1 returns to the wrong place!
 
 \begin{tabular}{llll}\large
@@ -5614,10 +5219,8 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
    (return1.east) to [out=45, in=0] (ret1.east);
 
 \end{tabular}
- 
 
 ### Saving state
-
 
  *  Calling a procedure creates new information
   
@@ -5629,9 +5232,7 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
  *  We need to \alert{save the caller's state} so the procedure
   won't destroy it
 
-
-### The wrong way to save state
-
+The wrong way to save state
 
  *  Suppose we just have a variable saveRetAdr
  *  Store R13 into it in the procedure, load that when we return
@@ -5640,9 +5241,7 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
   doesn't work!
  *  The solution: a \alert{stack}
 
-
-### Saving registers
-
+Saving registers
 
  *  Most procedures need to use several registers
  *  It's nearly impossible to do \emph{anything} without using some
@@ -5654,9 +5253,7 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
   the registers} by copying their values back from memory (with load
   instructions).
 
-
-### Where can the registers be saved?
-
+Where can the registers be saved?
 
  *  It won't work to copy data from some of the registers to other
   registers!
@@ -5669,10 +5266,7 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
     onto the stack --- this is the best approach and is used by most
     programming languages
   
-
-
-### Who saves the state: the caller or the procedure?
-
+Who saves the state: the caller or the procedure?
 
    *  Two approaches:
    *  Caller saves (used occasionally)
@@ -5690,11 +5284,8 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
       registers it needs to use into memory
      *  Just before returning, the procedure restores the
       registers by loading the data from memory
-    
-  
 
 ### Stack of return addresses
-
 
  *  To allow a large number of procedures, we can't dedicate a
   specific register to each one for its return address
@@ -5709,10 +5300,7 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
    *  The return addresses are pushed onto a \emph{stack}, rather
     than being stored at a fixed address
   
-
-
 ## Stacks
-
 
  *  A \alert{stack} is a container
  *  Initially it is empty
@@ -5725,79 +5313,33 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
  *  We can save procedure return addresses on a stack because return
     always needs the most recently saved return address
 
+Initially the stack is empty
 
-### Initially the stack is empty}
+Call procedure, push return address a
 
+  a
 
-\begin{tabular}{|c|}
-   \\
-   \\
-   \\
-\hline
-\end{tabular}
+Call another procedure, push return address b
 
+  b
+  a
 
+Return: pop produces return address b
 
-### Call procedure, push return address $a$
+  a
 
+Call some procedure, push return address c
 
-\begin{tabular}{|c|}
-   \\
-   \\
-  $a$\\
-\hline
-\end{tabular}
+  c
+  a
 
+Call a procedure, push return address d
 
-
-### Call another procedure, push return address $b$
-
-
-\begin{tabular}{|c|}
-   \\
-  $b$\\
-  $a$\\
-\hline
-\end{tabular}
-
-
-
-### Return: pop produces return address $b$
-
-
-\begin{tabular}{|c|}
-   \\
-   \\
-  $a$\\
-\hline
-\end{tabular}
-
-
-### Call some procedure, push return address $c$
-
-
-\begin{tabular}{|c|}
-   \\
-  $c$\\
-  $a$\\
-\hline
-\end{tabular}
-
-
-
-### Call a procedure, push return address $d$
-
-
-\begin{tabular}{|c|}
-  $d$\\
-  $c$\\
-  $a$\\
-\hline
-\end{tabular}
-
+  d
+  c
+  a
 
 ### The call stack
-
 
  *  Central technique for
   
@@ -5815,12 +5357,8 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
    *  Most programming languages use it
    *  Computers are designed to support it
    *  Often referred to (Stack Overflow web site, etc.)
-  
 
-
-
-### Stack frames
-
+Stack frames
 
  *  There is a \alert{call stack} or \alert{execution stack} that
   maintains complete information about all procedure calls and returns
@@ -5838,10 +5376,7 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
    *  Local variables (so the procedure can have some memory of its
     own to use)
   
-
-
-### Implementing the call stack
-
+Implementing the call stack
 
  *  Dedicate R14 to the \alert{stack pointer}
  *  This is a programming convention, not a hardware feature
@@ -5853,13 +5388,9 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
   state: subtract 1, load from 0[R14]
  *  The program should never modify R14 apart from the push and pop
 
-
-
 ## Retrospective
 
-
-### What is a computer program?
-
+What is a computer program?
 
  *  A beginner's view
   
@@ -5881,13 +5412,8 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
   
    *  Source code and object code
    *  Compile time and run time
-  
 
-
-
-
-### What is a variable?
-
+What is a variable?
 
  *  Beginner's view
   
@@ -5907,10 +5433,7 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
    *  Initialising a variable is not the same as assigning a value
     to it
   
-
-
 ### Review of procedures: Call with jal, return with jump
-
 
  *  To call a procedure \texttt{dowork}: \alert{jal R13,dowork[R0]}
   
@@ -5924,21 +5447,15 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
    *  The effective address is 0 + the address of the instruction
     after the jal
    *  The program jumps there and the main program resumes
-  
 
-
-### Review: Basic calls with jal
-
+Review: Basic calls with jal
   
    *  The simplest kind of procedure
     
      *  Call it with \texttt{jal R13,procname[R0]}
      *  It returns by executing \texttt{jump 0[R13]}
     
-  
-
 ### Review: Activation records, a.k.a. stack frames
-
 
  *  There is a \alert{call stack} or \alert{execution stack} that
   maintains complete information about all procedure calls and returns
@@ -5955,124 +5472,13 @@ square &\tikz[baseline, inner sep=0]{\node[anchor=base](entry){mul};}
     without destroying information)
    *  Local variables (so the procedure can have some memory of its
     own to use)
-  
-
-
-### Review: Sequence of stack operations
-
-
-\hbox{
-\begin{tabular}{|c|}
-  \\
-  \hline
-  \\
-  \hline
-  \\
-  \hline
-  \phantom{a}\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  \\
-  \hline
-  \\
-  \hline
-  \\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  \\
-  \hline
-  \\
-  \hline
-  b\\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  \\
-  \hline
-  c\\
-  \hline
-  b\\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  \\
-  \hline
-  \\
-  \hline
-  b\\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  \\
-  \hline
-  d\\
-  \hline
-  b\\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  e\\
-  \hline
-  d\\
-  \hline
-  b\\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  \\
-  \hline
-  d\\
-  \hline
-  b\\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-\hspace{3ex}
-\begin{tabular}{|c|}
-  \\
-  \hline
-  \\
-  \hline
-  b\\
-  \hline
-  a\\
-  \hline
-\end{tabular}
-}
-
 
 empty; push a; push b, push c, pop returns c, push d, push e, pop
 returns e, pop returns d, $\ldots$
 
-  
-
-
 ## Linked lists
 
-
-### Review of pointers
+Review of pointers
 
 
  *  p := \&x  \qquad p is a pointer to x
@@ -6084,9 +5490,7 @@ returns e, pop returns d, $\ldots$
     load   R6,0[R5]   ; R6 := *R5
 ~~~~
 
-
-### Nodes
-
+Nodes
 
  *  A linked list consists of a linear chain of \emph{nodes}
  *  A node is a \alert{record with two fields}
@@ -6103,51 +5507,16 @@ returns e, pop returns d, $\ldots$
   memory location 0, but normally that's where the program will be so
   you wouldn't want that anyway)
 
-
-### Accessing the fields of a node
-
+Accessing the fields of a node
 
  *  Suppose p is a pointer to a node
  *  load  R1,p[R0]  ; R1 := p
  *  load  R2,0[R1]  ; R2 := (*p).value
  *  load  R3,1[R1]  ; R3 := (*p).next
 
+Representing a linked list
 
-### Representing a linked list
-
-\begin{tabular}{r|c|c|c|}
-  & a & mem[a] & mem[a+1] \\
-\hline
-  & 0 & &   \\
-  & 1 & &   \\
-  & \tikz[baseline, inner sep=0]{\node[anchor=base](addr2){2};}
-      &37
-      &\tikz[baseline, inner sep=0]{\node[anchor=base](ptr2){6};} \\
-  & \tikz[baseline, inner sep=0]{\node[anchor=base](addr3){3};}
-      &42
-      & 0 \\
-  & 4 & &   \\
-p & \tikz[baseline, inner sep=0]{\node[anchor=base](addr5){5};}
-      &24
-      & \tikz[baseline, inner sep=0]{\node[anchor=base](ptr5){2};} \\
-  &  \tikz[baseline, inner sep=0]{\node[anchor=base](addr6){6};}
-      & 97
-      & \tikz[baseline, inner sep=0]{\node[anchor=base](ptr6){3};} \\
-  & 7 &   \\
-  & 8 &  \\
-\end{tabular}
-
-p = 5, and the list p = [24, 37, 97, 42]
-
-\tikz[overlay]\draw<2->[thick,red,->]
-  (ptr5.east) to [out=0, in=0] (addr2.east);
-\tikz[overlay]\draw<3->[thick,red,->]
-  (ptr2.east) to [out=0, in=0] (addr6.east);
-\tikz[overlay]\draw<4->[thick,red,->]
-  (ptr6.east) to [out=0, in=0] (addr3.east);
-
-### Basic operations on lists
-
+Basic operations on lists
 
  *  Three key operations:
   
@@ -6160,14 +5529,11 @@ p = 5, and the list p = [24, 37, 97, 42]
  *  In practice, we often keep the pointers in registers so you
   don't need all those loads and stores
 
-
 ### Is list p empty?
-
 
  *  Nil is 0, so the list that p points at is empty iff p=0
  *  Generally it is unsafe to perform an action on a list p unless p
   actually points to a node, so this test is commonly needed
-
 
 ~~~~
     load   R1,p[R0]
@@ -6182,11 +5548,9 @@ pIsEmpty
 
 ### Get value in node that p points at: x := *p.value
 
-
  *  x := *p.value
  *  This is safe to do only if p is not empty
  *  The value field of a node is at offset 0 in the node record
-
 
 ~~~~
    load   R1,p[R0]    ; R1 := p
@@ -6194,14 +5558,11 @@ pIsEmpty
    store  R2,x[R0]    ; x := *p.value
 ~~~~
 
-
 ### Get pointer to next node in a list: q := *p.next
-
 
  *  q := *p.next
  *  This is safe to do only if p is not empty
  *  The next field of a node is at offset 1 in the node record
-
 
 ~~~~
    load   R1,p[R0]    ; R1 := p
@@ -6243,9 +5604,7 @@ This is a good example of the proper use of a while loop
  *  There is no break statement or goto
  *  The loop works even if the original list p is nil
 
-
 ### cons --- constructing a list be consing a value to the front
-
 
  *  Suppose p = [23, 81, 62]
  *  q := cons (56, p)
@@ -6255,9 +5614,7 @@ This is a good example of the proper use of a while loop
     56 attached to the front}
    *  p = [23, 81, 62] \qquad \alert{p is unchanged}
   
-
-
-### Implementing cons
+Implementing cons
 
 ~~~~
 cons (x, p)
@@ -6268,7 +5625,6 @@ cons (x, p)
   }
 ~~~~
 
-
  *  No change is made to p, or to the node p points to
  *  A new node is allocated and set to point to p
  *  A pointer to the new node is returned
@@ -6276,8 +5632,7 @@ cons (x, p)
   not modify its arguments --- is called a \emph{\alert{pure
       function}}
 
-
-### Getting a new node from avail list
+Getting a new node from avail list
 
 ~~~~
 if avail = nil
@@ -6288,7 +5643,7 @@ if avail = nil
        }
 ~~~~
 
-### Inserting a node with x where p points
+Inserting a node with x where p points
 
 ~~~~
 r := newnode ();
@@ -6297,7 +5652,6 @@ r := newnode ();
 (*p).next := r;
 ~~~~
 
-
  *  Notice that we can insert x \emph{after} the node that p points
   to
  *  But we cannot insert x \emph{before} that node
@@ -6305,9 +5659,7 @@ r := newnode ();
   along through the list, one lagging an element behind the other, to
   make insertion possible
 
-
 ### List header
-
 
  *  Suppose we have a list p and a value x
  *  We want to insert x into the list p at an arbitrary point
@@ -6325,9 +5677,7 @@ r := newnode ();
  *  Solution: don't use an ordinary variable for p; make a
   \emph{\alert{header node}} whose next field points to the list
 
-
 ### Deleting a node
-
 
  *  Need a pointer p into the list; the node \emph{after} p will be
   deleted
@@ -6335,9 +5685,6 @@ r := newnode ();
   the one after
  *  The node being deleted should be returned to the avail list, so
   it can be reused 
-
-
-### Code for deleting a node
 
 If p points to a node, delete the node after that, assuming it exists
 
@@ -6354,7 +5701,6 @@ delete (p)
   }
 ~~~~
 
-
  *  We can't delete the node p points to, we can only delete the
   following node, which q points at
  *  If you know that p cannot be nil, the first test can be omitted
@@ -6364,9 +5710,7 @@ delete (p)
  *  It's important to check whether the operation we're performing
   is actually possible!
 
-
-### Space leaks
-
+### Memory management
 
  *  If you return a deleted node to the avail list, it can be reused
  *  If you don't, this node becomes inaccessible: it doesn't hold
@@ -6375,10 +5719,6 @@ delete (p)
   bug in the program}
  *  Over time, as a program runs, more and more nodes may become
   inaccessible: a \alert{space leak}
-
-
-### Memory management
-
 
  *  It's a bug if you delete a node that contains useful data
  *  It's a bug if you don't delete a node that doesn't contain
@@ -6391,10 +5731,7 @@ delete (p)
     structures and marks the nodes it finds
    *  Then the GC adds all unmarked nodes to the avail list
   
-
-
 ### Sharing and side effects
-
 
  *  Suppose p = [6, 2, 19, 37, 41]
  *  Traverse a few elements, and set q to point to the 19 node
@@ -6409,9 +5746,7 @@ delete (p)
  *  Sometimes you want this to happen, sometimes not, so it's
   important to be careful about it!
 
-
-## Comparing lists and arrays}
-
+## Comparing lists and arrays
 
  *  Lists and arrays are two different kinds of data structure that
   contain a sequence of data values
@@ -6421,9 +5756,7 @@ delete (p)
  *  And there are many other data structures to choose from, which
   you'll encounter as you learn computer science
 
-
-### Accessing elements
-
+Accessing elements
 
  *  Direct access to an element
   
@@ -6439,7 +5772,6 @@ delete (p)
     loop)
    *  List: initialize $p$ to point to the list; repeatedly set
     \texttt{p := (*p).next}; terminate when \texttt{p = nil}
-  
 
 ## Example: Ordered lists program
 
@@ -6451,7 +5783,7 @@ array of records, Case statement and jump table
 Traversing a list to print its elements, Insertion in list keeping the
 elements in ascending order, Deletion from a list, Searching a list
 
-### Ordered lists
+Ordered lists
 
 There is an array of lists, initially empty.  There are nlists of them.
 
@@ -6472,11 +5804,9 @@ list[1] = [7, 102, 238 ]
 list[nlists-1] = [2, 87, 89, 93, 103, 195 ]
 ~~~~
 
-
-### Commands
+Commands
 
 The program executes commands:
-
 
  *  Terminate --- the program finishes
  *  Insert into list i the value x --- modify list[i] so it contains
@@ -6487,8 +5817,7 @@ The program executes commands:
   otherwise
  *  Print i --- the numbers in list[i] are printed
 
-
-#### Example
+Example
 
  *  Insert into list[3] the value 23  \qquad \alert{[23]}
  *  Insert into list[3]the value 6   \qquad \alert{[6, 23]}
@@ -6496,8 +5825,7 @@ The program executes commands:
  *  Insert into list[3] the value 19    \qquad \alert{[6, 19, 23, 67]}
  *  Print list[3] \qquad \alert{6 19 23 67}
 
-### Why are ordered lists useful?
-
+Why are ordered lists useful?
 
  *  This is one way to arrange a database: think of the elements as
   persons' names, or matriculation numbers
@@ -6507,10 +5835,7 @@ The program executes commands:
   (on average you only have to check half of the items)
  *  An ordered list can be used to represent a set
 
-
-### Where do the commands come from?
-
-
+Where do the commands come from?
  *  In a real application, we would read the commands from input
  *  But in this program, each command is represented as a record
  *  The entire input is a static array of records defined with
@@ -6523,12 +5848,8 @@ The program executes commands:
     is \alert{fixed and repeatable}
    *  Don't want to have to type in the same input every time you
     run the program!
-  
 
-
-
-### Representing a command
-
+Representing a command
 
  *  Each command is a record with three fields
   
@@ -6542,10 +5863,7 @@ The program executes commands:
  *  The main program uses a \alert{case} statement to handle each
   command, and implements this with a \alert{jump table}
 
-
-
-### Reading a program before writing
-
+Reading a program before writing
   
    *  You should \emph{read and understand} the program before
     modifying it
@@ -6560,10 +5878,7 @@ The program executes commands:
    *  One of the aims of the exercise is to get experience with
     reading a longer program---don't skip this!
   
-
-
-### Some tips on testing and debugging
-
+## Testing and debugging
   
    *  Debugging has two phases:
     \begin{enumerate}
@@ -6573,11 +5888,8 @@ The program executes commands:
    *  The most important point: don't just make random changes to
     the code and hope for the best---instead, find out what the error
     is and fix it cleanly
-  
 
-
-### Reading and testing a program
-
+Reading and testing a program
   
    *  A good way to understand a section of assembly language
     instructions is to step through it, one instruction at a time
@@ -6599,10 +5911,7 @@ The program executes commands:
       program with your testing
     \end{enumerate}
   
-
-
 ### Breakpoints
-
   
    *  It's a good idea to step through a program one instruction at
     a time, so you understand clearly what each instruction is doing
@@ -6622,7 +5931,7 @@ The program executes commands:
      *  Then you can single step to examine what the instructions
       are doing
     
-## How to set a breakpoint
+ How to set a breakpoint
 
 (Revise - this refers to an older version of Sigma16, the current
 version is a little different.)
@@ -6637,12 +5946,9 @@ gets the value you specified
   
 ## Trees
 
+Usage of memory
 
-
-### Usage of memory
-
-
- *  Memory needed per element
+*  Memory needed per element
   
    *  Array: need just the memory required for the element itself
     (typically a word)
@@ -6656,11 +5962,8 @@ gets the value you specified
    *  An array has fixed size and needs to be allocated fully
    *  A list has variable size and needs only enough memory to hold
     its nodes
-  
 
-
-### More general data structures
-
+More general data structures
 
  *  We can put several pointer fields in each node, and produce an
   enormous variety of data structures, tailored for the needs of an
@@ -6674,10 +5977,7 @@ gets the value you specified
     instead, \emph{every} node points to the next node, and the list
     loops back to itself.  There is no ``first'' or ``last'' node.
   
-
-
-## Abstract data type}
-
+## Abstract data type
 
  *  A stack is an \alert{abstract data type}
   
@@ -6694,10 +5994,7 @@ gets the value you specified
    *  We have already seen how to implement a stack with an array
    *  We can also do it with a linked list
   
-
-
-### Linked list implementation of stack
-
+Linked list implementation of stack
 
  *  A linked list gives easy access to the front of the list, and a
   stack gives easy access to the top of the stack.
@@ -6705,9 +6002,7 @@ gets the value you specified
  *  Push x is implemented by stack := cons (x, stack)
  *  Pop x is implemented by stack := (*stack).next
 
-
 ### Array implementation of stack
-
 
  *  We can implement a stack using an array
  *  There is a variable \emph{stLim} which gives the size of the
@@ -6716,11 +6011,9 @@ gets the value you specified
  *  There is a variable \emph{stTop} that gives the current number
   of elements in the stack
 
+Relationship between arrays and stacks
 
-### Relationship between arrays and stacks
-
-
- *  Array
+*  Array
   
    *  A container that holds many elements
    *  Each element has an index (which is an integer)
@@ -6735,9 +6028,7 @@ gets the value you specified
    *  You can (and must) access the elements in \alert{last in ---
     first out} order
   
-
-
-### Pushing x onto a stack
+Pushing x onto a stack
 
 ~~~~
 ; push the x onto the stack
@@ -6751,7 +6042,7 @@ push   load  R1,x[R0]       ; R1 := x
        store R2,stTop[R0]   ; stTop := stTop + 1
 ~~~~
 
-### Pop a stack, returning x
+Pop a stack, returning x
 
 ~~~~
 ; pop the stack, store top element into x
@@ -6765,11 +6056,9 @@ pop    load  R2,stTop[R0]   ; R2 := stTop
        store R2,stTop[R0]   ; stTop := stTop - 1
 ~~~~
 
+## Error checking
 
-### Error checking
-
-### Issues with simplest implementation}
-
+Issues with simplest implementation
 
  *  It doesn't check for errors!
   
@@ -6781,18 +6070,14 @@ pop    load  R2,stTop[R0]   ; R2 := stTop
  *  Either of these errors may cause the program to get wrong
   answers or to crash
 
-
-### Robust software
-
+Robust software
 
  *  Fragile software will respond to a minor problem by going
   haywire: might crash, or produce wrong answers
  *  \alert{Robust software} checks for all errors and does something
   appropriate; a minor problem doesn't turn into a major one
 
-
-### Error checking and error handling
-
+Error checking and error handling
 
  *  Software should not assume everything is ok --- it should check
   for errors
@@ -6809,11 +6094,9 @@ pop    load  R2,stTop[R0]   ; R2 := stTop
    *  Throw an exception, which will interrupt the calling program,
     and invoke its error handler
   
-
-
 For simplicity, we will terminate the program if an error occurs.
 
-### Error checking: push
+Error checking: push
 
 If the stack is full, there is no space to store the new element, so
 push fails
@@ -6829,8 +6112,7 @@ push fails
 ;        return ()
 ~~~~
 
-
-### Error checking: pop
+Error checking: pop
 
 If the stack is empty, there is no element to return, so pop fails
 
@@ -6847,8 +6129,7 @@ If the stack is empty, there is no element to return, so pop fails
 
 ## Programming techniques
 
-
- *  Compound Boolean expressions: ``short circuit'' evaluation
+*  Compound Boolean expressions: ``short circuit'' evaluation
  *  The condition code and ``cmp jumpgt'' style comparisons
  *  loops: for loop, while loop, repeat until loop
  *  Input/Output: write characters, not numbers
@@ -6866,7 +6147,6 @@ i<n or  j<n         i<n || j<n        i<n | x[i]>0
 
 ### ``Short circuit'' expressions
 
-
  *  Suppose \texttt{x} is an array with \texttt{n} elements
  *  Consider \texttt{i<n \&\& x[i]>0}
  *  If the first expression \texttt{i<n} is False, then the whole
@@ -6879,11 +6159,7 @@ i<n or  j<n         i<n || j<n        i<n | x[i]>0
  *  So it is \emph{essential} not to evaluate the second expression
   if the first one is false  
 
-
-
-
-
-### Implementing a compound boolean expression
+Implementing a compound boolean expression
 
 ~~~~
 while i<n && x[i]>0 do S
@@ -6903,8 +6179,6 @@ calculating logical and
 
 ### Condition code
 
-
-
  *  We have seen one style for comparison and conditional jump
 ~~~~
    cmplt  R3,R8,R4
@@ -6921,7 +6195,6 @@ calculating logical and
   jumple (jump if less than or equal), etc
  *  An advantage is that you don't need to use a register for the
   boolean result
-
 
 #### Repeat-until loop
 
@@ -6945,8 +6218,7 @@ while not (i>n) do
 The while loop is used far more often, but if you need to go through
 the loop at least one time, the repeat-until is useful
 
-### Input/Output
-
+## Input/Output
 
  *  A character is represented by a code using ASCII or Unicode
   
@@ -6962,9 +6234,7 @@ the loop at least one time, the repeat-until is useful
  *  upper case A..Z have codes (in decimal) 65..90
  *  To print a number, we need to convert it to a string of characters
 
-
 ### Converting a number to a string
-
 
  *  We actually need to do arithmetic to convert a binary number to
   decimal, and to a string of decimal digits
@@ -7019,15 +6289,11 @@ You can also use a while loop:
 
 ### Arrays and pointers
 
-
  *  There is also another way to access an array element, \alert{using
     pointers instead of indexes}
  *  To do this, we will perform \alert{arithmetic on pointers}
 
-
-
 ### Accessing an array element using a pointer
-
 
  *  Create a pointer p to the beginning of the array x, so p is
   pointing to x[0]\\ \alert{lea R1,x[R0]}
@@ -7035,7 +6301,6 @@ You can also use a while loop:
  *  To move on to the next element of the array, increment p\\
   \alert{lea R1,1[R1]}
  *  Notice that we are doing \alert{arithmetic on pointers}
-
 
 ~~~~
 x   data  34   ; first element of x
@@ -7064,7 +6329,6 @@ xEnd           ; address of first word after array x
 
 ### Sum of an array x using pointers: assembly language
 
-
 ~~~~
 ;   R1 = p = pointer to current element of array x
 ;   R2 = q = pointer to end of array x
@@ -7091,7 +6355,6 @@ xEnd
 
 ### Comparing the two approaches
 
-
  *  Accessing elements of an array using index
   
    *  Get x[i] with load  R5,x[R1] where R1=i
@@ -7112,7 +6375,6 @@ xEnd
  *  Both techniques are important
  *  \alert{If you have an array of records, it's easier to use a
     pointer}
-
 
 ### Records
 
@@ -7182,7 +6444,6 @@ the elements of the records is easier (it's easier to access an
 
 ### Traverse array of records with pointers: assembly language
 
-
 ~~~~
 ;   R1 = sum
 ;   R2 = p (pointer to current element)
@@ -7209,7 +6470,6 @@ RecordLoopDone
 
 ### Stack overflow
 
-
  *   The mechanism for calling a procedure and returning is fairly
   complicated
  *  Rather than introducing all the details at once, we have looked
@@ -7225,9 +6485,7 @@ RecordLoopDone
    *  R11 holds stack limit (the stack is not allowed to grow beyond
     this address)
   
-
-
-### Register usage
+Register usage
 
 See the PrintIntegers program for examples
 
@@ -7243,7 +6501,7 @@ See the PrintIntegers program for examples
 ;   R15 is transient condition code
 ~~~~
 
-### Initialize the stack
+Initialize the stack
 
 ~~~~
 ; Structure of stack frame for main program, frame size=1
@@ -7257,7 +6515,7 @@ See the PrintIntegers program for examples
     add    R11,R14,R1         ; StackLimit := &CallStack + StackSize
 ~~~~
 
-### Calling a procedure
+Calling a procedure
 
 
  *  To call a procedure PROC:
@@ -7266,8 +6524,7 @@ See the PrintIntegers program for examples
    *  jal R13,PROC[R0]
   
 
-
-### Structure of Procedure stack frame
+Structure of Procedure stack frame
 
 (This is procedure PrintInt, see lab exercise)
 
@@ -7286,7 +6543,7 @@ See the PrintIntegers program for examples
 ;    0[R14]  dynamic link points to previous stack frame
 ~~~~
 
-### Called procedure creates its stack frame
+Called procedure creates its stack frame
 
 ~~~~
 PrintInt
@@ -7303,7 +6560,7 @@ PrintInt
     store  R4,5[R14]           ; save R4
 ~~~~
 
-### Procedure finishes and returns
+Procedure finishes and returns
 
 ~~~~
 ; return
@@ -7315,7 +6572,7 @@ PrintInt
     jump   0[R13]           ; return
 ~~~~
 
-### Stack overflow
+Stack overflow
 
 If the stack is full and a procedure is called, this is a fatal error
 
@@ -7338,7 +6595,6 @@ StackOverflowMessage
 
 ### Blocks
 
-
  *  You'll need to learn many programming languages, eventually
  *  There are concepts that appear in most languages
  *  It's useful to focus on the general concept
@@ -7354,10 +6610,6 @@ StackOverflowMessage
    *  Some languages use := to mean assign, = to mean equals
    *  Some languages use = to mean assign, == to mean equals
   
-
-
-#### Syntax for blocks
-
 ### Python syntax style for blocks: layout
 
 The layout (the indentation) determines what is inside the if
@@ -7448,9 +6700,7 @@ messages
  *  In high level languages this style is sometimes helpful, but not
   always
 
-
 ### Single entrance/exit for compilation patterns
-
 
  *  It is straightforward to translate high level control constructs
   using the compilation patterns
@@ -7465,8 +6715,6 @@ messages
     registers, resetting the stack pointer, loading the return address
    *  That code should not be duplicated in several places in a
     procedure
-  
-
 
 ### Systematic approach to programming?
 
@@ -7485,9 +6733,7 @@ messages
  *  Retain the high and low level code as comments
  *  Do hand execution at every level
 
-
-### Why use this systematic approach to programming?
-
+Why use this systematic approach to programming?
 
  *  It enables you to write correct code at the outset, and minimise
   debugging
@@ -7506,7 +6752,6 @@ messages
   
  *  Professional software needs to be maintained; the comments make
   the software easier to read and more valuable
-
 
 ## Nested conditionals
 
@@ -7576,7 +6821,6 @@ if b1 then S1
   else S6
 ~~~~
 
-
  *  It avoids ambiguity
  *  It signals to the compiler and to a human programmer that this
   specific construct is being used
@@ -7604,7 +6848,6 @@ else if code = 3
 else if code = 4
   then S5
 ~~~~
-
 
 The case statement
 
@@ -7765,7 +7008,6 @@ CmdDone
     jump   CommandLoop[R0]
 ~~~~
 
-
 ## Privileged instructions
 
 What's the significance of root?
@@ -7784,8 +7026,6 @@ What's the significance of root?
   
  *  Don't worry --- \alert{this faulty code never made it into the
     master copy of Linux}
-
-
 
 ## Trees
 
@@ -8006,8 +7246,6 @@ n & $\log n$ & $n \log n$ & $n^2$ & $2^n$ \\
  100 & 7  & 700   & 10,000 &1267650600228229401496703205376 \\
 1,000 & 10 & 10,000 & 1,000,000 & $>$ age of universe \\ 
 \end{tabular}
-
-
 
 Lots of real problems have data size larger than 1,000.
 Lots of algorithms have exponential complexity: $2^n$.
@@ -8320,10 +7558,7 @@ The Control Algorithm
  *  We can implement the control algorithm using flip flops and
   logic gates
 
-
-
 ### Registers
-
 
  *  pc (program counter) contains address of the next instruction
  *  ir (instruction register) contains the current instruction (or
@@ -8333,24 +7568,17 @@ The Control Algorithm
  *  reg[a] (register file) contains 16 registers for use by user
   program
 
-
-
-### Notation
-
+Notation
 
  *  pc, ir, adr --- contents of these 16-bit registers
  *  ir\_op,ir\_d, ir\_a, ir\_d --- 4-bit fields in the ir
  *  reg[x] --- the register in the register file with address x
  *  mem[x] --- the memory location with address x
 
-
-
 ### Infinite loop
-
 
  *  In hardware, we \emph{need} infinite loops
  *  The computer should never stop executing instructions!
-
 
 ~~~~
 repeat forever
@@ -8369,7 +7597,6 @@ repeat forever
  *  There are $2^{k}$ alternative actions to take, depending on the
   value of the code
 
-
 ~~~~
 case opcode
   0: action
@@ -8377,7 +7604,6 @@ case opcode
   ...
   15: action
 ~~~~
-
 
 ### Control algorithm
 
@@ -8438,462 +7664,9 @@ Hyde says (quotation):
   basic compiler construction, to learn \alert{how compilers translate
   high-level language statements into machine code}.
 
-### Syntax, semantics, compilation
 
-  
-   *  Primary aspects of a programming language
-    
-     *  Syntax is the \emph{form} of a program
-     *  Semantics is the \emph{meaning} of the program
-     *  Compilation (or interpretation) is how the language is
-      implemented so it can run on a computer
-    
-  
-
-#### Syntax --- easier but less important
-
-
- *  Syntax is the \alert{form} of a program
- *  Did you spell the keywords correctly? Is the punctuation right?
- *  Syntax is easy
-  
-   *  The rules are clear cut
-   *  If in doubt, just look it up
-   *  Example: various languages have different names for the same
-    thing: \emph{Bool},\emph{Boolean}, \emph{Logical}.  These
-    differences are superficial
-  
-
-
-### Syntax errors
-
-
- *  Compilers insist that the syntax is right
-  
-   *  In English, if you spell a word wrong or have a missing comma
-    you'll (probably) still be understood
-    
-     *  But --- see \alert{Eats, Shoots and Leaves} by Lynn Truss.
-      Note the comma!  What was meant was {\bluetext``The panda eats
-        shoots and leaves''}, not {\bluetext ``The panda eats, shoots,
-        and leaves''}
-    
-  
- *  Can't a compiler be equally forgiving?
-  
-   *  There were experiments with compilers that guess what the
-    programmer meant
-   *  It was a disaster: the compiler nearly always guessed
-    correctly$\ldots$
-   *  But occasionally it would guess wrong
-    
-     *  \alert{How can you debug a program when the compiler didn't
-        translate what you wrote, but something different?}
-     *  You have to debug code that is not in the file!  And you
-      cannot see it!
-     *  You \alert{want} the compiler to insist that the syntax is
-      absolutely correct
-    
-  
-
-
-### Example of syntax: operator precedence
-
-
- *  Expressions can contain many operations, but the computer can do
-  only one operation at a time
- *  We can make the operations explicit by using parentheses around
-  each operation
- *  You don't have to write the parentheses, but the compiler needs
-  to know where they go!
- *  a + b + c is parsed as (a + b) + c
- *  a + b * c is parsed as a + (b * c)
-
-
-### Deeper example of syntax: ambiguity
-
-
- *  A language is \emph{ambigous} if a sentence in the language can
-  have two different meanings
- *  English is full of ambiguity
- *  Programming languages are designed to avoid ambiguity, most of
-  the time
- *  If ambiguity is possible, the compile needs to know how to
-  resolve it, \emph{and so does the programmer}
-
-
-### Ambiguity in if-then-else
-
-This is ambiguous: \alert{which if does the ``else S2'' belong to?}
-~~~~
-if b1 then if b2 then S1 else S2
-~~~~
-
-There are two interpretations, and they lead to different results
-
-~~~~
-if b1 then { if b2 then S1 else S2 }
-  b1 = true,  b2 = true     S1
-  b1 = true,  b2 = false    S2
-  b1 = false, b2 = true
-  b1 = false, b2 = false
-
-if b1 then { if b2 then S1 } else S2
-  b1 = true,  b2 = true     S1
-  b1 = true,  b2 = false
-  b1 = false, b2 = true     S2
-  b1 = false, b2 = false    S2
-~~~~
-
-
-### How does Python prevent ambiguity?
-
-
- *  The structure of the program is determined by
-  \alert{indentation}
-  
-   *  This means it is essential to indent the program properly
-   *  It makes the program structure highly visible to the programmer
-  
- *  Some languages use braces to indicate structure (e.g. C, Java)
-  
-   *  The compiler ignores the indentation, and uses the braces
-   *  Programmers tend to focus on the indentation and may overlook
-    the braces
-   *  This is more error-prone
-  
-
-
-### goto
-
-
- *  Usually programs are more readable and more reliable if written
-  with while loops, if-then-elif-elif-else, for loops, and similar
-  higher level constructs
- *  Programs that jump around randomly with goto statements are
-  harder to understand, and likely to contain bugs
- *  This gave the goto statement a bad reputation
- *  But
-  
-   *  The goto statement is simply a jump instruction, and it is
-    \emph{essential} for use at low level
-   *  There are some circumstances where goto may be the best
-    solution, but these are rare
-  
-
-
-
-
-
-  
-
-
-
-### Implicit goto statements: break and continue
-
-* Some programming languages provide restricted forms of goto: break
-  and continue
-  
-* These are goto statements without a label, but with a predefined
-  destination they go to
-
-* Advantage --- you may recognise the pattern being used by a
-  programmer
-
-* Disadvantage --- you need to know for sure to where your goto goes
-
-* C and its descendants have break, as does Python
-
-* Break is a goto that goes to the end of the \alert{innermost} loop
-  it's in
-
-* In Python  you can have an else clause to execute when a for or
-  while loop finishes, but this is skipped if you terminate the loop
-  with break
-
-* What if you want to break out of several loops?.  There is no good
-  way to do this in Python. It's best to restructure your program, to
-  avoid break
-  
-Break is a goto that doesn't say where it goes to.
-
-~~~~
-for i in range (1, 5):
-    print (i)
-    for j in range (20, 22):
-        print (j)
-        if i == 3:
-            break
-        for k in range (40, 43):
-            print (k)
-            if k == 41:
-                break
-            print (k)
-~~~~
-
-The continue statement
-
-* In C and Python, continue goes to the end of the current loop
-  which then continues executing
-
-* It's a way of staying in the loop but skipping the statements
-  after the continue
-
-* Warning! Several programming languages have a statement that is
-  *spelled* continue --- but it does nothing and is equivalent to the
-  pass statement in Python
-
-Break and continue: translation to low level
-
-~~~~
-loop1
-   if (i<n)=False then goto loop1done
-   ...
-   if ... then goto loop1      ; This is a continue statement
-   ...
-   if ... then goto loop1done  ; This is a break statement
-   ...
-   goto loop1
-loop1done
-~~~~
-
-  
-* continue goes to the top of the innermost loop containing the
-  continue: it skips the rest of \emph{this iteration}
-
-* break goes to right after the end of the innermost loop containing
-  the break: it \emph{exits this loop}
-  
-### Semantics
- 
-* Semantics means the **meaning**
-
-* The semantics of a language is \emph{what a program in
-  the language means}
-
-* The semantics of a program is \emph{the meaning of the
-  program}. Given its inputs, what are its outputs?
-
-How is the semantics of a language defined?
-
-Using natural language to describe it.  This may be a vague
-description in English of what each construct does, or a carefully
-written description in English, written to be as precise as possible
-  
-Using mathematics or program transformation
-  
-* Denotational semantics: a precise mathematical specification. Given
-  a program, it gives a mathematical function from program inputs to
-  outputs
-
-* Operational semantics: gives a sequence of reduction rules that give
-  a precise model of the program's execution
-
-* Transformational semantics: a translation from a program into a
-  simpler language, where the semantics is assumed to be clear
-
-Why do the translation from high to low level?
-
-* This is the semantics of the high level constructs
-
-* It explains precisely what the high level means
-
-* It shows what the compiler will do with the program (compilers
-  do intermediate level translations like this; many compilers use
-  several intermedate steps)
-
-* It makes explicit the execution time of the construct
-
-* The low level is very close to assembly language
-
-* It's easier to go from high level to assembly language in two small
-  steps, rather than one giant leap
-
-Watch out for loose explanations
-
-* Here's a quotation from
-  https://docs.python.org/3.7/tutorial/introduction.html.
-    
-* ``The while loop executes as long as the condition (here:
-   a < 10) remains true
-    
-That is wrong!
-
-It *says* that if a is changed in the middle of the
-loop, making it less than 10, the loop will stop executing.
-But the computer does not continuously monitor a<10 and
-break out of the loop as soon as it becomes false.
-
-To see what happens, look at the compilation pattern: the translation
-to low level ``goto'' form.  The while loop checks the boolean a<10 at
-the top of the loop; if false it exits the loop, and if true it
-executes the entire body of the loop even if the boolean became false
-in the middle
-
-### Semantics of while
-
-**while b do S** is translated to
-
-~~~~
-L1: if not b then goto L2
-    S
-    goto L1
-L2:
-~~~~
-
-If you understand the meaning of :=, goto, if b then goto, you can
-understand the meaning of every high level construct.  Note that b is
-an arbitrary boolean expression; S is an arbitrary statement; L1 and
-L2 are *fresh labels: they can't be used anywhere else
-
-### Lists, +, +=, iterators, and for loops
-
-     *  How are lists represented?
-     *  What do the + and += operators do?
-     *  What is an iterator, and how does it work?
-     *  What does a for loop do?  How does it compare with a while
-      loop?
-
-
-### Let's do some matrix calculations
-
-Set up a list of 5 elements
-
-~~~~
-coords = [[0,0]] * 5
-print ('coords = ', coords)  # [[0,0], [0,0], [0,0], [0,0], [0,0]]
-~~~~
-
-The result is
-
-~~~~
-coords =  [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
-~~~~
-
-Looks good!  Now set some sub-elements:
-
-~~~~
-coords[3][1] = 7
-coords[4][0] = 5
-~~~~
-
-{\redtext
-Result may not be what we expected, or wanted:
-~~~~
-coords[2] =  [5, 7]
-coords =  [[5, 7], [5, 7], [5, 7], [5, 7], [5, 7]]
-~~~~
-}
-
-What's going on?
-
-
-
-### What does += mean in Python?
-
-  
-   *  Google search for \alert{+= Python}
-    
-     *  ``\alert{The expression a += b is shorthand for a = a + b},
-      where a and b can be numbers, or strings, or tuples, or lists
-      (but both must be of the same type).''
-    
-   *  Stack overflow search for \alert{+= Python}
-    
-     *  ``+= adds another value with the variable's value and assigns
-      the new value to the variable.''
-     *  ``It adds the right operand to the left.  x += 2 means x = x
-      + 2.  It can also add elements to a list''
-    
-   *  \alert{These statements are all wrong}
-  
-
-
-### Is a += b shorthand for a = a + b?
-
-Try \alert{a = a + [3, 4]}
-~~~~
-print ('Defining a = a + [3, 4]')
-a = [1, 2]
-b = a
-print ('a = ', a, '  b = ', b)
-a = a + [3, 4]
-print ('a = ', a, '  b = ', b)
-~~~~
-
-The results: {\bluetext a =  [1, 2, 3, 4]   b =  [1, 2]}
-\vspace{1em}
-Now try \alert{a += [3, 4]}
-~~~~
-print ('Defining a += [3, 4]')
-a = [1, 2]
-b = a
-print ('a = ', a, '  b = ', b)
-a += [3, 4]
-print ('a = ', a, '  b = ', b)
-~~~~
-
-The results: {\bluetext a = [1, 2, 3, 4],  b = [1, 2, 3, 4]}
-
-\alert{So a += b is \emph{not} shorthand for a = a + b}
-  
-
-### How do we figure out problems like this?
-
-  
-   *  Need to understand all the fundamental concepts of the
-    language
-   *  It's best to study \alert{authoritative} source
-    \alert{systematically}
-   *  Develop a clear \alert{model} for what the language constructs
-    really mean
-   *  And here's some advice: from Stack Overflow
-    
-     *  ``it's a basic operator for python (and many other languages
-      too), you should start with google, if you never read any python
-      references. ``
-    
-   *  This may be ok if you already understand all the foundations
-    and just want to look up a detail, but otherwise \emph{this is
-      poor advice}
-   *  Let's look in more detail at lists$\ldots$
-  
-
-
-#### Are two nodes with the same value identical?
-
-### Are two nodes with the same value identical?}
-
-  Define b = a \alert{--- this is pointer assignment}
-  
-~~~~
-a = [1, 2, 3, 4]
-b = a
-print ('(1)  a = ', a, ' b = ', b)
-~~~~
-
-  Both a and b have the value [1, 2, 3, 4], but are the actual nodes
-  in their representations distinct, or shared?  \vspace{1em}
-  
-  Try modifying an element of a and see if it changes b, and vice
-  versa
-
-~~~~
-a[1] = 100
-b[3] = 300
-print (' a = ', a, ' b = ', b)
-
-~~~~
-
-  Run this, and you'll see that changing an element of either a or b
-  also changes the corresponding element of the other.  The values of
-  a and b are simply pointers, and \alert{they point to the same
-    node}.
-
-#### Low level list manipulation
 
 ### Low level list manipulation
-
   
    *  You can assign pointers: if a is a list, b = a makes b point
     to the same node a points to
@@ -8912,7 +7685,6 @@ print (' a = ', a, ' b = ', b)
     
    *  All of these are implemented with while loops that traverse a
   
-
 ### b = a.copy()
 
 Traverse a and make a new node for each node in a; link the new nodes
@@ -8934,161 +7706,6 @@ the nodes in a, but they are distinct nodes
   of b --- using a header node is helpful.)
   Now if you modify one of the lists (a, b) the other list is not affected
   
-### List is represented as nodes
-
-
-  \par\includegraphics[scale=0.5]{../figures/draw.io/list123.pdf}
-
-
-### Appending to a list
-
-
-  \par\includegraphics[scale=0.5]{../figures/draw.io/list123-append456.pdf}
-
-
-
- *  a = [1, 2, 3]
- *  b = [4, 5, 6]
- *  a.append(b)
- *  A new node is created: call newnode()
- *  The newnode has value=b and next=nil
- *  The last node in a had next=nil; that is changed to point to the
-  new node
- *  Result: \alert{a =  [1, 2, 3, [4, 5, 6]]}
-
-
-
-### Extending a list
-
-
-  \par\includegraphics[scale=0.5]{../figures/draw.io/list123-extend456.pdf}
-
-
-
- *  a = [1, 2, 3]
- *  b = [4, 5, 6]
- *  a.extend(b)  
- *  The last node in a had next=nil
- *  That nil pointer was changed to point to b
- *  Result: \alert{a =  [1, 2, 3, 4, 5, 6]}
-
-
-#### The + operator
-
-  
-   *  You can concatenate two lists a and b with \alert{a + b}
-   *  The + operator does not modify either a or b
-   *  It creates a new list, with copies of the nodes in a, followed
-    by b
-   *  Since it doesn't modify existing containers, you can use + on
-    both
-    
-     *  mutable containers, e.g. lists
-     *  immutable containers, e.g. string
-    
-  
-  
-#### The += operator
-
-### The + operator}
-
-   *  You can concatenate two lists a and b with \alert{a += b}
-   *  The += operator does not copy a, it \alert{modifies} a by
-    extending it
-   *  Since += modifies existing containers, you cannot use += on
-    immutable containers, e.g. strings
-  
-
-### List with + and +=
-
-  
-   *  You can write a + b where a and b are lists; if either is a
-    list, both must be lists
-   *  You can write a += b where
-    
-     *  a is a list
-     *  b is either a list or an iterator
-    
-  
-
-
-### Iterators
-
-  
-   *  A container class can have an \alert{iterator}
-   *  There are built-in default iterators for lists and numbers
-   *  You can define your own class and iterator
-    
-     *  You define a method called \texttt{\_\_iter\_\_} which
-      creates a new iterator and initializes it
-     *  An iterator provides a method called \texttt{\_\_next\_\_}
-      and you can invoke this with \alert{xyz.next()}
-     *  The implementation of next
-    
-  
-  
-### Defining an iterator for even numbers
-
-~~~~
-class EvensClass:
-  def __iter__(self):
-    self.state = 0
-    return self
-
-  def __next__(self):
-    x = self.state
-    self.state += 2
-    return x
-
-Evens = EvensClass()
-EvenIterator = iter(Evens)
-~~~~
-
-
-### Using the iterator
-
-~~~~
-for i in EvenIterator:
-    print (i)
-    if i > 15:  # Try commenting this out: the iterator is unbounded
-        break
-
-print ('The for loop has finished, now call next directly')
-print(next(EvenIterator))
-~~~~
-
-### Running the even iterator
-
-~~~~
-Defining iterator for even numbers
-0
-2
-4
-6
-8
-10
-12
-14
-16
-The for loop has finished, now call next directly
-18
-~~~~
-
-### Extending a list with an iterator
-
-You can use += to extend a list with an iterator
-~~~~
-a = [1, 2, 3, 4]
-a += range(20,25)
-print ('a = ', a)
-~~~~
-
-But you can't use + on a list and an iterator:
-~~~~
-a = [1, 2, 3, 4]b = [1, 2, 3, 4]
-# b = b + range(20,25)  # This line gives syntax error
-~~~~
-
 
 #### for loops
 
@@ -9113,195 +7730,6 @@ avacodo    if i>= n then goto avacododone
 avacododone
            print (sum)
 ~~~~
-
-
-### for loops in Python
-
-
- *  A Python for loop traverses a sequence defined by an iterator
- *  If the iterator terminates, so does the for loop
- *  The iterator could also go on forever
- *  The iterator could give a sequence of numbers, or it could
-  traverse a list, or some other container
- *  This is convenient but it hides what's actually going on
-
-
-#### Revisiting the mysteries}
-
-Focus on:
-  
-   *  What low level operations are being used: pointer assignment?
-    copy?
-   *  Know when you have two pointers to the same node
-   *  Know when newnode has been called
-  
-~~~~
-a = [1, 2]
-b = a
-a = a + [3, 4]
-print ('a = ', a, '  b = ', b)
-~~~~
-
-Here, the results are final values:  a =  [1, 2, 3, 4]   b =  [1, 2]
-
-~~~~
-a = [1, 2]
-b = a
-a += [3, 4]
-print ('a = ', a, '  b = ', b)
-~~~~
-
-Now the results are: a = [1, 2, 3, 4], b = [1, 2, 3, 4]
-
-In the second example, \alert{a += b} modified the structure of a.
-Since b points to the same node as a, this change also affects b.
-
-### Compilers
-
-
- *  We have been writing algorithms in high level language notation
-  and then translating it manually to assembly language
- *  A \alert{compiler} is a software application that performs this
-  translation automatically
- *  A \alert{programming language} is a precisely defined high level
-  language
- *  The compiler makes programming easier by allowing you to think
-  about your algorithm more abstractly, without worrying about all the
-  details of the machine
-
-
-### Source and object
-
-
- *  The original high level language program is called the
-  \alert{source code} --- it's what the programmer writes
- *  The final machine language program which the compiler produces
-  is called the \alert{object code} --- it's what the machine executes
-
-
-
-### {Compilation
-
- *  A compiler translates statements in a high level language into
-assembly language
-
- *  In developing an assembly language program, it's best to begin
-by writing high level pseudo-code (this becomes a comment) and then
-translate it
-
- *  This approach helps keep the program readable, and reduces the
-liklihood of getting confused
-
- *  Each kind of high level statement corresponds to a standard
-  pattern in assembly language.  \emph{Follow these patterns!}
-
-### How a compiler works
-
-
- *  Your high level source program is just a character string ---
-  the computer cannot execute it directly
- *  The compiler reads the source program, checks its syntax, and
-  analyses its structure
- *  Then it checks the types of all the variables and procedures
- *  Most advanced compilers translate the program to an intermediate
-  ``goto form'', just as we are doing
- *  The program is finally translated to assembly language:
-  \alert{``code generation''}
- *  The assembler translates the assembly language to machine
-  language (the Sigma16 application contains an assembler)
-
-
-### Major tasks in compilation
-
-
- *  \alert{Parsing} --- check the source program for correct syntax
-  and work out the program structure (similar to ``diagramming
-  sentences'' in English grammar)
- *  \alert{Type checking} --- work out the data type of each
-  variable (integer, character, etc.) --- then
-  
-   *  Make sure the variables are used consistently
-   *  Generate the right instructions for that data type
-  
- *  \alert{Optimisation} --- analyse the program to find
-  opportunities to rearrange the object code to make it faster
- *  \alert{Code generation} --- produce the actual machine
-  instructions
-
-
-
-### Parsing
-
-
- *  The \alert{syntax} of a language is its set of grammar rules
- *  If the source program contains a \alert{syntax error}, the
-  compiler will not understand what you mean
-  
-   *  {\color{blue}if x$<$y then a = 1} --- ok, can be translated
-   *  \alert{if x?y than b = 2} --- syntax errors! what does it
-    mean?
-  
- *  If there is a syntax error, \alert{you do not want the compiler
-    to guess what the meaning is} --- that leads to unreliable
-  software
-
-
-### Types
-
-
- *  Type checking is one of the most important tasks the compiler
-  performs
- *  There are many data types supported by a computer
-  
-   *  Binary integer
-   *  Two's complement integer
-   *  Floating point
-   *  Character
-   *  Instruction
-  
- *  \alert{The computer hardware works on words, and the machine
-    does not know what data type a word is.}
- *  It's essential to use the right instruction, according to the
-  data type
-
-
-
-### Integer and floating point
-
-
- *  An integer is a whole number:  $23$, $-47$
- *  A floating point number may have a fraction and exponent: $7.43
-  \times 10^{28}$
- *  We have seen how an integer is represented: two's complement
- *  Floating point representation is different from two's complement
- *  Most computers have separate instructions for arithmetic on
-  integer and floating point
-  
-   *  \alert{add}  R1,R2,R3  --- integer addition
-   *  \alert{addf} R1,R2,R3  --- floating point addition
-  
- *  \alert{The machine doesn't know what the bits in the registers
-    mean} --- you must use the right instruction according to the data
-  type
-
-
-
-### Typechecking
-
-
- *  The compiler checks that each variable in the source program is
-  used correctly
-  
-   *  If you add a number to a string, it's a type error
-  
- *  Then it generates the correct instructions for the type
-  
-   *  For integer variables it uses \alert{add}
-   *  For floating point variables it uses \alert{addf}
-   *  \emph{These are different instructions!}
-  
- *  This eliminates one of the commonest kinds of error in software
-
 
 
 ### Write programs at a high level
@@ -9389,502 +7817,6 @@ principles:
   that the program does \alert{what you predicted in your hand
     execution}
 \end{enumerate}
-
-## Architecture
-
-### Instructions
-
-  
-   *  You need to know what the basic instructions do and how to use
-    them
-    
-     *  Memory and addresses: \alert{load store lea}
-     *  Arithmetic: \alert{add sub mul div}
-     *  Comparison: \alert{cmplt cmpeq cmpgt}
-     *  Jumps: \alert{jump jumpt jumpf jal}
-     *  System: \alert{trap R0,R0,R0} (just for halting, not for I/O)
-    
-   *  Instruction representation
-    
-     *  You should understand the \alert{concept}
-     *  But you do not need to remember the details: the exam does
-      not ask you to convert any instructions from assembly language
-      to machine language
-    
-  
-
-
-### Addresses and data structures
-  
-   *  Effective addresses: sum of displacement and register
-   *  Accessing an element of an array
-   *  Accessing an element of a record
-   *  Pointers: the (*p) and (\&x) operators
-   *  Linked list traversal
-  
-
-#### Compilation patterns
-
-### High and low level programming constructs
-
-  
-   *  High level
-    
-     *  if then, if then else, case, while loops, for loops
-    
-   *  Low level
-    
-     *  assignment, goto, if then goto
-    
-  
-
-### High and low level programming constructs
-
-  
-   *  The low level statements correspond to machine instructions
-   *  Assignment statement
-    
-     *  Load the operands in the expression into registers
-     *  Do the arithmetic
-     *  Store the result into a variable in memory
-     *  You can also keep variables in registers over a larger block
-      of code
-    
-   *  goto label
-    
-     *  jump label[R0]
-    
-   *  if b then goto label
-    
-     *  Evaluate the boolean expression, put it in a register
-     *  conditional jump: either jumpt or jumpf
-    
-  
-
-
-### Compliation patterns
-
-  
-   *  Systematic pattern for translating each high level construct
-    into low level statements
-   *  Most high level constructs contain a Boolean expression
-   *  Translate this into goto and if-then-goto statements that
-    cause the right blocks of instructions to be executed
-   *  Check that the translation is correct by hand executing with
-    both values of the Boolean: True, False
-   *  Case statements use a jump table
-  
-
-### Programming fundamentals
-
-#### How do you learn programming
-
-
- *  The approach to learning programming has changed over the years
- *  First programming languages
-  
-   *  Learn the statements and what they do
-   *  Statements are low level
-  
- *  Large scale software
-  
-   *  Software becoming complex
-   *  goto considered harmful
-  
- *  Problem solving
-  
-   *  Programming languages have complex statements, control
-    structures and data structures
-   *  Teach ``problem solving''
-   *  Use vague English and some examples to explain what the
-    language constructs do
-  
-
-
-
-### Connections with other subjects
-
-Similar debates occur in many subjects
-
-
- *  Natural language
-  
-   *  A popular idea: learning grammar impedes creativity
-   *  Alternative view: knowing grammar \alert{enables} the ability
-    to express your ideas
-  
- *  Arts and crafts and music
-  
-   *  Should you learn how to use the tools of the trade?
-   *  Or just pick up how to use them while ``expressing'' yourself?
-  
-
-
-### Basic list operations: extend and append
-
-~~~~[commandchars=\\\{\}]
-a = [1, 2]
-a.extend([3,4])
-b = [1, 2]
-b.append([3,4])
-
-\redtext{a =  [1, 2, 3, 4]}
-\redtext{b =  [1, 2, [3, 4]]}
-~~~~
-
-### Effect of extend and append on data structures
-
-
-  \includegraphics[scale=0.4]
-  {../figures/png/survey-diagrams/list-print.png}
-
-
-
- *  Need to be able to read a ``box and arrow'' diagram and work out
-  what the lists are
- *  a = [1, 2, 3, 4]
- *  b = [1, 2, [3, 4]]
-
-
-
-
-%-----------------------------------------------------------------------------
-
-### Make some lists}
-
-
-  \includegraphics[scale=0.4]
-  {../figures/png/survey-diagrams/list-ops-test-abc.png}
-
-
-
-
-%-----------------------------------------------------------------------------
-
-  ### XX changed a, YY changed c.\\
-    Which is append, which extend?}
-
-
-  \includegraphics[scale=0.35]
-  {../figures/png/survey-diagrams/list-ops-test-xx-yy.png}
-
-
-
-
-%-----------------------------------------------------------------------------
-[fragile]
-
-### List manipulation: abc foobarbaz
-
-a = [1, 2]
-b = a
-c = [3, 4]
-a = a + c
-c.append(5)
-
-\redtext{a = [1, 2, 3, 4]}
-\redtext{b = [1, 2]
-  \qquad\textrm{\emph{\textbf{Almost half answered [1,2,3,4]}}}}
-\redtext{c = [3, 4, 5]}
-
- *  \emph{\textbf{In a = a+c, the  nodes in a are not changed.  A new list is
-  created and a is made to point to that}}
- *  b still points to the nodes that comprised the \emph{original}
-  value of a
- *  Here the lists are mutable, but you could also use a = a + c on
-  \emph{immutable} data (like strings) because the + operator
-  \emph{does not change the data}, it just creates a \emph{new} value
-
-### List manipulation abc: initial values
-
-
-  \includegraphics[scale=0.4]
-  {../figures/png/survey-diagrams/q1-listmanipulation-diagram-abc.png}
-
-
-### List manipulation abc: after + and append
-
-
-  \includegraphics[scale=0.37]
-  {../figures/png/survey-diagrams/q1-listmanipulation-diagram-plus-append.png}
-
-
-
-### List manipulation: def
-
-~~~~[commandchars=\\\{\}]
-d = [1, 2]
-e = d
-f = [3, 4]
-d.append(f)
-f.append(5)
-
-\redtext{d =  [1, 2, [3, 4, 5]]}
-\redtext{e =  [1, 2, [3, 4, 5]]
-  \qquad\textrm{\emph{\textbf{Almost half answered [1,2]}}}}
-\redtext{f =  [3, 4, 5]}
-~~~~
-
-
- *  append modifies the data structure, it doesn't produce a new
-  list
- *  After the appends, e and f still point to the same nodes they
-  did before, but those nodes now point to lists with changed data
- *  append can only be used on a mutable value such as a list, but
-  not on an immutavle value such as a string
-
-
-### List manipulation: def initial values
-
-
-  \includegraphics[scale=0.4]
-  {../figures/png/survey-diagrams/q2-listmanipulation-diagram-def.png}
-
-
-
-### List manipulation: def after appends
-
-
-  \includegraphics[scale=0.4]
-  {../figures/png/survey-diagrams/q2-listmanipulation-diagram-df-append.png}
-
-
-
-### List manipulation: ghi
-
-~~~~[commandchars=\\\{\}]
-g = [1, 2]
-h = g
-i = [3, 4]
-g += i
-i.append(5)
-
-\redtext{g =  [1, 2, 3, 4]}
-\redtext{h =  [1, 2, 3, 4]
-  \qquad\textrm{\emph{\textbf{A majority answered [1,2]}}}}
-\redtext{i =  [3, 4, 5]}
-~~~~
-
-
- *  g += i modifies the representation of g (unlike g+i).
- *  g (and h) still point to the same node, but the list is changed
- *  The list that i points to is copied into the end of g, extending
-  it, but these nodes are copies of the nodes in i
- *  i.append(5) modifies the representation of i, but not g (or h)
-
-
-### List manipulation: ghi initial values
-
-
-  \includegraphics[scale=0.4]
-  {../figures/png/survey-diagrams/q3-listmanipulation-diagram-ghi.png}
-
-
-
-### List manipulation: ghi after += and append
-
-
-  \includegraphics[scale=0.38]
-  {../figures/png/survey-diagrams/q3-listmanipulation-diagram-plus-append.png}
-
-
-
-
-### For loop
-
-~~~~[commandchars=\\\{\}]
-student_marks = [[9,7,8], [2,5,1], [7,4,3], [9,7,6]]
-for student in student_marks:
-    for mark in student:
-        if mark <= 5:
-            break
-print ('mark = ', mark)
-
-\redtext{mark =  6}
-~~~~
-  
-
-### Data structure used in for loop
-
-
-  \includegraphics[scale=0.23]
-  {../figures/png/survey-diagrams/q2-studentmarks-diagram-marks.png}
-
-
-
-### A flowchart
-
-
-  \includegraphics[scale=0.18]
-  {../figures/png/survey-diagrams/q2-studentmarks-diagram-flowchart.png}
-
-
-
-### If statement
-
-~~~~[commandchars=\\\{\}]
-a = [2,3,5,7,11]
-b = 3
-c = 2
-result = 0
-
-if a[b] == 5:
-    result += 2
-elif a[c+c] > 3 or a[b-c] < 3:
-    result +=3
-elif a[c-c] >= 2 and a[b-b] <= 2:
-    result += 7
-elif a[b+c] >= 11:
-    result += 11
-print ('If statement result = ', result)
-
-\redtext{If statement result =  3}
-~~~~
-  
-
-### Data structure for the if statement
-
-
-  \includegraphics[scale=0.4]
-  {../figures/png/survey-diagrams/q5-ifstatement-diagram-data-structures.png}
-
-
-### Flowchart for the if statement
-
-
-  \includegraphics[scale=0.13]
-  {../figures/png/survey-diagrams/q5-ifstatement-diagram-flowchart.png}
-
-
-### While loop
-
-\hbox{
-\begin{minipage}{10em}
-~~~~[commandchars=\\\{\}]
-a = 5
-b = 3
-while a >= b:
-    print ("foo")
-    a = a + 2
-    b = b + 4
-    print ("bar")
-    a = a + 1
-    print ("hello")
-print ("world")
-~~~~
-\end{minipage}
-\hspace{2em}
-\begin{minipage}{10em}
-~~~~[commandchars=\\\{\}]
-\redtext{foo}
-\redtext{bar}
-\redtext{hello}
-\redtext{foo}
-\redtext{bar}
-\redtext{hello}
-\redtext{foo}
-\redtext{bar}
-\redtext{hello}
-\redtext{world}
-~~~~
-\end{minipage}
-}
-
-\vspace{1em}
-
- *  Many got this wrong, and there were several different errors
- *  Some treated $a \geq b$ as if it meant $a > b$
- *  Some thought the while loop terminates as soon as $a \geq b$
-  becomes true \alert{--- the boolean condition is checked at the top
-    of the loop, not continuously as the loop runs}  
-
-
-### Question: Continue statement
-
-
-~~~~[commandchars=\\\{\}]
-i = 1
-j = 5
-while i < j:
-    i = i + 1
-    if i == 3:
-        \redtext{continue}
-    print ('i = ', i)
-\redtext{i =  2}
-\redtext{i =  4}
-\redtext{i =  5}
-~~~~
-}
-\vspace{1em}
-
- *  Answers were all over the place
- *  That's ok \emph{if you're aware that you don't know what
-    continue does}
- *  The danger is when you aren't aware
- *  Continue is dangerous because it's a goto statement that doesn't
-  say explicitly where to go --- you need to know how to figure it out
- *  Continue should be used rarely if at all, just like goto
-
-
-
-### Question: Break statement
-
-
-~~~~[commandchars=\\\{\}]
-i = 1
-j = 5
-while i < j:
-    i = i + 1
-    if i == 3:
-        \redtext{break}
-    print ('i = ', i)
-
-\redtext{i =  2}
-~~~~
-}
-\vspace{1em}
-
- *  Similar to continue: lots of answers, mostly wrong
- *  Again, that's ok \emph{if you're aware that you don't know what
-    break does}
- *  Break is dangerous because it's a goto statement that doesn't
-  say explicitly where to go --- you need to know how to figure it out
- *  Break should be used rarely if at all, just like goto
-
-  
-### A note about the break statement
-
-  
-   *  In Python, you can only break out of the innermost loop that
-    contains the break
-   *  If you are in several nested loops, and you want to break out
-    of several of them, \emph{there is no good way to do this in
-      Python}
-   *  Break and continue should be used rarely if at all
-   *  Break and continue are just goto statements, spelled differently
-   *  The disadvantages of goto statements apply to break and
-    continue, only more so
-   *  (Break is commonly used in the C language, because the switch
-    (case) statement in C doesn't work the way you normally want.)
-  
-
-### Results
-
-  
-   *  Some of the primitive operations on lists are widely
-    misunderstood
-   *  There are some misconceptions on what operators + and += mean
-    when applied to lists
-    
-     *  Textbooks, web pages, and Stack Overflow also get this wrong
-      quite often
-    
-   *  Some misunderstandings about how nested conditionals work
-   *  The break and continue statements are goto statements where
-    you don't say \emph{where} to go, and this leads to confusion
-   *  \alert{Be sure that you know the exact meaning of the language
-      constructs you're using.}
-  
 
 ### Example: WriteValChar
 
@@ -10199,250 +8131,6 @@ real computers
    *  A longer part that does the actual work, but this can be
     delayed until other interrupts are processed
   
-
-
-
-### Architecture must support OS
-
-### Some historical examples
-
-As computers developed, some architectures had to be abandoned because
-they didn't support new ideas in programming and operating systems.
-
-
- *  \emph{Self-modifying code.}\\ Some early machines needed
-  self-modifying code to iterate over arrays.  When the disadvantages
-  were recognised, and index registers with effective address
-  calculation were invented, those machines became obsolete.
- *  \emph{Inability to save full state.}\\ Early machines had a
-  library of I/O routines, rather than a full operating system, and
-  lacked the ability to save \emph{all} state on an interrupt.  This
-  made an OS scheduler impossible.
- *  \emph{Small address size.}\\ Memory was expensive until the
-  1970s, and machines used short addresses to keep code tight.  The
-  PDP 10 computer had 18-bit addresses, and went from dominant to dead
-  when memory hardware grew.
-
-
-
-### More recent examples
-
-
- *  \emph{Dynamic address translation.}  Virtual memory is
-  implemented partly in hardware, and partly in software.  The
-  relevant parts of the architecture and operating system must be
-  designed together.
- *  \emph{Metrics for virtual memory.} To be efficient, virtual
-  memory needs information about usage patterns (``least recently
-  used'', etc.).  This information is needed by the operating system
-  but must be gatherd by the hardware.
- *  \emph{Primitives for mutual exclusion.}  It is theoretically
-  possible to implement mutex in software, but to be efficient it
-  needs hardware support (test and set, etc.).
- *  \emph{System virtualisation.} Virtual machines require the
-  ability to emulate key parts of code while running other parts at
-  full speed, without losing control.  This places a number of
-  constraints on the architecture.
-
-
-
-
-### Speed of cache memory
-
-
-   *  Cache is a small fast memory that mirrors the most commonly
-  used words of the primary memory.
-   *  Cache may run at full processor speed.
-   *  The datapath and control need to determine, for each memory
-    access, whether the effective address refers to a word in the
-    cache.  If so, the access is quick and the primary memory is
-    not used.
-   *  The test for cache residency must be \emph{fast}!  It
-    happens on every memory access (more than once per instruction,
-    on average).
-   *  Extra registers are needed to give fast access to
-    information about which addresses are in the cache.
-
-
-
-
-### What's in the cache
-
-
- *  Since the cache contains recently used data, it does not
-  contain a sequence of words at consecutive locations
- *  Therefore each location in the cache contains two parts:
-
- *  A word of data
- *  A tag: the actual address of this data in the primary memory
-
- *  This enables the machine to identify whether an arbitrary
-  address refers to data that's already in the cache, and if so,
-  where it is
-
-
-
-
-### Cache lines
-
-
-
- *  In practice, we don't just keep individual memory locations
-  (bytes or words) in the cache
-
- *  The cache is organised by ``large words'' called cache lines;
-  e.g. 16 bytes at an address which is a multiple of 16.
- *  A memory access to an address $a, a+1, \ldots, a+15$ will
-  actually refer to the same cache line (where $a$ is a multiple of
-  16).
- *  Size of a cache line varies: making it bigger increases
-  probability of cache hit but also increases penalty of a cache hit
-
-
-
-
-
-### Searching the cache
-
-
- *  The cache has to be searched on each memory access, so this
-  search must be fast!
- *  The quickest approach: \emph{direct mapped cache} requires
-  each address to go into a specific cache entry.
- *  The most general approach: \emph{associative search}
-
- *  Each cache line has a dedicated comparitor that checks the
-  memory address against the tag for this line
- *  The comparisons are done by hardware, in parallel
-
- *  There are also various compromises which require less
-  hardware but offer less improvement in performance
-
-
-
-
-### Fully associative cache
-
-
-  
- *  Direct mapping is inflexible: it can cause a sequence of
-  memory operations to induce a sequence of cache misses (similar
-  to thrashing in virtual memory).
-  
- *  An alternative approach is to allow a word of memory to be
-  placed in any different cache location---this is called
-  \emph{fully associative} cache.
-  
- *  The hardware must search the tags of the set of possible
-  cache locations corresponding to a memory location.
-
-
-
-
-### Associative memory
-
-Also called content-addressable memory.
-
-
-
- *  Each word contains several fields
-
- *  Data is not accessed by its address
-
- *  To fetch data, a field value is specified, and the memory
-  returns the rest of the word that matches this field
-
- *  If it is possible for several matches to occur, the memory
-  must resolve this.
-
-
-
-
-### Searching in associative memory
-
-
-
- *  Each location has some logic as well as state
-
- *  On a memory access, the specified field value is broadcast
-
- *  In parallel, each location compares the broadcast field with
-  its local field value, resulting in a Boolean \emph{match}
-
- *  A tree of or-gates can determine in logarithmic time whether
-  a match exists.
-
- *  If there are multiple matches, a tree circuit can also
-  determine a unique responder in logarithmic time.
-
-
-
-
-### A compromise: Set associative cache
-
-
- *  Instead of allowing a block of memory to go into any location
-  of the cache, restrict it to just a subset of the cache
-  locations.
- *  You can think of direct mapped as a special case where the
-  subset has one element, and fully associative as a special case
-  where the subset is the entire set.
- *  This reduces the number of comparitors needed to check tags,
-  and the size of the tree circuit to resolve matches.
- *  Many real machines use set associative cache.
-
-
-
-### Reducing cache misses
-
-
- *  Increasing the cache size helps, but the fixed direct mapping
-  can cause a sequence of memory operations to induce a sequence of
-  cache misses (similar to thrashing in virtual memory).
- *  An alternative approach is to allow a word of memory to be
-  placed in a set of different cache locations.
- *  The hardware must then do a search through the set of
-  possible cache locations corresponding to a memory location.
- *  This requires searching the tags.  What matters is not the
-  location of the cache entry, but the association between the tag
-  and the value.
-
-
-
-
-### Processor: after load x
-
-
-  \includegraphics[scale=0.4]{figures/png/S16-processor-add-instr1.png}
-
-
-
-### Processor: after load y
-
-
-  \includegraphics[scale=0.4]{figures/png/S16-processor-add-instr2.png}
-
-
-
-
-### Processor: after add
-
-
-  \includegraphics[scale=0.4]{figures/png/S16-processor-add-instr3.png}
-
-
-
-### Processor: after store
-
-
-  \includegraphics[scale=0.4]{figures/png/S16-processor-add-instr4.png}
-
-
-### Processor: after termination
-
-
-  \includegraphics[scale=0.4]{figures/png/S16-processor-add-instr5.png}
-
 
 
 
@@ -11023,39 +8711,6 @@ in memory
 
 
 
-
-
-### The multiplexer circuit}
-
-THIS ONE IS REDUNDANT, HAVE A BETTER tikz DIAGRAM
-
-
-  \includegraphics[scale=0.8]{figures/logicworks/mux1clipped.pdf}
-
-
-~~~~
-mux1 c x y =
-   or2  (and2 (inv c) x)
-        (and2 c y)
-~~~~
-
-
-#### Characteristics of combinational circuits}
-
-### Two kinds of circuit}
-
- *  Combinational circuits
-  
-   *  Consist entirely of logic gates
-   *  No feedback loops
-  
- *  Sequential circuits
-  
-   *  May contain logic gates and flip flops
-   *  Feedback loops are allowed
-  
-### Hexadecimal Numbers}
-
 ## Hexadecimal Numbers
 
 
@@ -11129,24 +8784,6 @@ mux1 c x y =
   place
 
 
-### Black boxes
-
- *  We can define a circuit as a black box by giving it a name,
-  and specifying its ports (inputs and outputs)
- *  This is analogous to using abstraction in a programming
-  language by defining a function for a commonly used computation
- *  It is a box, with inputs, outputs, and internal components
-  and signals
-
-~~~~
-circuit_name input1 input2 = (output1,output2)
-  where
-    output1 = ...
-    output2 = ...
-    x = ... (internal signals...)
-    y = ...
-~~~~
-
 ## Jumping
 
 All jumps refer to effective addresses.
@@ -11178,80 +8815,12 @@ cmpgt  R1,R2,R3   R1 := R2>R3
    *  Know your programming language
    *  Be meticulous
    *  \alert{Read} your code carefully
-   *  Do thorough testing
+
+*  Do thorough testing
   
  *  It was very helpful that Apple published the source code for
   this bug
 
-
-### Closed source, open source, free
-
- *  \alert{Closed source} --- the software is proprietary, the
-  company doesn't publish it (you can get the machine language code
-  but not the high level language code)
- *  \alert{Open source} --- the source code is published, although
-  the owner has control
- *  \alert{Free} --- You can make a copy of the code and modify it
- *  Much controversy!
-  
-   *  One view: a large company can ensure high quality, and needs
-    to ensure it gets paid for its work
-   *  Another view: ``with many eyes studying code, every bug is
-    visible'' --- open source and free software can be more reliable
-
-### Processor organisation}
-
-### A computer is a digital circuit!
-
- *  It isn't a magic box with a little man inside!
- *  A computer is a \alert{digital circuit} constructed from
-  \alert{logic gates} and \alert{flip flops}
-  
-   *  \alert{There is a full circuit design for Sigma16} --- the
-    entire computer is implemented down to the level of inv, and2,
-    dff, etc.
-   *  Today we'll take a brief overview
-   *  Some more detail in CS2
-   *  Computer Architecture 4 covers the full system, along with
-    advanced techniques: pipelining, superscalar, combinators,
-    parallel scan, synchronisers, circuit parallelism, and more
-  
-### Processor organisation
-
- *  The RTM circuit (register transfer machine)
-
- *  Contains a register file, and adder, and a multiplexer
- *  It can execute a sequence of Sigma16 add instructions
-
- *  We can extend this circuit to handle the entire architecture!
-
-### Control registers
-
- *  The circuit needs to \alert{keep track of the instructions}
- *  This is done using \alert{control registers}
-  
-   *  The \alert{instruction register (ir)} contains the instruction
-    currently being executed
-   *  The \alert{program counter register (pc)} contains the address
-    of the next instruction
-  
- *  You can see these registers in the emulator window
-
-### The control algorithm
-
- *  Actions performed by the machine are \alert{register loads}
- *  The choice of \emph{which} action to perform is determinted by
-  the \alert{control algorithm}
-  
-   *  This is described as an ordinary algorithm, using pseudocode
-   *  It determines which values get loaded into which registers at
-    each clock tick
-   *  The algorithm is implemented using flip flops and logic gates
-  
- *  The algorithm is an \alert{infinite loop}
-  
-   *  Each iteration fetches the next instruction, decodes it, and
-    executes it
   
 ### Structure of the control algorithm
 
@@ -11321,126 +8890,6 @@ repeat forever
              pc := adr
 ~~~~
 
-### Processor organisation
-
-A computer is a digital circuit!
-
- *  It isn't a magic box with a little man inside!
- *  A computer is a \alert{digital circuit} constructed from
-  \alert{logic gates} and \alert{flip flops}
-  
-   *  \alert{There is a full circuit design for Sigma16} --- the
-    entire computer is implemented down to the level of inv, and2,
-    dff, etc.
-   *  Today we'll take a brief overview
-   *  Some more detail in CS2
-   *  Computer Architecture 4 covers the full system, along with
-    advanced techniques: pipelining, superscalar, combinators,
-    parallel scan, synchronisers, circuit parallelism, and more
-  
-### Processor organisation
-
- *  The RTM circuit (register transfer machine)
-
- *  Contains a register file, and adder, and a multiplexer
- *  It can execute a sequence of Sigma16 add instructions
-
- *  We can extend this circuit to handle the entire architecture!
-
-### Control registers
-
- *  The circuit needs to \alert{keep track of the instructions}
- *  This is done using \alert{control registers}
-  
-   *  The \alert{instruction register (ir)} contains the instruction
-    currently being executed
-   *  The \alert{program counter register (pc)} contains the address
-    of the next instruction
-  
- *  You can see these registers in the emulator window
-
-### The control algorithm
-
- *  Actions performed by the machine are \alert{register loads}
- *  The choice of \emph{which} action to perform is determinted by
-  the \alert{control algorithm}
-  
-   *  This is described as an ordinary algorithm, using pseudocode
-   *  It determines which values get loaded into which registers at
-    each clock tick
-   *  The algorithm is implemented using flip flops and logic gates
-  
- *  The algorithm is an \alert{infinite loop}
-  
-   *  Each iteration fetches the next instruction, decodes it, and
-    executes it
-  
-### Structure of the control algorithm
-
-~~~~
-repeat forever
-  ir := mem [pc],  pc := pc+1
-  case ir.op of
-    0 -> reg [ir.d] := reg [ir.sa] + reg [ir.sb]    ; add
-    1 -> reg [ir.d] := reg [ir.sa] - reg [ir.sb]    ; sub
-       ...
-    4 -> reg [ir.d] := reg [ir.sa] < reg [ir.sb]     ; cmplt
-       ...
-   15 -> case ir.sb of
-               0 -> adr := mem [pc],  pc = pc + 1    ; lea
-                       adr := adr + reg [ir.sa]
-                       reg [ir.d] := adr
-               1 -> adr := mem [pc],  pc = pc + 1    ; load
-                       adr := adr + reg [ir.sa]
-                       dat := mem [adr]
-                       reg [ir.d] := dat
-~~~~
-
-### A closer look at lea
-
- *  Fetch the second word of the instruction (the displacement) and
-  put it in adr; also increment the pc
- *  Calculate the effective address: displacement + index register
- *  Load the effective address into the destination register
-
-~~~~
-        0 -> adr := mem [pc],  pc = pc + 1    ; lea
-             adr := adr + reg [ir.sa]
-             reg [ir.d] := adr
-~~~~
-
-
-### Lea and Load: similar but not identical!
-
- *  Load starts the same as lea: it calculates the effective address
- *  Then it \alert{fetches a word from memory at the effective
-    address} and loads that into the destination register
- *  The difference is that lea just loads the effective address into
-  the destination register
-
-~~~~
-        0 -> adr := mem [pc],  pc = pc + 1    ; lea
-             adr := adr + reg [ir.sa]
-             reg [ir.d] := adr
-
-        1 -> adr := mem [pc],  pc = pc + 1    ; load
-             adr := adr + reg [ir.sa]
-             dat := mem [adr]
-             reg [ir.d] := dat
-~~~~
-
-### A jump is just a load!
-
- *  Calculate the effective address
- *  Load the effective address into the pc
- *  The next instruction to be executed is whatever is at that
-  address
-
-~~~~
-        3 -> adr := mem [pc],  pc = pc + 1    ; jump
-             adr := adr + reg [ir.sa]
-             pc := adr
-~~~~
 
 ### Programming Guidelines
 
@@ -11674,99 +9123,6 @@ x    data
 }
 
 
-## A digital circuit for Sigma16
-
-
- *  There is a complete digital circuit for Sigma16
- *  It's too complicated for a schematic diagram
- *  It is fully specified in Hydra
- *  Executing the specification simulates the circuit
- *  {\redtext \emph{You can run Sigma16 machine language directly on
-    the circuit}}
-
-
-### Emergent behaviour
-
-
- *  A computer does lots of different things
-  
-   *  Arithmetic
-   *  Sequences of calculations
-   *  Decisions
-   *  Goto
-  
- *  Yet it's just a digital circuit made of logic gates and flip
-  flops, which \alert{cannot do any of these things}
- *  The interesting behaviours \alert{emerge} from the way the basic
-  components are connected
-
-
-
-### Some examples of emergent ``ultimate causes''
-
-
- *  Arithmetic
-  
-   *  Full adder uses logic gates to calculate sum and carry
-   *  Ripple carry adder transfers carry bits to get binary sum
-  
- *  Sequences of calculations
-  
-   *  The pc register points to next instruction, and is incremented
-    as each instruction is executed
-  
- *  Decisions
-  
-   *  If statements are translated to \alert{if cond then goto label}
-   *  Control algorithm uses a multiplexer to take different actions
-    based on cond
-  
- *  Goto
-  
-   *  Goto is just loading the pc with the effective address
-  
-
-
-
-## A multi-level systems programming language
-
-
- *  Our focus is on \emph{fundamental principles}, not on details of
-  any specific programming language
- *  We'll describe algorithms using a language that
-  
-   *  Illustrates features from several real languages
-   *  Avoids some of the irrelevant complicated features that appear
-    only in one language
-   *  Encourages a good, expressive programming style
-   *  Can express algorithms at both a high level and a low level
-   *  Supports \emph{systems programming} --- that means it can do
-    things that ordinary programming languages can't do
-  
-
-
-### Features of Sigma (so far)
-
-
- *  Data values
-  
-   *  Integer constants, variables, expressions
-   *  Boolean expressions
-  
- *  Low level statements
-  
-   *  Assignment statement
-   *  goto statement
-   *  if bexp then goto statement
-  
- *  High level statements
-  
-   *  if b then S1
-   *  if b then S1 else S2
-   *  while b do S1
-  
-
-
 ## Assembly language
 
 This section describes the syntax rules for assembly language
@@ -11939,8 +9295,6 @@ Not like this:
   
  *  It's easy to indent with spaces, and it works everywhere!
 
-
-
 ## Programming techniques
 
 Notes on how to use the instructions effectively
@@ -12009,11 +9363,7 @@ Notes on how to use the instructions effectively
    *  Why?  Doing it this way makes the digital circuit (the
     processor) a little bit faster
   
-
-
-
 ### Development by transformation}
-
 
  *  In typical ``real world'' situations a programmer just uses a
   high level language
@@ -12026,9 +9376,6 @@ Notes on how to use the instructions effectively
    *  Transform that to assembly language
    *  Test each stage by hand execution
    *  The worst bugs usually appear in the high to low transformation
-  
-
-
 
 ### High level
 
@@ -12058,8 +9405,7 @@ RecordLoop
 RecordLoopDone
 ~~~~
 
-
-### Assembly
+Assembly
 
 ~~~~
     lea    R1,0[R0]                 ; sum := 0
@@ -12079,11 +9425,7 @@ RecordLoop
 RecordLoopDone
 ~~~~
 
-
-#### Basic types and statements}
-
 ### Basic expressions and statements
-
 
  *  Expressions
   
@@ -12093,9 +9435,6 @@ RecordLoopDone
  *  assignments
   
    *  lhs := expression
-  
-
-
 
 ### Exposing the architecture
 
@@ -12119,9 +9458,7 @@ RecordLoopDone
  *  Interface to operating system
 
 
-
-### Relations between the levels
-
+Relations between the levels
 
  *  We could have completely separate high and low level languages
  *  Hypothesis: it's better to allow mixing where the semantics is
@@ -12480,67 +9817,15 @@ that will produce a lot of detailed simulation output showing the
 values in key registers, flip flops, and signals.
 
 
-# Computer architecture
-
-An *instruction set architecture* is a precise specification of all
-aspects of a machine that are visible to a programmer.  It includes a
-description of the registers, memory, data representations, and all
-the instructions, but does not include components of the
-implementation that are not visible to a machine language programmer.
-
-## Overview of computer architecture
-
-### Machine language and instructions
-
-Very different from Python, Java, C, etc.  The designer of a machine
-language has to `look both up and down':
-  
-* Looking up to higher levels of abstraction, the machine language
-  must be powerful enough to provide the foundation for
-  operating systems and programming languages.
-
-* Looking down to the lower levels of implementation, the machine
-  language must be simple enough so that a digital circuit can execute
-  it.
-  
-Machine languages are designed to achieve high performance possible at
-reasonable cost.  Their primary aim is not to make programming as easy
-as possible
-
-A machine language program consists of instructions.  An instruction
-is analogous to a statement in a programming language.  However, each
-instruction just performs a small fixed set of operations, while
-programming language statements can be complex.  For example, the
-assignment statement x := 2 * (a + b/c) involves three arithmitic
-operations, and it would require at least three instructions to
-express in machine language.
-
-## Relationship between machine language and circuit
-
-### The RTM instructions
-
-
- *  The RTM circuit can execute two instructions
-  
-   *  R2 := R1 + R0 ; add two registers and load result
-   *  R1 := 8   ; load a constant
-  
- *  We'll begin with the corresponding Sigma16 instructions
-
-
 # Installation
-
-## Browser compatibility
 
 The application currently works with Chrome and Firefox, and
 possible Edge.
 
-## Where to find the software
-
 The software is available on the Internet at the [Sigma16 home
-page](https://jtod.github.io/Sigma16/), which contains a link to the
-latest version, some previous versions, related documents, and more
-information about the project.
+page](https://jtod.github.io/home/Sigma16/), which contains a link to
+the latest version, some previous versions, related documents, and
+more information about the project.
 
 ## How to run Sigma16
 
@@ -12551,7 +9836,7 @@ that you try the easiest way.
 
 Run the app with two clicks:
 
-  1. Visit the [Sigma16 homepage](https://jtod.github.io/Sigma16/index.html)
+  1. Visit the [Sigma16 homepage](https://jtod.github.io/home/Sigma16/)
   2. Click on *Launch the latest release*
 
 This will run the app in your browser, and you don't need to download

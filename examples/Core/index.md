@@ -1,5 +1,8 @@
 # Core example programs
 
+This collection of programs uses the core of the Sigma16 architecture.
+This includes the essential subsystems and instructions.
+
 * [Simple](Simple/index.html)  Small and simple programs that
   illustrate usage of the basic instructions.
 

@@ -683,9 +683,9 @@ function parseOperand (m,s) {
         s.operand_str1 = rx[1]; // Rd
         s.operand_str2 = rx[2]; // disp
         s.operand_str3 = rx[3]; // Ra
-	s.field_d = s.operand_str1;
-	s.field_disp = s.operand_str2;
-	s.field_a = s.operand_str3;
+//	s.field_d = s.operand_str1;
+//	s.field_disp = s.operand_str2;
+//	s.field_a = s.operand_str3;
     } else if (kx) { // jumpc1 Rd,disp[Ra]
 	s.hasOperand = true;
 	s.operandType = KX;
@@ -732,6 +732,18 @@ function parseOperand (m,s) {
 }
 
 
+// If the operand doesn't match the instruction format, it's possible
+// that some of the operand fields will be left undefined by the
+// regular expression match.  For example, if the destination is
+// omitted on an RX instruction, and the operand looks like JX, then
+// the s.field_disp would be left undefined.  To prevent an error when
+// this is passed to evaluate, it is protected by applying ensure to
+// it.
+
+function ensure (operand_field) {
+    return operand_field ? operand_field : 0
+}
+
 //----------------------------------------------------------------------
 //  Assembler Pass 1
 //----------------------------------------------------------------------
@@ -757,29 +769,33 @@ function printAsmStmts (m) {
     }
 }
 
-
 // If operand isn't correct type for the operation, give an error
 // message.  The operations that need to have the operand checked jave
 // code <= DATA.  The higher operations either don't need an operand
 // (COMMENT) or need to be checked individually (DIRECTIVE).
 
 function checkOpOp (m,s) {
-    console.log(`checkOpOp line ${s.lineNumber}`);
-    let format = s.format;
-    let operandType = s.operandType;
-    console.log (`checkOpOp operation=${s.operation} format=${format} operandType=${operandType}`);
+    console.log(`checkOpOp line=${s.lineNumber} <${s.srcLine}>`);
+    let format = s.format; // format required by the operation
+    let operandType = s.operandType; // type of operand
+    console.log (`checkOpOp format=${format} operandType=${operandType}`);
     if (format==operandType
         || (format==RRREXP && operandType==RRR)
         || (format==RREXP && operandType==RR)
-        || (format==EXP0)) {
+        || (format==EXP0)
+        || (format==EMPTY)
+        || (format==UNKNOWN)
+        || (format==COMMENT)) {
         return true;
-    }
-    if (format > 11) {return true}
-    if (format <= DATA && format != operandType) {
+    } else {
 	let msg = `${s.fieldOperation} is ${showFormat(format)} format, but operand type is ${showFormat(operandType)}`;
 	mkErrMsg (m,s,msg);
+        return false;
     }
 }
+//    if (format <= DATA && format != operandType) {
+//    if (format > 11) {return true}
+
 
 // Given a string xs, either return the control register index for it
 // if xs is indeed a valid control register name; otherwise generate
@@ -922,9 +938,10 @@ function asmPass2 (m) {
 	} else if (fmt==RX) {
 	    console.log (`pass2 RX`);
 	    op = s.operation.opcode;
-            //	    s.codeWord1 = mkWord(op[0],s.d,s.a,op[1]);
+            s.field_d = s.operand_str1;
+	    s.field_disp = s.operand_str2;
+	    s.field_a = s.operand_str3;
             s.codeWord1 = mkWord(op[0],s.field_d,s.field_a,op[1]);
-            //            let v = evaluate(m,s,s.address+1,s.field_disp);
             let v = evaluate(m,s,s.address+1,s.field_disp);
 	    s.codeWord2 = v.evalVal;
             if (v.evalRel) {
@@ -1152,26 +1169,38 @@ function showAsmap (m) {
 
 function evaluate (m,s,a,x) {
     console.log('evaluate ' + x);
+    let result = 0;
     if (x.search(nameParser) == 0) { // expression is a name
 	r = m.symbolTable.get(x);
 	if (r) {
 	    console.log('evaluate returning ' + r.val);
             r.symUsageAddrs.push(a);
             r.symUsageLines.push(s.lineNumber+1);
-	    return { evalVal : r.val, evalRel : r.relocatable };
+            //	    return { evalVal : r.val, evalRel : r.relocatable };
+            result = { evalVal : r.val, evalRel : r.relocatable };
 	} else {
 	    mkErrMsg (m, s, 'symbol ' + x + ' is not defined');
 	    console.log('evaluate returning ' + 0);
-	    return {evalVal : 0, evalRel : false};
+            //	    return {evalVal : 0, evalRel : false};
+            result = {evalVal : 0, evalRel : false};
 	}
     } else if (x.search(intParser) == 0) { // expression is an int literal
 	console.log('evaluate returning ' + parseInt(x,10));
-	return {evalVal : intToWord(parseInt(x,10)), evalRel : false};
+        //	return {evalVal : intToWord(parseInt(x,10)), evalRel : false};
+        result = {evalVal : intToWord(parseInt(x,10)), evalRel : false};
     } else if (x.search(hexParser) == 0) { // expression is a hex literal
-	return {evalVal : hex4ToWord(x.slice(1)), evalRel : false};
+        //	return {evalVal : hex4ToWord(x.slice(1)), evalRel : false};
+        result =  {evalVal : hex4ToWord(x.slice(1)), evalRel : false};
     } else { // compound expression (not yet implemented)
 	mkErrMsg (m, s, 'expression ' + x + ' has invalid syntax');
-	return {evalVal : 0, evalRel : false};
+        //	return {evalVal : 0, evalRel : false};
+        result = {evalVal : 0, evalRel : false};
+    }
+    if (result) {
+        return result
+    } else {
+        mkErrMsg (m, s, `Cannot evaluate expression`);
+        return 0;
     }
 }
 

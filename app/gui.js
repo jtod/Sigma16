@@ -682,11 +682,11 @@ window.onload = function () {
     vect   = mkReg ('vect',   'vectElt', wordToHex4);
 
 // Segment control registers
-    sEnable  = mkReg ('sEnable',  'sEnableElt',  showBit);
-    sProg    = mkReg ('sProg',    'sProglt',     wordToHex4);
-    sProgEnd = mkReg ('sProgEnd', 'sProgEndElt', wordToHex4);
-    sDat     = mkReg ('sDat',     'sDatlt',      wordToHex4);
-    sDatEnd  = mkReg ('sDatEnd',  'sDatEndElt',  wordToHex4);
+//    sEnable  = mkReg ('sEnable',  'sEnableElt',  showBit);
+    bpseg = mkReg ('bpseg',    'bpsegElt',    wordToHex4);
+    epseg = mkReg ('epseg',    'epsegElt',    wordToHex4);
+    bdseg = mkReg ('bdseg',    'bdsegElt',    wordToHex4);
+    edseg = mkReg ('edseg',    'edsegElt',    wordToHex4);
 
 // Record the control registers    
     nRegisters = 16;  // Start after the first 16 (the regfile)
@@ -694,7 +694,8 @@ window.onload = function () {
 	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
 	 // the following can be used for getctl/getctl, indexing from 0
 	 statusreg,
-	 mask, req, istat, ipc, vect
+	 mask, req, istat, ipc, vect,
+         bpseg, epseg, bdseg, edseg
 	];
     controlRegisters.forEach (function (r) {
 	console.log('making reg ' + nRegisters + ' = ' + r.regName);
