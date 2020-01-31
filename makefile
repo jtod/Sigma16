@@ -23,7 +23,7 @@
 #   https://github.com/jtod/Sigma16
 
 # Quick reference...
-#   make webdev                               prepare home/Sigma16/dev
+#   make devversion                               prepare home/Sigma16/dev
 #   make release                              prepare home/Sigma16/releases/...
 #   make docs/src/S16homepage/index.html       index for Sigma16 home page
 
@@ -37,7 +37,7 @@
 
 # To upload current development version to web page:
 #    cd Sigma/current/Sigma16
-#       make webdev
+#       make devversion
 #       git status, git add, git commit, git push
 #    cd Sigma/current/homepage/jtod.github.io/home/Sigma16
 #       git status, git add, git commit, git push
@@ -51,7 +51,7 @@
 # SIGMACURRENT contains the Sigma project, including Sigma16
 SIGMACURRENT:=./..
 S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/home/Sigma16/
-WEBDEV:=$(S16HOME)/dev
+DEVVERSION:=$(S16HOME)/dev
 
 # S16WEBPAGE is a directory in my homepage on github; this is where
 # the web release is placed, since users can run the app by clicking a
@@ -69,7 +69,7 @@ showparams :
 	echo SIGMACURRENT = $(SIGMACURRENT)
 	echo S16WEBPAGE = $(S16WEBPAGE)
 	echo VERSION = $(VERSION).txt
-	echo WEBDEV = $(WEBDEV)
+	echo DEVVERSION = $(DEVVERSION)
 
 #-------------------------------------------------------------------------------
 # Usage
@@ -146,7 +146,7 @@ showparams :
 
 # make homepage-index: Convert index for Sigma16 home page from
 # markdown to html.  This should be copied to the git repository for
-# jtod.github.io/S16 (make release or make webdev will do that)
+# jtod.github.io/S16 (make release or make devversion will do that)
 
 #          --template=docs/src/readme-template.html \
 
@@ -186,30 +186,30 @@ release :
 	cp -up *.json ../release/$(VERSION)/app
 	cp -upr  ../release/$(VERSION) $(S16WEBPAGE)/releases
 
-# make webdev -- copy the files to the web page current development directory
+# make devversion -- copy the files to the web page current development directory
 # Usage:
-#    In project directory:  make webdev
+#    In project directory:  make devversion
 #    In homepage directory: git push
 
-.PHONY : webdev
-webdev :
-	mkdir -p $(WEBDEV)/app
+.PHONY : devversion
+devversion :
+	mkdir -p $(DEVVERSION)/app
 	make set-version
-	cp -up VERSION.txt $(WEBDEV)
-	cp -up LICENSE.txt $(WEBDEV)
+	cp -up VERSION.txt $(DEVVERSION)
+	cp -up LICENSE.txt $(DEVVERSION)
 	make source-dir-index
-	cp -up index.html  $(WEBDEV)/app
+	cp -up index.html  $(DEVVERSION)/app
 	make docs/html/S16homepage/index.html
 	cp -up docs/html/S16homepage/index.html $(S16HOME)
 	cp -up docs/src/S16homepage/homepage.css $(S16HOME)
 	make docs/html/userguide/userguide.html
-	cp -upr docs $(WEBDEV)
+	cp -upr docs $(DEVVERSION)
 	make example-indices
-	cp -upr examples $(WEBDEV)
-	cp -upr app/datafiles $(WEBDEV)/app
-	cp -up app/*.html $(WEBDEV)/app
-	cp -up app/*.css $(WEBDEV)/app
-	cp -up app/*.js $(WEBDEV)/app
+	cp -upr examples $(DEVVERSION)
+	cp -upr app/datafiles $(DEVVERSION)/app
+	cp -up app/*.html $(DEVVERSION)/app
+	cp -up app/*.css $(DEVVERSION)/app
+	cp -up app/*.js $(DEVVERSION)/app
 
 #-------------------------------------------------------------------------------
 # Running Sigma16
@@ -305,7 +305,7 @@ webdev :
 
 .PHONY : compile
 compile :
-	make webdev
+	make devversion
 	make dependencies
 	make executable
 	make move-executable

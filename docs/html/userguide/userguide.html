@@ -36,10 +36,7 @@ Version 3.0.34
 <li><a href="#architecture">Architecture</a><ul>
 <li><a href="#data-representation-and-notation">Data representation and notation</a></li>
 <li><a href="#overview-of-the-subsystems">Overview of the subsystems</a></li>
-<li><a href="#register-file">Register file</a><ul>
-<li><a href="#r0-holds-the-constant-0">R0 holds the constant 0</a></li>
-<li><a href="#r15-is-the-condition-code-register">R15 is the condition code register</a></li>
-</ul></li>
+<li><a href="#register-file">Register file</a></li>
 <li><a href="#memory">Memory</a></li>
 <li><a href="#control-registers">Control registers</a><ul>
 <li><a href="#status-register-flags">Status register flags</a></li>
@@ -55,7 +52,6 @@ Version 3.0.34
 <li><a href="#exp8-format">EXP8 format</a></li>
 <li><a href="#summary-of-instruction-formats">Summary of instruction formats</a></li>
 <li><a href="#assembly-language-statement-formats">Assembly language statement formats</a></li>
-<li><a href="#exp-format">EXP format</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#instruction-set">Instruction set</a><ul>
@@ -155,9 +151,6 @@ Version 3.0.34
 <li><a href="#download-and-open-file-in-browser">Download and open file in browser</a></li>
 <li><a href="#run-locally-with-npm-and-electron">Run locally with npm and electron</a></li>
 <li><a href="#compiling-a-standalone-executable">Compiling a standalone executable</a></li>
-<li><a href="#version-number">Version number</a></li>
-<li><a href="#running-in-a-browser.">Running in a browser.</a></li>
-<li><a href="#running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#about-sigma16">About Sigma16</a><ul>
@@ -167,36 +160,33 @@ Version 3.0.34
 <li><a href="#gpl3-license">GPL3 License</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#reference">Reference</a><ul>
-<li><a href="#index-of-notation">Index of notation</a></li>
-</ul></li>
 </ul>
 </nav>
 <h1 id="introduction">Introduction</h1>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
-<p>The Sigma16 IDE (the main “app”) is implemented in JavaScript and runs in a web browser. There are additional components to the system that must be downloaded and run on a computer; these include a digital circuit that implements the architecture and a high speed emulator. You can run the IDE simply by <a href="https://jtod.github.io/S16/dev/app/Sigma16.html">clicking a link to Launch Sigma16 to run in your browser</a>. See the <a href="https://jtod.github.io/S16/">Sigma16 Home Page</a> for further information, documentation, and executable versions.</p>
-<p>This reference manual is organised by topic, with chapters on the architecture, the assembly language, and the emulator. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program and how to use the programming environment.</p>
+<p>The Sigma16 IDE (the main “app”) is implemented in JavaScript and runs in a web browser. There are additional components to the system that must be downloaded and run on a computer; these include a digital circuit that implements the architecture and a high speed emulator. You can run the IDE simply by clicking a link on the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 Home Page</a>.</p>
+<p>This user guide is organised by topic, with chapters on the architecture, the assembly language, the linker, and programming techniques. However, it’s a good idea to begin with an overview of how the whole system works, and to be able to write and run simple programs, before delving into the details. For a quick start, begin with the tutorials, which show you how to enter and run a program and how to use the programming environment.</p>
 <h1 id="tutorials">Tutorials</h1>
 <p>The following short tutorials introduce the system; full details appear in later sections. You can keep the tutorials visible in the right panel while following along with the exercises in the main panel.</p>
 <h2 id="hello-world">Hello, world!</h2>
 <p>To launch the program, visit the Sigma16 Home Page and click on the link to run it.</p>
-<p>The main window contains three main sections. The largest area, on the left side, is the <em>main working area</em>. When the program launches, this will show the Welcome page. The <em>user guide</em> is on the right side. At the top is a row of buttons (Welcome, Examples, etc.). These select which page is displayed in the main working area.</p>
-<p>It’s convenient to see the main working area and the user guide side by side. Begin by resizing the entire window (bigger is better). Then you can change the amount of space given to the user guide by clicking the arrow symbols on the right side of the top button bar. These arrows will expand or shrink the user guide: the small arrows adjust by one pixel, the larger arrows by ten pixels. If you resize the entire browser window, Sigma16 will maintain the same relative sizes of the architecture and user guide sections.</p>
+<p>The main window contains two main sections. The largest area, on the left side, is the <em>main working area</em>. When the program launches, this will show the Welcome page. The <em>user guide</em> is on the right side. At the top is a row of buttons (Welcome, Examples, etc.). These select which page is displayed in the main working area.</p>
+<p>It’s convenient to see the main working area and the user guide side by side. Begin by resizing the entire window (bigger is better). Then you can change the amount of space given to the user guide by clicking the arrow symbols on the right side of the top button bar. These arrows will expand or shrink the user guide: the small arrows adjust by one pixel, the larger arrows by ten pixels. If you resize the entire browser window, Sigma16 will maintain the same relative sizes of the main working area and the user guide sections.</p>
 <p>You can also open the User Guide in a separate browser tab or window. The Welcome page contains a link to do this.</p>
-<p>A good way to get started is to go through the entire process of running a simple program. For now, we focus just on how to use the software tools; an explanation of the Sigma16 architecture comes later.</p>
+<p>A good way to get started is to go through the entire process of running a simple program called <em>Hellow, world!</em>. For now, we focus just on how to use the software tools to run the program; an explanation of the Sigma16 architecture and what the statements mean will come later.</p>
 <p>The main working area has several pages, with buttons at the top to switch between them:</p>
 <ul>
 <li><p><strong>Welcome</strong> contains some introductory information, release notes, and links.</p></li>
-<li><p><strong>Examples</strong> contains a collection of assembly language programs, organized by topic.</p></li>
-<li><p><strong>Modules</strong> shows a summary of all the files and modules you currently have open.</p></li>
-<li><p><strong>Editor</strong> shows the selected module, where it can be edited.</p></li>
+<li><p><strong>Examples</strong> contains a collection of assembly language programs organized by topic. The simplest examples just use the <em>Core</em> part of the architecture, while the <em>Advanced</em> examples use additional features.</p></li>
+<li><p><strong>Modules</strong> shows a summary of all the files and modules you currently have open. It also provides buttons allowing you to open files, close them, and select one to work on.</p></li>
+<li><p><strong>Editor</strong> shows the selected module, where it can be edited. You can assemble and execute the selected module. To run a program, you’ll load it into the Editor (there are several ways to do this), then assemble it and then run it.</p></li>
 <li><p><strong>Assembler</strong> translates a program from assembly language to machine language, and shows the assembly isting as well as the object code.</p></li>
 <li><p><strong>Linker</strong> combines a collection of object code modles into a single executable program.</p></li>
 <li><p><strong>Processor</strong> shows the components of the architecture and executes machine language programs.</p></li>
 </ul>
 <p>Let’s begin by running a simple example program.</p>
 <ul>
-<li><p>Click <strong>Editor</strong>, then <strong>Simple Example</strong>. This will enter a small assembly language program into the editor window. Later, we’ll load some of the more complex example programs into the editor, and you can also modify a program or type in a new one from scratch.</p></li>
+<li><p>Click <strong>Editor</strong>, then <strong>Hello, world!</strong>. This will enter a small assembly language program into the editor window. Later, we’ll load some of the more complex example programs into the editor, and you can also modify a program or type in a new one from scratch.</p></li>
 <li><p>Click <strong>Assembler</strong> and then the <strong>Assemble</strong> button. This translates the program in the Editor page from assembly language to machine language. The <strong>Assembly Listing</strong> button displays the result of the translation, including any error messages. The <strong>Object Code</strong> button displays the output from the translation.</p></li>
 <li><p>For this simple example, we don’t need the Linker, so you can skip it. The linker is needed for larger and more complex programs with multiple modules, or with external references, or that need relocation.</p></li>
 <li><p>Click <strong>Processor</strong>, which shows the main components of the computer architecture, including registers and memory. These components are explained later. For now, just note that this page is where you can run programs using the emulator.</p></li>
@@ -210,78 +200,77 @@ Version 3.0.34
 <p>To set a breakpoint, click Breakpoint and enter the stopping condition in the dialogue box. For example, to stop when the pc register becomes $01b7, enter BPeq BPpc (BPhex “01b7”). Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <p>To exit the app, just close the browser window or tab. This may put up a dialogue box warning that any unsaved data may be lost and asking you to confirm.</p>
 <h2 id="registers-constants-and-arithmetic">Registers, constants, and arithmetic</h2>
-<p>Registers are like variables in a programming language. They are even more similar to the registers in a calculator.</p>
-<p>Registers can hold variables</p>
-<ul>
-<li>We often think of a variable as </li>
-<li>A register can hold a variable!</li>
-<li>An add instruction (or sub, mul, div) is like an assignment statement</li>
-<li> means  \begin{enumerate}</li>
-<li>Evaluate the right hand side </li>
-<li>The operands (R8, R2) are not changed</li>
-<li>Overwrite the left hand side (destination) (R2) with the result</li>
-<li>The old value of the destination is destroyed</li>
-<li>It is </li>
-<li>It is  \end{enumerate}</li>
-<li>Assignment is often written </li>
-<li>The  operator means , and does not mean </li>
-</ul>
-<p>Why write a notation like add R5,R2,R3 instead of R5 := R2 + R3?</p>
-<ul>
-<li><p>It’s more consistent because  instruction will be written in this form: a keyword for the operation, followed by the operands</p></li>
-<li><p>The notation is related closely to the way instructions are represented in memory, which we’ll see later</p></li>
-</ul>
-<p>A simple program. The problem:</p>
-<ul>
-<li>Given three integers in R1, R2, R3</li>
-<li>Goal: calculate the sum R1+R2+R3 and put it in R4</li>
-</ul>
-<pre><code>    add  R4,R1,R2    ;  R4 := R1+R2   (this is a comment)
-    add  R4,R4,R3    ;  R4 := (R1+R2) + R3</code></pre>
-<p>There are four arithmetic instructions, to perform addition, subtraction, multiplication, and division. (There are also a few more not discussed here.)</p>
-<p>The add instruction takes the contents of two operand registers and places their sum into a destination register. It is written with the operation <em>add</em>, and the three registers separated by commas: <em>add destination,firstOperand,secondOperand</em>. For example, add R2,R5,R8 calculates the sum of R5 and R8 and places the result into R2. The effect can be described with an assignment statement: R2 := R5+R8.</p>
-<p>To place a constant into a register, use the lea instruction. The destination is a register, and the operand is a constant followed by [R0]. For example, to load 42 into register 3, write</p>
+<p>The architecture has a <strong>register file</strong> which is an array of 16 registers, named R0, R1, R2, …, R15. The Register File is displayed in a box on the Processor page.</p>
+<p>A register is a circuit that can hold a number, and the elements of the register file can be used to hold variable values. They are analogous to the registers in a calculator: think of each register as a box that can hold a number, and think of the register name as a variable name.</p>
+<p>A computer program is a sequence of <strong>instructions</strong>. Instructions are similar to statements in a programming language, except that they are simpler.</p>
+<p>Sigma16 performs arithmetic on data in registers. To do any computation on some numbers, we first need to get those numbers into registers. To place a constant into a register, use the lea instruction. In the assembly language we use the <strong>lea</strong> instruction. For example, to load 42 into register 3, write</p>
 <pre><code>    lea   R2,42[R0]   ; R2 := 42</code></pre>
-<p>For now, just ignore the [R0], but this is a required part of the instruction. Later we’ll see why [R0] is there, along with more capabilities of the lea instruction.</p>
+<p>This is a statement in <strong>assembly language</strong>, and it describes one instruction. The operation is <strong>lea</strong>, the operands are <strong>R2,9[R0]</strong>, and the part after the semicolon is a comment.</p>
+<p>The word <em>lea</em> is the <em>operation</em>, i.e. the name of the instruction. The operandd field consists of two operands separated by a comma. The first operand (R2) is called the <em>destination</em>; this is the register where the result will be placed. The second operand is a constant (42) followed by [R0]. When the computer executed this instruction, it simply places the constant into the destination. In a higher level language, we could write <em>R2 := 42</em>.</p>
+<p>Most instructions follow a similar pattern, where the first operand is the destination where the result is placed, and the subsequent operands are the arguments to the computation. This is the same convention used in assignment statements in many programming languages: the registers in sub R1,R2,R3 appear in the same order as the variables in R1 := R2-R3.</p>
+<p>For now, just ignore the <strong>[R0]</strong> part. This has a purpose but that won’t become clear until later. Also, the name “lea” may look odd, but this also has a meaning that will become clear later.</p>
+<p>All arithmetic operations take place in the registers, and there is a separate instruction for each operation. For example, the following instruction will add the values in R8 and R1 and then put the result into R4:</p>
+<pre><code>   add   R4,R8,R1  ; R4 := R8 + R1</code></pre>
+<p>Notice that the operand field doesn’t use operators like := or +; instead it just separates the registers with commas. The first operand (R4 in this example) is the <em>destination</em>, which is where the result will be placed. The last two operands (R8 and R1) are the values that will be added.</p>
+<p>To perform a calculation, need to get the data into registers (using lea) and then perform the calculation (using arithmetic instructions). The following program calculates 3+4:</p>
 <pre><code>    lea   R5,3[R0]    ; R5 := 3
     lea   R8,4[R0]    ; R8 := 4
     add   R2,R5,R8    ; R2 := R5 + R8 = 3+4 = 7</code></pre>
-<p>hexadecimal</p>
-<p>Replace 3+4 by 23+5. Now the result is 28. The processor page shows numbers in hexadecimal, so 28 is displayed as 001c (i.e. 28 = 1*16 + 12, and the hex digit for 12 is c).</p>
-<pre><code>    lea   R5,23[R0]   ; R5 := 23
-    lea   R8,5[R0]    ; R8 := 5
-    add   R2,R5,R8    ; R2 := R5 + R8 = 23+5 = 28 = $001c</code></pre>
-<p>Further instructions</p>
-<pre><code>    add   R1,R2,R3
-    sub   R1,R2,R3
-    mul   R1,R2,R3
-    div   R1,R2,R3</code></pre>
-<p>More arithmetic instructions. There are instructions for the basic arithmetic operations</p>
-<pre><code> add  R4,R11,R0   ; R4 := R11 + R0
- sub  R8,R2,R5    ; R8 := R2 - R5
- mul  R10,R1,R2   ; R10 := R1 * R2
- div  R7,R2,R12   ; R7 := R2 / R12</code></pre>
-<p>Every arithmetic operation takes its operands from registers, and loads the result into a register.</p>
-<p>In the lea instruction, the constant value can be specified using either decimal or hexadecimal notation. Indicate hexadecimal in assembly language by putting $ before the number. Thus $00a5 and 0165 both represent the integer 165.</p>
-<p>Most instructions follow a similar pattern, where the first operand is the destination where the result is placed, and the subsequent operands are the arguments to the computation. This is the same convention used in assignment statements in many programming languages: the registers in sub R1,R2,R3 appear in the same order as the varaibles in R1 := R2-R3.</p>
-<p>An arithmetic instruction performs just one operation. Several instructions are needed to evaluate a larger expression, such as 7 + 10*9:</p>
-<pre><code>   lea   R1,7[R0]
-   lea   R2,10[R0]
-   lea   R3,9[R0]
-   mul   R2,R2,R3
-   add   R1,R1,R2</code></pre>
-<p>Generally you can use any register you like; in the previous example we could have used R12, R6, and R8 instead of R1, R2, R3. Registers R1 through R14 are all the same. However, two of the registers are different:</p>
+<p>It’s a good idea to use comments to explain the meaning of an instruction. For now, comments like “R4 := R8 + R1” will be used to show what the instruction does. That’s useful while learning what the instructions do, but later on we will use comments to give more meaningful information (for example, what do the values in the registers mean, and why are we adding them?).</p>
+<p>There are three more arithmetic instructions. These follow the same pattern as add: in each case, the arithmetic is performed on the last two registers and the result is placed in the destination (the first register):</p>
+<pre><code>  add  R4,R11,R0   ; R4 := R11 + R0
+  sub  R5,R2,R13   ; R5 := R2 - R13
+  mul  R2,R10,R7   ; R2 := R10 * R7
+  div  R5,R6,R12   ; R5 := R6 / R12, R15 := R6 rem R12</code></pre>
+<p>The divide instruction is slightly different: it produces two results, the quotient and the remainder. The quotient is placed in the destination, but the remainder is automatically placed into R15, even though the instruction doesn’t mention R15. (What happens if you write <em>div R15,R1,R2</em>? In that case the quotient is placed into R15 and the remainder is discarded.)</p>
+<p>Normally an arithmetic instruction will put a new value into the destination register, but the operand registers are left unchanged. However, what happens if one of the operands is the same as the destination, for example <em>add R7,R7,R8</em>?</p>
+<p>An arithmetic instruction proceeds in three phases: (1) obtain the values in the operand registers; (2) perform the arithmetic on those values; and (3) put the result into the destination, discarding whatever value was previously there. So consider this example:</p>
+<pre><code>   lea   R7,20[R0]  ; R7 := 20
+   lea   R8,30[R0]  ; R8 := 30
+   add   R7,R7,R8   ; R7 := R7 + R8</code></pre>
+<p>After the two lea instructions have executed, R7 contains 20 and R8 contains 30. The add instruction does the following:</p>
+<ol type="1">
+<li>It fetches the values in R7 and R8, obtaining 20 and 30</li>
+<li>It adds the values, obtaining the result 50</li>
+<li>It puts the result 50 into the destination R7, discarding the previous value.</li>
+</ol>
+<p>The final result is that R7 contains 50.</p>
+<p>Notice that Sigma uses := as the assignment operator; thus we write R7 := R7 + R8 (and we don’t write R7 = R7 + R8). This is because an assignment statement is profoundly different from an equation, and mathematicians have long used the = operator to indicate equations. It isn’t just an academic or theoretical point; there have been plenty of occasions where computer programmers get confused between assignment and equality, and using the wrong operator doesn’t help.</p>
+<p>Why does assembly language use a notation like add R5,R2,R3 instead of R5 := R2 + R3? In short, every instruction will use a similar notation: a keyword for the operation, followed by the operands separated by commas. This notation is also related closely to the way instructions are represented in memory, which we’ll see later</p>
+<p>An arithmetic instruction performs just one operation. Several instructions are needed to evaluate a larger expression. In general, you’ll need a separate instruction for every operator that appears in an expression.</p>
+<p>Example: calculate 3 + 4 * 5 and put the result into R10. We have to put the numbers into registers, using lea, and then perform the arithmetic. It doesn’t matter which registers are used (as long as we avoid R0 and R15).</p>
+<pre><code>    lea  R1,3[R0]   ; R1 := 3
+    lea  R2,4[R0]   ; R2 := 4
+    lea  R3,5[R0]   ; R3 := 5
+    mul  R2,R2,R3   ; R2 := R2*R3  = 4*5
+    add  R10,R1,R2  ; R10 := R1 + R2 = 3 + 4*5 = 23</code></pre>
+<p>This is nearly enough to constitute a complete program. Only one more thing is needed: a way to terminate the program when it finishes. There is a special instruction to do this:</p>
+<pre><code>   trap  R0,R0,R0   ; halt</code></pre>
+<p>Try running this program. You can go to the Editor and type it in, but this program is part of the collection of examples built in to Sigma16. Here’s how to run it:</p>
+<ul>
+<li>Go to the Examples page. Click Core, then Simple, then ConstArith. You should see the listing of the program.</li>
+<li>Click Copy example to editor</li>
+<li>Click Editor, and you should see the text of the program in the window.</li>
+<li>Go to the Assembler page. Click Assemble.</li>
+<li>Go to the Processor page. Click Boot, then Step repeatedly and watch the effect of each instruction by observing how the registers and memory are changed.</li>
+</ul>
+<p>It’s a good idea to step through the program slowly, rather than running it to completion at full speed. The emulator will show the next instruction to be executed, highlighted in blue. Think about what the instruction should do; in particular what changes to the registers will occur? Then click Step and check to see if the right thing happened. Note that the emulator displays all values in hexadecimal notation. (Tip: this is a good way to debug programs!)</p>
+<p>Constant data can be specified using either decimal or hexadecimal notation.</p>
+<ul>
+<li><p>Decimal numbers are written as strings of digits, optionally preceded by a minus sign: 3,-19, 42.</p></li>
+<li><p>Hexadecimal numbers are always written as four hex digits, and in assembly language programs they are indicated by putting $ before the number. Thus $00a5 and 0165 both represent the integer 165.</p></li>
+</ul>
+<pre><code>   lea   R1,13[R0]     ; R1 =  13 (hex 000d)
+   lea   R2,$002f[R0]  ; R2 := 47 (hex 002f)
+   lea   R3,$0012[R0]  ; R3 := 18 (hex 0012)
+   lea   R4,0012[R0]   ; R4 := 12 (hex 000c)</code></pre>
+<p>The processor page shows numbers as hex without the leading $, but in an assembly language program the $ is needed to avoid ambiguity.</p>
+<p>Generally you can use any register you like, and the choices of registers in the previous examples are arbitrary. Registers R1 through R14 are all the same. However, two of the registers are different:</p>
 <ul>
 <li><p>R0 contains the constant 0 and it will never change. Any time an instruction uses R0, the value it gets will be 0. It is legal for an instruction to attempt to modify R0 (for example, add R0,R3,R4 is legal) but after executing this instruction R0 still contains 0. The reason for this is that we frequently need to have access to a register containing 0.</p></li>
-<li><p>R15 contains a number of bits that provide some information about an instruction. For example, if an addition produces a result that is too large to fit in a register, a special flag indicating this is set in R15. Many of the instructions, including all the arithmetic instructions, change the value of R15 as well as placing the result in the destination register. For this reason, R15 cannot be used to hold a variable: its value would be destroyed almost immediately.</p></li>
+<li><p>R15 is used for two specific purposes. We have already seen the first: the divide instruction places the remainder into R15. The second purpose is that R15 contains the <em>condition code</em>, which is a word that contains a number of bits that provide some information about an instruction. For example, if an addition produces a result that is too large to fit in a register, a special flag indicating this is set in R15. Many of the instructions, including all the arithmetic instructions, change the value of R15 as well as placing the result in the destination register. For this reason, R15 cannot be used to hold a variable: its value would be destroyed almost immediately.</p></li>
 </ul>
 <p>To summarise, Registers R1 through R14 are all identical and can be used for variables. R0 contains 0 and will never change. R1 changes very frequently and can be used to determine various error conditions and other information about an instruction.</p>
-<p>Every register contains one word of data. On the Sigma16 architecture, a word is 16 bits of data. This is enough to represent any of the following:</p>
-<ul>
-<li><p>An integer between ? and ?</p></li>
-<li><p>A natural number between 0 and 65,535</p></li>
-<li><p>A character</p></li>
-</ul>
 <p>Example</p>
 <ul>
 <li>Suppose we have variables a, b, c, d</li>
@@ -291,9 +280,12 @@ Version 3.0.34
 <pre><code>    add   R6,R1,R2     ; R6 := a + b
     sub   R7,R3,R4     ; R7 := c - d
     mul   R5,R6,R7     ; R5 := (a+b) * (c-d)</code></pre>
-<p>Good comments make the code easier to read!</p>
-<p>General form of arithmetic instruction</p>
-<pre><code>op d,a,b</code></pre>
+<p>Summary.</p>
+<ul>
+<li>A lea instruction of the form <em>lea d,const[R0]</em> will put the constant into Rd.</li>
+<li>The general form of an arithmetic instruction is <em>op d,a,b</em>.<br />
+The meaning is <em>R_d := R_a op R_b</em>, and the fields are:</li>
+</ul>
 <table>
 <tbody>
 <tr class="odd">
@@ -314,76 +306,49 @@ Version 3.0.34
 </tr>
 </tbody>
 </table>
-<p>Meaning R_d := R_a op  R_b</p>
-<p>Example: add R5,R2,R12 ; R5 := R2+R12</p>
-<p><strong>Register R0 and R15 are special</strong></p>
-<p>You should not use R0 or R15 to hold ordinary variables.</p>
-<p><strong>R0 always contains 0</strong></p>
-<ul>
-<li><p>Any time you need the number 0, it’s available in R0</p></li>
-<li><p>You cannot change the value of R0</p></li>
-<li><p>add R0,R2,R3 ; does nothing — R0 will not change</p></li>
-<li><p>add R5,R2,R3 ; fine - you can change all other registers</p></li>
-<li><p>It is legal to use R0 as the destination, but it will still be 0 after you do it!</p></li>
-</ul>
-<p><strong>R15 holds status information</strong></p>
-<ul>
-<li><p>Some instructions place additional information in R15 (is the result negative? was there an overflow?)</p></li>
-<li><p>Therefore the information in R15 is transient</p></li>
-<li><p>R15 is for temporary information; it’s not a safe place to keep long-term data</p></li>
-</ul>
 <h2 id="keeping-variables-in-memory">Keeping variables in memory</h2>
-<p>Limitation of register file: it’s small.</p>
-<p>The register file is used to perform calculations. In computing something like x := (2<em>a + 3</em>b) / (x-1), all the arithmetic will be done using the register file. But the register file has a big limitation: There are only 16 registers And most programs need more than 16 variables!</p>
-<p>Solution: the memory is large and can hold far more data than the register file.</p>
-<p>The memory is similar to the register file: it is a large collection of words A variable name (x, sum, count) refers to a word in memory Some differences between memory and register file: The memory is : 65,536 locations (the register file has only 16) The memory cannot do arithmetic</p>
-<p>So our strategy in programming:</p>
+<p>So far we have used registers in the register file to hold variables. However, there are only 16 of these, and two have special purposes (R0 and R15). That leaves only 14 registers, and most programs need more than 14 variables.</p>
+<p>The computer contains another subsystem called the <em>memory</em>. This is similar in some ways to the register file. The memory contains a sequence of <em>memory locations</em>, each of which can hold a word. Each location is identifed by an <em>address</em>, and the addresses count up from 0. We will use the notation <em>mem[a]</em> to denote the memory location with address a</p>
+<ul>
+<li><p>The register file is used to perform calculations. In computing something like x := (2<em>a + 3</em>b) / (x-1), all the arithmetic will be done using the register file. But there are only a few registers available.</p></li>
+<li><p>The memory is much larger: it contains 65,536 locations so it can hold all the variables in a program. But the memory has a limitation: the computer cannot do arithmetic directly on data in the memory.</p></li>
+</ul>
+<p>A variable name refers to a word in memory. Actually, the variable name just stands for the address of the location which contains the variable. This allows you to refer to a variable by a name (x, sum, count) rather than an address (003c, 0104, 00d7).</p>
+<p>Since we need a lot of variables, they need to be kept in memory. But since we need to do arithmetic and arithmetic can be performed only on data in registers, we adopt the following strategy:</p>
 <ul>
 <li>Keep data permanently in memory</li>
 <li>When you need to do arithmetic, copy a variable from memory to a register</li>
 <li>When finished, copy the result from a register back to memory</li>
 </ul>
-<p>The register file:</p>
-<ul>
-<li>16 registers</li>
-<li></li>
-<li>Each register holds a 16-bit word</li>
-<li>Names are R0, R1, R2, <span class="math inline">…</span>, R15</li>
-<li>You can do arithmetic on data in the registers</li>
-<li></li>
-</ul>
-<p>The {memory</p>
-<ul>
-<li>65,536 memory locations</li>
-<li>Each memory location holds a 16-bit word</li>
-<li>Each memory location has an  0, 1, 2, <span class="math inline">…</span>, 65,535</li>
-<li>The machine cannot do arithmetic on a memory location</li>
-<li></li>
-</ul>
-<p>Copying a word between memory and register. There are two instructions for accessing the memory</p>
-<p>load copies a variable from memory to a register  copies the variable  from memory to register R2  R2 is changed; x is unchanged</p>
-<p>store copies a variable from a register to memory  copies the word in register R3 to the variable  in memory  y is changed; R3 is unchanged</p>
-<p>Notice that we write [R0] after a variable name. Later we’ll see the reason, but for now don’t worry about the [R0] – just don’t forget to put it in.</p>
-<p>An assignment statement in machine langauge</p>
-<p>x := a+b+c</p>
-<pre><code>       load   R1,a[R0]      ; R1 := a
-       load   R2,b[R0]      ; R2 := b
-       add    R3,R1,R2      ; R3 := a+b
-       load   R4,c[R0]      ; R4 := c
-       add    R5,R3,R4      ; R5 := (a+b) + c
-       store  R5,x[R0]      ; x := a+b+c</code></pre>
-<p>Use  to  Do arithmetic with  Use  to </p>
-<p>Why do we have registers and memory? The programmer has to keep track of which variables are currently in registers, and you have to use load and store instructions to copy data between the registers and memory. Wouldn’t it be easier just to get rid of the distinction between registers and memory, and do all the arithmetic on memory?</p>
-<p>Yes, it’s possible to design a computer that way, and there have actually been real computers like that. However, this approach makes the computer very much slower. With modern circuits, a computer without load and store instructions (where you do arithmetic on memory locations) would run approximately 100 times slower.</p>
-<p>Defining variables</p>
-<p>To define variables x, y, z and give them initial values</p>
+<p>Two instructions are needed to do this: * <em>load</em> copies a word from a memory location into a register. Suppose <em>xyz</em> is a variable in memory; then to copy its value into R2 we could write <em>load R2,xyz[R0]</em> * <em>store</em> copies a word from a register into a memory location. If R3 contains the result of some calculations, and we want to put it back into memory in a varaible named result, we would write <em>store R3,result[R0]</em></p>
+<p>It’s necessary to write [R0] after the variable name, similarly to writing [R0] after the constant in a lea instruction. Again, the reason for that will be explained later but for now just treat it as an arbitrary rule.</p>
+<p>At this point we have enough instructions to write an assignment statement in assembly language. Typically we will first write an algorithm using higher level language notation, and then translate it into instructions.</p>
+<p>The problem: translate <em>x := a+b+c</em> into assembly language.</p>
+<p>Solution:</p>
+<pre><code>   load   R1,a[R0]      ; R1 := a
+   load   R2,b[R0]      ; R2 := b
+   add    R3,R1,R2      ; R3 := a+b
+   load   R4,c[R0]      ; R4 := c
+   add    R5,R3,R4      ; R5 := (a+b) + c
+   store  R5,x[R0]      ; x := a+b+c</code></pre>
+<p>Why do we have registers and memory? After all, this makes programming a little more complicated. You have to keep track of which variables are currently in registers, and you have to use load and store instructions to copy data between the registers and memory. Wouldn’t it be easier just to get rid of the distinction between registers and memory, and do all the arithmetic on memory?</p>
+<p>Yes, this would be simpler. Furthermore, it’s possible to design a computer that way, and there have actually been real computers like that. However, this approach makes the computer very much slower. With modern circuits, a computer without load and store instructions (where you do arithmetic on memory locations) would run approximately 100 times slower. So nearly all modern computers do arithmetic in registers, and use instructions like load and store to copy data back and forth between registers and memory.</p>
+<p>The variables used in a program need to be defined and given an initial value. This is done with the <em>data</em> statement. The variable name comes first, and it must start at the beginning of the line (no space before it). Then comes the keyword <em>data</em>, followed by the initial value, which may be written in either decimal or hexadecimal.</p>
+<p>For example, to define variables x, y, z and give them initial values:</p>
 <pre><code>x    data   34    ; x is a variable with initial value 34
 y    data    9    ; y is initially 9
 z    data    0    ; z is initially 0
 abc  data  $02c6  ; specify initial value as hex</code></pre>
-<p>The data statements should come  all the instructions in the program (we’ll see why later)</p>
-<p>A complete example program</p>
-<pre><code>; Program Add
+<p>The data statements should come <em>after</em> all the instructions in the program. This may look surprising: in some programming language you have to declare your variables at the beginning, before using them. There is a very good reason why we will put the instructions first, and the data statements after; but again the reason will come later.</p>
+<p>There is a simple example of a complete program that uses load, store, and data statement. The text is given below, but you don’t need to type it in.</p>
+<ul>
+<li>Go to the Examples page. Click Core, then Simple, then Add. You should see the listing of the program.</li>
+<li>Click Copy example to editor</li>
+<li>Click Editor, and you should see the text of the program in the window.</li>
+<li>Go to the Assembler page. Click Assemble.</li>
+<li>Go to the Processor page. Click Boot, then Step repeatedly and watch the effect of each instruction by observing how the registers and memory are changed.</li>
+</ul>
+<pre><code>; Program Add.  See Sigma16/README.md in top folder
 ; A minimal program that adds two integer variables
 
 ; Execution starts at location 0, where the first instruction will be
@@ -395,11 +360,13 @@ abc  data  $02c6  ; specify initial value as hex</code></pre>
       store  R3,z[R0]   ; z := x + y
       trap   R0,R0,R0   ; terminate
 
+; Expected result: z = 37 (0025)
+
 ; Static variables are placed in memory after the program
 
 x     data  23
 y     data  14
-z     data  99</code></pre>
+z     data   0</code></pre>
 <h2 id="assembly-language">Assembly language</h2>
 <p>The syntax of assembly language is simple and rigid.</p>
 <p>Fields separated by spaces. An assembly language statement has four fields, separated by space.</p>
@@ -698,9 +665,9 @@ S7</code></pre>
 <p>Register Contents ~~~~~~~~~~ ~~~~~~~~~~ R0 0000 R1 fffe R2 13c4 … … R14 03c8 R15 0020</p>
 <p>Sigma16 is a load/store style architecture; that is, it does not combine memory accesses with arithmetic. All calculations are carried out in the register file, and explicit load and store instructions must be used to copy data between the memory and the register file.</p>
 <p>There are some programming conventions that use certain registers for special purposes. The hardware does not enforce, or even know about, these conventions, and you do not have to follow the conventions in programming. However, it is necessary to obey the conventions in order to use the standard software libraries in your program. See the section on Programming for a discussion of these standard usage conventions.</p>
-<h3 id="r0-holds-the-constant-0">R0 holds the constant 0</h3>
+<p><strong>R0 holds the constant 0</strong></p>
 <p>One of the registers, R0, has a special property: it always contains the constant 0. It is legal to perform an instruction that attempts to load some other value into R0, but the register will still contain 0 after executing such an instruction. Such an instruction will simply have no lasting effect.</p>
-<h3 id="r15-is-the-condition-code-register">R15 is the condition code register</h3>
+<p><strong>R15 is the condition code register</strong></p>
 <p>Several instructions produce status information: the result of a comparison, whether there was an overflow, etc. This information is automatically loaded into R15, which is the condition code register. The description of each instruction states whether R15 is modified, and what goes into it.</p>
 <p>The bits in R15 are indexed from bit 0 (the most significant, or lefttmost bit) to bit 15 (the least significant, or rightmost). The condition code bits that have specific meanings are called <em>flags</em>.</p>
 <p>Table: Condition code flags</p>
@@ -1040,7 +1007,8 @@ Interrupt
 <p>Instructions are represented in the memory of the computer using words, just like all other kinds of data. From the programmer’s perspective, an instruction is like a simple statement in a programming language. From the circuit designer’s perspective, however, instructions must be processed using logic gates, and the specific way it is represented as a word of bits is important.</p>
 <p>An instruction specifies several pieces of information. For example, add R1,R2,R3 is an instruction that says four things: it’s an addition, the result goes into R1, and the operands come from R2 and R3. Therefore to represent instructions we need to organize a word as a collection of several <em>fields</em>, with each field giving one specific piece of information about the instruction.</p>
 <p>The particular scheme for describing an instruction as a collection of fields is called an <em>instruction format</em>. Like most computers, Sigma16 has a small number of instruction formats and a larger number of instructions. The key to understanding the interface between machine language and digital circuit design is to master the instruction formats.</p>
-<p>The core architecture (the simplest part of the system) uses just the RRR format (for instructions that perform operations in the registers) and the RX format (for instructions that refer to a memory location.) The advanced parts of the architecture provide additional instructions which are represented with the EXP format.</p>
+<p>The core architecture (the simplest part of the system) uses just the <strong>RRR format</strong> (for instructions that perform operations in the registers) and the <strong>RX format</strong> (for instructions that refer to a memory location.)</p>
+<p>The advanced parts of the architecture provide additional instructions which are represented with the EXP format. There are several sub-formats, or variations, of the EXP format which are described in more detail below. The name EXP stands simultaneously for <em>expansion</em> (because it provides for many additional instructions) and <em>experimental</em> (because it allows for experimentation with the design and implementation of new instructions).</p>
 <h3 id="instruction-fields">Instruction fields</h3>
 <p>An instruction may consist of one word or two words, depending on the instruction format. These words are subdivided into 4-bit <em>fields</em>, each with a unique name:</p>
 <pre><code>   ---------------------
@@ -1048,9 +1016,38 @@ Interrupt
    ---------------------
    |  e |  f |  g |  h |
    ---------------------</code></pre>
+<table class="wordlayout"">
+<tr>
+<th>op</th>
+<th>d</th>
+<th>a</th>
+<th>b</th>
+</tr>
+<tr>
+<td>0-3</td>
+<td>4-7</td>
+<td>8-11</td>
+<td>12-15</td>
+</tr>
+</table>
+<p>Second word of the instruction</p>
+<table class="wordlayout"">
+  <tr>
+    <th>e</th>
+    <th>f</th>
+    <th>g</th>
+    <th>h</th>
+  </tr>
+  <tr>
+    <td>0-3</td>
+    <td>4-7</td>
+    <td>8-11</td>
+    <td>12-15</td>
+  </tr>
+</table>
 <p>Some instruction formats combine two of the 4-bit fields to form a larger field:</p>
 <ul>
-<li>The a and b fields may be combined to form an 8-bit field called ab</li>
+<li>The a and b fields may be combined to form an 8-bit field called ab (only for the EXP formats)</li>
 <li>The g and h fields may be combined to form an 8-bit field called gh</li>
 <li>The e, f, g, h fields may be combined to form a 16-bit field called disp</li>
 </ul>
@@ -1155,6 +1152,7 @@ Interrupt
 <p>An EXP0 instruction is one word, and only one operand field (the d field) is available. (There are 0 fields in the second word; hence the name EXP0.) The op field contains e, and the a and b fields are combined to form an 8-bit opcode.</p>
 <p>An EXP instruction contains 14 (hex e) in the op field, and the a and b fields are combined into a single 8-bit number that contains a secondary opcode. This means that the EXP format allows for 256 instructions. This greatly expands the number of instructions that can be accommodated, and it allows for experimental instructions for research purposes. (The name EXP stands simultaneously for both EXPansion and EXPerimentation.)</p>
 <p>The EXP0 format is one word, where op=14 (hex e) and the a and b fields are combined into an 8-bit secondary operation code. There is only one operand, Rd.</p>
+<p>EXP0 format takes no operands. The instruction format uses just one word (there is no second word with the e, f, g, h fields). The op field contains 14 (hex e), the d field is ignored (the assembler sets it to 0), and the ab field contains an 8 bit expanded operation code. Example: <em>rfi</em> is an instruction with no operands and with secondary opcode 0. Its representation is e000. The EXP0 format allows rfi to be represented in one word without using up one of the limited and valuable opcodes avaiable for RRR instructions.</p>
 <pre><code>---------------------
 | op |  d |    ab   |
 ---------------------</code></pre>
@@ -1271,47 +1269,9 @@ Interrupt
 </tr>
 </tbody>
 </table>
-<h3 id="exp-format">EXP format</h3>
-<p>The EXP instruction format is used for expanded instructions that are not represented using the RRR or RX formats. It provides many unused opcodes, so it is useful for experimental instructions. The name EXP stands simultaneously for <em>expansion</em> and <em>experimental</em>.</p>
-<p>There are several sub-formats, or variations, of the EXP format. These are described in more detail below. Most of the sub-formats represent an instruction with two words.</p>
-<ul>
-<li><p>The first word has the same fields as for RRR and RX instructions: the 4-bit fields op, d, a, b. All EXP instructions have a constant hex e in the op field, which indicates the EXP format. The a and b fields together form an 8-bit secondary opcode (this is called the ab field), allowing for 256 distinct EXP instructions. The d field in the first word, and all of the second word (if any), hold operands which depend on the particular variant of the EXP format.</p></li>
-<li><p>The second word (if it appears) contains four 4-bit fields named e, f, g, h. In some variants these hold separate 4-bit values, while in some cases g and h form a single 8-bit value (called the gh field).</p></li>
-</ul>
-<p>First word of the instruction</p>
-<table class="wordlayout"">
-<tr>
-<th>op</th>
-<th>d</th>
-<th>a</th>
-<th>b</th>
-</tr>
-<tr>
-<td>0-3</td>
-<td>4-7</td>
-<td>8-11</td>
-<td>12-15</td>
-</tr>
-</table>
-<p>Second word of the instruction</p>
-<table class="wordlayout"">
-  <tr>
-    <th>e</th>
-    <th>f</th>
-    <th>g</th>
-    <th>h</th>
-  </tr>
-  <tr>
-    <td>0-3</td>
-    <td>4-7</td>
-    <td>8-11</td>
-    <td>12-15</td>
-  </tr>
-</table>
-<p>To summarise, an EXP instruction may use the fields op, d, ab, e, f, g, h. The g and h fields can be combined into a single 8-bit field gh All EXP instructions combine the a and b fields into a single 8-bit field called ab. Some EXP instructions combine the g and h fields into a single 8-bit field called gh.</p>
+<p>An EXP instruction may use the fields op, d, ab, e, f, g, h. The g and h fields can be combined into a single 8-bit field gh All EXP instructions combine the a and b fields into a single 8-bit field called ab. Some EXP instructions combine the g and h fields into a single 8-bit field called gh.</p>
 <p>The EXP format has the following variants.</p>
 <ul>
-<li><p>EXP0 format takes no operands. The instruction format uses just one word (there is no second word with the e, f, g, h fields). The op field contains 14 (hex e), the d field is ignored (the assembler sets it to 0), and the ab field contains an 8 bit expanded operation code. Example: <em>rfi</em> is an instruction with no operands and with secondary opcode 0. Its representation is e000. The EXP0 format allows rfi to be represented in one word without using up one of the limited and valuable opcodes avaiable for RRR instructions.</p></li>
 <li><p>The RREXP format takes two register operands, which are in the e and f fields of the second word. The d field of the first word and the g and h fields of the second word are ignored (the assembler will set these to 0). Any RREXP instruction could be reprsented as RRR, but there are only a few RRR opcodes avaiable, so uncommon instructions that require two registers are represented as RREXP. Example: <em>execute R5,R6</em> is RREXP.</p></li>
 <li><p>The RCEXP format takes two register operands; the first is a general register and the second is a control register. An example of the operand field is <em>R3,mask</em>. The operands are in the e and f fields of the second word. The d field of the first word and the g and h fields of the second word are ignored (the assembler will set these to 0.) The first operand is an element of the register file (for example, R4). The second operand is a control register, which is specified by a 4-bit number. In assembly language, we normally refer to the control registers by name rather than number, to make it easier to remember which is which. For example, <em>getctl R3,status</em> has RCEXP format.</p></li>
 <li><p>The RRREXP format takes three register operands, which are in the f, g, and h fields of the second word. An example of the operand field is $R1,R2,R3<em>. The d field of the first word and the e field of the second word are ignored (the assembler will set these to 0). The RRREXP instructions would be a natural fit for the RRR format, but there are not enough RRR opcodes available, so the EXP format is used to expand the number of instructions that can be represented. For example, </em>push R5,R8,R9* has RRREXP format.</p></li>
@@ -2192,11 +2152,9 @@ x = x+1+z;</code></pre>
 <p>electron-forge electron-builder electron-packager</p>
 <p>Trying electron-builder</p>
 <p>npm install electron-builder –save-dev in src/app npm run mkdist</p>
-<h3 id="version-number">Version number</h3>
+<p><strong>Version number</strong></p>
 <p>The version number is needed in several places. To keep it consistent, there is only one primary place where it should be specified manually: in the version property in app/package.json.</p>
 <p>The makefile extracts the version number from that file, and (1) defines a make variable; (2) writes the Sigma16/VERSION file with just the version number, and (3) writes Sigma16/app/version.js which is just defines the version number as a global constant.</p>
-<h3 id="running-in-a-browser.">Running in a browser.</h3>
-<h3 id="running-a-standalone-pre-compiled-executable">Running a standalone pre-compiled executable</h3>
 <h1 id="about-sigma16">About Sigma16</h1>
 <p>This program is experimental software, and is under development. Sigma16 consists of several components:</p>
 <ul>
@@ -2342,16 +2300,5 @@ x = x+1+z;</code></pre>
 <p><program> Copyright (C) <year> <name of author> This program comes with ABSOLUTELY NO WARRANTY; for details type <code>show w'.     This is free software, and you are welcome to redistribute it     under certain conditions; type</code>show c’ for details. The hypothetical commands <code>show w' and</code>show c’ should show the appropriate parts of the General Public License. Of course, your program’s commands might be different; for a GUI interface, you would use an “about box”.</p>
 <p>You should also get your employer (if you work as a programmer) or school, if any, to sign a “copyright disclaimer” for the program, if necessary. For more information on this, and how to apply and follow the GNU GPL, see <a href="https://www.gnu.org/licenses/" class="uri">https://www.gnu.org/licenses/</a>.</p>
 <p>The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read <a href="https://www.gnu.org/licenses/why-not-lgpl.html" class="uri">https://www.gnu.org/licenses/why-not-lgpl.html</a>.</p>
-<h1 id="reference">Reference</h1>
-<h2 id="index-of-notation">Index of notation</h2>
-<ul>
-<li><p>ea</p></li>
-<li><p>mem[ea]</p></li>
-<li><p>reg[d]</p></li>
-<li><p>reg[a]</p></li>
-<li><p>reg[b]</p></li>
-<li><p>reg[d]</p></li>
-<li><p>lsb q</p></li>
-</ul>
 </body>
 </html>

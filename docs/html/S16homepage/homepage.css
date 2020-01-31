@@ -11,15 +11,12 @@ html {
 
 h1 {
     color: #0000ff;
-    border: solid;
-    border-width: medium;
-    border-color: green;
-    padding-top: 1.5em;
-    padding-bottom: 1.5em;
+    padding-top: 1em;
+    padding-bottom: 1em;
     text-align: center;
     font-family: verdana;
-    font-weight: bold;
-    font-size: 200%;
+    font-size: 250%;
+    font-weight: normal;
 }
 
 h2 {
@@ -51,12 +48,17 @@ A:hover   { font-weight: bold; text-decoration: underline }
 
 
 div.quickstartbox {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    margin-left: 4em;
+    margin-right: 4em;
     border: solid;
     border-width: medium;
     border-color: red;
     padding-left: 1em; padding-right: 1em;
-    padding-top: 1em; padding-bottom: 1em;
-    font-size: 180%;
+    padding-top: 0.75em; padding-bottom: 0.75em;
+    font-size: 170%;
+    line-height: 120%;
     text-align: center;
     }
 

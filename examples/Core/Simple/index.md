@@ -1,7 +1,11 @@
 # Simple examples
 
-* [Add](Add.asm.txt) This is a good example to start with: a small
-  program that adds two variables.
+* [ConstArith](ConstArith.asm.txt) This is a good example to start
+  with: a small program that does some arithmetic, illustrating the
+  use of lea, add, and mul.
+
+* [Add](Add.asm.txt) A small program that adds two variables,
+  illustrating the use of load, store, and data.
 
 * [LoadStore](LoadStore.asm.txt) Demonstrate how to use the load and
   store instructions to access variables.
