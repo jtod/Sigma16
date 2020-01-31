@@ -5,7 +5,7 @@ in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
 <div class="quickstartbox"> [Click to run Sigma16 in your
-  browser](https://jtod.github.io/home/Sigma16/dev/app/Sigma16.html)</div>
+  browser](https://jtod.github.io/home/Sigma16/releases/3.0.34/app/Sigma16.html)</div>
 
 ## Web resources
 
@@ -14,7 +14,7 @@ and download the source code, see the [source
 repository](https://github.com/jtod/Sigma16).  You can't run the app
 directly from the source repository; you need this home page to launch
 it.  The [User
-Guide](https://jtod.github.io/home/Sigma16/dev/docs/html/userguide/userguide.html)
+Guide](https://jtod.github.io/home/Sigma16/releases/3/0.34/docs/html/userguide/userguide.html)
 includes documentation of the architecture, programming, and
 installation.
 
@@ -88,6 +88,10 @@ software, and are not recommended for general use.
     development only, may be unstable, and is not be suitable for
     general users.
 
+  * [3.0.34](./releases/3.0.34/index.html) pre-release testing version
+
+  * [3.0.31](./releases/3.0.31/index.html) pre-release testing version
+  
   * [3.0.32](./releases/3.0.32/index.html) pre-release testing version
 
   * [3.0.31](./releases/3.0.31/index.html) pre-release testing version
