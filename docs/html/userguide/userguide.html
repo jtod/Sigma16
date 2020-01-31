@@ -235,6 +235,16 @@ Version 3.0.34
 <li>It puts the result 50 into the destination R7, discarding the previous value.</li>
 </ol>
 <p>The final result is that R7 contains 50.</p>
+<p>Constant data can be specified using either decimal or hexadecimal notation.</p>
+<ul>
+<li><p>Decimal numbers are written as strings of digits, optionally preceded by a minus sign: 3,-19, 42.</p></li>
+<li><p>Hexadecimal numbers are always written as four hex digits, and in assembly language programs they are indicated by putting $ before the number. Thus $00a5 and 0165 both represent the integer 165.</p></li>
+</ul>
+<pre><code>   lea   R1,13[R0]     ; R1 =  13 (hex 000d)
+   lea   R2,$002f[R0]  ; R2 := 47 (hex 002f)
+   lea   R3,$0012[R0]  ; R3 := 18 (hex 0012)
+   lea   R4,0012[R0]   ; R4 := 12 (hex 000c)</code></pre>
+<p>The processor page shows numbers as hex without the leading $, but in an assembly language program the $ is needed to avoid ambiguity.</p>
 <p>Notice that Sigma uses := as the assignment operator; thus we write R7 := R7 + R8 (and we don’t write R7 = R7 + R8). This is because an assignment statement is profoundly different from an equation, and mathematicians have long used the = operator to indicate equations. It isn’t just an academic or theoretical point; there have been plenty of occasions where computer programmers get confused between assignment and equality, and using the wrong operator doesn’t help.</p>
 <p>Why does assembly language use a notation like add R5,R2,R3 instead of R5 := R2 + R3? In short, every instruction will use a similar notation: a keyword for the operation, followed by the operands separated by commas. This notation is also related closely to the way instructions are represented in memory, which we’ll see later</p>
 <p>An arithmetic instruction performs just one operation. Several instructions are needed to evaluate a larger expression. In general, you’ll need a separate instruction for every operator that appears in an expression.</p>
@@ -255,16 +265,6 @@ Version 3.0.34
 <li>Go to the Processor page. Click Boot, then Step repeatedly and watch the effect of each instruction by observing how the registers and memory are changed.</li>
 </ul>
 <p>It’s a good idea to step through the program slowly, rather than running it to completion at full speed. The emulator will show the next instruction to be executed, highlighted in blue. Think about what the instruction should do; in particular what changes to the registers will occur? Then click Step and check to see if the right thing happened. Note that the emulator displays all values in hexadecimal notation. (Tip: this is a good way to debug programs!)</p>
-<p>Constant data can be specified using either decimal or hexadecimal notation.</p>
-<ul>
-<li><p>Decimal numbers are written as strings of digits, optionally preceded by a minus sign: 3,-19, 42.</p></li>
-<li><p>Hexadecimal numbers are always written as four hex digits, and in assembly language programs they are indicated by putting $ before the number. Thus $00a5 and 0165 both represent the integer 165.</p></li>
-</ul>
-<pre><code>   lea   R1,13[R0]     ; R1 =  13 (hex 000d)
-   lea   R2,$002f[R0]  ; R2 := 47 (hex 002f)
-   lea   R3,$0012[R0]  ; R3 := 18 (hex 0012)
-   lea   R4,0012[R0]   ; R4 := 12 (hex 000c)</code></pre>
-<p>The processor page shows numbers as hex without the leading $, but in an assembly language program the $ is needed to avoid ambiguity.</p>
 <p>Generally you can use any register you like, and the choices of registers in the previous examples are arbitrary. Registers R1 through R14 are all the same. However, two of the registers are different:</p>
 <ul>
 <li><p>R0 contains the constant 0 and it will never change. Any time an instruction uses R0, the value it gets will be 0. It is legal for an instruction to attempt to modify R0 (for example, add R0,R3,R4 is legal) but after executing this instruction R0 still contains 0. The reason for this is that we frequently need to have access to a register containing 0.</p></li>

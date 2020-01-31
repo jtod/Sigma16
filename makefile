@@ -50,7 +50,7 @@
 
 # SIGMACURRENT contains the Sigma project, including Sigma16
 SIGMACURRENT:=./..
-S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/home/Sigma16/
+S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/home/Sigma16
 DEVVERSION:=$(S16HOME)/dev
 
 # S16WEBPAGE is a directory in my homepage on github; this is where
@@ -165,26 +165,7 @@ docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
 
 .PHONY : release
 release :
-	make set-version
-	make source-dir-index
-	make docs/homepage-index/index.html
-	make docs/html/userguide/userguide.html
-	make example-indices
-	mkdir -p ../release/$(VERSION)
-	cp -up ../VERSION ../release/$(VERSION)
-	cp -up ../LICENSE.txt ../release/$(VERSION)
-	cp -up docs/homepage-index/index.html $(S16HOME)
-	cp -up docs/homepage-index/doc.css $(S16HOME)
-	cp -up ../index.html ../release/$(VERSION)
-	mkdir -p ../release/$(VERSION)/app
-	cp -upr datafiles ../release/$(VERSION)/app
-	cp -upr docs ../release/$(VERSION)/app
-	cp -upr programs ../release/$(VERSION)/app
-	cp -up *.html ../release/$(VERSION)/app
-	cp -up *.css ../release/$(VERSION)/app
-	cp -up *.js ../release/$(VERSION)/app
-	cp -up *.json ../release/$(VERSION)/app
-	cp -upr  ../release/$(VERSION) $(S16WEBPAGE)/releases
+	cp -r $(S16HOME)/dev $(S16HOME)/releases/$(VERSION)
 
 # make devversion -- copy the files to the web page current development directory
 # Usage:

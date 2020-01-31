@@ -283,6 +283,26 @@ contains 30.  The add instruction does the following:
    
 The final result is that R7 contains 50.
 
+Constant data can be specified using either decimal or hexadecimal
+notation.
+
+* Decimal numbers are written as strings of digits, optionally
+  preceded by a minus sign: 3,-19, 42.
+
+* Hexadecimal numbers are always written as four hex digits, and in
+  assembly language programs they are indicated by putting $ before
+  the number.  Thus $00a5 and 0165 both represent the integer 165.
+
+~~~~
+   lea   R1,13[R0]     ; R1 =  13 (hex 000d)
+   lea   R2,$002f[R0]  ; R2 := 47 (hex 002f)
+   lea   R3,$0012[R0]  ; R3 := 18 (hex 0012)
+   lea   R4,0012[R0]   ; R4 := 12 (hex 000c)
+~~~~
+
+The processor page shows numbers as hex without the leading $, but in
+an assembly language program the $ is needed to avoid ambiguity.
+
 Notice that Sigma uses := as the assignment operator; thus we write R7
 := R7 + R8 (and we don't write R7 = R7 + R8).  This is because an
 assignment statement is profoundly different from an equation, and
@@ -344,26 +364,6 @@ what the instruction should do; in particular what changes to the
 registers will occur?  Then click Step and check to see if the right
 thing happened.  Note that the emulator displays all values in
 hexadecimal notation.  (Tip: this is a good way to debug programs!)
-
-Constant data can be specified using either decimal or hexadecimal
-notation.
-
-* Decimal numbers are written as strings of digits, optionally
-  preceded by a minus sign: 3,-19, 42.
-
-* Hexadecimal numbers are always written as four hex digits, and in
-  assembly language programs they are indicated by putting $ before
-  the number.  Thus $00a5 and 0165 both represent the integer 165.
-
-~~~~
-   lea   R1,13[R0]     ; R1 =  13 (hex 000d)
-   lea   R2,$002f[R0]  ; R2 := 47 (hex 002f)
-   lea   R3,$0012[R0]  ; R3 := 18 (hex 0012)
-   lea   R4,0012[R0]   ; R4 := 12 (hex 000c)
-~~~~
-
-The processor page shows numbers as hex without the leading $, but in
-an assembly language program the $ is needed to avoid ambiguity.
 
 Generally you can use any register you like, and the choices of
 registers in the previous examples are arbitrary.  Registers R1
