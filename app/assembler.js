@@ -259,23 +259,27 @@ function assembler () {
 
 // const constParser = /^(dec number) | (hex const) $/;
 
-const nameParser = /^[a-zA-Z][a-zA-Z0-9]*$/;
+// attempt at rxParser allowing underscore, but this is the wrong approach
+// /^R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z][a-zA-Z0-9_]\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+// const nameParser = /^[a-zA-Z][a-zA-Z0-9]*$/;
+
+const nameParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const rrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 const rxParser =
-    /^R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+    /^R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const kxParser =
-    /^([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+    /^([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const rrxParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const jxParser =
-    /^([a-zA-Z0-9\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+    /^([a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 const datParser =
-    /^(((?:[a-zA-Z][a-zA-Z0-9]*)|(?:\$[0-9a-f]{4})|(?:-?[0-9]+)))$/;
+    /^(((?:[a-zA-Z][a-zA-Z0-9_]*)|(?:\$[0-9a-f]{4})|(?:-?[0-9]+)))$/;
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
 
-const identParser = /^[a-zA-Z][a-zA-Z0-9]*$/; // temp; just allow one name ?????
+const identParser = /^[a-zA-Z][a-zA-Z0-9_]*$/; // temp; just allow one name ?????
 
 // Use data parser instead...
 // const expParser = /^\$([0-9a-f]{4})$/;  // temp: just allow hex const ?????
