@@ -566,92 +566,51 @@ z     data   0
 
 ## Assembly language
 
-The programs shown here are written in *assembly language*.  The
-machine itself executes programs in *machine language*, which is
-covered later.  Assembly language is translated to machine language by
-a program called an *assembler*.
+The syntax of assembly language is simple and rigid.
 
-The purpose of assembly language is to give the programmer absolute
-control over the machine language code without having to remember lots
-of numeric codes.  For example, it is easier to remember the name
-"mul" for multiply than to remember the machine language code (which
-happens to be 3).  Similarly, it's easier to remember the names of
-variables (x, y, sum, total) than the numeric addresses of the memory
-locations that hold these variables.
-
-The syntax of assembly language is simple and rigid.  Every statement
-must fit on one line of source code; you cannot have a statement that
-spans several lines, and you cannot have several statements on one
-line.
-
-Each statement has a rigid format that consists of up to four
-*fields*.  The fields must be separated by one or more spaces, and a
-field cannot contain a space.  Every field is optional, but if a field
-is missing then the following fields must also be missing, except for
-an optional comment.  The fields are:
-
-* label (optional) -- If present, the label must begin in the first
-  character of the line.  If a line starts with a space, then there is
-  no label field.  A label has the same syntax as names or identifiers
-  in many languages: it may contain letters, digits, underscores, and
-  must begin with a letter.  Both upper and lower case letters are
-  allowed, and they syntax is case sensitive (Loop and LOOP and loop
-  are three different labels).
-
-* mnemonic -- This is the name of the operation: load, lea, add, sub,
-  etc.  The mnemonic must be preceded by white space, and it must be
-  the name of a valid instruction or assembler directive.
+Fields separated by spaces.  An assembly language statement has four
+fields, separated by space.
   
-* operands field -- the operands required by the type of statement.
-  There are several formats possible for the operands field, depending
-  on the instruction; these are detailed later.  For example, for the
-  add instruction the operand field must consist of three registers,
-  separated by commas (e.g. R1,R2,R3).  Spaces are not allowed in the
-  operands field: R1,R2,R3 is fine but R1, R2, R3 is an error.
-
-* comments -- anything that follows the operands field, or anything
-  that appears after a semicolon, is a comment.  The semicolon is not
-  required if the mnemonic and operands fields are present, but it is
-  good practice to include it.
-
-Here are some syntactically valid statements:
+* label (optional) -- if present, must begin in leftmost
+  character
+* mnemonic (the name of the operation): load, add, etc.
+* operands: R1,R2,R3 or R1,x[R0]
+* comments: ; x = 2 * (a+b)
+  
+There cannot be any spaces inside a field*
+  
+* R1,R12,R5 is ok
+* R1, R12,R5 is wrong
+ 
 ~~~~
 loop   load   R1,count[R0]    ; R1 = count
        add    R1,R1,R2        ; R1 = R1 + 1
 ~~~~
 
-Each of the following statements is wrong!
+The assember first breaks each statement into the four fields; then it
+looks at the operation and operands.
+
+
+Correct form of operand field
+
+* RRR: Exactly three registers separated by commas R8,R13,R0.
+  
+* RX:Two operands: first is a register, second is an address.  The
+  address is a name or constant followed by [register]. Example:
+  R12,array[R6]
+
+Each of these statements is wrong!
 
 ~~~~
-   add   R2, R8, R9    ; spaces in the operand field
-loop1  store x[R0],R5  ; wrong order: should be R5,x[R0]
-    addemup            ; invalid mnemonic
- loop2  load R1,x[R0]  ; Space before the label
-    load R6,x          ; should be x[R0]
+    add   R2, R8, R9     Spaces in the operand field
+    store x[R0],R5       First operand must be register, second is address
+  loop load R1,x[R0]     Space before the label
+    jumpt R6,loop        Need register after address:  loop[R0]
+    jal   R14, fcn[R0]   Space in operand field
 ~~~~
 
 If you forget some detail, look at one of the example programs
 
-When the assembler is translating a program, it begins by looking at
-the spaces in order to split each statement into the four fields.
-This happens before it looks at the operation and operands.  The
-assembly listing uses colors to indicate the different fields.  If you
-get a syntax error message, the first thing to check is that the
-fields are what you intended.  For example if you meant to say
-
-~~~~
-  add R1,R2,R3  ; x := a + b
-~~~~
-  
-but you have a spurious space, like this
-
-~~~~
-  add R1, R2,R3  ; x := a + b
-~~~~
-  
-the assembler will decide that the mnemonic is add, the operands field
-is "R1," and all the rest - "R2,R3 ; x := a + b" -- is a comment, and
-the colors of the text in the assembly listing will show this clearly.
 
 Writing constants
 
@@ -671,32 +630,25 @@ x  data  25
 y  data  $2c9e
 ~~~~
 
-Correct form of operand field
-
-* RRR: Exactly three registers separated by commas R8,R13,R0.
-  
-* RX:Two operands: first is a register, second is an address.  The
-  address is a name or constant followed by [register]. Example:
-  R12,array[R6]
-
-
-
-
 It isn't enough just to get the assembler to accept your program
 without error messages.  Your program should be clear and easy to
 read.  This requires good style.  Good style saves time writing the
 program and getting it to work A sloppy program looks unprofessional.
-Here are a few tips.
 
-*Write good comments.* You should use good comments in all programs,
-regardless of language.  But comments are even more important in
-machine language, because the code tends to need more explanation.  At
-the beginning of the program, use comments to give the name of the
-program and to say what it does.  Use full line comments to say in
-general what's going on, and put a comment on every instruction to
-explain what it's doing.
+Comments
 
-*Indent your code consistently.* Each field should be lined up
+* In Sigma16, a semicolon \alert{;} indicates that the rest of the
+  line is a comment
+* You can have a full line comment: just put ; at the beginning
+* You should use good comments in all programs, regardless of
+  language
+* But they are even more important in machine language, because
+  the code needs more explanation
+* At the beginning of the program, use comments to give the name
+  of the program and to say what it does
+* Use a comment on every instruction to explain what it's doing
+
+Indent your code consistently.  Each field should be lined up
 vertically, like this:
 
 ~~~~
@@ -720,13 +672,16 @@ Not like this:
 The exact number of spaces each field is indented isn't important;
 what's important is to make the program neat and readable.
 
-*Spaces, not tabs!* To indent your code, always use spaces -- avoid
-tabs!  In general, never use tabs except in the (rare) cases they are
-actually required.  The tab character was introduced long ago into
-computer character sets to try to mimic the tab key on old mechanical
-typewriters But software does not handle tab consistently.  If you use
-tabs, your can look good in one application and like a mess in
-another.  It's easy to indent with spaces, and it works everywhere!
+To indent your code, always use spaces -- Don't use tabs!
+In general, never use tabs except in the (rare) cases
+they are actually required.
+  
+The tab character was introduced to try to mimic the tab key on old
+mechanical typewriters But \alert{software does not handle tab
+consistently}.  If you use tabs, your can look good in one application
+and a mess in another It's easy to indent with spaces, and it works
+everywhere!
+
 
 ## Conditionals
 

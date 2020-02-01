@@ -1,0 +1,872 @@
+/*
+Sigma16: gui.css
+Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
+License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
+
+This file is part of Sigma16.  Sigma16 is free software: you can
+redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+Sigma16 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.  You should have received
+a copy of the GNU General Public License along with Sigma16.  If
+not, see <https://www.gnu.org/licenses/>.
+
+-------------------------------------------------------------------------------
+gui.css defines theCSS style for the Sigma16 GUI
+-------------------------------------------------------------------------------
+*/
+
+/* Define symbolic names for colors and dimensions */
+/* Heights of elements from top to bottom add up to the viewport height
+
+     frameHBorderThickness
+     topSectionHeight
+     topMidSecSkip
+     botSecHeight
+     frameHBorderThickness
+
+
+Calculated values
+     midSecOffsetBelowTop =
+        frameHBorderThickness + topSectionHeight
+        + topMidSecSkip
+
+
+pane height
+  vframeheight - (midSecOffsetBelowTop _ midSecOffsetAboveBot)
+
+ */
+
+:root {
+/* Aliases for some colors */
+    --light-blue: #e6ffff;
+    --dark-blue: blue;
+    --dark-green: green;
+    --dark-blue : blue;
+/* Aliases for sizes */
+    --thin-separation: 0.15em;
+/* Sections of the GUI */
+    --frameHBorderThickness: 0.25em;
+    --frameVBorderThickness: 0.25em;
+    --full-frame-background-color: var(--dark-blue);
+    --topSectionHeight: 1.5em;
+    --top-section-background-color: ivory;
+    --topMidSecSkip: 0.25em;
+    --midSecOffsetBelowTop: calc(var(--frameHBorderThickness) +
+			     var(--topSectionHeight) +
+			     var(--topMidSecSkip));
+    --midSecOffsetAboveBot: calc(var(--frameHBorderThickness) +
+			     var(--botSecHeight) +
+			     var(--midBotSecSkip));
+    --midBotSecSkip: 0.25em;
+    --wrapper-background-color: var(--dark-green);
+    --middle-section-background-color: yellow;
+    --mid-main-background-color: green;
+    --mid-main-separator-color: yellow;
+    --mid-main-left-background-color: red;
+    --mid-main-right-background-color: red;
+    --paneBackgroundColor: green;
+    --paneButtonsHeight: 1.5em;
+    --fileTopSecHeight: 9em;
+
+    --paneSecVskip: 2px; /* 0.25em; vspace between buttons and body */
+    --paneSecPadding: 4px;
+    --paneHeight: calc(100vh
+		       - (var(--midSecOffsetBelowTop)
+			  + var(--midSecOffsetAboveBot)));
+    --paneBodyHeight: calc(var(--paneHeight) -
+			   (var(--paneButtonsHeight) +
+			    (8 * var(--paneSecVskip))));  /* ????? */
+    --PaneBodyBackgroundColor: violet;
+
+    --ProcStateHeight: 14.5em; /* 15.5em; */ /* 16em; */
+    --IOlogHeight: calc(var(--ProcStateHeight) - 4.5em); /* sub inp & label ht */
+    --ProcAsmTextHeight: calc(var(--paneBodyHeight)
+			      - (var(--ProcStateHeight)
+				 + 2.7em)); // allow for scrollbar and borders */
+    --middle-section-separator-color: blue;
+    --botSecHeight: 1.2em;
+    --bottom-section-background-color: beige;
+    --examplesTopSecHeight: 4em;
+    --examplesBotSecHeight: 30em; /* calc or make full height */
+/* Basic GUI elements */
+    --button-box-background-color: var(--light-blue);
+    --subpanel-background-color: ivory;
+    --mem-display-width: 6.1em;  /* try 12em to confirm line breaks are there */
+
+    /* YES???????????  with wide size we get several locations per line,
+that's why I need <pre> but if <pre> is in a separate array element it prevents
+scroll from working */
+
+    --mem-display-height: 14em;
+    --reg-name-val-sep: 0.7em;
+    --IOinputbuffer-background: yellow;
+/* fonts */    
+    --main-font-family: 'Lucida Console',monospace;
+    --main-font-size: 0.9em;
+    --pre-font-size: 0.9em;
+    --text-color-get: blue;
+    --text-color-put: red;
+    --text-color-cur: red;
+    --text-color-next: blue;
+    --text-color-err: red;
+/* Solarized colors https://ethanschoonover.com/solarized/ */
+    --color-solarized-base03:    #002b36;
+    --color-solarized-base02:    #073642;
+    --color-solarized-base01:    #586e75;
+    --color-solarized-base00:    #657b83;
+    --color-solarized-base0:     #839496;
+    --color-solarized-base1:     #93a1a1;
+    --color-solarized-base2:     #eee8d5;
+    --color-solarized-base3:     #fdf6e3;
+    --color-solarized-yellow:    #b58900;
+    --color-solarized-orange:    #cb4b16;
+    --color-solarized-red:       #dc322f;
+    --color-solarized-magenta:   #d33682;
+    --color-solarized-violet:    #6c71c4;
+    --color-solarized-blue:      #268bd2;
+    --color-solarized-cyan:      #2aa198;
+    --color-solarized-green:     #859900;
+}
+
+/*
+   --fileBotSecHeight:: 357px; works
+   --fileBotSecHeight:: calc(100vh - 25em);  adapts to resize 
+    --fileBotSecHeight: calc(100vh - (var(--fileTopSecHeight) + 5em)); 
+    paneHeight doesn't seem to work ????????????????????????
+    --fileBotSecHeight: calc(var(--paneHeight) - 25em);  ??adapts to resize
+
+    --FileBotSecHeight: calc(var(--paneBodyHeight) - (var(--FileTopSecHeight)));
+    --FileBotSecHeight: calc(var(--paneHeight)-20em);
+    --FileBotSecHeight: calc(var(--paneBodyHeight)
+			      - (var(--ProcStateHeight)
+				 + 2.7em));
+ */
+
+
+/* Specifying margin:0 for .pre doesn't work, as it is overridden by a
+   setting of margin: 1em 0em.  But using <pre class="CodePre"> works:
+   the following margin settings are applied and they override the
+   default, which leaves space above and below the text. */
+
+.CodePre {
+    margin-top: 0em;
+    margin-right: 0em;
+    margin-bottom: 0em;
+    margin-left: 0em;
+}
+
+.code {
+}
+
+#TestingPRE {
+    font-family: var(--main-font-family);
+    font-size: var(--pre-font-size);
+}
+
+.RegisterName {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
+.RegisterValue {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+}
+
+.FullFrame {
+    position: fixed;
+    background-color: var(--full-frame-background-color);
+    top: 0em;
+    bottom: 0em;
+    left: 0em;
+    right: 0em;
+}
+
+/* Top section ------------------------------------------------------- */
+/* The top section contains the tab buttons and global controls */
+
+.TopSection {
+    position: absolute;
+    top: var(--frameHBorderThickness);
+    left: var(--frameVBorderThickness);  /* 1em;  */
+    right: var(--frameVBorderThickness);  /* 1em; */
+    height: var(--topSectionHeight);
+    background-color: var(--top-section-background-color);
+}
+
+/* Middle section ------------------------------------------------------- */
+/* The middle section is the main part of the gui.  It contains two
+parts, mid main left (containing the panes, which are defined in
+separate sections later) and mid main right (containing the user
+guide). */
+
+/* The middle/main section is split into the system display and documentation */
+
+.MiddleSection {
+    position: absolute;
+    top: var(--midSecOffsetBelowTop);
+    bottom: var(--midSecOffsetAboveBot);
+    left: var(--frameVBorderThickness);  /* 1em;  */
+    right: var(--frameVBorderThickness);  /* 1em; */
+    background-color: var(--middle-section-background-color);
+}
+
+.DialoguePopup {
+    position: absolute;
+    top: 5em;
+    left: 5em;
+    right: 15em;
+    bottom: 15em;
+    box-sizing: border-box;
+    border: 4px solid red;
+    padding: 1em;
+    background: ivory;
+    z-index: 20; /* put it on top */
+    display: none;
+}
+
+.DialogueBody {
+    margin: 1em;
+    background: yellow;
+}
+
+
+
+.MidMainSection {
+    position: absolute;
+    left: 0em;
+    top: 0em;
+    right: 0em;
+    bottom: 0em;
+    background-color: var(--mid-main-background-color);
+    display: flex;
+    flex-direction: row;
+}
+
+/* The left part of middle/main holds the various panes */
+
+.MidMainLeft {
+    flex: 1 0 auto;
+    background-color: var(--mid-main-left-background-color);
+    box-sizing: border-box;
+}
+
+/* A narrow vertical bar separating mid main left from mid main right */
+
+.MidLeftRightSeparator {
+    flex: 0 0 var(--frameVBorderThickness);
+    width: var(--frameVBorderThickness);
+    padding: 0;
+    background-color: var(--middle-section-separator-color);
+}
+
+/* User guide section */
+
+.MidMainRight {
+    /* shrink=1 allows user guide to get smaller before overlap */
+    flex: 1 1 auto;
+    background-color: var(--mid-main-right-background-color);
+}
+
+/* Panes(separate tabs in the Middle section) --------------------------- */
+/* There are separate panes for the editor, assembler, etc. Normally
+   one is visible and the others are hidden */
+
+.Pane {
+   display: absolute;
+   background-color: var(--paneBackgroundColor);
+   height: 100%;
+   width: 100%;
+   box-sizing: border-box;
+   padding: var(--paneSecPadding);
+   border-style: solid;
+   border-color: white;
+   border-width: var(--paneSecVskip);
+}
+
+.PaneButtons {
+    height: var(--paneButtonsHeight);
+    box-sizing: border-box;
+    background-color: beige;
+}
+
+.PaneBody {
+    margin-top: var(--paneSecVskip);
+    height: var(--paneBodyHeight);
+    background-color: var(--PaneBodyBackgroundColor);
+}
+
+#UserGuideIframeId {
+    height:  100%;
+    width: 100%;
+    box-sizing: border-box; /* prevent scrollbar from encroaching to the right */
+}
+
+/* Bottom section ------------------------------------------------------- */
+/* The bottom section provides status information */
+
+.BottomSection {
+    position: absolute;
+    bottom: var(--frameHBorderThickness);
+    left: var(--frameVBorderThickness);  /* 1em;  */
+    right: var(--frameVBorderThickness);  /* 1em; */
+    height: var(--botSecHeight);
+    background-color: var(--bottom-section-background-color);
+}
+
+/* Several panes use Html to display text with formatting */
+
+
+
+.HtmlContent {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+#AsmTextHtml {
+    height: 100%;
+}
+
+#LinkerText {
+    height: 100%;
+}
+
+#ProcTextHtml, #ProcListingHtml {
+}
+
+.HighlightedTextAsHtml {
+    width: 100%;
+    height: 100%;
+    margin: 0em;  /* needed to make the text fill its box */
+    box-sizing: border-box;
+    background-color: ivory;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
+    background-color: var(--subpanel-background-color);
+}
+
+
+.HighlightedTextAsHtmlExperiment {
+    width: 100%;
+    height: 100%;
+    margin: 0em;  /* needed to make the text fill its box */
+    box-sizing: border-box;
+    background-color: yellow;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
+}
+
+
+.HtmlUnscrolled {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: ivory;
+}
+
+/* Welcome pane -------------------------------------------------- */
+
+#WelcomePane {
+    /*
+    height: calc(100vh - 10em);
+    left: 0em;
+    right: 0em;
+    background: ivory;
+*/
+}
+
+#WelcomeHtml {
+    /*
+    width: 100%;
+    height: 100%;
+*/
+}
+
+#WelcomeIframeId {
+    width: 100%;
+    height:  100%;
+}
+
+/* File pane -------------------------------------------------- */
+
+#ExamplesPaneTopSection {
+    height: var(--examplesTopSecHeight);
+    background-color: orange;
+}
+ 
+#ExamplesIframeId {
+    height: var(--paneBodyHeight);
+    width: 100%;
+    background-color: beige;
+}
+
+
+/* Test pane -------------------------------------------------- */
+
+#TestPaneBody {
+    background-color: violet;
+}
+
+/* Editor pane -------------------------------------------------- */
+
+.Editor {
+    background-color: ivory;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    font-family: var(--main-font-family);
+    font-size: var(--pre-font-size);
+    wrap: "off";
+    overflow: scroll;
+}
+
+/* Assembler pane -------------------------------------------------- */
+
+#AssemblerPane {
+}
+
+#AsmTextHtml {
+/*    height: calc(100vh - 12em); */
+}
+
+#ProcessorAssemblerText {
+    border: 1px;
+    border-radius: 4px;
+    border-style: solid;
+    border-color: red;
+    padding: 2px;
+    margin: 4px;
+    background-color: white;
+    height: var(--ProcAsmTextHeight);
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+/* Linker pane -------------------------------------------------- */
+
+#LinkerText {
+}
+/*
+    height: calc(100vh - 25em);
+    margin: 1em;
+    background-color: white;
+*/
+
+/* Processor pane ------------------------------------------------------------*/
+
+#ProcessorBody {
+}
+
+/* Processor state layout */
+
+#ProcessorState {
+    overflow: auto;
+    display: grid;
+    grid-template-rows:  [ProcStateHlineStart] min-content
+			 [ProcStateHlineControlEnd] 1fr
+			 [ProcStateHlineDecodeLabel] min-content
+			 [ProcStateHlineDecodeStart] min-content
+			 [ProcStateHlineInputBufferStart] 2em
+			 [ProcStateHlineEnd] ;
+    grid-template-columns: [ProcStateVlineStart] min-content
+			    [ProcStateVlineInterruptStart] min-content
+			    [ProcStateVlineSegStart] min-content
+			    [ProcStateVlineRegFileStart] min-content
+			    [ProcStateVlineMemStart] min-content
+			    [ProcStateVlineIOstart] min-content  /* 1fr */
+			    [ProcStateVlineEnd] ;
+    grid-row-gap: 0.1em;
+    grid-column-gap: 0.2em;
+    margin: 0em;
+    box-sizing: border-box;
+    background-color: turquoise;
+}
+
+.ProcStateSection {
+    border: 1px;
+    border-radius: 4px;
+    border-style: solid;
+    border-color: red;
+    padding: 2px;
+    margin: 2px;
+    background-color: white;
+    color: black;
+}
+
+#MemSection {
+    grid-column-start: ProcStateVlineMemStart;
+    grid-column-end: ProcStateVlineIOstart;
+    grid-row-start: ProcStateHlineStart;
+    grid-row-end: ProcStateHlineEnd;
+    background-color: beige;
+    display: grid;
+    height: auto;
+    width: auto;
+    color: black;
+    grid-template-rows: [MemHlineStart] min-content
+					[MemHlineDisplayStart] 1fr
+					[MemHlineEnd];
+    grid-template-columns: [MemVlineStart] min-content
+					   [MemVlineMiddle] min-content
+					   [MemvlineEnd];
+}
+
+.MemSecName {
+    grid-column-start: MemVlineStart;
+    grid-column-end: MemVlineEnd;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
+.MemDisplay {
+    overflow-y: scroll;
+    overflow-x: visible;
+    background-color: var(--subpanel-background-color);
+    height: var(--ProcStateHeight);
+}
+/*
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+*/
+
+#MemDisplay1 {
+    margin: 0em;
+    grid-row-start: MemHlineDisplayStart;
+    grid-row-end: MemHlineEnd;
+    grid-column-start: MemVlineStart;
+    grid-column-end: MemVlineMiddle;
+    width: var(--mem-display-width);
+}
+
+#MemDisplay2 {
+    grid-row-start: MemHlineDisplayStart;
+    grid-row-end: MemHlineEnd;
+    grid-column-start: MemVlineMiddle;
+    grid-column-end: MemVlineEnd;
+    width: var(--mem-display-width);
+}
+
+
+.Registers {
+    display: grid;
+    height: auto;
+    width: auto;
+    background-color: var(--subpanel-background-color);
+    color: black;
+    grid-template-rows: [RegHlineStart] min-content [RegHlineEnd];
+    grid-template-columns: [RegVlineStart] min-content
+					   [RegVlineRNameEnd]
+					   var(--reg-name-val-sep)
+					   [RegVlineRValStart] min-content
+					   [RegVlineEnd];
+}
+
+
+#InstructionRegisters {
+    grid-row-start: ProcStateHlineStart;
+    grid-row-end: ProcStateHlineControlEnd;
+    grid-column-start: ProcStateVlineStart;
+    grid-column-end: ProcStateVlineInterruptStart;
+}
+
+#InterruptRegisters {
+    grid-row-start: ProcStateHlineStart;
+    grid-row-end: ProcStateHlineControlEnd;
+    grid-column-start: ProcStateVlineInterruptStart;
+    grid-column-end: ProcStateVlineSegStart;
+}
+
+#SegmentRegisters {
+    grid-row-start: ProcStateHlineStart;
+    grid-row-end: ProcStateHlineControlEnd;
+    grid-column-start: ProcStateVlineSegStart;
+    grid-column-end: ProcStateVlineRegFileStart;
+}
+
+#RegisterFile {
+    grid-row-start: ProcStateHlineStart;
+    grid-row-end: ProcStateHlineEnd;
+    grid-column-start: ProcStateVlineRegFileStart;
+    grid-column-end: ProcStateVlineMemStart;
+}
+
+
+
+#InstructionDecode {
+    grid-row-start: ProcStateHlineDecodeStart;
+    grid-row-end: ProcStateHlineEnd;
+    grid-column-start: ProcStateVlineStart;
+    grid-column-end: ProcStateVlineSegStart;
+}
+
+.Decode {
+    display: grid;
+    height: auto;
+    width: auto;
+    background-color: var(--subpanel-background-color);
+    color: black;
+    grid-column-gap: 0.7em;
+    grid-template-rows: [DecodeHlineStart] min-content [DecodeHlineEnd];
+    grid-template-columns: [DecodeVlineStart] min-content
+					   [DecodeVlineNameEnd]
+					   1fr
+					   [DecodeVlineEnd];
+}
+
+.DecodeSecName {
+    grid-column-start: DecodeVlineStart;
+    grid-column-end: DecodeVlineEnd;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
+.DecodeName {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    font-weight: bold;
+    grid-column-start: DecodeVlineStart;
+    grid-column-end: DecodeVlineNameEnd;
+
+}
+
+.DecodeValue {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    grid-column-start: DecodeVlineNameEnd;
+    grid-column-end: DecodeVlineEnd;
+}
+
+
+#Emulator {
+    grid-column-start: ProcStateVlineSegStart;
+    grid-column-end: ProcStateVlineRegFileStart;
+    grid-row-start: ProcStateHlineDecodeStart;
+    grid-row-end: ProcStateHlineEnd;
+}
+
+.NewRegSecName {
+    grid-column-start: RegVlineStart;
+    grid-column-end: RegVlineEnd;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
+/* controls that take full line, rather than label/content fields */
+.EmCtlLine {
+    grid-column-start: RegVlineStart;
+    grid-column-end: RegVlineeND;
+}
+
+.RegisterName {
+/*    grid-column-start: 1;
+    grid-column-end: 2; */
+    grid-column-start: RegVlineStart;
+    grid-column-end: RegVlineRNameEnd;
+}
+
+.RegisterValue {
+/*    grid-column-start: 2;
+    grid-column-end: 3; */
+    grid-column-start: RegVlineRValStart;
+    grid-column-end: RegVlineEnd;
+}
+
+#IOSection {
+    grid-column-start: ProcStateVlineIOStart;
+    grid-column-end: ProcStateVlineEnd;
+    grid-row-start: ProcStateHlineStart;
+    grid-row-end: ProcStateHlineEnd;
+    
+    background-color: beige;
+    color: black;
+    height: auto;
+    width: auto;
+    display: grid;
+    min-width: 15em;
+    grid-template-rows: [IOHlineStart] 1em
+				       [IOHlineLogStart] 4fr
+				       [IOHlineInbufStart] 1fr
+				       [IOHlineInbufLabelStart] 1em
+				       [IOHlineEnd];
+   grid-template-columns: [IOVlineStart] 1fr [IOVlineEnd];
+}
+
+.IOSecName {
+    grid-column-start: IOVlineStart;
+    grid-column-end: IOVlineEnd;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
+#IOlog {
+    grid-row-start: IOHlineLogStart;
+    grid-row-end: IOHlineInbufStart;
+    grid-column-start: IOVlineStart;
+    grid-column-end:  IOVlineEnd;
+    overflow-y: auto;
+    overflow-x: auto;
+    background-color: white;
+    border-color: blue;
+    border-style: solid;
+    margin: 2px;
+    color: black;
+    height: var(--IOlogHeight);
+    width: auto;
+}
+
+#IOlogHtmlArea {
+    overflow-y: auto;
+    overflow-x: auto;
+    background-color: pink;
+    height:  5em;
+}
+
+#IOinputBuffer {
+    grid-row-start: IOHlineInbufStart;
+    grid-row-end: IOHlineInbufLabelStart;
+    grid-column-start: IOVlineStart;
+    grid-column-end:  IOVlineEnd;
+    background: var(--IOinputbuffer-background);
+}
+#IOInbufLabel {
+    grid-row-start: IOHlineInbufLabelStart;
+    grid-row-end: IOHlineEnd;
+    grid-column-start: IOVlineStart;
+    grid-column-end:  IOVlineEnd;
+    background: beige;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
+/*
+don't include fonts as these are specified by HighlightedTextAsHtml
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+*/
+#ProcAsmListing {
+    overflow-y: scroll;
+    overflow-x: visible;
+    background-color: var(--subpanel-background-color);
+    height: var(--ProcAsmTextHeight);
+}
+
+#TestListing {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+    background-color: var(--subpanel-background-color);
+    height: var(--ProcAsmTextHeight);
+}
+
+/* Highlighting */
+
+.RightButton {
+    float: right;
+}
+
+.READ {
+    color: red;
+}
+
+.GET {
+    color: var(--text-color-get);
+}
+.PUT {
+    color: var(--text-color-put);
+}
+
+.CUR {
+    color: var(--text-color-cur);
+}
+.NEXT {
+    color: var(--text-color-next);
+}
+
+.ERR {
+    font-weight: bold;
+    color: var(--text-color-err);
+}
+
+.ListingHeader {
+    font-weight: bold;
+    color: blue;
+}
+
+.FIELDLABEL {
+   color: var(--color-solarized-orange);
+}
+
+.FIELDOPERATION {
+   color: var(--color-solarized-cyan);
+}
+
+.FIELDOPERAND {
+   color: var(--color-solarized-violet);
+}
+
+.FIELDCOMMENT {
+   color: var(--color-solarized-magenta);
+}
+
+.solarized-green {
+    color: var(--color-solarized-green);
+}
+
+.solarized-blue {
+    color: var(--color-solarized-blue);
+}
+.solarized-red {
+    color: var(--color-solarized-red);
+}
+.solarized-cyan {
+    color: var(--color-solarized-cyan);
+}
+.solarized-violet {
+    color: var(--color-solarized-violet);
+}
+.solarized-magenta {
+    color: var(--color-solarized-magenta);
+}
+.solarized-orange {
+    color: var(--color-solarized-orange);
+}
+.solarized-yellow {
+    color: var(--color-solarized-yellow);
+}
+
+#FOOBARAssemblerBody {
+    background: ivory;
+}
+
+.UNSELECTEDFILE {
+    font-family: sans-serif;
+}
+
+.SELECTEDFILE {
+    color: red;
+    font-family: sans-serif;
+    font-weight: bold;
+}

@@ -1,0 +1,20 @@
+; Program Shift
+; Demonstrate the shift instructions
+
+     lea    R1,$0002[R0]     ; 0000 0000 0000 0010
+     lea    R2,3[R0]         ; shift left 3 bits
+     shiftl R3,R1,R2         ; 0000 0000 0001 0000  expected in R3
+
+     lea    R1,$0002[R0]
+     lea    R2,5[R0]
+     shiftl R3,R1,R2
+
+     lea    R1,$0020[R0]
+     lea    R2,3[R0]
+     shiftr R3,R1,R2
+
+     lea    R1,$0020[R0]
+     lea    R2,5[R0]
+     shiftr R3,R1,R2
+
+     trap   R0,R0,R0

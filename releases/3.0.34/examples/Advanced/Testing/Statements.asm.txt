@@ -1,0 +1,117 @@
+; Statements.asm.txt -- test assembly language statements
+
+Stmts  module
+
+x      import   Mod1
+y      import   Mod2
+fcn    import   Mod2
+       export   abc
+       export   def
+       export   ghi
+
+; not yet implemented       
+;      org
+; abc  equ      52
+
+; Data
+abc    data     42
+       data     -3
+       data     $2ca3
+       data     def
+
+; RR
+       cmp      R5,R8
+       inv      R2,R13
+
+; RRR
+       add      R1,R2,R3
+       sub      R1,R2,R3
+       mul      R1,R2,R3
+       div      R1,R2,R3
+       cmplt    R1,R2,R3
+       cmpeq    R1,R2,R3
+       cmpgt    R1,R2,R3
+       and      R1,R2,R3
+       or       R1,R2,R3
+       xor      R1,R2,R3
+       nop      R1,R2,R3
+       trap     R1,R2,R3
+
+def
+
+; RX
+       lea      R8,def[R3]
+       load     R15,ghi[R4]
+       store    R5,23[R13]
+       jumpf    R1,0[R14]
+       jumpt    R2,def[R0]
+       jal      R13,fcn[R0]
+       testset  R1,mutex[R0]
+mutex  data     0
+
+; KX
+       jumpc0   5,40[R8]
+       jumpc1   7,50[R7]
+
+; JX
+       jump     $ab34[R5]
+
+; JX aliases generating jumpc0
+       jumple   $ab34[R5]
+       jumpne   $ab34[R5]
+       jumpge   $ab34[R5]
+       jumpnv   $ab34[R5]
+       jumpnvu  $ab34[R5]
+       jumpnco  $ab34[R5]
+
+; JX aliases generating jumpc1
+       jumplt   $ab34[R5]
+       jumpeq   $ab34[R5]
+       jumpgt   $ab34[R5]
+       jumpv    $ab34[R5]
+       jumpvu   $ab34[R5]
+       jumpco   $ab34[R5]
+
+; EXP0
+       rfi
+
+; RREXP
+       execute  R8,R4
+
+; RCEXP
+       getctl   R2,req
+       putctl   R4,status
+       putctl   R4,mask
+       putctl   R4,req
+       putctl   R4,istat
+       putctl   R4,ipc
+       putctl   R4,vect
+       putctl   R4,psegBeg
+       putctl   R4,psegEnd
+       putctl   R4,dsegBeg
+       putctl   R4,dsegEnd
+   
+; RRREXP
+       push     R1,R2,R3
+       pop      R4,R5,R6
+       top      R7,R8,R9
+
+; RRKEXP
+       shiftl   R5,R2,7
+       shiftr   R1,R12,13
+       getbit   R2,R3,5
+       getbiti  R7,R2,3
+       putbit   R8,R3,15
+       putbiti  R9,R1,1
+
+; RRKKEXP
+       extract  R2,R13,4,7   
+
+; RRXEXP
+       save     R3,R7,4[R14]
+       restore  R1,R11,255[R14]
+
+; RK
+;       dispatch R8,13
+
+ghi

@@ -1,0 +1,60 @@
+; Test assembler
+
+main module
+     import foobar
+     export goodlabel
+     org    $00ff
+
+     add    R5,R12,R7
+     sub    R12,R3,R15
+     mul    R1,R2,R3
+     div    R1,R2,R3
+     cmp    R1,R2
+     cmplt  R1,R2,R3
+     cmpeq  R1,R2,R3
+     cmpgt  R1,R2,R3
+     inv    R1,R2
+     and    R1,R2,R3
+     or     R1,R2,R3
+     xor    R1,R2,R3
+     nop    R1,R2,R3
+     trap   R1,R2,R3
+
+     lea    R3,goodlabel[R3]
+     lea    R3,$b3c2[R4]
+     lea    R1,23[R2]
+     lea    R5,-1[R5]
+abcd lea    R5,abcd[R12]
+     load   R1,x[R2]  ; ok
+loop load   R8,$abcd[R0]
+     store  R9,$2b7f[R10]
+     jump   loop[R2]
+     jumpf  R7,12[R2]
+     jumpt  R8,13[R3]
+     jumpc0 R13,10[R0]
+     jumpc1 R14,11[R1]
+     jal    R13,goodlabel[R0]
+
+     jumplt 16[R0]
+     jumple 17[R1]
+     jumpeq 18[R2]
+     jumpne 19[R3]
+     jumpgt 20[R4]
+     jumpge 21[R5]
+     jumpv  22[R6]
+     jumpnv 23[R7]
+     jumpvu 24[R8]
+     jumpnvu 25[R9]
+     jumpco  26[R10]
+     jumpnco 27[R11]
+
+goodlabel
+
+; data
+
+ab   data    3
+x    data    389
+     data    -5
+sum  data    $03f2
+y    data   $01a3
+v1   data   -23

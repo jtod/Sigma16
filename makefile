@@ -159,18 +159,14 @@ docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
 	  docs/src/S16homepage/index.md
 	cp -up docs/src/S16homepage/homepage.css docs/html/S16homepage
 
-# make release -- create a directory containing the source release of
-# the current version.  The app can be launched by clicking a link,
-# without needing to download anything.
+# make devversion -- build the documentation files, and copy the files
+# to the web page current development directory.  After doing this,
+# git status, git add, git commit, git push
 
-.PHONY : release
-release :
-	cp -r $(S16HOME)/dev $(S16HOME)/releases/$(VERSION)
-
-# make devversion -- copy the files to the web page current development directory
-# Usage:
-#    In project directory:  make devversion
-#    In homepage directory: git push
+.PHONY : cpdev
+cpdev :
+	mkdir -p releases
+	cp -r $(S16HOME)/releases/${VERSION} releases/$(VERSION)
 
 .PHONY : devversion
 devversion :
@@ -191,6 +187,22 @@ devversion :
 	cp -up app/*.html $(DEVVERSION)/app
 	cp -up app/*.css $(DEVVERSION)/app
 	cp -up app/*.js $(DEVVERSION)/app
+
+# make release -- create a directory containing the source release of
+# the current version.  The app can be launched by clicking a link,
+# without needing to download anything.  This simply retains the dev
+# version in the S16 Home Page, and copies it into releases using the
+# VERSION as the folder name.
+
+# When getting ready to make release, before doing the make
+# devversion, be sure to check docs/src/S16homepage/index.md.  This
+# contains two links to the latest release, one in the "Click to run"
+# link and the other in the User Guide link.  Both of these need to be
+# updated.
+
+.PHONY : release
+release :
+	cp -r $(S16HOME)/dev $(S16HOME)/releases/$(VERSION)
 
 #-------------------------------------------------------------------------------
 # Running Sigma16

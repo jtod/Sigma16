@@ -1,0 +1,13 @@
+; Program ConstArith.  See Sigma16/README.md in top folder
+; Illustrate lea and arithmetic instructions
+
+; Calculate 3 + 4 * 4 and put the result into R10
+; Use lea to put a constant into a register
+; Use mul and add to do arithmetic
+
+    lea  R1,3[R0]    ; R1 := 3
+    lea  R2,4[R0]    ; R2 := 4
+    lea  R3,5[R0]    ; R3 := 5
+    mul  R2,R2,R3    ; R2 := R2*R3  = 4*5
+    add  R10,R1,R2   ; R10 := R1 + R2 = 3 + 4*5 = 23
+    trap  R0,R0,R0   ; halt

@@ -1,0 +1,19 @@
+; Mod2.asm.txt
+; Sigma16 test program 
+
+Mod2    module
+        export  fcn
+        export  g
+        export  x
+        export  y
+
+fcn     load    R2,x[R0]
+        mul     R1,R1,R2
+        jump    0[R10]
+
+g       load    R2,y[R0]
+        add     R1,R1,R2
+        jump    0[R10]
+
+x       data    3
+y       data    4

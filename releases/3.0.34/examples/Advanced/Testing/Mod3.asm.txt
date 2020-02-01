@@ -1,0 +1,14 @@
+; Mod3.asm.txt
+; Sigma16 test program 
+
+Mod3    module
+        export  g
+        export  xyz
+
+g       load    R2,x[R0]
+        load    R3,xyz[R0]
+        mul     R1,R1,R2
+        jump    0[R10]
+
+x       data    3
+xyz     data    4

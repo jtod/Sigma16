@@ -1,0 +1,2 @@
+SmallProg  module
+           trap  R0,R0,R0

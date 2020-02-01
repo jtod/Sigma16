@@ -1,0 +1,82 @@
+; Timer: interrupt a loop and print "bing" when the timer goes off
+
+; Request exception for timer
+     load   R1,timerBit[R0]         ; flag for timer interrupt
+     putctl R1,mask                 ; set interrupt mask
+
+; Enable interrupts and prepare interrupt vector
+     load   R1,intEnableBit[R0]     ; flag for interrupt enable
+     putctl R1,status               ; enable interrupts
+     lea    R1,intVector[R0]        ; address of vector
+     putctl R1,vect                ; initialize vector register
+
+; Run a loop
+     load   R1,nIterations[R0]      ; n := 1000
+     add    R2,R0,R0                ; i := 0
+     lea    R3,1[R0]                ; R3 := constant 1
+loop
+     cmpgt  R4,R2,R1                ; R4 := i>n
+     jumpt  R4,done[R0]
+     add    R2,R2,R3                ; i := i+1
+     jump   loop[R0]                ; goto loop
+
+done
+     trap   R0,R0,R0
+
+
+intVector
+     jump   handleTimer[R0]
+     jump   handleSegFault[R0]
+     jump   handleStackFault[R0]
+     jump   handleUserTrap[R0]
+     jump   handleOverflow[R0]
+     jump   handleZdiv[R0]
+
+handleTimer
+     store  R1,save1[R0]        ; save state
+     store  R2,save2[R0]        ; save state
+     store  R3,save3[R0]        ; save state
+     lea    R1,2[R0]            ; trap code for write
+     lea    R2,timerMsg[R0]     ; message: divide by 0
+     lea    R3,5[R0]            ; length of message
+     trap   R1,R2,R3            ; print the message
+     load   R1,save1[R0]        ; restore state
+     load   R2,save2[R0]        ; restore state
+     load   R3,save3[R0]        ; restore state
+     rfi                        ; resume
+
+
+; The following exceptions just terminate the program
+handleSegFault
+handleStackFault
+handleUserTrap
+handleOverflow
+handleZdiv
+     trap    R0,R0,R0
+
+; Data definitions
+
+nIterations     data   5000   ; stop eventually even if not interrupted
+
+save1           data   0
+save2           data   0
+save3           data   0
+save4           data   0
+
+timerMsg        data    98  ; b
+                data   105  ; i
+                data   110  ; n
+                data   103  ; g
+                data    10  ; newline
+
+; Define status register control bits
+userStateBit    data   $8000
+intEnableBit    data   $4000
+
+; Define interrupt control bits
+timerBit        data   $8000   ; bit 0
+segFaultBit     data   $4000   ; bit 1
+stackFaultBit   data   $2000   ; bit 2
+userTrapBit     data   $1000   ; bit 3
+overflowBit     data   $0800   ; bit 4
+zDivBit         data   $0400   ; bit 5

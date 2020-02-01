@@ -15,12 +15,18 @@ current documentation is inconsistent with the current software.*
 
 ## Internet links
 
+
 This page is the README for the Sigma16 source directory.  To run the
 software, visit the [Sigma16 Home
 Page](https://jtod.github.io/home/Sigma16/), which also contains links
 to documentation and past releases.  The URL for the Sigma16 Home page
 is https://jtod.github.io/home/Sigma16/ and the URL for the source
 repository is https://github.com/jtod/Sigma16
+
+Test link
+
+<div class="quickstartbox"> [TESTING link Click to run Sigma16 in your
+  browser](https://github.com/jtod/Sigma16/releases/3.0.34/app/Sigma16.html)</div>
 
 ## Links to local files
 
