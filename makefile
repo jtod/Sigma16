@@ -411,7 +411,7 @@ example-indices :
 # from markdown source
 
 docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
-	docs/src/userguide/userguidestyle.css
+	docs/src/userguide/userguidestyle.css VERSION.txt
 	mkdir -p docs/html/userguide
 	cp -upr docs/src/figures docs/html/userguide
 	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
