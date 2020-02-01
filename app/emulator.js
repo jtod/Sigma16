@@ -366,12 +366,20 @@ function procStep(es) {
 	regClearAccesses ();
 	
 	executeInstruction (es);
-
-	regShowAccesses()
-	memShowAccesses();
-	memDisplay ();
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
+        console.log ("procStep: executeInstruction finished");
+        if (es.procStatus=="Halted") {
+            console.log ("procStep: execute instruction: halted")
+        } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+	    console.log ("Breakpoint");
+	    setProcStatus (es,"Break");
+            displayFullState();
+	} else {
+	    regShowAccesses()
+	    memShowAccesses();
+	    memDisplay ();
+	    showInstrDecode (es);
+	    highlightListingAfterInstr (es);
+        }
     }
 }
 
@@ -458,20 +466,10 @@ function procPause(es) {
 
 function instructionLooper (es) {
     if (es.procStatus==="Ready") {
-	console.log ('LOOPER');
-	// Clean up instruction display if enabled
-//	if (es.instrLooperShow) {
-//	    clearInstrDecode (es);
-//	}
+	console.log ('instructionLooper');
 	executeInstruction (es);
-	// Generate instruction display if enabled
-//	if (es.instrLooperShow) {
-//	    showInstrDecode (es);
-//	    highlightListingAfterInstr (es);
-//	}
-	// Check for breakpoint
+// Check for breakpoint
 	if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-	    // should not highlight fetch pc ???
 	    console.log ("Breakpoint");
 	    setProcStatus (es,"Break");
             displayFullState();
@@ -620,14 +618,9 @@ function executeInstruction (es) {
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
     console.log('instr fields = ' + es.ir_op + ' ' + es.ir_d + ' ' + es.ir_a + ' ' + es.ir_b);
-
-    es.instrFmtStr = "RRR";             // Replace if opcode expands to RX or EXP
-    es.instrOpStr = mnemonicRRR[es.ir_op]  // Replace if opcode expands to RX or EXP
+    es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
+    es.instrOpStr = mnemonicRRR[es.ir_op]  // Replace if opcode expands
     dispatch_RRR [es.ir_op] (es);
-    
-//    regShowAccesses()
-//    memShowAccesses();
-//    memDisplay ();
 }
 
 // RRR instructions have three specified registers, and may also use
@@ -725,13 +718,13 @@ const op_trap = (es) => {
 	console.log ("Trap: halt");
 	setProcStatus (es,"Halted");
         displayFullState();
+        console.log ("Trap: displayed full state after halt");
     } else if (code==1) { // Read
-        //	trapRead(es,a,b);
         trapRead(es);
     } else if (code==2) { // Write
-        //	trapWrite(es,a,b);
         trapWrite(es);
     } else { // Undefined trap is nop
+        console.log (`trap with undefined code=${code}`)
     }
 }
 
