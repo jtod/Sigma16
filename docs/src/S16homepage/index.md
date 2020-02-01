@@ -87,22 +87,15 @@ software, and are not recommended for general use.
     is a pre-release for the next version.  It is intended for
     development only, may be unstable, and is not be suitable for
     general users.
-
-  * [3.0.34](./releases/3.0.34/index.html) pre-release testing version
-
-  * [3.0.31](./releases/3.0.31/index.html) pre-release testing version
-  
-  * [3.0.32](./releases/3.0.32/index.html) pre-release testing version
-
-  * [3.0.31](./releases/3.0.31/index.html) pre-release testing version
-
-  * [3.0.30](./releases/3.0.30/index.html) pre-release testing version
-
-  * [3.0.29](./releases/3.0.29/index.html) pre-release testing version
-
-  * [3.0.28](./releases/3.0.28/index.html) pre-release testing version
-
-  * [version 3.0.27](./releases/Sigma16-3.0.27/index.html) Test version
+  * Older pre-release test versions:
+    [3.0.34](./releases/3.0.34/index.html)
+    [3.0.31](./releases/3.0.31/index.html)
+    [3.0.32](./releases/3.0.32/index.html)
+    [3.0.31](./releases/3.0.31/index.html)
+    [3.0.30](./releases/3.0.30/index.html)
+    [3.0.29](./releases/3.0.29/index.html)
+    [3.0.28](./releases/3.0.28/index.html)
+    [version 3.0.27](./releases/Sigma16-3.0.27/index.html)
 
 ## About the software
 

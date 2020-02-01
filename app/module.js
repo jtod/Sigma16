@@ -36,8 +36,9 @@ function initModules () {
     s16modules = [mkModule()];
     let m = s16modules[0];
     m.mIndex = 0;
-    
     selectedModule = 0;
+    refreshEditorBuffer();
+    refreshModulesList();
 }
 
 // Get the full data structure for the current module
@@ -100,6 +101,14 @@ function getModName (m) {
 
 function getFileName (m) {
     return m.mFile ? m.mFile.name : "no file associated with module"
+}
+
+function newModule () {
+    console.log ("newModule");
+    s16modules.push(mkModule());
+    selectedModule = s16modules.length-1;
+    refreshEditorBuffer();
+    refreshModulesList();
 }
 
 //-------------------------------------------------------------------------------
@@ -191,13 +200,22 @@ function refreshModulesList() {
     elt.innerHTML = ys;
 }
 
+// If there has been a change to selected module or its file contents,
+// update the editor buffer as well as the assembler buffer
+function refreshEditorBuffer () {
+    let m = s16modules[selectedModule];
+    document.getElementById("EditorTextArea").value = m.modSrc;
+    document.getElementById("AsmTextHtml").innerHTML = "";
+}
+
 function modulesButtonSelect (i) {
     console.log (`modulesButtonSelect ${i}`);
     let m = s16modules[i];
     selectedModule = i;
     m.selected = true;
-    editorBufferTextArea.value = m.modSrc;
-    document.getElementById("AsmTextHtml").innerHTML = "";
+    refreshEditorBuffer();
+//    editorBufferTextArea.value = m.modSrc;
+//    document.getElementById("AsmTextHtml").innerHTML = "";
     refreshModulesList();
 }
     //    console.log (`modulesButtonSelect ${m.mIndex}`);
@@ -208,9 +226,19 @@ function modulesButtonSelect (i) {
 // baked into the file reader.  Should be fixed now...
 function modulesButtonClose (i) {
     console.log (`filesButtonClose ${i}`);
-    s16modules.splice(i,1);
-    selectedModule = 0;
-    refreshModulesList();
+    if (s16modules.length == 1) { // closing the only module there is
+        initModules() // there is just one new module, and select it
+    } else if (i == selectedModule) { // closing selected module
+        s16modules.splice(i,1);
+        selectedModule = 0;
+        refreshEditorBuffer();
+        refreshModulesList();
+    } else { // closing some random module
+        s16modules.splice(i,1);
+        selectedModule = i<selectedModule ? selectedModule-1 : selectedModule;
+        refreshEditorBuffer();
+        refreshModulesList();
+    }
 }
 
 // need to set event handler to refresh the modules list
@@ -218,6 +246,7 @@ function modulesButtonRefresh (i) {
     let m = s16modules[i];
     console.log (`filesButtonRefresh ${m.mIndex}`);
     m.fileReader.readAsText(m.mFile);
+    refreshEditorBuffer();
     refreshModulesList();
 }
 //    let m = s16modules[selectedModule];
