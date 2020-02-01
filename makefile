@@ -163,11 +163,6 @@ docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
 # to the web page current development directory.  After doing this,
 # git status, git add, git commit, git push
 
-.PHONY : cpdev
-cpdev :
-	mkdir -p releases
-	cp -r $(S16HOME)/releases/${VERSION} releases/$(VERSION)
-
 .PHONY : devversion
 devversion :
 	mkdir -p $(DEVVERSION)/app

@@ -18,11 +18,6 @@ Guide](https://jtod.github.io/home/Sigma16/releases/3.0.34/docs/html/userguide/u
 includes documentation of the architecture, programming, and
 installation.
 
-Test link
-
-<div class="quickstartbox"> [TESTING link Click to run Sigma16 in your
-  browser](https://github.com/jtod/Sigma16/releases/3.0.34/app/Sigma16.html)</div>
-
 ## Introduction to the architecture
 
 This architecture is simpler than most commercial products making it a
