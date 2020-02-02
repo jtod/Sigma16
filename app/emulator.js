@@ -358,51 +358,53 @@ function procStep(es) {
     console.log ('procStep');
     if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
     if (es.procStatus==="Ready") {
-	clearInstrDecode (es);
-
-	prepareListingBeforeInstr (es);
-	memClearAccesses ();
-	memDisplay ();
-	regClearAccesses ();
-	
+//	clearInstrDecode (es);
+//	prepareListingBeforeInstr (es);
+//	memClearAccesses ();
+//	memDisplay ();
+//	regClearAccesses ();
+	execInstrPrepareFull (es);
 	executeInstruction (es);
         console.log ("procStep: executeInstruction finished");
-        if (es.procStatus=="Halted") {
-            console.log ("procStep: execute instruction: halted")
-        } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-	    console.log ("Breakpoint");
-	    setProcStatus (es,"Break");
-            displayFullState();
-	} else {
-	    regShowAccesses()
-	    memShowAccesses();
-	    memDisplay ();
-	    showInstrDecode (es);
-	    highlightListingAfterInstr (es);
-        }
+        execInstrPostDisplay (es);
+//        if (es.procStatus=="Halted") {
+//            console.log ("procStep: execute instruction: halted")
+//        } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+//	    console.log ("Breakpoint");
+//	    setProcStatus (es,"Break");
+//            displayFullState();
+//	} else {
+//	    regShowAccesses()
+//	    memShowAccesses();
+//	    memDisplay ();
+//	    showInstrDecode (es);
+//	    highlightListingAfterInstr (es);
+//        }
     }
 }
 
 function procRun(es) {
     console.log ("procRun");
     if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
-    clearInstrDecode (es);
-    regClearAccesses (es);
-    memClearAccesses (es);
-    clearInstrDecode (es);
+//    clearInstrDecode (es);
+//    regClearAccesses (es);
+//    memClearAccesses (es);
+//    clearInstrDecode (es);
 
-    prepareListingBeforeInstr (es);
-    memClearAccesses ();
-    memDisplay ();
-    regClearAccesses ();
+//    prepareListingBeforeInstr (es);
+//    memClearAccesses ();
+//    memDisplay ();
+//    regClearAccesses ();
 
+    execRunPrepare (es);
     instructionLooper (es);
-
-    regShowAccesses()
-    memShowAccesses();
-    memDisplay ();
-    showInstrDecode (es);
-    highlightListingAfterInstr (es);
+    runInstrPostDisplay (es);
+    
+//    regShowAccesses()
+//    memShowAccesses();
+//    memDisplay ();
+//    showInstrDecode (es);
+//    highlightListingAfterInstr (es);
 
 }
 
@@ -467,14 +469,19 @@ function procPause(es) {
 function instructionLooper (es) {
     if (es.procStatus==="Ready") {
 	console.log ('instructionLooper');
+        execInstrPrepareFast (es);
 	executeInstruction (es);
-// Check for breakpoint
-	if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-	    console.log ("Breakpoint");
+// Check for halt or breakpoint
+	if (es.procStatus=="Halted") {
+	    console.log ("looper: halted");
+            displayFullState();
+        } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+	    console.log ("looper: breakpoint");
 	    setProcStatus (es,"Break");
             displayFullState();
-	}
-	setTimeout (function () {instructionLooper(es)});
+	} else {
+	    setTimeout (function () {instructionLooper(es)});
+        }
     }
     console.log ('instructionLooper terminated');
 }
@@ -551,6 +558,131 @@ function breakDisable (es) {
 function breakClose () {
     console.log ("breakClose");
     hideBreakDialogue ();
+}
+
+//------------------------------------------------------------------------------
+// Wrapper around instruction execution
+//------------------------------------------------------------------------------
+
+// For single stepping, we want to keep display of registers and
+// memory up to date and show access by highlighting the fetched and
+// updated locations.  For Run mode, we want to avoid updating the
+// memory continuosly, although it may be useful to keep the register
+// displays updated.
+
+// The strategy is: (1) for stepping, there is a function to prepare
+// before executing an instruction, and another to update the displays
+// after execution, with the expectation that the user will spend some
+// time looking at the displays before steppign again.  (2) For Run,
+
+// (for running) Prepare the displays before running sequence of
+// instructions (the Run button).
+
+function execRunPrepare (es) {
+    console.log ("execRunPrepare");
+    regClearAccesses ();             // remove register highlighting, clear logs
+    regShowAccesses()
+    memClearAccesses ();             // remove mem highlighting, clear logs
+    memDisplay ();                   // refresh memory display
+    clearInstrDecode (es);           // remove decoding of last instruction
+    prepareListingBeforeInstr (es);  //remove any instruction highlighting
+}
+
+// (for runing) Prepare to execute an instruction while in Run mode: clear
+// the logs but don't keep memory updated.  This assumes that the
+// displays have already been put into a suitable state fur the
+// duration of the run.
+
+function execInstrPrepareFast (es) {
+    console.log ("execInstrPrepareFast");
+// don't refresh the registers (no regClearAccesses), just clear logs
+    regFetched = [];  // clear reg fetch log
+    regStored = [];   // clear reg update log
+// don't refresh memory (no memClearAccesses), just clear logs
+    memFetchInstrLog = [];
+    memFetchDataLog = [];
+    memStoreLog = [];
+// don't need to clear instrDecode as we aren't updating it in fast mode
+// don't need to prepareListing as we aren't updating it in fast mode
+}
+
+// (for stepping) Prepare to execute an instruction with full logging:
+// clear the logs and update all the displays.
+
+function execInstrPrepareFull (es) {
+    console.log ("execInstrPrepareFast");
+    regClearAccesses ();
+    memClearAccesses ();
+    clearInstrDecode (es);
+    prepareListingBeforeInstr (es);
+}
+
+// (for stepping) Display the effects of the instruction
+
+function execInstrPostDisplay (es) {
+    if (es.procStatus=="Halted") { // do a full display
+	regShowAccesses()
+        refreshRegisters ();
+	memShowAccesses();
+        memDisplayFull ();
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    } else { // do normal display
+	regShowAccesses()
+	memShowAccesses();
+	memDisplay ();
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    }
+}
+
+function runInstrPostDisplay (es) {
+    console.log("runInstrPostDisplay");
+    memClearAccesses ();
+    memDisplayFull ();
+    clearRegisterHighlighting ();
+    refreshRegisters ();
+}
+
+// Prepare to execute an instruction by clearing the buffers holiding
+// log information.
+
+function prepareExecuteInstruction (es) {
+    console.log ("prepareExecuteInstruction");
+
+// Preparations before the instruction
+    regClearAccesses ();
+    memClearAccesses ();
+    memDisplay ();
+    clearInstrDecode (es);
+    prepareListingBeforeInstr (es);
+}
+
+// Execute the instruction
+//    executeInstruction (es);
+
+function finalizeExecuteInstruction (es) {
+// Final actions after the instruction
+    if (es.procStatus=="Halted") {
+        console.log ("procStep: execute instruction: halted")
+	regShowAccesses()
+	memShowAccesses();
+	memDisplayFull ();
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+	console.log ("Breakpoint");
+	setProcStatus (es,"Break");
+        displayFullState();
+    } else {
+	regShowAccesses()
+	memShowAccesses();
+	memDisplay ();
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    }
+
+    console.log ("runOneInstruction: end");
 }
 
 //------------------------------------------------------------------------------
@@ -717,8 +849,8 @@ const op_trap = (es) => {
     if (code===0) { // Halt
 	console.log ("Trap: halt");
 	setProcStatus (es,"Halted");
-        displayFullState();
-        console.log ("Trap: displayed full state after halt");
+//        displayFullState();
+//        console.log ("Trap: displayed full state after halt");
     } else if (code==1) { // Read
         trapRead(es);
     } else if (code==2) { // Write

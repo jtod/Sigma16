@@ -347,24 +347,11 @@ function resetRegisters () {
 // Refresh all the registers.  This ensures the display corresponds to the
 // current values, and it also removes any highlighting of the registers.
 
-// temporary version: change this to iterate over array of registers
-
 function refreshRegisters() {
-    pc.refresh();
-    ir.refresh();
-    adr.refresh();
-    dat.refresh();
-    statusreg.refresh();
-    mask.refresh();
-    req.refresh();
-    istat.refresh();
-    ipc.refresh();
-    vect.refresh();
-    bpseg.refresh();
-    epseg.refresh();
-    bdseg.refresh();
-    edseg.refresh();
-    highlightedRegisters = [];
+    console.log('Refreshing registers');
+    for (var i = 0; i < nRegisters; i++) {
+	register[i].refresh();
+    }
 }
 
 // ------------------------------------------------------------------------
