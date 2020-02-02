@@ -1,6 +1,6 @@
 // Sigma16: gui.js
 // Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
+// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt COPYRIGHT.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
