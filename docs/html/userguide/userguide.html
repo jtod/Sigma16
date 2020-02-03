@@ -1382,6 +1382,9 @@ Interrupt
 <h3 id="addc">addc</h3>
 <p>The <strong>binary add with carry</strong> instruction <em>addc Rd,Re,Rf</em> calculates the sum of the binary numbers in the operand registers Re and Rf as well as the carry bit in the condition code. The sum is loaded into the destination register Rd and the carry output is set in the condition code register. Overflow is not possible with this instruction.</p>
 <h2 id="accessing-memory">Accessing memory</h2>
+<p>A memory address is a 16-bit binary number. Instructions don’t specify addresses directly; they specify an address with two components: a <em>displacement</em> and an <em>index</em>, written as “displacement[index]”. The displacement is a 16 bit constant, and in assembly language it may be given as a decimal integer, a hexadecimal word, or a label. The index is a register. For example,$0c45[R5] has a displacement of 0c45 and an index of R5.</p>
+<p>When an instruction executes, the machine takes the displacement and index and calculates the <em>effective address</em>. This is defined to be the binary sum of the displacement and the curent value in the index register. In the example above, if R5 contains 3, then the effective address of $0c45[R5] is $0c48.</p>
+<p>If you just want to specify an address <em>a</em> in an instruction, this can be written as “a[R0]”. Since R0 contains the constant 0, the effective address is just <em>a</em>.</p>
 <h3 id="lea">lea</h3>
 <p>The <strong>load effective address</strong> instruction <em>lea Rd,disp[Rx]</em> calculates the effective address of the operand disp[Rx] and places the result in the destination register Rd. The effective address is the binary sum disp+Rx.</p>
 <h3 id="load">load</h3>

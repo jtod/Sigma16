@@ -2128,6 +2128,24 @@ code register.  Overflow is not possible with this instruction.
 
 ## Accessing memory
 
+A memory address is a 16-bit binary number.  Instructions don't
+specify addresses directly; they specify an address with two
+components: a *displacement* and an *index*, written as
+"displacement[index]".  The displacement is a 16 bit constant, and in
+assembly language it may be given as a decimal integer, a hexadecimal
+word, or a label.  The index is a register.  For example,$0c45[R5] has a
+displacement of 0c45 and an index of R5.
+
+When an instruction executes, the machine takes the displacement and
+index and calculates the *effective address*.  This is defined to be
+the binary sum of the displacement and the curent value in the index
+register.  In the example above, if R5 contains 3, then the effective
+address of $0c45[R5] is $0c48.
+
+If you just want to specify an address *a* in an instruction, this can
+be written as "a[R0]".  Since R0 contains the constant 0, the
+effective address is just *a*.
+
 ### lea
 
 The **load effective address** instruction *lea Rd,disp[Rx]* calculates
