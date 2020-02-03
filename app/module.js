@@ -111,10 +111,10 @@ function newModule () {
     refreshModulesList();
 }
 
-// Should make new module, copy text into it, and select it
+// Make new module, copy example text into it, and select it
 
-function copyExampleText() {
-    console.log ('copyExampleText');
+function selectExample() {
+    console.log ('selectExample');
     let exElt = document.getElementById('ExamplesIframeId');
     let xs = exElt.contentWindow.document.body.innerHTML;
     console.log (`xs = ${xs}`);
@@ -128,8 +128,6 @@ function copyExampleText() {
     m.modSrc = ys;
     refreshEditorBuffer();
     refreshModulesList();
-//    document.getElementById('EditorTextArea').value = ys;
-//    console.log (`ys = ${ys}`);
 }
 
 
@@ -220,8 +218,6 @@ function refreshModulesList() {
 	    + '</pre>\n\n'
             + '<hr>\n\n';
     }
-//    console.log (spanClass);
-//    console.log (ys);
     let elt = document.getElementById('FilesBody');
     elt.innerHTML = ys;
 }
