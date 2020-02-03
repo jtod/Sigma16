@@ -800,184 +800,269 @@ equal and the two's complement numbers they represent are also equal
 value).  Thus cmpeq can be used for integer comparison and also
 natural comparison, whic cmplt and cmpgt only perform integer comparison.
 
-Translates into
+Now that we can compare two numbers and put the Boolean result into a
+register, that Boolean can control which instructions to execute
+next.  This is done with a *conditional jump* instruction.  There are
+two forms: *jumpf* (jump if False) and *jumpt* (jump if True):
 
 ~~~~
-   R7 := (x < y)
-   jumpf R7,skip[R0]
-   instructions for statement 1
-skip
-   instructions for statement 2 
+         cmp   R3,R1,R2           ; R3 := R1 < R2
+         jumpf R3,wasFalse[R0]    ; if not R3 then goto wasNotLt
+         ...                      ; execute this if R3=True              
+         ...
+wasFalse ...                      ; execute this if R3=False
 ~~~~
 
+Both *jumpf* and *jumpt* have the same syntax as lea, load, and
+store.  They take two operands: the first is a register and the second
+is a memory address.  The jumpf instruction jumps to the address if
+the register contains False, and otherwise just skips to the next
+instruction.  The jumpt instruction is similar, but it jumps if the
+register contains True.
 
-Example: code with if-then.  Source program fragment:
+Usually the address in a jump instruction -- the place to jump to --
+is specified as a label (e.g. wasFalse) and that label appears in the
+label field of some instruction.  You can place a label in the same
+line as the instruction, or it can be on a line with nothing else, in
+which case the label refers to the next instruction.  In the following
+code, label1 is the address of the add instruction and label 2 is the
+address of the sub instruction.
 
 ~~~~
-x := 2;
-if y>x
-   then { a := 5; }
-b := 6;
+label1   add  R2,R4,R13
+label2
+         sub  R15,R0,R1
 ~~~~
 
-
-Translating if-then
+If-then constructs are translated into assembly language following two
+similar fixed patterns.  Suppose Bexp is a Boolean in any register Rd
 
 ~~~~
-; x := 2;
-      lea     R1,2[R0]    ; R1 := 2
-      store   R1,x[R0]    ; x := 2
+if Bexp
+  then statement 1
+statement 2
+~~~~
 
-; if y>x
+This is translated according to the following pattern:
+
+~~~~
+       Rd := Bexp              ; usually use cmplt,cmpeq,cmpgt
+       jumpf Rd,skip[R0]       ; if Bexp False, skip statement 1
+       instructions for statement 1  ; only if Bexp True
+skip   instructions for statement 2  ; always do this statement
+~~~~
+
+Usually a compare instruction is used to put the value of Bexp into
+the register, but it could also be loaded from a variable or
+calculated using Boolean instructions.
+
+Here is an example:
+
+~~~~
+a := 93
+x := 35
+y := 71
+if y > x then a := 59
+b := 104
+~~~~
+
+The corresponding assembly language is:
+
+~~~~
+; a := 93
+      lea     R1,93[R0]   ; R1 := 93
+      store   R1,a[R0]    ; a := 93
+
+; x := 35
+      lea     R1,35[R0]   ; R1 := 35
+      store   R1,x[R0]    ; x := 35
+
+; y := 71
+      lea     R1,71[R0]   ; R1 := 71
+      store   R1,x[R0]    ; x := 71
+
+; if y > x
       load    R1,y[R0]    ; R1 := y
       load    R2,x[R0]    ; R2 := x
-      cmpgt   R3,R1,R2    ; R3 := (y>x)
-      jumpf   R3,skip[R0] ; if y <= x then goto skip
+      cmpgt   R3,R1,R2    ; R3 := y > x
+      jumpf   R3,skip[R0] ; if not y > x then goto skip
 
-;  then { a := 5; }
-      lea    R1,5[R0]     ; R1 := 5
-      store  R1,a[R0]     ; a := 5
+;  then a := 59
+      lea    R1,59[R0]    ; R1 := 59
+      store  R1,a[R0]     ; a := 59
 
-; b := 6;
-skip  lea    R1,6[R0]     ; R1 := 6
-      store  R1,b[R0]     ; b := 6
+; b := 104
+skip  lea    R1,104[R0]   ; R1 := 104
+      store  R1,b[R0]     ; b := 104
 ~~~~
 
+Notice the use of jumpf: if the Boolean expression is False we want to
+skip over the "then" part.
 
-if-then-else
+An if-then-else statement has a similar compilation pattern, but this
+time there are two separate parts: the "then-part" and the
+"else-part".  Depending on the value of the Boolean expression, one of
+those parts should be executed and the other should be skipped over.
 
-if bexp then S1 else S2
+For if-then-else, and many other control constructs, we need an
+*unconditional jump* which will always go to the specified address,
+and which doesn't use a Boolean.  The jump instruction is similar to
+jumpf and jumpt except that the register containing the Boolean is
+omitted:
 
 ~~~~
-if x<y
-  then { S1 }
-  else { S2 }
-S3
+   jump   somewhere[R0]    ; go to somewhere
 ~~~~
 
-Compiled into:
+The general form is
+
 ~~~~
-   R5 := (x<y)
-   jumpf R5,else[R0]
-; then part of the statement
-   instructions for S1
-   jump   done[R0]
-; else part of the statement
-else
-   instructions for S2 
-done
-   instructions for statement S3
+if Bexp
+  then S1
+  else S2
+S3  
+~~~~
+
+The pattern for translating this to assembly language is:
+
+~~~~
+   Rd := Bexp               ; put Boolean into Rd
+   jumpf Rd,elsePart[R0]    ; if not Bexp then skip then-part
+   instructions for S1      ; then-part of the statement
+   jump   afterward[R0]     ; skip over else-part
+elsePart
+   instructions for S2      ; else-part of the statement
+afterward
+   instructions for S3
 ~~~~
 
 ## Loops
 
-while loop
-
-while b do S
+Loops are implemented using compilation patterns based on comparisons
+and jumps.  The fundamental form is the *while loop*.
 
 ~~~~
-while i<n do
-  { S1 }
+while Bexp do S1
 S2
 ~~~~
 
-Compiled into:
+The compilation pattern is:
+
 ~~~~
 loop
-   R6 := (i<n)
-   jumpf  R6,done[R0]
-   ... instructions for the loop body S1 ...
+   Rd := Bexp
+   jumpf  Rd,loopDone[R0]
+   instructions for S1
    jump   loop[R0]
-done
-  instructions for S2
+loopDone
+   instructions for S2
 ~~~~
 
-
-
-
-Infinite loops
+Occasionally you may encounter an infinite loop, which is sometimes
+expressed as a while loop:
 
 ~~~~
-while (true)
-  {statements} 
+while true do S1
 ~~~~
 
-Compiled into:
+This doesn't need a Boolean expression; it is simply compiled into:
 
 ~~~~
 loop
-   ... instructions for the loop body ...
+   instructions for S1
    jump   loop[R0] 
 ~~~~
 
+Infinite loops are rather rare, or at least they should be.  On
+occasion they are exactly what is wanted.  For example, operating
+systems contain a loop that looks for something useful to do, and then
+does it, and this should be an infinite loop.
 
-Nested statements
+However, there is a common but poor programming style that uses
+infinite loops with random break or goto statements to get out of the
+loop.  This may be appropriate on occasion but generally it is bad
+style.
 
-For each kind of high level statement, there is a pattern for
-translating it to  Low level code (goto) and then on to  
-assembly language.
+So far we have seen several compilation patterns:
 
-In larger programs, there will be nested statements.
+* if-then
+* if-then-else
+* while
+
+Every high level programming construct has a compilation pattern, and
+they are mostly built using comparisons and jumps.  In principle,
+these patterns are straightforward to use.  However, there are two
+issues that require a little care: uniqueness of labels and nested
+statements.
+
+Labels must be unique: the same one cannot be used twice in the same
+program, and if it is, the assembler will give an error message.
+This means that you cannot follow the compilation patterns blindly.
+If you use "loop" as the label for a while loop, as in the pattern
+above, you need a different label for your next while loop.
+
+The best approach here is not to use labels like loop, loop1, loop2.
+It's far better to think about the *purpose* of the construct in your
+program and to use a label that reflects this purpose.
+
+Another complication is that most programs contain *nested
+statements*.  These are statements that contain smaller statements,
+and the containment may go several levels deep.
 
 ~~~~
 if b1
-  then { S1;
-         if b2 then {S2} else {S3};
-         S4;
-       }
-  else { S5;
-         while b3 do {S6};
-       }
+  then S1
+       if b2 then S2 else S3
+       S4
+  else S5;
+       while b3 do S6
 S7
 ~~~~
 
 
-How to compile nested statements
+There is an important principle to follow here: every time a statement
+appears in a compilation pattern (we have been calling them S1, S2,
+S3, etc.), it should be translated as a *block*.
 
-A block is a sequence of instructions.  To execute it, always start
-with the first statement.  When it finishes, it always reaches the
-last statement.
+A block is a sequence of instructions which *always* begins execution
+at the first instruction, and *always* finishes at the end.  You
+*never* jump into the middle of it, and it *never* jumps out of the
+middle to some other place.
   
 Every statement should be compiled into a block of code.  This block
 may contain internal structure --- it may contain several smaller
 blocks --- but to execute it you should always begin at the beginning
-and it should always finish at the end.  The compilation patterns work
-for nested statements.
+and it should always finish at the end.
 
-You need to use new labels (can't have a label like ``skip'' in
-several places).
+In programming language theory, programming with blocks is often
+considered to be good practice or good style.  But it is more than
+just an issue of style.  If you always treat the statements inside
+compilation patterns as blocks, the patterns will "just work", no
+matter how deeply nested they are.  If you violate the block
+structure, you will find the program extremely difficult to get to
+work.
 
 ## Machine language
 
- *  The actual bits representing an instruction (written in hex) ---
-  \alert{0d69} -- is \alert{machine language}
- *  The actual hardware runs the machine language --- it's just
-  looking at the numbers
- *  The text notation with names --- \alert{add R13,R6,R9} --- is
-  \alert{assembly language}
- *  Assembly language is for humans, machine language is for
-  machines
- *  Both \alert{specify the program in complete detail}, down to the
-  last bit
+The actual bits representing an instruction (written in hex) (e.g
+0d69) are *machine language*.  The actual hardware runs the machine
+language --- it's just looking at the numbers.  The text notation with
+names -- e.g. add R13,R6,R9 -- is called assembly language.  Assembly
+language is for humans to read and write; machine language is for
+machines to execute.  Both languages specify the program in complete
+detail, down to the last bit
 
-What's in the memory
-
- *  All your program's data
+As a program is running, the memory contains all your program's data:
+the variables, data structures, arrays, lists, etc.  *The memory also
+contains the machine language program itself.* The program is stored
+inside the computer's main memory, along with the data.  This concept
+is called *the stored program computer*.
   
-   *  Variables
-   *  Data structures, arrays, lists
-  
- *  \alert{And also the machine language program itself!}
-
-
-\begin{block}{The \textbf{stored program computer}}
-  The program is stored inside the computer's main memory, along with
-  the data.\\
-  \vspace{1em} An alternative approach is to have a separate memory to
-  hold the program, but experience has shown that to be inferior for
-  general purpose computers.  (Special-purpose computers often do
-  this.)
-\end{block}
+There is an alternative approach: a computer can be designed to have
+one memory to hold the data, and a completely separate memory to hold
+the program.  This approach is often used for special-purpose
+computers (primarily micro-controllers), but experience has shown this
+to be inferior for general purpose computers.
 
 Instruction formats: different types of instruction
 
@@ -1094,56 +1179,40 @@ The memory operand has two parts:
 * The R0 part is just a register, called the index register.
 
 Format of RX instruction
-
-{\Large\color{red}
 ~~~~
 load R1,x[R0]
 ~~~~
-}
 
-
- *  There are two words in the machine language code
- *  The first word has 4 fields: op, d, a, b
+There are two words in the machine language code.
+The first word has 4 fields: op, d, a, b, where
   
-   *  op contains f for every RX instruction
-   *  d contains the register operand (in the example, 1)
-   *  a contains the index register (in the example, 0)
-   *  b contains a code indicating \emph{which} RX instruction this
-    is (1 means load)
+* op contains f for every RX instruction
+* d contains the register operand (in the example, 1)
+* a contains the index register (in the example, 0)
+* b contains a code indicating \emph{which} RX instruction this is (1
+  means load)
   
- *  The second word contains the displacement (address) (in the
-  example, the address of x)
+The second word contains the *displacement*.  In the example, this is
+the address of x.  Suppose x has memory address 0008.  Then the
+machine code for load R1,x[R0] is:
 
-
-Suppose x has memory address 0008.  Then the machine code for load
-R1,x[R0] is:
-
-
-\color{red}
-\fbox{\Large\vbox{\hbox{f101}\hbox{0008}}}
-
+~~~~
+f101
+0008
+~~~~
 
 Operation codes for RX instructions
 
+Recall, for RRR the op field contains a number saying which RRR
+instruction it is.  For RX, the op field always contains f.  So how
+does the machine know which RX instruction it is?  Answer: there is a
+secondary code in the b field.
 
- *  Recall, for RRR the op field contains a number saying
-  \emph{which} RRR instruction it is
- *  For RX, the op field \emph{always contains f}
- *  So how does the machine know \emph{which} RX instruction it is?
- *  Answer: there is a secondary code in the b field
-
-
-
-\begin{tabular}{ll}
-  mnemonic  &  RX operation code (in b field) \\
-  \hline
-  lea       &  0 \\
-  load      &  1 \\
-  store     &  2 \\
-   $\vdots$ & $\vdots$ \\
-  \hline
-\end{tabular}
-
+   mnemonic    secondary opcode in b field
+  ~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lea         0
+   load        1
+   store       2
 
 # Architecture
 

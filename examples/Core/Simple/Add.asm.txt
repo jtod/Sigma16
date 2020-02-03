@@ -1,4 +1,4 @@
-; Program Add.  See Sigma16/README.md in top folder
+; Program Add.   (Part of Sigma16; see README.md in top folder)
 ; A minimal program that adds two integer variables
 
 ; Execution starts at location 0, where the first instruction will be

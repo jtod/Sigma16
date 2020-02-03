@@ -41,7 +41,9 @@ function leaveEditor () {
         let oldSrcCanonical = oldSrc.replace (/\r\n/gm, '\n');
         let newSrc = document.getElementById("EditorTextArea").value;
         let newSrcCanonical = newSrc.replace (/\r\n/gm, '\n');
-        if (m.mFile && (oldSrcCanonical != newSrcCanonical)) { m.fileStale = true; }
+        if (m.mFile && (oldSrcCanonical != newSrcCanonical)) {
+            m.fileStale = true;
+        }
         m.modSrc = newSrc;
     }
     hideTabbedPane("EditorPane");

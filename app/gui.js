@@ -432,7 +432,6 @@ function showTabbedPane(paneId) {
     console.log("Now on tabbed pane " + paneId);
 }
 
-
 function welcome_pane_button() {
 //    console.log("welcome_pane_button clicked")
     hideAllTabbedPanes();
