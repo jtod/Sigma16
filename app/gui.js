@@ -214,18 +214,6 @@ function copyExampleToClipboard () {
     document.execCommand('copy');
 }
 
-function copyExampleText() {
-    console.log ('copyExampleText');
-    let exElt = document.getElementById('ExamplesIframeId');
-    let xs = exElt.contentWindow.document.body.innerHTML;
-    console.log (`xs = ${xs}`);
-    let skipPreOpen = xs.replace(openingPreTag,"");
-    let skipPreClose = skipPreOpen.replace(closingPreTag,"");
-    console.log (`skipPreOpen = ${skipPreOpen}`);
-    let ys = skipPreClose;
-    document.getElementById('EditorTextArea').value = ys;
-    console.log (`ys = ${ys}`);
-}
 
 // var myIFrame = document.getElementById("myIframe");
 // var content = myIFrame.contentWindow.document.body.innerHTML;

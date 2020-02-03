@@ -111,6 +111,28 @@ function newModule () {
     refreshModulesList();
 }
 
+// Should make new module, copy text into it, and select it
+
+function copyExampleText() {
+    console.log ('copyExampleText');
+    let exElt = document.getElementById('ExamplesIframeId');
+    let xs = exElt.contentWindow.document.body.innerHTML;
+    console.log (`xs = ${xs}`);
+    let skipPreOpen = xs.replace(openingPreTag,"");
+    let skipPreClose = skipPreOpen.replace(closingPreTag,"");
+    console.log (`skipPreOpen = ${skipPreOpen}`);
+    let ys = skipPreClose;
+    s16modules.push(mkModule());
+    selectedModule = s16modules.length-1;
+    let m = s16modules[selectedModule];
+    m.modSrc = ys;
+    refreshEditorBuffer();
+    refreshModulesList();
+//    document.getElementById('EditorTextArea').value = ys;
+//    console.log (`ys = ${ys}`);
+}
+
+
 //-------------------------------------------------------------------------------
 // Reading files
 //-------------------------------------------------------------------------------
@@ -139,7 +161,11 @@ function handleSelectedFiles (flist) {
 	s16modules.push(m);
 	nModules++;
     }
+    //    modulesButtonSelect (idxFirstNewMod);
+//    selectedModule = idxFirstNewMod; causes this one to get cleared??
+    console.log ("handle, finished selecting");
 }
+
 
 function mkOfReader (m, i,a,b) {
     console.log (`mkOfReader idx=${m.mIndex} ${i} ${a} ${b}`);
@@ -218,9 +244,6 @@ function modulesButtonSelect (i) {
 //    document.getElementById("AsmTextHtml").innerHTML = "";
     refreshModulesList();
 }
-    //    console.log (`modulesButtonSelect ${m.mIndex}`);
-    //    s16modules[selectedModule].selected = false;
-
 
 // Need to be careful about this affecting refresh, as i has been
 // baked into the file reader.  Should be fixed now...

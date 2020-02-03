@@ -140,9 +140,11 @@ function boot(es) {
 	console.log ('Current module is executable: booting');
 	resetRegisters ();
 	memClearAccesses();
+        document.getElementById('ProcAsmListing').innerHTML = "";
 	copyExecutableToMemory (es,m);
 	es.asmListingPlain = m.asmListingPlain;
 	es.asmListingDec = m.asmListingDec;
+        es.asmListingCurrent = [];
 	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
 	    es.asmListingCurrent[i] = es.asmListingDec[i];
 	}
@@ -586,6 +588,7 @@ function execRunPrepare (es) {
     memDisplay ();                   // refresh memory display
     clearInstrDecode (es);           // remove decoding of last instruction
     prepareListingBeforeInstr (es);  //remove any instruction highlighting
+    setProcAsmListing (es);
 }
 
 // (for runing) Prepare to execute an instruction while in Run mode: clear

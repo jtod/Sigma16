@@ -432,7 +432,7 @@ similar in some ways to the register file.  The memory contains a
 sequence of *memory locations*, each of which can hold a word.  Each
 location is identifed by an *address*, and the addresses count up from
 0.  We will use the notation *mem[a]* to denote the memory location
-    with address a
+with address a
 
 * The register file is used to perform calculations.  In computing
   something like x := (2*a + 3*b) / (x-1), all the arithmetic will be
@@ -505,7 +505,6 @@ With modern circuits, a computer without load and store instructions
 100 times slower.  So nearly all modern computers do arithmetic in
 registers, and use instructions like load and store to copy data back
 and forth between registers and memory.
-
 
 The variables used in a program need to be defined and given an
 initial value.  This is done with the *data* statement.  The variable
@@ -730,13 +729,76 @@ another.  It's easy to indent with spaces, and it works everywhere!
 
 ## Conditionals
 
-if bexp then S
+Conditionals allow a program to decide which statements to execute
+based on Boolean expressions.  One example is the if-then statement,
+for example:
 
 ~~~~
 if x<y
-  then {statement 1;}
-statement 2;
+  then statement 1
+statement 2
 ~~~~
+
+A related form is the if-then-else statement:
+
+~~~~
+if x<y
+  then statement 1
+  else statement 2
+statement 3
+~~~~
+
+Conditionals are implemented in assembly language in two steps.
+First, a *comparison* instruction is used to produce a Boolean
+(i.e. either False or True).  Secondly, a *conditional jump*
+instruction allows a choice of what instruction to execute next.
+
+In Sigma16, every type of value is represented as a 16-bit word,
+including Booleans.  If a word contains zero (hex 0000) then it
+represents False, and otherwise it represents True.
+
+The cmplt instruction compares two integers and produces a Boolean
+result.  Its name means "compare for less-than". Here is an example:
+
+~~~~
+   cmplt  R5,R2,R8   ; R5 := R2 < R8
+~~~~
+
+This instruction compares the two operands R2 and R8.  If R2 < R8 then
+the result is True, and the destination R5 is set to 1 (hex 0001).
+Otherwise, if R2 >= R8, then the destination is set to 0 (hex 0000).
+
+There are two more similar instructions:
+~~~~
+   cmpeq  R5,R2,R8   ; R5 := R2 = R8
+   cmpgt  R5,R2,R8   ; R5 := R2 > R8
+~~~~
+
+The comments are assignments which set the destination register, and
+:= is the assignment operator.  The right hand side of each assignment
+is a relational expression: i.e. a comparison between two integers.
+For the cmpeq instruction, we are comparing for equality, and the
+equality operator is =.  In the Sigma system, = does not mean
+"assign", it means "equals".  (Some programming languages use = to
+mean assignment and == to mean =, which goes against centuries of
+standard usage in mathematics and can be confusing.)
+
+The cmplt and cmpgt instructions perform integer (two's complement)
+comparison:
+
+~~~~
+   lea    R1,-3[R0]  ; R1 := -3 (hex fffd)
+   lea    R2,5[R0]   ; R2 := 5  (hex 0005)
+   cmplt  R3,R1,R2   ; R3 := -3 < 5 = True = 1 (hex 0001)
+~~~~
+
+The results would be different for natural number (binary) comparison.
+The word fffd represents 65,533 in binary, which is greater than 5.
+However, if two words are equal, the binary numbers they represent are
+equal and the two's complement numbers they represent are also equal
+(but the binary value may be different from the two's complement
+value).  Thus cmpeq can be used for integer comparison and also
+natural comparison, whic cmplt and cmpgt only perform integer comparison.
 
 Translates into
 

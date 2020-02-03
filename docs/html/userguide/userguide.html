@@ -425,10 +425,27 @@ y  data  $2c9e</code></pre>
 <p>The exact number of spaces each field is indented isn’t important; what’s important is to make the program neat and readable.</p>
 <p><em>Spaces, not tabs!</em> To indent your code, always use spaces – avoid tabs! In general, never use tabs except in the (rare) cases they are actually required. The tab character was introduced long ago into computer character sets to try to mimic the tab key on old mechanical typewriters But software does not handle tab consistently. If you use tabs, your can look good in one application and like a mess in another. It’s easy to indent with spaces, and it works everywhere!</p>
 <h2 id="conditionals">Conditionals</h2>
-<p>if bexp then S</p>
+<p>Conditionals allow a program to decide which statements to execute based on Boolean expressions. One example is the if-then statement, for example:</p>
 <pre><code>if x&lt;y
-  then {statement 1;}
-statement 2;</code></pre>
+  then statement 1
+statement 2</code></pre>
+<p>A related form is the if-then-else statement:</p>
+<pre><code>if x&lt;y
+  then statement 1
+  else statement 2
+statement 3</code></pre>
+<p>Conditionals are implemented in assembly language in two steps. First, a <em>comparison</em> instruction is used to produce a Boolean (i.e. either False or True). Secondly, a <em>conditional jump</em> instruction allows a choice of what instruction to execute next.</p>
+<p>In Sigma16, every type of value is represented as a 16-bit word, including Booleans. If a word contains zero (hex 0000) then it represents False, and otherwise it represents True.</p>
+<p>The cmplt instruction compares two integers and produces a Boolean result. Its name means “compare for less-than”. Here is an example:</p>
+<pre><code>   cmplt  R5,R2,R8   ; R5 := R2 &lt; R8</code></pre>
+<p>This instruction compares the two operands R2 and R8. If R2 &lt; R8 then the result is True, and the destination R5 is set to 1 (hex 0001). Otherwise, if R2 &gt;= R8, then the destination is set to 0 (hex 0000).</p>
+<p>There are two more similar instructions: ~~~~ cmpeq R5,R2,R8 ; R5 := R2 = R8 cmpgt R5,R2,R8 ; R5 := R2 &gt; R8 ~~~~</p>
+<p>The comments are assignments which set the destination register, and := is the assignment operator. The right hand side of each assignment is a relational expression: i.e. a comparison between two integers. For the cmpeq instruction, we are comparing for equality, and the equality operator is =. In the Sigma system, = does not mean “assign”, it means “equals”. (Some programming languages use = to mean assignment and == to mean =, which goes against centuries of standard usage in mathematics and can be confusing.)</p>
+<p>The cmplt and cmpgt instructions perform integer (two’s complement) comparison:</p>
+<pre><code>   lea    R1,-3[R0]  ; R1 := -3 (hex fffd)
+   lea    R2,5[R0]   ; R2 := 5  (hex 0005)
+   cmplt  R3,R1,R2   ; R3 := -3 &lt; 5 = True = 1 (hex 0001)</code></pre>
+<p>The results would be different for natural number (binary) comparison. The word fffd represents 65,533 in binary, which is greater than 5. However, if two words are equal, the binary numbers they represent are equal and the two’s complement numbers they represent are also equal (but the binary value may be different from the two’s complement value). Thus cmpeq can be used for integer comparison and also natural comparison, whic cmplt and cmpgt only perform integer comparison.</p>
 <p>Translates into</p>
 <pre><code>   R7 := (x &lt; y)
    jumpf R7,skip[R0]
