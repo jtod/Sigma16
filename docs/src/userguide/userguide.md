@@ -1019,7 +1019,6 @@ if b1
 S7
 ~~~~
 
-
 There is an important principle to follow here: every time a statement
 appears in a compilation pattern (we have been calling them S1, S2,
 S3, etc.), it should be translated as a *block*.
@@ -1595,15 +1594,9 @@ and implementation of new instructions).
 
 An instruction may consist of one word or two words, depending on the
 instruction format.  These words are subdivided into 4-bit *fields*,
-each with a unique name:
+each with a unique name.
 
-~~~~
-   ---------------------
-   | op |  d |  a |  b |
-   ---------------------
-   |  e |  f |  g |  h |
-   ---------------------
-~~~~
+First word of the instruction:
 
 <table class="wordlayout"">
 <tr>
@@ -1620,7 +1613,7 @@ each with a unique name:
 </tr>
 </table>
 
-Second word of the instruction
+Second word of the instruction (if there is a second word):
 
 <table class="wordlayout"">
   <tr>
@@ -1709,20 +1702,14 @@ RRR instructions: op is the operation code which determines the
 instruction; op must be between 0 and 13 (hex 0 to hex d).  The
 destination register is Rd, the operands are Ra and Rb.
 
-~~~~
----------------------
-| op |  d |  a |  b |
----------------------
-~~~~
-
 An RRR instruction contains an operation code (op), and specifies
 three operands registers using the d, sa, and sb fields.  It is
 represented as one word, which is divided into four fields:
 
-  * op  (4 bits, starting from bit 0) Operation code
-  * d   (4 bits, starting from bit 4) Destination register
-  * sa  (4 bits, starting from bit 8) Source a register
-  * sb  (4 bits, starting from bit 12) Source b register
+* op  (4 bits, starting from bit 0) Operation code
+* d   (4 bits, starting from bit 4) Destination register
+* sa  (4 bits, starting from bit 8) Source a register
+* sb  (4 bits, starting from bit 12) Source b register
 
 <table class="wordlayout"">
   <tr>
@@ -1730,12 +1717,6 @@ represented as one word, which is divided into four fields:
     <th>d</th>
     <th>a</th>
     <th>b</th>
-  </tr>
-  <tr>
-    <td>d</td>
-    <td>1</td>
-    <td>2</td>
-    <td>3</td>
   </tr>
   <tr>
     <td>0-3</td>
@@ -1819,13 +1800,12 @@ instructions).
 The memory address is specified using the sa field and the
 displacement, which is the entire second word of the instruction.
 
-  * op field (bits 0-3 of ir) is f for all RX instructions
-  * d field (bits 4-7 of ir) has several uses
-  * a field (bits 8-11 of ir) is index register for effective address
-  * b field (bits 12-15 of ir) is secondary opcode
-  * disp (displacement) is the second word of the instruction
-  * ea (effective address) = displacement + r[a]
-
+* op field (bits 0-3 of ir) is f for all RX instructions
+* d field (bits 4-7 of ir) has several uses
+* a field (bits 8-11 of ir) is index register for effective address
+* b field (bits 12-15 of ir) is secondary opcode
+* disp (displacement) is the second word of the instruction
+* ea (effective address) = displacement + r[a]
 
 ### EXP0 format
 
@@ -2098,6 +2078,10 @@ req register.
 
 sub R1,R2,R3
 
+This instruction is similar to add; the only difference is that it
+calculates R2-R3 and places the result in R1.  The effect on the
+condition code is the same as for add.
+
 ### mul
 
 The multiply instruction calculates the integer (two's complement)
@@ -2112,6 +2096,27 @@ register (req), and the lower order 16 bits of the product are loaded
 into Rd.
 
 ### div
+
+Unlike the other arithmetic operations, the divide instruction div Rd,Ra,Rb
+produces two results: the quotient Ra / Rb and the remainder Ra rem
+Rb.  It loads the quotient into the destination register Rd, and the
+remainder is placed in R15.
+
+If the destination register Rd is actually R15, then the quotient is
+placed in R15, and the remainder is discarded.
+
+The divide instruction doesn't set the condition code, since R15 is
+used for the remainder.  Therefore there is no condition code bit to
+indicate division by 0.  However, it is easy for a program to detect a
+division by 0.
+
+* The program can compare the divisor with 0 before or after executing the
+  divide instruction, and jump to an error handler if the divisor
+  is 0.
+  
+* The program can detect division by 0 using an interrupt To do this,
+  enable interrupts and enable the interrupt mask for division by 0.
+  See the section on Interrupts.
 
 ### addc
 
@@ -2153,7 +2158,6 @@ Examples
 
 ### store
 
-
 The **store** instruction *store Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and the value of the destination
 register Rd into memory at the effective address.  The effective
@@ -2179,7 +2183,6 @@ processor.  Although the "left to right" nature of the store
 instruction may look inconsistent from the programmer's point of view,
 it actually is more consistent from the deeper perspective of circuit
 design.
-
 
 Examples
 

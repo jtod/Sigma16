@@ -20,7 +20,7 @@
 <header id="title-block-header">
 <h1 class="title">User Guide</h1>
 </header>
-Version 3.0.35
+Version 3.1.0
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#introduction">Introduction</a></li>
@@ -1044,12 +1044,8 @@ Interrupt
 <p>The core architecture (the simplest part of the system) uses just the <strong>RRR format</strong> (for instructions that perform operations in the registers) and the <strong>RX format</strong> (for instructions that refer to a memory location.)</p>
 <p>The advanced parts of the architecture provide additional instructions which are represented with the EXP format. There are several sub-formats, or variations, of the EXP format which are described in more detail below. The name EXP stands simultaneously for <em>expansion</em> (because it provides for many additional instructions) and <em>experimental</em> (because it allows for experimentation with the design and implementation of new instructions).</p>
 <h3 id="instruction-fields">Instruction fields</h3>
-<p>An instruction may consist of one word or two words, depending on the instruction format. These words are subdivided into 4-bit <em>fields</em>, each with a unique name:</p>
-<pre><code>   ---------------------
-   | op |  d |  a |  b |
-   ---------------------
-   |  e |  f |  g |  h |
-   ---------------------</code></pre>
+<p>An instruction may consist of one word or two words, depending on the instruction format. These words are subdivided into 4-bit <em>fields</em>, each with a unique name.</p>
+<p>First word of the instruction:</p>
 <table class="wordlayout"">
 <tr>
 <th>op</th>
@@ -1064,7 +1060,7 @@ Interrupt
 <td>12-15</td>
 </tr>
 </table>
-<p>Second word of the instruction</p>
+<p>Second word of the instruction (if there is a second word):</p>
 <table class="wordlayout"">
   <tr>
     <th>e</th>
@@ -1122,17 +1118,12 @@ Interrupt
 <h3 id="rrr-format">RRR format</h3>
 <p>RRR instructions perform operations on data in registers, but not referring to memory. The representation is one word.</p>
 <p>RRR instructions: op is the operation code which determines the instruction; op must be between 0 and 13 (hex 0 to hex d). The destination register is Rd, the operands are Ra and Rb.</p>
-<pre><code>---------------------
-| op |  d |  a |  b |
----------------------</code></pre>
 <p>An RRR instruction contains an operation code (op), and specifies three operands registers using the d, sa, and sb fields. It is represented as one word, which is divided into four fields:</p>
 <ul>
-<li>op (4 bits, starting from bit 0) Operation code
-<ul>
+<li>op (4 bits, starting from bit 0) Operation code</li>
 <li>d (4 bits, starting from bit 4) Destination register</li>
 <li>sa (4 bits, starting from bit 8) Source a register</li>
 <li>sb (4 bits, starting from bit 12) Source b register</li>
-</ul></li>
 </ul>
 <table class="wordlayout"">
   <tr>
@@ -1140,12 +1131,6 @@ Interrupt
     <th>d</th>
     <th>a</th>
     <th>b</th>
-  </tr>
-  <tr>
-    <td>d</td>
-    <td>1</td>
-    <td>2</td>
-    <td>3</td>
   </tr>
   <tr>
     <td>0-3</td>
@@ -1173,14 +1158,12 @@ Interrupt
 <p>The register operand is specified in the d field. For several RX instructions, this is indeed the destination of the instruction: for example, load places data into Rd. However, a few RX instructions use the d field differently (see, for example, the conditional jump instructions).</p>
 <p>The memory address is specified using the sa field and the displacement, which is the entire second word of the instruction.</p>
 <ul>
-<li>op field (bits 0-3 of ir) is f for all RX instructions
-<ul>
+<li>op field (bits 0-3 of ir) is f for all RX instructions</li>
 <li>d field (bits 4-7 of ir) has several uses</li>
 <li>a field (bits 8-11 of ir) is index register for effective address</li>
 <li>b field (bits 12-15 of ir) is secondary opcode</li>
 <li>disp (displacement) is the second word of the instruction</li>
 <li>ea (effective address) = displacement + r[a]</li>
-</ul></li>
 </ul>
 <h3 id="exp0-format">EXP0 format</h3>
 <p>An EXP0 instruction is one word, and only one operand field (the d field) is available. (There are 0 fields in the second word; hence the name EXP0.) The op field contains e, and the a and b fields are combined to form an 8-bit opcode.</p>
@@ -1384,10 +1367,18 @@ Interrupt
 </table>
 <h3 id="sub">sub</h3>
 <p>sub R1,R2,R3</p>
+<p>This instruction is similar to add; the only difference is that it calculates R2-R3 and places the result in R1. The effect on the condition code is the same as for add.</p>
 <h3 id="mul">mul</h3>
 <p>The multiply instruction calculates the integer (two’s complement) product of the operands Ra and Rb, and places the result in the destination register Rd.</p>
 <p>If the magnitude of the product is too large to be representable as a 16 bit two’s complement integer, this is an overflow. If this happens, the integer overflow bit is set in the condition code (F15) and the integer overflow bit is also set in the interrupt request register (req), and the lower order 16 bits of the product are loaded into Rd.</p>
 <h3 id="div">div</h3>
+<p>Unlike the other arithmetic operations, the divide instruction div Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder Ra rem Rb. It loads the quotient into the destination register Rd, and the remainder is placed in R15.</p>
+<p>If the destination register Rd is actually R15, then the quotient is placed in R15, and the remainder is discarded.</p>
+<p>The divide instruction doesn’t set the condition code, since R15 is used for the remainder. Therefore there is no condition code bit to indicate division by 0. However, it is easy for a program to detect a division by 0.</p>
+<ul>
+<li><p>The program can compare the divisor with 0 before or after executing the divide instruction, and jump to an error handler if the divisor is 0.</p></li>
+<li><p>The program can detect division by 0 using an interrupt To do this, enable interrupts and enable the interrupt mask for division by 0. See the section on Interrupts.</p></li>
+</ul>
 <h3 id="addc">addc</h3>
 <p>The <strong>binary add with carry</strong> instruction <em>addc Rd,Re,Rf</em> calculates the sum of the binary numbers in the operand registers Re and Rf as well as the carry bit in the condition code. The sum is loaded into the destination register Rd and the carry output is set in the condition code register. Overflow is not possible with this instruction.</p>
 <h2 id="accessing-memory">Accessing memory</h2>
