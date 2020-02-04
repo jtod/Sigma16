@@ -74,7 +74,8 @@ for more details see the User Guide.
 
 ### Releases
 
-* [3.1.0](./releases/3.1.0/index.html)
+* [launch 3.1.0](./releases/3.1.0/app/Sigma16.html) and [download
+  3.1.0]([https://github.com/jtod/Sigma16/releases/tag/v3.1.0)
 
 ### Development versions
 
