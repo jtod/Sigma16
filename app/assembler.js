@@ -293,6 +293,10 @@ const parseReg = /R[0-9a-f]|(?:1[0-5])/;
 const rrrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 
+// An RRRR operand consists of four registers, separated by comma
+const rrrrParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
+
 const rrkParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
 const rrkkParser =
@@ -701,7 +705,7 @@ function parseOperand (m,s) {
 	s.field_d = s.operand_str1;
 	s.field_disp = s.operand_str2;
 	s.field_a = s.operand_str3;
-    } else if (rrx) { // Rd,Re,gh[Rf]
+    } else if (rrx) { // Re,Rf,gh[Ra]
         console.log ('RRX');
 	s.hasOperand = true;
 	s.operandType = RRXEXP;
@@ -712,10 +716,6 @@ function parseOperand (m,s) {
         s.operand_str2 = rrx[2]; // Re
         s.operand_str3 = rrx[3]; // gh
         s.operand_str4 = rrx[4]; // Rf
-	s.field_d  = s.operand_str1;      // start register
-	s.field_e  = s.operand_str2;      // start register
-	s.field_gh = s.operand_str3;   // displacement
-	s.field_f  = s.operand_str4;      // end register
         console.log (`rrx e=${s.field_e} f=${s.field_f} disp=${s.field_disp} x=${s.d}`)
     } else if (dat) { // 34
 	s.hasOperand = true;
@@ -979,16 +979,23 @@ function asmPass2 (m) {
 	} else if (fmt==RRREXP) {
 	    console.log (`pass2 RRREXP`);
 	    op = s.operation.opcode;
+            s.field_e  = s.operand_str1;   // first register
+	    s.field_f  = s.operand_str2;   // second register
+	    s.field_g  = s.operand_str3;    // third register
 	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-            s.codeWord2 = mkWord(0,s.d,s.a,s.b);
+            s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,0);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RRXEXP) {
 	    console.log (`pass2 RRXEXP`);
 	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
-            let v = 0;
-//            let v = evaluate(m,s,s.address+1,s.field_disp);
+            s.field_e  = s.operand_str1;      // start register
+	    s.field_f  = s.operand_str2;      // start register
+	    s.field_gh = s.operand_str3;      // offset (8 bits)
+	    s.field_a  = s.operand_str4;      // index register
+            let v = evaluate(m,s,s.address+1,s.field_gh); // value of offset
+	    s.codeWord1 = mkWord448(op[0],s.field_a,op[1]);
+            s.codeWord2 = mkWord(0,s.field_e,s.field_f,s.field_gh);
             s.codeWord2 = mkWord448(s.field_e,s.field_f,v.evalVal);
             if (v.evalRel) {
                 mkErrMsg (m,s, `This instruction requires constant displacement\n`

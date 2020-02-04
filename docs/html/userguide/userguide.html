@@ -1305,8 +1305,9 @@ Interrupt
 <li><p>16-bit two’s complement numbers are signed integers -32999?, …, -1, 0, 1, …, 32???. If two signed integers are added, the result is a signed integer. If the result is less than -32000 or greater than 32000, then the result cannot be represented as a 16 bit two’s complement number. If this happens, the destination register is set to the lower 16 bits of the true result, and the two’s complement overflow flag is set in the Condition Code. Furthermore, the overflow flag is set in the req register. If interrupts are enabled and the overflow flag is 1 in the mask register, then an interrupt will occur immediatelhy after the add instruction executes.</p></li>
 </ul>
 <h3 id="add">add</h3>
-<p>The instruction add Rz,Rx,Ry has operands Rx and Ry and destination Rz. It fetches the operands reg[x] and reg[y], calculates the sum reg[x] + reg[y], and loads the result into the destination reg[z]. The effect is reg[z] := reg[x] + reg[y]. For example, add R5,R12,R2 performs R5 := R12 + R3.</p>
-<p>The add instruction is RRR format with opcode=0. Given destination z and operands x and y (where z, x, y are hex digits), add Rz,Rx,Ry is reprseented by 0zxy.</p>
+<p>Example: add R1,R2,R3 ; R1 := R2 + R3</p>
+<p>The instruction add Rd,Ra,Rb has operands Ra and Rb and destination Rd. It fetches the operands Ra and Rb, calculates the sum Ra + Rb, and loads the result into the destination Rd. The effect is Rd := Ra + Rb. For example, add R5,R12,R2 performs R5 := R12 + R3.</p>
+<p>The add instruction is RRR format with opcode=0. Given destination Rd and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is reprseented by 0dab.</p>
 <table>
 <thead>
 <tr class="header">
@@ -1333,11 +1334,11 @@ Interrupt
 <tbody>
 <tr class="odd">
 <td style="text-align: center;">R15.ccG</td>
-<td style="text-align: center;">result &gt;bin 0</td>
+<td style="text-align: center;">result &gt; 0 (binary)</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">R15.ccg</td>
-<td style="text-align: center;">result &gt;tc 0</td>
+<td style="text-align: center;">result &gt; 0 (two’s complement)</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">R15.ccE</td>
@@ -1345,39 +1346,122 @@ Interrupt
 </tr>
 <tr class="even">
 <td style="text-align: center;">R15.ccl</td>
-<td style="text-align: center;">result &lt;tc 0</td>
+<td style="text-align: center;">result &lt;tc 0 (two’s complement)</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">R15.CCL</td>
-<td style="text-align: center;">0</td>
-</tr>
-<tr class="even">
 <td style="text-align: center;">R15.ccV</td>
-<td style="text-align: center;">bin overflow</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">R15.CCv</td>
-<td style="text-align: center;">tc overflow</td>
+<td style="text-align: center;">overflow (binary)</td>
 </tr>
 <tr class="even">
+<td style="text-align: center;">R15.CCv</td>
+<td style="text-align: center;">overflow (two’s complement)</td>
+</tr>
+<tr class="odd">
 <td style="text-align: center;">R15.CCc</td>
 <td style="text-align: center;">carry output</td>
 </tr>
 </tbody>
 </table>
 <h3 id="sub">sub</h3>
-<p>sub R1,R2,R3</p>
+<p>Example: sub R1,R2,R3 ; R1 := R2 - R3</p>
 <p>This instruction is similar to add; the only difference is that it calculates R2-R3 and places the result in R1. The effect on the condition code is the same as for add.</p>
+<p>The instruction sub Rd,Ra,Rb has operands Ra and Rb and destination Rd. It fetches the operands Ra and Rb, calculates the difference Ra - Rb, and loads the result into the destination Rd. The effect is Rd := Ra - Rb. For example, sub R5,R12,R2 performs R5 := R12 - R3.</p>
+<p>The sub instruction is RRR format with opcode=1.</p>
+<table>
+<thead>
+<tr class="header">
+<th>de As</th>
+<th>sembly Ef</th>
+<th style="text-align: left;">fect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>162c</td>
+<td>sub R6,R2,R12</td>
+<td style="text-align: left;">; R6 := R2 - R12</td>
+</tr>
+<tr class="even">
+<td>1d13</td>
+<td>sub R13,R1,R3</td>
+<td style="text-align: left;">; R13 := R1 - R3</td>
+</tr>
+</tbody>
+</table>
+<p>In addition to setting the destination register, the sub instruction sets several bits in the condition code R15 and may set a bit in the req register.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">R15.ccG</td>
+<td style="text-align: center;">result &gt; 0 (binary)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">R15.ccg</td>
+<td style="text-align: center;">result &gt; 0 (two’s complement)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">R15.ccE</td>
+<td style="text-align: center;">result = 0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">R15.ccl</td>
+<td style="text-align: center;">result &lt; 0 (two’s complement)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">R15.ccV</td>
+<td style="text-align: center;">overflow (binary)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">R15.CCv</td>
+<td style="text-align: center;">overflow (two’s complement)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">R15.CCc</td>
+<td style="text-align: center;">carry output</td>
+</tr>
+</tbody>
+</table>
 <h3 id="mul">mul</h3>
-<p>The multiply instruction calculates the integer (two’s complement) product of the operands Ra and Rb, and places the result in the destination register Rd.</p>
-<p>If the magnitude of the product is too large to be representable as a 16 bit two’s complement integer, this is an overflow. If this happens, the integer overflow bit is set in the condition code (F15) and the integer overflow bit is also set in the interrupt request register (req), and the lower order 16 bits of the product are loaded into Rd.</p>
+<p>Example: mul R1,R2,R3 ; R1 := R2 * R3</p>
+<p>The multiply instruction mul Rd,Ra,Rb calculates the integer (two’s complement) product of the operands Ra and Rb, and places the result in the destination register Rd. The mul instruction does not produce the natural (binary) product.</p>
+<p>If the magnitude of the product is too large to be representable as a 16 bit two’s complement integer, this is an overflow. If overflow occurs, the integer overflow bit is set in the condition code (F15) and the integer overflow bit is also set in the interrupt request register (req), and the lower order 16 bits of the product are loaded into Rd.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">R15.ccg</td>
+<td style="text-align: right;">result &gt; 0 (two’s complement)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">R15.ccE</td>
+<td style="text-align: right;">result = 0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">R15.ccl</td>
+<td style="text-align: right;">result &lt; 0 (two’s complement)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">R15.CCv</td>
+<td style="text-align: right;">overflow (two’s complement)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">R15.CCc</td>
+<td style="text-align: right;">carry output</td>
+</tr>
+</tbody>
+</table>
 <h3 id="div">div</h3>
-<p>Unlike the other arithmetic operations, the divide instruction div Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder Ra rem Rb. It loads the quotient into the destination register Rd, and the remainder is placed in R15.</p>
+<p>Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3</p>
+<p>Unlike the other arithmetic operations, the divide instruction div Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder Ra rem Rb. It loads the quotient into the destination register Rd, and the remainder is loaded into R15.</p>
 <p>If the destination register Rd is actually R15, then the quotient is placed in R15, and the remainder is discarded.</p>
 <p>The divide instruction doesn’t set the condition code, since R15 is used for the remainder. Therefore there is no condition code bit to indicate division by 0. However, it is easy for a program to detect a division by 0.</p>
 <ul>
-<li><p>The program can compare the divisor with 0 before or after executing the divide instruction, and jump to an error handler if the divisor is 0.</p></li>
-<li><p>The program can detect division by 0 using an interrupt To do this, enable interrupts and enable the interrupt mask for division by 0. See the section on Interrupts.</p></li>
+<li>(Explicit test for error) The program can compare the divisor with 0 before or after executing the divide instruction, and jump to an error handler if the divisor is 0. This is similar to testing the condition code after an add, sub, or mul instruction, but it does require two instructions: a compare followed by a conditional jump. For example:</li>
+</ul>
+<pre><code>   div   R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
+   cmpeq R4,R3,R0       ; Did we divide by 0?
+   jumpt zeroDivide[R0] ; If yes, handle error</code></pre>
+<ul>
+<li>(Exception) The program can detect division by 0 using an interrupt. To do this, enable interrupts and enable the interrupt mask for division by 0. See the section on Interrupts. This approach does not require a compare or jump instruction for each division.</li>
 </ul>
 <h3 id="addc">addc</h3>
 <p>The <strong>binary add with carry</strong> instruction <em>addc Rd,Re,Rf</em> calculates the sum of the binary numbers in the operand registers Re and Rf as well as the carry bit in the condition code. The sum is loaded into the destination register Rd and the carry output is set in the condition code register. Overflow is not possible with this instruction.</p>
@@ -1439,25 +1523,36 @@ Interrupt
    store  R12,count[R0]
    store  R6,arrayX[R2]</code></pre>
 <h3 id="save">save</h3>
-<p>The <strong>save</strong> instruction stores a sequence of adjacent registers into memory starting from the effective address. It is equivalent to a fixed sequence of store instructions. The purpose of save is to copy the state of registers into memory during a procedure call or a context switch.</p>
+<p>Example: save R2,R9,20[R14] is equivalent to</p>
+<pre><code>  store  R2,20[R14]
+  store  R3,21[R14]
+  store  R4,22[R14]
+  store  R5,23[R14]
+  store  R6,24[R14]
+  store  R7,25[R14]
+  store  R8,26[R14]
+  store  R9,27[R14]</code></pre>
+<p>The <strong>save</strong> instruction stores a sequence of adjacent registers into memory starting from the effective address. The index register (R14 in this example) is not changed. Save is equivalent to a fixed sequence of store instructions; its purpose of save is to copy the state of registers into memory during a procedure call or a context switch.</p>
 <p>Typically, save is used as part of a procedure call and restore is used as part of the return.</p>
-<p>The instruction <em>save Rd,Re,gh[Rf]</em> stores the contents of Rd, Rd+1, …, Re into memory at consecutive locations beginning with mem[gh+Rf].</p>
-<p>The instruction is EXP format, and the displacement is limited to 8 bits, because it is specified in the gh field (the rightmost 8 bits) of the second word of the instruction.</p>
-<p>For example, consider this instruction: ~~~~ save R3,R10,4[R14] ~~~~</p>
-<p>The effect is equivalent to</p>
-<pre><code>   store  R3,4[R14]
-   store  R4,5[R14]
-   store  R5,6[R14]
-   store  R6,7[R14]
-   store  R7,8[R14]
-   store  R8,9[R14]
-   store  R9,10[R14]
-   store  R10,11[R14]</code></pre>
+<p>The instruction <em>save Re,Rf,gh[Ra]</em> stores the contents of Re, Re+1, …, Rf into memory at consecutive locations beginning with <em>mem[Ra+gh]</em>.</p>
+<p>The instruction is EXP format, and the offset is limited to 8 bits, because it is specified in the <em>gh</em> field, which is the rightmost 8 bits of the second word of the instruction. The secondary opcode is 8, which is in the ab field of the first word of the instruction.</p>
+<p>The first register to be saved is in the <em>e</em> field, and the last register to be saved is in the <em>f</em> field. The instruction always stores at least one register. If <em>e</em> and <em>f</em> are the same, for example <em>save R5,R5,0[F14]</em> then that register (R5 in the example) is stored. If <em>e</em> &gt; <em>f</em> then the register numbers wrap around For example,</p>
+<pre><code>   save    R11,R3,3[R5]</code></pre>
+<p>is equivalent to ~~~~ store R11,3[R5] store R12,4[R5] store R13,5[R5] store R14,6[R5] store R15,7[R5] store R0,8[R5] store R1,9[R5] store R2,10[R5] store R3,11[R5] ~~~~</p>
 <h3 id="restore">restore</h3>
-<p>The <strong>restore</strong> instruction copies a sequence of consecutive memory locations starting from the effecive address into a sequence of adjacent registers. It is equivalent to a fixed sequence of load instructions. The purpose of restore is to restore the state of registers from memory after a procedure call or a context switch.</p>
+<p>Example: restore R2,R9,20[R14] is equivalent to</p>
+<pre><code>  load   R2,20[R14]
+  load   R3,21[R14]
+  load   R4,22[R14]
+  load   R5,23[R14]
+  load   R6,24[R14]
+  load   R7,25[R14]
+  load   R8,26[R14]
+  load   R9,27[R14]</code></pre>
+<p>The <strong>restore</strong> instruction copies a sequence of consecutive memory locations starting from the effecive address into a sequence of adjacent registers. The index register (R14 in this example) is not changed. Restore is equivalent to a fixed sequence of load instructions; its purpose of restore is to restore the state of registers from memory after a procedure call or a context switch.</p>
 <p>Typically, save is used as part of a procedure call and restore is used as part of the return.</p>
-<p>The instruction <em>restore Rd,Re,gh[Rf]</em> copies the contents of memory at consecutive locations beginning with mem[gh+Rf] into registers Rd, Rd+1, …, Re.</p>
-<p>The instruction is EXP format, and the displacement is limited to 8 bits, because it is specified in the gh field (the rightmost 8 bits) of the second word of the instruction. The assembly language statement format is RRXEXP.</p>
+<p>The instruction <em>restore Re,Rf,gh[Rd]</em> copies the contents of memory at consecutive locations beginning with mem[gh+Rf] into registers Re, Re+1, …, Rf.</p>
+<p>The instruction is EXP format, and the displacement is limited to 8 bits, because it is specified in the gh field (the rightmost 8 bits) of the second word of the instruction. The secondary opcode is 9, which is in the ab field of the first word of the instruction. The assembly language statement format is RRXEXP.</p>
 <p>For example, consider this instruction: ~~~~ restore R3,R10,4[R14] ~~~~</p>
 <p>The effect is equivalent to</p>
 <pre><code>   load  R3,4[R14]
@@ -1469,13 +1564,13 @@ Interrupt
    load  R9,10[R14]
    load  R10,11[R14]</code></pre>
 <h3 id="push">push</h3>
-<p>push R1,R2,R3</p>
-<p>R1 = value to push onto stack in memory R2 = stack top R3 = stack limit</p>
+<p>Push a word onto a stack.</p>
+<p>Example: push R1,R2,R3 pushes value in R1 onto stack with R2 = current top and R3 = last address in stack.</p>
 <p>Push the word in R1 onto a stack with top R2 and limit R3. If the stack is full, nothing is stored into memory and an error is indicated in the condition code and interrupt request registers; an interrupt will occur if interrupts are enabled and the stack mask bit is set.</p>
 <p>Push has the following semantics:</p>
-<p>if R2&lt;R3 then R2 := R2+1; mem[R2] := R1 else R15.sovfl := 1, req.StackBounds := 1</p>
-<p>If R2=R3 this means the stack completely fills the block, and there is no space to store a new element. In this case, the push instruction does not store R1: it doesn’t modify memory outside the block, and it doesn’t overwrite data in the stack. Instead, the instruction indicates a stack overflow by setting the sovfl (stack overflow) bit in the condition code (R15), and it also sets the stack fault bit in the interrupt request register. If interrupts are enabled and the stack fault bit is set in the interrupt mask register, then an interrupt will occur after the push instruction completes. But there will be no interrupt if interrupts are disabled, or the stack fault bit is not set in the mask register.</p>
-<p>Push is an EXP format instruction comprising two words:</p>
+<p>if R2&lt;R3 then R2 := R2+1; mem[R2] := R1 else R15.sovfl := 1, req.sovfl := 1</p>
+<p>If R2 = R3 this means the stack completely fills the block, and there is no space to store a new element. In this case, the push instruction does not store R1: it doesn’t modify memory outside the block, and it doesn’t overwrite data in the stack. Instead, the instruction indicates a stack overflow by setting the sovfl (stack overflow) bit in the condition code (R15), and it also sets the stack fault bit in the interrupt request register. If interrupts are enabled and the stack fault bit is set in the interrupt mask register, then an interrupt will occur after the push instruction completes. There will be no interrupt if interrupts are disabled, or the stack fault bit is not set in the mask register.</p>
+<p>Push is an EXP2 format instruction comprising two words.</p>
 <table>
 <tbody>
 <tr class="odd">

@@ -2044,15 +2044,16 @@ numbers) and for two's complement addition (on signed integers).
 
 ### add
 
-The instruction add Rz,Rx,Ry  has operands Rx and Ry and destination
-Rz.  It fetches the operands reg[x] and reg[y],
-calculates the sum reg[x] + reg[y], and loads the result into the destination
-reg[z].  The effect is reg[z] := reg[x] + reg[y].  For example, add
-R5,R12,R2 performs R5 := R12 + R3.
+Example: add R1,R2,R3 ; R1 := R2 + R3
 
-The add instruction is RRR format with opcode=0.  Given destination z
-and operands x and y (where z, x, y are hex digits), add Rz,Rx,Ry is
-reprseented by 0zxy.
+The instruction add Rd,Ra,Rb has operands Ra and Rb and destination
+Rd.  It fetches the operands Ra and Rb, calculates the sum Ra + Rb,
+and loads the result into the destination Rd.  The effect is Rd :=
+Ra + Rb.  For example, add R5,R12,R2 performs R5 := R12 + R3.
+
+The add instruction is RRR format with opcode=0.  Given destination Rd
+and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
+reprseented by 0dab.
 
   Code    Assembly          Effect
   -----   ----------------  ------------------
@@ -2064,43 +2065,81 @@ sets several bits in the condition code R15 and may set a bit in the
 req register.
 
 ---------  ---------------------
- R15.ccG    result >bin 0
- R15.ccg    result >tc 0
+ R15.ccG    result > 0 (binary)
+ R15.ccg    result > 0 (two's complement)
  R15.ccE    result = 0
- R15.ccl    result <tc 0
- R15.CCL    0
- R15.ccV    bin overflow
- R15.CCv    tc overflow
+ R15.ccl    result <tc 0 (two's complement)
+ R15.ccV    overflow (binary)
+ R15.CCv    overflow (two's complement)
  R15.CCc    carry output
 ---------  ---------------------
 
 ### sub
 
-sub R1,R2,R3
+Example: sub R1,R2,R3 ; R1 := R2 - R3
 
 This instruction is similar to add; the only difference is that it
 calculates R2-R3 and places the result in R1.  The effect on the
 condition code is the same as for add.
 
+The instruction sub Rd,Ra,Rb has operands Ra and Rb and destination
+Rd.  It fetches the operands Ra and Rb, calculates the difference Ra -
+Rb, and loads the result into the destination Rd.  The effect is Rd :=
+Ra - Rb.  For example, sub R5,R12,R2 performs R5 := R12 - R3.
+
+The sub instruction is RRR format with opcode=1.
+
+  Code    Assembly          Effect
+  -----   ----------------  ------------------
+  162c    sub R6,R2,R12     ; R6 := R2 - R12
+  1d13    sub R13,R1,R3     ; R13 := R1 - R3
+  
+In addition to setting the destination register, the sub instruction
+sets several bits in the condition code R15 and may set a bit in the
+req register.
+
+---------  ---------------------
+ R15.ccG    result > 0 (binary)
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result < 0 (two's complement)
+ R15.ccV    overflow (binary)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+---------  ---------------------
+
 ### mul
 
-The multiply instruction calculates the integer (two's complement)
-product of the operands Ra and Rb, and places the result in the
-destination register Rd.
+Example: mul R1,R2,R3 ; R1 := R2 * R3
+
+The multiply instruction mul Rd,Ra,Rb calculates the integer (two's
+complement) product of the operands Ra and Rb, and places the result
+in the destination register Rd.  The mul instruction does not produce
+the natural (binary) product.
 
 If the magnitude of the product is too large to be representable as a
-16 bit two's complement integer, this is an overflow.  If this
-happens, the integer overflow bit is set in the condition code (F15)
+16 bit two's complement integer, this is an overflow.  If overflow
+occurs, the integer overflow bit is set in the condition code (F15)
 and the integer overflow bit is also set in the interrupt request
 register (req), and the lower order 16 bits of the product are loaded
 into Rd.
 
+---------  ---------------------
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result < 0 (two's complement)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+---------  ---------------------
+
 ### div
 
-Unlike the other arithmetic operations, the divide instruction div Rd,Ra,Rb
-produces two results: the quotient Ra / Rb and the remainder Ra rem
-Rb.  It loads the quotient into the destination register Rd, and the
-remainder is placed in R15.
+Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
+
+Unlike the other arithmetic operations, the divide instruction div
+Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder
+Ra rem Rb.  It loads the quotient into the destination register Rd,
+and the remainder is loaded into R15.
 
 If the destination register Rd is actually R15, then the quotient is
 placed in R15, and the remainder is discarded.
@@ -2110,21 +2149,32 @@ used for the remainder.  Therefore there is no condition code bit to
 indicate division by 0.  However, it is easy for a program to detect a
 division by 0.
 
-* The program can compare the divisor with 0 before or after executing the
-  divide instruction, and jump to an error handler if the divisor
-  is 0.
+* (Explicit test for error) The program can compare the divisor with 0
+  before or after executing the divide instruction, and jump to an
+  error handler if the divisor is 0.  This is similar to testing the
+  condition code after an add, sub, or mul instruction, but it does
+  require two instructions: a compare followed by a conditional jump.
+  For example:
+
+~~~~
+   div   R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
+   cmpeq R4,R3,R0       ; Did we divide by 0?
+   jumpt zeroDivide[R0] ; If yes, handle error
+~~~~
   
-* The program can detect division by 0 using an interrupt To do this,
-  enable interrupts and enable the interrupt mask for division by 0.
-  See the section on Interrupts.
+* (Exception) The program can detect division by 0 using an interrupt.
+  To do this, enable interrupts and enable the interrupt mask for
+  division by 0.  See the section on Interrupts.  This approach does
+  not require a compare or jump instruction for each division.
 
 ### addc
 
-The **binary add with carry** instruction *addc Rd,Re,Rf* calculates the sum
-of the binary numbers in the operand registers Re and Rf as well as
-the carry bit in the condition code.  The sum is loaded into the
-destination register Rd and the carry output is set in the condition
-code register.  Overflow is not possible with this instruction.
+The **binary add with carry** instruction *addc Rd,Re,Rf* calculates
+the sum of the binary numbers in the operand registers Re and Rf as
+well as the carry bit in the condition code.  The sum is loaded into
+the destination register Rd and the carry output is set in the
+condition code register.  Overflow is not possible with this
+instruction.
 
 ## Accessing memory
 
@@ -2212,60 +2262,95 @@ Examples
 
 ### save
 
+Example: save R2,R9,20[R14] is equivalent to
+
+~~~~
+  store  R2,20[R14]
+  store  R3,21[R14]
+  store  R4,22[R14]
+  store  R5,23[R14]
+  store  R6,24[R14]
+  store  R7,25[R14]
+  store  R8,26[R14]
+  store  R9,27[R14]
+~~~~
+  
 The **save** instruction stores a sequence of adjacent registers into
-memory starting from the effective address.  It is equivalent to a
-fixed sequence of store instructions.  The purpose of save is to copy
-the state of registers into memory during a procedure call or a
-context switch.
+memory starting from the effective address. The index register (R14 in
+this example) is not changed.  Save is equivalent to a fixed sequence
+of store instructions; its purpose of save is to copy the state of
+registers into memory during a procedure call or a context switch.
 
 Typically, save is used as part of a procedure call and restore is
 used as part of the return.
 
-The instruction *save Rd,Re,gh[Rf]* stores the contents of Rd, Rd+1,
-..., Re into memory at consecutive locations beginning with
-mem[gh+Rf].
+The instruction *save Re,Rf,gh[Ra]* stores the contents of Re, Re+1,
+..., Rf into memory at consecutive locations beginning with
+*mem[Ra+gh]*.
 
-The instruction is EXP format, and the displacement is limited to 8
-bits, because it is specified in the gh field (the rightmost 8 bits)
-of the second word of the instruction.
+The instruction is EXP format, and the offset is limited to 8 bits,
+because it is specified in the *gh* field, which is the rightmost 8
+bits of the second word of the instruction.  The secondary opcode is
+8, which is in the ab field of the first word of the instruction.
 
-For example, consider this instruction:
+The first register to be saved is in the *e* field, and the last
+register to be saved is in the *f* field.  The instruction always
+stores at least one register.  If *e* and *f* are the same, for
+example *save R5,R5,0[F14]* then that register (R5 in the example) is
+stored.  If *e* > *f* then the register numbers wrap around  For
+example, 
+
 ~~~~
-   save  R3,R10,4[R14]
+   save    R11,R3,3[R5]
 ~~~~
 
-The effect is equivalent to
-
+is equivalent to
 ~~~~
-   store  R3,4[R14]
-   store  R4,5[R14]
-   store  R5,6[R14]
-   store  R6,7[R14]
-   store  R7,8[R14]
-   store  R8,9[R14]
-   store  R9,10[R14]
-   store  R10,11[R14]
+   store   R11,3[R5]
+   store   R12,4[R5]
+   store   R13,5[R5]
+   store   R14,6[R5]
+   store   R15,7[R5]
+   store   R0,8[R5]
+   store   R1,9[R5]
+   store   R2,10[R5]
+   store   R3,11[R5]
 ~~~~
 
 ### restore
 
+Example: restore R2,R9,20[R14] is equivalent to
+
+~~~~
+  load   R2,20[R14]
+  load   R3,21[R14]
+  load   R4,22[R14]
+  load   R5,23[R14]
+  load   R6,24[R14]
+  load   R7,25[R14]
+  load   R8,26[R14]
+  load   R9,27[R14]
+~~~~
+
 The **restore** instruction copies a sequence of consecutive memory
 locations starting from the effecive address into a sequence of
-adjacent registers.  It is equivalent to a fixed sequence of load
-instructions.  The purpose of restore is to restore the state of
+adjacent registers.  The index register (R14 in this example) is not
+changed.  Restore is equivalent to a fixed sequence of load
+instructions; its purpose of restore is to restore the state of
 registers from memory after a procedure call or a context switch.
 
 Typically, save is used as part of a procedure call and restore is
 used as part of the return.
 
-The instruction *restore Rd,Re,gh[Rf]* copies the contents of memory
-at consecutive locations beginning with mem[gh+Rf] into registers Rd,
-Rd+1, ..., Re.
+The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
+at consecutive locations beginning with mem[gh+Rf] into registers Re,
+Re+1, ..., Rf.
 
 The instruction is EXP format, and the displacement is limited to 8
 bits, because it is specified in the gh field (the rightmost 8 bits)
-of the second word of the instruction.  The assembly language
-statement format is RRXEXP.
+of the second word of the instruction.  The secondary opcode is 9,
+which is in the ab field of the first word of the instruction. The
+assembly language statement format is RRXEXP.
 
 For example, consider this instruction:
 ~~~~
@@ -2285,14 +2370,12 @@ The effect is equivalent to
    load  R10,11[R14]
 ~~~~
 
-
 ### push
 
-    push R1,R2,R3
+Push a word onto a stack.
 
-    R1 = value to push onto stack in memory
-    R2 = stack top
-    R3 = stack limit
+Example: push R1,R2,R3 pushes value in R1 onto stack with R2 = current
+top and R3 = last address in stack.
 
 Push the word in R1 onto a stack with top R2 and limit R3.  If the
 stack is full, nothing is stored into memory and an error is indicated
@@ -2303,21 +2386,21 @@ Push has the following semantics:
 
     if R2<R3
       then R2 := R2+1; mem[R2] := R1
-      else R15.sovfl := 1, req.StackBounds := 1
+      else R15.sovfl := 1, req.sovfl := 1
   
-If R2=R3 this means the stack completely fills the block, and there is
-no space to store a new element.  In this case, the push instruction
-does not store R1: it doesn't modify memory outside the block, and it
-doesn't overwrite data in the stack.  Instead, the instruction
-indicates a stack overflow by setting the sovfl (stack overflow) bit
-in the condition code (R15), and it also sets the stack fault bit in
-the interrupt request register.  If interrupts are enabled and the
-stack fault bit is set in the interrupt mask register, then an
-interrupt will occur after the push instruction completes.  But there
-will be no interrupt if interrupts are disabled, or the stack fault
-bit is not set in the mask register.
+If R2 = R3 this means the stack completely fills the block, and there
+is no space to store a new element.  In this case, the push
+instruction does not store R1: it doesn't modify memory outside the
+block, and it doesn't overwrite data in the stack.  Instead, the
+instruction indicates a stack overflow by setting the sovfl (stack
+overflow) bit in the condition code (R15), and it also sets the stack
+fault bit in the interrupt request register.  If interrupts are
+enabled and the stack fault bit is set in the interrupt mask register,
+then an interrupt will occur after the push instruction completes.
+There will be no interrupt if interrupts are disabled, or the stack
+fault bit is not set in the mask register.
 
-Push is an EXP format instruction comprising two words:
+Push is an EXP2 format instruction comprising two words.
 
 ------ ------ ------ ------
   op     d      a      b   

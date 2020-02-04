@@ -1,0 +1,57 @@
+; Stack
+
+   lea   R1,1[R0]            ; some data to push onto stack
+   lea   R2,2[R0]
+   lea   R3,3[R0]
+   lea   R4,4[R0]
+   lea   R5,5[R0]
+   lea   R6,6[R0]
+
+   lea   R9,1[R0]            ; constant 1
+   lea   R10,StackFirst[R0]  ; stack first
+   lea   R11,StackFirst[R0]  ; stack top
+   sub   R11,R11,R9          ; top = address before stack first
+   lea   R12,StackLast[R0]   ; stack last
+
+   push  R1,R11,R12
+   push  R2,R11,R12
+   push  R3,R11,R12
+   top   R7,R11,R11
+   push  R4,R11,R12
+   top   R7,R11,R11
+   push  R5,R11,R12
+   pop   R8,R11,R10
+   pop   R8,R11,R10
+   top   R7,R11,R11
+
+; Too many pops lead to stack underflow
+   pop   R8,R11,R10
+   pop   R8,R11,R10
+   pop   R8,R11,R10
+   pop   R8,R11,R10
+   pop   R8,R11,R10
+   pop   R8,R11,R10
+   pop   R8,R11,R10
+
+; Too many pushes lead to stack overflow
+   push  R1,R11,R12
+   push  R2,R11,R12
+   push  R3,R11,R12
+   push  R4,R11,R12
+   push  R5,R11,R12
+   push  R1,R11,R12
+   push  R2,R11,R12
+   push  R3,R11,R12
+   push  R4,R11,R12
+   push  R5,R11,R12
+
+   trap  R0,R0,R0
+   
+StackFirst
+   data   0
+   data   0
+   data   0
+   data   0
+   data   0
+   data   0
+StackLast

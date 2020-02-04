@@ -347,67 +347,26 @@ function setProcAsmListing (es) {
 
 //------------------------------------------------------------------------------
 
-function clearCtlRegs () {
-}
-
-// deprecated use boot from linker instead
-// function procBoot () {
-//     console.log('procBoot');
-//     bootCurrentModule ();
+// function clearCtlRegs () {
 // }
 
 function procStep(es) {
     console.log ('procStep');
     if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
     if (es.procStatus==="Ready") {
-//	clearInstrDecode (es);
-//	prepareListingBeforeInstr (es);
-//	memClearAccesses ();
-//	memDisplay ();
-//	regClearAccesses ();
 	execInstrPrepareFull (es);
 	executeInstruction (es);
         console.log ("procStep: executeInstruction finished");
         execInstrPostDisplay (es);
-//        if (es.procStatus=="Halted") {
-//            console.log ("procStep: execute instruction: halted")
-//        } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-//	    console.log ("Breakpoint");
-//	    setProcStatus (es,"Break");
-//            displayFullState();
-//	} else {
-//	    regShowAccesses()
-//	    memShowAccesses();
-//	    memDisplay ();
-//	    showInstrDecode (es);
-//	    highlightListingAfterInstr (es);
-//        }
     }
 }
 
 function procRun(es) {
     console.log ("procRun");
     if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
-//    clearInstrDecode (es);
-//    regClearAccesses (es);
-//    memClearAccesses (es);
-//    clearInstrDecode (es);
-
-//    prepareListingBeforeInstr (es);
-//    memClearAccesses ();
-//    memDisplay ();
-//    regClearAccesses ();
-
     execRunPrepare (es);
     instructionLooper (es);
     runInstrPostDisplay (es);
-    
-//    regShowAccesses()
-//    memShowAccesses();
-//    memDisplay ();
-//    showInstrDecode (es);
-//    highlightListingAfterInstr (es);
-
 }
 
 // Promises don't allow pause button click to break in, need setTimer for that
@@ -457,16 +416,10 @@ function procReset(es) {
 // Controlling instruction execution
 //------------------------------------------------------------------------------
 
-
 function procPause(es) {
     console.log ("procPause");
     setProcStatus (es,"Stopped");
 }
-
-
-//	setTimeout (instructionLooper, es.instrLooperDelay); // when to do it ???
-//    if (es.procStatus==="Ready") {
-//    } else { return; }
 
 function instructionLooper (es) {
     if (es.procStatus==="Ready") {
@@ -488,36 +441,6 @@ function instructionLooper (es) {
     console.log ('instructionLooper terminated');
 }
 
-/*
-function instructionLooper (es) {
-    while (es.procStatus==="Ready") {
-	console.log ('LOOPER');
-	// Clean up instruction display if enabled
-	if (es.instrLooperShow) {
-	    clearInstrDecode (es);
-	}
-	executeInstruction (es);
-	// Generate instruction display if enabled
-	if (es.instrLooperShow) {
-	    showInstrDecode (es);
-	    highlightListingAfterInstr (es);
-	}
-	// Check for breakpoint
-	if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-	    // should not highlight fetch pc ???
-	    console.log ("Breakpoint");
-	    setProcStatus (es,"Break");
-	}
-    }
-    console.log ('instructionLooper terminated');
-}
-*/
-
-//    while (es.procStatus==="Ready") {
-//	executeInstruction ();
-//    }
-// memClearAccesses, memShowAccesses, and memDisplay are very slow...
-
 //---------------------------------------------------------------------------
 // Breakpoint
 //---------------------------------------------------------------------------
@@ -530,7 +453,6 @@ function instructionLooper (es) {
 
 function breakRefresh (es) {
     console.log ("breakRefresh");
-//    let x = "$00a3";
     let x = document.getElementById('BreakTextArea').value;
     if (x.search(hexParser) == 0) {
 	let w = hex4ToWord (x.slice(1));
@@ -545,11 +467,6 @@ function breakEnable (es) {
     console.log ("breakEnable");
     es.breakEnabled = true;
     console.log (`breakEnable ${es.breakPCvalue}`);
-//    if (es) {
-//	console.log ("have emulatorState")
-//    } else {
-//	console.log ("do NOT have emulatorState")
-//    }
 }
 
 function breakDisable (es) {
@@ -702,13 +619,9 @@ function finalizeExecuteInstruction (es) {
 //	    console.log(`find interrupt trying i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
 
 function executeInstruction (es) {
-//    console.log ('executeInstruction');
+    console.log ('executeInstruction');
     es.nInstructionsExecuted++;
     document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
-//    prepareListingBeforeInstr (es);
-//    memClearAccesses ();
-//    memDisplay ();
-//    regClearAccesses ();
 
 // Check for interrupt
     let mr = mask.get() & req.get();
@@ -788,12 +701,11 @@ function executeInstruction (es) {
 // trap  -- perform trap; instruction ignores all registers but OS may use them
 
 
-// demonstrate lambda expressions, and a curried lambda
-/*
-const foobar = (x) => (y) => x+y;
-let baz = foobar (5);
-let bar = foobar (41);
-let abc = foobar (7) (50);
+/* Example of a lambda expression and a curried lambda
+  const foobar = (x) => (y) => x+y;
+  let baz = foobar (5);
+  let bar = foobar (41);
+  let abc = foobar (7) (50);
 */
 
 // Apply f to a and b, load primary result into d, and load secondary
@@ -1078,14 +990,32 @@ function exp1_rfi (es) {
     pc.put (ipc.get());
 }
 
-function exp2_save (ex) {
+function exp2_save (es) {
     console.log ('exp2_save');
+    sr_looper ((a,r) => memStore (a, regFile[r].get()),
+               regFile[es.ir_d].get()+es.field_gh, es.field_e, es.field_f)
 }
 
-
-function exp2_restore (ex) {
+function exp2_restore (es) {
     console.log ('exp2_restore');
+    sr_looper ((a,r) => regFile[r].put(memFetchData(a)),
+               regFile[es.ir_d].get()+es.field_gh, es.field_e, es.field_f)
 }
+
+function sr_looper (f,addr,first,last) {
+    let done = false;
+    let r = first;
+    while (!done) {
+        console.log (`save looper addr=${addr} r=${r}`);
+        f(addr,r);
+        done = r==last;
+        addr += 1;
+        r = bininc4(r);
+    }
+}
+
+function bininc4 (x) { return x >= 15 ? 0 : x+1 }
+
 
 // temp like put
 function exp2_getctl (es) {
@@ -1107,15 +1037,42 @@ function exp2_putctl (es) {
 
 function exp2_push (es) {
     console.log ('exp2_push');
+ //   console.log (`e=${es.field_e} f=${es.field_f} g=${es.field_g} h=${es.field_h} `);
+    let top = regFile[es.field_f].get();
+    let last = regFile[es.field_g].get();
+//    console.log (`push: top=${top} last=${last}`);
+    if (top < last) {
+        top += 1;
+        memStore (top, regFile[es.field_e].get());
+        regFile[es.field_f].put(top);
+    } else {
+        console.log ("push: stack overflow")
+    }
 }
-
 
 function exp2_pop (es) {
     console.log ('exp2_pop');
+    let top = regFile[es.field_f].get();
+    let first = regFile[es.field_g].get();
+    if (top >= first) {
+        regFile[es.field_e].put(memFetchData(top));
+        top -= 1;
+        regFile[es.field_f].put(top);
+    } else {
+        console.log ("pop: stack underflow")
+    }
 }
 
 function exp2_top (es) {
     console.log ('exp2_top');
+    let top = regFile[es.field_f].get();
+    let first = regFile[es.field_g].get();
+    if (top >= first) {
+        regFile[es.field_e].put(memFetchData(top));
+        regFile[es.field_f].put(top);
+    } else {
+        console.log ("top: stack underflow")
+    }
 }
 
 function exp2_shiftl (es) {
@@ -1183,6 +1140,7 @@ const exp1 = (f) => (es) => {
 
 // EXP format instructions that require a second word
 const exp2 = (f) => (es) => {
+    console.log (`exp2 format instruction`);
     let expCode = 16*es.ir_a + es.ir_b;
     es.instrOpStr = mnemonicEXP[expCode];
     es.instrDisp = memFetchInstr (pc.get());

@@ -1,0 +1,50 @@
+; SaveRestore
+
+; A typical usage
+   lea     R1,1[R0]
+   lea     R2,2[R0]
+   lea     R3,3[R0]
+   lea     R4,4[R0]
+   lea     R5,5[R0]
+   lea     R6,6[R0]
+   lea     R7,7[R0]
+   lea     R12,area[R0]
+   save    R2,R6,20[R12]
+   add     R1,R0,R0
+   add     R2,R0,R0
+   add     R3,R0,R0
+   add     R4,R0,R0
+   add     R5,R0,R0
+   add     R6,R0,R0
+   add     R7,R0,R0
+   restore R2,R6,20[R12]
+
+; Wraparound from R15
+   lea     R1,64[R0]
+   lea     R2,65[R0]
+   lea     R3,66[R0]
+   lea     R4,67[R0]
+   lea     R10,68[R0]
+   lea     R11,69[R0]
+   lea     R12,70[R0]
+   lea     R13,71[R0]
+   lea     R14,72[R0]
+   lea     R15,73[R0]
+   lea     R5,area[R0]
+   save    R11,R3,3[R5]
+   add     R1,R0,R0
+   add     R2,R0,R0
+   add     R3,R0,R0
+   add     R4,R0,R0
+   add     R10,R0,R0
+   add     R11,R0,R0
+   add     R12,R0,R0
+   add     R13,R0,R0
+   add     R14,R0,R0
+   add     R15,R0,R0
+   restore R11,R3,3[R5]
+
+   trap R0,R0,R0
+
+area
+   data 0

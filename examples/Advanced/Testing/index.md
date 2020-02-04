@@ -2,6 +2,10 @@
 
 * [Statements](Statements.asm.txt)
 
+* [SaveRestore](SaveRestore.asm.txt)
+
+* [Stack](Stack.asm.txt)
+
 * [Small](Small.asm.txt)
 
 * [LogicShift](LogicShift.asm.txt)
