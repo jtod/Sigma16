@@ -43,7 +43,7 @@ good vehicle for teaching and experimentation.
   circuit using the Hydra tools.
 
 * The User Guide is displayed in the running application, and you can
-  also without launching the program (see link above).
+  also read it without launching the program (see link above).
 
 ## Running the app
 
@@ -52,30 +52,33 @@ for more details see the User Guide.
 
 * The main app (the IDE) is implemented in JavaScript and can be
   executed directly in a web browser.  Simply click the link at the
-  top of this page: this will launch the most recent stable release.
+  top of this page: this will launch the most recent release.
 
-* You can download the source files from the [source
-  repository.](https://github.com/jtod/Sigma16) and open index.html in
-  a browser.  This way you can run the app without being connected to
-  the Internet, but there are a few browser limitations on accessing
-  files.  In particular, when you open one of the example programs,
-  you need to copy it and paste it manually (right click and select
-  Copy or Paste) into the Editor tab, as the button "Copy example to
-  editor" won't work.
+* You can download the source files from the source repository; see
+  the download link in the *Releases* section.  Then open index.html
+  in a browser; this page provides a link to launch the program (see
+  the section "Links to local files").  This way you can run the app
+  without being connected to the Internet, but there are a few
+  limitations on accessing files.  (These limitations are enforced by
+  browsers to ensure security.)  In particular, when you open one of
+  the example programs, you need to copy it and paste it manually
+  (right click and select Copy or Paste) into the Editor tab, as the
+  button "Select example" won't work.  See the Installation section in
+  the User Guide.
 
 * You can download the source and compile an executable for your
   platform.  This will enable the app to run faster, alleviate the
   restrictions on accessing files, and it doesn't need access to the
-  Internet.
+  Internet.  See the Installation section in the User Guide.
 
 * Some of the features of the system, including the digital circuit
   simulation, require downloading and execution on a computer; they
-  won't run in a browser.  See the User Guide.
+  won't run in a browser.  See the Circuit section in the User Guide.
 
 ### Releases
 
 * [launch 3.1.0](./releases/3.1.0/app/Sigma16.html) and [download
-  3.1.0]([https://github.com/jtod/Sigma16/releases/tag/v3.1.0)
+  3.1.0](https://github.com/jtod/Sigma16/releases/tag/v3.1.0)
 
 ### Development versions
 
