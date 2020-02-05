@@ -17,6 +17,37 @@
 // assembler.js translates assembly language to machine language
 //-------------------------------------------------------------------------------
 
+// CharSet is a string containing all the characters that may appear
+// in a valid Sigma16 assembly language source program.  It's always
+// best to edit source programs using a text editor, not a word
+// processor.  Word processors are likely to make character
+// substitutions, for example en-dash for minus, typeset quote marks
+// for typewriter quote marks, and so on.
+
+const CharSet =
+      "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // letters
+      + "0123456789"             // digits
+      + " ,;"                     // separators
+      + '"'                      // quotes
+      + "'"                      // quotes
+      + "$[]()+-*"                // punctuation
+      + "<=>!%^&{}#~@:|/\'";   // other
+
+function validateChars (xs) {
+    console.log (`validateChars`);
+    let i, c;
+    let badlocs = [];
+    for (i = 0; i < xs.length; i++) {
+        c = xs.charAt(i);
+        if (!CharSet.includes(c)) {
+            console.log (`validateChars: bad char at ${i} in ${xs}`);
+            badlocs.push(i);
+        }
+    }
+    return badlocs
+}
+
+
 let opcode_cmp = 4; // for pass2/RR, may want to refactor this
 
 // Buffers to hold generated object code
@@ -758,6 +789,12 @@ function asmPass1 (m) {
     for (let i = 0; i < asmSrcLines.length; i++) {
 	m.asmStmt[i] = mkAsmStmt (i, m.locationCounter, asmSrcLines[i]);
 	let s = m.asmStmt[i];
+        let badCharLocs = validateChars (asmSrcLines[i]);
+        if (badCharLocs.length > 0) {
+            mkErrMsg (m,s,`Invalid character at position ${badCharLocs}`);
+            mkErrMsg (m,s, "See User Guide for list of valid characters");
+            mkErrMsg (m,s, "(Word processors often insert invalid characters)");
+        }
 	console.log(`pass1 i=  ${i} src= + ${s.srcLine}`);
 
 	parseAsmLine (m,i);
@@ -1189,6 +1226,10 @@ function showAsmap (m) {
 function evaluate (m,s,a,x) {
     console.log('evaluate ' + x);
     let result = 0;
+    if (!x.search) {
+        mkErrMsg (m, s, `Cannot evaluate expression (search failed), using 0`);
+        return 0;y
+    }
     if (x.search(nameParser) == 0) { // expression is a name
 	r = m.symbolTable.get(x);
 	if (r) {
@@ -1218,7 +1259,7 @@ function evaluate (m,s,a,x) {
     if (result) {
         return result
     } else {
-        mkErrMsg (m, s, `Cannot evaluate expression`);
+        mkErrMsg (m, s, `Cannot evaluate expression, using 0`);
         return 0;
     }
 }

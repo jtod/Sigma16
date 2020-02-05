@@ -583,6 +583,29 @@ must fit on one line of source code; you cannot have a statement that
 spans several lines, and you cannot have several statements on one
 line.
 
+Sigma16 assembly language uses a small set of characters.  Any
+character not on this list will generate an error message.  A Sigma16
+program can *manipulate* any 16-bit character, but the source assembly
+language code is restricted to this source character set.  There are
+many characters that look similar but are actually distinct.  For
+example, the minus sign, the hyphen, the en-dash, and the em-dash all
+look similar -- you have to look really closely to see the difference
+-- but Sigma16 assembly language uses the minus sign, and the hyphens
+and dashes won't work.
+
+* letters: _abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+* digits: 0123456789
+* separators: (space) ,;
+* quotes: " '
+* punctuation: "$[]()+-*
+* other: <=>!%^&{}#~@:|/\'
+
+Word processors often substitute characters.  For example, when you
+type a minus sign in a paragraph of English text, word processors may
+replace the minus sign with a hyphen or dash, which is correct for
+typeset English but incorrect for assembly language.  The Sigma16
+editor will insert the correct characters, as will plain text editors.
+
 Each statement has a rigid format that consists of up to four
 *fields*.  The fields must be separated by one or more spaces, and a
 field cannot contain a space.  Every field is optional, but if a field
@@ -1939,11 +1962,12 @@ Table: **Assembly language statement formats**
  JX      jump    disp[Ra]       RX (b ignored)
  KX      jumpc0  d,disp[Ra]     RX (d is constant)
 
- NO      rfi                    EXP0 (d ignored)
- RRK     shiftl  Rd,Ra,k        EXP4
- RRKK    getbit  Re,Rf,g,h      EXP4 (d ignored)
- RREXP   execute Re,Rf          EXP4
- RCEXP   getctl  Re,Cf          EXP4
+ NO      rfi                    EXP1 (d ignored)
+ RRK     shiftl  Rd,Ra,k        EXP2
+ RRKK    extract Rd,Re,g,h      EXP2 (d ignored)
+ RRRKK   andfld  Rd,Re,Rf,g,h   EXP2 (d ignored)
+ RREXP   execute Re,Rf          EXP2
+ RCEXP   getctl  Re,Cf          EXP2
 -------------------------------------------------------
 
 An EXP instruction may use the fields op, d, ab, e, f,
@@ -2629,32 +2653,74 @@ changed.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-### getbit
+### Bit fields
 
-The bit at position k in the operand Ra is converted to a Boolean and
-loaded into the destination register Rd.  Bit 0 is the leftmost (most
-significant) bit, and bit 15 is the rightmost (least significant).
+A **bit field** denotes a string of consecutive bits taken from within
+a word,  specified by a starting position and a field size.
 
-~~~~
-   getbit Rd,Ra,k
-~~~~
+* The starting position is specified as a 4-bit binary number g, such
+  that 0 <= g <= 15.  The bits are indexed from the left starting with
+  0, so the leftmost (most significant) bit is bit 0, and the
+  rightmost (least significant) is bit 15.
+  
+* The field size is specified as a -bit binary number h, so 0 <= h <=
+  15.
 
-
-
-### getbiti
-
-### putbit
-
-### putbiti
+The notation W.{g,h} means a bit field starting at position g, of size
+h bits.  If h is too large, the field ends at the rightmost bit of the
+word. W is typically a register. Thus R5.{0,4} is a 4-bit field
+comprising the leftmost four bits of R5.
 
 ### extract
 
-Extract a field from Rf starting in bit position g, or size h bits,
-and place the result into Re.
+The extract instruction finds an arbitrary field from a source
+register and loads it right-adjusted into the destination register.
+For example, extract R1,R2,5,4 extracts a field from R2 starting at
+bit position 5 (where the leftmost bit is position 0) and with a field
+size of 6 bits.  This 6-bit result is placed in R1 in the rightmost
+bits; the leftmost bits are all set to 0.
 
 ~~~~
-   extract Re,Rf,g,h
+ extract Rd,Re,g,h   ; Rd.{16-h,h} := Re.{g,h}
+ inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
+ field   Rd,g,h      ; gives 000011110000000 with 1s in the field
 ~~~~
+
+Using a mask
+* can invert it to give negative mask
+* can and R1 with mask to keep only field
+* can or R1 with mask to clear only
+ 
+Set R1.{g,h} to R1.{g,h} & R2.{g,h}
+
+Set R1.{g,y} to 0
+~~~~
+   mask R2,g,h     R2 = 0000111000000
+   inv  R2         R2 = 1111000111111
+   and  R1,R1,R2   R1 = ....000......
+~~~~
+
+Set R1.{g,y} to 1
+~~~~
+   mask R2,g,h     R2 = 0000111000000
+   or   R1,R1,R2   R1 = ....111......
+~~~~
+   
+Invert {g,h} in R1   
+
+~~~~
+   mask R2,g,h     R2 = 0000111000000
+   xor  R1,R1,R2   R1 =  
+~~~~
+
+and Rd,Re,g,h would be
+     mask   R5,g,h
+     and    Re,Re,R5
+     and    
+
+
+
+
 
 Format RRKKEXP.  The operands are all in the second word of the instruction.
 
@@ -2677,6 +2743,8 @@ instruction, in the e and f fields.
 ## System control
 
 ### trap
+
+### testset
 
 ### getctl
 

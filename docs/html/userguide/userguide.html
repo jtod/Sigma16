@@ -94,15 +94,13 @@ Version 3.1.1
 <li><a href="#xor">xor</a></li>
 <li><a href="#shiftl">shiftl</a></li>
 <li><a href="#shiftr">shiftr</a></li>
-<li><a href="#getbit">getbit</a></li>
-<li><a href="#getbiti">getbiti</a></li>
-<li><a href="#putbit">putbit</a></li>
-<li><a href="#putbiti">putbiti</a></li>
+<li><a href="#bit-fields">Bit fields</a></li>
 <li><a href="#extract">extract</a></li>
 <li><a href="#execute">execute</a></li>
 </ul></li>
 <li><a href="#system-control">System control</a><ul>
 <li><a href="#trap">trap</a></li>
+<li><a href="#testset">testset</a></li>
 <li><a href="#getctl">getctl</a></li>
 <li><a href="#putctl">putctl</a></li>
 <li><a href="#rfi">rfi</a></li>
@@ -371,6 +369,16 @@ z     data   0</code></pre>
 <p>The programs shown here are written in <em>assembly language</em>. The machine itself executes programs in <em>machine language</em>, which is covered later. Assembly language is translated to machine language by a program called an <em>assembler</em>.</p>
 <p>The purpose of assembly language is to give the programmer absolute control over the machine language code without having to remember lots of numeric codes. For example, it is easier to remember the name “mul” for multiply than to remember the machine language code (which happens to be 3). Similarly, it’s easier to remember the names of variables (x, y, sum, total) than the numeric addresses of the memory locations that hold these variables.</p>
 <p>The syntax of assembly language is simple and rigid. Every statement must fit on one line of source code; you cannot have a statement that spans several lines, and you cannot have several statements on one line.</p>
+<p>Sigma16 assembly language uses a small set of characters. Any character not on this list will generate an error message. A Sigma16 program can <em>manipulate</em> any 16-bit character, but the source assembly language code is restricted to this source character set. There are many characters that look similar but are actually distinct. For example, the minus sign, the hyphen, the en-dash, and the em-dash all look similar – you have to look really closely to see the difference – but Sigma16 assembly language uses the minus sign, and the hyphens and dashes won’t work.</p>
+<ul>
+<li>letters: _abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</li>
+<li>digits: 0123456789</li>
+<li>separators: (space) ,;</li>
+<li>quotes: " ’</li>
+<li>punctuation: "$<a href=""></a>+-*</li>
+<li>other: &lt;=&gt;!%^&amp;{}#~@:|/'</li>
+</ul>
+<p>Word processors often substitute characters. For example, when you type a minus sign in a paragraph of English text, word processors may replace the minus sign with a hyphen or dash, which is correct for typeset English but incorrect for assembly language. The Sigma16 editor will insert the correct characters, as will plain text editors.</p>
 <p>Each statement has a rigid format that consists of up to four <em>fields</em>. The fields must be separated by one or more spaces, and a field cannot contain a space. Every field is optional, but if a field is missing then the following fields must also be missing, except for an optional comment. The fields are:</p>
 <ul>
 <li><p>label (optional) – If present, the label must begin in the first character of the line. If a line starts with a space, then there is no label field. A label has the same syntax as names or identifiers in many languages: it may contain letters, digits, underscores, and must begin with a letter. Both upper and lower case letters are allowed, and they syntax is case sensitive (Loop and LOOP and loop are three different labels).</p></li>
@@ -1280,9 +1288,9 @@ Interrupt
 <td style="text-align: center;">RRR (b ignored), RREXP RX (b ignored) RX (d is constant)</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">NO RRK RRKK RREXP RCEXP</td>
-<td style="text-align: left;">rfi shiftl Rd,Ra,k getbit Re,Rf,g,h execute Re,Rf getctl Re,Cf</td>
-<td style="text-align: center;">EXP0 (d ignored) EXP4 EXP4 (d ignored) EXP4 EXP4</td>
+<td style="text-align: right;">NO RRK RRKK RRRKK RREXP RCEXP</td>
+<td style="text-align: left;">rfi shiftl Rd,Ra,k extract Rd,Re,g,h andfld Rd,Re,Rf,g,h execute Re,Rf getctl Re,Cf</td>
+<td style="text-align: center;">EXP1 (d ignored) EXP2 EXP2 (d ignored) EXP2 (d ignored) EXP2 EXP2</td>
 </tr>
 </tbody>
 </table>
@@ -1657,15 +1665,29 @@ Interrupt
 <p>The following instruction shifts the value in R3 to the right by 5 bits and place the result in R2. The operand register R3 is not changed.</p>
 <pre><code>   shiftr  R2,R3,5</code></pre>
 <p>The instruction format is EXP, and the assembly language statement format is RRKEXP</p>
-<h3 id="getbit">getbit</h3>
-<p>The bit at position k in the operand Ra is converted to a Boolean and loaded into the destination register Rd. Bit 0 is the leftmost (most significant) bit, and bit 15 is the rightmost (least significant).</p>
-<pre><code>   getbit Rd,Ra,k</code></pre>
-<h3 id="getbiti">getbiti</h3>
-<h3 id="putbit">putbit</h3>
-<h3 id="putbiti">putbiti</h3>
+<h3 id="bit-fields">Bit fields</h3>
+<p>A <strong>bit field</strong> denotes a string of consecutive bits taken from within a word, specified by a starting position and a field size.</p>
+<ul>
+<li><p>The starting position is specified as a 4-bit binary number g, such that 0 &lt;= g &lt;= 15. The bits are indexed from the left starting with 0, so the leftmost (most significant) bit is bit 0, and the rightmost (least significant) is bit 15.</p></li>
+<li>The field size is specified as a -bit binary number h, so 0 &lt;= h &lt;=
+<ol start="15" type="1">
+<li></li>
+</ol></li>
+</ul>
+<p>The notation W.{g,h} means a bit field starting at position g, of size h bits. If h is too large, the field ends at the rightmost bit of the word. W is typically a register. Thus R5.{0,4} is a 4-bit field comprising the leftmost four bits of R5.</p>
 <h3 id="extract">extract</h3>
-<p>Extract a field from Rf starting in bit position g, or size h bits, and place the result into Re.</p>
-<pre><code>   extract Re,Rf,g,h</code></pre>
+<p>The extract instruction finds an arbitrary field from a source register and loads it right-adjusted into the destination register. For example, extract R1,R2,5,4 extracts a field from R2 starting at bit position 5 (where the leftmost bit is position 0) and with a field size of 6 bits. This 6-bit result is placed in R1 in the rightmost bits; the leftmost bits are all set to 0.</p>
+<pre><code> extract Rd,Re,g,h   ; Rd.{16-h,h} := Re.{g,h}
+ inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
+ field   Rd,g,h      ; gives 000011110000000 with 1s in the field</code></pre>
+<p>Using a mask * can invert it to give negative mask * can and R1 with mask to keep only field * can or R1 with mask to clear only</p>
+<p>Set R1.{g,h} to R1.{g,h} &amp; R2.{g,h}</p>
+<p>Set R1.{g,y} to 0 ~~~~ mask R2,g,h R2 = 0000111000000 inv R2 R2 = 1111000111111 and R1,R1,R2 R1 = ….000…… ~~~~</p>
+<p>Set R1.{g,y} to 1 ~~~~ mask R2,g,h R2 = 0000111000000 or R1,R1,R2 R1 = ….111…… ~~~~</p>
+<p>Invert {g,h} in R1</p>
+<pre><code>   mask R2,g,h     R2 = 0000111000000
+   xor  R1,R1,R2   R1 =  </code></pre>
+<p>and Rd,Re,g,h would be mask R5,g,h and Re,Re,R5 and</p>
 <p>Format RRKKEXP. The operands are all in the second word of the instruction.</p>
 <h3 id="execute">execute</h3>
 <p>The <em>execute</em> instruction commands the computer to execute another instruction which is in the register file. The first word of this target instruction is in Re and the second word (in case it’s a two-word instruction) is in Rf. If Re contains an RRR instruction, then Rf is ignored.</p>
@@ -1673,6 +1695,7 @@ Interrupt
 <p>Format RREXP. Both operands are in the second word of the instruction, in the e and f fields.</p>
 <h2 id="system-control">System control</h2>
 <h3 id="trap">trap</h3>
+<h3 id="testset">testset</h3>
 <h3 id="getctl">getctl</h3>
 <h3 id="putctl">putctl</h3>
 <h3 id="rfi">rfi</h3>
