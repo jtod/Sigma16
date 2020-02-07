@@ -1,4 +1,4 @@
-; Program ArrayMax.  See Sigma16/README.md in top folder
+; Program ArrayMax.  See README.md in top folder Sigma16
 ; Find the maximum element of an array
 
 ;---------------------------------------------------------------------

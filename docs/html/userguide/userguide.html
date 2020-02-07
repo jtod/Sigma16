@@ -32,6 +32,7 @@ Version 3.1.1
 <li><a href="#conditionals">Conditionals</a></li>
 <li><a href="#loops">Loops</a></li>
 <li><a href="#machine-language">Machine language</a></li>
+<li><a href="#a-strange-program">A strange program</a></li>
 </ul></li>
 <li><a href="#architecture">Architecture</a><ul>
 <li><a href="#data-representation-and-notation">Data representation and notation</a></li>
@@ -47,9 +48,8 @@ Version 3.1.1
 <li><a href="#instruction-fields">Instruction fields</a></li>
 <li><a href="#rrr-format">RRR format</a></li>
 <li><a href="#rx-format">RX format</a></li>
-<li><a href="#exp0-format">EXP0 format</a></li>
-<li><a href="#exp4-format">EXP4 format</a></li>
-<li><a href="#exp8-format">EXP8 format</a></li>
+<li><a href="#exp1-format">EXP1 format</a></li>
+<li><a href="#exp2-format">EXP2 format</a></li>
 <li><a href="#summary-of-instruction-formats">Summary of instruction formats</a></li>
 <li><a href="#assembly-language-statement-formats">Assembly language statement formats</a></li>
 </ul></li>
@@ -87,15 +87,18 @@ Version 3.1.1
 <li><a href="#jal">jal</a></li>
 <li><a href="#aliases-for-conditional-jumps">Aliases for conditional jumps</a></li>
 </ul></li>
-<li><a href="#bit-operations">Bit operations</a><ul>
+<li><a href="#bit-operations-on-words">Bit operations on words</a><ul>
 <li><a href="#inv">inv</a></li>
 <li><a href="#and">and</a></li>
 <li><a href="#or">or</a></li>
 <li><a href="#xor">xor</a></li>
 <li><a href="#shiftl">shiftl</a></li>
 <li><a href="#shiftr">shiftr</a></li>
-<li><a href="#bit-fields">Bit fields</a></li>
+</ul></li>
+<li><a href="#bit-operations-on-fields">Bit operations on fields</a><ul>
 <li><a href="#extract">extract</a></li>
+<li><a href="#inject">inject</a></li>
+<li><a href="#field">field</a></li>
 <li><a href="#execute">execute</a></li>
 </ul></li>
 <li><a href="#system-control">System control</a><ul>
@@ -195,7 +198,9 @@ Version 3.1.1
 </ul>
 <p>To run the program slowly, click Step repeatedly. To run the program faster but without updating the display after each instruction, click Run. At any time you can click Pause to stop the processor, and you can resume execution with either Step or Run.</p>
 <p>There are two independent views into the memory; this is convenient for looking at the machine language code in one view and the data in the other view. (Despite the two views, there is just one memory!) At this point the pc register contains 0, meaning that the next instruction to be executed is the one in memory location 0. The ir and other registers also contain 0, but that is just the initial value.</p>
-<p>To set a breakpoint, click Breakpoint and enter the stopping condition in the dialogue box. For example, to stop when the pc register becomes $01b7, enter BPeq BPpc (BPhex “01b7”). Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
+<p><em>(Note: the breakpoint system is not fully implemented yet; the following paragraph describes a temporary breakpoint facility.)</em></p>
+<p>A breakpoint is the address of an instruction; when the machine is about to execute that instruction (i.e. when the pc contains that address) the emulator will halt execution, enabling the programmer to examine the state of registers and memory. To set a breakpoint, click Breakpoint and enter the instruction address you want to stop at in the dialogue box. There are several control buttons. Refresh means “read the contents of the text in the box, which must be a $ followed by a 4 hex digit address”. Whenever you change the text, you should click Refresh. The Enable button toggles the breakpoint on and off. The Close button hides the Breakpoint dialogue box. Here’s an example. Suppose you want to stop execution of a program at address 00f6: * Click Breakpoint * Enter $00f6 * Click Refresh * Click Enable * Click Close * Click Run The execution will run until the pc becomes equal to 00f6 and will then stop.</p>
+<p>Click Refresh, then Enable, then Close. Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <p>To exit the app, just close the browser window or tab. This may put up a dialogue box warning that any unsaved data may be lost and asking you to confirm.</p>
 <h2 id="registers-constants-and-arithmetic">Registers, constants, and arithmetic</h2>
 <p>The architecture has a <strong>register file</strong> which is an array of 16 registers, named R0, R1, R2, …, R15. The Register File is displayed in a box on the Processor page.</p>
@@ -682,6 +687,47 @@ S7</code></pre>
 <p>Operation codes for RX instructions</p>
 <p>Recall, for RRR the op field contains a number saying which RRR instruction it is. For RX, the op field always contains f. So how does the machine know which RX instruction it is? Answer: there is a secondary code in the b field.</p>
 <p>mnemonic secondary opcode in b field ~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ lea 0 load 1 store 2</p>
+<h2 id="a-strange-program">A strange program</h2>
+<p>Consider ``Program Strange’’ below. This program doesn’t compute anything particularly useful. It’s rather strange and not a model for good programming style, but it illustrates an extremely important concept, which is discussed below.</p>
+<p>You can find the program on the Examples page, in the Core section, or you can copy it below and paste it into the Editor page. Run the program with different initial values of a variable <em>y</em>, as described below. For each value of <em>y</em>, first try executing the program manually, with paper and pencil, and then run it on the emulator to check whether your execution was correct. Give the final values of the registers, and think about what is going on as the program runs. For each run, assume that all the registers contain 0 after the program is booted, before it begins execution.</p>
+<ol type="1">
+<li>Run the program in its original form, with <em>y data 0</em></li>
+<li>Change the last line to <em>y data 1</em> and run it again</li>
+<li>Now use <em>y data 256</em></li>
+<li><em>y data 8192</em></li>
+<li><em>y data -5424</em></li>
+</ol>
+<pre><code>; Strange: A Sigma16 program that is a bit strange    
+        load   R1,y[R0]
+        load   R2,x[R0]
+        add    R2,R2,R1
+        store  R2,x[R0]
+        lea    R3,3[R0]
+        lea    R4,4[R0]
+x       add    R5,R3,R3
+        add    R0,R0,R7
+        trap   R0,R0,R0
+y       data   0</code></pre>
+<p><em>Solution</em> – it’s best to try answering the questions on your own first, and then to check by running the program on the emulator, before reading the solution!</p>
+<p>The program loads an <em>instruction</em> into a register, does arithmetic on it by adding <em>y</em> to it, and stores the result back into memory. This phenomenon is called <em>self-modifying code</em>, and it exploits the fact that instructions and data are held in the same memory (this is the <em>stored program computer</em> concept). The original instruction is <em>add R5,R3,R3</em>, and its machine language code is 0533.</p>
+<ol type="1">
+<li><p>When y=0, the final values are: R1=0, R2=0533, R3=3, R4=4, R5=6. The only notable points are that the store instruction doesn’t actually change the value of the word in memory (it was 0533 and 0533 is being stored there), and the last add instruction doesn’t change the value in R0 because R0 can never change; it is always 0. (Of course if R7=0 then the result of the addition is 0 anyway.)</p></li>
+<li><p>When y=1, the final values are: R1=1, R2=0534, R3=3, R4=4, R5=7. Note that R5 is <em>not</em> 3+3=6. When y=1 is added to the instruction, the result is 0534 which means <em>add R5,R3,R4</em>, so instead of adding R3+R3 it adds R3+R4.</p></li>
+<li><p>When y=256, the final values are: R1=256=0100, R2=0633, R3=3, R4=4, R5=0, R6=6. The decimal number 256 is 0100 in hexadecimal. When this is added to the instruction, the result is 0633, which means <em>add R6,R3,R3</em> so R3+R3 is loaded into R6, not into R5.</p></li>
+<li><p>When y=8192, the final values are: R1=4096=2000, R2=2533, R3=3, R4=4, R5=9. The decimal number 8192 is 2000 in hexadecimal, and when this is added to the instruction the result is 2533, which means <em>mul R5,R3,R3</em>. It’s no longer an <em>add</em> instruction, it’s a <em>multiply</em> instruction that calculates R5 := R3*R3 = 9.</p></li>
+<li><p>When y=-5424 the program goes into an infinite loop. R1=ead0 (the hexadecimal representation of -5424, R2=f003, R3=3, and R4=4. What started out as the <em>add</em> instruction at x has been transformed into <em>jump 7[R0]</em>, comprising the word at <em>x</em> (f003) and the following word (which is 0007). This jump instruction goes back to the first lea instruction, and the program runs for ever (lea, lea, jump).</p></li>
+</ol>
+<p>There is a lot to say about the phenomenon of self-modifying code.</p>
+<p>This program shows clearly that a computer does not execute assembly language; it executes machine language. Try running it on the Sigma16 application (single step each instruction). You’ll see that the assembly language statement <em>add R5,R3,R3</em> is highlighted in red, but that is just the GUI trying to be helpful. What’s important is that the machine language instruction is fetched from memory and loaded into ir (the instruction register), and that is not 0533. The machine decodes the contents of ir and does whatever that says to do; it isn’t aware of the assembly language statement. Indeed, a machine doesn’t even understand the concept of assembly language — everything is just bits!</p>
+<p>To follow exactly what is happening in the emulator, it’s important to look at the pc and ir registers. These reflect what the machine is doing. The assembly language does not.</p>
+<p>What is self-modifying code good for? The answer lies in the early history of electronic computers. Early computers (late 1940s and early 1950s) did not use an effective address (i.e. displacement + index) like Sigma16; the instructions simply specified the absolute memory address of an operand. This is ok for simple variables, but how could they process arrays?</p>
+<p>The solution was to use self modifying code. In a loop that traverses an array, there would be a load instruction using address 0. In the body of the loop, there would be instructions to calculate the address of x[i] by loading the address of x and adding i; this is then stored into the address field of the load instruction. That instruction is then executed, obtaining the value of x[i]. This technique became obsolete in the early 1950s with the invention of index registers and effective addresses.</p>
+<p>The pioneers of computers considered the concept of the <em>stored program computer</em> (i.e. the program and data are in the same memory) to be fundamental and essential. One of the most important reasons was that it made arrays possible. Now we consider the stored program concept to be fundamental <em>for different reasons</em>.</p>
+<p>Self modifying code is tricky, and difficult to debug. It makes programs hard to read: you can’t rely on what the program says, but on what its instructions will become in the future. For these reasonas, self modifying code is now considered to be bad programming practice.</p>
+<p>If a program modifies itself, you can’t have one copy of the program in memory and allow it to be shared by several users. For example, it’s common now to have a web browser open with several tabs. Each tab is served by an independent process (a separate running instance of a program that updates the window showing the web page). If you have 5 tabs open, there are 5 processes, each running the same machine language code, and there’s only one copy of that in memory. This wouldn’t work if the program modified itself!</p>
+<p>Self modifying code leads to security holes: if a hacker has the ability to change your machine language code in memory, they could make your own program act against you.</p>
+<p>Modern computers use a technique called <em>segmentation</em> that prevents a program from modifying itself. This leads to increased reliability and security.</p>
+<p>Some computers have a facility that allows you to gain the power of self modifying code without actually modifying the code in memory. The idea is to have an instruction <em>execute R1,x[R0]</em> which calculates the logical or of the two operands and then executes the result; x is the address of an instruction and R1 contains the modification to it. The modified instruction is executed, but there is no change to the machine code in memory. This idea was used in the IBM 360 and its successors. However, as the design of effective addresses has become more sophisticated, the execute instruction is rarely needed, and most modern computers don’t provide it.</p>
 <h1 id="architecture">Architecture</h1>
 <p>Our focus is on fundamental concepts, ideas and principles. Sigma16 illustrates the fundementals of computer systems but it avoids unnecessary complexity. For example, Sigma16 has just one word size (16 bits) while most commercial machines provide a variety. That variety is useful for practical applications but it complicates many of the details while not adding any new fundamental ideas. Most commercial computers that achieve success in the marketplace eventually become encrusted with complications that help support backward compatibility; this can lead to great complexity.</p>
 <h2 id="data-representation-and-notation">Data representation and notation</h2>
@@ -1112,7 +1158,7 @@ Interrupt
 <li>b (bits 12-15) 4-bit operand, or expanded opcode for RX</li>
 <li>ab (bits 8-15) 8-bit expanded opcode for EXP</li>
 </ul>
-<p>A second word is needed to represent RX, EXP4 and EXP8 formats. There are individual names for the individual 4-bit fields, as well as names (disp, gh) for larger fields.</p>
+<p>A second word is needed to represent RX and EXP2 formats. There are individual names for the individual 4-bit fields, as well as names (disp, gh) for larger fields.</p>
 <ul>
 <li>e (bits 0-3) 4-bit operand</li>
 <li>f (bits 4-7) 4-bit operand</li>
@@ -1121,7 +1167,7 @@ Interrupt
 <li>gh (bits 8-15) 8-bit operand</li>
 <li>disp (bits 0-15) 16 bit operand “displacement”</li>
 </ul>
-<p>There are two kinds of format: the machine instruction formats, and the assembly language instruction statement formats. There are three machine instruction formats: RRR, RX, EXP0, EXP4, EXP8. However, there is a larger set of assembly language statement formats, because there are special syntaxes for some instructions, and there are assembler directives that aren’t instructions at all. The assembly language formats are described later.</p>
+<p>There are two kinds of format: the machine instruction formats, and the assembly language instruction statement formats. There are four machine instruction formats: RRR, RX, EXP1, EXP2. However, there is a larger set of assembly language statement formats, because there are special syntaxes for some instructions, and there are assembler directives that aren’t instructions at all. The assembly language formats are described later.</p>
 <p>The core architecture has only two instruction formats: RRR and RX.</p>
 <h3 id="rrr-format">RRR format</h3>
 <p>RRR instructions perform operations on data in registers, but not referring to memory. The representation is one word.</p>
@@ -1173,32 +1219,29 @@ Interrupt
 <li>disp (displacement) is the second word of the instruction</li>
 <li>ea (effective address) = displacement + r[a]</li>
 </ul>
-<h3 id="exp0-format">EXP0 format</h3>
-<p>An EXP0 instruction is one word, and only one operand field (the d field) is available. (There are 0 fields in the second word; hence the name EXP0.) The op field contains e, and the a and b fields are combined to form an 8-bit opcode.</p>
+<h3 id="exp1-format">EXP1 format</h3>
+<p>An EXP1 instruction is one word, and only one operand field (the d field) is available. (There are 0 fields in the second word; hence the name EXP1.) The op field contains e, and the a and b fields are combined to form an 8-bit opcode.</p>
 <p>An EXP instruction contains 14 (hex e) in the op field, and the a and b fields are combined into a single 8-bit number that contains a secondary opcode. This means that the EXP format allows for 256 instructions. This greatly expands the number of instructions that can be accommodated, and it allows for experimental instructions for research purposes. (The name EXP stands simultaneously for both EXPansion and EXPerimentation.)</p>
-<p>The EXP0 format is one word, where op=14 (hex e) and the a and b fields are combined into an 8-bit secondary operation code. There is only one operand, Rd.</p>
-<p>EXP0 format takes no operands. The instruction format uses just one word (there is no second word with the e, f, g, h fields). The op field contains 14 (hex e), the d field is ignored (the assembler sets it to 0), and the ab field contains an 8 bit expanded operation code. Example: <em>rfi</em> is an instruction with no operands and with secondary opcode 0. Its representation is e000. The EXP0 format allows rfi to be represented in one word without using up one of the limited and valuable opcodes avaiable for RRR instructions.</p>
+<p>The EXP1 format is one word, where op=14 (hex e) and the a and b fields are combined into an 8-bit secondary operation code. There is only one operand, Rd.</p>
+<p>EXP1 format takes no operands. The instruction format uses just one word (there is no second word with the e, f, g, h fields). The op field contains 14 (hex e), the d field is ignored (the assembler sets it to 0), and the ab field contains an 8 bit expanded operation code. Example: <em>rfi</em> is an instruction with no operands and with secondary opcode 0. Its representation is e000. The EXP1 format allows rfi to be represented in one word without using up one of the limited and valuable opcodes avaiable for RRR instructions.</p>
 <pre><code>---------------------
 | op |  d |    ab   |
 ---------------------</code></pre>
-<h3 id="exp4-format">EXP4 format</h3>
-<p>An EXP4 instruction instruction is two words, with a 4-bit operand in the first word and four more in the second word. (It’s called EXP4 because the second word contains 4 4-bit operands.)</p>
-<p>The EXP4 format is two words. As with all EXP instructions, ab gives an expanded operation code. In EXP4, the second word contains four 4-bit fields e, f, g, h, which may contain register numbers or 4-bit constants.</p>
+<h3 id="exp2-format">EXP2 format</h3>
+<p>An EXP2 instruction instruction is two words, with an 8-bit secondary operation code in the ab field of the first word. There is a 4-bit operand in the d field of the first word, and four 4-bit fields in the second word, named e, f, g, h.</p>
 <pre><code>---------------------
 | op |  d |    ab   |
 ---------------------
 |  e |  f |  g |  h |
 ---------------------</code></pre>
-<h3 id="exp8-format">EXP8 format</h3>
-<p>An EXP8 instruction is two words, with three 4-bit operands and an 8-bit operand. (It’s called EXP8 because it provides an 8-bit operand.)</p>
-<p>The following table summarises the instruction formats. The core of the architecture needs only the first two (RRR and RX). The more advanced features require the</p>
-<p>The EXP8 format is similar to EXP4, except that the g and h fields are combined to form n 8-bit constant.</p>
+<p>Some EXP2 instructions combine the g and h fields to provide an 8-bit operand.</p>
 <pre><code>---------------------
 | op |  d |    ab   |
 ---------------------
 |  e |  f |    gh   |
 ---------------------</code></pre>
 <h3 id="summary-of-instruction-formats">Summary of instruction formats</h3>
+<p>The following table summarises the instruction formats. The core of the architecture needs only the first two (RRR and RX). The more advanced features require the EXP1 and EXP2 formats.</p>
 <table style="width:79%;">
 <caption><strong>Machine language instruction formats</strong></caption>
 <colgroup>
@@ -1233,21 +1276,21 @@ Interrupt
 <td style="text-align: center;">load Rd,disp[Ra]</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">EXP0</td>
+<td style="text-align: center;">EXP1</td>
 <td style="text-align: center;">1</td>
 <td style="text-align: center;">op,ab</td>
 <td style="text-align: center;">d</td>
 <td style="text-align: center;">rfi</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">EXP4</td>
+<td style="text-align: center;">EXP2</td>
 <td style="text-align: center;">2</td>
 <td style="text-align: center;">op,ab</td>
 <td style="text-align: center;">d,e,f,g,h</td>
 <td style="text-align: center;">extract Re,Rf,Rg,Rh</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">EXP8</td>
+<td style="text-align: center;">EXP2</td>
 <td style="text-align: center;">2</td>
 <td style="text-align: center;">op,ab</td>
 <td style="text-align: center;">d,e,f,gh</td>
@@ -1259,7 +1302,7 @@ Interrupt
 <p>Assembly language statements generally correspond to the instruction formats, but there is not an exact correspondence for several reasons:</p>
 <ul>
 <li><p>Sometimes an instruction is written in assembly language with a field omitted which exists in the machine language code but is ignored. For example, the instruction <em>inv R1,R2</em> generates an RRR instruction, but the third operand field is omitted because the invert function takes only one operand, not two.</p></li>
-<li><p>Sometimes two instructions look the same in assembly language but use different machine language instruction formats. For example, <em>add R1,R2,R3</em> and <em>push R1,R2,R3</em> look similar, but <em>add</em> uses the RRR instruction format and <em>push</em> uses the EXP4 instruction format. The reason for this is that there are not enough bits in the op field to accommodate all the instructions with three register operands, so an <em>expanding opcode</em> is used. Thus push is represented with op=14 (indicating EXP format), and the EXP4 variant is used for this instruction.</p></li>
+<li><p>Sometimes two instructions look the same in assembly language but use different machine language instruction formats. For example, <em>add R1,R2,R3</em> and <em>push R1,R2,R3</em> look similar, but <em>add</em> uses the RRR instruction format and <em>push</em> uses the EXP2 instruction format. The reason for this is that there are not enough bits in the op field to accommodate all the instructions with three register operands, so an <em>expanding opcode</em> is used. Thus push is represented with op=14, indicating EXP format, and the EXP2 variant is used for this instruction.</p></li>
 <li><p>The 4-bit fields are sometimes used to denote a register from the register file (R3), or a control register (mask), or a constant . In assembly language the constants are written just as a number (e.g. shiftl R1,R2,5). Control registers are written by name rather than their number in the control register file (e.g. getctl R3,mask).</p></li>
 </ul>
 <table style="width:82%;">
@@ -1294,8 +1337,7 @@ Interrupt
 </tr>
 </tbody>
 </table>
-<p>An EXP instruction may use the fields op, d, ab, e, f, g, h. The g and h fields can be combined into a single 8-bit field gh All EXP instructions combine the a and b fields into a single 8-bit field called ab. Some EXP instructions combine the g and h fields into a single 8-bit field called gh.</p>
-<p>The EXP format has the following variants.</p>
+<p>An EXP instruction may use the fields op, d, ab, e, f, g, h. The g and h fields can be combined into a single 8-bit field gh All EXP instructions combine the a and b fields into a single 8-bit field called ab. Some EXP instructions combine the g and h fields into a single 8-bit field called gh. The EXP format has the following variants.</p>
 <ul>
 <li><p>The RREXP format takes two register operands, which are in the e and f fields of the second word. The d field of the first word and the g and h fields of the second word are ignored (the assembler will set these to 0). Any RREXP instruction could be reprsented as RRR, but there are only a few RRR opcodes avaiable, so uncommon instructions that require two registers are represented as RREXP. Example: <em>execute R5,R6</em> is RREXP.</p></li>
 <li><p>The RCEXP format takes two register operands; the first is a general register and the second is a control register. An example of the operand field is <em>R3,mask</em>. The operands are in the e and f fields of the second word. The d field of the first word and the g and h fields of the second word are ignored (the assembler will set these to 0.) The first operand is an element of the register file (for example, R4). The second operand is a control register, which is specified by a 4-bit number. In assembly language, we normally refer to the control registers by name rather than number, to make it easier to remember which is which. For example, <em>getctl R3,status</em> has RCEXP format.</p></li>
@@ -1642,7 +1684,7 @@ Interrupt
 <p>The value loaded into Rd is the address of the instruction that immediately follows the jal. This instruction is used for calling procedures or functions: the effective address is the location of the procedure, and the return address is in Rd. The procedure can then return by jumping to the return address, e.g. with <em>jump 0[Rd]</em>.</p>
 <h3 id="aliases-for-conditional-jumps">Aliases for conditional jumps</h3>
 <p>jumplt jumple jumpne jumpeq jumpge jumpgt</p>
-<h2 id="bit-operations">Bit operations</h2>
+<h2 id="bit-operations-on-words">Bit operations on words</h2>
 <p>The following instructions treat a word as a sequence of bits, and operate on the individual bits.</p>
 <h3 id="inv">inv</h3>
 <p>The <strong>invert</strong> instruction <em>inv Rd,Ra</em> inverts the bits in the operand Ra and places the result in the destination Rd. The operand Ra is not changed. Inverting a bit means changing 0 to 1, and changing 1 to 0.</p>
@@ -1665,30 +1707,43 @@ Interrupt
 <p>The following instruction shifts the value in R3 to the right by 5 bits and place the result in R2. The operand register R3 is not changed.</p>
 <pre><code>   shiftr  R2,R3,5</code></pre>
 <p>The instruction format is EXP, and the assembly language statement format is RRKEXP</p>
-<h3 id="bit-fields">Bit fields</h3>
-<p>A <strong>bit field</strong> denotes a string of consecutive bits taken from within a word, specified by a starting position and a field size.</p>
+<h2 id="bit-operations-on-fields">Bit operations on fields</h2>
+<p>Several instructions operate on some but not all of the bits in a word. All of these instructions can be implemented using combinations of logic and shift instructions. They are included in the architecture for several reasons: (1) these operations are important for writing interpreters and simulators, and they constutute important abstractions; (2) they are easier to use and more readable than the corresponding shifts; (3) they can be implemented efficiently in a digital circuit and this implementation is an interesting design problem.</p>
+<p>Bits are indexed from the left starting with 0, so the leftmost (most significant) bit has index 0, and the rightmost (least significant) has index 15. A bit index is specified as a 4-bit binary number <em>i</em> such that 0 &lt;= <em>i</em> &lt;= 15.</p>
+<p>A <strong>bit field</strong> is a string of consecutive bits in a word defined by the sequence of its indices. For example, W.[6,7,8] means the 3-bit field comprising indices 6, 7, and 8 in the word W.</p>
+<p>Bit field instructions do not enumerate all the bits in a field. Instead, they specify the field with a pair of 4-bit binary numbers. The notation W.{s,e} denotes the bit field in W with start index <em>s</em> and end index <em>e</em>, where <em>s</em> and <em>e</em> are 4-bit binary numbers. Therefore 0 &lt;= <em>s</em>,<em>e</em> &lt;= 15. The number of bits in the field (its size) is max (0, e-s+1). If e-s+1 &lt;= 0 then the field is empty; this occurs if e &lt;= s-1. If <em>s</em>=0 and <em>e</em>=15 then the size of the field is 16 and it consists of the entire word.</p>
+<p>Examples (W is an arbitrary word):</p>
 <ul>
-<li><p>The starting position is specified as a 4-bit binary number g, such that 0 &lt;= g &lt;= 15. The bits are indexed from the left starting with 0, so the leftmost (most significant) bit is bit 0, and the rightmost (least significant) is bit 15.</p></li>
-<li>The field size is specified as a -bit binary number h, so 0 &lt;= h &lt;=
-<ol start="15" type="1">
-<li></li>
-</ol></li>
+<li>W.{5,5} is the bit at index 5</li>
+<li>W.{0,0} is the leftmost (most significant) bit</li>
+<li>W.{15,15} is the rightmost (least significant) bit</li>
+<li>W.{0,15} is the field consisting of the entire word W</li>
+<li>W.{1,0} is the empty field containing no bits. In general, W.{s,e} where e&lt;s is the empty field</li>
+<li>ir.{0,4} is the opcode, i.e. the 4-bit field comprising the leftmost four bits of the instruction register.</li>
+<li>ir.{8,15} is the ab field of the instruction register, containing the expanded operation code for EXP1 and EXP2 format instructions.</li>
 </ul>
-<p>The notation W.{g,h} means a bit field starting at position g, of size h bits. If h is too large, the field ends at the rightmost bit of the word. W is typically a register. Thus R5.{0,4} is a 4-bit field comprising the leftmost four bits of R5.</p>
+<p>(An alternative way to specify bit fields, not used in Sigma16, would be to give the starting index and field size. However, that approach is less flexible, as the value of the specified field size would range between 0 and 15, yet there are 16 possible field sizes. This means that, depending on precisely how the definition is written, either empty fields or maximal fields would not be representable.)</p>
 <h3 id="extract">extract</h3>
-<p>The extract instruction finds an arbitrary field from a source register and loads it right-adjusted into the destination register. For example, extract R1,R2,5,4 extracts a field from R2 starting at bit position 5 (where the leftmost bit is position 0) and with a field size of 6 bits. This 6-bit result is placed in R1 in the rightmost bits; the leftmost bits are all set to 0.</p>
-<pre><code> extract Rd,Re,g,h   ; Rd.{16-h,h} := Re.{g,h}
- inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
- field   Rd,g,h      ; gives 000011110000000 with 1s in the field</code></pre>
-<p>Using a mask * can invert it to give negative mask * can and R1 with mask to keep only field * can or R1 with mask to clear only</p>
-<p>Set R1.{g,h} to R1.{g,h} &amp; R2.{g,h}</p>
-<p>Set R1.{g,y} to 0 ~~~~ mask R2,g,h R2 = 0000111000000 inv R2 R2 = 1111000111111 and R1,R1,R2 R1 = ….000…… ~~~~</p>
-<p>Set R1.{g,y} to 1 ~~~~ mask R2,g,h R2 = 0000111000000 or R1,R1,R2 R1 = ….111…… ~~~~</p>
-<p>Invert {g,h} in R1</p>
-<pre><code>   mask R2,g,h     R2 = 0000111000000
-   xor  R1,R1,R2   R1 =  </code></pre>
-<p>and Rd,Re,g,h would be mask R5,g,h and Re,Re,R5 and</p>
-<p>Format RRKKEXP. The operands are all in the second word of the instruction.</p>
+<p>The extract instruction obtains the value of an arbitrary field from a source register and loads it right-adjusted into the destination register.</p>
+<p>General form: <em>extract Rd,Re,g,h</em></p>
+<p>Semantics: * The size of the field is max (0, h-g+1) * Rd.{15+g-h,15} := Re.{g,h} * Rd.{0,15+g-h-1} := 0*</p>
+<p>For example, extract R1,R2,3,5 extracts a field from R2 starting at bit position 3 and ending with bit position 5. This 3-bit field is placed in R1 in the rightmost 3 bits (indices 13, 14, 15); the leftmost bits (indices 0 through 12) are all set to 0.</p>
+<p>The instruction is EXP2 format, where the d field gives the destination register, the e field gives the source register, and the field is specified by the g and h fields. The assembly language statement format is RRKKEXP.</p>
+<p>The extract instruction is not essential: it can be performed by a left shift followed by a right shift. <em>extract Rd,Re,g,h</em> is equivalent to</p>
+<pre><code>   shiftl Rd,Re,g        ; clear bits to left of field
+   shiftr Rd,Rd,15-h+g   ; clear bits to right of field</code></pre>
+<p>For example <em>extract R1,R2,3,5</em> is equivalent to (but easier to understand than) the following:</p>
+<pre><code>   shiftl Rd,Re,3
+   shiftr Rd,Rd,13</code></pre>
+<h3 id="inject">inject</h3>
+<pre><code> inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}</code></pre>
+<h3 id="field">field</h3>
+<p>The field instruction produces a word with 1 bits in the specified field and 0 elsewhere. This provides a field mask that can be used with logic instructions for a variety of purposes.</p>
+<p>General form: <em>field Rd,g,h</em></p>
+<p>Semantics * Rd.i = 1 for g &lt;= i &lt;- h * Rd.i = 0 for i &lt; g or i &gt; h</p>
+<p>Example:</p>
+<pre><code> field   R3,4,  ; R3 := 0fc0</code></pre>
+<p>Using a field mask * invert it to give negative mask * and R1 with mask to clear bits outside the field * and R1 with negative mask to clear only the field * xor R1 with mask to invert bits in the field</p>
 <h3 id="execute">execute</h3>
 <p>The <em>execute</em> instruction commands the computer to execute another instruction which is in the register file. The first word of this target instruction is in Re and the second word (in case it’s a two-word instruction) is in Rf. If Re contains an RRR instruction, then Rf is ignored.</p>
 <pre><code>   execute Re,Rf</code></pre>
@@ -1705,7 +1760,7 @@ Interrupt
 <li>pc := ipc</li>
 </ul>
 <p>It is important that this is an atomic operation. If either of the two register updates were performed before the other, then the second one would not function correctly. In the digital circuit implementing the processor, these two register updates are genuinely simultaneous: they happen during the same clock cycle, at exactly the same time.</p>
-<p>The instruction format is EXP0. As there is no operand, every rfi instruction has the same machine language representation: e000. The fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is unused, and ab=0 because this is the secondary opcode of rfi.</p>
+<p>The instruction format is EXP1. As there is no operand, every rfi instruction has the same machine language representation: e000. The fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is unused, and ab=0 because this is the secondary opcode of rfi.</p>
 <p>This instruction is privileged. Since the instruction changes the status register, it can be used to perform a context switch.</p>
 <h2 id="trap-operations">Trap operations</h2>
 <h3 id="halt">Halt</h3>
