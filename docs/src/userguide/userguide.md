@@ -160,14 +160,16 @@ the dialogue box.  There are several control buttons.  Refresh means
 by a 4 hex digit address".  Whenever you change the text, you should
 click Refresh.  The Enable button toggles the breakpoint on and off.
 The Close button hides the Breakpoint dialogue box.  Here's an
-example.  Suppose you want to stop
-execution of a program at address 00f6:
+example.  Suppose you want to stop execution of a program at address
+00f6:
+
 * Click Breakpoint
 * Enter $00f6
 * Click Refresh
 * Click Enable
 * Click Close
 * Click Run
+
 The execution will run until the pc becomes equal to 00f6
 and will then stop.
 

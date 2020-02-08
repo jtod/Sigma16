@@ -199,7 +199,16 @@ Version 3.1.1
 <p>To run the program slowly, click Step repeatedly. To run the program faster but without updating the display after each instruction, click Run. At any time you can click Pause to stop the processor, and you can resume execution with either Step or Run.</p>
 <p>There are two independent views into the memory; this is convenient for looking at the machine language code in one view and the data in the other view. (Despite the two views, there is just one memory!) At this point the pc register contains 0, meaning that the next instruction to be executed is the one in memory location 0. The ir and other registers also contain 0, but that is just the initial value.</p>
 <p><em>(Note: the breakpoint system is not fully implemented yet; the following paragraph describes a temporary breakpoint facility.)</em></p>
-<p>A breakpoint is the address of an instruction; when the machine is about to execute that instruction (i.e. when the pc contains that address) the emulator will halt execution, enabling the programmer to examine the state of registers and memory. To set a breakpoint, click Breakpoint and enter the instruction address you want to stop at in the dialogue box. There are several control buttons. Refresh means “read the contents of the text in the box, which must be a $ followed by a 4 hex digit address”. Whenever you change the text, you should click Refresh. The Enable button toggles the breakpoint on and off. The Close button hides the Breakpoint dialogue box. Here’s an example. Suppose you want to stop execution of a program at address 00f6: * Click Breakpoint * Enter $00f6 * Click Refresh * Click Enable * Click Close * Click Run The execution will run until the pc becomes equal to 00f6 and will then stop.</p>
+<p>A breakpoint is the address of an instruction; when the machine is about to execute that instruction (i.e. when the pc contains that address) the emulator will halt execution, enabling the programmer to examine the state of registers and memory. To set a breakpoint, click Breakpoint and enter the instruction address you want to stop at in the dialogue box. There are several control buttons. Refresh means “read the contents of the text in the box, which must be a $ followed by a 4 hex digit address”. Whenever you change the text, you should click Refresh. The Enable button toggles the breakpoint on and off. The Close button hides the Breakpoint dialogue box. Here’s an example. Suppose you want to stop execution of a program at address 00f6:</p>
+<ul>
+<li>Click Breakpoint</li>
+<li>Enter $00f6</li>
+<li>Click Refresh</li>
+<li>Click Enable</li>
+<li>Click Close</li>
+<li>Click Run</li>
+</ul>
+<p>The execution will run until the pc becomes equal to 00f6 and will then stop.</p>
 <p>Click Refresh, then Enable, then Close. Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <p>To exit the app, just close the browser window or tab. This may put up a dialogue box warning that any unsaved data may be lost and asking you to confirm.</p>
 <h2 id="registers-constants-and-arithmetic">Registers, constants, and arithmetic</h2>
