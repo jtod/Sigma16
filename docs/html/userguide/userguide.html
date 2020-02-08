@@ -144,6 +144,12 @@ Version 3.1.1
 <li><a href="#copying-one-register-to-another">Copying one register to another</a></li>
 </ul></li>
 <li><a href="#compilation">Compilation</a></li>
+<li><a href="#errors-avoiding-finding-and-fixing">Errors: avoiding, finding, and fixing</a><ul>
+<li><a href="#robust-programming">Robust programming</a></li>
+<li><a href="#error-messages">Error messages</a></li>
+<li><a href="#runtime-debugging">Runtime debugging</a></li>
+<li><a href="#breakpoints">Breakpoints</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#circuit">Circuit</a></li>
 <li><a href="#installation">Installation</a><ul>
@@ -196,20 +202,8 @@ Version 3.1.1
 <li><p>Click Step repeatedly to watch the program execute, instruction by instruction. When the program terminates, the small window labelled <strong>Emulator</strong> will display Halted.</p></li>
 <li><p>To rerun the program, click Boot again.</p></li>
 </ul>
-<p>To run the program slowly, click Step repeatedly. To run the program faster but without updating the display after each instruction, click Run. At any time you can click Pause to stop the processor, and you can resume execution with either Step or Run.</p>
+<p>To run the program slowly, click Step repeatedly. To run the program faster but without updating the display after each instruction, click Run. At any time you can click Pause to stop the processor, and you can resume execution with either Step or Run. Sometimes it’s useful to let the processor run at full speed until it reaches a particular instruction, and then stop. This can be done by setting a <em>breakpoint</em> (described in the Programming section).</p>
 <p>There are two independent views into the memory; this is convenient for looking at the machine language code in one view and the data in the other view. (Despite the two views, there is just one memory!) At this point the pc register contains 0, meaning that the next instruction to be executed is the one in memory location 0. The ir and other registers also contain 0, but that is just the initial value.</p>
-<p><em>(Note: the breakpoint system is not fully implemented yet; the following paragraph describes a temporary breakpoint facility.)</em></p>
-<p>A breakpoint is the address of an instruction; when the machine is about to execute that instruction (i.e. when the pc contains that address) the emulator will halt execution, enabling the programmer to examine the state of registers and memory. To set a breakpoint, click Breakpoint and enter the instruction address you want to stop at in the dialogue box. There are several control buttons. Refresh means “read the contents of the text in the box, which must be a $ followed by a 4 hex digit address”. Whenever you change the text, you should click Refresh. The Enable button toggles the breakpoint on and off. The Close button hides the Breakpoint dialogue box. Here’s an example. Suppose you want to stop execution of a program at address 00f6:</p>
-<ul>
-<li>Click Breakpoint</li>
-<li>Enter $00f6</li>
-<li>Click Refresh</li>
-<li>Click Enable</li>
-<li>Click Close</li>
-<li>Click Run</li>
-</ul>
-<p>The execution will run until the pc becomes equal to 00f6 and will then stop.</p>
-<p>Click Refresh, then Enable, then Close. Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <p>To exit the app, just close the browser window or tab. This may put up a dialogue box warning that any unsaved data may be lost and asking you to confirm.</p>
 <h2 id="registers-constants-and-arithmetic">Registers, constants, and arithmetic</h2>
 <p>The architecture has a <strong>register file</strong> which is an array of 16 registers, named R0, R1, R2, …, R15. The Register File is displayed in a box on the Processor page.</p>
@@ -1733,7 +1727,7 @@ Interrupt
 </ul>
 <p>(An alternative way to specify bit fields, not used in Sigma16, would be to give the starting index and field size. However, that approach is less flexible, as the value of the specified field size would range between 0 and 15, yet there are 16 possible field sizes. This means that, depending on precisely how the definition is written, either empty fields or maximal fields would not be representable.)</p>
 <h3 id="extract">extract</h3>
-<p>The extract instruction obtains the value of an arbitrary field from a source register and loads it right-adjusted into the destination register.</p>
+<p>The extract instruction obtains the value of an arbitrary field (g,h) from a source register Re and loads it right-adjusted into the destination register Rd.</p>
 <p>General form: <em>extract Rd,Re,g,h</em></p>
 <p>Semantics: * The size of the field is max (0, h-g+1) * Rd.{15+g-h,15} := Re.{g,h} * Rd.{0,15+g-h-1} := 0*</p>
 <p>For example, extract R1,R2,3,5 extracts a field from R2 starting at bit position 3 and ending with bit position 5. This 3-bit field is placed in R1 in the rightmost 3 bits (indices 13, 14, 15); the leftmost bits (indices 0 through 12) are all set to 0.</p>
@@ -1745,10 +1739,16 @@ Interrupt
 <pre><code>   shiftl Rd,Re,3
    shiftr Rd,Rd,13</code></pre>
 <h3 id="inject">inject</h3>
+<p>The inject instruction obtains a right-adjusted field from a source register Re and places it into the specified field (g,h) of the destination register Rd; the other bits of Rd are not changed.</p>
+<p>General form: <em>inject Rd,Re,g,h</em></p>
 <pre><code> inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}</code></pre>
 <h3 id="field">field</h3>
-<p>The field instruction produces a word with 1 bits in the specified field and 0 elsewhere. This provides a field mask that can be used with logic instructions for a variety of purposes.</p>
-<p>General form: <em>field Rd,g,h</em></p>
+<p>The field instruction loads a word into the destination register Rd; this word consists of 1 bits in the specified field (g,h) and 0 in all other bit positions. This provides a field mask that can be used with logic instructions for a variety of purposes.</p>
+<ul>
+<li>General form: <em>field Rd,g,h</em></li>
+<li>Instruction format:</li>
+<li>Assembler format: RKK</li>
+</ul>
 <p>Semantics * Rd.i = 1 for g &lt;= i &lt;- h * Rd.i = 0 for i &lt; g or i &gt; h</p>
 <p>Example:</p>
 <pre><code> field   R3,4,  ; R3 := 0fc0</code></pre>
@@ -2298,6 +2298,23 @@ x = x+1+z;</code></pre>
 <p>Comparison of the styles</p>
 <p>Statement by statement. * Each statement is compiled into a separate block of code. * Each statement requires loads, computation, then stores. * A variable may appear in several different registers. * There may be a lot of redundant loading and storing. * The object code corresponds straightforwardly to the source code, but it may be unnecessarily long.</p>
 <p>Register variable * The instructions corresponding to the statemnts are mixed together. * Some statements are executed entirely in the registers. * A variable is kept in the same register across many statments. * The use of loads and stores is minimised. * The object code is concise, but it’s harder to see how it corresponds to the source code. * It’s possible to have a mixture of the styles: you don’t have to follow one or the other all the time.</p>
+<h2 id="errors-avoiding-finding-and-fixing">Errors: avoiding, finding, and fixing</h2>
+<h3 id="robust-programming">Robust programming</h3>
+<h3 id="error-messages">Error messages</h3>
+<h3 id="runtime-debugging">Runtime debugging</h3>
+<h3 id="breakpoints">Breakpoints</h3>
+<p><em>(Note: the breakpoint system is not fully implemented yet; the following describes a temporary breakpoint facility.)</em></p>
+<p>A breakpoint is the address of an instruction; when the machine is about to execute that instruction (i.e. when the pc contains that address) the emulator will halt execution, enabling the programmer to examine the state of registers and memory. To set a breakpoint, click Breakpoint and enter the instruction address you want to stop at in the dialogue box. There are several control buttons. Refresh means “read the contents of the text in the box, which must be a $ followed by a 4 hex digit address”. Whenever you change the text, you should click Refresh. The Enable button toggles the breakpoint on and off. The Close button hides the Breakpoint dialogue box. Here’s an example. Suppose you want to stop execution of a program at address 00f6:</p>
+<ul>
+<li>Click Breakpoint</li>
+<li>Enter $00f6</li>
+<li>Click Refresh</li>
+<li>Click Enable</li>
+<li>Click Close</li>
+<li>Click Run</li>
+</ul>
+<p>The execution will run until the pc becomes equal to 00f6 and will then stop.</p>
+<p>Click Refresh, then Enable, then Close. Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <h1 id="circuit">Circuit</h1>
 <p>There is a complete digital circuit called M1 that implements the core of the Sigma16 architecture (apart from the divide instruction). This circuit is specified completely down to the level of logic gates and flip flops. M1 uses sequential control and does not have instruction level parallelism. Its design is written in Hydra, a functional computer hardware description language. The circuit can be simulated, and you can run Sigma16 programs on the circuit.</p>
 <p>Follow these steps to run the Sigma16 circuit on the simulator:</p>

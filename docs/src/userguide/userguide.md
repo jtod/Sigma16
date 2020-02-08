@@ -137,7 +137,10 @@ Let's begin by running a simple example program.
 To run the program slowly, click Step repeatedly.  To run the program
 faster but without updating the display after each instruction, click
 Run.  At any time you can click Pause to stop the processor, and you
-can resume execution with either Step or Run.
+can resume execution with either Step or Run.  Sometimes it's useful
+to let the processor run at full speed until it reaches a particular
+instruction, and then stop.  This can be done by setting a
+*breakpoint* (described in the Programming section).
 
 There are two independent views into the memory; this is convenient
 for looking at the machine language code in one view and the data in
@@ -147,36 +150,6 @@ instruction to be executed is the one in memory location 0.  The ir
 and other registers also contain 0, but that is just the initial
 value.
 
-*(Note: the breakpoint system is not fully implemented yet; the
-following paragraph describes a temporary breakpoint facility.)*
-
-A breakpoint is the address of an instruction; when the machine is
-about to execute that instruction (i.e. when the pc contains that
-address) the emulator will halt execution, enabling the programmer to
-examine the state of registers and memory.  To set a breakpoint, click
-Breakpoint and enter the instruction address you want to stop at in
-the dialogue box.  There are several control buttons.  Refresh means
-"read the contents of the text in the box, which must be a $ followed
-by a 4 hex digit address".  Whenever you change the text, you should
-click Refresh.  The Enable button toggles the breakpoint on and off.
-The Close button hides the Breakpoint dialogue box.  Here's an
-example.  Suppose you want to stop execution of a program at address
-00f6:
-
-* Click Breakpoint
-* Enter $00f6
-* Click Refresh
-* Click Enable
-* Click Close
-* Click Run
-
-The execution will run until the pc becomes equal to 00f6
-and will then stop.
-
-Click Refresh, then Enable, then
-Close.  Then click Run, and the emulator will run at full speed until
-the pc reaches the specified value; then it will stop so you can
-examine the state of the machine.
 
 To exit the app, just close the browser window or tab.  This may
 put up a dialogue box warning that any unsaved data may be lost and
@@ -2869,9 +2842,9 @@ empty fields or maximal fields would not be representable.)
 
 ### extract
 
-The extract instruction obtains the value of an arbitrary field from a
-source register and loads it right-adjusted into the destination
-register.
+The extract instruction obtains the value of an arbitrary field (g,h)
+from a source register Re and loads it right-adjusted into the
+destination register Rd.
 
 General form: *extract Rd,Re,g,h*
 
@@ -2910,6 +2883,12 @@ understand than) the following:
 
 ### inject
 
+The inject instruction obtains a right-adjusted field from a source
+register Re and places it into the specified field (g,h) of the
+destination register Rd; the other bits of Rd are not changed.
+
+General form: *inject Rd,Re,g,h*
+
 ~~~~
  inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
 ~~~~
@@ -2917,12 +2896,14 @@ understand than) the following:
 
 ### field
 
-The field instruction produces a word with 1 bits in the specified
-field and 0 elsewhere.  This provides a field mask that can be used
-with logic instructions for a variety of purposes.
+The field instruction loads a word into the destination register Rd;
+this word consists of 1 bits in the specified field (g,h) and 0 in all
+other bit positions.  This provides a field mask that can be used with
+logic instructions for a variety of purposes.
 
-
-General form: *field Rd,g,h*
+* General form: *field Rd,g,h*
+* Instruction format: 
+* Assembler format: RKK
 
 Semantics
 * Rd.i = 1 for g <= i <- h
@@ -3708,8 +3689,47 @@ Register variable
 * It's possible to have a mixture of the styles: you don't have
   to follow one or the other all the time.
 
+## Errors: avoiding, finding, and fixing
+
+### Robust programming
+
+### Error messages
+
+### Runtime debugging
 
 
+### Breakpoints
+
+*(Note: the breakpoint system is not fully implemented yet; the
+following describes a temporary breakpoint facility.)*
+
+A breakpoint is the address of an instruction; when the machine is
+about to execute that instruction (i.e. when the pc contains that
+address) the emulator will halt execution, enabling the programmer to
+examine the state of registers and memory.  To set a breakpoint, click
+Breakpoint and enter the instruction address you want to stop at in
+the dialogue box.  There are several control buttons.  Refresh means
+"read the contents of the text in the box, which must be a $ followed
+by a 4 hex digit address".  Whenever you change the text, you should
+click Refresh.  The Enable button toggles the breakpoint on and off.
+The Close button hides the Breakpoint dialogue box.  Here's an
+example.  Suppose you want to stop execution of a program at address
+00f6:
+
+* Click Breakpoint
+* Enter $00f6
+* Click Refresh
+* Click Enable
+* Click Close
+* Click Run
+
+The execution will run until the pc becomes equal to 00f6
+and will then stop.
+
+Click Refresh, then Enable, then
+Close.  Then click Run, and the emulator will run at full speed until
+the pc reaches the specified value; then it will stop so you can
+examine the state of the machine.
 
 
 # Circuit

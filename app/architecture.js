@@ -46,8 +46,7 @@ const mnemonicEXP =
 // RRREXP
    "push",    "pop",     "top",
 // RRKEXP
-   "shiftl",  "shiftr",  "getbit",  "getbiti",
-   "putbit",  "putbiti", "extract",
+   "shiftl",  "shiftr",  "extract",
 // RRXEXP
    "save",    "restore"
   ]
@@ -67,27 +66,28 @@ const EXP0        =  5;    // EXP format with no operand
 const RREXP       =  6;    // R1,R2      (EXP)
 const RRREXP      =  7;    // R1,R2,R3    (EXP) like RRR instruction but expand op
 const RRKEXP      =  8;    // R1,R2,3    (EXP)
-const RRKKEXP     =  9;    // R1,R2,3    (EXP)
-const RRXEXP      = 10;    // save R4,R7,3[R14]   (EXP)
-const RCEXP       = 11;    // getctl R4,mask register,control (EXP)
-const DATA        = 12;    // -42
-const COMMENT     = 13;    // ; full line comment, or blank line
+const RRKEXP      =  9;    // R1,3,5     (EXP)
+const RRKKEXP     = 10;    // R1,R2,3    (EXP)
+const RRXEXP      = 11;    // save R4,R7,3[R14]   (EXP)
+const RCEXP       = 12;    // getctl R4,mask register,control (EXP)
+const DATA        = 13;    // -42
+const COMMENT     = 14;    // ; full line comment, or blank line
 
-const DirModule   = 14;    // module directive
-const DirImport   = 15;    // import directive
-const DirExport   = 16;    // export directive
-const DirOrg      = 17;    // org directive
-const DirEqu      = 18;    // equ directive
-const UNKNOWN     = 19;    // statement format is unknown
-const EMPTY       = 20;    // empty statement
+const DirModule   = 15;    // module directive
+const DirImport   = 16;    // import directive
+const DirExport   = 17;    // export directive
+const DirOrg      = 18;    // org directive
+const DirEqu      = 19;    // equ directive
+const UNKNOWN     = 20;    // statement format is unknown
+const EMPTY       = 21;    // empty statement
 
-const NOOPERATION = 21;    // error
-const NOOPERAND   = 22;    // statement has no operand
+const NOOPERATION = 22;    // error
+const NOOPERAND   = 23;    // statement has no operand
 
 // Need to update ???
 function showFormat (n) {
     let f = ['RRR','RR','RX', 'KX', 'JX','EXP0', 'RREXP', 'RRREXP', 'RRKEXP',
-             'RRKKEXP', 'RRXEXP', 'RCEXP', 'DATA','COMMENT',
+             'RKKEXP', 'RRKKEXP', 'RRXEXP', 'RCEXP', 'DATA','COMMENT',
              'DirModule', 'DirImport', 'DirExport', 'DirOrg', 'DirEqu',
              'UNKNOWN', 'EMPTY'] [n];
     let r = f ? f : 'UNKNOWN';
@@ -100,7 +100,7 @@ function formatSize (fmt) {
 	return 1
     } else if (fmt==RX | fmt==KX | fmt==JX
                | fmt==RREXP |  fmt==RCEXP | fmt==RRREXP | fmt==RRKEXP
-               | fmt==RRKKEXP | fmt==RRXEXP) {
+                | fmt==RKKEXP | fmt==RRKKEXP | fmt==RRXEXP) {
 	return 2
     } else if (fmt==NOOPERAND) {
 	return 1
@@ -202,14 +202,12 @@ statementSpec.set("top",      {format:RRREXP,    opcode:[14,14]});
 // RRKEXP
 statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,15]});
 statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,16]});
-statementSpec.set("getbit",   {format:RRKEXP,    opcode:[14,17]});
-statementSpec.set("getbiti",  {format:RRKEXP,    opcode:[14,18]});
-statementSpec.set("putbit",   {format:RRKEXP,    opcode:[14,19]});
-statementSpec.set("putbiti",  {format:RRKEXP,    opcode:[14,20]});
 // RREXP
 statementSpec.set("execute",  {format:RREXP,     opcode:[14,21]});
 // RRKKEXP
 statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,22]});
+statementSpec.set("inject",   {format:RRKKEXP,   opcode:[14,22]});
+statementSpec.set("field",    {format:RKKEXP,    opcode:[14,22]});
 
 // Assembler directives
 statementSpec.set("data",    {format:DATA,       opcode:[]});
