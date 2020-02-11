@@ -838,7 +838,7 @@ const handle_EXP = (es) => {
     console.log (`handle_EXP ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
     es.instrFmtStr = "EXP";
     let code = 16*es.ir_a + es.ir_b;
-    if (code <= maxEXPcode) {
+    if (code < limitEXPcode) {
 	console.log (`handle_EXP dispatch code=${code} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
 	dispatch_EXP [code] (es);
     } else {
@@ -1035,6 +1035,10 @@ function exp2_putctl (es) {
     register[cregidx].refresh();
 }
 
+function exp2_execute (es) {
+    console.log ("exp2_execute");
+}
+
 function exp2_push (es) {
     console.log ('exp2_push');
  //   console.log (`e=${es.field_e} f=${es.field_f} g=${es.field_g} h=${es.field_h} `);
@@ -1077,53 +1081,54 @@ function exp2_top (es) {
 
 function exp2_shiftl (es) {
     console.log ("exp2_shiftl");
-    console.log (`exp_shl ${wordToHex4(es.instrDisp)}`);
-    let a = (es.instrDisp & 0xf000) >>> 12;
-    let aa = regFile[a].get();
-    let k = (es.instrDisp & 0x0f00) >>> 8;
-    let result = aa << k;  // logical shift
-    console.log (`shl shift ${aa} left by ${k} bits => ${result}`);
+    let x = regFile[es.field_e].get();
+    let k = es.field_g;
+    let result = x << k;  // logical shift
+    console.log (`shiftl ${wordToHex4(x)} left by ${k} bits => ${wordToHex4(result)}`);
     regFile[es.ir_d].put(result);
-    console.log (`exp_shl d=${es.ir_d} a=${a} k=${k} result=${result}`);
 }
 
 function exp2_shiftr (es) {
     console.log ("exp2_shiftr");
-    console.log (`exp_shr ${wordToHex4(es.instrDisp)}`);
-    let a = (es.instrDisp & 0xf000) >>> 12;
-    let aa = regFile[a].get();
-    let k = (es.instrDisp & 0x0f00) >>> 8;
-    let result = aa >>> k;  // logical shift
-    console.log (`shr shift ${aa} right by ${k} bits => ${result}`);
+    let x = regFile[es.field_e].get();
+    let k = es.field_g;
+    let result = x >>> k;  // logical shift
+    console.log (`shiftr ${wordToHex4(x)} right by ${k} bits => ${wordToHex4(result)}`);
     regFile[es.ir_d].put(result);
-    console.log (`exp_shr d=${es.ir_d} a=${a} k=${k} result=${result}`);
 }
-
-
-function exp2_getbit (es) {
-    console.log ('exp2_getbit');
-}
-
-function exp2_getbiti (es) {
-    console.log ('exp2_getbiti');
-}
-
-function exp2_putbit (es) {
-    console.log ('exp2_putbit');
-}
-
-function exp2_putbiti (es) {
-    console.log ('exp2_putbiti');
-}
-
-
-function exp2_execute (es) {
-    console.log ('exp2_execute');
-}
-
 
 function exp2_extract (es) {
     console.log ('exp2_extract');
+}
+
+function exp2_extracti (es) {
+    console.log ('exp2_extracti');
+}
+
+function exp2_inject (es) {
+    console.log ('exp2_inject');
+}
+
+function exp2_injecti (es) {
+    console.log ('exp2_injecti');
+}
+
+function exp2_logicw (es) {
+    console.log ('exp2_logicw');
+}
+
+
+function exp2_logicb (es) {
+    console.log (`exp2_logicb`);
+    let xw = regFile[es.field_e].get(); // operand 1
+    let yw = regFile[es.field_f].get(); // operand 2
+    let i = es.field_h; // bit index
+    let x = getBitInWordBE(xw,i);
+    let y = getBitInWordBE(yw,i);
+    let fcn = es.field_g; // logic function
+    let bresult = applyLogicFcnBit (fcn,x,y); // bit result
+    let w = putBitInWord (regFile[es.ir_d].get(), i, bresult); // word result
+    regFile[es.ir_d].put(w);
 }
 
 
@@ -1161,7 +1166,6 @@ const exp2 = (f) => (es) => {
 }
 
 
-const maxEXPcode = 22;  // any code above this is nop
 const dispatch_EXP =
       [ exp1 (exp1_rfi),       // 0
         exp1 (exp1_nop),       // 1
@@ -1176,20 +1180,21 @@ const dispatch_EXP =
         exp2 (exp2_restore),   // 9
         exp2 (exp2_getctl),    // 10
         exp2 (exp2_putctl),    // 11
-        exp2 (exp2_push),      // 12
-        exp2 (exp2_pop),       // 13
-        exp2 (exp2_top),       // 14
+        exp2 (exp2_execute),   // 12
+        exp2 (exp2_push),      // 13
+        exp2 (exp2_pop),       // 14
+        exp2 (exp2_top),       // 15
 
-        exp2 (exp2_shiftl),    // 15
-        exp2 (exp2_shiftr),    // 16
-        exp2 (exp2_getbit),    // 17
-        exp2 (exp2_getbiti),   // 18
-        exp2 (exp2_putbit),    // 19
-        exp2 (exp2_putbiti),   // 20
-        exp2 (exp2_execute),   // 21
-        exp2 (exp2_extract),   // 22
-
+        exp2 (exp2_shiftl),    // 16
+        exp2 (exp2_shiftr),    // 17
+        exp2 (exp2_extract),   // 18
+        exp2 (exp2_extracti),  // 19
+        exp2 (exp2_inject),    // 20
+        exp2 (exp2_injecti),   // 21
+        exp2 (exp2_logicw),    // 22
+        exp2 (exp2_logicb)     // 23
     ]
+const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 
 
 //------------------------------------------------------------------------------

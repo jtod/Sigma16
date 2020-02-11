@@ -96,8 +96,10 @@ Version 3.1.1
 <li><a href="#shiftr">shiftr</a></li>
 </ul></li>
 <li><a href="#bit-operations-on-fields">Bit operations on fields</a><ul>
+<li><a href="#logicw">logicw</a></li>
+<li><a href="#logicb">logicb</a></li>
 <li><a href="#extract">extract</a></li>
-<li><a href="#inject">inject</a></li>
+<li><a href="#inject-injecti">inject, injecti</a></li>
 <li><a href="#field">field</a></li>
 <li><a href="#execute">execute</a></li>
 </ul></li>
@@ -383,8 +385,8 @@ z     data   0</code></pre>
 <li>digits: 0123456789</li>
 <li>separators: (space) ,;</li>
 <li>quotes: " ’</li>
-<li>punctuation: "$<a href=""></a>+-*</li>
-<li>other: &lt;=&gt;!%^&amp;{}#~@:|/'</li>
+<li>punctuation: ".$<a href=""></a>+-*</li>
+<li>other: ?¬£`&lt;=&gt;!%^&amp;{}#~@:|/'</li>
 </ul>
 <p>Word processors often substitute characters. For example, when you type a minus sign in a paragraph of English text, word processors may replace the minus sign with a hyphen or dash, which is correct for typeset English but incorrect for assembly language. The Sigma16 editor will insert the correct characters, as will plain text editors.</p>
 <p>Each statement has a rigid format that consists of up to four <em>fields</em>. The fields must be separated by one or more spaces, and a field cannot contain a space. Every field is optional, but if a field is missing then the following fields must also be missing, except for an optional comment. The fields are:</p>
@@ -1336,7 +1338,7 @@ Interrupt
 <tr class="odd">
 <td style="text-align: right;">NO RRK RRKK RRRKK RREXP RCEXP</td>
 <td style="text-align: left;">rfi shiftl Rd,Ra,k extract Rd,Re,g,h andfld Rd,Re,Rf,g,h execute Re,Rf getctl Re,Cf</td>
-<td style="text-align: center;">EXP1 (d ignored) EXP2 EXP2 (d ignored) EXP2 (d ignored) EXP2 EXP2</td>
+<td style="text-align: center;">EXP1 (d ignored) EXP2 EXP2 EXP2 EXP2 EXP2</td>
 </tr>
 </tbody>
 </table>
@@ -1726,9 +1728,22 @@ Interrupt
 <li>ir.{8,15} is the ab field of the instruction register, containing the expanded operation code for EXP1 and EXP2 format instructions.</li>
 </ul>
 <p>(An alternative way to specify bit fields, not used in Sigma16, would be to give the starting index and field size. However, that approach is less flexible, as the value of the specified field size would range between 0 and 15, yet there are 16 possible field sizes. This means that, depending on precisely how the definition is written, either empty fields or maximal fields would not be representable.)</p>
+<h3 id="logicw">logicw</h3>
+<ul>
+<li>General form: logicw Rd,Re,Rf,g</li>
+<li>Instruction format: EXP2</li>
+<li>Assembly format: RRRKEXP</li>
+<li>Rd := fcn g Re Rf</li>
+</ul>
+<h3 id="logicb">logicb</h3>
+<ul>
+<li>General form: logicb Rd,Re,Rf,g,h</li>
+<li>Rd.h := fcn g Re.h Rf.h</li>
+<li>Assembly format: RRRKKEXP</li>
+</ul>
 <h3 id="extract">extract</h3>
 <p>The extract instruction obtains the value of an arbitrary field (g,h) from a source register Re and loads it right-adjusted into the destination register Rd.</p>
-<p>General form: <em>extract Rd,Re,g,h</em></p>
+<p>General form: <em>extract Rd,Re,g,h</em> Instruction format: EXP2 Assembly format: RRKKEXP</p>
 <p>Semantics: * The size of the field is max (0, h-g+1) * Rd.{15+g-h,15} := Re.{g,h} * Rd.{0,15+g-h-1} := 0*</p>
 <p>For example, extract R1,R2,3,5 extracts a field from R2 starting at bit position 3 and ending with bit position 5. This 3-bit field is placed in R1 in the rightmost 3 bits (indices 13, 14, 15); the leftmost bits (indices 0 through 12) are all set to 0.</p>
 <p>The instruction is EXP2 format, where the d field gives the destination register, the e field gives the source register, and the field is specified by the g and h fields. The assembly language statement format is RRKKEXP.</p>
@@ -1738,15 +1753,18 @@ Interrupt
 <p>For example <em>extract R1,R2,3,5</em> is equivalent to (but easier to understand than) the following:</p>
 <pre><code>   shiftl Rd,Re,3
    shiftr Rd,Rd,13</code></pre>
-<h3 id="inject">inject</h3>
-<p>The inject instruction obtains a right-adjusted field from a source register Re and places it into the specified field (g,h) of the destination register Rd; the other bits of Rd are not changed.</p>
+<h3 id="inject-injecti">inject, injecti</h3>
+<p>The inject instruction obtains a right-adjusted field from a source register Re and places it into the specified field (g,h) of the destination register Rd; the other bits of Rd are not changed. The injecti instruction is the same as inject, except that the injected field is inverted.</p>
 <p>General form: <em>inject Rd,Re,g,h</em></p>
-<pre><code> inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}</code></pre>
+<p>General form: <em>injecti Rd,Re,g,h</em></p>
+<pre><code> inject   Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
+ injecti  Rd,Re,g,h   ; Rd.{g,h} := invw Re.{16-h,h}</code></pre>
 <h3 id="field">field</h3>
-<p>The field instruction loads a word into the destination register Rd; this word consists of 1 bits in the specified field (g,h) and 0 in all other bit positions. This provides a field mask that can be used with logic instructions for a variety of purposes.</p>
+<p>Pseudoinstruction</p>
+<p>The field pseudoinstruction loads a word into the destination register Rd; this word consists of 1 bits in the specified field (g,h) and 0 in all other bit positions. This provides a field mask that can be used with logic instructions for a variety of purposes.</p>
 <ul>
 <li>General form: <em>field Rd,g,h</em></li>
-<li>Instruction format:</li>
+<li>Pseudo-instruction: <em>injecti Rd,R0,g,h</em></li>
 <li>Assembler format: RKK</li>
 </ul>
 <p>Semantics * Rd.i = 1 for g &lt;= i &lt;- h * Rd.i = 0 for i &lt; g or i &gt; h</p>

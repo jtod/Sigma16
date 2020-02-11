@@ -40,13 +40,19 @@ const mnemonicEXP =
 // EXP0
    "rfi",
 // RREXP
-   "execute",
+   "execute", "invnew",
 // RCEXP
    "getctl",  "putctl",
 // RRREXP
    "push",    "pop",     "top",
 // RRKEXP
-   "shiftl",  "shiftr",  "extract",
+      "shiftl",  "shiftr", "invb",
+// RRKKEXP
+      "extract", "extracti", "inject", "injecti",
+// RRRKEXP
+   "logicw",      
+// RRRKKEXP
+   "logicb",
 // RRXEXP
    "save",    "restore"
   ]
@@ -66,28 +72,31 @@ const EXP0        =  5;    // EXP format with no operand
 const RREXP       =  6;    // R1,R2      (EXP)
 const RRREXP      =  7;    // R1,R2,R3    (EXP) like RRR instruction but expand op
 const RRKEXP      =  8;    // R1,R2,3    (EXP)
-const RRKEXP      =  9;    // R1,3,5     (EXP)
-const RRKKEXP     = 10;    // R1,R2,3    (EXP)
-const RRXEXP      = 11;    // save R4,R7,3[R14]   (EXP)
-const RCEXP       = 12;    // getctl R4,mask register,control (EXP)
-const DATA        = 13;    // -42
-const COMMENT     = 14;    // ; full line comment, or blank line
+const RKKEXP      =  9;    // R1,3,5     (EXP)
+const RRRKEXP     = 10;    // R1,R2,R3,k    (EXP) logicw
+const RRKKEXP     = 11;    // R1,R2,3    (EXP)
+const RRRKKEXP    = 12;    // R1,R2,R3,g,h    (EXP) logicb
+const RRXEXP      = 13;    // save R4,R7,3[R14]   (EXP)
+const RCEXP       = 14;    // getctl R4,mask register,control (EXP)
+const DATA        = 15;    // -42
+const COMMENT     = 16;    // ; full line comment, or blank line
 
-const DirModule   = 15;    // module directive
-const DirImport   = 16;    // import directive
-const DirExport   = 17;    // export directive
-const DirOrg      = 18;    // org directive
-const DirEqu      = 19;    // equ directive
-const UNKNOWN     = 20;    // statement format is unknown
-const EMPTY       = 21;    // empty statement
+const DirModule   = 17;    // module directive
+const DirImport   = 18;    // import directive
+const DirExport   = 19;    // export directive
+const DirOrg      = 20;    // org directive
+const DirEqu      = 21;    // equ directive
+const UNKNOWN     = 22;    // statement format is unknown
+const EMPTY       = 23;    // empty statement
 
-const NOOPERATION = 22;    // error
-const NOOPERAND   = 23;    // statement has no operand
+const NOOPERATION = 24;    // error
+const NOOPERAND   = 25;    // statement has no operand
 
 // Need to update ???
 function showFormat (n) {
     let f = ['RRR','RR','RX', 'KX', 'JX','EXP0', 'RREXP', 'RRREXP', 'RRKEXP',
-             'RKKEXP', 'RRKKEXP', 'RRXEXP', 'RCEXP', 'DATA','COMMENT',
+             'RKKEXP', 'RRRKEXP',  'RRKKEXP', 'RRRKKEXP', 'RRXEXP',
+             'RCEXP', 'DATA','COMMENT',
              'DirModule', 'DirImport', 'DirExport', 'DirOrg', 'DirEqu',
              'UNKNOWN', 'EMPTY'] [n];
     let r = f ? f : 'UNKNOWN';
@@ -100,7 +109,8 @@ function formatSize (fmt) {
 	return 1
     } else if (fmt==RX | fmt==KX | fmt==JX
                | fmt==RREXP |  fmt==RCEXP | fmt==RRREXP | fmt==RRKEXP
-                | fmt==RKKEXP | fmt==RRKKEXP | fmt==RRXEXP) {
+               | fmt==RRRKEXP | fmt==RRRKKEXP | fmt==RKKEXP
+               | fmt==RRKKEXP | fmt==RRXEXP) {
 	return 2
     } else if (fmt==NOOPERAND) {
 	return 1
@@ -123,7 +133,6 @@ var statementSpec = new Map();
 
 // const noOperation = {format:NOOPERATION, opcode:[]};
 
-
 // Data statements
 statementSpec.set("data",  {format:DATA, opcode:[]});
 
@@ -140,23 +149,17 @@ statementSpec.set("cmp",   {format:RR,  opcode:[4]});
 statementSpec.set("cmplt", {format:RRR, opcode:[5]});
 statementSpec.set("cmpeq", {format:RRR, opcode:[6]});
 statementSpec.set("cmpgt", {format:RRR, opcode:[7]});
-statementSpec.set("inv",   {format:RR,  opcode:[8]});
-statementSpec.set("and",   {format:RRR, opcode:[9]});
-statementSpec.set("or",    {format:RRR, opcode:[10]});
-statementSpec.set("xor",   {format:RRR, opcode:[11]});
+statementSpec.set("invold",   {format:RR,  opcode:[8]});
+statementSpec.set("andold",   {format:RRR, opcode:[9]});
+statementSpec.set("orold",    {format:RRR, opcode:[10]});
+statementSpec.set("xorold",   {format:RRR, opcode:[11]});
 statementSpec.set("nop",   {format:RRR, opcode:[12]});
 statementSpec.set("trap",  {format:RRR, opcode:[13]});
 
 // If op=14, escape to EXP format
-// arithmetic with control of carry, shifting, privileged instructions
+// If op=15, escape to RX format.
 
-// If op=15, escape to RX format.  JX is an assembly language
-// statement format which omits the d field, but the machine language
-// format is RX, where R0 is used for the d field.  For example, jump
-// loop[R5] doesn't require d field in assembly language, but the
-// machine language uses d=R0.
-
-// Core instructions
+// RX instructions
 statementSpec.set("lea",      {format:RX,  opcode:[15,0]});
 statementSpec.set("load",     {format:RX,  opcode:[15,1]});
 statementSpec.set("store",    {format:RX,  opcode:[15,2]});
@@ -167,6 +170,53 @@ statementSpec.set("jumpf",    {format:RX,  opcode:[15,6]});
 statementSpec.set("jumpt",    {format:RX,  opcode:[15,7]});
 statementSpec.set("jal",      {format:RX,  opcode:[15,8]});
 statementSpec.set("testset",  {format:RX,  opcode:[15,9]});
+
+// Mnemonics for EXP instructions
+// Expanded instructions with one word: opcode 0,...,7
+// EXP0
+statementSpec.set("rfi",      {format:EXP0,      opcode:[14,0]});
+// Expanded instructions with two words: opcode >= 8
+// RRXEXP
+statementSpec.set("save",     {format:RRXEXP,    opcode:[14,8]});
+statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,9]});
+// RCEXP
+statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,10]});
+statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,11]});
+// RREXP
+statementSpec.set("execute",  {format:RREXP,     opcode:[14,12]});
+// RRREXP
+statementSpec.set("push",     {format:RRREXP,    opcode:[14,13]});
+statementSpec.set("pop",      {format:RRREXP,    opcode:[14,14]});
+statementSpec.set("top",      {format:RRREXP,    opcode:[14,15]});
+// RRKEXP
+statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,16]});
+statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,17]});
+// RRKKEXP
+statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,18]});
+statementSpec.set("extracti", {format:RRKKEXP,   opcode:[14,19]});
+statementSpec.set("inject",   {format:RRKKEXP,   opcode:[14,20]});
+statementSpec.set("injecti",  {format:RRKKEXP,   opcode:[14,21]});
+// RRRKEXP
+statementSpec.set("logicw",   {format:RRRKEXP,   opcode:[14,22]});
+// RRRKKEXP
+statementSpec.set("logicb",  {format:RRRKKEXP,   opcode:[14,23]});
+// Assembler directives
+statementSpec.set("data",    {format:DATA,       opcode:[]});
+statementSpec.set("module",  {format:DirModule,  opcode:[]});
+statementSpec.set("import",  {format:DirImport,  opcode:[]});
+statementSpec.set("export",  {format:DirExport,  opcode:[]});
+statementSpec.set("org",     {format:DirOrg,     opcode:[]});
+statementSpec.set("equ",     {format:DirEqu,     opcode:[]});
+
+// -------------------------------------
+// Pseudoinstructions
+// -------------------------------------
+
+// JX is a pseudoinstruction format: an assembly language statement
+// format which omits the d field, but the machine language format is
+// RX, where R0 is used for the d field.  For example, jump loop[R5]
+// doesn't require d field in assembly language, but the machine
+// language uses d=R0.
 
 // Mnemonics for jumpc0 based on signed comparisons, overflow, carry
 statementSpec.set("jumple",   {format:JX,  opcode:[15,4,bit_ccg]});
@@ -184,40 +234,27 @@ statementSpec.set("jumpv",    {format:JX,  opcode:[15,5,bit_ccv]});
 statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
 statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccC]});
 
-// Mnemonics for EXP instructions
-// Expanded instructions with one word: opcode 0,...,7
-// EXP0
-statementSpec.set("rfi",      {format:EXP0,      opcode:[14,0]});
-// Expanded instructions with two words: opcode >= 8
-// RRXEXP
-statementSpec.set("save",     {format:RRXEXP,    opcode:[14,8]});
-statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,9]});
-// RCEXP
-statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,10]});
-statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,11]});
-// RRREXP
-statementSpec.set("push",     {format:RRREXP,    opcode:[14,12]});
-statementSpec.set("pop",      {format:RRREXP,    opcode:[14,13]});
-statementSpec.set("top",      {format:RRREXP,    opcode:[14,14]});
-// RRKEXP
-statementSpec.set("shiftl",   {format:RRKEXP,    opcode:[14,15]});
-statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,16]});
-// RREXP
-statementSpec.set("execute",  {format:RREXP,     opcode:[14,21]});
-// RRKKEXP
-statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,22]});
-statementSpec.set("inject",   {format:RRKKEXP,   opcode:[14,22]});
-statementSpec.set("field",    {format:RKKEXP,    opcode:[14,22]});
 
-// Assembler directives
-statementSpec.set("data",    {format:DATA,       opcode:[]});
-statementSpec.set("module",  {format:DirModule,  opcode:[]});
-statementSpec.set("import",  {format:DirImport,  opcode:[]});
-statementSpec.set("export",  {format:DirExport,  opcode:[]});
-statementSpec.set("org",     {format:DirOrg,     opcode:[]});
-statementSpec.set("equ",     {format:DirEqu,     opcode:[]});
+// RREXP pseudo
+statementSpec.set("invnew",   {format:RREXP,     opcode:[14,36,12]}); // logicw
+// RRKEXP pseudo
+statementSpec.set("invb",     {format:RRKEXP,     opcode:[14,37,12]}); // logicb
+// RRREXP pseudo
+statementSpec.set("andnew",   {format:RRREXP,    opcode:[14,36,1]}); // logicw
+statementSpec.set("ornew",    {format:RRREXP,    opcode:[14,36,7]}); // logicw
+statementSpec.set("xornew",   {format:RRREXP,    opcode:[14,36,6]}); // logicw
+// RRRKEXP pseudo
+statementSpec.set("andb",   {format:RRRKEXP,    opcode:[14,37,1]}); // logicb
+statementSpec.set("orb",    {format:RRRKEXP,    opcode:[14,37,7]}); // logicb
+statementSpec.set("xorb",   {format:RRRKEXP,    opcode:[14,37,6]}); // logicb
 
+// Mnemonic for field
+// RKKEXP pseudo
+statementSpec.set("field",    {format:RKKEXP,   opcode:[14,22]}); // injecti
+
+// -------------------------------------
 // Mnemonics for control registers
+// -------------------------------------
 
 // The getctl and putctl instructions contain a field indicating which
 // control register to use. This record defines the names of those

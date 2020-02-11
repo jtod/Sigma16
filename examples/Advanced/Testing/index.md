@@ -1,40 +1,37 @@
 # Testing
 
-* [Statements](Statements.asm.txt)
+These files are for testing the implementation of Sigma16.  They also
+provide examples of all the assembly language statements and the
+instruction set.
 
-* [SaveRestore](SaveRestore.asm.txt)
+* [AsmCodeGen](AsmCodeGen.asm.txt) Examples of each assembly language
+  statement, including instructions and directives.
 
-* [Stack](Stack.asm.txt)
+* [AsmErrMessages](AsmErrMessages.asm.txt) Examples of errors that are
+  detectable by the assembler.
 
-* [Small](Small.asm.txt)
+* [Arithmetic](Arithmetic.asm.txt) Test arithmetic operations.
 
-* [LogicShift](LogicShift.asm.txt)
+* [Logic](Logic.asm.txt) Test the operations on bits, fields, and
+  words.
 
-* [Arithmetic](Arithmetic.asm.txt)
+* [Memory](Memory.asm.txt)  Loads, stores, stack operations, saving
+  and restoring registers.
 
-* [AsmTest](AsmTest.asm.txt)
+* [CmpJump](CmpJump.asm.txt) Test the comparisons, jumps, and
+  conditional jumps.
 
-* [CmpJumpc](CmpJumpc.asm.txt)
+* [Performance](Performance.asm.txt) A long nested loop that executes
+  a large number of instructions, allowing measurements of the
+  perfornace of an emulator or other implementation.
 
-* [ErrMessages](ErrMessages.asm.txt)
-
-* [LongLoop](LongLoop.asm.txt)
-
-* [LongLoopWrite](LongLoopWrite.asm.txt)
+* Modules: [Mod1](Mod1.asm.txt) Mod1 imports Mod2 and Mod3,
+  [Mod2](Mod2.asm.txt) Mod1 imports Mod2 and Mod3, and
+  [Mod3](Mod3.asm.txt) Mod1 imports Mod2 and Mod3
 
 * [PrimarySecondary](PrimarySecondary.asm.txt)
 
 * [RFwrite](RFwrite.asm.txt)
-
-* [TestCmpJumpc](TestCmpJumpc.asm.txt)
-
-* [TestCmpJumpFT](TestCmpJumpFT.asm.txt)
-
-* [Mod1](Mod1.asm.txt) Mod1 imports Mod2 and Mod3
-
-* [Mod2](Mod2.asm.txt) Mod1 imports Mod2 and Mod3
-
-* [Mod3](Mod3.asm.txt) Mod1 imports Mod2 and Mod3
 
 
 

@@ -30,8 +30,8 @@ const CharSet =
       + " ,;"                     // separators
       + '"'                      // quotes
       + "'"                      // quotes
-      + "$[]()+-*"                // punctuation
-      + "<=>!%^&{}#~@:|/\'";   // other
+      + ".$[]()+-*"                // punctuation
+      + "?¬£`<=>!%^&{}#~@:|/\'";   // other
 
 function validateChars (xs) {
     console.log (`validateChars`);
@@ -165,6 +165,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
             operand_str2 : '',
             operand_str3 : '',
             operand_str4 : '',
+            operand_str5 : '',
             field_d : 0,
             field_a : 0,
             field_b : 0,
@@ -330,6 +331,16 @@ const rrrrParser =
 
 const rrkParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
+
+const rrrkParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
+
+const rrrkkParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?),([0-9][0-9]?)$/;
+
+const rkkParser =
+    /^R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?),([0-9][0-9]?)$/;
+
 const rrkkParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?),([0-9][0-9]?)$/;
 
@@ -646,7 +657,10 @@ function parseOperand (m,s) {
     let rc   = rcParser.exec (s.fieldOperands);
     let rrr  = rrrParser.exec (s.fieldOperands);
     let rrk  = rrkParser.exec (s.fieldOperands);
+    let rkk  = rkkParser.exec (s.fieldOperands);  // need this parser
     let rrkk = rrkkParser.exec (s.fieldOperands);  // need this parser
+    let rrrk = rrrkParser.exec (s.fieldOperands);
+    let rrrkk = rrrkkParser.exec (s.fieldOperands);
     let jx   = jxParser.exec  (s.fieldOperands);
     let rx   = rxParser.exec  (s.fieldOperands);
     let kx   = kxParser.exec  (s.fieldOperands);
@@ -684,7 +698,7 @@ function parseOperand (m,s) {
 	s.operand_str1 = rrr[1]; // Rp
 	s.operand_str2 = rrr[2]; // Rq
 	s.operand_str3 = rrr[3]; // Rr
-    } else if (rrk) { // Re,Rf,g
+    } else if (rrk) { // Rd,Re,g
 	console.log ('rrk');
 	s.hasOperand = true;
 	s.operandType = RRKEXP;
@@ -693,9 +707,18 @@ function parseOperand (m,s) {
 	s.operand_str1 = rrk[1]; // Re
 	s.operand_str2 = rrk[2]; // Rf
 	s.operand_str3 = rrk[3]; // k
-	s.field_ed = rrk[1];
-	s.a = rrk[2];
-	s.k = rrk[3];
+//	s.field_ed = rrk[1];
+//	s.a = rrk[2];
+//	s.k = rrk[3];
+    } else if (rkk) { // R2,R3,5,3
+	console.log ('rkk');
+	s.hasOperand = true;
+	s.operandType = RKKEXP;
+        console.log (`Found ${s.operandType} operand`);
+	s.operandRKKEXP = true;
+	s.operand_str1 = rkk[1];
+	s.operand_str2 = rkk[2];
+	s.operand_str3 = rkk[3];
     } else if (rrkk) { // R2,R3,5,3
 	console.log ('rrkk');
 	s.hasOperand = true;
@@ -707,6 +730,25 @@ function parseOperand (m,s) {
 	s.operand_str3 = rrkk[3];
 	s.operand_str4 = rrkk[4];
         console.log (`pass1 rrkk 1=${s.operand_str1} 2=${s.operand_str2} 3=${s.operand_str3} 4=${s.operand_str4}`);
+    } else if (rrrk) { // R2,R3,5,3
+	console.log ('rrrk');
+	s.hasOperand = true;
+	s.operandType = RRRKEXP;
+        console.log (`Found ${s.operandType} operand`);
+	s.operand_str1 = rrrk[1];
+	s.operand_str2 = rrrk[2];
+	s.operand_str3 = rrrk[3];
+	s.operand_str4 = rrrk[4];
+    } else if (rrrkk) { // R1,R2,R3,5,3
+	console.log ('rrrkk');
+	s.hasOperand = true;
+	s.operandType = RRRKKEXP;
+        console.log (`Found ${s.operandType} operand`);
+	s.operand_str1 = rrrkk[1];
+	s.operand_str2 = rrrkk[2];
+	s.operand_str3 = rrrkk[3];
+	s.operand_str4 = rrrkk[4];
+	s.operand_str5 = rrrkk[5];
     } else if (jx) { // disp[Ra]
 	s.hasOperand = true;
 	s.operandType = JX;
@@ -926,10 +968,14 @@ function asmPass2 (m) {
 	} else if (fmt==RREXP) {
 	    console.log (`pass2 RREXP`);
 	    op = s.operation.opcode;
-            s.field_e = s.operand_str1; // Rp
-            s.field_f = s.operand_str2; // Rq
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-            s.codeWord2 = mkWord(s.field_e,s.field_f,0,0);
+            s.d = s.operand_str1; // Rp
+            s.field_e = s.operand_str2; // Rq
+            s.field_f = 0;
+            //            s.field_g = s.fieldOperation=="invnew" ? 12 : 0;
+            s.field_g = logicFunction(s.fieldOperation);
+            s.field_h = 0;
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+            s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RCEXP) {
@@ -955,16 +1001,54 @@ function asmPass2 (m) {
 	    console.log (`pass2 RRKEXP`);
 	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
 	    op = s.operation.opcode;
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
-	    s.codeWord2 = mkWord(0,s.d,s.a,s.k);
+            s.d = s.operand_str1; // dest
+            s.field_e = s.operand_str2; // reg operand
+            s.field_f = 0;
+            s.field_g = s.operand_str3; // const
+            s.field_h = 0;
+            s.d = s.operand_str1; // dest
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+	    s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==RRKKEXP) {
 	    console.log (`pass2 RRKKEXP`);
 	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
 	    op = s.operation.opcode;
+            s.d = s.operand_str1; // Rp
+            s.field_e = s.operand_str2; // Rq
+            s.field_f = 0;
+            s.field_g = s.operand_str3;
+            s.field_h = s.operand_str4;
+            s.b = s.operand_str3; // Rr
 	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
-	    s.codeWord2 = mkWord(s.a,s.k,0,0);
+	    s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+        } else if (fmt==RRRKEXP) {
+            console.log (`pass2 RRRKEXP`);
+	    op = s.operation.opcode;
+            s.d = s.operand_str1; // dest reg
+            s.field_e = s.operand_str2; // first operand reg
+            s.field_f = s.operand_str3; // second operand reg
+            s.field_g = s.operand_str4; // function
+            s.field_h = 0; // unused
+            s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+            s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
+	    generateObjectWord (m, s, s.address, s.codeWord1);
+	    generateObjectWord (m, s, s.address+1, s.codeWord2);
+        } else if (fmt==RRRKKEXP) {
+            console.log (`pass2 RRRKKEXP`);
+	    op = s.operation.opcode;
+            s.d = s.operand_str1; // dest reg
+            s.field_e = s.operand_str2; // first operand reg
+            s.field_f = s.operand_str3; // second operand reg
+            s.field_g = s.operand_str4; // function
+            s.field_h = s.operand_str5; // unused
+            console.log(`RRRKK op=${op[0]} opx=${op[1]} d=${s.d}`);
+            console.log(`RRRKK e=${s.field_e}  f=${s.field_f}  g=${s.field_g}  h=${s.field_h} `);
+            s.codeWord1 = mkWord448(op[0],s.d,op[1]);
+            s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);
 	} else if (fmt==JX) {
@@ -1016,10 +1100,11 @@ function asmPass2 (m) {
 	} else if (fmt==RRREXP) {
 	    console.log (`pass2 RRREXP`);
 	    op = s.operation.opcode;
-            s.field_e  = s.operand_str1;   // first register
-	    s.field_f  = s.operand_str2;   // second register
-	    s.field_g  = s.operand_str3;    // third register
-	    s.codeWord1 = mkWord448(op[0],0,op[1]);
+            s.d  = s.operand_str1;   // first register
+	    s.field_e  = s.operand_str2;   // second register
+	    s.field_f  = s.operand_str3;   // second register
+	    s.field_g  = logicFunction(s.fieldOperation);
+	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
             s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,0);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
 	    generateObjectWord (m, s, s.address+1, s.codeWord2);

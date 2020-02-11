@@ -31,6 +31,9 @@
 // Return bit i in word w
 function getBitInWordBE (w,i) { return (w >>> (15-i)) & 0x0001 }
 
+// Return bit i in nibble (4-bit word) w
+function getBitInNibbleBE (w,i) { return (w >>> (3-i)) & 0x0001 }
+
 // Return bit i in register r
 function getBitInRegBE (r,i) { return (r.get() >>> (15-i)) & 0x0001 }
 
@@ -41,6 +44,11 @@ function maskToSetBitBE (i) { return (1 << (15-i)) & 0xffff }
 // Clear/set bit i in register r
 function clearBitInRegBE (r,i) { r.put (r.get() & maskToClearBitBE(i)) }
 function setBitInRegBE   (r,i) { r.put (r.get() | maskToSetBitBE(i)) }
+
+// Put bit b into word x in bit position i
+function putBitInWord (x,i,b) {
+    return b==0 ? x & maskToClearBitBE(i) : x | maskToSetBitBE(i)
+}
 
 // Return a word where bit i is 1
 function setBitBE(i) { return 1 << 15-i }
@@ -90,6 +98,72 @@ function maskToSetBitLE (i) { return (1 << i) & 0xffff }
 // Clear/set bit i in register r
 function clearBitInRegLE (r,i) { r.put (r.get() & maskToClearBitLE(i)) }
 function setBitInRegLE   (r,i) { r.put (r.get() | maskToSetBitLE(i)) }
+
+//------------------------------------------------------------------------------
+// Logic
+//------------------------------------------------------------------------------
+
+// Mnemonics for logic
+
+/*
+  x  y   f x y
+ -------------
+  0  0    p
+  0  1    q
+  1  0    r
+  1  1    s
+
+inv = 1100 = 12
+and = 0001 =  1
+or  = 0111 =  7
+xor = 0110 =  6
+*/
+
+// Given the mnemonic for a logic function, return the truth table
+// encoding needed for the general logic box circuit
+function logicFunction(mnemonic) {
+    return mnemonic=="andnew" ? 1
+        : mnemonic=="and"     ? 1
+        : mnemonic=="ornew"   ? 7
+        : mnemonic=="or"      ? 7
+        : mnemonic=="xornew"  ? 6
+        : mnemonic=="xor"     ? 6
+        : mnemonic=="invnew"  ? 12
+        : mnemonic=="inv"     ? 12
+        : 0
+}
+
+// fcn is an encoded truth table, x and y are bit operands
+
+function applyLogicFcnBit (fcn, x, y) {
+    let result = x==0
+        ? (y==0 ? getBitInNibbleBE (fcn,0) : getBitInNibbleBE (fcn,1))
+        : (y==0 ? getBitInNibbleBE (fcn,2) : getBitInNibbleBE (fcn,3))
+    console.log (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
+    return result
+}
+
+function applyLogicFcnWord (fcn, x, y) {
+    console.log (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
+    let p = getBitInNibbleBE (fcn,0);
+    let q = getBitInNibbleBE (fcn,1);
+    let r = getBitInNibbleBE (fcn,2);
+    let s = getBitInNibbleBE (fcn,3);
+    let result = 0;
+    for (let i=0; i<16; i++) {
+        let z = lut (p,q,r,s, getBitInWordBE(x,i), getBitInWordBE(y,i));
+        if (z==1) { result = result | maskToSetBitBE(i) }
+    }
+    console.log (`applyLogicFcnWord result=${wordToHex4(result)}`);
+    return result
+}
+
+function applyLogicFcnHelper (p,q,r,s, x, y) {
+    let result = x==0 ? (y==0 ? p : q) : (y==0 ? r : s);
+    console.log (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
+    return result
+}
+
 
 //------------------------------------------------------------------------------
 // Words, binary numbers, and two's complement integers

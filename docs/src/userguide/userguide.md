@@ -595,8 +595,8 @@ and dashes won't work.
 * digits: 0123456789
 * separators: (space) ,;
 * quotes: " '
-* punctuation: "$[]()+-*
-* other: <=>!%^&{}#~@:|/\'
+* punctuation: ".$[]()+-*
+* other: ?¬£`<=>!%^&{}#~@:|/\'
 
 Word processors often substitute characters.  For example, when you
 type a minus sign in a paragraph of English text, word processors may
@@ -2103,8 +2103,8 @@ Table: **Assembly language statement formats**
 
  NO      rfi                    EXP1 (d ignored)
  RRK     shiftl  Rd,Ra,k        EXP2
- RRKK    extract Rd,Re,g,h      EXP2 (d ignored)
- RRRKK   andfld  Rd,Re,Rf,g,h   EXP2 (d ignored)
+ RRKK    extract Rd,Re,g,h      EXP2
+ RRRKK   andfld  Rd,Re,Rf,g,h   EXP2
  RREXP   execute Re,Rf          EXP2
  RCEXP   getctl  Re,Cf          EXP2
 -------------------------------------------------------
@@ -2840,6 +2840,21 @@ between 0 and 15, yet there are 16 possible field sizes.  This means
 that, depending on precisely how the definition is written, either
 empty fields or maximal fields would not be representable.)
 
+
+### logicw
+
+* General form: logicw Rd,Re,Rf,g
+* Instruction format: EXP2
+* Assembly format: RRRKEXP
+* Rd := fcn g Re Rf
+
+### logicb
+
+* General form: logicb Rd,Re,Rf,g,h
+* Rd.h := fcn g Re.h Rf.h
+* Assembly format: RRRKKEXP
+
+
 ### extract
 
 The extract instruction obtains the value of an arbitrary field (g,h)
@@ -2847,6 +2862,8 @@ from a source register Re and loads it right-adjusted into the
 destination register Rd.
 
 General form: *extract Rd,Re,g,h*
+Instruction format: EXP2
+Assembly format: RRKKEXP
 
 Semantics:
 * The size of the field is max (0, h-g+1)
@@ -2881,28 +2898,35 @@ understand than) the following:
 ~~~~
 
 
-### inject
+### inject, injecti
 
 The inject instruction obtains a right-adjusted field from a source
 register Re and places it into the specified field (g,h) of the
-destination register Rd; the other bits of Rd are not changed.
+destination register Rd; the other bits of Rd are not changed.  The
+injecti instruction is the same as inject, except that the injected
+field is inverted.
 
 General form: *inject Rd,Re,g,h*
 
+General form: *injecti Rd,Re,g,h*
+
 ~~~~
- inject  Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
+ inject   Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
+ injecti  Rd,Re,g,h   ; Rd.{g,h} := invw Re.{16-h,h}
 ~~~~
 
 
 ### field
 
-The field instruction loads a word into the destination register Rd;
-this word consists of 1 bits in the specified field (g,h) and 0 in all
-other bit positions.  This provides a field mask that can be used with
-logic instructions for a variety of purposes.
+Pseudoinstruction
+
+The field pseudoinstruction loads a word into the destination register
+Rd; this word consists of 1 bits in the specified field (g,h) and 0 in
+all other bit positions.  This provides a field mask that can be used
+with logic instructions for a variety of purposes.
 
 * General form: *field Rd,g,h*
-* Instruction format: 
+* Pseudo-instruction:  *injecti Rd,R0,g,h*
 * Assembler format: RKK
 
 Semantics
