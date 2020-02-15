@@ -264,8 +264,12 @@ function assembler () {
     asmPass1 (m);
     asmPass2 (m);
     if (m.nAsmErrors > 0) {
+        m.isExecutable = false;
+        document.getElementById('ProcAsmListing').innerHTML = "";
 	m.asmListingPlain.unshift(highlightText(`\n ${m.nAsmErrors} errors detected\n`,'ERR'));
 	m.asmListingDec.unshift(highlightText(`\n ${m.nAsmErrors} errors detected\n`,'ERR'));
+    } else {
+        m.isExecutable = true;
     }
     m.asmListingPlain.unshift("<pre class='HighlightedTextAsHtml'>");
     m.asmListingDec.unshift("<pre class='HighlightedTextAsHtml'>");
@@ -1002,11 +1006,17 @@ function asmPass2 (m) {
 	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
 	    op = s.operation.opcode;
             s.d = s.operand_str1; // dest
-            s.field_e = s.operand_str2; // reg operand
-            s.field_f = 0;
-            s.field_g = s.operand_str3; // const
-            s.field_h = 0;
-            s.d = s.operand_str1; // dest
+            if (s.operation.pseudo) { // pseudo instruction: invb
+                s.field_e = s.operand_str2; // reg operand
+                s.field_f = 0;
+                s.field_g = op[2]; // logic function (should be 12 for inv)
+                s.field_h = s.operand_str3; // bit index
+            } else { // not pseudo
+                s.field_e = s.operand_str2; // reg operand
+                s.field_f = 0;
+                s.field_g = s.operand_str3; // const
+                s.field_h = 0;
+            }
 	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
 	    s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
@@ -1016,11 +1026,10 @@ function asmPass2 (m) {
 	    console.log (`d=${s.d} a=${s.a} k=${s.k}`);
 	    op = s.operation.opcode;
             s.d = s.operand_str1; // Rp
-            s.field_e = s.operand_str2; // Rq
+            s.field_e = s.operand_str2; // reg operand
             s.field_f = 0;
-            s.field_g = s.operand_str3;
-            s.field_h = s.operand_str4;
-            s.b = s.operand_str3; // Rr
+            s.field_g = s.operand_str3; // start bit index
+            s.field_h = s.operand_str4; // end bit index
 	    s.codeWord1 = mkWord448(op[0],s.d,op[1]);
 	    s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
 	    generateObjectWord (m, s, s.address, s.codeWord1);
@@ -1029,10 +1038,17 @@ function asmPass2 (m) {
             console.log (`pass2 RRRKEXP`);
 	    op = s.operation.opcode;
             s.d = s.operand_str1; // dest reg
-            s.field_e = s.operand_str2; // first operand reg
-            s.field_f = s.operand_str3; // second operand reg
-            s.field_g = s.operand_str4; // function
-            s.field_h = 0; // unused
+            if (s.operation.pseudo) { // pseudo, andb/orb/xorb
+                s.field_e = s.operand_str2; // reg operand
+                s.field_f = s.operand_str3;
+                s.field_g = op[2]; // logic function
+                s.field_h = s.operand_str4; // bit index
+            } else { // not pseudo
+                s.field_e = s.operand_str2; // first operand reg
+                s.field_f = s.operand_str3; // second operand reg
+                s.field_g = s.operand_str4; // function
+                s.field_h = 0; // unused
+            }
             s.codeWord1 = mkWord448(op[0],s.d,op[1]);
             s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,s.field_h);
 	    generateObjectWord (m, s, s.address, s.codeWord1);

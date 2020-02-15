@@ -143,6 +143,10 @@ function applyLogicFcnBit (fcn, x, y) {
     return result
 }
 
+function lut (p,q,r,s,x,y) {
+    return x==0 ? (y==0 ? p : q) : (y==0 ? r : s)
+}
+
 function applyLogicFcnWord (fcn, x, y) {
     console.log (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
     let p = getBitInNibbleBE (fcn,0);

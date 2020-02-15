@@ -1,8 +1,9 @@
-;  Logic and shift instructions
+; Test cases for bit manipulation instructions
 
 ; Shifting
 
       lea     R1,$0040[R0]  ; 0000 0000 0100 0000
+
       shiftr  R2,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 0010 0000 = 0020
       shiftr  R2,R2,1       ; 0000 0000 0010 0000 -> 0000 0000 0001 0000 = 0010
       shiftr  R2,R2,1       ; 0000 0000 0001 0000 -> 0000 0000 0000 1000 = 0008
@@ -11,72 +12,118 @@
       shiftl  R4,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 1000 0000 = 0080
       shiftl  R5,R1,7       ; 0000 0000 0100 0000 -> 0010 0000 0000 0000 = 2000
 
-; Logic
+; Logic functions: inv=12, and=1, or=7, xor=6
+
+; Test ability to set and clear for bit logic
       lea     R1,$00ff[R0]
       lea     R2,$0f0f[R0]
+      add     R3,R0,R0       ; put 0 into destination
+      logicb  R3,R1,R2,7,15  ; or changes 0 to 1 .15 = 0001
+      lea     R4,$ffff[R0]   ; put 1 into destination
+      logicb  R4,R1,R2,7,0   ; or changes 1 to 0  .0 = 7fff
 
-; inv R1
+; Bit logic
+
+; inv R1 = 12
       add     R3,R0,R0
+      logicb  R3,R1,R2,12,0   ; inv R1  .0 = 00ff = 8000
       add     R4,R0,R0
-      add     R5,R0,R0
-      add     R6,R0,R0
-      logicb  R3,R1,R2,12,0   ; 8000
-      logicb  R4,R1,R2,12,4   ; 0800
-      logicb  R5,R1,R2,12,8   ;
-      logicb  R6,R1,R2,12,12
+      logicb  R4,R1,R2,12,15  ; inv R1 .15 = 00ff = 0000
 
-      lea     R3,$ffff[R0]
-      lea     R4,$ffff[R0]
-      lea     R5,$ffff[R0]
-      lea     R6,$ffff[R0]
-      logicb  R3,R1,R2,12,0   ;
-      logicb  R4,R1,R2,12,4   ;
-      logicb  R5,R1,R2,12,8   ;xzc 
-      logicb  R6,R1,R2,12,12
-
-; and
+; and = 1
       add     R3,R0,R0
+      logicb  R3,R1,R2,1,0    ; 00ff and 0f0f  .0 = 0000
       add     R4,R0,R0
+      logicb  R4,R1,R2,1,4    ; 00ff and 0f0f  .4 = 0000
       add     R5,R0,R0
+      logicb  R5,R1,R2,1,8    ; 00ff and 0f0f  .8 = 0000
       add     R6,R0,R0
-      logicb  R3,R1,R2,1,0
-      logicb  R4,R1,R2,1,4
-      logicb  R5,R1,R2,1,8
-      logicb  R6,R1,R2,1,12
+      logicb  R6,R1,R2,1,12   ; 00ff and 0f0f .12 = 0008
 
-      lea     R3,$ffff[R0]
-      lea     R4,$ffff[R0]
-      lea     R5,$ffff[R0]
-      lea     R6,$ffff[R0]
-      logicb  R3,R1,R2,1,0
-      logicb  R4,R1,R2,1,4
-      logicb  R5,R1,R2,1,8
-      logicb  R6,R1,R2,1,12
+; or = 7
+      add     R3,R0,R0
+      logicb  R3,R1,R2,7,0    ; 00ff or 0f0f   .0 = 0000
+      add     R4,R0,R0
+      logicb  R4,R1,R2,7,4    ; 00ff or 0f0f   .4 = 0800
+      add     R5,R0,R0
+      logicb  R5,R1,R2,7,8    ; 00ff or 0f0f   .8 = 0080
+      add     R6,R0,R0
+      logicb  R6,R1,R2,7,12   ; 00ff or 0f0f .12 = 0008
 
-; or
-      logicb  R3,R1,R2,7,0
-      logicb  R4,R1,R2,7,4
-      logicb  R5,R1,R2,7,8
-      logicb  R6,R1,R2,7,12
-; xor
-      logicb  R3,R1,R2,6,0
-      logicb  R4,R1,R2,6,4
-      logicb  R5,R1,R2,6,8
-      logicb  R6,R1,R2,6,12
-
-; Ordinary case: adding two small integers, one negative
-
-      load   R1,k1[R0]     ; R1 = k1 = -73
-      load   R2,k2[R0]     ; R2 = k2 = 250
-      add    R3,R1,R2      ; -73 + 250 = 177    = $00b1
+; xor = 6
+      add     R3,R0,R0
+      logicb  R3,R1,R2,6,0    ; 00ff xor 0f0f   .0 = 0000
+      add     R4,R0,R0
+      logicb  R4,R1,R2,6,4    ; 00ff xor 0f0f   .4 = 0800
+      add     R5,R0,R0
+      logicb  R5,R1,R2,6,8    ; 00ff xor 0f0f   .8 = 0080
+      add     R6,R0,R0
+      logicb  R6,R1,R2,6,12   ; 00ff xor 0f0f  .12 = 0000
 
 
-      load   R1,all1s[R0]  ; R1 = -1 = $ffff
-      lea    R2,1[R0]      ; R2 =  1 = $0001
-      add    R3,R1,R2      ; R3 = $0000, R15 = $0000
+; Word logic
 
-      trap   R0,R0,R0      ; terminate
+; inv R1 = 12
+      add     R3,R0,R0
+      logicw  R3,R1,R2,12     ; inv R1  .0  00ff = ff00
 
-k1    data   -73
-k2    data   250
-all1s data   -1    = $ffff
+; and = 1
+      add     R3,R0,R0
+      logicw  R3,R1,R2,1      ; 00ff and 0f0f  .0 = 000f
+
+; or = 7
+      add     R3,R0,R0
+      logicw  R3,R1,R2,7      ; 00ff or 0f0f   .0 = 0fff
+
+; xor = 6
+      add     R3,R0,R0
+      logicw  R3,R1,R2,6      ; 00ff xor 0f0f   .0 = 0ff0
+
+; Pseudoinstructions
+
+; Word logic pseudoinstructions generating logicw
+
+      inv     R3,R1           ; inv R1 00ff   = ff00
+      and     R3,R1,R2        ; 00ff and 0f0f = 000f
+      or      R3,R1,R2        ; 00ff or  0f0f = 0fff
+      xor     R3,R1,R2        ; 00ff and 0f0f = 0ff0
+
+; Bit logic pseudoinstructions generating logicb
+
+; invb R1 = 12
+      add     R3,R0,R0
+      invb    R3,R1,0         ; inv R1  .0 = 00ff = 8000
+      add     R4,R0,R0
+      invb    R4,R1,15        ; inv R1 .15 = 00ff = 0000
+
+; andb = 1
+      add     R3,R0,R0
+      andb    R3,R1,R2,0      ; 00ff and 0f0f  .0 = 0000
+      add     R4,R0,R0
+      andb    R4,R1,R2,4      ; 00ff and 0f0f  .4 = 0000
+      add     R5,R0,R0
+      andb    R5,R1,R2,8      ; 00ff and 0f0f  .8 = 0000
+      add     R6,R0,R0
+      andb    R6,R1,R2,12     ; 00ff and 0f0f .12 = 0008
+
+; orb = 7
+      add     R3,R0,R0
+      orb     R3,R1,R2,0      ; 00ff or 0f0f   .0 = 0000
+      add     R4,R0,R0
+      orb     R4,R1,R2,4      ; 00ff or 0f0f   .4 = 0800
+      add     R5,R0,R0
+      orb     R5,R1,R2,8      ; 00ff or 0f0f   .8 = 0080
+      add     R6,R0,R0
+      orb     R6,R1,R2,12     ; 00ff or 0f0f .12 = 0008
+
+; xorb = 6
+      add     R3,R0,R0
+      xorb    R3,R1,R2,0      ; 00ff xor 0f0f   .0 = 0000
+      add     R4,R0,R0
+      xorb    R4,R1,R2,4      ; 00ff xor 0f0f   .4 = 0800
+      add     R5,R0,R0
+      xorb    R5,R1,R2,8      ; 00ff xor 0f0f   .8 = 0080
+      add     R6,R0,R0
+      xorb    R6,R1,R2,12     ; 00ff xor 0f0f  .12 = 0000
+
+      trap    R0,R0,R0        ; terminate

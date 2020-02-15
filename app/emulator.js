@@ -1115,6 +1115,11 @@ function exp2_injecti (es) {
 
 function exp2_logicw (es) {
     console.log ('exp2_logicw');
+    let x = regFile[es.field_e].get(); // operand 1
+    let y = regFile[es.field_f].get(); // operand 2
+    let fcn = es.field_g; // logic function
+    let result = applyLogicFcnWord (fcn,x,y); // fcn x y
+    regFile[es.ir_d].put(result);
 }
 
 

@@ -235,22 +235,23 @@ statementSpec.set("jumpvu",   {format:JX,  opcode:[15,5,bit_ccV]});
 statementSpec.set("jumpco",   {format:JX,  opcode:[15,5,bit_ccC]});
 
 
-// RREXP pseudo
-statementSpec.set("invnew",   {format:RREXP,     opcode:[14,36,12]}); // logicw
-// RRKEXP pseudo
-statementSpec.set("invb",     {format:RRKEXP,     opcode:[14,37,12]}); // logicb
-// RRREXP pseudo
-statementSpec.set("andnew",   {format:RRREXP,    opcode:[14,36,1]}); // logicw
-statementSpec.set("ornew",    {format:RRREXP,    opcode:[14,36,7]}); // logicw
-statementSpec.set("xornew",   {format:RRREXP,    opcode:[14,36,6]}); // logicw
-// RRRKEXP pseudo
-statementSpec.set("andb",   {format:RRRKEXP,    opcode:[14,37,1]}); // logicb
-statementSpec.set("orb",    {format:RRRKEXP,    opcode:[14,37,7]}); // logicb
-statementSpec.set("xorb",   {format:RRRKEXP,    opcode:[14,37,6]}); // logicb
+// RREXP pseudo logicw
+statementSpec.set("inv",      {format:RREXP,  opcode:[14,22,12], pseudo:true});
+// RRKEXP pseudo: logicb
+statementSpec.set("invb",     {format:RRKEXP, opcode:[14,23,12], pseudo:true});
+// RRREXP pseudo logic
+statementSpec.set("and",      {format:RRREXP, opcode:[14,22,1], pseudo:true});
+statementSpec.set("or",       {format:RRREXP, opcode:[14,22,7], pseudo:true});
+statementSpec.set("xor",      {format:RRREXP, opcode:[14,22,6], pseudo:true});
+// RRRKEXP pseudo logicb
+statementSpec.set("andb",     {format:RRRKEXP,    opcode:[14,23,1], pseudo:true});
+statementSpec.set("orb",      {format:RRRKEXP,    opcode:[14,23,7], pseudo:true});
+statementSpec.set("xorb",     {format:RRRKEXP,    opcode:[14,23,6], pseudo:true});
 
 // Mnemonic for field
-// RKKEXP pseudo
-statementSpec.set("field",    {format:RKKEXP,   opcode:[14,22]}); // injecti
+// RKKEXP pseudo injecti
+statementSpec.set("field",    {format:RKKEXP,   opcode:[14,22],
+                               pseudo:true});
 
 // -------------------------------------
 // Mnemonics for control registers
