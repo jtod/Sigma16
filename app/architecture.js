@@ -183,7 +183,7 @@ statementSpec.set("restore",  {format:RRXEXP,    opcode:[14,9]});
 statementSpec.set("getctl",   {format:RCEXP,     opcode:[14,10]});
 statementSpec.set("putctl",   {format:RCEXP,     opcode:[14,11]});
 // RREXP
-statementSpec.set("execute",  {format:RREXP,     opcode:[14,12]});
+statementSpec.set("execute",  {format:RREXP,     opcode:[14,12]}); // to do ????
 // RRREXP
 statementSpec.set("push",     {format:RRREXP,    opcode:[14,13]});
 statementSpec.set("pop",      {format:RRREXP,    opcode:[14,14]});
@@ -205,8 +205,8 @@ statementSpec.set("data",    {format:DATA,       opcode:[]});
 statementSpec.set("module",  {format:DirModule,  opcode:[]});
 statementSpec.set("import",  {format:DirImport,  opcode:[]});
 statementSpec.set("export",  {format:DirExport,  opcode:[]});
-statementSpec.set("org",     {format:DirOrg,     opcode:[]});
-statementSpec.set("equ",     {format:DirEqu,     opcode:[]});
+statementSpec.set("org",     {format:DirOrg,     opcode:[]}); // to do ????
+statementSpec.set("equ",     {format:DirEqu,     opcode:[]}); // to do ????
 
 // -------------------------------------
 // Pseudoinstructions

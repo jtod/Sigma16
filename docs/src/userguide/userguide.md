@@ -150,7 +150,6 @@ instruction to be executed is the one in memory location 0.  The ir
 and other registers also contain 0, but that is just the initial
 value.
 
-
 To exit the app, just close the browser window or tab.  This may
 put up a dialogue box warning that any unsaved data may be lost and
 asking you to confirm.

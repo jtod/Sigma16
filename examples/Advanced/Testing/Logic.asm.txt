@@ -1,5 +1,32 @@
 ; Test cases for bit manipulation instructions
 
+
+; Bit fields
+
+      lea      R1,$1234[R0]
+      extract  R2,R1,0,3     ; 0001
+      extract  R3,R1,4,7     ; 0002
+      extract  R4,R1,8,11    ; 0003
+      extract  R5,R1,12,15   ; 0004
+      extract  R6,R1,0,7     ; 0012
+      extract  R7,R1,8,15    ; 0034
+      extract  R8,R1,4,11    ; 0023
+      extract  R9,R1,1,0     ; 0000
+      extract  R10,R1,0,15   ; 1234
+
+      extracti R2,R1,0,3     ; 000e
+      extracti R3,R1,4,7     ; 000d
+      extracti R4,R1,8,11    ; 000c
+      extracti R5,R1,12,15   ; 000b
+      extracti R6,R1,0,7     ; 00ed
+      extracti R7,R1,8,15    ; 00cb
+      extracti R8,R1,4,11    ; 00dc
+      extracti R9,R1,1,0     ; 0000
+      extracti R10,R1,0,15   ; edcb
+
+      inject   R4,R2,0,3
+      injecti  R5,R3,0,11
+
 ; Shifting
 
       lea     R1,$0040[R0]  ; 0000 0000 0100 0000

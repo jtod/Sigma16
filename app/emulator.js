@@ -1099,10 +1099,25 @@ function exp2_shiftr (es) {
 
 function exp2_extract (es) {
     console.log ('exp2_extract');
+    let x = regFile[es.field_e].get();
+    let i = es.field_g;
+    let j = es.field_h;
+    let a = (x << i) & 0xffff;
+    let b = a >> (15 - (j-i));
+    regFile[es.ir_d].put(b);
 }
+//    console.log (`extract e=${es.field_e}`);
+//    console.log (`extract x=${wordToHex4(x)} i=${i} j=${j} a=${wordToHex4(a)} b=${wordToHex4(b)}`);
+//    let result = (x << i) >>> (15-(j-i));
 
 function exp2_extracti (es) {
     console.log ('exp2_extracti');
+    let x = wordInvert (regFile[es.field_e].get());
+    let i = es.field_g;
+    let j = es.field_h;
+    let a = (x << i) & 0xffff;
+    let b = a >> (15 - (j-i));
+    regFile[es.ir_d].put(b);
 }
 
 function exp2_inject (es) {
