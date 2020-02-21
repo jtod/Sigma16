@@ -26,7 +26,6 @@
 // List of all modules
 
 let s16modules = [];    // All the modules in the system
-let nModules = 1;
 let selectedModule = 0;
 
 let currentFile = null;  // deprecated, Remember the current working file handle
@@ -52,18 +51,22 @@ function getCurrentModule () {
 
 // Make a new module with empty contents; this defines the fields of a module
 
-function mkModule () {
+function mkModule (i) {
     console.log('mkModule');
     return {
-        mIndex : null,             // index in s16modules list
+        mIndex : i,             // index in s16modules list
 	mFile : null,              // file object associated with module, if any
         fileName : null,           // filename, if exists and is known
 	fileReader : null,         // object to read the file
-        fileRead : false,          // has file been completely read in yet?
+        firstNewMod : 0,
+        lastNewMod : 0,
+        selectWhenReadsFinished : 0,
+        fileReadComplete : false,          // has file been completely read in yet?
         fileStale : false,         // contents have been changed in editor
 	selected : false,          // this module is selected (for edit, asm)
 	modName : null,            // name of module specified in module stmt
 	modSrc : '',               // source code
+        modIsAssembled : false,    // has been assembled
 	symbols : [],              // symbols used in the source
 	symbolTable : new Map (),  // symbol table
 	nAsmErrors : 0,            // number of errors in assembly source code
@@ -105,8 +108,8 @@ function getFileName (m) {
 
 function newModule () {
     console.log ("newModule");
-    s16modules.push(mkModule());
-    selectedModule = s16modules.length-1;
+    selectedModule = s16modules.length;
+    s16modules.push(mkModule(selectedModule));
     refreshEditorBuffer();
     refreshModulesList();
 }
@@ -144,51 +147,65 @@ function selectExample() {
 function handleSelectedFiles (flist) {
     console.log("handleSelectedFiles");
     let m;
-    let idxFirstNewMod = nModules;
-    let idxLastNewMod  = nModules + flist.length - 1;
+    let idxFirstNewMod = s16modules.length;
+    let idxLastNewMod  = idxFirstNewMod + flist.length - 1;
     for (let i=0; i<flist.length; i++) {
-	m = mkModule ();
-        m.mIndex = nModules;
+	m = mkModule (s16modules.length);
+        m.mIndex = s16modules.length;
 	m.mFile = flist[i];
         m.fileName = m.mFile.name;
 	m.selected = false;
-        m.fileRead = false;
+        m.fileReadComplete = false;
 	m.modSrc = "";
-	m.fileReader = mkOfReader(m, nModules, idxFirstNewMod, idxLastNewMod);
+        m.firstNewMod = idxFirstNewMod;
+        m.lastNewMod = idxLastNewMod;
+        m.selectWhenReadsFinished = m.lastNewMod;
+	m.fileReader = mkOfReader(m, m.mIndex);
 	m.fileReader.readAsText(m.mFile);
 	s16modules.push(m);
-	nModules++;
     }
-    //    modulesButtonSelect (idxFirstNewMod);
-//    selectedModule = idxFirstNewMod; causes this one to get cleared??
     console.log ("handle, finished selecting");
 }
 
-
-function mkOfReader (m, i,a,b) {
-    console.log (`mkOfReader idx=${m.mIndex} ${i} ${a} ${b}`);
+function mkOfReader (m, i) {
     let fr = new FileReader();
     fr.onload = function (e) {
         let idx = m.mIndex; // could change after close
+        let a = m.firstNewMod;
+        let b = m.lastNewMod;
 	console.log (`ofReader ${idx} onload event a=${a} b=${b}`);
-        //	s16modules[i].modSrc = e.target.result;
         m.modSrc = e.target.result;
-        //	s16modules[i].fileRead = true;
-        m.fileRead = true;
-        let allOK = true;
-//        for (let j=a; j<=b; j++) {
-//            allOK = allOK && s16modules[j].fileRead;
-//            console.log (`mkOfReader looper aok=${allOK} idx=${idx} j=${j}`);
-//        }
-//        console.log (`mkOfReader looper DONE aok=${allOK} idx=${idx}`);
-        if (allOK) {
-            console.log (`mkOfReader onload calling refresh idx=${idx}`);
-            refreshModulesList() // do after all files are in
-        } else {
-            console.log (`mkOfReader onload NOT calling refresh idx${idx}`);
-        }
+        m.fileReadComplete = true;
+        refreshWhenReadsFinished (m,i); // if all files are in, then refresh
     }
     return fr;
+}
+
+// If all the files selected in the file chooser have been read in,
+// refresh the modules list.  The refresh should be called just one
+// time.
+
+function refreshWhenReadsFinished  (m,i) {
+    console.log (`checkAllReadsFinished ${i}`);
+    let allOK = true;
+    let a = m.firstNewMod;
+    let b = m.lasttNewMod;
+    for (let j=a; j<=b; j++) {
+        console.log (`refreshWhen i=${i} j=${j}`);
+            allOK = allOK && s16modules[j].fileReadComplete;
+            console.log (`check finished loop aok=${allOK} i=${i} j=${j}`);
+        }
+        console.log (`check finished loop DONE aok=${allOK} i=${i}`);
+        if (allOK) {
+            console.log (`check finished calling refresh i=${i}`);
+            //            selectedModule = i;
+            selectedModule = m.selectWhenReadsFinished;
+            refreshEditorBuffer();
+            refreshModulesList() // do after all files are in
+        } else {
+            console.log (`mkOfReader onload NOT calling refresh i${i}`);
+        }
+    console.log (`checkAllReadsFinished returning ${i}`);
 }
 
 //-------------------------------------------------------------------------------
@@ -203,6 +220,7 @@ function refreshModulesList() {
     let m, sel, spanClass, mName, fName, mfName;
     for (let i=0; i<s16modules.length; i++) {
 	m = s16modules[i];
+//        m.fileReader = null; // let reader be garbage collected
         mfName = getModFileName (m);
 	sel = selectedModule===i;
 	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
@@ -210,14 +228,20 @@ function refreshModulesList() {
 	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. ${mfName}</span>`
 	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
 	    + `<button onclick="modulesButtonClose(${i})">Close</button>`
-	    + `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
+            + ( m.mFile ? `<button onclick="modulesButtonRefresh(${i})">Refresh</button>` : "")
             + `<br>nAsmErrors=${m.nAsmErrors} isExecutable=${m.isExecutable}`
+            + `<br>mIndex=${m.mIndex}`
+            + (m.mFile ? `<br>Associated with file ${m.fileName}`
+               : "<br>Has no file, only in editor buffer")
 	    + '<br><pre>'
             + (m.fileStale ? "<br>Modified, needs to be saved<br>" : "<br>")
 	    + m.modSrc.split('\n').slice(0,8).join('\n')
 	    + '</pre>\n\n'
-            + '<hr>\n\n';
+            + '<hr>\n';
     }
+    ys += `<br>${s16modules.length} modules\n`
+    ys += `<br>module #${selectedModule} currently selected\n`;
+    ys += '<br><hr><br>';
     let elt = document.getElementById('FilesBody');
     elt.innerHTML = ys;
 }
@@ -225,6 +249,7 @@ function refreshModulesList() {
 // If there has been a change to selected module or its file contents,
 // update the editor buffer as well as the assembler buffer
 function refreshEditorBuffer () {
+    console.log (`refreshEditorBuffer selectedModule=${selectedModule}`);
     let m = s16modules[selectedModule];
     document.getElementById("EditorTextArea").value = m.modSrc;
     document.getElementById("AsmTextHtml").innerHTML = "";
@@ -236,25 +261,19 @@ function modulesButtonSelect (i) {
     selectedModule = i;
     m.selected = true;
     refreshEditorBuffer();
-//    editorBufferTextArea.value = m.modSrc;
-//    document.getElementById("AsmTextHtml").innerHTML = "";
     refreshModulesList();
 }
 
-// Need to be careful about this affecting refresh, as i has been
-// baked into the file reader.  Should be fixed now...
 function modulesButtonClose (i) {
     console.log (`filesButtonClose ${i}`);
     if (s16modules.length == 1) { // closing the only module there is
         initModules() // there is just one new module, and select it
-    } else if (i == selectedModule) { // closing selected module
+    } else {
         s16modules.splice(i,1);
+        for (let j=i; j<s16modules.length; j++) {
+            s16modules[j].mIndex = j;
+        }
         selectedModule = 0;
-        refreshEditorBuffer();
-        refreshModulesList();
-    } else { // closing some random module
-        s16modules.splice(i,1);
-        selectedModule = i<selectedModule ? selectedModule-1 : selectedModule;
         refreshEditorBuffer();
         refreshModulesList();
     }
@@ -262,12 +281,13 @@ function modulesButtonClose (i) {
 
 // need to set event handler to refresh the modules list
 function modulesButtonRefresh (i) {
+    console.log (`modulesButtonRefresh i=${i}`);
     let m = s16modules[i];
+    selectedModule = i;
+    m.firstNewMod = i;
+    m.lastNewMod = i;
+    m.selectWhenReadsFinished = i;
+    m.modSrc = "*** reading file ***";
     console.log (`filesButtonRefresh ${m.mIndex}`);
     m.fileReader.readAsText(m.mFile);
-    refreshEditorBuffer();
-    refreshModulesList();
 }
-//    let m = s16modules[selectedModule];
-//    s16modules[i].fileReader.readAsText(s16modules[i].mFile);
-
