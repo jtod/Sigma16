@@ -7,6 +7,29 @@ for experimenting with the architecture.
 <div class="quickstartbox"> [Click to run Sigma16 in your
   browser](https://jtod.github.io/home/Sigma16/releases/3.1.1/app/Sigma16.html)</div>
 
+The one and only correct way to launch Sigma16 is to visit this home
+page;  then  click the link
+in the red box above.  This will launch the latest version.  
+It's a good idea to bookmark this home page.  Don't bookmark a
+specific version (one of the links below); that will prevent you from
+accessing the latest version.  Old versions are guaranteed to have
+either missing features, missing documentation, bugs, or all of the
+above.  After all, that’s the reason that old versions get replaced by
+newer ones!
+
+Please report any bugs you find.  It is important in any bug report
+(for any software, not just Sigma16) to provide all of the following:
+
+* What version you’re running (this is visible at the top of the User
+  Guide, and also in the URL) and make sure you’re running the latest version
+
+* What browser and operating system
+
+* If possible, the source code of the program you’re running
+
+* If possible, a photo or screen shot showing the app when the problem
+  arose (a smartphone photo is fine)
+
 ## Web resources
 
 The "Click to run" link above will run the latest version.  To view
@@ -90,17 +113,8 @@ software, and are not recommended for general use.
 
   * [Run the latest development version](./dev/app/Sigma16.html) This
     is a pre-release for the next version.  It is intended for
-    development only, may be unstable, and is not be suitable for
+    development only, may be unstable, and may not be suitable for
     general users.
-  * Older pre-release test versions:
-    [3.0.34](./releases/3.0.34/index.html)
-    [3.0.31](./releases/3.0.31/index.html)
-    [3.0.32](./releases/3.0.32/index.html)
-    [3.0.31](./releases/3.0.31/index.html)
-    [3.0.30](./releases/3.0.30/index.html)
-    [3.0.29](./releases/3.0.29/index.html)
-    [3.0.28](./releases/3.0.28/index.html)
-    [version 3.0.27](./releases/Sigma16-3.0.27/index.html)
 
 ## About the software
 

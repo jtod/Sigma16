@@ -1,8 +1,14 @@
 ; CmpJump.asm.txt
 ; Test comparisons, jumps, conditional jumps, condition codes
 
-
-
+    lea     R2,3[R0]
+    lea     R3,5[R0]
+    cmp     R3,R2
+    jumpge  jumped[R0]
+nojump
+    add     R1,R2,R3
+jumped
+    add     R0,R0,R0
 
     load    R1,veryneg[R0]        ; << 0
     load    R2,slightlyneg[R0]    ; < 0
