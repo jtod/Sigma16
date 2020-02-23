@@ -1,5 +1,13 @@
 ; Test cases for bit manipulation instructions
 
+; Logic pseudoinstructions generate logicw
+
+       lea     R1,$00ff[R0]  ; R1 := 00ff
+       lea     R2,$0f0f[R0]  ; R1 := 0f0f
+       inv     R3,R1         ; R3 := inv 00ff      = ff00
+       and     R4,R1,R2      ; R4 := 00ff and 0f0f = 000f
+       or      R5,R1,R2      ; R5 := 00ff or  0f0f = 0fff
+       xor     R6,R1,R2      ; R6 := 00ff xor 0f0f = 0ff0
 
 ; Bit fields
 

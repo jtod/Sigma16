@@ -45,6 +45,10 @@ function leaveEditor () {
             m.fileStale = true;
         }
         m.modSrc = newSrc;
+        let srcHead = m.modSrc.split('\n').slice(0,4).join('\n');
+        console.log (`leaving editor, src=${srcHead}`);
+    } else {
+        console.log ("leaving editor, don't have module")
     }
     hideTabbedPane("EditorPane");
 }

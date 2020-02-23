@@ -29,6 +29,7 @@ Version 3.1.2
 <li><a href="#registers-constants-and-arithmetic">Registers, constants, and arithmetic</a></li>
 <li><a href="#keeping-variables-in-memory">Keeping variables in memory</a></li>
 <li><a href="#assembly-language">Assembly language</a></li>
+<li><a href="#files-and-modules">Files and modules</a></li>
 <li><a href="#conditionals">Conditionals</a></li>
 <li><a href="#loops">Loops</a></li>
 <li><a href="#machine-language">Machine language</a></li>
@@ -442,6 +443,24 @@ y  data  $2c9e</code></pre>
    trap  R0,R0,R0      ; stop the program</code></pre>
 <p>The exact number of spaces each field is indented isn’t important; what’s important is to make the program neat and readable.</p>
 <p><em>Spaces, not tabs!</em> To indent your code, always use spaces – avoid tabs! In general, never use tabs except in the (rare) cases they are actually required. The tab character was introduced long ago into computer character sets to try to mimic the tab key on old mechanical typewriters But software does not handle tab consistently. If you use tabs, your can look good in one application and like a mess in another. It’s easy to indent with spaces, and it works everywhere!</p>
+<h2 id="files-and-modules">Files and modules</h2>
+<p>Whatever method you use to edit your programs, be sure to <strong>save your work to a file</strong> from time to time. If you don’t do that, sooner or later the system will crash and you’ll lose your data.</p>
+<p>A <em>module</em> is a section of a program; it may be the complete program or just a part of it. A module may be saved in a file or it may simply be text in the editor buffer. A program may consist of just one module, or it can be split between several files (<em>not supported yet, coming soon</em>).</p>
+<p>The Editor page contains a text area called the <em>editor buffer</em>. When you launch Sigma16, there is one module whose text is empty and displayed in the editor buffer. You can type a program (to be precise, a module) into the editor buffer. When you switch to the Assembler page, the Assemble button will translate the text in the editor buffer to machine language, which you can execute on the Processor page.</p>
+<p>After entering a program in the editor buffer, you should save it to a file. Click <em>Save in downloads</em> and the text in the editor buffer will be written to a file on your computer. Depending on how the system is configured, there may be a dialogue box asking you for a file name, or a generic default file name may be used (for example, “S16DownloadFile (2).txt” or something similar). This file will be saved in the default Downloads directory as configured in your browser.</p>
+<p>The reason there is limited control over the name of the saved file, and the directory where it is placed, is that web browsers enforce strict limitations on the ability of applications to access your file system. That’s a very good feature of browsers – you don’t want a random web page to start deleting or corrupting your files – but it does make it a little inconvenient to save your edited assembly programs.</p>
+<p>To create a new module without destroying the existing one, click <em>New</em> in the editor page. This will make a new module with empty text and display that in the editor buffer, so any text you had there will disappear. However, that text isn’t lost, it’s just hidden, and to get it back you just need to select the previous module.</p>
+<p>The <em>Modules</em> page shows a list of all the modules and allows you to select one to work on. The modules are shown in small sections separated by horizontal lines. The modules are numbered starting from 0, so if there are n modules their numbers go from 0 to n-1. For each module, the module number is shown, followed by some buttons to operate on that module, and some information about it. The first few lines of the module are shown. If you follow good programming style, where the first rew lines of each module identify what the program is, you’ll be able to see at a glance what each module is without visiting it in the editor.</p>
+<p>Several buttons appear for each module in the list. At any time, one of the modules is <em>selected</em>. Click the Select button for any module to select that one. The selected module number is highlighted in red, and when you go to the Editor page the text of the selected module appears in the editor buffer. This means you can have several programs open at the same time, and just switch from one to the other using the Select buttons in the Modules page.</p>
+<p>You can also get rid of a module by clicking its Close button. This will delete its text, so it may be a good idea to select it and download it in the Editor before closing it.</p>
+<p>So far we have just created new modules by clicking <em>New</em> (in either the Editor page or the Modules page). You can also read files on your computer into Sigma16. Click <em>Choose files</em> and a dialogue box will pop up. You can select one or more files, and these will now appear in the list of modules.</p>
+<p>If a module was created by reading it from a file, its entry in the list contains an extra <em>Refresh</em> button. Clicking this will reread the file and you won’t need to use the file chooser dialogue box again.</p>
+<p>Common workflows:</p>
+<ul>
+<li><p>Just type your program into the editor buffer, and download it frequently.</p></li>
+<li><p>Use an external editor to enter your program. After editing it, go to the Editor page and click Clear, then copy the program from your external editor and paste it into the editor buffer. If you do this, make sure that your external text editor doesn’t change your characters. For example, word processors often change the minus character (-) into an en-dash. There are four different characters that look similar to a minus sign (minus, hyphen, en-dash, em-dash) and the assembly language only accepts the minus sign. If you get bad characters, the assembler will give an error message.</p></li>
+<li><p>Use an external editor and save the file. In the Editor page, click Choose files and select your source file. Then, every time you edit the text in your external editor, save it and then click <em>Refresh</em> on the module in the Modules page. This way you don’t need to Download the editor buffer because your up-to-date text will be in the external editor (but of course you have to save the file there).</p></li>
+</ul>
 <h2 id="conditionals">Conditionals</h2>
 <p>Conditionals allow a program to decide which statements to execute based on Boolean expressions. One example is the if-then statement, for example:</p>
 <pre><code>if x&lt;y
@@ -1306,9 +1325,10 @@ Interrupt
 <h3 id="assembly-language-statement-formats">Assembly language statement formats</h3>
 <p>Assembly language statements generally correspond to the instruction formats, but there is not an exact correspondence for several reasons:</p>
 <ul>
-<li><p>Sometimes an instruction is written in assembly language with a field omitted which exists in the machine language code but is ignored. For example, the instruction <em>inv R1,R2</em> generates an RRR instruction, but the third operand field is omitted because the invert function takes only one operand, not two.</p></li>
+<li><p>Sometimes an instruction is written in assembly language with a field omitted which exists in the machine language code but is ignored. For example, the instruction <em>cmp R1,R2</em> generates an RRR instruction, but the third operand field is omitted because the instruction requires only one operand, not two. The assembler sets the unused operand to 0, but the machine ignores it. This is called a “don’t care” field in the instruction.</p></li>
 <li><p>Sometimes two instructions look the same in assembly language but use different machine language instruction formats. For example, <em>add R1,R2,R3</em> and <em>push R1,R2,R3</em> look similar, but <em>add</em> uses the RRR instruction format and <em>push</em> uses the EXP2 instruction format. The reason for this is that there are not enough bits in the op field to accommodate all the instructions with three register operands, so an <em>expanding opcode</em> is used. Thus push is represented with op=14, indicating EXP format, and the EXP2 variant is used for this instruction.</p></li>
 <li><p>The 4-bit fields are sometimes used to denote a register from the register file (R3), or a control register (mask), or a constant . In assembly language the constants are written just as a number (e.g. shiftl R1,R2,5). Control registers are written by name rather than their number in the control register file (e.g. getctl R3,mask).</p></li>
+<li><p>Some assembly language statements are <em>pseudoinstructions</em>. These are special cases of more general instructions. For example, <em>and</em> is a pseudoinstruction which generates a <em>logicw</em> instruction specialised to perform a logical and.</p></li>
 </ul>
 <table style="width:82%;">
 <caption><strong>Assembly language statement formats</strong></caption>
@@ -1692,16 +1712,25 @@ Interrupt
 <h2 id="bit-operations-on-words">Bit operations on words</h2>
 <p>The following instructions treat a word as a sequence of bits, and operate on the individual bits.</p>
 <h3 id="inv">inv</h3>
-<p>The <strong>invert</strong> instruction <em>inv Rd,Ra</em> inverts the bits in the operand Ra and places the result in the destination Rd. The operand Ra is not changed. Inverting a bit means changing 0 to 1, and changing 1 to 0.</p>
-<p>Suppose R8 contains 035f. Then the following instruction will set R3 to fca0, and leave R8 unchanged.</p>
-<pre><code>   inv R3,R8</code></pre>
+<p>The <strong>invert</strong> pseudoinstruction <em>inv Rd,Ra</em> inverts the bits in the operand Ra and places the result in the destination Rd. Thus bit i of Rd is set to the logical negation (invert) of bit i of Ra. The operand Ra is not changed.</p>
+<p>Inverting a bit means changing 0 to 1, and changing 1 to 0.</p>
+<p>Example: ~~~~ lea R1,$00ff[R0] lea R2,$0f0f[R0] inv R3,R1 ; R3 := inv 00ff = ff00 ~~~~</p>
+<p>The inv pseudoinstruction generates a logicw instruction with the function operand set to perform a logical invert.</p>
 <h3 id="and">and</h3>
-<p>The <strong>logical and</strong> instruction <em>inv Rd,Ra,Rb</em> calculates the logical “and” (conjunction) of the bits in the operands Ra and Rb, and places the result in the destination Rd. The operand registers are not changed. The logical and of two bits is 1 if both bits are 1, and 0 otherwise.</p>
+<p>The <strong>logical and</strong> pseudoinstruction <em>and Rd,Ra,Rb</em> calculates the logical “and” (conjunction) of the corresponding bits in the operands Ra and Rb, and places the result in the destination Rd. Thus bit i of Rd is the logical and of bit i in Ra and bit i in Rb. The operand registers are not changed.</p>
+<p>The logical and of two bits is 1 if both bits are 1, and otherwise 0.</p>
+<p>Example: ~~~~ lea R1,$00ff[R0] lea R2,$0f0f[R0] and R4,R1,R2 ; R4 := 00ff and 0f0f = 000f ~~~~</p>
+<p>The and pseudoinstruction generates a logicw instruction with the function operand set to perform a logical and.</p>
 <h3 id="or">or</h3>
-<p>The <strong>logical or</strong> instruction <em>inv Rd,Ra,Rb</em> calculates the logical “inclusive or” (disjucntion) of the bits in the operands Ra and Rb, and places the result in the destination Rd. The operand registers are not changed. The logical or of two bits is 1 if either or both of the bits are 1, and 0 otherwise.</p>
+<p>The <strong>logical or</strong> pseudoinstruction <em>or Rd,Ra,Rb</em> calculates the logical “inclusive or” (disjunction) of the corresponding bits in the operands Ra and Rb, and places the result in the destination Rd. Thus bit i of Rd is the logical or of bit i in Ra and bit i in Rb. The operand registers are not changed.</p>
+<p>The logical or of two bits is 1 if either or both of the bits are 1, and 0 otherwise.</p>
+<p>Example: ~~~~ lea R1,$00ff[R0] lea R2,$0f0f[R0] or R5,R1,R2 ; R5 := 00ff or 0f0f = 0fff ~~~~</p>
+<p>The or pseudoinstruction generates a logicw instruction with the function operand set to perform a logical or.</p>
 <h3 id="xor">xor</h3>
-<p>The <strong>logical exclusive or</strong> instruction <em>inv Rd,Ra,Rb</em> calculates the logical “exclusive or” of the bits in the operands Ra and Rb, and places the result in the destination Rd. The operand registers are not changed. The logical exclusive or of two bits is 1 if one or the other of the bits is 1, and 0 otherwise.</p>
-<p>The exclusive or of two bits is the same as the inclusive or if either bit is 0. The only time it is different is if both bits are 1: in that case exclusive or gives 0 but inclusive or gives 1.</p>
+<p>The <strong>logical exclusive or</strong> pseudoinstruction <em>xor Rd,Ra,Rb</em> calculates the logical “exclusive or” of the bits in the operands Ra and Rb, and places the result in the destination Rd. Thus bit i of Rd is the logical xor of bit i in Ra and bit i in Rb. The operand registers are not changed.</p>
+<p>The logical exclusive or of two bits is 1 if one or the other of the bits is 1, and 0 otherwise. The exclusive or of two bits is the same as the inclusive or if either bit is 0. The only time it is different is if both bits are 1: in that case exclusive or gives 0 but inclusive or gives 1.</p>
+<p>Example: ~~~~ lea R1,$00ff[R0] lea R2,$0f0f[R0] xor R3,R1,R2 ; R3 := 0ff0 ~~~~</p>
+<p>The xor pseudoinstruction generates a logicw instruction with the function operand set to perform an xor.</p>
 <h3 id="shiftl">shiftl</h3>
 <p>The instruction shiftl Rd,Ra,k shifts the value in the operand register Ra by k bits to the left, and the result is placed in the destination register Rd. The operand Ra is not modified. During the shift, the leftmost k bits of the value are discarded and the rightmost k bits become 0.</p>
 <pre><code>   shiftl  R2,R3,5</code></pre>
@@ -1870,223 +1899,188 @@ Interrupt
 <td style="text-align: center;">Rd := Ra &gt; Rb</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">inv</td>
-<td style="text-align: center;">RR</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">8</td>
-<td style="text-align: center;">Rd := inv Ra</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">and</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">9</td>
-<td style="text-align: center;">Rd := Ra and Rb</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">or</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">a</td>
-<td style="text-align: center;">Rd := Ra or Rb</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">xor</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">b</td>
-<td style="text-align: center;">Rd := Ra xor Rb</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">nop</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">RRR</td>
-<td style="text-align: center;">c</td>
-<td style="text-align: center;">no operation</td>
-</tr>
-<tr class="even">
 <td style="text-align: center;">trap</td>
 <td style="text-align: center;">RRR</td>
 <td style="text-align: center;">RRR</td>
 <td style="text-align: center;">d</td>
 <td style="text-align: center;"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">lea</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,0</td>
 <td style="text-align: center;">Rd := Ra+disp</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">load</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,1</td>
 <td style="text-align: center;">Rd := mem[Ra+disp]</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">store</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,2</td>
 <td style="text-align: center;">mem[Ra+disp] := Rd</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">jump</td>
 <td style="text-align: center;">JX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,3</td>
 <td style="text-align: center;">pc := Ra+disp</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">jumpc0</td>
 <td style="text-align: center;">KX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,4</td>
 <td style="text-align: center;">if R15.k=1 then pc := Ra+disp</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">jumpc1</td>
 <td style="text-align: center;">KX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,5</td>
 <td style="text-align: center;">if R15.k=0 then pc := Ra+disp</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">jumpf</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,6</td>
 <td style="text-align: center;">if Rd=0 then pc := Ra+disp</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">jumpt</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,7</td>
 <td style="text-align: center;">if Rd/=0 then pc := Ra+disp</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">jal</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,8</td>
 <td style="text-align: center;">Rd := pc, pc := Ra+disp</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">testset</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,9</td>
 <td style="text-align: center;">Rd := mem[Ra+disp], mem[Ra+disp] := 1</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">rfi</td>
 <td style="text-align: center;">NO</td>
 <td style="text-align: center;">R</td>
 <td style="text-align: center;">e,0</td>
 <td style="text-align: center;">pc := ipc, status := istatus</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">execute</td>
 <td style="text-align: center;">RR</td>
 <td style="text-align: center;">RREXP</td>
 <td style="text-align: center;">e,8</td>
 <td style="text-align: center;"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">getctl</td>
 <td style="text-align: center;">RC</td>
 <td style="text-align: center;">RCEXP</td>
 <td style="text-align: center;">e,10</td>
 <td style="text-align: center;">Rd := Rc</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">putctl</td>
 <td style="text-align: center;">RC</td>
 <td style="text-align: center;">RCEXP</td>
 <td style="text-align: center;">e,11</td>
 <td style="text-align: center;">Rc := Rd</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">push</td>
 <td style="text-align: center;">RRR</td>
 <td style="text-align: center;">RRREXP</td>
 <td style="text-align: center;">e,18</td>
 <td style="text-align: center;"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">pop</td>
 <td style="text-align: center;">RRR</td>
 <td style="text-align: center;">RRREXP</td>
 <td style="text-align: center;">e,19</td>
 <td style="text-align: center;"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">top</td>
 <td style="text-align: center;">RRR</td>
 <td style="text-align: center;">RRREXP</td>
 <td style="text-align: center;">e,1a</td>
 <td style="text-align: center;"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">shiftl</td>
 <td style="text-align: center;">RRK</td>
 <td style="text-align: center;">RRKEXP</td>
 <td style="text-align: center;">e,20</td>
 <td style="text-align: center;">Rd := Ra shl k</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">shiftr</td>
 <td style="text-align: center;">RRK</td>
 <td style="text-align: center;">RRKEXP</td>
 <td style="text-align: center;">e,21</td>
 <td style="text-align: center;">Rd := Ra shr k</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">getbit</td>
 <td style="text-align: center;">RRKK</td>
 <td style="text-align: center;">RRKEXP</td>
 <td style="text-align: center;">e,22</td>
 <td style="text-align: center;">Rd := R15.k</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">getbiti</td>
 <td style="text-align: center;">RRKK</td>
 <td style="text-align: center;">RRKEXP</td>
 <td style="text-align: center;">e,23</td>
 <td style="text-align: center;">Rd := inv R15.k</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">putbit</td>
 <td style="text-align: center;">RRKK</td>
 <td style="text-align: center;">RRKEXP</td>
 <td style="text-align: center;">e,24</td>
 <td style="text-align: center;">R15.k := Ra.15</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">putbiti</td>
 <td style="text-align: center;">RRKK</td>
 <td style="text-align: center;">RRKEXP</td>
 <td style="text-align: center;">e,25</td>
 <td style="text-align: center;">R15.k := inv Ra.15</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">extract</td>
 <td style="text-align: center;">RRKK</td>
 <td style="text-align: center;">RRKKEX</td>
 <td style="text-align: center;">P e,3</td>
 <td style="text-align: center;">8</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">save</td>
 <td style="text-align: center;">RRX</td>
 <td style="text-align: center;">RRXEXP</td>
 <td style="text-align: center;">e,4</td>
 <td style="text-align: center;">0 mem[Rb+ofs] := Re, mem[Rb+ofs+1] := Re+1, …, mem[Rb+ofs+(f-e+1)] := Rf,</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: center;">restore</td>
 <td style="text-align: center;">RRX</td>
 <td style="text-align: center;">RRXEXP</td>

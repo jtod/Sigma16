@@ -7,39 +7,10 @@ for experimenting with the architecture.
 <div class="quickstartbox"> [Click to run Sigma16 in your
   browser](https://jtod.github.io/home/Sigma16/releases/3.1.1/app/Sigma16.html)</div>
 
-The one and only correct way to launch Sigma16 is to visit this home
-page;  then  click the link
-in the red box above.  This will launch the latest version.  
-It's a good idea to bookmark this home page.  Don't bookmark a
-specific version (one of the links below); that will prevent you from
-accessing the latest version.  Old versions are guaranteed to have
-either missing features, missing documentation, bugs, or all of the
-above.  After all, that’s the reason that old versions get replaced by
-newer ones!
-
-Please report any bugs you find.  It is important in any bug report
-(for any software, not just Sigma16) to provide all of the following:
-
-* What version you’re running (this is visible at the top of the User
-  Guide, and also in the URL) and make sure you’re running the latest version
-
-* What browser and operating system
-
-* If possible, the source code of the program you’re running
-
-* If possible, a photo or screen shot showing the app when the problem
-  arose (a smartphone photo is fine)
-
-## Web resources
-
-The "Click to run" link above will run the latest version.  To view
-and download the source code, see the [source
-repository](https://github.com/jtod/Sigma16).  You can't run the app
-directly from the source repository; you need this home page to launch
-it.  The [User
-Guide](https://jtod.github.io/home/Sigma16/releases/3.1.0/docs/html/userguide/userguide.html)
-includes documentation of the architecture, programming, and
-installation.
+The [User
+Guide](https://jtod.github.io/home/Sigma16/releases/3.1.1/docs/html/userguide/userguide.html)
+includes documentation of the architecture, assembly language,
+programming, as well as tutorials.
 
 ## Introduction to the architecture
 
@@ -49,7 +20,7 @@ good vehicle for teaching and experimentation.
 * A 16-bit architecture with a simple yet powerful instruction set.
 
 * A small core subset of the architecture is suitable for introductory
-  teaching, but more advanced features support systems programming.
+  teaching, and more advanced features support systems programming.
 
 * Software tools include an assembler, linker, emulator, and IDE.
 
@@ -66,40 +37,88 @@ good vehicle for teaching and experimentation.
   circuit using the Hydra tools.
 
 * The User Guide is displayed in the running application, and you can
-  also read it without launching the program (see link above).
+  also read it without launching the program.
+
+## Where to find Sigma16
+
+To launch Sigma16 via the Internet, visit this home page and click the
+link in the red box above.  That will launch the latest stable
+version.  It's a good idea to bookmark this page:
+[https://jtod.github.io/home/Sigma16/](https://jtod.github.io/home/Sigma16/)
+
+To view and download the source code, see the [source
+repository](https://github.com/jtod/Sigma16/).  You can't run the app
+directly from the source repository; you need this home page to launch
+it.
+
+There are links to past releases below.  Normally you shouldn't use
+obsolete releases, but if you encounter a bug in the latest version
+you may be able to work around the problem by running an earlier one.
+If that happens, please file a bug report.  It is essential in a bug
+report (for any software, not just Sigma16) to provide all of the
+following information:
+
+* State what version of the software you’re running.  This is visible
+  in the browser's URL field and also at the top of the User Guide.
+  Also, make sure you’re running the latest version!
+
+* State what browser and operating system you're using.  There are
+  some incompatibilities between Chrome, Firefox, Edge, and Safari, as
+  well as differences between operating systems.
+  
+* Describe what the problem was.
+
+* Provide the source code of the assembly language program you’re
+  running.
+
+* If possible, provide some photos or screen shots showing the app at
+  the point where the problem arose.  Smartphone photos are fine.  Be
+  sure to show the register display, the assembly listing display, and
+  the version number (this is visible in the browser's display of the
+  URL, and it's also visible at the top of the User Guide).
 
 ## Running the app
 
 There are several ways to run the software.  Here is a brief summary;
 for more details see the User Guide.
 
-* The main app (the IDE) is implemented in JavaScript and can be
-  executed directly in a web browser.  Simply click the link at the
-  top of this page: this will launch the most recent release.
+* *Running via the Internet: no download or installation is
+  necessary.* The main app can be executed directly in a web browser:
+  simply click the link in the red box at the top of this page.
 
-* You can download the source files from the source repository; see
-  the download link in the *Releases* section.  Then open index.html
-  in a browser; this page provides a link to launch the program (see
-  the section "Links to local files").  This way you can run the app
-  without being connected to the Internet, but there are a few
-  limitations on accessing files.  (These limitations are enforced by
-  browsers to ensure security.)  In particular, when you open one of
-  the example programs, you need to copy it and paste it manually
-  (right click and select Copy or Paste) into the Editor tab, as the
-  button "Select example" won't work.  See the Installation section in
-  the User Guide.
+* *Download and run on local machine.* You can download the source
+  files from the source repository; see the download link in the
+  *Releases* section.  Then open index.html in a browser; this page
+  provides a link to launch the program (see the section "Links to
+  local files").  This way you can run the app without being connected
+  to the Internet, but there are a few limitations on accessing files.
+  (These limitations are enforced by browsers to ensure security.)  In
+  particular, when you open one of the example programs, you need to
+  copy it and paste it manually (right click and select Copy or Paste)
+  into the Editor tab, as the button "Select example" won't work.  See
+  the Installation section in the User Guide.
 
-* You can download the source and compile an executable for your
-  platform.  This will enable the app to run faster, alleviate the
-  restrictions on accessing files, and it doesn't need access to the
-  Internet.  See the Installation section in the User Guide.
+* *Local installation.* You can download the source and compile an
+  executable for your platform.  This will enable the app to run a
+  little faster and alleviate the restrictions on accessing files.
+  See the Installation section in the User Guide.
 
-* Some of the features of the system, including the digital circuit
-  simulation, require downloading and execution on a computer; they
-  won't run in a browser.  See the Circuit section in the User Guide.
+* *Additional software tools.* Some of the features of the system,
+  including the digital circuit simulation, require downloading
+  software and executing it in a shell.  These tools won't run in a
+  browser.  See the Circuit section in the User Guide.
 
 ### Releases
 
+The link in the red box at the top of this page runs the latest
+release, which is the top one in the list below.  Links to specific
+releases are given below.  Don't bookmark a specific version unless
+you need it for a specific reason: that will prevent you from
+accessing the latest version.  Previous versions are guaranteed to
+have either missing features, missing documentation, bugs, or all of
+the above.  After all, that’s the reason that old versions get
+replaced by newer ones!
+  
 * [launch 3.1.1](./releases/3.1.1/app/Sigma16.html) and [download
   3.1.1](https://github.com/jtod/Sigma16/releases/tag/v3.1.1)
 
@@ -111,10 +130,11 @@ for more details see the User Guide.
 The following versions are intended for development and testing of the
 software, and are not recommended for general use.
 
-  * [Run the latest development version](./dev/app/Sigma16.html) This
-    is a pre-release for the next version.  It is intended for
-    development only, may be unstable, and may not be suitable for
-    general users.
+* [Run the latest development version](./dev/app/Sigma16.html) This is
+  a pre-release for the next version, intended for development and
+  testing of the software.  It may be unstable, and is not recommended
+  for general users.  However, it may contain new features not yet in
+  the latest release.
 
 ## About the software
 

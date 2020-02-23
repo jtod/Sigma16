@@ -747,6 +747,105 @@ typewriters But software does not handle tab consistently.  If you use
 tabs, your can look good in one application and like a mess in
 another.  It's easy to indent with spaces, and it works everywhere!
 
+## Files and modules
+
+Whatever method you use to edit your programs, be sure to **save your
+work to a file** from time to time.  If you don't do that, sooner or
+later the system will crash and you'll lose your data.
+
+A *module* is a section of a program; it may be the complete program
+or just a part of it.  A module may be saved in a file or it may
+simply be text in the editor buffer.  A program may consist of just
+one module, or it can be split between several files (*not supported
+yet, coming soon*).
+
+The Editor page contains a text area called the *editor buffer*.  When
+you launch Sigma16, there is one module whose text is empty and
+displayed in the editor buffer.  You can type a program (to be
+precise, a module) into the editor buffer.  When you switch to the
+Assembler page, the Assemble button will translate the text in the
+editor buffer to machine language, which you can execute on the
+Processor page.
+
+After entering a program in the editor buffer, you should save it to a
+file.  Click *Save in downloads* and the text in the editor buffer
+will be written to a file on your computer.  Depending on how the
+system is configured, there may be a dialogue box asking you for a
+file name, or a generic default file name may be used (for example,
+"S16DownloadFile (2).txt" or something similar).  This file will be
+saved in the default Downloads directory as configured in your
+browser.
+
+The reason there is limited control over the name of the saved file,
+and the directory where it is placed, is that web browsers enforce
+strict limitations on the ability of applications to access your file
+system.  That's a very good feature of browsers -- you don't want a
+random web page to start deleting or corrupting your files -- but it
+does make it a little inconvenient to save your edited assembly
+programs.
+
+To create a new module without destroying the existing one, click
+*New* in the editor page.  This will make a new module with empty text
+and display that in the editor buffer, so any text you had there will
+disappear.  However, that text isn't lost, it's just hidden, and to
+get it back you just need to select the previous module.
+
+The *Modules* page shows a list of all the modules and allows you to
+select one to work on.  The modules are shown in small sections
+separated by horizontal lines.  The modules are numbered starting from
+0, so if there are n modules their numbers go from 0 to n-1.  For each
+module, the module number is shown, followed by some buttons to
+operate on that module, and some information about it.  The first few
+lines of the module are shown.  If you follow good programming style,
+where the first rew lines of each module identify what the program is,
+you'll be able to see at a glance what each module is without visiting
+it in the editor.
+
+Several buttons appear for each module in the list.  At any time, one
+of the modules is *selected*. Click the Select button for any module
+to select that one.  The selected module number is highlighted in red,
+and when you go to the Editor page the text of the selected module
+appears in the editor buffer.  This means you can have several
+programs open at the same time, and just switch from one to the other
+using the Select buttons in the Modules page.
+
+You can also get rid of a module by clicking its Close button.  This
+will delete its text, so it may be a good idea to select it and
+download it in the Editor before closing it.
+
+So far we have just created new modules by clicking *New* (in either
+the Editor page or the Modules page).  You can also read files on your
+computer into Sigma16.  Click *Choose files* and a dialogue box will
+pop up.  You can select one or more files, and these will now appear
+in the list of modules.
+
+If a module was created by reading it from a file, its entry in the
+list contains an extra *Refresh* button.  Clicking this will reread
+the file and you won't need to use the file chooser dialogue box
+again.
+
+Common workflows:
+
+* Just type your program into the editor buffer, and download it
+  frequently.
+  
+* Use an external editor to enter your program.  After editing it, go
+  to the Editor page and click Clear, then copy the program from your
+  external editor and paste it into the editor buffer.  If you do
+  this, make sure that your external text editor doesn't change your
+  characters.  For example, word processors often change the minus
+  character (-) into an en-dash.  There are four different characters
+  that look similar to a minus sign (minus, hyphen, en-dash, em-dash)
+  and the assembly language only accepts the minus sign.  If you get
+  bad characters, the assembler will give an error message.
+  
+* Use an external editor and save the file.  In the Editor page, click
+  Choose files and select your source file.  Then, every time you edit
+  the text in your external editor, save it and then click *Refresh*
+  on the module in the Modules page.  This way you don't need to
+  Download the editor buffer because your up-to-date text will be in
+  the external editor (but of course you have to save the file there).
+
 ## Conditionals
 
 Conditionals allow a program to decide which statements to execute
@@ -2067,9 +2166,11 @@ formats, but there is not an exact correspondence for several reasons:
 
 * Sometimes an instruction is written in assembly language with a
   field omitted which exists in the machine language code but is
-  ignored.  For example, the instruction *inv R1,R2* generates an RRR
+  ignored.  For example, the instruction *cmp R1,R2* generates an RRR
   instruction, but the third operand field is omitted because the
-  invert function takes only one operand, not two.
+  instruction requires only one operand, not two.  The assembler sets
+  the unused operand to 0, but the machine ignores it.  This is called
+  a "don't care" field in the instruction.
   
 * Sometimes two instructions look the same in assembly language but
   use different machine language instruction formats.  For example,
@@ -2087,6 +2188,11 @@ formats, but there is not an exact correspondence for several reasons:
   (e.g. shiftl R1,R2,5).  Control registers are written by name rather
   than their number in the control register file (e.g. getctl
   R3,mask).
+  
+* Some assembly language statements are *pseudoinstructions*.  These
+  are special cases of more general instructions.  For example, *and*
+  is a pseudoinstruction which generates a *logicw* instruction
+  specialised to perform a logical and.
 
 Table: **Assembly language statement formats**
 
@@ -2714,44 +2820,87 @@ operate on the individual bits.
 
 ### inv
 
-The **invert** instruction *inv Rd,Ra* inverts the bits in the operand Ra and
-places the result in the destination Rd.  The operand Ra is not
-changed.  Inverting a bit means changing 0 to 1, and changing 1 to 0.
+The **invert** pseudoinstruction *inv Rd,Ra* inverts the bits in the
+operand Ra and places the result in the destination Rd.  Thus bit i of
+Rd is set to the logical negation (invert) of bit i of Ra.  The
+operand Ra is not changed.
 
-Suppose R8 contains 035f.  Then the following instruction will set R3
-to fca0, and leave R8 unchanged.
+Inverting a bit means changing 0 to 1, and changing 1 to 0.
 
+Example:
 ~~~~
-   inv R3,R8
+   lea  R1,$00ff[R0]
+   lea  R2,$0f0f[R0]
+   inv  R3,R1         ; R3 := inv 00ff      = ff00
 ~~~~
+
+The inv pseudoinstruction generates a logicw instruction with the
+function operand set to perform a logical invert.
 
 ### and
 
-The **logical and** instruction *inv Rd,Ra,Rb* calculates the logical
-"and" (conjunction) of the bits in the operands Ra and Rb, and places
-the result in the destination Rd.  The operand registers are not
-changed.  The logical and of two bits is 1 if both bits are 1, and 0
-otherwise.
+The **logical and** pseudoinstruction *and Rd,Ra,Rb* calculates the
+logical "and" (conjunction) of the corresponding bits in the operands
+Ra and Rb, and places the result in the destination Rd.  Thus bit i of
+Rd is the logical and of bit i in Ra and bit i in Rb.  The operand
+registers are not changed.
+
+The logical and of two bits is 1 if both bits are 1, and otherwise 0.
+
+Example:
+~~~~
+   lea  R1,$00ff[R0]
+   lea  R2,$0f0f[R0]
+   and  R4,R1,R2      ; R4 := 00ff and 0f0f = 000f
+~~~~
+
+The and pseudoinstruction generates a logicw instruction with the
+function operand set to perform a logical and.
 
 ### or
 
-The **logical or** instruction *inv Rd,Ra,Rb* calculates the logical
-"inclusive or" (disjucntion) of the bits in the operands Ra and Rb,
-and places the result in the destination Rd.  The operand registers
-are not changed.  The logical or of two bits is 1 if either or both of
-the bits are 1, and 0 otherwise.
+The **logical or** pseudoinstruction *or Rd,Ra,Rb* calculates the
+logical "inclusive or" (disjunction) of the corresponding bits in the
+operands Ra and Rb, and places the result in the destination Rd. Thus
+bit i of Rd is the logical or of bit i in Ra and bit i in Rb.  The
+operand registers are not changed.
+
+The logical or of two bits is 1 if either or both of the bits are 1,
+and 0 otherwise.
+
+Example:
+~~~~
+   lea  R1,$00ff[R0]
+   lea  R2,$0f0f[R0]
+   or   R5,R1,R2      ; R5 := 00ff or  0f0f = 0fff
+~~~~
+
+The or pseudoinstruction generates a logicw instruction with the
+function operand set to perform a logical or.
 
 ### xor
 
-The **logical exclusive or** instruction *inv Rd,Ra,Rb* calculates the
-logical "exclusive or" of the bits in the operands Ra and Rb, and
-places the result in the destination Rd.  The operand registers are
-not changed.  The logical exclusive or of two bits is 1 if one or the
-other of the bits is 1, and 0 otherwise.
+The **logical exclusive or** pseudoinstruction *xor Rd,Ra,Rb*
+calculates the logical "exclusive or" of the bits in the operands Ra
+and Rb, and places the result in the destination Rd.  Thus bit i of Rd
+is the logical xor of bit i in Ra and bit i in Rb.  The operand
+registers are not changed.
 
-The exclusive or of two bits is the same as the inclusive or if either
-bit is 0.  The only time it is different is if both bits are 1: in
-that case exclusive or gives 0 but inclusive or gives 1.
+The logical exclusive or of two bits is 1 if one or the other of the
+bits is 1, and 0 otherwise.  The exclusive or of two bits is the same
+as the inclusive or if either bit is 0.  The only time it is different
+is if both bits are 1: in that case exclusive or gives 0 but inclusive
+or gives 1.
+
+Example:
+~~~~
+   lea  R1,$00ff[R0]
+   lea  R2,$0f0f[R0]
+   xor  R3,R1,R2      ; R3 := 0ff0
+~~~~
+
+The xor pseudoinstruction generates a logicw instruction with the
+function operand set to perform an xor.
 
 ### shiftl
 
@@ -3022,16 +3171,6 @@ cmplt    RRR   RRR    5       Rd := Ra < Rb
 cmpeq    RRR   RRR    6       Rd := Ra = Rb
 
 cmpgt    RRR   RRR    7       Rd := Ra > Rb
-
-inv      RR    RRR    8       Rd := inv Ra
-
-and      RRR   RRR    9       Rd := Ra and Rb
-
-or       RRR   RRR    a       Rd := Ra or Rb
-
-xor      RRR   RRR    b       Rd := Ra xor Rb
-
-nop      RRR   RRR    c       no operation
 
 trap     RRR   RRR    d       
 

@@ -1097,6 +1097,10 @@ function exp2_shiftr (es) {
     regFile[es.ir_d].put(result);
 }
 
+
+function foobar (g,h) {
+    
+}
 function exp2_extract (es) {
     console.log ('exp2_extract');
     let x = regFile[es.field_e].get();
@@ -1106,9 +1110,6 @@ function exp2_extract (es) {
     let b = a >> (15 - (j-i));
     regFile[es.ir_d].put(b);
 }
-//    console.log (`extract e=${es.field_e}`);
-//    console.log (`extract x=${wordToHex4(x)} i=${i} j=${j} a=${wordToHex4(a)} b=${wordToHex4(b)}`);
-//    let result = (x << i) >>> (15-(j-i));
 
 function exp2_extracti (es) {
     console.log ('exp2_extracti');

@@ -220,7 +220,6 @@ function refreshModulesList() {
     let m, sel, spanClass, mName, fName, mfName;
     for (let i=0; i<s16modules.length; i++) {
 	m = s16modules[i];
-//        m.fileReader = null; // let reader be garbage collected
         mfName = getModFileName (m);
 	sel = selectedModule===i;
 	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
