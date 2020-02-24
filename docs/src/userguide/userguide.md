@@ -1847,18 +1847,17 @@ instructions.  The key to understanding the interface between machine
 language and digital circuit design is to master the instruction
 formats.
 
-The core architecture (the simplest part of the system) uses just the
-**RRR format** (for instructions that perform operations in the
-registers) and the **RX format** (for instructions that refer to a
-memory location.)
+The core architecture (the simplest part of the system) uses just two
+instruction formats: the **RRR format** for instructions that perform
+operations in the registers, and the **RX format** for instructions
+that refer to a memory location.
 
 The advanced parts of the architecture provide additional instructions
-which are represented with the EXP format.  There are several
-sub-formats, or variations, of the EXP format which are described in
-more detail below.  The name EXP stands simultaneously for *expansion*
-(because it provides for many additional instructions) and
-*experimental* (because it allows for experimentation with the design
-and implementation of new instructions).
+which are represented with the EXP format. The name EXP stands
+simultaneously for *expansion* (because it provides for many
+additional instructions) and *experimental* (because it allows for
+experimentation with the design and implementation of new
+instructions).
 
 ### Instruction fields
 
@@ -1904,7 +1903,7 @@ Some instruction formats combine two of the 4-bit fields to form a
 larger field:
 
 * The a and b fields may be combined to form an 8-bit field called ab
-  (only for the EXP formats)
+  (only for the EXP format)
 * The g and h fields may be combined to form an 8-bit field called gh
 * The e, f, g, h fields may be combined to form a 16-bit field called
   disp
@@ -1952,10 +1951,9 @@ are individual names for the individual 4-bit fields, as well as names
 * gh (bits 8-15) 8-bit operand
 * disp (bits 0-15) 16 bit operand "displacement"
 
-
 There are two kinds of format: the machine instruction formats, and
-the assembly language instruction statement formats.  There are four
-machine instruction formats: RRR, RX, EXP1, EXP2.  However, there is a
+the assembly language instruction statement formats.  There are three
+machine instruction formats: RRR, RX, EXP2.  However, there is a
 larger set of assembly language statement formats, because there are
 special syntaxes for some instructions, and there are assembler
 directives that aren't instructions at all.  The assembly language
@@ -2077,41 +2075,15 @@ displacement, which is the entire second word of the instruction.
 * disp (displacement) is the second word of the instruction
 * ea (effective address) = displacement + r[a]
 
-### EXP1 format
+### EXP2 format
 
-An EXP1 instruction is one word, and only one operand field (the d
-field) is available.  (There are 0 fields in the second word; hence
-the name EXP1.)  The op field contains e, and the a and b fields are
-combined to form an 8-bit opcode.
-
-An EXP instruction contains 14 (hex e) in the op field, and the a and
+An EXP2 instruction contains 14 (hex e) in the op field, and the a and
 b fields are combined into a single 8-bit number that contains a
 secondary opcode.  This means that the EXP format allows for 256
 instructions.  This greatly expands the number of instructions that
 can be accommodated, and it allows for experimental instructions for
 research purposes.  (The name EXP stands simultaneously for both
 EXPansion and EXPerimentation.)
-
-The EXP1 format is one word, where op=14 (hex e) and the a and b
-fields are combined into an 8-bit secondary operation code.  There is
-only one operand, Rd.
-
-EXP1 format takes no operands.  The instruction format uses just one
-word (there is no second word with the e, f, g, h fields).  The op
-field contains 14 (hex e), the d field is ignored (the assembler sets
-it to 0), and the ab field contains an 8 bit expanded operation code.
-Example: *rfi* is an instruction with no operands and with secondary
-opcode 0.  Its representation is e000.  The EXP1 format allows rfi to
-be represented in one word without using up one of the limited and
-valuable opcodes avaiable for RRR instructions.
-
-~~~~
----------------------
-| op |  d |    ab   |
----------------------
-~~~~
-
-### EXP2 format
 
 An EXP2 instruction instruction is two words, with an 8-bit secondary
 operation code in the ab field of the first word.  There is a 4-bit
@@ -2141,7 +2113,7 @@ operand.
 
 The following table summarises the instruction formats.  The core of
 the architecture needs only the first two (RRR and RX).  The more
-advanced features require the EXP1 and EXP2 formats.
+advanced features require the EXP2 format.
 
 Table: **Machine language instruction formats**
 
@@ -2152,8 +2124,6 @@ Table: **Machine language instruction formats**
  
  RX       2      op,b     d,disp,a   load Rd,disp[Ra]
  
- EXP1     1      op,ab    d          rfi
-
  EXP2     2      op,ab    d,e,f,g,h  extract Re,Rf,Rg,Rh
  
  EXP2     2      op,ab    d,e,f,gh   save Rd,Re,gh[Rf]
@@ -2206,7 +2176,6 @@ Table: **Assembly language statement formats**
  JX      jump    disp[Ra]       RX (b ignored)
  KX      jumpc0  d,disp[Ra]     RX (d is constant)
 
- NO      rfi                    EXP1 (d ignored)
  RRK     shiftl  Rd,Ra,k        EXP2
  RRKK    extract Rd,Re,g,h      EXP2
  RRRKK   andfld  Rd,Re,Rf,g,h   EXP2
@@ -2434,6 +2403,8 @@ division by 0.
   not require a compare or jump instruction for each division.
 
 ### addc
+
+(Not yet implemented, coming soon)
 
 The **binary add with carry** instruction *addc Rd,Re,Rf* calculates
 the sum of the binary numbers in the operand registers Re and Rf as
@@ -2979,7 +2950,7 @@ Examples (W is an arbitrary word):
 * ir.{0,4} is the opcode, i.e. the 4-bit field comprising the leftmost
   four bits of the instruction register.
 * ir.{8,15} is the ab field of the instruction register, containing
-  the expanded operation code for EXP1 and EXP2 format instructions.
+  the expanded operation code for EXP format instructions.
 
 (An alternative way to specify bit fields, not used in Sigma16, would
 be to give the starting index and field size.  However, that approach
@@ -2987,7 +2958,6 @@ is less flexible, as the value of the specified field size would range
 between 0 and 15, yet there are 16 possible field sizes.  This means
 that, depending on precisely how the definition is written, either
 empty fields or maximal fields would not be representable.)
-
 
 ### logicw
 
@@ -3001,7 +2971,6 @@ empty fields or maximal fields would not be representable.)
 * General form: logicb Rd,Re,Rf,g,h
 * Rd.h := fcn g Re.h Rf.h
 * Assembly format: RRRKKEXP
-
 
 ### extract
 
@@ -3048,6 +3017,8 @@ understand than) the following:
 
 ### inject, injecti
 
+(Not yet implemented, coming soon)
+
 The inject instruction obtains a right-adjusted field from a source
 register Re and places it into the specified field (g,h) of the
 destination register Rd; the other bits of Rd are not changed.  The
@@ -3065,6 +3036,8 @@ General form: *injecti Rd,Re,g,h*
 
 
 ### field
+
+(Not yet implemented, coming soon)
 
 Pseudoinstruction
 
@@ -3095,6 +3068,8 @@ Using a field mask
 
 ### execute
 
+(Not yet implemented, coming soon)
+
 The *execute* instruction commands the computer to execute another
 instruction which is in the register file.  The first word of this
 target instruction is in Re and the second word (in case it's a
@@ -3114,6 +3089,8 @@ instruction, in the e and f fields.
 
 ### testset
 
+(Not yet implemented, coming soon)
+
 ### getctl
 
 ### putctl
@@ -3132,10 +3109,12 @@ one would not function correctly.  In the digital circuit implementing
 the processor, these two register updates are genuinely simultaneous:
 they happen during the same clock cycle, at exactly the same time.
 
-The instruction format is EXP1.  As there is no operand, every rfi
-instruction has the same machine language representation: e000.  The
-fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is
-unused, and ab=0 because this is the secondary opcode of rfi.
+The instruction format is EXP2.  As there is no operand, the d field
+is ignored and the second word of the instruction is omitted.  Thus
+every rfi instruction has the same machine language representation:
+e000.  The fields are op, d, ab; op=14 to indicate EXP format, d=0
+because it is unused, and ab=0 because this is the secondary opcode of
+rfi.
 
 This instruction is privileged.  Since the instruction changes the
 status register, it can be used to perform a context switch.
@@ -3155,50 +3134,54 @@ Table: **Instruction set**
 -------------------------------------------------------
  Mne     AL     ML    Op   Effect
 ------- ----- ------ ---- --------------------
-add      RRR   RRR    0    Rd := Ra + Rb
+add      RRR   RRR    0      Rd := Ra + Rb
 
-sub      RRR   RRR    1    Rd := r[a] - Rb
+sub      RRR   RRR    1      Rd := r[a] - Rb
 
-mul      RRR   RRR    2    Rd := Ra * Rb
+mul      RRR   RRR    2      Rd := Ra * Rb
 
-div      RRR   RRR    3    Rd := Ra / Rb,
-                          R15 := Ra rem Rb
+div      RRR   RRR    3      Rd := Ra / Rb,
+                             R15 := Ra rem Rb
 
-cmp      RRR   RRR    4       R15 := Ra ? Rb
+cmp      RRR   RRR    4      R15 := Ra ? Rb
 
-cmplt    RRR   RRR    5       Rd := Ra < Rb
+cmplt    RRR   RRR    5      Rd := Ra < Rb
 
-cmpeq    RRR   RRR    6       Rd := Ra = Rb
+cmpeq    RRR   RRR    6      Rd := Ra = Rb
 
-cmpgt    RRR   RRR    7       Rd := Ra > Rb
+cmpgt    RRR   RRR    7      Rd := Ra > Rb
+
+skipf    RRR   RRK    8      if Rd.a=0 then pc := pc+b (Not yet implemented)
+
+skipt    RRR   RRK    9      if Rd.a=1 then pc := pc+b (Not yet implemented)
 
 trap     RRR   RRR    d       
 
-lea      RX    RX     f,0     Rd := Ra+disp
+lea      RX    RX     f,0    Rd := Ra+disp
 
-load     RX    RX     f,1     Rd := mem[Ra+disp]
+load     RX    RX     f,1    Rd := mem[Ra+disp]
 
-store    RX    RX     f,2     mem[Ra+disp] := Rd
+store    RX    RX     f,2    mem[Ra+disp] := Rd
 
-jump     JX    RX     f,3     pc := Ra+disp
+jump     JX    RX     f,3    pc := Ra+disp
 
-jumpc0   KX    RX     f,4     if R15.k=1 then pc := Ra+disp
+jumpc0   KX    RX     f,4    if R15.k=1 then pc := Ra+disp
 
-jumpc1   KX    RX     f,5     if R15.k=0 then pc := Ra+disp
+jumpc1   KX    RX     f,5    if R15.k=0 then pc := Ra+disp
 
-jumpf    RX    RX     f,6     if Rd=0 then pc := Ra+disp
+jumpf    RX    RX     f,6    if Rd=0 then pc := Ra+disp
 
-jumpt    RX    RX     f,7     if Rd/=0 then pc := Ra+disp
+jumpt    RX    RX     f,7    if Rd/=0 then pc := Ra+disp
 
-jal      RX    RX     f,8     Rd := pc, pc := Ra+disp
+jal      RX    RX     f,8    Rd := pc, pc := Ra+disp
 
-testset  RX    RX     f,9     Rd := mem[Ra+disp],
-                              mem[Ra+disp] := 1
+testset  RX    RX     f,9    Rd := mem[Ra+disp], (Not yet implemented)
+                             mem[Ra+disp] := 1
                              
 rfi      NO    R      e,0    pc := ipc,
                              status := istatus
                              
-execute  RR    RREXP  e,8
+execute  RR    RREXP  e,8                             (Not yet implemented)
 
 getctl   RC    RCEXP  e,10   Rd := Rc
 
@@ -3210,24 +3193,16 @@ pop      RRR   RRREXP e,19
 
 top      RRR   RRREXP e,1a
 
-shiftl   RRK   RRKEXP e,20  Rd := Ra shl k
+shiftl   RRK   RRKEXP e,20   Rd := Ra shl k
 
-shiftr   RRK   RRKEXP e,21  Rd := Ra shr k
-
-getbit   RRKK  RRKEXP e,22  Rd := R15.k
-
-getbiti  RRKK  RRKEXP e,23  Rd := inv R15.k
-
-putbit   RRKK  RRKEXP e,24  R15.k := Ra.15
-
-putbiti  RRKK  RRKEXP e,25  R15.k := inv Ra.15
+shiftr   RRK   RRKEXP e,21   Rd := Ra shr k
 
 extract  RRKK  RRKKEXP e,38
 
-save     RRX   RRXEXP  e,40 mem[Rb+ofs] := Re,
-                            mem[Rb+ofs+1] := Re+1,
-                            ...,
-                            mem[Rb+ofs+(f-e+1)] := Rf,
+save     RRX   RRXEXP  e,40  mem[Rb+ofs] := Re,
+                             mem[Rb+ofs+1] := Re+1,
+                             ...,
+                             mem[Rb+ofs+(f-e+1)] := Rf,
 
 restore  RRX   RRXEXP  e,41 
 

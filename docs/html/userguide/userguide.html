@@ -49,7 +49,6 @@ Version 3.1.2
 <li><a href="#instruction-fields">Instruction fields</a></li>
 <li><a href="#rrr-format">RRR format</a></li>
 <li><a href="#rx-format">RX format</a></li>
-<li><a href="#exp1-format">EXP1 format</a></li>
 <li><a href="#exp2-format">EXP2 format</a></li>
 <li><a href="#summary-of-instruction-formats">Summary of instruction formats</a></li>
 <li><a href="#assembly-language-statement-formats">Assembly language statement formats</a></li>
@@ -1119,8 +1118,8 @@ Interrupt
 <p>Instructions are represented in the memory of the computer using words, just like all other kinds of data. From the programmer’s perspective, an instruction is like a simple statement in a programming language. From the circuit designer’s perspective, however, instructions must be processed using logic gates, and the specific way it is represented as a word of bits is important.</p>
 <p>An instruction specifies several pieces of information. For example, add R1,R2,R3 is an instruction that says four things: it’s an addition, the result goes into R1, and the operands come from R2 and R3. Therefore to represent instructions we need to organize a word as a collection of several <em>fields</em>, with each field giving one specific piece of information about the instruction.</p>
 <p>The particular scheme for describing an instruction as a collection of fields is called an <em>instruction format</em>. Like most computers, Sigma16 has a small number of instruction formats and a larger number of instructions. The key to understanding the interface between machine language and digital circuit design is to master the instruction formats.</p>
-<p>The core architecture (the simplest part of the system) uses just the <strong>RRR format</strong> (for instructions that perform operations in the registers) and the <strong>RX format</strong> (for instructions that refer to a memory location.)</p>
-<p>The advanced parts of the architecture provide additional instructions which are represented with the EXP format. There are several sub-formats, or variations, of the EXP format which are described in more detail below. The name EXP stands simultaneously for <em>expansion</em> (because it provides for many additional instructions) and <em>experimental</em> (because it allows for experimentation with the design and implementation of new instructions).</p>
+<p>The core architecture (the simplest part of the system) uses just two instruction formats: the <strong>RRR format</strong> for instructions that perform operations in the registers, and the <strong>RX format</strong> for instructions that refer to a memory location.</p>
+<p>The advanced parts of the architecture provide additional instructions which are represented with the EXP format. The name EXP stands simultaneously for <em>expansion</em> (because it provides for many additional instructions) and <em>experimental</em> (because it allows for experimentation with the design and implementation of new instructions).</p>
 <h3 id="instruction-fields">Instruction fields</h3>
 <p>An instruction may consist of one word or two words, depending on the instruction format. These words are subdivided into 4-bit <em>fields</em>, each with a unique name.</p>
 <p>First word of the instruction:</p>
@@ -1155,7 +1154,7 @@ Interrupt
 </table>
 <p>Some instruction formats combine two of the 4-bit fields to form a larger field:</p>
 <ul>
-<li>The a and b fields may be combined to form an 8-bit field called ab (only for the EXP formats)</li>
+<li>The a and b fields may be combined to form an 8-bit field called ab (only for the EXP format)</li>
 <li>The g and h fields may be combined to form an 8-bit field called gh</li>
 <li>The e, f, g, h fields may be combined to form a 16-bit field called disp</li>
 </ul>
@@ -1191,7 +1190,7 @@ Interrupt
 <li>gh (bits 8-15) 8-bit operand</li>
 <li>disp (bits 0-15) 16 bit operand “displacement”</li>
 </ul>
-<p>There are two kinds of format: the machine instruction formats, and the assembly language instruction statement formats. There are four machine instruction formats: RRR, RX, EXP1, EXP2. However, there is a larger set of assembly language statement formats, because there are special syntaxes for some instructions, and there are assembler directives that aren’t instructions at all. The assembly language formats are described later.</p>
+<p>There are two kinds of format: the machine instruction formats, and the assembly language instruction statement formats. There are three machine instruction formats: RRR, RX, EXP2. However, there is a larger set of assembly language statement formats, because there are special syntaxes for some instructions, and there are assembler directives that aren’t instructions at all. The assembly language formats are described later.</p>
 <p>The core architecture has only two instruction formats: RRR and RX.</p>
 <h3 id="rrr-format">RRR format</h3>
 <p>RRR instructions perform operations on data in registers, but not referring to memory. The representation is one word.</p>
@@ -1243,15 +1242,8 @@ Interrupt
 <li>disp (displacement) is the second word of the instruction</li>
 <li>ea (effective address) = displacement + r[a]</li>
 </ul>
-<h3 id="exp1-format">EXP1 format</h3>
-<p>An EXP1 instruction is one word, and only one operand field (the d field) is available. (There are 0 fields in the second word; hence the name EXP1.) The op field contains e, and the a and b fields are combined to form an 8-bit opcode.</p>
-<p>An EXP instruction contains 14 (hex e) in the op field, and the a and b fields are combined into a single 8-bit number that contains a secondary opcode. This means that the EXP format allows for 256 instructions. This greatly expands the number of instructions that can be accommodated, and it allows for experimental instructions for research purposes. (The name EXP stands simultaneously for both EXPansion and EXPerimentation.)</p>
-<p>The EXP1 format is one word, where op=14 (hex e) and the a and b fields are combined into an 8-bit secondary operation code. There is only one operand, Rd.</p>
-<p>EXP1 format takes no operands. The instruction format uses just one word (there is no second word with the e, f, g, h fields). The op field contains 14 (hex e), the d field is ignored (the assembler sets it to 0), and the ab field contains an 8 bit expanded operation code. Example: <em>rfi</em> is an instruction with no operands and with secondary opcode 0. Its representation is e000. The EXP1 format allows rfi to be represented in one word without using up one of the limited and valuable opcodes avaiable for RRR instructions.</p>
-<pre><code>---------------------
-| op |  d |    ab   |
----------------------</code></pre>
 <h3 id="exp2-format">EXP2 format</h3>
+<p>An EXP2 instruction contains 14 (hex e) in the op field, and the a and b fields are combined into a single 8-bit number that contains a secondary opcode. This means that the EXP format allows for 256 instructions. This greatly expands the number of instructions that can be accommodated, and it allows for experimental instructions for research purposes. (The name EXP stands simultaneously for both EXPansion and EXPerimentation.)</p>
 <p>An EXP2 instruction instruction is two words, with an 8-bit secondary operation code in the ab field of the first word. There is a 4-bit operand in the d field of the first word, and four 4-bit fields in the second word, named e, f, g, h.</p>
 <pre><code>---------------------
 | op |  d |    ab   |
@@ -1265,7 +1257,7 @@ Interrupt
 |  e |  f |    gh   |
 ---------------------</code></pre>
 <h3 id="summary-of-instruction-formats">Summary of instruction formats</h3>
-<p>The following table summarises the instruction formats. The core of the architecture needs only the first two (RRR and RX). The more advanced features require the EXP1 and EXP2 formats.</p>
+<p>The following table summarises the instruction formats. The core of the architecture needs only the first two (RRR and RX). The more advanced features require the EXP2 format.</p>
 <table style="width:79%;">
 <caption><strong>Machine language instruction formats</strong></caption>
 <colgroup>
@@ -1300,20 +1292,13 @@ Interrupt
 <td style="text-align: center;">load Rd,disp[Ra]</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">EXP1</td>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">op,ab</td>
-<td style="text-align: center;">d</td>
-<td style="text-align: center;">rfi</td>
-</tr>
-<tr class="even">
 <td style="text-align: center;">EXP2</td>
 <td style="text-align: center;">2</td>
 <td style="text-align: center;">op,ab</td>
 <td style="text-align: center;">d,e,f,g,h</td>
 <td style="text-align: center;">extract Re,Rf,Rg,Rh</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: center;">EXP2</td>
 <td style="text-align: center;">2</td>
 <td style="text-align: center;">op,ab</td>
@@ -1356,9 +1341,9 @@ Interrupt
 <td style="text-align: center;">RRR (b ignored), RREXP RX (b ignored) RX (d is constant)</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">NO RRK RRKK RRRKK RREXP RCEXP</td>
-<td style="text-align: left;">rfi shiftl Rd,Ra,k extract Rd,Re,g,h andfld Rd,Re,Rf,g,h execute Re,Rf getctl Re,Cf</td>
-<td style="text-align: center;">EXP1 (d ignored) EXP2 EXP2 EXP2 EXP2 EXP2</td>
+<td style="text-align: right;">RRK RRKK RRRKK RREXP RCEXP</td>
+<td style="text-align: left;">shiftl Rd,Ra,k extract Rd,Re,g,h andfld Rd,Re,Rf,g,h execute Re,Rf getctl Re,Cf</td>
+<td style="text-align: center;">EXP2 EXP2 EXP2 EXP2 EXP2</td>
 </tr>
 </tbody>
 </table>
@@ -1539,6 +1524,7 @@ Interrupt
 <li>(Exception) The program can detect division by 0 using an interrupt. To do this, enable interrupts and enable the interrupt mask for division by 0. See the section on Interrupts. This approach does not require a compare or jump instruction for each division.</li>
 </ul>
 <h3 id="addc">addc</h3>
+<p>(Not yet implemented, coming soon)</p>
 <p>The <strong>binary add with carry</strong> instruction <em>addc Rd,Re,Rf</em> calculates the sum of the binary numbers in the operand registers Re and Rf as well as the carry bit in the condition code. The sum is loaded into the destination register Rd and the carry output is set in the condition code register. Overflow is not possible with this instruction.</p>
 <h2 id="accessing-memory">Accessing memory</h2>
 <p>A memory address is a 16-bit binary number. Instructions don’t specify addresses directly; they specify an address with two components: a <em>displacement</em> and an <em>index</em>, written as “displacement[index]”. The displacement is a 16 bit constant, and in assembly language it may be given as a decimal integer, a hexadecimal word, or a label. The index is a register. For example,$0c45[R5] has a displacement of 0c45 and an index of R5.</p>
@@ -1754,7 +1740,7 @@ Interrupt
 <li>W.{0,15} is the field consisting of the entire word W</li>
 <li>W.{1,0} is the empty field containing no bits. In general, W.{s,e} where e&lt;s is the empty field</li>
 <li>ir.{0,4} is the opcode, i.e. the 4-bit field comprising the leftmost four bits of the instruction register.</li>
-<li>ir.{8,15} is the ab field of the instruction register, containing the expanded operation code for EXP1 and EXP2 format instructions.</li>
+<li>ir.{8,15} is the ab field of the instruction register, containing the expanded operation code for EXP format instructions.</li>
 </ul>
 <p>(An alternative way to specify bit fields, not used in Sigma16, would be to give the starting index and field size. However, that approach is less flexible, as the value of the specified field size would range between 0 and 15, yet there are 16 possible field sizes. This means that, depending on precisely how the definition is written, either empty fields or maximal fields would not be representable.)</p>
 <h3 id="logicw">logicw</h3>
@@ -1783,12 +1769,14 @@ Interrupt
 <pre><code>   shiftl Rd,Re,3
    shiftr Rd,Rd,13</code></pre>
 <h3 id="inject-injecti">inject, injecti</h3>
+<p>(Not yet implemented, coming soon)</p>
 <p>The inject instruction obtains a right-adjusted field from a source register Re and places it into the specified field (g,h) of the destination register Rd; the other bits of Rd are not changed. The injecti instruction is the same as inject, except that the injected field is inverted.</p>
 <p>General form: <em>inject Rd,Re,g,h</em></p>
 <p>General form: <em>injecti Rd,Re,g,h</em></p>
 <pre><code> inject   Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
  injecti  Rd,Re,g,h   ; Rd.{g,h} := invw Re.{16-h,h}</code></pre>
 <h3 id="field">field</h3>
+<p>(Not yet implemented, coming soon)</p>
 <p>Pseudoinstruction</p>
 <p>The field pseudoinstruction loads a word into the destination register Rd; this word consists of 1 bits in the specified field (g,h) and 0 in all other bit positions. This provides a field mask that can be used with logic instructions for a variety of purposes.</p>
 <ul>
@@ -1801,12 +1789,14 @@ Interrupt
 <pre><code> field   R3,4,  ; R3 := 0fc0</code></pre>
 <p>Using a field mask * invert it to give negative mask * and R1 with mask to clear bits outside the field * and R1 with negative mask to clear only the field * xor R1 with mask to invert bits in the field</p>
 <h3 id="execute">execute</h3>
+<p>(Not yet implemented, coming soon)</p>
 <p>The <em>execute</em> instruction commands the computer to execute another instruction which is in the register file. The first word of this target instruction is in Re and the second word (in case it’s a two-word instruction) is in Rf. If Re contains an RRR instruction, then Rf is ignored.</p>
 <pre><code>   execute Re,Rf</code></pre>
 <p>Format RREXP. Both operands are in the second word of the instruction, in the e and f fields.</p>
 <h2 id="system-control">System control</h2>
 <h3 id="trap">trap</h3>
 <h3 id="testset">testset</h3>
+<p>(Not yet implemented, coming soon)</p>
 <h3 id="getctl">getctl</h3>
 <h3 id="putctl">putctl</h3>
 <h3 id="rfi">rfi</h3>
@@ -1816,7 +1806,7 @@ Interrupt
 <li>pc := ipc</li>
 </ul>
 <p>It is important that this is an atomic operation. If either of the two register updates were performed before the other, then the second one would not function correctly. In the digital circuit implementing the processor, these two register updates are genuinely simultaneous: they happen during the same clock cycle, at exactly the same time.</p>
-<p>The instruction format is EXP1. As there is no operand, every rfi instruction has the same machine language representation: e000. The fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is unused, and ab=0 because this is the secondary opcode of rfi.</p>
+<p>The instruction format is EXP2. As there is no operand, the d field is ignored and the second word of the instruction is omitted. Thus every rfi instruction has the same machine language representation: e000. The fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is unused, and ab=0 because this is the secondary opcode of rfi.</p>
 <p>This instruction is privileged. Since the instruction changes the status register, it can be used to perform a context switch.</p>
 <h2 id="trap-operations">Trap operations</h2>
 <h3 id="halt">Halt</h3>
@@ -1899,6 +1889,20 @@ Interrupt
 <td style="text-align: center;">Rd := Ra &gt; Rb</td>
 </tr>
 <tr class="odd">
+<td style="text-align: center;">skipf</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRK</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">if Rd.a=0 then pc := pc+b (Not yet implemented)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">skipt</td>
+<td style="text-align: center;">RRR</td>
+<td style="text-align: center;">RRK</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">if Rd.a=1 then pc := pc+b (Not yet implemented)</td>
+</tr>
+<tr class="odd">
 <td style="text-align: center;">trap</td>
 <td style="text-align: center;">RRR</td>
 <td style="text-align: center;">RRR</td>
@@ -1973,7 +1977,7 @@ Interrupt
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">RX</td>
 <td style="text-align: center;">f,9</td>
-<td style="text-align: center;">Rd := mem[Ra+disp], mem[Ra+disp] := 1</td>
+<td style="text-align: center;">Rd := mem[Ra+disp], (Not yet implemented) mem[Ra+disp] := 1</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">rfi</td>
@@ -1987,7 +1991,7 @@ Interrupt
 <td style="text-align: center;">RR</td>
 <td style="text-align: center;">RREXP</td>
 <td style="text-align: center;">e,8</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;">(Not yet implemented)</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">getctl</td>
@@ -2037,34 +2041,6 @@ Interrupt
 <td style="text-align: center;">RRKEXP</td>
 <td style="text-align: center;">e,21</td>
 <td style="text-align: center;">Rd := Ra shr k</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">getbit</td>
-<td style="text-align: center;">RRKK</td>
-<td style="text-align: center;">RRKEXP</td>
-<td style="text-align: center;">e,22</td>
-<td style="text-align: center;">Rd := R15.k</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">getbiti</td>
-<td style="text-align: center;">RRKK</td>
-<td style="text-align: center;">RRKEXP</td>
-<td style="text-align: center;">e,23</td>
-<td style="text-align: center;">Rd := inv R15.k</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;">putbit</td>
-<td style="text-align: center;">RRKK</td>
-<td style="text-align: center;">RRKEXP</td>
-<td style="text-align: center;">e,24</td>
-<td style="text-align: center;">R15.k := Ra.15</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">putbiti</td>
-<td style="text-align: center;">RRKK</td>
-<td style="text-align: center;">RRKEXP</td>
-<td style="text-align: center;">e,25</td>
-<td style="text-align: center;">R15.k := inv Ra.15</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">extract</td>
