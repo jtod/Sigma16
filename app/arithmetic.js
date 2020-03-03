@@ -514,8 +514,8 @@ function test_mul () {
 function op_div (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
-    let primary = intToWord (Math.trunc (aint / bint));
-    let secondary = intToWord (aint % bint);
+    let primary = intToWord (Math.floor (aint / bint));  // Knuth quotient
+    let secondary = intToWord (a - b * Math.floor(a/b)); // Knuth mod
     if (bint==0) { setBitInRegBE (req,zDivBit) };
     return [primary, secondary];
 }

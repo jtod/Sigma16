@@ -1097,10 +1097,11 @@ function exp2_shiftr (es) {
     regFile[es.ir_d].put(result);
 }
 
+// Instruction fields for extract and extractii:
+//   d = destination
+//   e = operand
+//   (g,h) = field
 
-function foobar (g,h) {
-    
-}
 function exp2_extract (es) {
     console.log ('exp2_extract');
     let x = regFile[es.field_e].get();
@@ -1121,8 +1122,34 @@ function exp2_extracti (es) {
     regFile[es.ir_d].put(b);
 }
 
+function foobar (g,h) {
+    let x = 0x0000;  // operand
+    let i = g;  // field start, there will be this many 0s to left of field
+    let j = h;  // field end
+    let jjj = 15 - j; // there will be this many 0s to right of field
+    let a = 0xffff;
+    let b = (a << jjj) & 0xffff; // get jjj 0s on right side
+    let c = b >> i; // get i 0s on left side
+    console.log (`x=${x} i=${i} j=${j} a=${wordToHex4(a)}`);
+    console.log (`a=${wordToHex4(a)} b=${wordToHex4(b)} c=${wordToHex4(c)}`);
+    return 0
+}
+
+// Instruction fields for inject and injecti:
+//   d = destination
+//   e = operand
+//   (g,h) = field
+
 function exp2_inject (es) {
     console.log ('exp2_inject');
+    let x = regFile[es.field_e].get();
+    let i = es.field_g;
+    let j = es.field_h;
+    let a = 0xffff;
+    let b = (x << i) & 0xffff;
+    let c = a >> (15 - (j-i));
+    let result = 0;
+    regFile[es.ir_d].put(result);
 }
 
 function exp2_injecti (es) {

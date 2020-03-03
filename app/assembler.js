@@ -31,7 +31,7 @@ const CharSet =
       + '"'                      // quotes
       + "'"                      // quotes
       + ".$[]()+-*"                // punctuation
-      + "?¬£`<=>!%^&{}#~@:|/\'";   // other
+      + "?¬£`<=>!%^&{}#~@:|/\\";   // other
 
 function validateChars (xs) {
     console.log (`validateChars`);
