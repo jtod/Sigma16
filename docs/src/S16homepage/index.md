@@ -5,10 +5,10 @@ in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
 <div class="quickstartbox"> [Click to run Sigma16 in your
-  browser](https://jtod.github.io/home/Sigma16/releases/3.1.1/app/Sigma16.html)</div>
+  browser](https://jtod.github.io/home/Sigma16/releases/3.1.2/app/Sigma16.html)</div>
 
 The [User
-Guide](https://jtod.github.io/home/Sigma16/releases/3.1.1/docs/html/userguide/userguide.html)
+Guide](https://jtod.github.io/home/Sigma16/releases/3.1.2/docs/html/userguide/userguide.html)
 includes documentation of the architecture, assembly language,
 programming, as well as tutorials.
 
@@ -119,6 +119,9 @@ have either missing features, missing documentation, bugs, or all of
 the above.  After all, that’s the reason that old versions get
 replaced by newer ones!
   
+* [launch 3.1.2](./releases/3.1.2/app/Sigma16.html) and [download
+  3.1.2](https://github.com/jtod/Sigma16/releases/tag/v3.1.2)
+
 * [launch 3.1.1](./releases/3.1.1/app/Sigma16.html) and [download
   3.1.1](https://github.com/jtod/Sigma16/releases/tag/v3.1.1)
 
