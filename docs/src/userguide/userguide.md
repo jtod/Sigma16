@@ -3010,30 +3010,32 @@ For example *extract R1,R2,3,5* is equivalent to (but easier to
 understand than) the following:
 
 ~~~~
-   shiftl Rd,Re,3
-   shiftr Rd,Rd,13
+   shiftl  Rd,Re,3
+   shiftr  Rd,Rd,13
 ~~~~
 
 
 ### inject, injecti
 
-(Not yet implemented, coming soon)
-
 The inject instruction obtains a right-adjusted field from a source
-register Re and places it into the specified field (g,h) of the
-destination register Rd; the other bits of Rd are not changed.  The
-injecti instruction is the same as inject, except that the injected
-field is inverted.
+register Rf and places it into the specified field (g,h) of the value
+in the source register Re; the result is placed into the destination
+register Rd.  The injecti instruction is the same as inject, except
+that the injected field is inverted.
 
-General form: *inject Rd,Re,g,h*
+General form: *inject Rd,Re,Rf,g,h*
 
-General form: *injecti Rd,Re,g,h*
+General form: *injecti Rd,Re,Rf,g,h*
 
 ~~~~
- inject   Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
- injecti  Rd,Re,g,h   ; Rd.{g,h} := invw Re.{16-h,h}
-~~~~
+   lea     R1,$ffff[R0]
+   lea     R2,$0005[R0]
+   inject  R4,R0,R2,4,7  ; R4 := 0500
+   inject  R5,R1,R2,4,7  ; R5 := f5ff
 
+   injecti R6,R0,R2,4,7  ; R6 := 0a00
+   injecti R7,R1,R2,4,7  ; R6 := faff
+~~~~
 
 ### field
 
@@ -3830,10 +3832,54 @@ Register variable
 
 ### Robust programming
 
+*Use a systematic programming process
+
+* Start with a high level algorithm
+* Then translate that to the low level ("if b then goto label") form
+* Translate the low level to assembly language, keeping the higher
+  level versions as comments
+  
+*Use comments both to develop the program and to document it*
+
+* Write the comments first, as you develop the program.  There should
+  already be some good comments (e.g. the algorithm) before any
+  instructions at all have been written.
+* Don't fall into the trap of hacking out instructions and then adding
+  comments later: this loses the benefits that documention offers as
+  you're writing the code.
+  
+*How to write good comments*
+
+* Keep the high level and low level algorithms as comments
+* Comment each instruction
+* Use the comments to explain what your program is doing, not to
+  explain what an instruction does.
+* Assume that the reader already knows the language, but not the
+  details of your program.
+
 ### Error messages
 
 ### Runtime debugging
 
+*What if an instruction doesn't do what you expected?*
+
+* Execute the program to the point where the mysterious instruction is
+  about to be executed, but has not yet executed.  (To do this, you
+  can step through the program, or set a breakpoint.)
+  
+* Make sure you know what the instruction is supposed to do (check the
+  User Guide).
+  
+* Looking at the state of the registers and memory, carefully predict
+  what you expect the instruction to do.
+  
+* Execute the one instruction (click Step) and compare the state of
+  the machine with your prediction.
+  
+* Make sure the instruction has not been modified in memory.  Compare
+  the machine language produced by the assembler with the *current*
+  contents of the word or words in memory where the instruction is
+  located.
 
 ### Breakpoints
 

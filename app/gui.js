@@ -21,6 +21,26 @@
 // Parameters
 //-------------------------------------------------------------------------------
 
+// Calculate the value of pxPerChar, which is needed to control the
+// scrolling to make the current line visible.  The calculated value
+// overrides the initialized value.  The method is to measure the
+// height of the listing in pixels and divide by the number of lines
+// in the listing.  Some other geometric parameters are also obtained,
+// but aren't currently used.
+
+function getListingDims (es) {
+    let e = document.getElementById('ProcAsmListing');
+    let x = e.getBoundingClientRect(); // dimensions of visible listing area
+    let w = e.scrollWidth; // width of the content, not used
+    let h = e.scrollHeight; // height of content (not of the window)
+    es.asmListingHeight = h; // save in emulator state
+    console.log (`h=${h} w=${w}`);
+    let n = es.asmListingPlain.length;
+    console.log(`getListingDims: n=${n}`);
+    pxPerChar = h / n; // update this global variable, used for scrolling
+    console.log (`getListingDims: pxPerChar = ${pxPerChar}`);
+}
+
 // asmScrollOffsetAbove specifies the preferred number of lines that
 // should appear above the scroll target in the processor assembly
 // listing

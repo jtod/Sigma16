@@ -77,9 +77,10 @@ let emulatorState =
 	instrEffect   : [],
 	// Tracking source lines corresponding to current instruction
 	curAsmap : [],
-	asmListingPlain : [],  // plain listing shows address, code, source
-	asmListingDec : [],    // decorated listing uses highlighting for fields
-	asmListingCurrent : [], // version of listing displayed in emulator pane
+	asmListingPlain    : [], // plain listing shows address, code, source
+	asmListingDec      : [], // decorated listing uses highlighting for fields
+	asmListingCurrent  : [], // version of listing displayed in emulator pane
+        asmListingHeight   : 0,   // height in pixels of the listing
 	curInstrAddr       : 0,
 	nextInstrAddr      : 0,
 	curInstrLineNo     : -1,  // -1 indicates no line has been highlighted

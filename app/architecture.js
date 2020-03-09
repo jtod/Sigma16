@@ -194,8 +194,8 @@ statementSpec.set("shiftr",   {format:RRKEXP,    opcode:[14,17]});
 // RRKKEXP
 statementSpec.set("extract",  {format:RRKKEXP,   opcode:[14,18]});
 statementSpec.set("extracti", {format:RRKKEXP,   opcode:[14,19]});
-statementSpec.set("inject",   {format:RRKKEXP,   opcode:[14,20]});
-statementSpec.set("injecti",  {format:RRKKEXP,   opcode:[14,21]});
+statementSpec.set("inject",   {format:RRRKKEXP,   opcode:[14,20]});
+statementSpec.set("injecti",  {format:RRRKKEXP,   opcode:[14,21]});
 // RRRKEXP
 statementSpec.set("logicw",   {format:RRRKEXP,   opcode:[14,22]});
 // RRRKKEXP

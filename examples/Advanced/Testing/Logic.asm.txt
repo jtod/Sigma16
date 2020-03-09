@@ -1,15 +1,7 @@
-; Test cases for bit manipulation instructions
+; Sigma16 test program
+; Instructions for bit fields, shifting, and logic
 
-; Logic pseudoinstructions generate logicw
-
-       lea     R1,$00ff[R0]  ; R1 := 00ff
-       lea     R2,$0f0f[R0]  ; R1 := 0f0f
-       inv     R3,R1         ; R3 := inv 00ff      = ff00
-       and     R4,R1,R2      ; R4 := 00ff and 0f0f = 000f
-       or      R5,R1,R2      ; R5 := 00ff or  0f0f = 0fff
-       xor     R6,R1,R2      ; R6 := 00ff xor 0f0f = 0ff0
-
-; Bit fields
+; Extracting bit fields
 
       lea      R1,$1234[R0]
       extract  R2,R1,0,3     ; 0001
@@ -32,8 +24,15 @@
       extracti R9,R1,1,0     ; 0000
       extracti R10,R1,0,15   ; edcb
 
-      inject   R4,R2,0,3
-      injecti  R5,R3,0,11
+; Injecting bit fields
+
+      lea      R1,$ffff[R0]
+      lea      R2,$0005[R0]
+      inject   R4,R0,R2,4,7  ; R4 := 0500
+      inject   R5,R1,R2,4,7  ; R5 := f5ff
+
+      injecti  R6,R0,R2,4,7  ; R6 := 0a00
+      injecti  R7,R1,R2,4,7  ; R6 := faff
 
 ; Shifting
 
@@ -47,23 +46,32 @@
       shiftl  R4,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 1000 0000 = 0080
       shiftl  R5,R1,7       ; 0000 0000 0100 0000 -> 0010 0000 0000 0000 = 2000
 
+; Word logic pseudoinstructions generate logicw
+
+       lea     R1,$00ff[R0] ; R1 := 00ff
+       lea     R2,$0f0f[R0] ; R1 := 0f0f
+       inv     R3,R1        ; R3 := inv 00ff      = ff00
+       and     R4,R1,R2     ; R4 := 00ff and 0f0f = 000f
+       or      R5,R1,R2     ; R5 := 00ff or  0f0f = 0fff
+       xor     R6,R1,R2     ; R6 := 00ff xor 0f0f = 0ff0
+
 ; Logic functions: inv=12, and=1, or=7, xor=6
 
 ; Test ability to set and clear for bit logic
       lea     R1,$00ff[R0]
       lea     R2,$0f0f[R0]
-      add     R3,R0,R0       ; put 0 into destination
-      logicb  R3,R1,R2,7,15  ; or changes 0 to 1 .15 = 0001
-      lea     R4,$ffff[R0]   ; put 1 into destination
-      logicb  R4,R1,R2,7,0   ; or changes 1 to 0  .0 = 7fff
+      add     R3,R0,R0      ; put 0 into destination
+      logicb  R3,R1,R2,7,15 ; or changes 0 to 1 .15 = 0001
+      lea     R4,$ffff[R0]  ; put 1 into destination
+      logicb  R4,R1,R2,7,0  ; or changes 1 to 0  .0 = 7fff
 
 ; Bit logic
 
 ; inv R1 = 12
       add     R3,R0,R0
-      logicb  R3,R1,R2,12,0   ; inv R1  .0 = 00ff = 8000
+      logicb  R3,R1,R2,12,0  ; inv R1  .0 = 00ff = 8000
       add     R4,R0,R0
-      logicb  R4,R1,R2,12,15  ; inv R1 .15 = 00ff = 0000
+      logicb  R4,R1,R2,12,15 ; inv R1 .15 = 00ff = 0000
 
 ; and = 1
       add     R3,R0,R0

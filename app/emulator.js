@@ -154,6 +154,7 @@ function boot(es) {
 	    es.nInstructionsExecuted;
 	ioLogBuffer = "";
 	refreshIOlogBuffer();
+        getListingDims(es);
     } else {
 	console.log ('cannot boot')
     }
@@ -327,12 +328,15 @@ function highlightListingFull (es,m) {
     console.log ('curInstrLineNo = ' + es.curInstrLineNo
 		 + '  scrollOffset = ' + scrollOffset);
     procAsmListingElt.scroll (0, scrollOffset);
+//    let curline = procAsmListingElt.getElementById('CUR');
+//    curline.scrollIntoView();
 }
 
 
 function highlightListingLine (es,i,highlight) {
     es.asmListingCurrent[i] =
-	"<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
+        //	"<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
+        "<div class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
 }
 
 // scrolling doesn't work if it just uses <pre> but not <code>
@@ -1140,20 +1144,49 @@ function foobar (g,h) {
 //   e = operand
 //   (g,h) = field
 
+function exp2_inject(es){}
+
 function exp2_inject (es) {
     console.log ('exp2_inject');
-    let x = regFile[es.field_e].get();
-    let i = es.field_g;
-    let j = es.field_h;
-    let a = 0xffff;
-    let b = (x << i) & 0xffff;
-    let c = a >> (15 - (j-i));
-    let result = 0;
+    let e = regFile[es.field_e].get(); // inject into this word
+    let f = regFile[es.field_f].get(); // word contains the field to be injected
+    let g = es.field_g;  // start bit index of field
+    let h = es.field_h;  // end bit index of field
+    let fieldsize = h-g+1;
+    let shrdist = 15-h+g; // shift ffff right to get right-adjusted field
+    let shldist = 15-h;   // shift left to put field into position
+    let radjustedField = 0xffff >>> shrdist;
+    let x = f & radjustedField; // value to be injected
+    let field = radjustedField << shldist; // 1s in the field
+    let fieldInv = (~field) & 0xffff; // mask to clear field in e
+    let result = (e & fieldInv) | (x << shldist) ;
     regFile[es.ir_d].put(result);
 }
 
+//    console.log (`inject e=${wordToHex4(e)}`);
+//    console.log (`inject f=${wordToHex4(f)}`);
+//    console.log (`inject g=${g} h=${h}`);
+//    console.log (`inject fieldsize=${fieldsize}`);
+//    console.log (`inject shrdist=${shrdist} shldist=${shldist}`);
+//    console.log (`inject field=${wordToHex4(field)}`);
+//    console.log (`inject fieldInv=${wordToHex4(fieldInv)}`);
+//    console.log (`inject result=${wordToHex4(result)}`);
+
 function exp2_injecti (es) {
     console.log ('exp2_injecti');
+    let e = regFile[es.field_e].get(); // inject into this word
+    let f = regFile[es.field_f].get(); // word contains the field to be injected
+    let g = es.field_g;  // start bit index of field
+    let h = es.field_h;  // end bit index of field
+    let fieldsize = h-g+1;
+    let shrdist = 15-h+g; // shift ffff right to get right-adjusted field
+    let shldist = 15-h;   // shift left to put field into position
+    let radjustedField = 0xffff >>> shrdist;
+    let x = (~f) & radjustedField; // value to be injected
+    let field = radjustedField << shldist; // 1s in the field
+    let fieldInv = (~field) & 0xffff; // mask to clear field in e
+    let result = (e & fieldInv) | (x << shldist) ;
+    regFile[es.ir_d].put(result);
 }
 
 function exp2_logicw (es) {

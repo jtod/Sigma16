@@ -1766,15 +1766,19 @@ Interrupt
 <pre><code>   shiftl Rd,Re,g        ; clear bits to left of field
    shiftr Rd,Rd,15-h+g   ; clear bits to right of field</code></pre>
 <p>For example <em>extract R1,R2,3,5</em> is equivalent to (but easier to understand than) the following:</p>
-<pre><code>   shiftl Rd,Re,3
-   shiftr Rd,Rd,13</code></pre>
+<pre><code>   shiftl  Rd,Re,3
+   shiftr  Rd,Rd,13</code></pre>
 <h3 id="inject-injecti">inject, injecti</h3>
-<p>(Not yet implemented, coming soon)</p>
-<p>The inject instruction obtains a right-adjusted field from a source register Re and places it into the specified field (g,h) of the destination register Rd; the other bits of Rd are not changed. The injecti instruction is the same as inject, except that the injected field is inverted.</p>
-<p>General form: <em>inject Rd,Re,g,h</em></p>
-<p>General form: <em>injecti Rd,Re,g,h</em></p>
-<pre><code> inject   Rd,Re,g,h   ; Rd.{g,h} := Re.{16-h,h}
- injecti  Rd,Re,g,h   ; Rd.{g,h} := invw Re.{16-h,h}</code></pre>
+<p>The inject instruction obtains a right-adjusted field from a source register Rf and places it into the specified field (g,h) of the value in the source register Re; the result is placed into the destination register Rd. The injecti instruction is the same as inject, except that the injected field is inverted.</p>
+<p>General form: <em>inject Rd,Re,Rf,g,h</em></p>
+<p>General form: <em>injecti Rd,Re,Rf,g,h</em></p>
+<pre><code>   lea     R1,$ffff[R0]
+   lea     R2,$0005[R0]
+   inject  R4,R0,R2,4,7  ; R4 := 0500
+   inject  R5,R1,R2,4,7  ; R5 := f5ff
+
+   injecti R6,R0,R2,4,7  ; R6 := 0a00
+   injecti R7,R1,R2,4,7  ; R6 := faff</code></pre>
 <h3 id="field">field</h3>
 <p>(Not yet implemented, coming soon)</p>
 <p>Pseudoinstruction</p>
@@ -2288,8 +2292,34 @@ x = x+1+z;</code></pre>
 <p>Register variable * The instructions corresponding to the statemnts are mixed together. * Some statements are executed entirely in the registers. * A variable is kept in the same register across many statments. * The use of loads and stores is minimised. * The object code is concise, but it’s harder to see how it corresponds to the source code. * It’s possible to have a mixture of the styles: you don’t have to follow one or the other all the time.</p>
 <h2 id="errors-avoiding-finding-and-fixing">Errors: avoiding, finding, and fixing</h2>
 <h3 id="robust-programming">Robust programming</h3>
+<p>*Use a systematic programming process</p>
+<ul>
+<li>Start with a high level algorithm</li>
+<li>Then translate that to the low level (“if b then goto label”) form</li>
+<li>Translate the low level to assembly language, keeping the higher level versions as comments</li>
+</ul>
+<p><em>Use comments both to develop the program and to document it</em></p>
+<ul>
+<li>Write the comments first, as you develop the program. There should already be some good comments (e.g. the algorithm) before any instructions at all have been written.</li>
+<li>Don’t fall into the trap of hacking out instructions and then adding comments later: this loses the benefits that documention offers as you’re writing the code.</li>
+</ul>
+<p><em>How to write good comments</em></p>
+<ul>
+<li>Keep the high level and low level algorithms as comments</li>
+<li>Comment each instruction</li>
+<li>Use the comments to explain what your program is doing, not to explain what an instruction does.</li>
+<li>Assume that the reader already knows the language, but not the details of your program.</li>
+</ul>
 <h3 id="error-messages">Error messages</h3>
 <h3 id="runtime-debugging">Runtime debugging</h3>
+<p><em>What if an instruction doesn’t do what you expected?</em></p>
+<ul>
+<li><p>Execute the program to the point where the mysterious instruction is about to be executed, but has not yet executed. (To do this, you can step through the program, or set a breakpoint.)</p></li>
+<li><p>Make sure you know what the instruction is supposed to do (check the User Guide).</p></li>
+<li><p>Looking at the state of the registers and memory, carefully predict what you expect the instruction to do.</p></li>
+<li><p>Execute the one instruction (click Step) and compare the state of the machine with your prediction.</p></li>
+<li><p>Make sure the instruction has not been modified in memory. Compare the machine language produced by the assembler with the <em>current</em> contents of the word or words in memory where the instruction is located.</p></li>
+</ul>
 <h3 id="breakpoints">Breakpoints</h3>
 <p><em>(Note: the breakpoint system is not fully implemented yet; the following describes a temporary breakpoint facility.)</em></p>
 <p>A breakpoint is the address of an instruction; when the machine is about to execute that instruction (i.e. when the pc contains that address) the emulator will halt execution, enabling the programmer to examine the state of registers and memory. To set a breakpoint, click Breakpoint and enter the instruction address you want to stop at in the dialogue box. There are several control buttons. Refresh means “read the contents of the text in the box, which must be a $ followed by a 4 hex digit address”. Whenever you change the text, you should click Refresh. The Enable button toggles the breakpoint on and off. The Close button hides the Breakpoint dialogue box. Here’s an example. Suppose you want to stop execution of a program at address 00f6:</p>
