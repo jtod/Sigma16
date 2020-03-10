@@ -506,6 +506,7 @@ function execRunPrepare (es) {
     regClearAccesses ();             // remove register highlighting, clear logs
     regShowAccesses()
     memClearAccesses ();             // remove mem highlighting, clear logs
+    memRefresh();
     memDisplay ();                   // refresh memory display
     clearInstrDecode (es);           // remove decoding of last instruction
     prepareListingBeforeInstr (es);  //remove any instruction highlighting
@@ -563,6 +564,7 @@ function execInstrPostDisplay (es) {
 function runInstrPostDisplay (es) {
     console.log("runInstrPostDisplay");
     memClearAccesses ();
+    memRefresh();
     memDisplayFull ();
     clearRegisterHighlighting ();
     refreshRegisters ();
@@ -590,6 +592,7 @@ function finalizeExecuteInstruction (es) {
     if (es.procStatus=="Halted") {
         console.log ("procStep: execute instruction: halted")
 	regShowAccesses()
+        memRefresh();
 	memShowAccesses();
 	memDisplayFull ();
 	showInstrDecode (es);
@@ -597,6 +600,7 @@ function finalizeExecuteInstruction (es) {
     } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
 	console.log ("Breakpoint");
 	setProcStatus (es,"Break");
+        memRefresh();
         displayFullState();
     } else {
 	regShowAccesses()
@@ -768,6 +772,8 @@ const op_trap = (es) => {
     if (code===0) { // Halt
 	console.log ("Trap: halt");
 	setProcStatus (es,"Halted");
+        refreshRegisters();
+        memRefresh();
 //        displayFullState();
 //        console.log ("Trap: displayed full state after halt");
     } else if (code==1) { // Read

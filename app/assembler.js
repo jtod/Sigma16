@@ -27,7 +27,7 @@
 const CharSet =
       "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // letters
       + "0123456789"             // digits
-      + " ,;"                     // separators
+      + " \t,;"                     // separators
       + '"'                      // quotes
       + "'"                      // quotes
       + ".$[]()+-*"                // punctuation

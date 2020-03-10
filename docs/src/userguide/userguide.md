@@ -592,7 +592,7 @@ and dashes won't work.
 
 * letters: _abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 * digits: 0123456789
-* separators: (space) ,;
+* separators: (space) (tab) ,;
 * quotes: " '
 * punctuation: ".$[]()+-*
 * other: ?¬£`<=>!%^&{}#~@:|/\'
