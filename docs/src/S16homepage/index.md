@@ -119,8 +119,8 @@ have either missing features, missing documentation, bugs, or all of
 the above.  After all, that’s the reason that old versions get
 replaced by newer ones!
   
-* [launch 3.1.3](./releases/3.1.2/app/Sigma16.html) and [download
-  3.1.2](https://github.com/jtod/Sigma16/releases/tag/v3.1.3)
+* [launch 3.1.3](./releases/3.1.3/app/Sigma16.html) and [download
+  3.1.3](https://github.com/jtod/Sigma16/releases/tag/v3.1.3)
 
 * [launch 3.1.2](./releases/3.1.2/app/Sigma16.html) and [download
   3.1.2](https://github.com/jtod/Sigma16/releases/tag/v3.1.2)
