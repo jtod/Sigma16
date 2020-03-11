@@ -1180,7 +1180,7 @@ function asmPass2 (m) {
 	    + s.fieldOperation
 	    + s.fieldSpacesAfterOperation
 	    + s.fieldOperands
-	    + s.fieldComment;
+	    + fixHtmlSymbols (s.fieldComment);
 	s.listingLineHighlightedFields = (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + wordToHex4(s.address)
 	    + ' ' + (s.codeSize>0 ? wordToHex4(s.codeWord1) : '    ')
@@ -1192,7 +1192,7 @@ function asmPass2 (m) {
 	    + highlightField (s.fieldOperation, "FIELDOPERATION")
 	    + s.fieldSpacesAfterOperation
 	    + highlightField (s.fieldOperands, "FIELDOPERAND")
-	    + highlightField (s.fieldComment, "FIELDCOMMENT") ;
+	    + highlightField (fixHtmlSymbols(s.fieldComment), "FIELDCOMMENT") ;
 
 	m.asmListingPlain.push(s.listingLinePlain);
 	m.asmListingDec.push(s.listingLineHighlightedFields);
@@ -1205,6 +1205,12 @@ function asmPass2 (m) {
     emitRelocations (m);
     emitImports (m);
     emitExports (m);
+}
+
+function fixHtmlSymbols (str) {
+    let x;
+    x = str.replace(/</g, "&lt;")
+    return x;
 }
 
 // Add object word x to buffer for next object code line in module m.

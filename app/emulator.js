@@ -273,6 +273,11 @@ function showListingParameters (es) {
 		 + ' es.nextInstrLineNo=' + es.nextInstrLineNo);
 }
 
+// temp for testing...
+function fooby (i) {
+    console.log (`${emulatorState.asmListingCurrent[i]}`);
+}
+
 // Prepare the running listing before starting instructionby removing
 // any existing highlighting of current and next instruction
 
@@ -332,13 +337,13 @@ function highlightListingFull (es,m) {
 //    curline.scrollIntoView();
 }
 
-
 function highlightListingLine (es,i,highlight) {
     es.asmListingCurrent[i] =
-        //	"<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
-        "<div class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
+        "<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
 }
 
+// "<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
+// "<div class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
 // scrolling doesn't work if it just uses <pre> but not <code>
 
 function setProcAsmListing (es) {
@@ -423,6 +428,13 @@ function procReset(es) {
 function procPause(es) {
     console.log ("procPause");
     setProcStatus (es,"Stopped");
+    refreshRegisters();
+    regShowAccesses();
+    memRefresh();
+    memShowAccesses ();
+    memDisplayFull();
+    showInstrDecode (es);
+    highlightListingAfterInstr (es);
 }
 
 function instructionLooper (es) {
@@ -433,7 +445,11 @@ function instructionLooper (es) {
 // Check for halt or breakpoint
 	if (es.procStatus=="Halted") {
 	    console.log ("looper: halted");
-            displayFullState();
+            execInstrPostDisplay (es);
+//            displayFullState();
+        } else if (es.procStatus=="Stopped") {
+            // display performed in procPause
+//            execInstrPostDisplay (es);
         } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
 	    console.log ("looper: breakpoint");
 	    setProcStatus (es,"Break");
@@ -546,12 +562,21 @@ function execInstrPrepareFull (es) {
 
 function execInstrPostDisplay (es) {
     if (es.procStatus=="Halted") { // do a full display
-	regShowAccesses()
         refreshRegisters ();
+	regShowAccesses()
 	memShowAccesses();
+        memRefresh();
+        memShowAccesses();
         memDisplayFull ();
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
+    } else if (es.procStatus=="Stopped") {
+//	regShowAccesses()
+//        refreshRegisters ();
+//	memShowAccesses();
+//        memDisplayFull ();
+//	showInstrDecode (es);
+//	highlightListingAfterInstr (es);
     } else { // do normal display
 	regShowAccesses()
 	memShowAccesses();

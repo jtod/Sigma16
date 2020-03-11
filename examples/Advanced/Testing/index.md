@@ -10,6 +10,8 @@ instruction set.
 * [AsmErrMessages](AsmErrMessages.asm.txt) Examples of errors that are
   detectable by the assembler.
 
+* [StoreLoop](StoreLoop.asm.txt) While loop containing a store instruction
+
 * [Arithmetic](Arithmetic.asm.txt) Test arithmetic operations.
 
 * [Logic](Logic.asm.txt) Test the operations on bits, fields, and
