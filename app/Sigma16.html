@@ -154,7 +154,7 @@ visiting this file in a browser.
 	      <div class="HighlightedTextAsHtml" id="FilesBody">
 	      </div>
 	    </div>
-	    
+
 	    <div class="Pane" id="EditorPane">
 	      <div class="PaneButtons">
 		<button onclick="editorClear()">Clear</button>
@@ -171,6 +171,18 @@ visiting this file in a browser.
 	      <div class="PaneBody" id="EditorBody">
 		<textarea class="Editor" spellcheck="false" id="EditorTextArea">
 		</textarea>
+		<script type="text/javascript">
+		var editorArea = document.getElementById('EditorTextArea');
+		editorArea.onkeydown = function(e) {
+			if(e.keyCode == 9 || e.which == 9){
+				e.preventDefault();
+				var s = this.selectionStart;
+				this.value =this.value.substring(0,this.selectionStart)
+					+ "    " + this.value.substring(this.selectionEnd);
+				this.selectionEnd = s+4;
+			}
+		}
+		</script>
 	      </div>
 	    </div>
 
@@ -196,7 +208,7 @@ visiting this file in a browser.
 		<div id="LinkerText"></div>
 	      </div>
 	    </div>
-	    
+
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
 		<button onclick="procReset(emulatorState)"> Reset </button>
@@ -373,7 +385,7 @@ another line
 		  <span class="solarized-magenta">Solarized magenta</span>
 		  <span class="solarized-orange">Solarized orange</span>
 		  <span class="solarized-yellow">Solarized yellow</span>
-		      
+
 
 		</div>
 	      </div>
