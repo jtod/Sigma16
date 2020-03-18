@@ -32,7 +32,7 @@ const CharSet =
       + '"'                      // quotes
       + "'"                      // quotes
       + ".$[]()+-*"                // punctuation
-      + "?¬£`<=>!%^&{}#~@:|/\\";   // other
+      + "?Â¬Â£`<=>!%^&{}#~@:|/\\";   // other
 
 function validateChars (xs) {
     console.log (`validateChars`);
@@ -836,7 +836,7 @@ function asmPass1 (m) {
     for (let i = 0; i < asmSrcLines.length; i++) {
 	m.asmStmt[i] = mkAsmStmt (i, m.locationCounter, asmSrcLines[i]);
 	let s = m.asmStmt[i];
-        let badCharLocs = validateChars (asmSrcLines[i]);
+        let badCharLocs = validateChars (asmSrcLines[i].replace(/\t/g,'')));
         if (badCharLocs.length > 0) {
             mkErrMsg (m,s,`Invalid character at position ${badCharLocs}`);
             mkErrMsg (m,s, "See User Guide for list of valid characters");
