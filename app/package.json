@@ -24,6 +24,9 @@
             "target": "portable"
         }
     },
+    "dependencies": {
+        "minimist": "^1.2.5"
+    },
     "keywords": [
         "Sigma16",
         "Hydra",
