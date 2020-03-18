@@ -1,5 +1,9 @@
-; InsertionSort.  See Sigma16/README.md, https://jtod.github.io/home/Sigma16/
-; Illustrate translation of high level algorithm to assembly language
+; InsertionSort
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+
+; InsertionSort is a standard sorting algorithm; it illustrates the
+; translation of a high level algorithm to assembly language
 
 ; Statement of the problem
 ;

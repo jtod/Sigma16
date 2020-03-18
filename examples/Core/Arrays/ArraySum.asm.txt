@@ -1,5 +1,6 @@
-; Program ArraySum.  See Sigma16/README.md in top folder
-; Find the sum of the elements of an array
+; ArraySum - find sum of the elements of an array
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 ; The program is given
 ;   *  a natural number n, assume n >= 0

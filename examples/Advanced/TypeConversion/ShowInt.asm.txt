@@ -1,7 +1,6 @@
-;-----------------------------------------------------------------------
-; Program TestShowInt
-; John O'Donnell, 2014
-;-----------------------------------------------------------------------
+; ShowInt - convert integer to string of decimal digits
+; This file is part of Sigma16.  Copyright (C) 2014, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 ; This Sigma16 program defines and tests ShowInt, a procedure that
 ; converts an integer to a string of decimal digits.

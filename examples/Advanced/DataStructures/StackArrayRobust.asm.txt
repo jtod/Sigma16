@@ -1,10 +1,6 @@
-; Program StackArray_Simple
-; Illustrate a stack implemented using an array
-; John O'Donnell
-
-; This is a simple implementation of a stack using an array; there is
-; no error checking and no saving/restoring of registers.
-
+; StackArrayRobust - stack implemented using array
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 ;------------------------------------------------------------------------
 ; Main program

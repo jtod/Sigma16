@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>User Guide</title>
+  <title>userguide</title>
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -17,9 +17,6 @@
   <![endif]-->
 </head>
 <body>
-<header id="title-block-header">
-<h1 class="title">User Guide</h1>
-</header>
 Version 3.1.4
 <nav id="TOC" role="doc-toc">
 <ul>
@@ -171,6 +168,26 @@ Version 3.1.4
 </ul></li>
 </ul>
 </nav>
+<!--
+Sigma16: userguide.md
+Copyright (C) 2019, 2020 John T. O'Donnell
+email: john.t.odonnell9@gmail.com
+License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+
+This file is part of Sigma16.  Sigma16 is free software: you can
+redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+Sigma16 is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.  You should have received
+a copy of the GNU General Public License along with Sigma16.  If
+not, see <https://www.gnu.org/licenses/>.
+
+userguide.md is the markdown source for the userguide
+-->
+<p>% User Guide</p>
 <h1 id="introduction">Introduction</h1>
 <p>Sigma16 is a computer architecture designed for research and teaching in computer systems. This application provides a complete environment for experimenting with the architecture, including an editor, assembler, linker, emulator, and an integrated development environment. There is a digital circuit that implements the architecture, which is specified using the Hydra functional hardware description language. Hydra can simulate the circuit, and machine language programs can run on both the emulator and the circuit.</p>
 <p>The Sigma16 IDE (the main “app”) is implemented in JavaScript and runs in a web browser. There are additional components to the system that must be downloaded and run on a computer; these include a digital circuit that implements the architecture and a high speed emulator. You can run the IDE simply by clicking a link on the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 Home Page</a>.</p>
@@ -683,12 +700,12 @@ S7</code></pre>
 </ul>
 <p>We have seen several so far:</p>
 <ul>
-<li><p>lea R5,19[R0] ; R5 = 19</p></li>
-<li><p>load R1,x[R0] ; R1 = x</p></li>
-<li><p>store R3,z[R0] ; z = R3</p></li>
+<li>lea R5,19[R0] ; R5 = 19</li>
+<li>load R1,x[R0] ; R1 = x</li>
+<li>store R3,z[R0] ; z = R3</li>
 <li><p>jump finished[R0] ; goto finished</p></li>
-<li><p>The first operand (e.g. R1 here) is called the destination register, just like for RRR instructions</p></li>
-<li><p>The second operand x[R0] specifies a memory address</p></li>
+<li>The first operand (e.g. R1 here) is called the destination register, just like for RRR instructions</li>
+<li>The second operand x[R0] specifies a memory address</li>
 <li><p>Each variable is kept in memory at a specific location which is identified by its address</p></li>
 </ul>
 <p>The memory operand has two parts:</p>

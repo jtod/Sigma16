@@ -1,5 +1,6 @@
-; Mod1.asm.txt
-; Sigma16 test program 
+; Mod1 - part of a test for modules and linking
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 Mod1    module
 fcn     import Mod2

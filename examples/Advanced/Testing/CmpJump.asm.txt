@@ -1,5 +1,6 @@
-; CmpJump.asm.txt
-; Test comparisons, jumps, conditional jumps, condition codes
+; CmpJump - test comparisons, jumps, conditional jumps, condition codes
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
     lea     R2,3[R0]
     lea     R3,5[R0]

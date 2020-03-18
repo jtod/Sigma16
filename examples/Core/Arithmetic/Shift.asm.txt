@@ -1,5 +1,6 @@
-; Program Shift
-; Demonstrate the shift instructions
+; Shift - demonstrate the shift instructions
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
      lea    R1,$0002[R0]     ; 0000 0000 0000 0010
      lea    R2,3[R0]         ; shift left 3 bits

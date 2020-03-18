@@ -1,6 +1,6 @@
-; WriteBCD
-; Sigma16 assembly language
-; John O'Donnell, 2015
+; WriteBCD - print a BCD number
+; This file is part of Sigma16.  Copyright (C) 2015, 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 ; This program illustrates how to print a binary coded decimal (BCD)
 ; number, and how to write non-reentrant procedures with static local

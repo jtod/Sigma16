@@ -1,6 +1,7 @@
 // Sigma16: editor.js
-// Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. Sigma16/ LICENSE.txt NOTICE.txt
+// Copyright (C) 2019, 2020 John T. O'Donnell
+// email: john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General

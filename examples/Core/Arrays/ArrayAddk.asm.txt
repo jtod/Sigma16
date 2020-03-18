@@ -1,4 +1,7 @@
-; Program ArrayAddk.   See Sigma16/README.md in top folder
+; ArrayAddk - add k to each element of an array
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+
 ; Traverse an array and add constant k to each element
 
 ; An array x of n elements is defined below, as well as n (size of

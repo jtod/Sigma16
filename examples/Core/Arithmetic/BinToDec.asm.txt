@@ -1,6 +1,6 @@
-; BinToDec
-; Sigma16 assembly language
-; John O'Donnell, 2015
+; BinToDec - convert binary to decimal
+; This file is part of Sigma16.  Copyright (C) 2015, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 ; This program illustrates how to print a binary number, how to use
 ; binary coded decimal (BCD), and how to write procedures that aren't

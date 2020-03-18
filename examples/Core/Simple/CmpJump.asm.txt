@@ -1,5 +1,6 @@
-; Program CmpJump.  See Sigma16/README.md in top folder
-; Demonstrate a conditional jump
+; CmpJump - demonstrate a conditional jump
+; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 ; Given the constants in the lea instructions, the instruction
 ; labelled yes should be executed.  You can modify the constants in
