@@ -3945,7 +3945,35 @@ level parallelism.  Its design is written in Hydra, a functional
 computer hardware description language.  The circuit can be simulated,
 and you can run Sigma16 programs on the circuit.
 
-Follow these steps to run the Sigma16 circuit on the simulator:
+The directory structure: the M1 circuit is in the directory
+Sigma16/circuits/M1.  This directory defines a module (file) called
+M1driver.hs which needs to be imported by a program run file.  In
+addition, Hydra itself needs to be imported.  The program run files
+are in Sigma16/circuits/M1/programs/.
+
+~~~~
+/c/Users/me/a/b/c/Hydra      path to Hydra on your machine
+Sigma16                      path to Sigma16 on your machine
+~~~~
+
+~~~~
+Sigma16/circuits/M1
+Sigma16/circuits/M1/programs
+~~~~
+
+Create a file named .ghci containing the following
+The simplest way to run the simulations is as follows.
+
+~~~~
+:set -i../:C:/Users/me/a/b/c/Hydra/src/haskell
+~~~~
+
+When you launch ghci, it will read this file, which defines the search
+path.  The first component of the search path is ../ which is the
+parent directory of Sigma16-M1-programs (i.e. the M1 directory
+itself).  The second component is the location of the Hydra library.
+
+Now enter the
 
 * Download Hydra and save it in your workspace.  Suppose its location
   is /c/Users/me/a/b/c/Hydra.

@@ -1,4 +1,76 @@
+-- Sigma16: M1.hs
+-- Copyright (C) 2020 John T. O'Donnell
+-- email: john.t.odonnell9@gmail.com
+-- License: GNU GPL Version 3 or later
+-- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+
+-- This file is part of Sigma16.  Sigma16 is free software: you can
+-- redistribute it and/or modify it under the terms of the GNU General
+-- Public License as published by the Free Software Foundation, either
+-- version 3 of the License, or (at your option) any later version.
+-- Sigma16 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.  You should have received
+-- a copy of the GNU General Public License along with Sigma16.  If
+-- not, see <https://www.gnu.org/licenses/>.
+
+------------------------------------------------------------------------
+-- M1
+------------------------------------------------------------------------
+
 module M1 where
+
+{- This module M1, a digital circuit that implements a subset of the
+Sigma16 instruction set architecture. To run the circuit, use the
+RunM1 simulation driver along with a main module that defines a
+machine language program.  See ArrayMax.hs for an example. -}
+
+------------------------------------------------------------------------
+{- Instruction set architecture of Sigma16
+
+RRR instructions
+________________________________________________________________________
+
+ op   format  mnemonic   operands   action
+---- -------- ---------- ---------- ------------------------------------
+ 0     RRR    add        R1,R2,R3   R1 := R2+R3
+ 1     RRR    sub        R1,R2,R3   R1 := R2-R3
+ 2     RRR    mul        R1,R2,R3   R1 := R2*R3, R15 := high word
+ 3     RRR    div        R1,R2,R3   R1 := R2/R3, R15 := R2 mod R3
+ 4     RRR    cmplt      R1,R2,R3   R1 := R2<R3
+ 5     RRR    cmpeq      R1,R2,R3   R1 := R2=R3
+ 6     RRR    cmpgt      R1,R2,R3   R1 := R2>R3
+ 7     RRR    inv        R1,R2,R3   R1 := bwinv R2
+ 8     RRR    and        R1,R2,R3   R1 := R2 bwand R3
+ 9     RRR    or         R1,R2,R3   R1 := R2 bwor R3
+ a     RRR    xor        R1,R2,R3   R1 := R2 bwxor R3
+ b     RRR    shiftl     R1,R2,R3   R1 := R2 shiftl R3 bits
+ c     RRR    shiftr     R1,R2,R3   R1 := R2 shiftr R3 bits
+ d     RRR    trap       R1,R2,R3   trap interrupt
+ e     XX                           (expand to XX format)
+ f     RX                           (expand to RX format)
+
+Table: **Instructions represented in RRR format**
+________________________________________________________________________
+
+RX instructions
+________________________________________________________________________
+
+ op   b   format  mnemonic   operands   action
+---- --- -------- ---------- ---------- ---------------------------------
+ f    0     RX    lea        Rd,x[Ra]   Rd := x+Ra
+ f    1     RX    load       Rd,x[Ra]   Rd := mem[x+Ra]
+ f    2     RX    store      Rd,x[Ra]   mem[x+Ra] := Rd
+ f    3     RX    jump       x[Ra]      pc := x+Ra
+ f    4     RX    jumpf      Rd,x[Ra]   if Rd==0 then pc := x+Ra
+ f    5     RX    jumpt      Rd,x[Ra]   if Rd/=0 then pc := x+Ra
+ f    6     RX    jal        Rd,x[Ra]   Rd := pc, pc := x+Ra
+
+Table: **Instructions represented by RX and X formats**
+________________________________________________________________________
+-}
+
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
