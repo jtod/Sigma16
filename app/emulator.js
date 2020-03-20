@@ -438,26 +438,33 @@ function procPause(es) {
 }
 
 function instructionLooper (es) {
-    if (es.procStatus === "Ready") {
-        console.log ('instructionLooper');
+    if (es.procStatus !== "Ready")
+        return;
+
+    console.log ('instructionLooper');
+
+    do {
         execInstrPrepareFast (es);
         executeInstruction (es);
-        // Check for halt or breakpoint
-        if (es.procStatus == "Halted") {
-            console.log ("looper: halted");
-            execInstrPostDisplay (es);
-            // displayFullState();
-        } else if (es.procStatus == "Stopped") {
-            // display performed in procPause
-            // execInstrPostDisplay (es);
-        } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-            console.log ("looper: breakpoint");
-            setProcStatus (es,"Break");
-            displayFullState();
-        } else {
-            setTimeout (function () {instructionLooper(es)});
-        }
+
+        if (es.breakEnabled && pc.get() === es.breakPCvalue)
+            break;
+    } while (es.procStatus != "Halted" && es.procStatus != "Stopped");
+
+    // Check for halt or breakpoint
+    if (es.procStatus == "Halted") {
+        console.log ("looper: halted");
+        execInstrPostDisplay (es);
+        // displayFullState();
+    } else if (es.procStatus == "Stopped") {
+        // display performed in procPause
+        // execInstrPostDisplay (es);
+    } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+        console.log ("looper: breakpoint");
+        setProcStatus (es,"Break");
+        displayFullState();
     }
+
     console.log ('instructionLooper terminated');
 }
 
