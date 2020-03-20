@@ -129,7 +129,7 @@ function jumpToAnchorInGuide () {
 
 function tryfoobar () {
 /* Try to make button go to a point in the user guide */
-    console.log ('trySearchUserguide');    
+    console.log ('trySearchUserguide');
 /*
     var midmainright = document.getElementById('MidMainRight');
     console.log ('midmainright = ' + midmainright);
@@ -168,7 +168,7 @@ function measureRegPut (n) {
 		+ (tend - tstart) + ' ms');
 }
 
-// function springen(anker) { 
+// function springen(anker) {
 //    var childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
 //     childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
 // }
@@ -194,11 +194,11 @@ function editorButton1() {
     let userGuideElt = document.getElementById("MidMainRight");
     console.log("UserGuideElt = " + userGuideElt);
     window.location.hash = "#HREFTESTING";
-	
+
 //    var loc = userGuideElt.location;
 //    console.log ("ed button 1, loc = " + loc);
 //    loc.href = "#HREFTESTING";
-    
+
 }
 
 //-------------------------------------------------------------------------------
@@ -344,7 +344,7 @@ function setMidMainLeftWidth (newxl) {
     midMainLeft.style.flexBasis = xlp
     midMainRight.style.flexBasis = xrp;
     */
-    
+
 
 }
 
@@ -628,7 +628,9 @@ window.onload = function(){
 //-------------------------------------------------------------------------------
 
 window.onload = function () {
-    
+    /* No need for debug logging in the production version */
+    console.log = function() {}
+
     console.log("window.onload activated");
 
 //    s16modules = [];    // All the modules in the system
@@ -639,12 +641,12 @@ window.onload = function () {
     showTabbedPane("WelcomePane");
     initializeProcessorElements ();  // so far, it's just instr decode
     clearInstrDecode (emulatorState);
-    
+
     hideBreakDialogue ();
 
 // Initialize the modules
     initModules ();
-    document.getElementById('LinkerText').innerHTML = "";    
+    document.getElementById('LinkerText').innerHTML = "";
 
 // Initialize the registers
 
@@ -683,7 +685,7 @@ window.onload = function () {
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
-    // bit 3        
+    // bit 3
     istat    = mkReg ('istat',    'istatElt',      wordToHex4);
     ipc      = mkReg ('ipc',      'ipcElt',      wordToHex4);
     vect   = mkReg ('vect',   'vectElt', wordToHex4);
@@ -695,7 +697,7 @@ window.onload = function () {
     bdseg = mkReg ('bdseg',    'bdsegElt',    wordToHex4);
     edseg = mkReg ('edseg',    'edsegElt',    wordToHex4);
 
-// Record the control registers    
+// Record the control registers
     nRegisters = 16;  // Start after the first 16 (the regfile)
     controlRegisters =
 	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
@@ -715,9 +717,9 @@ window.onload = function () {
 // Initialize the memory
     memInitialize();
     procAsmListingElt = document.getElementById('ProcAsmListing');
-    
+
     editorBufferTextArea = document.getElementById("EditorTextArea");
-    
+
 /* for save download */
 //    create = document.getElementById('CreateFileForDownload'),
 //    textbox = document.getElementById('DownloadFileTextBox');
@@ -735,7 +737,7 @@ window.onload = function () {
     adjustToMidMainLRratio();
     initializeSubsystems ();
 
-    
+
     console.log("Initialization complete");
 }
 
