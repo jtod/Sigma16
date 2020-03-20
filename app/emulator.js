@@ -44,7 +44,7 @@ function timerInterrupt() {
 
 // Called by ?
 //   parseCopyObjectModuleToMemory (es)
-    
+
 // Called by gui.js
 //   clearInstrDecode ()
 
@@ -438,24 +438,24 @@ function procPause(es) {
 }
 
 function instructionLooper (es) {
-    if (es.procStatus==="Ready") {
-	console.log ('instructionLooper');
+    if (es.procStatus === "Ready") {
+        console.log ('instructionLooper');
         execInstrPrepareFast (es);
-	executeInstruction (es);
-// Check for halt or breakpoint
-	if (es.procStatus=="Halted") {
-	    console.log ("looper: halted");
+        executeInstruction (es);
+        // Check for halt or breakpoint
+        if (es.procStatus == "Halted") {
+            console.log ("looper: halted");
             execInstrPostDisplay (es);
-//            displayFullState();
-        } else if (es.procStatus=="Stopped") {
+            // displayFullState();
+        } else if (es.procStatus == "Stopped") {
             // display performed in procPause
-//            execInstrPostDisplay (es);
+            // execInstrPostDisplay (es);
         } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-	    console.log ("looper: breakpoint");
-	    setProcStatus (es,"Break");
+            console.log ("looper: breakpoint");
+            setProcStatus (es,"Break");
             displayFullState();
-	} else {
-	    setTimeout (function () {instructionLooper(es)});
+        } else {
+            setTimeout (function () {instructionLooper(es)});
         }
     }
     console.log ('instructionLooper terminated');
@@ -898,7 +898,7 @@ const dispatch_RRR =
         op_trap,           // d
         handle_EXP,         // e
         handle_rx ]        // f
-	
+
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
 // the primary result is loaded into rd and the secondary result is
@@ -1287,7 +1287,7 @@ const dispatch_EXP =
         exp1 (exp1_nop),       // 5
         exp1 (exp1_nop),       // 6
         exp1 (exp1_nop),       // 7
-        
+
         exp2 (exp2_save),      // 8
         exp2 (exp2_restore),   // 9
         exp2 (exp2_getctl),    // 10
