@@ -37,16 +37,17 @@ function editorDownload () {
 function leaveEditor () {
     console.log ('Leaving the editor');
     let m = s16modules[selectedModule];
+    let ma = m.asmInfo;
     if (m) {
-        let oldSrc = m.modSrc;
+        let oldSrc = ma.modSrc;
         let oldSrcCanonical = oldSrc.replace (/\r\n/gm, '\n');
         let newSrc = document.getElementById("EditorTextArea").value;
         let newSrcCanonical = newSrc.replace (/\r\n/gm, '\n');
         if (m.mFile && (oldSrcCanonical != newSrcCanonical)) {
             m.fileStale = true;
         }
-        m.modSrc = newSrc;
-        let srcHead = m.modSrc.split('\n').slice(0,4).join('\n');
+        ma.modSrc = newSrc;
+        let srcHead = ma.modSrc.split('\n').slice(0,4).join('\n');
         console.log (`leaving editor, src=${srcHead}`);
     } else {
         console.log ("leaving editor, don't have module")

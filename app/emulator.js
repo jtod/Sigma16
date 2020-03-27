@@ -136,15 +136,16 @@ function showEffect (es,i) {
 function boot(es) {
     console.log ('boot');
     let m = getCurrentModule ();
+    let ma = m.asmInfo;
     exMod = m;
-    if (m.isExecutable) {
+    if (ma.isExecutable) {
 	console.log ('Current module is executable: booting');
 	resetRegisters ();
 	memClearAccesses();
         document.getElementById('ProcAsmListing').innerHTML = "";
 	copyExecutableToMemory (es,m);
-	es.asmListingPlain = m.asmListingPlain;
-	es.asmListingDec = m.asmListingDec;
+	es.asmListingPlain = ma.asmListingPlain;
+	es.asmListingDec = ma.asmListingDec;
         es.asmListingCurrent = [];
 	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
 	    es.asmListingCurrent[i] = es.asmListingDec[i];
@@ -169,7 +170,8 @@ function boot(es) {
 
 function copyExecutableToMemory (es,m) {
     console.log ('copyExecutableToMemory');
-    let stmt = m.asmStmt;
+    let ma = m.asmInfo;
+    let stmt = ma.asmStmt;
     let locationCounter = 0;
     for (let i = 0; i < stmt.length; i++) {
 	console.log('bootCM ' + i + ' => ' + stmt[i].codeWord1
@@ -185,7 +187,7 @@ function copyExecutableToMemory (es,m) {
     }
     memShowAccesses();
     memDisplay();
-    es.curAsmap = m.asmap;
+    es.curAsmap = ma.asmap;
     showAsmap (es.curAsmap);
     setProcStatus (es,"Ready");
     console.log ('copyExecutableToMemory done');

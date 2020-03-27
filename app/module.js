@@ -65,6 +65,14 @@ function mkModule (i) {
         fileReadComplete : false,          // has file been completely read in yet?
         fileStale : false,         // contents have been changed in editor
 	selected : false,          // this module is selected (for edit, asm)
+        asmInfo : mkModuleAsm(),
+        objInfo : mkModuleObj()
+    }
+}
+
+// Information about a module produced by the assembler
+function mkModuleAsm () {
+    return {
 	modName : null,            // name of module specified in module stmt
 	modSrc : '',               // source code
         modIsAssembled : false,    // has been assembled
@@ -82,8 +90,16 @@ function mkModule (i) {
     }
 }
 
+// Information about object code, either read in or produced by assembler or linker
+function mkModuleObj () {
+    return {
+	obj : null
+    }
+}
+
 // Return a brief description of a module
 function showModule (m) {
+    console.log ('showModule Deprecated ?????');
     let n = m.src ? m.src.length : 0;
     let xs = getModName(m) + ' (' +  n + ' characters)\n';
     return xs;
@@ -92,15 +108,19 @@ function showModule (m) {
 // Return the module name and file name, if they exist
 function getModFileName (m) {
     if (m) {
-        let mname = m.modName ? `${m.modName}` : '';
+        let mname = m.asmInfo.modName ? `${m.asmInfo.modName}` : '';
         let fname = m.mFile ? `(${m.mFile.name})` : '';
-        let xs = (m.modName || m.mFile) ? mname + '  ' + fname : '<anonymous>';
+        let xs = (m.asmInfo.modName || m.mFile) ? mname + '  ' + fname : '<anonymous>';
         return xs;
     } else return "?"
 }
 
 function getModName (m) {
-    return m.modName ? m.modName : "no module statement"
+//    return m.modName ? m.modName : "no module statement"
+    if (m) {
+        let mname = m.asmInfo.modName ? `${m.asmInfo.modName}` : '';
+        return mname;
+    } else return "module name is unknown"
 }
 
 function getFileName (m) {
@@ -129,7 +149,7 @@ function selectExample() {
     s16modules.push(mkModule());
     selectedModule = s16modules.length-1;
     let m = s16modules[selectedModule];
-    m.modSrc = ys;
+    m.asmInfo.modSrc = ys;
     refreshEditorBuffer();
     refreshModulesList();
 }
@@ -157,12 +177,12 @@ function handleSelectedFiles (flist) {
         m.fileName = m.mFile.name;
 	m.selected = false;
         m.fileReadComplete = false;
-	m.modSrc = "";
         m.firstNewMod = idxFirstNewMod;
         m.lastNewMod = idxLastNewMod;
         m.selectWhenReadsFinished = m.lastNewMod;
 	m.fileReader = mkOfReader(m, m.mIndex);
 	m.fileReader.readAsText(m.mFile);
+	m.asmInfo.modSrc = "";
 	s16modules.push(m);
     }
     console.log ("handle, finished selecting");
@@ -175,7 +195,7 @@ function mkOfReader (m, i) {
         let a = m.firstNewMod;
         let b = m.lastNewMod;
 	console.log (`ofReader ${idx} onload event a=${a} b=${b}`);
-        m.modSrc = e.target.result;
+        m.asmInfo.modSrc = e.target.result;
         m.fileReadComplete = true;
         refreshWhenReadsFinished (m,i); // if all files are in, then refresh
     }
@@ -221,6 +241,7 @@ function refreshModulesList() {
     let m, sel, spanClass, mName, fName, mfName;
     for (let i=0; i<s16modules.length; i++) {
 	m = s16modules[i];
+        let ma = m.asmInfo;
         mfName = getModFileName (m);
 	sel = selectedModule===i;
 	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
@@ -229,13 +250,13 @@ function refreshModulesList() {
 	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
 	    + `<button onclick="modulesButtonClose(${i})">Close</button>`
             + ( m.mFile ? `<button onclick="modulesButtonRefresh(${i})">Refresh</button>` : "")
-            + `<br>nAsmErrors=${m.nAsmErrors} isExecutable=${m.isExecutable}`
+            + `<br>nAsmErrors=${ma.nAsmErrors} isExecutable=${m.isExecutable}`
             + `<br>mIndex=${m.mIndex}`
             + (m.mFile ? `<br>Associated with file ${m.fileName}`
                : "<br>Has no file, only in editor buffer")
 	    + '<br><pre>'
             + (m.fileStale ? "<br>Modified, needs to be saved<br>" : "<br>")
-	    + m.modSrc.split('\n').slice(0,8).join('\n')
+	    + ma.modSrc.split('\n').slice(0,8).join('\n')
 	    + '</pre>\n\n'
             + '<hr>\n';
     }
@@ -251,7 +272,8 @@ function refreshModulesList() {
 function refreshEditorBuffer () {
     console.log (`refreshEditorBuffer selectedModule=${selectedModule}`);
     let m = s16modules[selectedModule];
-    document.getElementById("EditorTextArea").value = m.modSrc;
+    let ma = m.asmInfo;
+    document.getElementById("EditorTextArea").value = ma.modSrc;
     document.getElementById("AsmTextHtml").innerHTML = "";
 }
 
@@ -283,11 +305,12 @@ function modulesButtonClose (i) {
 function modulesButtonRefresh (i) {
     console.log (`modulesButtonRefresh i=${i}`);
     let m = s16modules[i];
+    let ma = m.asmInfo;
     selectedModule = i;
     m.firstNewMod = i;
     m.lastNewMod = i;
     m.selectWhenReadsFinished = i;
-    m.modSrc = "*** reading file ***";
+    ma.modSrc = "*** reading file ***";
     console.log (`filesButtonRefresh ${m.mIndex}`);
     m.fileReader.readAsText(m.mFile);
 }

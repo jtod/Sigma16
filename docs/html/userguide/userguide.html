@@ -2352,7 +2352,15 @@ x = x+1+z;</code></pre>
 <p>Click Refresh, then Enable, then Close. Then click Run, and the emulator will run at full speed until the pc reaches the specified value; then it will stop so you can examine the state of the machine.</p>
 <h1 id="circuit">Circuit</h1>
 <p>There is a complete digital circuit called M1 that implements the core of the Sigma16 architecture (apart from the divide instruction). This circuit is specified completely down to the level of logic gates and flip flops. M1 uses sequential control and does not have instruction level parallelism. Its design is written in Hydra, a functional computer hardware description language. The circuit can be simulated, and you can run Sigma16 programs on the circuit.</p>
-<p>Follow these steps to run the Sigma16 circuit on the simulator:</p>
+<p>The directory structure: the M1 circuit is in the directory Sigma16/circuits/M1. This directory defines a module (file) called M1driver.hs which needs to be imported by a program run file. In addition, Hydra itself needs to be imported. The program run files are in Sigma16/circuits/M1/programs/.</p>
+<pre><code>/c/Users/me/a/b/c/Hydra      path to Hydra on your machine
+Sigma16                      path to Sigma16 on your machine</code></pre>
+<pre><code>Sigma16/circuits/M1
+Sigma16/circuits/M1/programs</code></pre>
+<p>Create a file named .ghci containing the following The simplest way to run the simulations is as follows.</p>
+<pre><code>:set -i../:C:/Users/me/a/b/c/Hydra/src/haskell</code></pre>
+<p>When you launch ghci, it will read this file, which defines the search path. The first component of the search path is ../ which is the parent directory of Sigma16-M1-programs (i.e. the M1 directory itself). The second component is the location of the Hydra library.</p>
+<p>Now enter the</p>
 <ul>
 <li><p>Download Hydra and save it in your workspace. Suppose its location is /c/Users/me/a/b/c/Hydra.</p></li>
 <li><p>Open a shell and enter circuit/M1. Run a test program, e.g. ArrayMax.hs, with the following command, which will execute the ArrayMax program on the digital circuit. The simulation will produce detailed simulation output showing the values in key registers, flip flops, and signals during every clock cycle.</p></li>
