@@ -65,8 +65,8 @@ function mkModule (i) {
         fileReadComplete : false,          // has file been completely read in yet?
         fileStale : false,         // contents have been changed in editor
 	selected : false,          // this module is selected (for edit, asm)
-        asmInfo : mkModuleAsm(),
-        objInfo : mkModuleObj()
+        asmInfo : mkModuleAsm(),   // initialize assembler state
+        objInfo : mkModuleObj()    // initialize object state
     }
 }
 
@@ -90,12 +90,6 @@ function mkModuleAsm () {
     }
 }
 
-// Information about object code, either read in or produced by assembler or linker
-function mkModuleObj () {
-    return {
-	obj : null
-    }
-}
 
 // Return a brief description of a module
 function showModule (m) {

@@ -1403,11 +1403,7 @@ function setAsmListing () {
 function setObjectListing () {
     let code = getCurrentModule().asmInfo.objectCode;
     let codeText = code ? code.join('<br>') : 'no code';
-    let listing = "<pre class='HighlightedTextAsHtml'>"
-    //        + getCurrentModule().asmInfo.objectCode.join('<br>')
-    //        + ma.objectCode.join('<br>')
-        + codeText
-        + "</pre>";
+    let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 

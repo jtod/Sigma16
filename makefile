@@ -64,11 +64,15 @@ S16WEBPAGE:=$(SIGMACURRENT)/homepage/jtod.github.io/S16
 # used for building the top level index and the user guide.
 
 VERSION:=$(shell cat app/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+MONTHYEAR=$(shell date +"%B %Y")
+YEAR=$(shell date +"%Y")
 
 showparams :
 	echo SIGMACURRENT = $(SIGMACURRENT)
 	echo S16WEBPAGE = $(S16WEBPAGE)
 	echo VERSION = $(VERSION).txt
+	echo MONTHYEAR = $(MONTHYEAR)
+	echo YEAR = $(YEAR)
 	echo DEVVERSION = $(DEVVERSION)
 
 #-------------------------------------------------------------------------------
@@ -174,6 +178,7 @@ devversion :
 	make docs/html/S16homepage/index.html
 	cp -up docs/html/S16homepage/index.html $(S16HOME)
 	cp -up docs/src/S16homepage/homepage.css $(S16HOME)
+	make app/datafiles/welcome.html
 	make docs/html/userguide/userguide.html
 	cp -upr docs $(DEVVERSION)
 	make example-indices
@@ -284,7 +289,6 @@ release :
 
 #     git push origin release   Try this...
 #     git push origin v3.0.27   Try this...
-
 
 
 # make compile --- Build everything from just the source.  When publishing
@@ -407,19 +411,24 @@ example-indices :
           -o examples/SysLib/index.html \
 	  examples/SysLib/index.md
 
+app/datafiles/welcome.html : app/datafiles/srcwelcome.html
+	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
+	  app/datafiles/srcwelcome.html > app/datafiles/welcome.html
+
 # make docs/html/userguide.html --- Generate the user guide html file
 # from markdown source
 
 docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
-	docs/src/userguide/userguidestyle.css VERSION.txt
+	  docs/src/userguide/userguide-template.html \
+	  docs/src/userguide/userguidestyle.css VERSION.txt
 	mkdir -p docs/html/userguide
 	cp -upr docs/src/figures docs/html/userguide
 	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
           --table-of-contents --toc-depth=4 \
-          --variable=version:'$(VERSION)' \
-          --variable=date:'$(VersionDate)' \
+          --variable=author:"Copyright 2019-$(YEAR) John T. O'Donnell" \
+          --variable=date:'Version ${VERSION}, $(MONTHYEAR)' \
           --variable=css:userguidestyle.css \
           -o docs/html/userguide/userguide.html \
 	  docs/src/userguide/userguide.md
@@ -430,7 +439,7 @@ docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
 source-dir-index : README.md docs/src/readme/readme.css
 	pandoc --standalone \
           --template=docs/src/readme/readme-template.html \
-          --variable=version:'$(VERSION)' \
+          --variable=version:'$(VERSION), ${MONTHYEAR}' \
           --variable=css:'docs/src/readme/readme.css' \
           --metadata pagetitle='Sigma16 ${VERSION}' \
 	  -o index.html README.md

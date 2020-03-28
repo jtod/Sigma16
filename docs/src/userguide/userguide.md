@@ -1,3 +1,5 @@
+% Sigma16 User Guide
+
 <!--
 Sigma16: userguide.md
 Copyright (C) 2019, 2020 John T. O'Donnell
@@ -17,8 +19,6 @@ not, see <https://www.gnu.org/licenses/>.
 
 userguide.md is the markdown source for the userguide
 -->
-
-% User Guide
 
 # Introduction
 

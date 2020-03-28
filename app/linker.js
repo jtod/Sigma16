@@ -22,8 +22,11 @@
 var exMod;           // the module that is executing
 var curAsmap = [];
 
-// Clear the display of the object code in the linker pane
+//-------------------------------------------------------------------------------
+// Handle modules and display
+//-------------------------------------------------------------------------------
 
+// Clear the display of the object code in the linker pane
 function clearObjectCode () {
     let listing = "<pre class='HighlightedTextAsHtml'>"
         + "</pre>"
@@ -53,6 +56,77 @@ function setLinkerModules () {
     console.log ('setLinkerModules');
 }
 
+//-------------------------------------------------------------------------------
+// Build representation of object module
+//-------------------------------------------------------------------------------
+
+// Information about object code
+function mkModuleObj () {
+    return {
+	objSrc : null,            // text of object code
+        objLines : [],
+        objStmt : []              // array of statements in object code
+    }
+}
+
+// Build object code for module m using object text txt
+function buildObj (m,txt) {
+    m.objInfo = mkModuleObj (txt);
+    let mo = m.objInfo;
+    mo.objLines = txt.split('\n');
+    for (let i = 0; i < mo.objLines.length; i++) {
+        parseObjLine (mo,i, mo.objLines[i]);
+    }
+}
+
+// A line of object code contains a required operation code, white
+// space, and a required operand which is a comma-separated list of
+// fields that may contain letters, digits, and commas.
+const objLineParser = /^([a-z]+)\s+([\w,]+)$/;
+const objOperandParser = /^$/;
+
+function parseObjLine (i,s) {
+    let splitLine = objLineParser.exec (s);
+    if (splitLine) {
+        let operationField = splitLine[1];
+        let operandField = splitLine[2];
+        console.log (`operationField=${operationField}`);
+        console.log (`operandField=${operandField}`);
+        let operands = operandField.split(',');
+        console.log (`There are ${operands.length} operands`);
+        console.log (`operands=${operands}`);
+        console.log (`operand[0]=${operands[0]}`);
+        console.log (`operand[1]=${operands[1]}`);
+        console.log (`operand[2]=${operands[2]}`);
+        objStmt.push(mkObjStmt(i,s,operationField,operands));
+    } else {
+        console.log ('object line has invalid format: ' + s);
+    }
+}
+
+function mkObjStmt (i,srcLine,operation,operands) {
+    return {
+        objLineNo : i,
+        objSrcLine : objSrcLine,
+        objOperation : operation,
+        objOperands : operands,
+        objLocation : 0,
+        objSize : 0,
+        objOperandNames : [],
+        objCode : []
+    }
+}
+
+//-------------------------------------------------------------------------------
+// Link modules
+//-------------------------------------------------------------------------------
+
 function link () {
     console.log ('link');
+}
+
+// objs = list of module numbers of modules to be linked
+// exe = module number of executable module to be created
+function linkWorker (objs,exe) {
+    console.log (`linkWorker objs=${objs} exe=${exe}`);
 }
