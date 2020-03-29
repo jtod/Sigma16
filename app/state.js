@@ -38,6 +38,29 @@ function displayFullState () {
 }
 
 //------------------------------------------------------------------------------
+// Processor execution status
+//------------------------------------------------------------------------------
+
+let Reset  = Symbol ("Reset");   // registers and memory cleared
+let Ready  = Symbol ("Ready");   // can execute instruction
+let Paused = Symbol ("Paused");  // temporary halt for inspecting state
+let Halted = Symbol ("Halted");  // trap 0 has executed
+
+function setProcStatus (es,s) {
+    es.procStatus = s;
+    document.getElementById("procStatus").innerHTML = showProcStatus(s);
+}
+
+function showProcStatus (s) {
+    return s == Reset ? "Reset"
+        : s == Ready  ? "Ready"
+        : s == Paused ? "Paused"
+        : s == Halted ? "Halted"
+        : "Unknown"
+}
+
+
+//------------------------------------------------------------------------------
 // Emulator state
 //------------------------------------------------------------------------------
 
@@ -49,7 +72,8 @@ function displayFullState () {
 let emulatorState =
     {
 // Processor
-	procStatus : "Reset",
+        //	procStatus : "Reset",  ??????
+        procStatus : Reset,
 	nInstructionsExecuted : 0,
 	instrLooperDelay : 1000,
 	instrLooperShow : false,

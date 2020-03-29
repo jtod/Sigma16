@@ -189,7 +189,7 @@ function copyExecutableToMemory (es,m) {
     memDisplay();
     es.curAsmap = ma.asmap;
     showAsmap (es.curAsmap);
-    setProcStatus (es,"Ready");
+    setProcStatus (es,Ready);
     console.log ('copyExecutableToMemory done');
 }
 
@@ -364,8 +364,8 @@ function setProcAsmListing (es) {
 
 function procStep(es) {
     console.log ('procStep');
-    if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
-    if (es.procStatus==="Ready") {
+    if (es.procStatus===Paused) { setProcStatus (es,Ready); }
+    if (es.procStatus===Ready) {
 	execInstrPrepareFull (es);
 	executeInstruction (es);
         console.log ("procStep: executeInstruction finished");
@@ -375,43 +375,15 @@ function procStep(es) {
 
 function procRun(es) {
     console.log ("procRun");
-    if (es.procStatus==="Stopped") { setProcStatus (es,"Ready"); }
+    if (es.procStatus===Paused) { setProcStatus (es,Ready); }
     execRunPrepare (es);
     instructionLooper (es);
     runInstrPostDisplay (es);
 }
 
-// Promises don't allow pause button click to break in, need setTimer for that
-
-//    return new Promise (function (resolve,reject) {
-//	resolve (instructionLooper (es));
-//    });
-
-//------------------------------------------------------------------------------
-// Processor status
-//------------------------------------------------------------------------------
-
-// Reset   -- registers and memory have been cleared
-//               result of Reset button
-//               can Boot or Reset
-// Ready   -- can execute instruction
-//               result of boot, step
-//               can Step, Run, Reset, Boot
-// Stopped -- processor would be running but emulator has stopped
-//               result of pause or breakpoint
-//               can restart with step or run
-// Halted  -- processor has halted because trap 0 was executed
-//               result of trap 0
-//               can boot or reset
-
-function setProcStatus (es,s) {
-    es.procStatus = s;
-    document.getElementById("procStatus").innerHTML=s;
-}
-
 function procReset(es) {
     console.log ("reset the processor");
-    setProcStatus (es,"Reset");
+    setProcStatus (es,Reset);
     resetRegisters ();
     refreshRegisters ();
     memClear ();
@@ -430,7 +402,7 @@ function procReset(es) {
 
 function procPause(es) {
     console.log ("procPause");
-    setProcStatus (es,"Stopped");
+    setProcStatus (es,Paused);
     refreshRegisters();
     regShowAccesses();
     memRefresh();
@@ -441,21 +413,17 @@ function procPause(es) {
 }
 
 function instructionLooper (es) {
-    if (es.procStatus==="Ready") {
+    if (es.procStatus===Ready) {
 	console.log ('instructionLooper');
         execInstrPrepareFast (es);
 	executeInstruction (es);
-// Check for halt or breakpoint
-	if (es.procStatus=="Halted") {
+        if (es.procStatus===Halted) {
 	    console.log ("looper: halted");
             execInstrPostDisplay (es);
-//            displayFullState();
-        } else if (es.procStatus=="Stopped") {
-            // display performed in procPause
-//            execInstrPostDisplay (es);
+        } else if (es.procStatus===Paused) {
         } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
 	    console.log ("looper: breakpoint");
-	    setProcStatus (es,"Break");
+            setProcStatus (es,Paused);
             displayFullState();
 	} else {
 	    setTimeout (function () {instructionLooper(es)});
@@ -564,7 +532,7 @@ function execInstrPrepareFull (es) {
 // (for stepping) Display the effects of the instruction
 
 function execInstrPostDisplay (es) {
-    if (es.procStatus=="Halted") { // do a full display
+    if (es.procStatus===Halted) { // do a full display
         refreshRegisters ();
 	regShowAccesses()
 	memShowAccesses();
@@ -573,13 +541,7 @@ function execInstrPostDisplay (es) {
         memDisplayFull ();
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
-    } else if (es.procStatus=="Stopped") {
-//	regShowAccesses()
-//        refreshRegisters ();
-//	memShowAccesses();
-//        memDisplayFull ();
-//	showInstrDecode (es);
-//	highlightListingAfterInstr (es);
+    } else if (es.procStatus===Paused) {
     } else { // do normal display
 	regShowAccesses()
 	memShowAccesses();
@@ -612,12 +574,9 @@ function prepareExecuteInstruction (es) {
     prepareListingBeforeInstr (es);
 }
 
-// Execute the instruction
-//    executeInstruction (es);
-
-function finalizeExecuteInstruction (es) {
 // Final actions after the instruction
-    if (es.procStatus=="Halted") {
+function finalizeExecuteInstruction (es) {
+    if (es.procStatus===Halted) {
         console.log ("procStep: execute instruction: halted")
 	regShowAccesses()
         memRefresh();
@@ -627,7 +586,7 @@ function finalizeExecuteInstruction (es) {
 	highlightListingAfterInstr (es);
     } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
 	console.log ("Breakpoint");
-	setProcStatus (es,"Break");
+        setProcStatus (es,Paused);
         memRefresh();
         displayFullState();
     } else {
@@ -799,11 +758,9 @@ const op_trap = (es) => {
     console.log (`trap code=${code}`);
     if (code===0) { // Halt
 	console.log ("Trap: halt");
-	setProcStatus (es,"Halted");
+        setProcStatus (es,Halted);
         refreshRegisters();
         memRefresh();
-//        displayFullState();
-//        console.log ("Trap: displayed full state after halt");
     } else if (code==1) { // Read
         trapRead(es);
     } else if (code==2) { // Write

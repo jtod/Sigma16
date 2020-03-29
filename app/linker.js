@@ -69,6 +69,21 @@ function mkModuleObj () {
     }
 }
 
+// Called by button in Linker tab; this is used when an object file is
+// to be read in rather than being assembled now
+function readObject () {
+    console.log ('readObject');
+    let m = s16modules[selectedModule]; // get current module
+    let mo = m.objInfo;
+    if (mo) { // it exists, proceed
+    } else { // doesn't exist, error
+        console.log ('readObject error: no module');
+    }
+}
+        
+//     let txt = document.getElementById('EditorTextArea').value.split('\n');
+// }
+
 // Build object code for module m using object text txt
 function buildObj (m,txt) {
     m.objInfo = mkModuleObj (txt);

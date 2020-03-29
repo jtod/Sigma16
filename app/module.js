@@ -65,28 +65,10 @@ function mkModule (i) {
         fileReadComplete : false,          // has file been completely read in yet?
         fileStale : false,         // contents have been changed in editor
 	selected : false,          // this module is selected (for edit, asm)
+        modIsAssembled : false,    // module has been assembled
+        modObjLoaded : false,      // module loaded directly from obj
         asmInfo : mkModuleAsm(),   // initialize assembler state
         objInfo : mkModuleObj()    // initialize object state
-    }
-}
-
-// Information about a module produced by the assembler
-function mkModuleAsm () {
-    return {
-	modName : null,            // name of module specified in module stmt
-	modSrc : '',               // source code
-        modIsAssembled : false,    // has been assembled
-	symbols : [],              // symbols used in the source
-	symbolTable : new Map (),  // symbol table
-	nAsmErrors : 0,            // number of errors in assembly source code
-	locationCounter : 0,       // address where next code will be placed
-	asmap : [],                // array mapping address to source statement
-	isExecutable : true,       // until proven otherwise
-	asmListingPlain : [],      // assembler listing
-	asmListingDec : [],         // decorated assembler listing
-	objectCode : [],           // string hex representation of object
-        exports : [],
-	asmStmt : []               // statements correspond to lines of source
     }
 }
 

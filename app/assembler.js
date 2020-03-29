@@ -48,6 +48,28 @@ function validateChars (xs) {
     return badlocs
 }
 
+// Information about a module produced by the assembler
+function mkModuleAsm () {
+    return {
+	modName : null,            // name of module specified in module stmt
+	modSrc : '',               // source code
+        modAsmOK : false,
+	symbols : [],              // symbols used in the source
+	symbolTable : new Map (),  // symbol table
+	nAsmErrors : 0,            // number of errors in assembly source code
+	locationCounter : 0,       // address where next code will be placed
+	asmap : [],                // array mapping address to source statement
+	isExecutable : true,       // until proven otherwise
+	asmListingPlain : [],      // assembler listing
+	asmListingDec : [],         // decorated assembler listing
+	objectCode : [],           // string hex representation of object
+        exports : [],
+	asmStmt : []               // statements correspond to lines of source
+    }
+}
+
+
+
 
 let opcode_cmp = 4; // for pass2/RR, may want to refactor this
 
