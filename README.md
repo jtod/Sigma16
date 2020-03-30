@@ -1,17 +1,23 @@
 # Sigma16 source directory
 
+This is the README file for the Sigma16 source directory.
+
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
 ## Internet links
 
-This page is the README for the Sigma16 source directory.  To run the
-software, visit the [Sigma16 Home
-Page](https://jtod.github.io/home/Sigma16/), which also contains links
-to documentation and past releases.  The URL for the Sigma16 Home page
-is https://jtod.github.io/home/Sigma16/ and the URL for the source
-repository is https://github.com/jtod/Sigma16
+* For up to date information, and to run the software, visit the
+  [Sigma16 Home Page](https://jtod.github.io/home/Sigma16/).  That
+  page also contains links to documentation, past releases, and the
+  source repository.  It's best to bookmark the home page, which
+  always points to the latest version.  Don't bookmark a specific
+  release.
+
+* The URL for the [source
+  repository](https://github.com/jtod/Sigma16/) is
+  https://github.com/jtod/Sigma16/. 
 
 ## Links to local files
 
@@ -89,12 +95,20 @@ expected to be available in late 2020.
 ### Author
 
 The architecture is designed by, and the software tools are written
-by, [John O'Donnell](https://jtod.github.io/index.html).  Email:
-john.t.odonnnell9@gmail.com
+by, [John O'Donnell](https://jtod.github.io/index.html).
 
-### Copyright and license
+~~~~
+Email: john.t.odonnell9@gmail.com
+Web: https://jtod.github.io/index.html
+~~~~
 
-Copyright (C) 2019, 2020 John T. O'Donnell.
+### Notice
+
+~~~~
+Copyright (C) 2019, 2020 John T. O'Donnell
+License: GNU GPL Version 3 or later
+See Sigma16/LICENSE.txt
+~~~~
 
 Sigma16 is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -108,5 +122,3 @@ for more details.
 
 You should have received a copy of the GNU General Public License
 along with Sigma16.  If not, see <https://www.gnu.org/licenses/>.
-
-See LICENSE.txt
