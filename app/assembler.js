@@ -269,6 +269,7 @@ function mkErrMsg (m,s,err) {
 
 function assembler () {
     let m = s16modules[selectedModule];
+    m.modType = ModAsm; // module text is now considered to be assembly langauge
     let ma = m.asmInfo;
     console.log(`Assembling module ${selectedModule}`);
     ma.modName = null;  // remove name from earlier assembly, if any

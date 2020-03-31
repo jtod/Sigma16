@@ -50,11 +50,31 @@ function getCurrentModule () {
 // Representation of a module
 //------------------------------------------------------------------------------
 
+// Each module has a moduleType indicating whether it originates from
+// the assembler, from reading in an object module, etc.  The type is
+// determined by the user's choice of command, not from the filename
+// (if any) or the contents.  For example, if the user Assembles a
+// file, then it is deemed to be assembly text.
+
+let ModText = Symbol ("ModText");   // generic text with unknown role
+let ModAsm  = Symbol ("ModAsm");    // obtaind assembly langauge from editor/file
+let ModObj  = Symbol ("ModObj");    // obtained object from editor/file
+let ModLink = Symbol ("ModLink");   // module text is set of linker commands
+
+function showModType (t) {
+    return t===ModText ? "Text"
+        : t===ModAsm ? "Assembly language"
+        : t===ModObj ? "Object code"
+        : t===ModLink ? "Linker commands"
+        : "module type is unknown"
+}
+
 // Make a new module with empty contents; this defines the fields of a module
 
 function mkModule (i) {
     console.log('mkModule');
     return {
+        modType : ModText,
         mIndex : i,             // index in s16modules list
 	mFile : null,              // file object associated with module, if any
         fileName : null,           // filename, if exists and is known
@@ -129,7 +149,6 @@ function selectExample() {
     refreshEditorBuffer();
     refreshModulesList();
 }
-
 
 //-------------------------------------------------------------------------------
 // Reading files
@@ -221,20 +240,23 @@ function refreshModulesList() {
         mfName = getModFileName (m);
 	sel = selectedModule===i;
 	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
+        let temp1 = 2;
+	ys += `&nbsp;`;
+        let temp2 = 2;
 	ys += `&nbsp;`
 	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. ${mfName}</span>`
 	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
 	    + `<button onclick="modulesButtonClose(${i})">Close</button>`
-            + ( m.mFile ? `<button onclick="modulesButtonRefresh(${i})">Refresh</button>` : "")
-            + `<br>nAsmErrors=${ma.nAsmErrors} isExecutable=${m.isExecutable}`
-            + `<br>mIndex=${m.mIndex}`
-            + (m.mFile ? `<br>Associated with file ${m.fileName}`
-               : "<br>Has no file, only in editor buffer")
+            + ( m.mFile
+                ? `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
+                : "")
+            + `<br>${showModType(m.modType)}`
 	    + '<br><pre>'
             + (m.fileStale ? "<br>Modified, needs to be saved<br>" : "<br>")
 	    + ma.modSrc.split('\n').slice(0,8).join('\n')
 	    + '</pre>\n\n'
             + '<hr>\n';
+
     }
     ys += `<br>${s16modules.length} modules\n`
     ys += `<br>module #${selectedModule} currently selected\n`;
@@ -242,6 +264,11 @@ function refreshModulesList() {
     let elt = document.getElementById('FilesBody');
     elt.innerHTML = ys;
 }
+//            +  `nAsmErrors=${ma.nAsmErrors} isExecutable=${m.isExecutable}`
+//            + `<br>TEMP mIndex=${m.mIndex}`
+            + (m.mFile ? `<br>TEMP Associated with file ${m.fileName}`
+               : "<br>TEMP Has no file, only in editor buffer")
+
 
 // If there has been a change to selected module or its file contents,
 // update the editor buffer as well as the assembler buffer

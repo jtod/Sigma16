@@ -102,7 +102,7 @@ Email: john.t.odonnell9@gmail.com
 Web: https://jtod.github.io/index.html
 ~~~~
 
-### Copyright notice and license
+### Copyright and license
 
 ~~~~
 Copyright (C) 2019, 2020 John T. O'Donnell
