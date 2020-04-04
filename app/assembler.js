@@ -1,7 +1,7 @@
 // Sigma16: assembler.js
 // Copyright (C) 2019, 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -59,7 +59,6 @@ function mkModuleAsm () {
 	nAsmErrors : 0,            // number of errors in assembly source code
 	locationCounter : 0,       // address where next code will be placed
 	asmap : [],                // array mapping address to source statement
-	isExecutable : true,       // until proven otherwise
 	asmListingPlain : [],      // assembler listing
 	asmListingDec : [],         // decorated assembler listing
 	objectCode : [],           // string hex representation of object
@@ -291,13 +290,12 @@ function assembler () {
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
     asmPass1 (m);
     asmPass2 (m);
+    m.objIsExecutable = true; // will change if errors or imports are found
     if (ma.nAsmErrors > 0) {
-        ma.isExecutable = false;
+        m.objIsExecutable = false; // can't execute if errors found
         document.getElementById('ProcAsmListing').innerHTML = "";
 	ma.asmListingPlain.unshift(highlightText(`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
 	ma.asmListingDec.unshift(highlightText(`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
-    } else {
-        ma.isExecutable = true;
     }
     ma.asmListingPlain.unshift("<pre class='HighlightedTextAsHtml'>");
     ma.asmListingDec.unshift("<pre class='HighlightedTextAsHtml'>");
@@ -305,6 +303,7 @@ function assembler () {
     ma.asmListingPlain.push("</pre>");
     ma.asmListingDec.push("</pre>");
     setAsmListing (m);
+    m.objInfo.objCode = ma.objectCode; // point the module object code to result
 }
 
 //----------------------------------------------------------------------
@@ -1299,6 +1298,7 @@ function emitRelocations (m) {
 function emitImports (m) {
     let ma = m.asmInfo;
     console.log ('emitImports');
+    m.objIsExecutable = false; // can't execute since there are imports
     ma.symbols =[ ...ma.symbolTable.keys() ].sort();
     console.log (`emitImports ma.symbols=${ma.symbols}`);
     for (i in ma.symbols) {

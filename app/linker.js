@@ -1,7 +1,7 @@
 // Sigma16: linker.js
 // Copyright (C) 2019, 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -19,8 +19,22 @@
 // executable module, performing address relocation as needed.
 //-------------------------------------------------------------------------------
 
+// refactor
 var exMod;           // the module that is executing
 var curAsmap = [];
+
+//-------------------------------------------------------------------------------
+// Representation of object module
+//-------------------------------------------------------------------------------
+
+// Information about object code
+function mkModuleObj () {
+    return {
+        objText : "",      // text of object code
+        objCode  : [],     // lines of object code
+        objStmt  : []      // array of statements in object code
+    }
+}
 
 //-------------------------------------------------------------------------------
 // Handle modules and display
@@ -31,6 +45,34 @@ function clearObjectCode () {
     let listing = "<pre class='HighlightedTextAsHtml'>"
         + "</pre>"
     document.getElementById('LinkerText').innerHTML = listing;
+}
+
+
+// called when Linker: Selected module button is clicked
+function linkShowSelectedObj () {
+    console.log ("linkShowSelectedObj");
+    let m = s16modules[selectedModule]; // get current module
+    let objListing = "<pre class='HighlightedTextAsHtml'>"
+        + "<span class='ExecutableStatus'>Module is "
+        + (m.objIsExecutable ? "executable" : "not executable" )
+        + "</span><br>"
+        + m.objInfo.objCode.join('\n')
+        + "</pre>";
+    document.getElementById('LinkerText').innerHTML = objListing;
+    // dev only
+    linkerParseObject (m);
+}
+
+// Called by button in Linker tab; this is used when an object file is
+// to be read in rather than being assembled now
+function readObject () {
+    console.log ('readObject');
+    let m = s16modules[selectedModule]; // get current module
+    let mo = m.objInfo;
+    if (mo) { // it exists, proceed
+    } else { // doesn't exist, error
+        console.log ('readObject error: no module');
+    }
 }
 
 function setCurrentObjectCode () {
@@ -46,52 +88,25 @@ function setCurrentObjectCode () {
 
 function showLinkerStatus () {
     console.log ('showLinkerStatus');
-    let listing = "<pre class='HighlightedTextAsHtml'>"
-        + "no modules selected"
-        + "</pre>"
-    document.getElementById('LinkerText').innerHTML = listing;
+    let m = s16modules[selectedModule]; // get current module
 }
 
 function setLinkerModules () {
     console.log ('setLinkerModules');
 }
 
+
 //-------------------------------------------------------------------------------
-// Build representation of object module
+// Parse object code
 //-------------------------------------------------------------------------------
 
-// Information about object code
-function mkModuleObj () {
-    return {
-	objSrc : null,            // text of object code
-        objLines : [],
-        objStmt : []              // array of statements in object code
-    }
-}
-
-// Called by button in Linker tab; this is used when an object file is
-// to be read in rather than being assembled now
-function readObject () {
-    console.log ('readObject');
-    let m = s16modules[selectedModule]; // get current module
+function linkerParseObject (m) {
+    console.log ("linkerParseObject");
     let mo = m.objInfo;
-    if (mo) { // it exists, proceed
-    } else { // doesn't exist, error
-        console.log ('readObject error: no module');
+    for (let i = 0; i < mo.objCode.length; i++) {
+        console.log (`line ${i}: ${mo.objCode[i]}`);
     }
-}
-        
-//     let txt = document.getElementById('EditorTextArea').value.split('\n');
-// }
-
-// Build object code for module m using object text txt
-function buildObj (m,txt) {
-    m.objInfo = mkModuleObj (txt);
-    let mo = m.objInfo;
-    mo.objLines = txt.split('\n');
-    for (let i = 0; i < mo.objLines.length; i++) {
-        parseObjLine (mo,i, mo.objLines[i]);
-    }
+    console.log ("linkerParseObject returning");
 }
 
 // A line of object code contains a required operation code, white

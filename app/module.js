@@ -1,7 +1,7 @@
 // Sigma16: module.js
 // Copyright (C) 2019, 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -83,15 +83,15 @@ function mkModule (i) {
         lastNewMod : 0,
         selectWhenReadsFinished : 0,
         fileReadComplete : false,          // has file been completely read in yet?
-        fileStale : false,         // contents have been changed in editor
-	selected : false,          // this module is selected (for edit, asm)
-        modIsAssembled : false,    // module has been assembled
-        modObjLoaded : false,      // module loaded directly from obj
-        asmInfo : mkModuleAsm(),   // initialize assembler state
-        objInfo : mkModuleObj()    // initialize object state
+        fileStale : false,        // contents have been changed in editor
+	selected : false,         // this module is selected (for edit, asm)
+        objIsAssembled : false,   // module has been assembled
+        modObjLoaded : false,     // module loaded directly from obj
+        asmInfo : mkModuleAsm(),  // initialize assembler state
+        objInfo : mkModuleObj(),  // initialize object state
+        objIsExecutable : false    // can be executed without further linking
     }
 }
-
 
 // Return a brief description of a module
 function showModule (m) {
@@ -251,6 +251,8 @@ function refreshModulesList() {
                 ? `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
                 : "")
             + `<br>${showModType(m.modType)}`
+            + "  "
+            + (m.objIsExecutable ? "executable" : "not executable")
 	    + '<br><pre>'
             + (m.fileStale ? "<br>Modified, needs to be saved<br>" : "<br>")
 	    + ma.modSrc.split('\n').slice(0,8).join('\n')
@@ -266,8 +268,8 @@ function refreshModulesList() {
 }
 //            +  `nAsmErrors=${ma.nAsmErrors} isExecutable=${m.isExecutable}`
 //            + `<br>TEMP mIndex=${m.mIndex}`
-            + (m.mFile ? `<br>TEMP Associated with file ${m.fileName}`
-               : "<br>TEMP Has no file, only in editor buffer")
+//            + (m.mFile ? `<br>TEMP Associated with file ${m.fileName}`
+//               : "<br>TEMP Has no file, only in editor buffer")
 
 
 // If there has been a change to selected module or its file contents,
