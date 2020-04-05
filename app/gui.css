@@ -95,7 +95,7 @@ pane height
     --examplesBotSecHeight: 30em; /* calc or make full height */
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
-    --subpanel-background-color: ivory;
+    --subpanel-background-color: beige;
     --mem-display-width: 6.1em;  /* try 12em to confirm line breaks are there */
 
     /* YES???????????  with wide size we get several locations per line,

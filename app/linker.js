@@ -15,9 +15,11 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-------------------------------------------------------------------------------
-// linker.js combines a collection of object modules to form an
-// executable module, performing address relocation as needed.
-//-------------------------------------------------------------------------------
+// linker.js manipulates object code, including the functions of a
+// linker and loader.  Services include combining a collection of
+// object modules to form an executable module; performing address
+// relocation; and loading an object module into memory.
+// -------------------------------------------------------------------------------
 
 // refactor
 var exMod;           // the module that is executing
@@ -37,7 +39,7 @@ function mkModuleObj () {
 }
 
 //-------------------------------------------------------------------------------
-// Handle modules and display
+// Find and display modules
 //-------------------------------------------------------------------------------
 
 // Clear the display of the object code in the linker pane
@@ -60,7 +62,7 @@ function linkShowSelectedObj () {
         + "</pre>";
     document.getElementById('LinkerText').innerHTML = objListing;
     // dev only
-    linkerParseObject (m);
+    parseObject (m);
 }
 
 // Called by button in Linker tab; this is used when an object file is
@@ -95,13 +97,12 @@ function setLinkerModules () {
     console.log ('setLinkerModules');
 }
 
-
 //-------------------------------------------------------------------------------
 // Parse object code
 //-------------------------------------------------------------------------------
 
-function linkerParseObject (m) {
-    console.log ("linkerParseObject");
+function parseObject (m) {
+    console.log ("parseObject");
     let mo = m.objInfo;
     for (let i = 0; i < mo.objCode.length; i++) {
         console.log (`line ${i}: ${mo.objCode[i]}`);
@@ -112,6 +113,7 @@ function linkerParseObject (m) {
 // A line of object code contains a required operation code, white
 // space, and a required operand which is a comma-separated list of
 // fields that may contain letters, digits, and commas.
+
 const objLineParser = /^([a-z]+)\s+([\w,]+)$/;
 const objOperandParser = /^$/;
 
@@ -160,3 +162,115 @@ function link () {
 function linkWorker (objs,exe) {
     console.log (`linkWorker objs=${objs} exe=${exe}`);
 }
+
+//------------------------------------------------------------------------------
+// Boot
+//------------------------------------------------------------------------------
+
+// Attempt to copy the executable code from the selected module into
+// memory for execution.
+
+// A module is executable if it contains object code but doesn't have
+// any imports.  The object code can come from either the assembler,
+// or it can be read in as an object file.  The presence of an
+// assembly listing and asmap is optional.
+
+// (Interface: called from gui) Boot from either the current module
+// (without linking) or the load module (if the linker has been run).
+
+function boot(es) {
+    console.log ('boot');
+    let m = getCurrentModule ();
+    let ma = m.asmInfo;
+    exMod = m;
+    if (ma.isExecutable) {
+	console.log ('Current module is executable: booting');
+	resetRegisters ();
+	memClearAccesses();
+        document.getElementById('ProcAsmListing').innerHTML = "";
+	copyExecutableToMemory (es,m);
+	es.asmListingPlain = ma.asmListingPlain;
+	es.asmListingDec = ma.asmListingDec;
+        es.asmListingCurrent = [];
+	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
+	    es.asmListingCurrent[i] = es.asmListingDec[i];
+	}
+	initListing (m,es);
+	es.nInstructionsExecuted = 0;
+	document.getElementById("nInstrExecuted").innerHTML =
+	    es.nInstructionsExecuted;
+	ioLogBuffer = "";
+	refreshIOlogBuffer();
+        getListingDims(es);
+    } else {
+	console.log ('cannot boot')
+    }
+}
+
+// Copy a module's object code into memory.  Should use objectCode
+// rather than codeWord, but objectCode will need to support org.  So
+// far it's just a list of words.  This version doesn't yet support
+// org and it requires the module to be assembled (rather than read
+// in).
+
+function copyExecutableToMemory (es,m) {
+    console.log ('copyExecutableToMemory');
+    let ma = m.asmInfo;
+    let stmt = ma.asmStmt;
+    let locationCounter = 0;
+    for (let i = 0; i < stmt.length; i++) {
+	console.log('bootCM ' + i + ' => ' + stmt[i].codeWord1
+		    + ' ' + stmt[i].codeWord2 );
+	if (stmt[i].codeWord1 >= 0) {
+	    memStore (locationCounter, stmt[i].codeWord1);
+	    locationCounter++;
+	}
+	if (stmt[i].codeWord2 >= 0) {
+	    memStore (locationCounter, stmt[i].codeWord2);
+	    locationCounter++;
+	}
+    }
+    memShowAccesses();
+    memDisplay();
+    es.curAsmap = ma.asmap;
+    showAsmap (es.curAsmap);
+    setProcStatus (es,Ready);
+    console.log ('copyExecutableToMemory done');
+}
+
+function parseCopyObjectModuleToMemory (es) {
+    console.log('boot');
+    let objText = document.getElementById("LinkerText").value;
+    console.log('objText = ' + objText);
+    let xs = objText.split("\n");
+    console.log("linker boot: " + xs.length + " lines");
+//    console.log(xs);
+//    line1 = xs[0];
+//    console.log('line1 = ' + line1);
+//    fields = line1.split(" ");
+//    console.log('fields = ' + fields);
+//    console.log('field0 = ' + fields[0]);
+//    console.log('field1 = ' + fields[1]);
+    //    console.log('field2 = ' + fields[2]);
+    bootCurrentLocation = 0;
+    for (var i = 0; i < xs.length; i++) {
+	linkerBootLine(es, i, xs[i]);
+//	experiment(xs[i]);
+    }
+}
+
+// Should check the operation, implement org, and provide suitable
+// error messages, but that's for later.  For now, just assume it is
+// hexdata with valid argument
+
+function linkerBootLine (es,m,i,x) {
+    let y = parseAsmLine (m,i,x);
+//    printAsmLine (y);
+    let w = y.fieldOperands;
+    let n =  hex4ToWord(w);
+//    console.log('linkerBootLine ' + w + ' = ' + n);
+    console.log('linkerBootLine ' + i + ' ---' + x + '--- = ' + n);
+    updateMem2(bootCurrentLocation,n);
+    bootCurrentLocation++;
+}
+

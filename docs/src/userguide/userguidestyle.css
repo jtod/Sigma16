@@ -52,16 +52,16 @@ code {
 h1 {
     color: #0000ff;
      /*     background: #ddeedd; */
-     border: solid;
-     border-width: thin;
-     border-color: green;
-     padding-top: 0.5em;
+       padding-top: 0.5em;
      padding-bottom: 0.5em;
      text-align: center;
      font-family: verdana;
      font-weight: bold;
      font-size: 160%;
 }
+/*   border: solid;
+     border-width: thin;
+     border-color: green;*/
 
 h2 {
     color: #0000ff;
@@ -104,8 +104,8 @@ footer {
     padding-top: 0em; padding-bottom: 0em;
     }
 
-A:link    { color: #0000e0; text-decoration: none }
-A:visited { color: #0000a0; text-decoration: none }
+A:link    { color: blue; text-decoration: none }
+A:visited { color: blue; text-decoration: none }
 A:hover   { background-color: #e0e0ff; text-decoration: none }
 
   div.box {

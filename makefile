@@ -411,12 +411,16 @@ example-indices :
           -o examples/SysLib/index.html \
 	  examples/SysLib/index.md
 
-app/datafiles/welcome.html : app/datafiles/srcwelcome.html
+app/datafiles/welcome.html : app/datafiles/srcwelcome.md
 	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
-	  app/datafiles/srcwelcome.html > app/datafiles/welcome.html
+	  app/datafiles/srcwelcome.md > app/datafiles/welcomeTEMP.md
+	pandoc --standalone \
+          --template=docs/src/userguide/userguide-template.html \
+          --variable=css:../../docs/src/userguide/userguidestyle.css \
+          -o app/datafiles/welcome.html \
+	  app/datafiles/welcomeTEMP.md
 
-# make docs/html/userguide.html --- Generate the user guide html file
-# from markdown source
+# make docs/html/userguide.html -- generate html from markdown source
 
 docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
 	  docs/src/userguide/userguide-template.html \

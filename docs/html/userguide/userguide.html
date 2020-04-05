@@ -136,7 +136,8 @@
 <li><a href="#programs-modules-and-files">Programs, modules, and files</a></li>
 <li><a href="#simple-standalone-programs">Simple standalone programs</a></li>
 <li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
-<li><a href="#object-code">Object code</a><ul>
+<li><a href="#object-code-and-the-linkerbooter">Object code and the linker/booter</a><ul>
+<li><a href="#object-code-language">Object code language</a></li>
 <li><a href="#relocate-statement">relocate statement</a></li>
 </ul></li>
 <li><a href="#executable-code">Executable code</a></li>
@@ -166,7 +167,6 @@
 <li><a href="#about-sigma16">About Sigma16</a><ul>
 <li><a href="#author">Author</a></li>
 <li><a href="#license">License</a><ul>
-<li><a href="#copyright">Copyright</a></li>
 <li><a href="#gpl3-license">GPL3 License</a></li>
 </ul></li>
 </ul></li>
@@ -2207,6 +2207,7 @@ fcn      add    R1,R1,R1
 <p>The second section of the assembly listing is the <em>Symbol Table</em>. This shows each identifier (or “symbol”) that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
 <h1 id="linker">Linker</h1>
 <p>The assembler doesn’t translate a source module in assembly langauge directly to raw machine language. Instead, it produces an <em>object module</em> which contains some additional metadata along with the machine language code. This metadata enables the linker to combine the object module with other modules into an <em>executable module</em>.</p>
+<p>Each module has an associated object code, which may be empty. The object code can be produced by a successful assembly (i.e. an assembly with no errors) or it can be obtained from the Editor. This allows object code to be read from a file or entered directly by the user.</p>
 <h2 id="programs-modules-and-files">Programs, modules, and files</h2>
 <p>The system is designed to allow programs that consist of several modules, but also to allow programs consisting of one standalone module. In addition, an aim is to do this simply and intuitively, so that you can ignore the issues of modules and linking if you just want to write a andalone program.</p>
 <p>There is a standard convention for file names. If, for example, you have a program named MyProgram, then the files associated with it should be as follows:</p>
@@ -2238,13 +2239,19 @@ fcn      add    R1,R1,R1
 </ul></li>
 </ul>
 <p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
-<h2 id="object-code">Object code</h2>
-<p>Ojbect modules are specified in an object code language with a simple syntax and only a few types of statement. Each object statement is written on line line. It begins with a keyword indicating the type of statement, followed by white space, followed by an operand which must not contain any spaces. Operands may contain either hex constants or identifiers.</p>
+<h2 id="object-code-and-the-linkerbooter">Object code and the linker/booter</h2>
+<p>The assembler produces object code containing metadata as well as machine language. Two operations can be performed on an object module: it can be <em>booted</em> or it can be <em>linked</em>. Booting an object module means copying the code into memory and preparing for execution; linking means combining several object modules into a single executable object module. These operations may succeed or fail.</p>
+<p>(On some computer systems the process of booting is called <em>loading</em>. In Sigma16, we will refer to the linker/booter rather than the linker/loader, just to avoid confusion with other meanings of the word “load”.)</p>
+<p>The booter reads the object code and copies data into the memory. During this process, the booter discovers whether the module is executable: if not, a boot error message is produced. The booter doesn’t know in advance whether a module is executable; it simply tries and detects any errors as it traverses the code.</p>
+<p>The linker is given a list of modules and it concatenates them to form a single module. As it does this, it resovles external references (created by import and export statements in the assembly language). The linker also performs relocation (described below).</p>
+<h3 id="object-code-language">Object code language</h3>
+<p>Object code is expressed in a textual language, so the object code readable to a human (at least, for a human who understands machine language). For example, binary data is specified using four hexadecimal characters rather than a word of binary data.</p>
+<p>The object language has a simple syntax and only a few types of statement. Each object statement is written on one line. It begins with a keyword indicating the type of statement, followed by one or more spaces, followed by an operand field which must not contain any white space. The operand field is a comma-separated list of tokens; each token is either a hex constant or an identifier.</p>
 <ul>
 <li><p>In the object language, hex constants are written as four characters, using digits 0-9 a-f. Unlike assembly language, a hex constant is not preceded by $.</p></li>
 <li><p>Identifiers have the same syntax as in assembly language: a string of letters, digits, and underscore characters, beginning with a letter.</p></li>
 </ul>
-<p>The object language has six statements: module, org, data, import, export, and relocate. These are related to corresponding statements in assembly language, but their syntax is different. For example, an import statement in assembly language will generate one or more import statements in the object code, but those statements have a different syntax and contain different information.</p>
+<p>The object language has six statements: module, org, data, import, export, and relocate. Some of these are related to corresponding statements in assembly language, but their syntax is different and in some cases they may contain different information.</p>
 <h3 id="relocate-statement">relocate statement</h3>
 <p>The relocate statement specifies a list of addresses of words that must be relocated. Suppose the value x is specified in a relocate statement, and the linker is relocating the module by offset y. Then the linker will set mem[x+y] = obj[x]+y.</p>
 <pre><code>relocate hex4,hex4,...</code></pre>
@@ -2438,13 +2445,9 @@ Sigma16/circuits/M1/programs</code></pre>
 <h2 id="author">Author</h2>
 <p>The architecture, software tools, and documentation were designed, implemented, and written by John O’Donnell. Contact: john.t.odonnell9@gmail.com</p>
 <h2 id="license">License</h2>
-<p>See the files Sigma16/LICENSE.txt and Sigma16/NOTICE.txt.</p>
-<p>Copyright (c) 2019 John T. O’Donnell. john.t.odonnell9@gmail.com License: GNU GPL Version 3 or later. Sigma16/LICENSE.txt,NOTICE.txt</p>
-<p>This file is part of Sigma16. Sigma16 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. Sigma16 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with Sigma16. If not, see <a href="https://www.gnu.org/licenses/" class="uri">https://www.gnu.org/licenses/</a>.</p>
-<h3 id="copyright">Copyright</h3>
-<p>Sigma16 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
-<p>Sigma16 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License along with Sigma16. If not, see <a href="https://www.gnu.org/licenses/" class="uri">https://www.gnu.org/licenses/</a>.</p>
+<p>Copyright (c) 2019-2020 John T. O’Donnell</p>
+<p>License: GNU GPL Version 3 or later.</p>
+<p>Sigma16 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. Sigma16 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with Sigma16. If not, see <a href="https://www.gnu.org/licenses/" class="uri">https://www.gnu.org/licenses/</a>.</p>
 <h3 id="gpl3-license">GPL3 License</h3>
 <p>GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007</p>
 <p>Copyright © 2007 Free Software Foundation, Inc. <a href="https://fsf.org/" class="uri">https://fsf.org/</a></p>

@@ -3,3 +3,4 @@
 app/node_modules
 app/dist
 em/testgcc
+*TEMP*

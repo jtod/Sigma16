@@ -3571,6 +3571,11 @@ module* which contains some additional metadata along with the machine
 language code.  This metadata enables the linker to combine the object
 module with other modules into an *executable module*.
 
+Each module has an associated object code, which may be empty. The
+object code can be produced by a successful assembly (i.e. an assembly
+with no errors) or it can be obtained from the Editor.  This allows
+object code to be read from a file or entered directly by the user.
+
 ## Programs, modules, and files
 
 The system is designed to allow programs that consist of several
@@ -3670,14 +3675,44 @@ last saved.  If so, a dialogue asks whether the file should be saved.
 Select is for switching among the existing modules, while New and Open
 are for introducing a new module.
 
-## Object code
+## Object code and the linker/booter
 
-Ojbect modules are specified in an object code language with a simple
-syntax and only a few types of statement.  Each object statement is
-written on line line.  It
-begins with a keyword indicating the type of statement, followed by
-white space, followed by an operand which must not contain any
-spaces.  Operands may contain either hex constants or identifiers.
+The assembler produces object code containing metadata as well as
+machine language.  Two operations can be performed on an object
+module: it can be *booted* or it can be *linked*.  Booting an object
+module means copying the code into memory and preparing for execution;
+linking means combining several object modules into a single
+executable object module.  These operations may succeed or fail.
+
+(On some computer systems the process of booting is called *loading*.
+In Sigma16, we will refer to the linker/booter rather than the
+linker/loader, just to avoid confusion with other meanings of the word
+"load".)
+
+The booter reads the object code and copies data into the
+memory. During this process, the booter discovers whether the module
+is executable: if not, a boot error message is produced.  The booter
+doesn't know in advance whether a module is executable; it simply
+tries and detects any errors as it traverses the code.
+
+The linker is given a list of modules and it concatenates them to form
+a single module.  As it does this, it resovles external references
+(created by import and export statements in the assembly language).
+The linker also performs relocation (described below).
+
+### Object code language
+
+Object code is expressed in a textual language, so the object code
+readable to a human (at least, for a human who understands machine
+language).  For example, binary data is specified using four
+hexadecimal characters rather than a word of binary data.
+
+The object language has a simple syntax and only a few types of
+statement.  Each object statement is written on one line.  It begins
+with a keyword indicating the type of statement, followed by one or
+more spaces, followed by an operand field which must not contain any
+white space.  The operand field is a comma-separated list of tokens;
+each token is either a hex constant or an identifier.
 
 * In the object language, hex constants are written as four
   characters, using digits 0-9 a-f.  Unlike assembly language, a hex
@@ -3688,11 +3723,12 @@ spaces.  Operands may contain either hex constants or identifiers.
   letter.
 
 The object language has six statements: module, org, data, import,
-export, and relocate.  These are related to corresponding statements
-in assembly language, but their syntax is different.  For example, an
-import statement in assembly language will generate one or more import
-statements in the object code, but those statements have a different
-syntax and contain different information.
+export, and relocate.  Some of these are related to corresponding
+statements in assembly language, but their syntax is different and in
+some cases they may contain different information.
+
+
+
 
 ### relocate statement
 
@@ -4177,36 +4213,19 @@ john.t.odonnell9@gmail.com
 
 ## License
 
-See the files Sigma16/LICENSE.txt and Sigma16/NOTICE.txt.
+Copyright (c) 2019-2020 John T. O'Donnell
 
-Copyright (c) 2019 John T. O'Donnell.  john.t.odonnell9@gmail.com
-License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt,NOTICE.txt
-
-This file is part of Sigma16.  Sigma16 is free software: you can
-redistribute it and/or modify it under the terms of the GNU General
-Public License as published by the Free Software Foundation, either
-version 3 of the License, or (at your option) any later version.
-Sigma16 is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.  You should have received a copy of the GNU General
-Public License along with Sigma16.  If not, see
-<https://www.gnu.org/licenses/>.
-
-### Copyright
+License: GNU GPL Version 3 or later.
 
 Sigma16 is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
 Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Sigma16 is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with Sigma16.  If not, see <https://www.gnu.org/licenses/>.
+option) any later version.  Sigma16 is distributed in the hope that it
+will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+the GNU General Public License for more details.  You should have
+received a copy of the GNU General Public License along with Sigma16.
+If not, see <https://www.gnu.org/licenses/>.
 
 ### GPL3 License
 
