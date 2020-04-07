@@ -22,7 +22,7 @@
 // -------------------------------------------------------------------------------
 
 // refactor
-var exMod;           // the module that is executing
+// var exMod;           // the module that is executing
 var curAsmap = [];
 
 //-------------------------------------------------------------------------------
@@ -101,39 +101,38 @@ function setLinkerModules () {
 // Parse object code
 //-------------------------------------------------------------------------------
 
-function parseObject (m) {
-    console.log ("parseObject");
+function tryBoot () {
+    console.log ("tryBoot");
+    let m = s16modules[selectedModule]; // get current module
     let mo = m.objInfo;
+    let ok = true; // will set to false if module isn't bootable
     for (let i = 0; i < mo.objCode.length; i++) {
-        console.log (`line ${i}: ${mo.objCode[i]}`);
+        console.log (`tryBootObject line ${i}: ${mo.objCode[i]}`);
     }
-    console.log ("linkerParseObject returning");
+    if (ok) {
+        console.log ("boot was successful)
+    } else {
+        console.log ("boot failed")
+    }
+    console.log ("tryBoot returning");
 }
 
 // A line of object code contains a required operation code, white
 // space, and a required operand which is a comma-separated list of
 // fields that may contain letters, digits, and commas.
 
-const objLineParser = /^([a-z]+)\s+([\w,]+)$/;
-const objOperandParser = /^$/;
-
-function parseObjLine (i,s) {
-    let splitLine = objLineParser.exec (s);
+function parseObjLine (xs) {
+    const objLineParser = /^([a-z]+)\s+([\w,]+)$/;
+    let splitLine = objLineParser.exec (xs);
+    let operation = "";
+    let operands = [];
     if (splitLine) {
-        let operationField = splitLine[1];
-        let operandField = splitLine[2];
-        console.log (`operationField=${operationField}`);
-        console.log (`operandField=${operandField}`);
-        let operands = operandField.split(',');
-        console.log (`There are ${operands.length} operands`);
-        console.log (`operands=${operands}`);
-        console.log (`operand[0]=${operands[0]}`);
-        console.log (`operand[1]=${operands[1]}`);
-        console.log (`operand[2]=${operands[2]}`);
-        objStmt.push(mkObjStmt(i,s,operationField,operands));
-    } else {
-        console.log ('object line has invalid format: ' + s);
+        operation = splitLine[1];
+        operands = splitLine[2].split(',');
+      } else {
+        console.log ('linker error: object line has invalid format: ' + s);
     }
+        return {operation, operands}
 }
 
 function mkObjStmt (i,srcLine,operation,operands) {
@@ -182,7 +181,7 @@ function boot(es) {
     console.log ('boot');
     let m = getCurrentModule ();
     let ma = m.asmInfo;
-    exMod = m;
+//    exMod = m;
     if (ma.isExecutable) {
 	console.log ('Current module is executable: booting');
 	resetRegisters ();

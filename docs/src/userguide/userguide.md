@@ -3565,11 +3565,11 @@ was defined, and the source code lines where it was used.
 
 # Linker
 
-The assembler doesn't translate a source module in assembly langauge
-directly to raw machine language.  Instead, it produces an *object
-module* which contains some additional metadata along with the machine
-language code.  This metadata enables the linker to combine the object
-module with other modules into an *executable module*.
+The assembler inputs a program in assembly language and it outputs an
+*object module*.  The object module contains the machine language code
+as well as some additional metadata.  The metadata enables the linker
+to combine the object module with other modules into an *executable
+module*.
 
 Each module has an associated object code, which may be empty. The
 object code can be produced by a successful assembly (i.e. an assembly
@@ -4208,7 +4208,7 @@ Sigma16 consists of several components:
 ## Author
 
 The architecture, software tools, and documentation were designed,
-implemented, and written by John O'Donnell.  Contact:
+implemented, and written by John O'Donnell.  Contact email:
 john.t.odonnell9@gmail.com
 
 ## License
@@ -4227,7 +4227,7 @@ the GNU General Public License for more details.  You should have
 received a copy of the GNU General Public License along with Sigma16.
 If not, see <https://www.gnu.org/licenses/>.
 
-### GPL3 License
+## GPL3 License
 
 GNU GENERAL PUBLIC LICENSE
 Version 3, 29 June 2007
