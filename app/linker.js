@@ -62,7 +62,7 @@ function linkShowSelectedObj () {
         + "</pre>";
     document.getElementById('LinkerText').innerHTML = objListing;
     // dev only
-    parseObject (m);
+    //    parseObject (m);
 }
 
 // Called by button in Linker tab; this is used when an object file is
@@ -98,24 +98,79 @@ function setLinkerModules () {
 }
 
 //-------------------------------------------------------------------------------
-// Parse object code
+// Booter
 //-------------------------------------------------------------------------------
 
-function tryBoot () {
-    console.log ("tryBoot");
+function boot (es) {
+    console.log ("boot");
     let m = s16modules[selectedModule]; // get current module
+    let ma = m.asmInfo; // only if this module came from assembler
     let mo = m.objInfo;
+    let xs = "";
+    let fields = null;
     let ok = true; // will set to false if module isn't bootable
+    let location = 0; // address where next word will be stored
+    resetRegisters();
+    memClearAccesses();
+    document.getElementById('ProcAsmListing').innerHTML = "";
+
+	es.asmListingPlain = ma.asmListingPlain;
+	es.asmListingDec = ma.asmListingDec;
+        es.asmListingCurrent = [];
+	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
+	    es.asmListingCurrent[i] = es.asmListingDec[i];
+	}
+	initListing (m,es);
+	es.nInstructionsExecuted = 0;
+	document.getElementById("nInstrExecuted").innerHTML =
+	    es.nInstructionsExecuted;
+	ioLogBuffer = "";
+	refreshIOlogBuffer();
+        getListingDims(es);
+
+    
     for (let i = 0; i < mo.objCode.length; i++) {
-        console.log (`tryBootObject line ${i}: ${mo.objCode[i]}`);
+        xs = mo.objCode[i];
+        console.log (`boot: object line ${i} = ${xs}`);
+        fields = parseObjLine (xs);
+        console.log (`op=${fields.operation} args=${fields.operands}`);
+        if (fields.operation == "module") {
+            let modname = fields.operands[0];
+            let safemodname = modname ? modname : "(unknown)";
+            console.log (`boot: module ${safemodname}`);
+        } else if (fields.operation == "data") {
+            console.log ("boot: data");
+            for (let j = 0; j < fields.operands.length; j++) {
+                let val = hex4ToWord(fields.operands[j]);
+                if (!val) {console.log(`boot: bad data (${val})`)};
+                let safeval = val ? val : 0;
+                memStore (location,safeval);
+                console.log (`boot data mem[${location}]:=${val}`);
+                location++;
+            }
+        } else if (fields.operation == "import") {
+            console.log (`boot: import (${fields.operands})`)
+            ok = false;
+        } else if (fields.operation == "export") {
+        } else if (fields.operation == "relocate") {
+        } else {
+            console.log (`boot: bad operation (${fields.operation})`)
+            ok = false;
+        }
     }
     if (ok) {
-        console.log ("boot was successful)
+        memShowAccesses();
+        memDisplay();
+        es.curAsmap = ma.asmap;
+        showAsmap (es.curAsmap);
+        setProcStatus (es,Ready);
+        console.log ("boot was successful")
     } else {
         console.log ("boot failed")
     }
-    console.log ("tryBoot returning");
+    console.log ("boot returning");
 }
+
 
 // A line of object code contains a required operation code, white
 // space, and a required operand which is a comma-separated list of
@@ -177,12 +232,12 @@ function linkWorker (objs,exe) {
 // (Interface: called from gui) Boot from either the current module
 // (without linking) or the load module (if the linker has been run).
 
-function boot(es) {
-    console.log ('boot');
-    let m = getCurrentModule ();
-    let ma = m.asmInfo;
-//    exMod = m;
-    if (ma.isExecutable) {
+function oldboot(es) {
+    console.log (`boot: selected module = ${selectedModule}`);
+    let m = s16modules[selectedModule];
+//    let m = getCurrentModule ();
+    let mo = m.objInfo;
+    if (mo.isExecutable) {
 	console.log ('Current module is executable: booting');
 	resetRegisters ();
 	memClearAccesses();
