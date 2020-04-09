@@ -40,7 +40,7 @@
     "author": "John T. O'Donnell",
     "license": "GPL-3.0-or-later",
     "devDependencies": {
-        "electron": "^5.0.12",
-        "electron-builder": "^21.0.15"
+        "electron": "^5.0.13",
+        "electron-builder": "^21.2.0"
     }
 }

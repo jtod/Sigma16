@@ -138,7 +138,13 @@
 <li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
 <li><a href="#object-code-and-the-linkerbooter">Object code and the linker/booter</a><ul>
 <li><a href="#object-code-language">Object code language</a></li>
-<li><a href="#relocate-statement">relocate statement</a></li>
+<li><a href="#object-module-statement">Object module statement</a></li>
+<li><a href="#object-org-statement">Object org statement</a></li>
+<li><a href="#object-data-statement">Object data statement</a></li>
+<li><a href="#object-import-statement">Object import statement</a></li>
+<li><a href="#object-export-statement">Object export statement</a></li>
+<li><a href="#object-relocate-statement">Object relocate statement</a></li>
+<li><a href="#object-metadata-statement">Object metadata statement</a></li>
 </ul></li>
 <li><a href="#executable-code">Executable code</a></li>
 </ul></li>
@@ -2250,10 +2256,17 @@ fcn      add    R1,R1,R1
 <li><p>In the object language, hex constants are written as four characters, using digits 0-9 a-f. Unlike assembly language, a hex constant is not preceded by $.</p></li>
 <li><p>Identifiers have the same syntax as in assembly language: a string of letters, digits, and underscore characters, beginning with a letter.</p></li>
 </ul>
-<p>The object language has six statements: module, org, data, import, export, and relocate. Some of these are related to corresponding statements in assembly language, but their syntax is different and in some cases they may contain different information.</p>
-<h3 id="relocate-statement">relocate statement</h3>
+<p>The object language has seven statements: module, org, data, import, export, relocate, and metadata. Some of these are related to corresponding statements in assembly language, but their syntax is different and in some cases they may contain different information.</p>
+<h3 id="object-module-statement">Object module statement</h3>
+<h3 id="object-org-statement">Object org statement</h3>
+<h3 id="object-data-statement">Object data statement</h3>
+<h3 id="object-import-statement">Object import statement</h3>
+<h3 id="object-export-statement">Object export statement</h3>
+<h3 id="object-relocate-statement">Object relocate statement</h3>
 <p>The relocate statement specifies a list of addresses of words that must be relocated. Suppose the value x is specified in a relocate statement, and the linker is relocating the module by offset y. Then the linker will set mem[x+y] = obj[x]+y.</p>
 <pre><code>relocate hex4,hex4,...</code></pre>
+<h3 id="object-metadata-statement">Object metadata statement</h3>
+<p>Any arguments after the keyword “metadata” are ignored. The rest of the object file contains the address/source map. This consists of groups of 3 lines. In each group, the first line is an address (four hex digits, e.g. 4b2e). The second line is the assembly listing line for that address, and the third line is the decorated assembly listing line for that address.</p>
 <h2 id="executable-code">Executable code</h2>
 <p>An executable module is written in the same language as object modules. The only difference is that an executable module must contain only these types of statement: module, data, org. It is now allowed to contain any of the following statments: import, export, relocate.</p>
 <p>If an assembly language program doesn’t contain any import or export directives, then its object code won’t contain any import, export, or relcate statements. In this case, the object code is already executable and does not require linking: it can be booted directly by the processor.</p>

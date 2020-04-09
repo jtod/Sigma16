@@ -3722,15 +3722,22 @@ each token is either a hex constant or an identifier.
   of letters, digits, and underscore characters, beginning with a
   letter.
 
-The object language has six statements: module, org, data, import,
-export, and relocate.  Some of these are related to corresponding
-statements in assembly language, but their syntax is different and in
-some cases they may contain different information.
+The object language has seven statements: module, org, data, import,
+export, relocate, and metadata.  Some of these are related to
+corresponding statements in assembly language, but their syntax is
+different and in some cases they may contain different information.
 
+### Object module statement
 
+### Object org statement
 
+### Object data statement
 
-### relocate statement
+### Object import statement
+
+### Object export statement
+
+### Object relocate statement
 
 The relocate statement specifies a list of addresses of words that
 must be relocated.  Suppose the value x is specified in a relocate
@@ -3740,6 +3747,15 @@ the linker will set mem[x+y] = obj[x]+y.
 ~~~~
 relocate hex4,hex4,...
 ~~~~
+
+### Object metadata statement
+
+Any arguments after the keyword "metadata" are ignored.  The rest of
+the object file contains the address/source map.  This consists of
+groups of 3 lines.  In each group, the first line is an address (four
+hex digits, e.g. 4b2e).  The second line is the assembly listing line
+for that address, and the third line is the decorated assembly listing
+line for that address.
 
 ## Executable code
 

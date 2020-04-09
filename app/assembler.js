@@ -58,10 +58,10 @@ function mkModuleAsm () {
 	symbolTable : new Map (),  // symbol table
 	nAsmErrors : 0,            // number of errors in assembly source code
 	locationCounter : 0,       // address where next code will be placed
-	asmap : [],                // array mapping address to source statement
 	asmListingPlain : [],      // assembler listing
 	asmListingDec : [],         // decorated assembler listing
 	objectCode : [],           // string hex representation of object
+        asMap : [],                     // address/source map
         exports : [],
 	asmStmt : []               // statements correspond to lines of source
     }
@@ -207,17 +207,8 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	   }
 }
 
-/* deprecated
-	    disp : 0,                       // displacement value
-	    d : 0,                          // destination
-	    a : 0,                          // source a
-	    b : 0,                          // source b
-	    rr1 : 0,                        // first reg in rr asm format
-	    rr2 : 0,                        // second reg in rr asm format
-	    k : 0,                          // constant in RRKEXP format
-*/
-
-const missing = 0;  // indicates that a component of a statement is missing
+// deprecated
+// const missing = 0;  // indicates that a component of a statement is missing
 
 // Print the object representing a source line; for testing
 
@@ -987,6 +978,8 @@ function asmPass2 (m) {
     relocationAddressBuffer = [];
     for (let i = 0; i < ma.asmStmt.length; i++) {
 	s = ma.asmStmt[i];
+        s.codeWord1 = null;
+        s.codeWord2 = null;
 	fmt = s.format;
 	console.log(`pass2 line=${s.lineNumber} s=/${s.srcLine}/`);
 	console.log(`pass2 line=${s.lineNumber} fmt=${fmt}`
@@ -1232,6 +1225,10 @@ function asmPass2 (m) {
 
 	ma.asmListingPlain.push(s.listingLinePlain);
 	ma.asmListingDec.push(s.listingLineHighlightedFields);
+        if (s.codeWord1) {
+            ma.asMap.push({address: s.address,
+                           lineno:  s.lineNumber})
+        }
 	for (let i = 0; i < s.errors.length; i++) {
 	    ma.asmListingPlain.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	    ma.asmListingDec.push(highlightText('Error: ' + s.errors[i],'ERR'));
@@ -1241,6 +1238,7 @@ function asmPass2 (m) {
     emitRelocations (m);
     emitImports (m);
     emitExports (m);
+    emitASmap (m);
 }
 
 function fixHtmlSymbols (str) {
@@ -1343,6 +1341,24 @@ function emitExports (m) {
         }
     }
 }
+
+function emitASmap (m) {
+    let ma = m.asmInfo;
+    let x;
+    console.log ('emitASmap');
+    console.log ("metadata");
+    ma.objectCode.push ("");
+    ma.objectCode.push ("metadata");
+    for (let i = 0; i < ma.asMap.length; i++) {
+        x = ma.asMap[i];
+        ma.objectCode.push (`(${wordToHex4(x.address)} ${x.lineno})`);
+    }
+}
+//        ma.objectCode.push (x.plain);
+//        ma.objectCode.push (x.decorated);
+//        console.log (`${wordToHex4(x.address)}`);
+//        console.log (`${x.plain}`);
+//        console.log (`${x.decorated}`);
 
 function showAsmap (m) {
     let ma = m.asmInfo;

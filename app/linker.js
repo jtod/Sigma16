@@ -114,20 +114,21 @@ function boot (es) {
     memClearAccesses();
     document.getElementById('ProcAsmListing').innerHTML = "";
 
-	es.asmListingPlain = ma.asmListingPlain;
-	es.asmListingDec = ma.asmListingDec;
-        es.asmListingCurrent = [];
-	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
-	    es.asmListingCurrent[i] = es.asmListingDec[i];
-	}
-	initListing (m,es);
-	es.nInstructionsExecuted = 0;
-	document.getElementById("nInstrExecuted").innerHTML =
-	    es.nInstructionsExecuted;
-	ioLogBuffer = "";
-	refreshIOlogBuffer();
-        getListingDims(es);
-
+    // get listing from the assembler
+    es.asmListingPlain = ma.asmListingPlain;  // interface
+    es.asmListingDec = ma.asmListingDec;  // interface
+    
+    es.asmListingCurrent = [];
+    for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
+	es.asmListingCurrent[i] = es.asmListingDec[i];
+    }
+    initListing (m,es);
+    es.nInstructionsExecuted = 0;
+    document.getElementById("nInstrExecuted").innerHTML =
+	es.nInstructionsExecuted;
+    ioLogBuffer = "";
+    refreshIOlogBuffer();
+    getListingDims(es);
     
     for (let i = 0; i < mo.objCode.length; i++) {
         xs = mo.objCode[i];
