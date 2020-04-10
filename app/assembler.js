@@ -61,14 +61,12 @@ function mkModuleAsm () {
 	asmListingPlain : [],      // assembler listing
 	asmListingDec : [],         // decorated assembler listing
 	objectCode : [],           // string hex representation of object
+        metadata : [],             // lines of metadata code
         asMap : [],                     // address/source map
         exports : [],
 	asmStmt : []               // statements correspond to lines of source
     }
 }
-
-
-
 
 let opcode_cmp = 4; // for pass2/RR, may want to refactor this
 
@@ -1346,19 +1344,18 @@ function emitASmap (m) {
     let ma = m.asmInfo;
     let x;
     console.log ('emitASmap');
-    console.log ("metadata");
-    ma.objectCode.push ("");
-    ma.objectCode.push ("metadata");
+    ma.metadata.push("asMap")
     for (let i = 0; i < ma.asMap.length; i++) {
         x = ma.asMap[i];
-        ma.objectCode.push (`(${wordToHex4(x.address)} ${x.lineno})`);
+        ma.metadata.push (`(${wordToHex4(x.address)} ${x.lineno})`);
+    }
+    ma.metadata.push(`source ${ma.asmListingPlain.length}`)
+    for (let i = 0; i < ma.asmListingPlain.length; i++) {
+        ma.metadata.push(ma.asmListingPlain[i]);
+        ma.metadata.push(ma.asmListingDec[i]);
     }
 }
-//        ma.objectCode.push (x.plain);
-//        ma.objectCode.push (x.decorated);
-//        console.log (`${wordToHex4(x.address)}`);
-//        console.log (`${x.plain}`);
-//        console.log (`${x.decorated}`);
+
 
 function showAsmap (m) {
     let ma = m.asmInfo;
@@ -1441,6 +1438,13 @@ function setAsmListing () {
 
 function setObjectListing () {
     let code = getCurrentModule().asmInfo.objectCode;
+    let codeText = code ? code.join('<br>') : 'no code';
+    let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
+    document.getElementById('AsmTextHtml').innerHTML = listing;
+}
+
+function setMetadata () {
+    let code = getCurrentModule().asmInfo.metadata;
     let codeText = code ? code.join('<br>') : 'no code';
     let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;

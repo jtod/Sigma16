@@ -3563,26 +3563,49 @@ This shows each identifier (or "symbol") that appears in the program,
 the address allocated for the symbol, the source code line where it
 was defined, and the source code lines where it was used.
 
-# Linker
+# Modules, linking, and booting
 
-The assembler inputs a program in assembly language and it outputs an
-*object module*.  The object module contains the machine language code
-as well as some additional metadata.  The metadata enables the linker
-to combine the object module with other modules into an *executable
-module*.
+Small programs often consist of just one module (or file).  The
+assembler translates the assembly language source code into machine
+language which is then executed by the processor.
+
+However, there are several reasons for breaking up larger programs
+into several modules.  It's easier to work with several modules of
+reasonable size rather than one gigantic file.  A module may provide
+generic services that can be incorporated into many programs.
+Programs can be simplified if they use libraries for common tasks,
+rather than implementing everything from scratch.  It is faster to
+assemble small files than large ones.
+
+When a program consists of several modules, each one has to be
+assembled separately.  However, the resulting machine language is not
+executable if it refers to procedures or other values defined in
+another module.  Therefore the modules need to be combined into a
+single executable module; this is called *linking*.
+
+Sigma16 supports linking, but
+
+The system supports programs that consist of several modules.  It also
+makes it easy to run programs consisting of just one standalone
+module.  This is done simply and intuitively, so you can ignore the
+issues of modules and linking if you just want to write a andalone
+program.
+
+
+## Programs, modules, and files
+
+The assembler inputs a program in assembly language.  Its primary
+output is an *object module* which contains the machine language code.
+The assembler also produces an *assembly listing*, which presents the
+program in a form useful for the programmer, and a *metadata module*
+which enables the emulator to track the source statement corresponding
+to each instruction.
 
 Each module has an associated object code, which may be empty. The
 object code can be produced by a successful assembly (i.e. an assembly
 with no errors) or it can be obtained from the Editor.  This allows
 object code to be read from a file or entered directly by the user.
 
-## Programs, modules, and files
-
-The system is designed to allow programs that consist of several
-modules, but also to allow programs consisting of one standalone
-module.  In addition, an aim is to do this simply and intuitively, so
-that you can ignore the issues of modules and linking if you just want
-to write a andalone program.
 
 There is a standard convention for file names.  If, for example, you
 have a program named MyProgram, then the files associated with it
@@ -3723,21 +3746,21 @@ each token is either a hex constant or an identifier.
   letter.
 
 The object language has seven statements: module, org, data, import,
-export, relocate, and metadata.  Some of these are related to
-corresponding statements in assembly language, but their syntax is
-different and in some cases they may contain different information.
+export, and relocate.  Some of these are related to corresponding
+statements in assembly language, but their syntax is different and in
+some cases they may contain different information.
 
-### Object module statement
+### module statement
 
-### Object org statement
+### org  statement
 
-### Object data statement
+### data statement
 
-### Object import statement
+### import statement
 
-### Object export statement
+### export statement
 
-### Object relocate statement
+### relocate statement
 
 The relocate statement specifies a list of addresses of words that
 must be relocated.  Suppose the value x is specified in a relocate
@@ -3748,14 +3771,19 @@ the linker will set mem[x+y] = obj[x]+y.
 relocate hex4,hex4,...
 ~~~~
 
-### Object metadata statement
+### Module metadata
 
-Any arguments after the keyword "metadata" are ignored.  The rest of
-the object file contains the address/source map.  This consists of
-groups of 3 lines.  In each group, the first line is an address (four
-hex digits, e.g. 4b2e).  The second line is the assembly listing line
-for that address, and the third line is the decorated assembly listing
-line for that address.
+The emulator attempts to show the assembly language source as the
+program runs, and it highlights the current and next instruction.  To
+do this, the emulator needs to have some information that isn't
+present in the object code.  This extra information is supplied in a
+separate file called *module metadata* produced by the assembler.
+
+The user can ignore the metadata.  However, you can look at it if
+you're curious.  The metadata contains the source code in two forms:
+plain text and with html tags for highlighting the fields.  In
+addition, the metadata contains a mapping from address to source code
+line number.
 
 ## Executable code
 
