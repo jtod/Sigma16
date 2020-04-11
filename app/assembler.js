@@ -292,7 +292,11 @@ function assembler () {
     ma.asmListingPlain.push("</pre>");
     ma.asmListingDec.push("</pre>");
     setAsmListing (m);
-    m.objInfo.objCode = ma.objectCode; // point the module object code to result
+    // Transfer object and metadata to object module.  To ensure
+    // uniformity, the linker will reparse the metadata text
+    // regardless of its origin.
+    m.objInfo.objCode = ma.objectCode;
+    m.objInfo.objMetadataText = ma.metadata.join('\n');
 }
 
 //----------------------------------------------------------------------
@@ -1344,12 +1348,12 @@ function emitASmap (m) {
     let ma = m.asmInfo;
     let x;
     console.log ('emitASmap');
-    ma.metadata.push("asMap")
     for (let i = 0; i < ma.asMap.length; i++) {
         x = ma.asMap[i];
-        ma.metadata.push (`(${wordToHex4(x.address)} ${x.lineno})`);
+        ma.metadata.push (`${wordToHex4(x.address)} ${x.lineno}`);
     }
-    ma.metadata.push(`source ${ma.asmListingPlain.length}`)
+    ma.metadata.push ('Source');
+    ma.metadata.push(`${ma.asmListingPlain.length}`)
     for (let i = 0; i < ma.asmListingPlain.length; i++) {
         ma.metadata.push(ma.asmListingPlain[i]);
         ma.metadata.push(ma.asmListingDec[i]);

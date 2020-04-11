@@ -34,9 +34,33 @@ function mkModuleObj () {
     return {
         objText : "",      // text of object code
         objCode  : [],     // lines of object code
-        objStmt  : []      // array of statements in object code
+        objStmt  : [],      // array of statements in object code
+        objMetadataText : "",
+        objMetadataLines : [],
+        objMetadata : null   // optional
     }
 }
+
+// Given source lines for the metadata, build the metadata object for emulator
+function parseObjMetadata (mdLines) {
+    console.log ("parseObjMetadata");
+    console.log (mdLines);
+    let mdAsMap = [];
+    let mdPlainLines = [];
+    let mdDecLines = [];
+    let i = 0;
+    while (i < mdLines.length & mdLines[i] != "Source") {
+        console.log (`asmap entry ${mdLines[i]}`);
+        i++
+    }
+    console.log (`source starts at line ${i} --${mdLines[i]--}`);
+    let nSrcLines = mdLines[i];
+    console.log (`nSrcLines = ${nSrcLines}`);
+    return nSrcLines;
+//    return {mdLines, mdAsMap, mdPlainLines, mdDecLines}
+}
+
+    
 
 //-------------------------------------------------------------------------------
 // Find and display modules
@@ -49,8 +73,7 @@ function clearObjectCode () {
     document.getElementById('LinkerText').innerHTML = listing;
 }
 
-
-// called when Linker: Selected module button is clicked
+// Linker Object code button
 function linkShowSelectedObj () {
     console.log ("linkShowSelectedObj");
     let m = s16modules[selectedModule]; // get current module
@@ -61,8 +84,17 @@ function linkShowSelectedObj () {
         + m.objInfo.objCode.join('\n')
         + "</pre>";
     document.getElementById('LinkerText').innerHTML = objListing;
-    // dev only
-    //    parseObject (m);
+}
+
+// Linker Metadata button
+function linkShowMetadata () {
+    console.log ("linkShowMetadata");
+    let m = s16modules[selectedModule]; // get current module
+    let mo = m.objInfo;
+    let md = "<pre class='HighlightedTextAsHtml'>"
+        + (mo.objMetadataText ? mo.objMetadataText : "no metadata")
+        + "</pre>";
+    document.getElementById('LinkerText').innerHTML = md;
 }
 
 // Called by button in Linker tab; this is used when an object file is
