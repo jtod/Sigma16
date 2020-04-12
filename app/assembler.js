@@ -14,9 +14,12 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // assembler.js translates assembly language to machine language
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+"use strict";
+
 
 // CharSet is a string containing all the characters that may appear
 // in a valid Sigma16 assembly language source program.  It's always
@@ -51,7 +54,7 @@ function validateChars (xs) {
 // Information about a module produced by the assembler
 function mkModuleAsm () {
     return {
-	modName : null,            // name of module specified in module stmt
+	modName : undefined,            // name of module specified in module stmt
 	modSrc : '',               // source code
         modAsmOK : false,
 	symbols : [],              // symbols used in the source
@@ -91,9 +94,9 @@ comments field
    contains any characters
 */
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Running and testing
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Run the current test case, called in Initialization
 function run () {
@@ -101,9 +104,9 @@ function run () {
 //    assembler();
 }
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Symbol table
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 function displaySymbolTableHtml (m) {
     let ma = m.asmInfo;
@@ -143,9 +146,9 @@ function showSymbol (s) {
     return (s.symbol + ' val=' + s.val + ' def ' + s.defLine);
 }
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Assembly language statement
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Representation of assembly language statement
 
@@ -179,8 +182,8 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    operandDATA : false,            // statement contains data
             operandX : false,               // expression operand for directive
             operandIDENT : false,           // identifier directive
-            expSrc : null,                  // expression operand if any
-            expValue : null,                // value of expression operand if any
+            expSrc : undefined,                  // expression operand if any
+            expValue : undefined,                // value of expression operand if any
 	    op : 0,                         // operation
             operand_str1 : '',
             operand_str2 : '',
@@ -241,9 +244,9 @@ function printAsmStmt (m,x) {
     }
 }
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //  Assembler
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Report an assembly error: s is an assembly source line, err is an
 // error message
@@ -260,7 +263,7 @@ function assembler () {
     m.modType = ModAsm; // module text is now considered to be assembly langauge
     let ma = m.asmInfo;
     console.log(`Assembling module ${selectedModule}`);
-    ma.modName = null;  // remove name from earlier assembly, if any
+    ma.modName = undefined;  // remove name from earlier assembly, if any
     ma.nAsmErrors = 0;
     ma.asmStmt = [];
     ma.symbols = [];
@@ -292,16 +295,13 @@ function assembler () {
     ma.asmListingPlain.push("</pre>");
     ma.asmListingDec.push("</pre>");
     setAsmListing (m);
-    // Transfer object and metadata to object module.  To ensure
-    // uniformity, the linker will reparse the metadata text
-    // regardless of its origin.
-    m.objInfo.objCode = ma.objectCode;
-    m.objInfo.objMetadataText = ma.metadata.join('\n');
+    m.objInfo.objLine = ma.objectCode; // Transfer object code to object module
+    m.objInfo.objMetadataLine = ma.metadata; // Transfer metadata to object module
 }
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //  Regular expressions for the parser
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Syntax of assembly language
 
@@ -415,9 +415,9 @@ const parseString = /"((\\")|[^"])*"/;
 // checked for validity (e.g. 23xy is not a valid displacement).
 
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //  Testing the regular expressions
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Test a parser p on a string s and print the fields that are extracted.
 // Example: testParser (rxParser, "R7,$2d3[R5]")
@@ -577,9 +577,9 @@ function highlightField (xs,highlight) {
 }
 
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //  Parser
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Parse the source for line i and update the object with the results.
 // Each source line is a statement; a statement consists of a sequence
@@ -645,7 +645,7 @@ function parseLabel (m,s) {
 
 // Set operation to the instruction set object describing the
 // operation, if the operation field is defined in the map of
-// operations.  Otherwise leave operation=null.  Thus s.operation can
+// operations.  Otherwise leave operation=undefined.  Thus s.operation can
 // be used as a Boolean to determine whether the operation exists, as
 // well as the specification of the operation if it exists.
 
@@ -849,9 +849,9 @@ function ensure (operand_field) {
     return operand_field ? operand_field : 0
 }
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //  Assembler Pass 1
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 function asmPass1 (m) {
     let ma = m.asmInfo;
@@ -951,9 +951,9 @@ function showOperand (x) {
     }
 }
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //  Pass 2
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Make a code word from four 4-bit fields
 function mkWord (op,d,a,b) {
@@ -980,8 +980,8 @@ function asmPass2 (m) {
     relocationAddressBuffer = [];
     for (let i = 0; i < ma.asmStmt.length; i++) {
 	s = ma.asmStmt[i];
-        s.codeWord1 = null;
-        s.codeWord2 = null;
+        s.codeWord1 = undefined;
+        s.codeWord2 = undefined;
 	fmt = s.format;
 	console.log(`pass2 line=${s.lineNumber} s=/${s.srcLine}/`);
 	console.log(`pass2 line=${s.lineNumber} fmt=${fmt}`
@@ -1301,7 +1301,7 @@ function emitImports (m) {
     m.objIsExecutable = false; // can't execute since there are imports
     ma.symbols =[ ...ma.symbolTable.keys() ].sort();
     console.log (`emitImports ma.symbols=${ma.symbols}`);
-    for (i in ma.symbols) {
+    for (let i in ma.symbols) {
         let x = ma.symbolTable.get(ma.symbols[i]);
         console.log (`emitImports i=${i} symname=${x.symbol}`)
         if (x.symIsImport) {
@@ -1352,8 +1352,7 @@ function emitASmap (m) {
         x = ma.asMap[i];
         ma.metadata.push (`${wordToHex4(x.address)} ${x.lineno}`);
     }
-    ma.metadata.push ('Source');
-    ma.metadata.push(`${ma.asmListingPlain.length}`)
+    ma.metadata.push(`source ${ma.asmListingPlain.length}`)
     for (let i = 0; i < ma.asmListingPlain.length; i++) {
         ma.metadata.push(ma.asmListingPlain[i]);
         ma.metadata.push(ma.asmListingDec[i]);
@@ -1454,9 +1453,9 @@ function setMetadata () {
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //  Testing
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Test the parser on sample assembly source data
 

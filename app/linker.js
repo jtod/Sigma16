@@ -21,8 +21,9 @@
 // relocation; and loading an object module into memory.
 // -------------------------------------------------------------------------------
 
+"use strict";
+
 // refactor
-// var exMod;           // the module that is executing
 var curAsmap = [];
 
 //-------------------------------------------------------------------------------
@@ -32,12 +33,9 @@ var curAsmap = [];
 // Information about object code
 function mkModuleObj () {
     return {
-        objText : "",      // text of object code
-        objCode  : [],     // lines of object code
-        objStmt  : [],      // array of statements in object code
-        objMetadataText : "",
-        objMetadataLines : [],
-        objMetadata : null   // optional
+        objLine  : [],     // lines of object code: objText split by newline
+        objStmt  : [],     // array of statements in object code
+        objMetadataLine : undefined  // optional metadata lines
     }
 }
 
@@ -81,9 +79,24 @@ function linkShowSelectedObj () {
         + "<span class='ExecutableStatus'>Module is "
         + (m.objIsExecutable ? "executable" : "not executable" )
         + "</span><br>"
-        + m.objInfo.objCode.join('\n')
+        + m.objInfo.objLine.join('\n')
         + "</pre>";
     document.getElementById('LinkerText').innerHTML = objListing;
+}
+
+// Called by button in Linker tab; this is used when an object file is
+// to be read from editor rather than being created by the assembler
+function readObjectFromEditor () {
+    console.log ('readObjectFromEditor');
+    let m = s16modules[selectedModule]; // get current module
+    let mo = m.objInfo;
+    if (mo) { // it exists, proceed
+        let txt = document.getElementById("EditorTextArea").value;
+        mo.objLine = txt.split("\n");
+        document.getElementById('LinkerText').innerHTML = txt;
+    } else { // doesn't exist, error
+        console.log ('readObject error: no module');
+    }
 }
 
 // Linker Metadata button
@@ -92,22 +105,11 @@ function linkShowMetadata () {
     let m = s16modules[selectedModule]; // get current module
     let mo = m.objInfo;
     let md = "<pre class='HighlightedTextAsHtml'>"
-        + (mo.objMetadataText ? mo.objMetadataText : "no metadata")
+        + (mo.objMetadataLine? mo.objMetadataLine.join("\n") : "no metadata")
         + "</pre>";
     document.getElementById('LinkerText').innerHTML = md;
 }
 
-// Called by button in Linker tab; this is used when an object file is
-// to be read in rather than being assembled now
-function readObject () {
-    console.log ('readObject');
-    let m = s16modules[selectedModule]; // get current module
-    let mo = m.objInfo;
-    if (mo) { // it exists, proceed
-    } else { // doesn't exist, error
-        console.log ('readObject error: no module');
-    }
-}
 
 function setCurrentObjectCode () {
     let objHeader = "Module " + selectedModule + " object code"
@@ -139,7 +141,7 @@ function boot (es) {
     let ma = m.asmInfo; // only if this module came from assembler
     let mo = m.objInfo;
     let xs = "";
-    let fields = null;
+    let fields = undefined;
     let ok = true; // will set to false if module isn't bootable
     let location = 0; // address where next word will be stored
     resetRegisters();
@@ -162,8 +164,8 @@ function boot (es) {
     refreshIOlogBuffer();
     getListingDims(es);
     
-    for (let i = 0; i < mo.objCode.length; i++) {
-        xs = mo.objCode[i];
+    for (let i = 0; i < mo.objLine.length; i++) {
+        xs = mo.objLine[i];
         console.log (`boot: object line ${i} = ${xs}`);
         fields = parseObjLine (xs);
         console.log (`op=${fields.operation} args=${fields.operands}`);
@@ -197,8 +199,21 @@ function boot (es) {
         es.curAsmap = ma.asmap;
         showAsmap (es.curAsmap);
         setProcStatus (es,Ready);
+        let xs =  "<pre class='HighlightedTextAsHtml'>"
+            + "<span class='ExecutableStatus'>"
+            + "Boot was successful"
+            + "</span><br>"
+            + "</pre>";
+        document.getElementById('LinkerText').innerHTML = xs;
         console.log ("boot was successful")
     } else {
+        setProcStatus (es,Reset);
+        let xs =  "<pre class='HighlightedTextAsHtml'>"
+            + "<span class='ExecutableStatus'>"
+            + "Boot failed: module is not executable"
+            + "</span><br>"
+            + "</pre>";
+        document.getElementById('LinkerText').innerHTML = xs;
         console.log ("boot failed")
     }
     console.log ("boot returning");
@@ -218,7 +233,7 @@ function parseObjLine (xs) {
         operation = splitLine[1];
         operands = splitLine[2].split(',');
       } else {
-        console.log ('linker error: object line has invalid format: ' + s);
+        console.log ('linker error: object line has invalid format: ' + xs);
     }
         return {operation, operands}
 }
@@ -232,7 +247,7 @@ function mkObjStmt (i,srcLine,operation,operands) {
         objLocation : 0,
         objSize : 0,
         objOperandNames : [],
-        objCode : []
+        objLine : []
     }
 }
 

@@ -176,9 +176,9 @@ visiting this file in a browser.
 	    <div class="Pane" id="AssemblerPane">
 	      <div class="PaneButtons">
 		<button onclick="assembler();">Assemble</button>
-		<button onclick="setAsmListing();">Assembly listing</button>
-		<button onclick="setObjectListing();">Object listing</button>
-		<button onclick="setMetadata();">Metadata</button>
+		<button onclick="setObjectListing();">Show object</button>
+		<button onclick="setAsmListing();">Show listing</button>
+		<button onclick="setMetadata();">Show metadata</button>
 	      </div>
 	      <div class="HighlightedTextAsHtml" id="AssemblerBody">
 		<div id="AsmTextHtml"></div>
@@ -187,12 +187,12 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
-                <button onclick="linkShowSelectedObj()">Object code</button>
-                <button onclick="linkShowMetadata()">Metadata</button>
-                <button onclick="readObject()">Read object from editor</button>
-		<button onclick="setLinkerModules()">Read link commands </button>
-		<button onclick="link()"> Link </button>
-		<button onclick="boot(emulatorState)"> Boot </button>
+                <button onclick="linkShowSelectedObj()">Show object</button>
+                <button onclick="readObjectFromEditor()">Read object</button>
+		<button onclick="setLinkerModules()">Read modules</button>
+		<button onclick="link()">Link</button>
+		<button onclick="boot(emulatorState)">Boot</button>
+                <button onclick="linkShowMetadata()">Show metadata</button>
 	      </div>
 	      <div class="PaneBody" id="LinkerBody">
 	      <div class="HighlightedTextAsHtml" id="LinkerBody">
