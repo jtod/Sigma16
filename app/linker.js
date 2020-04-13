@@ -135,6 +135,11 @@ function setLinkerModules () {
 // Booter
 //-------------------------------------------------------------------------------
 
+function checkObject () {
+    console.log ("linker: checkObject");
+}
+
+
 function boot (es) {
     console.log ("boot");
     let m = s16modules[selectedModule]; // get current module
