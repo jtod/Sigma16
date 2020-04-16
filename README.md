@@ -15,11 +15,19 @@ for experimenting with the architecture.
   always points to the latest version.  Don't bookmark a specific
   release.
 
-* The URL for the [source
-  repository](https://github.com/jtod/Sigma16/) is
-  https://github.com/jtod/Sigma16/. 
+* The URL for the source code repository is
+  [https://github.com/jtod/Sigma16/](https://github.com/jtod/Sigma16/).
 
-## Links to local files
+## Download and links to local files
+
+To run the IDE (the graphical user interface) there is no need to
+download or install the software: you can just run it in a browser by
+clicking the *Launch Sigma16* link in the [Sigma16 Home
+Page](https://jtod.github.io/home/Sigma16/).
+
+The command line tools do require downloading and installing the
+software.  These include a standalone version of the IDE, circuit
+simulator, and more.  See the Installation section of the User Guide.
 
 If you copy the Sigma16 source directory onto your computer, the
 following links will run it locally without requiring further access
@@ -28,61 +36,18 @@ this page on the source repository on GitHub via the Internet.
 
 * [Launch from files in this directory](./app/Sigma16.html) If you
   have copied this directory onto a local machine, this link will run
-  it, with some limitations on file access (the User Guide won't be
-  visible, and you have to copy examples to the editor manually).  See
-  the Installation section in the User Guide for further ways to run
-  the software.
+  it.  The advantage is that you won't need access to the Internet.
+  However, browsers have restricted access to your file system, to
+  ensure security.  One consequence of this is that the *Select
+  example* button in the *Examples* page won't do anything.  But you
+  can select the text of the example with your mouse, right-click and
+  Copy, then Paste it into the Editor page.  It's also possible to
+  install Sigma16 as an app on your computer; that gets rid of the
+  restrictions on file access.  See the Installation section in the
+  User Guide.
+
 * [Up to the top directory](./) Show the listing of files in the
   directory containing this version.
-
-## Download
-
-It isn't necessary to download, compile, and install the software: you
-can just run it in a browser by clicking the Quick Start link in the
-Sigma16 Home Page.
-
-If you want to run the app when Internet is inaccessible, you can
-download the software and run it locally on your machine.  You don't
-need any special installation; simply store the Sigma16 folder
-anywhere on your computer.  Then there are several options:
-
-### Run in a browser
-
-Open the file *index.html* in a browser; this contains a link to
-launch the app, and there may be contain release notes.  Note that a
-few features won't work, because browsers restrict some operations
-when a web page executes from a local file (as opposed to an https
-server).  In particular, when you open an example program (in the
-Examples tab), the button "Copy example to editor" won't work.  But
-you can select the text of the example with your mouse, right-click
-and Copy, then Paste it into the editor.
-
-### Run with npm
-
-See app/makefile for notes on how to run the software as a standalone
-program, without using a browser.  The following software needs to be
-installed in order to build the executable using electron
-
-    node.js
-    npm
-
-### Compile using npm
-
-    Clone this repository
-    git clone https://github.com/electron/electron-quick-start
-    cd electron-quick-start  # Go into the repository
-    npm install   # Install dependencies
-    npm start     # Run the app
-
-The following files are required for compilation with npm, but they
-are not needed just to run the source program in a browser.
-
-    src/main.js
-    src/package.json
-    src/package-lock.json
-    src/preload.js
-    src/renderer.hs
-    src/node_modules/
 
 ## About the software
 

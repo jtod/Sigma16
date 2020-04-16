@@ -39,29 +39,8 @@ function mkModuleObj () {
     }
 }
 
-// Given source lines for the metadata, build the metadata object for emulator
-function parseObjMetadata (mdLines) {
-    console.log ("parseObjMetadata");
-    console.log (mdLines);
-    let mdAsMap = [];
-    let mdPlainLines = [];
-    let mdDecLines = [];
-    let i = 0;
-    while (i < mdLines.length & mdLines[i] != "Source") {
-        console.log (`asmap entry ${mdLines[i]}`);
-        i++
-    }
-    console.log (`source starts at line ${i} --${mdLines[i]--}`);
-    let nSrcLines = mdLines[i];
-    console.log (`nSrcLines = ${nSrcLines}`);
-    return nSrcLines;
-//    return {mdLines, mdAsMap, mdPlainLines, mdDecLines}
-}
-
-    
-
 //-------------------------------------------------------------------------------
-// Find and display modules
+// Operations on selected module
 //-------------------------------------------------------------------------------
 
 // Clear the display of the object code in the linker pane
@@ -122,6 +101,32 @@ function setCurrentObjectCode () {
 
 }
 
+// Given source lines for the metadata, build the metadata object for emulator
+function parseObjMetadata (mdLines) {
+    console.log ("parseObjMetadata");
+    console.log (mdLines);
+    let mdAsMap = [];
+    let mdPlainLines = [];
+    let mdDecLines = [];
+    let i = 0;
+    while (i < mdLines.length & mdLines[i] != "Source") {
+        console.log (`asmap entry ${mdLines[i]}`);
+        i++
+    }
+    console.log (`source starts at line ${i} --${mdLines[i]--}`);
+    let nSrcLines = mdLines[i];
+    console.log (`nSrcLines = ${nSrcLines}`);
+    return nSrcLines;
+//    return {mdLines, mdAsMap, mdPlainLines, mdDecLines}
+}
+
+    
+
+//-------------------------------------------------------------------------------
+// Operations on list of modules
+//-------------------------------------------------------------------------------
+
+
 function showLinkerStatus () {
     console.log ('showLinkerStatus');
     let m = s16modules[selectedModule]; // get current module
@@ -130,6 +135,39 @@ function showLinkerStatus () {
 function setLinkerModules () {
     console.log ('setLinkerModules');
 }
+
+// Return the list of module numbers for the modules to be linked
+// test stub ?????
+function getLinkModuleList () {
+    console.log ("getLinkModuleList");
+    return [1,2]; // test stub
+}
+
+//-------------------------------------------------------------------------------
+// Linker
+//-------------------------------------------------------------------------------
+
+// linkMods is a list of module numbers of the modules to be linked
+
+
+/*
+function collectLinkModules (linkMods) {
+    let exeMod = selectedModule; // stub
+    console.log ("collectLinkModules");
+    console.log (`exmod=${executable} linkmods=${}`);
+    let mo = s16modules[exeMod]; // module number of the executable
+    let exeLines = mo.objLine;
+    exeLines = [];
+    mo.objLine = []; // clear object lines
+    for (let i = 0; i < linkMods.length; i++) {
+        let hasModuleName = false; // require module name
+        for (let j = 0; j < s16modules[i].objLine.length; j++) {
+            
+        }
+    }
+    
+}
+*/
 
 //-------------------------------------------------------------------------------
 // Booter

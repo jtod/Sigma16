@@ -1327,7 +1327,7 @@ function emitImportAddresses (m,x) {
 
 function emitExports (m) {
     let ma = m.asmInfo;
-    let x, sym, v, r;
+    let x, y, sym, v, r;
     console.log ('emitExports' + ma.exports);
     while (ma.exports.length > 0) {
         x = ma.exports.splice(0,1);
@@ -1336,8 +1336,9 @@ function emitExports (m) {
         console.log (ma.symbolTable);
         sym = ma.symbolTable.get(y);
         if (sym) {
+            r = sym.relocatable ? "relocatable" : "fixed";
             v = wordToHex4(sym.val);
-            ma.objectCode.push (`export   ${y},${v}`);
+            ma.objectCode.push (`export   ${y},${v},${r}`);
         } else {
             console.log (`\n\n\n ERROR export error ${x}\n\n\n`);
         }
@@ -1379,6 +1380,8 @@ function showAsmap (m) {
 // being evaluated could appear in the second word of an instruction
 // (for RX etc), or any word (in the case of a data statement)).
 
+// Result is { evalVal : (word), evalRel : (boolean) }
+
 // Evaluate returns a word which will be inserted into the object code
 // during pass 2.  This could be the actual final value (if it's a
 // relocatable label) or a placeholder value of 0 (if it's an import).
@@ -1394,10 +1397,10 @@ function showAsmap (m) {
 function evaluate (m,s,a,x) {
     let ma = m.asmInfo;
     console.log('evaluate ' + x);
-    let result = 0;
+    let result = {evalVal : 0, evalRel : false};
     if (!x.search) {
         mkErrMsg (m, s, `Cannot evaluate expression (search failed), using 0`);
-        return 0;y
+        return result;
     }
     if (x.search(nameParser) == 0) { // expression is a name
 	r = ma.symbolTable.get(x);
@@ -1405,33 +1408,30 @@ function evaluate (m,s,a,x) {
 	    console.log('evaluate returning ' + r.val);
             r.symUsageAddrs.push(a);
             r.symUsageLines.push(s.lineNumber+1);
-            //	    return { evalVal : r.val, evalRel : r.relocatable };
             result = { evalVal : r.val, evalRel : r.relocatable };
 	} else {
 	    mkErrMsg (m, s, 'symbol ' + x + ' is not defined');
 	    console.log('evaluate returning ' + 0);
-            //	    return {evalVal : 0, evalRel : false};
             result = {evalVal : 0, evalRel : false};
 	}
     } else if (x.search(intParser) == 0) { // expression is an int literal
 	console.log('evaluate returning ' + parseInt(x,10));
-        //	return {evalVal : intToWord(parseInt(x,10)), evalRel : false};
         result = {evalVal : intToWord(parseInt(x,10)), evalRel : false};
     } else if (x.search(hexParser) == 0) { // expression is a hex literal
-        //	return {evalVal : hex4ToWord(x.slice(1)), evalRel : false};
         result =  {evalVal : hex4ToWord(x.slice(1)), evalRel : false};
     } else { // compound expression (not yet implemented)
 	mkErrMsg (m, s, 'expression ' + x + ' has invalid syntax');
-        //	return {evalVal : 0, evalRel : false};
         result = {evalVal : 0, evalRel : false};
     }
-    if (result) {
-        return result
-    } else {
-        mkErrMsg (m, s, `Cannot evaluate expression, using 0`);
-        return 0;
-    }
+    return result;
 }
+//    if (result) {
+//        return result
+//    } else {
+//        mkErrMsg (m, s, `Cannot evaluate expression, using 0`);
+//        return 0;
+//    }
+
 
 function setAsmListing () {
     let listingDec = getCurrentModule().asmInfo.asmListingDec;

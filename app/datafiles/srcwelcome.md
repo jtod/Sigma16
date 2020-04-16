@@ -59,12 +59,31 @@ best to bookmark the home page, not this specific release.  If you
 always launch the app by clicking the link in the home page, you'll
 always be running the most recent release.
 
+The source code is available on the <a
+href="https://github.com/jtod/Sigma16/" target="_blank">source
+repository</a>.
+
 ## License
 
-Copyright (C) 2019-2020 John T. O'Donnell
+Sigma16: computer architecture for research and teaching<br>
+Copyright (C) 2020 John T. O'Donnell<br>
+License: GNU GPL Version 3 or later
 
-Sigma16 is free software released under the GPL-3 license.  The source
-code is available on the <a href="https://github.com/jtod/Sigma16/"
-target="_blank">source repository</a>.  This program comes with
-ABSOLUTELY NO WARRANTY; for details see the User Guide or click *About
-Sigma16*.
+The full text of the license is available on the <a
+href="https://github.com/jtod/Sigma16/" target="_blank">source
+repository</a>.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <a
+href="https://www.gnu.org/licenses/"
+target="_blank">https://www.gnu.org/licenses/</a>

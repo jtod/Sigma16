@@ -23,36 +23,16 @@
 <h2 id="internet-links">Internet links</h2>
 <ul>
 <li><p>For up to date information, and to run the software, visit the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 Home Page</a>. That page also contains links to documentation, past releases, and the source repository. It’s best to bookmark the home page, which always points to the latest version. Don’t bookmark a specific release.</p></li>
-<li><p>The URL for the <a href="https://github.com/jtod/Sigma16/">source repository</a> is https://github.com/jtod/Sigma16/.</p></li>
+<li><p>The URL for the source code repository is <a href="https://github.com/jtod/Sigma16/">https://github.com/jtod/Sigma16/</a>.</p></li>
 </ul>
-<h2 id="links-to-local-files">Links to local files</h2>
+<h2 id="download-and-links-to-local-files">Download and links to local files</h2>
+<p>To run the IDE (the graphical user interface) there is no need to download or install the software: you can just run it in a browser by clicking the <em>Launch Sigma16</em> link in the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 Home Page</a>.</p>
+<p>The command line tools do require downloading and installing the software. These include a standalone version of the IDE, circuit simulator, and more. See the Installation section of the User Guide.</p>
 <p>If you copy the Sigma16 source directory onto your computer, the following links will run it locally without requiring further access to the Internet. However, these links will not work if you’re reading this page on the source repository on GitHub via the Internet.</p>
 <ul>
-<li><a href="./app/Sigma16.html">Launch from files in this directory</a> If you have copied this directory onto a local machine, this link will run it, with some limitations on file access (the User Guide won’t be visible, and you have to copy examples to the editor manually). See the Installation section in the User Guide for further ways to run the software.</li>
-<li><a href="./">Up to the top directory</a> Show the listing of files in the directory containing this version.</li>
+<li><p><a href="./app/Sigma16.html">Launch from files in this directory</a> If you have copied this directory onto a local machine, this link will run it. The advantage is that you won’t need access to the Internet. However, browsers have restricted access to your file system, to ensure security. One consequence of this is that the <em>Select example</em> button in the <em>Examples</em> page won’t do anything. But you can select the text of the example with your mouse, right-click and Copy, then Paste it into the Editor page. It’s also possible to install Sigma16 as an app on your computer; that gets rid of the restrictions on file access. See the Installation section in the User Guide.</p></li>
+<li><p><a href="./">Up to the top directory</a> Show the listing of files in the directory containing this version.</p></li>
 </ul>
-<h2 id="download">Download</h2>
-<p>It isn’t necessary to download, compile, and install the software: you can just run it in a browser by clicking the Quick Start link in the Sigma16 Home Page.</p>
-<p>If you want to run the app when Internet is inaccessible, you can download the software and run it locally on your machine. You don’t need any special installation; simply store the Sigma16 folder anywhere on your computer. Then there are several options:</p>
-<h3 id="run-in-a-browser">Run in a browser</h3>
-<p>Open the file <em>index.html</em> in a browser; this contains a link to launch the app, and there may be contain release notes. Note that a few features won’t work, because browsers restrict some operations when a web page executes from a local file (as opposed to an https server). In particular, when you open an example program (in the Examples tab), the button “Copy example to editor” won’t work. But you can select the text of the example with your mouse, right-click and Copy, then Paste it into the editor.</p>
-<h3 id="run-with-npm">Run with npm</h3>
-<p>See app/makefile for notes on how to run the software as a standalone program, without using a browser. The following software needs to be installed in order to build the executable using electron</p>
-<pre><code>node.js
-npm</code></pre>
-<h3 id="compile-using-npm">Compile using npm</h3>
-<pre><code>Clone this repository
-git clone https://github.com/electron/electron-quick-start
-cd electron-quick-start  # Go into the repository
-npm install   # Install dependencies
-npm start     # Run the app</code></pre>
-<p>The following files are required for compilation with npm, but they are not needed just to run the source program in a browser.</p>
-<pre><code>src/main.js
-src/package.json
-src/package-lock.json
-src/preload.js
-src/renderer.hs
-src/node_modules/</code></pre>
 <h2 id="about-the-software">About the software</h2>
 <p>The Sigma16 app (the integrated development environment – i.e. the GUI) is implemented in JavaScript, html 5, and css. The digital circuit is implemented in Hydra, which requires Haskell. Additional software tools, including a high speed emulator, are in progress and expected to be available in late 2020.</p>
 <h3 id="author">Author</h3>

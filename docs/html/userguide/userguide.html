@@ -163,16 +163,25 @@
 </ul></li>
 <li><a href="#circuit">Circuit</a></li>
 <li><a href="#installation">Installation</a><ul>
-<li><a href="#how-to-run-sigma16">How to run Sigma16</a><ul>
-<li><a href="#the-easiest-way-just-click-a-link">The easiest way: just click a link</a></li>
+<li><a href="#the-easy-way-running-in-browser-with-no-installation">The easy way: running in browser with no installation</a></li>
+<li><a href="#command-line-tools">Command line tools</a><ul>
+<li><a href="#required-software">Required software</a></li>
+<li><a href="#setting-up-your-environment">Setting up your environment</a></li>
+<li><a href="#running-the-circuit">Running the circuit</a></li>
+<li><a href="#running-ide-locally">Running IDE locally</a></li>
+<li><a href="#run-with-npm">Run with npm</a></li>
+<li><a href="#compile-using-npm">Compile using npm</a></li>
 <li><a href="#download-and-open-file-in-browser">Download and open file in browser</a></li>
 <li><a href="#run-locally-with-npm-and-electron">Run locally with npm and electron</a></li>
-<li><a href="#compiling-a-standalone-executable">Compiling a standalone executable</a></li>
+<li><a href="#compiling-ide-for-local-execution">Compiling IDE for local execution</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#about-sigma16">About Sigma16</a><ul>
-<li><a href="#author">Author</a></li>
-<li><a href="#license">License</a></li>
+<li><a href="#implementation-notes">Implementation notes</a><ul>
+<li><a href="#makefile">makefile</a></li>
+<li><a href="#version-number">Version number</a></li>
+<li><a href="#running-with-npm">Running with npm</a></li>
+</ul></li>
+<li><a href="#copyright-and-license">Copyright and license</a><ul>
 <li><a href="#gpl3-license">GPL3 License</a></li>
 </ul></li>
 </ul>
@@ -2384,6 +2393,28 @@ x = x+1+z;</code></pre>
 Sigma16                      path to Sigma16 on your machine</code></pre>
 <pre><code>Sigma16/circuits/M1
 Sigma16/circuits/M1/programs</code></pre>
+<h1 id="installation">Installation</h1>
+<h2 id="the-easy-way-running-in-browser-with-no-installation">The easy way: running in browser with no installation</h2>
+<p>To run the main app (the Integrated Development Environment, or IDE) visit the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 home page</a> in your browser and click on the link to launch the app. It will run in your browser; you don’t have to install anything.</p>
+<p>The Home page also contains links to the source code, related documents, and further information about the project. Its a good idea to bookmark the Home Page, rather than a specific release: that way you’ll always get the latest version.</p>
+<p>The IDE runs in a web browser. The browser needs to be up to date; the app won’t work in very old versions of browsers. It should work with any browser that is compliant with the current ECMAScript standard. Just keep your browser updated (you need to do that anyway) and it should work.</p>
+<h2 id="command-line-tools">Command line tools</h2>
+<p>In addition to the graphical user interface, there are a number of tools that run in a command line. These tools don’t use a GUI (graphical user environment). They include a fast emulator and circuit simulator.</p>
+<h3 id="required-software">Required software</h3>
+<p>To use the full set of command line tools, you need the following:</p>
+<ul>
+<li><p>Console running a shell. The most common choice is bash, which runs on all platforms.</p></li>
+<li><p>node.js and npm. These are part of the standard JavaScript tools which can be downloaded from <a href="https://www.npmjs.com/get-npm">https://www.npmjs.com/get-npm</a>.</p></li>
+<li><p>C. Many systems come with a C compiler already installed. The gcc compiler is available at <a href="https://gcc.gnu.org/install/">https://gcc.gnu.org/install/</a></p></li>
+<li><p>ghc. The circuit tools requires the Haskell compiler; download from <a href="https://www.haskell.org/downloads/">https://www.haskell.org/downloads/</a></p></li>
+</ul>
+<h3 id="setting-up-your-environment">Setting up your environment</h3>
+<p>Shell running bash</p>
+<p>Add the following to your .bashrc file, but replace /Users//yourlogin/Documents/path/to/ with your own file location. In a bash shell running on cygwin, try /Users/yourlogin.</p>
+<pre><code>SIGMA16=/Users/yourlogin/Documents/path/to/SigmaProject/Sigma16
+export SIGMA16
+alias helloworld=&quot;node ${SIGMA16}/app/helloworld.js&quot;</code></pre>
+<h3 id="running-the-circuit">Running the circuit</h3>
 <p>Create a file named .ghci containing the following The simplest way to run the simulations is as follows.</p>
 <pre><code>:set -i../:C:/Users/me/a/b/c/Hydra/src/haskell</code></pre>
 <p>When you launch ghci, it will read this file, which defines the search path. The first component of the search path is ../ which is the parent directory of Sigma16-M1-programs (i.e. the M1 directory itself). The second component is the location of the Hydra library.</p>
@@ -2395,18 +2426,17 @@ Sigma16/circuits/M1/programs</code></pre>
 <pre><code>ghci -i/c/Users/me/a/b/c/Hydra/src/haskell/ ArrayMaxRun</code></pre>
 <p>The command can be simplified by defining a .ghci file, which will be loaded automatically when you invoke ghci. You can put the .ghci file in your $HOME directory. See the GHC User Guide for more details about configuring ghci. The .ghci file could contain a definition similar to this:</p>
 <pre><code>:set -i/c/Users/a/b/c/Hydra/src/haskell/</code></pre>
-<h1 id="installation">Installation</h1>
-<p>The application currently works with Chrome and Firefox, and possible Edge.</p>
-<p>The software is available on the Internet at the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 home page</a>, which contains a link to the latest version, some previous versions, related documents, and more information about the project.</p>
-<h2 id="how-to-run-sigma16">How to run Sigma16</h2>
-<p>There are a number of ways to run the software, but it’s recommended that you try the easiest way.</p>
-<h3 id="the-easiest-way-just-click-a-link">The easiest way: just click a link</h3>
-<p>Run the app with two clicks:</p>
-<ol type="1">
-<li>Visit the <a href="https://jtod.github.io/home/Sigma16/">Sigma16 homepage</a></li>
-<li>Click on <em>Launch the latest release</em></li>
-</ol>
-<p>This will run the app in your browser, and you don’t need to download or install anything. For most users this is the recommended method.</p>
+<h3 id="running-ide-locally">Running IDE locally</h3>
+<h3 id="run-with-npm">Run with npm</h3>
+<p>See app/makefile for notes on how to run the software as a standalone program, without using a browser. The following software needs to be installed in order to build the executable using electron</p>
+<p>node.js npm</p>
+<h3 id="compile-using-npm">Compile using npm</h3>
+<p>Clone this repository ~~~~ git clone https://github.com/electron/electron-quick-start ~~~~</p>
+<pre><code>cd electron-quick-start  # Go to the repository
+npm install              # Install dependencies
+npm start                # Run the app</code></pre>
+<p>Now you can launch the app from the command line:</p>
+<pre><code>npm start                # Run the app</code></pre>
 <h3 id="download-and-open-file-in-browser">Download and open file in browser</h3>
 <p>If you don’t always have Internet access, you can download the files and ope the app in your browser. This is easy to do and allows you to run Sigma16 even when you don’t have access to the Internet. However, it is a little more awkward to run the example programs.</p>
 <p>You can also download the software onto your computer and run it locally. This exactly like the first method, except the web pages are coming from your computer’s files rather than the Internet.</p>
@@ -2424,7 +2454,7 @@ Sigma16/circuits/M1/programs</code></pre>
 <li><p>To launch Sigma16, enter <em>npm run start</em>. Now you’ll have enhanced file access, as well as a few other minor enhancements, and you don’t need Internet access.</p></li>
 </ul></li>
 </ul>
-<h3 id="compiling-a-standalone-executable">Compiling a standalone executable</h3>
+<h3 id="compiling-ide-for-local-execution">Compiling IDE for local execution</h3>
 <p>First install npm, which also gives you Node.js. Use npm to install electron.</p>
 <p>cd src npm install npm start</p>
 <p>Clone this repository, then enter the repository, install dependencies, and run the program:</p>
@@ -2448,20 +2478,30 @@ Sigma16/circuits/M1/programs</code></pre>
 <p>Turns out that to build an app with electron one of the following specific tools is needed:</p>
 <p>electron-forge electron-builder electron-packager</p>
 <p>Trying electron-builder</p>
-<p>npm install electron-builder –save-dev in src/app npm run mkdist</p>
-<p><strong>Version number</strong></p>
-<p>The version number is needed in several places. To keep it consistent, there is only one primary place where it should be specified manually: in the version property in app/package.json.</p>
-<p>The makefile extracts the version number from that file, and (1) defines a make variable; (2) writes the Sigma16/VERSION file with just the version number, and (3) writes Sigma16/app/version.js which is just defines the version number as a global constant.</p>
-<h1 id="about-sigma16">About Sigma16</h1>
-<p>This program is experimental software, and is under development. Sigma16 consists of several components:</p>
+<pre><code>npm install electron-builder --save-dev   in src/app
+npm run mkdist</code></pre>
+<h1 id="implementation-notes">Implementation notes</h1>
+<p>This program is experimental software and is under development.</p>
+<p>Sigma16 consists of several components:</p>
 <ul>
 <li><p>The Integrated Development Environment (IDE) is written in JavaScript, and normally uses a web browser to display the graphical user interface. The assembler, linker, and emulator are also implemented in JavaScript and are closely integrated with the IDE.</p></li>
 <li><p>The circuits that implement Sigma16 are defined using the Hydra hardware description language, which is an embedded domain specific language implemented in Haskell.</p></li>
 <li><p>The User Guide is written in markdown and prepared for a web browser using pandoc.</p></li>
 </ul>
-<h2 id="author">Author</h2>
+<h2 id="makefile">makefile</h2>
+<h2 id="version-number">Version number</h2>
+<p>The version number is needed in several places. To keep it consistent, there is only one primary place where it should be specified manually: in the version property in app/package.json.</p>
+<p>The makefile extracts the version number from that file, and (1) defines a make variable; (2) writes the Sigma16/VERSION file with just the version number, and (3) writes Sigma16/app/version.js which is just defines the version number as a global constant.</p>
+<h2 id="running-with-npm">Running with npm</h2>
+<p>The following files are required for compilation with npm, but they are not needed just to run the source program in a browser.</p>
+<pre><code>src/main.js
+src/package.json
+src/package-lock.json
+src/preload.js
+src/renderer.hs
+src/node_modules/</code></pre>
+<h1 id="copyright-and-license">Copyright and license</h1>
 <p>The architecture, software tools, and documentation were designed, implemented, and written by John O’Donnell. Contact email: john.t.odonnell9@gmail.com</p>
-<h2 id="license">License</h2>
 <p>Copyright (c) 2019-2020 John T. O’Donnell</p>
 <p>License: GNU GPL Version 3 or later.</p>
 <p>Sigma16 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. Sigma16 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with Sigma16. If not, see <a href="https://www.gnu.org/licenses/" class="uri">https://www.gnu.org/licenses/</a>.</p>
