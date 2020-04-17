@@ -20,6 +20,9 @@
 
 "use strict";
 
+//-----------------------------------------------------------------------------
+// Character set
+//-----------------------------------------------------------------------------
 
 // CharSet is a string containing all the characters that may appear
 // in a valid Sigma16 assembly language source program.  It's always
@@ -1517,3 +1520,19 @@ function testOperand (m,x) {
     showOperand(parseOperand(m,x));
 }
 
+class AsmValue {
+    constructor(v,r,s) {
+        this.value = v;
+        this.rel = r;
+        this.s = s;
+    }
+    show() {
+        return (`AsmValue ${this.value} ${this.rel}`);
+    }
+}
+
+let asmlocal = "local";
+let asmimported = "imported";
+
+let asmfoo = new AsmValue(5,false,asmlocal);
+let asmbar = new AsmValue(34,true,asmimported);

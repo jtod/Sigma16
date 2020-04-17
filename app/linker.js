@@ -30,14 +30,57 @@ var curAsmap = [];
 // Representation of object module
 //-------------------------------------------------------------------------------
 
-// Information about object code
-function mkModuleObj () {
-    return {
-        objLine  : [],     // lines of object code: objText split by newline
-        objStmt  : [],     // array of statements in object code
-        objMetadataLine : undefined  // optional metadata lines
+// An object module is the code for one module; it may contain linker
+// statements and may comprise one or more blocks
+
+class ModuleObj {
+    constructor() {
+        this.objLine = [];                 // lines of code split by newline
+        this.objStmt = [];                 // array of statements in object code
+        this.objMetadataLine = undefined;  // optional metadata lines
     }
 }
+
+// A Block is a sequence of words in adjacent memory locations.  The
+// functional argument f emits the next word of object code.
+
+class Block {
+    constructor(f) {
+        this.startAddr = 0;
+        this.current = 0;
+        this.words = [];
+        this.f = f;
+    }
+    insert(w) {
+        this.words.push(w);
+    }
+    relocate(x) {
+        this.startAddr = x;
+    }
+    emit () {
+        if (this.current < this.words.length) {
+            this.f (this.current+this.startAddr, this.words[this.current]);
+            this.current++;
+        } else {
+            console.log (`emit: out of data`);
+        }
+        return (this.current >= this.words.length);
+    }
+}
+
+/* Usage
+function fcn (a,w) { console.log (`emit ${a} ${w}`); }
+function testBlock() {
+    let t1 = new Block (fcn);
+    t1.insert(12);
+    t1.insert(34);
+    t1.insert(56);
+    console.log (t1.emit());
+    console.log (t1.emit());
+    console.log (t1.emit());
+    console.log (t1.emit());
+}
+*/
 
 //-------------------------------------------------------------------------------
 // Operations on selected module

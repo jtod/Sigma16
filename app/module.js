@@ -88,7 +88,8 @@ function mkModule (i) {
         objIsAssembled : false,   // module has been assembled
         modObjLoaded : false,     // module loaded directly from obj
         asmInfo : mkModuleAsm(),  // initialize assembler state
-        objInfo : mkModuleObj(),  // initialize object state
+        //        objInfo : mkModuleObj(),  // initialize object state
+        objInfo : new ModuleObj(),  // initialize object state
         objIsExecutable : false    // can be executed without further linking
     }
 }
