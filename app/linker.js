@@ -1,5 +1,5 @@
 // Sigma16: linker.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,21 +14,21 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // linker.js manipulates object code, including the functions of a
 // linker and loader.  Services include combining a collection of
 // object modules to form an executable module; performing address
 // relocation; and loading an object module into memory.
-// -------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 "use strict";
 
 // refactor
 var curAsmap = [];
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Representation of object module
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // An object module is the code for one module; it may contain linker
 // statements and may comprise one or more blocks
@@ -163,12 +163,17 @@ function parseObjMetadata (mdLines) {
 //    return {mdLines, mdAsMap, mdPlainLines, mdDecLines}
 }
 
-    
-
 //-------------------------------------------------------------------------------
 // Operations on list of modules
 //-------------------------------------------------------------------------------
 
+
+// Test stub.  Return the list of module numbers for the modules to be
+// linked
+function getLinkModuleList () {
+    console.log ("getLinkModuleList");
+    return [1,2]; // test stub
+}
 
 function showLinkerStatus () {
     console.log ('showLinkerStatus');
@@ -179,12 +184,6 @@ function setLinkerModules () {
     console.log ('setLinkerModules');
 }
 
-// Return the list of module numbers for the modules to be linked
-// test stub ?????
-function getLinkModuleList () {
-    console.log ("getLinkModuleList");
-    return [1,2]; // test stub
-}
 
 //-------------------------------------------------------------------------------
 // Linker

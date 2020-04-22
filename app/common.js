@@ -1,4 +1,4 @@
-// Sigma16: renderer.js
+// Sigma16: common.js
 // Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -14,12 +14,17 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
-// renderer.js is needed for the electron version
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
+// common.js declares global variables
+//-------------------------------------------------------------------------------
 
 "use strict";
 
-// This file is required by the index.html file and will
-// be executed in the renderer process for that window.
-// All of the Node.js APIs are available in this process.
+// Modules
+
+let s16modules = [];    // All the modules in the system
+let selectedModule = 0;
+let currentFile = null;  // deprecated, Remember the current working file handle
+
+
+

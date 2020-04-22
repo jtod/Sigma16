@@ -1,5 +1,5 @@
 // Sigma16: state.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,10 +14,12 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // state.js defines global state for the system, IDE, modules, and
 // emulator
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+"use strict";
 
 // The main components of the program avoid using global variables;
 // instead the necessary state is organized into records and passed as
@@ -171,18 +173,18 @@ function initializeProcessorElements () {
 
 // Fields of the current instruction
 
-var instr = 0;
-var ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
+let instr = 0;
+let ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
 
 // The value of the effective addresss pecified by an RX instruction
 
-var ea = 0;  // effective address
+let ea = 0;  // effective address
 
 // Global variables for handling listing display as program runs.
 // Uses global variables set by linker: exMod is executing module and
 // curAsmap is map from addresses to source lines
 
-var srcLine;        // copy of source statements
+let srcLine;        // copy of source statements
 
 
 // Keep track of the address of the currently executing instruction,
@@ -190,8 +192,8 @@ var srcLine;        // copy of source statements
 // these instructions appear in the assembly listing.  -1 indicates no
 // line has been highlighted
 
-var curInstrAddr, curInstrLineNo, saveCurSrcLine;
-var nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
+let curInstrAddr, curInstrLineNo, saveCurSrcLine;
+let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
 
 
 function initializeSubsystems () {
@@ -213,26 +215,36 @@ function toggleFullDisplay () {
 //  Registers
 //----------------------------------------------------------------------
 
+// deprecated
+// let enable, mask, req, isys, ipc, handle;           // interrupt control
+// let sEnable, sProg, sProgEnd, sDat, sDatEnd;   // segment control registers
+
+// Move to appropriate place... ??????????????
+let modeHighlightAccess = true;  // for tracing: highlight reg/mem that is accessed
+
 // The registers are defined as global variables.  These variables are
 // declared here but their values are set only when window has been
-// loaded, because the gui elements will exist at that time.
+// loaded (the onload event in gui.js), because the gui elements will
+// exist at that time.
 
-var modeHighlightAccess = true;  // for tracing: highlight reg/mem that is accessed
+// Declare the registers
+let regFile = [];                            // register file R0,..., R15
+let pc, ir, adr, dat;                        // instruction control registers
+let statusreg, mask, req, istat, ipc, vect;  // interrupt control registers
+let bpseg, epseg, bdseg, edseg;              // segment control registers
 
+// Generating and accessing registers
+let nRegisters = 0;     // total number of registers; increment as created
+let controlRegisters;   // array of the control registers
+let register = [];      // array of all the registers: regfile and control
 
-// Define the control registers as global variables
-var pc, ir, adr, dat, sysStat;                 // instruction control
-var enable, mask, req, isys, ipc, handle;           // interrupt control
-var sEnable, sProg, sProgEnd, sDat, sDatEnd;   // segmentation control
-var ctlRegIndexOffset = 0;  // update in gui.js when registers are created
+let ctlRegIndexOffset = 0;  // update in gui.js when registers are created
+let sysCtlRegIdx = 0;       // index of first system control reg
 
-var regFile = [];            // register file R0,..., R15
-var nRegisters = 0;          // total number of registers
-var sysCtlRegIdx = 0;        // index of first system control reg
+let registerIndex = 0;          // unique index for each reg
+let regStored = [];
+let regFetched = [];
 
-function showSysStat (s) {
-    return s===0 ? 'Usr' : 'Sys'
-}
 
 // Instructions refer to the system control registers by a 4-bit
 // index, but the system control register that has instruction index 0
@@ -240,12 +252,6 @@ function showSysStat (s) {
 // registers.  To refer to sysctl reg i, it can be accessed as
 // register [sysCtlRegIdx + i].
 
-// Global variables for accessing the registers
-
-var register = [];              // all the registers, control and regfile
-var registerIndex = 0;          // unique index for each reg
-var regStored = [];
-var regFetched = [];
 
 // Each register is represented by an object that contains its current
 // value, as well as methods to get and set the value, and to refresh
@@ -264,6 +270,12 @@ var regFetched = [];
 //   put(x) discards current val and replaces it with x (highlight if mode set)
 //   get() returns current val (highlight if mode set)
 //   refresh() puts the current val into display, without any highlighting
+
+// Textual representation of system status, for the emulator display
+
+function showSysStat (s) {
+    return s===0 ? 'Usr' : 'Sys'
+}
 
 function testReg1 () {
     console.log("testReg1");
@@ -289,7 +301,7 @@ function testReg2 () {
 // first
 
 function mkReg (rn,eltName,showfcn) {
-    r = Object.create({
+    let r = Object.create({
 	regIdx : 0, // will be overwritten with actual index
 	regName : rn,
 	show : showfcn,
@@ -306,7 +318,7 @@ function mkReg (rn,eltName,showfcn) {
 	    }
 	    if (modeHighlight) { regStored.push(this) } },
         get : function () {
-	        x = this.val;
+	        let x = this.val;
 	        if (modeHighlight) { regFetched.push(this) };
 	        return x },
 	refresh : function() {
@@ -322,7 +334,7 @@ function mkReg (rn,eltName,showfcn) {
 
 // R0 is special: it always contains 0 and cannot be changed
 function mkReg0 (rn,eltName,showfcn) {
-    r = Object.create({
+    let r = Object.create({
 	regName : rn,
 	show : showfcn,
 	val : 0,
@@ -364,7 +376,7 @@ function regClearAccesses () {
 // Resetting the registers sets them all to 0, 
 function resetRegisters () {
     console.log('Resetting registers');
-    for (var i = 0; i < nRegisters; i++) {
+    for (let i = 0; i < nRegisters; i++) {
 	register[i].val = 0;
 	register[i].refresh();
     }
@@ -375,7 +387,7 @@ function resetRegisters () {
 
 function refreshRegisters() {
     console.log('Refreshing registers');
-    for (var i = 0; i < nRegisters; i++) {
+    for (let i = 0; i < nRegisters; i++) {
 	register[i].refresh();
     }
 }
@@ -391,7 +403,7 @@ function refreshRegisters() {
 // Sigma16gui.css.  Normally we would use blue for READ and red for
 // WRITE.
 
-var modeHighlight = true;  // indicate get/put by setting text color
+let modeHighlight = true;  // indicate get/put by setting text color
 
 function setModeHighlight (x) {
     if (x) {
@@ -411,8 +423,8 @@ function highlightText (txt,tag) {
 
 function clearRegisterHighlighting () {
     let n =  highlightedRegisters.length;
-    var r;
-    for (var i = 0; i < n; i++) {
+    let r;
+    for (let i = 0; i < n; i++) {
 	r = highlightedRegisters[i];
 	console.log('clear highlight ' + i + ' reg = ' + r.regName);
 	r.refresh();
@@ -447,16 +459,16 @@ function clearRegisterHighlighting () {
 // displaying the memory contents, and two arrays to track memory
 // accesses (fetches and stores) in order to generate the displays.
 
-var memSize = 65536; // number of memory locations = 2^16
-var memory = [];  // the memory contents, indexed by address
-var memString = []; // a string for each location, to be displayed
-var memElt1, memElt2;  // html elements for two views into the memory
-var memFetchInstrLog = [];
-var memFetchDataLog = [];
-var memStoreLog = [];
-var memDisplayModeFull = false;  // show entire memory? or just a little of it?
-var memDisplayFastWindow = 16;   // how many locations to show in fast mode
-var memDispOffset = 3;    // how many locations above highligted one
+let memSize = 65536; // number of memory locations = 2^16
+let memory = [];  // the memory contents, indexed by address
+let memString = []; // a string for each location, to be displayed
+let memElt1, memElt2;  // html elements for two views into the memory
+let memFetchInstrLog = [];
+let memFetchDataLog = [];
+let memStoreLog = [];
+let memDisplayModeFull = false;  // show entire memory? or just a little of it?
+let memDisplayFastWindow = 16;   // how many locations to show in fast mode
+let memDispOffset = 3;    // how many locations above highligted one
 
 // Must wait until onload event
 
@@ -489,7 +501,7 @@ function memInitialize () {
 // Set all memory locations to 0
 
 function memClear () {
-    for (var i = 0; i < memSize; i++) {
+    for (let i = 0; i < memSize; i++) {
 	memory[i] = 0;
     }
     memFetchInstrLog = [];
@@ -510,7 +522,7 @@ function memClear () {
 function memRefresh () {
     memString = [];  // clear out and collect any existing elements
 //    memString[0] =  "hello";  // "<pre class='HighlightedTextAsHtml'>"
-    for (var i = 0; i < memSize; i++) {
+    for (let i = 0; i < memSize; i++) {
 	setMemString(i);
     }
 //    memString.push("bye");    // "</pre>");
@@ -574,15 +586,15 @@ function memShowAccesses () {
 
 function memClearAccesses () {
     let a;
-    for (i=0; i<memFetchInstrLog.length; i++) {
+    for (let i = 0; i < memFetchInstrLog.length; i++) {
 	a = memFetchInstrLog[i];
 	setMemString(a);
     }
-    for (i=0; i<memFetchDataLog.length; i++) {
+    for (let i = 0; i < memFetchDataLog.length; i++) {
 	a = memFetchDataLog[i];
 	setMemString(a);
     }
-    for (i=0; i<memStoreLog.length; i++) {
+    for (let i = 0; i < memStoreLog.length; i++) {
 	a = memStoreLog[i];
 	setMemString(a);
     }
@@ -661,7 +673,7 @@ function memDisplayFast () {
 function memDisplayFull () {
     let xs;                 // display text
     let xt, xo;             // display 1 targets and offsets
-    let yafet, yasto, ya, yo
+    let yafet, yasto, ya, yo, yt;
     console.log ('memDisplayFull');
     xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
 	+ memString.join('\n')

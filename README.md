@@ -6,33 +6,36 @@ Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
+## Quick start: Running Sigma16 in a web page
+
+You don't need to install anything.  Just visit the [Sigma16 Home
+Page](https://jtod.github.io/home/Sigma16/) and click the prominent
+link to "Run Sigma16 in your browser".
+  
 ## Internet links
 
-* For up to date information, and to run the software, visit the
-  [Sigma16 Home Page](https://jtod.github.io/home/Sigma16/).  That
-  page also contains links to documentation, past releases, and the
-  source repository.  It's best to bookmark the home page, which
-  always points to the latest version.  Don't bookmark a specific
-  release.
+The [Sigma16 Home Page
+(https://jtod.github.io/home/Sigma16/)](https://jtod.github.io/home/Sigma16/)
+contains a link to "Run Sigma16 in your browser", as well as links to
+documentation, past releases, and the source repository [source
+repository
+(https://github.com/jtod/Sigma16/)](https://github.com/jtod/Sigma16/).
+It's best to bookmark the home page, which always points to the latest
+version.
 
-* The URL for the source code repository is
-  [https://github.com/jtod/Sigma16/](https://github.com/jtod/Sigma16/).
-
-## Download and links to local files
+## Download and run locally
 
 To run the IDE (the graphical user interface) there is no need to
-download or install the software: you can just run it in a browser by
-clicking the *Launch Sigma16* link in the [Sigma16 Home
+download or install the software: you can just *Click to run Sigma16
+in your browser* in the [Sigma16 Home
 Page](https://jtod.github.io/home/Sigma16/).
 
-The command line tools do require downloading and installing the
-software.  These include a standalone version of the IDE, circuit
-simulator, and more.  See the Installation section of the User Guide.
-
-If you copy the Sigma16 source directory onto your computer, the
-following links will run it locally without requiring further access
-to the Internet.  However, these links will not work if you're reading
-this page on the source repository on GitHub via the Internet.
+The Home Page also provides a link to download the app.  If you copy
+the Sigma16 source directory onto your computer, the following links
+will run it locally without any additional software installation and
+without requiring further access to the Internet.  However, these
+links will not work if you're reading this page on the source
+repository on GitHub via the Internet.
 
 * [Launch from files in this directory](./app/Sigma16.html) If you
   have copied this directory onto a local machine, this link will run
@@ -48,6 +51,16 @@ this page on the source repository on GitHub via the Internet.
 
 * [Up to the top directory](./) Show the listing of files in the
   directory containing this version.
+
+## Installing the command line tools
+
+In addition to the basic web page version of Sigma16, there is a
+collection of separate programs that can be run in a shwll from the
+command line.  *(These are under development and will be released in
+late 2020; please come back later.)* These programs include a
+standalone version of the IDE, circuit simulator, and more.  These
+tools provide additional functionality, faster execution, and the
+ability to work without access to the Internet.
 
 ## About the software
 

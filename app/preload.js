@@ -1,5 +1,5 @@
 // Sigma16: preload.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,15 +14,18 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // preload.js is neeed for the standalone electron version
+//-----------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------
+"use strict";
 
-// All of the Node.js APIs are available in the preload process.
-// It has the same sandbox as a Chrome extension.
+// All of the Node.js APIs are available in the preload process.  It
+// has the same sandbox as a Chrome extension.
+
 window.addEventListener('DOMContentLoaded', () => {
-  for (const versionType of ['chrome', 'electron', 'node']) {
-    document.getElementById(`${versionType}-version`).innerText = process.versions[versionType]
-  }
+    for (const versionType of ['chrome', 'electron', 'node']) {
+        document.getElementById(`${versionType}-version`).innerText =
+            process.versions[versionType]
+    }
 })

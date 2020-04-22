@@ -1,5 +1,5 @@
 // Sigma16: gui.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,13 +14,16 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // gui.js is the main program.  It's launched by Sigma16.html and is
 // the last JavaScript file to be loaded
+//-----------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------
+"use strict";
+
+//-----------------------------------------------------------------------------
 // Parameters
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // Calculate the value of pxPerChar, which is needed to control the
 // scrolling to make the current line visible.  The calculated value
@@ -403,12 +406,6 @@ function checkTestBody () {
 //    console.log ('checkTestBody width = ' + testPaneBodyElt.style.width);
 }
 
-// deprecated, delete
-/* initialize sizes of left and right parts of middle section */
-//    let y = (w+ 10*x) + "px";
-//    document.getElementById("AssemblerText").style.width = z + 'px';
-// var testPaneBodyElt;
-//    testPaneBodyElt = document.getElementById('TestPaneBody');
 
 
 
@@ -629,33 +626,18 @@ window.onload = function(){
 //-------------------------------------------------------------------------------
 
 window.onload = function () {
-    
     console.log("window.onload activated");
-
-//    s16modules = [];    // All the modules in the system
-//    nModules = 1;
-//    selectedModule = 0;
-    initModules();
-
-    showTabbedPane("WelcomePane");
+    initModules ();
     initializeProcessorElements ();  // so far, it's just instr decode
     clearInstrDecode (emulatorState);
-    
     hideBreakDialogue ();
-
-// Initialize the modules
-    initModules ();
     document.getElementById('LinkerText').innerHTML = "";    
 
-// Initialize the registers
-
-    // Register file
-    // R0 is built specially as it is constant; all others are built with mkReg
-
-    nRegisters = 0;
-    for (var i = 0; i<16; i++) {
+    // Build the register file; R0 is built specially as it is
+    // constant; all others are built with mkReg
+    for (let i = 0; i<16; i++) {
 	let regname = 'R' + i; // also the id for element name
-//	console.log('xx' + regname + 'xx');
+        let thisReg;
 	thisReg = (i==0) ?
 	    mkReg0 (regname, regname, wordToHex4)
 	    : mkReg (regname, regname, wordToHex4);
@@ -664,33 +646,30 @@ window.onload = function () {
 	register[i] = thisReg;
     }
 
-// Instruction control registers
-    pc       = mkReg ('pc',       'pcElt',       wordToHex4);
-    ir       = mkReg ('ir',       'irElt',       wordToHex4);
-    adr      = mkReg ('adr',      'adrElt',      wordToHex4);
-    dat      = mkReg ('dat',      'datElt',      wordToHex4);
-    //    sysStat  = mkReg ('sysStat',  'sysStatElt',  showSysStat);
+    // Instruction control registers
+    pc    = mkReg ('pc',       'pcElt',       wordToHex4);
+    ir    = mkReg ('ir',       'irElt',       wordToHex4);
+    adr   = mkReg ('adr',      'adrElt',      wordToHex4);
+    dat   = mkReg ('dat',      'datElt',      wordToHex4);
+
+    // Interrupt control registers
+
+    statusreg   = mkReg ('statusreg',  'statusElt',  wordToHex4);
     // bit 0 (lsb) :  0 = User state, 1 = System state
     // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
     // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
-
-    // Interrupt control registers
-    ctlRegIndexOffset = nRegisters;
-    statusreg   = mkReg ('statusreg',  'statusElt',  wordToHex4);
-//    ienable  = mkReg ('ienable',  'enableElt',  showBit);
-    mask     = mkReg ('mask',     'maskElt',    wordToHex4);
-    req      = mkReg ('req',      'reqElt',     wordToHex4);
-    // mask and request
+    mask  = mkReg ('mask',     'maskElt',    wordToHex4);
+    req   = mkReg ('req',      'reqElt',     wordToHex4);
+    // mask and request use the same bit positions for flags
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
     istat    = mkReg ('istat',    'istatElt',      wordToHex4);
     ipc      = mkReg ('ipc',      'ipcElt',      wordToHex4);
-    vect   = mkReg ('vect',   'vectElt', wordToHex4);
+    vect     = mkReg ('vect',   'vectElt', wordToHex4);
 
 // Segment control registers
-//    sEnable  = mkReg ('sEnable',  'sEnableElt',  showBit);
     bpseg = mkReg ('bpseg',    'bpsegElt',    wordToHex4);
     epseg = mkReg ('epseg',    'epsegElt',    wordToHex4);
     bdseg = mkReg ('bdseg',    'bdsegElt',    wordToHex4);
@@ -712,22 +691,11 @@ window.onload = function () {
 	nRegisters++;
         });
 
-
 // Initialize the memory
     memInitialize();
     procAsmListingElt = document.getElementById('ProcAsmListing');
     
     editorBufferTextArea = document.getElementById("EditorTextArea");
-    
-/* for save download */
-//    create = document.getElementById('CreateFileForDownload'),
-//    textbox = document.getElementById('DownloadFileTextBox');
-//  create.addEven
-//    var link = document.getElementById('downloadlink');
-//    link.href = makeTextFile(textbox.value);
-//    link.style.display = 'block';
-    //  }, false);
-
 
     resetRegisters();
     initialize_mid_main_resizing ();
@@ -736,39 +704,7 @@ window.onload = function () {
     adjustToMidMainLRratio();
     initializeSubsystems ();
 
+    showTabbedPane("WelcomePane");
     
     console.log("Initialization complete");
 }
-
-
-/*
-https://stackoverflow.com/questions/31048215/how-to-create-txt-file-using-javascript-html5
-
-(function () {
-var textFile = null,
-  makeTextFile = function (text) {
-    var data = new Blob([text], {type: 'text/plain'});
-
-    // If we are replacing a previously generated file we need to
-    // manually revoke the object URL to avoid memory leaks.
-    if (textFile !== null) {
-      window.URL.revokeObjectURL(textFile);
-    }
-
-    textFile = window.URL.createObjectURL(data);
-
-    return textFile;
-  };
-
-
-  var create = document.getElementById('create'),
-    textbox = document.getElementById('textbox');
-
-  create.addEventListener('click', function () {
-    var link = document.getElementById('downloadlink');
-    link.href = makeTextFile(textbox.value);
-    link.style.display = 'block';
-  }, false);
-})();
-
-*/

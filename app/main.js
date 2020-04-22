@@ -1,5 +1,5 @@
 // Sigma16: main.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,11 +14,12 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // main.js is the main program for standalone execution using
 // electron, rather than a browser
+//-----------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------
+"use strict";
 
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')

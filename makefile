@@ -65,6 +65,7 @@ S16WEBPAGE:=$(SIGMACURRENT)/homepage/jtod.github.io/S16
 
 VERSION:=$(shell cat app/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 MONTHYEAR=$(shell date +"%B %Y")
+MONTHYEARDAY=$(shell date +"%F")
 YEAR=$(shell date +"%Y")
 
 showparams :
@@ -72,6 +73,7 @@ showparams :
 	echo S16WEBPAGE = $(S16WEBPAGE)
 	echo VERSION = $(VERSION).txt
 	echo MONTHYEAR = $(MONTHYEAR)
+	echo MONTHYEARDAY = $(MONTHYEARDAY)
 	echo YEAR = $(YEAR)
 	echo DEVVERSION = $(DEVVERSION)
 
@@ -431,7 +433,7 @@ docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
           --table-of-contents --toc-depth=4 \
-          --variable=author:"Copyright 2019-$(YEAR) John T. O'Donnell" \
+          --variable=author:"Copyright $(YEAR) John T. O'Donnell" \
           --variable=date:'Version ${VERSION}, $(MONTHYEAR)' \
           --variable=css:userguidestyle.css \
           -o docs/html/userguide/userguide.html \

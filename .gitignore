@@ -1,6 +1,8 @@
 *~
+notes.org
 *.exe
 app/node_modules
 app/dist
+app/deleted-code.txt
 em/testgcc
 *TEMP*

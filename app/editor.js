@@ -1,5 +1,5 @@
 // Sigma16: editor.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,10 +14,12 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // editor.js provides a minimal text editor for writing and modifying
 // code, both assembly language and object code.
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+"use strict";
 
 function editorDownload () {
     console.log ("editorPrepareDownload");
@@ -36,7 +38,14 @@ function editorDownload () {
 
 function leaveEditor () {
     console.log ('Leaving the editor');
+    console.log (`leave editor ${selectedModule}`);
     let m = s16modules[selectedModule];
+    let baz = s16modules ? "yes" : "no";
+    let foobar = m ? "yes" : "no";
+    console.log (`leave editor len moduels = ${s16modules.length}`);
+    console.log (`leave editor baz ${baz}`);
+    console.log (`leave editor foobar ${foobar}`);
+    
     let ma = m.asmInfo;
     if (m) {
         let oldSrc = ma.modSrc;

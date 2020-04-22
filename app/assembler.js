@@ -1,5 +1,5 @@
 // Sigma16: assembler.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -19,6 +19,9 @@
 //-----------------------------------------------------------------------------
 
 "use strict";
+
+// refactor
+let opcode_cmp = 4; // for pass2/RR
 
 //-----------------------------------------------------------------------------
 // Character set
@@ -54,10 +57,14 @@ function validateChars (xs) {
     return badlocs
 }
 
-// Information about a module produced by the assembler
+//-----------------------------------------------------------------------------
+// Assembler state:  information about a module produced by the assembler
+//-----------------------------------------------------------------------------
+
 function mkModuleAsm () {
+    console.log("mkModuleAsm");
     return {
-	modName : undefined,            // name of module specified in module stmt
+	modName : undefined,       // name of module specified in module stmt
 	modSrc : '',               // source code
         modAsmOK : false,
 	symbols : [],              // symbols used in the source
@@ -65,18 +72,17 @@ function mkModuleAsm () {
 	nAsmErrors : 0,            // number of errors in assembly source code
 	locationCounter : 0,       // address where next code will be placed
 	asmListingPlain : [],      // assembler listing
-	asmListingDec : [],         // decorated assembler listing
+	asmListingDec : [],        // decorated assembler listing
 	objectCode : [],           // string hex representation of object
         metadata : [],             // lines of metadata code
-        asMap : [],                     // address/source map
-        exports : [],
+        asMap : [],                // address/source map
+        exports : [],              // list of exported identifiers
 	asmStmt : []               // statements correspond to lines of source
     }
 }
 
-let opcode_cmp = 4; // for pass2/RR, may want to refactor this
-
 // Buffers to hold generated object code
+
 let objBufferLimit = 16;             // how many code items to allow per line
 let objectWordBuffer = [];          // list of object code words
 let relocationAddressBuffer = [];   // list of relocation addresses
@@ -108,8 +114,63 @@ function run () {
 }
 
 //-----------------------------------------------------------------------------
-// Symbol table
+// Identifiers and the symbol table
 //-----------------------------------------------------------------------------
+
+// Identifiers are always defined in the label field of a statement.
+// The value of the identifier has one of the following origins:
+
+const IdeLocation = Symbol ("IdeLocation"); // location counter
+const IdeImport   = Symbol ("IdeImport");   // set by linker
+const IdeEqu      = Symbol ("IdeEqu");      // evaluation of operand expression
+
+// Show identifier origin as a string
+function showSymOrigin (s) {
+    return ( s === IdeLocation ? "Local"
+             : s === IdeImport ? "Import"
+             : s === IdeEqu    ? "Equ"
+             : "Unknown" )
+}
+
+// There are three kinds of identifier:
+//   - ordinary symbol: value is address; is relocatable
+//   - import:  value is provided by linker, provisionally 0, not relocatable
+//   - equ: value is evaluation of expression, done in pass2, may be relocatable
+
+// Fields of an identifier:
+//   name = identifier text from label field
+//   defLine = number of the source line where it's defined
+//   origin= IdeLocation, IdeImport, or IdeEqu
+//   value = a word which is the value
+//   expr = operand text (used only for equ), Nothing otherwise
+//   usageLines = list of line numbers where identifier is used
+//   usageAddrs = list of addresses where identifier is used
+
+// When created, an identifier must have a name and an origin (because
+// it's created When a statement is found that has a label, a symbol
+// is created and added to the symbol table.
+
+class Identifier {
+    constructor (name, defLine, location, operator, operand) {
+        this.name = name;
+        this.defLine = defLine;
+        this.origin = IdeLocation; // assumption; override if import or equ
+        this.value = location; // assumption, override if import or equ
+        this.operator = operator; // determines origin
+        this.operand = operand; // used only for equ
+        this.usageLines = [];
+        this.usageAddrs = [];
+    }
+    update(x) {
+        console.log (`Identifier ${this.name} setting value := ${x}`);
+        this.value = x;
+    }
+    show () {
+        return (this.name
+                + "  "
+                + showSymOrigin(this.source) )
+    }
+}
 
 function displaySymbolTableHtml (m) {
     let ma = m.asmInfo;
@@ -162,32 +223,32 @@ function showSymbol (s) {
 // various fields to be highlighted with colors.
 
 function mkAsmStmt (lineNumber, address, srcLine) {
-    return {lineNumber,                     // array index of statement
-	    address,                        // address where code goes
-	    srcLine,                        // source line
-	    listingLinePlain: "",           // object and source text
+    return {lineNumber,                    // array index of statement
+	    address,                       // address where code goes
+	    srcLine,                       // source line
+	    listingLinePlain: "",          // object and source text
 	    listingLineHighlightedFields : "", // listing with src field spans
-	    fieldLabel : '',                // label
-	    fieldSpacesAfterLabel : '',     // white space
-	    fieldOperation : '',            // operation mnemonic
+	    fieldLabel : '',               // label
+	    fieldSpacesAfterLabel : '',    // white space
+	    fieldOperation : '',           // operation mnemonic
 	    fieldSpacesAfterOperation : '', // white space
 	    fieldOperands : '',             // operands
 	    fieldComment : '',             // comments are after operand or ;
-	    hasLabel : false,               // statement has a valid label
-	    operation : NOOPERATION,        // spec of the operation if exists
+	    hasLabel : false,              // statement has a valid label
+	    operation : NOOPERATION,       // spec of the operation if exists
 	    format : UNKNOWN,
-	    hasOperand : false,             // statement contains an operand
-	    operandType : NOOPERAND,        // type of operand actually present
-	    operandRRR : false,             // statement contains RRR operand
-	    operandRR : false,              // statement contains RR operand
-	    operandRX : false,              // statement contains RX operand
-	    operandJX : false,              // statement contains short form RX
-	    operandDATA : false,            // statement contains data
-            operandX : false,               // expression operand for directive
-            operandIDENT : false,           // identifier directive
-            expSrc : undefined,                  // expression operand if any
-            expValue : undefined,                // value of expression operand if any
-	    op : 0,                         // operation
+	    hasOperand : false,            // statement contains an operand
+	    operandType : NOOPERAND,       // type of operand actually present
+	    operandRRR : false,            // statement contains RRR operand
+	    operandRR : false,             // statement contains RR operand
+	    operandRX : false,             // statement contains RX operand
+	    operandJX : false,             // statement contains short form RX
+	    operandDATA : false,           // statement contains data
+            operandX : false,              // expression operand for directive
+            operandIDENT : false,          // identifier directive
+            expSrc : undefined,            // expression operand if any
+            expValue : undefined,          // value of expression operand if any
+	    op : 0,                        // operation
             operand_str1 : '',
             operand_str2 : '',
             operand_str3 : '',
@@ -197,22 +258,19 @@ function mkAsmStmt (lineNumber, address, srcLine) {
             field_a : 0,
             field_b : 0,
             field_disp : 0,
-            field_e : 0,                     // EXP: word 2, first 4 bits
-            field_f : 0,                     // EXP: word 2, second 4 bits
-            field_g : 0,                     // EXP: word 2, third 4 bits
-            field_h : 0,                     // EXP: word 2, fourth 4 bits
-	    field_gh : 0,                    // EXP: word 2, last 8 bits
-	    dat : 0,                        // data value
-            identarg : '',                     // identifier operand
-	    codeSize : 0,                   // number of words generated
-	    codeWord1 : -1,                  // first word of object
-	    codeWord2 : -1,                  // second word of object
-	    errors : []                     // array of lines of error messages
+            field_e : 0,                   // EXP: word 2, first 4 bits
+            field_f : 0,                   // EXP: word 2, second 4 bits
+            field_g : 0,                   // EXP: word 2, third 4 bits
+            field_h : 0,                   // EXP: word 2, fourth 4 bits
+	    field_gh : 0,                  // EXP: word 2, last 8 bits
+	    dat : 0,                       // data value
+            identarg : '',                 // identifier operand
+	    codeSize : 0,                  // number of words generated
+	    codeWord1 : -1,                // first word of object
+	    codeWord2 : -1,                // second word of object
+	    errors : []                    // array of lines of error messages
 	   }
 }
-
-// deprecated
-// const missing = 0;  // indicates that a component of a statement is missing
 
 // Print the object representing a source line; for testing
 
@@ -611,17 +669,21 @@ function parseAsmLine (m,i) {
     parseOperation (m,s);
     parseOperand (m,s);
     let isImport = s.fieldOperation=="import";
+    let isEqu = s.fieldOperation=="equ";
     if (s.hasLabel) {
 	if (ma.symbolTable.has(s.fieldLabel)) {
 	    mkErrMsg (m, s, s.fieldLabel + ' has already been defined');
 	} else {
+            // The value of an ordinary symbol is the location counter
+            // If the symbol is import or equ its value will be defined later
 	    ma.symbolTable.set (
                 s.fieldLabel,
 	        { symbol : s.fieldLabel,
-                  symIsImport : isImport,
+                  symIsImport : isImport, // value set by linker
                   symImportedFrom : s.identarg,
+                  symIsEqu : isEqu, // value set in pass 2
                   relocatable : !isImport,
-                  val : isImport ? 0 : ma.locationCounter,
+                  val : isImport || isEqu ? 0 : ma.locationCounter,
                   symUsageAddrs : [],
                   symUsageLines : [],
 	          defLine : s.lineNumber+1});
@@ -1199,7 +1261,9 @@ function asmPass2 (m) {
         } else if (fmt==DirOrg) {
             console.log ('pass2 org statement, not yet implemented')
         } else if (fmt==DirEqu) {
-            console.log ('pass2 equ statement, not yet implemented')
+            console.log ('pass2 equ statement')
+            let symval = evaluate(s.fieldOperands);
+            let symbol = s.fieldLabel;
 	} else {
 	    console.log('pass2 other, noOperation');
 	}
@@ -1406,7 +1470,7 @@ function evaluate (m,s,a,x) {
         return result;
     }
     if (x.search(nameParser) == 0) { // expression is a name
-	r = ma.symbolTable.get(x);
+	let r = ma.symbolTable.get(x);
 	if (r) {
 	    console.log('evaluate returning ' + r.val);
             r.symUsageAddrs.push(a);
@@ -1530,6 +1594,25 @@ class AsmValue {
         return (`AsmValue ${this.value} ${this.rel}`);
     }
 }
+
+/*
+class AsmValue2 {
+    ccc = 100;
+    ddd = 200;
+    constructor (a,b) {
+        this.aaa = a;
+        this.bbb = b;
+    }
+    asm2foo () {
+        console.log (`aaa=${aaa]`);
+        console.log (`bbb=${bbb]`);
+        console.log (`ccc=${ccc]`);
+        console.log (`ddd=${ddd]`);
+    }
+}
+
+let a2a = new AsmValue2(501,502);
+*/
 
 let asmlocal = "local";
 let asmimported = "imported";

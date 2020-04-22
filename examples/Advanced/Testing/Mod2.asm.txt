@@ -16,5 +16,7 @@ g       load    R2,y[R0]
         add     R1,R1,R2
         jump    0[R10]
 
-x       data    3
-y       data    4
+w       data    3
+x       data    4
+y       equ     5
+z       equ     fcn

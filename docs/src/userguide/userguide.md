@@ -2,7 +2,7 @@
 
 <!--
 Sigma16: userguide.md
-Copyright (C) 2019, 2020 John T. O'Donnell
+Copyright (C) 2020 John T. O'Donnell
 email: john.t.odonnell9@gmail.com
 License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -4345,7 +4345,7 @@ The architecture, software tools, and documentation were designed,
 implemented, and written by John O'Donnell.  Contact email:
 john.t.odonnell9@gmail.com
 
-Copyright (c) 2019-2020 John T. O'Donnell
+Copyright (c) 2020 John T. O'Donnell
 
 License: GNU GPL Version 3 or later.
 

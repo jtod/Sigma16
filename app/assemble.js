@@ -14,10 +14,13 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // assemble.js is a command line main program that assembles a Sigma16
 // source file.  Requires that node.js is installed: open a shell,
 // then node --version
+//-----------------------------------------------------------------------------
+
+"use strict";
 
 // Usage: node assemble.js myprog
 //   Reads source from myprog.asm.txt

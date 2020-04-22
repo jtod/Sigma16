@@ -1,5 +1,5 @@
 // Sigma16: module.js
-// Copyright (C) 2019, 2020 John T. O'Donnell
+// Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -18,21 +18,20 @@
 // module.js defines the representation of source and object modules
 //-------------------------------------------------------------------------------
 
+"use strict";
+
 // The working program is a list of modules, one of which is the
 // current working module visible in the editor and assembler.  A
 // module data structure contains everything known about the module,
 // whether it is source or object.
 
-//------------------------------------------------------------------------------
-// List of all modules
-
-let s16modules = [];    // All the modules in the system
-let selectedModule = 0;
-
-let currentFile = null;  // deprecated, Remember the current working file handle
+//-------------------------------------------------------------------------------
+// Initialize modules
+//-------------------------------------------------------------------------------
 
 // Create one initial (empty) module and make it the current module
 function initModules () {
+    console.log ("initModules");
     s16modules = [mkModule()];
     let m = s16modules[0];
     m.mIndex = 0;
@@ -56,10 +55,10 @@ function getCurrentModule () {
 // (if any) or the contents.  For example, if the user Assembles a
 // file, then it is deemed to be assembly text.
 
-let ModText = Symbol ("ModText");   // generic text with unknown role
-let ModAsm  = Symbol ("ModAsm");    // obtaind assembly langauge from editor/file
-let ModObj  = Symbol ("ModObj");    // obtained object from editor/file
-let ModLink = Symbol ("ModLink");   // module text is set of linker commands
+const ModText = Symbol ("ModText");  // generic text with unknown role
+const ModAsm  = Symbol ("ModAsm");   // obtained assembly langauge from editor
+const ModObj  = Symbol ("ModObj");   // obtained object from editor/file
+const ModLink = Symbol ("ModLink");  // module text is set of linker commands
 
 function showModType (t) {
     return t===ModText ? "Text"
@@ -96,7 +95,6 @@ function mkModule (i) {
 
 // Return a brief description of a module
 function showModule (m) {
-    console.log ('showModule Deprecated ?????');
     let n = m.src ? m.src.length : 0;
     let xs = getModName(m) + ' (' +  n + ' characters)\n';
     return xs;
