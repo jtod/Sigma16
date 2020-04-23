@@ -21,6 +21,12 @@
 
 "use strict";
 
+// Global variables
+
+let ctlReg = new Map();
+let statementSpec = new Map();
+let emptyStmt = statementSpec.get("");
+
 //-----------------------------------------------------------------------------
 // Instruction table
 //-----------------------------------------------------------------------------
@@ -128,7 +134,6 @@ function formatSize (fmt) {
 // The instruction set is represented by a map from mnemonic to
 // statementSpec spec
 
-var statementSpec = new Map();
 
 // Each statement is initialized as noOperation; this is overridden if a
 // valid operation field exists (by the parseOperation function)
@@ -140,7 +145,6 @@ statementSpec.set("data",  {format:DATA, opcode:[]});
 
 // Empty statement
 statementSpec.set("",   {format:EMPTY, opcode:[]});
-let emptyStmt = statementSpec.get("");
 
 // Opcodes (in the op field) of 0-13 denote RRR instructions
 statementSpec.set("add",     {format:RRR, opcode:[0]});
@@ -263,7 +267,6 @@ statementSpec.set("field",   {format:RKKEXP,  opcode:[14,22], pseudo:true});
 // control registers (used in the assembly language) and the numeric
 // index for the control register (used in the machine language).
 
-var ctlReg = new Map();
 ctlReg.set ("status",   {ctlRegIndex:0});
 ctlReg.set ("mask",     {ctlRegIndex:1});
 ctlReg.set ("req",      {ctlRegIndex:2});

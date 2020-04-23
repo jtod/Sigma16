@@ -64,7 +64,7 @@ function validateChars (xs) {
 function mkModuleAsm () {
     console.log("mkModuleAsm");
     return {
-	modName : undefined,       // name of module specified in module stmt
+	modName : null,       // name of module specified in module stmt
 	modSrc : '',               // source code
         modAsmOK : false,
 	symbols : [],              // symbols used in the source
@@ -246,8 +246,8 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    operandDATA : false,           // statement contains data
             operandX : false,              // expression operand for directive
             operandIDENT : false,          // identifier directive
-            expSrc : undefined,            // expression operand if any
-            expValue : undefined,          // value of expression operand if any
+            expSrc : null,            // expression operand if any
+            expValue : null,          // value of expression operand if any
 	    op : 0,                        // operation
             operand_str1 : '',
             operand_str2 : '',
@@ -324,7 +324,7 @@ function assembler () {
     m.modType = ModAsm; // module text is now considered to be assembly langauge
     let ma = m.asmInfo;
     console.log(`Assembling module ${selectedModule}`);
-    ma.modName = undefined;  // remove name from earlier assembly, if any
+    ma.modName = null;  // remove name from earlier assembly, if any
     ma.nAsmErrors = 0;
     ma.asmStmt = [];
     ma.symbols = [];
@@ -710,7 +710,7 @@ function parseLabel (m,s) {
 
 // Set operation to the instruction set object describing the
 // operation, if the operation field is defined in the map of
-// operations.  Otherwise leave operation=undefined.  Thus s.operation can
+// operations.  Otherwise leave operation=null.  Thus s.operation can
 // be used as a Boolean to determine whether the operation exists, as
 // well as the specification of the operation if it exists.
 
@@ -901,7 +901,6 @@ function parseOperand (m,s) {
     return;
 }
 
-
 // If the operand doesn't match the instruction format, it's possible
 // that some of the operand fields will be left undefined by the
 // regular expression match.  For example, if the destination is
@@ -1045,8 +1044,8 @@ function asmPass2 (m) {
     relocationAddressBuffer = [];
     for (let i = 0; i < ma.asmStmt.length; i++) {
 	s = ma.asmStmt[i];
-        s.codeWord1 = undefined;
-        s.codeWord2 = undefined;
+        s.codeWord1 = null;
+        s.codeWord2 = null;
 	fmt = s.format;
 	console.log(`pass2 line=${s.lineNumber} s=/${s.srcLine}/`);
 	console.log(`pass2 line=${s.lineNumber} fmt=${fmt}`
@@ -1431,7 +1430,7 @@ function emitASmap (m) {
 function showAsmap (m) {
     let ma = m.asmInfo;
     console.log ('showAsmap');
-    for (var i in m) {
+    for (let i in m) {
 	console.log ('[' + i + '] = ' + m[i]);
     }
 }

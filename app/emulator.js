@@ -150,14 +150,6 @@ function showEffect (es,i) {
 //   if i=null then no source is avaiable
 //     else currentModule.asmStmt[i].srcLine
 
-function initListing (m,es) {
-    es.curInstrAddr = 0;
-    es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
-    es.nextInstrAddr = 0;
-    es.nextInstrLineNo = es.curAsmap[0];
-    highlightListingLine (es, es.nextInstrLineNo, "NEXT");
-    setProcAsmListing (es,m);
-}
 
 function showListingParameters (es) {
     console.log ('showListingParameters'
@@ -657,7 +649,7 @@ const op_trap = (es) => {
     } else if (code==2) { // Write
         trapWrite(es);
     } else { // Undefined trap is nop
-        console.log (`trap with undefined code=${code}`)
+        console.log (`trap with unbound code = ${code}`)
     }
 }
 
@@ -912,11 +904,11 @@ function exp2_getctl (es) {
     regFile[es.field_e].put(register[cregidx].get());
 }
 function exp2_putctl (es) {
-    console.log ('exp2_putctl');
+    console.log ('putctl');
     let cregn = es.field_f;
     let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
-    console.log (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
-    console.log (`es.ir_d=${es.ir_d}`);
+    console.log (`putctl src e==${es.field_e} val=${regFile[es.field_e].get()}`);
+    console.log (`putctl dest f=${es.field_f} cregn=${cregn} cregidx=${cregidx}`);
     register[cregidx].put(regFile[es.field_e].get());
     register[cregidx].refresh();
 }

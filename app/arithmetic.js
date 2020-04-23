@@ -72,7 +72,7 @@ function extractBool (x,i) {
 
 // Check where this is used ??????????????
 
-var intToBit = function (x) {
+let intToBit = function (x) {
     if (x < 0 || x > 1)
     {console.log('intToBit invalid int: ' + x);
      return('#');
@@ -324,7 +324,7 @@ const hexDigit =
 
 // Return a string giving the hex representation of a word
 
-var wordToHex4 = function (x) {
+let wordToHex4 = function (x) {
     let [p,q,r,s] = splitWord (x);
     return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
 }

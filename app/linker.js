@@ -24,7 +24,7 @@
 "use strict";
 
 // refactor
-var curAsmap = [];
+let curAsmap = [];
 
 //-----------------------------------------------------------------------------
 // Representation of object module
@@ -37,7 +37,7 @@ class ModuleObj {
     constructor() {
         this.objLine = [];                 // lines of code split by newline
         this.objStmt = [];                 // array of statements in object code
-        this.objMetadataLine = undefined;  // optional metadata lines
+        this.objMetadataLine = null;  // optional metadata lines
     }
 }
 
@@ -219,14 +219,13 @@ function checkObject () {
     console.log ("linker: checkObject");
 }
 
-
 function boot (es) {
     console.log ("boot");
     let m = s16modules[selectedModule]; // get current module
     let ma = m.asmInfo; // only if this module came from assembler
     let mo = m.objInfo;
     let xs = "";
-    let fields = undefined;
+    let fields = null;
     let ok = true; // will set to false if module isn't bootable
     let location = 0; // address where next word will be stored
     resetRegisters();
@@ -440,7 +439,7 @@ function parseCopyObjectModuleToMemory (es) {
 //    console.log('field1 = ' + fields[1]);
     //    console.log('field2 = ' + fields[2]);
     bootCurrentLocation = 0;
-    for (var i = 0; i < xs.length; i++) {
+    for (let i = 0; i < xs.length; i++) {
 	linkerBootLine(es, i, xs[i]);
 //	experiment(xs[i]);
     }
@@ -461,3 +460,12 @@ function linkerBootLine (es,m,i,x) {
     bootCurrentLocation++;
 }
 
+// Prepare assembly liating when executable is booted
+function initListing (m,es) {
+    es.curInstrAddr = 0;
+    es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+    es.nextInstrAddr = 0;
+    es.nextInstrLineNo = es.curAsmap[0];
+    highlightListingLine (es, es.nextInstrLineNo, "NEXT");
+    setProcAsmListing (es,m);
+}

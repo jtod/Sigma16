@@ -238,7 +238,7 @@ let nRegisters = 0;     // total number of registers; increment as created
 let controlRegisters;   // array of the control registers
 let register = [];      // array of all the registers: regfile and control
 
-let ctlRegIndexOffset = 0;  // update in gui.js when registers are created
+const ctlRegIndexOffset = 20; // add to ctl reg number to get index in register[]
 let sysCtlRegIdx = 0;       // index of first system control reg
 
 let registerIndex = 0;          // unique index for each reg

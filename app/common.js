@@ -26,5 +26,3 @@ let s16modules = [];    // All the modules in the system
 let selectedModule = 0;
 let currentFile = null;  // deprecated, Remember the current working file handle
 
-
-
