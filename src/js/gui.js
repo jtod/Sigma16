@@ -661,5 +661,5 @@ window.onload = function () {
     adjustToMidMainLRratio();
     initializeSubsystems ();
     showTabbedPane("WelcomePane");
-    console.log("Initialization complete");
+    console.log("Initialization complete (new version)");
 }

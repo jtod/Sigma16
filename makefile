@@ -189,6 +189,7 @@ devversion :
 	cp -up src/js/*.html $(DEVVERSION)/app
 	cp -up src/js/*.css $(DEVVERSION)/app
 	cp -up src/js/*.js $(DEVVERSION)/app
+	cp -up src/js/*.mjs $(DEVVERSION)/app
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
