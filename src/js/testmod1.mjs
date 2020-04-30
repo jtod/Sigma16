@@ -5,4 +5,4 @@ export function testmod1Fcn (x) {
     console.log (`testmod1: testmod1Fcn (x=${x}) returning ${y}`);
     return y;
 }
-alert (`testmod1 says testvar1=${testvar1}`);
+console.log (`testmod1 says testvar1=${testvar1}`);
