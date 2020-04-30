@@ -136,7 +136,7 @@ replaced by newer ones!
 The following versions are intended for development and testing of the
 software, and are not recommended for general use.
 
-* [Run the latest development version](./dev/app/Sigma16.html) This is
+* [Run the latest development version](./dev/src/js/Sigma16.html) This is
   a pre-release for the next version, intended for development and
   testing of the software.  It may be unstable, and is not recommended
   for general users.  However, it may contain new features not yet in

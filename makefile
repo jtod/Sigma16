@@ -17,65 +17,31 @@
 # makefile defines commands to run, maintain, and build the system
 #-------------------------------------------------------------------------------
 
-# Sigma16 home page (for documentation and to run the app)
-#   https://jtod.github.io/home/Sigma16/
-# Sigma16 source repository (to download or view the source)
-#   https://github.com/jtod/Sigma16
 
-# Quick reference...
-#   make devversion                               prepare home/Sigma16/dev
-#   make release                              prepare home/Sigma16/releases/...
-#   make docs/src/S16homepage/index.html       index for Sigma16 home page
+# Web links
+#   Sigma16 home page (link to run the app and documentation)
+#     https://jtod.github.io/home/Sigma16/
+#   Sigma16 source repository (to download or view the source)
+#     https://github.com/jtod/Sigma16
 
-# Source directories on development computer
-#    Sigma/current                               source for entire project
-#    Sigma/current/Sigma16                       source for Sigma16
-#    Sigma/current/homepage/jtod.github.io/home/Sigma16  source for github web page
+# Source file directories
+#   SigmaProject/Sigma16
+#   SigmaProject/homepage/jtod.github.io/home/Sigma16
 
-#-------------------------------------------------------------------------------
-# How to...
-
-# To upload current development version to web page:
-#    cd Sigma/current/Sigma16
-#       make devversion
-#       git status, git add, git commit, git push
-#    cd Sigma/current/homepage/jtod.github.io/home/Sigma16
-#       git status, git add, git commit, git push
-
-#-------------------------------------------------------------------------------
-# Define parameters
-#-------------------------------------------------------------------------------
-
-# File locations on development machine
-
-# SIGMACURRENT contains the Sigma project, including Sigma16
-SIGMACURRENT:=./..
-S16HOME:=$(SIGMACURRENT)/homepage/jtod.github.io/home/Sigma16
-DEVVERSION:=$(S16HOME)/dev
-
-# S16WEBPAGE is a directory in my homepage on github; this is where
-# the web release is placed, since users can run the app by clicking a
-# link pointing into this area
-
-S16WEBPAGE:=$(SIGMACURRENT)/homepage/jtod.github.io/S16
-
-# Extract the version from the package.json file; it's on the line
-# consisting of "version: : "1.2.3".  This defines VERSION, which is
-# used for building the top level index and the user guide.
-
-VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
-MONTHYEAR=$(shell date +"%B %Y")
-MONTHYEARDAY=$(shell date +"%F")
-YEAR=$(shell date +"%Y")
-
-showparams :
-	echo SIGMACURRENT = $(SIGMACURRENT)
-	echo S16WEBPAGE = $(S16WEBPAGE)
-	echo VERSION = $(VERSION).txt
-	echo MONTHYEAR = $(MONTHYEAR)
-	echo MONTHYEARDAY = $(MONTHYEARDAY)
-	echo YEAR = $(YEAR)
-	echo DEVVERSION = $(DEVVERSION)
+# Building the software
+#   Build files: generate docs from source, etc.
+#     cd SigmaProject/Sigma16
+#     make devversion                               prepare home/Sigma16/dev
+#     git status, git add, git commit, git push
+#   Make release                              prepare home/Sigma16/releases/...
+#     cd SigmaProject/Sigma16
+#     Update version in Sigma16/package.json
+#     make devversion                               prepare home/Sigma16/dev
+#     git status, git add, git commit, git push
+#     cd SigmaProject/homepage/jtod.github.io/home/Sigma16
+#     edit ...
+#     make docs/src/S16homepage/index.html       index for Sigma16 home page
+#     git status, git add, git commit, git push
 
 #-------------------------------------------------------------------------------
 # Usage
@@ -150,6 +116,57 @@ showparams :
 #    b. pull request
 #    c. merge and confirm
 
+#-------------------------------------------------------------------------------
+# Define parameters
+#-------------------------------------------------------------------------------
+
+# Run the makefile from SigmaProject/Sigma16
+
+# Path to parent of the directory containing this makefile
+SIGMAPROJECT:=./..
+
+# Source for the Sigma16 Home Page
+S16HOMEPAGESOURCE:=$(SIGMAPROJECT)/homepage/jtod.github.io/home/Sigma16
+RELEASEDEVELOPMENT:=$(S16HOMEPAGESOURCE)/dev
+
+# S16HOMEPAGE is a directory in my homepage on github; this is where
+# the web release is placed, since users can run the app by clicking a
+# link pointing into this area
+
+S16HOMEPAGE:=$(SIGMAPROJECT)/homepage/jtod.github.io/S16
+
+# Extract the version from the package.json file; it's on the line
+# consisting of "version: : "1.2.3".  This defines VERSION, which is
+# used for building the top level index and the user guide.
+
+VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+
+# Define dates in several formats, for inclusion in the app and user guide
+YEAR=$(shell date +"%Y")
+MONTHYEAR=$(shell date +"%B %Y")
+MONTHYEARDAY=$(shell date +"%F")
+
+# SIGMAPROJECT         project directory; parent of Sigma16 directory
+# S16HOMEPAGE          location of source for the Sigma16 Home Page
+# VERSION              version number, found by looking at Sigma16/package.json
+# MONTHYEAR            date for display in the gui and in the User Guide
+# RELEASEDEVELOPMENT   directory for the release in development
+
+# make showparams - print out the defined values
+.PHONY: showparams
+showparams:
+	echo SIGMAPROJECT = $(SIGMAPROJECT)
+	echo S16HOMEPAGE = $(S16HOMEPAGE)
+	echo VERSION = $(VERSION).txt
+	echo MONTHYEAR = $(MONTHYEAR)
+	echo MONTHYEARDAY = $(MONTHYEARDAY)
+	echo YEAR = $(YEAR)
+	echo RELEASEDEVELOPMENT = $(RELEASEDEVELOPMENT)
+
+#-------------------------------------------------------------------------------
+# Homepage index
+#-------------------------------------------------------------------------------
+
 # make homepage-index: Convert index for Sigma16 home page from
 # markdown to html.  This should be copied to the git repository for
 # jtod.github.io/S16 (make release or make devversion will do that)
@@ -165,31 +182,54 @@ docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
 	  docs/src/S16homepage/index.md
 	cp -up docs/src/S16homepage/homepage.css docs/html/S16homepage
 
+#-------------------------------------------------------------------------------
+# Development version
+#-------------------------------------------------------------------------------
+
 # make devversion -- build the documentation files, and copy the files
 # to the web page current development directory.  After doing this,
 # git status, git add, git commit, git push
 
-.PHONY : devversion
-devversion :
-	mkdir -p $(DEVVERSION)/app
+# Build files that require preprocessing or compilation from source
+
+.PHONY: build
+build:
 	make set-version
-	cp -up VERSION.txt $(DEVVERSION)
-	cp -up LICENSE.txt $(DEVVERSION)
 	make source-dir-index
-	cp -up index.html  $(DEVVERSION)/app
-	make docs/html/S16homepage/index.html
-	cp -up docs/html/S16homepage/index.html $(S16HOME)
-	cp -up docs/src/S16homepage/homepage.css $(S16HOME)
 	make src/js/datafiles/welcome.html
-	make docs/html/userguide/userguide.html
-	cp -upr docs $(DEVVERSION)
 	make example-indices
-	cp -upr examples $(DEVVERSION)
-	cp -upr src/js/datafiles $(DEVVERSION)/app
-	cp -up src/js/*.html $(DEVVERSION)/app
-	cp -up src/js/*.css $(DEVVERSION)/app
-	cp -up src/js/*.js $(DEVVERSION)/app
-	cp -up src/js/*.mjs $(DEVVERSION)/app
+	make docs/html/S16homepage/index.html
+	make docs/html/userguide/userguide.html
+
+# Sigma16 homepage index
+
+.PHONY: homepage-index
+homepage-index:
+	make docs/html/S16homepage/index.html
+	cp -up docs/html/S16homepage/index.html $(S16HOMEPAGESOURCE)
+	cp -up docs/src/S16homepage/homepage.css $(S16HOMEPAGESOURCE)
+
+# Make directory containing files for current development version, for
+# uploading to the Sigma16 home page.
+
+.PHONY: release-development
+release-development:
+	mkdir -p $(RELEASEDEVELOPMENT)
+	mkdir -p $(RELEASEDEVELOPMENT)/src
+	mkdir -p $(RELEASEDEVELOPMENT)/docs
+	mkdir -p $(RELEASEDEVELOPMENT)/docs/html
+	cp -up VERSION.txt $(RELEASEDEVELOPMENT)
+	cp -up LICENSE.txt $(RELEASEDEVELOPMENT)
+	cp -upr docs/html/userguide $(RELEASEDEVELOPMENT)/docs/html
+	cp -upr examples $(RELEASEDEVELOPMENT)
+	cp -upr src/js $(RELEASEDEVELOPMENT)/src
+
+#	mkdir -p $(RELEASEDEVELOPMENT)/src/js
+#	cp -up src/js/*.html $(RELEASEDEVELOPMENT)/app
+#	cp -up src/js/*.css $(RELEASEDEVELOPMENT)/app
+#	cp -up src/js/*.js $(RELEASEDEVELOPMENT)/app
+#	cp -up src/js/*.mjs $(RELEASEDEVELOPMENT)/app
+#	cp -up index.html  $(RELEASEDEVELOPMENT)/app
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
@@ -205,7 +245,7 @@ devversion :
 
 .PHONY : release
 release :
-	cp -r $(S16HOME)/dev $(S16HOME)/releases/$(VERSION)
+	cp -r $(S16HOMEPAGESOURCE)/dev $(S16HOMEPAGESOURCE)/releases/$(VERSION)
 
 #-------------------------------------------------------------------------------
 # Running Sigma16
@@ -305,6 +345,10 @@ compile :
 	make executable
 	make move-executable
 
+#-------------------------------------------------------------------------------
+# Version
+#-------------------------------------------------------------------------------
+
 # make set-version --- The version number is defined in
 # src/js/package.json; this makefile finds the number there and defines a
 # make variable $(VERSION).  This is used in several places, including
@@ -317,6 +361,10 @@ set-version :
 	echo $(VERSION) > VERSION.txt
 	echo "const s16version = \"$(VERSION)\";" > src/js/version.js
 
+
+#-------------------------------------------------------------------------------
+# Generate index pages for examples
+#-------------------------------------------------------------------------------
 
 # make example-indices --- Generate the index.html files for the
 # programs directory
@@ -423,13 +471,17 @@ src/js/datafiles/welcome.html : src/js/datafiles/srcwelcome.md
           -o src/js/datafiles/welcome.html \
 	  src/js/datafiles/welcomeTEMP.md
 
-# make docs/html/userguide.html -- generate html from markdown source
+#-------------------------------------------------------------------------------
+# User guide
+#-------------------------------------------------------------------------------
+
+# Build user guide html from markdown source
 
 docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
 	  docs/src/userguide/userguide-template.html \
 	  docs/src/userguide/userguidestyle.css VERSION.txt
 	mkdir -p docs/html/userguide
-	cp -upr docs/src/figures docs/html/userguide
+	cp -upr docs/src/userguide/figures docs/html/userguide
 	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
@@ -450,6 +502,10 @@ source-dir-index : README.md docs/src/readme/readme.css
           --variable=css:'docs/src/readme/readme.css' \
           --metadata pagetitle='Sigma16 ${VERSION}' \
 	  -o index.html README.md
+
+#-------------------------------------------------------------------------------
+# The following may be out of date following the revision using express...
+#-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
 # Running as standalone program on local machine with npm
