@@ -238,6 +238,13 @@ let nRegisters = 0;     // total number of registers; increment as created
 let controlRegisters;   // array of the control registers
 let register = [];      // array of all the registers: regfile and control
 
+// The system control registers are specified in the instruction by an
+// index starting from i=0..., but the actual emulator data structures
+// for these registers are held in the register[] array at index
+// i+ctlRegIndexOffset...  It's useful to have a single array
+// containing all the registers, so the emulator can refresh them all
+// together.
+
 const ctlRegIndexOffset = 20; // add to ctl reg number to get index in register[]
 let sysCtlRegIdx = 0;       // index of first system control reg
 

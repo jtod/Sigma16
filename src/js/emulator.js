@@ -283,17 +283,9 @@ function procReset(es) {
 // Controlling instruction execution
 //------------------------------------------------------------------------------
 
-function procPause(es) {
-    console.log ("procPause");
-    setProcStatus (es,Paused);
-    refreshRegisters();
-    regShowAccesses();
-    memRefresh();
-    memShowAccesses ();
-    memDisplayFull();
-    showInstrDecode (es);
-    highlightListingAfterInstr (es);
-}
+// Run instructions repeatedly until a stopping condition arises.
+// Yield control each iteration to avoid blocking the user interface,
+// particularly the manual timer interrupt button.
 
 function instructionLooper (es) {
     if (es.procStatus===Ready) {
@@ -313,6 +305,20 @@ function instructionLooper (es) {
         }
     }
     console.log ('instructionLooper terminated');
+}
+
+// The Pause button stops the instruction looper and displays the state.
+
+function procPause(es) {
+    console.log ("procPause");
+    setProcStatus (es,Paused);
+    refreshRegisters();
+    regShowAccesses();
+    memRefresh();
+    memShowAccesses ();
+    memDisplayFull();
+    showInstrDecode (es);
+    highlightListingAfterInstr (es);
 }
 
 //---------------------------------------------------------------------------

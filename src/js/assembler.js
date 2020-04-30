@@ -20,6 +20,10 @@
 
 "use strict";
 
+// exports.mkModuleAsm = mkModuleAsm;
+// exports.runAssembler = runAssembler;
+
+
 // refactor
 let opcode_cmp = 4; // for pass2/RR
 
@@ -118,11 +122,16 @@ function run () {
 //-----------------------------------------------------------------------------
 
 // Identifiers are always defined in the label field of a statement.
-// The value of the identifier has one of the following origins:
+// There are three kinds of identifier:
+
+//   - IdeLocation is an ordinary symbol whose value is the location counter
+//   - IdeImport has the value is provided by linker, provisionally 0
+//   - IdeEqu is the value of an expression
 
 const IdeLocation = Symbol ("IdeLocation"); // location counter
 const IdeImport   = Symbol ("IdeImport");   // set by linker
 const IdeEqu      = Symbol ("IdeEqu");      // evaluation of operand expression
+
 
 // Show identifier origin as a string
 function showSymOrigin (s) {
@@ -132,10 +141,6 @@ function showSymOrigin (s) {
              : "Unknown" )
 }
 
-// There are three kinds of identifier:
-//   - ordinary symbol: value is address; is relocatable
-//   - import:  value is provided by linker, provisionally 0, not relocatable
-//   - equ: value is evaluation of expression, done in pass2, may be relocatable
 
 // Fields of an identifier:
 //   name = identifier text from label field
@@ -319,9 +324,14 @@ function mkErrMsg (m,s,err) {
     ma.nAsmErrors++;
 }
 
+
 function assembler () {
     let m = s16modules[selectedModule];
+    runAssembler (m);
     m.modType = ModAsm; // module text is now considered to be assembly langauge
+}
+
+function runAssembler (m) {
     let ma = m.asmInfo;
     console.log(`Assembling module ${selectedModule}`);
     ma.modName = null;  // remove name from earlier assembly, if any

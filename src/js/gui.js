@@ -20,6 +20,7 @@
 //-----------------------------------------------------------------------------
 
 "use strict";
+// import {sayHi} from "./testmodule.js";
 
 //-------------------------------------------------------------------------------
 // Global variables for gui.js
@@ -208,6 +209,16 @@ function editorButton1() {
 //    loc.href = "#HREFTESTING";
     
 }
+
+//-----------------------------------------------------------------------------
+// Dialogues with the user
+
+function modalWarning (msg) {
+    alert (msg);
+}
+
+//-----------------------------------------------------------------------------
+
 
 //-------------------------------------------------------------------------------
 // Examples pane
@@ -640,20 +651,15 @@ window.onload = function () {
 	nRegisters++;
         });
 
-// Initialize the memory
     memInitialize();
     procAsmListingElt = document.getElementById('ProcAsmListing');
-    
     editorBufferTextArea = document.getElementById("EditorTextArea");
-
     resetRegisters();
     initialize_mid_main_resizing ();
     setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
     showSizeParameters();
     adjustToMidMainLRratio();
     initializeSubsystems ();
-
     showTabbedPane("WelcomePane");
-    
     console.log("Initialization complete");
 }

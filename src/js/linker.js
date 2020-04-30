@@ -298,7 +298,8 @@ function boot (es) {
             + "</span><br>"
             + "</pre>";
         document.getElementById('LinkerText').innerHTML = xs;
-        console.log ("boot failed")
+        console.log ("boot failed");
+        modalWarning ("boot failed");
     }
     console.log ("boot returning");
 }

@@ -1,0 +1,28 @@
+{
+    "name": "sigma16",
+    "version": "3.1.4",
+    "description": "Computer architecture for research and teaching",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jtod/Sigma16"
+    },
+    "homepage": "https://jtod.github.io/S16/",
+    "main": "Sigma16.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "computer architecture",
+        "assembly language",
+        "machine language",
+        "assembler",
+        "linker",
+        "emulator"
+  ],
+  "author": "John T. O'Donnell",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "electron": "^8.2.4",
+    "express": "^4.17.1"
+  }
+}
