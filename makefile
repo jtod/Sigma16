@@ -1,5 +1,5 @@
 # Sigma16: makefile
-# Copyright (c) 2019 John T. O'Donnell  john.t.odonnell9@gmail.com
+# Copyright (c) 2020 John T. O'Donnell  john.t.odonnell9@gmail.com
 # License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt,NOTICE.txt
 
 # This file is part of Sigma16.  Sigma16 is free software: you can
@@ -63,7 +63,7 @@ S16WEBPAGE:=$(SIGMACURRENT)/homepage/jtod.github.io/S16
 # consisting of "version: : "1.2.3".  This defines VERSION, which is
 # used for building the top level index and the user guide.
 
-VERSION:=$(shell cat app/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 MONTHYEAR=$(shell date +"%B %Y")
 MONTHYEARDAY=$(shell date +"%F")
 YEAR=$(shell date +"%Y")
@@ -129,7 +129,7 @@ showparams :
 # from the web, without downloading anything.
 
 # (1) Local editing in Sigma/current/Sigma16
-#    a. Edit version number in app/package.json
+#    a. Edit version number in package.json
 #    b. make release
 #    c. git status, git add...
 #    d. git commit -m "S16 <release number>"
@@ -180,15 +180,15 @@ devversion :
 	make docs/html/S16homepage/index.html
 	cp -up docs/html/S16homepage/index.html $(S16HOME)
 	cp -up docs/src/S16homepage/homepage.css $(S16HOME)
-	make app/datafiles/welcome.html
+	make src/js/datafiles/welcome.html
 	make docs/html/userguide/userguide.html
 	cp -upr docs $(DEVVERSION)
 	make example-indices
 	cp -upr examples $(DEVVERSION)
-	cp -upr app/datafiles $(DEVVERSION)/app
-	cp -up app/*.html $(DEVVERSION)/app
-	cp -up app/*.css $(DEVVERSION)/app
-	cp -up app/*.js $(DEVVERSION)/app
+	cp -upr src/js/datafiles $(DEVVERSION)/app
+	cp -up src/js/*.html $(DEVVERSION)/app
+	cp -up src/js/*.css $(DEVVERSION)/app
+	cp -up src/js/*.js $(DEVVERSION)/app
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
@@ -305,16 +305,16 @@ compile :
 	make move-executable
 
 # make set-version --- The version number is defined in
-# app/package.json; this makefile finds the number there and defines a
+# src/js/package.json; this makefile finds the number there and defines a
 # make variable $(VERSION).  This is used in several places, including
 # writing a VERSION file in the top directory (not essential but
-# helpful for users) and app/version.js (which makes the version
+# helpful for users) and src/js/version.js (which makes the version
 # number available to the JavaScript program).
 
 .PHONY : set-version
 set-version :
 	echo $(VERSION) > VERSION.txt
-	echo "const s16version = \"$(VERSION)\";" > app/version.js
+	echo "const s16version = \"$(VERSION)\";" > src/js/version.js
 
 
 # make example-indices --- Generate the index.html files for the
@@ -413,14 +413,14 @@ example-indices :
           -o examples/SysLib/index.html \
 	  examples/SysLib/index.md
 
-app/datafiles/welcome.html : app/datafiles/srcwelcome.md
+src/js/datafiles/welcome.html : src/js/datafiles/srcwelcome.md
 	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
-	  app/datafiles/srcwelcome.md > app/datafiles/welcomeTEMP.md
+	  src/js/datafiles/srcwelcome.md > src/js/datafiles/welcomeTEMP.md
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
           --variable=css:../../docs/src/userguide/userguidestyle.css \
-          -o app/datafiles/welcome.html \
-	  app/datafiles/welcomeTEMP.md
+          -o src/js/datafiles/welcome.html \
+	  src/js/datafiles/welcomeTEMP.md
 
 # make docs/html/userguide.html -- generate html from markdown source
 
@@ -499,4 +499,4 @@ executable :
 
 .PHONY : move-executable
 move-executable :
-	mv app/dist/*.exe release/Sigma16-$(VERSION)-win.exe
+	mv src/js/dist/*.exe release/Sigma16-$(VERSION)-win.exe
