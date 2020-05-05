@@ -1,4 +1,4 @@
-// Sigma16: gui.js
+// Sigma16: gui.mjs
 // Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -15,12 +15,20 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-----------------------------------------------------------------------------
-// gui.js is the main program.  It's launched by Sigma16.html and is
-// the last JavaScript file to be loaded
+// gui.mjs is the main program for the browser version.  It's launched
+// by Sigma16.html and is the last JavaScript file to be loaded
 //-----------------------------------------------------------------------------
 
-"use strict";
-// import {sayHi} from "./testmodule.js";
+import * as ver from './version.mjs';
+import * as com from './common.mjs';
+import * as smod from './s16module.mjs';
+import * as arch from './architecture.mjs';
+import * as arith from './arithmetic.mjs';
+import * as st from './state.mjs';
+import * as ed from './editor.mjs';
+import * as asm from './assembler.mjs';
+import * as link from './linker.mjs';
+import * as em from './emulator.mjs';
 
 //-------------------------------------------------------------------------------
 // Global variables for gui.js
@@ -30,12 +38,6 @@ let globalObject = this; // to enable script in userguide to define glob var
 let myglobalvar = 9876; // can script in userguide see this?
 
 let fileContents = "file not read yet"
-let editorBufferTextArea; /* set when window.onload */
-let textFile = null; /* for save download */
-let create;  /* for save download */
-let textbox; /* for save download */
-let ioLogBuffer = "";
-let procAsmListingElt; // global variables for emulator
 
 // Persistent variables given values by initialize_mid_main_resizing ()
 let windowWidth;     // inner width of entire browser window
@@ -48,40 +50,6 @@ let midSecExtraWidth = 15;  // width of borders in px
 //-----------------------------------------------------------------------------
 // Parameters
 //-----------------------------------------------------------------------------
-
-// Calculate the value of pxPerChar, which is needed to control the
-// scrolling to make the current line visible.  The calculated value
-// overrides the initialized value.  The method is to measure the
-// height of the listing in pixels and divide by the number of lines
-// in the listing.  Some other geometric parameters are also obtained,
-// but aren't currently used.
-
-function getListingDims (es) {
-    let e = document.getElementById('ProcAsmListing');
-    let x = e.getBoundingClientRect(); // dimensions of visible listing area
-    let w = e.scrollWidth; // width of the content, not used
-    let h = e.scrollHeight; // height of content (not of the window)
-    es.asmListingHeight = h; // save in emulator state
-    console.log (`h=${h} w=${w}`);
-    let n = es.asmListingPlain.length;
-    console.log(`getListingDims: n=${n}`);
-    pxPerChar = h / n; // update this global variable, used for scrolling
-    console.log (`getListingDims: pxPerChar = ${pxPerChar}`);
-}
-
-// asmScrollOffsetAbove specifies the preferred number of lines that
-// should appear above the scroll target in the processor assembly
-// listing
-
-const asmScrollOffsetAbove = 8;
-
-// pxPerChar is the height of characters used in the processor
-// assembly listing.  This is needed to scroll the listing to keep the
-// current line visible.  There doesn't appear to be a good way to
-// measure this; the value is found by trial and error.  Measuring it
-// or extracting it from font metadata would be far better.
-
-let pxPerChar = 13.05;
 
 //-------------------------------------------------------------------------------
 // Debug and test tools
@@ -115,12 +83,6 @@ function makeTextFile (text) {
 }
 
 
-function refreshIOlogBuffer() {
-    console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
-    let elt = document.getElementById("IOlog");
-    elt.innerHTML = "<pre>" + ioLogBuffer + "</pre>";
-    elt.scrollTop = elt.scrollHeight;
-}
 
 //-------------------------------------------------------------------------------
 // Experiments and testing
@@ -210,19 +172,201 @@ function editorButton1() {
     
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// Define actions for buttons
+//------------------------------------------------------------------------------
+
+// Connect a button in the html with its corresponding function
+function prepareButton (bid,fcn) {
+    console.log (`prepare button ${bid}`);
+    document.getElementById(bid)
+        .addEventListener('click', event => {fcn()});
+}
+
+
+// Pane buttons
+prepareButton ('Welcome_Pane_Button',   f_welcome_pane_button);
+prepareButton ('Examples_Pane_Button',  f_examples_pane_button);
+prepareButton ('Modules_Pane_Button',   f_modules_pane_button);
+prepareButton ('Editor_Pane_Button',    f_editor_pane_button);
+prepareButton ('Assembler_Pane_Button', f_assembler_pane_button);
+prepareButton ('Linker_Pane_Button',    f_linker_pane_button);
+prepareButton ('Processor_Pane_Button', f_processor_pane_button);
+prepareButton ('About_Button',         () => jumpToGuideSection('about-sigma16'));  
+
+
+// User guide resize (UGR) buttons
+// UGR Distance (px) to move boundary between gui and userguide on resize
+const UGRSMALL = 1;
+const UGRLARGE = 20;
+prepareButton ('UG_Resize_Right_Large_Button', () => user_guide_resize(UGRLARGE));
+prepareButton ('UG_Resize_Right_Small_Button', () => user_guide_resize(UGRSMALL));
+prepareButton ('UG_Resize_Left_Small_Button', () => user_guide_resize(-UGRSMALL));
+prepareButton ('UG_Resize_Left_Large_Button', () => user_guide_resize(-UGRLARGE));
+
+// Welcome pane (WP)
+prepareButton ('WP_Guide_Top', jumpToGuideTop);
+prepareButton ('WP_Tutorials', () => jumpToGuideSection('tutorials'));
+prepareButton ('WP_Architecture', () => jumpToGuideSection('architecture'));
+prepareButton ('WP_ISA', () => jumpToGuideSection('instruction-set'));
+prepareButton ('WP_Assembly_Language', () => jumpToGuideSection('assembly-language'));
+prepareButton ('WP_Linker', () => jumpToGuideSection('linker'));
+console.log ("wp almost done");
+prepareButton ('WP_Programming', () => jumpToGuideSection('programming'));
+console.log ("wp done");
+
+// Examples pane (EXP)
+prepareButton ('EXP_Examples_Home',    examplesHome);
+prepareButton ('EXP_Select_Example',    smod.selectExample);
+
+// Modules pane (MP)
+prepareButton ('MP_New',    smod.newModule);
+prepareButton ('MP_Refresh',    smod.refreshModulesList);
+
+// Editor pane (EDP)
+prepareButton ('EDP_Clear',    ed.editorClear);
+prepareButton ('EDP_New',    smod.newModule);
+prepareButton ('EDP_Hello_World',  () => insert_example(example_hello_world));
+prepareButton ('EDP_Save',  ed.editorDownload);
+
+// Assembler pane (AP)
+prepareButton ('AP_Assemble',  asm.assembler);
+prepareButton ('AP_Show_Object',  asm.setObjectListing);
+prepareButton ('AP_Show_Listing',  asm.setAsmListing);
+prepareButton ('AP_Show_Metadata',  asm.setMetadata);
+
+// Linker pane (LP)
+prepareButton ('LP_Show_Object',  link.linkShowSelectedObj);
+prepareButton ('LP_Read_Object',  link.readObjectFromEditor);
+prepareButton ('LP_Read_Modules', link.setLinkerModules);
+prepareButton ('LP_Link',         link.link);
+prepareButton ('LP_Boot',         () => em.boot(st.emulatorState));
+prepareButton ('LP_Show_Metadata', link.linkShowMetadata);
+
+// Processor pane (PP)
+prepareButton ('PP_Reset',        () => em.procReset(em.emulatorState));
+prepareButton ('PP_Boot',         () => em.boot(em.emulatorState));
+prepareButton ('PP_Step',         () => em.procStep(em.emulatorState));
+prepareButton ('PP_Run',          () => em.procRun(em.emulatorState));
+prepareButton ('PP_Pause',        () => em.procPause(em.emulatorState));
+prepareButton ('PP_Interrupt',    () => em.procInterrupt(em.emulatorState));
+prepareButton ('PP_Breakpoint',   () => em.procBreakpoint(em.emulatorState));
+prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
+prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
+
+//                          id="FullDisplayToggleButton"
+
+
+// Breakpoint popup dialogue
+/*
+prepareButton ("BreakRefresh", em.breakRefresh(em.emulatorState));
+prepareButton ("BreakEnable", em.breakEnable(em.emulatorState));
+prepareButton ("BreakDisable", em.breakDisable(em.emulatorState));
+prepareButton ("BreakClose", em.breakClose());
+*/
+
+
+//------------------------------------------------------------------------------
 // Dialogues with the user
+//------------------------------------------------------------------------------
 
 function modalWarning (msg) {
     alert (msg);
 }
 
-//-----------------------------------------------------------------------------
-
+//------------------------------------------------------------------------------
+// Tabbed panes
+//------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------
+// Top level tab buttons control which pane is visible and active
+//-------------------------------------------------------------------------------
+
+export function hideTabbedPane(paneId) {
+//    console.log("hiding tabbed pane " + paneId);
+    document.getElementById(paneId).style.display = "none";
+}
+
+export function hideAllTabbedPanes() {
+    hideTabbedPane("WelcomePane");
+    hideTabbedPane("ExamplesPane");
+    hideTabbedPane("ModulesPane");
+    hideTabbedPane("EditorPane");
+    hideTabbedPane("AssemblerPane");
+    hideTabbedPane("LinkerPane");
+    hideTabbedPane("ProcessorPane");
+    hideTabbedPane("TestPane");
+}
+
+//    ed.leaveEditor(); // will also hide editor pane  kills asm/lnk
+
+export function showTabbedPane(paneId) {
+    console.log("showing tabbed pane " + paneId);
+    hideAllTabbedPanes();
+    document.getElementById(paneId).style.display = "block";
+    console.log("Now on tabbed pane " + paneId);
+}
+
+export function f_welcome_pane_button() {
+    console.log("welcome_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("WelcomePane");
+}
+
+
+function f_examples_pane_button() {
+    console.log("examples_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("ExamplesPane");
+}
+export function f_modules_pane_button() {
+    console.log("modules_pane_button clicked")
+    hideAllTabbedPanes();
+    smod.refreshModulesList();
+    showTabbedPane("ModulesPane");
+}
+
+export function f_editor_pane_button() {
+//    console.log("editor_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("EditorPane");
+}
+
+export function f_assembler_pane_button() {
+    console.log("assembler_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("AssemblerPane");
+    console.log("f assembler_pane_button returning")
+}
+
+export function f_linker_pane_button() {
+//    console.log("linker_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("LinkerPane");
+}
+
+export function f_processor_pane_button() {
+//    console.log("processor_pane button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("ProcessorPane");
+}
+
+
+export function f_userman_pane_button() {
+    console.log("userman_pane_button clicked")
+}
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------
 // Examples pane
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 // Errors in displaying the directories: GET 404:
 // www.dcs.gla.ac.uk/icons/blank.gif
@@ -235,12 +379,7 @@ function examplesHome() {
 }
 
 // Copy the example text to the editor.  The example is shown as a web
-// page and its content is obtained using innerHTML.  The innerHTML
-// string is <pre ...>text of example</pre>.  The pre and pre tags
-// need to be removed: they would confuse the assembler.
-
-const openingPreTag = /^<[^>]*>/;   // <pre...> at beginning
-const closingPreTag = /<[^>]*>$/;   // ...</pre> at end
+// page and its content is obtained using innerHTML.
 
 
 // This does not work.  Perhaps because it's an iframe, not an input?
@@ -261,9 +400,6 @@ function copyExampleToClipboard () {
 // Editor pane
 //-------------------------------------------------------------------------------
 
-function editorClear () {
-    document.getElementById('EditorTextArea').value = "";
-}
 
 //-------------------------------------------------------------------------------
 // Window sizing: adjust relative size of system and user guide
@@ -415,101 +551,6 @@ function checkTestBody () {
 
 
 
-
-//-------------------------------------------------------------------------------
-// Top level tab buttons control which pane is visible and active
-//-------------------------------------------------------------------------------
-
-let breakDialogueVisible = false;
-
-function procBreakpoint () {
-    console.log ("procBreakpoint");
-    document.getElementById("BreakDialogue").style.display
-	= breakDialogueVisible ? "none" : "block";
-    breakDialogueVisible = !breakDialogueVisible;
-}
-
-function hideBreakDialogue () {
-    document.getElementById("BreakDialogue").style.display = "none";
-    breakDialogueVisible = false;
-}
-
-function hideTabbedPane(paneId) {
-//    console.log("hiding tabbed pane " + paneId);
-    document.getElementById(paneId).style.display = "none";
-}
-
-function hideAllTabbedPanes() {
-    hideTabbedPane("WelcomePane");
-    hideTabbedPane("ExamplesPane");
-    hideTabbedPane("ModulesPane");
-    leaveEditor(); // will also hide editor pane
-    hideTabbedPane("AssemblerPane");
-    hideTabbedPane("LinkerPane");
-    hideTabbedPane("ProcessorPane");
-    hideTabbedPane("TestPane");
-}
-
-function showTabbedPane(paneId) {
-//    console.log("showing tabbed pane " + paneId);
-    hideAllTabbedPanes();
-    document.getElementById(paneId).style.display = "block";
-    console.log("Now on tabbed pane " + paneId);
-}
-
-function welcome_pane_button() {
-//    console.log("welcome_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("WelcomePane");
-}
-
-function examples_pane_button() {
-    hideAllTabbedPanes();
-    showTabbedPane("ExamplesPane");
-}
-
-function modules_pane_button() {
-    console.log("modules_pane_button clicked")
-    hideAllTabbedPanes();
-    refreshModulesList();
-    showTabbedPane("ModulesPane");
-}
-
-function editor_pane_button() {
-//    console.log("editor_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("EditorPane");
-}
-
-function assembler_pane_button() {
-//    console.log("assembler_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("AssemblerPane");
-}
-
-function linker_pane_button() {
-//    console.log("linker_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("LinkerPane");
-}
-
-function processor_pane_button() {
-//    console.log("processor_pane button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("ProcessorPane");
-}
-
-function test_pane_button() {
-//    console.log("test_pane button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("TestPane");
-}
-
-function userman_pane_button() {
-    console.log("userman_pane_button clicked")
-}
-
-
 //-------------------------------------------------------------------------------
 // Example programs
 //-------------------------------------------------------------------------------
@@ -589,77 +630,54 @@ window.onresize = function () {
 
 window.onload = function () {
     console.log("window.onload activated");
-    initModules ();
-    initializeProcessorElements ();  // so far, it's just instr decode
-    clearInstrDecode (emulatorState);
-    hideBreakDialogue ();
+    smod.initModules ();
+    em.hideBreakDialogue ();
+    em.initializeMachineState ();
+    em.initializeSubsystems ();
     document.getElementById('LinkerText').innerHTML = "";    
-
-    // Build the register file; R0 is built specially as it is
-    // constant; all others are built with mkReg
-    for (let i = 0; i<16; i++) {
-	let regname = 'R' + i; // also the id for element name
-        let thisReg;
-	thisReg = (i==0) ?
-	    mkReg0 (regname, regname, wordToHex4)
-	    : mkReg (regname, regname, wordToHex4);
-	thisReg.regIdx = i;
-	regFile[i] = thisReg;
-	register[i] = thisReg;
-    }
-
-    // Instruction control registers
-    pc    = mkReg ('pc',       'pcElt',       wordToHex4);
-    ir    = mkReg ('ir',       'irElt',       wordToHex4);
-    adr   = mkReg ('adr',      'adrElt',      wordToHex4);
-    dat   = mkReg ('dat',      'datElt',      wordToHex4);
-
-    // Interrupt control registers
-    statusreg   = mkReg ('statusreg',  'statusElt',  wordToHex4);
-    // bit 0 (lsb) :  0 = User state, 1 = System state
-    // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
-    // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
-    mask  = mkReg ('mask',     'maskElt',    wordToHex4);
-    req   = mkReg ('req',      'reqElt',     wordToHex4);
-    // mask and request use the same bit positions for flags
-    // bit 0 (lsb)  overflow
-    // bit 1        divide by 0
-    // bit 2        trap 3
-    // bit 3        
-    istat    = mkReg ('istat',    'istatElt',      wordToHex4);
-    ipc      = mkReg ('ipc',      'ipcElt',      wordToHex4);
-    vect     = mkReg ('vect',   'vectElt', wordToHex4);
-
-// Segment control registers
-    bpseg = mkReg ('bpseg',    'bpsegElt',    wordToHex4);
-    epseg = mkReg ('epseg',    'epsegElt',    wordToHex4);
-    bdseg = mkReg ('bdseg',    'bdsegElt',    wordToHex4);
-    edseg = mkReg ('edseg',    'edsegElt',    wordToHex4);
-
-// Record the control registers    
-    controlRegisters =
-	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
-	 // the following can be used for getctl/getctl, indexing from 0
-	 statusreg, mask, req, istat, ipc, vect,
-         bpseg, epseg, bdseg, edseg
-	];
-    nRegisters = 16;  // Start after the first 16 (the regfile)
-    controlRegisters.forEach (function (r) {
-	console.log('making reg ' + nRegisters + ' = ' + r.regName);
-	register[nRegisters] = r;
-	r.regIdx = nRegisters;
-	nRegisters++;
-        });
-
-    memInitialize();
-    procAsmListingElt = document.getElementById('ProcAsmListing');
-    editorBufferTextArea = document.getElementById("EditorTextArea");
-    resetRegisters();
+    smod.prepareChooseFiles ();
     initialize_mid_main_resizing ();
     setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
     showSizeParameters();
     adjustToMidMainLRratio();
-    initializeSubsystems ();
-    showTabbedPane("WelcomePane");
+
+
+    //    showTabbedPane("WelcomePane");
+        showTabbedPane("ProcessorPane");
     console.log("Initialization complete (new version)");
 }
+
+/*
+export function f_test_pane_button() {
+//    console.log("test_pane button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("TestPane");
+}
+*/
+/*
+let run_examples_pane_button = event => {
+    console.log ("run examples pane button");
+    examples_pane_button();
+}
+*/
+
+// onclick="user_guide_resize(1)"
+// prepareButton ('UG_Resize_Right_Large_Button',    f_ug_resize_right_large_button);
+/*
+function f_ug_resize_right_large_button () {
+    console.log ("resize right large");
+    user_guide_resize(20);
+}
+*/
+
+/*
+// prepareButton ('About_Button',          f_about_button);
+function f_about_button () {
+    	jumpToGuideSection('about-sigma16');
+}
+*/
+
+/*
+
+
+ */

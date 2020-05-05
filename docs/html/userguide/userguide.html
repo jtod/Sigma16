@@ -29,7 +29,8 @@
 <li><a href="#hello-world">Hello, world!</a></li>
 <li><a href="#registers-constants-and-arithmetic">Registers, constants, and arithmetic</a></li>
 <li><a href="#keeping-variables-in-memory">Keeping variables in memory</a></li>
-<li><a href="#assembly-language">Assembly language</a></li>
+</ul></li>
+<li><a href="#assembly-language">Assembly language</a><ul>
 <li><a href="#files-and-modules">Files and modules</a></li>
 <li><a href="#conditionals">Conditionals</a></li>
 <li><a href="#loops">Loops</a></li>
@@ -136,7 +137,8 @@
 <li><a href="#programs-modules-and-files">Programs, modules, and files</a></li>
 <li><a href="#simple-standalone-programs">Simple standalone programs</a></li>
 <li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
-<li><a href="#object-code-and-the-linkerbooter">Object code and the linker/booter</a><ul>
+</ul></li>
+<li><a href="#linker">Linker</a><ul>
 <li><a href="#object-code-language">Object code language</a></li>
 <li><a href="#module-statement-1">module statement</a></li>
 <li><a href="#org-statement-1">org statement</a></li>
@@ -145,7 +147,6 @@
 <li><a href="#export-statement-1">export statement</a></li>
 <li><a href="#relocate-statement">relocate statement</a></li>
 <li><a href="#module-metadata">Module metadata</a></li>
-</ul></li>
 <li><a href="#executable-code">Executable code</a></li>
 </ul></li>
 <li><a href="#programming">Programming</a><ul>
@@ -181,7 +182,8 @@
 <li><a href="#version-number">Version number</a></li>
 <li><a href="#running-with-npm">Running with npm</a></li>
 </ul></li>
-<li><a href="#copyright-and-license">Copyright and license</a><ul>
+<li><a href="#about-sigma16">About Sigma16</a><ul>
+<li><a href="#copyright">Copyright</a></li>
 <li><a href="#gpl3-license">GPL3 License</a></li>
 </ul></li>
 </ul>
@@ -409,7 +411,7 @@ abc  data  $02c6  ; specify initial value as hex</code></pre>
 x     data  23
 y     data  14
 z     data   0</code></pre>
-<h2 id="assembly-language">Assembly language</h2>
+<h1 id="assembly-language">Assembly language</h1>
 <p>The programs shown here are written in <em>assembly language</em>. The machine itself executes programs in <em>machine language</em>, which is covered later. Assembly language is translated to machine language by a program called an <em>assembler</em>.</p>
 <p>The purpose of assembly language is to give the programmer absolute control over the machine language code without having to remember lots of numeric codes. For example, it is easier to remember the name “mul” for multiply than to remember the machine language code (which happens to be 3). Similarly, it’s easier to remember the names of variables (x, y, sum, total) than the numeric addresses of the memory locations that hold these variables.</p>
 <p>The syntax of assembly language is simple and rigid. Every statement must fit on one line of source code; you cannot have a statement that spans several lines, and you cannot have several statements on one line.</p>
@@ -2257,7 +2259,7 @@ fcn      add    R1,R1,R1
 </ul></li>
 </ul>
 <p>Select is for switching among the existing modules, while New and Open are for introducing a new module.</p>
-<h2 id="object-code-and-the-linkerbooter">Object code and the linker/booter</h2>
+<h1 id="linker">Linker</h1>
 <p>The assembler produces object code containing metadata as well as machine language. Two operations can be performed on an object module: it can be <em>booted</em> or it can be <em>linked</em>. Booting an object module means copying the code into memory and preparing for execution; linking means combining several object modules into a single executable object module. These operations may succeed or fail.</p>
 <p>(On some computer systems the process of booting is called <em>loading</em>. In Sigma16, we will refer to the linker/booter rather than the linker/loader, just to avoid confusion with other meanings of the word “load”.)</p>
 <p>The booter reads the object code and copies data into the memory. During this process, the booter discovers whether the module is executable: if not, a boot error message is produced. The booter doesn’t know in advance whether a module is executable; it simply tries and detects any errors as it traverses the code.</p>
@@ -2500,7 +2502,8 @@ src/package-lock.json
 src/preload.js
 src/renderer.hs
 src/node_modules/</code></pre>
-<h1 id="copyright-and-license">Copyright and license</h1>
+<h1 id="about-sigma16">About Sigma16</h1>
+<h2 id="copyright">Copyright</h2>
 <p>The architecture, software tools, and documentation were designed, implemented, and written by John O’Donnell. Contact email: john.t.odonnell9@gmail.com</p>
 <p>Copyright (c) 2020 John T. O’Donnell</p>
 <p>License: GNU GPL Version 3 or later.</p>

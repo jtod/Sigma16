@@ -1,4 +1,4 @@
-// Sigma16: common.js
+// Sigma16: state.mjs
 // Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -14,15 +14,19 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
-// common.js declares global variables
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// state.mjs defines global state for the system, IDE, modules, and
+// emulator
+//-----------------------------------------------------------------------------
 
-"use strict";
+// The main components of the program avoid using global variables;
+// instead the necessary state is organized into records and passed as
+// needed to the functions.  This module defines those records.  The
+// gui operations, defined in Sigma16.html, call the emulator's
+// interface functios with the state, for example boot(emulatorState).
 
-// Modules
-
-let s16modules = [];    // All the modules in the system
-let selectedModule = 0;
-let currentFile = null;  // deprecated, Remember the current working file handle
+import * as com from './common.mjs';
+import * as smod from './s16module.mjs';
+import * as arch from './architecture.mjs';
+import * as arith from './arithmetic.mjs';
 

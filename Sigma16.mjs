@@ -37,24 +37,18 @@ const port = 3000;  // this can be changed to avoid clash with any other app
 // Initialization
 //-----------------------------------------------------------------------------
 
-// Load the required packages
+// Standard packages
 import express from 'express';
 import path from 'path';
+import * as fs from "fs";
 import { fileURLToPath } from 'url';
 
-// Obtain command line arguments
-//    process.argv[0] = path to node.exe
-//    process.argv[1] = path to this file
-
-let command = process.argv[2]; // command to execute; if undefined use gui
-let commandArg = process.argv[3]; // argument to the command, if any
+// Components of Sigma16
+import {runAssembler} from "./src/js/assembler.mjs";
 
 // Find path to this module
 const Sigma16directory = path.dirname(fileURLToPath(import.meta.url));
 
-// For testing, print parameters
-// console.log (`Sigma16: command=${command} arg=${commandArg}`);
-// console.log (`Sigma16directory=${Sigma16directory}`);
 
 //-----------------------------------------------------------------------------
 // Initialize server for running gui
@@ -87,8 +81,91 @@ function launchGUI () {
 }
 
 //-----------------------------------------------------------------------------
+// Assembler
+//-----------------------------------------------------------------------------
+
+// Usage: node Sigma16.mjs assemble myprog
+//   Reads source from myprog.asm.txt
+//   Writes object code to myprog.obj.txt
+//   Writes metadata to myprog.md.txt
+//   Writes listing to standard output (or myprog.lst.txt?)
+
+function cmdAssembler () {
+    console.log ("runAssembler");
+    let m;    // holds module data structure
+    let src;  // holds source code
+}
+
+// baseName is the name of the module; source is baseName.asm.txt
+function asmMain (baseName) {
+    console.log (`assemble: base name = ${baseName}`);
+    let srcFile = `${baseName}.asm.txt`;
+    let objFile = `${baseName}.obj.txt`;
+    let lstFile = `${baseName}.lst.txt`;
+    let mdFile = `${baseName}.md.txt`;
+    console.log (`source file = ${srcFile}`);
+    console.log (`object file = ${objFile}`);
+    console.log (`listing file = ${lstFile}`);
+    console.log (`metadata file = ${mdFile}`);
+    let src = "";
+    try {
+        src = fs.readFileSync(srcFile, 'utf8')
+    } catch (err) {
+        console.error(`Cannot read file ${srcFile}`);
+    }
+    console.log ("Starting assembler");
+    asmRun (src, objFile, lstFile, mdFile);
+    console.log ("Finished");
+}
+
+function asmRun (src, objFile, lstFile, mdFile) {
+    console.log ("run");
+    console.log (src);
+//    m = assembler.mkModuleAsm ();
+//    assembler.runAssembler ();
+//    let objtext = "dummy object code";
+//    writeObject (objFile, objtext);
+    console.log ("run finished");
+}
+
+function writeObject (fname, obj) {
+    try {
+        const file = fs.writeFileSync(fname, obj);
+    } catch (err) {
+        // console.error(err)
+        console.error(`Unable to write object code to ${fname}`);
+    }
+}
+
+//-----------------------------------------------------------------------------
 // Main program
 //-----------------------------------------------------------------------------
 
 // for now, just gui. later, switch (command)
-launchGUI ();
+
+function main  () {
+    // Obtain command line arguments
+    //    process.argv[0] = path to node.exe
+    //    process.argv[1] = path to this file
+    let command = process.argv[2]; // command to execute; if undefined use gui
+    let commandArg = process.argv[3]; // argument to the command, if any
+    // For testing, print parameters
+    console.log (`Sigma16: command=${command} arg=${commandArg}`);
+    console.log (`Sigma16directory=${Sigma16directory}`);
+    if (process.argv.length < 3 || command === "gui") {
+        console.log ("Launching gui");
+        launchGUI ();
+    } else if (command === "assemble") {
+        console.log ("running assembler");
+        asmMain (commandArg);
+    } else if (command === "link") {
+        console.log ("running linker");
+    } else if (command === "emulate") {
+        console.log ("running emulator");
+    } else {
+        console.log ("bad command");
+    }
+}
+
+// Run the main program
+main ();

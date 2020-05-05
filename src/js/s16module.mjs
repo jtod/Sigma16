@@ -1,4 +1,4 @@
-// Sigma16: module.js
+// Sigma16: module.mjs
 // Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -15,22 +15,61 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-------------------------------------------------------------------------------
-// module.js defines the representation of source and object modules
+// module.mjs defines the representation of source and object modules
 //-------------------------------------------------------------------------------
-
-"use strict";
 
 // The working program is a list of modules, one of which is the
 // current working module visible in the editor and assembler.  A
 // module data structure contains everything known about the module,
 // whether it is source or object.
 
+import * as com from './common.mjs';
+
+//-------------------------------------------------------------------------------
+// Set of modules
+//-------------------------------------------------------------------------------
+
+let s16modules = [];    // All the modules in the system
+let selectedModule = 0;
+
+function setSelectedModule (i) {
+    selectedModule = i;
+    console.log (`Setting selected module to ${i}`);
+}
+
+
+// let currentFile = null;  // deprecated, Remember the current working file handle
+
+//-----------------------------------------------------------------------------
+// Assembler state:  information about a module produced by the assembler
+//-----------------------------------------------------------------------------
+
+export function mkModuleAsm () {
+    console.log("mkModuleAsm");
+    return {
+	modName : null,       // name of module specified in module stmt
+	modSrc : '',               // source code
+        modAsmOK : false,
+	symbols : [],              // symbols used in the source
+	symbolTable : new Map (),  // symbol table
+	nAsmErrors : 0,            // number of errors in assembly source code
+	locationCounter : 0,       // address where next code will be placed
+	asmListingPlain : [],      // assembler listing
+	asmListingDec : [],        // decorated assembler listing
+	objectCode : [],           // string hex representation of object
+        metadata : [],             // lines of metadata code
+        asMap : [],                // address/source map
+        exports : [],              // list of exported identifiers
+	asmStmt : []               // statements correspond to lines of source
+    }
+}
+
 //-------------------------------------------------------------------------------
 // Initialize modules
 //-------------------------------------------------------------------------------
 
 // Create one initial (empty) module and make it the current module
-function initModules () {
+export function initModules () {
     console.log ("initModules");
     s16modules = [mkModule()];
     let m = s16modules[0];
@@ -41,7 +80,7 @@ function initModules () {
 }
 
 // Get the full data structure for the current module
-function getCurrentModule () {
+export function getCurrentModule () {
     return s16modules[selectedModule]
 }
 
@@ -55,10 +94,10 @@ function getCurrentModule () {
 // (if any) or the contents.  For example, if the user Assembles a
 // file, then it is deemed to be assembly text.
 
-const ModText = Symbol ("ModText");  // generic text with unknown role
-const ModAsm  = Symbol ("ModAsm");   // obtained assembly langauge from editor
-const ModObj  = Symbol ("ModObj");   // obtained object from editor/file
-const ModLink = Symbol ("ModLink");  // module text is set of linker commands
+export const ModText = Symbol ("ModText");  // generic text with unknown role
+export const ModAsm  = Symbol ("ModAsm");   // obtained assembly langauge from editor
+export const ModObj  = Symbol ("ModObj");   // obtained object from editor/file
+export const ModLink = Symbol ("ModLink");  // module text is set of linker commands
 
 function showModType (t) {
     return t===ModText ? "Text"
@@ -87,8 +126,9 @@ function mkModule (i) {
         objIsAssembled : false,   // module has been assembled
         modObjLoaded : false,     // module loaded directly from obj
         asmInfo : mkModuleAsm(),  // initialize assembler state
+        objInfo : null,
         //        objInfo : mkModuleObj(),  // initialize object state
-        objInfo : new ModuleObj(),  // initialize object state
+        //        objInfo : new ModuleObj(),  // initialize object state
         objIsExecutable : false    // can be executed without further linking
     }
 }
@@ -122,7 +162,7 @@ function getFileName (m) {
     return m.mFile ? m.mFile.name : "no file associated with module"
 }
 
-function newModule () {
+export function newModule () {
     console.log ("newModule");
     selectedModule = s16modules.length;
     s16modules.push(mkModule(selectedModule));
@@ -132,13 +172,13 @@ function newModule () {
 
 // Make new module, copy example text into it, and select it
 
-function selectExample() {
+export function selectExample() {
     console.log ('selectExample');
     let exElt = document.getElementById('ExamplesIframeId');
     let xs = exElt.contentWindow.document.body.innerHTML;
     console.log (`xs = ${xs}`);
-    let skipPreOpen = xs.replace(openingPreTag,"");
-    let skipPreClose = skipPreOpen.replace(closingPreTag,"");
+    let skipPreOpen = xs.replace(com.openingPreTag,"");
+    let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
     console.log (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
     s16modules.push(mkModule());
@@ -159,8 +199,9 @@ function selectExample() {
 // selected.  The function reads the files and creates entries in the
 // modules list for them.
 
-function handleSelectedFiles (flist) {
+export function handleSelectedFiles (flist) {
     console.log("handleSelectedFiles");
+    console.log(`handleSelectedFiles flist=${flist}`);
     let m;
     let idxFirstNewMod = s16modules.length;
     let idxLastNewMod  = idxFirstNewMod + flist.length - 1;
@@ -196,6 +237,18 @@ function mkOfReader (m, i) {
     return fr;
 }
 
+// Set handler for s16modules/ open file operation
+// html contained:  onchange="handleSelectedFiles(this.files);"
+
+export function prepareChooseFiles () {
+    console.log ("prepareChooseFiles");
+    let elt = document.getElementById('FileInput');
+    elt.addEventListener('change', event => {
+        console.log ("prepareChooseFiles change listener invoked");
+        handleSelectedFiles(elt.files);
+    });
+}
+
 // If all the files selected in the file chooser have been read in,
 // refresh the modules list.  The refresh should be called just one
 // time.
@@ -227,12 +280,16 @@ function refreshWhenReadsFinished  (m,i) {
 // Display list of modules
 //-------------------------------------------------------------------------------
 
+// Use unique number for prefix name for each button
+let buttonPrefixNumber = 0;
+
 // Produce a formatted list of all open modules and display in Modules page
 
-function refreshModulesList() {
+export function refreshModulesList() {
     console.log ('refreshModulesList');
     let xs, ys = "\n<hr>";
     let m, sel, spanClass, mName, fName, mfName;
+    let selButton;
     for (let i=0; i<s16modules.length; i++) {
 	m = s16modules[i];
         let ma = m.asmInfo;
@@ -242,9 +299,18 @@ function refreshModulesList() {
         let temp1 = 2;
 	ys += `&nbsp;`;
         let temp2 = 2;
+        let buttonIdSuffix = `Mod${i}`; // will it work if close?
+        console.log (`buttonIdSuffix=${buttonIdSuffix}`);
+        selButton = `select${buttonIdSuffix}`;
+        console.log (`selButton=${selButton}`);
+        let selButtonElt = "<button id='" + selButton +"'>Select</button>";
+        console.log (`selButtonElt = ${selButtonElt}`);
+        console.log (`refreshModulesList buttonIdPrefix=${buttonIdSuffix}`);
 	ys += `&nbsp;`
 	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. ${mfName}</span>`
-	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
+//	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
+//	    + `<button id="modulesButtonSelect${buttonIdSuffix}`>Select</button>
+            + selButtonElt
 	    + `<button onclick="modulesButtonClose(${i})">Close</button>`
             + ( m.mFile
                 ? `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
@@ -258,7 +324,14 @@ function refreshModulesList() {
 	    + '</pre>\n\n'
             + '<hr>\n';
 
-    }
+    };
+    // Need to add the buttons to the document object ???????
+    // Then use something like the following to catch the button clicks
+//    document.getElementById(selButton)
+//        .addEventListener('click', event => {
+//            console.log (`clicked (event listener): ${selButton}`);
+//        });
+
     ys += `<br>${s16modules.length} modules\n`
     ys += `<br>module #${selectedModule} currently selected\n`;
     ys += '<br><hr><br>';
@@ -317,4 +390,8 @@ function modulesButtonRefresh (i) {
     ma.modSrc = "*** reading file ***";
     console.log (`filesButtonRefresh ${m.mIndex}`);
     m.fileReader.readAsText(m.mFile);
+}
+
+export {
+    s16modules, selectedModule, setSelectedModule
 }

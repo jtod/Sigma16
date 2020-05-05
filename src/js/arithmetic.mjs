@@ -1,4 +1,4 @@
-// Sigma16: arithmetic.js
+// Sigma16: arithmetic.mjs
 // Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -15,13 +15,13 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-------------------------------------------------------------------------------
-// arithmetic.js defines arithmetic for the architecture using
+// arithmetic.mjs defines arithmetic for the architecture using
 // JavaScript arithmetic.  This includes word representation, data
 // conversions, and bit manipulation, operations on fields, and
 // arithmetic as required by the instruction set architecture.
 //------------------------------------------------------------------------------
 
-"use strict";
+import * as arch from './architecture.mjs';
 
 //------------------------------------------------------------------------------
 // Bit manipulation - big endian
@@ -32,21 +32,21 @@
 // bit has index 15.
 
 // Return bit i in word w
-function getBitInWordBE (w,i) { return (w >>> (15-i)) & 0x0001 }
+export function getBitInWordBE (w,i) { return (w >>> (15-i)) & 0x0001 }
 
 // Return bit i in nibble (4-bit word) w
 function getBitInNibbleBE (w,i) { return (w >>> (3-i)) & 0x0001 }
 
 // Return bit i in register r
-function getBitInRegBE (r,i) { return (r.get() >>> (15-i)) & 0x0001 }
+export function getBitInRegBE (r,i) { return (r.get() >>> (15-i)) & 0x0001 }
 
 // Generate mask to clear/set bit i in a word
-function maskToClearBitBE (i) { return ~(1<<(15-i)) & 0xffff }
-function maskToSetBitBE (i) { return (1 << (15-i)) & 0xffff }
+export function maskToClearBitBE (i) { return ~(1<<(15-i)) & 0xffff }
+export function maskToSetBitBE (i) { return (1 << (15-i)) & 0xffff }
 
 // Clear/set bit i in register r
-function clearBitInRegBE (r,i) { r.put (r.get() & maskToClearBitBE(i)) }
-function setBitInRegBE   (r,i) { r.put (r.get() | maskToSetBitBE(i)) }
+export function clearBitInRegBE (r,i) { r.put (r.get() & maskToClearBitBE(i)) }
+export function setBitInRegBE   (r,i) { r.put (r.get() | maskToSetBitBE(i)) }
 
 // Put bit b into word x in bit position i
 function putBitInWord (x,i,b) {
@@ -200,11 +200,11 @@ const maxTC  = 32767;
 const wordTrue = 1;
 const wordFalse = 0;
 
-function boolToWord (x) {
+export function boolToWord (x) {
     return x ? wordTrue : wordFalse;
 }
 
-function wordToBool (x) {
+export function wordToBool (x) {
     return ! (x === 0);
 }
 
@@ -256,7 +256,7 @@ function validateInt (x) {
 //   intToWord (wordToInt (x)) = x
 //   wordToInt (intToWord (x)) = x
 
-function wordToInt (w) {
+export function wordToInt (w) {
     let x = validateWord (w);
     return x < const8000 ? x : x - const10000;
 }
@@ -266,7 +266,7 @@ function wordToInt (w) {
 // is a boolean.  If ovfl is true then x is not representable in a 16
 // bit word
 
-function intToWord (x) {
+export function intToWord (x) {
     let y = validateInt (x);
     return y < 0 ? y + const10000 : y;
 }
@@ -285,7 +285,7 @@ function showWord (w) {
 
 // Return the 4-bit fields of a word
 
-function splitWord (x) {
+export function splitWord (x) {
     let y = validateWord (x);
     let s = y & 0x000f;
     y = y >>> 4;
@@ -324,7 +324,7 @@ const hexDigit =
 
 // Return a string giving the hex representation of a word
 
-let wordToHex4 = function (x) {
+export function wordToHex4 (x) {
     let [p,q,r,s] = splitWord (x);
     return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
 }
@@ -340,7 +340,7 @@ function showBit (b) {
 // 0x3a8b.  The assembly language uses a $ to indicate that a number
 // is hex, but the $ is not part of the hex number.
 
-function hex4ToWord (h) {
+export function hex4ToWord (h) {
 //    console.log("hex4ToWord " + h.length);
     if (h.length != 4) return NaN;
     return (4096 * hexCharToInt(h[0])
@@ -425,7 +425,7 @@ const g_crr = (op,c,a,b) => op (c,a,b);
 // example, binAdd (65535, 7) returns 6.  This is used to calculate
 // effective addresses and to increment the pc register.
 
-function binAdd (x, y) {
+export function binAdd (x, y) {
     let r = validateWord (x) + validateWord (y);
     return r & 0x0000ffff;
 }
@@ -440,7 +440,7 @@ function binAdd (x, y) {
 // result is a condition code containing the carry out and indications
 // of binary overflow and integer overflow.
 
-function op_add (a,b) {
+export function op_add (a,b) {
     let sum = a + b;
     let primary = sum & 0x0000ffff;
     let msb = extractBitBE (sum, 15);
@@ -450,7 +450,7 @@ function op_add (a,b) {
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
-    if (tcOverflow) { setBitInRegBE (req,overflowBit) }
+//     if (tcOverflow) { setBitInRegBE (req,overflowBit) } ??????????????? req
     return [primary, secondary];
 }
 
@@ -461,7 +461,7 @@ function test_add () {
     test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
 }
 
-function op_sub (a,b) {
+export function op_sub (a,b) {
     let sum = a + wordInvert (b) + 1;
     let primary = sum & 0x0000ffff;
     let msb = extractBitBE (sum, 15);
@@ -486,14 +486,14 @@ function representableAsTc (x) {
     return minTc <= x && x <= maxTc
 }
     
-function op_mul (a,b) {
+export function op_mul (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let p = a * b;
     let primary = p & 0x0000ffff;
     let tcOverflow = ! (minTC <= p && p <= maxTC)
     let secondary = (tcOverflow ? ccv : 0);
-    if (tcOverflow) { setBitInRegBE (req,overflowBit) }
+//    if (tcOverflow) { setBitInRegBE (req,overflowBit) } req ???????????????
     return [primary, secondary];
 }
 
@@ -503,12 +503,12 @@ function test_mul () {
     test_rr ("mul", op_mul, intToWord(-3), intToWord(-10), "30 []");
 }
 
-function op_div (a,b) {
+export function op_div (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let primary = intToWord (Math.floor (aint / bint));  // Knuth quotient
     let secondary = intToWord (a - b * Math.floor(a/b)); // Knuth mod
-    if (bint==0) { setBitInRegBE (req,zDivBit) };
+//    if (bint==0) { setBitInRegBE (req,zDivBit) }; req ??????????????????
     return [primary, secondary];
 }
 
@@ -518,7 +518,7 @@ function test_div () {
     test_rr ("div", op_div, 49, intToWord(-8), "6 1");
 }
 
-function op_cmp (a,b) {
+export function op_cmp (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let ltBin = a < b;
@@ -539,46 +539,46 @@ function op_cmp (a,b) {
     return cc;
 }
 
-function op_cmplt (a,b) {
+export function op_cmplt (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let primary = boolToWord (aint < bint);
     return primary;
 }
 
-function op_cmpeq (a,b) {
+export function op_cmpeq (a,b) {
     let primary = boolToWord (a === b)
     return primary;
 }
 
-function op_cmpgt (a,b) {
+export function op_cmpgt (a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let primary = boolToWord (aint > bint)
     return primary;
 }
 
-function op_inv (a) {
+export function op_inv (a) {
     let primary = wordInvert (a);
     return primary;
 }
 
-function op_and (a,b) {
+export function op_and (a,b) {
     let primary = a & b;
     return primary;
 }
 
-function op_or (a,b) {
+export function op_or (a,b) {
     let primary = a | b;
     return primary;
 }
 
-function op_xor (a,b) {
+export function op_xor (a,b) {
     let primary = a ^ b;
     return primary;
 }
 
-function op_addc (c,a,b) {
+export function op_addc (c,a,b) {
     let sum = a + b + extractBitBE(c,bit_ccC);
     let primary = sum & 0x0000ffff;
     let msb = extractBitBE (sum, 15);
@@ -592,45 +592,33 @@ function op_addc (c,a,b) {
 }
 
 //------------------------------------------------------------------------------
-// Condition codes
+// Accessing condition codes
 //------------------------------------------------------------------------------
 
-// Bits are numbered from right to left, starting with 0.  Thus the
-// least significant bit has index 0, and the most significant bit has
-// index 15.
-
-// Define a word for each condition that is representable in the
-// condition code.  The arithmetic operations may or several of these
-// together to produce the final condition code.
-
-// These definitions give the bit index
-const bit_ccG = 0;   //    G   >          binary
-const bit_ccg = 1;   //    >   >          two's complement
-const bit_ccE = 2;   //    =   =          all types
-const bit_ccl = 3;   //    <   <          two's complement
-const bit_ccL = 4;   //    L   <          binary
-const bit_ccV = 5;   //    V   overflow   binary
-const bit_ccv = 6;   //    v   overflow   two's complement
-const bit_ccC = 7;   //    c   carry      binary
-
 // These definitions give a mask with 1 in specified bit position
-const ccG = setBitBE(bit_ccG);
-const ccg = setBitBE(bit_ccg);
-const ccE = setBitBE(bit_ccE);
-const ccl = setBitBE(bit_ccl);
-const ccL = setBitBE(bit_ccL);
-const ccV = setBitBE(bit_ccV);
-const ccv = setBitBE(bit_ccv);
-const ccC = setBitBE(bit_ccC);
+const ccG = setBitBE(arch.bit_ccG);
+const ccg = setBitBE(arch.bit_ccg);
+const ccE = setBitBE(arch.bit_ccE);
+const ccl = setBitBE(arch.bit_ccl);
+const ccL = setBitBE(arch.bit_ccL);
+const ccV = setBitBE(arch.bit_ccV);
+const ccv = setBitBE(arch.bit_ccv);
+const ccC = setBitBE(arch.bit_ccC);
 
-function showCC (c) {
+export function showCC (c) {
     console.log (`showCC ${c}`);
-    return (extractBool (c,bit_ccC) ? 'c' : '')
-	+ (extractBool (c,bit_ccv) ? 'v' : '')
-	+ (extractBool (c,bit_ccV) ? 'V' : '')
-	+ (extractBool (c,bit_ccL) ? 'L' : '')
-	+ (extractBool (c,bit_ccl) ? '&lt;' : '')
-	+ (extractBool (c,bit_ccE) ? '=' : '')
-	+ (extractBool (c,bit_ccg) ? '>' : '')
-	+ (extractBool (c,bit_ccG) ? 'G' : '') ;
+    return (extractBool (c,arch.bit_ccC) ? 'c' : '')
+	+ (extractBool (c,arch.bit_ccv) ? 'v' : '')
+	+ (extractBool (c,arch.bit_ccV) ? 'V' : '')
+	+ (extractBool (c,arch.bit_ccL) ? 'L' : '')
+	+ (extractBool (c,arch.bit_ccl) ? '&lt;' : '')
+	+ (extractBool (c,arch.bit_ccE) ? '=' : '')
+	+ (extractBool (c,arch.bit_ccg) ? '>' : '')
+	+ (extractBool (c,arch.bit_ccG) ? 'G' : '') ;
 }
+
+// These constants provide a faster way to set or clear the flags
+
+const clearIntEnable = maskToClearBitBE (arch.intEnableBit);
+const setSystemState = maskToClearBitBE (arch.userStateBit);
+

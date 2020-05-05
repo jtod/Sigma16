@@ -580,7 +580,7 @@ y     data  14
 z     data   0
 ~~~~
 
-## Assembly language
+# Assembly language
 
 The programs shown here are written in *assembly language*.  The
 machine itself executes programs in *machine language*, which is
@@ -3698,7 +3698,7 @@ last saved.  If so, a dialogue asks whether the file should be saved.
 Select is for switching among the existing modules, while New and Open
 are for introducing a new module.
 
-## Object code and the linker/booter
+# Linker
 
 The assembler produces object code containing metadata as well as
 machine language.  Two operations can be performed on an object
@@ -4339,7 +4339,9 @@ src/renderer.hs
 src/node_modules/
 ~~~~
 
-# Copyright and license
+# About Sigma16
+
+## Copyright
 
 The architecture, software tools, and documentation were designed,
 implemented, and written by John O'Donnell.  Contact email:

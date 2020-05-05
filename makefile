@@ -54,7 +54,7 @@
 # Needed to build both web and compiled version
 #   make set-version        get version number from package.json
 #   make source-dir-index          generate html from markdown source
-#   make docs/html/userguide.html          generate html from markdown source
+#   make docs/html/userguide/userguide.html     generate html from markdown source
 #   make example-indices    index for each directory in programs and examples
 
 # Needed for compilation by npm
@@ -359,7 +359,7 @@ compile :
 .PHONY : set-version
 set-version :
 	echo $(VERSION) > VERSION.txt
-	echo "const s16version = \"$(VERSION)\";" > src/js/version.js
+	echo "export const s16version = \"$(VERSION)\";" > src/js/version.mjs
 
 
 #-------------------------------------------------------------------------------

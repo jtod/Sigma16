@@ -1,4 +1,4 @@
-// Sigma16: editor.js
+// Sigma16: editor.mjs
 // Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -15,13 +15,17 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-----------------------------------------------------------------------------
-// editor.js provides a minimal text editor for writing and modifying
+// editor.mjs provides a minimal text editor for writing and modifying
 // code, both assembly language and object code.
 //-----------------------------------------------------------------------------
 
-"use strict";
+import * as com from './common.mjs';
+import * as smod from './s16module.mjs';
 
-function editorDownload () {
+
+export let editorBufferTextArea = document.getElementById("EditorTextArea");
+
+export function editorDownload () {
     console.log ("editorPrepareDownload");
     let downloadElt = document.getElementById("editorDownloadAnchor");
     let edText = editorBufferTextArea.value;
@@ -36,13 +40,13 @@ function editorDownload () {
 // Therefore we convert the old and new source into an array of lines
 // and compare those arrays.
 
-function leaveEditor () {
+export function leaveEditor () {
     console.log ('Leaving the editor');
-    console.log (`leave editor ${selectedModule}`);
-    let m = s16modules[selectedModule];
-    let baz = s16modules ? "yes" : "no";
+    console.log (`leave editor ${smod.selectedModule}`);
+    let m = smod.s16modules[smod.selectedModule];
+    let baz = smod.s16modules ? "yes" : "no";
     let foobar = m ? "yes" : "no";
-    console.log (`leave editor len moduels = ${s16modules.length}`);
+    console.log (`leave editor len moduels = ${smod.s16modules.length}`);
     console.log (`leave editor baz ${baz}`);
     console.log (`leave editor foobar ${foobar}`);
     
@@ -61,5 +65,9 @@ function leaveEditor () {
     } else {
         console.log ("leaving editor, don't have module")
     }
-    hideTabbedPane("EditorPane");
+//    hideTabbedPane("EditorPane");
+}
+
+export function editorClear () {
+    document.getElementById('EditorTextArea').value = "";
 }

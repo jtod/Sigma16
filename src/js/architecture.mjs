@@ -1,4 +1,4 @@
-// Sigma16: architecture.js
+// Sigma16: architecture.mjs
 // Copyright (C) 2020 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -15,29 +15,27 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-----------------------------------------------------------------------------
-// architecture.js defines tables specifying opcodes, mnemonics, flag
+// architecture.mjs defines tables specifying opcodes, mnemonics, flag
 // bits, and other aspects of the architecture.
 //-----------------------------------------------------------------------------
 
-"use strict";
-
 // Global variables
 
-let ctlReg = new Map();
-let statementSpec = new Map();
+export let ctlReg = new Map();
+export let statementSpec = new Map();
 let emptyStmt = statementSpec.get("");
 
 //-----------------------------------------------------------------------------
 // Instruction table
 //-----------------------------------------------------------------------------
 
-const mnemonicRRR =
+export const mnemonicRRR =
   ["add",     "sub",     "mul",     "div",
    "cmp",     "cmplt",   "cmpeq",   "cmpgt",
    "inv",     "and",     "or",      "xor",
    "nop",     "trap",    "EXP",     "RX"];
 
-const mnemonicRX =
+export const mnemonicRX =
   ["lea",     "load",    "store",   "jump",
    "jumpc0",  "jumpc1",  "jumpf",   "jumpt",
    "jal",     "testset", "nop",     "nop",
@@ -71,37 +69,37 @@ const mnemonicEXP =
 
 // Assembly language statement formats (machine language format)
 
-const RRR         =  0;    // R1,R2,R3    (RRR)
-const RR          =  1;    // R1,R2       (RRR, omitting d or b field
-const RX          =  2;    // R1,xyz[R2]  (RX)
-const KX          =  3;    // R1,xyz[R2]  (RX)
-const JX          =  4;    // loop[R0]    (RX omitting d field)
-const EXP0        =  5;    // EXP format with no operand
-const RREXP       =  6;    // R1,R2       (EXP)
-const RRREXP      =  7;    // R1,R2,R3    (EXP) like RRR instruction
-const RRKEXP      =  8;    // R1,R2,3    (EXP)
-const RKKEXP      =  9;    // R1,3,5     (EXP)
-const RRRKEXP     = 10;    // R1,R2,R3,k    (EXP) logicw
-const RRKKEXP     = 11;    // R1,R2,3    (EXP)
-const RRRKKEXP    = 12;    // R1,R2,R3,g,h    (EXP) logicb
-const RRXEXP      = 13;    // save R4,R7,3[R14]   (EXP)
-const RCEXP       = 14;    // getctl R4,mask register,control (EXP)
-const DATA        = 15;    // -42
-const COMMENT     = 16;    // ; full line comment, or blank line
+export const RRR         =  0;    // R1,R2,R3    (RRR)
+export const RR          =  1;    // R1,R2       (RRR, omitting d or b field
+export const RX          =  2;    // R1,xyz[R2]  (RX)
+export const KX          =  3;    // R1,xyz[R2]  (RX)
+export const JX          =  4;    // loop[R0]    (RX omitting d field)
+export const EXP0        =  5;    // EXP format with no operand
+export const RREXP       =  6;    // R1,R2       (EXP)
+export const RRREXP      =  7;    // R1,R2,R3    (EXP) like RRR instruction
+export const RRKEXP      =  8;    // R1,R2,3    (EXP)
+export const RKKEXP      =  9;    // R1,3,5     (EXP)
+export const RRRKEXP     = 10;    // R1,R2,R3,k    (EXP) logicw
+export const RRKKEXP     = 11;    // R1,R2,3    (EXP)
+export const RRRKKEXP    = 12;    // R1,R2,R3,g,h    (EXP) logicb
+export const RRXEXP      = 13;    // save R4,R7,3[R14]   (EXP)
+export const RCEXP       = 14;    // getctl R4,mask register,control (EXP)
+export const DATA        = 15;    // -42
+export const COMMENT     = 16;    // ; full line comment, or blank line
 
-const DirModule   = 17;    // module directive
-const DirImport   = 18;    // import directive
-const DirExport   = 19;    // export directive
-const DirOrg      = 20;    // org directive
-const DirEqu      = 21;    // equ directive
-const UNKNOWN     = 22;    // statement format is unknown
-const EMPTY       = 23;    // empty statement
+export const DirModule   = 17;    // module directive
+export const DirImport   = 18;    // import directive
+export const DirExport   = 19;    // export directive
+export const DirOrg      = 20;    // org directive
+export const DirEqu      = 21;    // equ directive
+export const UNKNOWN     = 22;    // statement format is unknown
+export const EMPTY       = 23;    // empty statement
 
-const NOOPERATION = 24;    // error
-const NOOPERAND   = 25;    // statement has no operand
+export const NOOPERATION = 24;    // error
+export const NOOPERAND   = 25;    // statement has no operand
 
 // Need to update ???
-function showFormat (n) {
+export function showFormat (n) {
     let f = ['RRR','RR','RX', 'KX', 'JX','EXP0', 'RREXP', 'RRREXP', 'RRKEXP',
              'RKKEXP', 'RRRKEXP',  'RRKKEXP', 'RRRKKEXP', 'RRXEXP',
              'RCEXP', 'DATA','COMMENT',
@@ -112,7 +110,7 @@ function showFormat (n) {
 }
 
 // Give the size of generated code for an instruction format
-function formatSize (fmt) {
+export function formatSize (fmt) {
     if (fmt==RRR || fmt==RR || fmt==EXP0 || fmt==DATA) {
         return 1;
     } else if (fmt==RX || fmt==KX || fmt==JX
@@ -126,6 +124,29 @@ function formatSize (fmt) {
         return 0;
     }
 }
+
+//------------------------------------------------------------------------------
+// Condition codes
+//------------------------------------------------------------------------------
+
+// Bits are numbered from right to left, starting with 0.  Thus the
+// least significant bit has index 0, and the most significant bit has
+// index 15.
+
+// Define a word for each condition that is representable in the
+// condition code.  The arithmetic operations may or several of these
+// together to produce the final condition code.
+
+// These definitions give the bit index
+export const bit_ccG = 0;   //    G   >          binary
+export const bit_ccg = 1;   //    >   >          two's complement
+export const bit_ccE = 2;   //    =   =          all types
+export const bit_ccl = 3;   //    <   <          two's complement
+export const bit_ccL = 4;   //    L   <          binary
+export const bit_ccV = 5;   //    V   overflow   binary
+export const bit_ccv = 6;   //    v   overflow   two's complement
+export const bit_ccC = 7;   //    c   carry      binary
+
 
 //-----------------------------------------------------------------------------
 // Assembly language statements
@@ -296,25 +317,21 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // the machine boots, because interrupts are unsafe to execute until
 // the interrupt vector has been initialized.
 
-const userStateBit     = 0;   // 0 = system state,  1 = user state
-const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
+export const userStateBit     = 0;   // 0 = system state,  1 = user state
+export const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
 
 
-// These constants provide a faster way to set or clear the flags
-
-const clearIntEnable = maskToClearBitBE (intEnableBit);
-const setSystemState = maskToClearBitBE (userStateBit);
 
 //-----------------------------------------------------------------------------
 // Interrupt request and mask bits
 //-----------------------------------------------------------------------------
 
-const timerBit         = 0;   // timer has gone off
-const segFaultBit      = 1;   // access invalid virtual address
-const stackFaultBit    = 2;   // invalid memory virtual address
-const userTrapBit      = 3;   // user trap
-const overflowBit      = 4;   // overflow occurred
-const zDivBit          = 5;   // division by 0
+export const timerBit         = 0;   // timer has gone off
+export const segFaultBit      = 1;   // access invalid virtual address
+export const stackFaultBit    = 2;   // invalid memory virtual address
+export const userTrapBit      = 3;   // user trap
+export const overflowBit      = 4;   // overflow occurred
+export const zDivBit          = 5;   // division by 0
 
 //-----------------------------------------------------------------------------
 // Assembly language data definitions for control bits
@@ -336,3 +353,4 @@ const zDivBit          = 5;   // division by 0
 // userTrapBit     data   $1000   ; bit 3
 // overflowBit     data   $0800   ; bit 4
 // zDivBit         data   $0400   ; bit 5
+
