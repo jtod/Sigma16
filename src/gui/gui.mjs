@@ -230,7 +230,7 @@ prepareButton ('EDP_Hello_World',  () => insert_example(example_hello_world));
 prepareButton ('EDP_Save',  ed.editorDownload);
 
 // Assembler pane (AP)
-prepareButton ('AP_Assemble',  asm.assembler);
+prepareButton ('AP_Assemble',  asm.assemblerGUI);
 prepareButton ('AP_Show_Object',  asm.setObjectListing);
 prepareButton ('AP_Show_Listing',  asm.setAsmListing);
 prepareButton ('AP_Show_Metadata',  asm.setMetadata);

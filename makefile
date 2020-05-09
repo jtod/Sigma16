@@ -196,7 +196,7 @@ docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
 build:
 	make set-version
 	make source-dir-index
-	make src/js/datafiles/welcome.html
+	make src/gui/datafiles/welcome.html
 	make example-indices
 	make docs/html/S16homepage/index.html
 	make docs/html/userguide/userguide.html
@@ -222,7 +222,7 @@ release-development:
 	cp -up LICENSE.txt $(RELEASEDEVELOPMENT)
 	cp -upr docs/html/userguide $(RELEASEDEVELOPMENT)/docs/html
 	cp -upr examples $(RELEASEDEVELOPMENT)
-	cp -upr src/js $(RELEASEDEVELOPMENT)/src
+	cp -upr src/gui $(RELEASEDEVELOPMENT)/src
 
 #	mkdir -p $(RELEASEDEVELOPMENT)/src/js
 #	cp -up src/js/*.html $(RELEASEDEVELOPMENT)/app
@@ -350,16 +350,16 @@ compile :
 #-------------------------------------------------------------------------------
 
 # make set-version --- The version number is defined in
-# src/js/package.json; this makefile finds the number there and defines a
+# src/gui/package.json; this makefile finds the number there and defines a
 # make variable $(VERSION).  This is used in several places, including
 # writing a VERSION file in the top directory (not essential but
-# helpful for users) and src/js/version.js (which makes the version
+# helpful for users) and src/gui/version.js (which makes the version
 # number available to the JavaScript program).
 
 .PHONY : set-version
 set-version :
 	echo $(VERSION) > VERSION.txt
-	echo "export const s16version = \"$(VERSION)\";" > src/js/version.mjs
+	echo "export const s16version = \"$(VERSION)\";" > src/gui/version.mjs
 
 
 #-------------------------------------------------------------------------------
@@ -462,14 +462,14 @@ example-indices :
           -o examples/SysLib/index.html \
 	  examples/SysLib/index.md
 
-src/js/datafiles/welcome.html : src/js/datafiles/srcwelcome.md
+src/gui/datafiles/welcome.html : src/gui/datafiles/srcwelcome.md
 	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
-	  src/js/datafiles/srcwelcome.md > src/js/datafiles/welcomeTEMP.md
+	  src/gui/datafiles/srcwelcome.md > src/gui/datafiles/welcomeTEMP.md
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
           --variable=css:../../docs/src/userguide/userguidestyle.css \
-          -o src/js/datafiles/welcome.html \
-	  src/js/datafiles/welcomeTEMP.md
+          -o src/gui/datafiles/welcome.html \
+	  src/gui/datafiles/welcomeTEMP.md
 
 #-------------------------------------------------------------------------------
 # User guide
@@ -556,4 +556,4 @@ executable :
 
 .PHONY : move-executable
 move-executable :
-	mv src/js/dist/*.exe release/Sigma16-$(VERSION)-win.exe
+	mv src/gui/dist/*.exe release/Sigma16-$(VERSION)-win.exe

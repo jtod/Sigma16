@@ -18,6 +18,20 @@
 // common.js
 //-------------------------------------------------------------------------------
 
+export let mode = {
+    trace: false,
+    showErr: true,
+    showMode () {
+        console.log (`trace=${trace}`);
+    },
+    devlog (xs) {
+        if (this.trace) { console.log (xs) }
+    },
+    errlog (xs) {
+        if (this.showErr) { console.log (xs) }
+    }
+}
+
 // The innerHTML
 // string is <pre ...>text of example</pre>.  The pre and pre tags
 // need to be removed: they would confuse the assembler.

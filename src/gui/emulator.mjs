@@ -216,7 +216,11 @@ export function boot (es) {
     console.log ("boot");
     let m = smod.s16modules[smod.selectedModule]; // get current module
     let ma = m.asmInfo; // only if this module came from assembler
+    console.log (`****** boot ma object ${ma.objectCode}`);
     let mo = m.objInfo;
+    // find the executable object code to be booted
+    let objectToBoot = ma.objectCode; // Transfer object from asm to linker
+    console.log (`****** boot ${objectToBoot}`);
     let xs = "";
     let fields = null;
     let ok = true; // will set to false if module isn't bootable
@@ -241,8 +245,10 @@ export function boot (es) {
     refreshIOlogBuffer();
     getListingDims(es);
     
-    for (let i = 0; i < mo.objLine.length; i++) {
-        xs = mo.objLine[i];
+    //    for (let i = 0; i < mo.objLine.length; i++) {
+    for (let i = 0; i < objectToBoot.length; i++) {
+        //        xs = mo.objLine[i];
+        xs = objectToBoot[i];
         console.log (`boot: object line ${i} = ${xs}`);
         fields = link.parseObjLine (xs);
         console.log (`op=${fields.operation} args=${fields.operands}`);
@@ -271,6 +277,7 @@ export function boot (es) {
         }
     }
     if (ok) {
+        console.log ("boot ok so far, preparing...");
         memShowAccesses();
         memDisplay();
         es.curAsmap = ma.asmap;
