@@ -49,9 +49,7 @@ function setSelectedModule (i) {
 export function mkModuleAsm () {
     com.mode.devlog("mkModuleAsm");
     return {
-	modName : null,       // name of module specified in module stmt
-        //	modSrc : '',               // source code // deprecated
-//        asmSrc : "",
+	modName : "anon",       // name of module specified in module stmt
         asmSrcLines : [],
 	asmStmt : [],               // statements correspond to lines of source
 	symbols : [],              // symbols used in the source
@@ -61,7 +59,7 @@ export function mkModuleAsm () {
 	asmListingDec : [],        // decorated assembler listing
 	objectCode : [],           // string hex representation of object
         metadata : [],             // lines of metadata code
-        asMap : [],                // address/source map
+        asArrMap : [],             // address-sourceline map
         exports : [],              // list of exported identifiers
         modAsmOK : false, // deprecated, use nAsmErrors===0
 	nAsmErrors : 0             // number of errors in assembly source code

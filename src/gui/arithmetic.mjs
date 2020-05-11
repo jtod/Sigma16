@@ -21,6 +21,8 @@
 // arithmetic as required by the instruction set architecture.
 //------------------------------------------------------------------------------
 
+import * as com from './common.mjs';
+import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 
 //------------------------------------------------------------------------------
@@ -74,7 +76,7 @@ function extractBool (x,i) {
 
 let intToBit = function (x) {
     if (x < 0 || x > 1)
-    {console.log('intToBit invalid int: ' + x);
+    {com.mode.devlog('intToBit invalid int: ' + x);
      return('#');
     }
     return x===0 ? '0' : '1';
@@ -142,7 +144,7 @@ function applyLogicFcnBit (fcn, x, y) {
     let result = x==0
         ? (y==0 ? getBitInNibbleBE (fcn,0) : getBitInNibbleBE (fcn,1))
         : (y==0 ? getBitInNibbleBE (fcn,2) : getBitInNibbleBE (fcn,3))
-    console.log (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
+    com.mode.devlog (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
     return result
 }
 
@@ -151,7 +153,7 @@ function lut (p,q,r,s,x,y) {
 }
 
 function applyLogicFcnWord (fcn, x, y) {
-    console.log (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
+    com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
     let p = getBitInNibbleBE (fcn,0);
     let q = getBitInNibbleBE (fcn,1);
     let r = getBitInNibbleBE (fcn,2);
@@ -161,13 +163,13 @@ function applyLogicFcnWord (fcn, x, y) {
         let z = lut (p,q,r,s, getBitInWordBE(x,i), getBitInWordBE(y,i));
         if (z==1) { result = result | maskToSetBitBE(i) }
     }
-    console.log (`applyLogicFcnWord result=${wordToHex4(result)}`);
+    com.mode.devlog (`applyLogicFcnWord result=${wordToHex4(result)}`);
     return result
 }
 
 function applyLogicFcnHelper (p,q,r,s, x, y) {
     let result = x==0 ? (y==0 ? p : q) : (y==0 ? r : s);
-    console.log (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
+    com.mode.devlog (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
     return result
 }
 
@@ -212,7 +214,7 @@ export function wordToBool (x) {
 //function extractBit (w,i) {
 //    let foo = 1 << i;
 //    let bar = foo & w;
-//    console.log (`foo = ${foo}`);
+//    com.mode.devlog (`foo = ${foo}`);
 //    return bar===0 ? 0 : 1;
 //}
 
@@ -222,7 +224,7 @@ export function wordToBool (x) {
 
 function validateWord (x) {
     if (x < minBin || x > maxBin) {
-	console.log (`validateWord: ${x} is not a valid word (out of range)`);
+	com.mode.devlog (`validateWord: ${x} is not a valid word (out of range)`);
 	return 0;
     } else {
 	return x;
@@ -235,7 +237,7 @@ function validateWord (x) {
 
 function validateInt (x) {
     if (x < minTC || x > maxTC) {
-	console.log (`validateInt: ${x} is not a valid int (out of range)`);
+	com.mode.devlog (`validateInt: ${x} is not a valid int (out of range)`);
 	return 0;
     } else {
 	return x;
@@ -341,7 +343,7 @@ function showBit (b) {
 // is hex, but the $ is not part of the hex number.
 
 export function hex4ToWord (h) {
-//    console.log("hex4ToWord " + h.length);
+//    com.mode.devlog("hex4ToWord " + h.length);
     if (h.length != 4) return NaN;
     return (4096 * hexCharToInt(h[0])
   	    +  256  * hexCharToInt(h[1])
@@ -361,7 +363,7 @@ function hexCharToInt (cx) {
 	   : (charCodeA <= c && c <= charCodeF
 	      ? 10 + c - charCodeA
 	      : NaN));
-//    console.log("hexCharToInt " + cx + " c=" + c + " y=" + y)
+//    com.mode.devlog("hexCharToInt " + cx + " c=" + c + " y=" + y)
     return y;
 }
 
@@ -397,14 +399,14 @@ function wordInvert (x) {
 // expect = string giving expected result
 
 function test_op (g,opn,op,c,a,b,expect) {
-    console.log (`test_op ${opn} ${c} ${a} ${b}`);
-    console.log (`  c = ${showWord(c)} [${showCC(c)}]`);
-    console.log (`  a = ${showWord(a)}`);
-    console.log (`  b = ${showWord(b)}`);
+    com.mode.devlog (`test_op ${opn} ${c} ${a} ${b}`);
+    com.mode.devlog (`  c = ${showWord(c)} [${showCC(c)}]`);
+    com.mode.devlog (`  a = ${showWord(a)}`);
+    com.mode.devlog (`  b = ${showWord(b)}`);
     let [primary,secondary] = g (op,c,a,b);
-    console.log (`  primary = ${showWord(primary)}`);
-    console.log (`  secondary = ${showWord(secondary)} [${showCC(secondary)}]`);
-    console.log (`  expecting ${expect}`);
+    com.mode.devlog (`  primary = ${showWord(primary)}`);
+    com.mode.devlog (`  secondary = ${showWord(secondary)} [${showCC(secondary)}]`);
+    com.mode.devlog (`  expecting ${expect}`);
 }
 
 const test_r   = (opn,op,a,expect)     => test_op (g_r,  opn,op,0,a,0,expect);
@@ -531,11 +533,11 @@ export function op_cmp (a,b) {
  	| (a === b ? ccE : 0)
  	| (aint < bint ? ccl : 0)
         | ( a < b ? ccL : 0) ;
-    console.log (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`);
-    console.log (`op_cmp ltBin=${ltBin} gtBin${gtBin}`);
-    console.log (`op_cmp ltTc=${ltTc} gtTc${gtTc}`);
-    console.log (`op_cmp eq=${eq}`);
-    console.log (`op_cmp cc=${cc} showCC(cc)`);
+    com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`);
+    com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`);
+    com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`);
+    com.mode.devlog (`op_cmp eq=${eq}`);
+    com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`);
     return cc;
 }
 
@@ -606,7 +608,7 @@ const ccv = setBitBE(arch.bit_ccv);
 const ccC = setBitBE(arch.bit_ccC);
 
 export function showCC (c) {
-    console.log (`showCC ${c}`);
+    com.mode.devlog (`showCC ${c}`);
     return (extractBool (c,arch.bit_ccC) ? 'c' : '')
 	+ (extractBool (c,arch.bit_ccv) ? 'v' : '')
 	+ (extractBool (c,arch.bit_ccV) ? 'V' : '')

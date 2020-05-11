@@ -22,44 +22,12 @@ import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
+import * as st from './state.mjs';
+import * as ed from './editor.mjs';
 
 // refactor
 let opcode_cmp = 4; // for pass2/RR
 
-//-----------------------------------------------------------------------------
-// Character set
-//-----------------------------------------------------------------------------
-
-// CharSet is a string containing all the characters that may appear
-// in a valid Sigma16 assembly language source program.  It's always
-// best to edit source programs using a text editor, not a word
-// processor.  Word processors are likely to make character
-// substitutions, for example en-dash for minus, typeset quote marks
-// for typewriter quote marks, and so on.
-
-const CharSet =
-      "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // letters
-      + "0123456789"             // digits
-      + " \t,;\n"                     // separators
-      + '"'                      // quotes
-      + "'"                      // quotes
-      + ".$[]()+-*"                // punctuation
-      + "?¬£`<=>!%^&{}#~@:|/\\";   // other
-
-function validateChars (xs) {
-    com.mode.devlog (`validateChars`);
-    let i, c;
-    let badlocs = [];
-    for (i = 0; i < xs.length; i++) {
-        c = xs.charAt(i);
-        if (!CharSet.includes(c)) {
-            com.mode.errlog (`validateChars: bad char at ${i} in ${xs}`);
-            badlocs.push(i);
-            com.mode.devlog (`i=${i} charcode=${xs.charCodeAt(i)}`);
-        }
-    }
-    return badlocs
-}
 
 // Buffers to hold generated object code
 
@@ -82,6 +50,55 @@ comments field
    anchored at end of line
    contains any characters
 */
+
+//-----------------------------------------------------------------------------
+// Character set
+//-----------------------------------------------------------------------------
+
+// CharSet is a string containing all the characters that may appear
+// in a valid Sigma16 assembly language source program.  It's always
+// best to edit source programs using a text editor, not a word
+// processor.  Word processors are likely to make character
+// substitutions, for example en-dash for minus, typeset quote marks
+// for typewriter quote marks, and so on.
+
+const CharSet =
+      "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // letters
+      + "0123456789"              // digits
+      + " \t,;\n"                 // separators
+      + '"'                       // quotes
+      + "'"                       // quotes
+      + ".$[]()+-*"               // punctuation
+      + "?¬£`<=>!%^&{}#~@:|/\\";  // other
+
+// removeCR copies a string with all \r characters removed.  Given
+// string xs, return the string with all CR characters removed.  In
+// Unix/Linux a line ends with \n, but in Windows lines end with \r\n
+// (CRLF).  The regular expressions used for parsing assume \n as the
+// line terminator;
+
+function removeCR (xs) {
+    return xs.split("").filter (c => c.charCodeAt(0) != 13).join("");
+    }
+
+// Check that the source code contains only valid characters (defined
+// to be characters in CharSet).  Do this check after removing \r
+// (carriage return) characters.
+
+function validateChars (xs) {
+    com.mode.devlog (`validateChars`);
+    let i, c;
+    let badlocs = [];
+    for (i = 0; i < xs.length; i++) {
+        c = xs.charAt(i);
+        if (!CharSet.includes(c)) {
+            com.mode.errlog (`validateChars: bad char at ${i} in ${xs}`);
+            badlocs.push(i);
+            com.mode.devlog (`i=${i} charcode=${xs.charCodeAt(i)}`);
+        }
+    }
+    return badlocs
+}
 
 //-----------------------------------------------------------------------------
 // Running and testing
@@ -153,41 +170,35 @@ class Identifier {
     }
 }
 
-// function displaySymbolTableHtml (m) {
 function displaySymbolTableHtml (ma) {
-//    let ma = m.asmInfo;
+    ma.asmListingText.push('');
     ma.asmListingPlain.push('');
     ma.asmListingDec.push('');
+    ma.asmListingText.push("Symbol table");
     ma.asmListingPlain.push("<span class='ListingHeader'>Symbol table</span>");
     ma.asmListingDec.push("<span class='ListingHeader'>Symbol table</span>");
+    ma.asmListingText.push("Name      Val      Def   Used");
     ma.asmListingPlain.push("<span class='ListingHeader'>Name      Val      Def   Used</span>");
     ma.asmListingDec.push("<span class='ListingHeader'>Name      Val      Def   Used</span>");
     ma.symbols =[ ...ma.symbolTable.keys() ].sort();
     com.mode.devlog('symbols = ' + ma.symbols);
     for (let i = 0; i < ma.symbols.length; i++) {
 	let x = ma.symbolTable.get(ma.symbols[i]);
-	ma.asmListingPlain.push(ma.symbols[i].padEnd(10)
-			       + arith.wordToHex4(x.val)
-                               + (x.relocatable ? ' R' : ' C')
-			       + x.defLine.toString().padStart(5)
-                               + '  '
-                               + x.symUsageLines.join(',')
-                               + '  '
-                               + x.symUsageAddrs.map((w)=>arith.wordToHex4(w)).join(',')
-                              );
-	ma.asmListingDec.push(ma.symbols[i].padEnd(10)
-			     + arith.wordToHex4(x.val)
-                             + (x.relocatable ? ' R' : ' C')
-			     + x.defLine.toString().padStart(5)
-                             + '  '
-                             + x.symUsageLines.join(',')
-                             + '  '
-                             + x.symUsageAddrs.map((w)=>arith.wordToHex4(w)).join(',')
-                            );
+        let xs = ma.symbols[i].padEnd(10)
+	    + arith.wordToHex4(x.val)
+            + (x.relocatable ? ' R' : ' C')
+	    + x.defLine.toString().padStart(5)
+            + '  '
+            + x.symUsageLines.join(',')
+            + '  '
+            + x.symUsageAddrs.map((w)=>arith.wordToHex4(w)).join(',');
+        ma.asmListingText.push(xs);
+        ma.asmListingPlain.push(xs);
+        ma.asmListingDec.push(xs);
     }
 }
 
-// For testing, not used normally
+// For testing
 function showSymbol (s) {
     return (s.symbol + ' val=' + s.val + ' def ' + s.defLine);
 }
@@ -295,112 +306,96 @@ function printAsmStmt (ma,x) {
 }
 
 //-----------------------------------------------------------------------------
-//  Assembler
+//  Handling errors
 //-----------------------------------------------------------------------------
 
 // Report an assembly error: s is an assembly source line, err is an
 // error message
 
 // function mkErrMsg (m,s,err) {
+
 function mkErrMsg (ma,s,err) {
-//    let ma = m.asmInfo;
     let errline = err;
     s.errors.push(errline);
     ma.nAsmErrors++;
 }
 
+
+//-----------------------------------------------------------------------------
+//  Assembler
+//-----------------------------------------------------------------------------
+
 // Interface to assembler for use in the GUI
+
 export function assemblerGUI () {
+    com.mode.devlog ("assemblerGUI starting");
     let m = smod.s16modules[smod.selectedModule];
-    com.mode.devlog (`*****asmGUI m.src=${m.modText}`);
     document.getElementById('AsmTextHtml').innerHTML = "";
+    document.getElementById('ProcAsmListing').innerHTML = "";
     com.clearObjectCode ();
     let ma = m.asmInfo;
     ma.asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
-
-//    ma.asmSrc = m.modText; // obtain asm source from module text
     runAssembler (ma);
     setAsmListing (m);
     if (ma.nAsmErrors > 0) {
-        //        m.objIsExecutable = false; // can't execute if errors found
         document.getElementById('ProcAsmListing').innerHTML = "";
     }
 }
-
-// Given string xs, return the string with all CR characters removed
-function removeCR (xs) {
-    return xs.split("").filter (c => c.charCodeAt(0) != 13).join("");
-    }
     
 // Interface to assembler for use in the CLI
+
 export function assemblerCLI (src) {
     com.mode.devlog ("assemblerCLI starting");
-    com.mode.devlog (src);
     let src2 = removeCR (src);
-    com.mode.devlog (`removeCR... src ${src.length}   src2 ${src2.length}`);
     let badlocs = validateChars (src2);
     com.mode.devlog (`validate chars: badlocs=${badlocs}`);
-    
     let ma = smod.mkModuleAsm ();
     ma.asmSrcLines = src2.split("\n");
-    com.mode.devlog ("hello there");
-//    com.mode.devlog (`assemblerCLI ma.asmSrcLines=${ma.asmSrcLines}`);
     runAssembler (ma);
-    com.mode.devlog ("assemblerCLI finished");
     return ma;
  }
 
-//    console.log(`Assembling module ${smod.selectedModule}`);
-// export function runAssembler (m) {
-//    let src = m.modText;
-//    let ma = m.asmInfo;
-//    let src = ma.asmSrc;
-//    console.log (`********** runAssembler src=${src}`);
+// runAssembler translates assembly language source code to object
+// code, and also produces an assembly listing and metadata.  The
+// source is obtained from the ma object, and the results are placed
+// there.  This is the main translator, used for both gui and cli
+// Input: ma.asmSrcLines contains array of lines of source code
+// Result: define the fields in ma
 
-// given ma.asmSrc
 export function runAssembler (ma) {
-    com.mode.devlog (`***** runAssembler ma.asmSrc=<${ma.asmSrc}>`);
-//    ma.asmSrcLines = ma.asmSrc.split("\n");
+    com.mode.devlog (`runAssembler nloc=${ma.asmSrcLines.length}`);
     ma.modName = null;
     ma.nAsmErrors = 0;
     ma.asmStmt = [];
     ma.symbols = [];
+    ma.asmListingText = [];
     ma.asmListingPlain = [];
     ma.asmListingDec = [];
     ma.objectCode = [];
     ma.exports = [];
     ma.locationCounter = 0;
-    ma.asmap = [];
+    ma.asArrMap = [];
+//    ma.asmap = [];
     ma.symbolTable.clear();
+    ma.asmListingText.push ("Line Addr Code Code Source");
     ma.asmListingPlain.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
     ma.asmListingDec.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
-//    asmPass1 (m);
-//    asmPass2 (m);
     asmPass1 (ma);
     asmPass2 (ma);
-//    m.objIsExecutable = true; // will change if errors or imports are found
     if (ma.nAsmErrors > 0) {
-//        m.objIsExecutable = false; // can't execute if errors found
-//        document.getElementById('ProcAsmListing').innerHTML = "";
-	ma.asmListingPlain.unshift(highlightText(`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
-	ma.asmListingDec.unshift(highlightText(`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
+	ma.asmListingText.unshift (`\n ${ma.nAsmErrors} errors detected\n`,'ERR');
+	ma.asmListingPlain.unshift (highlightText
+           (`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
+	ma.asmListingDec.unshift (highlightText
+           (`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
     }
     ma.asmListingPlain.unshift("<pre class='HighlightedTextAsHtml'>");
     ma.asmListingDec.unshift("<pre class='HighlightedTextAsHtml'>");
-    //    displaySymbolTableHtml(m);
     displaySymbolTableHtml(ma);
     ma.asmListingPlain.push("</pre>");
     ma.asmListingDec.push("</pre>");
-//    setAsmListing (m);
-    // Fix this ??????????????????????????????????
-//    m.objInfo = {  ??????????????????????????????
-//        objLine : ma.objectCode,
-//        objMetadataLine : ma.metadata
-//    }
-//    m.objInfo.objLine = ma.objectCode; // Transfer object code to object module
-//    m.objInfo.objMetadataLine = ma.metadata; // Transfer metadata to object module
 }
 
 //-----------------------------------------------------------------------------
@@ -1403,13 +1398,22 @@ function asmPass2 (ma) {
 	    + com.highlightField (s.fieldOperands, "FIELDOPERAND")
 	    + com.highlightField (fixHtmlSymbols(s.fieldComment), "FIELDCOMMENT") ;
 
+	ma.asmListingText.push(s.listingLinePlain);
 	ma.asmListingPlain.push(s.listingLinePlain);
 	ma.asmListingDec.push(s.listingLineHighlightedFields);
-        if (s.codeWord1) {
-            ma.asMap.push({address: s.address,
-                           lineno:  s.lineNumber})
-        }
+//        if (s.codeWord1) {  ma.asArrMap[s.address] = s.lineNumber;
+//        }
+//        if (s.codeWord2) {
+//            ma.asArrMap[s.address+1] = s.lineNumber; }
+//        }
+//        if (s.codeWord2) { 
+//            ma.asArrMap.push (s.lineNumber);
+//            ma.asMap.push({address: s.address,
+//                           lineno:  s.lineNumber})
+//        }
+//        if (s.codeWord2) { ma.asArrMap.push (s.lineNumber);}
 	for (let i = 0; i < s.errors.length; i++) {
+	    ma.asmListingText.push('Error: ' + s.errors[i],'ERR');
 	    ma.asmListingPlain.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	    ma.asmListingDec.push(highlightText('Error: ' + s.errors[i],'ERR'));
 	}
@@ -1418,7 +1422,8 @@ function asmPass2 (ma) {
     emitRelocations (ma);
     emitImports (ma);
     emitExports (ma);
-    emitASmap (ma);
+    //    emitASmap (ma);
+    emitAsArrMap (ma);
 }
 
 function fixHtmlSymbols (str) {
@@ -1435,11 +1440,12 @@ function fixHtmlSymbols (str) {
 
 // function generateObjectWord (m, s, a, x) {
 function generateObjectWord (ma, s, a, x) {
-//    let ma = m.asmInfo;
-    let ln = s.lineNumber + 2;  // adjust for <span> line and header line
-    ma.asmap[a] = ln;
-    com.mode.devlog (`generateObjectWord (${x}) asmap[${a}]=${ln}`);
     objectWordBuffer.push (x);
+    ma.asArrMap[a] = s.lineNumber;
+//    let ma = m.asmInfo;
+//    let ln = s.lineNumber + 2;  // adjust for <span> line and header line
+//    ma.asmap[a] = ln;
+//    com.mode.devlog (`generateObjectWord (${x}) asmap[${a}]=${ln}`);
 }
 
 // function emitObjectWords (m) {
@@ -1531,6 +1537,10 @@ function emitExports (ma) {
     }
 }
 
+function emitAsArrMap (ma) {
+    ma.metadata.push (ma.asArrMap);
+}
+
 // function emitASmap (m) {
 function emitASmap (ma) {
 //    let ma = m.asmInfo;
@@ -1547,13 +1557,11 @@ function emitASmap (ma) {
     }
 }
 
-
-// export function showAsmap (m) {
-export function showAsmap (ma) {
-//    let ma = m.asmInfo;
-    com.mode.devlog ('showAsmap');
-    for (let i in m) {
-	com.mode.devlog ('[' + i + '] = ' + m[i]);
+// Print the address-source map x
+export function showAsMap (x) {
+    console.log ('Address~Source map');
+    for (let i = 0; i < x.length; i++) {
+        console.log (`address ${wordToHex4(i)} => ${x[i]}`);
     }
 }
 

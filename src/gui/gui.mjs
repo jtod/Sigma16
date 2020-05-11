@@ -89,11 +89,11 @@ function makeTextFile (text) {
 //-------------------------------------------------------------------------------
 
 function jumpToAnchorInGuide () {
-    console.log ("jumpToAnchorInGuide");
+    com.mode.devlog ("jumpToAnchorInGuide");
     let anchor = "#how-to-run-the-program";
     let elt = document.getElementById("UserGuideIframeId");
     let elthtml = elt.contentWindow.document.body.innerHTML;
-    console.log (`anchor = ${anchor} elt=${elthtml}`);
+    com.mode.devlog (`anchor = ${anchor} elt=${elthtml}`);
     elthtml.location.hash = anchor;
 }
 
@@ -112,13 +112,13 @@ function tryfoobar () {
 }
 
 function jumpToAnchor (target){
-    console.log( 'jumpToAnchor ' + target);
-    console.log('about to do it');
+    com.mode.devlog( 'jumpToAnchor ' + target);
+    com.mode.devlog('about to do it');
     let elt = document.getElementById('WelcomeHtml');
-    console.log('did it');
-    console.log('elt = ' + elt);
+    com.mode.devlog('did it');
+    com.mode.devlog('elt = ' + elt);
     let loc = elt.location;
-    console.log('loc = ' + loc);
+    com.mode.devlog('loc = ' + loc);
     elt.location.hash=target;
 }
 
@@ -135,7 +135,7 @@ function measureRegPut (n) {
 	pc.put(i);
     }
     let tend = performance.now();
-    console.log('measureRegRefresh (' + n + ') took '
+    com.mode.devlog('measureRegRefresh (' + n + ') took '
 		+ (tend - tstart) + ' ms');
 }
 
@@ -160,10 +160,10 @@ function jumpToGuideTop () {
 // Doesn't work yet
 // I put this manually into the user guide: <a href="HREFTESTING">dummy href</a>
 function editorButton1() {
-    console.log("Editor button 1 clicked");
+    com.mode.devlog("Editor button 1 clicked");
     // Try to visit <a  href="file:Readme"> in the user guide
     let userGuideElt = document.getElementById("MidMainRight");
-    console.log("UserGuideElt = " + userGuideElt);
+    com.mode.devlog("UserGuideElt = " + userGuideElt);
     window.location.hash = "#HREFTESTING";
 	
 //    let loc = userGuideElt.location;
@@ -178,7 +178,7 @@ function editorButton1() {
 
 // Connect a button in the html with its corresponding function
 function prepareButton (bid,fcn) {
-    console.log (`prepare button ${bid}`);
+    com.mode.devlog (`prepare button ${bid}`);
     document.getElementById(bid)
         .addEventListener('click', event => {fcn()});
 }
@@ -211,9 +211,9 @@ prepareButton ('WP_Architecture', () => jumpToGuideSection('architecture'));
 prepareButton ('WP_ISA', () => jumpToGuideSection('instruction-set'));
 prepareButton ('WP_Assembly_Language', () => jumpToGuideSection('assembly-language'));
 prepareButton ('WP_Linker', () => jumpToGuideSection('linker'));
-console.log ("wp almost done");
+com.mode.devlog ("wp almost done");
 prepareButton ('WP_Programming', () => jumpToGuideSection('programming'));
-console.log ("wp done");
+com.mode.devlog ("wp done");
 
 // Examples pane (EXP)
 prepareButton ('EXP_Examples_Home',    examplesHome);
@@ -301,26 +301,26 @@ export function hideAllTabbedPanes() {
 //    ed.leaveEditor(); // will also hide editor pane  kills asm/lnk
 
 export function showTabbedPane(paneId) {
-    console.log("showing tabbed pane " + paneId);
+    com.mode.devlog("showing tabbed pane " + paneId);
     hideAllTabbedPanes();
     document.getElementById(paneId).style.display = "block";
-    console.log("Now on tabbed pane " + paneId);
+    com.mode.devlog("Now on tabbed pane " + paneId);
 }
 
 export function f_welcome_pane_button() {
-    console.log("welcome_pane_button clicked")
+    com.mode.devlog("welcome_pane_button clicked")
     hideAllTabbedPanes();
     showTabbedPane("WelcomePane");
 }
 
 
 function f_examples_pane_button() {
-    console.log("examples_pane_button clicked")
+    com.mode.devlog("examples_pane_button clicked")
     hideAllTabbedPanes();
     showTabbedPane("ExamplesPane");
 }
 export function f_modules_pane_button() {
-    console.log("modules_pane_button clicked")
+    com.mode.devlog("modules_pane_button clicked")
     hideAllTabbedPanes();
     smod.refreshModulesList();
     showTabbedPane("ModulesPane");
@@ -333,27 +333,27 @@ export function f_editor_pane_button() {
 }
 
 export function f_assembler_pane_button() {
-    console.log("assembler_pane_button clicked")
+    com.mode.devlog("assembler_pane_button clicked")
     hideAllTabbedPanes();
     showTabbedPane("AssemblerPane");
-    console.log("f assembler_pane_button returning")
+    com.mode.devlog("f assembler_pane_button returning")
 }
 
 export function f_linker_pane_button() {
-//    console.log("linker_pane_button clicked")
+//    com.mode.devlog("linker_pane_button clicked")
     hideAllTabbedPanes();
     showTabbedPane("LinkerPane");
 }
 
 export function f_processor_pane_button() {
-//    console.log("processor_pane button clicked")
+//    com.mode.devlog("processor_pane button clicked")
     hideAllTabbedPanes();
     showTabbedPane("ProcessorPane");
 }
 
 
 export function f_userman_pane_button() {
-    console.log("userman_pane_button clicked")
+    com.mode.devlog("userman_pane_button clicked")
 }
 
 
@@ -373,7 +373,7 @@ export function f_userman_pane_button() {
 // www.dcs.gla.ac.uk/:9uk/icons/text.gif
 
 function examplesHome() {
-    console.log ("examplesHome");
+    com.mode.devlog ("examplesHome");
     document.getElementById("ExamplesIframeId").src =
 	"../examples/index.html";
 }
@@ -385,7 +385,7 @@ function examplesHome() {
 // This does not work.  Perhaps because it's an iframe, not an input?
 // Copy text of example buffer to clipboard
 function copyExampleToClipboard () {
-    console.log ('Copy example to clipboard');
+    com.mode.devlog ('Copy example to clipboard');
     let exElt = document.getElementById('ExamplesIframeId');
     exElt.select();
     exElt.setSelectionRange(0,5);
@@ -429,7 +429,7 @@ function copyExampleToClipboard () {
 // variables are assigned.
 
 function initialize_mid_main_resizing () {
-    console.log ('initializing mid-main resizing')
+    com.mode.devlog ('initializing mid-main resizing')
     middleSection = document.getElementById("MiddleSection");
     midMainLeft = document.getElementById("MidMainLeft");
     midMainRight = document.getElementById("MidMainRight");
@@ -438,47 +438,47 @@ function initialize_mid_main_resizing () {
 
 // Update the saved ratio
 function setMidMainLRratio (r) {
-//    console.log ('setMidMainLRratio:  midLRratio = ' + r)
+//    com.mode.devlog ('setMidMainLRratio:  midLRratio = ' + r)
     midLRratio = r;
 }
 
 // Readjust the widths of left and right sections to match ratio r
 function adjustToMidMainLRratio () {
-    console.log ('adjustToMidMainLRratio:  midLRratio = ' + midLRratio)
+    com.mode.devlog ('adjustToMidMainLRratio:  midLRratio = ' + midLRratio)
     let ww =  window.innerWidth - midSecExtraWidth;
     let x = midLRratio * ww;
-//    console.log ('  windowWidth = ' + windowWidth);
-//    console.log ('  setting left width = ' + x);
-//    console.log ('  about to call set left width');
+//    com.mode.devlog ('  windowWidth = ' + windowWidth);
+//    com.mode.devlog ('  setting left width = ' + x);
+//    com.mode.devlog ('  about to call set left width');
     setMidMainLeftWidth (x);
-//    console.log ('  back from calling set left width');
+//    com.mode.devlog ('  back from calling set left width');
 }
 
 // grow/shrink the left section to w pixels
 function setMidMainLeftWidth (newxl) {
-    console.log ('setMidMainLeftWidth ' + newxl);
+    com.mode.devlog ('setMidMainLeftWidth ' + newxl);
 
     let ww =  window.innerWidth - midSecExtraWidth;
     let oldxl = midMainLeft.style.width;
     let oldratio = midLRratio;
-    console.log ('  old dimensions: ww = ' + ww +
+    com.mode.devlog ('  old dimensions: ww = ' + ww +
 		 ' oldxl=' + oldxl + ' oldratio=' + oldratio);
 
     let newxr = ww - newxl;
     let newxlp = newxl + "px";
     let newratio = newxl / (newxl + newxr);
-    console.log ('  new dimensions: ww = ' + ww +
+    com.mode.devlog ('  new dimensions: ww = ' + ww +
 		 ' newxl=' + newxl + ' newxr=' + newxr + ' newratio=' + newratio);
 
     setMidMainLRratio (newratio);
 
-    console.log ('  setting left = ' + newxl + '  right = ' + newxr);
+    com.mode.devlog ('  setting left = ' + newxl + '  right = ' + newxr);
     midMainLeft.style.width = newxlp;
     midMainLeft.style.flexGrow = 0; // without this they don't grow/shrink together
 
-    console.log ('  left width:   old=' + oldxl + ' new=' + newxl);
-    console.log ('  ratio:  old=' + oldratio + '  new=' + newratio);
-    console.log ('setMidMainLeftWidth finished');
+    com.mode.devlog ('  left width:   old=' + oldxl + ' new=' + newxl);
+    com.mode.devlog ('  ratio:  old=' + oldratio + '  new=' + newratio);
+    com.mode.devlog ('setMidMainLeftWidth finished');
 
     /*
     midMainLeft.style.width = xl;
@@ -496,7 +496,7 @@ function setMidMainLeftWidth (newxl) {
 }
 
 function expLRflex (xl) {
-    console.log ('expLRflex');
+    com.mode.devlog ('expLRflex');
     let ww =  window.innerWidth - midSecExtraWidth;
     let xr = ww - xl;
     let xlp = xl + 'px';
@@ -508,12 +508,12 @@ function expLRflex (xl) {
 }
 
 function showSizeParameters () {
-//    console.log ('showSizeParameters');
+//    com.mode.devlog ('showSizeParameters');
     let ww =  window.innerWidth - midSecExtraWidth;
     let y = midMainLeft.style.width;
-//    console.log ('  windowWidth = ' + ww);
-//    console.log ('  midMainLeftWidth = ' + y);
-//    console.log ('  midLRratio = ' + midLRratio);
+//    com.mode.devlog ('  windowWidth = ' + ww);
+//    com.mode.devlog ('  midMainLeftWidth = ' + y);
+//    com.mode.devlog ('  midLRratio = ' + midLRratio);
 }
 
 // Resize the system (midMainLeft) and user guide (midMainRight)
@@ -522,17 +522,17 @@ function showSizeParameters () {
 // x px; x<0 means shrink it.
 
 function user_guide_resize(x) {
-    console.log ('user_guide_resize ' + x);
+    com.mode.devlog ('user_guide_resize ' + x);
 //    showSizeParameters ();
     let old_width = midMainLeft.style.width;
-    console.log ('  old width = ' + old_width);
+    com.mode.devlog ('  old width = ' + old_width);
     let w = parseInt(midMainLeft.style.width,10);
-    console.log ('  old width number = ' + w);
+    com.mode.devlog ('  old width number = ' + w);
     let new_width = w+x;
-    console.log ('  new_width = ' + new_width)
+    com.mode.devlog ('  new_width = ' + new_width)
     setMidMainLeftWidth (new_width);
 //    let z = (w + x) + "px";
-//    console.log (' mml z = ' + z);
+//    com.mode.devlog (' mml z = ' + z);
 //    midMainLeft.style.width = z;
 //    midMainLeft.style.flexGrow = 0; // without this they don't grow/shrink together
     showSizeParameters ();
@@ -546,7 +546,7 @@ function user_guide_resize(x) {
 // Diagnostics
 
 function checkTestBody () {
-//    console.log ('checkTestBody width = ' + testPaneBodyElt.style.width);
+//    com.mode.devlog ('checkTestBody width = ' + testPaneBodyElt.style.width);
 }
 
 
@@ -556,7 +556,7 @@ function checkTestBody () {
 //-------------------------------------------------------------------------------
 
 function insert_example(exampleText) {
-    console.log('Inserting example add into editor text');
+    com.mode.devlog('Inserting example add into editor text');
     document.getElementById('EditorTextArea').value = exampleText;
 };
 
@@ -596,10 +596,10 @@ result    data   0         ; initial value of result = 0
 // when it would abort the session
 
 //window.addEventListener('beforeunload', function () {
-//    console.log ('Really???');
+//    com.mode.devlog ('Really???');
   // Cancel the event
 //  e.preventDefault();
-//    console.log ('Really????????????');
+//    com.mode.devlog ('Really????????????');
   // Chrome requires returnValue to be set
 //    e.returnValue = '';
 //    return 'you hit back button do you mean it?';
@@ -617,11 +617,11 @@ window.onbeforeunload = function(event) {
 //};
 
 window.onresize = function () {
-    console.log ('window.onresize');
+    com.mode.devlog ('window.onresize');
 //    showSizeParameters ();
     //    setMidMainLRratio (midLRratio);  // preserve ratio as window is resized
     adjustToMidMainLRratio ();
-    console.log ('window.onresize finished');
+    com.mode.devlog ('window.onresize finished');
 }
 
 //-------------------------------------------------------------------------------
@@ -629,7 +629,7 @@ window.onresize = function () {
 //-------------------------------------------------------------------------------
 
 window.onload = function () {
-    console.log("window.onload activated");
+    com.mode.devlog("window.onload activated");
     smod.initModules ();
     em.hideBreakDialogue ();
     em.initializeMachineState ();
@@ -644,19 +644,19 @@ window.onload = function () {
 
     //    showTabbedPane("WelcomePane");
         showTabbedPane("ProcessorPane");
-    console.log("Initialization complete (new version)");
+    com.mode.devlog("Initialization complete");
 }
 
 /*
 export function f_test_pane_button() {
-//    console.log("test_pane button clicked")
+//    com.mode.devlog("test_pane button clicked")
     hideAllTabbedPanes();
     showTabbedPane("TestPane");
 }
 */
 /*
 let run_examples_pane_button = event => {
-    console.log ("run examples pane button");
+    com.mode.devlog ("run examples pane button");
     examples_pane_button();
 }
 */
@@ -665,7 +665,7 @@ let run_examples_pane_button = event => {
 // prepareButton ('UG_Resize_Right_Large_Button',    f_ug_resize_right_large_button);
 /*
 function f_ug_resize_right_large_button () {
-    console.log ("resize right large");
+    com.mode.devlog ("resize right large");
     user_guide_resize(20);
 }
 */

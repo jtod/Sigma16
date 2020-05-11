@@ -150,8 +150,8 @@ function assemble (baseName) {
         let ma = assemblerCLI (src);
         if (ma.nAsmErrors === 0) {
             let obj = ma.objectCode;
-            let lst = ma.asmListingPlain;
-            let md = "dummy metadata\n";
+            let lst = ma.asmListingText;
+            let md = ma.asArrMap.join(",");
             writeFile (`${baseName}.obj.txt`, obj.join("\n"));
             writeFile (`${baseName}.lst.txt`, lst.join("\n"));
             writeFile (`${baseName}.md.txt`, md);

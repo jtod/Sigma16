@@ -21,14 +21,14 @@
 
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
-
-
-export let editorBufferTextArea = document.getElementById("EditorTextArea");
+import * as arch from './architecture.mjs';
+import * as arith from './arithmetic.mjs';
+import * as st from './state.mjs';
 
 export function editorDownload () {
     console.log ("editorPrepareDownload");
     let downloadElt = document.getElementById("editorDownloadAnchor");
-    let edText = editorBufferTextArea.value;
+    let edText = document.getElementById("EditorTextArea").value;
     downloadElt.href = makeTextFile(edText);  // provide text to download
     downloadElt.click();  // perform the download
 }

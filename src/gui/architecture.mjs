@@ -19,6 +19,9 @@
 // bits, and other aspects of the architecture.
 //-----------------------------------------------------------------------------
 
+import * as com from './common.mjs';
+import * as smod from './s16module.mjs';
+
 // Global variables
 
 export let ctlReg = new Map();
