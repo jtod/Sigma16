@@ -1,0 +1,44 @@
+asmap
+9,9,10,10,11,12,12,13,13,14
+14,15,15,16,17
+source
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+   1 0000           ; Mod1 - part of a test for modules and linking
+   1 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; Mod1 - part of a test for modules and linking</span>
+   2 0000           ; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+   2 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell</span>
+   3 0000           ; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+   3 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt</span>
+   4 0000           
+   4 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+   5 0000           Mod1    module
+   5 0000           <span class='FIELDLABEL'>Mod1</span>    <span class='FIELDOPERATION'>module</span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+   6 0000           fcn     import Mod2
+   6 0000           <span class='FIELDLABEL'>fcn</span>     <span class='FIELDOPERATION'>import</span> <span class='FIELDOPERAND'>Mod2</span><span class='FIELDCOMMENT'></span>
+   7 0000           g       import Mod3
+   7 0000           <span class='FIELDLABEL'>g</span>       <span class='FIELDOPERATION'>import</span> <span class='FIELDOPERAND'>Mod3</span><span class='FIELDCOMMENT'></span>
+   8 0000           xyz     import Mod3
+   8 0000           <span class='FIELDLABEL'>xyz</span>     <span class='FIELDOPERATION'>import</span> <span class='FIELDOPERAND'>Mod3</span><span class='FIELDCOMMENT'></span>
+   9 0000           
+   9 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+  10 0000 f100 0019         lea    R1,25[R0]
+  10 0000 f100 0019 <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>lea</span>    <span class='FIELDOPERAND'>R1,25[R0]</span><span class='FIELDCOMMENT'></span>
+  11 0002 f201 0000         load   R2,xyz[R0]
+  11 0002 f201 0000 <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>load</span>   <span class='FIELDOPERAND'>R2,xyz[R0]</span><span class='FIELDCOMMENT'></span>
+  12 0004 0112      loop    add    R1,R1,R2
+  12 0004 0112      <span class='FIELDLABEL'>loop</span>    <span class='FIELDOPERATION'>add</span>    <span class='FIELDOPERAND'>R1,R1,R2</span><span class='FIELDCOMMENT'></span>
+  13 0005 fa08 0000         jal    R10,fcn[R0]
+  13 0005 fa08 0000 <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>jal</span>    <span class='FIELDOPERAND'>R10,fcn[R0]</span><span class='FIELDCOMMENT'></span>
+  14 0007 fa08 0000         jal    R10,g[R0]
+  14 0007 fa08 0000 <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>jal</span>    <span class='FIELDOPERAND'>R10,g[R0]</span><span class='FIELDCOMMENT'></span>
+  15 0009 f102 000e         store  R1,result[R0]
+  15 0009 f102 000e <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>store</span>  <span class='FIELDOPERAND'>R1,result[R0]</span><span class='FIELDCOMMENT'></span>
+  16 000b fa08 0000         jal    R10,fcn[R0]
+  16 000b fa08 0000 <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>jal</span>    <span class='FIELDOPERAND'>R10,fcn[R0]</span><span class='FIELDCOMMENT'></span>
+  17 000d d000              trap   R0,R0,R0
+  17 000d d000      <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>trap</span>   <span class='FIELDOPERAND'>R0,R0,R0</span><span class='FIELDCOMMENT'></span>
+  18 000e 0000      result  data   0
+  18 000e 0000      <span class='FIELDLABEL'>result</span>  <span class='FIELDOPERATION'>data</span>   <span class='FIELDOPERAND'>0</span><span class='FIELDCOMMENT'></span>
+  19 000f           
+  19 000f           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>

@@ -1,0 +1,35 @@
+Line Addr Code Code Source
+   1 0000           ; Mod2 - part of a test for modules and linking
+   2 0000           ; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+   3 0000           ; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+   4 0000           
+   5 0000           Mod2    module
+   6 0000                   export  fcn
+   7 0000                   export  g
+   8 0000                   export  x
+   9 0000                   export  y
+  10 0000           
+  11 0000 f201 000b fcn     load    R2,x[R0]
+  12 0002 2112              mul     R1,R1,R2
+  13 0003 f0a3 0000         jump    0[R10]
+  14 0005           
+  15 0005 f201 000c g       load    R2,y[R0]
+  16 0007 0112              add     R1,R1,R2
+  17 0008 f0a3 0000         jump    0[R10]
+  18 000a           
+  19 000a 0003      w       data    3
+  20 000b 0004      x       data    4
+  21 000c 0005      y       data    5
+  22 000d           ; z       equ     6
+  23 000d           
+  24 000d           
+  25 000d           
+
+Symbol table
+Name      Val      Def   Used
+Mod2      0000 R    5    
+fcn       0000 R   11    
+g         0005 R   15    
+w         000a R   19    
+x         000b R   20  11  0001
+y         000c R   21  15  0006

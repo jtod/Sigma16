@@ -1,0 +1,5 @@
+module   Mod3
+data     f201,0007,f301,0008,2112,f0a3,0000,0003,0004
+relocate 0001,0003
+export   g,0000,relocatable
+export   xyz,0008,relocatable

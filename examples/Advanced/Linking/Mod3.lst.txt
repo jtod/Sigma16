@@ -1,0 +1,24 @@
+Line Addr Code Code Source
+   1 0000           ; Mod3 - part of a test for modules and linking
+   2 0000           ; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+   3 0000           ; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+   4 0000           
+   5 0000           Mod3    module
+   6 0000                   export  g
+   7 0000                   export  xyz
+   8 0000           
+   9 0000 f201 0007 g       load    R2,x[R0]
+  10 0002 f301 0008         load    R3,xyz[R0]
+  11 0004 2112              mul     R1,R1,R2
+  12 0005 f0a3 0000         jump    0[R10]
+  13 0007           
+  14 0007 0003      x       data    3
+  15 0008 0004      xyz     data    4
+  16 0009           
+
+Symbol table
+Name      Val      Def   Used
+Mod3      0000 R    5    
+g         0000 R    9    
+x         0007 R   14  9  0001
+xyz       0008 R   15  10  0003

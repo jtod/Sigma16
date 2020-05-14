@@ -1,0 +1,37 @@
+asmap
+8,8,9,9,10,11,11,13,14
+source
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+   1 0000           ; Mod3 - part of a test for modules and linking
+   1 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; Mod3 - part of a test for modules and linking</span>
+   2 0000           ; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
+   2 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell</span>
+   3 0000           ; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+   3 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt</span>
+   4 0000           
+   4 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+   5 0000           Mod3    module
+   5 0000           <span class='FIELDLABEL'>Mod3</span>    <span class='FIELDOPERATION'>module</span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+   6 0000                   export  g
+   6 0000           <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>export</span>  <span class='FIELDOPERAND'>g</span><span class='FIELDCOMMENT'></span>
+   7 0000                   export  xyz
+   7 0000           <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>export</span>  <span class='FIELDOPERAND'>xyz</span><span class='FIELDCOMMENT'></span>
+   8 0000           
+   8 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+   9 0000 f201 0007 g       load    R2,x[R0]
+   9 0000 f201 0007 <span class='FIELDLABEL'>g</span>       <span class='FIELDOPERATION'>load</span>    <span class='FIELDOPERAND'>R2,x[R0]</span><span class='FIELDCOMMENT'></span>
+  10 0002 f301 0008         load    R3,xyz[R0]
+  10 0002 f301 0008 <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>load</span>    <span class='FIELDOPERAND'>R3,xyz[R0]</span><span class='FIELDCOMMENT'></span>
+  11 0004 2112              mul     R1,R1,R2
+  11 0004 2112      <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>mul</span>     <span class='FIELDOPERAND'>R1,R1,R2</span><span class='FIELDCOMMENT'></span>
+  12 0005 f0a3 0000         jump    0[R10]
+  12 0005 f0a3 0000 <span class='FIELDLABEL'></span>        <span class='FIELDOPERATION'>jump</span>    <span class='FIELDOPERAND'>0[R10]</span><span class='FIELDCOMMENT'></span>
+  13 0007           
+  13 0007           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+  14 0007 0003      x       data    3
+  14 0007 0003      <span class='FIELDLABEL'>x</span>       <span class='FIELDOPERATION'>data</span>    <span class='FIELDOPERAND'>3</span><span class='FIELDCOMMENT'></span>
+  15 0008 0004      xyz     data    4
+  15 0008 0004      <span class='FIELDLABEL'>xyz</span>     <span class='FIELDOPERATION'>data</span>    <span class='FIELDOPERAND'>4</span><span class='FIELDCOMMENT'></span>
+  16 0009           
+  16 0009           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
