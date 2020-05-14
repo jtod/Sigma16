@@ -22,7 +22,6 @@
   "author": "John T. O'Donnell",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "electron": "^8.2.4",
     "express": "^4.17.1"
   }
 }
