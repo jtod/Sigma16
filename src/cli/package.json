@@ -18,10 +18,10 @@
         "assembler",
         "linker",
         "emulator"
-  ],
-  "author": "John T. O'Donnell",
-  "license": "GPL-3.0-or-later",
-  "dependencies": {
-    "express": "^4.17.1"
-  }
+    ],
+    "author": "John T. O'Donnell",
+    "license": "GPL-3.0-or-later",
+    "dependencies": {
+        "express": "^4.17.1"
+    }
 }

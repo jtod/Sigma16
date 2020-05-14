@@ -1,5 +1,8 @@
 *~
 *TEMP*
+*.obj.txt
+*.md.txt
+*.lst.txt
 *.org
 bin
 *.exe

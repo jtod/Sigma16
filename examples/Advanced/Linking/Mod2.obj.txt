@@ -1,7 +1,0 @@
-module   Mod2
-data     f201,000b,2112,f0a3,0000,f201,000c,0112,f0a3,0000,0003,0004,0005
-relocate 0001,0006
-export   fcn,0000,relocatable
-export   g,0005,relocatable
-export   x,000b,relocatable
-export   y,000c,relocatable

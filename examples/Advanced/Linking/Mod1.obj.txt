@@ -1,6 +1,0 @@
-module   Mod1
-data     f100,0019,f201,0000,0112,fa08,0000,fa08,0000,f102,000e,fa08,0000,d000,0000
-relocate 000a
-import   Mod2,fcn,0006,000c
-import   Mod3,g,0008
-import   Mod3,xyz,0003
