@@ -61,14 +61,14 @@ function setBitBE(i) { return 1 << 15-i }
 //function setBit(i) { return 1 << i }
 
 // return bit i in word x, where the rightmost bit has index 0
-function extractBitBE (x,i) {
+export function extractBitBE (x,i) {
     return (x >>> 15-i) & 0x00000001;
 // old little endian version
 //    return (x >>> i) & 0x00000001;
 }
 
 // return Boolean from bit i in word x, where the rightmost bit has index 0
-function extractBool (x,i) {
+export function extractBool (x,i) {
     return extractBitBE (x,i) === 1;
 }
 

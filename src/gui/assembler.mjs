@@ -385,10 +385,11 @@ export function runAssembler (ma) {
     asmPass1 (ma);
     asmPass2 (ma);
     if (ma.nAsmErrors > 0) {
-	ma.asmListingText.unshift (`\n ${ma.nAsmErrors} errors detected\n`,'ERR');
-	ma.asmListingPlain.unshift (highlightText
+	ma.asmListingText.unshift
+          (`\n ${ma.nAsmErrors} errors detected\n`,'ERR');
+        	ma.asmListingPlain.unshift (com.highlightField
            (`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
-	ma.asmListingDec.unshift (highlightText
+        	ma.asmListingDec.unshift (com.highlightField
            (`\n ${ma.nAsmErrors} errors detected\n`,'ERR'));
     }
     ma.asmListingPlain.unshift("<pre class='HighlightedTextAsHtml'>");
@@ -1026,10 +1027,10 @@ function checkOpOp (ma,s) {
         || (format==arch.RREXP && operandType==arch.RR)
         || (format==arch.EXP0)
         || (format==arch.DirModule)
-        || (format==arch.DirImport && operandType==DATA)
-        || (format==arch.DirExport && operandType==DATA)
-        || (format==arch.DirOrg && operandType==DATA)
-        || (format==arch.DirEqu && operandType==DATA)
+        || (format==arch.DirImport && operandType==arch.DATA)
+        || (format==arch.DirExport && operandType==arch.DATA)
+        || (format==arch.DirOrg && operandType==arch.DATA)
+        || (format==arch.DirEqu && operandType==arch.DATA)
         || (format==arch.EMPTY)
         || (format==arch.UNKNOWN)
         || (format==arch.COMMENT)) {
@@ -1414,16 +1415,17 @@ function asmPass2 (ma) {
 //        if (s.codeWord2) { ma.asArrMap.push (s.lineNumber);}
 	for (let i = 0; i < s.errors.length; i++) {
 	    ma.asmListingText.push('Error: ' + s.errors[i],'ERR');
-	    ma.asmListingPlain.push(highlightText('Error: ' + s.errors[i],'ERR'));
-	    ma.asmListingDec.push(highlightText('Error: ' + s.errors[i],'ERR'));
+            	    ma.asmListingPlain.push (com.highlightField
+                                     ('Error: ' + s.errors[i],'ERR'));
+            ma.asmListingDec.push(com.highlightField
+                                  ('Error: ' + s.errors[i],'ERR'));
 	}
     }
     emitObjectWords (ma);
     emitRelocations (ma);
     emitImports (ma);
     emitExports (ma);
-    //    emitASmap (ma);
-    emitAsArrMap (ma);
+    emitMetadata (ma);
 }
 
 function fixHtmlSymbols (str) {
@@ -1500,9 +1502,7 @@ function emitImports (ma) {
     }
 }
 
-// function emitImportAddresses (m,x) {
 function emitImportAddresses (ma,x) {
-//    let ma = m.asmInfo;
     com.mode.devlog (`emitImportAddresses ${x.symbol}`);
     let xs, ys, zs;
     while (x.symUsageAddrs.length > 0) {
@@ -1516,9 +1516,7 @@ function emitImportAddresses (ma,x) {
     }
 }
 
-// function emitExports (m) {
 function emitExports (ma) {
-//    let ma = m.asmInfo;
     let x, y, sym, v, r;
     com.mode.devlog ('emitExports' + ma.exports);
     while (ma.exports.length > 0) {
@@ -1537,15 +1535,36 @@ function emitExports (ma) {
     }
 }
 
-function emitAsArrMap (ma) {
-    ma.metadata.push (ma.asArrMap);
-}
+// The size of text lines in object code and metadata is limited to
+// NitemsPerLine values.  This has two purposes: it makes the object
+// code and metadata more readable, and it helps avoid buffer overrun
+// while reading in the data in C programs.
 
-// function emitASmap (m) {
-function emitASmap (ma) {
-//    let ma = m.asmInfo;
-    let x;
-    com.mode.devlog ('emitASmap');
+const NitemsPerLine = 10;
+
+function emitMetadata (ma) {
+    com.mode.trace = true;
+    com.mode.devlog ("emitMetadata");
+    let xs, ys;
+    xs = [...ma.asArrMap];
+    ma.metadata.push (`asmap ${xs.length}`);
+    while (xs.length > 0) {
+        let ys = xs.slice (0, NitemsPerLine);
+        xs.splice (0, NitemsPerLine);
+        ma.metadata.push (ys);
+    }
+    xs = [...ma.asmListingPlain];
+    ys = [...ma.asmListingDec];
+    ma.metadata.push (`source ${xs.length}`);
+    while (xs.length > 0) {
+        ma.metadata.push (xs.slice (0, NitemsPerLine));
+        ma.metadata.push (ys.slice (0, NitemsPerLine));
+        xs.splice (0, NitemsPerLine);
+        ys.splice (0, NitemsPerLine);
+    }
+    com.mode.trace = false;
+
+    /*
     for (let i = 0; i < ma.asMap.length; i++) {
         x = ma.asMap[i];
         ma.metadata.push (`${arith.wordToHex4(x.address)} ${x.lineno}`);
@@ -1555,6 +1574,7 @@ function emitASmap (ma) {
         ma.metadata.push(ma.asmListingPlain[i]);
         ma.metadata.push(ma.asmListingDec[i]);
     }
+*/
 }
 
 // Print the address-source map x

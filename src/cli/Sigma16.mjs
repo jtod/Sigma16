@@ -157,6 +157,8 @@ function assemble (baseName) {
             writeFile (`${baseName}.md.txt`, md);
         } else {
             console.log (`There were ${ma.nAsmErrors} assembly errors`);
+            let lst = ma.asmListingText;
+            writeFile (`${baseName}.lst.txt`, lst.join("\n"));
             process.exitCode = 1;
         }
     }
