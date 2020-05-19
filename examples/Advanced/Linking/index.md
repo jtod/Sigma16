@@ -1,6 +1,6 @@
 <!--
 Sigma16: index.md
-Copyright (C) 2019, 2020 John T. O'Donnell
+Copyright (C) 2020 John T. O'Donnell
 email: john.t.odonnell9@gmail.com
 License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
@@ -20,17 +20,12 @@ index.md is the source for the index of this examples directory
 ------------------------------------------------------------------------------
 -->
 
-# Advanced example programs
+# Linking examples
 
-* [Data structures](DataStructures/index.html)
+* [Mod1.asm.txt](Mod1.asm.txt) a main program that imports from Mod2
+  and Mod3
 
-* [Linking](Linking/index.html)
+* [Mod2.asm.txt](Mod2.asm.txt) a subroutine that defines and exports
+  some identifiers
 
-* [Interrupt](Interrupt/index.html)
-
-* [Recursion](Recursion/index.html)
-
-* [Testing](Testing/index.html)
-
-* [Type conversion](TypeConversion/index.html)
-
+* [Mod3.asm.txt](Mod3.asm.txt) Another subroutine

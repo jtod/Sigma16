@@ -52,7 +52,8 @@ import { fileURLToPath } from 'url';
 
 // Components of Sigma16
 import {mkModule, mkModuleAsm} from "../gui/s16module.mjs";
-import {assemblerCLI} from "../gui/assembler.mjs";
+// import {assemblerCLI} from "../gui/assembler.mjs";
+import * as asm from "../gui/assembler.mjs";
 
 // Find paths to components of the software
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
@@ -90,6 +91,8 @@ function main  () {
         console.log ("linker");
     } else if (command === "emulate") {
         console.log ("emulator");
+    } else if (command === "test") {
+        runtest ();
     } else {
         console.log ("bad command");
     }
@@ -173,6 +176,17 @@ function writeFile (fname, txt) {
     }
 }
 
+
+function runtest () {
+    console.log ("runtest");
+    let v1 = new asm.Value (23, false);
+    let v2 = new asm.Value (78, true);
+    console.log (`v1 ${v1.show()}`);
+    console.log (`v2 ${v2.show()}`);
+    v1.update(987);
+    console.log (`v1 ${v1.show()}`);
+    console.log ("runtest finished");
+}
 
 //-----------------------------------------------------------------------------
 // Run the main program

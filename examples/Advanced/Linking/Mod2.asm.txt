@@ -3,12 +3,18 @@
 ; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
 
 Mod2    module
-;        export  fcn
+        export  fcn
         export  g
+        export  w
         export  x
-;        export  y
+        export  y
+        export  z
+        export  two
+        export  three
 
 fcn     load    R2,x[R0]
+        load    R3,y[R0]
+        lea     R4,z[R0]
         mul     R1,R1,R2
         jump    0[R10]
 
@@ -18,5 +24,7 @@ g       load    R2,w[R0]
 
 w       data    3
 x       data    4
-;y       equ     5
-;z       equ     fcn
+y       equ     x
+z       equ     5
+two     equ     2
+three   equ     3

@@ -55,6 +55,7 @@
 <li><a href="#summary-of-instruction-formats">Summary of instruction formats</a></li>
 <li><a href="#assembly-language-statement-formats">Assembly language statement formats</a></li>
 </ul></li>
+<li><a href="#expressions-values-and-relocatables">Expressions, values and relocatables</a></li>
 </ul></li>
 <li><a href="#instruction-set">Instruction set</a><ul>
 <li><a href="#arithmetic-instructions">Arithmetic instructions</a><ul>
@@ -1391,6 +1392,19 @@ Interrupt
 <li><p>The RRKEXP format takes two register operands and a 4-bit constant number. An example of the operand field is <em>R1,R2,13</em>. The register operands are in the f and g fields of the second word, and constant is in the h field of the second word. The d field of the first word and the e field of the second word are ignored (the assembler sets these to 0). For example, <em>shiftr R3,R6,7</em> has RRKEXP format.</p></li>
 <li><p>The RRKKEXP format takes two register operands and two 4-bit constant binary number operands. The register operands are in the e and f fields of the second word, while the two constants are in the g and h fields. The d field of the first word is ignored (the assembler sets it to 0).</p></li>
 <li><p>The RRXEXP format takes two register operands as well as a memory address specified with an 8-bit offset and index register. Thus these instructions require three registers to be specified, as well as the offset. Thus every bit of both instruction words is needed to represent an RRXEXP format instruction. In assembly language, the memory address is written as <em>offset[Rh]</em> where <em>offset</em> is an -bit binary number and Rh is a register. The effective memory address is <em>offset+Rh</em>. This is similar to ordinary memory addresses; the only difference is that it uses an 8-bit offset rather than a 16-bit displacement. For example, <em>save R1,R9,2[R14]</em> has RRKEXP format.</p></li>
+</ul>
+<h2 id="expressions-values-and-relocatables">Expressions, values and relocatables</h2>
+<ul>
+<li>An expression is syntax: 23, -5, $b23e, struc+5, arrEnd-arrStart</li>
+<li>A value denotes a word (it is a number) and is the result of evaluating an expression</li>
+<li>A value is marked as either relocatable or fixed</li>
+<li>Expressions may occur in
+<ul>
+<li>Displacement field of an assembly language statement; the value of the expression is placed in the displacement field of the corresponding machine language instruction.</li>
+<li>If a displacement value is relocatable, its address is recorded in the list of addressess of words to be relocated</li>
+<li>Right hand side of an equ statement. The value may be fixed or relocatable. The name (the left hand side) is defined as a new identifier, the definition line is the line containing the equ, the value is the evaluation of the right hand side, which may be either fixed or relocatable. Identifiers used in the expression on the RHS have the line number included in their usage lines.</li>
+<li>But identifiers that appear in an expression (even if relocatable) are not recorded in the relocation list; only displacements are placed in the relocation list.</li>
+</ul></li>
 </ul>
 <h1 id="instruction-set">Instruction set</h1>
 <p>The following sections describe the instructions in groups organized by their function. Some of the groups contain instructions with different formats. From the programmer’s perspective the function is more important, so these groups are useful in finding the right instruction to use. (From the perspective of designing a digital circuit to impleemnt the architecture, the format is essential.)</p>

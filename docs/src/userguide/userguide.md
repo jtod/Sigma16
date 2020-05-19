@@ -767,6 +767,7 @@ typewriters But software does not handle tab consistently.  If you use
 tabs, your can look good in one application and like a mess in
 another.  It's easy to indent with spaces, and it works everywhere!
 
+
 ## Files and modules
 
 Whatever method you use to edit your programs, be sure to **save your
@@ -2264,6 +2265,29 @@ variants.
   addresses; the only difference is that it uses an 8-bit offset
   rather than a 16-bit displacement. For example, *save R1,R9,2[R14]*
   has RRKEXP format.  
+
+## Expressions, values and relocatables
+
+* An expression is syntax: 23, -5, $b23e, struc+5, arrEnd-arrStart
+* A value denotes a word (it is a number) and is the result of
+  evaluating an expression
+* A value is marked as either relocatable or fixed
+* Expressions may occur in
+  - Displacement field of an assembly language statement; the value of
+    the expression is placed in the displacement field of the
+    corresponding machine language instruction.
+  - If a displacement value is relocatable, its address is recorded in
+    the list of addressess of words to be relocated
+  - Right hand side of an equ statement.  The value may be fixed or
+    relocatable.  The name (the left hand side) is defined as a new
+    identifier, the definition line is the line containing the equ,
+    the value is the evaluation of the right hand side, which may be
+    either fixed or relocatable.  Identifiers used in the expression
+    on the RHS have the line number included in their usage lines.
+  - But identifiers that appear in an expression (even if relocatable)
+    are not recorded in the relocation list; only displacements are
+    placed in the relocation list.
+
 
 # Instruction set
 

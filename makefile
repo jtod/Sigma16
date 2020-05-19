@@ -139,7 +139,7 @@ S16HOMEPAGE:=$(SIGMAPROJECT)/homepage/jtod.github.io/S16
 # consisting of "version: : "1.2.3".  This defines VERSION, which is
 # used for building the top level index and the user guide.
 
-VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat src/cli/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 # Define dates in several formats, for inclusion in the app and user guide
 YEAR=$(shell date +"%Y")
@@ -446,6 +446,12 @@ example-indices :
 	pandoc --standalone \
           --template=docs/src/example-indices/exampleindex-template.html \
           --variable=css:../../../docs/src/example-indices/exampleindex.css \
+	  --metadata pagetitle="Linking" \
+          -o examples/Advanced/Linking/index.html \
+	  examples/Advanced/Linking/index.md
+	pandoc --standalone \
+          --template=docs/src/example-indices/exampleindex-template.html \
+          --variable=css:../../../docs/src/example-indices/exampleindex.css \
 	  --metadata pagetitle="Testing" \
           -o examples/Advanced/Testing/index.html \
 	  examples/Advanced/Testing/index.md
@@ -481,7 +487,6 @@ docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
 	  docs/src/userguide/userguide-template.html \
 	  docs/src/userguide/userguidestyle.css VERSION.txt
 	mkdir -p docs/html/userguide
-	cp -upr docs/src/userguide/figures docs/html/userguide
 	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
