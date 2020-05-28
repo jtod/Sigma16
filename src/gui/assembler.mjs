@@ -27,6 +27,12 @@ import * as ed from './editor.mjs';
 
 // To do...
 
+// When entering the page, should obtain the asm source from editor
+// buffer
+
+// To set the asm text...
+// document.getElementById("AsmTextHtml").innerHTML = "";
+
 let opcode_cmp = 4; // refactor, see pass2/fmt==arch.RR
 
 // Buffers to hold generated object code

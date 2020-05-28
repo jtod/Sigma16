@@ -4125,6 +4125,13 @@ alias helloworld="node ${SIGMA16}/app/helloworld.js"
 ~~~~
 
 
+### Websockets
+
+~~~~
+$ git clone https://libwebsockets.org/repo/libwebsockets
+~~~~
+
+
 ### Running the circuit
 
 

@@ -220,12 +220,14 @@ prepareButton ('EXP_Examples_Home',    examplesHome);
 prepareButton ('EXP_Select_Example',    smod.selectExample);
 
 // Modules pane (MP)
-prepareButton ('MP_New',    smod.newModule);
+// prepareButton ('MP_New',    smod.newModule);
 prepareButton ('MP_Refresh',    smod.refreshModulesList);
 
 // Editor pane (EDP)
 prepareButton ('EDP_Clear',    ed.editorClear);
-prepareButton ('EDP_New',    smod.newModule);
+prepareButton ('EDP_New_asm',  () => smod.newModule (AsmModule));
+prepareButton ('EDP_New_obj',  () => smod.newModule (ObjModule));
+prepareButton ('EDP_New_link',  () => smod.newModule (LnkModule));
 prepareButton ('EDP_Hello_World',  () => insert_example(example_hello_world));
 prepareButton ('EDP_Save',  ed.editorDownload);
 
@@ -236,12 +238,11 @@ prepareButton ('AP_Show_Listing',  asm.setAsmListing);
 prepareButton ('AP_Show_Metadata',  asm.setMetadata);
 
 // Linker pane (LP)
-prepareButton ('LP_Show_Object',  link.linkShowSelectedObj);
-prepareButton ('LP_Read_Object',  link.readObjectFromEditor);
-prepareButton ('LP_Read_Modules', link.setLinkerModules);
-prepareButton ('LP_Link',         link.link);
-prepareButton ('LP_Boot',         () => em.boot(st.emulatorState));
-prepareButton ('LP_Show_Metadata', link.linkShowMetadata);
+prepareButton ('LP_Read_Object',   link.getLinkerModules);
+prepareButton ('LP_Link',          link.linkGUI);
+prepareButton ('LP_Show_Object',   link.linkShowExeObject);
+prepareButton ('LP_Show_Metadata', link.linkShowExeMetadata);
+prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));
 
 // Processor pane (PP)
 prepareButton ('PP_Reset',        () => em.procReset(em.emulatorState));

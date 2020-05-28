@@ -16,18 +16,40 @@
 
 //-----------------------------------------------------------------------------
 // Sigma16.mjs defines command line tools
-// Usage: node Sigma16.mjs <command> <argument>
-// Software requirements (install with npm): node.js, express
 //-----------------------------------------------------------------------------
 
-// Summary of commands
-//   - node Sigma16.mjs or node Sigma16.mjs gui
-//        Launch gui.  In browser visit http://localhost:3000/
-//        Runs locally from downloaded files; it doesn't need Internet access.
-//        Replace 3000 with the value of port defined above,
-//   - node Sigma16.mjs assemble foo
-//        Read foo.asm.txt and translate to machine language
-//        Write foo.obj.txt, foo.lst.txt, foo.md.txt
+// Usage: node Sigma16.mjs <command> <argument> ... <argument>
+// See below for the commands
+
+//-----------------------------------------------------------------------------
+// Installation
+//-----------------------------------------------------------------------------
+
+// 1. Software requirements: install npm
+// 2. Install dependencies: npm install (will install express)
+// 3. Download the source directory from https://jtod.github.io/home/Sigma16/
+//    put it anywhere in your file space:   /path/to/SigmaSystem/Sigma16
+// 4. Add the following to your .profile or .bashrc:
+
+/*
+# Sigma system: https://jtod.github.io/home/Sigma16/
+export SIGMASYSTEM="/path/to/SigmaSystem"
+export SIGMA16=${SIGMASYSTEM}/Sigma16
+alias sigma16="node ${SIGMA16}/src/cli/Sigma16.mjs"
+*/
+
+//-----------------------------------------------------------------------------
+// Usage
+//-----------------------------------------------------------------------------
+
+// sigma16                     Launch gui, visit http://localhost:3000/
+// sigma16 gui                 Launch gui, visit http://localhost:3000/
+//                                 Replace 3000 with the value of port (see below)
+// sigma16 assemble foo        Translate foo.asm.txt
+//                                 Writes foo.obj.txt, foo.lst.txt, foo.md.txt
+// sigma16 link exe m1 m2 ...  Link m1.obj.txt, m2.obj.txt, ...
+//                                 Writes exe.obj.txt
+// sigma16 test                Run batch test cases (for development only)
 
 //-----------------------------------------------------------------------------
 // Configuration
@@ -51,9 +73,11 @@ import * as fs from "fs";
 import { fileURLToPath } from 'url';
 
 // Components of Sigma16
-import {mkModule, mkModuleAsm} from "../gui/s16module.mjs";
-// import {assemblerCLI} from "../gui/assembler.mjs";
+import * as smod from "../gui/s16module.mjs";
 import * as asm from "../gui/assembler.mjs";
+import * as link from "../gui/linker.mjs";
+// import {mkModule, mkModuleAsm} from "../gui/s16module.mjs";
+// import {assemblerCLI} from "../gui/assembler.mjs";
 
 // Find paths to components of the software
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
@@ -78,7 +102,7 @@ function showParameters () {
 }
 
 //-----------------------------------------------------------------------------
-// Main program
+// Main program: dispatch on command
 //-----------------------------------------------------------------------------
 
 // Decide what operation is being requested, and do it
@@ -86,9 +110,9 @@ function main  () {
     if (process.argv.length < 3 || command === "gui") {
         launchGUI ();
     } else if (command === "assemble") {
-        assemble (commandArg);
+        assembleCLI (commandArg);
     } else if (command === "link") {
-        console.log ("linker");
+        linkCLI ();
     } else if (command === "emulate") {
         console.log ("emulator");
     } else if (command === "test") {
@@ -99,7 +123,7 @@ function main  () {
 }
 
 //-----------------------------------------------------------------------------
-// Run gui in browser (visit http://localhost:<port>/)
+// Launch gui in browser (visit http://localhost:<port>/)
 //-----------------------------------------------------------------------------
 
 // Run express
@@ -135,29 +159,21 @@ function launchGUI () {
 //   Writes metadata to myprog.md.txt
 //   Writes listing to standard output (or myprog.lst.txt?)
 
-// baseName is the name of the module; source is baseName.asm.txt
-function assemble (baseName) {
+function assembleCLI () {
+    const baseName = process.argv[3]; // first command argument
     const srcFileName = `${baseName}.asm.txt`;
-    let src = "";
-    let srcOk = false;
-    try {
-        src = fs.readFileSync (srcFileName, 'utf8');
-        srcOk = true;
-    } catch (err) {
-        srcOk = false;
-    }
-    if (!srcOk) {
-        console.error(`Cannot read file ${srcFileName}`);
-        process.exitCode = 1;
+    const maybeSrc = readFile (srcFileName);
+    if (!maybeSrc.ok) {
+        console.log (`Unable to read assembly source file ${srcFileName}`);
     } else {
-        let ma = assemblerCLI (src);
+        let ma = asm.assemblerCLI (maybeSrc.input);
         if (ma.nAsmErrors === 0) {
             let obj = ma.objectCode;
             let lst = ma.asmListingText;
-            let md = ma.asArrMap.join(",");
+            let md = ma.metadata;
             writeFile (`${baseName}.obj.txt`, obj.join("\n"));
             writeFile (`${baseName}.lst.txt`, lst.join("\n"));
-            writeFile (`${baseName}.md.txt`, md);
+            writeFile (`${baseName}.md.txt`,  md.join("\n"));
         } else {
             console.log (`There were ${ma.nAsmErrors} assembly errors`);
             let lst = ma.asmListingText;
@@ -167,15 +183,70 @@ function assemble (baseName) {
     }
 }
 
-function writeFile (fname, txt) {
+//-----------------------------------------------------------------------------
+// Linker
+//-----------------------------------------------------------------------------
+
+// Usage: node Sigma16.mjs link <exe> <mod1> <mod2> ...
+//   Reads object from <mod1>.obj.txt, ...     (required)
+//   Reads metadata from <mod1>.md.txt, ...    (ok if they don't exist)
+//   Writes executable to <exe>.obj.txt
+//   Writes metadata to <exe>.md.txt
+//   Writes linker listing to <exe>.lst.txt
+
+function linkCLI () {
+    const exeFile = process.argv[3]; // first command argument
+    const modFiles = process.argv.slice(4); // subsequent command arguments
+    console.log (`link: exe file = ${exeFile} from ${modFiles}`);
+    let mods = [];
+    for (let i = 0; i < modFiles.length; i++) {
+        let baseName = modFiles[i];
+        let obj = readFile (`${baseName}.obj.txt`);
+        let md = readFile (`${baseName}.md.txt`);
+        let objLines = obj.ok ? obj.input.split("\n") : [];
+        let mdLines = md.ok ? md.input.split("\n") : [];
+        let m = new smod.s16module (smod.ObjModule);
+        mods[i] = m;
+    }
+    link.linker (exeFile, mods);
+}
+
+//-----------------------------------------------------------------------------
+// File I/O via file names (runs in node but not in browser)
+//-----------------------------------------------------------------------------
+
+export function readFile (fname) {
+    let input, ok;
+    try {
+        input = fs.readFileSync (fname, 'utf8');
+        ok = true;
+    } catch (err) {
+        input = "";
+        ok = false;
+    }
+    if (!ok) {
+        console.error(`Cannot read file ${fname}`);
+        process.exitCode = 1;
+    }
+    return {input, ok};
+}
+
+export function writeFile (fname, txt) {
+    let ok;
     try {
         const file = fs.writeFileSync(fname, txt);
+        ok = true;
     } catch (err) {
         console.error(`Unable to write to file ${fname}`);
         process.exitCode = 1;
+        ok = false;
     }
+    return ok;
 }
 
+//-----------------------------------------------------------------------------
+// Test harness
+//-----------------------------------------------------------------------------
 
 function runtest () {
     console.log ("runtest");
@@ -185,6 +256,22 @@ function runtest () {
     console.log (`v2 ${v2.show()}`);
     v1.update(987);
     console.log (`v1 ${v1.show()}`);
+
+    let m1 = new smod.newS16module (smod.AsmModule, "load");
+    let m2 = new smod.newS16module (smod.ObjModule, "834b");
+    let s1 = m1.sym;
+    let s2 = m2.sym;
+    console.log (typeof s1);
+
+    console.log (`m1.txt = ${m1.txt}`);
+    console.log (`m2.txt = ${m2.txt}`);
+
+    let aa = smod.news16modules.get(s1).txt;
+    let bb = smod.news16modules.get(s2).txt;
+    console.log (`s1 txt = ${aa}`);
+    console.log (`s2 txt = ${bb}`);
+
+    
     console.log ("runtest finished");
 }
 

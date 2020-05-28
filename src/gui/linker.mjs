@@ -35,21 +35,11 @@ let curAsmap = [];
 //-----------------------------------------------------------------------------
 // Representation of object module
 //-----------------------------------------------------------------------------
-
-// An object module is the code for one module; it may contain linker
-// statements and may comprise one or more blocks
-
-class ModuleObj {
-    constructor() {
-        this.objLine = [];                 // lines of code split by newline
-        this.objStmt = [];                 // array of statements in object code
-        this.objMetadataLine = null;  // optional metadata lines
-    }
-}
+// See s16module.mjs
 
 // A Block is a sequence of words in adjacent memory locations.  The
 // functional argument f emits the next word of object code.
-
+/*
 class Block {
     constructor(f) {
         this.startAddr = 0;
@@ -73,6 +63,7 @@ class Block {
         return (this.current >= this.words.length);
     }
 }
+*/
 
 /* Usage
 function fcn (a,w) { console.log (`emit ${a} ${w}`); }
@@ -89,60 +80,84 @@ function testBlock() {
 */
 
 //-------------------------------------------------------------------------------
-// Operations on selected module
+// Gui interface to linker
 //-------------------------------------------------------------------------------
 
+// Obtain the modules to link: the editor pane should contain a list
+// consisting of the executable base name, followed by basenames of
+// the modules to be linked.  These should be given on separate lines,
+// with no white space.
 
-// Linker Object code button
-export function linkShowSelectedObj () {
-    console.log ("linkShowSelectedObj");
-    let m = smod.s16modules[smod.selectedModule]; // get current module
-    let objListing = "<pre class='HighlightedTextAsHtml'>"
-        + "<span class='ExecutableStatus'>Module is "
-        + (m.objIsExecutable ? "executable" : "not executable" )
-        + "</span><br>"
-        + m.objInfo.objLine.join('\n')
+export function getLinkerModules () {
+    console.log ('getLinkerModules');
+    let modlist = document.getElementById('EditorTextArea').value.split('\n');
+    for (let i = 0; i < smod.s16modules.length; i++) {
+        let m = smod.s16modules[i];
+        let mo = m.objInfo;
+        console.log (`module ${i}$ name=${m.ileName}`);
+    }
+    let xs = "<pre class='HighlightedTextAsHtml'>"
+        + "<h3>Summary</h3>"
+        + modlist.join("<br>")
+        + "<h3>Modules</h3>"
         + "</pre>";
-    document.getElementById('LinkerText').innerHTML = objListing;
+    document.getElementById('LinkerBody').innerHTML = xs;
+    console.log (modlist);
 }
 
-// Called by button in Linker tab; this is used when an object file is
-// to be read from editor rather than being created by the assembler
-export function readObjectFromEditor () {
-    console.log ('readObjectFromEditor');
-    let m = smod.s16modules[smod.selectedModule]; // get current module
-    let mo = m.objInfo;
-    if (mo) { // it exists, proceed
-        let txt = document.getElementById("EditorTextArea").value;
-        mo.objLine = txt.split("\n");
-        document.getElementById('LinkerText').innerHTML = txt;
-    } else { // doesn't exist, error
-        console.log ('readObject error: no module');
+
+
+// Linker object button
+export function linkShowExeObject () {
+    console.log ("linkShowExeObject");
+    let xs = "<pre class='HighlightedTextAsHtml'>"
+        + "no object"
+        + "</pre>";
+    document.getElementById('LinkerBody').innerHTML = xs;
+}
+
+// Linker metadata button
+export function linkShowExeMetadata () {
+    console.log ("linkShowExeMetadata");
+    let xs = "<pre class='HighlightedTextAsHtml'>"
+        + "<h3>no metadata</h3>\nNone available<br>yet"
+        + "</pre>";
+    document.getElementById('LinkerBody').innerHTML = xs;
+}
+
+function linkGUI () {
+    console.log ("link");
+    let exeName = "exe"; // ???
+    let ms = []; // ???
+    linker (exeName, ms);
+}
+
+//-------------------------------------------------------------------------------
+// Linker
+//-------------------------------------------------------------------------------
+
+// Given a list objs of object modules; return an executable module
+// with given name.  This can be called by linkGUI or linkCLI.
+
+export function linker (exeName, ms) {
+    console.log (`link ${exeName} from ${ms.length} object modules`);
+    for (let i = 0; i < ms.length; i++) {
+        let m = ms[i];
+        console.log ("-------------------------------------------");
+        console.log (`Module ${i}`);
+        console.log (`${m.objectLines.length} lines of object code`);
+        console.log (`${m.metadataLines.length} lines of metadata`);
+        console.log (m.objectLines.join("\n"));
     }
 }
 
-// Linker Metadata button
-export function linkShowMetadata () {
-    console.log ("linkShowMetadata");
-    let m = smod.s16modules[smod.selectedModule]; // get current module
-    let mo = m.objInfo;
-    let md = "<pre class='HighlightedTextAsHtml'>"
-        + (mo.objMetadataLine? mo.objMetadataLine.join("\n") : "no metadata")
-        + "</pre>";
-    document.getElementById('LinkerText').innerHTML = md;
-}
 
 
-function setCurrentObjectCode () {
-    let objHeader = "Module " + selectedModule + " object code"
-    let objText =
-	"<pre class='HighlightedTextAsHtml'><span class='ListingHeader'>"
-	+ objHeader + "</span>\n"
-	+ smod.s16modules[smod.selectedModule].objectCode.join('\n')
-	+ "</pre>";
-    document.getElementById('LinkerText').innerHTML	= objText;
 
-}
+//-------------------------------------------------------------------------------
+// Parser
+//-------------------------------------------------------------------------------
+
 
 // Given source lines for the metadata, build the metadata object for emulator
 function parseObjMetadata (mdLines) {
@@ -162,55 +177,6 @@ function parseObjMetadata (mdLines) {
     return nSrcLines;
 //    return {mdLines, mdAsMap, mdPlainLines, mdDecLines}
 }
-
-//-------------------------------------------------------------------------------
-// Operations on list of modules
-//-------------------------------------------------------------------------------
-
-
-// Test stub.  Return the list of module numbers for the modules to be
-// linked
-function getLinkModuleList () {
-    console.log ("getLinkModuleList");
-    return [1,2]; // test stub
-}
-
-function showLinkerStatus () {
-    console.log ('showLinkerStatus');
-    let m = smod.s16modules[smod.selectedModule]; // get current module
-}
-
-export function setLinkerModules () {
-    console.log ('setLinkerModules');
-}
-
-
-//-------------------------------------------------------------------------------
-// Linker
-//-------------------------------------------------------------------------------
-
-// linkMods is a list of module numbers of the modules to be linked
-
-
-/*
-function collectLinkModules (linkMods) {
-    let exeMod = smod.selectedModule; // stub
-    console.log ("collectLinkModules");
-    console.log (`exmod=${executable} linkmods=${}`);
-    let mo = smod.s16modules[exeMod]; // module number of the executable
-    let exeLines = mo.objLine;
-    exeLines = [];
-    mo.objLine = []; // clear object lines
-    for (let i = 0; i < linkMods.length; i++) {
-        let hasModuleName = false; // require module name
-        for (let j = 0; j < smod.s16modules[i].objLine.length; j++) {
-            
-        }
-    }
-    
-}
-*/
-
 
 
 // A line of object code contains a required operation code, white
@@ -242,19 +208,5 @@ function mkObjStmt (i,srcLine,operation,operands) {
         objOperandNames : [],
         objLine : []
     }
-}
-
-//-------------------------------------------------------------------------------
-// Link modules
-//-------------------------------------------------------------------------------
-
-function link () {
-    console.log ('link');
-}
-
-// objs = list of module numbers of modules to be linked
-// exe = module number of executable module to be created
-function linkWorker (objs,exe) {
-    console.log (`linkWorker objs=${objs} exe=${exe}`);
 }
 

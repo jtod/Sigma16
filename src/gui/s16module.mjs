@@ -18,33 +18,138 @@
 // module.mjs defines the representation of source and object modules
 //-------------------------------------------------------------------------------
 
-// The working program is a list of modules, one of which is the
-// current working module visible in the editor and assembler.  A
-// module data structure contains everything known about the module,
-// whether it is source or object.
-
+import * as fs from "fs";
 import * as com from './common.mjs';
 
-//-------------------------------------------------------------------------------
+// Function invocation by gui controls in Module pane:
+//   Choose Files button starts file chooser, its event calls 
+//   MP_Refresh: refreshModulesList)
+
+//------------------------------------------------------------------------------
+// Representation of a module
+//------------------------------------------------------------------------------
+
+
+// A module may contain
+//   - AsmInfo: assembly language source and information collected by assembler
+//   - ObjInfo: object language source and information collected by linker
+//   - LinkInfo: commands for the linker
+
+// The text of a module may come from
+//   - a file
+//   - the editor pane
+
+//------------------------------------------------------------------------------
 // Set of modules
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-let s16modules = [];    // All the modules in the system
-let selectedModule = 0;
+// Each module is identified by a Symbol, and the set of modules is
+// represented as a Map indexed by the module symbols.  The
+// selectedModule is the symbol of the current module.  When a new
+// module is created it is selected.
 
-function setSelectedModule (i) {
-    selectedModule = i;
-    com.mode.devlog (`Setting selected module to ${i}`);
+export let s16modules = new Map ();
+export let selectedModule;
+
+// Create and select an initial module
+
+export function initModules () {
+    com.mode.devlog ("initModules");
+    let m = new s16module (AsmModule);
+    refreshEditorBuffer();
+    refreshModulesList();
+}
+
+// Get the full data structure for the current module
+
+export function getCurrentModule () {
+    return s16modules.get (selectedModule);
+}
+
+//------------------------------------------------------------------------------
+// Representation of a module
+//------------------------------------------------------------------------------
+
+// Each module has a moduleType indicating whether it originates from
+// the assembler, from reading in an object module, etc.  The type is
+// determined by the user's choice of command or from the filename (if
+// any) but not by parsing the contents.  For example, if the user
+// Assembles a file, then it is deemed to be assembly text.
+
+export const AsmModule = Symbol ("");  // assembly source, may have object
+export const ObjModule = Symbol ("");  // object only
+export const LnkModule = Symbol ("");  // commands for linking
+
+function showModType (t) {
+    return t === ModAsm ? "Assembly language"
+        : t === ModObj ? "Object code"
+        : t === ModLink ? "Linker commands"
+        : "module type is unknown"
+}
+
+export class s16module {
+    constructor (modType) {
+        const s = Symbol ("");         // the key to this module in s16modules
+        s16modules.set (s, this);   // record this module in the set
+        selectedModule = s;         // select the module as it's created
+        this.sym = s;                  // make the key available, given module
+        this.type = modType;           // implies what to do with the text
+        this.text = "";                // raw source text
+        this.file = null;
+        this.fileReader = null;
+        this.fileReadComplete = false;
+        this.asmInfo = null;           // to be filled in by assembler
+        this.objInfo = null;           // to be filled in by linker
+        return s;
+    }
+    show () {
+        return "module"
+                + showModType (this.type)
+                + this.text
+    }
+    refresh () {
+        
+    }
 }
 
 
-// let currentFile = null;  // deprecated, Remember the current working file handle
+//------------------------------------------------------------------------------
+// Files
+//------------------------------------------------------------------------------
+
+export class fileInfo {
+    constructor (fileName, fileObject) {
+        this.file = null;              // handle for reading the file
+        this.fileName = null;          // file name (null if from New button)
+        this.fileReader = null;        // fs file reader ojbect
+        this.fileReadComplete = false;
+    }
+}
+
 
 //-----------------------------------------------------------------------------
-// Assembler state:  information about a module produced by the assembler
+// Assembly language state: m.asmInfo
 //-----------------------------------------------------------------------------
 
-// This is held in m.asmInfo
+/* do this soon
+export class AsmInfo {
+    constructor (xs) {
+        this.asmText = xs;
+        this.modName = null;
+        this.asmSrcLines = [];
+        this.symbols = [];
+        this.symbolTable = new Map ();
+        this.locationCounter = 0;
+        this.asmListingPlain = [];
+        this.asmListingDec = [];
+        this.objectCode = [];
+        this.metadata = [];
+        this.asArrMap = [];
+        this.exports = [];
+        this.nAsmErrors = [];
+    }
+}
+*/
 
 export function mkModuleAsm () {
     com.mode.devlog("mkModuleAsm");
@@ -67,111 +172,28 @@ export function mkModuleAsm () {
 }
 
 //-------------------------------------------------------------------------------
-// Initialize modules
+// Object code state: m.objInfo
 //-------------------------------------------------------------------------------
 
-// Create one initial (empty) module and make it the current module
-export function initModules () {
-    com.mode.devlog ("initModules");
-    s16modules = [mkModule()];
-    let m = s16modules[0];
-    m.mIndex = 0;
-    selectedModule = 0;
-    refreshEditorBuffer();
-    refreshModulesList();
-}
-
-// Get the full data structure for the current module
-export function getCurrentModule () {
-    return s16modules[selectedModule]
-}
-
-//------------------------------------------------------------------------------
-// Representation of a module
-//------------------------------------------------------------------------------
-
-// Each module has a moduleType indicating whether it originates from
-// the assembler, from reading in an object module, etc.  The type is
-// determined by the user's choice of command, not from the filename
-// (if any) or the contents.  For example, if the user Assembles a
-// file, then it is deemed to be assembly text.
-
-export const ModText = Symbol ("ModText");  // generic text with unknown role
-export const ModAsm  = Symbol ("ModAsm");   // obtained assembly langauge from editor
-export const ModObj  = Symbol ("ModObj");   // obtained object from editor/file
-export const ModLink = Symbol ("ModLink");  // module text is set of linker commands
-
-function showModType (t) {
-    return t===ModText ? "Text"
-        : t===ModAsm ? "Assembly language"
-        : t===ModObj ? "Object code"
-        : t===ModLink ? "Linker commands"
-        : "module type is unknown"
-}
-
-// Make a new module with empty contents; this defines the fields of a module
-
-export function mkModule (i) {
-    com.mode.devlog('mkModule');
-    return {
-        modText : "",
-//        modType : ModText,
-//        mIndex : i,             // index in s16modules list
-	mFile : null,              // file object associated with module, if any
-        fileName : null,           // filename, if exists and is known
-	fileReader : null,         // object to read the file
-        firstNewMod : 0,
-        lastNewMod : 0,
-        selectWhenReadsFinished : 0,
-        fileReadComplete : false,          // has file been completely read in yet?
-        fileStale : false,        // contents have been changed in editor
-	selected : false,         // this module is selected (for edit, asm)
-//        objIsAssembled : false,   // module has been assembled
-//        modObjLoaded : false,     // module loaded directly from obj
-        asmInfo : mkModuleAsm(),  // initialize assembler state
-        objInfo : null,
-        //        objInfo : mkModuleObj(),  // initialize object state
-        //        objInfo : new ModuleObj(),  // initialize object state
-        objIsExecutable : false    // can be executed without further linking
+export class ObjectModule {
+    constructor(objLines, mdLines) {
+        this.objectLines = objLines;
+        this.metadataLines = mdLines;
+        this.name = "anonymous";
+        this.imports = [];
+        this.exports = [];
+        this.origin = 0;
+        this.size = 0;
+        this.last = 0;
     }
 }
 
-// Return a brief description of a module
-function showModule (m) {
-    let n = m.src ? m.src.length : 0;
-    let xs = getModName(m) + ' (' +  n + ' characters)\n';
-    return xs;
-}
 
-// Return the module name and file name, if they exist
-function getModFileName (m) {
-    if (m) {
-        let mname = m.asmInfo.modName ? `${m.asmInfo.modName}` : '';
-        let fname = m.mFile ? `(${m.mFile.name})` : '';
-        let xs = (m.asmInfo.modName || m.mFile) ? mname + '  ' + fname : '<anonymous>';
-        return xs;
-    } else return "?"
-}
 
-function getModName (m) {
-//    return m.modName ? m.modName : "no module statement"
-    if (m) {
-        let mname = m.asmInfo.modName ? `${m.asmInfo.modName}` : '';
-        return mname;
-    } else return "module name is unknown"
-}
+//-------------------------------------------------------------------------------
+// Initialize modules
+//-------------------------------------------------------------------------------
 
-function getFileName (m) {
-    return m.mFile ? m.mFile.name : "no file associated with module"
-}
-
-export function newModule () {
-    com.mode.devlog ("newModule");
-    selectedModule = s16modules.length;
-    s16modules.push(mkModule(selectedModule));
-    refreshEditorBuffer();
-    refreshModulesList();
-}
 
 // Make new module, copy example text into it, and select it
 
@@ -194,7 +216,7 @@ export function selectExample() {
 }
 
 //-------------------------------------------------------------------------------
-// Reading files
+// File operations on existing modules
 //-------------------------------------------------------------------------------
 
 // When the user is in the Modules page and clicks Choose Files, a
@@ -202,46 +224,6 @@ export function selectExample() {
 // signals handleSelectedFiles with a list of file objects that were
 // selected.  The function reads the files and creates entries in the
 // modules list for them.
-
-export function handleSelectedFiles (flist) {
-    com.mode.devlog("handleSelectedFiles");
-    com.mode.devlog(`handleSelectedFiles flist=${flist}`);
-    let m;
-    let idxFirstNewMod = s16modules.length;
-    let idxLastNewMod  = idxFirstNewMod + flist.length - 1;
-    for (let i=0; i<flist.length; i++) {
-	m = mkModule (s16modules.length);
-        m.mIndex = s16modules.length;
-	m.mFile = flist[i];
-        m.fileName = m.mFile.name;
-	m.selected = false;
-        m.fileReadComplete = false;
-        m.firstNewMod = idxFirstNewMod;
-        m.lastNewMod = idxLastNewMod;
-        m.selectWhenReadsFinished = m.lastNewMod;
-	m.fileReader = mkOfReader(m, m.mIndex);
-	m.fileReader.readAsText(m.mFile);
-	m.modText = "";
-	m.asmInfo.modSrc = ""; // deprecated
-	s16modules.push(m);
-    }
-    com.mode.devlog ("handle, finished selecting");
-}
-
-function mkOfReader (m, i) {
-    let fr = new FileReader();
-    fr.onload = function (e) {
-        let idx = m.mIndex; // could change after close
-        let a = m.firstNewMod;
-        let b = m.lastNewMod;
-	com.mode.devlog (`ofReader ${idx} onload event a=${a} b=${b}`);
-        m.modText = e.target.result;
-        m.asmInfo.modSrc = e.target.result; // deprecated
-        m.fileReadComplete = true;
-        refreshWhenReadsFinished (m,i); // if all files are in, then refresh
-    }
-    return fr;
-}
 
 // Set handler for s16modules/ open file operation
 // html contained:  onchange="handleSelectedFiles(this.files);"
@@ -253,6 +235,41 @@ export function prepareChooseFiles () {
         com.mode.devlog ("prepareChooseFiles change listener invoked");
         handleSelectedFiles(elt.files);
     });
+}
+
+// When the user clicks Choose files, the browser produces a FileList
+// object.  This function traverses that list and creates a module for
+// each file
+
+export function handleSelectedFiles (flist) {
+    for (f of flist) {
+        console.log (`handleSelectedFiles fname=${f.fname}`);
+        let type = AsmModule;  // should calculate based on filename ???????????
+        let m = new s16module (type);
+        m.file = f;
+	m.fileReader = mkReader (m);
+        m.fileReadComplete = false;
+	m.fileReader.readAsText ();
+    }
+}
+
+function mkReader (m) {
+    let fr = new FileReader();
+    com.mode.devlog (`Creating file reader ${m.file.fname}`);
+    fr.onload = function (e) {
+	com.mode.devlog (`File reader ${m.file.fname} onload event`);
+        m.text = e.target.result;
+        console.log (m.text);
+        m.fileReadComplete = true;
+        refreshWhenReadsFinished (m); // if all files are in, then refresh
+    }
+    fr.onerror = function (e) {
+        console.log (`Error: could not read file ${m.file.fname}`
+                     + ` (error code = ${e.target.error.code})`);
+        m.text = "";
+        m.fileReadComplete = true;
+    }
+    return fr;
 }
 
 // If all the files selected in the file chooser have been read in,
@@ -352,14 +369,13 @@ export function refreshModulesList() {
 
 
 // If there has been a change to selected module or its file contents,
-// update the editor buffer as well as the assembler buffer
+// update the editor buffer
+
 function refreshEditorBuffer () {
     com.mode.devlog (`refreshEditorBuffer selectedModule=${selectedModule}`);
-    let m = s16modules[selectedModule];
+    let m = s16modules.get (selectedModule);
     let ma = m.asmInfo;
     document.getElementById("EditorTextArea").value = m.modText; // deprecated
-//       document.getElementById("EditorTextArea").value = ma.modSrc; // deprecated
-    document.getElementById("AsmTextHtml").innerHTML = "";
 }
 
 function modulesButtonSelect (i) {
@@ -400,6 +416,172 @@ function modulesButtonRefresh (i) {
     m.fileReader.readAsText(m.mFile);
 }
 
-export {
-    s16modules, selectedModule, setSelectedModule
+
+// Deprecated
+
+/* old deprecated
+export const ModText = Symbol ("ModText");  // generic text with unknown role
+export const ModAsm  = Symbol ("ModAsm");   // obtained assembly langauge from editor
+export const ModObj  = Symbol ("ModObj");   // obtained object from editor/file
+export const ModLink = Symbol ("ModLink");  // module text is set of linker commands
+
+function showModType (t) {
+    return t===ModText ? "Text"
+        : t===ModAsm ? "Assembly language"
+        : t===ModObj ? "Object code"
+        : t===ModLink ? "Linker commands"
+        : "module type is unknown"
 }
+*/
+
+//-------------------------------------------------------------------------------
+// Set of modules - old version
+//-------------------------------------------------------------------------------
+
+/*
+let s16modules = [];    // All the modules in the system
+let selectedModule = 0;
+
+function setSelectedModule (i) {
+    selectedModule = i;
+    com.mode.devlog (`Setting selected module to ${i}`);
+}
+
+
+// Make a new module with empty contents; this defines the fields of a module
+// old version
+export function mkModule (i) {
+    com.mode.devlog('mkModule');
+    return {
+        modText : "",
+//        modType : ModText,
+//        mIndex : i,             // index in s16modules list
+	mFile : null,              // file object associated with module, if any
+        fileName : null,           // filename, if exists and is known
+	fileReader : null,         // object to read the file
+        firstNewMod : 0,
+        lastNewMod : 0,
+        selectWhenReadsFinished : 0,
+        fileReadComplete : false,          // has file been completely read in yet?
+        fileStale : false,        // contents have been changed in editor
+	selected : false,         // this module is selected (for edit, asm)
+//        objIsAssembled : false,   // module has been assembled
+//        modObjLoaded : false,     // module loaded directly from obj
+        asmInfo : mkModuleAsm(),  // initialize assembler state
+        objInfo : null,
+        //        objInfo : mkModuleObj(),  // initialize object state
+        //        objInfo : new ModuleObj(),  // initialize object state
+        objIsExecutable : false    // can be executed without further linking
+    }
+}
+
+// Return a brief description of a module
+function showModule (m) {
+    let n = m.src ? m.src.length : 0;
+    let xs = getModName(m) + ' (' +  n + ' characters)\n';
+    return xs;
+}
+
+// Return the module name and file name, if they exist
+function oldgetModFileName (m) {
+    if (m) {
+        let mname = m.asmInfo.modName ? `${m.asmInfo.modName}` : '';
+        let fname = m.mFile ? `(${m.mFile.name})` : '';
+        let xs = (m.asmInfo.modName || m.mFile) ? mname + '  ' + fname : '<anonymous>';
+        return xs;
+    } else return "?"
+}
+
+function oldgetModName (m) {
+//    return m.modName ? m.modName : "no module statement"
+    if (m) {
+        let mname = m.asmInfo.modName ? `${m.asmInfo.modName}` : '';
+        return mname;
+    } else return "module name is unknown"
+}
+
+function oldgetFileName (m) {
+    return m.mFile ? m.mFile.name : "no file associated with module"
+}
+
+export function oldnewModule () {
+    com.mode.devlog ("newModule");
+    selectedModule = s16modules.length;
+    s16modules.push(mkModule(selectedModule));
+    refreshEditorBuffer();
+    refreshModulesList();
+}
+
+
+*/
+
+/* old version
+export function handleSelectedFiles (flist) {
+    com.mode.devlog("handleSelectedFiles");
+    com.mode.devlog(`handleSelectedFiles flist=${flist}`);
+    let m;
+    let idxFirstNewMod = s16modules.length;
+    let idxLastNewMod  = idxFirstNewMod + flist.length - 1;
+    for (let i=0; i<flist.length; i++) {
+	m = mkModule (s16modules.length);
+        m.mIndex = s16modules.length;
+	m.mFile = flist[i];
+        m.fileName = m.mFile.name;
+	m.selected = false;
+        m.fileReadComplete = false;
+        m.firstNewMod = idxFirstNewMod;
+        m.lastNewMod = idxLastNewMod;
+        m.selectWhenReadsFinished = m.lastNewMod;
+	m.fileReader = mkOfReader(m, m.mIndex);
+	m.fileReader.readAsText(m.mFile);
+	m.modText = "";
+	m.asmInfo.modSrc = ""; // deprecated
+	s16modules.push(m);
+    }
+    com.mode.devlog ("handle, finished selecting");
+}
+*/
+
+/* old version
+export function initModules () {
+    com.mode.devlog ("initModules");
+    s16modules = [mkModule()];
+    let m = s16modules[0];
+    m.mIndex = 0;
+    selectedModule = 0;
+    refreshEditorBuffer();
+    refreshModulesList();
+}
+*/
+
+//    const s = Symbol ("init module");
+//    s16modules.set (s, m);
+//    selectedModule = s;
+
+    //    return s16modules[selectedModule]
+
+/*
+Strategy for list of modules
+
+// A Sigma16 program may contain several modules, some or all of which
+// may correspond to files.
+
+
+The Modules pane contains a list of modules; each of those is created
+by new S16Module().  When the list is refreshed, it shows the type of
+the module (asm, obj, link), current metadata about the module
+(e.g. for an asm module, whether object code exists and the number of
+assembly errors), and buttons to select, refresh, and delete the
+module.
+
+To delete the module, the object needs a reference to it which can
+also be used to find the module within the module list.  This should
+not be an index into an array of modules, because deleting a module
+could cause indices to change.
+
+When a module is created, a new symbol to identify it is generated.
+The list of modules is a Map, indexed by the symbol.  The symbol is
+kept in a field within the module, allowing the buttons to refer to
+the module's state.
+
+*/

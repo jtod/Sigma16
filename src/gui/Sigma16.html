@@ -119,7 +119,6 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="ModulesPane">
 	      <div class="PaneButtons">
-		<button id="MP_New"> New </button>
 		<input type="file" multiple id="FileInput"
 		       name="myfileselector">
                 </input>
@@ -132,7 +131,9 @@ visiting this file in a browser.
 	    <div class="Pane" id="EditorPane">
 	      <div class="PaneButtons">
 		<button id="EDP_Clear"> Clear </button>
-		<button id="EDP_New"> New </button>
+		<button id="EDP_New_asm"> New assembly source </button>
+		<button id="EDP_New_obj"> New object module </button>
+		<button id="EDP_New_link"> New link commands </button>
 		<button id="EDP_Hello_World"> Hello, world! </button>
                 <button id="EDP_Save"> Save in download folder </button>
 		<a download="S16DownloadFile.txt"
@@ -160,12 +161,11 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
-                <button id="LP_Show_Object"> Show object </button>
                 <button id="LP_Read_Object"> Read object </button>
-		<button id="LP_Read_Modules"> Read modules </button>
 		<button id="LP_Link"> Link </button>
-		<button id="LP_Boot"> Boot </button>
+                <button id="LP_Show_Object"> Show object </button>
                 <button id="LP_Show_Metadata"> Show metadata </button>
+		<button id="LP_Boot"> Boot </button>
 	      </div>
 	      <div class="PaneBody" id="LinkerBody">
 	        <div class="HighlightedTextAsHtml" id="LinkerBody">

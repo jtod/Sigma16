@@ -1,6 +1,5 @@
 ; ArrayMax - find maximum element of an array
-; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
-; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+; This file is part of Sigma16.  See Sigma16/README.md
 
 ;---------------------------------------------------------------------
 ; The program finds the maximum element of an array.  It is given

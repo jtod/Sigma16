@@ -58,9 +58,9 @@ In addition to the basic web page version of Sigma16, there is a
 collection of separate programs that can be run in a shwll from the
 command line.  *(These are under development and will be released in
 late 2020; please come back later.)* These programs include a
-standalone version of the IDE, circuit simulator, and more.  These
-tools provide additional functionality, faster execution, and the
-ability to work without access to the Internet.
+standalone version of the IDE, fast emulator, circuit simulator, and
+more.  These tools provide additional functionality, faster execution,
+and the ability to work without access to the Internet.
 
 ## About the software
 

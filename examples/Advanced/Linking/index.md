@@ -22,6 +22,9 @@ index.md is the source for the index of this examples directory
 
 # Linking examples
 
+* [MyProg.lnk.txt](MyProg.lnk.txt) linker commands to produce
+  executable MyProg from the object modules Mod1, Mod2, and Mod3
+
 * [Mod1.asm.txt](Mod1.asm.txt) a main program that imports from Mod2
   and Mod3
 
