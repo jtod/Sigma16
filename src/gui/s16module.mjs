@@ -18,26 +18,12 @@
 // module.mjs defines the representation of source and object modules
 //-------------------------------------------------------------------------------
 
-import * as fs from "fs";
+// import * as fs from "fs";
 import * as com from './common.mjs';
 
-// Function invocation by gui controls in Module pane:
-//   Choose Files button starts file chooser, its event calls 
-//   MP_Refresh: refreshModulesList)
-
-//------------------------------------------------------------------------------
-// Representation of a module
-//------------------------------------------------------------------------------
-
-
-// A module may contain
-//   - AsmInfo: assembly language source and information collected by assembler
-//   - ObjInfo: object language source and information collected by linker
-//   - LinkInfo: commands for the linker
-
-// The text of a module may come from
-//   - a file
-//   - the editor pane
+// Interface
+//   Modules: Choose Files button -- "change" event calls handleSelectedFiles
+//   Modules: Refresh button -- refreshModulesList
 
 //------------------------------------------------------------------------------
 // Set of modules
@@ -50,17 +36,17 @@ import * as com from './common.mjs';
 
 export let s16modules = new Map ();
 export let selectedModule;
+export let modGensym = 0;
 
 // Create and select an initial module
 
 export function initModules () {
+    com.mode.trace = true;
     com.mode.devlog ("initModules");
     let m = new s16module (AsmModule);
     refreshEditorBuffer();
     refreshModulesList();
 }
-
-// Get the full data structure for the current module
 
 export function getCurrentModule () {
     return s16modules.get (selectedModule);
@@ -70,6 +56,11 @@ export function getCurrentModule () {
 // Representation of a module
 //------------------------------------------------------------------------------
 
+// A module may come from either a file or the editor pane, and may contain
+//   - AsmInfo: assembly language source and information collected by assembler
+//   - ObjInfo: object language source and information collected by linker
+//   - LinkInfo: commands for the linker
+
 // Each module has a moduleType indicating whether it originates from
 // the assembler, from reading in an object module, etc.  The type is
 // determined by the user's choice of command or from the filename (if
@@ -78,21 +69,26 @@ export function getCurrentModule () {
 
 export const AsmModule = Symbol ("");  // assembly source, may have object
 export const ObjModule = Symbol ("");  // object only
-export const LnkModule = Symbol ("");  // commands for linking
+export const LinkModule = Symbol ("");  // commands for linking
 
 function showModType (t) {
-    return t === ModAsm ? "Assembly language"
-        : t === ModObj ? "Object code"
-        : t === ModLink ? "Linker commands"
+    return t === AsmModule ? "Asm"
+        : t === ObjModule ? "Obj"
+        : t === LinkModule ? "Link"
         : "module type is unknown"
 }
 
+
+let modcount = 100;
+
 export class s16module {
     constructor (modType) {
+        console.log (`new s16module modType=${showModType(modType)}`)
         const s = Symbol ("");         // the key to this module in s16modules
         s16modules.set (s, this);   // record this module in the set
         selectedModule = s;         // select the module as it's created
         this.sym = s;                  // make the key available, given module
+        this.idNumber = modGensym++;
         this.type = modType;           // implies what to do with the text
         this.text = "";                // raw source text
         this.file = null;
@@ -100,7 +96,12 @@ export class s16module {
         this.fileReadComplete = false;
         this.asmInfo = null;           // to be filled in by assembler
         this.objInfo = null;           // to be filled in by linker
-        return s;
+        this.selectId = `select_${this.idNumber}`;
+        this.refreshId = `refresh_${this.idNumber}`;
+        this.closeId = `close_${this.idNumber}`;
+        this.selectButton = `<button id='${this.selectId}'>Select</button>`;
+        this.refreshButton = `<button id='${this.refreshId}'>Refresh</button>`;
+        this.closeButton = `<button id='${this.closeId}'>Close</button>`;
     }
     show () {
         return "module"
@@ -108,10 +109,23 @@ export class s16module {
                 + this.text
     }
     refresh () {
-        
+        console.log (`refresh`);
+        console.log (this.file.fname);
     }
 }
+    
+function modSelect (x) {
+    selectedModule = x.sym;
+    refreshModulesList ();
+}
 
+function modRefresh (x) {
+    console.log ("refresh");
+}
+
+function modClose (x) {
+    console.log ("close");
+}
 
 //------------------------------------------------------------------------------
 // Files
@@ -242,26 +256,28 @@ export function prepareChooseFiles () {
 // each file
 
 export function handleSelectedFiles (flist) {
-    for (f of flist) {
-        console.log (`handleSelectedFiles fname=${f.fname}`);
+    console.log (`handleSelectedFiles filst size = ${flist.length}`);
+    for (let f of flist) {
+        console.log (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
         let type = AsmModule;  // should calculate based on filename ???????????
         let m = new s16module (type);
         m.file = f;
 	m.fileReader = mkReader (m);
         m.fileReadComplete = false;
-	m.fileReader.readAsText ();
+	m.fileReader.readAsText (f);
     }
 }
 
 function mkReader (m) {
     let fr = new FileReader();
-    com.mode.devlog (`Creating file reader ${m.file.fname}`);
+    com.mode.devlog (`Creating file reader ${m.file.name}`);
     fr.onload = function (e) {
-	com.mode.devlog (`File reader ${m.file.fname} onload event`);
+	com.mode.devlog (`File reader ${m.file.name} onload event starting`);
         m.text = e.target.result;
         console.log (m.text);
         m.fileReadComplete = true;
         refreshWhenReadsFinished (m); // if all files are in, then refresh
+	com.mode.devlog (`File reader ${m.file.name} onload event finished`);
     }
     fr.onerror = function (e) {
         console.log (`Error: could not read file ${m.file.fname}`
@@ -276,8 +292,10 @@ function mkReader (m) {
 // refresh the modules list.  The refresh should be called just one
 // time.
 
-function refreshWhenReadsFinished  (m,i) {
-    com.mode.devlog (`checkAllReadsFinished ${i}`);
+function refreshWhenReadsFinished  (m) {
+    com.mode.devlog (`refreshWhenReadsFinished`);
+    console.log ("doing nothing, returning");
+    return;
     let allOK = true;
     let a = m.firstNewMod;
     let b = m.lasttNewMod;
@@ -311,16 +329,59 @@ let buttonPrefixNumber = 0;
 export function refreshModulesList() {
     com.mode.devlog ('refreshModulesList');
     let xs, ys = "\n<hr>";
-    let m, sel, spanClass, mName, fName, mfName;
+    ys += `<br>${s16modules.size} modules<br><hr><br>`;
+    let sel, spanClass, mName, fName, mfName;
+    for (let x of s16modules.values()) {
+	let spanClass = x.sym===selectedModule
+            ? " class='SELECTEDFILE'"
+            : " class='UNSELECTEDFILE'";
+        let fileInfo = x.file ? `${x.file.name}, ${x.file.size} bytes.`
+            : "<no file>";
+	xs = `&nbsp;`
+            + `<span ${spanClass}>`
+            + `${fileInfo}  ${showModType(x.type)}`
+            + "</span>"
+            + ` ${x.selectButton} ${x.refreshButton} ${x.closeButton}`
+            + '<br><pre>'
+            + x.text.split('\n').slice(0,8).join('\n')
+	    + '</pre>\n\n'
+            + '<hr>\n';
+        ys += xs;
+    }
+//    ys += '<br><hr><br>';
+    let elt = document.getElementById('FilesBody');
+    elt.innerHTML = ys;
+    console.log (ys);
+    for (let x of s16modules.values()) {
+        document.getElementById(x.selectId)
+            .addEventListener("click",
+                              event => {console.log(`${x.selectId}`);
+                                        modSelect(x);
+                                        });
+        document.getElementById(x.refreshId)
+            .addEventListener("click",
+                              event => {console.log(`${x.refreshId}`);
+                                        modRefresh(x);
+                                        });
+        document.getElementById(x.closeId)
+            .addEventListener("click",
+                              event => {console.log(`${x.closeId}`);
+//                                        modClose(x);
+                                        });
+    }
+    
+    console.log ("refreshModulesList returning");
+    return;
+
+    // here is the old stuff...
+
     let selButton;
     for (let i=0; i<s16modules.length; i++) {
-	m = s16modules[i];
-        let ma = m.asmInfo;
+
         mfName = getModFileName (m);
 	sel = selectedModule===i;
-	spanClass = sel ? " class='SELECTEDFILE'" : " class='UNSELECTEDFILE'";
+
         let temp1 = 2;
-	ys += `&nbsp;`;
         let temp2 = 2;
         let buttonIdSuffix = `Mod${i}`; // will it work if close?
         com.mode.devlog (`buttonIdSuffix=${buttonIdSuffix}`);
@@ -330,7 +391,6 @@ export function refreshModulesList() {
         com.mode.devlog (`selButtonElt = ${selButtonElt}`);
         com.mode.devlog (`refreshModulesList buttonIdPrefix=${buttonIdSuffix}`);
 	ys += `&nbsp;`
-	    +`<span${spanClass}>${i}${(sel ? '* ' : '  ')}. ${mfName}</span>`
 //	    + `<button onclick="modulesButtonSelect(${i})">Select</button>`
 //	    + `<button id="modulesButtonSelect${buttonIdSuffix}`>Select</button>
             + selButtonElt
@@ -338,15 +398,10 @@ export function refreshModulesList() {
             + ( m.mFile
                 ? `<button onclick="modulesButtonRefresh(${i})">Refresh</button>`
                 : "")
-            + `<br>${showModType(m.modType)}`
             + "  "
             + (m.objIsExecutable ? "executable" : "not executable")
-	    + '<br><pre>'
             + (m.fileStale ? "<br>Modified, needs to be saved<br>" : "<br>")
         //	    + ma.modSrc.split('\n').slice(0,8).join('\n') // deprecated
-            + m.modText.split('\n').slice(0,8).join('\n')
-	    + '</pre>\n\n'
-            + '<hr>\n';
 
     };
     // Need to add the buttons to the document object ???????
@@ -356,11 +411,7 @@ export function refreshModulesList() {
 //            com.mode.devlog (`clicked (event listener): ${selButton}`);
 //        });
 
-    ys += `<br>${s16modules.length} modules\n`
-    ys += `<br>module #${selectedModule} currently selected\n`;
-    ys += '<br><hr><br>';
-    let elt = document.getElementById('FilesBody');
-    elt.innerHTML = ys;
+    ys += `<br>module selectedModule currently selected\n`;
 }
 //            +  `nAsmErrors=${ma.nAsmErrors} isExecutable=${m.isExecutable}`
 //            + `<br>TEMP mIndex=${m.mIndex}`
@@ -372,10 +423,11 @@ export function refreshModulesList() {
 // update the editor buffer
 
 function refreshEditorBuffer () {
-    com.mode.devlog (`refreshEditorBuffer selectedModule=${selectedModule}`);
-    let m = s16modules.get (selectedModule);
-    let ma = m.asmInfo;
-    document.getElementById("EditorTextArea").value = m.modText; // deprecated
+    com.mode.devlog (`refreshEditorBuffer`);
+    com.mode.devlog (`doing nothing`);
+//    let m = s16modules.get (selectedModule);
+//     let ma = m.asmInfo; ?????
+//    document.getElementById("EditorTextArea").value = m.modText; // deprecated
 }
 
 function modulesButtonSelect (i) {
@@ -585,3 +637,28 @@ kept in a field within the module, allowing the buttons to refer to
 the module's state.
 
 */
+/* old version
+function refreshWhenReadsFinished  (m) {
+    com.mode.devlog (`refreshWhenReadsFinished`);
+    let allOK = true;
+    let a = m.firstNewMod;
+    let b = m.lasttNewMod;
+    for (let j=a; j<=b; j++) {
+        com.mode.devlog (`refreshWhen i=${i} j=${j}`);
+            allOK = allOK && s16modules[j].fileReadComplete;
+            com.mode.devlog (`check finished loop aok=${allOK} i=${i} j=${j}`);
+        }
+        com.mode.devlog (`check finished loop DONE aok=${allOK} i=${i}`);
+        if (allOK) {
+            com.mode.devlog (`check finished calling refresh i=${i}`);
+            //            selectedModule = i;
+            selectedModule = m.selectWhenReadsFinished;
+            refreshEditorBuffer();
+            refreshModulesList() // do after all files are in
+        } else {
+            com.mode.devlog (`mkOfReader onload NOT calling refresh i${i}`);
+        }
+    com.mode.devlog (`checkAllReadsFinished returning ${i}`);
+}
+*/
+
