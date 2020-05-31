@@ -41,6 +41,55 @@ let objBufferLimit = 16;             // how many code items to allow per line
 let objectWordBuffer = [];          // list of object code words
 let relocationAddressBuffer = [];   // list of relocation addresses
 
+
+
+
+
+//-----------------------------------------------------------------------------
+// Assembly language state: m.asmInfo
+//-----------------------------------------------------------------------------
+
+
+export function mkModuleAsm () {
+    com.mode.devlog("mkModuleAsm");
+    return {
+	modName : "anon",       // name of module specified in module stmt
+        asmSrcLines : [],
+	asmStmt : [],               // statements correspond to lines of source
+	symbols : [],              // symbols used in the source
+	symbolTable : new Map (),  // symbol table
+	locationCounter : 0,       // address where next code will be placed
+	asmListingPlain : [],      // assembler listing
+	asmListingDec : [],        // decorated assembler listing
+	objectCode : [],           // string hex representation of object
+        metadata : [],             // lines of metadata code
+        asArrMap : [],             // address-sourceline map
+        exports : [],              // list of exported identifiers
+        modAsmOK : false, // deprecated, use nAsmErrors===0
+	nAsmErrors : 0             // number of errors in assembly source code
+    }
+}
+
+/* do this soon was in s16modules
+export class AsmInfo {
+    constructor (xs) {
+        this.asmText = xs;
+        this.modName = null;
+        this.asmSrcLines = [];
+        this.symbols = [];
+        this.symbolTable = new Map ();
+        this.locationCounter = 0;
+        this.asmListingPlain = [];
+        this.asmListingDec = [];
+        this.objectCode = [];
+        this.metadata = [];
+        this.asArrMap = [];
+        this.exports = [];
+        this.nAsmErrors = [];
+    }
+}
+*/
+
 //-----------------------------------------------------------------------------
 // Character set
 //-----------------------------------------------------------------------------

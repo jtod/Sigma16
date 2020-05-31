@@ -37,6 +37,25 @@ let curAsmap = [];
 //-----------------------------------------------------------------------------
 // See s16module.mjs
 
+
+//-------------------------------------------------------------------------------
+// Object code state: m.objInfo
+//-------------------------------------------------------------------------------
+
+export class ObjectModule {
+    constructor(objLines, mdLines) {
+        this.objectLines = objLines;
+        this.metadataLines = mdLines;
+        this.name = "anonymous";
+        this.imports = [];
+        this.exports = [];
+        this.origin = 0;
+        this.size = 0;
+        this.last = 0;
+    }
+}
+
+
 // A Block is a sequence of words in adjacent memory locations.  The
 // functional argument f emits the next word of object code.
 /*
