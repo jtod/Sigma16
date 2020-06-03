@@ -31,15 +31,16 @@ import * as link from './linker.mjs';
 import * as em from './emulator.mjs';
 
 //-------------------------------------------------------------------------------
-// Global variables for gui.js
+// Parameters and global variables
 //-------------------------------------------------------------------------------
 
+// probably won't need this
 let globalObject = this; // to enable script in userguide to define glob var
-let myglobalvar = 9876; // can script in userguide see this?
 
 let fileContents = "file not read yet"
 
 // Persistent variables given values by initialize_mid_main_resizing ()
+
 let windowWidth;     // inner width of entire browser window
 let middleSection;  // the middle section of the window; set in onload
 let midMainLeft;     // mid-main-left; set in onload
@@ -47,12 +48,120 @@ let midMainRight;     // mid-main-right; set in onload, not used anywhere
 let midLRratio = 0.6;  // width of midMainLeft / midMainRight; set in onLoad
 let midSecExtraWidth = 15;  // width of borders in px
 
-//-----------------------------------------------------------------------------
-// Parameters
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// Dialogues with the user
+//------------------------------------------------------------------------------
+
+function modalWarning (msg) {
+    alert (msg);
+}
+
+//------------------------------------------------------------------------------
+// Tabbed panes
+//------------------------------------------------------------------------------
+
+// Symbols identify the panes that can be displayed
+
+export const WelcomePane   = Symbol ("");
+export const ExamplesPane  = Symbol ("");
+export const ModulesPane   = Symbol ("");
+export const EditorPane    = Symbol ("");
+export const AssemblerPane = Symbol ("");
+export const LinkerPane    = Symbol ("");
+export const ProcessorPane = Symbol ("");
+
+// The current pane is displayed; others are hidden
+
+let currentPane = WelcomePane;
+
+// Return the string Id for a Pane symbol; needed for getElementById
+
+function paneIdString (p) {
+    switch (p) {
+    case WelcomePane:    return "WelcomePane";
+    case ExamplesPane:   return "ExamplesPane";
+    case ModulesPane:    return "ModulesPane";
+    case EditorPane:     return "EditorPane";
+    case AssemblerPane:  return "AssemblerPane";
+    case LinkerPane:     return "LinkerPane";
+    case ProcessorPane:  return "ProcessorPane";
+    default:
+        console.log (`paneIdString: bad argument`);
+        return WelcomePane;
+    }
+}
+
+// When the program starts, show the Welcome page and hide the others
+
+function initializePane () {
+    currentPane = WelcomePane;
+    let f = (p,x) => document.getElementById(paneIdString(p)).style.display = x;
+    f (WelcomePane, "block");
+    f (ExamplesPane, "none");
+    f (ModulesPane, "none");
+    f (EditorPane, "none");
+    f (AssemblerPane, "none");
+    f (LinkerPane, "none");
+    f (ProcessorPane, "none");
+}
+
+// Leave the current pane and switch to p; run showInitializer if the
+// pane has one
+
+export function showPane (p) {
+    finalizeLeaveCurrentPane ();
+    currentPane = p;
+    switch (currentPane) {
+    case WelcomePane:
+        break;
+    case ExamplesPane: ;
+        break;
+    case ModulesPane: ;
+        smod.refreshModulesList ();
+        break;
+    case EditorPane:
+        break;
+    case AssemblerPane:
+        asm.enterAssembler ();
+        break;
+    case LinkerPane:
+        break;
+    case ProcessorPane:
+        break;
+    }
+    document.getElementById(paneIdString(p)).style.display = "block";
+    com.mode.devlog(`Show ${paneIdString(p)}`);
+}
+
+// Some panes need a finalizer to save state when hidden.  This
+// function provides a systematic way to provide a finalizer; most
+// panes don't need a finalizer this function provides future-proofing
+
+export function finalizeLeaveCurrentPane () {
+    com.mode.devlog (`Leave ${paneIdString(currentPane)}`);
+    switch (currentPane) {
+    case WelcomePane:
+        break;
+    case ExamplesPane: ;
+        break;
+    case ModulesPane: ;
+        break;
+    case EditorPane:
+        ed.leaveEditor ();
+        break;
+    case AssemblerPane:
+        break;
+    case LinkerPane:
+        break;
+    case ProcessorPane:
+        break;
+    }
+    document.getElementById(paneIdString(currentPane)).style.display = "none";
+}
+
 
 //-------------------------------------------------------------------------------
-// Debug and test tools
+// Debug, testing, and experiments
 //-------------------------------------------------------------------------------
 
 // Each field controls debug/test output for one aspect of the
@@ -65,8 +174,6 @@ let developer = {
     files : null,   // give full file information in Modules list
     assembler : null
 }
-
-
 
 function makeTextFile (text) {
     let data = new Blob([text], {type: 'text/plain'});
@@ -82,12 +189,6 @@ function makeTextFile (text) {
     return textFile;
 }
 
-
-
-//-------------------------------------------------------------------------------
-// Experiments and testing
-//-------------------------------------------------------------------------------
-
 function jumpToAnchorInGuide () {
     com.mode.devlog ("jumpToAnchorInGuide");
     let anchor = "#how-to-run-the-program";
@@ -96,7 +197,6 @@ function jumpToAnchorInGuide () {
     com.mode.devlog (`anchor = ${anchor} elt=${elthtml}`);
     elthtml.location.hash = anchor;
 }
-
 
 function tryfoobar () {
 /* Try to make button go to a point in the user guide */
@@ -177,23 +277,23 @@ function editorButton1() {
 //------------------------------------------------------------------------------
 
 // Connect a button in the html with its corresponding function
+
 function prepareButton (bid,fcn) {
     com.mode.devlog (`prepare button ${bid}`);
     document.getElementById(bid)
         .addEventListener('click', event => {fcn()});
 }
 
-
 // Pane buttons
-prepareButton ('Welcome_Pane_Button',   f_welcome_pane_button);
-prepareButton ('Examples_Pane_Button',  f_examples_pane_button);
-prepareButton ('Modules_Pane_Button',   f_modules_pane_button);
-prepareButton ('Editor_Pane_Button',    f_editor_pane_button);
-prepareButton ('Assembler_Pane_Button', f_assembler_pane_button);
-prepareButton ('Linker_Pane_Button',    f_linker_pane_button);
-prepareButton ('Processor_Pane_Button', f_processor_pane_button);
-prepareButton ('About_Button',         () => jumpToGuideSection('about-sigma16'));  
 
+prepareButton ('Welcome_Pane_Button',   () => showPane(WelcomePane));
+prepareButton ('Examples_Pane_Button',  () => showPane(ExamplesPane));
+prepareButton ('Modules_Pane_Button',   () => showPane(ModulesPane));
+prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
+prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
+prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
+prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
+prepareButton ('About_Button',         () => jumpToGuideSection('about-sigma16'));  
 
 // User guide resize (UGR) buttons
 // UGR Distance (px) to move boundary between gui and userguide on resize
@@ -265,101 +365,6 @@ prepareButton ("BreakEnable", em.breakEnable(em.emulatorState));
 prepareButton ("BreakDisable", em.breakDisable(em.emulatorState));
 prepareButton ("BreakClose", em.breakClose());
 */
-
-
-//------------------------------------------------------------------------------
-// Dialogues with the user
-//------------------------------------------------------------------------------
-
-function modalWarning (msg) {
-    alert (msg);
-}
-
-//------------------------------------------------------------------------------
-// Tabbed panes
-//------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------
-// Top level tab buttons control which pane is visible and active
-//-------------------------------------------------------------------------------
-
-export function hideTabbedPane(paneId) {
-//    console.log("hiding tabbed pane " + paneId);
-    document.getElementById(paneId).style.display = "none";
-}
-
-export function hideAllTabbedPanes() {
-    hideTabbedPane("WelcomePane");
-    hideTabbedPane("ExamplesPane");
-    hideTabbedPane("ModulesPane");
-    hideTabbedPane("EditorPane");
-    hideTabbedPane("AssemblerPane");
-    hideTabbedPane("LinkerPane");
-    hideTabbedPane("ProcessorPane");
-    hideTabbedPane("TestPane");
-}
-
-//    ed.leaveEditor(); // will also hide editor pane  kills asm/lnk
-
-export function showTabbedPane(paneId) {
-    com.mode.devlog("showing tabbed pane " + paneId);
-    hideAllTabbedPanes();
-    document.getElementById(paneId).style.display = "block";
-    com.mode.devlog("Now on tabbed pane " + paneId);
-}
-
-export function f_welcome_pane_button() {
-    com.mode.devlog("welcome_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("WelcomePane");
-}
-
-
-function f_examples_pane_button() {
-    com.mode.devlog("examples_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("ExamplesPane");
-}
-export function f_modules_pane_button() {
-    com.mode.devlog("modules_pane_button clicked")
-    hideAllTabbedPanes();
-    smod.refreshModulesList();
-    showTabbedPane("ModulesPane");
-}
-
-export function f_editor_pane_button() {
-//    console.log("editor_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("EditorPane");
-}
-
-export function f_assembler_pane_button() {
-    com.mode.devlog("assembler_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("AssemblerPane");
-    com.mode.devlog("f assembler_pane_button returning")
-}
-
-export function f_linker_pane_button() {
-//    com.mode.devlog("linker_pane_button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("LinkerPane");
-}
-
-export function f_processor_pane_button() {
-//    com.mode.devlog("processor_pane button clicked")
-    hideAllTabbedPanes();
-    showTabbedPane("ProcessorPane");
-}
-
-
-export function f_userman_pane_button() {
-    com.mode.devlog("userman_pane_button clicked")
-}
-
-
-
-
 
 
 
@@ -641,10 +646,7 @@ window.onload = function () {
     setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
     showSizeParameters();
     adjustToMidMainLRratio();
-
-
-    //    showTabbedPane("WelcomePane");
-        showTabbedPane("ProcessorPane");
+    initializePane ();
     com.mode.devlog("Initialization complete");
 }
 
@@ -682,3 +684,97 @@ function f_about_button () {
 
 
  */
+
+// deprecated
+// export function hideTabbedPane (p) {
+//     console.log(`hide tabbed pane " + ${paneIdString(p)}`);
+//     document.getElementById(paneIdString(p)).style.display = "none";
+//}
+
+/*
+// deprecated, shouldn't need this
+export function hideAllTabbedPanes() {
+    hideTabbedPane("WelcomePane");
+    hideTabbedPane("ExamplesPane");
+    hideTabbedPane("ModulesPane");
+    hideTabbedPane("EditorPane");
+    hideTabbedPane("AssemblerPane");
+    hideTabbedPane("LinkerPane");
+    hideTabbedPane("ProcessorPane");
+    hideTabbedPane("TestPane");
+}
+*/
+
+//    ed.leaveEditor(); // will also hide editor pane  kills asm/lnk
+
+
+/* deprecated
+export function f_welcome_pane_button() {
+    com.mode.devlog("welcome_pane_button clicked")
+    finalizeLeaveCurrentPane ();
+    hideAllTabbedPanes();
+    showTabbedPane("WelcomePane");
+}
+
+
+function f_examples_pane_button() {
+    finalizeLeaveCurrentPane ();
+    com.mode.devlog("examples_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("ExamplesPane");
+}
+export function f_modules_pane_button() {
+    finalizeLeaveCurrentPane ();
+    com.mode.devlog("modules_pane_button clicked")
+    hideAllTabbedPanes();
+    smod.refreshModulesList();
+    showTabbedPane("ModulesPane");
+}
+
+export function f_editor_pane_button() {
+    finalizeLeaveCurrentPane ();
+//    console.log("editor_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("EditorPane");
+}
+
+export function f_assembler_pane_button() {
+    finalizeLeaveCurrentPane ();
+    com.mode.devlog("assembler_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("AssemblerPane");
+    com.mode.devlog("f assembler_pane_button returning")
+}
+
+export function f_linker_pane_button() {
+    finalizeLeaveCurrentPane ();
+//    com.mode.devlog("linker_pane_button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("LinkerPane");
+}
+
+export function f_processor_pane_button() {
+    finalizeLeaveCurrentPane ();
+//    com.mode.devlog("processor_pane button clicked")
+    hideAllTabbedPanes();
+    showTabbedPane("ProcessorPane");
+}
+
+
+export function f_userman_pane_button() {
+    com.mode.devlog("userman_pane_button clicked")
+}
+
+
+*/
+
+
+/* deprecated
+prepareButton ('Examples_Pane_Button',  f_examples_pane_button);
+prepareButton ('Modules_Pane_Button',   f_modules_pane_button);
+prepareButton ('Editor_Pane_Button',    f_editor_pane_button);
+prepareButton ('Assembler_Pane_Button', f_assembler_pane_button);
+prepareButton ('Linker_Pane_Button',    f_linker_pane_button);
+prepareButton ('Processor_Pane_Button', f_processor_pane_button);
+*/
+

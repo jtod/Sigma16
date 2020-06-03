@@ -194,7 +194,8 @@ function obtainObjectCode (es, m) {
 export function boot (es) {
     com.mode.devlog ("boot");
     memClearAccesses ();
-    let m = smod.s16modules[smod.selectedModule]; // get current module
+    let m = smod.getSelectedModule (); //
+      // s16modules[smod.selectedModule]; // get current module
     let objectCode = obtainObjectCode (es, m);
     let xs = "";
     let fields = null;

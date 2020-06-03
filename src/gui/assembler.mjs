@@ -42,8 +42,17 @@ let objectWordBuffer = [];          // list of object code words
 let relocationAddressBuffer = [];   // list of relocation addresses
 
 
+// When Assembler pane is entered, if an AsmInfo doesn't exist then
+// create one and insert it into the current module.  Copy the text of
+// the current module into the AsmInfo.
 
-
+export function enterAssembler () {
+    let m = smod.getSelectedModule ();
+    if (!m.asmInfo) {
+        m.asmInfo = mkModuleAsm ();
+    }
+    m.asmInfo.asmSrcLines = m.text.split('\n');
+}
 
 //-----------------------------------------------------------------------------
 // Assembly language state: m.asmInfo
@@ -54,6 +63,7 @@ export function mkModuleAsm () {
     com.mode.devlog("mkModuleAsm");
     return {
 	modName : "anon",       // name of module specified in module stmt
+        text : "",                 // raw source text
         asmSrcLines : [],
 	asmStmt : [],               // statements correspond to lines of source
 	symbols : [],              // symbols used in the source
@@ -451,29 +461,35 @@ function mkErrMsg (ma,s,err) {
 
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
-    let m = smod.s16modules[smod.selectedModule];
-    document.getElementById('AsmTextHtml').innerHTML = "";
-    document.getElementById('ProcAsmListing').innerHTML = "";
-    com.clearObjectCode ();
-    let ma = m.asmInfo;
-    ma.asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
-    assembler (ma);
+    let m = smod.getSelectedModule ();
+    m.asmInfo = mkModuleAsm ();
+    m.asmInfo.text = m.text;
+    document.getElementById('AsmTextHtml').innerHTML = ""; // clear text in asm
+    document.getElementById('ProcAsmListing').innerHTML = ""; // clear text in proc
+    com.clearObjectCode (); // clear text in linker pane
+    assembler (m);
     setAsmListing (m);
-    if (ma.nAsmErrors > 0) {
+    if (m.asmInfo.nAsmErrors > 0) {
         document.getElementById('ProcAsmListing').innerHTML = "";
     }
 }
+//    if (ma.nAsmErrors > 0) {
+//    let ma = m.asmInfo;
+//    ma.asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
     
 // Interface to assembler for use in the CLI
 
 export function assemblerCLI (src) {
     com.mode.devlog ("assemblerCLI starting");
-    let src2 = removeCR (src);
-    let badlocs = validateChars (src2);
-    com.mode.devlog (`validate chars: badlocs=${badlocs}`);
-    let ma = smod.mkModuleAsm ();
-    ma.asmSrcLines = src2.split("\n");
-    assembler (ma);
+    let m = new s16module (AsmModule);
+    m.text = src;
+    m.asmInfo = smod.mkModuleAsm ();
+    m.asmInfo.text = m.text;
+//    let src2 = removeCR (src);
+//    let badlocs = validateChars (src2);
+//    com.mode.devlog (`validate chars: badlocs=${badlocs}`);
+//    ma.asmSrcLines = src2.split("\n");
+    assembler (m);
     return ma;
  }
 
@@ -488,8 +504,14 @@ export function assemblerCLI (src) {
 // ma.asmSrcLines contains array of lines of source code Result:
 // define the fields in ma
 
-export function assembler (ma) {
+export function assembler (m) {
+    let ma = m.asmInfo;
+    let src = ma.text;
+    let src2 = removeCR (src);
+//    let badlocs = validateChars (src2);
+    ma.asmSrcLines = src2.split("\n");
     com.mode.devlog (`assembler nloc=${ma.asmSrcLines.length}`);
+
     ma.modName = null;
     ma.nAsmErrors = 0;
     ma.asmStmt = [];
@@ -523,6 +545,7 @@ export function assembler (ma) {
     displaySymbolTableHtml(ma);
     ma.asmListingPlain.push("</pre>");
     ma.asmListingDec.push("</pre>");
+//    m.objInfo = new ObjectModule (objLines, mdLines);
 }
 
 //-----------------------------------------------------------------------------
@@ -947,6 +970,8 @@ function asmPass1 (ma) {
         com.mode.devlog (`$$$ pass 1 i=${i}... stmt =...`);
         showAsmStmt(s);
         let badCharLocs = validateChars (ma.asmSrcLines[i]);
+        com.mode.devlog (`validate chars: badCharLocs=${badCharLocs}`);
+
         if (badCharLocs.length > 0) {
             mkErrMsg (ma,s,`Invalid character at position ${badCharLocs}`);
             mkErrMsg (ma,s, "See User Guide for list of valid characters");
@@ -1460,20 +1485,20 @@ export function showAsMap (x) {
 
 export function setAsmListing () {
     com.mode.devlog ("setAsmListing");
-    let listingDec = smod.getCurrentModule().asmInfo.asmListingDec;
+    let listingDec = smod.getSelectedModule().asmInfo.asmListingDec;
     let listing = listingDec ? listingDec.join('\n') : 'no listing';
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
 export function setObjectListing () {
-    let code = smod.getCurrentModule().asmInfo.objectCode;
+    let code = smod.getSelectedModule().asmInfo.objectCode;
     let codeText = code ? code.join('<br>') : 'no code';
     let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
 export function setMetadata () {
-    let code = smod.getCurrentModule().asmInfo.metadata;
+    let code = smod.getSelectedModule().asmInfo.metadata;
     let codeText = code ? code.join('<br>') : 'no code';
     let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;

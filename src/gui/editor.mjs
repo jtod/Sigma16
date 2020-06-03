@@ -25,6 +25,12 @@ import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
 
+// In a browser, the CORS restrictions make it impossible to do a
+// general file "Save As..." operation.  Instead, the user can
+// "Download" which allows them to decide where to save a file, and
+// what filename to use.  The default is to save the file in the
+// default Downloads folder.
+
 export function editorDownload () {
     console.log ("editorPrepareDownload");
     let downloadElt = document.getElementById("editorDownloadAnchor");
@@ -40,6 +46,52 @@ export function editorDownload () {
 // Therefore we convert the old and new source into an array of lines
 // and compare those arrays.
 
+// Copy the contents of the editor buffer to the selected module text.
+// This is the normal action when leaving the Editor page
+
+export function copyEditorBufferToModule () {
+    console.log ("copyEditorBufferToModule");
+    let m = smod.getSelectedModule();
+    m.text = document.getElementById("EditorTextArea").value;
+}
+
+// Check to see if the contents of the editor buffer have changed
+
+export function leaveEditor () {
+    console.log ('Leaving the editor');
+    copyEditorBufferToModule ();
+//    console.log (`leave editor ${smod.selectedModule}`);
+//    let m = smod.s16modules[smod.selectedModule];
+//    let baz = smod.s16modules ? "yes" : "no";
+//    let foobar = m ? "yes" : "no";
+//    console.log (`leave editor len moduels = ${smod.s16modules.length}`);
+//    console.log (`leave editor baz ${baz}`);
+//    console.log (`leave editor foobar ${foobar}`);
+    
+//    let ma = m.asmInfo;
+//    if (m) {
+//        let oldSrc = ma.modSrc;
+//        let oldSrcCanonical = oldSrc.replace (/\r\n/gm, '\n');
+//        let newSrc = document.getElementById("EditorTextArea").value;
+//        let newSrcCanonical = newSrc.replace (/\r\n/gm, '\n');
+//        if (m.mFile && (oldSrcCanonical != newSrcCanonical)) {
+//            m.fileStale = true;
+//        }
+//        ma.modSrc = newSrc;
+//        let srcHead = ma.modSrc.split('\n').slice(0,4).join('\n');
+//        console.log (`leaving editor, src=${srcHead}`);
+//    } else {
+//        console.log ("leaving editor, don't have module")
+//    }
+//    hideTabbedPane("EditorPane");
+}
+
+
+export function editorClear () {
+    document.getElementById('EditorTextArea').value = "";
+}
+
+/* old version
 export function leaveEditor () {
     console.log ('Leaving the editor');
     console.log (`leave editor ${smod.selectedModule}`);
@@ -67,7 +119,4 @@ export function leaveEditor () {
     }
 //    hideTabbedPane("EditorPane");
 }
-
-export function editorClear () {
-    document.getElementById('EditorTextArea').value = "";
-}
+*/
