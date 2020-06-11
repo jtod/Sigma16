@@ -72,7 +72,9 @@ export function mkModuleAsm () {
 	asmListingPlain : [],      // assembler listing
 	asmListingDec : [],        // decorated assembler listing
 	objectCode : [],           // string hex representation of object
+        objectText : "",           // object code as single string
         metadata : [],             // lines of metadata code
+        metadataText : "",         // metadata as single string
         asArrMap : [],             // address-sourceline map
         exports : [],              // list of exported identifiers
         modAsmOK : false, // deprecated, use nAsmErrors===0
@@ -462,14 +464,15 @@ function mkErrMsg (ma,s,err) {
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
     let m = smod.getSelectedModule ();
-    m.asmInfo = mkModuleAsm ();
-    m.asmInfo.text = m.text;
+    let ma =  mkModuleAsm ();
+    m.asmInfo = ma;
+    ma.text = m.text;
     document.getElementById('AsmTextHtml').innerHTML = ""; // clear text in asm
     document.getElementById('ProcAsmListing').innerHTML = ""; // clear text in proc
     com.clearObjectCode (); // clear text in linker pane
-    assembler (m);
+    assembler (ma);
     setAsmListing (m);
-    if (m.asmInfo.nAsmErrors > 0) {
+    if (ma.nAsmErrors > 0) {
         document.getElementById('ProcAsmListing').innerHTML = "";
     }
 }
@@ -481,15 +484,9 @@ export function assemblerGUI () {
 
 export function assemblerCLI (src) {
     com.mode.devlog ("assemblerCLI starting");
-    let m = new s16module (AsmModule);
-    m.text = src;
-    m.asmInfo = smod.mkModuleAsm ();
-    m.asmInfo.text = m.text;
-//    let src2 = removeCR (src);
-//    let badlocs = validateChars (src2);
-//    com.mode.devlog (`validate chars: badlocs=${badlocs}`);
-//    ma.asmSrcLines = src2.split("\n");
-    assembler (m);
+    let ma = mkModuleAsm ();
+    ma.text = src;
+    assembler (ma);
     return ma;
  }
 
@@ -504,8 +501,8 @@ export function assemblerCLI (src) {
 // ma.asmSrcLines contains array of lines of source code Result:
 // define the fields in ma
 
-export function assembler (m) {
-    let ma = m.asmInfo;
+export function assembler (ma) {
+//    let ma = m.asmInfo;
     let src = ma.text;
     let src2 = removeCR (src);
 //    let badlocs = validateChars (src2);
@@ -545,7 +542,6 @@ export function assembler (m) {
     displaySymbolTableHtml(ma);
     ma.asmListingPlain.push("</pre>");
     ma.asmListingDec.push("</pre>");
-//    m.objInfo = new ObjectModule (objLines, mdLines);
 }
 
 //-----------------------------------------------------------------------------
@@ -1349,7 +1345,9 @@ function asmPass2 (ma) {
     emitRelocations (ma);
     emitImports (ma);
     emitExports (ma);
+    ma.objectText = ma.objectCode.join("\n");
     emitMetadata (ma);
+    ma.metadataText = ma.metadata.join("\n");
 }
 
 function fixHtmlSymbols (str) {
@@ -1466,11 +1464,9 @@ function emitMetadata (ma) {
     xs = [...ma.asmListingPlain];
     ys = [...ma.asmListingDec];
     ma.metadata.push (`source ${xs.length}`);
-    while (xs.length > 0) {
-        ma.metadata.push (xs.slice (0, NitemsPerLine));
-        ma.metadata.push (ys.slice (0, NitemsPerLine));
-        xs.splice (0, NitemsPerLine);
-        ys.splice (0, NitemsPerLine);
+    for (let i = 0; i < xs.length; i++) {
+        ma.metadata.push(xs[i]);
+        ma.metadata.push(ys[i]);
     }
 }
 

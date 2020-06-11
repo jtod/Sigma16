@@ -43,7 +43,8 @@ export const closingPreTag = /<[^>]*>$/;   // ...</pre> at end
 export function clearObjectCode () {
     let listing = "<pre class='HighlightedTextAsHtml'>"
         + "</pre>"
-    document.getElementById('LinkerText').innerHTML = listing;
+    //    document.getElementById('LinkerText').innerHTML = listing;
+    console.log ("clearObjectCode skipping clear LinkerText");
 }
 
 

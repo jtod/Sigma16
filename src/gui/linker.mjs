@@ -32,21 +32,31 @@ import * as asm from './assembler.mjs';
 // refactor
 let curAsmap = [];
 
-//-----------------------------------------------------------------------------
-// Representation of object module
-//-----------------------------------------------------------------------------
-// See s16module.mjs
-
+// Interface to GUI: button id and function
+//   LP_Read_Object     getLinkerModules
+//   LP_Link            linkGUI
+//   LP_Show_Object     linkShowExeObject
+//   LP_Show_Metadata   linkShowExeMetadata
+//   LP_Boot            em.boot (st_emulatorState)
 
 //-------------------------------------------------------------------------------
-// Object code state: m.objInfo
+// Object module
 //-------------------------------------------------------------------------------
+
+// The linker collects information about each module being linked in
+// an ObjectModule.  getObjectModules builds a list of all of these,
+// objmod.
 
 export class ObjectModule {
-    constructor(objLines, mdLines) {
-        this.objectLines = objLines;
-        this.metadataLines = mdLines;
-        this.name = "anonymous";
+    constructor(modname) {
+        this.modname = modname;
+        this.objText = "";
+        this.mdText = "";
+        this.objectLines = [];
+        this.metadataLines = [];
+        this.mdAsMap = [];
+        this.mdAsmListingPlain = [];
+        this.mdAsmListingDec = [];
         this.imports = [];
         this.exports = [];
         this.origin = 0;
@@ -56,47 +66,6 @@ export class ObjectModule {
 }
 
 
-// A Block is a sequence of words in adjacent memory locations.  The
-// functional argument f emits the next word of object code.
-/*
-class Block {
-    constructor(f) {
-        this.startAddr = 0;
-        this.current = 0;
-        this.words = [];
-        this.f = f;
-    }
-    insert(w) {
-        this.words.push(w);
-    }
-    relocate(x) {
-        this.startAddr = x;
-    }
-    emit () {
-        if (this.current < this.words.length) {
-            this.f (this.current+this.startAddr, this.words[this.current]);
-            this.current++;
-        } else {
-            console.log (`emit: out of data`);
-        }
-        return (this.current >= this.words.length);
-    }
-}
-*/
-
-/* Usage
-function fcn (a,w) { console.log (`emit ${a} ${w}`); }
-function testBlock() {
-    let t1 = new Block (fcn);
-    t1.insert(12);
-    t1.insert(34);
-    t1.insert(56);
-    console.log (t1.emit());
-    console.log (t1.emit());
-    console.log (t1.emit());
-    console.log (t1.emit());
-}
-*/
 
 //-------------------------------------------------------------------------------
 // Gui interface to linker
@@ -107,24 +76,100 @@ function testBlock() {
 // the modules to be linked.  These should be given on separate lines,
 // with no white space.
 
+// Finding object/metadata text for a given module basename mbn
+//   Module name: if there is a filename, the extension asm/obj
+//   Search the list of modules for one that matches mbn M
+//   If not found then error
+//     else (m matches basename)
+//        If m.asmInfo exists, obtain obj and md there (error if not found)
+//        
+
+// getLinkerModules takes modlist, a list of base names.  The modlist
+// must have one basename per line; the first entry is the executable
+// and the rest are the modules to link.  It searches the modules
+// list, looks for anything tthat matches one of the modlist, and
+// returns a corresponding array of ObjectModules.
+
 export function getLinkerModules () {
     console.log ('getLinkerModules');
     let modlist = document.getElementById('EditorTextArea').value.split('\n');
-    for (let i = 0; i < smod.s16modules.length; i++) {
-        let m = smod.s16modules[i];
-        let mo = m.objInfo;
-        console.log (`module ${i}$ name=${m.ileName}`);
+    let exeBaseName = modlist[0];
+    let objMod = []; // obj info for the modules in modlist
+    let ys = ""; // output describing object modules
+    if (modlist.length < 3) {
+        let xs = `Error: executable and at least two modules must be specified`;
+        document.getElementById('LinkerBody').innerHTML = xs;
+        return;
     }
-    let xs = "<pre class='HighlightedTextAsHtml'>"
+    let exeMod = null;
+    for (let x of smod.s16modules.values()) { // does exe module exist?
+        if (x.file && x.file.name===`${exeBaseName}.obj.txt`) {
+            exeMod = x;
+        }
+    }
+    if (exeMod===null) {
+        exeMod = new ObjectModule(`${exeBaseName}.ext.txt`);
+    }
+    exeMod.modName = `${exeBaseName}.obj.txt`; // redundant
+    for (let i = 1; i < modlist.length; i++) {
+        let mbn = modlist[i];
+        console.log (`getLinkerModules i=${i} mbn=${mbn}\n`);
+        if (mbn==="") break; // skip blank lines
+        ys += "\n---------------------------------\n";
+        ys += `Moduleaaa ${mbn}\n`;
+        let om = new ObjectModule (mbn);
+        objMod.push (om);
+        for (let x of smod.s16modules.values()) { // does this module match?
+            if (x.file && x.file.name===`${mbn}.asm.txt`) {
+                console.log (`Checking ${mbn}.asm.txt`);
+                if (x.asmInfo && x.asmInfo.nAsmErrors===0) {
+                    let xs = `\nObject from assembler ${mbn}.asm.txt\n`;
+                    console.log (xs);
+                    ys += xs;
+                    om.objText = x.asmInfo.objectText;
+                    ys += "\nObject text:\n" + om.objText + "\n";
+                    om.mdText = x.asmInfo.metadataText;
+                    console.log (om.mdText);
+                    ys += "\nMetadata text:\n" + om.mdText + "\n";
+                } else {
+                    let xs = `\ngetLinkerModules: asm error in ${mbn}\n`;
+                    console.log (xs);
+                    ys += xs;
+                }
+            } else if (x.file && x.file.name===`${mbn}.obj.txt`) {
+                om.objText = x.text;
+                console.log ("4444444444444444444444444444");
+                console.log (om.objText);
+                console.log ("55555555555555555555555555555");
+                let xs = `\nObject from ${mbn}.obj.txt\n` + om.objText;
+                console.log (xs);
+                ys += xs;
+            } else if (x.file && x.file.name===`${mbn}.md.txt`) {
+                om.mdText = x.text;
+                let xs = `\nMetadata from ${mbn}.md.txt\n` + om.mdText;
+                console.log (xs);
+                ys += xs;
+            }
+        }
+    }
+    let zs = "<pre class='HighlightedTextAsHtml'>"
         + "<h3>Summary</h3>"
         + modlist.join("<br>")
-        + "<h3>Modules</h3>"
-        + "</pre>";
-    document.getElementById('LinkerBody').innerHTML = xs;
+        + "<h3>Modules</h3>";
+    for (let om of objMod) {
+        zs += "<hr>";
+        zs += `${om.modname}\n`;
+        zs += "Object code:\n";
+        zs += om.objText;
+        zs += "\n";
+        zs += "Metadata:\n";
+        zs += om.mdText;
+        zs += "\n";
+    }
+    zs += "</pre>";
+    document.getElementById('LinkerBody').innerHTML = zs;
     console.log (modlist);
 }
-
-
 
 // Linker object button
 export function linkShowExeObject () {
@@ -159,14 +204,18 @@ function linkGUI () {
 // with given name.  This can be called by linkGUI or linkCLI.
 
 export function linker (exeName, ms) {
-    console.log (`link ${exeName} from ${ms.length} object modules`);
+    console.log (`link.linker ${exeName} from ${ms.length} object modules`);
     for (let i = 0; i < ms.length; i++) {
-        let m = ms[i];
+        let om = ms[i];
         console.log ("-------------------------------------------");
-        console.log (`Module ${i}`);
-        console.log (`${m.objectLines.length} lines of object code`);
-        console.log (`${m.metadataLines.length} lines of metadata`);
-        console.log (m.objectLines.join("\n"));
+        console.log (`Module ${i} ${om.modname}`);
+        console.log ("\nObject code\n");
+        console.log (om.objText);
+        console.log ("\nMetadata\n");
+        console.log (om.mdText);
+//        console.log (`${m.objectLines.length} lines of object code`);
+//        console.log (`${m.metadataLines.length} lines of metadata`);
+//        console.log (m.objectLines.join("\n"));
     }
 }
 
@@ -229,3 +278,48 @@ function mkObjStmt (i,srcLine,operation,operands) {
     }
 }
 
+
+// ------------------------------------------------------------------------
+// Deprecated from linker
+
+// A Block is a sequence of words in adjacent memory locations.  The
+// functional argument f emits the next word of object code.
+/*
+class Block {
+    constructor(f) {
+        this.startAddr = 0;
+        this.current = 0;
+        this.words = [];
+        this.f = f;
+    }
+    insert(w) {
+        this.words.push(w);
+    }
+    relocate(x) {
+        this.startAddr = x;
+    }
+    emit () {
+        if (this.current < this.words.length) {
+            this.f (this.current+this.startAddr, this.words[this.current]);
+            this.current++;
+        } else {
+            console.log (`emit: out of data`);
+        }
+        return (this.current >= this.words.length);
+    }
+}
+*/
+
+/* Usage
+function fcn (a,w) { console.log (`emit ${a} ${w}`); }
+function testBlock() {
+    let t1 = new Block (fcn);
+    t1.insert(12);
+    t1.insert(34);
+    t1.insert(56);
+    console.log (t1.emit());
+    console.log (t1.emit());
+    console.log (t1.emit());
+    console.log (t1.emit());
+}
+*/

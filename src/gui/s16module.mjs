@@ -80,6 +80,7 @@ export class s16module {
         this.idNumber = modGensym++;
         this.type = modType;           // implies what to do with the text
         this.text = "";                // raw source text
+        this.modName = null;
         this.file = null;
         this.fileReader = null;
         this.fileReadComplete = true;

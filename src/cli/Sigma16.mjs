@@ -195,20 +195,29 @@ function assembleCLI () {
 //   Writes linker listing to <exe>.lst.txt
 
 function linkCLI () {
-    const exeFile = process.argv[3]; // first command argument
-    const modFiles = process.argv.slice(4); // subsequent command arguments
-    console.log (`link: exe file = ${exeFile} from ${modFiles}`);
+    const exeBaseName = process.argv[3]; // first command argument
+    const modBaseNames = process.argv.slice(4); // subsequent command arguments
+//    console.log (`link: exe = ${exeBaseName} from ${modBaseNames}`);
     let mods = [];
-    for (let i = 0; i < modFiles.length; i++) {
-        let baseName = modFiles[i];
-        let obj = readFile (`${baseName}.obj.txt`);
-        let md = readFile (`${baseName}.md.txt`);
-        let objLines = obj.ok ? obj.input.split("\n") : [];
-        let mdLines = md.ok ? md.input.split("\n") : [];
-        let m = new smod.s16module (smod.ObjModule);
-        mods[i] = m;
+    for (let i = 0; i < modBaseNames.length; i++) {
+        let mbn = modBaseNames[i];
+        console.log (`\nReading ${mbn}\n`);
+        let obj = readFile (`${mbn}.obj.txt`);
+        let md = readFile (`${mbn}.md.txt`);
+        console.log (`\nModule ${mbn} object code ${obj.ok}\n`);
+        console.log (obj.input);
+//        console.log (`\nModule ${mbn} metadata ${md.ok}:\n${md.input}\n`);
+        let om = new link.ObjectModule (mbn);
+        om.objText = obj.input;
+        om.mdText = md.input; // md;
+        mods.push (om);
+//        console.log (`\nModule ${mbn} metadata:\n${om.mdText}\n`);
     }
-    link.linker (exeFile, mods);
+    let exe = new link.ObjectModule (`${exeBaseName}.exe.txt`);
+    link.linker (exe, mods);
+    console.log ("\n---------------------\n");
+    console.log (`\nExecutable code:\n${exe.objText}\n`);
+    console.log (`\nMetadata:\n${exe.mdText}\n`);
 }
 
 //-----------------------------------------------------------------------------
