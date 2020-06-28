@@ -33,11 +33,13 @@ import * as asm from './assembler.mjs';
 let curAsmap = [];
 
 // Interface to GUI: button id and function
-//   LP_Read_Object     getLinkerModules
-//   LP_Link            linkGUI
+//   LP_Read_Object     getLinkerModulesGui
+//   LP_Link            linkerGUI
 //   LP_Show_Object     linkShowExeObject
 //   LP_Show_Metadata   linkShowExeMetadata
 //   LP_Boot            em.boot (st_emulatorState)
+// Interface to CLI:
+//   linker (exe, mods)
 
 //-------------------------------------------------------------------------------
 // Object module
@@ -50,6 +52,7 @@ let curAsmap = [];
 export class ObjectModule {
     constructor(modname) {
         this.modname = modname;
+        this.dclmodname = ""; // name from module statement
         this.objText = "";
         this.mdText = "";
         this.objectLines = [];
@@ -57,6 +60,7 @@ export class ObjectModule {
         this.mdAsMap = [];
         this.mdAsmListingPlain = [];
         this.mdAsmListingDec = [];
+        this.data = [];
         this.imports = [];
         this.exports = [];
         this.origin = 0;
@@ -64,8 +68,6 @@ export class ObjectModule {
         this.last = 0;
     }
 }
-
-
 
 //-------------------------------------------------------------------------------
 // Gui interface to linker
@@ -84,14 +86,20 @@ export class ObjectModule {
 //        If m.asmInfo exists, obtain obj and md there (error if not found)
 //        
 
-// getLinkerModules takes modlist, a list of base names.  The modlist
+export function linkerGui () {
+    console.log ("linkerGui");
+    let {exeMod, objMod} = getLinkerModulesGui ();
+    console.log (`exemod = ${exeMod.dclmodname}`);
+}
+
+// getLinkerModulesGui takes modlist, a list of base names.  The modlist
 // must have one basename per line; the first entry is the executable
 // and the rest are the modules to link.  It searches the modules
 // list, looks for anything tthat matches one of the modlist, and
 // returns a corresponding array of ObjectModules.
 
-export function getLinkerModules () {
-    console.log ('getLinkerModules');
+export function getLinkerModulesGui () {
+    console.log ('getLinkerModulesGui');
     let modlist = document.getElementById('EditorTextArea').value.split('\n');
     let exeBaseName = modlist[0];
     let objMod = []; // obj info for the modules in modlist
@@ -113,7 +121,7 @@ export function getLinkerModules () {
     exeMod.modName = `${exeBaseName}.obj.txt`; // redundant
     for (let i = 1; i < modlist.length; i++) {
         let mbn = modlist[i];
-        console.log (`getLinkerModules i=${i} mbn=${mbn}\n`);
+        console.log (`getLinkerModulesGui i=${i} mbn=${mbn}\n`);
         if (mbn==="") break; // skip blank lines
         ys += "\n---------------------------------\n";
         ys += `Moduleaaa ${mbn}\n`;
@@ -132,7 +140,7 @@ export function getLinkerModules () {
                     console.log (om.mdText);
                     ys += "\nMetadata text:\n" + om.mdText + "\n";
                 } else {
-                    let xs = `\ngetLinkerModules: asm error in ${mbn}\n`;
+                    let xs = `\ngetLinkerModulesGui: asm error in ${mbn}\n`;
                     console.log (xs);
                     ys += xs;
                 }
@@ -163,12 +171,13 @@ export function getLinkerModules () {
         zs += om.objText;
         zs += "\n";
         zs += "Metadata:\n";
-        zs += om.mdText;
+//        zs += om.mdText;  // skipping md for now
         zs += "\n";
     }
     zs += "</pre>";
     document.getElementById('LinkerBody').innerHTML = zs;
     console.log (modlist);
+    return {exeMod, objMod};
 }
 
 // Linker object button
@@ -189,13 +198,6 @@ export function linkShowExeMetadata () {
     document.getElementById('LinkerBody').innerHTML = xs;
 }
 
-function linkGUI () {
-    console.log ("link");
-    let exeName = "exe"; // ???
-    let ms = []; // ???
-    linker (exeName, ms);
-}
-
 //-------------------------------------------------------------------------------
 // Linker
 //-------------------------------------------------------------------------------
@@ -203,29 +205,52 @@ function linkGUI () {
 // Given a list objs of object modules; return an executable module
 // with given name.  This can be called by linkGUI or linkCLI.
 
-export function linker (exeName, ms) {
-    console.log (`link.linker ${exeName} from ${ms.length} object modules`);
+export function linker (exe, ms) {
+    com.mode.trace = true;
+    console.log (`linking ${ms.map(om=>om.modname)} into ${exe.modname}`);
+    let locationCounter = 0;
+    let isExecutable = true;
     for (let i = 0; i < ms.length; i++) {
         let om = ms[i];
+        om.objectLines = om.objText.split("\n");
+        om.metadataLines = om.mdText.split("\n");
+        om.origin = locationCounter;
         console.log ("-------------------------------------------");
-        console.log (`Module ${i} ${om.modname}`);
-        console.log ("\nObject code\n");
-        console.log (om.objText);
-        console.log ("\nMetadata\n");
-        console.log (om.mdText);
-//        console.log (`${m.objectLines.length} lines of object code`);
-//        console.log (`${m.metadataLines.length} lines of metadata`);
-//        console.log (m.objectLines.join("\n"));
+        console.log (`(${i}) ${om.modname}`);
+        for (let x of om.objectLines) {
+            console.log (`obj line <${x}>`);
+            let fields = parseObjLine (x);
+            com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
+            if (fields.operation == "module") {
+                om.dclmodname = fields.operands[0];
+                com.mode.devlog (`-- declared module name: ${om.dclmodname}`);
+            } else if (fields.operation == "data") {
+                com.mode.devlog ("-- data");
+                for (let j = 0; j < fields.operands.length; j++) {
+                    let val = arith.hex4ToWord(fields.operands[j]);
+                    let safeval = val ? val : 0;
+                    com.mode.devlog (`${arith.wordToHex4(locationCounter)} `
+                                     + `${arith.wordToHex4(safeval)}`);
+                    locationCounter++;
+                }
+            } else if (fields.operation == "import") {
+                com.mode.devlog (`-- import (${fields.operands})`)
+                isExecutable = false;
+            } else if (fields.operation == "export") {
+                com.mode.devlog (`-- export (${fields.operands})`)
+            } else if (fields.operation == "relocate") {
+                com.mode.devlog (`-- relocate (${fields.operands})`)
+            } else {
+                com.mode.devlog (`Syntax errir (${fields.operation})`)
+                isExecutable = false;
+            }
+        }
     }
 }
-
-
-
 
 //-------------------------------------------------------------------------------
 // Parser
 //-------------------------------------------------------------------------------
-
 
 // Given source lines for the metadata, build the metadata object for emulator
 function parseObjMetadata (mdLines) {
@@ -245,7 +270,6 @@ function parseObjMetadata (mdLines) {
     return nSrcLines;
 //    return {mdLines, mdAsMap, mdPlainLines, mdDecLines}
 }
-
 
 // A line of object code contains a required operation code, white
 // space, and a required operand which is a comma-separated list of
@@ -278,48 +302,13 @@ function mkObjStmt (i,srcLine,operation,operands) {
     }
 }
 
-
-// ------------------------------------------------------------------------
-// Deprecated from linker
-
-// A Block is a sequence of words in adjacent memory locations.  The
-// functional argument f emits the next word of object code.
-/*
-class Block {
-    constructor(f) {
-        this.startAddr = 0;
-        this.current = 0;
-        this.words = [];
-        this.f = f;
-    }
-    insert(w) {
-        this.words.push(w);
-    }
-    relocate(x) {
-        this.startAddr = x;
-    }
-    emit () {
-        if (this.current < this.words.length) {
-            this.f (this.current+this.startAddr, this.words[this.current]);
-            this.current++;
-        } else {
-            console.log (`emit: out of data`);
-        }
-        return (this.current >= this.words.length);
+// Combine object modules and record commands
+function combine (oms) {
+    let xs = "";
+    for (om of oms) {
+        xs += "\n------------------------\n";
+        xs += `om.modname\n`;
+        xs += om.objText;
+        xs += om.mdText.slice(0,100);
     }
 }
-*/
-
-/* Usage
-function fcn (a,w) { console.log (`emit ${a} ${w}`); }
-function testBlock() {
-    let t1 = new Block (fcn);
-    t1.insert(12);
-    t1.insert(34);
-    t1.insert(56);
-    console.log (t1.emit());
-    console.log (t1.emit());
-    console.log (t1.emit());
-    console.log (t1.emit());
-}
-*/

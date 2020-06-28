@@ -76,6 +76,7 @@ export function mkModuleAsm () {
         metadata : [],             // lines of metadata code
         metadataText : "",         // metadata as single string
         asArrMap : [],             // address-sourceline map
+        imports : [],              // list of imported identifiers
         exports : [],              // list of exported identifiers
         modAsmOK : false, // deprecated, use nAsmErrors===0
 	nAsmErrors : 0             // number of errors in assembly source code
@@ -720,11 +721,14 @@ function parseAsmLine (ma,i) {
 	} else {
             let isImport = s.fieldOperation=="import";
             let isEqu = s.fieldOperation=="equ";
-            let v = isImport ? new Value (0, false)
+            let v = isImport ? new Value (s.fieldOperands, false) // val=mod
                 : isEqu ? evaluate (ma, s, ma.locationCounter, s.fieldOperands)
                 : new Value (ma.locationCounter, true);
             ma.symbolTable.set (s.fieldLabel,
-                  new Identifier (s.fieldLabel, s.lineNumber+1, v));
+                                new Identifier (s.fieldLabel, s.lineNumber+1, v));
+            if (isImport) {
+                ma.imports.push(s.fieldLabel);
+            }
 	}
     }
 }
@@ -1399,30 +1403,14 @@ function emitRelocations (ma) {
 // Generate import statements in object code
 
 function emitImports (ma) {
-    com.mode.devlog ('emitImports');
-    ma.symbols =[ ...ma.symbolTable.keys() ].sort();
-    com.mode.devlog (`emitImports ma.symbols=${ma.symbols}`);
-    for (let i in ma.symbols) {
-        let x = ma.symbolTable.get(ma.symbols[i]);
-        com.mode.devlog (`emitImports i=${i} symname=${x.symbol}`)
-        if (x.symIsImport) {
-            emitImportAddresses (ma,x)
-        }
+    com.mode.trace = true;
+    for (let x of ma.imports) {
+        let sym = ma.symbolTable.get(x);
+        let v = sym.value.value;
+        let z = `import   ${sym.name},${v}`;
+        ma.objectCode.push(z);
     }
-}
-
-function emitImportAddresses (ma,x) {
-    com.mode.devlog (`emitImportAddresses ${x.symbol}`);
-    let xs, ys, zs;
-    while (x.symUsageAddrs.length > 0) {
-        let xs = x.symUsageAddrs.splice(0,objBufferLimit);
-        let ys = xs.map((w) => arith.wordToHex4(w));
-        let zs = 'import   '
-            + x.symImportedFrom
-            + ',' + x.symbol
-            + ',' + ys.join(',');
-        ma.objectCode.push (zs);
-    }
+    com.mode.trace = false;
 }
 
 function emitExports (ma) {
@@ -1499,3 +1487,19 @@ export function setMetadata () {
     let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
+
+/*
+function emitImportAddresses (ma,x) {
+    com.mode.devlog (`emitImportAddresses ${x.symbol}`);
+    let xs, ys, zs;
+    while (x.symUsageAddrs.length > 0) {
+        let xs = x.symUsageAddrs.splice(0,objBufferLimit);
+        let ys = xs.map((w) => arith.wordToHex4(w));
+        let zs = 'import   '
+            + x.symImportedFrom
+            + ',' + x.symbol
+            + ',' + ys.join(',');
+        ma.objectCode.push (zs);
+    }
+}
+*/

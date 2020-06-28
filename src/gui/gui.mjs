@@ -339,7 +339,7 @@ prepareButton ('AP_Show_Metadata',  asm.setMetadata);
 
 // Linker pane (LP)
 prepareButton ('LP_Read_Object',   link.getLinkerModules);
-prepareButton ('LP_Link',          link.linkGUI);
+prepareButton ('LP_Link',          link.linkerGUI);
 prepareButton ('LP_Show_Object',   link.linkShowExeObject);
 prepareButton ('LP_Show_Metadata', link.linkShowExeMetadata);
 prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));

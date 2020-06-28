@@ -481,15 +481,36 @@ src/gui/datafiles/welcome.html : src/gui/datafiles/srcwelcome.md
 # User guide
 #-------------------------------------------------------------------------------
 
-# Build user guide html from markdown source
+# Build user guide html from org source
+docs/html/userguide/userguide.html : docs/src/userguide/userguide.org \
+	  docs/src/userguide/userguide-template.html \
+	  docs/src/userguide/userguidestyle.css VERSION.txt
+	mkdir -p docs/html/userguide
+	mkdir -p docs/html/userguide/png
+	cp -up docs/src/userguide/png/* docs/html/userguide/png
+	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
+	pandoc --standalone \
+          --from=org \
+          --to=html \
+          --metadata title="Sigma16 User Guide" \
+          --template=docs/src/userguide/userguide-template.html \
+          --table-of-contents --toc-depth=4 \
+          --variable=author:"Copyright $(YEAR) John T. O'Donnell" \
+          --variable=date:'Version ${VERSION}, $(MONTHYEAR)' \
+          --variable=css:userguidestyle.css \
+          --output=docs/html/userguide/userguide.html \
+	  docs/src/userguide/userguide.org
 
-docs/html/userguide/userguide.html : docs/src/userguide/userguide.md \
+# userguide.org
+#          --metadata pagetitle="Foo Bar Baz" \
+# OLD Build user guide html from markdown source
+docs/html/userguide/OLDuserguide.html : docs/src/userguide/userguide.md \
 	  docs/src/userguide/userguide-template.html \
 	  docs/src/userguide/userguidestyle.css VERSION.txt
 	mkdir -p docs/html/userguide
 	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
 	pandoc --standalone \
-          --template=docs/src/userguide/userguide-template.html \
+          --template=userguide-template.html \
           --table-of-contents --toc-depth=4 \
           --variable=author:"Copyright $(YEAR) John T. O'Donnell" \
           --variable=date:'Version ${VERSION}, $(MONTHYEAR)' \
