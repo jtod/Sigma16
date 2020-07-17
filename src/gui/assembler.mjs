@@ -41,7 +41,6 @@ let objBufferLimit = 16;             // how many code items to allow per line
 let objectWordBuffer = [];          // list of object code words
 let relocationAddressBuffer = [];   // list of relocation addresses
 
-
 // When Assembler pane is entered, if an AsmInfo doesn't exist then
 // create one and insert it into the current module.  Copy the text of
 // the current module into the AsmInfo.
@@ -57,7 +56,6 @@ export function enterAssembler () {
 //-----------------------------------------------------------------------------
 // Assembly language state: m.asmInfo
 //-----------------------------------------------------------------------------
-
 
 export function mkModuleAsm () {
     com.mode.devlog("mkModuleAsm");

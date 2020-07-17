@@ -20,7 +20,7 @@
 <header id="title-block-header">
 <h1 class="title">Sigma16 User Guide</h1>
 <p class="author">Copyright 2020 John T. O'Donnell</p>
-<p class="date">Version 3.1.4, June 2020</p>
+<p class="date">Version 3.1.4, July 2020</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
@@ -74,17 +74,17 @@
 <li><a href="#top">top</a></li>
 </ul></li>
 <li><a href="#comparisons">Comparisons</a><ul>
-<li><a href="#cmplt">cmplt</a></li>
-<li><a href="#cmpeq">cmpeq</a></li>
-<li><a href="#cmpgt">cmpgt</a></li>
+<li><a href="#xxx-cmplt">xxx cmplt</a></li>
+<li><a href="#xxx-cmpeq">xxx cmpeq</a></li>
+<li><a href="#xxx-cmpgt">xxx cmpgt</a></li>
 <li><a href="#cmp">cmp</a></li>
 </ul></li>
 <li><a href="#transfer-of-control">Transfer of control</a><ul>
 <li><a href="#jump">jump</a></li>
-<li><a href="#jumpf">jumpf</a></li>
-<li><a href="#jumpt">jumpt</a></li>
 <li><a href="#jumpc0">jumpc0</a></li>
 <li><a href="#jumpc1">jumpc1</a></li>
+<li><a href="#jumpf">jumpf</a></li>
+<li><a href="#jumpt">jumpt</a></li>
 <li><a href="#jal">jal</a></li>
 <li><a href="#aliases-for-conditional-jumps">Aliases for conditional jumps</a></li>
 </ul></li>
@@ -97,16 +97,18 @@
 <li><a href="#shiftr">shiftr</a></li>
 </ul></li>
 <li><a href="#bit-operations-on-fields">Bit operations on fields</a><ul>
-<li><a href="#logicw">logicw</a></li>
 <li><a href="#logicb">logicb</a></li>
+<li><a href="#logicw">logicw</a></li>
 <li><a href="#extract">extract</a></li>
-<li><a href="#inject-injecti">inject, injecti</a></li>
-<li><a href="#field">field</a></li>
+<li><a href="#extracti">extracti</a></li>
+<li><a href="#inject">inject</a></li>
+<li><a href="#injecti">injecti</a></li>
+<li><a href="#xxx-field">xxx field</a></li>
 <li><a href="#execute">execute</a></li>
+<li><a href="#testset">testset</a></li>
 </ul></li>
 <li><a href="#system-control">System control</a><ul>
 <li><a href="#trap">trap</a></li>
-<li><a href="#testset">testset</a></li>
 <li><a href="#getctl">getctl</a></li>
 <li><a href="#putctl">putctl</a></li>
 <li><a href="#rfi">rfi</a></li>
@@ -114,21 +116,22 @@
 </ul></li>
 <li><a href="#summary-of-instruction-set">Summary of instruction set</a></li>
 <li><a href="#assembly-language">Assembly language</a><ul>
-<li><a href="#notation">Notation</a></li>
-<li><a href="#instructions">Instructions</a><ul>
+<li><a href="#names">Names</a></li>
+<li><a href="#values">Values</a></li>
+<li><a href="#expressions">Expressions</a></li>
 <li><a href="#statement-formats">Statement formats</a></li>
-</ul></li>
-<li><a href="#directives">Directives</a><ul>
+<li><a href="#statements-that-generate-object-code">Statements that generate object code</a></li>
+<li><a href="#data-statement">data statement</a></li>
+<li><a href="#statements-that-provide-metadata">Statements that provide metadata</a><ul>
 <li><a href="#module-statement">module statement</a></li>
 <li><a href="#org-statement">org statement</a></li>
 <li><a href="#equ-statement">equ statement</a></li>
 <li><a href="#import-statment">import statment</a></li>
 <li><a href="#export-statement">export statement</a></li>
-<li><a href="#data-statement">data statement</a></li>
 </ul></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
-<li><a href="#modules-linking-and-booting">Modules, linking, and booting</a><ul>
+<li><a href="#object-code">Object code</a><ul>
 <li><a href="#programs-modules-and-files">Programs, modules, and files</a><ul>
 <li><a href="#simple-standalone-programs">Simple standalone programs</a></li>
 <li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
@@ -972,21 +975,21 @@
 <p>if R2&gt;R2 then R1 := mem[R1] else R15.StackEmpty := 1, req.StackBounds := 1</p>
 <h2 id="comparisons">Comparisons</h2>
 <p>The comparison instructions compare the values in two operand registers and produce one or more Booleans indicating the relation between the operands. The result can either loaded into a register as a word containing a Boolean (cmplt, cmpeq, cmpgt), or it can be indicated by setting a number of separate Booleans in the condition code register R15 (cmp).</p>
-<h3 id="cmplt">cmplt</h3>
+<h3 id="xxx-cmplt">xxx cmplt</h3>
 <p>The <strong><strong>compare for less than</strong></strong> instruction <strong>cmplt Rd,Ra,Rb</strong> performs an integer comparison of the operands. If Ra&lt;Rb then the destination Rd is set to 0001; otherwise it is set to 0000.</p>
 <p>The comparison treats the operands as signed integers, not as binary numbers. For example, ffff is the two's complement representation of -1, while 0002 is the two's complement representation of 2, so ffff &lt;</p>
 <ol>
 <li></li>
 </ol>
 <p>The result of a comparison is a Boolean, either false or true. False is represented as 0000, and true is represented as 0001.</p>
-<h3 id="cmpeq">cmpeq</h3>
+<h3 id="xxx-cmpeq">xxx cmpeq</h3>
 <p>The <strong><strong>compare for equality</strong></strong> instruction <strong>cmpeq Rd,Ra,Rb</strong> performs an bitwise comparison of the operands. If Ra and Rb contain the same value then the destination Rd is set to 0001; otherwise it is set to</p>
 <ol>
 <li></li>
 </ol>
 <p>This instruction can be used to compare for equality of either integers (binary) numbers or integers (two's complement).</p>
 <p>The result of a comparison is a Boolean, either false or true. False is represented as 0000, and true is represented as 0001.</p>
-<h3 id="cmpgt">cmpgt</h3>
+<h3 id="xxx-cmpgt">xxx cmpgt</h3>
 <p>The <strong><strong>compare for greater than</strong></strong> instruction <strong>cmpgt Rd,Ra,Rb</strong> performs an integer comparison of the operands. If Ra&gt;Rb then the destination Rd is set to 0001; otherwise it is set to 0000.</p>
 <p>The comparison treats the operands as signed integers, not as binary numbers. For example, ffff is the two's complement representation of -1, while 0002 is the two's complement representation of 2, so 0002 &gt; ffff.</p>
 <p>The result of a comparison is a Boolean, either false or true. False is represented as 0000, and true is represented as 0001.</p>
@@ -995,14 +998,14 @@
 <h2 id="transfer-of-control">Transfer of control</h2>
 <h3 id="jump">jump</h3>
 <p>The <strong><strong>jump</strong></strong> instruction <strong>jump disp[Ra]</strong> transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>.</p>
-<h3 id="jumpf">jumpf</h3>
-<p>The <strong><strong>jump if false</strong></strong> instruction <strong>jumpf Rd,disp[Ra]</strong> checks the Boolean value of Rd. If this is <strong>false</strong>, the instruction transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>; otherwise the instruction does nothing.</p>
-<h3 id="jumpt">jumpt</h3>
-<p>The <strong><strong>jump if true</strong></strong> instruction <strong>jumpf Rd,disp[Ra]</strong> checks the Boolean value of Rd. If this is <strong>true</strong>, the instruction transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>; otherwise the instruction does nothing.</p>
 <h3 id="jumpc0">jumpc0</h3>
 <p>The <strong><strong>jump if condition code bit is 0</strong></strong> instruction <strong>jumpc0 k,disp[Ra]</strong> checks the value of bit k in R15, which is the condition code register. If this bit is <strong>0</strong>, then the instruction transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>; otherwise the instruction does nothing.</p>
 <h3 id="jumpc1">jumpc1</h3>
 <p>The <strong><strong>jump if condition code bit is 1</strong></strong> instruction <strong>jumpc1 k,disp[Ra]</strong> checks the value of bit k in R15, which is the condition code register. If this bit is <strong>1</strong>, then the instruction transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>; otherwise the instruction does nothing.</p>
+<h3 id="jumpf">jumpf</h3>
+<p>The <strong><strong>jump if false</strong></strong> instruction <strong>jumpf Rd,disp[Ra]</strong> checks the Boolean value of Rd. If this is <strong>false</strong>, the instruction transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>; otherwise the instruction does nothing.</p>
+<h3 id="jumpt">jumpt</h3>
+<p>The <strong><strong>jump if true</strong></strong> instruction <strong>jumpf Rd,disp[Ra]</strong> checks the Boolean value of Rd. If this is <strong>true</strong>, the instruction transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>; otherwise the instruction does nothing.</p>
 <h3 id="jal">jal</h3>
 <p>The <strong><strong>jump and link</strong></strong> instruction <strong>jal Rd,disp[Ra]</strong> loads the address of the following instruction into the destination register Rd, and transfers control to the instruction in memory at the effective address <strong>disp+Ra</strong>.</p>
 <p>The value loaded into Rd is the address of the instruction that immediately follows the jal. This instruction is used for calling procedures or functions: the effective address is the location of the procedure, and the return address is in Rd. The procedure can then return by jumping to the return address, e.g. with <strong>jump 0[Rd]</strong>.</p>
@@ -1056,18 +1059,18 @@
 <li>ir.{8,15} is the ab field of the instruction register, containing the expanded operation code for EXP format instructions.</li>
 </ul>
 <p>(An alternative way to specify bit fields, not used in Sigma16, would be to give the starting index and field size. However, that approach is less flexible, as the value of the specified field size would range between 0 and 15, yet there are 16 possible field sizes. This means that, depending on precisely how the definition is written, either empty fields or maximal fields would not be representable.)</p>
+<h3 id="logicb">logicb</h3>
+<ul>
+<li>General form: logicb Rd,Re,Rf,g,h</li>
+<li>Rd.h := fcn g Re.h Rf.h</li>
+<li>Assembly format: RRRKKEXP</li>
+</ul>
 <h3 id="logicw">logicw</h3>
 <ul>
 <li>General form: logicw Rd,Re,Rf,g</li>
 <li>Instruction format: EXP2</li>
 <li>Assembly format: RRRKEXP</li>
 <li>Rd := fcn g Re Rf</li>
-</ul>
-<h3 id="logicb">logicb</h3>
-<ul>
-<li>General form: logicb Rd,Re,Rf,g,h</li>
-<li>Rd.h := fcn g Re.h Rf.h</li>
-<li>Assembly format: RRRKKEXP</li>
 </ul>
 <h3 id="extract">extract</h3>
 <p>The extract instruction obtains the value of an arbitrary field (g,h) from a source register Re and loads it right-adjusted into the destination register Rd.</p>
@@ -1084,13 +1087,16 @@
 <p><code>~~</code> shiftl Rd,Re,g ; clear bits to left of field shiftr Rd,Rd,15-h+g ; clear bits to right of field <code>~~</code></p>
 <p>For example <strong>extract R1,R2,3,5</strong> is equivalent to (but easier to understand than) the following:</p>
 <p><code>~~</code> shiftl Rd,Re,3 shiftr Rd,Rd,13 <code>~~</code></p>
-<h3 id="inject-injecti">inject, injecti</h3>
+<h3 id="extracti">extracti</h3>
+<h3 id="inject">inject</h3>
 <p>The inject instruction obtains a right-adjusted field from a source register Rf and places it into the specified field (g,h) of the value in the source register Re; the result is placed into the destination register Rd. The injecti instruction is the same as inject, except that the injected field is inverted.</p>
 <p>General form: <strong>inject Rd,Re,Rf,g,h</strong></p>
 <p>General form: <strong>injecti Rd,Re,Rf,g,h</strong></p>
 <p><code>~~</code> lea R1,$ffff[R0] lea R2,$0005[R0] inject R4,R0,R2,4,7 ; R4 := 0500 inject R5,R1,R2,4,7 ; R5 := f5ff</p>
 <p>injecti R6,R0,R2,4,7 ; R6 := 0a00 injecti R7,R1,R2,4,7 ; R6 := faff <code>~~</code></p>
-<h3 id="field">field</h3>
+<h3 id="injecti">injecti</h3>
+<p>Inverting version of inject</p>
+<h3 id="xxx-field">xxx field</h3>
 <p>(Not yet implemented, coming soon)</p>
 <p>Pseudoinstruction</p>
 <p>The field pseudoinstruction loads a word into the destination register Rd; this word consists of 1 bits in the specified field (g,h) and 0 in all other bit positions. This provides a field mask that can be used with logic instructions for a variety of purposes.</p>
@@ -1118,6 +1124,8 @@
 <p>The <strong>execute</strong> instruction commands the computer to execute another instruction which is in the register file. The first word of this target instruction is in Re and the second word (in case it's a two-word instruction) is in Rf. If Re contains an RRR instruction, then Rf is ignored.</p>
 <p><code>~~</code> execute Re,Rf <code>~~</code></p>
 <p>Format RREXP. Both operands are in the second word of the instruction, in the e and f fields.</p>
+<h3 id="testset">testset</h3>
+<p>(Not yet implemented, coming soon)</p>
 <h2 id="system-control">System control</h2>
 <h3 id="trap">trap</h3>
 <ol>
@@ -1126,8 +1134,6 @@
 <li><p>Write</p></li>
 <li><p>Nonblocking read</p></li>
 </ol>
-<h3 id="testset">testset</h3>
-<p>(Not yet implemented, coming soon)</p>
 <h3 id="getctl">getctl</h3>
 <h3 id="putctl">putctl</h3>
 <h3 id="rfi">rfi</h3>
@@ -1140,6 +1146,59 @@
 <p>The instruction format is EXP2. As there is no operand, the d field is ignored and the second word of the instruction is omitted. Thus every rfi instruction has the same machine language representation: e000. The fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is unused, and ab=0 because this is the secondary opcode of rfi.</p>
 <p>This instruction is privileged. Since the instruction changes the status register, it can be used to perform a context switch.</p>
 <h1 id="summary-of-instruction-set">Summary of instruction set</h1>
+<p>Instruction formats</p>
+<p>RRR instructions are represented in one word comprising four 4-bit fields.</p>
+<table>
+<thead>
+<tr class="header">
+<th>op</th>
+<th>d</th>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>RX instructions are represented in two words</p>
+<table>
+<thead>
+<tr class="header">
+<th>op</th>
+<th>d</th>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>disp</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>EXP instructions are represented in two words</p>
+<table>
+<thead>
+<tr class="header">
+<th>op</th>
+<th>d</th>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>e</td>
+<td>f</td>
+<td>g</td>
+<td>h</td>
+</tr>
+</tbody>
+</table>
+<p>The a and b fields form an 8-bit value called ab.</p>
 <table style="width:90%;">
 <colgroup>
 <col style="width: 0%" />
@@ -1151,7 +1210,7 @@
 </colgroup>
 <thead>
 <tr class="header">
-<th>Name</th>
+<th>Mnemonic</th>
 <th>P</th>
 <th>Fmt</th>
 <th>Asm</th>
@@ -1164,7 +1223,7 @@
 <td>add</td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
+<td>RRR</td>
 <td>0</td>
 <td>Rd := Ra + Rb</td>
 </tr>
@@ -1172,7 +1231,7 @@
 <td>sub</td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
+<td>RRR</td>
 <td>1</td>
 <td>Rd := Ra - Rb</td>
 </tr>
@@ -1180,7 +1239,7 @@
 <td>mul</td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
+<td>RRR</td>
 <td>2</td>
 <td>Rd := Ra * Rb</td>
 </tr>
@@ -1188,7 +1247,7 @@
 <td>div</td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
+<td>RRR</td>
 <td>3</td>
 <td>Rd := Ra / Rb, R15 := Ra mod Rb</td>
 </tr>
@@ -1196,7 +1255,7 @@
 <td>addc</td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
+<td>RRR</td>
 <td>4</td>
 <td>Rd := Ra + Rb + R15.carry</td>
 </tr>
@@ -1204,63 +1263,63 @@
 <td>cmp</td>
 <td></td>
 <td>RRR</td>
-<td>ARR</td>
+<td>RR</td>
 <td>5</td>
 <td>R15 := Ra cmp Rb</td>
 </tr>
 <tr class="odd">
-<td>shiftl</td>
 <td></td>
-<td>EXP</td>
-<td>ARRK</td>
+<td></td>
+<td>RRR</td>
+<td></td>
 <td>6</td>
-<td>Rd := Ra shl k</td>
+<td>– reserved –</td>
 </tr>
 <tr class="even">
-<td>shiftr</td>
 <td></td>
-<td>EXP</td>
-<td>ARRK</td>
+<td></td>
+<td>RRR</td>
+<td></td>
 <td>7</td>
-<td>Rd := Ra shr k</td>
+<td>– reserved –</td>
 </tr>
 <tr class="odd">
-<td>push</td>
+<td></td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
+<td></td>
 <td>8</td>
-<td></td>
+<td>– reserved –</td>
 </tr>
 <tr class="even">
-<td>pop</td>
+<td></td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
-<td>9</td>
 <td></td>
+<td>9</td>
+<td>– reserved –</td>
 </tr>
 <tr class="odd">
-<td>top</td>
-<td></td>
+<td>getctl</td>
+<td>P</td>
 <td>RRR</td>
-<td>ARRR</td>
+<td>RC</td>
 <td>a</td>
-<td></td>
+<td>Rd := Sc</td>
 </tr>
 <tr class="even">
-<td>execute</td>
-<td></td>
+<td>putctl</td>
+<td>P</td>
 <td>RRR</td>
-<td>ARR</td>
+<td>RC</td>
 <td>b</td>
-<td></td>
+<td>Sc := Rd</td>
 </tr>
 <tr class="odd">
 <td>rfi</td>
-<td>*</td>
+<td>P</td>
 <td>RRR</td>
-<td>AR</td>
+<td>R</td>
 <td>c</td>
 <td>pc := ipc, status := istatus</td>
 </tr>
@@ -1268,15 +1327,31 @@
 <td>trap</td>
 <td></td>
 <td>RRR</td>
-<td>ARRR</td>
+<td>RRR</td>
 <td>d</td>
 <td>OS request</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td>—</td>
+<td></td>
+<td>e</td>
+<td>escape to EXP format</td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td>—</td>
+<td></td>
+<td>f</td>
+<td>escape to RX format</td>
 </tr>
 <tr class="odd">
 <td>lea</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,0</td>
 <td>Rd := Ra+disp</td>
 </tr>
@@ -1284,7 +1359,7 @@
 <td>load</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,1</td>
 <td>Rd := M[Ra+disp]</td>
 </tr>
@@ -1292,7 +1367,7 @@
 <td>store</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,2</td>
 <td>M[Ra+disp] := Rd</td>
 </tr>
@@ -1300,7 +1375,7 @@
 <td>jump</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,3</td>
 <td>pc := Ra+disp</td>
 </tr>
@@ -1308,23 +1383,23 @@
 <td>jumpc0</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,4</td>
-<td>if R15.k then pc := Ra+disp</td>
+<td>if R15.k=0 then pc := Ra+disp</td>
 </tr>
 <tr class="even">
 <td>jumpc1</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,5</td>
-<td>if !R15.k then pc := Ra+disp</td>
+<td>if R15.k=1 then pc := Ra+disp</td>
 </tr>
 <tr class="odd">
 <td>jumpf</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,6</td>
 <td>if Rd=0 then pc := Ra+disp</td>
 </tr>
@@ -1332,7 +1407,7 @@
 <td>jumpt</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,7</td>
 <td>if Rd!=0 then pc := Ra+disp</td>
 </tr>
@@ -1340,7 +1415,7 @@
 <td>jal</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,8</td>
 <td>Rd := pc, pc := Ra+disp</td>
 </tr>
@@ -1348,65 +1423,169 @@
 <td>testset</td>
 <td></td>
 <td>RX</td>
-<td>ARX</td>
+<td>RX</td>
 <td>f,9</td>
 <td>Rd := M[Ra+disp], M[Ra+disp] := 1</td>
 </tr>
 <tr class="odd">
-<td>save</td>
 <td></td>
-<td>EXP</td>
-<td>ARRX</td>
-<td>e,40</td>
-<td>M[Rb+ofs] := R(e), M[Rb+ofs+1] := R(e+1), …, M[Rb+ofs+(f-e+1)] := Rf</td>
+<td></td>
+<td>RX</td>
+<td></td>
+<td>f,a</td>
+<td>– reserved –</td>
 </tr>
 <tr class="even">
-<td>restore</td>
+<td></td>
+<td></td>
+<td>RX</td>
+<td></td>
+<td>f,b</td>
+<td>– reserved –</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td>RX</td>
+<td></td>
+<td>f,c</td>
+<td>– reserved –</td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td>RX</td>
+<td></td>
+<td>f,d</td>
+<td>– reserved –</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td>RX</td>
+<td></td>
+<td>f,e</td>
+<td>– reserved –</td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td>RX</td>
+<td></td>
+<td>f,f</td>
+<td>– reserved –</td>
+</tr>
+<tr class="odd">
+<td>shiftl</td>
 <td></td>
 <td>EXP</td>
-<td>ARRX</td>
-<td>e,41</td>
-<td>R(e) := M[Rb+ofs], …, Rf := M[Rb+ofs+(f-e+1)]</td>
+<td>RRk</td>
+<td>e,00</td>
+<td>Rd := Ra shl b</td>
+</tr>
+<tr class="even">
+<td>shiftr</td>
+<td></td>
+<td>EXP</td>
+<td>RRk</td>
+<td>e,01</td>
+<td>Rd := Ra shr b</td>
+</tr>
+<tr class="odd">
+<td>logicb</td>
+<td></td>
+<td>EXP</td>
+<td>RRRk</td>
+<td>e,02</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>logicw</td>
+<td></td>
+<td>EXP</td>
+<td>RRRk</td>
+<td>e,03</td>
+<td>Rd := Re (lut g) Rf</td>
 </tr>
 <tr class="odd">
 <td>extract</td>
 <td></td>
 <td>EXP</td>
-<td>ARRKK</td>
-<td>e,38</td>
+<td>RRkk</td>
+<td>e,04</td>
 <td></td>
 </tr>
 <tr class="even">
-<td>getctl</td>
-<td>*</td>
+<td>extracti</td>
+<td></td>
 <td>EXP</td>
+<td>RRkk</td>
+<td>e,05</td>
 <td></td>
-<td></td>
-<td>Rd := Rc</td>
 </tr>
 <tr class="odd">
-<td>putctl</td>
-<td>*</td>
+<td>inject</td>
+<td></td>
 <td>EXP</td>
+<td>RRkk</td>
+<td>e,06</td>
 <td></td>
-<td></td>
-<td>Rc := Rd</td>
 </tr>
 <tr class="even">
-<td>skipf</td>
+<td>injecti</td>
 <td></td>
-<td>RRR</td>
-<td>ARRK</td>
+<td>EXP</td>
+<td>RRkk</td>
+<td>e,07</td>
 <td></td>
-<td>if Rd.a=0 then pc := pc+b</td>
 </tr>
 <tr class="odd">
-<td>skipt</td>
+<td>push</td>
 <td></td>
+<td>EXP</td>
 <td>RRR</td>
-<td>ARRK</td>
+<td>e,08</td>
 <td></td>
-<td>if Rd.a=1 then pc := pc+b</td>
+</tr>
+<tr class="even">
+<td>pop</td>
+<td></td>
+<td>EXP</td>
+<td>RRR</td>
+<td>e,09</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>top</td>
+<td></td>
+<td>EXP</td>
+<td>RRR</td>
+<td>e,0a</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>save</td>
+<td></td>
+<td>EXP</td>
+<td>RRX</td>
+<td>e,0b</td>
+<td>M[Rb+ofs] := R(e), M[Rb+ofs+1] := R(e+1), …, M[Rb+ofs+(f-e+1)] := Rf</td>
+</tr>
+<tr class="odd">
+<td>restore</td>
+<td></td>
+<td>EXP</td>
+<td>RRX</td>
+<td>e,0c</td>
+<td>R(e) := M[Rb+ofs], …, Rf := M[Rb+ofs+(f-e+1)]</td>
+</tr>
+<tr class="even">
+<td>execute</td>
+<td></td>
+<td>EXP</td>
+<td>RR</td>
+<td>e,0d</td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -1433,17 +1612,130 @@
 <p>Example: a sequence of RRR instructions</p>
 <p>Assembly language <code>~~</code> add R3,R5,R1 sub R4,R2,R3 mul R1,R9,R10 <code>~~</code></p>
 <p>Machine language <code>~~</code> 0351 1423 219a <code>~~</code></p>
-<h2 id="notation">Notation</h2>
-<p>A name must begin with a letter (a-z or A-Z), and may contain letters, digits, or underscore characters.</p>
+<h3 id="names">Names</h3>
+<p>A <strong>name</strong> must begin with a letter (a-z or A-Z), and may contain letters, digits, or underscore characters.</p>
+<h3 id="values">Values</h3>
+<p>A <strong>value</strong> is a word of 16 bits. Values do not have types; their type depends entirely on usage. Values may be used in generating object code, either as the displacment field of an RX instruction or as the operand of a data statement.</p>
+<p>Every value is either <strong>fixed</strong> or <strong>relocatable</strong>. If a module is linked, then its relocatable values may be translated, but the fixed values remain unchanged.</p>
+<h3 id="expressions">Expressions</h3>
+<p>An expression is assembly language syntax that, when evaluated, denotes a value (i.e. a 16-bit word). Evaluation takes place entirely at assembly time. Expressions may be labels, constants, or may be calculated.</p>
 <p>Constants can be written in decimal, hexadecimal, or binary:</p>
 <ul>
-<li><p>Decimal constants consist of a sequence of digits, with an optional leading - sign. Examples: 42 55039 -1</p></li>
-<li><p>Hexadecimal constants are written with a dollar sign $ followed by four hex digits (0 1 2 3 4 5 6 7 8 9 a b c d e f). Examples: $0249 $c78a</p></li>
-<li><p>Binary constants are written with a hash sign # followed by any number of 0 or 1 characters. You can write fewer than 16 bits; they will be padded on the left with zeros. Examples: #1101 #000100000001101</p></li>
+<li><p><strong>Decimal constants</strong> consist of a sequence of digits, with an optional leading - sign. Examples: 42 55039 -1</p></li>
+<li><p><strong>Hexadecimal constants</strong> are written with a dollar sign $ followed by four hex digits (0 1 2 3 4 5 6 7 8 9 a b c d e f). Examples: $0249 $c78a</p></li>
+<li><p><strong>Binary constants</strong> are written with a hash sign # followed by any number of 0 or 1 characters. You can write fewer than 16 bits; they will be padded on the left with zeros. Examples: #1101 #000100000001101</p></li>
 </ul>
-<p>An expression denotes a 16-bit word. Usually they are used to specify a word of machine language, either an address or a data constant.</p>
-<h2 id="instructions">Instructions</h2>
-<h3 id="statement-formats">Statement formats</h3>
+<p>Expressions may contain arithmetic operators + - * /.</p>
+<table>
+<thead>
+<tr class="header">
+<th>operand</th>
+<th>operator</th>
+<th>operator</th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>fixed</td>
+<td>+</td>
+<td>fixed</td>
+<td>fixed</td>
+</tr>
+<tr class="even">
+<td>fixed</td>
+<td>+</td>
+<td>relocatable</td>
+<td>relocatable</td>
+</tr>
+<tr class="odd">
+<td>relocatable</td>
+<td>+</td>
+<td>fixed</td>
+<td>relocatable</td>
+</tr>
+<tr class="even">
+<td>relocatable</td>
+<td>+</td>
+<td>relocatable</td>
+<td>error</td>
+</tr>
+<tr class="odd">
+<td>fixed</td>
+<td>-</td>
+<td>fixed</td>
+<td>fixed</td>
+</tr>
+<tr class="even">
+<td>fixed</td>
+<td>-</td>
+<td>relocatable</td>
+<td>relocatable</td>
+</tr>
+<tr class="odd">
+<td>relocatable</td>
+<td>-</td>
+<td>fixed</td>
+<td>relocatable</td>
+</tr>
+<tr class="even">
+<td>relocatable</td>
+<td>-</td>
+<td>relocatable</td>
+<td>fixed</td>
+</tr>
+<tr class="odd">
+<td>fixed</td>
+<td>*</td>
+<td>fixed</td>
+<td>fixed</td>
+</tr>
+<tr class="even">
+<td>fixed</td>
+<td>*</td>
+<td>relocatable</td>
+<td>error</td>
+</tr>
+<tr class="odd">
+<td>relocatable</td>
+<td>*</td>
+<td>fixed</td>
+<td>error</td>
+</tr>
+<tr class="even">
+<td>relocatable</td>
+<td>*</td>
+<td>relocatable</td>
+<td>error</td>
+</tr>
+<tr class="odd">
+<td>fixed</td>
+<td>/</td>
+<td>fixed</td>
+<td>fixed</td>
+</tr>
+<tr class="even">
+<td>fixed</td>
+<td>/</td>
+<td>relocatable</td>
+<td>error</td>
+</tr>
+<tr class="odd">
+<td>relocatable</td>
+<td>/</td>
+<td>fixed</td>
+<td>error</td>
+</tr>
+<tr class="even">
+<td>relocatable</td>
+<td>/</td>
+<td>relocatable</td>
+<td>error</td>
+</tr>
+</tbody>
+</table>
+<p>relocatable</p>
+<h2 id="statement-formats">Statement formats</h2>
 <p>A statement may contain several fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
 <ul>
 <li><p>Label. The label field is optional. If present, the label must be a name and it must begin in the first character of the line. If the first character is a space, then that line has no label.</p></li>
@@ -1451,10 +1743,121 @@
 <li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directive. Most instructions and assembler directives require operands, but some do not.</p></li>
 <li><p>Comment. All text that follows white space after the operands field is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon to prevent it from being interpreted as operands. The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment. If the statement has no operands, then all text after the operation field is a comment. It is good practice always to begin a comment with a semicolon.</p></li>
 </ul>
-<h2 id="directives">Directives</h2>
-<p>A directive is an assembly language statement that doesn't generate an instruction, but which gives further information about how to translate the program to object code.</p>
-<p>Directive formats</p>
-<p><code>~~</code> ASMDIR operand: xyz module ASMDIRX expression org 234 ASMDIRNS list of names import m1,m2 export a,b,c <code>~~</code></p>
+<h2 id="statements-that-generate-object-code">Statements that generate object code</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Label</th>
+<th>Statement</th>
+<th>Operands</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>optname</td>
+<td>data</td>
+<td>exprs</td>
+<td>generate word for each exp</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>RRRop</td>
+<td>r,r,r</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>RXop</td>
+<td>r,exp[r]</td>
+<td></td>
+</tr>
+<tr class="even">
+<td></td>
+<td>RRop</td>
+<td>r,r</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Rop</td>
+<td>r</td>
+<td></td>
+</tr>
+<tr class="even">
+<td></td>
+<td>RRKKop</td>
+<td>r,r,k,k</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="data-statement">data statement</h2>
+<p>The data statement specifies a sequence of constants to be placed in consecutive memory locations starting at the location counter, subject to relocation. Its argument is a list of one or more 4-digit hex constants separated by commas.</p>
+<p>A long block of data can be broken up into several data statements. Suppose x1, x2, etc are 4-digit hex constants. Then</p>
+<p><code>~~</code> data x1,x2,x3,x4,x5,x6 <code>~~</code></p>
+<p>is equivalent to</p>
+<p><code>~~</code> data x1,x2,x3 data x4,x5,x6 <code>~~</code></p>
+<p>Suppose</p>
+<ul>
+<li><p>The module's relocation constant is r</p></li>
+<li><p>The location counter has been set to c</p></li>
+<li><p>The i'th constant (counting from 0) in a data statement is x.</p></li>
+</ul>
+<p>Then the linker will set mem[r+c+i] := x.</p>
+<p>One point to watch out for is that an assembly language data statement uses $ to indicate that a number is a hex constant (e.g. $03b7) but the object language data statement requires all numbers to be 4-digit hex constants, and does not require (or allow) a preceding $ character</p>
+<h2 id="statements-that-provide-metadata">Statements that provide metadata</h2>
+<p>A directive is an assembly language statement that gives further information about how to translate the program to object code and how to link the code with other modules. It doesn't generate an instruction or constant data.</p>
+<ul>
+<li>modname is an identifier</li>
+<li>locname is an identifier</li>
+<li>optname is an optional identifier</li>
+<li>locnames is a list of one or more identifiers, separated by commas</li>
+<li>exp i an expression that denotes a value, which may be either fixed or relocatable</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Statement</th>
+<th>Label</th>
+<th>Operands</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>modname</td>
+<td>module</td>
+<td></td>
+<td>Define name of module</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>org</td>
+<td>expression</td>
+<td>Set location counter</td>
+</tr>
+<tr class="odd">
+<td>locname</td>
+<td>equ</td>
+<td>expression</td>
+<td>Define value</td>
+</tr>
+<tr class="even">
+<td>locname</td>
+<td>import</td>
+<td>modname,extname</td>
+<td>Import value from module</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>export</td>
+<td>locnames</td>
+<td>Export values</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
 <p><code>~~</code> abc Module x import Mod1 y import Mod1 z import Mod2 export x,y,z org 34 org $02bf org *+100 codeWrite equ 2 codeRead equ 1</p>
 <p>astart data 5 data 9 data 78 aend asize equ aend-astart <code>~~</code></p>
 <h3 id="module-statement">module statement</h3>
@@ -1486,24 +1889,10 @@
 <p>The export statement states that the value of an identifier should be made available for other modules to import. For example, this module defines a function and exports it so other modules can import and call it:</p>
 <p><code>~~</code> Mod1 module export fcn</p>
 <p>fcn add R1,R1,R1 jump 0[R12] <code>~~</code></p>
-<h3 id="data-statement">data statement</h3>
-<p>The data statement specifies a sequence of constants to be placed in consecutive memory locations starting at the location counter, subject to relocation. Its argument is a list of one or more 4-digit hex constants separated by commas.</p>
-<p>A long block of data can be broken up into several data statements. Suppose x1, x2, etc are 4-digit hex constants. Then</p>
-<p><code>~~</code> data x1,x2,x3,x4,x5,x6 <code>~~</code></p>
-<p>is equivalent to</p>
-<p><code>~~</code> data x1,x2,x3 data x4,x5,x6 <code>~~</code></p>
-<p>Suppose</p>
-<ul>
-<li><p>The module's relocation constant is r</p></li>
-<li><p>The location counter has been set to c</p></li>
-<li><p>The i'th constant (counting from 0) in a data statement is x.</p></li>
-</ul>
-<p>Then the linker will set mem[r+c+i] := x.</p>
-<p>One point to watch out for is that an assembly language data statement uses $ to indicate that a number is a hex constant (e.g. $03b7) but the object language data statement requires all numbers to be 4-digit hex constants, and does not require (or allow) a preceding $ character</p>
 <h2 id="assembly-listing">Assembly listing</h2>
 <p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two's complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn't produce any code these fields will be blank. After the code, the original source statement appears.</p>
 <p>The second section of the assembly listing is the <strong>Symbol Table</strong>. This shows each identifier (or "symbol") that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
-<h1 id="modules-linking-and-booting">Modules, linking, and booting</h1>
+<h1 id="object-code">Object code</h1>
 <p>Small programs often consist of just one module (or file). The assembler translates the assembly language source code into machine language which is then executed by the processor.</p>
 <p>However, there are several reasons for breaking up larger programs into several modules. It's easier to work with several modules of reasonable size rather than one gigantic file. A module may provide generic services that can be incorporated into many programs. Programs can be simplified if they use libraries for common tasks, rather than implementing everything from scratch. It is faster to assemble small files than large ones.</p>
 <p>When a program consists of several modules, each one has to be assembled separately. However, the resulting machine language is not executable if it refers to procedures or other values defined in another module. Therefore the modules need to be combined into a single executable module; this is called <strong>linking</strong>.</p>

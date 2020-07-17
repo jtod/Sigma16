@@ -3,11 +3,11 @@
 ; imports Mod2
 
 Mod1    module
-fcn     import Mod2
-x       import Mod2
+f       import Mod2,fcn   ; renaming Mod2.fcn to f
+x       import Mod2,x     ; Mod2.x can be referred to as x
 
         load   R1,x[R0]
-        jal    R13,fcn[R0]
+        jal    R13,f[R0]
         store  R1,result[R0]
         trap   R0,R0,R0
 

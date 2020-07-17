@@ -89,6 +89,7 @@ export const RRXEXP      = 13;    // save R4,R7,3[R14]   (EXP)
 export const RCEXP       = 14;    // getctl R4,mask register,control (EXP)
 export const DATA        = 15;    // -42
 export const COMMENT     = 16;    // ; full line comment, or blank line
+export const afmtIdId    = 17;    // modname,locname for export statement
 
 export const DirModule   = 17;    // module directive
 export const DirImport   = 18;    // import directive
