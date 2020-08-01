@@ -21,7 +21,7 @@
 
 module Main where
 import HDL.Hydra.Core.Lib
-import ALU
+import Circuit.M1.ALU
 
 main = sim_alu 16 alu_input1
 

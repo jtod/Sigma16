@@ -1,0 +1,152 @@
+; Sigma16 AsmStatements.asm.txt: test translation of assembly language statements
+; Copyright 2020 John T. O'Donnell.  Licence GPL3, see Sigma16/README.md
+
+; sigma16 assemble AsmStatements
+
+; This file contains examples of all the assembly language statements,
+; both instructions and directives.  There shouldn't be any assembly
+; errors.
+
+; Character set: the following characters should be accepted
+; abcdefghijklmnopqrstuvwxyz_
+; ABCDEFGHIJKLMNOPQRSTUVWXYZ
+; 0123456789
+; `!"$%^&*()-_=+[{]};:'@#~|,<.>/?
+; ¬ Logical not symbol
+; £ Pound symbol
+
+;-------------------------------------------------------------------------------
+; Directives
+;-------------------------------------------------------------------------------
+
+; module statement
+Stmts  module
+
+; org statement
+       sub      R1,R2,R3       ; @ 0000   1123
+x      mul      R4,R5,R6       ; @ 0001   2456  x relocatable
+       org      $00ff
+       add      R7,R8,R9       ; @ 00ff   0789
+loop   div      R10,R11,R12    ; @ 0100   3abc  loop relocatable
+
+; equ statement
+pqr    equ      5              ; pqr = 0005 fixed
+wxy    equ      loop           ; wxy = 0100 relocatable
+
+; import statement
+foo    import   Mod1,foo
+bbb    import   Mod1,bar
+baz    import   Mod2,baz
+f      import   Mod2,fcn
+
+; export statement
+       export   loop
+       export   pqr
+
+;-------------------------------------------------------------------------------
+; RRR instructions
+;-------------------------------------------------------------------------------
+
+       add      R5,R12,R7     ; 05c7
+       sub      R12,R3,R15    ; 1c3f
+       mul      R1,R2,R3      ; 2123
+       div      R1,R2,R3      ; 3123
+       addc     R1,R2,R3      ; 4123
+       cmp      R1,R2         ; 5012
+       trap     R1,R2,R3
+
+;-------------------------------------------------------------------------------
+; RX instructions
+;-------------------------------------------------------------------------------
+
+       lea      R3,loop[R3]
+       lea      R3,$b3c2[R4]
+       lea      R1,23[R2]
+       lea      R5,-1[R5]
+       load     R1,loop[R2]
+       store    R9,$2b7f[R10]
+       jal      R13,loop[R0]
+       jump     loop[R2]
+;       jumpc0   13,10[R0]
+;       jumpc1   5,11[R1]
+       jumpf    R7,12[R2]
+       jumpt    R8,13[R3]
+       testset  R5,x[R0]
+
+;-------------------------------------------------------------------------------
+; EXP instructions
+;-------------------------------------------------------------------------------
+
+       rfi
+       getctl   R2,req        ; a2
+       putctl   R4,status
+       putctl   R4,mask
+       putctl   R4,req
+       putctl   R4,istat
+       putctl   R4,ipc
+       putctl   R4,vect
+       putctl   R4,psegBeg
+       putctl   R4,psegEnd
+       putctl   R4,dsegBeg
+       putctl   R4,dsegEnd
+       shiftl   R5,R3,7
+       shiftr   R5,R3,8
+       logicb   R1,R2,R3,6,13
+       logicw   R1,R2,R3,6
+       extract  R2,R3,5,6
+       extracti R2,R3,5,6
+       inject   R2,R3,5,6
+       injecti  R2,R3,5,6
+;       push     R1,R11,R12
+;       pop      R1,R11,R10
+;       top      R1,R11,R10
+       save     R2,R7,3[R14]
+       restore  R2,R7,3[R14]
+;       execute  R8,R9
+      dispatch R8,13
+
+;-------------------------------------------------------------------------------
+; Pseudoinstructions
+;-------------------------------------------------------------------------------
+
+       jumple   21[R1]       ; jumpc0
+       jumpne   22[R3]       ; jumpc0
+       jumpge   23[R5]       ; jumpc0
+       jumpnv   24[R7]       ; jumpc0
+       jumpnvu  25[R9]       ; jumpc0
+       jumpnco  27[R11]      ; jumpc0
+
+       jumplt   16[R0]       ; jumpc1
+       jumpeq   18[R2]       ; jumpc1
+       jumpgt   20[R4]       ; jumpc1
+       jumpv    22[R6]       ; jumpc1
+       jumpvu   24[R8]       ; jumpc1
+       jumpco   26[R10]      ; jumpc1
+
+;       inv      R6,R7        ; logicw
+;       and      R6,R7,R8     ; logicw
+;       or       R6,R7,R8     ; logicw
+;       xor      R6,R7,R8     ; logicw
+
+;       invb     R6,R7,15     ; logicb
+;       andb     R6,R7,R8,15  ; logicb
+;       orb      R6,R7,R8,15  ; logicb
+;       xorb     R6,R7,R8,15  ; logicb
+
+       field    R4,7,5       ; injecti
+
+goodlabel
+
+; data
+
+ab       data    3      ; positive integer
+         data    389    ; larger integer
+         data    -5     ; negative integer
+sum      data    $03f2  ; hex
+y        data   $01a3   ; hex
+v1       data   -23     ; negative integer
+frame    data   0
+abc    data     42
+       data     -3
+       data     $2ca3
+       data     sum

@@ -35,7 +35,7 @@
 # Sigma system: https://jtod.github.io/home/Sigma16/
 export SIGMASYSTEM="/path/to/SigmaSystem"
 export SIGMA16=${SIGMASYSTEM}/Sigma16
-alias sigma16="node ${SIGMA16}/src/cli/Sigma16.mjs"
+alias sigma16="node ${SIGMA16}/src/Sigma16/cli/Sigma16.mjs"
 */
 
 //-----------------------------------------------------------------------------
@@ -81,8 +81,8 @@ import * as link from "../gui/linker.mjs";
 
 // Find paths to components of the software
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
-const homeDir = path.join (cliDir, "/../../")
-const guiDir = path.join (homeDir, "/src/gui/")
+const homeDir = path.join (cliDir, "/../../../")
+const guiDir = path.join (homeDir, "/src/Sigma16/gui/")
 const docsDir = path.join (homeDir, "/docs/")
 const examplesDir = path.join (homeDir, "/examples");
 

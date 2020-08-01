@@ -5,9 +5,10 @@
 -- The program `progadd' does a few load and add instructions, to
 -- provide a very small but complete program.
 
+-- Runs with M1 system
 
-module Main where
-import M1driver
+module Circuit.Programs.AddRun where
+import Circuit.M1.M1driver
 
 main :: IO ()
 main = run_Sigma16_program addprogram 15

@@ -34,59 +34,47 @@ let emptyStmt = statementSpec.get("");
 
 export const mnemonicRRR =
   ["add",     "sub",     "mul",     "div",
-   "cmp",     "cmplt",   "cmpeq",   "cmpgt",
-   "inv",     "and",     "or",      "xor",
+   "addc",     "nop",    "nop",     "nop",
+   "nop",     "nop",    "nop",     "nop",
    "nop",     "trap",    "EXP",     "RX"];
 
 export const mnemonicRX =
   ["lea",     "load",    "store",   "jump",
-   "jumpc0",  "jumpc1",  "jumpf",   "jumpt",
-   "jal",     "testset", "nop",     "nop",
+   "jal",     "jumpc0",  "jumpc1",  "jumpz",
+   "jumpnz",  "testset", "nop",     "nop",
    "nop",     "nop",     "nop",     "nop"];
 
 const mnemonicEXP =
-  [
-// EXP0
-   "rfi",
-// RREXP
-   "execute", "invnew",
-// RCEXP
-   "getctl",  "putctl",
-// RRREXP
-   "push",    "pop",     "top",
-// RRKEXP
-      "shiftl",  "shiftr", "invb",
-// RRKKEXP
-      "extract", "extracti", "inject", "injecti",
-// RRRKEXP
-   "logicw",
-// RRRKKEXP
-   "logicb",
-// RRXEXP
-   "save",    "restore"
-  ]
+      ["rfi",      "getctl",   "putctl",  "shiftl",
+       "shiftr",   "logicb",   "logicw",  "extract",
+       "extracti", "inject",   "injecti", "push",
+       "pop",      "top",      "save",     "restore",
+       "execute",  "dispatch", "nop",      "nop"];
+
 
 //-----------------------------------------------------------------------------
 // Instruction set and assembly language formats
 //-----------------------------------------------------------------------------
 
-// Assembly language statement formats (machine language format)
+// Assembly language statement formats (machine language format).  The
+// statement formats have names that begin with "a" (e.g. aRRR) while
+// the architecture formats don't (e.g. RRR).
 
-export const RRR         =  0;    // R1,R2,R3    (RRR)
-export const RR          =  1;    // R1,R2       (RRR, omitting d or b field
-export const RX          =  2;    // R1,xyz[R2]  (RX)
-export const KX          =  3;    // R1,xyz[R2]  (RX)
-export const JX          =  4;    // loop[R0]    (RX omitting d field)
+export const aRRR         =  0;    // R1,R2,R3    (RRR)
+export const aRR          =  1;    // R1,R2       (RRR, omitting d or b field
+export const aRX          =  2;    // R1,xyz[R2]  (RX)
+export const aKX          =  3;    // R1,xyz[R2]  (RX)
+export const aJX          =  4;    // loop[R0]    (RX omitting d field)
 export const EXP0        =  5;    // EXP format with no operand
-export const RREXP       =  6;    // R1,R2       (EXP)
-export const RRREXP      =  7;    // R1,R2,R3    (EXP) like RRR instruction
-export const RRKEXP      =  8;    // R1,R2,3    (EXP)
-export const RKKEXP      =  9;    // R1,3,5     (EXP)
-export const RRRKEXP     = 10;    // R1,R2,R3,k    (EXP) logicw
-export const RRKKEXP     = 11;    // R1,R2,3    (EXP)
-export const RRRKKEXP    = 12;    // R1,R2,R3,g,h    (EXP) logicb
-export const RRXEXP      = 13;    // save R4,R7,3[R14]   (EXP)
-export const RCEXP       = 14;    // getctl R4,mask register,control (EXP)
+export const aRREXP       =  6;    // R1,R2       (EXP)
+export const aRRREXP      =  7;    // R1,R2,R3    (EXP) like RRR instruction
+export const aRRKEXP      =  8;    // R1,R2,3    (EXP)
+export const aRKKEXP      =  9;    // R1,3,5     (EXP)
+export const aRRRKEXP     = 10;    // R1,R2,R3,k    (EXP) logicw
+export const aRRKKEXP     = 11;    // R1,R2,3    (EXP)
+export const aRRRKKEXP    = 12;    // R1,R2,R3,g,h    (EXP) logicb
+export const aRRXEXP      = 13;    // save R4,R7,3[R14]   (EXP)
+export const aRCEXP       = 14;    // getctl R4,mask register,control (EXP)
 export const DATA        = 15;    // -42
 export const COMMENT     = 16;    // ; full line comment, or blank line
 export const afmtIdId    = 17;    // modname,locname for export statement
@@ -115,12 +103,12 @@ export function showFormat (n) {
 
 // Give the size of generated code for an instruction format
 export function formatSize (fmt) {
-    if (fmt==RRR || fmt==RR || fmt==EXP0 || fmt==DATA) {
+    if (fmt==aRRR || fmt==aRR || fmt==EXP0 || fmt==DATA) {
         return 1;
-    } else if (fmt==RX || fmt==KX || fmt==JX
-               || fmt==RREXP ||  fmt==RCEXP || fmt==RRREXP || fmt==RRKEXP
-               || fmt==RRRKEXP || fmt==RRRKKEXP || fmt==RKKEXP
-               || fmt==RRKKEXP || fmt==RRXEXP) {
+    } else if (fmt==aRX || fmt==aKX || fmt==aJX
+               || fmt==aRREXP ||  fmt==aRCEXP || fmt==aRRREXP || fmt==aRRKEXP
+               || fmt==aRRRKEXP || fmt==aRRRKKEXP || fmt==aRKKEXP
+               || fmt==aRRKKEXP || fmt==aRRXEXP) {
         return 2;
     } else if (fmt==NOOPERAND) {
         return 1;
@@ -172,35 +160,35 @@ statementSpec.set("data",  {format:DATA, opcode:[]});
 statementSpec.set("",   {format:EMPTY, opcode:[]});
 
 // Opcodes (in the op field) of 0-13 denote RRR instructions
-statementSpec.set("add",     {format:RRR, opcode:[0]});
-statementSpec.set("sub",     {format:RRR, opcode:[1]});
-statementSpec.set("mul",     {format:RRR, opcode:[2]});
-statementSpec.set("div",     {format:RRR, opcode:[3]});
-statementSpec.set("cmp",     {format:RR,  opcode:[4]});
-statementSpec.set("cmplt",   {format:RRR, opcode:[5]});
-statementSpec.set("cmpeq",   {format:RRR, opcode:[6]});
-statementSpec.set("cmpgt",   {format:RRR, opcode:[7]});
-statementSpec.set("invold",  {format:RR,  opcode:[8]});
-statementSpec.set("andold",  {format:RRR, opcode:[9]});
-statementSpec.set("orold",   {format:RRR, opcode:[10]});
-statementSpec.set("xorold",  {format:RRR, opcode:[11]});
-statementSpec.set("nop",     {format:RRR, opcode:[12]});
-statementSpec.set("trap",    {format:RRR, opcode:[13]});
+statementSpec.set("add",     {format:aRRR, opcode:[0]});
+statementSpec.set("sub",     {format:aRRR, opcode:[1]});
+statementSpec.set("mul",     {format:aRRR, opcode:[2]});
+statementSpec.set("div",     {format:aRRR, opcode:[3]});
+statementSpec.set("cmp",     {format:aRR,  opcode:[4]});
+statementSpec.set("cmplt",   {format:aRRR, opcode:[5]});
+statementSpec.set("cmpeq",   {format:aRRR, opcode:[6]});
+statementSpec.set("cmpgt",   {format:aRRR, opcode:[7]});
+statementSpec.set("invold",  {format:aRR,  opcode:[8]});
+statementSpec.set("andold",  {format:aRRR, opcode:[9]});
+statementSpec.set("orold",   {format:aRRR, opcode:[10]});
+statementSpec.set("xorold",  {format:aRRR, opcode:[11]});
+statementSpec.set("nop",     {format:aRRR, opcode:[12]});
+statementSpec.set("trap",    {format:aRRR, opcode:[13]});
 
 // If op=14, escape to EXP format
 // If op=15, escape to RX format.
 
 // RX instructions
-statementSpec.set("lea",     {format:RX,  opcode:[15,0]});
-statementSpec.set("load",    {format:RX,  opcode:[15,1]});
-statementSpec.set("store",   {format:RX,  opcode:[15,2]});
-statementSpec.set("jump",    {format:JX,  opcode:[15,3,0]});
-statementSpec.set("jumpc0",  {format:KX,  opcode:[15,4]});
-statementSpec.set("jumpc1",  {format:KX,  opcode:[15,5]});
-statementSpec.set("jumpf",   {format:RX,  opcode:[15,6]});
-statementSpec.set("jumpt",   {format:RX,  opcode:[15,7]});
-statementSpec.set("jal",     {format:RX,  opcode:[15,8]});
-statementSpec.set("testset", {format:RX,  opcode:[15,9]});
+statementSpec.set("lea",     {format:aRX,  opcode:[15,0]});
+statementSpec.set("load",    {format:aRX,  opcode:[15,1]});
+statementSpec.set("store",   {format:aRX,  opcode:[15,2]});
+statementSpec.set("jump",    {format:aJX,  opcode:[15,3,0]});
+statementSpec.set("jumpc0",  {format:aKX,  opcode:[15,4]});
+statementSpec.set("jumpc1",  {format:aKX,  opcode:[15,5]});
+statementSpec.set("jumpf",   {format:aRX,  opcode:[15,6]});
+statementSpec.set("jumpt",   {format:aRX,  opcode:[15,7]});
+statementSpec.set("jal",     {format:aRX,  opcode:[15,8]});
+statementSpec.set("testset", {format:aRX,  opcode:[15,9]});
 
 // Mnemonics for EXP instructions
 // Expanded instructions with one word: opcode 0,...,7
@@ -208,29 +196,29 @@ statementSpec.set("testset", {format:RX,  opcode:[15,9]});
 statementSpec.set("rfi",     {format:EXP0,     opcode:[14,0]});
 // Expanded instructions with two words: opcode >= 8
 // RRXEXP
-statementSpec.set("save",    {format:RRXEXP,   opcode:[14,8]});
-statementSpec.set("restore", {format:RRXEXP,   opcode:[14,9]});
-// RCEXP
-statementSpec.set("getctl",  {format:RCEXP,    opcode:[14,10]});
-statementSpec.set("putctl",  {format:RCEXP,    opcode:[14,11]});
+statementSpec.set("save",    {format:aRRXEXP,   opcode:[14,8]});
+statementSpec.set("restore", {format:aRRXEXP,   opcode:[14,9]});
+// aRCEXP
+statementSpec.set("getctl",  {format:aRCEXP,    opcode:[14,10]});
+statementSpec.set("putctl",  {format:aRCEXP,    opcode:[14,11]});
 // RREXP
-statementSpec.set("execute", {format:RREXP,    opcode:[14,12]});
+statementSpec.set("execute", {format:aRREXP,    opcode:[14,12]});
 // RRREXP
-statementSpec.set("push",    {format:RRREXP,   opcode:[14,13]});
-statementSpec.set("pop",     {format:RRREXP,   opcode:[14,14]});
-statementSpec.set("top",     {format:RRREXP,   opcode:[14,15]});
+statementSpec.set("push",    {format:aRRREXP,   opcode:[14,13]});
+statementSpec.set("pop",     {format:aRRREXP,   opcode:[14,14]});
+statementSpec.set("top",     {format:aRRREXP,   opcode:[14,15]});
 // RRKEXP
-statementSpec.set("shiftl",  {format:RRKEXP,   opcode:[14,16]});
-statementSpec.set("shiftr",  {format:RRKEXP,   opcode:[14,17]});
+statementSpec.set("shiftl",  {format:aRRKEXP,   opcode:[14,16]});
+statementSpec.set("shiftr",  {format:aRRKEXP,   opcode:[14,17]});
 // RRKKEXP
-statementSpec.set("extract", {format:RRKKEXP,  opcode:[14,18]});
-statementSpec.set("extracti",{format:RRKKEXP,  opcode:[14,19]});
-statementSpec.set("inject",  {format:RRRKKEXP, opcode:[14,20]});
-statementSpec.set("injecti", {format:RRRKKEXP, opcode:[14,21]});
+statementSpec.set("extract", {format:aRRKKEXP,  opcode:[14,18]});
+statementSpec.set("extracti",{format:aRRKKEXP,  opcode:[14,19]});
+statementSpec.set("inject",  {format:aRRRKKEXP, opcode:[14,20]});
+statementSpec.set("injecti", {format:aRRRKKEXP, opcode:[14,21]});
 // RRRKEXP
-statementSpec.set("logicw",  {format:RRRKEXP,  opcode:[14,22]});
+statementSpec.set("logicw",  {format:aRRRKEXP,  opcode:[14,22]});
 // RRRKKEXP
-statementSpec.set("logicb",  {format:RRRKKEXP, opcode:[14,23]});
+statementSpec.set("logicb",  {format:aRRRKKEXP, opcode:[14,23]});
 // Assembler directives
 statementSpec.set("data",    {format:DATA,      opcode:[]});
 statementSpec.set("module",  {format:DirModule, opcode:[]});
@@ -250,38 +238,38 @@ statementSpec.set("equ",     {format:DirEqu,    opcode:[]});
 // language uses d=R0.
 
 // Mnemonics for jumpc0 based on signed comparisons, overflow, carry
-statementSpec.set("jumple",  {format:JX,  opcode:[15,4,bit_ccg]});
-statementSpec.set("jumpne",  {format:JX,  opcode:[15,4,bit_ccE]});
-statementSpec.set("jumpge",  {format:JX,  opcode:[15,4,bit_ccl]});
-statementSpec.set("jumpnv",  {format:JX,  opcode:[15,4,bit_ccv]});
-statementSpec.set("jumpnvu", {format:JX,  opcode:[15,4,bit_ccV]});
-statementSpec.set("jumpnco", {format:JX,  opcode:[15,4,bit_ccC]});
+statementSpec.set("jumple",  {format:aJX,  opcode:[15,4,bit_ccg]});
+statementSpec.set("jumpne",  {format:aJX,  opcode:[15,4,bit_ccE]});
+statementSpec.set("jumpge",  {format:aJX,  opcode:[15,4,bit_ccl]});
+statementSpec.set("jumpnv",  {format:aJX,  opcode:[15,4,bit_ccv]});
+statementSpec.set("jumpnvu", {format:aJX,  opcode:[15,4,bit_ccV]});
+statementSpec.set("jumpnco", {format:aJX,  opcode:[15,4,bit_ccC]});
 
 // Mnemonics for jumpc1 based on signed comparisons
-statementSpec.set("jumplt",  {format:JX,  opcode:[15,5,bit_ccl]});
-statementSpec.set("jumpeq",  {format:JX,  opcode:[15,5,bit_ccE]});
-statementSpec.set("jumpgt",  {format:JX,  opcode:[15,5,bit_ccg]});
-statementSpec.set("jumpv",   {format:JX,  opcode:[15,5,bit_ccv]});
-statementSpec.set("jumpvu",  {format:JX,  opcode:[15,5,bit_ccV]});
-statementSpec.set("jumpco",  {format:JX,  opcode:[15,5,bit_ccC]});
+statementSpec.set("jumplt",  {format:aJX,  opcode:[15,5,bit_ccl]});
+statementSpec.set("jumpeq",  {format:aJX,  opcode:[15,5,bit_ccE]});
+statementSpec.set("jumpgt",  {format:aJX,  opcode:[15,5,bit_ccg]});
+statementSpec.set("jumpv",   {format:aJX,  opcode:[15,5,bit_ccv]});
+statementSpec.set("jumpvu",  {format:aJX,  opcode:[15,5,bit_ccV]});
+statementSpec.set("jumpco",  {format:aJX,  opcode:[15,5,bit_ccC]});
 
 
 // RREXP pseudo logicw
-statementSpec.set("inv",     {format:RREXP,  opcode:[14,22,12], pseudo:true});
+statementSpec.set("inv",     {format:aRREXP,  opcode:[14,22,12], pseudo:true});
 // RRKEXP pseudo: logicb
-statementSpec.set("invb",    {format:RRKEXP, opcode:[14,23,12], pseudo:true});
+statementSpec.set("invb",    {format:aRRKEXP, opcode:[14,23,12], pseudo:true});
 // RRREXP pseudo logic
-statementSpec.set("and",     {format:RRREXP, opcode:[14,22,1], pseudo:true});
-statementSpec.set("or",      {format:RRREXP, opcode:[14,22,7], pseudo:true});
-statementSpec.set("xor",     {format:RRREXP, opcode:[14,22,6], pseudo:true});
-// RRRKEXP pseudo logicb
-statementSpec.set("andb",    {format:RRRKEXP, opcode:[14,23,1], pseudo:true});
-statementSpec.set("orb",     {format:RRRKEXP, opcode:[14,23,7], pseudo:true});
-statementSpec.set("xorb",    {format:RRRKEXP, opcode:[14,23,6], pseudo:true});
+statementSpec.set("and",     {format:aRRREXP, opcode:[14,22,1], pseudo:true});
+statementSpec.set("or",      {format:aRRREXP, opcode:[14,22,7], pseudo:true});
+statementSpec.set("xor",     {format:aRRREXP, opcode:[14,22,6], pseudo:true});
+// aRRRKEXP pseudo logicb
+statementSpec.set("andb",    {format:aRRRKEXP, opcode:[14,23,1], pseudo:true});
+statementSpec.set("orb",     {format:aRRRKEXP, opcode:[14,23,7], pseudo:true});
+statementSpec.set("xorb",    {format:aRRRKEXP, opcode:[14,23,6], pseudo:true});
 
 // Mnemonic for field
-// RKKEXP pseudo injecti
-statementSpec.set("field",   {format:RKKEXP,  opcode:[14,22], pseudo:true});
+// aRKKEXP pseudo injecti
+statementSpec.set("field",   {format:aRKKEXP,  opcode:[14,22], pseudo:true});
 
 // -------------------------------------
 // Mnemonics for control registers
