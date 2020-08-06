@@ -133,20 +133,18 @@ f      import   Mod2,fcn
 ;       orb      R6,R7,R8,15  ; logicb
 ;       xorb     R6,R7,R8,15  ; logicb
 
-       field    R4,7,5       ; injecti
-
-goodlabel
-
+;       field    R4,7,5       ; injecti
+;goodlabel
 ; data
 
-ab       data    3      ; positive integer
-         data    389    ; larger integer
-         data    -5     ; negative integer
-sum      data    $03f2  ; hex
-y        data   $01a3   ; hex
-v1       data   -23     ; negative integer
-frame    data   0
-abc    data     42
-       data     -3
-       data     $2ca3
-       data     sum
+;ab       data    3      ; positive integer
+;         data    389    ; larger integer
+;         data    -5     ; negative integer
+;sum      data    $03f2  ; hex
+;y        data   $01a3   ; hex
+;v1       data   -23     ; negative integer
+;frame    data   0
+;abc    data     42
+;       data     -3
+;       data     $2ca3
+;       data     sum
