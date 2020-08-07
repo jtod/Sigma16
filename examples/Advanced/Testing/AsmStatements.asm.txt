@@ -1,19 +1,16 @@
 ; Sigma16 AsmStatements.asm.txt: test translation of assembly language statements
 ; Copyright 2020 John T. O'Donnell.  Licence GPL3, see Sigma16/README.md
 
-; sigma16 assemble AsmStatements
-
-; This file contains examples of all the assembly language statements,
-; both instructions and directives.  There shouldn't be any assembly
+; Examples of all the assembly language statements, to test
+; translation to machine language.  Should assemble without syntax
 ; errors.
+
 
 ; Character set: the following characters should be accepted
 ; abcdefghijklmnopqrstuvwxyz_
 ; ABCDEFGHIJKLMNOPQRSTUVWXYZ
 ; 0123456789
 ; `!"$%^&*()-_=+[{]};:'@#~|,<.>/?
-; ¬ Logical not symbol
-; £ Pound symbol
 
 ;-------------------------------------------------------------------------------
 ; Directives
