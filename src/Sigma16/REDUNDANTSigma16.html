@@ -31,17 +31,17 @@ visiting this file in a browser.
 				   computer architecture, assembler,
 				   emulator, application">
     <title>Sigma16</title>
-    <script type="module" src="../base/version.mjs"> </script>
-    <script type="module" src="../base/s16module.mjs"> </script>
-    <script type="module" src="../base/architecture.mjs"> </script>
-    <script type="module" src="../base/arithmetic.mjs"> </script>
-    <script type="module" src="../base/state.mjs"> </script>
-    <script type="module" src="./editor.mjs"> </script>
-    <script type="module" src="../base/assembler.mjs"> </script>
-    <script type="module" src="../base/linker.mjs"> </script>
-    <script type="module" src="../base/emulator.mjs"> </script>
-    <script type="module" src="./gui.mjs"> </script>
-    <link rel="stylesheet" href="./gui.css" type="text/css">
+    <script type="module" src="base/version.mjs"> </script>
+    <script type="module" src="base/s16module.mjs"> </script>
+    <script type="module" src="base/architecture.mjs"> </script>
+    <script type="module" src="base/arithmetic.mjs"> </script>
+    <script type="module" src="base/state.mjs"> </script>
+    <script type="module" src="gui/editor.mjs"> </script>
+    <script type="module" src="base/assembler.mjs"> </script>
+    <script type="module" src="base/linker.mjs"> </script>
+    <script type="module" src="base/emulator.mjs"> </script>
+    <script type="module" src="gui/gui.mjs"> </script>
+    <link rel="stylesheet" href="gui/gui.css" type="text/css">
   </head>
   <body>
     <div class="FullFrame">
@@ -58,7 +58,7 @@ visiting this file in a browser.
       </div>
 
       <div class="TopSection">
-	<button id="Welcome_Pane_Button"> TEMPWelcome </button>
+	<button id="Welcome_Pane_Button"> Welcome </button>
 	<button id="Examples_Pane_Button"> Examples </button>
 	<button id="Modules_Pane_Button"> Modules </button>
 	<button id="Editor_Pane_Button"> Editor </button>
@@ -96,7 +96,7 @@ visiting this file in a browser.
 	      </div>
 	      <div class="PaneBody" id="WelcomeHtml">
 		<div class="HtmlUnscrolled">
-		  <iframe src="../datafiles/welcome.html"
+		  <iframe src="datafiles/welcome.html"
 			  name="WelcomeIframe"
 			  id="WelcomeIframeId">
 		  </iframe>

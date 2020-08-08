@@ -73,16 +73,17 @@ import * as fs from "fs";
 import { fileURLToPath } from 'url';
 
 // Components of Sigma16
-import * as smod from "../gui/s16module.mjs";
-import * as asm from "../gui/assembler.mjs";
-import * as link from "../gui/linker.mjs";
-// import {mkModule, mkModuleAsm} from "../gui/s16module.mjs";
-// import {assemblerCLI} from "../gui/assembler.mjs";
+import * as smod from "../base/s16module.mjs";
+import * as asm from  "../base/assembler.mjs";
+import * as link from "../base/linker.mjs";
 
 // Find paths to components of the software
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
 const homeDir = path.join (cliDir, "/../../../")
+console.log (`Sigma16 home directory:\n${homeDir}`);
+const baseDir = path.join (homeDir, "/src/Sigma16/base/");
 const guiDir = path.join (homeDir, "/src/Sigma16/gui/")
+const datafilesDir = path.join (homeDir, "/src/Sigma16/datafiles/"); // .......
 const docsDir = path.join (homeDir, "/docs/")
 const examplesDir = path.join (homeDir, "/examples");
 
@@ -131,6 +132,8 @@ const app = express();
 
 // Provide locations of static source files, docs, and examples
 app.use( '/', express.static (guiDir));
+app.use( '/base', express.static (baseDir));
+app.use( '/datafiles', express.static (datafilesDir));
 app.use( '/docs', express.static (docsDir));
 app.use( '/examples', express.static (examplesDir));
 
@@ -140,6 +143,9 @@ express.static.mime.define({'text/css': ['css']});
 
 // Respond to get requests by sending the requested files
 app.get('/', (req, res) => res.sendFile(guiDir + '/Sigma16.html'));
+
+app.get('/base/*', (req, res) => res.sendFile(baseDir));  // ...........
+
 app.get('/docs/*', (req, res) => res.sendFile(docsDir));
 app.get('*', (req, res) => res.sendFile(guiDir));
 

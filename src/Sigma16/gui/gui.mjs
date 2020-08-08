@@ -19,16 +19,16 @@
 // by Sigma16.html and is the last JavaScript file to be loaded
 //-----------------------------------------------------------------------------
 
-import * as ver from './version.mjs';
-import * as com from './common.mjs';
-import * as smod from './s16module.mjs';
-import * as arch from './architecture.mjs';
-import * as arith from './arithmetic.mjs';
-import * as st from './state.mjs';
+import * as ver from '../base/version.mjs';
+import * as com from '../base/common.mjs';
+import * as smod from '../base/s16module.mjs';
+import * as arch from '../base/architecture.mjs';
+import * as arith from '../base/arithmetic.mjs';
+import * as st from '../base/state.mjs';
 import * as ed from './editor.mjs';
-import * as asm from './assembler.mjs';
-import * as link from './linker.mjs';
-import * as em from './emulator.mjs';
+import * as asm from '../base/assembler.mjs';
+import * as link from '../base/linker.mjs';
+import * as em from '../base/emulator.mjs';
 
 //-------------------------------------------------------------------------------
 // Parameters and global variables

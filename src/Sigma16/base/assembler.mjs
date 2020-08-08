@@ -23,7 +23,7 @@ import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
-import * as ed from './editor.mjs';
+// import * as ed from './editor.mjs';
 
 // TODO
 let opcode_cmp = 4; // refactor, see pass2/fmt==arch.RR

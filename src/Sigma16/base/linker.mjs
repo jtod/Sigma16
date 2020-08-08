@@ -26,7 +26,6 @@ import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
-import * as ed from './editor.mjs';
 import * as asm from './assembler.mjs';
 
 // refactor

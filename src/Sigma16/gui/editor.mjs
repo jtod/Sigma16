@@ -19,11 +19,11 @@
 // code, both assembly language and object code.
 //-----------------------------------------------------------------------------
 
-import * as com from './common.mjs';
-import * as smod from './s16module.mjs';
-import * as arch from './architecture.mjs';
-import * as arith from './arithmetic.mjs';
-import * as st from './state.mjs';
+import * as com from '../base/common.mjs';
+import * as smod from '../base/s16module.mjs';
+import * as arch from '../base/architecture.mjs';
+import * as arith from '../base/arithmetic.mjs';
+import * as st from '../base/state.mjs';
 
 // In a browser, the CORS restrictions make it impossible to do a
 // general file "Save As..." operation.  Instead, the user can
