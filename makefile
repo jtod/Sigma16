@@ -17,7 +17,6 @@
 # makefile defines commands to run, maintain, and build the system
 #-------------------------------------------------------------------------------
 
-
 # Web links
 #   Sigma16 home page (link to run the app and documentation)
 #     https://jtod.github.io/home/Sigma16/
@@ -139,12 +138,18 @@ S16HOMEPAGE:=$(SIGMAPROJECT)/homepage/jtod.github.io/S16
 # consisting of "version: : "1.2.3".  This defines VERSION, which is
 # used for building the top level index and the user guide.
 
-VERSION:=$(shell cat src/cli/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat src/Sigma16/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 # Define dates in several formats, for inclusion in the app and user guide
 YEAR=$(shell date +"%Y")
 MONTHYEAR=$(shell date +"%B %Y")
 MONTHYEARDAY=$(shell date +"%F")
+
+MDVERSION="Version $(VERSION), $(MONTHYEAR)"
+MDCOPYRIGHT="Copyright $(YEAR) John T. O&apos;Donnell"
+MDLATEST="See <a href='https://jtod.github.io/home/Sigma16/'>https://jtod.github.io/home/Sigma16/</a> for the latest version, and see section <em>About Sigma16</em> below for license."
+
+MDHEADER=$(MDVERSION).\ $(MDCOPYRIGHT).\ $(MDLATEST).
 
 # SIGMAPROJECT         project directory; parent of Sigma16 directory
 # S16HOMEPAGE          location of source for the Sigma16 Home Page
@@ -155,6 +160,10 @@ MONTHYEARDAY=$(shell date +"%F")
 # make showparams - print out the defined values
 .PHONY: showparams
 showparams:
+	echo $(MDVERSION)
+	echo ${MDCOPYRIGHT}
+	echo $(MDLATEST)
+	echo MDHEADER = ${MDHEADER}
 	echo SIGMAPROJECT = $(SIGMAPROJECT)
 	echo S16HOMEPAGE = $(S16HOMEPAGE)
 	echo VERSION = $(VERSION).txt
@@ -359,7 +368,7 @@ compile :
 .PHONY : set-version
 set-version :
 	echo $(VERSION) > VERSION.txt
-	echo "export const s16version = \"$(VERSION)\";" > src/gui/version.mjs
+	echo "export const s16version = \"$(VERSION)\";" > src/Sigma16/base/version.mjs
 
 
 #-------------------------------------------------------------------------------
@@ -468,14 +477,14 @@ example-indices :
           -o examples/SysLib/index.html \
 	  examples/SysLib/index.md
 
-src/gui/datafiles/welcome.html : src/gui/datafiles/srcwelcome.md
+src/Sigma16/datafiles/welcome.html : src/Sigma16/datafiles/srcwelcome.md
 	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
-	  src/gui/datafiles/srcwelcome.md > src/gui/datafiles/welcomeTEMP.md
+	  src/Sigma16/datafiles/srcwelcome.md > src/Sigma16/datafiles/welcomeTEMP.md
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
           --variable=css:../../docs/src/userguide/userguidestyle.css \
-          -o src/gui/datafiles/welcome.html \
-	  src/gui/datafiles/welcomeTEMP.md
+          -o src/Sigma16/datafiles/welcome.html \
+	  src/Sigma16/datafiles/welcomeTEMP.md
 
 #-------------------------------------------------------------------------------
 # User guide
@@ -495,28 +504,10 @@ docs/html/userguide/userguide.html : docs/src/userguide/userguide.org \
           --metadata title="Sigma16 User Guide" \
           --template=docs/src/userguide/userguide-template.html \
           --table-of-contents --toc-depth=4 \
-          --variable=author:"Copyright $(YEAR) John T. O'Donnell" \
-          --variable=date:'Version ${VERSION}, $(MONTHYEAR)' \
+          --variable=mdheader:$(MDHEADER) \
           --variable=css:userguidestyle.css \
           --output=docs/html/userguide/userguide.html \
 	  docs/src/userguide/userguide.org
-
-# userguide.org
-#          --metadata pagetitle="Foo Bar Baz" \
-# OLD Build user guide html from markdown source
-docs/html/userguide/OLDuserguide.html : docs/src/userguide/userguide.md \
-	  docs/src/userguide/userguide-template.html \
-	  docs/src/userguide/userguidestyle.css VERSION.txt
-	mkdir -p docs/html/userguide
-	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
-	pandoc --standalone \
-          --template=userguide-template.html \
-          --table-of-contents --toc-depth=4 \
-          --variable=author:"Copyright $(YEAR) John T. O'Donnell" \
-          --variable=date:'Version ${VERSION}, $(MONTHYEAR)' \
-          --variable=css:userguidestyle.css \
-          -o docs/html/userguide/userguide.html \
-	  docs/src/userguide/userguide.md
 
 # make source-dir-index --- Generate index for the project from markdown
 # source.

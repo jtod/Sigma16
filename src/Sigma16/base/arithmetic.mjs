@@ -126,7 +126,7 @@ xor = 0110 =  6
 
 // Given the mnemonic for a logic function, return the truth table
 // encoding needed for the general logic box circuit
-function logicFunction(mnemonic) {
+export function logicFunction(mnemonic) {
     return mnemonic=="andnew" ? 1
         : mnemonic=="and"     ? 1
         : mnemonic=="ornew"   ? 7

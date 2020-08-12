@@ -62,13 +62,14 @@ function modalWarning (msg) {
 
 // Symbols identify the panes that can be displayed
 
-export const WelcomePane   = Symbol ("");
-export const ExamplesPane  = Symbol ("");
-export const ModulesPane   = Symbol ("");
-export const EditorPane    = Symbol ("");
-export const AssemblerPane = Symbol ("");
-export const LinkerPane    = Symbol ("");
-export const ProcessorPane = Symbol ("");
+export const WelcomePane   = Symbol ("WelcomePane");
+export const ExamplesPane  = Symbol ("ExamplesPane");
+export const ModulesPane   = Symbol ("ModulesPane");
+export const EditorPane    = Symbol ("EditorPane");
+export const AssemblerPane = Symbol ("AssemblerPane");
+export const LinkerPane    = Symbol ("LinkerPane");
+export const ProcessorPane = Symbol ("ProcessorPane");
+export const DevToolsPane  = Symbol ("DevToolsPane");
 
 // The current pane is displayed; others are hidden
 
@@ -77,6 +78,8 @@ let currentPane = WelcomePane;
 // Return the string Id for a Pane symbol; needed for getElementById
 
 function paneIdString (p) {
+    return p.description;
+ /*
     switch (p) {
     case WelcomePane:    return "WelcomePane";
     case ExamplesPane:   return "ExamplesPane";
@@ -85,10 +88,13 @@ function paneIdString (p) {
     case AssemblerPane:  return "AssemblerPane";
     case LinkerPane:     return "LinkerPane";
     case ProcessorPane:  return "ProcessorPane";
+    case DevToolsPane:  return "DevToolsPane";
+        
     default:
         console.log (`paneIdString: bad argument`);
         return WelcomePane;
     }
+*/
 }
 
 // When the program starts, show the Welcome page and hide the others
@@ -103,6 +109,7 @@ function initializePane () {
     f (AssemblerPane, "none");
     f (LinkerPane, "none");
     f (ProcessorPane, "none");
+    f (DevToolsPane, "none");
 }
 
 // Leave the current pane and switch to p; run showInitializer if the
@@ -127,6 +134,8 @@ export function showPane (p) {
     case LinkerPane:
         break;
     case ProcessorPane:
+        break;
+    case DevToolsPane:
         break;
     }
     document.getElementById(paneIdString(p)).style.display = "block";
@@ -154,6 +163,8 @@ export function finalizeLeaveCurrentPane () {
     case LinkerPane:
         break;
     case ProcessorPane:
+        break;
+    case DevToolsPane:
         break;
     }
     document.getElementById(paneIdString(currentPane)).style.display = "none";
@@ -293,6 +304,7 @@ prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
 prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
 prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
 prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
+prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
 prepareButton ('About_Button',         () => jumpToGuideSection('about-sigma16'));  
 
 // User guide resize (UGR) buttons
@@ -354,6 +366,12 @@ prepareButton ('PP_Interrupt',    () => em.procInterrupt(em.emulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint(em.emulatorState));
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
 prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
+
+// DevTools
+prepareButton ('DevTools1',    devTools1);
+prepareButton ('DevTools2',    devTools2);
+prepareButton ('DevTools3',    devTools3);
+prepareButton ('DevTools4',    devTools4);
 
 //                          id="FullDisplayToggleButton"
 
@@ -628,6 +646,51 @@ window.onresize = function () {
     //    setMidMainLRratio (midLRratio);  // preserve ratio as window is resized
     adjustToMidMainLRratio ();
     com.mode.devlog ('window.onresize finished');
+}
+
+
+//-------------------------------------------------------------------------------
+// DevTools
+//-------------------------------------------------------------------------------
+
+function enableDevTools () {
+    console.log ("enableDevTools called");
+}
+
+// Make the definition visible in console
+window.enableDevTools = enableDevTools;
+
+let myWorker;
+myWorker = new Worker ("emworker.mjs");
+myWorker.onmessage = function (e) {
+    console.log ("main received message from worker");
+    let incoming = e.data;
+    console.log (`I am main, received ${incoming}`);
+}
+
+function devTools1 () {
+    console.log ("DevTools1");
+    if (window.Worker) {
+        console.log ("window.Worker is ok");
+    } else {
+        console.log ("window.Worker is undefined");
+    }
+}
+
+
+function devTools2 () {
+    console.log ("DevTools2");
+    let somedata = [4,9,2,3];
+    //    myWorker.postMessage ("This is text being sent from main");
+    myWorker.postMessage (somedata);
+}
+
+function devTools3 () {
+    console.log ("DevTools3");
+}
+
+function devTools4 () {
+    console.log ("DevTools4");
 }
 
 //-------------------------------------------------------------------------------

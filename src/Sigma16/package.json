@@ -7,14 +7,14 @@
         "url": "https://github.com/jtod/Sigma16"
     },
     "homepage": "https://jtod.github.io/S16/",
-    "main": "Sigma16.mjs",
+    "main": "cli/Sigma16.mjs",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
         "computer architecture",
-        "assembly language",
         "machine language",
+        "assembly language",
         "assembler",
         "linker",
         "emulator"

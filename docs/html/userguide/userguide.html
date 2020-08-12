@@ -19,8 +19,7 @@
 <body>
 <header id="title-block-header">
 <h1 class="title">Sigma16 User Guide</h1>
-<p class="author">Copyright 2020 John T. O'Donnell</p>
-<p class="date">Version 3.1.4, July 2020</p>
+<p class="date">Version 3.1.4, August 2020. Copyright 2020 John T. O&apos;Donnell. See <a href='https://jtod.github.io/home/Sigma16/'>https://jtod.github.io/home/Sigma16/</a> for the latest version, and see section <em>About Sigma16</em> below for license..</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
@@ -114,21 +113,26 @@
 <li><a href="#rfi">rfi</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#summary-of-instruction-set">Summary of instruction set</a></li>
+<li><a href="#summary-of-instruction-set">Summary of instruction set</a><ul>
+<li><a href="#instruction-formats">Instruction formats</a></li>
+<li><a href="#instructions">Instructions</a></li>
+<li><a href="#pseudoinstructions">Pseudoinstructions</a></li>
+</ul></li>
 <li><a href="#assembly-language">Assembly language</a><ul>
 <li><a href="#names">Names</a></li>
 <li><a href="#values">Values</a></li>
 <li><a href="#expressions">Expressions</a></li>
-<li><a href="#statement-formats">Statement formats</a></li>
+<li><a href="#syntax-of-assembly-language-statement">Syntax of assembly language statement</a></li>
 <li><a href="#statements-that-generate-object-code">Statements that generate object code</a></li>
 <li><a href="#data-statement">data statement</a></li>
-<li><a href="#statements-that-provide-metadata">Statements that provide metadata</a><ul>
+<li><a href="#directives">Directives</a><ul>
 <li><a href="#module-statement">module statement</a></li>
 <li><a href="#org-statement">org statement</a></li>
 <li><a href="#equ-statement">equ statement</a></li>
 <li><a href="#import-statment">import statment</a></li>
 <li><a href="#export-statement">export statement</a></li>
 </ul></li>
+<li><a href="#summary-of-assembly-language-directives">Summary of assembly language directives</a></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
 <li><a href="#object-code">Object code</a><ul>
@@ -1146,7 +1150,7 @@
 <p>The instruction format is EXP2. As there is no operand, the d field is ignored and the second word of the instruction is omitted. Thus every rfi instruction has the same machine language representation: e000. The fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is unused, and ab=0 because this is the secondary opcode of rfi.</p>
 <p>This instruction is privileged. Since the instruction changes the status register, it can be used to perform a context switch.</p>
 <h1 id="summary-of-instruction-set">Summary of instruction set</h1>
-<p>Instruction formats</p>
+<h2 id="instruction-formats">Instruction formats</h2>
 <p>RRR instructions are represented in one word comprising four 4-bit fields.</p>
 <table>
 <thead>
@@ -1199,23 +1203,26 @@
 </tbody>
 </table>
 <p>The a and b fields form an 8-bit value called ab.</p>
-<table style="width:90%;">
+<h2 id="instructions">Instructions</h2>
+<table style="width:88%;">
 <colgroup>
 <col style="width: 0%" />
 <col style="width: 0%" />
 <col style="width: 0%" />
 <col style="width: 0%" />
 <col style="width: 0%" />
-<col style="width: 89%" />
+<col style="width: 88%" />
+<col style="width: 0%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th>Mnemonic</th>
 <th>P</th>
 <th>Fmt</th>
-<th>Asm</th>
-<th>Op</th>
+<th>Args</th>
+<th>Code</th>
 <th>Effect</th>
+<th></th>
 </tr>
 </thead>
 <tbody>
@@ -1226,6 +1233,7 @@
 <td>RRR</td>
 <td>0</td>
 <td>Rd := Ra + Rb</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>sub</td>
@@ -1234,6 +1242,7 @@
 <td>RRR</td>
 <td>1</td>
 <td>Rd := Ra - Rb</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td>mul</td>
@@ -1242,6 +1251,7 @@
 <td>RRR</td>
 <td>2</td>
 <td>Rd := Ra * Rb</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>div</td>
@@ -1250,6 +1260,7 @@
 <td>RRR</td>
 <td>3</td>
 <td>Rd := Ra / Rb, R15 := Ra mod Rb</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td>addc</td>
@@ -1258,6 +1269,7 @@
 <td>RRR</td>
 <td>4</td>
 <td>Rd := Ra + Rb + R15.carry</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>cmp</td>
@@ -1266,6 +1278,7 @@
 <td>RR</td>
 <td>5</td>
 <td>R15 := Ra cmp Rb</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1274,6 +1287,7 @@
 <td></td>
 <td>6</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1282,6 +1296,7 @@
 <td></td>
 <td>7</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1290,6 +1305,7 @@
 <td></td>
 <td>8</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1298,30 +1314,34 @@
 <td></td>
 <td>9</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="odd">
-<td>getctl</td>
-<td>P</td>
+<td></td>
+<td></td>
 <td>RRR</td>
-<td>RC</td>
+<td></td>
 <td>a</td>
-<td>Rd := Sc</td>
+<td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="even">
-<td>putctl</td>
-<td>P</td>
+<td></td>
+<td></td>
 <td>RRR</td>
-<td>RC</td>
+<td></td>
 <td>b</td>
-<td>Sc := Rd</td>
+<td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="odd">
-<td>rfi</td>
-<td>P</td>
+<td></td>
+<td></td>
 <td>RRR</td>
-<td>R</td>
+<td></td>
 <td>c</td>
-<td>pc := ipc, status := istatus</td>
+<td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>trap</td>
@@ -1330,6 +1350,7 @@
 <td>RRR</td>
 <td>d</td>
 <td>OS request</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1338,6 +1359,7 @@
 <td></td>
 <td>e</td>
 <td>escape to EXP format</td>
+<td></td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1346,6 +1368,7 @@
 <td></td>
 <td>f</td>
 <td>escape to RX format</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td>lea</td>
@@ -1354,6 +1377,7 @@
 <td>RX</td>
 <td>f,0</td>
 <td>Rd := Ra+disp</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>load</td>
@@ -1362,6 +1386,7 @@
 <td>RX</td>
 <td>f,1</td>
 <td>Rd := M[Ra+disp]</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td>store</td>
@@ -1370,6 +1395,7 @@
 <td>RX</td>
 <td>f,2</td>
 <td>M[Ra+disp] := Rd</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>jump</td>
@@ -1378,46 +1404,52 @@
 <td>RX</td>
 <td>f,3</td>
 <td>pc := Ra+disp</td>
-</tr>
-<tr class="odd">
-<td>jumpc0</td>
 <td></td>
-<td>RX</td>
-<td>RX</td>
-<td>f,4</td>
-<td>if R15.k=0 then pc := Ra+disp</td>
-</tr>
-<tr class="even">
-<td>jumpc1</td>
-<td></td>
-<td>RX</td>
-<td>RX</td>
-<td>f,5</td>
-<td>if R15.k=1 then pc := Ra+disp</td>
-</tr>
-<tr class="odd">
-<td>jumpf</td>
-<td></td>
-<td>RX</td>
-<td>RX</td>
-<td>f,6</td>
-<td>if Rd=0 then pc := Ra+disp</td>
-</tr>
-<tr class="even">
-<td>jumpt</td>
-<td></td>
-<td>RX</td>
-<td>RX</td>
-<td>f,7</td>
-<td>if Rd!=0 then pc := Ra+disp</td>
 </tr>
 <tr class="odd">
 <td>jal</td>
 <td></td>
 <td>RX</td>
 <td>RX</td>
-<td>f,8</td>
+<td>f,4</td>
 <td>Rd := pc, pc := Ra+disp</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>jumpc0</td>
+<td></td>
+<td>RX</td>
+<td>RX</td>
+<td>f,5</td>
+<td>if R15.k=0 then pc := Ra+disp</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>jumpc1</td>
+<td></td>
+<td>RX</td>
+<td>RX</td>
+<td>f,6</td>
+<td>if R15.k=1 then pc := Ra+disp</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>jumpz</td>
+<td></td>
+<td>RX</td>
+<td>RX</td>
+<td>f,7</td>
+<td>if Rd=0 then pc := Ra+disp</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>jumpnz</td>
+<td></td>
+<td>RX</td>
+<td>RX</td>
+<td>f,8</td>
+<td>if Rd!=0 then pc := Ra+disp</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>testset</td>
@@ -1426,6 +1458,7 @@
 <td>RX</td>
 <td>f,9</td>
 <td>Rd := M[Ra+disp], M[Ra+disp] := 1</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1434,6 +1467,7 @@
 <td></td>
 <td>f,a</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1442,6 +1476,7 @@
 <td></td>
 <td>f,b</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1450,6 +1485,7 @@
 <td></td>
 <td>f,c</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1458,6 +1494,7 @@
 <td></td>
 <td>f,d</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -1466,6 +1503,7 @@
 <td></td>
 <td>f,e</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="even">
 <td></td>
@@ -1474,117 +1512,240 @@
 <td></td>
 <td>f,f</td>
 <td>– reserved –</td>
+<td></td>
 </tr>
 <tr class="odd">
+<td>rfi</td>
+<td>P</td>
+<td>EXP0</td>
+<td>R</td>
+<td>e,00</td>
+<td>pc := ipc, status := istatus</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>getctl</td>
+<td>P</td>
+<td>EXP</td>
+<td>RC</td>
+<td>e,01</td>
+<td>Rd := Sc</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>putctl</td>
+<td>P</td>
+<td>EXP</td>
+<td>RC</td>
+<td>e,02</td>
+<td>Sc := Rd</td>
+<td></td>
+</tr>
+<tr class="even">
 <td>shiftl</td>
 <td></td>
 <td>EXP</td>
 <td>RRk</td>
-<td>e,00</td>
+<td>e,03</td>
 <td>Rd := Ra shl b</td>
+<td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>shiftr</td>
 <td></td>
 <td>EXP</td>
 <td>RRk</td>
-<td>e,01</td>
+<td>e,04</td>
 <td>Rd := Ra shr b</td>
+<td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>logicb</td>
 <td></td>
 <td>EXP</td>
 <td>RRRk</td>
-<td>e,02</td>
+<td>e,05</td>
+<td>Rd.h := Re.h (lut g) Rf.h</td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>logicw</td>
 <td></td>
 <td>EXP</td>
 <td>RRRk</td>
-<td>e,03</td>
-<td>Rd := Re (lut g) Rf</td>
-</tr>
-<tr class="odd">
-<td>extract</td>
-<td></td>
-<td>EXP</td>
-<td>RRkk</td>
-<td>e,04</td>
-<td></td>
-</tr>
-<tr class="even">
-<td>extracti</td>
-<td></td>
-<td>EXP</td>
-<td>RRkk</td>
-<td>e,05</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td>inject</td>
-<td></td>
-<td>EXP</td>
-<td>RRkk</td>
 <td>e,06</td>
+<td>Rd := Re (lut g) Rf</td>
 <td></td>
 </tr>
 <tr class="even">
-<td>injecti</td>
+<td>extract</td>
 <td></td>
 <td>EXP</td>
 <td>RRkk</td>
 <td>e,07</td>
 <td></td>
+<td></td>
 </tr>
 <tr class="odd">
+<td>extracti</td>
+<td></td>
+<td>EXP</td>
+<td>RRkk</td>
+<td>e,08</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>inject</td>
+<td></td>
+<td>EXP</td>
+<td>RRkk</td>
+<td>e,09</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>injecti</td>
+<td></td>
+<td>EXP</td>
+<td>RRkk</td>
+<td>e,0a</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
 <td>push</td>
 <td></td>
 <td>EXP</td>
 <td>RRR</td>
-<td>e,08</td>
+<td>e,0b</td>
+<td></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>pop</td>
 <td></td>
 <td>EXP</td>
 <td>RRR</td>
-<td>e,09</td>
+<td>e,0c</td>
+<td></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>top</td>
 <td></td>
 <td>EXP</td>
 <td>RRR</td>
-<td>e,0a</td>
+<td>e,0d</td>
+<td></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>save</td>
 <td></td>
 <td>EXP</td>
 <td>RRX</td>
-<td>e,0b</td>
+<td>e,0e</td>
 <td>M[Rb+ofs] := R(e), M[Rb+ofs+1] := R(e+1), …, M[Rb+ofs+(f-e+1)] := Rf</td>
+<td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>restore</td>
 <td></td>
 <td>EXP</td>
 <td>RRX</td>
-<td>e,0c</td>
+<td>e,0f</td>
 <td>R(e) := M[Rb+ofs], …, Rf := M[Rb+ofs+(f-e+1)]</td>
+<td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>execute</td>
 <td></td>
 <td>EXP</td>
-<td>RR</td>
-<td>e,0d</td>
+<td></td>
+<td>e,10</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td>EXP</td>
+<td></td>
+<td>e,11</td>
+<td>– reserved –</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td>EXP</td>
+<td></td>
+<td>…</td>
+<td>– reserved –</td>
+<td></td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td>EXP</td>
+<td></td>
+<td>e,ff</td>
+<td>– reserved –</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="pseudoinstructions">Pseudoinstructions</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td>jumple</td>
+<td>RX</td>
+<td>jumpc0</td>
+<td>jumple disp[Ra]</td>
+<td>jumpc0 b,disp[Ra]</td>
+</tr>
+<tr class="even">
+<td>jumpne</td>
+<td>RX</td>
+<td>numpc0</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>jumpge</td>
+<td>RX</td>
+<td>jumpc0</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>jumpnv</td>
+<td>RX</td>
+<td>jumpc0</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>jumpvu</td>
+<td>RX</td>
+<td>jumpc0</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>jumpnco</td>
+<td>RX</td>
+<td>jumpc0</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>jumplt</td>
+<td>RX</td>
+<td>jumpc0</td>
+<td></td>
 <td></td>
 </tr>
 </tbody>
@@ -1594,19 +1755,16 @@
 <p>An instruction in machine language is just one or more words (often written in hexadecimal notation), while the corresponding instruction in assembly language uses mnemonic names so the programmer doesn't have to memorise all the operation codes, addresses of variables, and so on. For example, the assembly language statement mul R12,R3,R8 is more readable than the corresponding machine language instruction 2c38. However, the assembly language still gives the programmer complete control over every bit a program.</p>
 <p>Each line of source code is an assembly language statement. Unlike higher level languages, assembly language statements are not nested. There are three kinds of assembly language statement:</p>
 <ul>
-<li><p>Most statements specify either an instruction or some constant data.</p></li>
-<li><p>Some statements are full line comments.</p></li>
-<li>Other statements are <strong>directives</strong>, which control the behavior of the</li>
+<li>Comments</li>
+<li>Instructions or constant data</li>
+<li>Directives provide metadata but don't generate any code.</li>
 </ul>
-<p>assembler but don't generate any code.</p>
-<p>Humans write assembly language. The program is text: red}add R4,R2,R12. It's easier to read, you don't need to remember all the codes, and memory addresses are much easier to handle.</p>
-<p>The computer executes machine language: The program is words containing 16-bit numbers: 042c. It's possible for a digital circuit (the computer) to execute. No names for instructions or variables: everything is a number.</p>
 <p>A human writes a machine-level program in assembly language. A software application called the <strong>assembler</strong> reads it in and translates it to machine language. When it sees an instruction mnemonic like add or div, it replaces it with the operation code (0, 3, or whatever). The assembler helps with variable names — the machine language needs addresses (numbers) and the assembler calculates them</p>
 <ul>
 <li>You can use names (add, div) rather than numeric codes (0, 3)</li>
 <li>You can use variable names (x, y, sum) rather than memory addresses (02c3, 18d2)</li>
 <li>You write a program in assemply language</li>
-<li>The <em>assembler</em> translates it into machine language</li>
+<li>The assembler translates it into machine language</li>
 </ul>
 <p>Compilers and assemblers are similar in some ways: both of them translate a program from one language to another. The main difference is that compilers translate between languages that are very different, while assemblers translate between very similar languages.</p>
 <p>Example: a sequence of RRR instructions</p>
@@ -1735,13 +1893,13 @@
 </tbody>
 </table>
 <p>relocatable</p>
-<h2 id="statement-formats">Statement formats</h2>
-<p>A statement may contain several fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
+<h2 id="syntax-of-assembly-language-statement">Syntax of assembly language statement</h2>
+<p>An assembly language statement contains one or more fields. A field consists of non-space characters (with one exception: a space may appear in a string literal). Fields are separated from each other by one or more white space characters.</p>
 <ul>
 <li><p>Label. The label field is optional. If present, the label must be a name and it must begin in the first character of the line. If the first character is a space, then that line has no label.</p></li>
-<li><p>Operation. The operation field specifies an instruction or assembler directive. It must be preceded by one or more white space characters. Every statement (apart from a full line comment) must have an operation field, which must be a name.</p></li>
-<li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directive. Most instructions and assembler directives require operands, but some do not.</p></li>
-<li><p>Comment. All text that follows white space after the operands field is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon to prevent it from being interpreted as operands. The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment. If the statement has no operands, then all text after the operation field is a comment. It is good practice always to begin a comment with a semicolon.</p></li>
+<li><p>Operation. The operation field is an identifier that specifies an instruction or assembler directive. It must be preceded by one or more white space characters. Every statement (apart from a full line comment) must have an operation field.</p></li>
+<li><p>Operands. The operands field specifies operands for an instruction or arguments for assembly directives. There may be several operands, which must be separated by commas. Each type of statement (determined by the operation field) requires a specific syntax for the operands. Most instructions and assembler directives require operands, but some do not.</p></li>
+<li><p>Comment. All text that either (1) follows white space after the operands field, or (2) follows a semicolon (;), is a comment, and is ignored by the assembler. If one or more of the other fields (label, operation, operands) is missing, the comment must be preceded by a semicolon to prevent it from being interpreted as operands. The rule is: all text after a semicolon is a comment, and all text after white space following operands is a comment. A statement where the first non-space character is a semicolon is a full line comment. If the statement has no operands, then all text after the operation field is a comment. It is good practice always to begin a comment with a semicolon.</p></li>
 </ul>
 <h2 id="statements-that-generate-object-code">Statements that generate object code</h2>
 <table>
@@ -1800,21 +1958,42 @@
 <p><code>~~</code> data x1,x2,x3 data x4,x5,x6 <code>~~</code></p>
 <p>Suppose</p>
 <ul>
-<li><p>The module's relocation constant is r</p></li>
-<li><p>The location counter has been set to c</p></li>
-<li><p>The i'th constant (counting from 0) in a data statement is x.</p></li>
+<li>The module's relocation constant is r</li>
+<li>The location counter has been set to c</li>
+<li>The i'th constant (counting from 0) in a data statement is x.</li>
 </ul>
 <p>Then the linker will set mem[r+c+i] := x.</p>
 <p>One point to watch out for is that an assembly language data statement uses $ to indicate that a number is a hex constant (e.g. $03b7) but the object language data statement requires all numbers to be 4-digit hex constants, and does not require (or allow) a preceding $ character</p>
-<h2 id="statements-that-provide-metadata">Statements that provide metadata</h2>
+<h2 id="directives">Directives</h2>
 <p>A directive is an assembly language statement that gives further information about how to translate the program to object code and how to link the code with other modules. It doesn't generate an instruction or constant data.</p>
-<ul>
-<li>modname is an identifier</li>
-<li>locname is an identifier</li>
-<li>optname is an optional identifier</li>
-<li>locnames is a list of one or more identifiers, separated by commas</li>
-<li>exp i an expression that denotes a value, which may be either fixed or relocatable</li>
-</ul>
+<p>Examples:</p>
+<h3 id="module-statement">module statement</h3>
+<p>Declare the name of the module. The argument must be an indentifier. The following statement says that this is the object code for module named abc.</p>
+<p><code>~~</code> module abc <code>~~</code></p>
+<p>A program may be organized as a collection of modules, where each module appears in a separate file. When several modules are present, each one needs a unique name. The purpose of the module statement is to specify this name.</p>
+<p>A small program can be written as just one module, and it may have a module name but this is not required.</p>
+<p>The module statement defines the name of a module. The statement is optional. If present, it must be the first statement in the program, apart from full line comments and blank lines. A file may contain only one module statement, and if the statement "MyModuleName module" is present the file name should be MyModuleName.asm.txt.</p>
+<p>Examples</p>
+<p>quicksort module main module myprog module</p>
+<h3 id="org-statement">org statement</h3>
+<p>The org statement sets the location counter to a specified address. Subsequent instructions and data will be placed in memory at contiguous locations starting from that address. Examples:</p>
+<p>org 35 ; subsequent code starts from 0023 org $0f20 ; subsequent instructions start from 0f20 org *+50 ; skip 50 words</p>
+<p>The assembler initializes the location counter to 0 before it begins translating an assembly language module. This means that every module begins implicitly with org 0.</p>
+<h3 id="equ-statement">equ statement</h3>
+<p><code>~~</code> codeWrite equ 2 codeRead equ 1 <code>~~</code></p>
+<p>The expression in an equ can calculate the size of an object:</p>
+<p><code>~~</code> astart data 5 data 9 data 78 aend asize equ aend-astart <code>~~</code></p>
+<h3 id="import-statment">import statment</h3>
+<p>The import statement states that the value of an identifier is defined in another module. During the assembly of the module containing the import, the identifier is given a provisional value of 0, but this will be replaced by the actual value by the linker. For example,</p>
+<p><code>~~</code> x import Mod1,x y import Mod1,abc <code>~~</code></p>
+<p>says that x is a name that can be used in this module, but it is defined in Mod1; y can be used in this module but it is defined in Mod1 under the name abc.</p>
+<h3 id="export-statement">export statement</h3>
+<p>An export statement says that the module is making the value of a symbol available for use in other modules, which may import it. The statement takes two operands: the name being exported and the value, which must be a 4-digit hex constant. It makes no difference whether the name is relocatable, as the linker performs any relocation before writing the exported value into other modules that import it. Examples:</p>
+<p><code>~~</code> export haltcode,0 export fcn,002c <code>~~</code></p>
+<p>The export statement states that the value of an identifier should be made available for other modules to import. For example, this module defines a function and exports it so other modules can import and call it:</p>
+<p><code>~~</code> Mod1 module export fcn</p>
+<p>fcn add R1,R1,R1 jump 0[R12] <code>~~</code></p>
+<h2 id="summary-of-assembly-language-directives">Summary of assembly language directives</h2>
 <table>
 <thead>
 <tr class="header">
@@ -1826,7 +2005,7 @@
 </thead>
 <tbody>
 <tr class="odd">
-<td>modname</td>
+<td>identifier</td>
 <td>module</td>
 <td></td>
 <td>Define name of module</td>
@@ -1838,57 +2017,25 @@
 <td>Set location counter</td>
 </tr>
 <tr class="odd">
-<td>locname</td>
+<td>identifier</td>
 <td>equ</td>
 <td>expression</td>
 <td>Define value</td>
 </tr>
 <tr class="even">
-<td>locname</td>
+<td>identifier</td>
 <td>import</td>
-<td>modname,extname</td>
+<td>identifier,identifier</td>
 <td>Import value from module</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td>export</td>
-<td>locnames</td>
+<td>identifier</td>
 <td>Export values</td>
 </tr>
 </tbody>
 </table>
-<p>Examples:</p>
-<p><code>~~</code> abc Module x import Mod1 y import Mod1 z import Mod2 export x,y,z org 34 org $02bf org *+100 codeWrite equ 2 codeRead equ 1</p>
-<p>astart data 5 data 9 data 78 aend asize equ aend-astart <code>~~</code></p>
-<h3 id="module-statement">module statement</h3>
-<p>Declare the name of the module. The argument must be an indentifier. The following statement says that this is the object code for module named abc.</p>
-<p><code>~~</code> module abc <code>~~</code></p>
-<p>A program may be organized as a collection of modules, where each module appears in a separate file. When several modules are present, each one needs a unique name. The purpose of the module statement is to specify this name.</p>
-<p>A small program can be written as just one module, and it may have a module name but this is not required.</p>
-<p>The module statement defines the name of a module. The statement is optional. If present, it must be the first statement in the program, apart from full line comments and blank lines. A file may contain only one module statement, and if the statement "MyModuleName module" is present the file name should be MyModuleName.asm.txt.</p>
-<p>Examples</p>
-<p>quicksort module main module myprog module</p>
-<h3 id="org-statement">org statement</h3>
-<p>The org statement sets the location counter to a specified address. Currently the argument must be a a 4-digit hexadecimal constant, such as 3b9f.</p>
-<p><code>~~</code> org 0a04 <code>~~</code></p>
-<p>The org statement specifies where in memory instructions and data should be placed when the program is booted. It takes an operand consisting of a word value, and it sets the location counter to this value.</p>
-<p>Examples</p>
-<p>org $0f20 ; subsequent instructions start from 0f20 org *+50 ; skip 50 words</p>
-<p>The assembler initializes the location counter to 0 before it begins translating an assembly language module. This means that, in effect, every module begins with org 0.</p>
-<h3 id="equ-statement">equ statement</h3>
-<p><code>~~</code> trapWrite equ 2 <code>~~</code></p>
-<h3 id="import-statment">import statment</h3>
-<p><code>~~</code> import mod3,sqr,addr,addr,… <code>~~</code></p>
-<p>The import statement states that the value of an identifier is defined in another module. During the assembly of the module containing the import, the identifier is given a provisional value of 0, but this will be replaced by the actual value by the linker. For example,</p>
-<p><code>~~</code> x import Mod1 <code>~~</code></p>
-<p>a</p>
-<p>says that x is a name that can be used in this module, but it is defined in Mod1 and its actual value will remain unknown until the linker sets it later on.</p>
-<h3 id="export-statement">export statement</h3>
-<p>An export statement says that the module is making the value of a symbol available for use in other modules, which may import it. The statement takes two operands: the name being exported and the value, which must be a 4-digit hex constant. It makes no difference whether the name is relocatable, as the linker performs any relocation before writing the exported value into other modules that import it. Examples:</p>
-<p><code>~~</code> export haltcode,0 export fcn,002c <code>~~</code></p>
-<p>The export statement states that the value of an identifier should be made available for other modules to import. For example, this module defines a function and exports it so other modules can import and call it:</p>
-<p><code>~~</code> Mod1 module export fcn</p>
-<p>fcn add R1,R1,R1 jump 0[R12] <code>~~</code></p>
 <h2 id="assembly-listing">Assembly listing</h2>
 <p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two's complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn't produce any code these fields will be blank. After the code, the original source statement appears.</p>
 <p>The second section of the assembly listing is the <strong>Symbol Table</strong>. This shows each identifier (or "symbol") that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>

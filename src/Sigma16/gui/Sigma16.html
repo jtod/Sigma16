@@ -58,13 +58,14 @@ visiting this file in a browser.
       </div>
 
       <div class="TopSection">
-	<button id="Welcome_Pane_Button"> TEMPWelcome </button>
+	<button id="Welcome_Pane_Button"> Welcome </button>
 	<button id="Examples_Pane_Button"> Examples </button>
 	<button id="Modules_Pane_Button"> Modules </button>
 	<button id="Editor_Pane_Button"> Editor </button>
 	<button id="Assembler_Pane_Button"> Assembler </button>
 	<button id="Linker_Pane_Button"> Linker </button>
 	<button id="Processor_Pane_Button"> Processor </button>
+	<button id="DevTools_Pane_Button"> DevTools </button>
 	<button id="About_Button"> About Sigma16 </button>
 	<button class="RightButton" id="UG_Resize_Right_Large_Button">
           &#x27f9;
@@ -328,17 +329,15 @@ visiting this file in a browser.
 	      </div>
 	    </div>
 
-	    <div class="Pane" id="TestPane">
+	    <div class="Pane" id="DevToolsPane">
 	      <div class="PaneButtons">
-		<button onclick="testpane1();"> testpane 1 </button>
-		<button onclick="testpane2();"> testpane 2 </button>
-		<button onclick="testpane3();"> testpane 3 </button>
+		<button id="DevTools1"> DevTools 1 </button>
+		<button id="DevTools2"> DevTools 2 </button>
+		<button id="DevTools3"> DevTools 3 </button>
+		<button id="DevTools4"> DevTools 4 </button>
 	      </div>
-	      <div class="PaneBody" id="TestPaneBody">
+	      <div class="PaneBody" id="DevToolsBody">
 		<div id="TestListing">
-		  <pre class="CodePre"><code class="HighlightedTextAsHtmlExperiment">hello there
-another line
-		      and a third
 
 		  </code></pre>
 		  <span class="solarized-green">Solarized green</span>
@@ -349,7 +348,6 @@ another line
 		  <span class="solarized-magenta">Solarized magenta</span>
 		  <span class="solarized-orange">Solarized orange</span>
 		  <span class="solarized-yellow">Solarized yellow</span>
-		      
 
 		</div>
 	      </div>

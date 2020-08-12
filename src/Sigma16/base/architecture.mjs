@@ -30,11 +30,10 @@ export const iRRR     = Symbol ("RRR");
 export const iRX      = Symbol ("RX");
 export const iEXP1    = Symbol ("EXP1");
 export const iEXP2    = Symbol ("EXP2");
-export const iDir     = Symbol ("Directive");
 
+export const iData    = Symbol ("data");
+export const iDir     = Symbol ("iDir");
 export const iEmpty   = Symbol ("iEmpty");
-export const aEmpty   = Symbol ("aEmpty");
-
 
 // Return the size of instruction in given format
 export function formatSize (ifmt) {
@@ -76,6 +75,8 @@ export const aImport  = Symbol ("import - e.g. Mod1,x");
 export const aExport  = Symbol ("export - e.g. xyz");
 export const aOrg     = Symbol ("org - e.g. $f000");
 export const aEqu     = Symbol ("equ - e.g. 13");
+
+export const aEmpty   = Symbol ("aEmpty");
 
 //-----------------------------------------------------------------------------
 // Instruction mnemonics
@@ -227,7 +228,7 @@ statementSpec.set("trap",     {ifmt:iRRR,  afmt:aRRR,    opcode:[13]});
 
 // RX instructions have primary opcode f and secondary opcode in b field
 statementSpec.set("lea",      {ifmt:iRX,   afmt:aRX,     opcode:[15,0]});
-statementSpec.set("load",     {ifmt:iRX,   afmt:aRX,     opcode:[15,1]});
+statementSpec.set("load",     {ifmt:iRX,   afmt:aRX,     opcode:[15,1], pseudo:false});
 statementSpec.set("store",    {ifmt:iRX,   afmt:aRX,     opcode:[15,2]});
 statementSpec.set("jump",     {ifmt:iRX,   afmt:aX,      opcode:[15,3]});
 statementSpec.set("jal",      {ifmt:iRX,   afmt:aRX,     opcode:[15,4]});
@@ -265,7 +266,7 @@ statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,23]});
 
 // Assembler directives
 
-statementSpec.set("data",     {ifmt:iDir,  afmt:aData,   opcode:[]});
+statementSpec.set("data",     {ifmt:iData, afmt:aData,   opcode:[]});
 statementSpec.set("module",   {ifmt:iDir,  afmt:aModule, opcode:[]}); 
 statementSpec.set("import",   {ifmt:iDir,  afmt:aImport, opcode:[]});
 statementSpec.set("export",   {ifmt:iDir,  afmt:aExport, opcode:[]});
