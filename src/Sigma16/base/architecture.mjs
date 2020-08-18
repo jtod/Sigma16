@@ -242,15 +242,13 @@ statementSpec.set("testset",  {ifmt:iRX,   afmt:aRX,     opcode:[15,9]});
 // in ab field
 
 // EXP1 - instruction is 1 word
-
-statementSpec.set("rfi",      {ifmt:iEXP1, afmt:a0,     opcode:[14,0]});
+statementSpec.set("resume",   {ifmt:iEXP1, afmt:a0,     opcode:[14,0]});
 
 // EXP2 - instruction is 2 words
-
+statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,1]});
+statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,2]});
 statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,    opcode:[14,8]});
 statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,    opcode:[14,9]});
-statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,10]});
-statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,11]});
 statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,     opcode:[14,12]});
 statementSpec.set("push",     {ifmt:iEXP2, afmt:aRRR,    opcode:[14,13]});
 statementSpec.set("pop",      {ifmt:iEXP2, afmt:aRRR,    opcode:[14,14]});
@@ -332,41 +330,3 @@ statementSpec.set("xorb",    {ifmt:iEXP2, afmt:aRRRk, opcode:[14,23,6],
 // Mnemonic for bit field
 
 statementSpec.set("field",   {ifmt:iEXP2, afmt:aRkk,  opcode:[14,22], pseudo:true});
-
-// ----------------------------------------------------------
-// Deprecated
-// let emptyStmt = statementSpec.get("");
-// export const aRREXP       = Symbol();    // R1,R2       (EXP)
-// export const aRRREXP   = Symbol();    // R1,R2,R3    (EXP) like RRR instruction
-// export const UNKNOWN     =  Symbol();    // statement format is unknown
-// export const NOOPERATION = Symbol();    // error
-// export const aIdId    =  Symbol();    // modname,locname for export statement
-// export const EMPTY       =  Symbol();    // empty statement
-
-// Empty statement
-// statementSpec.set("",   {format:EMPTY, opcode:[]});
-// export const COMMENT  =  Symbol();    // ; full line comment, or blank line
-/*
-// Need to update ???
-export function showFormat (n) {
-    return n.description
-
-    let f = ['RRR','RR','RX', 'KX', 'JX','EXP1', 'RREXP', 'RRREXP', 'RRKEXP',
-             'RKKEXP', 'RRRKEXP',  'RRKKEXP', 'RRRKKEXP', 'RRXEXP',
-             'RCEXP', 'DATA','COMMENT',
-             'aModule', 'aImport', 'aExport', 'aOrg', 'aEqu',
-             'UNKNOWN', 'EMPTY'] [n];
-    let r = (f) ? f : 'UNKNOWN';
-    return r;
-}
-*/
-
-/*    
-    if (ifmt==iRRR || ifmt==iEXP1) {
-        return 1;
-    } else if (ifmt==iRX || ifmt==iEXP2 {
-        return 2;
-    } else {
-        return 0;
-    }
-*/

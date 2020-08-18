@@ -1,0 +1,373 @@
+<!--
+Sigma16: Sigma16.html
+Copyright (C) 2020 John T. O'Donnell
+email: john.t.odonnell9@gmail.com
+License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+
+This file is part of Sigma16.  Sigma16 is free software: you can
+redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+Sigma16 is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.  You should have received a copy of the GNU General
+Public License along with Sigma16.  If not, see
+<https://www.gnu.org/licenses/>.
+
+-------------------------------------------------------------------------------
+Sigma16.html is the top level html file; the system is launched by
+visiting this file in a browser.
+-------------------------------------------------------------------------------
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="author" content="John O'Donnell">
+    <meta name="description" content="computer architecture emulator">
+    <meta name="keywords" content="machine language, assembly language,
+				   computer architecture, assembler,
+				   emulator, application">
+    <title>Sigma16</title>
+    <script type="module" src="../Sigma16/base/version.mjs"> </script>
+    <script type="module" src="../Sigma16/base/s16module.mjs"> </script>
+    <script type="module" src="../Sigma16/base/architecture.mjs"> </script>
+    <script type="module" src="../Sigma16/base/arithmetic.mjs"> </script>
+    <script type="module" src="../Sigma16/base/state.mjs"> </script>
+    <script type="module" src="./editor.mjs"> </script>
+    <script type="module" src="../Sigma16/base/assembler.mjs"> </script>
+    <script type="module" src="../Sigma16/base/linker.mjs"> </script>
+    <script type="module" src="../Sigma16/base/emulator.mjs"> </script>
+    <script type="module" src="./gui.mjs"> </script>
+    <link rel="stylesheet" href="./gui.css" type="text/css">
+  </head>
+  <body>
+    <div class="FullFrame">
+
+      <div class="DialoguePopup" id="BreakDialogue">
+	<div class="PaneButtons">
+	  <button id="BreakRefresh">Refresh</button>
+	  <button id="BreakEnable">Enable</button>
+	  <button id="BreakDisable">Disable</button>
+	  <button id="BreakClose">Close</button>
+	</div>
+	<textarea class="Editor" spellcheck="false" id="BreakTextArea">
+	</textarea>
+      </div>
+
+      <div class="TopSection">
+	<button id="Welcome_Pane_Button"> Welcome </button>
+	<button id="Examples_Pane_Button"> Examples </button>
+	<button id="Modules_Pane_Button"> Modules </button>
+	<button id="Editor_Pane_Button"> Editor </button>
+	<button id="Assembler_Pane_Button"> Assembler </button>
+	<button id="Linker_Pane_Button"> Linker </button>
+	<button id="Processor_Pane_Button"> Processor </button>
+	<button id="About_Button"> About Sigma16 </button>
+	<button class="RightButton" id="UG_Resize_Right_Large_Button">
+          &#x27f9;
+        </button>
+	<button class="RightButton" id="UG_Resize_Right_Small_Button">
+	  &#x2b62;
+	</button>
+	<button class="RightButton" id="UG_Resize_Left_Small_Button">
+	  &#x2b60;
+	</button>
+	<button class="RightButton" id="UG_Resize_Left_Large_Button">
+	  &#x27f8;
+	</button>
+	<button id="DevTools_Pane_Button"> DevTools </button>
+      </div>
+      <div class="MiddleSection" id="MiddleSection">
+	<div class="MidMainSection">
+	  <div class="MidMainLeft" id="MidMainLeft">
+
+	    <div class="Pane" id="WelcomePane">
+	      <div class="PaneButtons">
+		<button id="WP_Guide_Top"> Contents </button>
+		<button id="WP_Tutorials"> Tutorials </button>
+		<button id="WP_Architecture"> Architecture </button>
+		<button id="WP_ISA"> Instruction set </button>
+		<button id="WP_Assembly_Language"> Assembly language </button>
+		<button id="WP_Linker"> Linker </button>
+		<button id="WP_Programming"> Programming </button>
+
+	      </div>
+	      <div class="PaneBody" id="WelcomeHtml">
+		<div class="HtmlUnscrolled">
+		  <iframe src="../datafiles/welcome.html"
+			  name="WelcomeIframe"
+			  id="WelcomeIframeId">
+		  </iframe>
+		</div>
+	      </div>
+	    </div>
+
+	    <div class="Pane" id="ExamplesPane">
+	      <div class="PaneButtons">
+		<button id="EXP_Examples_Home"> Examples </button>
+		<button id="EXP_Select_Example"> Select example </button>
+	      </div>
+	      <div class="PaneBody" id="ExamplesPane">
+		<iframe src="../../examples/index.html"
+			name="ExamplesIframe"
+			id="ExamplesIframeId">
+		</iframe>
+	      </div>
+	    </div>
+
+	    <div class="Pane" id="ModulesPane">
+	      <div class="PaneButtons">
+		<input type="file" multiple id="FileInput"
+		       name="myfileselector">
+                </input>
+		<button id="MP_Refresh"> Refresh </button>
+	      </div>
+	      <div class="HighlightedTextAsHtml" id="FilesBody">
+	      </div>
+	    </div>
+	    
+	    <div class="Pane" id="EditorPane">
+	      <div class="PaneButtons">
+		<button id="EDP_Clear"> Clear </button>
+		<button id="EDP_New_asm"> New assembly source </button>
+		<button id="EDP_New_obj"> New object module </button>
+		<button id="EDP_New_link"> New link commands </button>
+		<button id="EDP_Hello_World"> Hello, world! </button>
+                <button id="EDP_Save"> Save in download folder </button>
+		<a download="S16DownloadFile.txt"
+		   id="editorDownloadAnchor"
+		   style="display: none">
+		</a>
+	      </div>
+	      <div class="PaneBody" id="EditorBody">
+		<textarea class="Editor" spellcheck="false" id="EditorTextArea">
+		</textarea>
+	      </div>
+            </div>
+
+	    <div class="Pane" id="AssemblerPane">
+	      <div class="PaneButtons">
+		<button id="AP_Assemble"> Assemble </button>
+		<button id="AP_Show_Object"> Show object </button>
+		<button id="AP_Show_Listing"> Show listing </button>
+		<button id="AP_Show_Metadata"> Show metadata </button>
+	      </div>
+	      <div class="HighlightedTextAsHtml" id="AssemblerBody">
+		<div id="AsmTextHtml"></div>
+	      </div>
+	    </div>
+
+	    <div class="Pane" id="LinkerPane">
+	      <div class="PaneButtons">
+                <button id="LP_Read_Object"> Read object </button>
+		<button id="LP_Link"> Link </button>
+                <button id="LP_Show_Object"> Show object </button>
+                <button id="LP_Show_Metadata"> Show metadata </button>
+		<button id="LP_Boot"> Boot </button>
+	      </div>
+	      <div class="PaneBody" id="LinkerBody">
+	        <div class="HighlightedTextAsHtml" id="LinkerBody">
+		  <div id="LinkerText"></div>
+                </div>
+	      </div>
+	    </div>
+	    
+	    <div class="Pane" id="ProcessorPane">
+	      <div class="PaneButtons">
+		<button id="PP_Reset"> Reset </button>
+		<button id="PP_Boot"> Boot </button>
+		<button id="PP_Step"> Step </button>
+		<button id="PP_Run"> Run </button>
+		<button id="PP_Pause"> Pause </button>
+		<button id="PP_Interrupt"> Interrupt </button>
+		<button id="PP_Breakpoint"> Breakpoint </button>
+	      </div>
+	      <div class="PaneBody" id="ProcessorBody">
+		<div id="ProcessorState">
+		  <div class="ProcStateSection" id="InstructionRegisters">
+		    <div class="Registers">
+		      <div class="NewRegSecName">Control</div>
+		      <div class="RegisterName">pc</div>
+		      <div class="RegisterValue" id='pcElt'></div>
+		      <div class="RegisterName">ir</div>
+		      <div class="RegisterValue" id='irElt'></div>
+		      <div class="RegisterName">adr</div>
+		      <div class="RegisterValue" id='adrElt'></div>
+		      <div class="RegisterName">dat</div>
+		      <div class="RegisterValue" id='datElt'></div>
+		      <div class="RegisterName">status</div>
+		      <div class="RegisterValue" id="statusElt"></div>
+		    </div>
+		  </div>
+		  <div class="ProcStateSection" id="InterruptRegisters">
+		    <div class="Registers">
+		      <div class="NewRegSecName">Interrupt</div>
+		      <div class="RegisterName">mask</div>
+		      <div class="RegisterValue" id="maskElt"></div>
+		      <div class="RegisterName">req</div>
+		      <div class="RegisterValue" id="reqElt"></div>
+		      <div class="RegisterName">istat</div>
+		      <div class="RegisterValue" id='istatElt'></div>
+		      <div class="RegisterName">ipc</div>
+		      <div class="RegisterValue" id='ipcElt'></div>
+		      <div class="RegisterName">vect</div>
+		      <div class="RegisterValue" id="vectElt"></div>
+		    </div>
+		  </div>
+		  <div class="ProcStateSection" id="SegmentRegisters">
+		    <div class="Registers">
+		      <div class="NewRegSecName">Segment</div>
+		      <div class="RegisterName">seg</div>
+		      <div class="RegisterValue" id="sEnableElt"></div>
+		      <div class="RegisterName">bpseg</div>
+		      <div class="RegisterValue" id="bpsegElt">0000</div>
+		      <div class="RegisterName">epseg</div>
+		      <div class="RegisterValue" id="epsegElt">ffff</div>
+		      <div class="RegisterName">bdseg</div>
+		      <div class="RegisterValue" id="bdsegElt">0000</div>
+		      <div class="RegisterName">edseg</div>
+		      <div class="RegisterValue" id="edsegElt">ffff</div>
+		    </div>
+		  </div>
+		  <div class="ProcStateSection" id="RegisterFile">
+		    <div class="Registers">
+		      <div class="NewRegSecName">Reg File</div>
+		      <div class="RegisterName">R0</div>
+		      <div class="RegisterValue" id="R0">0123</div>
+		      <div class="RegisterName">R1</div>
+		      <div class="RegisterValue" id="R1">0123</div>
+		      <div class="RegisterName">R2</div>
+		      <div class="RegisterValue" id="R2">0123</div>
+		      <div class="RegisterName">R3</div>
+		      <div class="RegisterValue" id="R3">0123</div>
+		      <div class="RegisterName">R4</div>
+		      <div class="RegisterValue" id="R4">0123</div>
+		      <div class="RegisterName">R5</div>
+		      <div class="RegisterValue" id="R5">0123</div>
+		      <div class="RegisterName">R6</div>
+		      <div class="RegisterValue" id="R6">0123</div>
+		      <div class="RegisterName">R7</div>
+		      <div class="RegisterValue" id="R7">0123</div>
+		      <div class="RegisterName">R8</div>
+		      <div class="RegisterValue" id="R8">0123</div>
+		      <div class="RegisterName">R9</div>
+		      <div class="RegisterValue" id="R9">0123</div>
+		      <div class="RegisterName">R10</div>
+		      <div class="RegisterValue" id="R10">0123</div>
+		      <div class="RegisterName">R11</div>
+		      <div class="RegisterValue" id="R11">0123</div>
+		      <div class="RegisterName">R12</div>
+		      <div class="RegisterValue" id="R12">0123</div>
+		      <div class="RegisterName">R13</div>
+		      <div class="RegisterValue" id="R13">0123</div>
+		      <div class="RegisterName">R14</div>
+		      <div class="RegisterValue" id="R14">0123</div>
+		      <div class="RegisterName">R15</div>
+		      <div class="RegisterValue" id="R15">0123</div>
+		    </div>
+		  </div>
+		  <div class="ProcStateSection" id="InstructionDecode">
+		    <div class="Decode">
+		      <div class="DecodeSecName">Decode Instruction</div>
+		      <div class="DecodeName">Code</div>
+		      <div class="DecodeValue" id="InstrCode"></div>
+		      <div class="DecodeName">Fmt</div>
+		      <div class="DecodeValue" id="InstrFmt"></div>
+		      <div class="DecodeName">Op</div>
+		      <div class="DecodeValue" id="InstrOp"></div>
+		      <div class="DecodeName">Args</div>
+		      <div class="DecodeValue" id="InstrArgs"></div>
+		      <div class="DecodeName">EA</div>
+		      <div class="DecodeValue" id="InstrEA"></div>
+		      <div class="DecodeName">CC</div>
+		      <div class="DecodeValue" id="InstrCC"></div>
+		      <div class="DecodeName">Act</div>
+		      <div class="DecodeValue" id="InstrEffect1"></div>
+		      <div class="DecodeName">Act</div>
+		      <div class="DecodeValue" id="InstrEffect2"></div>
+		    </div>
+		  </div>
+		  <div class="ProcStateSection" id="Emulator">
+		    <div class="Registers">
+		      <div class="NewRegSecName">Emulator</div>
+		      <div class="RegisterName">s</div>
+		      <div class="RegisterValue" id="procStatus"></div>
+		      <div class="RegisterName">n</div>
+		      <div class="RegisterValue" id="nInstrExecuted"></div>
+		      <div class="RegisterName">m</div>
+		      <div class="RegisterValue">break</div>
+		      <input id="PP_Timer_Interrupt" class="EmCtlLine"
+			     type="button"
+			     value="Timer interrupt">
+
+		      </input>
+		      <input id="PP_Toggle_Display" class="EmCtlLine"
+		             type="button">
+		      </input>
+		    </div>
+		  </div>
+		  <div class="ProcStateSection" id="MemSection">
+		    <div class="MemSecName">Memory</div>
+		    <div class="MemDisplay" id="MemDisplay1"></div>
+		    <div class="MemDisplay" id="MemDisplay2"></div>
+		  </div>
+		  <div class="ProcStateSection" id="IOSection">
+		    <div class="IOSecName">Input/Output</div>
+		    <div class="IOlog" id="IOlog">
+	      <!--
+		      <div id="IOlogHtmlArea"></div>
+-->
+		    </div>
+                    <textarea spellcheck="false" id="IOinputBuffer"></textarea>
+		    <div id="IOInbufLabel">Input Buffer</div>
+		  </div>
+		</div>
+		<div id="ProcAsmListing"></div>
+	      </div>
+	    </div>
+
+	    <div class="Pane" id="DevToolsPane">
+	      <div class="PaneButtons">
+		<button id="DevTools1"> DevTools 1 </button>
+		<button id="DevTools2"> DevTools 2 </button>
+		<button id="DevTools3"> DevTools 3 </button>
+		<button id="DevTools4"> DevTools 4 </button>
+		<button id="DisableDevTools"> Disable DevTools </button>
+	      </div>
+	      <div class="PaneBody" id="DevToolsBody">
+		<div id="TestListing">
+
+		  </code></pre>
+		  <span class="solarized-green">Solarized green</span>
+		  <span class="solarized-blue">Solarized blue</span>
+		  <span class="solarized-red">Solarized red</span>
+		  <span class="solarized-cyan">Solarized cyan</span>
+		  <span class="solarized-violet">Solarized violet</span>
+		  <span class="solarized-magenta">Solarized magenta</span>
+		  <span class="solarized-orange">Solarized orange</span>
+		  <span class="solarized-yellow">Solarized yellow</span>
+
+		</div>
+	      </div>
+	    </div>
+	  </div>
+
+	  <div class="MidLeftRightSeparator">
+	  </div>
+
+	  <div class="MidMainRight" id="MidMainRight">
+  	    <iframe src="../../docs/html/userguide/userguide.html"
+		    name="UserGuideIframe"
+		    id="UserGuideIframeId">
+	    </iframe>
+	  </div>
+ 	</div>
+      </div>
+      <div class="BottomSection">
+      </div>
+    </div>
+  </body>
+</html>

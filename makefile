@@ -138,7 +138,7 @@ S16HOMEPAGE:=$(SIGMAPROJECT)/homepage/jtod.github.io/S16
 # consisting of "version: : "1.2.3".  This defines VERSION, which is
 # used for building the top level index and the user guide.
 
-VERSION:=$(shell cat src/Sigma16/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat src/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 # Define dates in several formats, for inclusion in the app and user guide
 YEAR=$(shell date +"%Y")
@@ -147,7 +147,7 @@ MONTHYEARDAY=$(shell date +"%F")
 
 MDVERSION="Version $(VERSION), $(MONTHYEAR)"
 MDCOPYRIGHT="Copyright $(YEAR) John T. O&apos;Donnell"
-MDLATEST="See <a href='https://jtod.github.io/home/Sigma16/'>https://jtod.github.io/home/Sigma16/</a> for the latest version, and see section <em>About Sigma16</em> below for license."
+MDLATEST="For latest version, see <a href='https://jtod.github.io/home/Sigma16/' target='_blank'>https://jtod.github.io/home/Sigma16/</a>"
 
 MDHEADER=$(MDVERSION).\ $(MDCOPYRIGHT).\ $(MDLATEST).
 
@@ -205,7 +205,7 @@ docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
 build:
 	make set-version
 	make source-dir-index
-	make src/gui/datafiles/welcome.html
+	make src/datafiles/welcome.html
 	make example-indices
 	make docs/html/S16homepage/index.html
 	make docs/html/userguide/userguide.html
@@ -477,14 +477,14 @@ example-indices :
           -o examples/SysLib/index.html \
 	  examples/SysLib/index.md
 
-src/Sigma16/datafiles/welcome.html : src/Sigma16/datafiles/srcwelcome.md
+src/datafiles/welcome.html : src/datafiles/srcwelcome.md
 	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
-	  src/Sigma16/datafiles/srcwelcome.md > src/Sigma16/datafiles/welcomeTEMP.md
+	  src/datafiles/srcwelcome.md > src/datafiles/welcomeTEMP.md
 	pandoc --standalone \
           --template=docs/src/userguide/userguide-template.html \
           --variable=css:../../docs/src/userguide/userguidestyle.css \
-          -o src/Sigma16/datafiles/welcome.html \
-	  src/Sigma16/datafiles/welcomeTEMP.md
+          -o src/datafiles/welcome.html \
+	  src/datafiles/welcomeTEMP.md
 
 #-------------------------------------------------------------------------------
 # User guide

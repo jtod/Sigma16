@@ -281,6 +281,7 @@ function displaySymbolTableHtml (ma) {
 // occur in x.
 
 function evaluate (ma, s, a, x) {
+    com.mode.trace = true;
     com.mode.devlog(`evaluate ${x} ${typeof(x)}`);
     let result;
     if (x.search(nameParser) == 0) { // identifier
@@ -303,10 +304,10 @@ function evaluate (ma, s, a, x) {
         mkErrMsg (ma, s, 'expression ' + x + ' has invalid syntax');
         result = new Value (0, false);
     }
-//    com.mode.trace = true;
+    com.mode.trace = true;
     com.mode.devlog (`evaluate received expression ${x}`)
     com.mode.devlog (`evaluate returning ${result.show()}`)
-//    com.mode.trace = false;
+    com.mode.trace = false;
     return result;
 }
 
@@ -991,6 +992,23 @@ function asmPass2 (ma) {
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RX operands`);
             }
+        } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
+	    com.mode.devlog (`pass2 RX/kX`);
+            let x = kxParser.exec (s.fieldOperands);
+            if (x) {
+                const {1:d, 2:disp, 3:a} = x;
+	        s.codeWord1 = mkWord (op.opcode[0], d, a, op.opcode[1]);
+                let v = evaluate (ma, s, s.address+1, disp);
+                s.codeWord2 = v.value;
+                if (v.evalRel) {
+                    com.mode.devlog (`relocatable displacement`);
+                    generateRelocation (ma, s, s.address+1);
+                }
+	        generateObjectWord (ma, s, s.address, s.codeWord1);
+	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
+            } else {
+                mkErrMsg (ma, s, `ERROR operation requires kX operands`);
+            }
 	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 EXP2/kX`);
             let x = kxParser.exec (s.fieldOperands);
@@ -1253,307 +1271,3 @@ function showOperation (op) {
     return `ifmt=${op.ifmt.description} afmt=${op.afmt.description}`
     + `opcode=${op.opcode} pseudo=${op.pseudo}`;
 }
-
-/*
-function emitImportAddresses (ma,x) {
-    com.mode.devlog (`emitImportAddresses ${x.symbol}`);
-    let xs, ys, zs;
-    while (x.symUsageAddrs.length > 0) {
-        let xs = x.symUsageAddrs.splice(0,objBufferLimit);
-        let ys = xs.map((w) => arith.wordToHex4(w));
-        let zs = 'import   '
-            + x.symImportedFrom
-            + ',' + x.symbol
-            + ',' + ys.join(',');
-        ma.objectCode.push (zs);
-    }
-}
-2020-07-29 1514 lines
-*/
-
-// Deprecated
-
-// If operand isn't correct type for the operation, give an error
-// message.  The operations that need to have the operand checked jave
-// code <= DATA.  The higher operations either don't need an operand
-// (COMMENT) or need to be checked individually (DIRECTIVE).
-/*
-function checkOpOp (ma,s) {
-    com.mode.devlog(`checkOpOp line=${s.lineNumber} <${s.srcLine}>`);
-    let format = s.format; // format required by the operation
-    let operandType = s.operandType; // type of operand
-    com.mode.devlog (`checkOpOp format=${format} operandType=${operandType}`);
-    if (format==operandType
-        || (format==arch.aRRREXP && operandType==arch.aRRR)
-        || (format==arch.aRR && operandType==arch.aRR)
-        || (format==arch.EXP0)
-        || (format==arch.aModule)
-        || (format==arch.aImport && operandType==arch.DATA)
-        || (format==arch.aExport && operandType==arch.DATA)
-        || (format==arch.aOrg && operandType==arch.DATA)
-        || (format==arch.aEqu && operandType==arch.DATA)
-        || (format==arch.EMPTY)
-        || (format==arch.UNKNOWN)
-        || (format==arch.COMMENT)) {
-        return true;
-    } else {
-	let msg = `${s.fieldOperation} is ${arch.showFormat(format)} format,`
-        + ` but operand type is ${arch.showFormat(operandType)}`;
-        mkErrMsg (ma,s,msg);
-        return false;
-    }
-}
-*/
-
-//            operand_str1 : '',
-//            operand_str2 : '',
-//            operand_str3 : '',
-//            operand_str4 : '',
-//            operand_str5 : '',
-//            field_d : 0,
-//            field_a : 0,
-//            field_b : 0,
-//            field_disp : 0,
-//            field_e : 0,                   // EXP2: word 2, first 4 bits
-//            field_f : 0,                   // EXP2: word 2, second 4 bits
-//            field_g : 0,                   // EXP2: word 2, third 4 bits
-//            field_h : 0,                   // EXP2: word 2, fourth 4 bits
-//	    field_gh : 0,                  // EXP2: word 2, last 8 bits
-//	    dat : 0,                       // data value
-
-//	    format : arch.EMPTY,
-//	    operation : arch.NOOPERATION,       // spec of the operation if exists
-//	    operandType : arch.NOOPERAND,       // type of operand actually present
-//          operandType : arch.a0,       // type of operand actually present
-//	    operandRRR : null,            // statement contains RRR operand
-//	    operandRR : null,             // statement contains RR operand
-//	    operandRX : null,             // statement contains RX operand
-//	    operandJX : null,             // statement contains short form RX
-//	    operandDATA : false,           // statement contains data
-//            operandX : false,              // expression operand for directive
-//            operandIDENT : false,          // identifier directive
-
-//	    hasOperand : false,            // statement contains an operand
-//            identarg : '',                 // identifier operand
-
-//	    s.ifmt = s.operation.format;
-//	    com.mode.devlog(`parse operation ${s.srcLine} fmt=${s.format}`);
-//	    if (op.search(nameParser) == 0) {
-//                mkErrMsg (ma, s, `${op} is not a valid operation`);
-//	    } else {
-//                mkErrMsg (ma, s, `syntax error: operation ${op} must be a name`);
-//	    }
-
-//    parseOperand (ma,s);
-
-// parseOperand (m,s): m is the module being assembled, and s is the
-// current statement, where s.srcOperands has already been set to the
-// operand field of the statement. Parse s.srcOperands, set string
-// variables to the various operand fields, and set flags indicating
-// what type of operand field has been found.  The results are set in
-// object variables belonging to s.
-
-// An operand field contains a pattern that determines the type of
-// operand (e.g. rrk or jx etc) and the actual text of each operand.
-// The function operates by checking the regular expression for every
-// operand type against the operand field text.  Most of these are
-// disjoint but there are some exceptions; for example a valid operand
-// for an import statement could also be interpreted as an operand for
-// a data statement.
-
-/*
-function parseOperand (ma,s) {
-//    let rc   = rcParser.exec (s.fieldOperands);
-    let rr   = rrParser.exec  (s.fieldOperands);
-//    let rrr  = rrrParser.exec (s.fieldOperands);
-//    let rx   = rxParser.exec  (s.fieldOperands);
-//    let jx   = jxParser.exec  (s.fieldOperands);
-    let rrk  = rrkParser.exec (s.fieldOperands);
-    let rkk  = rkkParser.exec (s.fieldOperands);  // need this parser
-    let rrkk = rrkkParser.exec (s.fieldOperands);  // need this parser
-    let rrrk = rrrkParser.exec (s.fieldOperands);
-    let rrrkk = rrrkkParser.exec (s.fieldOperands);
-    let kx   = kxParser.exec  (s.fieldOperands);
-    let rrx  = rrxParser.exec  (s.fieldOperands);
-    let dat  = datParser.exec (s.fieldOperands);
-    let ident = identParser.exec (s.fieldOperands);  // identifier (directive)
-    let nameName = nameNameParser.exec (s.fieldOperands);
-//    console.log (`Testing parse_rrr`);
-//    console.log (`calling parse_rrr => ${parse_rrr(s.fieldOperands)}`);
-//        console.log (`calling parse_rrr => ${parse_rrr(s)}`);
-// Check non-exclusive operand formats: ident
-    if (ident) {
-        s.hasOperand = true;
-        s.operandIDENT = true;
-        s.identarg = ident[0];
-    }
-// Check the mutually exclusive operand formats    
-    if (rr) { // Rp,Rq
-	s.hasOperand = true;
-	s.operandType = arch.aRR;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operandRR = true;
-	s.operand_str1 = rr[1]; // Rp
-	s.operand_str2 = rr[2]; // Rq
-    } else if (rc) { // Re,Cf
-	com.mode.devlog ('rc');
-	s.hasOperand = true;
-	s.operandType = arch.aRC;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operandaRC = true;
-	s.operand_str1 = rc[1]; // Re
-	s.operand_str2 = rc[2]; // Cf
-    } else if (rrr) { // Rp,Rq,Rr
-	s.operandRRR = true;
-	s.operand_str1 = rrr[1]; // Rp
-	s.operand_str2 = rrr[2]; // Rq
-	s.operand_str3 = rrr[3]; // Rr
-    } else if (rrk) { // Rd,Re,g
-	com.mode.devlog ('rrk');
-	s.hasOperand = true;
-	s.operandType = arch.aRRk;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operandaRRk = true;
-	s.operand_str1 = rrk[1]; // Re
-	s.operand_str2 = rrk[2]; // Rf
-	s.operand_str3 = rrk[3]; // k
-//	s.field_ed = rrk[1];
-//	s.a = rrk[2];
-//	s.k = rrk[3];
-    } else if (rkk) { // R2,R3,5,3
-	com.mode.devlog ('rkk');
-	s.hasOperand = true;
-	s.operandType = arch.aRkk;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operandRKKEXP = true;
-	s.operand_str1 = rkk[1];
-	s.operand_str2 = rkk[2];
-	s.operand_str3 = rkk[3];
-    } else if (rrkk) { // R2,R3,5,3
-	com.mode.devlog ('rrkk');
-	s.hasOperand = true;
-	s.operandType = arch.aRRkk;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operandaRRK = true;
-	s.operand_str1 = rrkk[1];
-	s.operand_str2 = rrkk[2];
-	s.operand_str3 = rrkk[3];
-	s.operand_str4 = rrkk[4];
-        com.mode.devlog (`pass1 rrkk 1=${s.operand_str1} 2=${s.operand_str2} 3=${s.operand_str3} 4=${s.operand_str4}`);
-    } else if (rrrk) { // R2,R3,5,3
-	com.mode.devlog ('rrrk');
-	s.hasOperand = true;
-	s.operandType = arch.aRRRk;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operand_str1 = rrrk[1];
-	s.operand_str2 = rrrk[2];
-	s.operand_str3 = rrrk[3];
-	s.operand_str4 = rrrk[4];
-    } else if (rrrkk) { // R1,R2,R3,5,3
-	com.mode.devlog ('rrrkk');
-	s.hasOperand = true;
-	s.operandType = arch.aRRRkk;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operand_str1 = rrrkk[1];
-	s.operand_str2 = rrrkk[2];
-	s.operand_str3 = rrrkk[3];
-	s.operand_str4 = rrrkk[4];
-	s.operand_str5 = rrrkk[5];
-    } else if (rrx) { // Re,Rf,gh[Ra]
-        com.mode.devlog ('RRX');
-	s.hasOperand = true;
-	s.operandType = arch.aRRX;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operandRX = true;
-        com.mode.devlog (`rrx 1=${rrx[1]} 2=${rrx[2]} 3=${rrx[3]} 4=${rrx[4]} `)
-        s.operand_str1 = rrx[1]; // Rd
-        s.operand_str2 = rrx[2]; // Re
-        s.operand_str3 = rrx[3]; // gh
-        s.operand_str4 = rrx[4]; // Rf
-        com.mode.devlog (`rrx e=${s.field_e} f=${s.field_f} disp=${s.field_disp} x=${s.d}`)
-    } else if (nameName) { // modname,locname
-        console.log (`found Name,Name operand`);
-        s.operand_str1 = nameName[1]
-        console.log (nameName[0]); // full operand
-        console.log (nameName[1]); // modname
-        console.log (nameName[2]); // locname
-        console.log (nameName[3]);  // undefined
-        console.log (nameName[4]);
-        let nameName2 = nameNameParser.exec (s.fieldOperands);
-        let {1:modname, 2:locname} = nameName2;
-        console.log (`nameName, modname=${modname} locname=${locname}`);
-    } else if (dat) { // 34
-	s.hasOperand = true;
-	s.operandType = arch.DATA;
-        com.mode.devlog (`Found ${s.operandType} operand`);
-	s.operandDATA = true;
-	s.dat = dat[1];
-        com.mode.devlog (`\n\nDAT`);
-	com.mode.devlog('data 0' + dat[0]);
-	com.mode.devlog('data 1' + dat[1]);
-	com.mode.devlog('data 2' + dat[2]);
-	com.mode.devlog('data 3' + dat[3]);
-    } else {
-        // other operand format may be multiple data values, equ
-        // expression, import/export; these cases are handled in the
-        // corresponding operation cases in pass2.
-    }
-    return;
-}
-*/
-
-// If the operand doesn't match the instruction format, it's possible
-// that some of the operand fields will be left undefined by the
-// regular expression match.  For example, if the destination is
-// omitted on an RX instruction, and the operand looks like JX, then
-// the s.field_disp would be left undefined.  To prevent an error when
-// this is passed to evaluate, it is protected by applying ensure to
-// it.
-
-/*
-function ensure (operand_field) {
-    return operand_field ? operand_field : 0
-}
-*/
-//	    op : 0,                        // operation
-//            expSrc : null,            // expression operand if any
-//            expValue : null,          // value of expression operand if any
-
-
-/*
-function showOperand (x) {
-    if (x.hasOperand) {
-	if (x.operandRRR) {
-	    console.log('Operand ---' + x.src +
-			'---  RRR d=' + x.d + ' a=' + x.a + ' b=' + x.b);
-	} else if (x.operandRX) {
-	    console.log('Operand ---' + x.src +
-			'---  RX d=' + x.d + ' disp=' + x.field_disp + ' idx=' + x.idx);
-	} else if (x.operandDATA) {
-	    console.log('Operand ---' + x.src +	'---  Data dat=' + x.dat);
-	} else {
-	    console.log('Operand ---' + x.src +	'---  error: unrecognized format');
-	}
-    } else {
-	console.log('Operand ---' + x.src + '---  Operand not found');
-    }
-}
-*/
-//  console.log (x.operation ?
-//		 '  operation requires ' + arch.showFormat(x.operation.format)
-//                 '  operation requires ' + s.operation.afmt.description)
-//		 : '  no operation');
-//    console.log ('  operand RRR=' + x.operandRRR
-//		 + ' RR=' + x.operandRR
-//		 + ' RX=' + x.operandRX
-//		 + ' JX=' + x.operandJX
-//		 + ' DATA=' + x.operandDATA);
-//    if (ma.nAsmErrors > 0) {
-//    let ma = m.asmInfo;
-//    ma.asmSrcLines = document.getElementById('EditorTextArea').value.split('\n');
-//    let ma = m.asmInfo;
-//	let op = s.operation.opcode;
-//        let op = s.operation ? s.operation.opcode : null;
-//        let sifmt = s.operation ? s.operation.ifmt : arch.iEmpty;
-//        let safmt = s.operation ? s.operation.afmt : arch.aEmpty;
-//        console.log (`ifmt=${op.ifmt.description} afmt=${op.afmt.description}`);

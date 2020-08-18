@@ -47,8 +47,6 @@ export function clearObjectCode () {
     console.log ("clearObjectCode skipping clear LinkerText");
 }
 
-
-
 // similar to highlightListingLine in emulator
 
 export function highlightField (xs,highlight) {
@@ -68,4 +66,3 @@ export let editorBufferTextArea; /* set when window.onload */
 export let textFile = null; /* for save download */
 export let create;  /* for save download */
 export let textbox; /* for save download */
-

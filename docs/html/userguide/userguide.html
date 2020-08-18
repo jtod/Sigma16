@@ -19,7 +19,7 @@
 <body>
 <header id="title-block-header">
 <h1 class="title">Sigma16 User Guide</h1>
-<p class="date">Version 3.1.4, August 2020. Copyright 2020 John T. O&apos;Donnell. See <a href='https://jtod.github.io/home/Sigma16/'>https://jtod.github.io/home/Sigma16/</a> for the latest version, and see section <em>About Sigma16</em> below for license..</p>
+<p class="date">Version 3.1.4, August 2020. Copyright 2020 John T. O&apos;Donnell. For latest version, see <a href='https://jtod.github.io/home/Sigma16/' target='_blank'>https://jtod.github.io/home/Sigma16/</a>.</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
@@ -55,6 +55,8 @@
 <li><a href="#summary-of-instruction-formats">Summary of instruction formats</a></li>
 <li><a href="#assembly-language-statement-formats">Assembly language statement formats</a></li>
 </ul></li>
+</ul></li>
+<li><a href="#instruction-set">Instruction set</a><ul>
 <li><a href="#arithmetic-instructions">Arithmetic instructions</a><ul>
 <li><a href="#add">add</a></li>
 <li><a href="#sub">sub</a></li>
@@ -112,11 +114,11 @@
 <li><a href="#putctl">putctl</a></li>
 <li><a href="#rfi">rfi</a></li>
 </ul></li>
-</ul></li>
 <li><a href="#summary-of-instruction-set">Summary of instruction set</a><ul>
 <li><a href="#instruction-formats">Instruction formats</a></li>
 <li><a href="#instructions">Instructions</a></li>
 <li><a href="#pseudoinstructions">Pseudoinstructions</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#assembly-language">Assembly language</a><ul>
 <li><a href="#names">Names</a></li>
@@ -135,7 +137,7 @@
 <li><a href="#summary-of-assembly-language-directives">Summary of assembly language directives</a></li>
 <li><a href="#assembly-listing">Assembly listing</a></li>
 </ul></li>
-<li><a href="#object-code">Object code</a><ul>
+<li><a href="#linker">Linker</a><ul>
 <li><a href="#programs-modules-and-files">Programs, modules, and files</a><ul>
 <li><a href="#simple-standalone-programs">Simple standalone programs</a></li>
 <li><a href="#programs-with-multiple-modules">Programs with multiple modules</a></li>
@@ -149,7 +151,7 @@
 <li><a href="#relocate-statement">relocate statement</a></li>
 <li><a href="#module-metadata">Module metadata</a></li>
 </ul></li>
-<li><a href="#linker">Linker</a></li>
+<li><a href="#linker-1">Linker</a></li>
 <li><a href="#booter">Booter</a><ul>
 <li><a href="#executable-code">Executable code</a></li>
 </ul></li>
@@ -881,6 +883,7 @@
 <li>Instruction set</li>
 </ul>
 <p>The following sections describe the instructions in groups organized by their function. Some of the groups contain instructions with different formats. From the programmer's perspective the function is more important, so these groups are useful in finding the right instruction to use. (From the perspective of designing a digital circuit to impleemnt the architecture, the format is essential.)</p>
+<h1 id="instruction-set">Instruction set</h1>
 <h2 id="arithmetic-instructions">Arithmetic instructions</h2>
 <p>The add instruction can be used for both binary addition (on natural numbers) and for two's complement addition (on signed integers).</p>
 <ul>
@@ -1149,8 +1152,8 @@
 <p>It is important that this is an atomic operation. If either of the two register updates were performed before the other, then the second one would not function correctly. In the digital circuit implementing the processor, these two register updates are genuinely simultaneous: they happen during the same clock cycle, at exactly the same time.</p>
 <p>The instruction format is EXP2. As there is no operand, the d field is ignored and the second word of the instruction is omitted. Thus every rfi instruction has the same machine language representation: e000. The fields are op, d, ab; op=14 to indicate EXP format, d=0 because it is unused, and ab=0 because this is the secondary opcode of rfi.</p>
 <p>This instruction is privileged. Since the instruction changes the status register, it can be used to perform a context switch.</p>
-<h1 id="summary-of-instruction-set">Summary of instruction set</h1>
-<h2 id="instruction-formats">Instruction formats</h2>
+<h2 id="summary-of-instruction-set">Summary of instruction set</h2>
+<h3 id="instruction-formats">Instruction formats</h3>
 <p>RRR instructions are represented in one word comprising four 4-bit fields.</p>
 <table>
 <thead>
@@ -1203,7 +1206,7 @@
 </tbody>
 </table>
 <p>The a and b fields form an 8-bit value called ab.</p>
-<h2 id="instructions">Instructions</h2>
+<h3 id="instructions">Instructions</h3>
 <table style="width:88%;">
 <colgroup>
 <col style="width: 0%" />
@@ -1696,7 +1699,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="pseudoinstructions">Pseudoinstructions</h2>
+<h3 id="pseudoinstructions">Pseudoinstructions</h3>
 <table>
 <tbody>
 <tr class="odd">
@@ -2039,7 +2042,7 @@
 <h2 id="assembly-listing">Assembly listing</h2>
 <p>The first section of the assembly listing shows each line of the source program. The line number appears first, followed by the memory address that the instruction on this line will be placed in. The address is given as a 4 digit hexadecimal number, and it is binary (not two's complement). Next comes the machine language code generated by the line of source code. If the line contains a two-word instruction, there will be two 4-digit hexadecimal values; for a one-word instruction there will be one hex number, and if the line doesn't produce any code these fields will be blank. After the code, the original source statement appears.</p>
 <p>The second section of the assembly listing is the <strong>Symbol Table</strong>. This shows each identifier (or "symbol") that appears in the program, the address allocated for the symbol, the source code line where it was defined, and the source code lines where it was used.</p>
-<h1 id="object-code">Object code</h1>
+<h1 id="linker">Linker</h1>
 <p>Small programs often consist of just one module (or file). The assembler translates the assembly language source code into machine language which is then executed by the processor.</p>
 <p>However, there are several reasons for breaking up larger programs into several modules. It's easier to work with several modules of reasonable size rather than one gigantic file. A module may provide generic services that can be incorporated into many programs. Programs can be simplified if they use libraries for common tasks, rather than implementing everything from scratch. It is faster to assemble small files than large ones.</p>
 <p>When a program consists of several modules, each one has to be assembled separately. However, the resulting machine language is not executable if it refers to procedures or other values defined in another module. Therefore the modules need to be combined into a single executable module; this is called <strong>linking</strong>.</p>
@@ -2091,7 +2094,7 @@
 <h3 id="module-metadata">Module metadata</h3>
 <p>The emulator attempts to show the assembly language source as the program runs, and it highlights the current and next instruction. To do this, the emulator needs to have some information that isn't present in the object code. This extra information is supplied in a separate file called <strong>module metadata</strong> produced by the assembler.</p>
 <p>The user can ignore the metadata. However, you can look at it if you're curious. The metadata contains the source code in two forms: plain text and with html tags for highlighting the fields. In addition, the metadata contains a mapping from address to source code line number.</p>
-<h2 id="linker">Linker</h2>
+<h2 id="linker-1">Linker</h2>
 <h2 id="booter">Booter</h2>
 <h3 id="executable-code">Executable code</h3>
 <p>An executable module is written in the same language as object modules. The only difference is that an executable module must contain only these types of statement: module, data, org. It is now allowed to contain any of the following statments: import, export, relocate.</p>

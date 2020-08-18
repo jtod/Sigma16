@@ -6,6 +6,6 @@
 *.org
 bin
 *.exe
-src/cli/node_modules
+src/node_modules
 src/testing
 src/temp

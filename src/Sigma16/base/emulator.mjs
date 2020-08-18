@@ -268,8 +268,6 @@ export function boot (es) {
     com.mode.devlog ("boot returning");
 }
 
-
-
 export let highlightedRegisters = [];
 
 // Update the display of all registers and memory (all of memory)
@@ -280,54 +278,6 @@ export function displayFullState () {
     memClearAccesses ();
     memDisplayFull ();
 }
-
-// ?????
-
-
-// Old boot
-
-// Attempt to copy the executable code from the selected module into
-// memory for execution.
-
-// A module is executable if it contains object code but doesn't have
-// any imports.  The object code can come from either the assembler,
-// or it can be read in as an object file.  The presence of an
-// assembly listing and asmap is optional.
-
-// (Interface: called from gui) Boot from either the current module
-// (without linking) or the load module (if the linker has been run).
-
-/*
-function oldboot(es) {
-    console.log (`boot: selected module = ${smod.selectedModule}`);
-    let m = smod.s16modules[smod.selectedModule];
-//    let m = getCurrentModule ();
-    let mo = m.objInfo;
-    if (mo.isExecutable) {
-	console.log ('Current module is executable: booting');
-	resetRegisters ();
-	memClearAccesses();
-        document.getElementById('ProcAsmListing').innerHTML = "";
-	copyExecutableToMemory (es,m);
-	es.asmListingPlain = ma.asmListingPlain;
-	es.asmListingDec = ma.asmListingDec;
-        es.asmListingCurrent = [];
-	for (let i = 0; i < es.asmListingDec.length; i++) { // copy the array
-	    es.asmListingCurrent[i] = es.asmListingDec[i];
-	}
-	initListing (m,es);
-	es.nInstructionsExecuted = 0;
-	document.getElementById("nInstrExecuted").innerHTML =
-	    es.nInstructionsExecuted;
-	ioLogBuffer = "";
-	refreshIOlogBuffer();
-        getListingDims(es);
-    } else {
-	console.log ('cannot boot')
-    }
-}
-*/
-
 
 //------------------------------------------------------------------------------
 // Processor execution status
