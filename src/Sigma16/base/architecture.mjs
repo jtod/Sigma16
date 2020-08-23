@@ -247,20 +247,21 @@ statementSpec.set("resume",   {ifmt:iEXP1, afmt:a0,     opcode:[14,0]});
 // EXP2 - instruction is 2 words
 statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,1]});
 statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,2]});
+statementSpec.set("shift",    {ifmt:iEXP2, afmt:aRRR,    opcode:[14,3]});
+statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,    opcode:[14,4]});
+statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,    opcode:[14,5]});
+statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRRkk,   opcode:[14,6]});
+statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRRkk,   opcode:[14,7]});
+statementSpec.set("inject",   {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,8]});
+statementSpec.set("injecti",  {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,9]});
+statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,   opcode:[14,22]});
+statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,23]});
 statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,    opcode:[14,8]});
 statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,    opcode:[14,9]});
 statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,     opcode:[14,12]});
 statementSpec.set("push",     {ifmt:iEXP2, afmt:aRRR,    opcode:[14,13]});
 statementSpec.set("pop",      {ifmt:iEXP2, afmt:aRRR,    opcode:[14,14]});
 statementSpec.set("top",      {ifmt:iEXP2, afmt:aRRR,    opcode:[14,15]});
-statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,    opcode:[14,16]});
-statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,    opcode:[14,17]});
-statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRRkk,   opcode:[14,18]});
-statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRRkk,   opcode:[14,19]});
-statementSpec.set("inject",   {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,20]});
-statementSpec.set("injecti",  {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,21]});
-statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,   opcode:[14,22]});
-statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,23]});
 
 // Assembler directives
 

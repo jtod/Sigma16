@@ -46,20 +46,20 @@ export let selectedModule; // symbol for the object representing selected module
 // Return the module correspondong to the symbol stored in selectedModule
 
 export function showModules () {
-    console.log (`Modules: selected = ${typeof selectedModule} ${selectedModule.description}`);
+    com.mode.devlog (`Modules: selected = ${typeof selectedModule} ${selectedModule.description}`);
     s16modules.forEach ( (val,key,map) => {
-        console.log (`>>> sym=${val.sym.description} tl=${val.text.length}`);
+        com.mode.devlog (`>>> sym=${val.sym.description} tl=${val.text.length}`);
     });
 }
 
 // Find the symbol for the selectedModule and return the actual module object
 
 export function getSelectedModule () {
-    console.log ("getSelectedModule");
+    com.mode.devlog ("getSelectedModule");
     showModules ();
-    console.log ("getSelectedModule about to get...");
+    com.mode.devlog ("getSelectedModule about to get...");
     let m = s16modules.get (selectedModule);
-//    console.log (`getSelectedModule ${m.modName} ${m.text}`);
+//    com.mode.devlog (`getSelectedModule ${m.modName} ${m.text}`);
     return m;
 }
 
@@ -88,7 +88,7 @@ export class s16module {
         moduleGenSym++;
         s16modules.set (s, this);   // record this module in the set
         selectedModule = s;         // select the module as it's created
-        console.log (`NEW S16MODULE SETTING selectedModule ${selectedModule.description}`);
+        com.mode.devlog (`NEW S16MODULE SETTING selectedModule ${selectedModule.description}`);
         this.sym = s;                  // make the key available, given module
         this.text = "init mod text";                // raw source text
         this.modName = null;
@@ -110,26 +110,26 @@ export class s16module {
 }
 
 function modSelect (m) {
-    console.log ("modSelect");
+    com.mode.devlog ("modSelect");
     selectedModule = m.sym;
     refreshModulesList ();
     refreshEditorBuffer ();
-    console.log ("modSelect returning");
+    com.mode.devlog ("modSelect returning");
 }
 
 
 function modClose (m) {
-    console.log ("close");
+    com.mode.devlog ("close");
     let s = m.sym;
     let closedSelected = s === selectedModule;
     s16modules.delete (s);
     if (s16modules.size === 0) {
-        console.log ("closed last module, reinitializing");
+        com.mode.devlog ("closed last module, reinitializing");
         initModules ();
     }
     if (closedSelected) {
         //        selectedModule = [...s16modules.keys()][0];
-        console.log ("closedSelected... FIX THIS ??????????");
+        com.mode.devlog ("closedSelected... FIX THIS ??????????");
     }
     refreshModulesList ();
 }
@@ -145,9 +145,9 @@ export function initModules () {
     com.mode.devlog ("initModules");
     s16modules = new Map (); // throw away any existing map, create new one
     let m = new s16module ();
-    console.log ("initModules about to show map...");
+    com.mode.devlog ("initModules about to show map...");
     showModules ();
-    console.log ("initModules has just shown map...");
+    com.mode.devlog ("initModules has just shown map...");
     refreshEditorBuffer();
     refreshModulesList();
 }
@@ -203,10 +203,10 @@ export function prepareChooseFiles () {
 let newModules = [];
 
 export function handleSelectedFiles (flist) {
-    console.log (`handleSelectedFiles filst size = ${flist.length}`);
+    com.mode.devlog (`handleSelectedFiles filst size = ${flist.length}`);
     newModules = [];
     for (let f of flist) {
-        console.log (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
+        com.mode.devlog (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
         let type = AsmModule;  // should calculate based on filename ???????????
         let m = new s16module (type);
         newModules.push (m);
@@ -223,13 +223,13 @@ function mkReader (m) {
     fr.onload = function (e) {
 	com.mode.devlog (`File reader ${m.file.name} onload event starting`);
         m.text = e.target.result;
-        console.log (m.text);
+        com.mode.devlog (m.text);
         m.fileReadComplete = true;
         refreshWhenReadsFinished (m); // if all files are in, then refresh
 	com.mode.devlog (`File reader ${m.file.name} onload event finished`);
     }
     fr.onerror = function (e) {
-        console.log (`Error: could not read file ${m.file.fname}`
+        com.mode.devlog (`Error: could not read file ${m.file.fname}`
                      + ` (error code = ${e.target.error.code})`);
         m.text = "";
         m.fileReadComplete = true;
@@ -245,7 +245,7 @@ function refreshWhenReadsFinished  (m) {
     com.mode.devlog (`refreshWhenReadsFinished`);
     let allOK = true;
     for (let x of newModules) {
-        console.log (`RWRF allOK=${allOK} x.frc=${x.fileReadComplete}`);
+        com.mode.devlog (`RWRF allOK=${allOK} x.frc=${x.fileReadComplete}`);
             allOK = allOK && x.fileReadComplete;
         }
         com.mode.devlog (`check finished loop DONE aok=${allOK}`);
@@ -294,17 +294,17 @@ export function refreshModulesList() {
     for (let x of s16modules.values()) {
         document.getElementById(x.selectId)
             .addEventListener("click",
-                              event => {console.log(`${x.selectId}`);
+                              event => {com.mode.devlog(`${x.selectId}`);
                                         modSelect(x);
                                         });
         document.getElementById(x.closeId)
             .addEventListener("click",
-                              event => {console.log(`${x.closeId}`);
+                              event => {com.mode.devlog(`${x.closeId}`);
                                         modClose(x);
                                         });
     }
     refreshEditorBuffer ();
-    console.log ("refreshModulesList returning");
+    com.mode.devlog ("refreshModulesList returning");
 }
 
 // Copy text of the selected module to the editor buffer

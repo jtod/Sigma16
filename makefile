@@ -132,7 +132,7 @@ RELEASEDEVELOPMENT:=$(S16HOMEPAGESOURCE)/dev
 # the web release is placed, since users can run the app by clicking a
 # link pointing into this area
 
-S16HOMEPAGE:=$(SIGMAPROJECT)/homepage/jtod.github.io/S16
+S16HOMEPAGE:=$(SIGMAPROJECT)/homepage/jtod.github.io/home/Sigma16
 
 # Extract the version from the package.json file; it's on the line
 # consisting of "version: : "1.2.3".  This defines VERSION, which is
@@ -182,13 +182,18 @@ showparams:
 
 #          --template=docs/src/readme-template.html \
 
+# Can include something like this in index.md:
+# <p><strong> Version VERSION </strong></p>
+
 docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
 	docs/src/S16homepage/homepage.css
+	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
+	  docs/src/S16homepage/index.md > docs/src/S16homepage/indexTEMP.md
 	pandoc --standalone \
           --variable=css:homepage.css \
 	  --metadata pagetitle="Sigma16 Home Page" \
 	  -o docs/html/S16homepage/index.html \
-	  docs/src/S16homepage/index.md
+	  docs/src/S16homepage/indexTEMP.md
 	cp -up docs/src/S16homepage/homepage.css docs/html/S16homepage
 
 #-------------------------------------------------------------------------------
@@ -210,35 +215,29 @@ build:
 	make docs/html/S16homepage/index.html
 	make docs/html/userguide/userguide.html
 
-# Sigma16 homepage index
-
-.PHONY: homepage-index
-homepage-index:
-	make docs/html/S16homepage/index.html
-	cp -up docs/html/S16homepage/index.html $(S16HOMEPAGESOURCE)
-	cp -up docs/src/S16homepage/homepage.css $(S16HOMEPAGESOURCE)
-
-# Make directory containing files for current development version, for
-# uploading to the Sigma16 home page.
+# Copy the dev version to Sigma16 homepage.  Make directory containing
+# files for current development version, for uploading to the Sigma16
+# home page.
 
 .PHONY: release-development
 release-development:
 	mkdir -p $(RELEASEDEVELOPMENT)
+	/bin/rm -rf $(RELEASEDEVELOPMENT)/*
 	mkdir -p $(RELEASEDEVELOPMENT)/src
+	mkdir -p $(RELEASEDEVELOPMENT)/src/Sigma16
 	mkdir -p $(RELEASEDEVELOPMENT)/docs
 	mkdir -p $(RELEASEDEVELOPMENT)/docs/html
 	cp -up VERSION.txt $(RELEASEDEVELOPMENT)
 	cp -up LICENSE.txt $(RELEASEDEVELOPMENT)
-	cp -upr docs/html/userguide $(RELEASEDEVELOPMENT)/docs/html
+	cp -upr docs/ $(RELEASEDEVELOPMENT)
 	cp -upr examples $(RELEASEDEVELOPMENT)
 	cp -upr src/gui $(RELEASEDEVELOPMENT)/src
+	cp -upr src/datafiles $(RELEASEDEVELOPMENT)/src
+	cp -upr src/Sigma16/base $(RELEASEDEVELOPMENT)/src/Sigma16
+	cp -up docs/html/S16homepage/index.html $(S16HOMEPAGE)
+	cp -up docs/src/S16homepage/homepage.css $(S16HOMEPAGE)
 
-#	mkdir -p $(RELEASEDEVELOPMENT)/src/js
-#	cp -up src/js/*.html $(RELEASEDEVELOPMENT)/app
-#	cp -up src/js/*.css $(RELEASEDEVELOPMENT)/app
-#	cp -up src/js/*.js $(RELEASEDEVELOPMENT)/app
-#	cp -up src/js/*.mjs $(RELEASEDEVELOPMENT)/app
-#	cp -up index.html  $(RELEASEDEVELOPMENT)/app
+#	cp -upr docs/html/userguide $(RELEASEDEVELOPMENT)/docs/html
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
@@ -370,7 +369,6 @@ set-version :
 	echo $(VERSION) > VERSION.txt
 	echo "export const s16version = \"$(VERSION)\";" > src/Sigma16/base/version.mjs
 
-
 #-------------------------------------------------------------------------------
 # Generate index pages for examples
 #-------------------------------------------------------------------------------
@@ -378,104 +376,110 @@ set-version :
 # make example-indices --- Generate the index.html files for the
 # programs directory
 
+# All the example indices should use the same css file; they need to
+# reference it relative to where they are:
+
+# For examples/Sigma16/Core use --variable=css:../../exampleindex.css
+# For examples/Sigma16/Core/Arithmetic use --variable=css:../../../exampleindex.css
+
+# make examples/Sigma16/Core/Arithmetic/index.html
+
+# Examples index: depth 0.  examples/index.html
+examples/index.html : examples/index.md
+	echo Depth 0
+	pandoc --standalone \
+          --template=examples/exampleindex-template.html \
+          --variable=css:exampleindex.css \
+	  --metadata pagetitle="$*" \
+          -o $@ \
+	  examples/index.md
+
+# Examples index: depth 1.  examples/Sigma16/index.html
+examples/%/index.html : examples/%/index.md
+	echo Depth 1
+	pandoc --standalone \
+          --template=examples/exampleindex-template.html \
+          --variable=css:../exampleindex.css \
+	  --metadata pagetitle="$*" \
+          -o $@ \
+	  examples/$*/index.md
+
+# Examples index: depth 2.  examples/Sigma16/Advanced/index.html
+examples/Sigma16/%/index.html : examples/Sigma16/%/index.md
+	echo Sigma16 Depth 2
+	pandoc --standalone \
+          --template=examples/exampleindex-template.html \
+          --variable=css:../../exampleindex.css \
+	  --metadata pagetitle="$*" \
+          -o $@ \
+	  examples/Sigma16/$*/index.md
+
+# Examples index: Sigma depth 2.  examples/Sigma/Advanced/index.html
+examples/Sigma/%/index.html : examples/Sigma/%/index.md
+	echo Sigma Depth 2
+	pandoc --standalone \
+          --template=examples/exampleindex-template.html \
+          --variable=css:../../exampleindex.css \
+	  --metadata pagetitle="$*" \
+          -o $@ \
+	  examples/Sigma/$*/index.md
+
+# Examples index: depth 3.  examples/Sigma16/Advanced/Testing/index.html
+examples/Sigma16/Core/%/index.html : examples/Sigma16/Core/%/index.md
+	echo Depth 3
+	pandoc --standalone \
+          --template=examples/exampleindex-template.html \
+          --variable=css:../../../exampleindex.css \
+	  --metadata pagetitle="$*" \
+          -o $@ \
+	  examples/Sigma16/Core/$*/index.md
+
+# Examples index: depth 3.  examples/Sigma16/Advanced/Testing/index.html
+examples/Sigma16/Advanced/%/index.html : examples/Sigma16/Advanced/%/index.md
+	echo Depth 3
+	pandoc --standalone \
+          --template=examples/exampleindex-template.html \
+          --variable=css:../../../exampleindex.css \
+	  --metadata pagetitle="$*" \
+          -o $@ \
+	  examples/Sigma16/Advanced/$*/index.md
+
+# Examples index: depth 3.  examples/Sigma16/Advanced/Testing/index.html
+examples/Sigma16/SysLib/%/index.html : examples/Sigma16/SysLib/%/index.md
+	echo Depth 3
+	pandoc --standalone \
+          --template=examples/exampleindex-template.html \
+          --variable=css:../../../exampleindex.css \
+	  --metadata pagetitle="$*" \
+          -o $@ \
+	  examples/Sigma16/SysLib/$*/index.md
+
 .PHONY : example-indices
 example-indices :
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Example programs for core architecture" \
-          -o examples/index.html \
-	  examples/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Example programs for core architecture" \
-          -o examples/Core/index.html \
-	  examples/Core/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Arithmetic examples" \
-          -o examples/Core/Arithmetic/index.html \
-	  examples/Core/Arithmetic/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Simple examples" \
-          -o examples/Core/Simple/index.html \
-	  examples/Core/Simple/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Array examples" \
-          -o examples/Core/Arrays/index.html \
-	  examples/Core/Arrays/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Example programs for core architecture" \
-          -o examples/Advanced/index.html \
-	  examples/Advanced/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Interrupt examples" \
-          -o examples/Advanced/Interrupt/index.html \
-	  examples/Advanced/Interrupt/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Data structures" \
-          -o examples/Advanced/DataStructures/index.html \
-	  examples/Advanced/DataStructures/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Input/Output" \
-          -o examples/Core/IO/index.html \
-	  examples/Core/IO/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Recursion" \
-          -o examples/Advanced/Recursion/index.html \
-	  examples/Advanced/Recursion/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Sorting examples" \
-          -o examples/Core/Sorting/index.html \
-	  examples/Core/Sorting/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Subroutines" \
-          -o examples/Core/Subroutines/index.html \
-	  examples/Core/Subroutines/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Linking" \
-          -o examples/Advanced/Linking/index.html \
-	  examples/Advanced/Linking/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Testing" \
-          -o examples/Advanced/Testing/index.html \
-	  examples/Advanced/Testing/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Type conversion" \
-          -o examples/Advanced/TypeConversion/index.html \
-	  examples/Advanced/TypeConversion/index.md
-	pandoc --standalone \
-          --template=docs/src/example-indices/exampleindex-template.html \
-          --variable=css:../../docs/src/example-indices/exampleindex.css \
-	  --metadata pagetitle="Example programs for core architecture" \
-          -o examples/SysLib/index.html \
-	  examples/SysLib/index.md
+	echo examples index:
+	make examples/index.html
+	echo Sigma:
+	make examples/Sigma/index.html
+	echo Sigma16:
+	make examples/Sigma16/index.html
+	echo Sigma16/Core:
+	make examples/Sigma16/Core/index.html
+	make examples/Sigma16/Core/Arithmetic/index.html
+	make examples/Sigma16/Core/Arrays/index.html
+	make examples/Sigma16/Core/IO/index.html
+	make examples/Sigma16/Core/Simple/index.html
+	make examples/Sigma16/Core/Sorting/index.html
+	make examples/Sigma16/Core/Subroutines/index.html
+	echo Sigma16/Advanced:
+	make examples/Sigma16/Advanced/index.html
+	make examples/Sigma16/Advanced/DataStructures/index.html
+	make examples/Sigma16/Advanced/Interrupt/index.html
+	make examples/Sigma16/Advanced/Linking/index.html
+	make examples/Sigma16/Advanced/Recursion/index.html
+	make examples/Sigma16/Advanced/TypeConversion/index.html
+	make examples/Sigma16/Advanced/Testing/index.html
+	echo Sigma16/SysLib:
+	make examples/Sigma16/SysLib/index.html
 
 src/datafiles/welcome.html : src/datafiles/srcwelcome.md
 	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
@@ -505,7 +509,7 @@ docs/html/userguide/userguide.html : docs/src/userguide/userguide.org \
           --template=docs/src/userguide/userguide-template.html \
           --table-of-contents --toc-depth=4 \
           --variable=mdheader:$(MDHEADER) \
-          --variable=css:userguidestyle.css \
+          --variable=css:./userguidestyle.css \
           --output=docs/html/userguide/userguide.html \
 	  docs/src/userguide/userguide.org
 

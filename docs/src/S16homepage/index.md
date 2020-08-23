@@ -4,8 +4,10 @@ Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
+
 <div class="quickstartbox"> [Click to run Sigma16 in your
-  browser](https://jtod.github.io/home/Sigma16/releases/3.1.3/app/Sigma16.html)</div>
+  browser](https://jtod.github.io/home/Sigma16/releases/3.1.3/app/Sigma16.html)
+</div>
 
 The [User
 Guide](https://jtod.github.io/home/Sigma16/releases/3.1.3/docs/html/userguide/userguide.html)
@@ -136,11 +138,11 @@ replaced by newer ones!
 The following versions are intended for development and testing of the
 software, and are not recommended for general use.
 
-* [Run the latest development version](./dev/src/js/Sigma16.html) This is
+* [Run the latest development version](./dev/src/gui/Sigma16.html) This is
   a pre-release for the next version, intended for development and
   testing of the software.  It may be unstable, and is not recommended
   for general users.  However, it may contain new features not yet in
-  the latest release.
+  the latest release.  VERSION
 
 ## About the software
 

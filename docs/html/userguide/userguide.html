@@ -11,7 +11,7 @@
       span.underline{text-decoration: underline;}
       div.column{display: inline-block; vertical-align: top; width: 50%;}
   </style>
-  <link rel="stylesheet" href="userguidestyle.css" />
+  <link rel="stylesheet" href="./userguidestyle.css" />
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -89,7 +89,9 @@
 <li><a href="#jal">jal</a></li>
 <li><a href="#aliases-for-conditional-jumps">Aliases for conditional jumps</a></li>
 </ul></li>
-<li><a href="#bit-operations-on-words">Bit operations on words</a><ul>
+<li><a href="#logic-functions">Logic functions</a><ul>
+<li><a href="#logicw">logicw</a></li>
+<li><a href="#logic-on-booleans">Logic on Booleans</a></li>
 <li><a href="#inv">inv</a></li>
 <li><a href="#and">and</a></li>
 <li><a href="#or">or</a></li>
@@ -98,10 +100,7 @@
 <li><a href="#shiftr">shiftr</a></li>
 </ul></li>
 <li><a href="#bit-operations-on-fields">Bit operations on fields</a><ul>
-<li><a href="#logicb">logicb</a></li>
-<li><a href="#logicw">logicw</a></li>
-<li><a href="#extract">extract</a></li>
-<li><a href="#extracti">extracti</a></li>
+<li><a href="#extract-extracti">extract, extracti</a></li>
 <li><a href="#inject">inject</a></li>
 <li><a href="#injecti">injecti</a></li>
 <li><a href="#xxx-field">xxx field</a></li>
@@ -1018,8 +1017,38 @@
 <p>The value loaded into Rd is the address of the instruction that immediately follows the jal. This instruction is used for calling procedures or functions: the effective address is the location of the procedure, and the return address is in Rd. The procedure can then return by jumping to the return address, e.g. with <strong>jump 0[Rd]</strong>.</p>
 <h3 id="aliases-for-conditional-jumps">Aliases for conditional jumps</h3>
 <p>jumplt jumple jumpne jumpeq jumpge jumpgt</p>
-<h2 id="bit-operations-on-words">Bit operations on words</h2>
-<p>The following instructions treat a word as a sequence of bits, and operate on the individual bits.</p>
+<h2 id="logic-functions">Logic functions</h2>
+<h3 id="logicw">logicw</h3>
+<p>The logicw instruction performs a bitwise logic operation on two operands: each bit of the result is obtained by performing the logic function on the corresponding bits of the two operands. The instruction allows an arbitrary logic function on two bits.</p>
+<p>A logic function is specified by g; the function itself is denoted <strong>function g</strong>. This function is applied to the two operand registers Re and Rf, and the result is loaded into the destination register Rd.</p>
+<ul>
+<li>General form: logicw Rd,Re,Rf,g</li>
+<li>Instruction format: EXP2</li>
+<li>Assembly format: RRRKEXP</li>
+<li>Rd := function g Re Rf</li>
+</ul>
+<h3 id="logic-on-booleans">Logic on Booleans</h3>
+<p>The <strong>logicb</strong> instruction performs an arbitrary Boolean logic function on two operand bits, producing a result bit. The operand bits must be in the condition code register R15, but they may occur at any index in the register. (Several bits in R15 are reserved for use by the programmer.) The result can be placed in any bit position an any register.</p>
+<ul>
+<li>General form: logicb Rd.e,R15.f,R15.g,h</li>
+<li>Semantics: Rd.e := function h R15.f R15.g</li>
+<li>Instruction format: EXP2</li>
+<li>Assembly format: BBBk</li>
+<li>Example:
+<ul>
+<li>logicb R5.3,R15.9,R15.12,6</li>
+<li>e50b 39c6</li>
+<li>Effect: R5.3 := R15.3 xor R15.12, other bits of R5 are unchanged</li>
+</ul></li>
+</ul>
+<p>Rationale. Suppose we want to apply a logic function h to two Booleans p and q, calling the result r. In general, a Boolean could be an arbitrary bit within an arbitrary register, so two 4-bit fields are needed to specify an arbitrary Boolean. So the most general bit logic instruction would need: 3 × (4+4) bits to specify the operands and result, and another 4 bits to specify the logic function. This would require a total of 7 4-bit fields.</p>
+<p>The EXP2 format allows one 4-bit field in the first word, and another four in the second word, which is insufficient. That leaves several options:</p>
+<ul>
+<li>We could make the instruction less general; for example, requiring the bit indices to be the same, or the registers to be the same.</li>
+<li>We could introduce another instruction format that contains enough fields. This would complicate the processor circuit.</li>
+<li>We could not provide a general bit logic instruction, but provide instead a sequence of other instructions to achieve the same purpose.</li>
+</ul>
+<p>If booleans are in condition code register, need 3 indices plus function, for 4 4-bit fields, and 5 are available So the destination register could be specified. So we would extract the two operands separately to scratch bits in the condition code, and the logicb instruction would calculate the result and put it whereever we want.</p>
 <h3 id="inv">inv</h3>
 <p>The <strong><strong>invert</strong></strong> pseudoinstruction <strong>inv Rd,Ra</strong> inverts the bits in the operand Ra and places the result in the destination Rd. Thus bit i of Rd is set to the logical negation (invert) of bit i of Ra. The operand Ra is not changed.</p>
 <p>Inverting a bit means changing 0 to 1, and changing 1 to 0.</p>
@@ -1066,35 +1095,51 @@
 <li>ir.{8,15} is the ab field of the instruction register, containing the expanded operation code for EXP format instructions.</li>
 </ul>
 <p>(An alternative way to specify bit fields, not used in Sigma16, would be to give the starting index and field size. However, that approach is less flexible, as the value of the specified field size would range between 0 and 15, yet there are 16 possible field sizes. This means that, depending on precisely how the definition is written, either empty fields or maximal fields would not be representable.)</p>
-<h3 id="logicb">logicb</h3>
-<ul>
-<li>General form: logicb Rd,Re,Rf,g,h</li>
-<li>Rd.h := fcn g Re.h Rf.h</li>
-<li>Assembly format: RRRKKEXP</li>
-</ul>
-<h3 id="logicw">logicw</h3>
-<ul>
-<li>General form: logicw Rd,Re,Rf,g</li>
-<li>Instruction format: EXP2</li>
-<li>Assembly format: RRRKEXP</li>
-<li>Rd := fcn g Re Rf</li>
-</ul>
-<h3 id="extract">extract</h3>
+<h3 id="extract-extracti">extract, extracti</h3>
+<p>These instructions extract a field from a register. The field is specified by a pair of bit locations (g,h), where g and h are 4 bit natural numbers ranging from 0 to 15. The size of the field is max (0, h-g+1)</p>
 <p>The extract instruction obtains the value of an arbitrary field (g,h) from a source register Re and loads it right-adjusted into the destination register Rd.</p>
-<p>General form: <strong>extract Rd,Re,g,h</strong> Instruction format: EXP2 Assembly format: RRKKEXP</p>
-<p>Semantics:</p>
+<p>For example, extract R1,R2,3,5 extracts a field from R2 starting at bit position 3 and ending with bit position 5. This 3-bit field is placed in R1 in the rightmost 3 bits (indices 13, 14, 15); the leftmost bits (indices 0 through 12) are all set to 0.</p>
 <ul>
-<li>The size of the field is max (0, h-g+1)</li>
+<li>General form: <strong>extract Rd,Re,g,h</strong></li>
+<li>Instruction format: EXP2</li>
+<li>Assembly format: RRkk</li>
+<li>Rd := padleft 0 Re.[g..h]</li>
+</ul>
+<p>The extracti instruction is similar to extract, except the field is inverted as it is inserted into the destination.</p>
+<ul>
+<li>General form: <strong>extracti Rd,Re,g,h</strong></li>
+<li>Instruction format: EXP2</li>
+<li>Assembly format: RRKKEXP</li>
+<li>Rd := padleft 0 (invw Re.[g..h])</li>
+</ul>
+<p>Specifying the field:</p>
+<ul>
 <li>Rd.{15+g-h,15} := Re.{g,h}</li>
 <li>Rd.{0,15+g-h-1} := 0*</li>
 </ul>
-<p>For example, extract R1,R2,3,5 extracts a field from R2 starting at bit position 3 and ending with bit position 5. This 3-bit field is placed in R1 in the rightmost 3 bits (indices 13, 14, 15); the leftmost bits (indices 0 through 12) are all set to 0.</p>
 <p>The instruction is EXP2 format, where the d field gives the destination register, the e field gives the source register, and the field is specified by the g and h fields. The assembly language statement format is RRKKEXP.</p>
-<p>The extract instruction is not essential: it can be performed by a left shift followed by a right shift. <strong>extract Rd,Re,g,h</strong> is equivalent to</p>
+<p>The extract instruction is not essential: it can be performed by a left shift (to clear the bits to the right of the field) followed by a right shift (to clear the bits to the left of the field). Thus <strong>extract Rd,Re,g,h</strong> is equivalent to</p>
 <p><code>~~</code> shiftl Rd,Re,g ; clear bits to left of field shiftr Rd,Rd,15-h+g ; clear bits to right of field <code>~~</code></p>
 <p>For example <strong>extract R1,R2,3,5</strong> is equivalent to (but easier to understand than) the following:</p>
 <p><code>~~</code> shiftl Rd,Re,3 shiftr Rd,Rd,13 <code>~~</code></p>
-<h3 id="extracti">extracti</h3>
+<p>Rationale. There are many ways to specify a field within a word, using a pair (g,h) of 4-bit natural numbers. Two reasonable representations of a field are</p>
+<ul>
+<li>Specify the index of the first bit (g) and the index of the last bit (h)
+<ul>
+<li>Thus (g,h) means bit.g, bit.g+1, …, bit h</li>
+<li>Normally g &lt; h</li>
+<li>If g &lt; h, then the size of the field is h - g + 1</li>
+<li>(0,15) means the field comprises the entire word</li>
+<li>an empty field can be expressed by setting g &gt; h</li>
+<li>All possible fields are expressible, including empty fields and fields that encompass the entire word</li>
+</ul></li>
+<li>Specify the index of the first bit (g) and the size of the field (h)
+<ul>
+<li>(g,h) means bit.g, bit.{g+1}, …, big.{g+h-1}</li>
+<li>Since 0 &lt;= h &lt; 16, it is not possible to specify a field comprising the entire word.</li>
+</ul></li>
+</ul>
+<p>The extract instructions use the (index,index) method because it can specify all possible fields; the (index,size) method cannot.</p>
 <h3 id="inject">inject</h3>
 <p>The inject instruction obtains a right-adjusted field from a source register Rf and places it into the specified field (g,h) of the value in the source register Re; the result is placed into the destination register Rd. The injecti instruction is the same as inject, except that the injected field is inverted.</p>
 <p>General form: <strong>inject Rd,Re,Rf,g,h</strong></p>
@@ -1422,7 +1467,7 @@
 <td>jumpc0</td>
 <td></td>
 <td>RX</td>
-<td>RX</td>
+<td>kX</td>
 <td>f,5</td>
 <td>if R15.k=0 then pc := Ra+disp</td>
 <td></td>
@@ -1431,7 +1476,7 @@
 <td>jumpc1</td>
 <td></td>
 <td>RX</td>
-<td>RX</td>
+<td>kX</td>
 <td>f,6</td>
 <td>if R15.k=1 then pc := Ra+disp</td>
 <td></td>
@@ -1518,9 +1563,9 @@
 <td></td>
 </tr>
 <tr class="odd">
-<td>rfi</td>
+<td>resume</td>
 <td>P</td>
-<td>EXP0</td>
+<td>EXP1</td>
 <td>R</td>
 <td>e,00</td>
 <td>pc := ipc, status := istatus</td>
@@ -1529,7 +1574,7 @@
 <tr class="even">
 <td>getctl</td>
 <td>P</td>
-<td>EXP</td>
+<td>EXP2</td>
 <td>RC</td>
 <td>e,01</td>
 <td>Rd := Sc</td>
@@ -1538,160 +1583,169 @@
 <tr class="odd">
 <td>putctl</td>
 <td>P</td>
-<td>EXP</td>
+<td>EXP2</td>
 <td>RC</td>
 <td>e,02</td>
 <td>Sc := Rd</td>
 <td></td>
 </tr>
 <tr class="even">
-<td>shiftl</td>
+<td>shift</td>
 <td></td>
-<td>EXP</td>
-<td>RRk</td>
+<td>EXP2</td>
+<td>RRR</td>
 <td>e,03</td>
 <td>Rd := Ra shl b</td>
 <td></td>
 </tr>
 <tr class="odd">
-<td>shiftr</td>
+<td>shiftl</td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
 <td>RRk</td>
 <td>e,04</td>
+<td>Rd := Ra shl b</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>shiftr</td>
+<td></td>
+<td>EXP2</td>
+<td>RRk</td>
+<td>e,05</td>
 <td>Rd := Ra shr b</td>
 <td></td>
 </tr>
-<tr class="even">
-<td>logicb</td>
-<td></td>
-<td>EXP</td>
-<td>RRRk</td>
-<td>e,05</td>
-<td>Rd.h := Re.h (lut g) Rf.h</td>
-<td></td>
-</tr>
 <tr class="odd">
-<td>logicw</td>
-<td></td>
-<td>EXP</td>
-<td>RRRk</td>
-<td>e,06</td>
-<td>Rd := Re (lut g) Rf</td>
-<td></td>
-</tr>
-<tr class="even">
 <td>extract</td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
+<td>RRkk</td>
+<td>e,06</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>extracti</td>
+<td></td>
+<td>EXP2</td>
 <td>RRkk</td>
 <td>e,07</td>
 <td></td>
 <td></td>
 </tr>
 <tr class="odd">
-<td>extracti</td>
+<td>inject</td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
 <td>RRkk</td>
 <td>e,08</td>
 <td></td>
 <td></td>
 </tr>
 <tr class="even">
-<td>inject</td>
+<td>injecti</td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
 <td>RRkk</td>
 <td>e,09</td>
 <td></td>
 <td></td>
 </tr>
 <tr class="odd">
-<td>injecti</td>
+<td>logicw</td>
 <td></td>
-<td>EXP</td>
-<td>RRkk</td>
+<td>EXP2</td>
+<td>RRRk</td>
 <td>e,0a</td>
-<td></td>
+<td>Rd := Re (lut g) Rf</td>
 <td></td>
 </tr>
 <tr class="even">
-<td>push</td>
+<td>logicb</td>
 <td></td>
-<td>EXP</td>
-<td>RRR</td>
+<td>EXP2</td>
+<td>Rkkkk</td>
 <td>e,0b</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td>pop</td>
-<td></td>
-<td>EXP</td>
-<td>RRR</td>
-<td>e,0c</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td>top</td>
-<td></td>
-<td>EXP</td>
-<td>RRR</td>
-<td>e,0d</td>
-<td></td>
+<td>Rd.h := Re.h (lut g) Rf.h</td>
 <td></td>
 </tr>
 <tr class="odd">
 <td>save</td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
 <td>RRX</td>
-<td>e,0e</td>
+<td>e,0c</td>
 <td>M[Rb+ofs] := R(e), M[Rb+ofs+1] := R(e+1), …, M[Rb+ofs+(f-e+1)] := Rf</td>
 <td></td>
 </tr>
 <tr class="even">
 <td>restore</td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
 <td>RRX</td>
-<td>e,0f</td>
+<td>e,0d</td>
 <td>R(e) := M[Rb+ofs], …, Rf := M[Rb+ofs+(f-e+1)]</td>
 <td></td>
 </tr>
 <tr class="odd">
-<td>execute</td>
+<td>push</td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
+<td>RRR</td>
+<td>e,0e</td>
 <td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>pop</td>
+<td></td>
+<td>EXP2</td>
+<td>RRR</td>
+<td>e,0f</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>top</td>
+<td></td>
+<td>EXP2</td>
+<td>RRR</td>
 <td>e,10</td>
 <td></td>
 <td></td>
 </tr>
 <tr class="even">
+<td>execute</td>
 <td></td>
-<td></td>
-<td>EXP</td>
+<td>EXP2</td>
 <td></td>
 <td>e,11</td>
-<td>– reserved –</td>
+<td></td>
 <td></td>
 </tr>
 <tr class="odd">
 <td></td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
 <td></td>
-<td>…</td>
+<td>e,12</td>
 <td>– reserved –</td>
 <td></td>
 </tr>
 <tr class="even">
 <td></td>
 <td></td>
-<td>EXP</td>
+<td>EXP2</td>
+<td></td>
+<td>…</td>
+<td>– reserved –</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td>EXP2</td>
 <td></td>
 <td>e,ff</td>
 <td>– reserved –</td>
@@ -2101,7 +2155,6 @@
 <p>If an assembly language program doesn't contain any import or export directives, then its object code won't contain any import, export, or relcate statements. In this case, the object code is already executable and does not require linking: it can be booted directly by the processor.</p>
 <p>The booter (invoked by clicking the Boot button in the processor page) reads in the currently selected module and checks to see whether it is a valid executable module. If so, it loads the code into the memory. If not, it indicates that the program cannot be booted.</p>
 <h1 id="programming">Programming</h1>
-<p>(This section under development)</p>
 <h2 id="structure-of-a-program">Structure of a program</h2>
 <p>Simple ("static") variabls need to be declared with a data statement, which also gives an initial value.</p>
 <p><code>~~</code> x data 23 <code>~~</code></p>

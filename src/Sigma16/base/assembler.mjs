@@ -281,7 +281,6 @@ function displaySymbolTableHtml (ma) {
 // occur in x.
 
 function evaluate (ma, s, a, x) {
-    com.mode.trace = true;
     com.mode.devlog(`evaluate ${x} ${typeof(x)}`);
     let result;
     if (x.search(nameParser) == 0) { // identifier
@@ -304,10 +303,8 @@ function evaluate (ma, s, a, x) {
         mkErrMsg (ma, s, 'expression ' + x + ' has invalid syntax');
         result = new Value (0, false);
     }
-    com.mode.trace = true;
     com.mode.devlog (`evaluate received expression ${x}`)
     com.mode.devlog (`evaluate returning ${result.show()}`)
-    com.mode.trace = false;
     return result;
 }
 
@@ -635,13 +632,10 @@ const parseSplitFields = new RegExp(regexpSplitFields);
 // label, whitespace, operation, whitespace, operands, whitespace
 
 function parseAsmLine (ma,i) {
-    //    com.mode.devlog (`parseAsmLine i=${i}`);
-    console.log (`parseAsmLine i=${i}`);
+    com.mode.devlog (`parseAsmLine i=${i}`);
     let s = ma.asmStmt[i];
     showAsmStmt(s);
-    com.mode.devlog ("about to parse splitfields");
     let p = parseSplitFields.exec(s.srcLine);
-    com.mode.devlog (`p = ${p})`);
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
     s.fieldOperation = p[3];
@@ -654,7 +648,7 @@ function parseAsmLine (ma,i) {
     com.mode.devlog(`comments = /${s.fieldComment}/`);
     parseLabel (ma,s);
     parseOperation (ma,s);
-    console.log (`Pass1 ${s.lineNumber} ${s.fieldOperation} ${showOperation(s.operation)}`);
+    com.mode.devlog (`Pass1 ${s.lineNumber} ${s.fieldOperation} ${showOperation(s.operation)}`);
 
     if (s.hasLabel) {
 	if (ma.symbolTable.has(s.fieldLabel)) {
@@ -703,11 +697,11 @@ function parseLabel (ma,s) {
 
 function parseOperation (ma,s) {
     let op = s.fieldOperation;
-    console.log (`parseOperation line ${s.lineNumber} op=${op}`);
+    com.mode.devlog (`parseOperation line ${s.lineNumber} op=${op}`);
     if (op !== '') {
 	let x = arch.statementSpec.get(op);
 	if (x) {
-            console.log (`parseOperation: found statementSpec ${x}`);
+            com.mode.devlog (`parseOperation: found statementSpec ${x}`);
 	    s.operation = x;
             if (s.operation.ifmt==arch.iData && s.operation.afmt==arch.aData) {
                 s.codeSize = 1; // should be number of data words in operand
@@ -749,9 +743,7 @@ function asmPass1 (ma) {
         }
 	com.mode.devlog(`pass1 i=  ${i} src= + ${s.srcLine}`);
         parseAsmLine (ma,i);
-        console.log (`?????????????About to bump lc ${ma.locationCounter}`);
 	ma.locationCounter += ma.asmStmt[i].codeSize;
-        console.log (`!!!!!!!!!!!!!!!Just bumped lc ${ma.locationCounter}`);
     }
 }
 
@@ -801,8 +793,6 @@ function testWd(op,d,a,b) {
 }
 
 function asmPass2 (ma) {
-    console.log ("Pass 2 starting");
-//    com.mode.trace = true;
     com.mode.devlog('Assembler Pass 2');
     objectWordBuffer = [];
     relocationAddressBuffer = [];
@@ -810,14 +800,12 @@ function asmPass2 (ma) {
 	let s = ma.asmStmt[i];
 	com.mode.devlog(`Pass2 line ${s.lineNumber} = /${s.srcLine}/`);
         let op = s.operation;
-        console.log (`Pass2 operation ${s.fieldOperation} ${showOperation(op)}`);
+        com.mode.devlog (`Pass2 operation ${s.fieldOperation} ${showOperation(op)}`);
 	if (op.ifmt==arch.iRRR && op.afmt==arch.aRRR) {
             com.mode.devlog (`pass2 iRRR/aRRR`);
             const x =  rrrParser.exec (s.fieldOperands);
             if (x) {
-                console.log (`pass 2 found RRR parse ok`);
                 const {1:d, 2:a, 3:b} = x;
-                console.log (`d=${d} a=${a} b=${b}`);
                 s.codeWord1 = mkWord (op.opcode[0], d, a, b);
                 generateObjectWord (ma, s, s.address, s.codeWord1);
             } else {
@@ -987,8 +975,8 @@ function asmPass2 (ma) {
                 }
 	        generateObjectWord (ma, s, s.address, s.codeWord1);
 	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
-                console.log (`pass2 RX codeword1 ${arith.wordToHex4(s.codeWord1)}`);
-                console.log (`pass2 RX codeword2 ${arith.wordToHex4(s.codeWord2)}`);
+                com.mode.devlog (`pass2 RX codeword1 ${arith.wordToHex4(s.codeWord1)}`);
+                com.mode.devlog (`pass2 RX codeword2 ${arith.wordToHex4(s.codeWord2)}`);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RX operands`);
             }
@@ -1182,14 +1170,12 @@ function emitRelocations (ma) {
 // Generate import statements in object code
 
 function emitImports (ma) {
-    com.mode.trace = true;
     for (let x of ma.imports) {
         let sym = ma.symbolTable.get(x);
         let v = sym.value.value;
         let z = `import     ${sym.name},${v}`;
         ma.objectCode.push(z);
     }
-    com.mode.trace = false;
 }
 
 function emitExports (ma) {

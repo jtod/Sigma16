@@ -1,3 +1,5 @@
+
+/*
 let workerCounter = 0;
 
 onmessage = function (e) {
@@ -9,6 +11,7 @@ onmessage = function (e) {
     workerCounter++;
     
 }
+*/
 
 // basic-SharedArrayBuffer-worker.js
 

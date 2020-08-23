@@ -163,39 +163,6 @@ let developer = {
     assembler : null
 }
 
-// ----------------------------------------------------------------------
-// basic-SharedArrayBuffer-main.js
-
-const sharedBuf = new SharedArrayBuffer(5 * Uint16Array.BYTES_PER_ELEMENT);
-const sharedArray = new Uint16Array(sharedBuf);
-// const worker = new Worker("./basic-SharedArrayBuffer-worker.js");
-
-const worker = new Worker("../Sigma16/base/emprocess.mjs");
-
-let counter = 0;
-console.log("initial: " + formatArray(sharedArray));
-worker.addEventListener("message", e => {
-    if (e.data && e.data.type === "ping") {
-        console.log("updated: " + formatArray(sharedArray));
-        if (++counter < 10) {
-            worker.postMessage({type: "pong"});
-        } else {
-            console.log("done");
-        }
-    }
-});
-worker.postMessage({type: "init", sharedArray});
-
-function formatArray(array) {
-    return Array.from(
-        array,
-        b => b.toString(16).toUpperCase().padStart(4, "0")
-    ).join(" ");
-}
-
-// end basic-SharedArrayBuffer-main.js
-// ----------------------------------------------------------------------
-
 function makeTextFile (text) {
     let data = new Blob([text], {type: 'text/plain'});
 
@@ -394,10 +361,14 @@ prepareButton ('DisableDevTools', disableDevTools);
 // Examples pane
 //------------------------------------------------------------------------------
 
+// This file is Sigma16/src/gui/gui.mjs
+// The examples directory is Sigma16/examples
+// The index for the examples directory is ../../examples/index.html
+
 function examplesHome() {
     com.mode.devlog ("examplesHome");
     document.getElementById("ExamplesIframeId").src =
-	"../examples/index.html";
+	"../../examples/index.html";
 }
 
 // Copy the example text to the editor.  The example is shown as a web
@@ -639,6 +610,52 @@ window.onresize = function () {
     com.mode.devlog ('window.onresize finished');
 }
 
+//-------------------------------------------------------------------------------
+// Emulator process
+//-------------------------------------------------------------------------------
+
+// Create shared array
+
+const sharedBuf = new SharedArrayBuffer(5 * Uint16Array.BYTES_PER_ELEMENT);
+const sharedArray = new Uint16Array(sharedBuf);
+
+// Define worker process
+
+const worker = new Worker("../Sigma16/base/emprocess.mjs");
+
+// Initialize main
+
+let processCounter = 0;  // global state for main-worker interaction
+
+worker.addEventListener("message", e => {
+    if (e.data && e.data.type === "ping") {
+        console.log("updated: " + formatArray(sharedArray));
+        if (++processCounter < 10) {
+            worker.postMessage({type: "pong"});
+        } else {
+            console.log("done");
+        }
+    }
+});
+
+// Start the worker process
+
+function startEmProcess () {
+    console.log ("startEmProcess");
+    processCounter = 0; // initialize global variable
+    console.log ("initial: " + formatArray(sharedArray));
+    worker.postMessage ({type: "init", sharedArray});
+}
+
+// Read data from the array
+
+function formatArray (array) {
+    return Array.from(
+        array,
+        b => b.toString(16).toUpperCase().padStart(4, "0")
+    ).join(" ");
+}
+
 
 //-------------------------------------------------------------------------------
 // DevTools
@@ -650,28 +667,26 @@ function showDevToolsButton () {
 }
 
 function hideDevToolsButton () {
-    console.log ("hideDevToolsButton");
+    com.mode.devlog ("hideDevToolsButton");
     showPane (WelcomePane);
     document.getElementById("DevTools_Pane_Button").style.visibility = "hidden";
 }
 
 function disableDevTools () {
-    console.log ("disableDevTools");
+    com.mode.devlog ("disableDevTools");
     hideDevToolsButton ();
 }
+
 function enableDevTools () {
-    console.log ("enableDevTools called");
+    com.mode.devlog ("enableDevTools called");
     showDevToolsButton ();
-//    document.getElementById("DevTools_Pane_Button").style.display = "block";
 }
 
-// enter enabldev() in console to use dev tools
+// Attach the enableDevTools function to the window in order to put it
+// into scope at the top level.  To use the tools, press F12 to
+// display browser tools, then enter enableDevTools() in the console
 
-window.enabledev = enableDevTools;
-
-
-// window.showDevToolsButton = showDevToolsButton;
-// window.hideDevToolsButton = hideDevToolsButton;
+window.enableDevTools = enableDevTools;
 
 /* experiment
 let myWorker;
@@ -692,7 +707,6 @@ function devTools1 () {
     }
 }
 
-
 function devTools2 () {
     console.log ("DevTools2");
     let somedata = [4,9,2,3];
@@ -702,11 +716,13 @@ function devTools2 () {
 
 function devTools3 () {
     console.log ("DevTools3");
+    startEmProcess ();
 }
 
 function devTools4 () {
     console.log ("DevTools4");
 }
+
 
 //-------------------------------------------------------------------------------
 // Complete initialization when onload occurs
@@ -724,8 +740,8 @@ window.onload = function () {
     showSizeParameters();
     adjustToMidMainLRratio();
     initializePane ();
-    console.log ("onload about to initModules");
     smod.initModules ();
+    window.mode = com.mode;
     hideDevToolsButton ();
     com.mode.devlog("Initialization complete");
 }

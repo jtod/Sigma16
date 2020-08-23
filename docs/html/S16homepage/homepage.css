@@ -62,6 +62,10 @@ div.quickstartbox {
     text-align: center;
     }
 
+VersionText {
+   font-size: 120%;
+}
+
   div.color {
     background: yellow;
     padding: 0.5em;

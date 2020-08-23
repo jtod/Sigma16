@@ -21,6 +21,12 @@
 export let mode = {
     trace: false,
     showErr: true,
+    setTrace () {
+        this.trace = true
+    },
+    clearTrace () {
+        this.trace = false
+    },
     showMode () {
         console.log (`trace=${trace}`);
     },
