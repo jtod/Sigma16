@@ -52,31 +52,30 @@ export function formatSize (ifmt) {
 // statement formats allow "don't care" fields to be omitted, and
 // fields to be used for either register numbers or constants.
 
-export const a0       = Symbol ("no operand");
+export const a0       = Symbol ("");         // resume
+export const aRR      = Symbol ("RR");       // cmp      R1,R2
+export const aRRR     = Symbol ("RRR");      // add      R1,R2,R3
+export const aRC      = Symbol ("RC");       // putctl   R1,status
+export const aX       = Symbol ("JX");       // jump     loop[R0]
+export const aRX      = Symbol ("RX");       // load     R1,xyz[R2]
+export const akX      = Symbol ("KX");       // jumpc0   3,next[R0]
+export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
+export const aRRRk    = Symbol ("RRRk");     // andb     R1,R2,R3,9
+export const aRRkk    = Symbol ("RRkk");     // extract  R1,R2,3,7
+export const aRRRkk   = Symbol ("RRRkk");    // inject   R1,R2,R3,5,7
+export const aData    = Symbol ("data");     // data     34
+export const aModule  = Symbol ("module");   // module
+export const aImport  = Symbol ("import");   // import   Mod1,x
+export const aExport  = Symbol ("export");   // export   fcn
+export const aOrg     = Symbol ("org");      // org      arr+5
+export const aEqu     = Symbol ("equ");      // equ      rcd+4
+export const aBlock   = Symbol ("block");    // block    100
 
-export const aRR      = Symbol ("RR - e.g. R1,R2");
-export const aRRR     = Symbol ("RRR - e.g. R1,R2,R3");
-export const aRC      = Symbol ("RC - e.g. R1,status");
+// ??
+export const aRkk     = Symbol ("Rkk");  // field    R1,3,12  ?? should be RRkk
 
-export const aX       = Symbol ("JX - e.g. loop[R0]");
-export const aRX      = Symbol ("RX - e.g. R1,xyz[R2]");
-export const aRRX     = Symbol ("RRX - e.g. R1,R2,x[R5]");
-export const akX      = Symbol ("KX - e.g. 3,next[R0]");
-
-export const aRRk     = Symbol ("RRk - e.g. R1,R2,7");
-export const aRRRk    = Symbol ("RRRk - e.g. R1,R2,R3,9");
-export const aRkk     = Symbol ("Rkk - e.g. R1,3,12");
-export const aRRkk    = Symbol ("RRkk - e.g. R1,R2,3,7");
-export const aRRRkk   = Symbol ("RRRkk - e.g. R1,R2,R3,5,7");
-
-export const aData    = Symbol ("data - e.g. 34 -17 $0b2a");
-export const aModule  = Symbol ("module - no operand");
-export const aImport  = Symbol ("import - e.g. Mod1,x");
-export const aExport  = Symbol ("export - e.g. xyz");
-export const aOrg     = Symbol ("org - e.g. $f000");
-export const aEqu     = Symbol ("equ - e.g. 13");
-
-export const aEmpty   = Symbol ("aEmpty");
+// export const aEmpty   = Symbol ("aEmpty");
+// export const aRRX     = Symbol ("RRX");      //  - e.g. R1,R2,x[R5]
 
 //-----------------------------------------------------------------------------
 // Instruction mnemonics
@@ -211,7 +210,7 @@ export const zDivBit          = 5;   // division by 0
 // assembly language statement format, and the opcode (represented as
 // a list of expanding opcodes).
 
-export const emptyOperation = {ifmt:iEmpty, afmt:aEmpty, opcode:[]}
+export const emptyOperation = {ifmt:iEmpty, afmt:a0, opcode:[]}
 
 export let statementSpec = new Map();
 
@@ -224,44 +223,46 @@ statementSpec.set("mul",      {ifmt:iRRR,  afmt:aRRR,    opcode:[2]});
 statementSpec.set("div",      {ifmt:iRRR,  afmt:aRRR,    opcode:[3]});
 statementSpec.set("addc",     {ifmt:iRRR,  afmt:aRRR,    opcode:[4]});
 statementSpec.set("cmp",      {ifmt:iRRR,  afmt:aRR,     opcode:[5]});
+statementSpec.set("push",     {ifmt:iRRR,  afmt:aRRR,    opcode:[6]});
+statementSpec.set("pop",      {ifmt:iRRR,  afmt:aRRR,    opcode:[7]});
+statementSpec.set("top",      {ifmt:iRRR,  afmt:aRRR,    opcode:[8]});
+statementSpec.set("shift",    {ifmt:iRRR,  afmt:aRRR,    opcode:[9]});
+statementSpec.set("muln",     {ifmt:iRRR,  afmt:aRRR,    opcode:[10]});
+statementSpec.set("divn",     {ifmt:iRRR,  afmt:aRRR,    opcode:[11]});
 statementSpec.set("trap",     {ifmt:iRRR,  afmt:aRRR,    opcode:[13]});
 
 // RX instructions have primary opcode f and secondary opcode in b field
-statementSpec.set("lea",      {ifmt:iRX,   afmt:aRX,     opcode:[15,0]});
-statementSpec.set("load",     {ifmt:iRX,   afmt:aRX,     opcode:[15,1], pseudo:false});
-statementSpec.set("store",    {ifmt:iRX,   afmt:aRX,     opcode:[15,2]});
-statementSpec.set("jump",     {ifmt:iRX,   afmt:aX,      opcode:[15,3]});
-statementSpec.set("jal",      {ifmt:iRX,   afmt:aRX,     opcode:[15,4]});
-statementSpec.set("jumpc0",   {ifmt:iRX,   afmt:akX,     opcode:[15,5]});
-statementSpec.set("jumpc1",   {ifmt:iRX,   afmt:akX,     opcode:[15,6]});
-statementSpec.set("jumpz",    {ifmt:iRX,   afmt:aRX,     opcode:[15,7]});
-statementSpec.set("jumpnz",   {ifmt:iRX,   afmt:aRX,     opcode:[15,8]});
-statementSpec.set("testset",  {ifmt:iRX,   afmt:aRX,     opcode:[15,9]});
+statementSpec.set("lea",     {ifmt:iRX,  afmt:aRX,    opcode:[15,0]});
+statementSpec.set("load",    {ifmt:iRX,  afmt:aRX,      opcode:[15,1], pseudo:false});
+statementSpec.set("store",   {ifmt:iRX,  afmt:aRX,    opcode:[15,2]});
+statementSpec.set("jump",    {ifmt:iRX,  afmt:aX,     opcode:[15,3]});
+statementSpec.set("jal",     {ifmt:iRX,  afmt:aRX,    opcode:[15,4]});
+statementSpec.set("jumpc0",  {ifmt:iRX,  afmt:akX,    opcode:[15,5]});
+statementSpec.set("jumpc1",  {ifmt:iRX,  afmt:akX,    opcode:[15,6]});
+statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,7]});
+statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,8]});
+statementSpec.set("save",    {ifmt:iRX,  afmt:aRX,    opcode:[15,9]});
+statementSpec.set("restore", {ifmt:iRX,  afmt:aRX,    opcode:[15,10]});
+statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,11]});
 
 // EXP instructions have primary opcode e and 8-bit secondary opcode
 // in ab field
 
 // EXP1 - instruction is 1 word
-statementSpec.set("resume",   {ifmt:iEXP1, afmt:a0,     opcode:[14,0]});
+statementSpec.set("resume",   {ifmt:iEXP1, afmt:a0,   opcode:[14,0]});
 
 // EXP2 - instruction is 2 words
-statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,1]});
-statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,     opcode:[14,2]});
-statementSpec.set("shift",    {ifmt:iEXP2, afmt:aRRR,    opcode:[14,3]});
-statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,    opcode:[14,4]});
-statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,    opcode:[14,5]});
-statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRRkk,   opcode:[14,6]});
-statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRRkk,   opcode:[14,7]});
-statementSpec.set("inject",   {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,8]});
-statementSpec.set("injecti",  {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,9]});
-statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,   opcode:[14,22]});
-statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRRRkk,  opcode:[14,23]});
-statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,    opcode:[14,8]});
-statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,    opcode:[14,9]});
-statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,     opcode:[14,12]});
-statementSpec.set("push",     {ifmt:iEXP2, afmt:aRRR,    opcode:[14,13]});
-statementSpec.set("pop",      {ifmt:iEXP2, afmt:aRRR,    opcode:[14,14]});
-statementSpec.set("top",      {ifmt:iEXP2, afmt:aRRR,    opcode:[14,15]});
+statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,1]});
+statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,2]});
+statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,4]});
+statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,5]});
+statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRRkk,  opcode:[14,6]});
+statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRRkk,  opcode:[14,7]});
+statementSpec.set("inject",   {ifmt:iEXP2, afmt:aRRRkk, opcode:[14,8]});
+statementSpec.set("injecti",  {ifmt:iEXP2, afmt:aRRRkk, opcode:[14,9]});
+statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,  opcode:[14,22]});
+statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRRRkk, opcode:[14,23]});
+statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,    opcode:[14,12]});
 
 // Assembler directives
 
@@ -271,6 +272,7 @@ statementSpec.set("import",   {ifmt:iDir,  afmt:aImport, opcode:[]});
 statementSpec.set("export",   {ifmt:iDir,  afmt:aExport, opcode:[]});
 statementSpec.set("org",      {ifmt:iDir,  afmt:aOrg,    opcode:[]});
 statementSpec.set("equ",      {ifmt:iDir,  afmt:aEqu,    opcode:[]});
+statementSpec.set("block",    {ifmt:iDir,  afmt:aBlock,  opcode:[]});
 
 // -------------------------------------
 // Pseudoinstructions
