@@ -784,6 +784,10 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 
 /* Highlighting */
 
+.Hidden {
+    visibility: hidden;
+}
+
 .RightButton {
     float: right;
 }

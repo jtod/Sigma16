@@ -44,24 +44,24 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 export function mkModuleAsm () {
     com.mode.devlog("mkModuleAsm");
     return {
-	modName : "(anonymous)",   // name of module specified in module stmt
-        text : "",                 // raw source text
-        asmSrcLines : [],
+	modName : "(anonymous)",    // name of module specified in module stmt
+        text : "",                  // raw source text
+        asmSrcLines : [],           // list of lines of source text
 	asmStmt : [],               // statements correspond to lines of source
-	symbols : [],              // symbols used in the source
-	symbolTable : new Map (),  // symbol table
-	locationCounter : 0,       // address where next code will be placed
-	asmListingPlain : [],      // assembler listing
-	asmListingDec : [],        // decorated assembler listing
-	objectCode : [],           // string hex representation of object
-        objectText : "",           // object code as single string
-        metadata : [],             // lines of metadata code
-        metadataText : "",         // metadata as single string
-        asArrMap : [],             // address-sourceline map
-        imports : [],              // list of imported identifiers
-        exports : [],              // list of exported identifiers
-        modAsmOK : false, // deprecated, use nAsmErrors===0
-	nAsmErrors : 0             // number of errors in assembly source code
+	symbols : [],               // symbols used in the source
+	symbolTable : new Map (),   // symbol table
+	locationCounter : 0,        // address where next code will be placed
+        lcMovability : Relocatable, // can be changed by org
+	asmListingPlain : [],       // assembler listing
+	asmListingDec : [],         // decorated assembler listing
+	objectCode : [],            // string hex representation of object
+        objectText : "",            // object code as single string
+        metadata : [],              // lines of metadata code
+        metadataText : "",          // metadata as single string
+        asArrMap : [],              // address-sourceline map
+        imports : [],               // imported module/identifier
+        exports : [],               // exported identifiers
+	nAsmErrors : 0              // number of errors in assembly source code
     }
 }
 
@@ -116,52 +116,16 @@ function validateChars (xs) {
 }
 
 //-----------------------------------------------------------------------------
-// Values
-//-----------------------------------------------------------------------------
-
-// A value is a number that can be used in the displacement field of
-// an instruction.  An expression is assembly language syntax that
-// specifies a value.  The assembler evaluates expressions to
-// calculate the corresponding value.
-
-// A value is anonymouse, although it may be bound to a name as an
-// Identifier.  The Value itself consists of a number (the value
-// field) and a Boolean indicating whether the value is relocatable
-// (if this is false, the value is fixed).
-
-export class Value {
-    constructor (value, isRelocatable) {
-        this.value = value;
-        this.isRelocatable = isRelocatable;
-    }
-    getval () {
-        return this.value;
-    }
-    update (v) {
-        this.value = v;
-    }
-    getIsRelocatable () {
-        return this.isRelocatable;
-    }
-    setrel (r) {
-        this.isRelocatable = r;
-    }
-    show () {
-        //        return (`(Value ${this.value} ${this.isRelocatable})`);
-        return `(Value ${this.value} ${this.isRelocatable ? "R" : "F"})`;
-    }
-}
-
-//-----------------------------------------------------------------------------
 // Symbol table
 //-----------------------------------------------------------------------------
 
-// An identifier is a named Value; the name comes from the label field
-// of a statement.  There are three kinds of identifier:
+// The symbol table is a map from identifiers to values and metadata.
+// An identifier is defined by the label field of a statement.  There
+// are three kinds of identifier:
 
-//   - IdeLocation is an ordinary symbol whose value is the location counter
-//   - IdeImport has the value is provided by linker, provisionally 0
-//   - IdeEqu is the value of an expression
+//   IdeLocation is an ordinary symbol whose value is the location counter
+//   IdeImport has the value is provided by linker, provisionally 0
+//   IdeEqu is the value of an expression
 
 const IdeLocation = Symbol ("IdeLocation"); // location counter
 const IdeImport   = Symbol ("IdeImport");   // set by linker
@@ -177,9 +141,9 @@ function showSymOrigin (s) {
 
 // Fields of an identifier:
 //   name = identifier text from label field
+//   value = a word which is the value
 //   defLine = number of the source line where it's defined
 //   origin= IdeLocation, IdeImport, or IdeEqu
-//   value = a word which is the value
 //   expr = operand text (used only for equ), Nothing otherwise
 //   usageLines = list of line numbers where identifier is used
 
@@ -192,7 +156,8 @@ class Identifier {
     constructor (name, defLine, v) {
         this.name = name;
         this.value = v;
-        this.origin = IdeLocation; // assumption; override if import or equ
+//        this.origin = IdeLocation; // assumption; override if import or equ
+// part of value, not identifier, because each val needs to know origin
         this.defLine = defLine;
         this.usageLines = [];
     }
@@ -200,8 +165,11 @@ class Identifier {
         com.mode.devlog (`Identifier ${this.name} setting value := ${v}`);
         this.value = v;
     }
-    show () {
-        return ("(Identifier " + this.name + " " + this.value.show() + ")");
+//    show () {
+//        return ("(Identifier " + this.name + " " + this.value.show() + ")");
+//    }
+    toString () {
+        return ("(Identifier " + this.name + " " + this.value.toString() + ")");
     }
 }
 
@@ -227,8 +195,9 @@ function displaySymbolTableHtml (ma) {
     for (let i = 0; i < ma.symbols.length; i++) {
 	let x = ma.symbolTable.get(ma.symbols[i]);
         let xs = ma.symbols[i].padEnd(10)
-	    + arith.wordToHex4(x.value.value)
-            + (x.value.isRelocatable ? ' R' : ' F')
+            + x.value.v
+//	    + arith.wordToHex4(x.value.value)
+//            + (x.value.isRelocatable ? ' R' : ' F')
 	    + x.defLine.toString().padStart(5)
             + '  '
             + x.usageLines.join(',');
@@ -240,8 +209,42 @@ function displaySymbolTableHtml (ma) {
 //            + x.symUsageAddrs.map((w)=>arith.wordToHex4(w)).join(',');
 
 //-----------------------------------------------------------------------------
-// Expressions
+// Values
 //-----------------------------------------------------------------------------
+
+// A value is a 16-bit word represented as a natural number; it also
+// has attributes (origin and movability) that affect its usage.
+// Values are produced by evaluating an expression.  Values may be
+// used to define instruction fields, and they may also be used as
+// arguments to assembler directives.
+
+// Origin attribute
+export const Local = Symbol ("Local");              // defined in this module
+export const External = Symbol ("External");        // defined in another module
+
+// Movability attribute
+export const Fixed = Symbol ("Fixed");              // constant
+export const Relocatable = Symbol ("Relocatable");  // changes during relocation
+
+export class Value {
+    constructor (v, o, m) {
+        this.word = v;
+        this.origin = o;
+        this.movability = m;
+    }
+    toString () {
+        return `${this.word}`
+            + ` ${this.origin.description} ${this.movability.description}`;
+    }
+}
+
+//-----------------------------------------------------------------------------
+// Evaluation of expressions
+//-----------------------------------------------------------------------------
+
+// An expression is assembly language syntax that specifies a value.
+// The assembler evaluates expressions to calculate the corresponding
+// value.
 
 // Expressions are assembly language syntax to define values that
 // appear in the machine language code.  Expression evaluation occurs
@@ -277,32 +280,33 @@ function displaySymbolTableHtml (ma) {
 // occur in x.
 
 function evaluate (ma, s, a, x) {
-    com.mode.devlog(`evaluate ${x} ${typeof(x)}`);
+    com.mode.trace = true;
+    com.mode.devlog(`Enter evaluate ${typeof(x)} <${x}>`);
     let result;
     if (x.search(nameParser) == 0) { // identifier
 	let r = ma.symbolTable.get(x);
 	if (r) {
             result = r.value; // identifier already has a value, return it
             r.usageLines.push (s.lineNumber+1);
-            com.mode.devlog (`evaluate identifier => ${result.show()}`);
 	} else {
             mkErrMsg (ma, s, 'symbol ' + x + ' is not defined');
-	    com.mode.devlog('evaluate returning ' + 0);
-            result = new Value (0, false);
+            result = new Value (0, Local, Fixed);
 	}
     } else if (x.search(intParser) == 0) { // integer literal
-	com.mode.devlog('evaluate returning ' + parseInt(x,10));
-        result = new Value (arith.intToWord(parseInt(x,10)), false);
+        result = new Value (arith.intToWord(parseInt(x,10)), Local, Fixed);
     } else if (x.search(hexParser) == 0) { // hex literal
-        result =  new Value (arith.hex4ToWord(x.slice(1)), false);
+        result =  new Value (arith.hex4ToWord(x.slice(1)), Local, Fixed);
     } else { // compound expression (not yet implemented)
         mkErrMsg (ma, s, 'expression ' + x + ' has invalid syntax');
-        result = new Value (0, false);
+        result = new Value (0, Local, Fixed);
     }
-    com.mode.devlog (`evaluate received expression ${x}`)
-    com.mode.devlog (`evaluate returning ${result.show()}`)
+//    com.mode.devlog (`evaluate received expression ${x}`)
+    com.mode.trace = true;
+    com.mode.devlog (`evaluate ${x} returning (${result.toString()})`)
+    com.mode.trace = false;
     return result;
 }
+
 
 //-----------------------------------------------------------------------------
 // Assembly language statement
@@ -664,9 +668,29 @@ function parseAsmLine (ma,i) {
     s.operands = s.fieldOperands.split(',');
     com.mode.devlog (`Pass1 ${s.lineNumber} ${s.fieldOperation}`
                      + ` ${showOperation(s.operation)}`);
+    com.mode.trace = true;
     if (s.hasLabel) {
+        com.mode.devlog (`Pass 1 processing label ${s.fieldLabel}`);
 	if (ma.symbolTable.has(s.fieldLabel)) {
             mkErrMsg (ma, s, s.fieldLabel + ' has already been defined');
+        } else if (s.fieldOperation==="module") {
+            com.mode.devlog (`Pass 1 label: module`);
+        } else if (s.fieldOperation==="import") {
+            com.mode.devlog (`Pass 1 label: import`);
+        } else if (s.fieldOperation==="org") {
+            com.mode.devlog (`Pass 1 label: org`);
+        } else if (s.fieldOperation==="block") {
+            com.mode.devlog (`Pass 1 label: block`);
+        } else {
+            let v = new Value (ma.locationCounter, Local, ma.lcMovability);
+            let i = new Identifier (s.fieldLabel, s.lineNumber+1, v);
+            com.mode.devlog (`Pass 1 label ${s.fieldLabel} ${i.toString()} = ${v.toString()}`);
+            ma.symbolTable.set (s.fieldLabel, i);
+        }
+    }
+    com.mode.trace = false;
+}
+/*            
 	} else {
             let isImport = s.fieldOperation=="import";
             let isEqu = s.fieldOperation=="equ";
@@ -684,8 +708,7 @@ function parseAsmLine (ma,i) {
                 //      baz  import Mod4,baz    it's called baz here and in Mod4
             }
 	}
-    }
-}
+*/
 
 // Set hasLabel to true iff there is a syntactically valid label.  If
 // the label field isn't blank but is not syntactically valid
@@ -710,6 +733,7 @@ function parseLabel (ma,s) {
 // well as the specification of the operation if it exists.
 
 function parseOperation (ma,s) {
+    com.mode.trace = true;
     let op = s.fieldOperation;
     com.mode.devlog (`parseOperation line ${s.lineNumber} op=${op}`);
     if (op !== '') {
@@ -745,6 +769,7 @@ function parseOperation (ma,s) {
     } else {
         s.operation = arch.emptyOperation;
     }
+    com.mode.trace = false;
 }
 
 //-----------------------------------------------------------------------------
