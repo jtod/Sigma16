@@ -50,8 +50,7 @@ export function mkModuleAsm () {
 	asmStmt : [],               // statements correspond to lines of source
 	symbols : [],               // symbols used in the source
 	symbolTable : new Map (),   // symbol table
-	locationCounter : 0,        // address where next code will be placed
-        lcMovability : Relocatable, // can be changed by org
+	locationCounter : null,     //  next code address
 	asmListingPlain : [],       // assembler listing
 	asmListingDec : [],         // decorated assembler listing
 	objectCode : [],            // string hex representation of object
@@ -86,11 +85,10 @@ const CharSet =
       + ".$[]()+-*"               // punctuation
       + "?¬£`<=>!%^&{}#~@:|/\\";  // other
 
-// removeCR copies a string with all \r characters removed.  Given
-// string xs, return the string with all CR characters removed.  In
+// removeCR copies a string with all \r characters removed.  In
 // Unix/Linux a line ends with \n, but in Windows lines end with \r\n
 // (CRLF).  The regular expressions used for parsing assume \n as the
-// line terminator;
+// line terminator.
 
 function removeCR (xs) {
     return xs.split("").filter (c => c.charCodeAt(0) != 13).join("");
@@ -119,65 +117,24 @@ function validateChars (xs) {
 // Symbol table
 //-----------------------------------------------------------------------------
 
-// The symbol table is a map from identifiers to values and metadata.
-// An identifier is defined by the label field of a statement.  There
-// are three kinds of identifier:
+// The symbol table is a map from strings to Identifiers, where the
+// string is the text of the identifier name, and the Identifier
+// object is a record containing all the required information about
+// the identifier.
 
-//   IdeLocation is an ordinary symbol whose value is the location counter
-//   IdeImport has the value is provided by linker, provisionally 0
-//   IdeEqu is the value of an expression
+// An Identifier is a symbol table entry: i.e. a record giving all the
+// information about an identifier.  It is stored in the symbol table
+// keyed by the identifier string.  The name is the identifier string,
+// taken from the label field; v is its value, and defline is line
+// number where the identifier was defined.
 
-const IdeLocation = Symbol ("IdeLocation"); // location counter
-const IdeImport   = Symbol ("IdeImport");   // set by linker
-const IdeEqu      = Symbol ("IdeEqu");      // evaluation of operand expression
-
-// Show identifier origin as a string
-function showSymOrigin (s) {
-    return ( s === IdeLocation ? "Local"
-             : s === IdeImport ? "Import"
-             : s === IdeEqu    ? "Equ"
-             : "Unknown" )
-}
-
-// Fields of an identifier:
-//   name = identifier text from label field
-//   value = a word which is the value
-//   defLine = number of the source line where it's defined
-//   origin= IdeLocation, IdeImport, or IdeEqu
-//   expr = operand text (used only for equ), Nothing otherwise
-//   usageLines = list of line numbers where identifier is used
-
-// When created, an identifier must have a name and an origin (because
-// it's created When a statement is found that has a label, a symbol
-// is created and added to the symbol table.
-
-// name is label field, defline is line number, v is Value
 class Identifier {
-    constructor (name, defLine, v) {
+    constructor (name, v, defLine) {
         this.name = name;
         this.value = v;
-//        this.origin = IdeLocation; // assumption; override if import or equ
-// part of value, not identifier, because each val needs to know origin
         this.defLine = defLine;
         this.usageLines = [];
     }
-    update(v) {
-        com.mode.devlog (`Identifier ${this.name} setting value := ${v}`);
-        this.value = v;
-    }
-//    show () {
-//        return ("(Identifier " + this.name + " " + this.value.show() + ")");
-//    }
-    toString () {
-        return ("(Identifier " + this.name + " " + this.value.toString() + ")");
-    }
-}
-
-// dev tool
-function displaySymbolTable (ma) {
-    console.log ("Symbol table");
-    console.log (ma.symbolTable.keys());
-    let foox = ma.symbolTable.get("x");
 }
 
 function displaySymbolTableHtml (ma) {
@@ -187,18 +144,17 @@ function displaySymbolTableHtml (ma) {
     ma.asmListingText.push("Symbol table");
     ma.asmListingPlain.push("<span class='ListingHeader'>Symbol table</span>");
     ma.asmListingDec.push("<span class='ListingHeader'>Symbol table</span>");
-    ma.asmListingText.push("Name      Val      Def   Used");
-    ma.asmListingPlain.push("<span class='ListingHeader'>Name      Val      Def   Used</span>");
-    ma.asmListingDec.push("<span class='ListingHeader'>Name      Val      Def   Used</span>");
-    ma.symbols =[ ...ma.symbolTable.keys() ].sort();
-    com.mode.devlog('symbols = ' + ma.symbols);
-    for (let i = 0; i < ma.symbols.length; i++) {
-	let x = ma.symbolTable.get(ma.symbols[i]);
-        let xs = ma.symbols[i].padEnd(10)
-            + x.value.v
-//	    + arith.wordToHex4(x.value.value)
-//            + (x.value.isRelocatable ? ' R' : ' F')
-	    + x.defLine.toString().padStart(5)
+    let symtabHeader = "Name        Val Org Mov  Def Used";
+    ma.asmListingText.push(symtabHeader);
+    ma.asmListingPlain.push(`<span class='ListingHeader'>${symtabHeader}</span>`);
+    ma.asmListingDec.push(`<span class='ListingHeader'>${symtabHeader}</span>`);
+    let syms  =[ ...ma.symbolTable.keys() ].sort();
+    com.mode.devlog (`Symbol table keys = ${syms}`);
+    for (let symkey of syms) {
+        let x = ma.symbolTable.get (symkey);
+        let xs = x.name.padEnd(11)
+            + x.value.toString()
+    	    + x.defLine.toString().padStart(5)
             + '  '
             + x.usageLines.join(',');
         ma.asmListingText.push(xs);
@@ -206,7 +162,6 @@ function displaySymbolTableHtml (ma) {
         ma.asmListingDec.push(xs);
     }
 }
-//            + x.symUsageAddrs.map((w)=>arith.wordToHex4(w)).join(',');
 
 //-----------------------------------------------------------------------------
 // Values
@@ -219,12 +174,43 @@ function displaySymbolTableHtml (ma) {
 // arguments to assembler directives.
 
 // Origin attribute
-export const Local = Symbol ("Local");              // defined in this module
-export const External = Symbol ("External");        // defined in another module
+export const Local = Symbol ("Loc");              // defined in this module
+export const External = Symbol ("Ext");        // defined in another module
 
 // Movability attribute
-export const Fixed = Symbol ("Fixed");              // constant
-export const Relocatable = Symbol ("Relocatable");  // changes during relocation
+export const Fixed = Symbol ("Fix");              // constant
+export const Relocatable = Symbol ("Rel");  // changes during relocation
+
+// Add x+y and return the result.  Need ma and s for generating error
+// messages.
+
+export function addVal (ma,s,x,y) {
+    let result = Zero.copy();
+    if (x.origin==External || y.origin==External) {
+        mkErrMsg (ma, s, `Cannot perform arithmetic on external value`)
+    } else  if (x.movability==Relocatable && y.movability==Relocatable) {
+        mkErrMsg (ma, s, `Cannot add two relocatable values`);
+    } else {
+        let m = x.movability==Relocatable || y.movability==Relocatable
+                  ? Relocatable : Fixed;
+        result = new Value (wrapWord (x.word + y.word), Local, m);
+    }
+    console.log (`addVal ${x.word} + ${y.word} = ${result.word}`);
+    console.log (`addVal ${x.toString()} +  ${y.toString()}`
+                 + ` = ${result.toString()}`);
+    return result;
+}
+
+// Word addition doesn't overflow, but wraps around.  Any negative
+// would be an internal error, and is set to 0 with message.
+
+function wrapWord (x) {
+    if (x<0) {
+        console.log (`Internal error: wrapWord ${x}`);
+        x = 0;
+    }
+    return x; // check for neg, and mod
+}
 
 export class Value {
     constructor (v, o, m) {
@@ -232,11 +218,32 @@ export class Value {
         this.origin = o;
         this.movability = m;
     }
+    copy () {
+        return new Value (this.word, this.origin, this.movability);
+    }
+    add (k) {
+        this.word = this.word + k.word;
+        this.movability =
+            k.movability==Fixed ? this.movability
+            : this.movability==Fixed ? k.movability
+            : Fixed;
+    }
     toString () {
-        return `${this.word}`
+        let xs =  `${arith.wordToHex4(this.word)}`
             + ` ${this.origin.description} ${this.movability.description}`;
+        return xs;
     }
 }
+
+function mkConstVal (k) {
+    return new Value (k, Local, Fixed);
+    
+}
+
+const Zero = mkConstVal (0);
+const One = mkConstVal (1);
+const Two = mkConstVal (2);
+
 
 //-----------------------------------------------------------------------------
 // Evaluation of expressions
@@ -280,25 +287,26 @@ export class Value {
 // occur in x.
 
 function evaluate (ma, s, a, x) {
-    com.mode.trace = true;
     com.mode.devlog(`Enter evaluate ${typeof(x)} <${x}>`);
     let result;
     if (x.search(nameParser) == 0) { // identifier
 	let r = ma.symbolTable.get(x);
 	if (r) {
-            result = r.value; // identifier already has a value, return it
+            result = r.value.copy(); // identifier already has a value, return it
             r.usageLines.push (s.lineNumber+1);
 	} else {
             mkErrMsg (ma, s, 'symbol ' + x + ' is not defined');
-            result = new Value (0, Local, Fixed);
+            result = mkConstVal(0); // new Value (0, Local, Fixed);
 	}
     } else if (x.search(intParser) == 0) { // integer literal
-        result = new Value (arith.intToWord(parseInt(x,10)), Local, Fixed);
+ //        result = new Value (arith.intToWord(parseInt(x,10)), Local, Fixed);
+        result = mkConstVal(arith.intToWord(parseInt(x,10)));
     } else if (x.search(hexParser) == 0) { // hex literal
-        result =  new Value (arith.hex4ToWord(x.slice(1)), Local, Fixed);
+//      result =  new Value (arith.hex4ToWord(x.slice(1)), Local, Fixed);
+        result =  mkConstVal (arith.hex4ToWord(x.slice(1)));
     } else { // compound expression (not yet implemented)
         mkErrMsg (ma, s, 'expression ' + x + ' has invalid syntax');
-        result = new Value (0, Local, Fixed);
+        result = Zero.copy(); // new Value (0, Local, Fixed);
     }
 //    com.mode.devlog (`evaluate received expression ${x}`)
     com.mode.trace = true;
@@ -306,7 +314,6 @@ function evaluate (ma, s, a, x) {
     com.mode.trace = false;
     return result;
 }
-
 
 //-----------------------------------------------------------------------------
 // Assembly language statement
@@ -325,6 +332,7 @@ function showAsmStmt (s) {
 }
 
 function mkAsmStmt (lineNumber, address, srcLine) {
+    console.log (`@@@@@@@@ mkAsmStmt ${address.toString()}`);
     return {lineNumber,                        // array index of statement
 	    address,                           // address where code goes
 	    srcLine,                           // source line
@@ -339,7 +347,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    hasLabel : false,                  // statement has a valid label
             operation : null,                  // spec of the operation if exists
             operands : [],                     // array of individual operands
-	    codeSize : 0,                      // number of words generated
+	    codeSize : Zero,                      // number of words generated
 	    orgAddr : -1,                      // address specified by org/block
 	    codeWord1 : null,                  // first word of object
 	    codeWord2 : null,                  // second word of object
@@ -362,7 +370,7 @@ function printAsmStmt (ma,x) {
     console.log ('  d=' + x.d + ' a=' + x.a + ' b=' + x.b
 		 + ' disp=' + x.field_disp + ' dat=' + x.dat);
     console.log ('  address = ' + x.address
-		 + ' codesize=' + x.codeSize
+		 + ' codesize=' + x.codeSize.word
 		 + ' codeWord1=' + x.codeWord1 + ' codeWord2=' + x.codeWord2);
     if (x.errors.length > 0) {
 	console.log ('error messages:\n' + x.errors.join('\n'));
@@ -455,7 +463,7 @@ export function assembler (ma) {
     ma.asmListingDec = [];
     ma.objectCode = [];
     ma.exports = [];
-    ma.locationCounter = 0;
+    ma.locationCounter = new Value (0, Local, Relocatable);
     ma.asArrMap = [];
     ma.symbolTable.clear();
     ma.asmListingText.push ("Line Addr Code Code Source");
@@ -464,7 +472,6 @@ export function assembler (ma) {
     ma.asmListingDec.push(
 	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
     asmPass1 (ma);
-    if (com.mode.trace) displaySymbolTable (ma);
     asmPass2 (ma);
     if (ma.nAsmErrors > 0) {
 	ma.asmListingText.unshift
@@ -613,14 +620,14 @@ function requireX (ma,s,field) {
     const x = xParser.exec (field);
     let result = {disp: 0, index: 0};
     if (x) {
-        const {0:all, 1:disp, 2:index,3:three, 4:four} = x;
-        console.log (`requireX 0=${all} 1=${disp} 2=${index} 3=${three} 4=${four}`);
+        const {0:all, 1:disp, 2:index} = x;
+        com.mode.devlog (`requireX 0=${all} 1=${disp} 2=${index}`);
         result = {disp,index};
     } else {
         const displayField = field ? field : "";
         mkErrMsg (ma, s, `operand ${displayField} is not disp[reg]`);
     }
-    console.log (`requireX ${field} return ${result.disp} ${result.index}`);
+    com.mode.devlog (`requireX ${field} return ${result.disp} ${result.index}`);
     return result;
 }
 
@@ -659,56 +666,45 @@ function parseAsmLine (ma,i) {
     s.fieldSpacesAfterOperation = p[4];
     s.fieldOperands = p[5];
     s.fieldComment = p[6];
-    com.mode.devlog(`label = /${s.fieldLabel}/`);
-    com.mode.devlog(`operation = /${s.fieldOperation}/`);
-    com.mode.devlog(`operands = /${s.fieldOperands}/`);
-    com.mode.devlog(`comments = /${s.fieldComment}/`);
     parseLabel (ma,s);
     parseOperation (ma,s);
     s.operands = s.fieldOperands.split(',');
-    com.mode.devlog (`Pass1 ${s.lineNumber} ${s.fieldOperation}`
-                     + ` ${showOperation(s.operation)}`);
-    com.mode.trace = true;
+    com.mode.devlog (`ParseAsmLine ${s.lineNumber}`);
+    com.mode.devlog (`  fieldLabel = ${s.hasLabel} /${s.fieldLabel}/`);
+    com.mode.devlog (`  fieldOperation = /${s.fieldOperation}/`);
+    com.mode.devlog (`  operation = ${showOperation(s.operation)}`);
+    com.mode.devlog (`  fieldOperands = /${s.fieldOperands}/`);
+    com.mode.devlog (`  operands = ${s.operands}`);
+    com.mode.devlog (`  fieldComment = /${s.fieldComment}/`);
     if (s.hasLabel) {
-        com.mode.devlog (`Pass 1 processing label ${s.fieldLabel}`);
+        com.mode.trace = true;
+        com.mode.devlog (`ParseAsmLine label ${s.lineNumber} /${s.fieldLabel}/`);
 	if (ma.symbolTable.has(s.fieldLabel)) {
             mkErrMsg (ma, s, s.fieldLabel + ' has already been defined');
         } else if (s.fieldOperation==="module") {
-            com.mode.devlog (`Pass 1 label: module`);
+            com.mode.devlog (`Parse line ${s.lineNumber} label: module`);
+        } else if (s.fieldOperation==="equ") {
+            let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            ma.symbolTable.set (s.fieldLabel, i);
+            com.mode.devlog (`Parse line ${s.lineNumber} set ${i.toString()}`);
         } else if (s.fieldOperation==="import") {
-            com.mode.devlog (`Pass 1 label: import`);
-        } else if (s.fieldOperation==="org") {
-            com.mode.devlog (`Pass 1 label: org`);
-        } else if (s.fieldOperation==="block") {
-            com.mode.devlog (`Pass 1 label: block`);
+            com.mode.devlog (`Parse line ${s.lineNumber} label: import`);
+            let v = Zero.copy()
+            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            ma.symbolTable.set (s.fieldLabel, i);
         } else {
-            let v = new Value (ma.locationCounter, Local, ma.lcMovability);
-            let i = new Identifier (s.fieldLabel, s.lineNumber+1, v);
-            com.mode.devlog (`Pass 1 label ${s.fieldLabel} ${i.toString()} = ${v.toString()}`);
+            let v = ma.locationCounter.copy();
+            console.log (`def label lc = ${ma.locationCounter.toString()}`);
+            console.log (`def label v = ${v.toString()}`);
+            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            com.mode.devlog (`Parse line ${s.lineNumber} label ${s.fieldLabel}`
+                             + ` set ${i.toString()}`);
             ma.symbolTable.set (s.fieldLabel, i);
         }
     }
     com.mode.trace = false;
 }
-/*            
-	} else {
-            let isImport = s.fieldOperation=="import";
-            let isEqu = s.fieldOperation=="equ";
-            let v = isImport ? new Value (s.fieldOperands, false) // val=mod
-                : isEqu ? evaluate (ma, s, ma.locationCounter, s.fieldOperands)
-                : new Value (ma.locationCounter, true);
-            ma.symbolTable.set (s.fieldLabel,
-                                new Identifier (s.fieldLabel, s.lineNumber+1, v));
-            if (isImport) {
-                ma.imports.push(s.fieldLabel);
-                // The label is requried in an import, operand field is
-                // modname,nameInThatModule
-                // examples
-                //     foo  import Mod3,bar    it's called foo here
-                //      baz  import Mod4,baz    it's called baz here and in Mod4
-            }
-	}
-*/
 
 // Set hasLabel to true iff there is a syntactically valid label.  If
 // the label field isn't blank but is not syntactically valid
@@ -733,7 +729,6 @@ function parseLabel (ma,s) {
 // well as the specification of the operation if it exists.
 
 function parseOperation (ma,s) {
-    com.mode.trace = true;
     let op = s.fieldOperation;
     com.mode.devlog (`parseOperation line ${s.lineNumber} op=${op}`);
     if (op !== '') {
@@ -744,10 +739,10 @@ function parseOperation (ma,s) {
             if (s.operation.ifmt==arch.iDir
                 && s.operation.afmt==arch.aModule) {
                 ma.modName = s.fieldLabel;
-                console.log (`parseOperation module=${ma.modName}`);
+                com.mode.devlog (`parseOperation module=${ma.modName}`);
             } else if (s.operation.ifmt==arch.iData
                        && s.operation.afmt==arch.aData) {
-                s.codeSize = 1; // should be number of data words in operand
+                s.codeSize = One.copy();
             } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aOrg) {
                 let y = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
@@ -756,58 +751,88 @@ function parseOperation (ma,s) {
             } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aBlock) {
                 let y = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-                s.orgAddr = ma.locationCounter + y.value;
-                console.log (`parse Operation orgAddr=${s.orgAddr}`);
+                s.orgAddr = mkConstVal (ma.locationCounter.word + y.word);
+                console.log (`parse Op BLOCK orgAddr=${s.orgAddr.toString()}`);
             } else {
-	        s.codeSize = arch.formatSize(x.ifmt);
+	        s.codeSize = mkConstVal(arch.formatSize(x.ifmt));
             }
 	} else {
             s.operation = arch.emptyOperation;
-            s.codeSize = 0;
+            //            s.codeSize = 0;
+            s.codeSize = Zero;
             // GIVE ERROR MESSAGE ?????
 	}
     } else {
         s.operation = arch.emptyOperation;
     }
-    com.mode.trace = false;
 }
 
 //-----------------------------------------------------------------------------
 //  Assembler Pass 1
 //-----------------------------------------------------------------------------
 
-// Requires that asmSrcLines has been set to the source code, split
-// into an array of lines of text
+// Pass 1 parses the source, calculates the code size for each
+// statement, and defines labels.  Requires that asmSrcLines has been
+// set to the source code, split into an array of lines of text.
 
 function asmPass1 (ma) {
-    com.mode.devlog('assembler pass 1: ' + ma.asmSrcLines.length + ' source lines');
+    console.log ("Pass1 tests");
+    let qwerty = new Value (306, Local, Fixed);
+    let asdf = qwerty.copy();
+    console.log (`COPY TEST qwerty ${qwerty.toString()}`);
+    console.log (`asdf ${asdf.toString()}`);
+    asdf.word = asdf.word + 1000;
+    console.log (`qwerty ${qwerty.toString()}`);
+    console.log (`asdf ${asdf.toString()}`);
+    console.log (`Zero ${Zero.toString()}`);
+    let zxcv = Zero.copy();
+    console.log (`zxcv ${zxcv.toString()}`);
+    zxcv.add(new Value(5,Local,Fixed));
+    console.log (`zxcv ${zxcv.toString()}`);
+    console.log (`Zero ${Zero.toString()}`);
+    com.mode.devlog('Assembler Pass 1: ' + ma.asmSrcLines.length + ' source lines');
+
     for (let i = 0; i < ma.asmSrcLines.length; i++) {
-        com.mode.devlog (`pass1 i=${i} line=<${ma.asmSrcLines[i]}>`);
-	ma.asmStmt[i] = mkAsmStmt (i, ma.locationCounter, ma.asmSrcLines[i]);
+        com.mode.devlog (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
+	ma.asmStmt[i] = mkAsmStmt (i, ma.locationCounter.copy(), ma.asmSrcLines[i]);
 	let s = ma.asmStmt[i];
-        com.mode.devlog (`$$$ pass 1 i=${i}... stmt =...`);
-        showAsmStmt(s);
+//        showAsmStmt(s);
         let badCharLocs = validateChars (ma.asmSrcLines[i]);
-        com.mode.devlog (`validate chars: badCharLocs=${badCharLocs}`);
+        com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
 
         if (badCharLocs.length > 0) {
             mkErrMsg (ma,s,`Invalid character at position ${badCharLocs}`);
             mkErrMsg (ma,s, "See User Guide for list of valid characters");
             mkErrMsg (ma,s, "(Word processors often insert invalid characters)");
         }
-	com.mode.devlog(`pass1 i=  ${i} src= + ${s.srcLine}`);
         parseAsmLine (ma,i);
-        if (s.operation.ifmt==arch.iDir &&
-            [arch.aBlock,arch.aOrg].includes(s.operation.afmt)) {
-            console.log (`Pass 1 line=${i} @=${ma.locationCounter}`);
-            ma.locationCounter = s.orgAddr;
-            console.log (`Pass 1 line=${i} setting @=${ma.locationCounter}`);
+        com.mode.trace = true;
+        com.mode.devlog (`Pass 1 ${i} /${s.srcLine}/`
+                         + ` address=${s.address} codeSize=${s.codeSize}`);
+        // update location counter
+        com.mode.devlog (`Pass 1 ${i} @ was ${ma.locationCounter.toString()}`);
+        if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aOrg) {
+            let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+            console.log (`Org v= ${v.toString()}`);
+            ma.locationCounter = v.copy();
+            com.mode.devlog (`org ${i} ${ma.locationCounter.toString()}`);
+        } else if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aBlock) {
+            let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+            if (v.movability==Fixed) {
+                console.log (`Block v= ${v.toString()}`);
+                ma.locationCounter = addVal(ma,s,ma.locationCounter,v).copy();
+                com.mode.devlog (`block ${i} ${ma.locationCounter.toString()}`);
+            } else {
+                mkErrMsg (ma, s, `operand for block must be Fixed`);
+            }
         } else {
-	    ma.locationCounter += s.codeSize;
+            console.log (`Pass1 code codesize=${s.codeSize.toString()}`);
+            ma.locationCounter = addVal (ma, s, ma.locationCounter, s.codeSize);
+            com.mode.devlog (`code ${i} ${ma.locationCounter.toString()}`);
         }
+        com.mode.trace = false;
     }
 }
-//     (s.operation.afmt==arch.aBlock || s.operation.afmt==arch.aOrg))) {
 
 function printAsmStmts (ma) {
     for (let i = 0; i < ma.asmStmt.length; i++) {
@@ -863,7 +888,6 @@ function asmPass2 (ma) {
     relocationAddressBuffer = [];
     ma.objectCode.push (`module   ${ma.modName}`);
     emitImports (ma);
-    ma.objectCode.push (`org      0000`);
     for (let i = 0; i < ma.asmStmt.length; i++) {
 	let s = ma.asmStmt[i];
 	com.mode.devlog(`Pass2 line ${s.lineNumber} = /${s.srcLine}/`);
@@ -883,16 +907,16 @@ function asmPass2 (ma) {
             const d = requireReg(ma,s,s.operands[0]);
             const a = requireReg(ma,s,s.operands[1]);
             const b = requireReg(ma,s,s.operands[2]);
-            console.log (`RRR noperands = ${s.operands.length}`)
+            com.mode.devlog (`RRR noperands = ${s.operands.length}`)
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
-            generateObjectWord (ma, s, s.address, s.codeWord1);
+            generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	} else if (op.ifmt==arch.iRRR && op.afmt==arch.aRR) {
 	    com.mode.devlog (`Pass2 iRRR/aRR`);
             const d = 0;
             const a = requireReg(ma,s,s.operands[0]);
             const b = requireReg(ma,s,s.operands[1]);
 	    s.codeWord1 = mkWord (op.opcode[0], 0, a, b);
-            generateObjectWord (ma, s, s.address, s.codeWord1);
+            generateObjectWord (ma, s, s.address.word, s.codeWord1);
 // RX
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aRX) {
 	    com.mode.devlog (`Pass2 RX/RX`);
@@ -900,30 +924,31 @@ function asmPass2 (ma) {
             const {disp,index} = requireX(ma,s,s.operands[1]);
             let a = index;
             let b = op.opcode[1];
-            let v = evaluate (ma, s, s.address+1, disp);
+            let v = evaluate (ma, s, s.address.word+1, disp);
+            com.mode.devlog (`pass 2 RX/RX a=${a} b=${b} v=${v.toString()}`);
             if (v.evalRel) {
-                generateRelocation (ma, s, s.address+1);
+                generateRelocation (ma, s, s.address.word+1);
             }
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
-            s.codeWord2 = v.value;
-	    generateObjectWord (ma, s, s.address, s.codeWord1);
-	    generateObjectWord (ma, s, s.address+1, s.codeWord2);
+            s.codeWord2 = v.word;
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
         } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 RX/kX`);
-            const dv = evaluate (ma, s, s.address, s.operands[0]);
+            const dv = evaluate (ma, s, s.address.word, s.operands[0]);
             const d = dv.value;
             // require that d is fixed, local, and 0 <= d <= 15
             const {disp,index} = requireX(ma,s,s.operands[1]);
             let a = index;
             let b = op.opcode[1];
-            let v = evaluate (ma, s, s.address+1, disp);
+            let v = evaluate (ma, s, s.address.word+1, disp);
             if (v.evalRel) {
-                generateRelocation (ma, s, s.address+1);
+                generateRelocation (ma, s, s.address.word+1);
             }
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = v.value;
-	    generateObjectWord (ma, s, s.address, s.codeWord1);
-	    generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !s.pseudo) {
             com.mode.devlog (`Pass2 RX/X)`);
@@ -932,15 +957,15 @@ function asmPass2 (ma) {
             const {disp,index} = requireX(ma,s,s.operands[0]);
             let a = index;
             let b = op.opcode[1];
-            let dv = evaluate (ma, s, s.address+1, disp);
+            let dv = evaluate (ma, s, s.address.word+1, disp);
             // require that dv is fixed, local, and 0 <= d <= 15
             if (dv.evalRel) {
-                generateRelocation (ma, s, s.address+1);
+                generateRelocation (ma, s, s.address.word+1);
             }
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = dv.value;
-	    generateObjectWord (ma, s, s.address, s.codeWord1);
-	    generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 /*
             const x = xParser.exec  (s.fieldOperands);
             if (x) {
@@ -964,14 +989,14 @@ function asmPass2 (ma) {
             if (x) {
                 const {1:disp, 2:a} = x;
 	        s.codeWord1 = mkWord (op.opcode[0], op.opcode[2], a, op.opcode[1]);
-                let v = evaluate (ma, s, s.address+1, disp);
+                let v = evaluate (ma, s, s.address.word+1, disp);
                 s.codeWord2 = v.value;
                 if (v.evalRel) {
                     com.mode.devlog (`relocatable displacement`);
-                    generateRelocation (ma, s, s.address+1);
+                    generateRelocation (ma, s, s.address.word+1);
                 }
-	        generateObjectWord (ma, s, s.address, s.codeWord1);
-	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires X operand`);
             }
@@ -980,7 +1005,7 @@ function asmPass2 (ma) {
 	    com.mode.devlog (`Pass2 iEXP1/no-operand`);
             if (s.fieldOperands=="") {
 	        s.codeWord1 = mkWord448(op.opcode[0],0,op.opcode[1]);
-	        generateObjectWord (ma, s, s.address, s.codeWord1);
+	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
             } else {
                 mkErrMsg (ma, s, `this instruction requires no operands`);
             }
@@ -995,8 +1020,8 @@ function asmPass2 (ma) {
                 let h = 0;
 	        s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
                 s.codeWord2 = mkWord (e, f, g, h);
-                generateObjectWord (ma, s, s.address, s.codeWord1);
-                generateObjectWord (ma, s, s.address+1, s.codeWord2);
+                generateObjectWord (ma, s, s.address.word, s.codeWord1);
+                generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RR operands`);
             }
@@ -1008,8 +1033,8 @@ function asmPass2 (ma) {
                 let ctlRegIdx = findCtlIdx (ma,s,ctlRegName);
 	        s.codeWord1 = mkWord448 (14,0,op.opcode[1]);
 	        s.codeWord2 = mkWord (e, ctlRegIdx, 0, 0);
-	        generateObjectWord (ma, s, s.address, s.codeWord1);
-	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RC operands`);
             }
@@ -1046,8 +1071,8 @@ function asmPass2 (ma) {
                 let f = 0;
 	        s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
 	        s.codeWord2 = mkWord (e, f, g, h);
-	        generateObjectWord (ma, s, s.address, s.codeWord1);
-	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RRkk operands`);
             }
@@ -1083,8 +1108,8 @@ function asmPass2 (ma) {
                 const {1:d, 2:e, 3:f, 4:g, 5:h} = x;
                 s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
                 s.codeWord2 = mkWord (e, f, g, h);
-	        generateObjectWord (ma, s, s.address, s.codeWord1);
-	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RRRkk operands`);
             }
@@ -1096,14 +1121,14 @@ function asmPass2 (ma) {
             let x = kxParser.exec (s.fieldOperands);
             if (x) {
 	        s.codeWord1 = mkWord(op.opcode[0],s.d,s.a,op.opcode[1]);
-                let v = evaluate(ma,s,s.address+1,s.field_disp);
+                let v = evaluate(ma,s,s.address.word+1,s.field_disp);
                 s.codeWord2 = v.value;
                 if (v.evalRel) {
                     com.mode.devlog (`relocatable displacement`);
-                    generateRelocation (ma, s, s.address+1);
+                    generateRelocation (ma, s, s.address.word+1);
                 }
-	        generateObjectWord (ma, s, s.address, s.codeWord1);
-	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RX operands`);
             }
@@ -1115,23 +1140,23 @@ function asmPass2 (ma) {
 	    s.field_g  = logicFunction(s.fieldOperation);
 	    s.codeWord1 = mkWord448(op.opcode[0],s.d,op.opcode[1]);
             s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,0);
-	    generateObjectWord (ma, s, s.address, s.codeWord1);
-	    generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
 	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRX) {
 	    com.mode.devlog (`pass2 EXP2/RRX`);
             const x = rrxParser.exec (s.fieldOperands);
             if (x) {
                 const {1:e, 2:f, 3:gh, 4:a} = x;
-                let v = evaluate (ma, s, s.address+1, gh); // value of offset
+                let v = evaluate (ma, s, s.address.word+1, gh); // value of offset
 	        s.codeWord1 = mkWord448 (op.opcode[0], a, op.opcode[1]);
                 s.codeWord2 = mkWord448 (e, f, v.value);
                 if (v.evalRel) {
                     mkErrMsg (ma,s,`This instruction requires fixed displacement\n`
                               + `       but ${s.field_disp} is relocatable`);
                 }
-	        generateObjectWord (ma, s, s.address, s.codeWord1);
-	        generateObjectWord (ma, s, s.address+1, s.codeWord2);
+	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
                 mkErrMsg (ma, s, `ERROR operation requires RR operands`);
             }
@@ -1140,10 +1165,10 @@ function asmPass2 (ma) {
             let v = evaluate(ma,s,s.address,s.fieldOperands);
             com.mode.devlog (v);
             s.codeWord1 = v.getval();
-	    generateObjectWord (ma, s, s.address, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
             if (v.getIsRelocatable()) {
                 com.mode.devlog (`relocatable data`);
-                generateRelocation (ma, s, s.address);
+                generateRelocation (ma, s, s.address.word);
             }
         } else if (op.afmt==arch.aExport) {
             com.mode.devlog ('pass2 export statement')
@@ -1158,10 +1183,12 @@ function asmPass2 (ma) {
 	} else {
 	    com.mode.devlog('pass2 other, noOperation');
 	}
+        console.log (`LISTINGLINE ${s.address.toString()}`);
 	s.listingLinePlain =  (s.lineNumber+1).toString().padStart(4,' ')
-	    + ' ' + arith.wordToHex4(s.address)
-	    + ' ' + (s.codeSize>0 ? arith.wordToHex4(s.codeWord1) : '    ')
-	    + ' ' + (s.codeSize>1 ? arith.wordToHex4(s.codeWord2) : '    ')
+	    + ' ' + arith.wordToHex4(s.address.word)
+            + (s.address.movability==Fixed ? "." : " ")
+	    + ' ' + (s.codeSize.word>0 ? arith.wordToHex4(s.codeWord1) : '    ')
+	    + ' ' + (s.codeSize.word>1 ? arith.wordToHex4(s.codeWord2) : '    ')
             + ' '
 	    + s.fieldLabel
 	    + s.fieldSpacesAfterLabel
@@ -1170,9 +1197,9 @@ function asmPass2 (ma) {
 	    + s.fieldOperands
 	    + fixHtmlSymbols (s.fieldComment);
 	s.listingLineHighlightedFields = (s.lineNumber+1).toString().padStart(4,' ')
-	    + ' ' + arith.wordToHex4(s.address)
-	    + ' ' + (s.codeSize>0 ? arith.wordToHex4(s.codeWord1) : '    ')
-	    + ' ' + (s.codeSize>1 ? arith.wordToHex4(s.codeWord2) : '    ')
+	    + ' ' + arith.wordToHex4(s.address.word)
+	    + ' ' + (s.codeSize.word>0 ? arith.wordToHex4(s.codeWord1) : '    ')
+	    + ' ' + (s.codeSize.word>1 ? arith.wordToHex4(s.codeWord2) : '    ')
             + ' '
 	    + com.highlightField (s.fieldLabel, "FIELDLABEL")
 	    + s.fieldSpacesAfterLabel

@@ -38,6 +38,7 @@ export let mode = {
     }
 }
 
+
 // The innerHTML
 // string is <pre ...>text of example</pre>.  The pre and pre tags
 // need to be removed: they would confuse the assembler.
