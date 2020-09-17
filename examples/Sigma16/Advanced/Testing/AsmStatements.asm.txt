@@ -1,63 +1,35 @@
-; AsmStatements -- test translation of assembly language statements
-; See https://jtod.github.io/home/Sigma16/ for updates, copyright, and license
+; AsmStatements: test assembly of each statement type
+; Updates and copyright: https://jtod.github.io/home/Sigma16/ 
 
-; Examples of all the assembly language statements, for testing the assembler.
-; Should assemble without syntax errors.
+; Examples of all the assembly language statements, for
+; testing the assembler.  Should assemble without
+; any syntax errors.
 
-; Character set: the following characters should be accepted
+;-------------------------------------------------------------
+; Character set
+;-------------------------------------------------------------
 
-; abcdefghijklmnopqrstuvwxyz_
+; The following characters should be accepted
+
+; abcdefghijklmnopqrstuvwxyz
 ; ABCDEFGHIJKLMNOPQRSTUVWXYZ
 ; 0123456789
 ; `!"$%^&*()-_=+[{]};:'@#~|,<.>/?
 
-;-------------------------------------------------------------------------------
-; Directives
-;-------------------------------------------------------------------------------
 
 ; module statement
 Stmts  module
 
-; labels
-       sub      R1,R2,R3       ; 1123
-       add      R7,R8,R9       ; 0789
-x      mul      R4,R5,R6       ; 2456  x    = 0002 relocatable
-loop   div      R10,R11,R12    ; 3abc  loop = 0003 relocatable
-aaa    add      R1,R2,R3       ; 0123  aaa  = 0004 relocatable
-
-; org statement
-       org      $00a4
-bbb    add      R1,R2,R3       ; 0123  bbb  = 00a4 relocatable
-
-; block statement
-a      data     1              ; 0001  a    = 00a5 relocatable
-arr    block    5              ;       arr  = 00a6
-b      data     2              ; 0002  b    = 00ab relocatable
-
-; equ statement
-pqr    equ      5              ;       pqr  = 0005 fixed
-wxy    equ      loop           ;       wxy  = 0003 relocatable
-
-; import statement
-foo    import   Mod1,foo
-bcd    import   Mod1,bar
-baz    import   Mod2,baz
-f      import   Mod2,fcn
-
-; export statement
-       export   loop
-       export   pqr
-
-
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
 ; RRR instructions
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
 
        add      R5,R12,R7      ; 05c7
        sub      R12,R3,R15     ; 1c3f
        mul      R1,R2,R3       ; 2123
-       div      R1,R2,R3       ; 3123
+x      div      R1,R2,R3       ; 3123  x = 0003 relocatable
        addc     R1,R2,R3       ; 4123
+y      add      R1,R2,R3       ; 0123  y = 0005 relocatable
        cmp      R1,R2          ; 5012
        push     R7,R8,R10      ; 678a
        pop      R7,R8,R10      ; 778a
@@ -67,9 +39,16 @@ f      import   Mod2,fcn
        divn     R11,R12,R13    ; bbcd
        trap     R1,R2,R3       ; d123
 
-;-------------------------------------------------------------------------------
+
+; labels
+       sub      R1,R2,R3       ; 1123
+       add      R7,R8,R9       ; 0789
+       mul      R4,R5,R6       ; 2456
+loop   div      R10,R11,R12    ; 3abc  loop = 0003 relocatable
+
+;-------------------------------------------------------------
 ; RX instructions
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
 
        lea      R3,loop[R3]    ; f330 0003
        lea      R12,$b3c2[R4]  ; fc40 b3c2
@@ -85,11 +64,11 @@ f      import   Mod2,fcn
        jumpnz   R8,13[R9]      ; f898 000d
        save     R6,2[R14]      ; f6e9 0002
        restore  R6,2[R14]      ; f6ea 0002
-       testset  R5,wxy[R0]     ; f50b 0003
+       testset  R5,x[R0]       ; f50b 0003
 
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
 ; EXP instructions
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
 
        resume                  ; e000
        getctl   R2,req         ; e001 2200
@@ -112,9 +91,9 @@ f      import   Mod2,fcn
        inject   R2,R3,R4,5,6   ; e208 3456
        injecti  R2,R3,R4,5,6   ; e209 3456
 
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
 ; Pseudoinstructions
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
 
        jumple   21[R1]         ; jumpc0
        jumpne   22[R3]         ; jumpc0
@@ -142,16 +121,39 @@ f      import   Mod2,fcn
 
        field    R4,7,5         ; injecti
 
-;-------------------------------------------------------------------------------
-; Data statements
-;-------------------------------------------------------------------------------
+;-------------------------------------------------------------
+; Directives
+;-------------------------------------------------------------
 
-ab     data     9              ; positive integer
-abc    data     42             ; positive integer
-       data     389            ; larger integer
-       data     -5             ; negative integer
-v1     data     -23            ; negative integer
-sum    data     $03f2          ; hex
-y      data     $01a3          ; hex
-bla    data     loop           ; relocatable
-       data     sum            ; relocatable
+; org statement
+;       org      $00a4
+; bbb   add      R1,R2,R3       ; 0123  bbb  = 00a4 relocatable
+
+; block statement
+a1     data     1              ; 0001  a    = 00a5 relocatable
+arr    block    5              ;       arr  = 00a6
+a2     data     2              ; 0002  b    = 00ab relocatable
+
+; equ statement
+five   equ      5              ;       five = 0005 fixed
+loop2  equ      loop           ;       loop = 0003 relocatable
+
+; import statement
+foo    import   Mod1,foo
+f      import   Mod2,fcn
+
+; export statement
+       export   x
+       export   five
+
+;-------------------------------------------------------------
+; Data statements
+;-------------------------------------------------------------
+
+answer data     42             ; positive integer
+       data     60000          ; large natural ea60
+       data     -1             ; negative integer
+       data     $03f2          ; hex
+       data     x              ; relocatable label
+bla    data     loop2          ; relocatable equ
+       data     five           ; fixed equ

@@ -236,7 +236,8 @@ function validateWord (x) {
 // error message and treat the number as 0.
 
 function validateInt (x) {
-    if (x < minTC || x > maxTC) {
+    //    if (x < minTC || x > maxTC) {
+    if (x < minTC || x > maxBin) {
 	com.mode.devlog (`validateInt: ${x} is not a valid int (out of range)`);
 	return 0;
     } else {
@@ -269,8 +270,10 @@ export function wordToInt (w) {
 // bit word
 
 export function intToWord (x) {
-    let y = validateInt (x);
-    return y < 0 ? y + const10000 : y;
+    const y = validateInt (x);
+    const result = y < 0 ? y + const10000 : y;
+    com.mode.devlog (`intToWord ${x} (${y}) returning ${result}`);
+    return result;
 }
 
 // Show a word in hex, binary, and two's complement

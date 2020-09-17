@@ -520,7 +520,7 @@ const nameParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
 const regParser = /R([0-9a-f]|(?:1[0-5]))/;
-const xParser = /^([a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
+ const xParser = /^([-a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 
 const rrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
@@ -618,7 +618,7 @@ const parseSplitFields = new RegExp(regexpSplitFields);
 
 function requireX (ma,s,field) {
     const x = xParser.exec (field);
-    let result = {disp: 0, index: 0};
+    let result = {disp: "0", index: 0};
     if (x) {
         const {0:all, 1:disp, 2:index} = x;
         com.mode.devlog (`requireX 0=${all} 1=${disp} 2=${index}`);
@@ -922,6 +922,7 @@ function asmPass2 (ma) {
 	    com.mode.devlog (`Pass2 RX/RX`);
             const d = requireReg(ma,s,s.operands[0]);
             const {disp,index} = requireX(ma,s,s.operands[1]);
+            console.log (`RX/RX disp = /${disp}/`)
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
@@ -1161,16 +1162,20 @@ function asmPass2 (ma) {
                 mkErrMsg (ma, s, `ERROR operation requires RR operands`);
             }
         } else if (op.ifmt==arch.iData && op.afmt==arch.aData) {
-            com.mode.devlog (`Pass2 data ${s.dat}`);
+            com.mode.trace = true;
+            com.mode.devlog (`Pass2 ${s.lineNumber} data`);
             let v = evaluate(ma,s,s.address,s.fieldOperands);
-            com.mode.devlog (v);
-            s.codeWord1 = v.getval();
+            com.mode.devlog (`data v = ${v.toString()}`);
+//            s.codeWord1 = v.getval();
+            s.codeWord1 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
-            if (v.getIsRelocatable()) {
+            //            if (v.getIsRelocatable()) {
+            if (v.movability==Relocatable) {
                 com.mode.devlog (`relocatable data`);
                 generateRelocation (ma, s, s.address.word);
             }
-        } else if (op.afmt==arch.aExport) {
+            com.mode.trace = false;
+        } else if (op.ifmt==arch.iDir && op.afmt==arch.aExport) {
             com.mode.devlog ('pass2 export statement')
             const x = identParser.exec (s.fieldOperands);
             if (x) {
@@ -1286,8 +1291,8 @@ function emitImports (ma) {
 }
 
 function emitExports (ma) {
-    let x, y, sym, v, r;
-//    com.mode.trace = true;
+    let x, y, sym, w, r;
+    com.mode.trace = true;
     com.mode.devlog ('emitExports' + ma.exports);
     while (ma.exports.length > 0) {
         x = ma.exports.splice(0,1);
@@ -1296,13 +1301,15 @@ function emitExports (ma) {
         com.mode.devlog (ma.symbolTable);
         sym = ma.symbolTable.get(y);
         if (sym) {
-            r = sym.value.isRelocatable ? "relocatable" : "fixed";
-            v = arith.wordToHex4(sym.value.value);
-            ma.objectCode.push (`export   ${y},${v},${r}`);
+            r = sym.value.movability==Relocatable ? "relocatable" : "fixed";
+            w = arith.wordToHex4(sym.value.word);
+            com.mode.devlog (`emit exports y=${y} r=${r} w=${w}`);
+            ma.objectCode.push (`export   ${y},${w},${r}`);
         } else {
-            com.mode.devlog (`\n\n\n ERROR export error ${x}\n\n\n`);
+            mkErrMsg (ma, s, `export identifier ${y} is undefined`);
         }
     }
+    com.mode.trace = false;
 }
 
 // The size of text lines in object code and metadata is limited to
