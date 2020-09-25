@@ -1,0 +1,4 @@
+; Exports abc, imported by Main
+ModX    module
+abc     data     21
+        export   abc

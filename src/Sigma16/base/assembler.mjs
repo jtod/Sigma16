@@ -235,11 +235,12 @@ export class Value {
     }
 }
 
+const ExtVal = new Value (0, External, Fixed);
+
 function mkConstVal (k) {
     return new Value (k, Local, Fixed);
-    
 }
-
+                           
 const Zero = mkConstVal (0);
 const One = mkConstVal (1);
 const Two = mkConstVal (2);
@@ -689,8 +690,8 @@ function parseAsmLine (ma,i) {
             ma.symbolTable.set (s.fieldLabel, i);
             com.mode.devlog (`Parse line ${s.lineNumber} set ${i.toString()}`);
         } else if (s.fieldOperation==="import") {
-            com.mode.devlog (`Parse line ${s.lineNumber} label: import`);
-            let v = Zero.copy()
+            com.mode.devlog (`Parse line ${s.lineNumber} ${s.fieldLabel} import`);
+            let v = ExtVal.copy();
             let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);
         } else {
@@ -825,6 +826,10 @@ function asmPass1 (ma) {
             } else {
                 mkErrMsg (ma, s, `operand for block must be Fixed`);
             }
+        } else if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aImport) {
+            com.mode.trace = true;
+            com.mode.devlog (`Pass1 ${i} import`);
+            com.mode.trace = false;
         } else {
             console.log (`Pass1 code codesize=${s.codeSize.toString()}`);
             ma.locationCounter = addVal (ma, s, ma.locationCounter, s.codeSize);
