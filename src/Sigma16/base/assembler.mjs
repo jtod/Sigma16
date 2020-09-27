@@ -163,6 +163,21 @@ function displaySymbolTableHtml (ma) {
     }
 }
 
+
+//-----------------------------------------------------------------------------
+// Instruction fields
+//-----------------------------------------------------------------------------
+
+export const Field_op = Symbol ("op");
+export const Field_d = Symbol ("d");
+export const Field_a = Symbol ("a");
+export const Field_b = Symbol ("b");
+export const Field_disp = Symbol ("disp");
+export const Field_e = Symbol ("e");
+export const Field_f = Symbol ("f");
+export const Field_g = Symbol ("g");
+export const Field_h = Symbol ("h");
+
 //-----------------------------------------------------------------------------
 // Values
 //-----------------------------------------------------------------------------
@@ -677,6 +692,7 @@ function parseAsmLine (ma,i) {
     com.mode.devlog (`  fieldOperands = /${s.fieldOperands}/`);
     com.mode.devlog (`  operands = ${s.operands}`);
     com.mode.devlog (`  fieldComment = /${s.fieldComment}/`);
+/*
     if (s.hasLabel) {
         com.mode.trace = true;
         com.mode.devlog (`ParseAsmLine label ${s.lineNumber} /${s.fieldLabel}/`);
@@ -704,6 +720,7 @@ function parseAsmLine (ma,i) {
             ma.symbolTable.set (s.fieldLabel, i);
         }
     }
+*/
     com.mode.trace = false;
 }
 
@@ -722,6 +739,7 @@ function parseLabel (ma,s) {
         mkErrMsg(ma, s, s.fieldLabel + ' is not a valid label');
     }
 }
+
 
 // Set operation to the instruction set object describing the
 // operation, if the operation field is defined in the map of
@@ -773,31 +791,16 @@ function parseOperation (ma,s) {
 //-----------------------------------------------------------------------------
 
 // Pass 1 parses the source, calculates the code size for each
-// statement, and defines labels.  Requires that asmSrcLines has been
-// set to the source code, split into an array of lines of text.
+// statement, defines labels, and maintains the location counter.
+// Requires that asmSrcLines has been set to the source code, split
+// into an array of lines of text.
 
 function asmPass1 (ma) {
-    console.log ("Pass1 tests");
-    let qwerty = new Value (306, Local, Fixed);
-    let asdf = qwerty.copy();
-    console.log (`COPY TEST qwerty ${qwerty.toString()}`);
-    console.log (`asdf ${asdf.toString()}`);
-    asdf.word = asdf.word + 1000;
-    console.log (`qwerty ${qwerty.toString()}`);
-    console.log (`asdf ${asdf.toString()}`);
-    console.log (`Zero ${Zero.toString()}`);
-    let zxcv = Zero.copy();
-    console.log (`zxcv ${zxcv.toString()}`);
-    zxcv.add(new Value(5,Local,Fixed));
-    console.log (`zxcv ${zxcv.toString()}`);
-    console.log (`Zero ${Zero.toString()}`);
     com.mode.devlog('Assembler Pass 1: ' + ma.asmSrcLines.length + ' source lines');
-
     for (let i = 0; i < ma.asmSrcLines.length; i++) {
         com.mode.devlog (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
 	ma.asmStmt[i] = mkAsmStmt (i, ma.locationCounter.copy(), ma.asmSrcLines[i]);
 	let s = ma.asmStmt[i];
-//        showAsmStmt(s);
         let badCharLocs = validateChars (ma.asmSrcLines[i]);
         com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
 
@@ -810,8 +813,45 @@ function asmPass1 (ma) {
         com.mode.trace = true;
         com.mode.devlog (`Pass 1 ${i} /${s.srcLine}/`
                          + ` address=${s.address} codeSize=${s.codeSize}`);
-        // update location counter
-        com.mode.devlog (`Pass 1 ${i} @ was ${ma.locationCounter.toString()}`);
+        handleLabel (ma,s);
+        updateLocationCounter (ma,s,i);
+    }
+}
+
+// Define identifier appearing in label field
+
+function handleLabel (ma,s) {
+    if (s.hasLabel) {
+        com.mode.trace = true;
+        com.mode.devlog (`ParseAsmLine label ${s.lineNumber} /${s.fieldLabel}/`);
+	if (ma.symbolTable.has(s.fieldLabel)) {
+            mkErrMsg (ma, s, s.fieldLabel + ' has already been defined');
+        } else if (s.fieldOperation==="module") {
+            com.mode.devlog (`Parse line ${s.lineNumber} label: module`);
+        } else if (s.fieldOperation==="equ") {
+            let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            ma.symbolTable.set (s.fieldLabel, i);
+            com.mode.devlog (`Parse line ${s.lineNumber} set ${i.toString()}`);
+        } else if (s.fieldOperation==="import") {
+            com.mode.devlog (`Parse line ${s.lineNumber} ${s.fieldLabel} import`);
+            let v = ExtVal.copy();
+            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            ma.symbolTable.set (s.fieldLabel, i);
+        } else {
+            let v = ma.locationCounter.copy();
+            console.log (`def label lc = ${ma.locationCounter.toString()}`);
+            console.log (`def label v = ${v.toString()}`);
+            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            com.mode.devlog (`Parse line ${s.lineNumber} label ${s.fieldLabel}`
+                             + ` set ${i.toString()}`);
+            ma.symbolTable.set (s.fieldLabel, i);
+        }
+    }
+}
+
+function updateLocationCounter (ma,s,i) {
+            com.mode.devlog (`Pass 1 ${i} @ was ${ma.locationCounter.toString()}`);
         if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aOrg) {
             let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
             console.log (`Org v= ${v.toString()}`);
@@ -826,10 +866,6 @@ function asmPass1 (ma) {
             } else {
                 mkErrMsg (ma, s, `operand for block must be Fixed`);
             }
-        } else if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aImport) {
-            com.mode.trace = true;
-            com.mode.devlog (`Pass1 ${i} import`);
-            com.mode.trace = false;
         } else {
             console.log (`Pass1 code codesize=${s.codeSize.toString()}`);
             ma.locationCounter = addVal (ma, s, ma.locationCounter, s.codeSize);
@@ -837,7 +873,7 @@ function asmPass1 (ma) {
         }
         com.mode.trace = false;
     }
-}
+
 
 function printAsmStmts (ma) {
     for (let i = 0; i < ma.asmStmt.length; i++) {
@@ -932,13 +968,14 @@ function asmPass2 (ma) {
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
             com.mode.devlog (`pass 2 RX/RX a=${a} b=${b} v=${v.toString()}`);
-            if (v.evalRel) {
-                generateRelocation (ma, s, s.address.word+1);
-            }
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
+            handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
+//            if (v.evalRel) {
+//                generateRelocation (ma, s, s.address.word+1);
+//            }
         } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 RX/kX`);
             const dv = evaluate (ma, s, s.address.word, s.operands[0]);
@@ -1238,6 +1275,25 @@ function asmPass2 (ma) {
     ma.metadataText = ma.metadata.join("\n");
 }
 
+// handleVal: Generate relocation or import if necessary
+
+function handleVal (ma, s, a, vsrc, v, field) {
+    com.mode.trace = true;
+    com.mode.devlog (`handleVal ${a} ${field.description}`);
+    if (v.origin==Local && v.movability==Relocatable) {
+        generateRelocation (ma, s, a);
+    } else if (v.origin==External) {
+        let s = ma.symbolTable.get(vsrc);
+        if (s) {
+            let x = `import ${wordToHex4(a)},${field.description}`;
+        } else {
+            mkErrMsg (`external symbol ${vsrc} undefined`); // should be impossible
+        }
+    ma.objectCode.push (x);
+    }
+    com.mode.trace = false;
+}
+
 function fixHtmlSymbols (str) {
     let x;
     x = str.replace(/</g, "&lt;")
@@ -1377,3 +1433,21 @@ function showOperation (op) {
     return `ifmt=${op.ifmt.description} afmt=${op.afmt.description}`
     + `opcode=${op.opcode} pseudo=${op.pseudo}`;
 }
+
+// Deprecated testing
+/* 
+    console.log ("Pass1 tests");
+    let qwerty = new Value (306, Local, Fixed);
+    let asdf = qwerty.copy();
+    console.log (`COPY TEST qwerty ${qwerty.toString()}`);
+    console.log (`asdf ${asdf.toString()}`);
+    asdf.word = asdf.word + 1000;
+    console.log (`qwerty ${qwerty.toString()}`);
+    console.log (`asdf ${asdf.toString()}`);
+    console.log (`Zero ${Zero.toString()}`);
+    let zxcv = Zero.copy();
+    console.log (`zxcv ${zxcv.toString()}`);
+    zxcv.add(new Value(5,Local,Fixed));
+    console.log (`zxcv ${zxcv.toString()}`);
+    console.log (`Zero ${Zero.toString()}`);
+*/
