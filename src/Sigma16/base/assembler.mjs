@@ -129,8 +129,10 @@ function validateChars (xs) {
 // number where the identifier was defined.
 
 class Identifier {
-    constructor (name, v, defLine) {
+    constructor (name, mod, extname, v, defLine) {
         this.name = name;
+        this.mod = mod;
+        this.extname = extname;
         this.value = v;
         this.defLine = defLine;
         this.usageLines = [];
@@ -152,7 +154,9 @@ function displaySymbolTableHtml (ma) {
     com.mode.devlog (`Symbol table keys = ${syms}`);
     for (let symkey of syms) {
         let x = ma.symbolTable.get (symkey);
-        let xs = x.name.padEnd(11)
+        let fullname = x.mod ? `${x.mod}.${x.name}`
+            : `${x.name}`;
+        let xs = fullname.padEnd(11)
             + x.value.toString()
     	    + x.defLine.toString().padStart(5)
             + '  '
@@ -245,7 +249,8 @@ export class Value {
     }
     toString () {
         let xs =  `${arith.wordToHex4(this.word)}`
-            + ` ${this.origin.description} ${this.movability.description}`;
+            + ` ${this.origin.description}`
+            + ` ${this.movability.description}`
         return xs;
     }
 }
@@ -692,35 +697,6 @@ function parseAsmLine (ma,i) {
     com.mode.devlog (`  fieldOperands = /${s.fieldOperands}/`);
     com.mode.devlog (`  operands = ${s.operands}`);
     com.mode.devlog (`  fieldComment = /${s.fieldComment}/`);
-/*
-    if (s.hasLabel) {
-        com.mode.trace = true;
-        com.mode.devlog (`ParseAsmLine label ${s.lineNumber} /${s.fieldLabel}/`);
-	if (ma.symbolTable.has(s.fieldLabel)) {
-            mkErrMsg (ma, s, s.fieldLabel + ' has already been defined');
-        } else if (s.fieldOperation==="module") {
-            com.mode.devlog (`Parse line ${s.lineNumber} label: module`);
-        } else if (s.fieldOperation==="equ") {
-            let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
-            ma.symbolTable.set (s.fieldLabel, i);
-            com.mode.devlog (`Parse line ${s.lineNumber} set ${i.toString()}`);
-        } else if (s.fieldOperation==="import") {
-            com.mode.devlog (`Parse line ${s.lineNumber} ${s.fieldLabel} import`);
-            let v = ExtVal.copy();
-            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
-            ma.symbolTable.set (s.fieldLabel, i);
-        } else {
-            let v = ma.locationCounter.copy();
-            console.log (`def label lc = ${ma.locationCounter.toString()}`);
-            console.log (`def label v = ${v.toString()}`);
-            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
-            com.mode.devlog (`Parse line ${s.lineNumber} label ${s.fieldLabel}`
-                             + ` set ${i.toString()}`);
-            ma.symbolTable.set (s.fieldLabel, i);
-        }
-    }
-*/
     com.mode.trace = false;
 }
 
@@ -830,19 +806,22 @@ function handleLabel (ma,s) {
             com.mode.devlog (`Parse line ${s.lineNumber} label: module`);
         } else if (s.fieldOperation==="equ") {
             let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            let i = new Identifier (s.fieldLabel, null, null, v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);
             com.mode.devlog (`Parse line ${s.lineNumber} set ${i.toString()}`);
         } else if (s.fieldOperation==="import") {
-            com.mode.devlog (`Parse line ${s.lineNumber} ${s.fieldLabel} import`);
+            let mod = s.operands[0];
+            let extname = s.operands[1];
             let v = ExtVal.copy();
-            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            let i = new Identifier (s.fieldLabel, mod, extname, v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);
+            com.mode.devlog (`Label import ${s.lineNumber} locname=${s.fieldLabel}`
+                             + ` mod=${mod} extname=${extname}`);
         } else {
             let v = ma.locationCounter.copy();
             console.log (`def label lc = ${ma.locationCounter.toString()}`);
             console.log (`def label v = ${v.toString()}`);
-            let i = new Identifier (s.fieldLabel, v, s.lineNumber+1);
+            let i = new Identifier (s.fieldLabel, null, null, v, s.lineNumber+1);
             com.mode.devlog (`Parse line ${s.lineNumber} label ${s.fieldLabel}`
                              + ` set ${i.toString()}`);
             ma.symbolTable.set (s.fieldLabel, i);
@@ -928,7 +907,6 @@ function asmPass2 (ma) {
     objectWordBuffer = [];
     relocationAddressBuffer = [];
     ma.objectCode.push (`module   ${ma.modName}`);
-    emitImports (ma);
     for (let i = 0; i < ma.asmStmt.length; i++) {
 	let s = ma.asmStmt[i];
 	com.mode.devlog(`Pass2 line ${s.lineNumber} = /${s.srcLine}/`);
@@ -973,9 +951,6 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
-//            if (v.evalRel) {
-//                generateRelocation (ma, s, s.address.word+1);
-//            }
         } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 RX/kX`);
             const dv = evaluate (ma, s, s.address.word, s.operands[0]);
@@ -1269,6 +1244,7 @@ function asmPass2 (ma) {
     emitObjectWords (ma);
     emitRelocations (ma);
     emitExports (ma);
+    emitImports (ma);
     ma.objectCode.push ("");
     ma.objectText = ma.objectCode.join("\n");
     emitMetadata (ma);
@@ -1279,17 +1255,23 @@ function asmPass2 (ma) {
 
 function handleVal (ma, s, a, vsrc, v, field) {
     com.mode.trace = true;
-    com.mode.devlog (`handleVal ${a} ${field.description}`);
+    com.mode.devlog (`handleVal ${a} /${vsrc}/ ${field.description}`);
     if (v.origin==Local && v.movability==Relocatable) {
         generateRelocation (ma, s, a);
     } else if (v.origin==External) {
-        let s = ma.symbolTable.get(vsrc);
-        if (s) {
-            let x = `import ${wordToHex4(a)},${field.description}`;
-        } else {
-            mkErrMsg (`external symbol ${vsrc} undefined`); // should be impossible
+        let sym = ma.symbolTable.get(vsrc);
+        if (sym) {
+            let modstr = sym.mod;
+            let extname = sym.extname;
+            let astr = arith.wordToHex4(a);
+            let fstr = field.description
+            let x = `import ${modstr},${extname},${astr},${fstr}`;
+            ma.imports.push(x);
+            console.log (`handleVal generate ${x}`);
+        } else { // should be impossible: internal error
+            mkErrMsg (`external symbol ${vsrc} undefined`);
+            console.log (`external symbol ${vsrc} undefined - impossible`);
         }
-    ma.objectCode.push (x);
     }
     com.mode.trace = false;
 }
@@ -1343,13 +1325,15 @@ function emitRelocations (ma) {
 // Generate import statements in object code
 
 function emitImports (ma) {
+    console.log ("emitImports");
     for (let x of ma.imports) {
-        let sym = ma.symbolTable.get(x);
-        let v = sym.value.value;
-        let z = `import   ${sym.name},${v}`;
-        ma.objectCode.push(z);
+        ma.objectCode.push(x);
     }
 }
+//        let sym = ma.symbolTable.get(x);
+//        let v = sym.value.value;
+//        let z = `import   ${sym.name},${v}`;
+//        ma.objectCode.push(z);
 
 function emitExports (ma) {
     let x, y, sym, w, r;
@@ -1433,21 +1417,3 @@ function showOperation (op) {
     return `ifmt=${op.ifmt.description} afmt=${op.afmt.description}`
     + `opcode=${op.opcode} pseudo=${op.pseudo}`;
 }
-
-// Deprecated testing
-/* 
-    console.log ("Pass1 tests");
-    let qwerty = new Value (306, Local, Fixed);
-    let asdf = qwerty.copy();
-    console.log (`COPY TEST qwerty ${qwerty.toString()}`);
-    console.log (`asdf ${asdf.toString()}`);
-    asdf.word = asdf.word + 1000;
-    console.log (`qwerty ${qwerty.toString()}`);
-    console.log (`asdf ${asdf.toString()}`);
-    console.log (`Zero ${Zero.toString()}`);
-    let zxcv = Zero.copy();
-    console.log (`zxcv ${zxcv.toString()}`);
-    zxcv.add(new Value(5,Local,Fixed));
-    console.log (`zxcv ${zxcv.toString()}`);
-    console.log (`Zero ${Zero.toString()}`);
-*/
