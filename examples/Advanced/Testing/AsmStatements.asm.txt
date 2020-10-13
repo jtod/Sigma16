@@ -16,7 +16,6 @@
 ; 0123456789
 ; `!"$%^&*()-_=+[{]};:'@#~|,<.>/?
 
-
 ; module statement
 Stmts  module
 
@@ -29,7 +28,7 @@ Stmts  module
        mul      R1,R2,R3       ; 2123
 x      div      R1,R2,R3       ; 3123  x = 0003 relocatable
        addc     R1,R2,R3       ; 4123
-y      add      R1,R2,R3       ; 0123  y = 0005 relocatable
+loop   add      R1,R2,R3       ; 0123  loop = 0005 relocatable
        cmp      R1,R2          ; 5012
        push     R7,R8,R10      ; 678a
        pop      R7,R8,R10      ; 778a
@@ -39,25 +38,18 @@ y      add      R1,R2,R3       ; 0123  y = 0005 relocatable
        divn     R11,R12,R13    ; bbcd
        trap     R1,R2,R3       ; d123
 
-
-; labels
-       sub      R1,R2,R3       ; 1123
-       add      R7,R8,R9       ; 0789
-       mul      R4,R5,R6       ; 2456
-loop   div      R10,R11,R12    ; 3abc  loop = 0003 relocatable
-
 ;-------------------------------------------------------------
 ; RX instructions
 ;-------------------------------------------------------------
 
-       lea      R3,loop[R3]    ; f330 0003
+       lea      R3,loop[R3]    ; f330 0005
        lea      R12,$b3c2[R4]  ; fc40 b3c2
        lea      R1,23[R2]      ; f120 0017
        lea      R5,-1[R5]      ; f550 ffff
-       load     R1,loop[R2]    ; f121 0003
+       load     R1,loop[R2]    ; f121 0005
        store    R9,$2b7f[R10]  ; f9a2 2b7f
-       jump     loop[R2]       ; f023 0003
-       jal      R13,loop[R0]   ; fd04 0003
+       jump     loop[R2]       ; f023 0005
+       jal      R13,loop[R0]   ; fd04 0005
        jumpc0   11,10[R0]      ; fb05 000a
        jumpc1   5,11[R1]       ; f516 000b
        jumpz    R7,12[R2]      ; f727 000c
@@ -135,8 +127,8 @@ arr    block    5              ;       arr  = 00a6
 a2     data     2              ; 0002  b    = 00ab relocatable
 
 ; equ statement
-five   equ      5              ;       five = 0005 fixed
-loop2  equ      loop           ;       loop = 0003 relocatable
+seven  equ      7              ;       seven = 0007 fixed
+loop2  equ      loop           ;       loop = 0005 relocatable
 
 ; import statement
 foo    import   Mod1,foo
@@ -144,7 +136,7 @@ f      import   Mod2,fcn
 
 ; export statement
        export   x
-       export   five
+       export   seven
 
 ;-------------------------------------------------------------
 ; Data statements
@@ -156,4 +148,4 @@ answer data     42             ; positive integer
        data     $03f2          ; hex
        data     x              ; relocatable label
 bla    data     loop2          ; relocatable equ
-       data     five           ; fixed equ
+       data     seven          ; fixed equ

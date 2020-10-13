@@ -167,7 +167,6 @@ function displaySymbolTableHtml (ma) {
     }
 }
 
-
 //-----------------------------------------------------------------------------
 // Instruction fields
 //-----------------------------------------------------------------------------
@@ -193,12 +192,12 @@ export const Field_h = Symbol ("h");
 // arguments to assembler directives.
 
 // Origin attribute
-export const Local = Symbol ("Loc");              // defined in this module
-export const External = Symbol ("Ext");        // defined in another module
+export const Local = Symbol ("Loc");         // defined in this module
+export const External = Symbol ("Ext");      // defined in another module
 
 // Movability attribute
-export const Fixed = Symbol ("Fix");              // constant
-export const Relocatable = Symbol ("Rel");  // changes during relocation
+export const Fixed = Symbol ("Fix");         // constant
+export const Relocatable = Symbol ("Rel");   // changes during relocation
 
 // Add x+y and return the result.  Need ma and s for generating error
 // messages.
@@ -257,14 +256,10 @@ export class Value {
 
 const ExtVal = new Value (0, External, Fixed);
 
-function mkConstVal (k) {
-    return new Value (k, Local, Fixed);
-}
-                           
+function mkConstVal (k) { return new Value (k, Local, Fixed); }
 const Zero = mkConstVal (0);
-const One = mkConstVal (1);
-const Two = mkConstVal (2);
-
+const One  = mkConstVal (1);
+const Two  = mkConstVal (2);
 
 //-----------------------------------------------------------------------------
 // Evaluation of expressions
@@ -368,7 +363,7 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    hasLabel : false,                  // statement has a valid label
             operation : null,                  // spec of the operation if exists
             operands : [],                     // array of individual operands
-	    codeSize : Zero,                      // number of words generated
+	    codeSize : Zero,                   // number of words generated
 	    orgAddr : -1,                      // address specified by org/block
 	    codeWord1 : null,                  // first word of object
 	    codeWord2 : null,                  // second word of object
@@ -540,7 +535,7 @@ const identParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const nameParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const intParser = /^-?[0-9]+$/;
 const hexParser = /^\$([0-9a-f]{4})$/;
-const regParser = /R([0-9a-f]|(?:1[0-5]))/;
+const regParser = /^R([0-9a-f]|(?:1[0-5]))$/;
  const xParser = /^([-a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 
 const rrParser =
@@ -556,8 +551,6 @@ const datParser =
 // A register is R followed by register number, which must be either
 // a 1 or 2 digit decimal number between 0 and 15, or a hex digit.
 // An aRRR operand consists of three registers, separated by comma
-const rrrParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 // An RRRR operand consists of four registers, separated by comma
 const rrrrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
@@ -662,6 +655,7 @@ function requireReg (ma,s,field) {
         mkErrMsg (ma, s, `operand ${displayField} is not a valid register`);
         n = 0;
     }
+    console.log (`requireReg field=${field} result=${n}`);
     return n;
 }
 
@@ -953,21 +947,18 @@ function asmPass2 (ma) {
             handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
         } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 RX/kX`);
-            const dv = evaluate (ma, s, s.address.word, s.operands[0]);
-            const d = dv.value;
-            // require that d is fixed, local, and 0 <= d <= 15
+            const k = evaluate (ma, s, s.address.word, s.operands[0])
+            const d = k.word;
             const {disp,index} = requireX(ma,s,s.operands[1]);
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
-            if (v.evalRel) {
-                generateRelocation (ma, s, s.address.word+1);
-            }
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
-            s.codeWord2 = v.value;
+            s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-
+            handleVal (ma, s, s.address.word, s.operands[0], k, Field_d);
+            handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !s.pseudo) {
             com.mode.devlog (`Pass2 RX/X)`);
             const d = 0;
@@ -1060,7 +1051,7 @@ function asmPass2 (ma) {
 	    com.mode.devlog (`pass2 aRRk`);
             const x = rrkParser.exec (s.fieldOperands);
             if (x) {
-/* Look at this, especially pseudo                
+/* Look at this, especially pseudo-- Pass2 iEXP2 aRRK
             s.d = s.operand_str1; // dest
             if (s.operation.pseudo) { // pseudo instruction: invb
                 s.field_e = s.operand_str2; // reg operand
@@ -1417,3 +1408,10 @@ function showOperation (op) {
     return `ifmt=${op.ifmt.description} afmt=${op.afmt.description}`
     + `opcode=${op.opcode} pseudo=${op.pseudo}`;
 }
+
+/*  Deprecated
+
+// const rrrParser =
+    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
+
+    deprecated */
