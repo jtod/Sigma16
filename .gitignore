@@ -10,3 +10,4 @@ src/node_modules
 src/testing
 src/temp
 examples/Sigma16/Advanced/Testing/TempTest*
+protected

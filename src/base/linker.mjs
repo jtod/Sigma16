@@ -276,13 +276,17 @@ function parseObjMetadata (mdLines) {
 
 export function parseObjLine (xs) {
     const objLineParser = /^([a-z]+)\s+([\w,]+)$/;
+    const blankLineParser = /^\w*$/;
+    let blankLine = blankLineParser.exec (xs);
     let splitLine = objLineParser.exec (xs);
     let operation = "";
     let operands = [];
     if (splitLine) {
         operation = splitLine[1];
         operands = splitLine[2].split(',');
-      } else {
+    } else if (blankLine) {
+        console.log (`parseObjLine: found blank line <${xs}>`);
+    } else {
         console.log ('linker error: object line has invalid format: ' + xs);
     }
         return {operation, operands}

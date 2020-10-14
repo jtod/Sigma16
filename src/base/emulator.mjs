@@ -91,66 +91,13 @@ export function initListing (m,es) {
     setProcAsmListing (es,m);
 }
 
-/* Deprecated
-// Copy a module's object code into memory.  Should use objectCode
-// rather than codeWord, but objectCode will need to support org.  So
-// far it's just a list of words.  This version doesn't yet support
-// org and it requires the module to be assembled (rather than read
-// in).
-
-function copyExecutableToMemory (es,m) {
-    com.mode.devlog ('copyExecutableToMemory');
-    let ma = m.asmInfo;
-    let stmt = ma.asmStmt;
-    let locationCounter = 0;
-    for (let i = 0; i < stmt.length; i++) {
-	com.mode.devlog('bootCM ' + i + ' => ' + stmt[i].codeWord1
-		    + ' ' + stmt[i].codeWord2 );
-	if (stmt[i].codeWord1 >= 0) {
-	    memStore (locationCounter, stmt[i].codeWord1);
-	    locationCounter++;
-	}
-	if (stmt[i].codeWord2 >= 0) {
-	    memStore (locationCounter, stmt[i].codeWord2);
-	    locationCounter++;
-	}
-    }
-    memShowAccesses();
-    memDisplay();
-    es.curAsmap = ma.asmap;
-    asm.showAsmap (es.curAsmap);
-    setProcStatus (es,Ready);
-    com.mode.devlog ('copyExecutableToMemory done');
-}
-*/
-/*
-function parseCopyObjectModuleToMemory (es) {
-    com.mode.devlog('boot');
-    let objText = document.getElementById("LinkerText").value;
-    com.mode.devlog('objText = ' + objText);
-    let xs = objText.split("\n");
-    com.mode.devlog("linker boot: " + xs.length + " lines");
-//    com.mode.devlog(xs);
-//    line1 = xs[0];
-//    com.mode.devlog('line1 = ' + line1);
-//    fields = line1.split(" ");
-//    com.mode.devlog('fields = ' + fields);
-//    com.mode.devlog('field0 = ' + fields[0]);
-//    com.mode.devlog('field1 = ' + fields[1]);
-    //    com.mode.devlog('field2 = ' + fields[2]);
-    bootCurrentLocation = 0;
-    for (let i = 0; i < xs.length; i++) {
-	linkerBootLine(es, i, xs[i]);
-//	experiment(xs[i]);
-    }
-}
-*/
 
 // Should check the operation, implement org, and provide suitable
 // error messages, but that's for later.  For now, just assume it is
 // hexdata with valid argument
 
 function linkerBootLine (es,m,i,x) {
+    console.log (`linkerBootLine i=${i}`)
     let y = parseAsmLine (m,i,x);
 //    printAsmLine (y);
     let w = y.fieldOperands;
@@ -170,6 +117,7 @@ function linkerBootLine (es,m,i,x) {
 // or the linker
 
 function obtainObjectCode (es, m) {
+    console.log ("obtainObjectCode");
     let ma = m.asmInfo;
     let objectCode, asArrMap, listingPlain, listingDec;
     if (true) { // if can obtain obj etc from assembler
@@ -192,6 +140,7 @@ function obtainObjectCode (es, m) {
 }
 
 export function boot (es) {
+    com.mode.trace = true;
     com.mode.devlog ("boot");
     memClearAccesses ();
     let m = smod.getSelectedModule (); //
@@ -231,6 +180,8 @@ export function boot (es) {
             isExecutable = false;
         } else if (fields.operation == "export") {
         } else if (fields.operation == "relocate") {
+        } else if (fields.operation == "") {
+            console.log ("boot: skipping blank object code line");
         } else {
             com.mode.devlog (`boot: bad operation (${fields.operation})`)
             isExecutable = false;
@@ -263,7 +214,7 @@ export function boot (es) {
             + "</pre>";
         document.getElementById('LinkerText').innerHTML = xs;
         com.mode.devlog ("boot failed");
-        modalWarning ("boot failed");
+        alert ("boot failed");
     }
     com.mode.devlog ("boot returning");
 }

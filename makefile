@@ -53,7 +53,7 @@
 # Needed to build both web and compiled version
 #   make set-version        get version number from package.json
 #   make source-dir-index          generate html from markdown source
-#   make docs/html/userguide/userguide.html     generate html from markdown source
+#   make docs/html/userguide/Sigma16UserGuide.html     generate html from markdown source
 #   make example-indices    index for each directory in programs and examples
 
 # Needed for compilation by npm
@@ -213,7 +213,7 @@ build:
 	make src/datafiles/welcome.html
 	make example-indices
 	make docs/html/S16homepage/index.html
-	make docs/html/userguide/userguide.html
+	make docs/html/userguide/Sigma16UserGuide.html
 
 # Copy the dev version to Sigma16 homepage.  Make directory containing
 # files for current development version, for uploading to the Sigma16
@@ -295,7 +295,7 @@ release :
 # the source
 
 # Edit source files in git repository
-# make docs/userguide/userguide.html    Reads an auxiliary file to include version nmber
+# make docs/userguide/Sigma16UserGuide.html    Reads an auxiliary file to include version nmber
 # git status
 # git add (files that have been changed)
 # git commit 'm "purpose of these changes"
@@ -305,7 +305,7 @@ release :
 # To advance version number to to v3.0.26 or whatever it is...
 # edit package.json     This contains the master definition of version number
 # make set-version      Reads package.json and defines two auxiliary files
-# make docs/userguide/userguide.html  Need to update version number in the guide
+# make docs/userguide/Sigma16UserGuide.html  Need to update version number in the guide
 # git tag -a v3.0.26 -m 'move to version v3.0.26'
 
 # To upload new release
@@ -495,12 +495,12 @@ src/datafiles/welcome.html : src/datafiles/srcwelcome.md
 #-------------------------------------------------------------------------------
 
 # Build user guide html from org source
-docs/html/userguide/userguide.html : docs/src/userguide/userguide.org \
+
+docs/html/userguide/Sigma16UserGuide.html : \
+	  docs/src/userguide/Sigma16UserGuide.org \
 	  docs/src/userguide/userguide-template.html \
 	  docs/src/userguide/userguidestyle.css VERSION.txt
 	mkdir -p docs/html/userguide
-	mkdir -p docs/html/userguide/png
-	cp -up docs/src/userguide/png/* docs/html/userguide/png
 	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
 	pandoc --standalone \
           --from=org \
@@ -510,8 +510,12 @@ docs/html/userguide/userguide.html : docs/src/userguide/userguide.org \
           --table-of-contents --toc-depth=4 \
           --variable=mdheader:$(MDHEADER) \
           --variable=css:./userguidestyle.css \
-          --output=docs/html/userguide/userguide.html \
-	  docs/src/userguide/userguide.org
+          --output=docs/html/userguide/Sigma16UserGuide.html \
+	  docs/src/userguide/Sigma16UserGuide.org
+
+# will need these if images appear in the guide
+#	mkdir -p docs/html/userguide/png
+#	cp -up docs/src/userguide/png/* docs/html/userguide/png
 
 # make source-dir-index --- Generate index for the project from markdown
 # source.

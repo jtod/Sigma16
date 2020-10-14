@@ -1196,7 +1196,6 @@ function asmPass2 (ma) {
 	} else {
 	    com.mode.devlog('pass2 other, noOperation');
 	}
-        console.log (`LISTINGLINE ${s.address.toString()}`);
 	s.listingLinePlain =  (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + arith.wordToHex4(s.address.word)
             + (s.address.movability==Fixed ? "." : " ")
@@ -1379,7 +1378,7 @@ function emitMetadata (ma) {
 export function showAsMap (x) {
     console.log ('Address~Source map');
     for (let i = 0; i < x.length; i++) {
-        console.log (`address ${wordToHex4(i)} => ${x[i]}`);
+        console.log (`address ${arith.wordToHex4(i)} => ${x[i]}`);
     }
 }
 
