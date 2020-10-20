@@ -14,33 +14,43 @@
 # not, see <https://www.gnu.org/licenses/>.
 
 #-------------------------------------------------------------------------------
-# makefile defines commands to run, maintain, and build the system
+# Resources
 #-------------------------------------------------------------------------------
 
+# You can run Sigma16 online, without downloading or installing
+# anything, go to Sigma16 home page and click the link.  For
+# additional tools, including command line interface and circuit
+# simulator, download from the source repositories.  See the
+# Installation section in the User Guide
+
 # Web links
-#   Sigma16 home page (link to run the app and documentation)
-#     https://jtod.github.io/home/Sigma16/
-#   Sigma16 source repository (to download or view the source)
-#     https://github.com/jtod/Sigma16
+#   Sigma16 home page:          https://jtod.github.io/home/Sigma16/
+#   Sigma16 source repository:  https://github.com/jtod/Sigma16
+#   Hydra source repository:    https://github.com/jtod/Hydra
 
 # Source file directories
-#   SigmaProject/Sigma16
-#   SigmaProject/homepage/jtod.github.io/home/Sigma16
+#   SigmaSystem/Sigma16
+#   SigmaSystem/homepage/jtod.github.io/home/Sigma16
 
-# Building the software
-#   Build files: generate docs from source, etc.
-#     cd SigmaProject/Sigma16
+#-------------------------------------------------------------------------------
+# Usage
+#-------------------------------------------------------------------------------
+
+# Build
 #     make devversion                               prepare home/Sigma16/dev
 #     git status, git add, git commit, git push
-#   Make release                              prepare home/Sigma16/releases/...
-#     cd SigmaProject/Sigma16
+
+# Make release                              prepare home/Sigma16/releases/...
 #     Update version in Sigma16/package.json
 #     make devversion                               prepare home/Sigma16/dev
 #     git status, git add, git commit, git push
-#     cd SigmaProject/homepage/jtod.github.io/home/Sigma16
+#     cd SigmaSystem/homepage/jtod.github.io/home/Sigma16
 #     edit ...
 #     make docs/src/S16homepage/index.html       index for Sigma16 home page
 #     git status, git add, git commit, git push
+
+# Update home page on github
+
 
 #-------------------------------------------------------------------------------
 # Usage
@@ -53,7 +63,6 @@
 # Needed to build both web and compiled version
 #   make set-version        get version number from package.json
 #   make source-dir-index          generate html from markdown source
-#   make docs/html/userguide/Sigma16UserGuide.html     generate html from markdown source
 #   make example-indices    index for each directory in programs and examples
 
 # Needed for compilation by npm
@@ -119,7 +128,7 @@
 # Define parameters
 #-------------------------------------------------------------------------------
 
-# Run the makefile from SigmaProject/Sigma16
+# Run the makefile from SigmaSystem/Sigma16
 
 # Path to parent of the directory containing this makefile
 SIGMAPROJECT:=./..
@@ -213,7 +222,6 @@ build:
 	make src/datafiles/welcome.html
 	make example-indices
 	make docs/html/S16homepage/index.html
-	make docs/html/userguide/Sigma16UserGuide.html
 
 # Copy the dev version to Sigma16 homepage.  Make directory containing
 # files for current development version, for uploading to the Sigma16
@@ -236,8 +244,6 @@ release-development:
 	cp -upr src/Sigma16/base $(RELEASEDEVELOPMENT)/src/Sigma16
 	cp -up docs/html/S16homepage/index.html $(S16HOMEPAGE)
 	cp -up docs/src/S16homepage/homepage.css $(S16HOMEPAGE)
-
-#	cp -upr docs/html/userguide $(RELEASEDEVELOPMENT)/docs/html
 
 # make release -- create a directory containing the source release of
 # the current version.  The app can be launched by clicking a link,
@@ -295,7 +301,6 @@ release :
 # the source
 
 # Edit source files in git repository
-# make docs/userguide/Sigma16UserGuide.html    Reads an auxiliary file to include version nmber
 # git status
 # git add (files that have been changed)
 # git commit 'm "purpose of these changes"
@@ -305,7 +310,6 @@ release :
 # To advance version number to to v3.0.26 or whatever it is...
 # edit package.json     This contains the master definition of version number
 # make set-version      Reads package.json and defines two auxiliary files
-# make docs/userguide/Sigma16UserGuide.html  Need to update version number in the guide
 # git tag -a v3.0.26 -m 'move to version v3.0.26'
 
 # To upload new release
@@ -489,33 +493,6 @@ src/datafiles/welcome.html : src/datafiles/srcwelcome.md
           --variable=css:../../docs/src/userguide/userguidestyle.css \
           -o src/datafiles/welcome.html \
 	  src/datafiles/welcomeTEMP.md
-
-#-------------------------------------------------------------------------------
-# User guide
-#-------------------------------------------------------------------------------
-
-# Build user guide html from org source
-
-docs/html/userguide/Sigma16UserGuide.html : \
-	  docs/src/userguide/Sigma16UserGuide.org \
-	  docs/src/userguide/userguide-template.html \
-	  docs/src/userguide/userguidestyle.css VERSION.txt
-	mkdir -p docs/html/userguide
-	cp -up docs/src/userguide/userguidestyle.css docs/html/userguide
-	pandoc --standalone \
-          --from=org \
-          --to=html \
-          --metadata title="Sigma16 User Guide" \
-          --template=docs/src/userguide/userguide-template.html \
-          --table-of-contents --toc-depth=4 \
-          --variable=mdheader:$(MDHEADER) \
-          --variable=css:./userguidestyle.css \
-          --output=docs/html/userguide/Sigma16UserGuide.html \
-	  docs/src/userguide/Sigma16UserGuide.org
-
-# will need these if images appear in the guide
-#	mkdir -p docs/html/userguide/png
-#	cp -up docs/src/userguide/png/* docs/html/userguide/png
 
 # make source-dir-index --- Generate index for the project from markdown
 # source.
