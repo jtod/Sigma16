@@ -1,21 +1,19 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="readme.css" />
+# Sigma16 source directory
 
-* Sigma16 source directory
-
-This is the README file for the Sigma16 source directory.  Second test
+This is the README file for the Sigma16 source directory.  Test
 version using org instead of md.
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
-** Quick start: Running Sigma16 in a web page
+## Quick start: Running Sigma16 in a web page
 
 You don't need to install anything.  Just visit the [Sigma16 Home
 Page](https://jtod.github.io/home/Sigma16/) and click the prominent
 link to "Run Sigma16 in your browser".
   
-** Internet links
+## Internet links
 
 The [Sigma16 Home Page
 (https://jtod.github.io/home/Sigma16/)](https://jtod.github.io/home/Sigma16/)
@@ -26,7 +24,7 @@ repository
 It's best to bookmark the home page, which always points to the latest
 version.
 
-** Download and run locally
+## Download and run locally
 
 To run the IDE (the graphical user interface) there is no need to
 download or install the software: you can just *Click to run Sigma16
@@ -40,7 +38,7 @@ without requiring further access to the Internet.  However, these
 links will not work if you're reading this page on the source
 repository on GitHub via the Internet.
 
-- [Launch from files in this directory](./app/Sigma16.html) If you
+* [Launch from files in this directory](./app/Sigma16.html) If you
   have copied this directory onto a local machine, this link will run
   it.  The advantage is that you won't need access to the Internet.
   However, browsers have restricted access to your file system, to
@@ -52,7 +50,7 @@ repository on GitHub via the Internet.
   restrictions on file access.  See the Installation section in the
   User Guide.
 
-- [Up to the top directory](./) Show the listing of files in the
+* [Up to the top directory](./) Show the listing of files in the
   directory containing this version.
 
 ## Installing the command line tools
@@ -103,13 +101,3 @@ for more details.
 
 You should have received a copy of the GNU General Public License
 along with Sigma16.  If not, see <https://www.gnu.org/licenses/>.
-
-# Local Variables:
-# org-html-preamble: "<h1>Sigma16</h1>
-#   Version 3.1.4 (October 2020).
-#   Copyright (c) 2020 John T. O'Donnell.
-#   For the latest version, see
-#   <a href=\"https://jtod.github.io/home/Sigma16/\">
-#     https://jtod.github.io/home/Sigma16/</a>"
-# org-html-postamble: "End of document"
-# End:
