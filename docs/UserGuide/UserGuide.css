@@ -21,12 +21,17 @@ code {
     }
 
 pre.example {
-    background-color: #d3f0f5; /* light blue background */
+    background-color: #e6ffff; /* light blue background */
+    color: black;
+}
+
+pre.src-sigma16 {
+    background-color: #e6fff2; /* light green background */
     color: black;
 }
 
 pre.src-hydra {
-    background-color: #d3f0f5; /* light blue background */
+    background-color: #ffffe6; /* light yellow background */
     color: black;
 }
 

@@ -36,8 +36,15 @@
 # Usage
 #-------------------------------------------------------------------------------
 
-# Build
+# Manual steps to perform in emacs
+#  index.html - export README.md
+
+# make tools for building
+#     make set-version   read version from package.json, write version files
+
 #     make devversion                               prepare home/Sigma16/dev
+
+# git and github
 #     git status, git add, git commit, git push
 
 # Make release                              prepare home/Sigma16/releases/...
@@ -371,7 +378,7 @@ compile :
 .PHONY : set-version
 set-version :
 	echo $(VERSION) > VERSION.txt
-	echo "export const s16version = \"$(VERSION)\";" > src/Sigma16/base/version.mjs
+	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
 
 #-------------------------------------------------------------------------------
 # Generate index pages for examples
@@ -494,10 +501,10 @@ src/datafiles/welcome.html : src/datafiles/srcwelcome.md
           -o src/datafiles/welcome.html \
 	  src/datafiles/welcomeTEMP.md
 
-# make source-dir-index --- Generate index for the project from markdown
+# The README.md file can be rendered by a browser, and github can render it.  However, the org file make source-dir-index --- Generate index for the project from markdown
 # source.
 
-source-dir-index : README.md docs/src/readme/readme.css
+index.html : README.md docs/src/readme/readme.css
 	pandoc --standalone \
           --template=docs/src/readme/readme-template.html \
           --variable=version:'$(VERSION), ${MONTHYEAR}' \

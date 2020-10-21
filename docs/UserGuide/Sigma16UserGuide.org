@@ -2039,16 +2039,22 @@ R9 + R2.
 RX instructions that specify a memory location as well as a
 register operand.  The representation is two words.
 
-RX instructions are two words, where op=15, b contains the secondary
-opcode which specifies which RX instruction it is, d is the
-destination, a is the index register, and the second word is a 16 bit
-constant called the displacement (often written disp for short).
+An RX instruction is represented by two words, with the following
+fields: op=15, b contains the secondary opcode which specifies which
+RX instruction it is, d is the destination, a is the index register,
+and the second word is a 16 bit constant called the displacement
+(often written disp for short).
 
----------------------
+Table: RX instruction format
+
+
+#+BEGIN_EXAMPLE
+|----+----+----+----|
 | op |  d |  a |  b |
----------------------
+|----+----+----+----|
 |    displacement   |
----------------------
+|----+----+----+----|
+#+END_EXAMPLE
 
 The RX instruction format is used for instructions that use a memory
 address, which is specified by an index register and a displacement.
@@ -2119,20 +2125,24 @@ operation code in the ab field of the first word.  There is a 4-bit
 operand in the d field of the first word, and four 4-bit fields in the
 second word, named e, f, g, h.
 
+#+BEGIN_EXAMPLE
 ---------------------
 | op |  d |    ab   |
 ---------------------
 |  e |  f |  g |  h |
 ---------------------
+#+END_EXAMPLE
 
 Some EXP2 instructions combine the g and h fields to provide an 8-bit
 operand.
 
+#+BEGIN_EXAMPLE
 ---------------------
 | op |  d |    ab   |
 ---------------------
 |  e |  f |    gh   |
 ---------------------
+#+END_EXAMPLE
 
 *** Summary of instruction formats
 
@@ -4885,6 +4895,60 @@ src/node_modules/
 *** Tangle
 - C-c C-v t       -- tangle the file
 - C-u C-c C-v t   -- tangle current src code block
+
+*** Blocks
+
+Example
+
+#+BEGIN_EXAMPLE
+   lea   R6,34[R2]
+   load  R1,45[R6]
+   sub   R13,R2,R9
+#+END_EXAMPLE
+
+Sigma16
+
+#+BEGIN_SRC sigma16
+   lea   R6,34[R2]
+   load  R1,45[R6]
+   sub   R13,R2,R9
+#+END_SRC
+
+Hydra
+
+#+BEGIN_SRC hydra
+f :: Bit a => a -> a -> a
+f x y = xor2 x y
+#+END_SRC
+
+*** Line numbers and labels
+
+#+NAME: ThisIsSomeCode
+#+BEGIN_SRC sigma16 -n :tangle ../../examples/foo/bar.asm.txt
+       lea   R6,34[R2]
+loop   load  R1,elephant[R0]  ; R1 := elephant
+       sub   R13,R2,R9
+       jump  loop[R0]         ; do it again
+#+END_SRC
+
+The +n indicates that numbering continues from the previous block
+
+#+BEGIN_SRC sigma16 +n -r  :tangle ../../examples/foo/bar.asm.txt
+   add R1,R2,R3
+   store  R1,x[R8]  (ref:foobar)
+   jump   loop[R0[
+#+END_SRC
+
+The store instruction [[(foobar)]] saves x.  To refer to (ref:foobar), use
+two left square brackets, then (foobar) then two right square
+brackets.
+
+If you just use (label), the html makes the line number a link, but
+this is hard to spot.  It's easier for the reader if the link isn't
+just (for example) "5", but rather "Line 5".  For example, [[(foobar)][Line
+(foobar)]] does something.  This was from lb lb lp foobar rp rb lb Line
+lp foobar rp rb rb, where lp = left parenthesis, lb = left square
+bracket, etc.
 
 *** Meta
 - Meta comments must be near the end of the file
