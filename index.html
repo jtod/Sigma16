@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-10-22 Thu 11:52 -->
+<!-- 2020-10-21 Wed 11:26 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -179,7 +179,7 @@
   .org-svg { width: 90%; }
   /*]]>*/-->
 </style>
-<link rel="stylesheet" type="text/css" href="../datafiles/index.css" />
+<link rel="stylesheet" type="text/css" href="index.css" />
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -228,95 +228,194 @@ for the JavaScript code in this tag.
 </script>
 </head>
 <body>
-<div id="content">
+<div id="preamble" class="status">
 <h1>Sigma16</h1>
+  Version 3.1.4 (October 2020).
+  Copyright (c) 2020 John T. O'Donnell.
+  For the latest version, see
+  <a href="https://jtod.github.io/home/Sigma16/">
+    https://jtod.github.io/home/Sigma16/</a>
+</div>
+<div id="content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org3f5caa4">1. Sigma16 source directory</a>
+<ul>
+<li><a href="#orgf2cdf1c">1.1. Quick start: Running Sigma16 in a web page</a></li>
+<li><a href="#org00096f0">1.2. Internet links</a></li>
+<li><a href="#orgaeb8f9c">1.3. Download and run locally</a></li>
+<li><a href="#orgc245dea">1.4. Installing the command line tools</a></li>
+<li><a href="#org6677bc8">1.5. About the software</a>
+<ul>
+<li><a href="#orge06df88">1.5.1. Author</a></li>
+<li><a href="#org314fccb">1.5.2. Copyright and license</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 
-Version 3.1.4, October 2020.  Copyright (c) 2020 John T. O'Donnell
-For the latest version, see
-  <a href="https://jtod.github.io/home/Sigma16/" target="_blank">
-    https://jtod.github.io/home/Sigma16
-  </a>
+<div id="outline-container-org3f5caa4" class="outline-2">
+<h2 id="org3f5caa4"><span class="section-number-2">1</span> Sigma16 source directory</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+This is the README file for the Sigma16 source directory.  Second test
+version using org instead of md.
+</p>
 
-<div id="outline-container-org7a867f0" class="outline-2">
-<h2 id="org7a867f0">Overview</h2>
-<div class="outline-text-2" id="text-org7a867f0">
 <p>
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
-for experimenting with the architecture, including an editor,
-assembler, linker, emulator, and an integrated development
-environment.  There is a digital circuit that implements the
-architecture, which is specified using the Hydra functional hardware
-description language.  Hydra can simulate the circuit, and machine
-language programs can run on both the emulator and the circuit.
+for experimenting with the architecture.
+</p>
+</div>
+
+<div id="outline-container-orgf2cdf1c" class="outline-3">
+<h3 id="orgf2cdf1c"><span class="section-number-3">1.1</span> Quick start: Running Sigma16 in a web page</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+You don't need to install anything.  Just visit the [Sigma16 Home
+Page](<a href="https://jtod.github.io/home/Sigma16/">https://jtod.github.io/home/Sigma16/</a>) and click the prominent
+link to "Run Sigma16 in your browser".
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgab25862" class="outline-2">
-<h2 id="orgab25862">Getting started</h2>
-<div class="outline-text-2" id="text-orgab25862">
+<div id="outline-container-org00096f0" class="outline-3">
+<h3 id="org00096f0"><span class="section-number-3">1.2</span> Internet links</h3>
+<div class="outline-text-3" id="text-1-2">
 <p>
-The User Guide begins with a set of tutorials that introduce the
-system.  The best place to start is with the <b>Hello, World!</b> tutorial.
-After working through the tutorials, see the rest of the User Guide
-for detailed documentation.
+The [Sigma16 Home Page
+(<a href="https://jtod.github.io/home/Sigma16/">https://jtod.github.io/home/Sigma16/</a>)](<a href="https://jtod.github.io/home/Sigma16/">https://jtod.github.io/home/Sigma16/</a>)
+contains a link to "Run Sigma16 in your browser", as well as links to
+documentation, past releases, and the source repository [source
+repository
+(<a href="https://github.com/jtod/Sigma16/">https://github.com/jtod/Sigma16/</a>)](<a href="https://github.com/jtod/Sigma16/">https://github.com/jtod/Sigma16/</a>).
+It's best to bookmark the home page, which always points to the latest
+version.
 </p>
-
-The User Guide appears in the right side of the window.  You can
-increase or decrease its size by clicking the arrow buttons at the
-right side of the top button box, and you can also <a
-href="../../docs/html/userguide/userguide.html" target="_blank">open
-the user guide in a new window</a>.
 </div>
 </div>
 
-<div id="outline-container-orgb737cbf" class="outline-2">
-<h2 id="orgb737cbf">Updates and further information</h2>
-<div class="outline-text-2" id="text-orgb737cbf">
-The <a href="https://jtod.github.io/home/Sigma16/"
-target="_blank">Sigma16 Home Page</a> contains a link to run the
-latest version as well as up-to-date information on the system.  It's
-best to bookmark the home page, not this specific release.  If you
-always launch the app by clicking the link in the home page, you'll
-always be running the most recent release.
-
-The source code is available on the <a
-href="https://github.com/jtod/Sigma16/" target="_blank">source
-repository</a>.
-</div>
-</div>
-
-<div id="outline-container-org1f470d4" class="outline-2">
-<h2 id="org1f470d4">License</h2>
-<div class="outline-text-2" id="text-org1f470d4">
+<div id="outline-container-orgaeb8f9c" class="outline-3">
+<h3 id="orgaeb8f9c"><span class="section-number-3">1.3</span> Download and run locally</h3>
+<div class="outline-text-3" id="text-1-3">
 <p>
-License: GNU GPL Version 3 or later.
+To run the IDE (the graphical user interface) there is no need to
+download or install the software: you can just <b>Click to run Sigma16
+in your browser</b> in the [Sigma16 Home
+Page](<a href="https://jtod.github.io/home/Sigma16/">https://jtod.github.io/home/Sigma16/</a>).
 </p>
 
 <p>
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or (at
-your option) any later version.
+The Home Page also provides a link to download the app.  If you copy
+the Sigma16 source directory onto your computer, the following links
+will run it locally without any additional software installation and
+without requiring further access to the Internet.  However, these
+links will not work if you're reading this page on the source
+repository on GitHub via the Internet.
+</p>
+
+<ul class="org-ul">
+<li>[Launch from files in this directory](./app/Sigma16.html) If you
+have copied this directory onto a local machine, this link will run
+it.  The advantage is that you won't need access to the Internet.
+However, browsers have restricted access to your file system, to
+ensure security.  One consequence of this is that the <b>Select
+example</b> button in the <b>Examples</b> page won't do anything.  But you
+can select the text of the example with your mouse, right-click and
+Copy, then Paste it into the Editor page.  It's also possible to
+install Sigma16 as an app on your computer; that gets rid of the
+restrictions on file access.  See the Installation section in the
+User Guide.</li>
+
+<li>[Up to the top directory](./) Show the listing of files in the
+directory containing this version.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgc245dea" class="outline-3">
+<h3 id="orgc245dea"><span class="section-number-3">1.4</span> Installing the command line tools</h3>
+<div class="outline-text-3" id="text-1-4">
+<p>
+In addition to the basic web page version of Sigma16, there is a
+collection of separate programs that can be run in a shwll from the
+command line.  <b>(These are under development and will be released in
+late 2020; please come back later.)</b> These programs include a
+standalone version of the IDE, fast emulator, circuit simulator, and
+more.  These tools provide additional functionality, faster execution,
+and the ability to work without access to the Internet.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org6677bc8" class="outline-3">
+<h3 id="org6677bc8"><span class="section-number-3">1.5</span> About the software</h3>
+<div class="outline-text-3" id="text-1-5">
+<p>
+The Sigma16 app (the integrated development environment &#x2013; i.e. the
+GUI) is implemented in JavaScript, html 5, and css.  The digital
+circuit is implemented in Hydra, which requires Haskell.  Additional
+software tools, including a high speed emulator, are in progress and
+expected to be available in late 2020.
+</p>
+</div>
+
+<div id="outline-container-orge06df88" class="outline-4">
+<h4 id="orge06df88"><span class="section-number-4">1.5.1</span> Author</h4>
+<div class="outline-text-4" id="text-1-5-1">
+<p>
+The architecture is designed by, and the software tools are written
+by, [John O'Donnell](<a href="https://jtod.github.io/index.html">https://jtod.github.io/index.html</a>).
+</p>
+
+<ul class="org-ul">
+<li>Email: john.t.odonnell9@gmail.com</li>
+<li>Web: <a href="https://jtod.github.io/index.html">https://jtod.github.io/index.html</a></li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-org314fccb" class="outline-4">
+<h4 id="org314fccb"><span class="section-number-4">1.5.2</span> Copyright and license</h4>
+<div class="outline-text-4" id="text-1-5-2">
+<ul class="org-ul">
+<li>Copyright (C) 2019, 2020 John T. O'Donnell</li>
+<li>License: GNU GPL Version 3 or later</li>
+<li>See Sigma16/LICENSE.txt</li>
+</ul>
+
+<p>
+Sigma16 is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
 </p>
 
 <p>
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-General Public License for more details.
+Sigma16 is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
 </p>
 
+<p>
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <a
-href="https://www.gnu.org/licenses/"
-target="_blank">https://www.gnu.org/licenses/</a>
+along with Sigma16.  If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>.
+</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2020-10-22 Thu 11:52</p>
+<p class="date">Created: 2020-10-21 Wed 11:26</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

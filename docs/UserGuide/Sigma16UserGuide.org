@@ -1,4 +1,6 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="UserGuide.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./index.css" />
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
 
 # Sigma16 User Guide
 # Copyright (C) 2020 John T. O'Donnell.
@@ -14,6 +16,15 @@
 # General Public License for more details.  You should have received a
 # copy of the GNU General Public License along with Sigma16.  If not,
 # see <https://www.gnu.org/licenses/>.
+
+#+BEGIN_EXPORT html
+<h1>Sigma16 User Guide</h1>
+#+END_EXPORT
+
+#+INCLUDE: "../../VERSION.txt" export html
+#+INCLUDE: "../../LATESTVERSION.txt" export html
+
+#+TOC: headlines:3
 
 * Introduction
 
@@ -4949,17 +4960,3 @@ just (for example) "5", but rather "Line 5".  For example, [[(foobar)][Line
 (foobar)]] does something.  This was from lb lb lp foobar rp rb lb Line
 lp foobar rp rb rb, where lp = left parenthesis, lb = left square
 bracket, etc.
-
-*** Meta
-- Meta comments must be near the end of the file
-- The version and date are defined below
-
-# Local Variables:
-# org-html-preamble: "<h1>Sigma16 User Guide</h1>
-#   Version 2.4.4 (October 2020).
-#   Copyright (c) 2020 John T. O'Donnell.
-#   For the latest version, see
-#   <a href=\"https://jtod.github.io/home/Sigma16/\">
-#     https://jtod.github.io/home/Sigma16/</a>"
-# org-html-postamble: "End of document"
-# End:

@@ -1,0 +1,34 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../index.css" />
+#+TITLE: Testing
+
+These files are for testing the implementation of Sigma16.  They also
+provide examples of all the assembly language statements and the
+instruction set.
+
+- [[./AsmCodeGen.asm.txt][AsmCodeGen]] Test an example of each
+  assembly language statement, including instructions and directives.
+
+- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Examples of errors that
+  are detectable by the assembler.
+
+- [[./Arithmetic.asm.txt][TestArithmetic]] Test arithmetic operations.
+
+- [[./StoreLoop.asm.txt][StoreLoop]] While loop containing a store
+  instruction.
+
+- [[./Logic.asm.txt][Logic]] Test the operations on bits, fields, and
+  words.
+
+- [[./Memory.asm.txt][Memory]] Loads, stores, stack operations, saving
+  and restoring registers.
+
+- [[./CmpJump.asm.txt][CmpJump]] Test the comparisons, jumps, and
+  conditional jumps.
+
+- [[./Performance.asm.txt][Performance]] A long nested loop that
+  executes a large number of instructions, allowing measurements of
+  the perfornace of an emulator or other implementation.
+
+- [[./PrimarySecondary.asm.txt][PrimarySecondary]]
+
+- [[./RFwrite.asm.txt][RFwrite]]

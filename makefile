@@ -188,29 +188,6 @@ showparams:
 	echo YEAR = $(YEAR)
 	echo RELEASEDEVELOPMENT = $(RELEASEDEVELOPMENT)
 
-#-------------------------------------------------------------------------------
-# Homepage index
-#-------------------------------------------------------------------------------
-
-# make homepage-index: Convert index for Sigma16 home page from
-# markdown to html.  This should be copied to the git repository for
-# jtod.github.io/S16 (make release or make devversion will do that)
-
-#          --template=docs/src/readme-template.html \
-
-# Can include something like this in index.md:
-# <p><strong> Version VERSION </strong></p>
-
-docs/html/S16homepage/index.html : docs/src/S16homepage/index.md \
-	docs/src/S16homepage/homepage.css
-	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
-	  docs/src/S16homepage/index.md > docs/src/S16homepage/indexTEMP.md
-	pandoc --standalone \
-          --variable=css:homepage.css \
-	  --metadata pagetitle="Sigma16 Home Page" \
-	  -o docs/html/S16homepage/index.html \
-	  docs/src/S16homepage/indexTEMP.md
-	cp -up docs/src/S16homepage/homepage.css docs/html/S16homepage
 
 #-------------------------------------------------------------------------------
 # Development version
@@ -369,128 +346,22 @@ compile :
 #-------------------------------------------------------------------------------
 
 # make set-version --- The version number is defined in
-# src/gui/package.json; this makefile finds the number there and defines a
-# make variable $(VERSION).  This is used in several places, including
-# writing a VERSION file in the top directory (not essential but
-# helpful for users) and src/gui/version.js (which makes the version
-# number available to the JavaScript program).
+# src/gui/package.json; this makefile finds the number there and
+# defines a make variable $(VERSION).  This is used in several places,
+# including writing a VERSION file in the top directory (used in the
+# Welcome page and the User Guide) and src/gui/version.js (which makes
+# the version number available to the JavaScript program).
 
 .PHONY : set-version
 set-version :
-	echo $(VERSION) > VERSION.txt
+	echo "Version $(VERSION), $(MONTHYEAR).\
+	  Copyright (c) $(YEAR) John T. O'Donnell" \
+	  > VERSION.txt
 	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
 
 #-------------------------------------------------------------------------------
 # Generate index pages for examples
 #-------------------------------------------------------------------------------
-
-# make example-indices --- Generate the index.html files for the
-# programs directory
-
-# All the example indices should use the same css file; they need to
-# reference it relative to where they are:
-
-# For examples/Sigma16/Core use --variable=css:../../exampleindex.css
-# For examples/Sigma16/Core/Arithmetic use --variable=css:../../../exampleindex.css
-
-# make examples/Sigma16/Core/Arithmetic/index.html
-
-# Examples index: depth 0.  examples/index.html
-examples/index.html : examples/index.md
-	echo Depth 0
-	pandoc --standalone \
-          --template=examples/exampleindex-template.html \
-          --variable=css:exampleindex.css \
-	  --metadata pagetitle="$*" \
-          -o $@ \
-	  examples/index.md
-
-# Examples index: depth 1.  examples/Sigma16/index.html
-examples/%/index.html : examples/%/index.md
-	echo Depth 1
-	pandoc --standalone \
-          --template=examples/exampleindex-template.html \
-          --variable=css:../exampleindex.css \
-	  --metadata pagetitle="$*" \
-          -o $@ \
-	  examples/$*/index.md
-
-# Examples index: depth 2.  examples/Sigma16/Advanced/index.html
-examples/Sigma16/%/index.html : examples/Sigma16/%/index.md
-	echo Sigma16 Depth 2
-	pandoc --standalone \
-          --template=examples/exampleindex-template.html \
-          --variable=css:../../exampleindex.css \
-	  --metadata pagetitle="$*" \
-          -o $@ \
-	  examples/Sigma16/$*/index.md
-
-# Examples index: Sigma depth 2.  examples/Sigma/Advanced/index.html
-examples/Sigma/%/index.html : examples/Sigma/%/index.md
-	echo Sigma Depth 2
-	pandoc --standalone \
-          --template=examples/exampleindex-template.html \
-          --variable=css:../../exampleindex.css \
-	  --metadata pagetitle="$*" \
-          -o $@ \
-	  examples/Sigma/$*/index.md
-
-# Examples index: depth 3.  examples/Sigma16/Advanced/Testing/index.html
-examples/Sigma16/Core/%/index.html : examples/Sigma16/Core/%/index.md
-	echo Depth 3
-	pandoc --standalone \
-          --template=examples/exampleindex-template.html \
-          --variable=css:../../../exampleindex.css \
-	  --metadata pagetitle="$*" \
-          -o $@ \
-	  examples/Sigma16/Core/$*/index.md
-
-# Examples index: depth 3.  examples/Sigma16/Advanced/Testing/index.html
-examples/Sigma16/Advanced/%/index.html : examples/Sigma16/Advanced/%/index.md
-	echo Depth 3
-	pandoc --standalone \
-          --template=examples/exampleindex-template.html \
-          --variable=css:../../../exampleindex.css \
-	  --metadata pagetitle="$*" \
-          -o $@ \
-	  examples/Sigma16/Advanced/$*/index.md
-
-# Examples index: depth 3.  examples/Sigma16/Advanced/Testing/index.html
-examples/Sigma16/SysLib/%/index.html : examples/Sigma16/SysLib/%/index.md
-	echo Depth 3
-	pandoc --standalone \
-          --template=examples/exampleindex-template.html \
-          --variable=css:../../../exampleindex.css \
-	  --metadata pagetitle="$*" \
-          -o $@ \
-	  examples/Sigma16/SysLib/$*/index.md
-
-.PHONY : example-indices
-example-indices :
-	echo examples index:
-	make examples/index.html
-	echo Sigma:
-	make examples/Sigma/index.html
-	echo Sigma16:
-	make examples/Sigma16/index.html
-	echo Sigma16/Core:
-	make examples/Sigma16/Core/index.html
-	make examples/Sigma16/Core/Arithmetic/index.html
-	make examples/Sigma16/Core/Arrays/index.html
-	make examples/Sigma16/Core/IO/index.html
-	make examples/Sigma16/Core/Simple/index.html
-	make examples/Sigma16/Core/Sorting/index.html
-	make examples/Sigma16/Core/Subroutines/index.html
-	echo Sigma16/Advanced:
-	make examples/Sigma16/Advanced/index.html
-	make examples/Sigma16/Advanced/DataStructures/index.html
-	make examples/Sigma16/Advanced/Interrupt/index.html
-	make examples/Sigma16/Advanced/Linking/index.html
-	make examples/Sigma16/Advanced/Recursion/index.html
-	make examples/Sigma16/Advanced/TypeConversion/index.html
-	make examples/Sigma16/Advanced/Testing/index.html
-	echo Sigma16/SysLib:
-	make examples/Sigma16/SysLib/index.html
 
 src/datafiles/welcome.html : src/datafiles/srcwelcome.md
 	sed "s/VERSION/${VERSION}, ${MONTHYEAR}/g" \
@@ -501,16 +372,6 @@ src/datafiles/welcome.html : src/datafiles/srcwelcome.md
           -o src/datafiles/welcome.html \
 	  src/datafiles/welcomeTEMP.md
 
-# The README.md file can be rendered by a browser, and github can render it.  However, the org file make source-dir-index --- Generate index for the project from markdown
-# source.
-
-index.html : README.md docs/src/readme/readme.css
-	pandoc --standalone \
-          --template=docs/src/readme/readme-template.html \
-          --variable=version:'$(VERSION), ${MONTHYEAR}' \
-          --variable=css:'docs/src/readme/readme.css' \
-          --metadata pagetitle='Sigma16 ${VERSION}' \
-	  -o index.html README.md
 
 #-------------------------------------------------------------------------------
 # The following may be out of date following the revision using express...

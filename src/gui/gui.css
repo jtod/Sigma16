@@ -271,8 +271,10 @@ guide). */
 .MidMainRight {
     /* shrink=1 allows user guide to get smaller before overlap */
     flex: 1 1 auto;
-    background-color: var(--mid-main-right-background-color);
+    opacity: 1;
+    background-color: white;
 }
+/*    background-color: var(--mid-main-right-background-color); */
 
 /* Panes(separate tabs in the Middle section) --------------------------- */
 /* There are separate panes for the editor, assembler, etc. Normally

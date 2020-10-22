@@ -1,0 +1,13 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../index.css" />
+#+TITLE: Linker
+
+- [[./MyProg.lnk.txt][MyProg.lnk.txt]] linker commands to produce
+  executable MyProg from the object modules Mod1, Mod2, and Mod3
+
+- [[./Mod1.asm.txt][Mod1]] A main program that imports from Mod2 and
+  Mod3
+
+- [[./Mod2.asm.txt][Mod2]] A subroutine that defines and exports some
+  identifiers
+
+- [[./Mod3.asm.txt][Mod3]] Another subroutine

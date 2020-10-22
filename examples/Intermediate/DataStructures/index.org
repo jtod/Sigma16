@@ -1,0 +1,12 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../index.css" />
+#+TITLE: Data structures
+
+- [[./StackArraySimple.asm.txt][StackArraySimple]] Stack implemented
+  as an array.  For simplicity, there is no checking of stack overflow
+  or underflow.  Test data shows how this implementation is unsafe.
+
+- [[./StackArrayRobust.asm.txt][StackArrayRobust]] Stack implemented
+  as an array, with safety checks.
+
+
+

@@ -1,4 +1,5 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="readme.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="index.css" />
+#+EXPORT_FILE_NAME: index
 
 * Sigma16 source directory
 
@@ -55,7 +56,7 @@ repository on GitHub via the Internet.
 - [Up to the top directory](./) Show the listing of files in the
   directory containing this version.
 
-## Installing the command line tools
+** Installing the command line tools
 
 In addition to the basic web page version of Sigma16, there is a
 collection of separate programs that can be run in a shwll from the
@@ -65,7 +66,7 @@ standalone version of the IDE, fast emulator, circuit simulator, and
 more.  These tools provide additional functionality, faster execution,
 and the ability to work without access to the Internet.
 
-## About the software
+** About the software
 
 The Sigma16 app (the integrated development environment -- i.e. the
 GUI) is implemented in JavaScript, html 5, and css.  The digital
@@ -73,23 +74,20 @@ circuit is implemented in Hydra, which requires Haskell.  Additional
 software tools, including a high speed emulator, are in progress and
 expected to be available in late 2020.
 
-### Author
+*** Author
 
 The architecture is designed by, and the software tools are written
 by, [John O'Donnell](https://jtod.github.io/index.html).
 
-~~~~
-Email: john.t.odonnell9@gmail.com
-Web: https://jtod.github.io/index.html
-~~~~
+- Email: john.t.odonnell9@gmail.com
+- Web: https://jtod.github.io/index.html
 
-### Copyright and license
 
-~~~~
-Copyright (C) 2019, 2020 John T. O'Donnell
-License: GNU GPL Version 3 or later
-See Sigma16/LICENSE.txt
-~~~~
+*** Copyright and license
+
+- Copyright (C) 2019, 2020 John T. O'Donnell
+- License: GNU GPL Version 3 or later
+- See Sigma16/LICENSE.txt
 
 Sigma16 is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -111,5 +109,4 @@ along with Sigma16.  If not, see <https://www.gnu.org/licenses/>.
 #   For the latest version, see
 #   <a href=\"https://jtod.github.io/home/Sigma16/\">
 #     https://jtod.github.io/home/Sigma16/</a>"
-# org-html-postamble: "End of document"
 # End:
