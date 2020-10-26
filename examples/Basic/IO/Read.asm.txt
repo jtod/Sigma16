@@ -1,6 +1,5 @@
 ; Read - demonstrate how to read input
-; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
-; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
 
 ; Demonstrate how to read characters entered by the user
 

@@ -51,7 +51,7 @@ export function clearBitInRegBE (r,i) { r.put (r.get() & maskToClearBitBE(i)) }
 export function setBitInRegBE   (r,i) { r.put (r.get() | maskToSetBitBE(i)) }
 
 // Put bit b into word x in bit position i
-function putBitInWord (x,i,b) {
+export function putBitInWord (x,i,b) {
     return b==0 ? x & maskToClearBitBE(i) : x | maskToSetBitBE(i)
 }
 
@@ -140,7 +140,7 @@ export function logicFunction(mnemonic) {
 
 // fcn is an encoded truth table, x and y are bit operands
 
-function applyLogicFcnBit (fcn, x, y) {
+export function applyLogicFcnBit (fcn, x, y) {
     let result = x==0
         ? (y==0 ? getBitInNibbleBE (fcn,0) : getBitInNibbleBE (fcn,1))
         : (y==0 ? getBitInNibbleBE (fcn,2) : getBitInNibbleBE (fcn,3))
@@ -152,7 +152,7 @@ function lut (p,q,r,s,x,y) {
     return x==0 ? (y==0 ? p : q) : (y==0 ? r : s)
 }
 
-function applyLogicFcnWord (fcn, x, y) {
+export function applyLogicFcnWord (fcn, x, y) {
     com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
     let p = getBitInNibbleBE (fcn,0);
     let q = getBitInNibbleBE (fcn,1);
@@ -229,6 +229,14 @@ function validateWord (x) {
     } else {
 	return x;
     }
+}
+
+// Restrict word to the 16 bit integer part; no error if there are extra 1 bits
+
+export function truncateWord (x) {
+    const r = (x < 0) ? 0 : (x & 0xffff);
+    console.log (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
+    return r;
 }
 
 // Determine whether a JavaScript number is a valid Sigma16 integer
@@ -438,6 +446,28 @@ export function binAdd (x, y) {
 //------------------------------------------------------------------------------
 // Operations for the instructions
 //------------------------------------------------------------------------------
+
+// Shift a by k bits.  k>0 means shift left, k<0 means shift right.
+// Thhis calculates a * 2^k where a is a natural number (binary).
+
+export function op_shift (a,k) {
+    const i = wordToInt (k);
+    const primary = (i > 0) ? shiftL(a,i) : shiftR(a,-i);
+    const secondary = 0;
+    return [primary, secondary];
+}
+
+// The primitive shifting functions are shiftL and shiftR.  These are
+// used by the instructions shiftl and shiftr, as well as shift.
+
+export function shiftL (x,k) {
+    return truncateWord (x << k);
+}
+
+export function shiftR (x,k) {
+    return truncateWord (x >>> k);
+}
+
 
 // Arithmetic for the add instruction (rrdc).  There is no carry input
 // bit, so the condition code is not needed as an argument.  The

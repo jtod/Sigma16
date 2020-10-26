@@ -1,9 +1,8 @@
 ; AsmStatements: test assembly of each statement type
-; Updates and copyright: https://jtod.github.io/home/Sigma16/ 
+; John O'Donnell. This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
 
-; Examples of all the assembly language statements, for
-; testing the assembler.  Should assemble without
-; any syntax errors.
+; Examples of all the assembly language statements; should assemble
+; without any syntax errors.
 
 ;-------------------------------------------------------------
 ; Character set
@@ -74,8 +73,8 @@ loop   add      R1,R2,R3       ; 0123  loop = 0005 relocatable
        putctl   R4,psegEnd     ; e002 4700
        putctl   R4,dsegBeg     ; e002 4800
        putctl   R4,dsegEnd     ; e002 4900
-       shiftl   R5,R3,7        ; e504 3070
-       shiftr   R4,R3,8        ; e405 3080
+       shiftl   R5,R3,7        ; e504 3700
+       shiftr   R4,R3,8        ; e405 3800
        logicb   R1,R2,R3,6,13  ; e10b 236d
        logicw   R1,R2,R3,6     ; e10a 2360
        extract  R2,R3,5,6      ; e206 3056

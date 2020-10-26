@@ -1604,96 +1604,36 @@ conventions.
  0 after executing such an instruction.  Such an instruction will
  simply have no lasting effect.
 
+
 *** R15 is the condition code register
 
- Several instructions produce status information: the result of a
- comparison, whether there was an overflow, etc.  This information is
- automatically loaded into R15, which is the condition code register.
- The description of each instruction states whether R15 is modified,
- and what goes into it.
+Several instructions produce status information: the result of a
+comparison, whether there was an overflow, etc.  This information is
+automatically loaded into R15, which is the condition code register.
+The description of each instruction states whether R15 is modified,
+and what goes into it.
 
- The bits in R15 are indexed from bit 0 (the most significant, or
- lefttmost bit) to bit 15 (the least significant, or rightmost).  The
- condition code bits that have specific meanings are called *flags*.
+The bits in R15 are indexed from bit 0 (the most significant, or
+lefttmost bit) to bit 15 (the least significant, or rightmost).  The
+condition code bits that have specific meanings are called *flags*.
 
- Table: Condition code flags
+- Each bit position corresponds to a relation
+- After a cmp instruction, if the bit is 1 the relation holds; if the
+  bit is 0 the relation does not hold
+- Use jumpc0 to jump if the relation does not hold
+- Use jumpc1 to jump if the relation holds
+- N - natural number (binary)
+- I - integer (two's complement)
 
- <table>
-   <tr>
-     <th>Bit</th>
-     <th>Flag</th>
-     <th>Symbolic name</th>
-     <th>Meaning</th>
-   </tr>
-   <tr>
-     <td>0</td>
-     <td>**G**</td>
-     <td>sysccG</td>
-     <td> gt (or gt 0) unsigned (binary)</td>
-   </tr>
-   <tr>
-     <td>1</td>
-     <td>**g**</td>
-     <td>sysccg</td>
-     <td> gt (or gt 0) signed (two's complement)</td>
-   </tr>
-   <tr>
-     <td>2</td>
-     <td>**E**</td>
-     <td>sysccE</td>
-     <td>= (or =0) word, signed, unsigned</td>
-   </tr>
-   <tr>
-     <td>3</td>
-     <td>**l**</td>
-     <td>sysccl</td>
-     <td>   lt (or lt 0) signed (two's complement)</td>
-   </tr>
-   <tr>
-     <td>4</td>
-     <td>**L**</td>
-     <td>sysccL</td>
-     <td>    lt (or  lt 0) unsigned (binary)</td>
-   </tr>
-   <tr>
-     <td>5</td>
-     <td>**V**</td>
-     <td>sysccV</td>
-     <td>    unsigned overflow (binary)</td>
-   </tr>
-   <tr>
-     <td>6</td>
-     <td>**v**</td>
-     <td>sysccv</td>
-     <td>    signed overflow (two's complement)</td>
-   </tr>
-   <tr>
-     <td>7</td>
-     <td>**C**</td>
-     <td>sysccC</td>
-     <td>    carry propagation (binary)</td>
-   </tr>
-   <tr>
-     <td></td>
-     <td></td>
-     <td></td>
-   </tr>
+Table: Condition code flags
 
- </table>
-
- The condition code flags are defined to make the condition code easier to read in
- hex:
-
- - The first (leftmost) hex digit holds the comparison flags
-
- - The second hex digit holds the carry and overflow flags
-
- - The third hex digit holds the stack error flags
-
- conditional jump
-
- jumpc0  jump if cc bit is 0
- jumpc1  jump if cc bit is 1
+| 0 | 1 | 2  | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|---+---+----+---+---+---+---+---+---+---+----+----+----+----+----+----|
+| G | g | E  | l | L | v | C |   |   |   |    |    |    |    |    |    |
+| G | > | E  | l | L | v | C |   |   |   |    |    |    |    |    |    |
+|---+---+----+---+---+---+---+---+---+---+----+----+----+----+----+----|
+| > | > | =  | < | < | v | C |   |   |   |    |    |    |    |    |    |
+| N | I | NI | I | N | I | N |   |   |   |    |    |    |    |    |    |
 
 ** Memory
 
@@ -2495,6 +2435,28 @@ division by 0.
   division by 0.  See the section on Interrupts.  This approach does
   not require a compare or jump instruction for each division.
 
+*** shift
+
+This shift instruction allows for the direction and distance of a
+shift to be variable, specified in a register.  (The shiftl and shiftr
+instructions perform shift with a fixed constant direction and
+distance.)
+
+#+BEGIN_EXAMPLE
+shift Rd,Ra,Rb
+#+END_EXAMPLE
+
+Shift Ra by the number of bits given in Rb, and load the result in
+Rd.
+
+The word in Rb is interpreted as an integer, and its sign determines
+the direction of the shift.  If Rb>0 shift left; if Rb<0 shift right.
+
+The shift instruction can be used to multiply a natural number by a
+power of 2.  Interpreting Ra and Rd as natural (binary) numbers, and
+interpreting Rb as an integer (two's complement), the effect is Rd :=
+Ra * 2 ^ Rb.
+
 *** addc
 
 (Not yet implemented, coming soon)
@@ -2851,7 +2813,7 @@ Re and Rf, and the result is loaded into the destination register Rd.
 - General form: logicw Rd,Re,Rf,g
 - Instruction format: EXP2
 - Assembly format: RRRKEXP
-- Rd := function g Re Rf
+- Rd := (function g) Re Rf
 
 *** Logic on Booleans
 
@@ -3067,14 +3029,19 @@ empty fields or maximal fields would not be representable.)
 
 *** extract, extracti
 
-The extract instruction copies an arbitrary field of bits from an arbitrary
+The extract instruction copies an arbitrary field of bits from a
 register (the source), and inserts those bits into an arbitrary
-position in an arbitrary register (the destination).  The bits in the
+position in a register (the destination).  The bits in the
 destination field are overwritten, and other bits in the destination
 are unchanged.
 
-The extracti instruction is similar to extract; the difference is that
-extracti inverts the bits that are inserted into the destination.
+Any register may be specified for the source and destination.  If they
+are the same, the effect is to move a bit field from one place to
+another in the register (this is not the same as a shift).  If the
+destination is R0, the instruction has no effect.
+
+The extracti instruction is similar to extract, but extracti inverts
+the bits that are inserted into the destination.
 
 The section /Using extract/ illustrates several programming techniques
 using the extract and extracti instructions.
@@ -3103,6 +3070,10 @@ and the size of the bit field.  The notation R.pos means bit position
 pos in register R.  Thus the source field starts in Rs.spos and the
 destination field starts in Rd.dpos.  This table gives the machine
 language representation of extract and extracti:
+
+#+BEGIN_EXAMPLE
+     extract  Rd,index_d,Rs,index_s,size
+#+END_EXAMPLE
 
 |----+------+-------------------------------|
 | op | 14   | escape to EXP format          |
@@ -3245,59 +3216,59 @@ precisely and concisely the effects of the instructions:
 - Code: operation code; primary,secondary opcode
 - Effect: brief synopsis
 
-|----------+---+------+-------+------+-------------------------------------|
-| Mnemonic | P | Fmt  | Args  | Code | Effect                              |
-|----------+---+------+-------+------+-------------------------------------|
-| add      |   | RRR  | RRR   | 0    | Rd := Ra + Rb                       |
-| sub      |   | RRR  | RRR   | 1    | Rd := Ra - Rb                       |
-| mul      |   | RRR  | RRR   | 2    | Rd := Ra * Rb                       |
-| div      |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra mod Rb     |
-| addc     |   | RRR  | RRR   | 4    | Rd := Ra + Rb + R15.carry           |
-| cmp      |   | RRR  | RR    | 5    | R15 := Ra cmp Rb                    |
-| push     |   | RRR  | RRR   | 6    | M[ea] := Rd, Rb++                   |
-| pop      |   | RRR  | RRR   | 7    | Rb--, Rd := M[ea]                   |
-| top      |   | RRR  | RRR   | 8    | Rd := M[ea]                         |
-| shift    |   | RRR  | RRR   | 9    | Rd := Ra shift Rb                   |
-| muln     |   | RRR  | RRR   | a    | R15++Rd := Ra :*: Rb                |
-| divn     |   | RRR  | RRR   | b    | R15++Rd := R15++Ra :/: Rb           |
-|          |   | RRR  |       | c    | -- reserved --                      |
-| trap     |   | RRR  | RRR   | d    | interrupt                           |
-|          |   | ---  |       | e    | escape to EXP format                |
-|          |   | ---  |       | f    | escape to RX format                 |
-|----------+---+------+-------+------+-------------------------------------|
-| lea      |   | RX   | RX    | f,0  | Rd := ea                            |
-| load     |   | RX   | RX    | f,1  | Rd := M[ea]                         |
-| store    |   | RX   | RX    | f,2  | M[ea] := Rd                         |
-| jump     |   | RX   | RX    | f,3  | pc := ea                            |
-| jal      |   | RX   | RX    | f,4  | Rd := pc, pc := ea                  |
-| jumpc0   |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea            |
-| jumpc1   |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea            |
-| jumpz    |   | RX   | RX    | f,7  | if Rd=0 then pc := ea               |
-| jumpnz   |   | RX   | RX    | f,8  | if Rd!=0 then pc := ea              |
-| save     |   | RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd   |
-| restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1]   |
-| testset  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1             |
-|          |   | RX   |       | f,c  | -- reserved --                      |
-|          |   | RX   |       | f,d  | -- reserved --                      |
-|          |   | RX   |       | f,e  | -- reserved --                      |
-|          |   | RX   |       | f,f  | -- reserved --                      |
-|----------+---+------+-------+------+-------------------------------------|
-| resume   | P | EXP1 | R     | e,00 | pc := ipc, status := istatus        |
-|----------+---+------+-------+------+-------------------------------------|
-| getctl   | P | EXP2 | RC    | e,01 | Rd := Sc                            |
-| putctl   | P | EXP2 | RC    | e,02 | Sc := Rd                            |
-| shiftl   |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                      |
-| shiftr   |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                      |
-| extract  |   | EXP2 | RRkkk | e,05 | Rd := extract Rd Rf g h i           |
-| extracti |   | EXP2 | RRkkk | e,06 | Rd := extracti Rd Rf g h i          |
-| logicw   |   | EXP2 | RRRk  | e,07 | Rd := Re (lut g) Rf                 |
-| logicb   |   | EXP2 | Rkkkk | e,08 | Rd.h := Re.h (lut g) Rf.h           |
-|          |   | EXP2 |       | e,09 | -- reserved --                      |
-|          |   | EXP2 |       | ...  | -- reserved --                      |
-|          |   | EXP2 |       | e,ff | -- reserved --                      |
-|----------+---+------+-------+------+-------------------------------------|
-|          |   |      |       |      | <35>                                |
-|----------+---+------+-------+------+-------------------------------------|
+|----------+---+------+-------+------+---------------------------------------|
+| Mnemonic | P | Fmt  | Args  | Code | Effect                                |
+|----------+---+------+-------+------+---------------------------------------|
+| add      |   | RRR  | RRR   | 0    | Rd := Ra + Rb                         |
+| sub      |   | RRR  | RRR   | 1    | Rd := Ra - Rb                         |
+| mul      |   | RRR  | RRR   | 2    | Rd := Ra * Rb                         |
+| div      |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra mod Rb       |
+| cmp      |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                      |
+| shift    |   | RRR  | RRR   | 5    | Rd := Ra shift Rb, >0 left, <0 right  |
+| addc     |   | RRR  | RRR   | 6    | Rd := Ra + Rb + R15.carry             |
+| push     |   | RRR  | RRR   | 7    | M[ea] := Rd, Rb++                     |
+| pop      |   | RRR  | RRR   | 8    | Rb--, Rd := M[ea]                     |
+| top      |   | RRR  | RRR   | 9    | Rd := M[ea]                           |
+| muln     |   | RRR  | RRR   | a    | R15++Rd := Ra :*: Rb                  |
+| divn     |   | RRR  | RRR   | b    | R15++Rd := R15++Ra :/: Rb             |
+|          |   | RRR  |       | c    | -- reserved --                        |
+| trap     |   | RRR  | RRR   | d    | interrupt                             |
+|          |   | ---  |       | e    | escape to EXP format                  |
+|          |   | ---  |       | f    | escape to RX format                   |
+|----------+---+------+-------+------+---------------------------------------|
+| lea      |   | RX   | RX    | f,0  | Rd := ea                              |
+| load     |   | RX   | RX    | f,1  | Rd := M[ea]                           |
+| store    |   | RX   | RX    | f,2  | M[ea] := Rd                           |
+| jump     |   | RX   | RX    | f,3  | pc := ea                              |
+| jal      |   | RX   | RX    | f,4  | Rd := pc, pc := ea                    |
+| jumpc0   |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea              |
+| jumpc1   |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea              |
+| jumpz    |   | RX   | RX    | f,7  | if Rd=0 then pc := ea                 |
+| jumpnz   |   | RX   | RX    | f,8  | if Rd!=0 then pc := ea                |
+| save     |   | RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd     |
+| restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1]     |
+| testset  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1               |
+|          |   | RX   |       | f,c  | -- reserved --                        |
+|          |   | RX   |       | f,d  | -- reserved --                        |
+|          |   | RX   |       | f,e  | -- reserved --                        |
+|          |   | RX   |       | f,f  | -- reserved --                        |
+|----------+---+------+-------+------+---------------------------------------|
+| resume   | P | EXP1 | R     | e,00 | pc := ipc, status := istatus          |
+|----------+---+------+-------+------+---------------------------------------|
+| getctl   | P | EXP2 | RC    | e,01 | Rd := Sc                              |
+| putctl   | P | EXP2 | RC    | e,02 | Sc := Rd                              |
+| logicw   |   | EXP2 | RRRk  | e,03 | Rd := Re (lut g) Rf                   |
+| logicb   |   | EXP2 | Rkkkk | e,04 | Rd.e := Rd.f (lut h) Rd.g          |
+| shiftl   |   | EXP2 | RRk   | e,05 | Rd := Ra shl b                        |
+| shiftr   |   | EXP2 | RRk   | e,06 | Rd := Ra shr b                        |
+| extract  |   | EXP2 | RRkkk | e,07 | Rd := extract Rd Rf g h i             |
+| extracti |   | EXP2 | RRkkk | e,08 | Rd := extracti Rd Rf g h i            |
+|          |   | EXP2 |       | e,09 | -- reserved --                        |
+|          |   | EXP2 |       | ...  | -- reserved --                        |
+|          |   | EXP2 |       | e,ff | -- reserved --                        |
+|----------+---+------+-------+------+---------------------------------------|
+|          |   |      |       |      | <37>                                  |
+|----------+---+------+-------+------+---------------------------------------|
 
 *** Rationale for jumpc0 and jumpc1
 
@@ -4864,11 +4835,6 @@ The following example is Sigma16 code:
 This generates <pre class="Sigma16"><code>lea R2,42[R0] ; R2 := 42
 </code></pre>
 
-Including an image.  The images are in docs/src/userguide/png, and
-this directory is copied to docs/html/userguide.  The form of a link
-is ((file:./png/foo.png)(Description of image)) except use square
-brackets instead of (...)
-
 ** makefile
 
 ** Version number
@@ -4960,3 +4926,10 @@ just (for example) "5", but rather "Line 5".  For example, [[(foobar)][Line
 (foobar)]] does something.  This was from lb lb lp foobar rp rb lb Line
 lp foobar rp rb rb, where lp = left parenthesis, lb = left square
 bracket, etc.
+*** Shell
+- To kill a process, various commands have been recommended
+  - C-x k          kills the shell
+  - C-c C-c        no effect
+  - C-c C-k        no effect
+  - C-x C-k        no effect
+- M-x list-processes

@@ -1,0 +1,23 @@
+; Shift - test the shift instructions
+; John O'Donnell. This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+
+
+; data to be shifted
+      lea     R1,$0040[R0]  ; 0000 0000 0100 0000
+
+; shiftr instruction
+      shiftr  R2,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 0010 0000 = 0020
+      shiftr  R2,R2,1       ; 0000 0000 0010 0000 -> 0000 0000 0001 0000 = 0010
+      shiftr  R2,R2,1       ; 0000 0000 0001 0000 -> 0000 0000 0000 1000 = 0008
+      shiftr  R3,R1,5       ; 0000 0000 0100 0000 -> 0000 0000 0000 0010 = 0002
+
+; shiftl instruction
+      shiftl  R4,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 1000 0000 = 0080
+      shiftl  R5,R1,7       ; 0000 0000 0100 0000 -> 0010 0000 0000 0000 = 2000
+
+; shift instruction
+      lea     R1,$0040[R0]  ; 0040
+      lea     R6,3[R0]      ; 0003   R6 := 3
+      shift   R7,R1,R6      ; 0200   R7 := shift R1 left 3 bits
+      lea     R8,-3[R0]     ; fffd   R8 := -3
+      shift   R9,R1,R8      ; 0008   R9 := shift R1 right 3 bits

@@ -1,0 +1,35 @@
+; BitField - test instructions that operate on bit fields
+; John O'Donnell. This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+
+; Extracting bit fields
+
+      lea      R1,$1234[R0]
+      extract  R2,R1,0,3     ; 0001
+      extract  R3,R1,4,7     ; 0002
+      extract  R4,R1,8,11    ; 0003
+      extract  R5,R1,12,15   ; 0004
+      extract  R6,R1,0,7     ; 0012
+      extract  R7,R1,8,15    ; 0034
+      extract  R8,R1,4,11    ; 0023
+      extract  R9,R1,1,0     ; 0000
+      extract  R10,R1,0,15   ; 1234
+
+      extracti R2,R1,0,3     ; 000e
+      extracti R3,R1,4,7     ; 000d
+      extracti R4,R1,8,11    ; 000c
+      extracti R5,R1,12,15   ; 000b
+      extracti R6,R1,0,7     ; 00ed
+      extracti R7,R1,8,15    ; 00cb
+      extracti R8,R1,4,11    ; 00dc
+      extracti R9,R1,1,0     ; 0000
+      extracti R10,R1,0,15   ; edcb
+
+; Injecting bit fields
+
+      lea      R1,$ffff[R0]
+      lea      R2,$0005[R0]
+      inject   R4,R0,R2,4,7  ; R4 := 0500
+      inject   R5,R1,R2,4,7  ; R5 := f5ff
+
+      injecti  R6,R0,R2,4,7  ; R6 := 0a00
+      injecti  R7,R1,R2,4,7  ; R6 := faff

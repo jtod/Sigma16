@@ -1,8 +1,10 @@
 ; Timer - demonstrate timer interrupts
-; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
-; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+; John O'Donnell. This file is part of Sigma16,
+; https://jtod.github.io/home/Sigma16/
 
-; Timer: interrupt a loop and print "bing" when the timer goes off
+; The program contains a loop.  When a timer interrupt occurs, the
+;  loop is interrupted and the handler prints "bing", then resumes the
+;  loop.
 
 ; Request exception for timer
      load   R1,timerBit[R0]         ; flag for timer interrupt
@@ -19,8 +21,8 @@
      add    R2,R0,R0                ; i := 0
      lea    R3,1[R0]                ; R3 := constant 1
 loop
-     cmpgt  R4,R2,R1                ; R4 := i>n
-     jumpt  R4,done[R0]
+     cmp    R2,R1                   ; compare i with n
+     jumpgt done[R0]                ; if i > n then goto done
      add    R2,R2,R3                ; i := i+1
      jump   loop[R0]                ; goto loop
 
@@ -47,8 +49,7 @@ handleTimer
      load   R1,save1[R0]        ; restore state
      load   R2,save2[R0]        ; restore state
      load   R3,save3[R0]        ; restore state
-     rfi                        ; resume
-
+     resume                     ; return from interrupt
 
 ; The following exceptions just terminate the program
 handleSegFault

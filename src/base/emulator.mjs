@@ -1538,6 +1538,7 @@ function executeInstruction (es) {
     com.mode.devlog('instr fields = ' + es.ir_op + ' ' + es.ir_d + ' ' + es.ir_a + ' ' + es.ir_b);
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
+    console.log ("******************** Dispatch RRR");
     dispatch_RRR [es.ir_op] (es);
 }
 
@@ -1613,6 +1614,7 @@ const rrc = (f) => (es) => {
     let b = regFile[es.ir_b].get();
     let cc = f (a,b);
     com.mode.devlog (`rrc cc=${cc}`);
+    console.log (`CMP/RRC rrc cc=${cc}`);
     regFile[15].put(cc);
 }
 
@@ -1705,11 +1707,10 @@ const handle_rx = (es) => {
 }
 
 const handle_EXP = (es) => {
-    com.mode.devlog (`handle_EXP ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
     es.instrFmtStr = "EXP";
     let code = 16*es.ir_a + es.ir_b;
     if (code < limitEXPcode) {
-	com.mode.devlog (`handle_EXP dispatch code=${code} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+	console.log (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
 	dispatch_EXP [code] (es);
     } else {
 	com.mode.devlog (`EXP bad code ${arith.wordToHex4(code)}`);
@@ -1717,22 +1718,22 @@ const handle_EXP = (es) => {
 }
 
 const dispatch_RRR =
-      [ rrdc (arith.op_add),     // 0
-        rrdc (arith.op_sub),     // 1
-        rrdc (arith.op_mul),     // 2
-        rrdc (arith.op_div),     // 3
-        rrc (arith.op_cmp),      // 4
-        rrd (arith.op_cmplt),    // 5
-        rrd (arith.op_cmpeq),    // 6
-        rrd (arith.op_cmpgt),    // 7
-        rd  (arith.op_inv),      // 8
-        rrd (arith.op_and),      // 9
-        rrd (arith.op_or),       // a
-        rrd (arith.op_xor),      // b
-        crrdc (arith.op_addc),   // c
-        op_trap,           // d
-        handle_EXP,         // e
-        handle_rx ]        // f
+      [ rrdc (arith.op_add),   // 0
+        rrdc (arith.op_sub),   // 1
+        rrdc (arith.op_mul),   // 2
+        rrdc (arith.op_div),   // 3
+        rrc  (arith.op_cmp),   // 4
+        rrdc (arith.op_shift), // 5
+        rrdc (arith.op_add),   // 6  ????????
+        rrdc (arith.op_add),   // 7  ???????????
+        rrdc (arith.op_add),   // 8  ???????????
+        rrdc (arith.op_add),   // 9  ????????
+        rrdc (arith.op_add),   // a  ??????
+        rrdc (arith.op_add),   // b  ??????????
+        rrdc (arith.op_add),   // c  ???????
+        op_trap,               // d  trap=13
+        handle_EXP,            // e
+        handle_rx ]            // f
 	
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
@@ -1768,11 +1769,11 @@ const dispatch_RX =
       rx (rx_load),      // 1
       rx (rx_store),     // 2
       rx (rx_jump),      // 3
-      rx (rx_jumpc0),    // 4
-      rx (rx_jumpc1),    // 5
-      rx (rx_jumpf),     // 6
-      rx (rx_jumpt),     // 7
-      rx (rx_jal),       // 8
+      rx (rx_jal),       // 4
+      rx (rx_jumpc0),    // 5
+      rx (rx_jumpc1),    // 6
+      rx (rx_jumpf),     // 7
+      rx (rx_jumpt),     // 8
       rx (rx_nop),       // 9
       rx (rx_nop),       // a
       rx (rx_nop),       // b
@@ -1854,8 +1855,8 @@ function exp1_nop (es) {
     com.mode.devlog ('exp1_nop');
 }
 
-function exp1_rfi (es) {
-    com.mode.devlog ('exp1_rfi');
+function exp1_resume (es) {
+    com.mode.devlog ('exp1_resume');
     statusreg.put (istat.get());
     pc.put (ipc.get());
 }
@@ -1951,18 +1952,26 @@ function exp2_top (es) {
 
 function exp2_shiftl (es) {
     com.mode.devlog ("exp2_shiftl");
-    let x = regFile[es.field_e].get();
-    let k = es.field_g;
-    let result = x << k;  // logical shift
+    console.log (`shift d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
+    const x = regFile[es.field_e].get();
+    const k = es.field_f;
+    const result = arith.shiftL (x,k);
+//    const result1 = x << k;  // logical shift
+//    const result2 = arith.truncateWord (result1);
+    console.log (`shiftl x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
     com.mode.devlog (`shiftl ${arith.wordToHex4(x)} left by ${k} bits => ${arith.wordToHex4(result)}`);
     regFile[es.ir_d].put(result);
 }
 
 function exp2_shiftr (es) {
     com.mode.devlog ("exp2_shiftr");
+    console.log (`shiftr d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
     let x = regFile[es.field_e].get();
-    let k = es.field_g;
-    let result = x >>> k;  // logical shift
+    let k = es.field_f;
+    const result = arith.shiftR (x,k);
+//    let result1 = x >>> k;  // logical shift
+//    const result2 = arith.truncateWord (result1);
+    console.log (`shiftr x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
     com.mode.devlog (`shiftr ${arith.wordToHex4(x)} right by ${k} bits => ${arith.wordToHex4(result)}`);
     regFile[es.ir_d].put(result);
 }
@@ -2055,46 +2064,44 @@ function exp2_injecti (es) {
 }
 
 function exp2_logicw (es) {
+    console.log ('EXP2 logicw');
     com.mode.devlog ('exp2_logicw');
     let x = regFile[es.field_e].get(); // operand 1
     let y = regFile[es.field_f].get(); // operand 2
-    let fcn = es.field_g; // logic function
-    let result = applyLogicFcnWord (fcn,x,y); // fcn x y
+    let fcn = es.field_h; // logic function
+    let result = arith.applyLogicFcnWord (fcn,x,y); // fcn x y
+    console.log (`logicw x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)} result=${arith.wordToHex4(result)}`);
     regFile[es.ir_d].put(result);
 }
 
-
 function exp2_logicb (es) {
+    console.log (`>>>>>>>>>>>>>>>>>>>>>>>> exp2_logicb`);
     com.mode.devlog (`exp2_logicb`);
-    let xw = regFile[es.field_e].get(); // operand 1
-    let yw = regFile[es.field_f].get(); // operand 2
-    let i = es.field_h; // bit index
-    let x = arith.getBitInWordBE(xw,i);
-    let y = arith.getBitInWordBE(yw,i);
-    let fcn = es.field_g; // logic function
-    let bresult = applyLogicFcnBit (fcn,x,y); // bit result
-    let w = putBitInWord (regFile[es.ir_d].get(), i, bresult); // word result
-    regFile[es.ir_d].put(w);
+    const x = regFile[es.ir_d].get();
+    const f = arith.getBitInWordBE (x, es.field_f);
+    const g = arith.getBitInWordBE (x, es.field_g);
+    const fcn = es.field_h;  // logic function
+    const bresult = arith.applyLogicFcnBit (fcn, f, g); // bit result
+    const y = arith.putBitInWord (x, es.field_e, bresult); // word result
+    console.log (`logicb x=${arith.wordToHex4(x)} f=${f} g=${g} `
+                 + `fcn=${fcn} b=${bresult} result=${arith.wordToHex4(y)}`);;
+    regFile[es.ir_d].put(y);
 }
-
 
 // EXP format instructions that use only one word
 const exp1 = (f) => (es) => {
+    console.log (`>>> EXP1 instruction`);
     let expCode = 16*es.ir_a + es.ir_b;
-//    es.instrOpStr = mnemonicEXP[expCode];  ???????????????????????????
-    es.instrDisp = memFetchInstr (pc.get());
-    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
-    pc.put (es.nextInstrAddr);
-    com.mode.devlog(`EXPF code=${expCode} d=${es.ir_d} es.instrDisp=${arith.wordToHex4(es.instrDisp)}`);
+    es.instrOpStr = `EXP1 menonic code=${expCode}`;  // ?????????????
+    com.mode.devlog(`EXP1 code=${expCode} d=${es.ir_d}`);
     f(es);
 }
 
 // EXP format instructions that require a second word
 const exp2 = (f) => (es) => {
-    com.mode.devlog (`exp2 format instruction`);
+    console.log (`>>> EXP2 instruction`);
     let expCode = 16*es.ir_a + es.ir_b;
-    //    es.instrOpStr = mnemonicEXP[expCode];
-    es.instrOpStr = "EXPtodo";  // ?????????????????????????????????
+    es.instrOpStr = `EXP2 mnemonic code=${expCode}`;  // ????????????
     es.instrDisp = memFetchInstr (pc.get());
     adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
@@ -2108,38 +2115,21 @@ const exp2 = (f) => (es) => {
     es.field_f = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.field_e = tempinstr & 0x000f;
-    com.mode.devlog(`EXPF code=${expCode} d=${es.ir_d} es.instrDisp=${arith.wordToHex4(es.instrDisp)}`);
+    console.log(`>>> EXP2 code=${expCode} d=${es.ir_d} e=${es.field_e} `
+                + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
     f(es);
 }
 
-
 const dispatch_EXP =
-      [ exp1 (exp1_rfi),       // 0
-        exp1 (exp1_nop),       // 1
-        exp1 (exp1_nop),       // 2
-        exp1 (exp1_nop),       // 3
-        exp1 (exp1_nop),       // 4
-        exp1 (exp1_nop),       // 5
-        exp1 (exp1_nop),       // 6
-        exp1 (exp1_nop),       // 7
-        
-        exp2 (exp2_save),      // 8
-        exp2 (exp2_restore),   // 9
-        exp2 (exp2_getctl),    // 10
-        exp2 (exp2_putctl),    // 11
-        exp2 (exp2_execute),   // 12
-        exp2 (exp2_push),      // 13
-        exp2 (exp2_pop),       // 14
-        exp2 (exp2_top),       // 15
-
-        exp2 (exp2_shiftl),    // 16
-        exp2 (exp2_shiftr),    // 17
-        exp2 (exp2_extract),   // 18
-        exp2 (exp2_extracti),  // 19
-        exp2 (exp2_inject),    // 20
-        exp2 (exp2_injecti),   // 21
-        exp2 (exp2_logicw),    // 22
-        exp2 (exp2_logicb)     // 23
+      [ exp1 (exp1_resume),   // 0
+        exp2 (exp2_getctl),   // 1
+        exp2 (exp2_putctl),   // 2
+        exp2 (exp2_logicw),   // 2
+        exp2 (exp2_logicb),   // 4
+        exp2 (exp2_shiftl),   // 5
+        exp2 (exp2_shiftr),   // 6
+        exp2 (exp2_extract),  // 7
+        exp2 (exp2_extracti)  // 8
     ]
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 
