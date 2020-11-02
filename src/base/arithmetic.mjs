@@ -468,7 +468,6 @@ export function shiftR (x,k) {
     return truncateWord (x >>> k);
 }
 
-
 // Arithmetic for the add instruction (rrdc).  There is no carry input
 // bit, so the condition code is not needed as an argument.  The
 // primary result is the two's complement sum, and the secondary
@@ -530,6 +529,30 @@ export function op_mul (a,b) {
     let secondary = (tcOverflow ? ccv : 0);
 //    if (tcOverflow) { setBitInRegBE (req,overflowBit) } req ???????????????
     return [primary, secondary];
+}
+
+export function op_muln (c,a,b) {
+    const k16 = 2**16
+    const x = c * 2**16 + a;
+    const product = x * b;
+    const primary  = product % k16;
+    const secondary = Math.floor (product / k16);
+    console.log (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
+    return [primary, secondary];
+}
+
+
+export function op_divn (a,b) {
+    const k16 = 2**16
+    const x = c * 2**16 + a;
+    const q = Math.floor (x/b);
+    const r = x % b;
+
+    const primary  = product % k16;
+    const secondary = Math.floor (product / k16);
+    console.log (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
+    return [primary, secondary];
+
 }
 
 function test_mul () {

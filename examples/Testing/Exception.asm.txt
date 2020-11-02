@@ -1,6 +1,5 @@
-; ArithException - demonstrate exception handlers for arithmetic
-; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
-; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+; Exception - exception handlers
+; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
 
 ; Arithmetic exceptions: overflow and division by 0
 

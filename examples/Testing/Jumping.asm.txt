@@ -1,7 +1,21 @@
-; CmpJump - test cmp, jump, jumpXX
-; John O'Donnell. This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; Jump - test the instructions for transfer of control
+; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+
+; Data for comparisons
+    lea     R7,1[R0]    ; increment
+    add     R8,R0,R0    ; good count
+    add     R9,R0,R0    ; error count
 
 ; Comparisons
+    lea   R1,3[R0]
+    lea   R2,5[R0]
+
+    cmp    R1,R2      ; < signed, > unsigned   (lG)    3,0     0008
+    cmp    R2,R1      ; > signed, < unsigned   (Lg)    4,1     0012
+
+    cmp    R2,R3      ; < signed, < unsigned   (Ll)    4,3     0018
+    cmp    R3,R2      ; > signed, > unsigned   (gG)    1,0     0003
+
 
     lea     R1,-30000[R0]    ; R1 = I: -30000   N: 8ad0
     lea     R2,-2[R0]        ; R2 = I:     -2   N: fffe
@@ -56,11 +70,8 @@
     cmp     R4,R3   ; > G
     cmp     R4,R4   ; =
 
-; Test jumps
+; Jump pseudoinstructions
 
-    lea     R7,1[R0]    ; increment
-    add     R8,R0,R0    ; good count
-    add     R9,R0,R0    ; error count
 
 ; jumplt jumps
       cmp    R1,R2      ; <
@@ -78,26 +89,20 @@ lt3   add    R9,R9,R7   ; increment error count
 lt4
 
 
+; jumpz
+      lea    R1,5[R0]
+      jumpz  R1,z1[R0]  ; should not jump
+      add    R8,R8,R7   ; increment good count
+      jump   z2[R0]
+z1    add    R9,R9,R7   ; increment error count
+z2    jumpz  R0,z3[R0]  ; should jump      
+      add    R9,R9,R7   ; increment error count
+      jump   z4[R0]
+z3    add    R8,R8,R7   ; increment good count
+z4
       store  R9,errs[R0]  ; save count of errors
 done
     trap   R0,R0,R0     ; terminate
 
 errs data  0
-
-
-
-    cmp    R1,R2      ; < signed, > unsigned   (lG)    3,0     0008
-    cmp    R2,R1      ; > signed, < unsigned   (Lg)    4,1     0012
-
-    cmp    R2,R3      ; < signed, < unsigned   (Ll)    4,3     0018
-    cmp    R3,R2      ; > signed, > unsigned   (gG)    1,0     0003
-
-    cmp    R1,R2      ; < signed, > unsigned   (lG)    3,0     0008
-    jumplt lt[R0]
-    add    R9,R9,R8   ; increment error count
-lt                    ; ok to jump here
-
-; Data for comparisons
-      lea   R1,3[R0]
-      lea   R2,5[R0]
 

@@ -61,10 +61,11 @@ export const aRX      = Symbol ("RX");       // load     R1,xyz[R2]
 export const akX      = Symbol ("KX");       // jumpc0   3,next[R0]
 export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
 export const aRkkkk   = Symbol ("Rkkkk");    // logicb   R1,3,8,2,xor
-export const aRkkk   = Symbol ("Rkkkk");     // xorb     R1,3,8,2
+export const aRkkk    = Symbol ("Rkkkk");    // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");     // logicw   R1,R2,R3,xor
-export const aRRkk    = Symbol ("RRkk");     // extract  R1,R2,3,7
+export const akRkRk   = Symbol ("kRkRk");    // extract  R1,R2,3,7
 export const aRRRkk   = Symbol ("RRRkk");    // inject   R1,R2,R3,5,7
+export const aRRX     = Symbol ("RRX");      // save     R1,R2,5[R13]
 export const aData    = Symbol ("data");     // data     34
 export const aModule  = Symbol ("module");   // module
 export const aImport  = Symbol ("import");   // import   Mod1,x
@@ -77,7 +78,6 @@ export const aBlock   = Symbol ("block");    // block    100
 export const aRkk     = Symbol ("Rkk");  // field    R1,3,12  ?? should be RRkk
 
 // export const aEmpty   = Symbol ("aEmpty");
-// export const aRRX     = Symbol ("RRX");      //  - e.g. R1,R2,x[R5]
 
 //-----------------------------------------------------------------------------
 // Instruction mnemonics
@@ -148,6 +148,8 @@ export const bit_ccl = 3;   //    <   <          two's complement
 export const bit_ccL = 4;   //    L   <          binary
 export const bit_ccv = 5;   //    v   overflow   two's complement
 export const bit_ccC = 6;   //    c   carry      binary
+export const bit_ccStackOverflow  = 7;   //    c   carry      binary
+export const bit_ccStackUnderflow = 8;   //    c   carry      binary
 
 //-----------------------------------------------------------------------------
 // Status register bits
@@ -174,12 +176,13 @@ export const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
 // Interrupt request and mask bits
 //-----------------------------------------------------------------------------
 
-export const timerBit         = 0;   // timer has gone off
-export const segFaultBit      = 1;   // access invalid virtual address
-export const stackFaultBit    = 2;   // invalid memory virtual address
-export const userTrapBit      = 3;   // user trap
-export const overflowBit      = 4;   // overflow occurred
-export const zDivBit          = 5;   // division by 0
+export const timerBit            = 0;   // timer has gone off
+export const segFaultBit         = 1;   // access invalid virtual address
+export const stackOverflowBit    = 2;   // invalid memory virtual address
+export const stackUnderflowBit   = 3;   // invalid memory virtual address
+export const userTrapBit         = 4;   // user trap
+export const overflowBit         = 5;   // overflow occurred
+export const zDivBit             = 6;   // division by 0
 
 //-----------------------------------------------------------------------------
 // Assembly language data definitions for control bits
@@ -222,14 +225,14 @@ statementSpec.set("add",      {ifmt:iRRR,  afmt:aRRR,    opcode:[0]});
 statementSpec.set("sub",      {ifmt:iRRR,  afmt:aRRR,    opcode:[1]});
 statementSpec.set("mul",      {ifmt:iRRR,  afmt:aRRR,    opcode:[2]});
 statementSpec.set("div",      {ifmt:iRRR,  afmt:aRRR,    opcode:[3]});
-statementSpec.set("cmp",      {ifmt:iRRR,  afmt:aRR,     opcode:[4]});
-statementSpec.set("shift",    {ifmt:iRRR,  afmt:aRRR,    opcode:[5]});
-statementSpec.set("addc",     {ifmt:iRRR,  afmt:aRRR,    opcode:[6]});
-statementSpec.set("push",     {ifmt:iRRR,  afmt:aRRR,    opcode:[7]});
-statementSpec.set("pop",      {ifmt:iRRR,  afmt:aRRR,    opcode:[8]});
-statementSpec.set("top",      {ifmt:iRRR,  afmt:aRRR,    opcode:[9]});
-statementSpec.set("muln",     {ifmt:iRRR,  afmt:aRRR,    opcode:[10]});
-statementSpec.set("divn",     {ifmt:iRRR,  afmt:aRRR,    opcode:[11]});
+statementSpec.set("addc",     {ifmt:iRRR,  afmt:aRRR,    opcode:[4]});
+statementSpec.set("muln",     {ifmt:iRRR,  afmt:aRRR,    opcode:[5]});
+statementSpec.set("divn",     {ifmt:iRRR,  afmt:aRRR,    opcode:[6]});
+statementSpec.set("cmp",      {ifmt:iRRR,  afmt:aRR,     opcode:[7]});
+statementSpec.set("shift",    {ifmt:iRRR,  afmt:aRRR,    opcode:[8]});
+statementSpec.set("push",     {ifmt:iRRR,  afmt:aRRR,    opcode:[9]});
+statementSpec.set("pop",      {ifmt:iRRR,  afmt:aRRR,    opcode:[10]});
+statementSpec.set("top",      {ifmt:iRRR,  afmt:aRRR,    opcode:[11]});
 statementSpec.set("trap",     {ifmt:iRRR,  afmt:aRRR,    opcode:[13]});
 
 // RX instructions have primary opcode f and secondary opcode in b field
@@ -242,8 +245,8 @@ statementSpec.set("jumpc0",  {ifmt:iRX,  afmt:akX,    opcode:[15,5]});
 statementSpec.set("jumpc1",  {ifmt:iRX,  afmt:akX,    opcode:[15,6]});
 statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,7]});
 statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,8]});
-statementSpec.set("save",    {ifmt:iRX,  afmt:aRX,    opcode:[15,9]});
-statementSpec.set("restore", {ifmt:iRX,  afmt:aRX,    opcode:[15,10]});
+statementSpec.set("save",    {ifmt:iRX,  afmt:aRRX,    opcode:[15,9]});
+statementSpec.set("restore", {ifmt:iRX,  afmt:aRRX,    opcode:[15,10]});
 statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,11]});
 
 // EXP instructions have primary opcode e and 8-bit secondary opcode
@@ -259,9 +262,9 @@ statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,  opcode:[14,3]});
 statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRkkkk, opcode:[14,4]});
 statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,5]});
 statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,6]});
-statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRRkk,  opcode:[14,7]});
-statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRRkk,  opcode:[14,8]});
-// statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,    opcode:[14,12]});
+statementSpec.set("extract",  {ifmt:iEXP2, afmt:akRkRk, opcode:[14,7]});
+statementSpec.set("extracti", {ifmt:iEXP2, afmt:akRkRk, opcode:[14,8]});
+// statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,  opcode:[14,12]});
 
 // Assembler directives
 

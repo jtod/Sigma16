@@ -1,7 +1,7 @@
 ; Arithmetic - test cases
-; John O'Donnell. This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
 
-; Test loading of primary and secondary into register file
+; Loading primary and secondary into register file
 
       lea    R15,$f20b[R0]  ; primary = R15
       lea    R1,$00ab[R0]   ; R1 = constant
@@ -22,6 +22,19 @@
       load   R1,all1s[R0]   ; R1 = -1 = $ffff
       lea    R2,1[R0]       ; R2 =  1 = $0001
       add    R3,R1,R2       ; R3 = $0000, R15 = $0000
+
+; muln
+
+      lea    R1,10000[R0]
+      lea    R2,10000[R0]
+      muln   R3,R1,R2       ; result is 100000
+
+
+; divn
+
+      lea    R1,10000[R0]
+      lea    R2,10000[R0]
+      muln   R3,R1,R2       ; result is 100000
 
       trap   R0,R0,R0       ; terminate
 

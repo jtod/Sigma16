@@ -1030,9 +1030,7 @@ those parts should be executed and the other should be skipped over.
 
 For if-then-else, and many other control constructs, we need an
 *unconditional jump* which will always go to the specified address,
-and which doesn't use a Boolean.  The jump instruction is similar to
-jumpf and jumpt except that the register containing the Boolean is
-omitted:
+and which doesn't use a Boolean.
 
 #+BEGIN_EXAMPLE
    jump   somewhere[R0]    ; go to somewhere
@@ -1058,19 +1056,6 @@ L1: S2
 L2: S3
 #+END_EXAMPLE
 
-The pattern for translating this to assembly language is:
-
-#+BEGIN_EXAMPLE
-   Rd := Bexp               ; put Boolean into Rd
-   jumpf Rd,elsePart[R0]    ; if not Bexp then skip then-part
-   instructions for S1      ; then-part of the statement
-   jump   afterward[R0]     ; skip over else-part
-elsePart
-   instructions for S2      ; else-part of the statement
-afterward
-   instructions for S3
-#+END_EXAMPLE
-
 ** Loops
 
 Loops are implemented using compilation patterns based on comparisons
@@ -1084,13 +1069,10 @@ S2
 The compilation pattern is:
 
 #+BEGIN_EXAMPLE
-loop
-   Rd := Bexp
-   jumpf  Rd,loopDone[R0]
-   instructions for S1
-   jump   loop[R0]
-loopDone
-   instructions for S2
+L1   if not Bexp then goto L2
+     S2
+     goto L1
+L2
 #+END_EXAMPLE
 
 Occasionally you may encounter an infinite loop, which is sometimes
@@ -2287,7 +2269,7 @@ EXP instructions are represented in two words
 The a and b fields form an 8-bit value called ab.
 
 * Instruction set
-** Arithmetic instructions
+** Arithmetic
 
 The add instruction can be used for both binary addition (on natural
 numbers) and for two's complement addition (on signed integers).
@@ -2425,9 +2407,9 @@ division by 0.
   For example:
 
 #+BEGIN_EXAMPLE
-   div   R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
-   cmpeq R4,R3,R0       ; Did we divide by 0?
-   jumpt zeroDivide[R0] ; If yes, handle error
+   div    R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
+   cmp    R3,R0       ; Did we divide by 0?
+   jumpeq zeroDivide[R0] ; If yes, handle error
 #+END_EXAMPLE
   
 - (Exception) The program can detect division by 0 using an interrupt.
@@ -2435,40 +2417,44 @@ division by 0.
   division by 0.  See the section on Interrupts.  This approach does
   not require a compare or jump instruction for each division.
 
-*** shift
-
-This shift instruction allows for the direction and distance of a
-shift to be variable, specified in a register.  (The shiftl and shiftr
-instructions perform shift with a fixed constant direction and
-distance.)
-
-#+BEGIN_EXAMPLE
-shift Rd,Ra,Rb
-#+END_EXAMPLE
-
-Shift Ra by the number of bits given in Rb, and load the result in
-Rd.
-
-The word in Rb is interpreted as an integer, and its sign determines
-the direction of the shift.  If Rb>0 shift left; if Rb<0 shift right.
-
-The shift instruction can be used to multiply a natural number by a
-power of 2.  Interpreting Ra and Rd as natural (binary) numbers, and
-interpreting Rb as an integer (two's complement), the effect is Rd :=
-Ra * 2 ^ Rb.
-
 *** addc
 
-(Not yet implemented, coming soon)
-
-The **binary add with carry** instruction *addc Rd,Re,Rf* calculates
-the sum of the binary numbers in the operand registers Re and Rf as
-well as the carry bit in the condition code.  The sum is loaded into
-the destination register Rd and the carry output is set in the
-condition code register.  Overflow is not possible with this
+The addc instruction adds two registers and the carry bit in the
+condition code register, R15.  The sum is loaded into the destination
+register Rd and the carry output is written back into the carry bit,
+overwriting its previous value.  Overflow is not possible with this
 instruction.
 
-** Accessing memory
+*** muln
+
+#+BEGIN_EXAMPLE
+     muln   Rd,Ra,Rb
+#+END_EXAMPLE
+
+The muln instruction calculates the product of two natural numbers in
+Ra and Rb.  The result is 32 bits; the leftmost 16 bits (the most
+significant part) is loaded into R15, and the rightmost 16 bits (the
+least significant part) is loaded into Rd.  If Rd is R15, the most
+significant part is discarded.
+
+*** divn
+
+#+BEGIN_EXAMPLE
+     divn   Rd,Ra,Rb
+#+END_EXAMPLE
+
+The divn instruction divides two natural numbers: numerator /
+denominator.  The numerator is a 32 bit natural number; its leftmost
+16 bits are in R15 and the rightmost 16 bits are in Ra.  The
+denominator is in Rb.  Two results are produced: a 32-bit quotient and
+a 16-bit remainder.  The leftmost 16 bits of the quotient are placed
+in R15 (replacing the leftmost part of the numerator).  The rightmost
+16 bits of the quotient are placed in Rd.
+
+All the numbers -- numerator, denominator, quotient, remainder -- are
+natural numbers represented in binary.
+
+** Memory
 
 A memory address is a 16-bit binary number.  Instructions don't
 specify addresses directly; they specify an address with two
@@ -2550,6 +2536,145 @@ Examples
    store  R3,$2b8e[R5]
    store  R12,count[R0]
    store  R6,arrayX[R2]
+#+END_EXAMPLE
+
+*** Stack representation
+
+Three instructions (push, pop, top) support operations on a stack
+represented as an array of contiguous elements, where the stack grows
+from lower to higher addresses.  These instructions provide safe
+operations: they never overwrite memory outside the stack, and they
+indicate stack underflow and overflow by setting the condition code
+and optionaly performing an exception.
+
+A stack is represented by three addresses, which are provided to the
+push, pop, and top instructions in registers:
+- The /stack base/ is the address of the first word allocated for the
+  stack.
+- The /stack limit/ is the address of the last word allocated for the
+  stack.
+- The /stack top/ is the address of the stack element that was pushed
+  most recently.
+
+Although three addresses are required to characterise the state of a
+stack, each individual stack instruction (push, pop, top) requires
+only two of those addresses.  These are supplied as the Ra and Rb
+operands, while Rd is used to supply or receive the data value.
+
+The maximum number of elements the stack may contain is /stack
+limit/ - /stack base/ + 1.  Normally, /stack limit/ is greater than
+/stack base/.  If they are equal, there is only one word allocated for
+the stack (which is generally not useful), and if /stack base/ >
+/stack limit/ then no memory at all is allocated and every stack
+operation will signal an underflow or overflow error.
+
+If the stack is not empty, then /stack top/ is the address of the top
+element in the stack.  If the stack is empty, then /stack top/ must be
+/stack base/ - 1.
+
+A stack can be created and initialized by allocating a region of
+memory, setting /stack base/ to the first word and /stack limit/ to
+the last word, and setting /stack top/ to /stack base/ - 1.
+
+*** push
+
+The push instruction pushes an element onto a stack.  It is RRR
+format, and its general form is:
+
+#+BEGIN_EXAMPLE
+      push   Rd,Ra,Rb
+#+END_EXAMPLE
+
+- Rd = /stack data/: value to be pushed, unchanged
+- Ra = /stack top/: incremented unless stack was full
+- Rb = /stack limit/: unchanged
+- R15 condition code indicates stack overflow
+- System interrupt request register indicates stack overflow
+
+This instruction pushes the word in Rd onto a stack with /stack top/
+in Rd and /stack limit/ in Rb, provided that the stack is not full.
+The push stores the data word in Ra into memory and increments /stack
+top/ Rd.  If the stack is full, nothing is stored into memory and a stack
+overflow error is indicated in the condition code and interrupt
+request registers; an interrupt will occur if interrupts are enabled
+and the stack mask bit is set.  The operational semantics is:
+ 
+#+BEGIN_EXAMPLE
+if Ra < Rb
+  then Ra := Ra + 1; mem[Ra] := Rd
+  else R15.sovfl := 1, req.sovfl := 1
+#+END_EXAMPLE
+  
+If Rd = Rb this means the stack completely fills the region of memory
+allocated for the stack, and there is no space to store a new element.
+In this case, the push instruction does not store Ra, it doesn't
+modify Rd, it doesn't modify memory outside the block, and it doesn't
+overwrite data in the stack.  Instead, the instruction indicates a
+stack overflow by setting the sovfl (stack overflow) bit in the
+condition code (R15), and it also sets the stack fault bit in the
+interrupt request register.  If interrupts are enabled and the stack
+fault bit is set in the interrupt mask register, then an interrupt
+will occur after the push instruction completes.  There will be no
+interrupt if interrupts are disabled, or the stack fault bit is not
+set in the mask register.
+
+*** pop
+
+The push instruction removes an element onto a stack and returns it.
+The instruction is RRR format, and its general form is:
+
+#+BEGIN_EXAMPLE
+      pop    Rd,Ra,Rb
+#+END_EXAMPLE
+
+- Rd = /stack data/: destination for the popped stack element
+- Ra = /stack top/: decremented unless stack was empty
+- Rb = /stack base/: unchanged
+- R15 condition code indicates stack underflow
+- System interrupt request register indicates stack underflow
+
+This instruction pops the word from a stack with /stack top/ in Ra and
+/stack base/ in Rb, provided that the stack is not empty.  The pop
+loads the top element of the stack into Rd and decrements /stack top/.
+If the stack is empty, /stack top/ is not decremented, Rd is not
+modified, and a stack underflow error is indicated in the condition
+code and interrupt request registers; an interrupt will occur if
+interrupts are enabled and the stack mask bit is set.  The operational
+semantics is:
+
+#+BEGIN_EXAMPLE
+if Ra >= Rb
+  then Rd := mem[Ra]; Ra := Ra - 1
+  else R15.suvfl := 1, req.suvfl := 1
+#+END_EXAMPLE
+
+*** top
+
+The top instruction returns the top element on a stack but does not
+remove it.  The instruction is RRR format, and its general form is:
+
+#+BEGIN_EXAMPLE
+      top    Rd,Ra,Rb
+#+END_EXAMPLE
+
+- Rd = /stack data/: destination for the top element of the stack;
+  unchanged if stack is empty
+- Ra = /stack top/: unchanged
+- Rb = /stack base/: unchanged
+- R15 condition code indicates stack underflow
+- System interrupt request register indicates stack underflow
+
+This instruction loads the element at /stack top/ into Rd, provided
+that the stack is not empty.  If the stack is empty, Rd is not
+modified and a stack underflow error is indicated in the condition
+code and interrupt request registers; an interrupt will occur if
+interrupts are enabled and the stack mask bit is set.  The operational
+semantics is:
+
+#+BEGIN_EXAMPLE
+if Ra >= Rb
+  then Rd := mem[Ra]
+  else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
 *** save
@@ -2667,137 +2792,16 @@ The effect is equivalent to
    load  R10,11[R14]
 #+END_EXAMPLE
 
-*** push
+** Logic
 
-Push a word onto a stack.
-
-Example: push R1,R2,R3 pushes value in R1 onto stack with R2 = current
-top and R3 = last address in stack.
-
-Push the word in R1 onto a stack with top R2 and limit R3.  If the
-stack is full, nothing is stored into memory and an error is indicated
-in the condition code and interrupt request registers; an interrupt
-will occur if interrupts are enabled and the stack mask bit is set.
-
-Push has the following semantics:
-
-    if R2<R3
-      then R2 := R2+1; mem[R2] := R1
-      else R15.sovfl := 1, req.sovfl := 1
-  
-If R2 = R3 this means the stack completely fills the block, and there
-is no space to store a new element.  In this case, the push
-instruction does not store R1: it doesn't modify memory outside the
-block, and it doesn't overwrite data in the stack.  Instead, the
-instruction indicates a stack overflow by setting the sovfl (stack
-overflow) bit in the condition code (R15), and it also sets the stack
-fault bit in the interrupt request register.  If interrupts are
-enabled and the stack fault bit is set in the interrupt mask register,
-then an interrupt will occur after the push instruction completes.
-There will be no interrupt if interrupts are disabled, or the stack
-fault bit is not set in the mask register.
-
-Push is an EXP2 format instruction comprising two words.
-
------- ------ ------ ------
-  op     d      a      b   
- **e**   R1          **5**   
-  0-2    3-6   7-10  11-15  
------- ------ ------ ------
-
-*** pop
-
-The pop instruction removes the top element from a stack and loads it
-into the destination register.  (See push for a description of
-representation of a stack.)
-
-    pop R1,R2,R3
-
-    R1 = value popped from stack
-    R2 = stack top
-    R3 = stack base
-
-    if R2>R3
-      then R1 := mem[R2]; R2 := R2 - 1
-      else R15.StackUnderflow := 1, req.StackBounds := 1
-
-*** top
-
-     top  R1,R2,R3
-
-     R1 = value of top of stack
-     R2 = stack top
-     R2 = stack base
-
-     if R2>R2
-       then R1 := mem[R1]
-       else R15.StackEmpty := 1, req.StackBounds := 1
-
-** Comparisons
+*** cmp
 
 The comparison instructions compare the values in two operand
-*** cmp
 
 The **compare** instruction *cmp Ra,Rb* performs both an integer (two's
 complement) and a natural (binary) comparison of the operands.  The
 results are indicated in several of the flags in the condition code
 register, which is R15.
-
-** Transfer of control
-
-*** jump
-
-The **jump** instruction *jump disp[Ra]* transfers control to the
-instruction in memory at the effective address *disp+Ra*.
-
-*** jumpc0
-
-The **jump if condition code bit is 0** instruction *jumpc0
-k,disp[Ra]* checks the value of bit k in R15, which is the condition
-code register.  If this bit is *0*, then the instruction transfers
-control to the instruction in memory at the effective address
-*disp+Ra*; otherwise the instruction does nothing.
-
-*** jumpc1
-
-The **jump if condition code bit is 1** instruction *jumpc1
-k,disp[Ra]* checks the value of bit k in R15, which is the condition
-code register.  If this bit is *1*, then the instruction transfers
-control to the instruction in memory at the effective address
-*disp+Ra*; otherwise the instruction does nothing.
-
-*** jumpf
-
-The **jump if false** instruction *jumpf Rd,disp[Ra]* checks the
-Boolean value of Rd.  If this is *false*, the instruction transfers
-control to the instruction in memory at the effective address
-*disp+Ra*; otherwise the instruction does nothing.
-
-*** jumpt
-
-The **jump if true** instruction *jumpf Rd,disp[Ra]* checks the
-Boolean value of Rd.  If this is *true*, the instruction transfers
-control to the instruction in memory at the effective address
-*disp+Ra*; otherwise the instruction does nothing.
-
-*** jal
-
-The **jump and link** instruction *jal Rd,disp[Ra]* loads the address
-of the following instruction into the destination register Rd, and
-transfers control to the instruction in memory at the effective
-address *disp+Ra*.
-
-The value loaded into Rd is the address of the instruction that
-immediately follows the jal.  This instruction is used for calling
-procedures or functions: the effective address is the location of the
-procedure, and the return address is in Rd.  The procedure can then
-return by jumping to the return address, e.g. with *jump 0[Rd]*.
-
-*** Aliases for conditional jumps
-
-jumplt jumple jumpne jumpeq jumpge jumpgt
-
-** Logic functions
 
 *** logicw
 
@@ -2815,7 +2819,7 @@ Re and Rf, and the result is loaded into the destination register Rd.
 - Assembly format: RRRKEXP
 - Rd := (function g) Re Rf
 
-*** Logic on Booleans
+*** logicb
 
 The *logicb* instruction performs an arbitrary Boolean logic function
 on two operand bits, producing a result bit.  The operand bits must be
@@ -2857,90 +2861,93 @@ register could be specified.  So we would extract the two operands
 separately to scratch bits in the condition code, and the logicb
 instruction would calculate the result and put it whereever we want.
 
-*** inv
+** Jumping
 
-The **invert** pseudoinstruction *inv Rd,Ra* inverts the bits in the
-operand Ra and places the result in the destination Rd.  Thus bit i of
-Rd is set to the logical negation (invert) of bit i of Ra.  The
-operand Ra is not changed.
+*** jump
 
-Inverting a bit means changing 0 to 1, and changing 1 to 0.
+The **jump** instruction *jump disp[Ra]* transfers control to the
+instruction in memory at the effective address *disp+Ra*.
 
-Example:
+*** jal
+
+The **jump and link** instruction *jal Rd,disp[Ra]* loads the address
+of the following instruction into the destination register Rd, and
+transfers control to the instruction in memory at the effective
+address *disp+Ra*.
+
+The value loaded into Rd is the address of the instruction that
+immediately follows the jal.  This instruction is used for calling
+procedures or functions: the effective address is the location of the
+procedure, and the return address is in Rd.  The procedure can then
+return by jumping to the return address, e.g. with *jump 0[Rd]*.
+
+*** jumpc0
+
+The **jump if condition code bit is 0** instruction *jumpc0
+k,disp[Ra]* checks the value of bit k in R15, which is the condition
+code register.  If this bit is *0*, then the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
+
+*** jumpc1
+
+The **jump if condition code bit is 1** instruction *jumpc1
+k,disp[Ra]* checks the value of bit k in R15, which is the condition
+code register.  If this bit is *1*, then the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
+
+*** jumpz
+
 #+BEGIN_EXAMPLE
-   lea  R1,$00ff[R0]
-   lea  R2,$0f0f[R0]
-   inv  R3,R1         ; R3 := inv 00ff      = ff00
+     jumpz  Rd,disp[Ra]
 #+END_EXAMPLE
 
-The inv pseudoinstruction generates a logicw instruction with the
-function operand set to perform a logical invert.
+The jumpz instruction jumps to the effective address if Rd contains 0;
+otherwise the instruction does nothing and execution goes on to the
+following instruction.
 
-*** and
+*** jumpnz
 
-The **logical and** pseudoinstruction *and Rd,Ra,Rb* calculates the
-logical "and" (conjunction) of the corresponding bits in the operands
-Ra and Rb, and places the result in the destination Rd.  Thus bit i of
-Rd is the logical and of bit i in Ra and bit i in Rb.  The operand
-registers are not changed.
-
-The logical and of two bits is 1 if both bits are 1, and otherwise 0.
-
-Example:
 #+BEGIN_EXAMPLE
-   lea  R1,$00ff[R0]
-   lea  R2,$0f0f[R0]
-   and  R4,R1,R2      ; R4 := 00ff and 0f0f = 000f
+     jumpnz Rd,disp[Ra]
 #+END_EXAMPLE
 
-The and pseudoinstruction generates a logicw instruction with the
-function operand set to perform a logical and.
+The jumpnz instruction jumps to the effective address if Rd contains
+any value other than 0; otherwise the instruction does nothing and
+execution goes on to the following instruction.
 
-*** or
+** Bit fields
 
-The **logical or** pseudoinstruction *or Rd,Ra,Rb* calculates the
-logical "inclusive or" (disjunction) of the corresponding bits in the
-operands Ra and Rb, and places the result in the destination Rd. Thus
-bit i of Rd is the logical or of bit i in Ra and bit i in Rb.  The
-operand registers are not changed.
+Several instructions operate on some but not all of the bits in a
+word.  Each of these instructions can be implemented using a
+combination of several logic and shift instructions.  They are
+included in the architecture for several reasons:
 
-The logical or of two bits is 1 if either or both of the bits are 1,
-and 0 otherwise.
+- These operations are important for writing interpreters and
+  simulators, and they constutute important abstractions.
 
-Example:
-#+BEGIN_EXAMPLE
-   lea  R1,$00ff[R0]
-   lea  R2,$0f0f[R0]
-   or   R5,R1,R2      ; R5 := 00ff or  0f0f = 0fff
-#+END_EXAMPLE
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
 
-The or pseudoinstruction generates a logicw instruction with the
-function operand set to perform a logical or.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
 
-*** xor
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
+  In particular, they can be implemented in a circuit much more
+  efficiently than as a sequence of logic and shift operations.
 
-The **logical exclusive or** pseudoinstruction *xor Rd,Ra,Rb*
-calculates the logical "exclusive or" of the bits in the operands Ra
-and Rb, and places the result in the destination Rd.  Thus bit i of Rd
-is the logical xor of bit i in Ra and bit i in Rb.  The operand
-registers are not changed.
+A bit field is a contiguous sequence of bits in a word.  Bits are
+indexed from the left starting with 0, so the leftmost (most
+significant) bit has index 0, and the rightmost (least significant)
+has index 15.  A bit index is specified as a 4-bit binary number /i/
+such that 0 <= /i/ <= 15.
 
-The logical exclusive or of two bits is 1 if one or the other of the
-bits is 1, and 0 otherwise.  The exclusive or of two bits is the same
-as the inclusive or if either bit is 0.  The only time it is different
-is if both bits are 1: in that case exclusive or gives 0 but inclusive
-or gives 1.
-
-Example:
-#+BEGIN_EXAMPLE
-   lea  R1,$00ff[R0]
-   lea  R2,$0f0f[R0]
-   xor  R3,R1,R2      ; R3 := 0ff0
-#+END_EXAMPLE
-
-The xor pseudoinstruction generates a logicw instruction with the
-function operand set to perform an xor.
-
+A bit field is specified by the register containing a word, the index
+of the starting bit in the field, and the size of the field.
+  
 *** shiftl
 
 The instruction shiftl Rd,Ra,k shifts the value in the operand
@@ -2977,74 +2984,97 @@ changed.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-** Bit operations on fields
+*** shift
 
-Several instructions operate on some but not all of the bits in a
-word.  All of these instructions can be implemented using combinations
-of logic and shift instructions.  They are included in the
-architecture for several reasons: (1) these operations are important
-for writing interpreters and simulators, and they constutute important
-abstractions; (2) they are easier to use and more readable than the
-corresponding shifts; (3) they can be implemented efficiently in a
-digital circuit and this implementation is an interesting design
-problem.
+This shift instruction allows for the direction and distance of a
+shift to be variable, specified in a register.  (The shiftl and shiftr
+instructions perform shift with a fixed constant direction and
+distance.)
 
-Bits are indexed from the left starting with 0, so the leftmost (most
-significant) bit has index 0, and the rightmost (least significant)
-has index 15.  A bit index is specified as a 4-bit binary number *i*
-such that 0 <= *i* <= 15.
-  
-A **bit field** is a string of consecutive bits in a word defined by
-the sequence of its indices.  For example, W.[6,7,8] means the 3-bit
-field comprising indices 6, 7, and 8 in the word W.
+#+BEGIN_EXAMPLE
+shift Rd,Ra,Rb
+#+END_EXAMPLE
 
-Bit field instructions do not enumerate all the bits in a field.
-Instead, they specify the field with a pair of 4-bit binary numbers.
-The notation W.{s,e} denotes the bit field in W with start index *s*
-and end index *e*, where *s* and *e* are 4-bit binary numbers.
-Therefore 0 <= *s*,*e* <= 15.  The number of bits in the field (its
-size) is max (0, e-s+1).  If e-s+1 <= 0 then the field is empty; this
-occurs if e <= s-1.  If *s*=0 and *e*=15 then the size of the field is
-16 and it consists of the entire word.
+Shift Ra by the number of bits given in Rb, and load the result in
+Rd.
 
-Examples (W is an arbitrary word):
+The word in Rb is interpreted as an integer, and its sign determines
+the direction of the shift.  If Rb>0 shift left; if Rb<0 shift right.
 
-- W.{5,5} is the bit at index 5
-- W.{0,0} is the leftmost (most significant) bit
-- W.{15,15} is the rightmost (least significant) bit
-- W.{0,15} is the field consisting of the entire word W
-- W.{1,0} is the empty field containing no bits.  In general, W.{s,e}
-  where e<s is the empty field
-- ir.{0,4} is the opcode, i.e. the 4-bit field comprising the leftmost
-  four bits of the instruction register.
-- ir.{8,15} is the ab field of the instruction register, containing
-  the expanded operation code for EXP format instructions.
+The shift instruction can be used to multiply a natural number by a
+power of 2.  Interpreting Ra and Rd as natural (binary) numbers, and
+interpreting Rb as an integer (two's complement), the effect is Rd :=
+Ra * 2 ^ Rb.
 
-(An alternative way to specify bit fields, not used in Sigma16, would
-be to give the starting index and field size.  However, that approach
-is less flexible, as the value of the specified field size would range
-between 0 and 15, yet there are 16 possible field sizes.  This means
-that, depending on precisely how the definition is written, either
-empty fields or maximal fields would not be representable.)
-
-*** extract, extracti
+*** extract
 
 The extract instruction copies an arbitrary field of bits from a
 register (the source), and inserts those bits into an arbitrary
 position in a register (the destination).  The bits in the
 destination field are overwritten, and other bits in the destination
-are unchanged.
+are unchanged.  The general form is
+
+#+BEGIN_EXAMPLE
+     extract  FieldSize,Rd,d_index,Rs,s_index
+#+END_EXAMPLE
+
+The operands are:
+- FieldSize is the number of bits in the field, such that 0 <=
+  FieldSize <= 15.
+- Rd is the destination register
+- d_index is the bit index in the destination register where the first
+  bit of the field will be placed
+- Rs is the source register
+- s_index is the bit index in the source register from which the first
+  bit of the field is obtained
+
+The following example extracts 3 bits from R2, starting at bit 13, and
+places those bits in R5, starting at bit 2:
+
+#+BEGIN_EXAMPLE
+     extract  3,R5,2,R2,13
+#+END_EXAMPLE
+
+Using the notation R5.2 for "bit 2 in register R5", the effect of an
+extract instruction can be written as FieldSize individual bit assignments:
+
+#+BEGIN_EXAMPLE
+R5.2 := R2.13
+R5.3 := R2.14
+R5.4 := R2.15
+#+END_EXAMPLE
+
+Here is another example of an extract, which copies bits 7,8,9,10,11
+from R2 and puts them into bits 3,4,5,6,7 in R1.  The other bits of R1
+are not changed, and R2 is entirely unchanged.  The instruction copies
+five bits because the size field is 5.
+
+| extract 5,R1,3,R2,7 |
+|---------------------|
+| R1.3 := R2.7        |
+| R1.4 := R2.8        |
+| R1.5 := R2.9        |
+| R1.6 := R2.10       |
+| R1.7 := R2.11       |
+
+The effect of an extract instruction can be described clearly by
+writing each bit assignment individually, as in the examples.
+However, extract is a single instruction and its execution time is a
+small fixed number of clock cycles.  The execution time does not
+depend on the value of size.
+
+However, the instruction performs the extraction from the source and
+the injection into the destination in a small fixed number of steps.
+An extract instruction always takes the same amount of execution time;
+extracting a large field  doesn't require more time than extracting a
+small field.
+
 
 Any register may be specified for the source and destination.  If they
 are the same, the effect is to move a bit field from one place to
 another in the register (this is not the same as a shift).  If the
 destination is R0, the instruction has no effect.
 
-The extracti instruction is similar to extract, but extracti inverts
-the bits that are inserted into the destination.
-
-The section /Using extract/ illustrates several programming techniques
-using the extract and extracti instructions.
 
 The start position of a bit field is specified by the index of a bit
 position in a register, where the leftmost bit has index 0 and the
@@ -3058,22 +3088,23 @@ size=0 then the instruction does nothing.  If the size is too large,
 it is truncated, so the source and destination fields cannot extend
 beyond the rightmost bit in a register.
 
-The extract and extracti instructions are EXP2 format.  The op field
-contains 14, indicating EXP format, and the 8-bit secondary opcode is
-in the a and b fields (denoted ab).  The secondary opcodes are 5 for
-extract and 6 for extracti. 
+The extract instruction is EXP2 format.  The op field contains 14,
+indicating EXP format, and the 8-bit secondary opcode is in the a and
+b fields (denoted ab).  The value of the secondary opcode is 7.
 
 The machine language representation of the instructions specifies the
 destination register Rd, the bit position in the destination dpos, the
 source register Rs, the bit position of the field in the source spos,
 and the size of the bit field.  The notation R.pos means bit position
 pos in register R.  Thus the source field starts in Rs.spos and the
-destination field starts in Rd.dpos.  This table gives the machine
-language representation of extract and extracti:
+destination field starts in Rd.dpos.  The machine
+language representation is:
 
-#+BEGIN_EXAMPLE
-     extract  Rd,index_d,Rs,index_s,size
-#+END_EXAMPLE
+From instruction set summary:
+
+| extract  |   | EXP2 | RRkkk | e,07 | Rd := extract Rd Rf g h i             |
+| extracti |   | EXP2 | RRkkk | e,08 | Rd := extracti Rd Rf g h i            |
+
 
 |----+------+-------------------------------|
 | op | 14   | escape to EXP format          |
@@ -3086,35 +3117,43 @@ language representation of extract and extracti:
 | h  | spos | start position in source      |
 |----+------+-------------------------------|
 
-The assembly language notation uses a period rather than a comma to
-separate the register from but bit position; this makes it easier to
-remember which number goes with which register.  The general form of
-the assembly language notation is:
+*** extracti
 
-#+BEGIN_EXAMPLE
-extract Rd.dpos,Rs.spos,size
-#+END_EXAMPLE
+The extracti instruction is similar to extract, but extracti inverts
+the bits that are inserted into the destination.
 
-| Rd.dpos | destination field starts at dpos in Rd |
-| Rs.spos | source field starts at spos in Rs      |
-| size    | number of bits in the field            |
+The secondary opcode is 8.
 
-For example, the following instruction copies bits 7,8,9,10,11 from
-R2, and puts them into bits 3,4,5,6,7 in R1.  The other bits of R1 are
-not changed, and R2 is entirely unchanged.  The instruction copies
-five bits because the size field is 5.  The effect of the instruction
-can be described clearly by writing each bit assignment individually,
-as follows, but this is a single instruction and its execution time is
-a small fixed number of clock cycles.  The execution time does not
-depend on the value of size.
+** System
+*** getctl
+*** putctl
+*** trap
+**** Halt
+**** Write
+**** Nonblocking read
 
-| extract R1.3,R2.7,5 |
-|---------------------|
-| R1.3 := R2.7        |
-| R1.4 := R2.8        |
-| R1.5 := R2.9        |
-| R1.6 := R2.10       |
-| R1.7 := R2.11       |
+*** resume
+
+The resume instruction performs the following operations atomically:
+
+- status := istat
+- pc := ipc
+
+It is important that this is an atomic operation.  If either of the
+two register updates were performed before the other, then the second
+one would not function correctly.  In the digital circuit implementing
+the processor, these two register updates are genuinely simultaneous:
+they happen during the same clock cycle, at exactly the same time.
+
+The instruction format is EXP2.  As there is no operand, the d field
+is ignored and the second word of the instruction is omitted.  Thus
+every resume instruction has the same machine language representation:
+e000.  The fields are op, d, ab; op=14 to indicate EXP format, d=0
+because it is unused, and ab=0 because this is the secondary opcode of
+resume.
+
+This instruction is privileged.  Since the instruction changes the
+status register, it can be used to perform a context switch.
 
 *** testset
 
@@ -3140,38 +3179,6 @@ multiple processors.  This point, its significance, and programming
 techniques using testset are discussed in the section /Critical
 regions/ in the /Programming techniques/ chapter.
 
-** System control
-
-*** trap
-**** Trap operations
-**** Halt
-**** Write
-**** Nonblocking read
-*** getctl
-*** putctl
-*** resume
-
-The resume instruction performs the following operations atomically:
-
-- status := istat
-- pc := ipc
-
-It is important that this is an atomic operation.  If either of the
-two register updates were performed before the other, then the second
-one would not function correctly.  In the digital circuit implementing
-the processor, these two register updates are genuinely simultaneous:
-they happen during the same clock cycle, at exactly the same time.
-
-The instruction format is EXP2.  As there is no operand, the d field
-is ignored and the second word of the instruction is omitted.  Thus
-every resume instruction has the same machine language representation:
-e000.  The fields are op, d, ab; op=14 to indicate EXP format, d=0
-because it is unused, and ab=0 because this is the secondary opcode of
-resume.
-
-This instruction is privileged.  Since the instruction changes the
-status register, it can be used to perform a context switch.
-
 ** Pseudoinstructions
 
 | jumple  | RX | jumpc0 | jumple disp[Ra] | jumpc0 b,disp[Ra] |
@@ -3181,6 +3188,106 @@ status register, it can be used to perform a context switch.
 | jumpvu  | RX | jumpc0 |                 |                   |
 | jumpnco | RX | jumpc0 |                 |                   |
 | jumplt  | RX | jumpc0 |                 |                   |
+
+*** jumpXX conditional jump pseudoinstructions
+- jumplt
+- jumple
+- jumpne
+- jumpeq
+- jumpne
+- jumpge
+- jumpgt
+
+*** logic pseudoinstructions
+- invw
+
+The invw instruction inverts the bits in a word.  Inverting a bit
+means changing 0 to 1 and changing 1 to 0.  The general form is
+
+#+BEGIN_EXAMPLE
+     inv Rd,Ra
+#+END_EXAMPLE
+
+The instruction inverts each bit in the source register Ra and places
+the result in the corresponding position in the destination register
+Rd.  Thus bit /i/ of Rd is set to the logical negation (invert) of bit
+/i/ of Ra.  The operand Ra is not changed.  For example,
+
+#+BEGIN_EXAMPLE
+     lea  R1,$00ff[R0]
+     lea  R2,$0f0f[R0]
+     inv  R3,R1         ; R3 := inv 00ff      = ff00
+#+END_EXAMPLE
+
+invw is a pseudoinstruction.  The assembler generates a logicw
+instruction with the function operand set to perform a logical invert.
+
+- andw
+
+The **logical and** pseudoinstruction *and Rd,Ra,Rb* calculates the
+logical "and" (conjunction) of the corresponding bits in the operands
+Ra and Rb, and places the result in the destination Rd.  Thus bit i of
+Rd is the logical and of bit i in Ra and bit i in Rb.  The operand
+registers are not changed.
+
+The logical and of two bits is 1 if both bits are 1, and otherwise 0.
+
+Example:
+#+BEGIN_EXAMPLE
+   lea  R1,$00ff[R0]
+   lea  R2,$0f0f[R0]
+   and  R4,R1,R2      ; R4 := 00ff and 0f0f = 000f
+#+END_EXAMPLE
+
+The and pseudoinstruction generates a logicw instruction with the
+function operand set to perform a logical and.
+
+- orw
+
+The **logical or** pseudoinstruction *or Rd,Ra,Rb* calculates the
+logical "inclusive or" (disjunction) of the corresponding bits in the
+operands Ra and Rb, and places the result in the destination Rd. Thus
+bit i of Rd is the logical or of bit i in Ra and bit i in Rb.  The
+operand registers are not changed.
+
+The logical or of two bits is 1 if either or both of the bits are 1,
+and 0 otherwise.
+
+Example:
+#+BEGIN_EXAMPLE
+   lea  R1,$00ff[R0]
+   lea  R2,$0f0f[R0]
+   or   R5,R1,R2      ; R5 := 00ff or  0f0f = 0fff
+#+END_EXAMPLE
+
+The or pseudoinstruction generates a logicw instruction with the
+function operand set to perform a logical or.
+
+- xorw
+
+The **logical exclusive or** pseudoinstruction *xor Rd,Ra,Rb*
+calculates the logical "exclusive or" of the bits in the operands Ra
+and Rb, and places the result in the destination Rd.  Thus bit i of Rd
+is the logical xor of bit i in Ra and bit i in Rb.  The operand
+registers are not changed.
+
+The logical exclusive or of two bits is 1 if one or the other of the
+bits is 1, and 0 otherwise.  The exclusive or of two bits is the same
+as the inclusive or if either bit is 0.  The only time it is different
+is if both bits are 1: in that case exclusive or gives 0 but inclusive
+or gives 1.
+
+Example:
+#+BEGIN_EXAMPLE
+   lea  R1,$00ff[R0]
+   lea  R2,$0f0f[R0]
+   xor  R3,R1,R2      ; R3 := 0ff0
+#+END_EXAMPLE
+
+The xor pseudoinstruction generates a logicw instruction with the
+function operand set to perform an xor.
+
+*** invb, andb, orb, xorb
 
 ** Summary of instruction set
 
@@ -3223,14 +3330,14 @@ precisely and concisely the effects of the instructions:
 | sub      |   | RRR  | RRR   | 1    | Rd := Ra - Rb                         |
 | mul      |   | RRR  | RRR   | 2    | Rd := Ra * Rb                         |
 | div      |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra mod Rb       |
-| cmp      |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                      |
-| shift    |   | RRR  | RRR   | 5    | Rd := Ra shift Rb, >0 left, <0 right  |
-| addc     |   | RRR  | RRR   | 6    | Rd := Ra + Rb + R15.carry             |
-| push     |   | RRR  | RRR   | 7    | M[ea] := Rd, Rb++                     |
-| pop      |   | RRR  | RRR   | 8    | Rb--, Rd := M[ea]                     |
-| top      |   | RRR  | RRR   | 9    | Rd := M[ea]                           |
-| muln     |   | RRR  | RRR   | a    | R15++Rd := Ra :*: Rb                  |
-| divn     |   | RRR  | RRR   | b    | R15++Rd := R15++Ra :/: Rb             |
+| addc     |   | RRR  | RRR   | 4    | Rd := Ra + Rb + R15.carry             |
+| muln     |   | RRR  | RRR   | 5    | R15++Rd := Ra :*: Rb                  |
+| divn     |   | RRR  | RRR   | 6    | R15++Rd := R15++Ra :/: Rb             |
+| cmp      |   | RRR  | RR    | 7    | R15 := Ra cmp Rb                      |
+| shift    |   | RRR  | RRR   | 8    | Rd := Ra shift Rb, >0 left, <0 right  |
+| push     |   | RRR  | RRR   | 9    | M[ea] := Rd, Rb++                     |
+| pop      |   | RRR  | RRR   | a    | Rb--, Rd := M[ea]                     |
+| top      |   | RRR  | RRR   | b    | Rd := M[ea]                           |
 |          |   | RRR  |       | c    | -- reserved --                        |
 | trap     |   | RRR  | RRR   | d    | interrupt                             |
 |          |   | ---  |       | e    | escape to EXP format                  |
@@ -3258,11 +3365,11 @@ precisely and concisely the effects of the instructions:
 | getctl   | P | EXP2 | RC    | e,01 | Rd := Sc                              |
 | putctl   | P | EXP2 | RC    | e,02 | Sc := Rd                              |
 | logicw   |   | EXP2 | RRRk  | e,03 | Rd := Re (lut g) Rf                   |
-| logicb   |   | EXP2 | Rkkkk | e,04 | Rd.e := Rd.f (lut h) Rd.g          |
+| logicb   |   | EXP2 | Rkkkk | e,04 | Rd.e := Rd.f (lut h) Rd.g             |
 | shiftl   |   | EXP2 | RRk   | e,05 | Rd := Ra shl b                        |
 | shiftr   |   | EXP2 | RRk   | e,06 | Rd := Ra shr b                        |
-| extract  |   | EXP2 | RRkkk | e,07 | Rd := extract Rd Rf g h i             |
-| extracti |   | EXP2 | RRkkk | e,08 | Rd := extracti Rd Rf g h i            |
+| extract  |   | EXP2 | kRkRk | e,07 | Rd := extract Rd Rf g h i             |
+| extracti |   | EXP2 | kRkRk | e,08 | Rd := extracti Rd Rf g h i            |
 |          |   | EXP2 |       | e,09 | -- reserved --                        |
 |          |   | EXP2 |       | ...  | -- reserved --                        |
 |          |   | EXP2 |       | e,ff | -- reserved --                        |

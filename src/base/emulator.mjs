@@ -1535,12 +1535,14 @@ function executeInstruction (es) {
     es.ir_d = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
-    com.mode.devlog('instr fields = ' + es.ir_op + ' ' + es.ir_d + ' ' + es.ir_a + ' ' + es.ir_b);
+    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
-    console.log ("******************** Dispatch RRR");
-    dispatch_RRR [es.ir_op] (es);
+    console.log ("Dispatch primary opcode");
+    dispatch_primary_opcode [es.ir_op] (es);
 }
+
+// RRR instruction pattern functions
 
 // RRR instructions have three specified registers, and may also use
 // the condition code cc, which is R15.
@@ -1564,25 +1566,47 @@ function executeInstruction (es) {
 // register.
 
 // rrd   -- use ra and rb as operands, place result in rd
-// rrdc  -- use ra and rb as operands, place results in rd and cc
-// crrdc -- use cc, ra and rb as operands, place results in rd and cc
+// ab_dc  -- use ra and rb as operands, place results in rd and cc
+// cab_dc -- use cc, ra and rb as operands, place results in rd and cc
 // rd    -- use ra as operand, place result in rd, ignore rb and cc
-// rrc   -- use ra and rb as operands, place result in cc, ignore rd
+// ab_c   -- use ra and rb as operands, place result in cc, ignore rd
 // rrrc  -- use ra, rb, and cc as operands, place results in rd and cc
 // trap  -- perform trap; instruction ignores all registers but OS may use them
 
 
-/* Example of a lambda expression and a curried lambda
+/* JavaScript: example of a lambda expression and a curried lambda
   const foobar = (x) => (y) => x+y;
   let baz = foobar (5);
   let bar = foobar (41);
   let abc = foobar (7) (50);
 */
 
-// Apply f to a and b, load primary result into d, and load secondary
-// result into c (e.g. add)
+// ab_dc instructions take two register arguments in a and b, and
+// produce two results: primary and secondary.  The primary is loaded
+// into d.  The secondary is normally loaded into condition code, but
+// if d=15 the secondary is discarded.  The instruction semantics is
+// defined by f.
 
-const rrdc = (f) => (es) => {
+const ab_dc = (f) => (es) => {
+    let a = regFile[es.ir_a].get();
+    let b = regFile[es.ir_b].get();
+    let [primary, secondary] = f (a,b);
+    regFile[es.ir_d].put(primary);
+    if (es.ir_d<15) { regFile[15].put(secondary) }
+}
+
+// ab_dac instructions (e.g. pop):
+const ab_dac = (f) => (es) => {
+    let a = regFile[es.ir_a].get();
+    let b = regFile[es.ir_b].get();
+    let [primary,secondary] = f (a,b);
+    regFile[es.ir_a].put(primary);
+    if (es.ir_a<15) { regFile[15].put(secondary) }
+}
+
+
+// Apply f to d, a, b
+const rrrc = (f) => (es) => {
     let a = regFile[es.ir_a].get();
     let b = regFile[es.ir_b].get();
     let [primary, secondary] = f (a,b);
@@ -1607,21 +1631,23 @@ const rrd = (f) => (es) => {
     regFile[es.ir_d].put(primary);
 }
 
-// Apply f to a and b, and load primary result into c (e.g. cmp)
+// ab_c -- Arguments are in a and b.  The result is loaded into the
+// condition code.  The instruction semantics is defined by f.
 
-const rrc = (f) => (es) => {
+const ab_c = (f) => (es) => {
     let a = regFile[es.ir_a].get();
     let b = regFile[es.ir_b].get();
     let cc = f (a,b);
-    com.mode.devlog (`rrc cc=${cc}`);
-    console.log (`CMP/RRC rrc cc=${cc}`);
+    com.mode.devlog (`ab_c cc=${cc}`);
+    console.log (`CMP/AB_C ab_c cc=${cc}`);
     regFile[15].put(cc);
 }
 
-// Apply f to c, a and b, load primary result into d, and load
-// secondary result into c (e.g. addc)
+// cab_dc -- arguments are in c, a, and b.  The primary result is
+// loaded into d and the secondary is loaded into c.  The instruction
+// semantics is defined by f.
 
-const crrdc = (f) => (es) => {
+const cab_dc = (f) => (es) => {
     let c = regFile[15].get();
     let a = regFile[es.ir_a].get();
     let b = regFile[es.ir_b].get();
@@ -1717,24 +1743,88 @@ const handle_EXP = (es) => {
     }
 }
 
-const dispatch_RRR =
-      [ rrdc (arith.op_add),   // 0
-        rrdc (arith.op_sub),   // 1
-        rrdc (arith.op_mul),   // 2
-        rrdc (arith.op_div),   // 3
-        rrc  (arith.op_cmp),   // 4
-        rrdc (arith.op_shift), // 5
-        rrdc (arith.op_add),   // 6  ????????
-        rrdc (arith.op_add),   // 7  ???????????
-        rrdc (arith.op_add),   // 8  ???????????
-        rrdc (arith.op_add),   // 9  ????????
-        rrdc (arith.op_add),   // a  ??????
-        rrdc (arith.op_add),   // b  ??????????
-        rrdc (arith.op_add),   // c  ???????
-        op_trap,               // d  trap=13
-        handle_EXP,            // e
-        handle_rx ]            // f
-	
+const op_push  = (es) => {
+    const d = regFile[es.ir_d].get();
+    const ra = es.ir_a;
+    const a = regFile[ra].get();
+    const b = regFile[es.ir_b].get();
+    console.log (`push d=${d} ra=${ra} a=${a} b=${b}`)
+    if (a < b) {
+        regFile[ra].put(a+1);
+        memStore (a+1, d);
+    } else {
+        console.log (`push: stack overflow`);
+        arith.setBitInRegBE (req, arch.stackOverflowBit);
+    }
+}
+
+// pop: Rd = data, Ra = top, Rb = base
+
+const op_pop  = (es) => {
+    const a = regFile[es.ir_a].get();
+    const b = regFile[es.ir_b].get();
+    if (a >= b) {
+        regFile[es.ir_d].put(memFetchData(a));
+        regFile[es.ir_a].put(a-1);
+    } else {
+        console.log (`pop: stack underflow`);
+        arith.setBitInRegBE (req, arch.stackUnderflowBit);
+    }
+}
+
+const op_top  = (es) => {
+    const a = regFile[es.ir_a].get();
+    const b = regFile[es.ir_b].get();
+    if (a >= b) {
+        regFile[es.ir_d].put(memFetchData(a));
+    } else {
+        console.log (`pop: stack underflow`);
+        arith.setBitInRegBE (req, arch.stackUnderflowBit);
+    }
+}
+
+
+// Use the opcode to dispatch to the corresponding instruction.  If
+// the opcode is 14/15 the instruction representation escapes to
+// EXP/RX format.  Otherwise the instruction is RRR.  There are
+// several patterns of register usage for RRR instructions; each
+// pattern has a pattern function (e.g. ab_dc) that is applied to a
+// specific instruction semantics function (e.g. arith.op_add).  There
+// is a naming convention for the pattern functions: the name consists
+// of the source registers, underscore, and the result registers.  The
+// normal pattern for RRR instructions is ab_dc, where the arguments
+// are in Ra and Rb, and the primary result goes into Rd with the
+// condition code set.  Several RRR instructions use the registers
+// differently, so they have different pattern functions.
+
+// There are two reasons for introducing the instruction pattern
+// functions. They abstract the common behaviors and allow the
+// specific instruction calculations to be separated out, and they
+// avoid fetching registers that will not be used in an instruction (a
+// circuit implementing the architecture would likely fetch all the
+// register operands, but for a student learning architecture, it
+// would be confusing for the register highlighting to indicate that a
+// register has been fetched if it isn't needed for the instruction).
+
+const dispatch_primary_opcode =
+      [ ab_dc (arith.op_add),     // 0
+        ab_dc (arith.op_sub),     // 1
+        ab_dc (arith.op_mul),     // 2
+        ab_dc (arith.op_div),     // 3
+        ab_dc (arith.op_addc),    // 4
+        cab_dc (arith.op_muln),   // 5
+        cab_dc (arith.op_divn),   // 6
+        ab_c  (arith.op_cmp),     // 7
+        ab_dc (arith.op_shift),   // 8
+        op_push,                  // 9
+        op_pop,                   // a
+        op_top,                   // b
+        ab_dc (arith.op_nop),     // c  reserved, currently nop
+        op_trap,                  // d  trap=13
+        handle_EXP,               // e  escape to EXP
+        handle_rx ]               // f  escape to RX
+
+
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
 // the primary result is loaded into rd and the secondary result is

@@ -1,11 +1,12 @@
-; Memory - test loads, stores, stack operations, saving and restoring registers
-; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
-; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+; Memory - test instructions that access memory
+; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
 
-; Basic memory access
+
+;   jump    test_stack[R0]
 
 ; Stack operations
 
+test_stack
    lea   R1,1[R0]            ; some data to push onto stack
    lea   R2,2[R0]
    lea   R3,3[R0]
@@ -51,19 +52,7 @@
    push  R4,R11,R12
    push  R5,R11,R12
 
-   trap  R0,R0,R0
-   
-StackFirst
-   data   0
-   data   0
-   data   0
-   data   0
-   data   0
-   data   0
-StackLast
-
-
-; Saving and restoring registers
+test_save_restore
 
 ; A typical usage
    lea     R1,1[R0]
@@ -108,6 +97,25 @@ StackLast
    add     R14,R0,R0
    add     R15,R0,R0
    restore R11,R3,3[R5]
+
+
+; lea
+
+; load and store
+
+
+
+   trap  R0,R0,R0
+   
+StackFirst
+   data   0
+   data   0
+   data   0
+   data   0
+   data   0
+   data   0
+StackLast
+
 
    trap R0,R0,R0
 

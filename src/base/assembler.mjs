@@ -1198,7 +1198,7 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-RRX
+// EXP2-RRX save, restore
 	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRX) {
 	    com.mode.devlog (`pass2 EXP2/RRX`);
             const x = rrxParser.exec (s.fieldOperands);
