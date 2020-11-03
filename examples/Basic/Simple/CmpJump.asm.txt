@@ -1,6 +1,5 @@
 ; CmpJump - demonstrate a conditional jump
-; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
-; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
 ; Given the constants in the lea instructions, the instruction
 ; labelled yes should be executed.  You can modify the constants in
@@ -10,8 +9,8 @@
 
       lea     R1,5[R0]   ; R1 := 5
       lea     R2,23[R0]  ; R2 := 23
-      cmplt   R3,R1,R2   : R3 := R1 < R2 = True
-      jumpt   R3,yes[R0] ; if R1<R2 then goto yes
+      cmp     R1,R2      : compare R1 with R2
+      jumplt  yes[R0]    ; if R1 < R2 then goto yes
 no    add     R0,R0,R0   ; this executes if we did NOT jump
       jump    done[R0]   ; go to end of program
 yes   add     R0,R0,R0   ; this executes if we DID jump

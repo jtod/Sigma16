@@ -1,5 +1,5 @@
-; Arithmetic - test cases
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; Arithmetic: test cases for arithmetic instructions
+; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
 ; Loading primary and secondary into register file
 

@@ -1,6 +1,5 @@
-; Add - a minimal program that adds two integer variables
-; This file is part of Sigma16.  Copyright (C) 2019, 2020 John T. O'Donnell
-; License: GNU GPL Version 3 or later.  Sigma16/LICENSE.txt, Sigma16/NOTICE.txt
+; Add: a minimal program that adds two integer variables
+; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
 ; Execution starts at location 0, where the first instruction will be
 ; placed when the program is executed.
