@@ -1783,7 +1783,6 @@ const op_top  = (es) => {
     }
 }
 
-
 // Use the opcode to dispatch to the corresponding instruction.  If
 // the opcode is 14/15 the instruction representation escapes to
 // EXP/RX format.  Otherwise the instruction is RRR.  There are
@@ -2066,91 +2065,35 @@ function exp2_shiftr (es) {
     regFile[es.ir_d].put(result);
 }
 
-// Instruction fields for extract and extractii:
-//   d = destination
-//   e = operand
-//   (g,h) = field
+// extract
 
 function exp2_extract (es) {
     com.mode.devlog ('exp2_extract');
-    let x = regFile[es.field_e].get();
-    let i = es.field_g;
-    let j = es.field_h;
-    let a = (x << i) & 0xffff;
-    let b = a >> (15 - (j-i));
-    regFile[es.ir_d].put(b);
+    console.log ('exp2_extract');
+    const src = regFile[es.field_g].get();
+    const srci = es.field_h;
+    const yold = regFile[es.ir_d].get();
+    const yi = es.field_e;
+    const size = es.field_f;
+    const ynew = arith.calculateExtract (16, size, src, srci, yold, yi);
+    console.log (`extract src=${arith.wordToHex4(src)} srci=${srci} `
+                 + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
+                 + ` ynew=${arith.wordToHex4(ynew)}`);
+    regFile[es.ir_d].put(ynew);
 }
 
 function exp2_extracti (es) {
     com.mode.devlog ('exp2_extracti');
-    let x = wordInvert (regFile[es.field_e].get());
-    let i = es.field_g;
-    let j = es.field_h;
-    let a = (x << i) & 0xffff;
-    let b = a >> (15 - (j-i));
-    regFile[es.ir_d].put(b);
-}
-
-function foobar (g,h) {
-    let x = 0x0000;  // operand
-    let i = g;  // field start, there will be this many 0s to left of field
-    let j = h;  // field end
-    let jjj = 15 - j; // there will be this many 0s to right of field
-    let a = 0xffff;
-    let b = (a << jjj) & 0xffff; // get jjj 0s on right side
-    let c = b >> i; // get i 0s on left side
-    com.mode.devlog (`x=${x} i=${i} j=${j} a=${arith.wordToHex4(a)}`);
-    com.mode.devlog (`a=${arith.wordToHex4(a)} b=${arith.wordToHex4(b)} c=${arith.wordToHex4(c)}`);
-    return 0
-}
-
-// Instruction fields for inject and injecti:
-//   d = destination
-//   e = operand
-//   (g,h) = field
-
-
-function exp2_inject (es) {
-    com.mode.devlog ('exp2_inject');
-    let e = regFile[es.field_e].get(); // inject into this word
-    let f = regFile[es.field_f].get(); // word contains the field to be injected
-    let g = es.field_g;  // start bit index of field
-    let h = es.field_h;  // end bit index of field
-    let fieldsize = h-g+1;
-    let shrdist = 15-h+g; // shift ffff right to get right-adjusted field
-    let shldist = 15-h;   // shift left to put field into position
-    let radjustedField = 0xffff >>> shrdist;
-    let x = f & radjustedField; // value to be injected
-    let field = radjustedField << shldist; // 1s in the field
-    let fieldInv = (~field) & 0xffff; // mask to clear field in e
-    let result = (e & fieldInv) | (x << shldist) ;
-    regFile[es.ir_d].put(result);
-}
-
-//    com.mode.devlog (`inject e=${wordToHex4(e)}`);
-//    com.mode.devlog (`inject f=${wordToHex4(f)}`);
-//    com.mode.devlog (`inject g=${g} h=${h}`);
-//    com.mode.devlog (`inject fieldsize=${fieldsize}`);
-//    com.mode.devlog (`inject shrdist=${shrdist} shldist=${shldist}`);
-//    com.mode.devlog (`inject field=${wordToHex4(field)}`);
-//    com.mode.devlog (`inject fieldInv=${wordToHex4(fieldInv)}`);
-//    com.mode.devlog (`inject result=${wordToHex4(result)}`);
-
-function exp2_injecti (es) {
-    com.mode.devlog ('exp2_injecti');
-    let e = regFile[es.field_e].get(); // inject into this word
-    let f = regFile[es.field_f].get(); // word contains the field to be injected
-    let g = es.field_g;  // start bit index of field
-    let h = es.field_h;  // end bit index of field
-    let fieldsize = h-g+1;
-    let shrdist = 15-h+g; // shift ffff right to get right-adjusted field
-    let shldist = 15-h;   // shift left to put field into position
-    let radjustedField = 0xffff >>> shrdist;
-    let x = (~f) & radjustedField; // value to be injected
-    let field = radjustedField << shldist; // 1s in the field
-    let fieldInv = (~field) & 0xffff; // mask to clear field in e
-    let result = (e & fieldInv) | (x << shldist) ;
-    regFile[es.ir_d].put(result);
+    const src = regFile[es.field_g].get();
+    const srci = es.field_h;
+    const yold = regFile[es.ir_d].get();
+    const yi = es.field_e;
+    const size = es.field_f;
+    const ynew = arith.calculateExtracti (16,size,src,srci,yi);
+    console.log (`extract src=${arith.wordToHex4(src)} srci=${srci} `
+                 + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
+                 + ` ynew=${arith.wordToHex4(ynew)}`);
+    regFile[es.ir_d].put(ynew);
 }
 
 function exp2_logicw (es) {
@@ -2187,7 +2130,8 @@ const exp1 = (f) => (es) => {
     f(es);
 }
 
-// EXP format instructions that require a second word
+// EXP2 format instructions require a second word
+
 const exp2 = (f) => (es) => {
     console.log (`>>> EXP2 instruction`);
     let expCode = 16*es.ir_a + es.ir_b;
@@ -2207,7 +2151,7 @@ const exp2 = (f) => (es) => {
     es.field_e = tempinstr & 0x000f;
     console.log(`>>> EXP2 code=${expCode} d=${es.ir_d} e=${es.field_e} `
                 + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
-    f(es);
+    f (es);
 }
 
 const dispatch_EXP =

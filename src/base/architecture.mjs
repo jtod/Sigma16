@@ -63,7 +63,7 @@ export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
 export const aRkkkk   = Symbol ("Rkkkk");    // logicb   R1,3,8,2,xor
 export const aRkkk    = Symbol ("Rkkkk");    // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");     // logicw   R1,R2,R3,xor
-export const akRkRk   = Symbol ("kRkRk");    // extract  R1,R2,3,7
+export const aRkkRk   = Symbol ("RkkRk");    // extract  R1,3,5,R2,7
 export const aRRRkk   = Symbol ("RRRkk");    // inject   R1,R2,R3,5,7
 export const aRRX     = Symbol ("RRX");      // save     R1,R2,5[R13]
 export const aData    = Symbol ("data");     // data     34
@@ -262,8 +262,8 @@ statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,  opcode:[14,3]});
 statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRkkkk, opcode:[14,4]});
 statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,5]});
 statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,6]});
-statementSpec.set("extract",  {ifmt:iEXP2, afmt:akRkRk, opcode:[14,7]});
-statementSpec.set("extracti", {ifmt:iEXP2, afmt:akRkRk, opcode:[14,8]});
+statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,7]});
+statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,8]});
 // statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,  opcode:[14,12]});
 
 // Assembler directives

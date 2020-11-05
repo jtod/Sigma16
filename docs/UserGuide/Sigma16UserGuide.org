@@ -1,7 +1,3 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./index.css" />
-#+OPTIONS: toc:nil
-#+OPTIONS: num:nil
-
 # Sigma16 User Guide
 # Copyright (C) 2020 John T. O'Donnell.
 # License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -17,12 +13,26 @@
 # copy of the GNU General Public License along with Sigma16.  If not,
 # see <https://www.gnu.org/licenses/>.
 
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./index.css" />
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+
 #+BEGIN_EXPORT html
 <h1>Sigma16 User Guide</h1>
 #+END_EXPORT
 
+# The following lines include a message giving the current version
+# number (VERSION.txt) and a message giving a pointer to the github
+# page where the latest version can be found (LATESTVERSION).  That
+# way, if a user is running an older version, the user guide will tell
+# them where to go to to upgrade.
+
 #+INCLUDE: "../../VERSION.txt" export html
 #+INCLUDE: "../../LATESTVERSION.txt" export html
+
+# The version messages should come after the title but before the
+# table of contents, so the version is clearly visible but not too
+# long and obtrusive.
 
 #+TOC: headlines:3
 
@@ -3089,6 +3099,13 @@ pos in register R.  Thus the source field starts in Rs.spos and the
 destination field starts in Rd.dpos.  The machine
 language representation is:
 
+The assembly language operand format is RkkRk, where R is a register
+(for example R3) and k is a number between 0 and 15 (for example 7).
+The operands are separated by commas.  Thus an RkkRk operand field
+could be R3,5,2,R12,9.  The instruction representation uses five 4-bit
+fields to represent these five operands.  In the following general
+form the instruction fields are given in the operand fields:
+
 #+BEGIN_EXAMPLE
      extract  Rd,e,f,Rg,h
 #+END_EXAMPLE
@@ -3316,7 +3333,7 @@ precisely and concisely the effects of the instructions:
 | add      |   | RRR  | RRR   | 0    | Rd := Ra + Rb                         |
 | sub      |   | RRR  | RRR   | 1    | Rd := Ra - Rb                         |
 | mul      |   | RRR  | RRR   | 2    | Rd := Ra * Rb                         |
-| div      |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra mod Rb       |
+| div      |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra remainder Rb |
 | addc     |   | RRR  | RRR   | 4    | Rd := Ra + Rb + R15.carry             |
 | muln     |   | RRR  | RRR   | 5    | R15++Rd := Ra :*: Rb                  |
 | divn     |   | RRR  | RRR   | 6    | R15++Rd := R15++Ra :/: Rb             |
@@ -4423,47 +4440,6 @@ similar to this:
 #+END_EXAMPLE
 
 
-* Release notes
-
-Sigma16 has gone through several versions.  Its aims and principles
-have remained the same, but various details have changed.  Some
-changes can be ignored by the assembly language programmer: for
-example, if an instruction has a different opcode but is otherwise
-unchanged.  Other changes may require some alterations to assembly
-language programs.
-
-** Version 3.2
-
-Implemented in JavaScript.  Runs in browser without requiring any
-download or installation.  There are additional command line tools
-that can be downloades and installed (see Installation section in User
-Guide).
-
-*** Changes visible to the assembly language programmer
-
-- The following instructions from previous releases have been removed:
-  cmplt, cmpeq, cmpgt.  Instead, use the cmp instruction, followed by
-  one of jumplt, jumple, jumpeq, jumpne, jumpge, jumpgt.  For example:
-
-#+BEGIN_EXAMPLE
-; Old style -- these instructions have been removed
-     cmplt   R1,R2,R3      ; R1 := R2 < R3
-     jumpt   R1,loop[R0]   ; if R2 < R3 then goto loop
-; New style -- use the following instead
-     cmp     R2,R3         ; compare R2 with R3
-     jumplt  loop[R0]      ; if R2 < R3 then goto loop
-#+END_EXAMPLE
-
-- The following instructions from previous releases have been renamed:
-  jumpf is now jumpz, jumpt is not jumpnz.
-
-*** Changes to the architecture
-
-- The word logic instructions inv, and, or, xor are now
-  pseudoinstructions that generate logicw instructions.  The assembly
-  language syntax is the same as before; only the underlying machine
-  language representation is different
-
 * Installation
 
 ** The easy way: running in browser with no installation
@@ -4680,7 +4656,7 @@ npm run mkdist
 #+END_EXAMPLE
 
 * About Sigma16
-** Copyright
+** Copyright and license
 
 The architecture, software tools, and documentation were designed,
 implemented, and written by John O'Donnell.  Contact email:
@@ -4688,7 +4664,8 @@ john.t.odonnell9@gmail.com
 
 Copyright (c) 2020 John T. O'Donnell
 
-License: GNU GPL Version 3 or later.
+License: GNU GPL Version 3 or later.  The full text of the GPL-3
+license is given below.
 
 Sigma16 is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -4700,7 +4677,48 @@ the GNU General Public License for more details.  You should have
 received a copy of the GNU General Public License along with Sigma16.
 If not, see <https://www.gnu.org/licenses/>.
 
-** GPL3 License
+** Release notes
+
+Sigma16 has gone through several versions.  Its aims and principles
+have remained the same, but various details have changed.  Some
+changes can be ignored by the assembly language programmer: for
+example, if an instruction has a different opcode but is otherwise
+unchanged.  Other changes may require some alterations to assembly
+language programs.
+
+*** Version 3.2
+
+Implemented in JavaScript.  Runs in browser without requiring any
+download or installation.  There are additional command line tools
+that can be downloades and installed (see Installation section in User
+Guide).
+
+**** Changes visible to the assembly language programmer
+
+- The following instructions from previous releases have been removed:
+  cmplt, cmpeq, cmpgt.  Instead, use the cmp instruction, followed by
+  one of jumplt, jumple, jumpeq, jumpne, jumpge, jumpgt.  For example:
+
+#+BEGIN_EXAMPLE
+; Old style -- these instructions have been removed
+     cmplt   R1,R2,R3      ; R1 := R2 < R3
+     jumpt   R1,loop[R0]   ; if R2 < R3 then goto loop
+; New style -- use the following instead
+     cmp     R2,R3         ; compare R2 with R3
+     jumplt  loop[R0]      ; if R2 < R3 then goto loop
+#+END_EXAMPLE
+
+- The following instructions from previous releases have been renamed:
+  jumpf is now jumpz, jumpt is not jumpnz.
+
+**** Changes to the architecture
+
+- The word logic instructions inv, and, or, xor are now
+  pseudoinstructions that generate logicw instructions.  The assembly
+  language syntax is the same as before; only the underlying machine
+  language representation is different
+
+** Text of GPL3 License
 
 GNU GENERAL PUBLIC LICENSE
 Version 3, 29 June 2007
@@ -4915,157 +4933,12 @@ If the program does terminal interaction, make it output a short notice like thi
     <program>  Copyright (C) <year>  <name of author>
     This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
     This is free software, and you are welcome to redistribute it
-    under certain conditions; type `show c' for details.
+    under certain conditions; type `show c' for Details.
 The hypothetical commands `show w' and `show c' should show the appropriate parts of the General Public License. Of course, your program's commands might be different; for a GUI interface, you would use an “about box”.
 
 You should also get your employer (if you work as a programmer) or school, if any, to sign a “copyright disclaimer” for the program, if necessary. For more information on this, and how to apply and follow the GNU GPL, see <https://www.gnu.org/licenses/>.
 
 The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
-* Implementation notes
-
-This program is experimental software and is under development.
-
-Sigma16 consists of several components:
-
-- The Integrated Development Environment (IDE) is written in
-  JavaScript, and normally uses a web browser to display the graphical
-  user interface.  The assembler, linker, and emulator are also
-  implemented in JavaScript and are closely integrated with the IDE.
-
-- The circuits that implement Sigma16 are defined using the Hydra
-  hardware description language, which is an embedded domain specific
-  language implemented in Haskell.
-
-- The User Guide is written in markdown and prepared for a web browser
-  using pandoc.
-
-* Development notes
-
-** Formatting
-
-*** Tables
 
 
-     | Name  | Phone | Age |
-     |-------+-------+-----|
-     | Peter |  1234 |  17 |
-     | Anna  |  4321 |  25 |
 
-
-*** Code
-Here is an example with generic code:
-
-#+BEGIN_EXAMPLE
-    lea  R2,42[R0]   ; R2 := 42
-#+END_EXAMPLE
-
-It generates <pre class="example"><code>lea R2,42[R0] ; R2 := 42
-</code></pre>
-
-The following example is Sigma16 code:
-
-#+BEGIN_EXAMPLE
-    lea  R2,42[R0]   ; R2 := 42
-#+END_EXAMPLE
-
-This generates <pre class="Sigma16"><code>lea R2,42[R0] ; R2 := 42
-</code></pre>
-
-** makefile
-
-** Version number
-
-The version number is needed in several places.  To keep it
-consistent, there is only one primary place where it should be
-specified manually: in the version property in app/package.json.
-
-The makefile extracts the version number from that file, and (1)
-defines a make variable; (2) writes the Sigma16/VERSION file with just
-the version number, and (3) writes Sigma16/app/version.js which is
-just defines the version number as a global constant.  
-
-** Running with npm
-
-The following files are required for compilation with npm, but they
-are not needed just to run the source program in a browser.
-
-
-#+BEGIN_EXAMPLE
-src/main.js
-src/package.json
-src/package-lock.json
-src/preload.js
-src/renderer.hs
-src/node_modules/
-#+END_EXAMPLE
-
-** Emacs
-
-*** Export
-- C-c C-e h h  --  export to .html file
-- C-c C-e h H  --  export to buffer
-
-*** Tangle
-- C-c C-v t       -- tangle the file
-- C-u C-c C-v t   -- tangle current src code block
-
-*** Blocks
-
-Example
-
-#+BEGIN_EXAMPLE
-   lea   R6,34[R2]
-   load  R1,45[R6]
-   sub   R13,R2,R9
-#+END_EXAMPLE
-
-Sigma16
-
-#+BEGIN_SRC sigma16
-   lea   R6,34[R2]
-   load  R1,45[R6]
-   sub   R13,R2,R9
-#+END_SRC
-
-Hydra
-
-#+BEGIN_SRC hydra
-f :: Bit a => a -> a -> a
-f x y = xor2 x y
-#+END_SRC
-
-*** Line numbers and labels
-
-#+NAME: ThisIsSomeCode
-#+BEGIN_SRC sigma16 -n :tangle ../../examples/foo/bar.asm.txt
-       lea   R6,34[R2]
-loop   load  R1,elephant[R0]  ; R1 := elephant
-       sub   R13,R2,R9
-       jump  loop[R0]         ; do it again
-#+END_SRC
-
-The +n indicates that numbering continues from the previous block
-
-#+BEGIN_SRC sigma16 +n -r  :tangle ../../examples/foo/bar.asm.txt
-   add R1,R2,R3
-   store  R1,x[R8]  (ref:foobar)
-   jump   loop[R0[
-#+END_SRC
-
-The store instruction [[(foobar)]] saves x.  To refer to (ref:foobar), use
-two left square brackets, then (foobar) then two right square
-brackets.
-
-If you just use (label), the html makes the line number a link, but
-this is hard to spot.  It's easier for the reader if the link isn't
-just (for example) "5", but rather "Line 5".  For example, [[(foobar)][Line
-(foobar)]] does something.  This was from lb lb lp foobar rp rb lb Line
-lp foobar rp rb rb, where lp = left parenthesis, lb = left square
-bracket, etc.
-*** Shell
-- To kill a process, various commands have been recommended
-  - C-x k          kills the shell
-  - C-c C-c        no effect
-  - C-c C-k        no effect
-  - C-x C-k        no effect
-- M-x list-processes

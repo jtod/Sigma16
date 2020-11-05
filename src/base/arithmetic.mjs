@@ -25,6 +25,7 @@ import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 
+
 //------------------------------------------------------------------------------
 // Bit manipulation - big endian
 //------------------------------------------------------------------------------
@@ -680,3 +681,46 @@ export function showCC (c) {
 const clearIntEnable = maskToClearBitBE (arch.intEnableBit);
 const setSystemState = maskToClearBitBE (arch.userStateBit);
 
+export function calculateExtract (wsize, fsize, x, xi, y, yi) {
+    // p = source field (surrounded by 0) shifted to destination position
+    const p = (((x << xi) & 0xffff) >>> (wsize-fsize)) << (wsize-yi-fsize);
+    // destination mask has 1 bits where field will be inserted
+    const dmask = (0xffff >>> (wsize-fsize)) << (wsize-yi-fsize);
+    const dmaski = (~dmask) & 0xffff;
+    const z = (y & dmaski) | p;
+    com.mode.devlog (`calculateExtract wsize=${wsize} fsize=${fsize}`
+                     +  ` xi=${xi} yi=${yi}`
+                     + `  x=${wordToHex4(x)}`
+                     + `  dmask=${wordToHex4(dmask)}`
+                     + `  p=${wordToHex4(p)}`
+                     + `  z=${wordToHex4(z)}`);
+    return z;
+}
+
+export function calculateExtracti (wsize, fsize, x, xi, y, yi) {
+    // p = source field (surrounded by 0) shifted to destination position
+    const xx = (~x) & 0xff;
+    const p = (((xx << xi) & 0xffff) >>> (wsize-fsize)) << (wsize-yi-fsize);
+    // destination mask has 1 bits where field will be inserted
+    const dmask = (0xffff >>> (wsize-fsize)) << (wsize-yi-fsize);
+    const dmaski = (~dmask) & 0xffff;
+    const z = (y & dmaski) | p;
+    com.mode.devlog (`calculateExtract wsize=${wsize} fsize=${fsize}`
+                     +  ` xi=${xi} yi=${yi}`
+                     + `  x=${wordToHex4(x)}`
+                     + `  dmask=${wordToHex4(dmask)}`
+                     + `  pp=${wordToHex4(pp)}`
+                     + `  z=${wordToHex4(z)}`);
+    return z;
+}
+
+
+export function testCalculateExport () {
+    console.log ("testCalculateExport");
+    calculateExtract (16,4, 0xffff, 8, 0, 0);
+    calculateExtract (16,4, 0xffff, 8, 0, 4);
+    calculateExtract (16,4, 0xffff, 8, 0, 8);
+    calculateExtract (16,4, 0xffff, 8, 0, 10);
+    calculateExtract (16,4, 0xffff, 8, 0, 12);
+    calculateExtract (16, 5, 0xffff, 3, 7, 9); // 007c = 0000 0000 0111 11000
+}
