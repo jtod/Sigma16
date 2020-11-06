@@ -2687,7 +2687,27 @@ if Ra >= Rb
 
 *** save
 
-Example: save R2,R9,20[R14] is equivalent to
+The *save* instruction stores a sequence of adjacent registers into a
+block of contiguous memory locations.  The sequence of registers is
+specified by giving the first and last register, and the starting
+address of the memory block is specified by the effective address.
+The instruction does not change the value of any register, including
+the index register.
+
+A save instruction is equivalent to a fixed sequence of store
+instructions; The save instruction stores a set of contiguous
+registers into memory.  The starting address of the memory block is
+specified by an index register and an 8-bit displacement.  The
+instruction *save Re,Rf,gh[Ra]* stores the contents of Re, Re+1, ...,
+Rf into memory at consecutive locations beginning with *mem[Ra+gh]*.
+
+For example, the following save instruction
+
+#+BEGIN_EXAMPLE
+      save R2,R9,20[R14]
+#+END_EXAMPLE
+
+is equivalent to the following sequence of store instructions:
 
 #+BEGIN_EXAMPLE
   store  R2,20[R14]
@@ -2699,19 +2719,22 @@ Example: save R2,R9,20[R14] is equivalent to
   store  R8,26[R14]
   store  R9,27[R14]
 #+END_EXAMPLE
-  
-The **save** instruction stores a sequence of adjacent registers into
-memory starting from the effective address. The index register (R14 in
-this example) is not changed.  Save is equivalent to a fixed sequence
-of store instructions; its purpose of save is to copy the state of
+
+The assembly language notation for a save instruction is similar to an
+RX instruction, but two registers are used to specify a block of
+registers, and the displacement is an 8-bit field gh. Its assembly
+language operand format is RRX.  Because of these differences, save is
+an EXP2 format instruction:
+
+#+BEGIN_EXAMPLE
+      save Rd,Re,gh[Rf]
+#+END_EXAMPLE  
+
+The purpose of save is to copy the state of a block of
 registers into memory during a procedure call or a context switch.
+The registers can be reloaded by the restore instruction.
 
-Typically, save is used as part of a procedure call and restore is
-used as part of the return.
 
-The instruction *save Re,Rf,gh[Ra]* stores the contents of Re, Re+1,
-..., Rf into memory at consecutive locations beginning with
-*mem[Ra+gh]*.
 
 The instruction is EXP format, and the offset is limited to 8 bits,
 because it is specified in the *gh* field, which is the rightmost 8
@@ -3129,13 +3152,6 @@ the bits that are inserted into the destination.
 The secondary opcode is 8.
 
 ** System
-*** getctl
-*** putctl
-*** trap
-**** Halt
-**** Write
-**** Nonblocking read
-
 *** resume
 
 The resume instruction performs the following operations atomically:
@@ -3158,6 +3174,12 @@ resume.
 
 This instruction is privileged.  Since the instruction changes the
 status register, it can be used to perform a context switch.
+*** getctl
+*** putctl
+*** trap
+**** Halt
+**** Write
+**** Nonblocking read
 
 *** testset
 
@@ -3356,10 +3378,10 @@ precisely and concisely the effects of the instructions:
 | jumpc1   |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea              |
 | jumpz    |   | RX   | RX    | f,7  | if Rd=0 then pc := ea                 |
 | jumpnz   |   | RX   | RX    | f,8  | if Rd!=0 then pc := ea                |
-| save     |   | RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd     |
-| restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1]     |
-| testset  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1               |
-|          |   | RX   |       | f,c  | -- reserved --                        |
+| testset  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1               |
+|          |   | RX   |       | f,a  | -- reserved --                        |
+|          |   | RX   |       | f,b  | -- reserved --                        |
+|          |   | RX   |       | f,c | -- reserved --                        |
 |          |   | RX   |       | f,d  | -- reserved --                        |
 |          |   | RX   |       | f,e  | -- reserved --                        |
 |          |   | RX   |       | f,f  | -- reserved --                        |
@@ -3374,6 +3396,8 @@ precisely and concisely the effects of the instructions:
 | shiftr   |   | EXP2 | RRk   | e,06 | Rd := Ra shr b                        |
 | extract  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si        |
 | extracti |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si       |
+| save     |   | EXP2 | RRRk  | e,09 | M[ea] := R1, ..., M[ea+d-1] := Rd     |
+| restore  |   | EXP2 | RRRk  | e,0a | R1 := M[ea], ..., Rd := M[ea+d-1]     |
 |          |   | EXP2 |       | e,09 | -- reserved --                        |
 |          |   | EXP2 |       | ...  | -- reserved --                        |
 |          |   | EXP2 |       | e,ff | -- reserved --                        |

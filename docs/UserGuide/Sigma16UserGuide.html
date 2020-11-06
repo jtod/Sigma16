@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-11-05 Thu 23:37 -->
+<!-- 2020-11-06 Fri 15:46 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -263,248 +263,248 @@ For the latest version, see
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgc1d2828">Introduction</a></li>
-<li><a href="#orge62650c">Tutorial</a>
+<li><a href="#org1b2fe88">Introduction</a></li>
+<li><a href="#orgf0f2506">Tutorial</a>
 <ul>
-<li><a href="#orgb3ec018">Hello, world!</a></li>
-<li><a href="#org1e02f81">Registers, constants, and arithmetic</a></li>
-<li><a href="#org3c06552">Keeping variables in memory</a></li>
-<li><a href="#orgfe337b8">Files and modules</a></li>
-<li><a href="#orge2b85f1">Jumps and conditionals</a></li>
-<li><a href="#org3f0b990">Loops</a></li>
-<li><a href="#orged0a122">Machine language</a></li>
-<li><a href="#org3deba73">A strange program</a></li>
+<li><a href="#org3d5eea2">Hello, world!</a></li>
+<li><a href="#orgcb0c3ae">Registers, constants, and arithmetic</a></li>
+<li><a href="#org45cf0dd">Keeping variables in memory</a></li>
+<li><a href="#orgd293de0">Files and modules</a></li>
+<li><a href="#org16d4510">Jumps and conditionals</a></li>
+<li><a href="#org019054c">Loops</a></li>
+<li><a href="#org86ac3ce">Machine language</a></li>
+<li><a href="#orgc34fc72">A strange program</a></li>
 </ul>
 </li>
-<li><a href="#orgbcc02e7">Architecture</a>
+<li><a href="#orgb419a34">Architecture</a>
 <ul>
-<li><a href="#orgf0afd56">Overview of the subsystems</a></li>
-<li><a href="#org25b1628">Data representation and notation</a></li>
-<li><a href="#orgd821c44">Register file</a>
+<li><a href="#org21efa12">Overview of the subsystems</a></li>
+<li><a href="#orgce82241">Data representation and notation</a></li>
+<li><a href="#org348a9af">Register file</a>
 <ul>
-<li><a href="#orgbd6be79">R0 contains the constant 0</a></li>
-<li><a href="#org748df80">R15 is the condition code register</a></li>
+<li><a href="#org00958ed">R0 contains the constant 0</a></li>
+<li><a href="#org0424922">R15 is the condition code register</a></li>
 </ul>
 </li>
-<li><a href="#org4eb9443">Memory</a></li>
-<li><a href="#org6556656">Control registers</a>
+<li><a href="#org27f666d">Memory</a></li>
+<li><a href="#orgb395045">Control registers</a>
 <ul>
-<li><a href="#orge1d9bd7">Instruction control registers</a></li>
-<li><a href="#org53870cc">System control registers</a></li>
-<li><a href="#org0720162">Status register flags</a></li>
-<li><a href="#org8233e93">Interrupts and exceptions</a></li>
+<li><a href="#org6d7b4d9">Instruction control registers</a></li>
+<li><a href="#org61733a7">System control registers</a></li>
+<li><a href="#org59aeca6">Status register flags</a></li>
+<li><a href="#org47076c2">Interrupts and exceptions</a></li>
 </ul>
 </li>
-<li><a href="#orgd155c39">Instruction representation</a>
+<li><a href="#org6727ecf">Instruction representation</a>
 <ul>
-<li><a href="#orga125793">Instruction fields</a></li>
-<li><a href="#org4bd2ea6">RRR format</a></li>
-<li><a href="#org9ee2d60">RX format</a></li>
-<li><a href="#orgf2d3cc0">EXP format</a></li>
-<li><a href="#org8345329">Summary of instruction formats</a></li>
-<li><a href="#org9f73089">Assembly language statement formats</a></li>
-<li><a href="#org984abe9">Instruction formats</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#orga4ea62d">Instruction set</a>
-<ul>
-<li><a href="#orgae42819">Arithmetic</a>
-<ul>
-<li><a href="#orgeac8a9d">add</a></li>
-<li><a href="#org5512232">sub</a></li>
-<li><a href="#org67472c0">mul</a></li>
-<li><a href="#org12ca19a">div</a></li>
-<li><a href="#orga922835">addc</a></li>
-<li><a href="#orgf9f79b2">muln</a></li>
-<li><a href="#org10034b7">divn</a></li>
-</ul>
-</li>
-<li><a href="#org3fd3ef8">Memory</a>
-<ul>
-<li><a href="#org556759a">lea</a></li>
-<li><a href="#org4751fca">load</a></li>
-<li><a href="#org08ca1ed">store</a></li>
-<li><a href="#org334b91a">Stack representation</a></li>
-<li><a href="#orga27f41b">push</a></li>
-<li><a href="#org69e63f2">pop</a></li>
-<li><a href="#org32d6b0f">top</a></li>
-<li><a href="#org86bec0d">save</a></li>
-<li><a href="#org6ead570">restore</a></li>
-</ul>
-</li>
-<li><a href="#orgb08daee">Logic</a>
-<ul>
-<li><a href="#orge170e50">cmp</a></li>
-<li><a href="#org184c590">logicw</a></li>
-<li><a href="#orgb163978">logicb</a></li>
-</ul>
-</li>
-<li><a href="#org31378e5">Jumping</a>
-<ul>
-<li><a href="#org0ba9379">jump</a></li>
-<li><a href="#orgc2fb19e">jal</a></li>
-<li><a href="#org5644fcd">jumpc0</a></li>
-<li><a href="#org337ca46">jumpc1</a></li>
-<li><a href="#org81675f1">jumpz</a></li>
-<li><a href="#org508391b">jumpnz</a></li>
-</ul>
-</li>
-<li><a href="#orgeb7f06f">Bit fields</a>
-<ul>
-<li><a href="#org7064f95">shiftl</a></li>
-<li><a href="#orge1691ed">shiftr</a></li>
-<li><a href="#orgbe6ff0f">shift</a></li>
-<li><a href="#orgac41761">extract</a></li>
-<li><a href="#org18f52d3">extracti</a></li>
-</ul>
-</li>
-<li><a href="#orgdc75afb">System</a>
-<ul>
-<li><a href="#org846b543">getctl</a></li>
-<li><a href="#orgf072174">putctl</a></li>
-<li><a href="#orgac43591">trap</a></li>
-<li><a href="#orga2faff1">resume</a></li>
-<li><a href="#orgfe936b0">testset</a></li>
-</ul>
-</li>
-<li><a href="#orgec8e3b7">Pseudoinstructions</a>
-<ul>
-<li><a href="#orgf78b45f">jumpXX conditional jump pseudoinstructions</a></li>
-<li><a href="#orgb9347ea">logic pseudoinstructions</a></li>
-<li><a href="#orgb13bc71">invb, andb, orb, xorb</a></li>
-</ul>
-</li>
-<li><a href="#org974a5e2">Summary of instruction set</a>
-<ul>
-<li><a href="#org03131aa">Notation</a></li>
-<li><a href="#orgf3ef2dd">Instructions</a></li>
-<li><a href="#org7e3604b">Rationale for jumpc0 and jumpc1</a></li>
-<li><a href="#orgdfd4aa7">Pseudoinstructions</a></li>
+<li><a href="#org20222d9">Instruction fields</a></li>
+<li><a href="#org4e93cf6">RRR format</a></li>
+<li><a href="#orga87f45c">RX format</a></li>
+<li><a href="#orgf924785">EXP format</a></li>
+<li><a href="#org5ceb1ef">Summary of instruction formats</a></li>
+<li><a href="#orgfad359a">Assembly language statement formats</a></li>
+<li><a href="#org29d836e">Instruction formats</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org84dac4d">User interface</a>
+<li><a href="#org6da2a47">Instruction set</a>
+<ul>
+<li><a href="#org9a05a4e">Arithmetic</a>
+<ul>
+<li><a href="#orgb65dfd2">add</a></li>
+<li><a href="#org97280bb">sub</a></li>
+<li><a href="#orgde15332">mul</a></li>
+<li><a href="#orgea35323">div</a></li>
+<li><a href="#orga14be13">addc</a></li>
+<li><a href="#orgab65414">muln</a></li>
+<li><a href="#org685abe1">divn</a></li>
+</ul>
+</li>
+<li><a href="#orgbb5e5d0">Memory</a>
+<ul>
+<li><a href="#org0a94422">lea</a></li>
+<li><a href="#orgc8cc990">load</a></li>
+<li><a href="#org873cac8">store</a></li>
+<li><a href="#orga9df360">Stack representation</a></li>
+<li><a href="#org23e01c9">push</a></li>
+<li><a href="#orgbc89de0">pop</a></li>
+<li><a href="#org981da63">top</a></li>
+<li><a href="#orgd3610e3">save</a></li>
+<li><a href="#org5cdabcb">restore</a></li>
+</ul>
+</li>
+<li><a href="#orga3df122">Logic</a>
+<ul>
+<li><a href="#orgaa99685">cmp</a></li>
+<li><a href="#orgf801e1e">logicw</a></li>
+<li><a href="#org19cc84e">logicb</a></li>
+</ul>
+</li>
+<li><a href="#orge36bc94">Jumping</a>
+<ul>
+<li><a href="#org7d6c237">jump</a></li>
+<li><a href="#org07f2bc0">jal</a></li>
+<li><a href="#org8a73ec5">jumpc0</a></li>
+<li><a href="#org406e0a8">jumpc1</a></li>
+<li><a href="#org81095c0">jumpz</a></li>
+<li><a href="#orgc5ee779">jumpnz</a></li>
+</ul>
+</li>
+<li><a href="#orgf839e30">Bit fields</a>
+<ul>
+<li><a href="#org376dc5a">shiftl</a></li>
+<li><a href="#org128f316">shiftr</a></li>
+<li><a href="#orga31811b">shift</a></li>
+<li><a href="#org5fd0b1c">extract</a></li>
+<li><a href="#org5c3c5ca">extracti</a></li>
+</ul>
+</li>
+<li><a href="#org9988b44">System</a>
+<ul>
+<li><a href="#orgdeb4871">resume</a></li>
+<li><a href="#orge9a6ab6">getctl</a></li>
+<li><a href="#orgadae9e5">putctl</a></li>
+<li><a href="#org40323bc">trap</a></li>
+<li><a href="#org133c1f2">testset</a></li>
+</ul>
+</li>
+<li><a href="#org6cae3ac">Pseudoinstructions</a>
+<ul>
+<li><a href="#org4593407">jumpXX conditional jump pseudoinstructions</a></li>
+<li><a href="#orgfffc901">logic pseudoinstructions</a></li>
+<li><a href="#orgf94df0f">invb, andb, orb, xorb</a></li>
+</ul>
+</li>
+<li><a href="#org474dbf5">Summary of instruction set</a>
+<ul>
+<li><a href="#orgdcb3322">Notation</a></li>
+<li><a href="#org6b1048c">Instructions</a></li>
+<li><a href="#orgf445e9f">Rationale for jumpc0 and jumpc1</a></li>
+<li><a href="#orge426c2d">Pseudoinstructions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgac3cc2e">User interface</a>
 <ul>
 <li>
 <ul>
-<li><a href="#org1ee0a90">Simple standalone programs</a></li>
-<li><a href="#org6025829">Programs with multiple modules</a></li>
+<li><a href="#orgd69a0b2">Simple standalone programs</a></li>
+<li><a href="#orga27fbfc">Programs with multiple modules</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgb393d85">Assembly language</a>
+<li><a href="#org1b7c682">Assembly language</a>
 <ul>
-<li><a href="#org9d5562c">Programs, modules, and files</a></li>
-<li><a href="#org08145c4">Values</a>
+<li><a href="#orgdd131af">Programs, modules, and files</a></li>
+<li><a href="#org0153104">Values</a>
 <ul>
-<li><a href="#orge08faf9">Expressions</a></li>
-<li><a href="#org58b672d">Location counter</a></li>
-<li><a href="#orgafcde76">Attributes</a></li>
+<li><a href="#orgd955780">Expressions</a></li>
+<li><a href="#orge5915f1">Location counter</a></li>
+<li><a href="#orgb6382d7">Attributes</a></li>
 </ul>
 </li>
-<li><a href="#org4330cd8">Code statements</a>
+<li><a href="#org435be8d">Code statements</a>
 <ul>
-<li><a href="#orgcd095d6">Instructions</a></li>
-<li><a href="#org5a73c3b">data</a></li>
+<li><a href="#orgb99ce25">Instructions</a></li>
+<li><a href="#org0d5044b">data</a></li>
 </ul>
 </li>
-<li><a href="#org00b61f6">Directives</a>
+<li><a href="#org0df5829">Directives</a>
 <ul>
-<li><a href="#org340af9c">module</a></li>
-<li><a href="#orgf7b7421">equ</a></li>
-<li><a href="#org8493555">block</a></li>
-<li><a href="#org32c4bf5">org</a></li>
-<li><a href="#org136dbdf">import</a></li>
-<li><a href="#org2219656">export</a></li>
+<li><a href="#org9756c39">module</a></li>
+<li><a href="#org820c1a2">equ</a></li>
+<li><a href="#org8ca5f66">block</a></li>
+<li><a href="#orge8496ab">org</a></li>
+<li><a href="#org1f631a7">import</a></li>
+<li><a href="#org5dd8146">export</a></li>
 </ul>
 </li>
-<li><a href="#org4a8ad66">Summary of assembly language statements</a></li>
+<li><a href="#orgf2fd118">Summary of assembly language statements</a></li>
 </ul>
 </li>
-<li><a href="#org4fb67cf">Object code and linker</a>
+<li><a href="#org2c60f1c">Object code and linker</a>
 <ul>
-<li><a href="#orgbccc258">Object language</a>
+<li><a href="#orgcfab4bd">Object language</a>
 <ul>
-<li><a href="#org14d37a7">Statement syntax</a></li>
-<li><a href="#org35a241c">module</a></li>
-<li><a href="#org46721b0">org</a></li>
-<li><a href="#orgb436352">data</a></li>
-<li><a href="#orgc638405">import</a></li>
-<li><a href="#org8c65104">export</a></li>
-<li><a href="#org3a82705">relocate</a></li>
+<li><a href="#org5ed0e63">Statement syntax</a></li>
+<li><a href="#orgd784754">module</a></li>
+<li><a href="#orga086ae0">org</a></li>
+<li><a href="#orga9210bb">data</a></li>
+<li><a href="#org6bad082">import</a></li>
+<li><a href="#org2565da9">export</a></li>
+<li><a href="#org56edad0">relocate</a></li>
 </ul>
 </li>
-<li><a href="#org4f2b1a9">Module metadata</a></li>
-<li><a href="#org0f5a270">Linker</a></li>
-<li><a href="#org1a50330">Loader</a>
+<li><a href="#org78d3823">Module metadata</a></li>
+<li><a href="#org1ecdc3e">Linker</a></li>
+<li><a href="#org7ae7f92">Loader</a>
 <ul>
-<li><a href="#org71ea068">Executable code</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#org57fef18">Programming</a>
-<ul>
-<li><a href="#org42bd0e5">Structure of a program</a></li>
-<li><a href="#org5792246">How to perform commmon tasks</a>
-<ul>
-<li><a href="#orgae221c1">Using extract</a></li>
-<li><a href="#orgb723177">Copying one register to another</a></li>
-</ul>
-</li>
-<li><a href="#org5bd458f">Compilation</a></li>
-<li><a href="#orgbf1be07">Errors: avoiding, finding, and fixing</a>
-<ul>
-<li><a href="#orgec34860">Critical regions</a></li>
-<li><a href="#org4c9afaa">Robust programming</a></li>
-<li><a href="#org1617976">Error messages</a></li>
-<li><a href="#orgbe9c170">Runtime debugging</a></li>
-<li><a href="#org14ca552">Breakpoints</a></li>
+<li><a href="#org6df2fd3">Executable code</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org160ae00">Running the circuit</a></li>
-<li><a href="#org5c4f1b3">Installation</a>
+<li><a href="#org7e5c92c">Programming</a>
 <ul>
-<li><a href="#org97f482c">The easy way: running in browser with no installation</a></li>
-<li><a href="#org0cbdef9">Command line tools</a>
+<li><a href="#org04bc8d5">Structure of a program</a></li>
+<li><a href="#orgdcbb5e4">How to perform commmon tasks</a>
 <ul>
-<li><a href="#orgf1b132e">Required software</a></li>
-<li><a href="#org1c63a77">Setting up your environment</a></li>
-<li><a href="#org69cdbe2">Websockets</a></li>
-<li><a href="#org48a18b0">Running IDE locally</a></li>
-<li><a href="#org3773d39">Run with npm</a></li>
-<li><a href="#orgf8af2de">Compile using npm</a></li>
-<li><a href="#orgdcff885">Download and open file in browser</a></li>
-<li><a href="#org7294b12">Run locally with npm and electron</a></li>
-<li><a href="#org57db136">Compiling IDE for local execution</a></li>
+<li><a href="#orga6c8f0a">Using extract</a></li>
+<li><a href="#org1d33612">Copying one register to another</a></li>
+</ul>
+</li>
+<li><a href="#org97d7c1c">Compilation</a></li>
+<li><a href="#org6a5ebbd">Errors: avoiding, finding, and fixing</a>
+<ul>
+<li><a href="#org6523366">Critical regions</a></li>
+<li><a href="#org28d06fa">Robust programming</a></li>
+<li><a href="#org069f87e">Error messages</a></li>
+<li><a href="#orgf0ef88e">Runtime debugging</a></li>
+<li><a href="#orgc53f293">Breakpoints</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgdea264b">About Sigma16</a>
+<li><a href="#orge6df1ec">Running the circuit</a></li>
+<li><a href="#org615945d">Installation</a>
 <ul>
-<li><a href="#org735b60a">Copyright and license</a></li>
-<li><a href="#org2ae13de">Release notes</a>
+<li><a href="#org17f169f">The easy way: running in browser with no installation</a></li>
+<li><a href="#org51d12e2">Command line tools</a>
 <ul>
-<li><a href="#org4249075">Version 3.2</a></li>
+<li><a href="#org55b4124">Required software</a></li>
+<li><a href="#org0c9372f">Setting up your environment</a></li>
+<li><a href="#orgfe91d9f">Websockets</a></li>
+<li><a href="#org44b5c83">Running IDE locally</a></li>
+<li><a href="#org119ae4f">Run with npm</a></li>
+<li><a href="#orgcdb1e7b">Compile using npm</a></li>
+<li><a href="#orgcf6f543">Download and open file in browser</a></li>
+<li><a href="#orgde1c11e">Run locally with npm and electron</a></li>
+<li><a href="#orgb6302ce">Compiling IDE for local execution</a></li>
 </ul>
 </li>
-<li><a href="#org06070db">Text of GPL3 License</a></li>
+</ul>
+</li>
+<li><a href="#orgf7415dc">About Sigma16</a>
+<ul>
+<li><a href="#org91e4986">Copyright and license</a></li>
+<li><a href="#org15052d3">Release notes</a>
+<ul>
+<li><a href="#org604fd1d">Version 3.2</a></li>
+</ul>
+</li>
+<li><a href="#orgcb6e8db">Text of GPL3 License</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgc1d2828" class="outline-2">
-<h2 id="orgc1d2828">Introduction</h2>
-<div class="outline-text-2" id="text-orgc1d2828">
+<div id="outline-container-org1b2fe88" class="outline-2">
+<h2 id="org1b2fe88">Introduction</h2>
+<div class="outline-text-2" id="text-org1b2fe88">
 <p>
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
@@ -537,9 +537,9 @@ how to use the programming environment.
 </div>
 </div>
 
-<div id="outline-container-orge62650c" class="outline-2">
-<h2 id="orge62650c">Tutorial</h2>
-<div class="outline-text-2" id="text-orge62650c">
+<div id="outline-container-orgf0f2506" class="outline-2">
+<h2 id="orgf0f2506">Tutorial</h2>
+<div class="outline-text-2" id="text-orgf0f2506">
 <p>
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
@@ -548,9 +548,9 @@ panel.
 </p>
 </div>
 
-<div id="outline-container-orgb3ec018" class="outline-3">
-<h3 id="orgb3ec018">Hello, world!</h3>
-<div class="outline-text-3" id="text-orgb3ec018">
+<div id="outline-container-org3d5eea2" class="outline-3">
+<h3 id="org3d5eea2">Hello, world!</h3>
+<div class="outline-text-3" id="text-org3d5eea2">
 <p>
 To launch the program, visit the Sigma16 Home Page and click on the
 link to run it.
@@ -696,9 +696,9 @@ asking you to confirm.
 </div>
 </div>
 
-<div id="outline-container-org1e02f81" class="outline-3">
-<h3 id="org1e02f81">Registers, constants, and arithmetic</h3>
-<div class="outline-text-3" id="text-org1e02f81">
+<div id="outline-container-orgcb0c3ae" class="outline-3">
+<h3 id="orgcb0c3ae">Registers, constants, and arithmetic</h3>
+<div class="outline-text-3" id="text-orgcb0c3ae">
 <p>
 The architecture has a <b><b>register file</b></b> which is an array of 16
 registers, named R0, R1, R2, &#x2026;, R15.  The Register File is displayed
@@ -1038,9 +1038,9 @@ The meaning is <b>R<sub>d</sub> := R<sub>a</sub>  op  R<sub>b</sub></b>, and the
 </div>
 </div>
 
-<div id="outline-container-org3c06552" class="outline-3">
-<h3 id="org3c06552">Keeping variables in memory</h3>
-<div class="outline-text-3" id="text-org3c06552">
+<div id="outline-container-org45cf0dd" class="outline-3">
+<h3 id="org45cf0dd">Keeping variables in memory</h3>
+<div class="outline-text-3" id="text-org45cf0dd">
 <p>
 So far we have used registers in the register file to hold variables.
 However, there are only 16 of these, and two have special purposes (R0
@@ -1467,9 +1467,9 @@ another.  It's easy to indent with spaces, and it works everywhere!
 </div>
 </div>
 
-<div id="outline-container-orgfe337b8" class="outline-3">
-<h3 id="orgfe337b8">Files and modules</h3>
-<div class="outline-text-3" id="text-orgfe337b8">
+<div id="outline-container-orgd293de0" class="outline-3">
+<h3 id="orgd293de0">Files and modules</h3>
+<div class="outline-text-3" id="text-orgd293de0">
 <p>
 Whatever method you use to edit your programs, be sure to <b><b>save your
 work to a file</b></b> from time to time.  If you don't do that, sooner or
@@ -1595,9 +1595,9 @@ the external editor (but of course you have to save the file there).</li>
 </div>
 </div>
 
-<div id="outline-container-orge2b85f1" class="outline-3">
-<h3 id="orge2b85f1">Jumps and conditionals</h3>
-<div class="outline-text-3" id="text-orge2b85f1">
+<div id="outline-container-org16d4510" class="outline-3">
+<h3 id="org16d4510">Jumps and conditionals</h3>
+<div class="outline-text-3" id="text-org16d4510">
 <p>
 Conditionals allow a program to decide which statements to execute
 based on Boolean expressions.  One example is the if-then statement,
@@ -1820,9 +1820,9 @@ L2: S3
 </div>
 </div>
 
-<div id="outline-container-org3f0b990" class="outline-3">
-<h3 id="org3f0b990">Loops</h3>
-<div class="outline-text-3" id="text-org3f0b990">
+<div id="outline-container-org019054c" class="outline-3">
+<h3 id="org019054c">Loops</h3>
+<div class="outline-text-3" id="text-org019054c">
 <p>
 Loops are implemented using compilation patterns based on comparisons
 and jumps.  The fundamental form is the <b>while loop</b>.
@@ -1957,9 +1957,9 @@ work.
 </div>
 </div>
 
-<div id="outline-container-orged0a122" class="outline-3">
-<h3 id="orged0a122">Machine language</h3>
-<div class="outline-text-3" id="text-orged0a122">
+<div id="outline-container-org86ac3ce" class="outline-3">
+<h3 id="org86ac3ce">Machine language</h3>
+<div class="outline-text-3" id="text-org86ac3ce">
 <p>
 The actual bits representing an instruction (written in hex) (e.g
 0d69) are <b>machine language</b>.  The actual hardware runs the machine
@@ -2235,9 +2235,9 @@ secondary code in the b field.
 </div>
 
 
-<div id="outline-container-org3deba73" class="outline-3">
-<h3 id="org3deba73">A strange program</h3>
-<div class="outline-text-3" id="text-org3deba73">
+<div id="outline-container-orgc34fc72" class="outline-3">
+<h3 id="orgc34fc72">A strange program</h3>
+<div class="outline-text-3" id="text-orgc34fc72">
 <p>
 Consider ``Program Strange'' below.  This program doesn't compute
 anything particularly useful.  It's rather strange and not a model for
@@ -2440,13 +2440,13 @@ backward compatibility; this can lead to great complexity.
 </div>
 </div>
 
-<div id="outline-container-orgbcc02e7" class="outline-2">
-<h2 id="orgbcc02e7">Architecture</h2>
-<div class="outline-text-2" id="text-orgbcc02e7">
+<div id="outline-container-orgb419a34" class="outline-2">
+<h2 id="orgb419a34">Architecture</h2>
+<div class="outline-text-2" id="text-orgb419a34">
 </div>
-<div id="outline-container-orgf0afd56" class="outline-3">
-<h3 id="orgf0afd56">Overview of the subsystems</h3>
-<div class="outline-text-3" id="text-orgf0afd56">
+<div id="outline-container-org21efa12" class="outline-3">
+<h3 id="org21efa12">Overview of the subsystems</h3>
+<div class="outline-text-3" id="text-org21efa12">
 <p>
 The system contains several main subsystems.  The most important of
 these are <b>registers</b>, <b>memory</b>, and <b>logic and arithmetic</b>, and
@@ -2472,9 +2472,9 @@ the outside world.</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org25b1628" class="outline-3">
-<h3 id="org25b1628">Data representation and notation</h3>
-<div class="outline-text-3" id="text-org25b1628">
+<div id="outline-container-orgce82241" class="outline-3">
+<h3 id="orgce82241">Data representation and notation</h3>
+<div class="outline-text-3" id="text-orgce82241">
 <p>
 Sigma16 is a 16-bit architecture, and every data value is a 16-bit
 word.  Integers are represented in 16-bit two's complement notation.
@@ -2516,9 +2516,9 @@ bits 0-3 of a word; this means the leftmost four bits of the word.
 </div>
 </div>
 
-<div id="outline-container-orgd821c44" class="outline-3">
-<h3 id="orgd821c44">Register file</h3>
-<div class="outline-text-3" id="text-orgd821c44">
+<div id="outline-container-org348a9af" class="outline-3">
+<h3 id="org348a9af">Register file</h3>
+<div class="outline-text-3" id="text-org348a9af">
 <p>
 The <b><b>register file</b></b> is a set of 16 general registers that hold a 16
 bit word.  A register is referenced by a 4-bit binary number.  In
@@ -2593,9 +2593,9 @@ conventions.
 </p>
 </div>
 
-<div id="outline-container-orgbd6be79" class="outline-4">
-<h4 id="orgbd6be79">R0 contains the constant 0</h4>
-<div class="outline-text-4" id="text-orgbd6be79">
+<div id="outline-container-org00958ed" class="outline-4">
+<h4 id="org00958ed">R0 contains the constant 0</h4>
+<div class="outline-text-4" id="text-org00958ed">
 <p>
 One of the registers, R0, has a special property: it always contains
 the constant 0.  It is legal to perform an instruction that attempts
@@ -2607,9 +2607,9 @@ simply have no lasting effect.
 </div>
 
 
-<div id="outline-container-org748df80" class="outline-4">
-<h4 id="org748df80">R15 is the condition code register</h4>
-<div class="outline-text-4" id="text-org748df80">
+<div id="outline-container-org0424922" class="outline-4">
+<h4 id="org0424922">R15 is the condition code register</h4>
+<div class="outline-text-4" id="text-org0424922">
 <p>
 Several instructions produce status information: the result of a
 comparison, whether there was an overflow, etc.  This information is
@@ -2777,9 +2777,9 @@ Table: Condition code flags
 </div>
 </div>
 
-<div id="outline-container-org4eb9443" class="outline-3">
-<h3 id="org4eb9443">Memory</h3>
-<div class="outline-text-3" id="text-org4eb9443">
+<div id="outline-container-org27f666d" class="outline-3">
+<h3 id="org27f666d">Memory</h3>
+<div class="outline-text-3" id="text-org27f666d">
 <p>
 The memory is a hardware array of words that are accessed by address.
 A memory address is 16 bits wide, and there is one memory location
@@ -2815,13 +2815,13 @@ tables, and more.  These techniques are described later.
 </div>
 </div>
 
-<div id="outline-container-org6556656" class="outline-3">
-<h3 id="org6556656">Control registers</h3>
-<div class="outline-text-3" id="text-org6556656">
+<div id="outline-container-orgb395045" class="outline-3">
+<h3 id="orgb395045">Control registers</h3>
+<div class="outline-text-3" id="text-orgb395045">
 </div>
-<div id="outline-container-orge1d9bd7" class="outline-4">
-<h4 id="orge1d9bd7">Instruction control registers</h4>
-<div class="outline-text-4" id="text-orge1d9bd7">
+<div id="outline-container-org6d7b4d9" class="outline-4">
+<h4 id="org6d7b4d9">Instruction control registers</h4>
+<div class="outline-text-4" id="text-org6d7b4d9">
 <p>
 There are several instruction control registers that enable the
 processor to keep track of the state of the running program.  These
@@ -2844,9 +2844,9 @@ program, and some instructions use them directly.
 </div>
 </div>
 
-<div id="outline-container-org53870cc" class="outline-4">
-<h4 id="org53870cc">System control registers</h4>
-<div class="outline-text-4" id="text-org53870cc">
+<div id="outline-container-org61733a7" class="outline-4">
+<h4 id="org61733a7">System control registers</h4>
+<div class="outline-text-4" id="text-org61733a7">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -2910,9 +2910,9 @@ program, and some instructions use them directly.
 </div>
 </div>
 
-<div id="outline-container-org0720162" class="outline-4">
-<h4 id="org0720162">Status register flags</h4>
-<div class="outline-text-4" id="text-org0720162">
+<div id="outline-container-org59aeca6" class="outline-4">
+<h4 id="org59aeca6">Status register flags</h4>
+<div class="outline-text-4" id="text-org59aeca6">
 <p>
 The processor can be executing in several modes, which are determined
 by the <b><b>system control registers</b></b>.
@@ -2950,9 +2950,9 @@ Table: Processor status flags
 </div>
 </div>
 
-<div id="outline-container-org8233e93" class="outline-4">
-<h4 id="org8233e93">Interrupts and exceptions</h4>
-<div class="outline-text-4" id="text-org8233e93">
+<div id="outline-container-org47076c2" class="outline-4">
+<h4 id="org47076c2">Interrupts and exceptions</h4>
+<div class="outline-text-4" id="text-org47076c2">
 <ul class="org-ul">
 <li>mask</li>
 
@@ -2967,8 +2967,8 @@ Table: Processor status flags
 </div>
 
 <ul class="org-ul">
-<li><a id="org31c0c1a"></a>Mask and request flags<br />
-<div class="outline-text-5" id="text-org31c0c1a">
+<li><a id="org1c3a8f8"></a>Mask and request flags<br />
+<div class="outline-text-5" id="text-org1c3a8f8">
 <p>
 &lt;table&gt;
   &lt;tr&gt;
@@ -3034,9 +3034,9 @@ Table: Processor status flags
 </div>
 </div>
 
-<div id="outline-container-orgd155c39" class="outline-3">
-<h3 id="orgd155c39">Instruction representation</h3>
-<div class="outline-text-3" id="text-orgd155c39">
+<div id="outline-container-org6727ecf" class="outline-3">
+<h3 id="org6727ecf">Instruction representation</h3>
+<div class="outline-text-3" id="text-org6727ecf">
 <p>
 Instructions are represented in the memory of the computer using
 words, just like all other kinds of data.  From the programmer's
@@ -3081,9 +3081,9 @@ instructions).
 </p>
 </div>
 
-<div id="outline-container-orga125793" class="outline-4">
-<h4 id="orga125793">Instruction fields</h4>
-<div class="outline-text-4" id="text-orga125793">
+<div id="outline-container-org20222d9" class="outline-4">
+<h4 id="org20222d9">Instruction fields</h4>
+<div class="outline-text-4" id="text-org20222d9">
 <p>
 An instruction may consist of one word or two words, depending on the
 instruction format.  These words are subdivided into 4-bit <b>fields</b>,
@@ -3216,9 +3216,9 @@ The core architecture has only two instruction formats: RRR and RX.
 </div>
 </div>
 
-<div id="outline-container-org4bd2ea6" class="outline-4">
-<h4 id="org4bd2ea6">RRR format</h4>
-<div class="outline-text-4" id="text-org4bd2ea6">
+<div id="outline-container-org4e93cf6" class="outline-4">
+<h4 id="org4e93cf6">RRR format</h4>
+<div class="outline-text-4" id="text-org4e93cf6">
 <p>
 RRR instructions perform operations on data in registers,
 but not referring to memory.  The representation is one word.
@@ -3286,9 +3286,9 @@ R9 + R2.
 </div>
 </div>
 
-<div id="outline-container-org9ee2d60" class="outline-4">
-<h4 id="org9ee2d60">RX format</h4>
-<div class="outline-text-4" id="text-org9ee2d60">
+<div id="outline-container-orga87f45c" class="outline-4">
+<h4 id="orga87f45c">RX format</h4>
+<div class="outline-text-4" id="text-orga87f45c">
 <p>
 RX instructions that specify a memory location as well as a
 register operand.  The representation is two words.
@@ -3378,9 +3378,9 @@ displacement, which is the entire second word of the instruction.
 </div>
 </div>
 
-<div id="outline-container-orgf2d3cc0" class="outline-4">
-<h4 id="orgf2d3cc0">EXP format</h4>
-<div class="outline-text-4" id="text-orgf2d3cc0">
+<div id="outline-container-orgf924785" class="outline-4">
+<h4 id="orgf924785">EXP format</h4>
+<div class="outline-text-4" id="text-orgf924785">
 <p>
 An EXP instruction contains 14 (hex e) in the op field, and the a and
 b fields are combined into a single 8-bit number that contains a
@@ -3434,9 +3434,9 @@ operand.
 </div>
 </div>
 
-<div id="outline-container-org8345329" class="outline-4">
-<h4 id="org8345329">Summary of instruction formats</h4>
-<div class="outline-text-4" id="text-org8345329">
+<div id="outline-container-org5ceb1ef" class="outline-4">
+<h4 id="org5ceb1ef">Summary of instruction formats</h4>
+<div class="outline-text-4" id="text-org5ceb1ef">
 <p>
 The following table summarises the instruction formats.  The core of
 the architecture needs only the first two (RRR and RX).  The more
@@ -3515,9 +3515,9 @@ Table: <b><b>Machine language instruction formats</b></b>
 </div>
 </div>
 
-<div id="outline-container-org9f73089" class="outline-4">
-<h4 id="org9f73089">Assembly language statement formats</h4>
-<div class="outline-text-4" id="text-org9f73089">
+<div id="outline-container-orgfad359a" class="outline-4">
+<h4 id="orgfad359a">Assembly language statement formats</h4>
+<div class="outline-text-4" id="text-orgfad359a">
 <p>
 Assembly language statements generally correspond to the instruction
 formats, but there is not an exact correspondence for several reasons:
@@ -3690,9 +3690,9 @@ circuit to impleemnt the architecture, the format is essential.)
 </div>
 </div>
 
-<div id="outline-container-org984abe9" class="outline-4">
-<h4 id="org984abe9">Instruction formats</h4>
-<div class="outline-text-4" id="text-org984abe9">
+<div id="outline-container-org29d836e" class="outline-4">
+<h4 id="org29d836e">Instruction formats</h4>
+<div class="outline-text-4" id="text-org29d836e">
 <p>
 RRR instructions are represented in one word comprising four 4-bit
 fields.
@@ -3793,13 +3793,13 @@ The a and b fields form an 8-bit value called ab.
 </div>
 </div>
 
-<div id="outline-container-orga4ea62d" class="outline-2">
-<h2 id="orga4ea62d">Instruction set</h2>
-<div class="outline-text-2" id="text-orga4ea62d">
+<div id="outline-container-org6da2a47" class="outline-2">
+<h2 id="org6da2a47">Instruction set</h2>
+<div class="outline-text-2" id="text-org6da2a47">
 </div>
-<div id="outline-container-orgae42819" class="outline-3">
-<h3 id="orgae42819">Arithmetic</h3>
-<div class="outline-text-3" id="text-orgae42819">
+<div id="outline-container-org9a05a4e" class="outline-3">
+<h3 id="org9a05a4e">Arithmetic</h3>
+<div class="outline-text-3" id="text-org9a05a4e">
 <p>
 The add instruction can be used for both binary addition (on natural
 numbers) and for two's complement addition (on signed integers).
@@ -3826,9 +3826,9 @@ will occur immediatelhy after the add instruction executes.</li>
 </ul>
 </div>
 
-<div id="outline-container-orgeac8a9d" class="outline-4">
-<h4 id="orgeac8a9d">add</h4>
-<div class="outline-text-4" id="text-orgeac8a9d">
+<div id="outline-container-orgb65dfd2" class="outline-4">
+<h4 id="orgb65dfd2">add</h4>
+<div class="outline-text-4" id="text-orgb65dfd2">
 <p>
 Example: add R1,R2,R3 ; R1 := R2 + R3
 </p>
@@ -3873,9 +3873,9 @@ req register.
 </div>
 </div>
 
-<div id="outline-container-org5512232" class="outline-4">
-<h4 id="org5512232">sub</h4>
-<div class="outline-text-4" id="text-org5512232">
+<div id="outline-container-org97280bb" class="outline-4">
+<h4 id="org97280bb">sub</h4>
+<div class="outline-text-4" id="text-org97280bb">
 <p>
 Example: sub R1,R2,R3 ; R1 := R2 - R3
 </p>
@@ -3924,9 +3924,9 @@ req register.
 </div>
 </div>
 
-<div id="outline-container-org67472c0" class="outline-4">
-<h4 id="org67472c0">mul</h4>
-<div class="outline-text-4" id="text-org67472c0">
+<div id="outline-container-orgde15332" class="outline-4">
+<h4 id="orgde15332">mul</h4>
+<div class="outline-text-4" id="text-orgde15332">
 <p>
 Example: mul R1,R2,R3 ; R1 := R2 * R3
 </p>
@@ -3959,9 +3959,9 @@ into Rd.
 </div>
 </div>
 
-<div id="outline-container-org12ca19a" class="outline-4">
-<h4 id="org12ca19a">div</h4>
-<div class="outline-text-4" id="text-org12ca19a">
+<div id="outline-container-orgea35323" class="outline-4">
+<h4 id="orgea35323">div</h4>
+<div class="outline-text-4" id="text-orgea35323">
 <p>
 Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
 </p>
@@ -4009,9 +4009,9 @@ not require a compare or jump instruction for each division.</li>
 </div>
 </div>
 
-<div id="outline-container-orga922835" class="outline-4">
-<h4 id="orga922835">addc</h4>
-<div class="outline-text-4" id="text-orga922835">
+<div id="outline-container-orga14be13" class="outline-4">
+<h4 id="orga14be13">addc</h4>
+<div class="outline-text-4" id="text-orga14be13">
 <p>
 The addc instruction adds two registers and the carry bit in the
 condition code register, R15.  The sum is loaded into the destination
@@ -4022,9 +4022,9 @@ instruction.
 </div>
 </div>
 
-<div id="outline-container-orgf9f79b2" class="outline-4">
-<h4 id="orgf9f79b2">muln</h4>
-<div class="outline-text-4" id="text-orgf9f79b2">
+<div id="outline-container-orgab65414" class="outline-4">
+<h4 id="orgab65414">muln</h4>
+<div class="outline-text-4" id="text-orgab65414">
 <pre class="example">
 muln   Rd,Ra,Rb
 </pre>
@@ -4039,9 +4039,9 @@ significant part is discarded.
 </div>
 </div>
 
-<div id="outline-container-org10034b7" class="outline-4">
-<h4 id="org10034b7">divn</h4>
-<div class="outline-text-4" id="text-org10034b7">
+<div id="outline-container-org685abe1" class="outline-4">
+<h4 id="org685abe1">divn</h4>
+<div class="outline-text-4" id="text-org685abe1">
 <pre class="example">
 divn   Rd,Ra,Rb
 </pre>
@@ -4064,9 +4064,9 @@ natural numbers represented in binary.
 </div>
 </div>
 
-<div id="outline-container-org3fd3ef8" class="outline-3">
-<h3 id="org3fd3ef8">Memory</h3>
-<div class="outline-text-3" id="text-org3fd3ef8">
+<div id="outline-container-orgbb5e5d0" class="outline-3">
+<h3 id="orgbb5e5d0">Memory</h3>
+<div class="outline-text-3" id="text-orgbb5e5d0">
 <p>
 A memory address is a 16-bit binary number.  Instructions don't
 specify addresses directly; they specify an address with two
@@ -4092,9 +4092,9 @@ effective address is just <b>a</b>.
 </p>
 </div>
 
-<div id="outline-container-org556759a" class="outline-4">
-<h4 id="org556759a">lea</h4>
-<div class="outline-text-4" id="text-org556759a">
+<div id="outline-container-org0a94422" class="outline-4">
+<h4 id="org0a94422">lea</h4>
+<div class="outline-text-4" id="text-org0a94422">
 <p>
 The <b><b>load effective address</b></b> instruction <b>lea Rd,disp[Rx]</b> calculates
 the effective address of the operand disp[Rx] and places the result in
@@ -4104,9 +4104,9 @@ disp+Rx.
 </div>
 </div>
 
-<div id="outline-container-org4751fca" class="outline-4">
-<h4 id="org4751fca">load</h4>
-<div class="outline-text-4" id="text-org4751fca">
+<div id="outline-container-orgc8cc990" class="outline-4">
+<h4 id="orgc8cc990">load</h4>
+<div class="outline-text-4" id="text-orgc8cc990">
 <p>
 The <b><b>load</b></b> instruction <b>load Rd,disp[Rx]</b> calculates the effective
 address of the operand disp[Rx] and copies the word in memory at the
@@ -4134,9 +4134,9 @@ load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
 </div>
 </div>
 
-<div id="outline-container-org08ca1ed" class="outline-4">
-<h4 id="org08ca1ed">store</h4>
-<div class="outline-text-4" id="text-org08ca1ed">
+<div id="outline-container-org873cac8" class="outline-4">
+<h4 id="org873cac8">store</h4>
+<div class="outline-text-4" id="text-org873cac8">
 <p>
 The <b><b>store</b></b> instruction <b>store Rd,disp[Rx]</b> calculates the effective
 address of the operand disp[Rx] and the value of the destination
@@ -4183,9 +4183,9 @@ store  R6,arrayX[R2]
 </div>
 </div>
 
-<div id="outline-container-org334b91a" class="outline-4">
-<h4 id="org334b91a">Stack representation</h4>
-<div class="outline-text-4" id="text-org334b91a">
+<div id="outline-container-orga9df360" class="outline-4">
+<h4 id="orga9df360">Stack representation</h4>
+<div class="outline-text-4" id="text-orga9df360">
 <p>
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -4238,9 +4238,9 @@ the last word, and setting <i>stack top</i> to <i>stack base</i> - 1.
 </div>
 </div>
 
-<div id="outline-container-orga27f41b" class="outline-4">
-<h4 id="orga27f41b">push</h4>
-<div class="outline-text-4" id="text-orga27f41b">
+<div id="outline-container-org23e01c9" class="outline-4">
+<h4 id="org23e01c9">push</h4>
+<div class="outline-text-4" id="text-org23e01c9">
 <p>
 The push instruction pushes an element onto a stack.  It is RRR
 format, and its general form is:
@@ -4291,9 +4291,9 @@ set in the mask register.
 </div>
 </div>
 
-<div id="outline-container-org69e63f2" class="outline-4">
-<h4 id="org69e63f2">pop</h4>
-<div class="outline-text-4" id="text-org69e63f2">
+<div id="outline-container-orgbc89de0" class="outline-4">
+<h4 id="orgbc89de0">pop</h4>
+<div class="outline-text-4" id="text-orgbc89de0">
 <p>
 The push instruction removes an element onto a stack and returns it.
 The instruction is RRR format, and its general form is:
@@ -4330,9 +4330,9 @@ if Ra &gt;= Rb
 </div>
 </div>
 
-<div id="outline-container-org32d6b0f" class="outline-4">
-<h4 id="org32d6b0f">top</h4>
-<div class="outline-text-4" id="text-org32d6b0f">
+<div id="outline-container-org981da63" class="outline-4">
+<h4 id="org981da63">top</h4>
+<div class="outline-text-4" id="text-org981da63">
 <p>
 The top instruction returns the top element on a stack but does not
 remove it.  The instruction is RRR format, and its general form is:
@@ -4368,11 +4368,37 @@ if Ra &gt;= Rb
 </div>
 </div>
 
-<div id="outline-container-org86bec0d" class="outline-4">
-<h4 id="org86bec0d">save</h4>
-<div class="outline-text-4" id="text-org86bec0d">
+<div id="outline-container-orgd3610e3" class="outline-4">
+<h4 id="orgd3610e3">save</h4>
+<div class="outline-text-4" id="text-orgd3610e3">
 <p>
-Example: save R2,R9,20[R14] is equivalent to
+The <b>save</b> instruction stores a sequence of adjacent registers into a
+block of contiguous memory locations.  The sequence of registers is
+specified by giving the first and last register, and the starting
+address of the memory block is specified by the effective address.
+The instruction does not change the value of any register, including
+the index register.
+</p>
+
+<p>
+A save instruction is equivalent to a fixed sequence of store
+instructions; The save instruction stores a set of contiguous
+registers into memory.  The starting address of the memory block is
+specified by an index register and an 8-bit displacement.  The
+instruction <b>save Re,Rf,gh[Ra]</b> stores the contents of Re, Re+1, &#x2026;,
+Rf into memory at consecutive locations beginning with <b>mem[Ra+gh]</b>.
+</p>
+
+<p>
+For example, the following save instruction
+</p>
+
+<pre class="example">
+save R2,R9,20[R14]
+</pre>
+
+<p>
+is equivalent to the following sequence of store instructions:
 </p>
 
 <pre class="example">
@@ -4387,23 +4413,24 @@ store  R9,27[R14]
 </pre>
 
 <p>
-The <b><b>save</b></b> instruction stores a sequence of adjacent registers into
-memory starting from the effective address. The index register (R14 in
-this example) is not changed.  Save is equivalent to a fixed sequence
-of store instructions; its purpose of save is to copy the state of
+The assembly language notation for a save instruction is similar to an
+RX instruction, but two registers are used to specify a block of
+registers, and the displacement is an 8-bit field gh. Its assembly
+language operand format is RRX.  Because of these differences, save is
+an EXP2 format instruction:
+</p>
+
+<pre class="example">
+save Rd,Re,gh[Rf]
+</pre>
+
+<p>
+The purpose of save is to copy the state of a block of
 registers into memory during a procedure call or a context switch.
+The registers can be reloaded by the restore instruction.
 </p>
 
-<p>
-Typically, save is used as part of a procedure call and restore is
-used as part of the return.
-</p>
 
-<p>
-The instruction <b>save Re,Rf,gh[Ra]</b> stores the contents of Re, Re+1,
-&#x2026;, Rf into memory at consecutive locations beginning with
-<b>mem[Ra+gh]</b>.
-</p>
 
 <p>
 The instruction is EXP format, and the offset is limited to 8 bits,
@@ -4442,9 +4469,9 @@ store   R3,11[R5]
 </div>
 </div>
 
-<div id="outline-container-org6ead570" class="outline-4">
-<h4 id="org6ead570">restore</h4>
-<div class="outline-text-4" id="text-org6ead570">
+<div id="outline-container-org5cdabcb" class="outline-4">
+<h4 id="org5cdabcb">restore</h4>
+<div class="outline-text-4" id="text-org5cdabcb">
 <p>
 Restore Rd,disp[Ra] loads R1, &#x2026;, Rd from consecutive memory
 locations starting from the effective address.
@@ -4520,13 +4547,13 @@ load  R10,11[R14]
 </div>
 </div>
 
-<div id="outline-container-orgb08daee" class="outline-3">
-<h3 id="orgb08daee">Logic</h3>
-<div class="outline-text-3" id="text-orgb08daee">
+<div id="outline-container-orga3df122" class="outline-3">
+<h3 id="orga3df122">Logic</h3>
+<div class="outline-text-3" id="text-orga3df122">
 </div>
-<div id="outline-container-orge170e50" class="outline-4">
-<h4 id="orge170e50">cmp</h4>
-<div class="outline-text-4" id="text-orge170e50">
+<div id="outline-container-orgaa99685" class="outline-4">
+<h4 id="orgaa99685">cmp</h4>
+<div class="outline-text-4" id="text-orgaa99685">
 <p>
 The comparison instructions compare the values in two operand
 </p>
@@ -4540,9 +4567,9 @@ register, which is R15.
 </div>
 </div>
 
-<div id="outline-container-org184c590" class="outline-4">
-<h4 id="org184c590">logicw</h4>
-<div class="outline-text-4" id="text-org184c590">
+<div id="outline-container-orgf801e1e" class="outline-4">
+<h4 id="orgf801e1e">logicw</h4>
+<div class="outline-text-4" id="text-orgf801e1e">
 <p>
 The logicw instruction performs a bitwise logic operation on two
 operands: each bit of the result is obtained by performing the logic
@@ -4565,9 +4592,9 @@ Re and Rf, and the result is loaded into the destination register Rd.
 </div>
 </div>
 
-<div id="outline-container-orgb163978" class="outline-4">
-<h4 id="orgb163978">logicb</h4>
-<div class="outline-text-4" id="text-orgb163978">
+<div id="outline-container-org19cc84e" class="outline-4">
+<h4 id="org19cc84e">logicb</h4>
+<div class="outline-text-4" id="text-org19cc84e">
 <p>
 The <i>logicb</i> instruction performs an arbitrary Boolean logic function
 on two operand bits, producing a result bit.  All three bits must be
@@ -4623,13 +4650,13 @@ operands bits</li>
 </div>
 </div>
 
-<div id="outline-container-org31378e5" class="outline-3">
-<h3 id="org31378e5">Jumping</h3>
-<div class="outline-text-3" id="text-org31378e5">
+<div id="outline-container-orge36bc94" class="outline-3">
+<h3 id="orge36bc94">Jumping</h3>
+<div class="outline-text-3" id="text-orge36bc94">
 </div>
-<div id="outline-container-org0ba9379" class="outline-4">
-<h4 id="org0ba9379">jump</h4>
-<div class="outline-text-4" id="text-org0ba9379">
+<div id="outline-container-org7d6c237" class="outline-4">
+<h4 id="org7d6c237">jump</h4>
+<div class="outline-text-4" id="text-org7d6c237">
 <p>
 The <b><b>jump</b></b> instruction <b>jump disp[Ra]</b> transfers control to the
 instruction in memory at the effective address <b>disp+Ra</b>.
@@ -4637,9 +4664,9 @@ instruction in memory at the effective address <b>disp+Ra</b>.
 </div>
 </div>
 
-<div id="outline-container-orgc2fb19e" class="outline-4">
-<h4 id="orgc2fb19e">jal</h4>
-<div class="outline-text-4" id="text-orgc2fb19e">
+<div id="outline-container-org07f2bc0" class="outline-4">
+<h4 id="org07f2bc0">jal</h4>
+<div class="outline-text-4" id="text-org07f2bc0">
 <p>
 The <b><b>jump and link</b></b> instruction <b>jal Rd,disp[Ra]</b> loads the address
 of the following instruction into the destination register Rd, and
@@ -4657,9 +4684,9 @@ return by jumping to the return address, e.g. with <b>jump 0[Rd]</b>.
 </div>
 </div>
 
-<div id="outline-container-org5644fcd" class="outline-4">
-<h4 id="org5644fcd">jumpc0</h4>
-<div class="outline-text-4" id="text-org5644fcd">
+<div id="outline-container-org8a73ec5" class="outline-4">
+<h4 id="org8a73ec5">jumpc0</h4>
+<div class="outline-text-4" id="text-org8a73ec5">
 <p>
 The <b><b>jump if condition code bit is 0</b></b> instruction <b>jumpc0
 k,disp[Ra]</b> checks the value of bit k in R15, which is the condition
@@ -4670,9 +4697,9 @@ control to the instruction in memory at the effective address
 </div>
 </div>
 
-<div id="outline-container-org337ca46" class="outline-4">
-<h4 id="org337ca46">jumpc1</h4>
-<div class="outline-text-4" id="text-org337ca46">
+<div id="outline-container-org406e0a8" class="outline-4">
+<h4 id="org406e0a8">jumpc1</h4>
+<div class="outline-text-4" id="text-org406e0a8">
 <p>
 The <b><b>jump if condition code bit is 1</b></b> instruction <b>jumpc1
 k,disp[Ra]</b> checks the value of bit k in R15, which is the condition
@@ -4683,9 +4710,9 @@ control to the instruction in memory at the effective address
 </div>
 </div>
 
-<div id="outline-container-org81675f1" class="outline-4">
-<h4 id="org81675f1">jumpz</h4>
-<div class="outline-text-4" id="text-org81675f1">
+<div id="outline-container-org81095c0" class="outline-4">
+<h4 id="org81095c0">jumpz</h4>
+<div class="outline-text-4" id="text-org81095c0">
 <pre class="example">
 jumpz  Rd,disp[Ra]
 </pre>
@@ -4698,9 +4725,9 @@ following instruction.
 </div>
 </div>
 
-<div id="outline-container-org508391b" class="outline-4">
-<h4 id="org508391b">jumpnz</h4>
-<div class="outline-text-4" id="text-org508391b">
+<div id="outline-container-orgc5ee779" class="outline-4">
+<h4 id="orgc5ee779">jumpnz</h4>
+<div class="outline-text-4" id="text-orgc5ee779">
 <pre class="example">
 jumpnz Rd,disp[Ra]
 </pre>
@@ -4714,9 +4741,9 @@ execution goes on to the following instruction.
 </div>
 </div>
 
-<div id="outline-container-orgeb7f06f" class="outline-3">
-<h3 id="orgeb7f06f">Bit fields</h3>
-<div class="outline-text-3" id="text-orgeb7f06f">
+<div id="outline-container-orgf839e30" class="outline-3">
+<h3 id="orgf839e30">Bit fields</h3>
+<div class="outline-text-3" id="text-orgf839e30">
 <p>
 Several instructions operate on some but not all of the bits in a
 word.  Each of these instructions can be implemented using a
@@ -4755,9 +4782,9 @@ of the starting bit in the field, and the size of the field.
 </p>
 </div>
 
-<div id="outline-container-org7064f95" class="outline-4">
-<h4 id="org7064f95">shiftl</h4>
-<div class="outline-text-4" id="text-org7064f95">
+<div id="outline-container-org376dc5a" class="outline-4">
+<h4 id="org376dc5a">shiftl</h4>
+<div class="outline-text-4" id="text-org376dc5a">
 <p>
 The instruction shiftl Rd,Ra,k shifts the value in the operand
 register Ra by k bits to the left, and the result is placed in the
@@ -4777,9 +4804,9 @@ is RRKEXP
 </div>
 </div>
 
-<div id="outline-container-orge1691ed" class="outline-4">
-<h4 id="orge1691ed">shiftr</h4>
-<div class="outline-text-4" id="text-orge1691ed">
+<div id="outline-container-org128f316" class="outline-4">
+<h4 id="org128f316">shiftr</h4>
+<div class="outline-text-4" id="text-org128f316">
 <p>
 Shift to the right.
 </p>
@@ -4809,9 +4836,9 @@ is RRKEXP
 </div>
 </div>
 
-<div id="outline-container-orgbe6ff0f" class="outline-4">
-<h4 id="orgbe6ff0f">shift</h4>
-<div class="outline-text-4" id="text-orgbe6ff0f">
+<div id="outline-container-orga31811b" class="outline-4">
+<h4 id="orga31811b">shift</h4>
+<div class="outline-text-4" id="text-orga31811b">
 <p>
 This shift instruction allows for the direction and distance of a
 shift to be variable, specified in a register.  (The shiftl and shiftr
@@ -4842,9 +4869,9 @@ Ra * 2 ^ Rb.
 </div>
 </div>
 
-<div id="outline-container-orgac41761" class="outline-4">
-<h4 id="orgac41761">extract</h4>
-<div class="outline-text-4" id="text-orgac41761">
+<div id="outline-container-org5fd0b1c" class="outline-4">
+<h4 id="org5fd0b1c">extract</h4>
+<div class="outline-text-4" id="text-org5fd0b1c">
 <p>
 The extract instruction copies an arbitrary field of bits from a
 source register and inserts those bits into an arbitrary position in a
@@ -5045,9 +5072,9 @@ extract  Rd,e,f,Rg,h
 </div>
 </div>
 
-<div id="outline-container-org18f52d3" class="outline-4">
-<h4 id="org18f52d3">extracti</h4>
-<div class="outline-text-4" id="text-org18f52d3">
+<div id="outline-container-org5c3c5ca" class="outline-4">
+<h4 id="org5c3c5ca">extracti</h4>
+<div class="outline-text-4" id="text-org5c3c5ca">
 <p>
 The extracti instruction is similar to extract, but extracti inverts
 the bits that are inserted into the destination.
@@ -5060,30 +5087,13 @@ The secondary opcode is 8.
 </div>
 </div>
 
-<div id="outline-container-orgdc75afb" class="outline-3">
-<h3 id="orgdc75afb">System</h3>
-<div class="outline-text-3" id="text-orgdc75afb">
+<div id="outline-container-org9988b44" class="outline-3">
+<h3 id="org9988b44">System</h3>
+<div class="outline-text-3" id="text-org9988b44">
 </div>
-<div id="outline-container-org846b543" class="outline-4">
-<h4 id="org846b543">getctl</h4>
-</div>
-<div id="outline-container-orgf072174" class="outline-4">
-<h4 id="orgf072174">putctl</h4>
-</div>
-<div id="outline-container-orgac43591" class="outline-4">
-<h4 id="orgac43591">trap</h4>
-<div class="outline-text-4" id="text-orgac43591">
-</div>
-<ul class="org-ul">
-<li><a id="org480eb05"></a>Halt<br /></li>
-<li><a id="orgcbd4ad7"></a>Write<br /></li>
-<li><a id="org8f737b5"></a>Nonblocking read<br /></li>
-</ul>
-</div>
-
-<div id="outline-container-orga2faff1" class="outline-4">
-<h4 id="orga2faff1">resume</h4>
-<div class="outline-text-4" id="text-orga2faff1">
+<div id="outline-container-orgdeb4871" class="outline-4">
+<h4 id="orgdeb4871">resume</h4>
+<div class="outline-text-4" id="text-orgdeb4871">
 <p>
 The resume instruction performs the following operations atomically:
 </p>
@@ -5116,10 +5126,26 @@ status register, it can be used to perform a context switch.
 </p>
 </div>
 </div>
+<div id="outline-container-orge9a6ab6" class="outline-4">
+<h4 id="orge9a6ab6">getctl</h4>
+</div>
+<div id="outline-container-orgadae9e5" class="outline-4">
+<h4 id="orgadae9e5">putctl</h4>
+</div>
+<div id="outline-container-org40323bc" class="outline-4">
+<h4 id="org40323bc">trap</h4>
+<div class="outline-text-4" id="text-org40323bc">
+</div>
+<ul class="org-ul">
+<li><a id="org8d5c1f2"></a>Halt<br /></li>
+<li><a id="orgd9fc0a9"></a>Write<br /></li>
+<li><a id="org7cc97b9"></a>Nonblocking read<br /></li>
+</ul>
+</div>
 
-<div id="outline-container-orgfe936b0" class="outline-4">
-<h4 id="orgfe936b0">testset</h4>
-<div class="outline-text-4" id="text-orgfe936b0">
+<div id="outline-container-org133c1f2" class="outline-4">
+<h4 id="org133c1f2">testset</h4>
+<div class="outline-text-4" id="text-org133c1f2">
 <p>
 The testset instruction fetches a Boolean from a word in memory,
 places it in the destination register, and also sets the word in
@@ -5151,9 +5177,9 @@ regions</i> in the <i>Programming techniques</i> chapter.
 </div>
 </div>
 
-<div id="outline-container-orgec8e3b7" class="outline-3">
-<h3 id="orgec8e3b7">Pseudoinstructions</h3>
-<div class="outline-text-3" id="text-orgec8e3b7">
+<div id="outline-container-org6cae3ac" class="outline-3">
+<h3 id="org6cae3ac">Pseudoinstructions</h3>
+<div class="outline-text-3" id="text-org6cae3ac">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -5228,9 +5254,9 @@ regions</i> in the <i>Programming techniques</i> chapter.
 </table>
 </div>
 
-<div id="outline-container-orgf78b45f" class="outline-4">
-<h4 id="orgf78b45f">jumpXX conditional jump pseudoinstructions</h4>
-<div class="outline-text-4" id="text-orgf78b45f">
+<div id="outline-container-org4593407" class="outline-4">
+<h4 id="org4593407">jumpXX conditional jump pseudoinstructions</h4>
+<div class="outline-text-4" id="text-org4593407">
 <ul class="org-ul">
 <li>jumplt</li>
 <li>jumple</li>
@@ -5243,9 +5269,9 @@ regions</i> in the <i>Programming techniques</i> chapter.
 </div>
 </div>
 
-<div id="outline-container-orgb9347ea" class="outline-4">
-<h4 id="orgb9347ea">logic pseudoinstructions</h4>
-<div class="outline-text-4" id="text-orgb9347ea">
+<div id="outline-container-orgfffc901" class="outline-4">
+<h4 id="orgfffc901">logic pseudoinstructions</h4>
+<div class="outline-text-4" id="text-orgfffc901">
 <ul class="org-ul">
 <li>invw</li>
 </ul>
@@ -5374,18 +5400,18 @@ function operand set to perform an xor.
 </div>
 </div>
 
-<div id="outline-container-orgb13bc71" class="outline-4">
-<h4 id="orgb13bc71">invb, andb, orb, xorb</h4>
+<div id="outline-container-orgf94df0f" class="outline-4">
+<h4 id="orgf94df0f">invb, andb, orb, xorb</h4>
 </div>
 </div>
 
-<div id="outline-container-org974a5e2" class="outline-3">
-<h3 id="org974a5e2">Summary of instruction set</h3>
-<div class="outline-text-3" id="text-org974a5e2">
+<div id="outline-container-org474dbf5" class="outline-3">
+<h3 id="org474dbf5">Summary of instruction set</h3>
+<div class="outline-text-3" id="text-org474dbf5">
 </div>
-<div id="outline-container-org03131aa" class="outline-4">
-<h4 id="org03131aa">Notation</h4>
-<div class="outline-text-4" id="text-org03131aa">
+<div id="outline-container-orgdcb3322" class="outline-4">
+<h4 id="orgdcb3322">Notation</h4>
+<div class="outline-text-4" id="text-orgdcb3322">
 <p>
 The following notations and abbreviations are used to specify
 precisely and concisely the effects of the instructions:
@@ -5413,9 +5439,9 @@ precisely and concisely the effects of the instructions:
 </div>
 </div>
 
-<div id="outline-container-orgf3ef2dd" class="outline-4">
-<h4 id="orgf3ef2dd">Instructions</h4>
-<div class="outline-text-4" id="text-orgf3ef2dd">
+<div id="outline-container-org6b1048c" class="outline-4">
+<h4 id="org6b1048c">Instructions</h4>
+<div class="outline-text-4" id="text-org6b1048c">
 <ul class="org-ul">
 <li>Mnemonic: instruction name used in assembly language</li>
 <li>P: if true, the instruction is privileged</li>
@@ -5679,30 +5705,30 @@ precisely and concisely the effects of the instructions:
 </tr>
 
 <tr>
-<td class="org-left">save</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">RX</td>
-<td class="org-left">RX</td>
-<td class="org-left">f,9</td>
-<td class="org-left">M[ea] := R1, &#x2026;, M[ea+d-1] := Rd</td>
-</tr>
-
-<tr>
-<td class="org-left">restore</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">RX</td>
-<td class="org-left">RX</td>
-<td class="org-left">f,a</td>
-<td class="org-left">R1 := M[ea], &#x2026;, Rd := M[ea+d-1]</td>
-</tr>
-
-<tr>
 <td class="org-left">testset</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">RX</td>
 <td class="org-left">RX</td>
-<td class="org-left">f,b</td>
+<td class="org-left">f,9</td>
 <td class="org-left">Rd := M[ea], M[ea] := 1</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">RX</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">f,a</td>
+<td class="org-left">&#x2013; reserved --</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">RX</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">f,b</td>
+<td class="org-left">&#x2013; reserved --</td>
 </tr>
 
 <tr>
@@ -5825,6 +5851,24 @@ precisely and concisely the effects of the instructions:
 </tr>
 
 <tr>
+<td class="org-left">save</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">EXP2</td>
+<td class="org-left">RRRk</td>
+<td class="org-left">e,09</td>
+<td class="org-left">M[ea] := R1, &#x2026;, M[ea+d-1] := Rd</td>
+</tr>
+
+<tr>
+<td class="org-left">restore</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">EXP2</td>
+<td class="org-left">RRRk</td>
+<td class="org-left">e,0a</td>
+<td class="org-left">R1 := M[ea], &#x2026;, Rd := M[ea+d-1]</td>
+</tr>
+
+<tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">EXP2</td>
@@ -5855,9 +5899,9 @@ precisely and concisely the effects of the instructions:
 </div>
 </div>
 
-<div id="outline-container-org7e3604b" class="outline-4">
-<h4 id="org7e3604b">Rationale for jumpc0 and jumpc1</h4>
-<div class="outline-text-4" id="text-org7e3604b">
+<div id="outline-container-orgf445e9f" class="outline-4">
+<h4 id="orgf445e9f">Rationale for jumpc0 and jumpc1</h4>
+<div class="outline-text-4" id="text-orgf445e9f">
 <p>
 Aim is to jump if an arbitrary bit is 0 (or 1).  Would like an
 instruction like:
@@ -5882,9 +5926,9 @@ contains the Boolean</li>
 </div>
 </div>
 
-<div id="outline-container-orgdfd4aa7" class="outline-4">
-<h4 id="orgdfd4aa7">Pseudoinstructions</h4>
-<div class="outline-text-4" id="text-orgdfd4aa7">
+<div id="outline-container-orge426c2d" class="outline-4">
+<h4 id="orge426c2d">Pseudoinstructions</h4>
+<div class="outline-text-4" id="text-orge426c2d">
 <p>
 save  
 save     |       RX   | RX    | f,9  | M[ea] := R1, &#x2026;, M[ea+d-1] := Rd  M[Rb+ofs+(f-e+1)] := Rf |
@@ -5895,13 +5939,13 @@ restore  |   | RX   | RX    | f,a  | R1 := M[ea], &#x2026;, Rd := M[ea+d-1] |
 </div>
 </div>
 
-<div id="outline-container-org84dac4d" class="outline-2">
-<h2 id="org84dac4d">User interface</h2>
-<div class="outline-text-2" id="text-org84dac4d">
+<div id="outline-container-orgac3cc2e" class="outline-2">
+<h2 id="orgac3cc2e">User interface</h2>
+<div class="outline-text-2" id="text-orgac3cc2e">
 </div>
-<div id="outline-container-org1ee0a90" class="outline-4">
-<h4 id="org1ee0a90">Simple standalone programs</h4>
-<div class="outline-text-4" id="text-org1ee0a90">
+<div id="outline-container-orgd69a0b2" class="outline-4">
+<h4 id="orgd69a0b2">Simple standalone programs</h4>
+<div class="outline-text-4" id="text-orgd69a0b2">
 <p>
 If a program does not import any names, it is <b>standalone</b>.  The text
 of the program is shown in the editor pane.  Go to the Assembler pane
@@ -5913,9 +5957,9 @@ program.
 </div>
 </div>
 
-<div id="outline-container-org6025829" class="outline-4">
-<h4 id="org6025829">Programs with multiple modules</h4>
-<div class="outline-text-4" id="text-org6025829">
+<div id="outline-container-orga27fbfc" class="outline-4">
+<h4 id="orga27fbfc">Programs with multiple modules</h4>
+<div class="outline-text-4" id="text-orga27fbfc">
 <p>
 A module consists of program text, and it may have an optional file,
 and an optional module name.
@@ -6001,9 +6045,9 @@ are for introducing a new module.
 </div>
 </div>
 
-<div id="outline-container-orgb393d85" class="outline-2">
-<h2 id="orgb393d85">Assembly language</h2>
-<div class="outline-text-2" id="text-orgb393d85">
+<div id="outline-container-org1b7c682" class="outline-2">
+<h2 id="org1b7c682">Assembly language</h2>
+<div class="outline-text-2" id="text-org1b7c682">
 <p>
 A computer is a digital circuit that executes programs in machine
 language, which is hard for humans to read because it consists
@@ -6072,9 +6116,9 @@ Machine language
 </pre>
 </div>
 
-<div id="outline-container-org9d5562c" class="outline-3">
-<h3 id="org9d5562c">Programs, modules, and files</h3>
-<div class="outline-text-3" id="text-org9d5562c">
+<div id="outline-container-orgdd131af" class="outline-3">
+<h3 id="orgdd131af">Programs, modules, and files</h3>
+<div class="outline-text-3" id="text-orgdd131af">
 <p>
 The assembler inputs a program in assembly language.  Its primary
 output is an <b>object module</b> which contains the machine language code.
@@ -6109,9 +6153,9 @@ assembly listing   MyProgram.lst.txt
 </div>
 </div>
 
-<div id="outline-container-org08145c4" class="outline-3">
-<h3 id="org08145c4">Values</h3>
-<div class="outline-text-3" id="text-org08145c4">
+<div id="outline-container-org0153104" class="outline-3">
+<h3 id="org0153104">Values</h3>
+<div class="outline-text-3" id="text-org0153104">
 <p>
 A value is a 16-bit word.  An assembly language program uses
 expressions to denote values, but the actual underlying quantity is a
@@ -6134,9 +6178,9 @@ relocation constant when the module is relocated</li>
 </ul>
 </div>
 
-<div id="outline-container-orge08faf9" class="outline-4">
-<h4 id="orge08faf9">Expressions</h4>
-<div class="outline-text-4" id="text-orge08faf9">
+<div id="outline-container-orgd955780" class="outline-4">
+<h4 id="orgd955780">Expressions</h4>
+<div class="outline-text-4" id="text-orgd955780">
 <p>
 An expression is syntax that denotes a value. 
 </p>
@@ -6332,9 +6376,9 @@ may be calculated.
 </div>
 </div>
 
-<div id="outline-container-org58b672d" class="outline-4">
-<h4 id="org58b672d">Location counter</h4>
-<div class="outline-text-4" id="text-org58b672d">
+<div id="outline-container-orge5915f1" class="outline-4">
+<h4 id="orge5915f1">Location counter</h4>
+<div class="outline-text-4" id="text-orge5915f1">
 <p>
 The assembler maintains a variable called the location counter, which
 is the address where the next word of object code will be loaded.  The
@@ -6358,9 +6402,9 @@ operand.
 </div>
 </div>
 
-<div id="outline-container-orgafcde76" class="outline-4">
-<h4 id="orgafcde76">Attributes</h4>
-<div class="outline-text-4" id="text-orgafcde76">
+<div id="outline-container-orgb6382d7" class="outline-4">
+<h4 id="orgb6382d7">Attributes</h4>
+<div class="outline-text-4" id="text-orgb6382d7">
 <p>
 A machine language program consists of words stored in memory at
 particular addresses.  A word is just a collection of 16 bits; it has
@@ -6392,9 +6436,9 @@ values remain unchanged.
 </div>
 </div>
 
-<div id="outline-container-org4330cd8" class="outline-3">
-<h3 id="org4330cd8">Code statements</h3>
-<div class="outline-text-3" id="text-org4330cd8">
+<div id="outline-container-org435be8d" class="outline-3">
+<h3 id="org435be8d">Code statements</h3>
+<div class="outline-text-3" id="text-org435be8d">
 <p>
 Each line of source code is an assembly language statement.  Unlike
 higher level languages, assembly language statements are not nested.
@@ -6445,9 +6489,9 @@ to begin a comment with a semicolon.</li>
 </ul>
 </div>
 
-<div id="outline-container-orgcd095d6" class="outline-4">
-<h4 id="orgcd095d6">Instructions</h4>
-<div class="outline-text-4" id="text-orgcd095d6">
+<div id="outline-container-orgb99ce25" class="outline-4">
+<h4 id="orgb99ce25">Instructions</h4>
+<div class="outline-text-4" id="text-orgb99ce25">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -6516,9 +6560,9 @@ to begin a comment with a semicolon.</li>
 </div>
 
 
-<div id="outline-container-org5a73c3b" class="outline-4">
-<h4 id="org5a73c3b">data</h4>
-<div class="outline-text-4" id="text-org5a73c3b">
+<div id="outline-container-org0d5044b" class="outline-4">
+<h4 id="org0d5044b">data</h4>
+<div class="outline-text-4" id="text-org0d5044b">
 <p>
 The data statement specifies a sequence of constants to be placed in
 consecutive memory locations starting at the location counter, subject
@@ -6569,9 +6613,9 @@ hex constants, and does not require (or allow) a preceding $ character
 </div>
 
 
-<div id="outline-container-org00b61f6" class="outline-3">
-<h3 id="org00b61f6">Directives</h3>
-<div class="outline-text-3" id="text-org00b61f6">
+<div id="outline-container-org0df5829" class="outline-3">
+<h3 id="org0df5829">Directives</h3>
+<div class="outline-text-3" id="text-org0df5829">
 <p>
 A directive is an assembly language statement that gives further
 information about how to translate the program to object code and how
@@ -6580,9 +6624,9 @@ they don't generate an instruction or constant data.
 </p>
 </div>
 
-<div id="outline-container-org340af9c" class="outline-4">
-<h4 id="org340af9c">module</h4>
-<div class="outline-text-4" id="text-org340af9c">
+<div id="outline-container-org9756c39" class="outline-4">
+<h4 id="org9756c39">module</h4>
+<div class="outline-text-4" id="text-org9756c39">
 <p>
 A program may be organized as a collection of modules, where each
 module appears in a separate file.  When several modules are present,
@@ -6626,9 +6670,9 @@ there is no module statement, basename is arbitrary.
 </div>
 </div>
 
-<div id="outline-container-orgf7b7421" class="outline-4">
-<h4 id="orgf7b7421">equ</h4>
-<div class="outline-text-4" id="text-orgf7b7421">
+<div id="outline-container-org820c1a2" class="outline-4">
+<h4 id="org820c1a2">equ</h4>
+<div class="outline-text-4" id="text-org820c1a2">
 <pre class="example">
 codeWrite  equ  2
 codeRead   equ  1
@@ -6648,9 +6692,9 @@ asize      equ  aend-astart
 </div>
 </div>
 
-<div id="outline-container-org8493555" class="outline-4">
-<h4 id="org8493555">block</h4>
-<div class="outline-text-4" id="text-org8493555">
+<div id="outline-container-org8ca5f66" class="outline-4">
+<h4 id="org8ca5f66">block</h4>
+<div class="outline-text-4" id="text-org8ca5f66">
 <pre class="example">
 asize   equ    100
 n       data   asize
@@ -6659,9 +6703,9 @@ arr     block  asize
 </div>
 </div>
 
-<div id="outline-container-org32c4bf5" class="outline-4">
-<h4 id="org32c4bf5">org</h4>
-<div class="outline-text-4" id="text-org32c4bf5">
+<div id="outline-container-orge8496ab" class="outline-4">
+<h4 id="orge8496ab">org</h4>
+<div class="outline-text-4" id="text-orge8496ab">
 <p>
 The org statement sets the location counter to a specified address.
 Subsequent instructions and data will be placed in memory at
@@ -6693,9 +6737,9 @@ begins implicitly with org 0.
 </div>
 </div>
 
-<div id="outline-container-org136dbdf" class="outline-4">
-<h4 id="org136dbdf">import</h4>
-<div class="outline-text-4" id="text-org136dbdf">
+<div id="outline-container-org1f631a7" class="outline-4">
+<h4 id="org1f631a7">import</h4>
+<div class="outline-text-4" id="text-org1f631a7">
 <p>
 The import statement states that the value of an identifier is defined
 in another module.  During the assembly of the module containing the
@@ -6716,9 +6760,9 @@ Mod1 under the name abc.
 </div>
 </div>
 
-<div id="outline-container-org2219656" class="outline-4">
-<h4 id="org2219656">export</h4>
-<div class="outline-text-4" id="text-org2219656">
+<div id="outline-container-org5dd8146" class="outline-4">
+<h4 id="org5dd8146">export</h4>
+<div class="outline-text-4" id="text-org5dd8146">
 <p>
 An export statement says that the module is making the value of a
 symbol available for use in other modules, which may import it.  The
@@ -6776,9 +6820,9 @@ was defined, and the source code lines where it was used.
 </div>
 </div>
 
-<div id="outline-container-org4a8ad66" class="outline-3">
-<h3 id="org4a8ad66">Summary of assembly language statements</h3>
-<div class="outline-text-3" id="text-org4a8ad66">
+<div id="outline-container-orgf2fd118" class="outline-3">
+<h3 id="orgf2fd118">Summary of assembly language statements</h3>
+<div class="outline-text-3" id="text-orgf2fd118">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -6840,9 +6884,9 @@ was defined, and the source code lines where it was used.
 </div>
 </div>
 
-<div id="outline-container-org4fb67cf" class="outline-2">
-<h2 id="org4fb67cf">Object code and linker</h2>
-<div class="outline-text-2" id="text-org4fb67cf">
+<div id="outline-container-org2c60f1c" class="outline-2">
+<h2 id="org2c60f1c">Object code and linker</h2>
+<div class="outline-text-2" id="text-org2c60f1c">
 <p>
 Small programs often consist of just one module (or file).  The
 assembler translates the assembly language source code into machine
@@ -6880,9 +6924,9 @@ program.
 </p>
 </div>
 
-<div id="outline-container-orgbccc258" class="outline-3">
-<h3 id="orgbccc258">Object language</h3>
-<div class="outline-text-3" id="text-orgbccc258">
+<div id="outline-container-orgcfab4bd" class="outline-3">
+<h3 id="orgcfab4bd">Object language</h3>
+<div class="outline-text-3" id="text-orgcfab4bd">
 <p>
 Object code is expressed in a textual language, so the object code
 readable to a human (at least, for a human who understands machine
@@ -6917,20 +6961,20 @@ some cases they may contain different information.
 </p>
 </div>
 
-<div id="outline-container-org14d37a7" class="outline-4">
-<h4 id="org14d37a7">Statement syntax</h4>
+<div id="outline-container-org5ed0e63" class="outline-4">
+<h4 id="org5ed0e63">Statement syntax</h4>
 </div>
-<div id="outline-container-org35a241c" class="outline-4">
-<h4 id="org35a241c">module</h4>
-</div>
-
-<div id="outline-container-org46721b0" class="outline-4">
-<h4 id="org46721b0">org</h4>
+<div id="outline-container-orgd784754" class="outline-4">
+<h4 id="orgd784754">module</h4>
 </div>
 
-<div id="outline-container-orgb436352" class="outline-4">
-<h4 id="orgb436352">data</h4>
-<div class="outline-text-4" id="text-orgb436352">
+<div id="outline-container-orga086ae0" class="outline-4">
+<h4 id="orga086ae0">org</h4>
+</div>
+
+<div id="outline-container-orga9210bb" class="outline-4">
+<h4 id="orga9210bb">data</h4>
+<div class="outline-text-4" id="text-orga9210bb">
 <p>
 data x0,x1,&#x2026;,x<sub>j-1</sub>
 </p>
@@ -6947,9 +6991,9 @@ llc := llc + 1
 </div>
 </div>
 
-<div id="outline-container-orgc638405" class="outline-4">
-<h4 id="orgc638405">import</h4>
-<div class="outline-text-4" id="text-orgc638405">
+<div id="outline-container-org6bad082" class="outline-4">
+<h4 id="org6bad082">import</h4>
+<div class="outline-text-4" id="text-org6bad082">
 <p>
 General form
 </p>
@@ -6969,14 +7013,14 @@ import  Mod3,ybit,03be,g
 </div>
 </div>
 
-<div id="outline-container-org8c65104" class="outline-4">
-<h4 id="org8c65104">export</h4>
+<div id="outline-container-org2565da9" class="outline-4">
+<h4 id="org2565da9">export</h4>
 </div>
 
 
-<div id="outline-container-org3a82705" class="outline-4">
-<h4 id="org3a82705">relocate</h4>
-<div class="outline-text-4" id="text-org3a82705">
+<div id="outline-container-org56edad0" class="outline-4">
+<h4 id="org56edad0">relocate</h4>
+<div class="outline-text-4" id="text-org56edad0">
 <p>
 The relocate statement specifies a list of addresses of words that
 must be relocated.  Suppose the value x is specified in a relocate
@@ -7015,9 +7059,9 @@ Each location is relcated.  The word The addresses
 </div>
 </div>
 
-<div id="outline-container-org4f2b1a9" class="outline-3">
-<h3 id="org4f2b1a9">Module metadata</h3>
-<div class="outline-text-3" id="text-org4f2b1a9">
+<div id="outline-container-org78d3823" class="outline-3">
+<h3 id="org78d3823">Module metadata</h3>
+<div class="outline-text-3" id="text-org78d3823">
 <p>
 The emulator attempts to show the assembly language source as the
 program runs, and it highlights the current and next instruction.  To
@@ -7036,16 +7080,16 @@ line number.
 </div>
 </div>
 
-<div id="outline-container-org0f5a270" class="outline-3">
-<h3 id="org0f5a270">Linker</h3>
+<div id="outline-container-org1ecdc3e" class="outline-3">
+<h3 id="org1ecdc3e">Linker</h3>
 </div>
-<div id="outline-container-org1a50330" class="outline-3">
-<h3 id="org1a50330">Loader</h3>
-<div class="outline-text-3" id="text-org1a50330">
+<div id="outline-container-org7ae7f92" class="outline-3">
+<h3 id="org7ae7f92">Loader</h3>
+<div class="outline-text-3" id="text-org7ae7f92">
 </div>
-<div id="outline-container-org71ea068" class="outline-4">
-<h4 id="org71ea068">Executable code</h4>
-<div class="outline-text-4" id="text-org71ea068">
+<div id="outline-container-org6df2fd3" class="outline-4">
+<h4 id="org6df2fd3">Executable code</h4>
+<div class="outline-text-4" id="text-org6df2fd3">
 <p>
 An executable module is written in the same language as object
 modules.  The only difference is that an executable module must
@@ -7073,13 +7117,13 @@ If not, it indicates that the program cannot be booted.
 </div>
 </div>
 
-<div id="outline-container-org57fef18" class="outline-2">
-<h2 id="org57fef18">Programming</h2>
-<div class="outline-text-2" id="text-org57fef18">
+<div id="outline-container-org7e5c92c" class="outline-2">
+<h2 id="org7e5c92c">Programming</h2>
+<div class="outline-text-2" id="text-org7e5c92c">
 </div>
-<div id="outline-container-org42bd0e5" class="outline-3">
-<h3 id="org42bd0e5">Structure of a program</h3>
-<div class="outline-text-3" id="text-org42bd0e5">
+<div id="outline-container-org04bc8d5" class="outline-3">
+<h3 id="org04bc8d5">Structure of a program</h3>
+<div class="outline-text-3" id="text-org04bc8d5">
 <p>
 Simple ("static") variabls need to be declared with a data statement,
 which also gives an initial value.
@@ -7097,13 +7141,13 @@ terminates the program
 </div>
 </div>
 
-<div id="outline-container-org5792246" class="outline-3">
-<h3 id="org5792246">How to perform commmon tasks</h3>
-<div class="outline-text-3" id="text-org5792246">
+<div id="outline-container-orgdcbb5e4" class="outline-3">
+<h3 id="orgdcbb5e4">How to perform commmon tasks</h3>
+<div class="outline-text-3" id="text-orgdcbb5e4">
 </div>
-<div id="outline-container-orgae221c1" class="outline-4">
-<h4 id="orgae221c1">Using extract</h4>
-<div class="outline-text-4" id="text-orgae221c1">
+<div id="outline-container-orga6c8f0a" class="outline-4">
+<h4 id="orga6c8f0a">Using extract</h4>
+<div class="outline-text-4" id="text-orga6c8f0a">
 <p>
 A special case is to move a Boolean from one place to another.
 </p>
@@ -7186,9 +7230,9 @@ Using a field mask
 </div>
 </div>
 
-<div id="outline-container-orgb723177" class="outline-4">
-<h4 id="orgb723177">Copying one register to another</h4>
-<div class="outline-text-4" id="text-orgb723177">
+<div id="outline-container-org1d33612" class="outline-4">
+<h4 id="org1d33612">Copying one register to another</h4>
+<div class="outline-text-4" id="text-org1d33612">
 <p>
 Sometimes you want to copy a value from one register to another: R3 :=
 R12.  There isn't an instruction specifically for this purpose,
@@ -7209,9 +7253,9 @@ it this way!
 </div>
 </div>
 
-<div id="outline-container-org5bd458f" class="outline-3">
-<h3 id="org5bd458f">Compilation</h3>
-<div class="outline-text-3" id="text-org5bd458f">
+<div id="outline-container-org97d7c1c" class="outline-3">
+<h3 id="org97d7c1c">Compilation</h3>
+<div class="outline-text-3" id="text-org97d7c1c">
 <p>
 There are two ways to handle variables:
 </p>
@@ -7324,13 +7368,13 @@ to follow one or the other all the time.</li>
 </div>
 </div>
 
-<div id="outline-container-orgbf1be07" class="outline-3">
-<h3 id="orgbf1be07">Errors: avoiding, finding, and fixing</h3>
-<div class="outline-text-3" id="text-orgbf1be07">
+<div id="outline-container-org6a5ebbd" class="outline-3">
+<h3 id="org6a5ebbd">Errors: avoiding, finding, and fixing</h3>
+<div class="outline-text-3" id="text-org6a5ebbd">
 </div>
-<div id="outline-container-orgec34860" class="outline-4">
-<h4 id="orgec34860">Critical regions</h4>
-<div class="outline-text-4" id="text-orgec34860">
+<div id="outline-container-org6523366" class="outline-4">
+<h4 id="org6523366">Critical regions</h4>
+<div class="outline-text-4" id="text-org6523366">
 <p>
 A testset instruction is not semantically equivalent to a load
 followed by a store.  Consider this example:
@@ -7374,9 +7418,9 @@ on the same mutex variable.
 </div>
 </div>
 
-<div id="outline-container-org4c9afaa" class="outline-4">
-<h4 id="org4c9afaa">Robust programming</h4>
-<div class="outline-text-4" id="text-org4c9afaa">
+<div id="outline-container-org28d06fa" class="outline-4">
+<h4 id="org28d06fa">Robust programming</h4>
+<div class="outline-text-4" id="text-org28d06fa">
 <p>
 *Use a systematic programming process
 </p>
@@ -7416,13 +7460,13 @@ details of your program.</li>
 </div>
 </div>
 
-<div id="outline-container-org1617976" class="outline-4">
-<h4 id="org1617976">Error messages</h4>
+<div id="outline-container-org069f87e" class="outline-4">
+<h4 id="org069f87e">Error messages</h4>
 </div>
 
-<div id="outline-container-orgbe9c170" class="outline-4">
-<h4 id="orgbe9c170">Runtime debugging</h4>
-<div class="outline-text-4" id="text-orgbe9c170">
+<div id="outline-container-orgf0ef88e" class="outline-4">
+<h4 id="orgf0ef88e">Runtime debugging</h4>
+<div class="outline-text-4" id="text-orgf0ef88e">
 <p>
 <b>What if an instruction doesn't do what you expected?</b>
 </p>
@@ -7449,9 +7493,9 @@ located.</li>
 </div>
 </div>
 
-<div id="outline-container-org14ca552" class="outline-4">
-<h4 id="org14ca552">Breakpoints</h4>
-<div class="outline-text-4" id="text-org14ca552">
+<div id="outline-container-orgc53f293" class="outline-4">
+<h4 id="orgc53f293">Breakpoints</h4>
+<div class="outline-text-4" id="text-orgc53f293">
 <p>
 <b>(Note: the breakpoint system is not fully implemented yet; the
 following describes a temporary breakpoint facility.)</b>
@@ -7530,9 +7574,9 @@ Sigma16/circuits/M1/programs
 </div>
 </div>
 
-<div id="outline-container-org160ae00" class="outline-2">
-<h2 id="org160ae00">Running the circuit</h2>
-<div class="outline-text-2" id="text-org160ae00">
+<div id="outline-container-orge6df1ec" class="outline-2">
+<h2 id="orge6df1ec">Running the circuit</h2>
+<div class="outline-text-2" id="text-orge6df1ec">
 <p>
 Create a file named .ghci containing the following
 The simplest way to run the simulations is as follows.
@@ -7583,13 +7627,13 @@ similar to this:
 </div>
 
 
-<div id="outline-container-org5c4f1b3" class="outline-2">
-<h2 id="org5c4f1b3">Installation</h2>
-<div class="outline-text-2" id="text-org5c4f1b3">
+<div id="outline-container-org615945d" class="outline-2">
+<h2 id="org615945d">Installation</h2>
+<div class="outline-text-2" id="text-org615945d">
 </div>
-<div id="outline-container-org97f482c" class="outline-3">
-<h3 id="org97f482c">The easy way: running in browser with no installation</h3>
-<div class="outline-text-3" id="text-org97f482c">
+<div id="outline-container-org17f169f" class="outline-3">
+<h3 id="org17f169f">The easy way: running in browser with no installation</h3>
+<div class="outline-text-3" id="text-org17f169f">
 <p>
 To run the main app (the Integrated Development Environment, or IDE)
 visit the [Sigma16 home page](<a href="https://jtod.github.io/home/Sigma16/">https://jtod.github.io/home/Sigma16/</a>) in
@@ -7614,9 +7658,9 @@ and it should work.
 </div>
 </div>
 
-<div id="outline-container-org0cbdef9" class="outline-3">
-<h3 id="org0cbdef9">Command line tools</h3>
-<div class="outline-text-3" id="text-org0cbdef9">
+<div id="outline-container-org51d12e2" class="outline-3">
+<h3 id="org51d12e2">Command line tools</h3>
+<div class="outline-text-3" id="text-org51d12e2">
 <p>
 In addition to the graphical user interface, there are a number of
 tools that run in a command line.  These tools don't use a GUI
@@ -7625,9 +7669,9 @@ circuit simulator.
 </p>
 </div>
 
-<div id="outline-container-orgf1b132e" class="outline-4">
-<h4 id="orgf1b132e">Required software</h4>
-<div class="outline-text-4" id="text-orgf1b132e">
+<div id="outline-container-org55b4124" class="outline-4">
+<h4 id="org55b4124">Required software</h4>
+<div class="outline-text-4" id="text-org55b4124">
 <p>
 To use the full set of command line tools, you need the following:
 </p>
@@ -7650,9 +7694,9 @@ compiler is available at
 </div>
 </div>
 
-<div id="outline-container-org1c63a77" class="outline-4">
-<h4 id="org1c63a77">Setting up your environment</h4>
-<div class="outline-text-4" id="text-org1c63a77">
+<div id="outline-container-org0c9372f" class="outline-4">
+<h4 id="org0c9372f">Setting up your environment</h4>
+<div class="outline-text-4" id="text-org0c9372f">
 <p>
 Shell running bash
 </p>
@@ -7671,22 +7715,22 @@ alias helloworld="node ${SIGMA16}/app/helloworld.js"
 </div>
 </div>
 
-<div id="outline-container-org69cdbe2" class="outline-4">
-<h4 id="org69cdbe2">Websockets</h4>
-<div class="outline-text-4" id="text-org69cdbe2">
+<div id="outline-container-orgfe91d9f" class="outline-4">
+<h4 id="orgfe91d9f">Websockets</h4>
+<div class="outline-text-4" id="text-orgfe91d9f">
 <pre class="example">
 $ git clone https://libwebsockets.org/repo/libwebsockets
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org48a18b0" class="outline-4">
-<h4 id="org48a18b0">Running IDE locally</h4>
+<div id="outline-container-org44b5c83" class="outline-4">
+<h4 id="org44b5c83">Running IDE locally</h4>
 </div>
 
-<div id="outline-container-org3773d39" class="outline-4">
-<h4 id="org3773d39">Run with npm</h4>
-<div class="outline-text-4" id="text-org3773d39">
+<div id="outline-container-org119ae4f" class="outline-4">
+<h4 id="org119ae4f">Run with npm</h4>
+<div class="outline-text-4" id="text-org119ae4f">
 <p>
 See app/makefile for notes on how to run the software as a standalone
 program, without using a browser.  The following software needs to be
@@ -7700,9 +7744,9 @@ npm
 </div>
 </div>
 
-<div id="outline-container-orgf8af2de" class="outline-4">
-<h4 id="orgf8af2de">Compile using npm</h4>
-<div class="outline-text-4" id="text-orgf8af2de">
+<div id="outline-container-orgcdb1e7b" class="outline-4">
+<h4 id="orgcdb1e7b">Compile using npm</h4>
+<div class="outline-text-4" id="text-orgcdb1e7b">
 <p>
 Clone this repository
 </p>
@@ -7726,9 +7770,9 @@ npm start                # Run the app
 </div>
 </div>
 
-<div id="outline-container-orgdcff885" class="outline-4">
-<h4 id="orgdcff885">Download and open file in browser</h4>
-<div class="outline-text-4" id="text-orgdcff885">
+<div id="outline-container-orgcf6f543" class="outline-4">
+<h4 id="orgcf6f543">Download and open file in browser</h4>
+<div class="outline-text-4" id="text-orgcf6f543">
 <p>
 If you don't always have Internet access, you can download the files
 and ope the app in your browser.  This is easy to do and allows you to
@@ -7757,9 +7801,9 @@ whether all the necessary files are accessible.
 </div>
 </div>
 
-<div id="outline-container-org7294b12" class="outline-4">
-<h4 id="org7294b12">Run locally with npm and electron</h4>
-<div class="outline-text-4" id="text-org7294b12">
+<div id="outline-container-orgde1c11e" class="outline-4">
+<h4 id="orgde1c11e">Run locally with npm and electron</h4>
+<div class="outline-text-4" id="text-orgde1c11e">
 <p>
 The previous methods run the app in a browser.  There are some
 security restrictions on what a browser can do, and these make it
@@ -7799,9 +7843,9 @@ and you don't need Internet access.</li>
 </div>
 </div>
 
-<div id="outline-container-org57db136" class="outline-4">
-<h4 id="org57db136">Compiling IDE for local execution</h4>
-<div class="outline-text-4" id="text-org57db136">
+<div id="outline-container-orgb6302ce" class="outline-4">
+<h4 id="orgb6302ce">Compiling IDE for local execution</h4>
+<div class="outline-text-4" id="text-orgb6302ce">
 <p>
 First install npm, which also gives you Node.js.  Use npm to install
 electron.
@@ -7901,13 +7945,13 @@ npm run mkdist
 </div>
 </div>
 
-<div id="outline-container-orgdea264b" class="outline-2">
-<h2 id="orgdea264b">About Sigma16</h2>
-<div class="outline-text-2" id="text-orgdea264b">
+<div id="outline-container-orgf7415dc" class="outline-2">
+<h2 id="orgf7415dc">About Sigma16</h2>
+<div class="outline-text-2" id="text-orgf7415dc">
 </div>
-<div id="outline-container-org735b60a" class="outline-3">
-<h3 id="org735b60a">Copyright and license</h3>
-<div class="outline-text-3" id="text-org735b60a">
+<div id="outline-container-org91e4986" class="outline-3">
+<h3 id="org91e4986">Copyright and license</h3>
+<div class="outline-text-3" id="text-org91e4986">
 <p>
 The architecture, software tools, and documentation were designed,
 implemented, and written by John O'Donnell.  Contact email:
@@ -7937,9 +7981,9 @@ If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses
 </div>
 </div>
 
-<div id="outline-container-org2ae13de" class="outline-3">
-<h3 id="org2ae13de">Release notes</h3>
-<div class="outline-text-3" id="text-org2ae13de">
+<div id="outline-container-org15052d3" class="outline-3">
+<h3 id="org15052d3">Release notes</h3>
+<div class="outline-text-3" id="text-org15052d3">
 <p>
 Sigma16 has gone through several versions.  Its aims and principles
 have remained the same, but various details have changed.  Some
@@ -7950,9 +7994,9 @@ language programs.
 </p>
 </div>
 
-<div id="outline-container-org4249075" class="outline-4">
-<h4 id="org4249075">Version 3.2</h4>
-<div class="outline-text-4" id="text-org4249075">
+<div id="outline-container-org604fd1d" class="outline-4">
+<h4 id="org604fd1d">Version 3.2</h4>
+<div class="outline-text-4" id="text-org604fd1d">
 <p>
 Implemented in JavaScript.  Runs in browser without requiring any
 download or installation.  There are additional command line tools
@@ -7962,8 +8006,8 @@ Guide).
 </div>
 
 <ul class="org-ul">
-<li><a id="org1d7887a"></a>Changes visible to the assembly language programmer<br />
-<div class="outline-text-5" id="text-org1d7887a">
+<li><a id="org8afb73a"></a>Changes visible to the assembly language programmer<br />
+<div class="outline-text-5" id="text-org8afb73a">
 <ul class="org-ul">
 <li>The following instructions from previous releases have been removed:
 cmplt, cmpeq, cmpgt.  Instead, use the cmp instruction, followed by
@@ -7986,8 +8030,8 @@ jumpf is now jumpz, jumpt is not jumpnz.</li>
 </div>
 </li>
 
-<li><a id="orge332cfd"></a>Changes to the architecture<br />
-<div class="outline-text-5" id="text-orge332cfd">
+<li><a id="orgd640a2a"></a>Changes to the architecture<br />
+<div class="outline-text-5" id="text-orgd640a2a">
 <ul class="org-ul">
 <li>The word logic instructions inv, and, or, xor are now
 pseudoinstructions that generate logicw instructions.  The assembly
@@ -8000,9 +8044,9 @@ language representation is different</li>
 </div>
 </div>
 
-<div id="outline-container-org06070db" class="outline-3">
-<h3 id="org06070db">Text of GPL3 License</h3>
-<div class="outline-text-3" id="text-org06070db">
+<div id="outline-container-orgcb6e8db" class="outline-3">
+<h3 id="orgcb6e8db">Text of GPL3 License</h3>
+<div class="outline-text-3" id="text-orgcb6e8db">
 <p>
 GNU GENERAL PUBLIC LICENSE
 Version 3, 29 June 2007
@@ -8435,7 +8479,7 @@ The GNU General Public License does not permit incorporating your program into p
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2020-11-05 Thu 23:37</p>
+<p class="date">Created: 2020-11-06 Fri 15:46</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

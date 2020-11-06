@@ -1861,9 +1861,9 @@ const dispatch_RX =
       rx (rx_jal),       // 4
       rx (rx_jumpc0),    // 5
       rx (rx_jumpc1),    // 6
-      rx (rx_jumpf),     // 7
-      rx (rx_jumpt),     // 8
-      rx (rx_nop),       // 9
+      rx (rx_jumpz),     // 7
+      rx (rx_jumpnz),    // 8
+      rx (rx_testset),   // 9
       rx (rx_nop),       // a
       rx (rx_nop),       // b
       rx (rx_nop),       // c
@@ -1910,20 +1910,24 @@ function rx_jumpc1 (es) {
     }
 }
 
-function rx_jumpf (es) {
-    com.mode.devlog('rx_jumpf');
+function rx_jumpz (es) {
+    com.mode.devlog('rx_jumpz');
     if (! arith.wordToBool (regFile[es.ir_d].get())) {
 	es.nextInstrAddr = es.ea;
 	pc.put (es.nextInstrAddr);
     }
 }
 
-function rx_jumpt (es) {
-    com.mode.devlog('rx_jumpt');
+function rx_jumpnz (es) {
+    com.mode.devlog('rx_jumpnz');
     if (arith.wordToBool (regFile[es.ir_d].get())) {
 	es.nextInstrAddr = es.ea;
 	pc.put (es.nextInstrAddr);
     }
+}
+
+function rx_testset (es) {
+    console.log (`testset`);
 }
 
 function rx_jal (es) {
@@ -1951,15 +1955,26 @@ function exp1_resume (es) {
 }
 
 function exp2_save (es) {
-    com.mode.devlog ('exp2_save');
-    sr_looper ((a,r) => memStore (a, regFile[r].get()),
-               regFile[es.ir_d].get()+es.field_gh, es.field_e, es.field_f)
+    const rStart = es.ir_d;
+    const rEnd = es.field_e;
+    const index = regFile[es.field_f].get();
+    const offset = es.field_gh;
+    const ea = index + offset;
+    console.log (`save regs = ${rStart}..${rEnd} index=${index}`
+                 + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
+    sr_looper ((a,r) => memStore (a, regFile[r].get()), ea, rStart, rEnd);
 }
 
 function exp2_restore (es) {
     com.mode.devlog ('exp2_restore');
-    sr_looper ((a,r) => regFile[r].put(memFetchData(a)),
-               regFile[es.ir_d].get()+es.field_gh, es.field_e, es.field_f)
+    const rStart = es.ir_d;
+    const rEnd = es.field_e;
+    const index = regFile[es.field_f].get();
+    const offset = es.field_gh;
+    const ea = index + offset;
+    console.log (`restore regs = ${rStart}..${rEnd} index=${index}`
+                 + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
+    sr_looper ((a,r) => regFile[r].put(memFetchData(a)), ea, rStart, rEnd);
 }
 
 function sr_looper (f,addr,first,last) {
@@ -2155,15 +2170,17 @@ const exp2 = (f) => (es) => {
 }
 
 const dispatch_EXP =
-      [ exp1 (exp1_resume),   // 0
-        exp2 (exp2_getctl),   // 1
-        exp2 (exp2_putctl),   // 2
-        exp2 (exp2_logicw),   // 2
-        exp2 (exp2_logicb),   // 4
-        exp2 (exp2_shiftl),   // 5
-        exp2 (exp2_shiftr),   // 6
-        exp2 (exp2_extract),  // 7
-        exp2 (exp2_extracti)  // 8
+      [ exp1 (exp1_resume),    // 0
+        exp2 (exp2_getctl),    // 1
+        exp2 (exp2_putctl),    // 2
+        exp2 (exp2_logicw),    // 2
+        exp2 (exp2_logicb),    // 4
+        exp2 (exp2_shiftl),    // 5
+        exp2 (exp2_shiftr),    // 6
+        exp2 (exp2_extract),   // 7
+        exp2 (exp2_extracti),  // 8
+        exp2 (exp2_save),      // 9
+        exp2 (exp2_restore)    // a
     ]
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 

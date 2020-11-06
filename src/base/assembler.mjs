@@ -632,7 +632,7 @@ const regexpSplitFields =
 const parseField = new RegExp(regExpField);
 const parseSplitFields = new RegExp(regexpSplitFields);
 
-function requireX (ma,s,field) {
+function requireX (ma, s, field) {
     const x = xParser.exec (field);
     let result = {disp: "0", index: 0};
     if (x) {
@@ -656,9 +656,25 @@ function requireX (ma,s,field) {
 // ??? todo  Generate import if necessary
 // ??? todo  give message if result>15
 
+// k4 is always fixed, never relocatable
+
 function requireK4 (ma, s, field, xs) {
     console.log (`requireK4 ${xs}`);
     const a = s.address.word;
+    const v = evaluate (ma, s, a, xs);
+    const result = v.word;
+    return result;
+}
+
+// k8 is always fixed, never relocatable, and is always in the gh field
+
+// ma is assembler context, s is statement, a is address where the k8
+// field will be inserted, field is the name of the field where it
+// will be inserted (currently this will always be gh field), and xs
+// is the source string specifying the value.
+
+function requireK8 (ma, s, a, field, xs) {
+    console.log (`requireK8 ${xs}`);
     const v = evaluate (ma, s, a, xs);
     const result = v.word;
     return result;
@@ -1187,6 +1203,21 @@ function asmPass2 (ma) {
             }
 
 
+// EXP2-RRX save, restore
+	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRX) {
+	    com.mode.devlog (`pass2 EXP2/RRX`);
+	    console.log (`pass2 EXP2-RRX`);
+            const x = rrxParser.exec (s.fieldOperands);
+            const d = requireReg(ma,s,s.operands[0]);
+            const e = requireReg(ma,s,s.operands[1]);
+            const {disp,index} = requireX (ma, s, s.operands[2]);
+            const f = index;
+            const gh = requireK8 (ma, s, s.address.word+1, arch.Field_gh, disp);
+	    s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
+            s.codeWord2 = mkWord448 (e, f, gh);
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
+
 // EXP2-kX            
 	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 EXP2/kX`);
@@ -1217,24 +1248,6 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-RRX save, restore
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRX) {
-	    com.mode.devlog (`pass2 EXP2/RRX`);
-            const x = rrxParser.exec (s.fieldOperands);
-            if (x) {
-                const {1:e, 2:f, 3:gh, 4:a} = x;
-                let v = evaluate (ma, s, s.address.word+1, gh); // value of offset
-	        s.codeWord1 = mkWord448 (op.opcode[0], a, op.opcode[1]);
-                s.codeWord2 = mkWord448 (e, f, v.value);
-                if (v.evalRel) {
-                    mkErrMsg (ma,s,`This instruction requires fixed displacement\n`
-                              + `       but ${s.field_disp} is relocatable`);
-                }
-	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-            } else {
-                mkErrMsg (ma, s, `ERROR operation requires RR operands`);
-            }
 
 // Data-Data            
         } else if (op.ifmt==arch.iData && op.afmt==arch.aData) {

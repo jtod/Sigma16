@@ -245,8 +245,6 @@ statementSpec.set("jumpc0",  {ifmt:iRX,  afmt:akX,    opcode:[15,5]});
 statementSpec.set("jumpc1",  {ifmt:iRX,  afmt:akX,    opcode:[15,6]});
 statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,7]});
 statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,8]});
-statementSpec.set("save",    {ifmt:iRX,  afmt:aRRX,    opcode:[15,9]});
-statementSpec.set("restore", {ifmt:iRX,  afmt:aRRX,    opcode:[15,10]});
 statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,11]});
 
 // EXP instructions have primary opcode e and 8-bit secondary opcode
@@ -264,6 +262,9 @@ statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,5]});
 statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,6]});
 statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,7]});
 statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,8]});
+statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,   opcode:[14,9]});
+statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,   opcode:[14,10]});
+
 // statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,  opcode:[14,12]});
 
 // Assembler directives
