@@ -3381,7 +3381,7 @@ precisely and concisely the effects of the instructions:
 | testset  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1               |
 |          |   | RX   |       | f,a  | -- reserved --                        |
 |          |   | RX   |       | f,b  | -- reserved --                        |
-|          |   | RX   |       | f,c | -- reserved --                        |
+|          |   | RX   |       | f,c  | -- reserved --                        |
 |          |   | RX   |       | f,d  | -- reserved --                        |
 |          |   | RX   |       | f,e  | -- reserved --                        |
 |          |   | RX   |       | f,f  | -- reserved --                        |

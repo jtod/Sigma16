@@ -1928,6 +1928,8 @@ function rx_jumpnz (es) {
 
 function rx_testset (es) {
     console.log (`testset`);
+    regFile[es.ir_d].put(memFetchData(es.ea));
+    memStore(es.ea,1);
 }
 
 function rx_jal (es) {

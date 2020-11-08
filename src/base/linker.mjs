@@ -31,14 +31,14 @@ import * as asm from './assembler.mjs';
 // refactor
 let curAsmap = [];
 
+// Main linker function is linker (exe, mods)
+// Interface to CLI: read object files, call linker, write exe file
 // Interface to GUI: button id and function
 //   LP_Read_Object     getLinkerModulesGui
 //   LP_Link            linkerGUI
 //   LP_Show_Object     linkShowExeObject
 //   LP_Show_Metadata   linkShowExeMetadata
 //   LP_Boot            em.boot (st_emulatorState)
-// Interface to CLI:
-//   linker (exe, mods)
 
 //-------------------------------------------------------------------------------
 // Object module
@@ -64,12 +64,27 @@ export class ObjectModule {
         this.exports = [];
         this.origin = 0;
         this.size = 0;
-        this.last = 0;
+        this.startAddress = 0;
+        this.endAddress = 0;
     }
 }
 
+// Return a string representing an object module
+
+function showObjectModule (om) {
+    const xs = `${om.modname}\n`
+        + `lines of code = ${om.objectLines.length}\n`
+        + `start address = ${om.startAddress}\n`
+        + `end address = ${om.endAddress}\n`
+        + `size = ${om.size}\n`
+        + `imports = ${om.imports}\n`
+        + `exports = ${om.exports}\n`
+        + `AS map = ${om.mdAsMap}`;
+    return xs;
+}
+
 //-------------------------------------------------------------------------------
-// Gui interface to linker
+// GUI interface to linker
 //-------------------------------------------------------------------------------
 
 // Obtain the modules to link: the editor pane should contain a list
@@ -206,7 +221,8 @@ export function linkShowExeMetadata () {
 
 export function linker (exe, ms) {
     com.mode.trace = true;
-    console.log (`linking ${ms.map(om=>om.modname)} into ${exe.modname}`);
+    console.log (`Linking object ${ms.map(om=>om.modname)}`);
+    console.log (`Creating executable ${exe.modname}`);
     let locationCounter = 0;
     let isExecutable = true;
     for (let i = 0; i < ms.length; i++) {
@@ -214,33 +230,36 @@ export function linker (exe, ms) {
         om.objectLines = om.objText.split("\n");
         om.metadataLines = om.mdText.split("\n");
         om.origin = locationCounter;
-        console.log ("-------------------------------------------");
-        console.log (`(${i}) ${om.modname}`);
+        console.log ("--------------------------------------------------------");
+        console.log (`Module [${i}] ${showObjectModule (om)}`);
+        console.log ("--------------");
+        om.modMap = new Map ();
         for (let x of om.objectLines) {
-            console.log (`obj line <${x}>`);
+            om.modMap.set (om.modName, i);
+            console.log (`Object line <${x}>`);
             let fields = parseObjLine (x);
-            com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
+//            com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
             if (fields.operation == "module") {
                 om.dclmodname = fields.operands[0];
-                com.mode.devlog (`-- declared module name: ${om.dclmodname}`);
+                com.mode.devlog (`  Module name: ${om.dclmodname}`);
             } else if (fields.operation == "data") {
-                com.mode.devlog ("-- data");
+//                com.mode.devlog ("-- data");
                 for (let j = 0; j < fields.operands.length; j++) {
                     let val = arith.hex4ToWord(fields.operands[j]);
                     let safeval = val ? val : 0;
-                    com.mode.devlog (`${arith.wordToHex4(locationCounter)} `
+                    com.mode.devlog (`  ${arith.wordToHex4(locationCounter)} `
                                      + `${arith.wordToHex4(safeval)}`);
                     locationCounter++;
                 }
             } else if (fields.operation == "import") {
-                com.mode.devlog (`-- import (${fields.operands})`)
+                com.mode.devlog (`  Import (${fields.operands})`)
                 isExecutable = false;
             } else if (fields.operation == "export") {
-                com.mode.devlog (`-- export (${fields.operands})`)
+                com.mode.devlog (`  Export (${fields.operands})`)
             } else if (fields.operation == "relocate") {
-                com.mode.devlog (`-- relocate (${fields.operands})`)
+                com.mode.devlog (`  Relocate (${fields.operands})`)
             } else {
-                com.mode.devlog (`Syntax errir (${fields.operation})`)
+                com.mode.devlog (`>>> Syntax error (${fields.operation})`)
                 isExecutable = false;
             }
         }

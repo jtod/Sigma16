@@ -1,0 +1,8 @@
+; Mod1: test linker (imported by LinkMain)
+; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+
+Mod1  module
+abc   data     15
+def   data     27
+      export   abc
+      export   def
