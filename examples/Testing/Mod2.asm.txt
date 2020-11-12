@@ -1,0 +1,8 @@
+; Mod2: test linker (imported by LinkMain)
+; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+
+Mod2  module
+pqr   data       3
+xyz   data     255
+      export   pqr
+      export   xyz

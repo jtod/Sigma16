@@ -1,22 +1,26 @@
-; Main: test linker (imports Mod1)
+; Main: test linker; imports Mod1, Mod2
 ; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
 ; Usage:
 ;   sigma16 assemble Main
 ;   sigma16 assemble Mod1
+;   sigma16 assemble Mod2
 ;   sigma16 link Exe Main Mod1
 
 ; In the link command, the operands are separated by spaces.  The
 ; first operand is the basename of the executable output. This is
 ; followed by the basenames of the object files.
 
-  
 Main  module
       load   R1,x[R0]
       load   R2,y[R0]
-      add    R3,R1,R2
+      load   R3,pqr[R0]
+      load   R4,z[R0]
+      add    R5,R1,R3
       store  R3,x[R0]
       trap   R0,R0,R0
 x     import Mod1,abc
 y     import Mod1,def
-sum   data   0
+pqr   import Mod2,pqr
+z     import Mod2,xyz
+

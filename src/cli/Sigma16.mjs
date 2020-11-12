@@ -17,10 +17,10 @@
 // Sigma16.mjs defines command line tools
 
 //-----------------------------------------------------------------------------
-// Configuration
+// ***** Configuration *****
 //-----------------------------------------------------------------------------
 
-// Specify port to use for communicating with the browser.  This
+// Specify the port to use for communicating with the browser.  This
 // should be between 1024 and 49151.  The default is defined to be
 // 3000; this can be changed to avoid clash with any other
 // application.
@@ -31,39 +31,49 @@ const port = 3000;
 // Usage
 //-----------------------------------------------------------------------------
 
-// Usage: node Sigma16.mjs <command> <argument> ... <argument>
-// <command> is one of
-//   (empty)                       -- run gui using express, can view in browser
-//   gui                           -- run gui using express, can view in browser
-//   assemble ProgName             -- translate ProgName.asm.txt to object
-//   link ExeName ModName ...  -- link the modules and produce executable
-//   parameters                    -- display the parameters and file paths
+/*
+Usage: node Sigma16.mjs <command> <argument> ... <argument>
 
-// Examples:
+<command> is one of
+  (empty)                   run gui using express, can view in browser
+  gui (or no command)       run gui using express, can view in browser
+  assemble ProgName         translate ProgName.asm.txt to object
+  link ExeName ModName...   link the modules and produce executable
+  parameters                display the parameters and file paths
 
-// sigma16                     launch gui, visit http://localhost:3000/
-// sigma16 gui                 launch gui, visit http://localhost:3000/
-// sigma16 assemble foo        translate foo.asm.txt
-//                               write foo.obj.txt, foo.lst.txt, foo.md.txt
-// sigma16 link exe m1 m2 ...  link m1.obj.txt, m2.obj.txt,... write exe.obj.txt
-// sigma16 test                run batch test cases (for development only)
-// sigma16 parameters          display parameters and exit
+** linker: node Sigma16.mjs link <exe> <mod1> <mod2> ...
+  Reads object from <mod1>.obj.txt, ...     (required)
+  Reads metadata from <mod1>.md.txt, ...    (ok if they don't exist)
+  Writes executable to <exe>.obj.txt
+  Writes metadata to <exe>.md.txt
+  Writes linker listing to <exe>.lst.txt
+
+Examples, assuming alias for sigma16 is defined (see Installation below)
+
+  sigma16                   launch gui, visit http://localhost:3000/
+  sigma16 gui               launch gui, visit http://localhost:3000/
+  sigma16 assemble foo      read foo.asm.txt, write foo.obj.txt, .lst.txt, .md.txt
+  sigma16 link foo m1 m2... read m1.obj.txt ..., write foo.obj.txt
+  sigma16 parameters        display parameters and exit
+  sigma16 test              for development only
+*/
 
 //-----------------------------------------------------------------------------
 // Installation
 //-----------------------------------------------------------------------------
 
-// 1. Software requirements: install npm
-// 2. Install dependencies: npm install (will install express)
-// 3. Download the source directory from https://jtod.github.io/home/Sigma16/
-//    put it anywhere in your file space:   /path/to/SigmaSystem/Sigma16
-// 4. Add the following to your .profile or .bashrc:
-
 /*
+1. Software requirements: install npm, see https://nodejs.org/en/download/
+2. Install dependencies: npm install (this will install express)
+3. Download the source directory from https://jtod.github.io/home/Sigma16/
+   put it anywhere in your file space:   /path/to/SigmaSystem/Sigma16
+4. Add the following to your .profile or .bashrc:
+
 # Sigma system: https://jtod.github.io/home/Sigma16/
 export SIGMASYSTEM="/path/to/SigmaSystem"
 export SIGMA16=${SIGMASYSTEM}/Sigma16
 alias sigma16="node ${SIGMA16}/src/Sigma16/cli/Sigma16.mjs"
+
 */
 
 
@@ -180,23 +190,19 @@ function assembleCLI () {
     const baseName = process.argv[3]; // first command argument
     const srcFileName = `${baseName}.asm.txt`;
     const maybeSrc = readFile (srcFileName);
-    if (!maybeSrc.ok) {
-        console.log (`Unable to read assembly source file ${srcFileName}`);
+    let ma = asm.assemblerCLI (maybeSrc);
+    if (ma.nAsmErrors === 0) {
+        let obj = ma.objectCode;
+        let lst = ma.asmListingText;
+        let md = ma.metadata;
+        writeFile (`${baseName}.obj.txt`, obj.join("\n"));
+        writeFile (`${baseName}.lst.txt`, lst.join("\n"));
+        writeFile (`${baseName}.md.txt`,  md.join("\n"));
     } else {
-        let ma = asm.assemblerCLI (maybeSrc.input);
-        if (ma.nAsmErrors === 0) {
-            let obj = ma.objectCode;
-            let lst = ma.asmListingText;
-            let md = ma.metadata;
-            writeFile (`${baseName}.obj.txt`, obj.join("\n"));
-            writeFile (`${baseName}.lst.txt`, lst.join("\n"));
-            writeFile (`${baseName}.md.txt`,  md.join("\n"));
-        } else {
-            console.log (`There were ${ma.nAsmErrors} assembly errors`);
-            let lst = ma.asmListingText;
-            writeFile (`${baseName}.lst.txt`, lst.join("\n"));
-            process.exitCode = 1;
-        }
+        console.log (`There were ${ma.nAsmErrors} assembly errors`);
+        let lst = ma.asmListingText;
+        writeFile (`${baseName}.lst.txt`, lst.join("\n"));
+        process.exitCode = 1;
     }
 }
 
@@ -211,34 +217,33 @@ function assembleCLI () {
 //   Writes metadata to <exe>.md.txt
 //   Writes linker listing to <exe>.lst.txt
 
+// Command line interfact to the Linker.  Call it with the executable
+// name and a list of object modules; each object module should be
+// initialized with the module name, the object text, and the metadata
+// (null if there is no metadata file).  The linkCLI function obtains
+// the file names from the command line, reads the files, creates the
+// object modules, and calls the linker.
+
 function linkCLI () {
     const exeBaseName = process.argv[3]; // first command argument
     const modBaseNames = process.argv.slice(4); // subsequent command arguments
-//    console.log (`link exe=${exeBaseName} from ${modBaseNames}`);
-    let exe = new link.ObjectModule (`${exeBaseName}.exe.txt`);
-    let mods = [];
-    for (let i = 0; i < modBaseNames.length; i++) {
-        let mbn = modBaseNames[i];
-//        console.log (`\nReading ${mbn}\n`);
-        let obj = readFile (`${mbn}.obj.txt`);
-        let md = readFile (`${mbn}.md.txt`);
-//        console.log (`\nModule ${mbn} object code ${obj.ok}\n`);
-//        console.log (obj.input);
-//        console.log (`\nModule ${mbn} metadata ${md.ok}:\n${md.input}\n`);
-        let om = new link.ObjectModule (mbn);
-        om.objText = obj.input;
-        om.mdText = md.input;
-        mods.push (om);
+    let oms = []; // list of object modules
+    for (const baseName of modBaseNames) {
+        let objText = readFile (`${baseName}.obj.txt`);
+        let objMd = readFile (`${baseName}.md.txt`);
+        let om = new link.ObjectModule (baseName, objText, objMd);
+        oms.push (om);
     }
-    link.linker (exe, mods);
-    console.log ("\n---------------------\n");
-    console.log (`\nExecutable code:\n${exe.objText}\n`);
-    console.log (`\nMetadata:\n${exe.mdText}\n`);
+    link.linker (exeBaseName, oms);
 }
 
 //-----------------------------------------------------------------------------
 // File I/O via file names (runs in node but not in browser)
 //-----------------------------------------------------------------------------
+
+// Attempt to read file fname.  If file can't be read, give error
+// message and return empty string; otherwise return the contents of
+// the file.
 
 export function readFile (fname) {
     let input, ok;
@@ -253,7 +258,7 @@ export function readFile (fname) {
         console.error(`Cannot read file ${fname}`);
         process.exitCode = 1;
     }
-    return {input, ok};
+    return (ok ? input : "");
 }
 
 export function writeFile (fname, txt) {

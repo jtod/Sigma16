@@ -41,25 +41,62 @@ let curAsmap = [];
 //   LP_Boot            em.boot (st_emulatorState)
 
 //-------------------------------------------------------------------------------
+// Linker state
+//-------------------------------------------------------------------------------
+
+// The linker state class encapsulates the linker's variables,
+// avoiding a group of global variables.  Normally there will be only
+// one object in the class, which can be a global variable or passed
+// as an argument to user interface functions.  When a linker state is
+// created it is given the file basename of the executable to be
+// created, and a list of text strings comprising the object code of
+// the modules to be linked.
+
+export class LinkerState  {
+    constructor (exeName, oms) {
+        this.exeName = exeName;
+        this.oms = oms;
+        this.modMap = new Map ();
+        this.locationCounter = 0;
+        this.linkErrors = []; // error messages
+    }
+}
+
+export function showLS (ls) {
+    let xs = "Linker state:\n"
+    xs += `Executable: ${ls.exeName}\n`
+    xs += `Location counter = ${arith.wordToHex4(ls.locationCounter)}\n`;
+    xs += `${ls.linkErrors.length} Error messages: ${ls.linkErrors}\n`;
+    xs += "Modules:\n";
+    for (const om of ls.oms) {
+        xs += showObjectModule (om);
+//        xs += om.modName;
+//        xs += "\n";
+    }
+    return xs;
+}
+    
+//-------------------------------------------------------------------------------
 // Object module
 //-------------------------------------------------------------------------------
 
-// The linker collects information about each module being linked in
-// an ObjectModule.  getObjectModules builds a list of all of these,
-// objmod.
+// The ObjectModule class collects information about each module being
+// linked, as well as the executable.  Constructor arguments: modname
+// is string giving base name of the module; objText is a string
+// giving the object code text, and objMd is a string giving the
+// metadata text (null if there is no metadata).
 
 export class ObjectModule {
-    constructor(modname) {
-        this.modname = modname;
-        this.dclmodname = ""; // name from module statement
-        this.objText = "";
-        this.mdText = "";
-        this.objectLines = [];
-        this.metadataLines = [];
+    constructor(modName, objText, objMd) {
+        this.modName = modName;
+        this.objText = objText;
+        this.objectLines = objText.split("\n");
+        this.objMd = objMd;
+        this.mdLines = objMd.split("\n");
         this.mdAsMap = [];
         this.mdAsmListingPlain = [];
         this.mdAsmListingDec = [];
-        this.data = [];
+        this.dataBlocks = [new ObjectBlock ()];
         this.imports = [];
         this.exports = [];
         this.origin = 0;
@@ -69,18 +106,80 @@ export class ObjectModule {
     }
 }
 
-// Return a string representing an object module
+export class ObjectBlock {
+    constructor (blockStart) {
+        this.blockStart = blockStart;
+        this.blockSize = 0;
+        this.xs = [];
+    }
+    showBlock () {
+        return `Block ${this.blockSize} words at `
+            + `${arith.wordToHex4(this.blockStart)}`
+            + `${this.xs}`;
+    }
+    insertWord (x) {
+        this.xs.push(x);
+        this.blockSize++;
+    }
+}
 
 function showObjectModule (om) {
-    const xs = `${om.modname}\n`
-        + `lines of code = ${om.objectLines.length}\n`
-        + `start address = ${om.startAddress}\n`
-        + `end address = ${om.endAddress}\n`
-        + `size = ${om.size}\n`
-        + `imports = ${om.imports}\n`
-        + `exports = ${om.exports}\n`
-        + `AS map = ${om.mdAsMap}`;
+    const xs = `${om.modName}\n`
+          + `  lines of code = ${om.objectLines.length}\n`
+          + `  start address = ${om.startAddress}\n`
+          + `  end address = ${om.endAddress}\n`
+          + `  imports = ${om.imports}\n`
+          + `  exports = ${om.exports}\n`
+          + `  AS map = ${om.mdAsMap}`
+          + showBlocks (om.dataBlocks)
+          + "\n";
     return xs;
+}
+
+function showBlocks (bs) {
+    console.log ("this is showBlocks");
+    let xs = "Blocks\n";
+    for (const b of bs) {
+        xs += b.showBlock();
+        console.log (b.xs);
+    }
+    return xs;
+}
+
+//-------------------------------------------------------------------------------
+// Linker main interface
+//-------------------------------------------------------------------------------
+
+// The linker takes two arguments: the name of the executable and a
+// list of object modules.  Each object module should have two or
+// three fields defined: the module name, object text, and metadata
+// (or null if there is no metadata).  The linker creates and returns
+// an executable module.  If there are linker errors, the messages are
+// placed in the result module; if there are no linker errors, the
+// result module can be booted.
+
+export function linker (exeName, ms) {
+    console.log (`Linking executable ${exeName} from ${ms.length} object modules`);
+    let ls = new LinkerState (exeName, ms);
+    console.log ("Initial linker state:\n" + showLS (ls));
+    console.log ("----------------------");
+/*
+    let b = new ObjectBlock (500);
+    console.log (`asdfasdf ${b.blockStart}`);
+    console.log (b.showBlock());
+    b.insertWord(12);
+    console.log (b.showBlock());
+    b.insertWord(2);
+    b.insertWord(35);
+    b.insertWord(19);
+    console.log (b.showBlock());
+    return ;
+*/
+    for (const om of ls.oms) {
+        parseObject (ls, om);
+    }
+    console.log ("Final linker state:\n" + showLS (ls));
+    console.log ("Linker returning");
 }
 
 //-------------------------------------------------------------------------------
@@ -103,7 +202,7 @@ function showObjectModule (om) {
 export function linkerGui () {
     console.log ("linkerGui");
     let {exeMod, objMod} = getLinkerModulesGui ();
-    console.log (`exemod = ${exeMod.dclmodname}`);
+//    console.log (`exemod = ${exeMod.dclmodname}`);
 }
 
 // getLinkerModulesGui takes modlist, a list of base names.  The modlist
@@ -216,52 +315,43 @@ export function linkShowExeMetadata () {
 // Linker
 //-------------------------------------------------------------------------------
 
-// Given a list objs of object modules; return an executable module
-// with given name.  This can be called by linkGUI or linkCLI.
+// Parse the text lines of an object module and record the information
 
-export function linker (exe, ms) {
+
+
+function parseObject (ls, om) {
     com.mode.trace = true;
-    console.log (`Linking object ${ms.map(om=>om.modname)}`);
-    console.log (`Creating executable ${exe.modname}`);
-    let locationCounter = 0;
-    let isExecutable = true;
-    for (let i = 0; i < ms.length; i++) {
-        let om = ms[i];
-        om.objectLines = om.objText.split("\n");
-        om.metadataLines = om.mdText.split("\n");
-        om.origin = locationCounter;
-        console.log ("--------------------------------------------------------");
-        console.log (`Module [${i}] ${showObjectModule (om)}`);
-        console.log ("--------------");
-        om.modMap = new Map ();
-        for (let x of om.objectLines) {
-            om.modMap.set (om.modName, i);
-            console.log (`Object line <${x}>`);
-            let fields = parseObjLine (x);
-//            com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
-            if (fields.operation == "module") {
-                om.dclmodname = fields.operands[0];
-                com.mode.devlog (`  Module name: ${om.dclmodname}`);
-            } else if (fields.operation == "data") {
-//                com.mode.devlog ("-- data");
-                for (let j = 0; j < fields.operands.length; j++) {
-                    let val = arith.hex4ToWord(fields.operands[j]);
-                    let safeval = val ? val : 0;
-                    com.mode.devlog (`  ${arith.wordToHex4(locationCounter)} `
-                                     + `${arith.wordToHex4(safeval)}`);
-                    locationCounter++;
-                }
-            } else if (fields.operation == "import") {
-                com.mode.devlog (`  Import (${fields.operands})`)
-                isExecutable = false;
-            } else if (fields.operation == "export") {
-                com.mode.devlog (`  Export (${fields.operands})`)
-            } else if (fields.operation == "relocate") {
-                com.mode.devlog (`  Relocate (${fields.operands})`)
-            } else {
-                com.mode.devlog (`>>> Syntax error (${fields.operation})`)
-                isExecutable = false;
+    console.log (`parseObject ${om.modName}`);
+    om.origin = ls.locationCounter;
+    ls.modMap.set (om.modName, om);
+    for (let x of om.objectLines) {
+        console.log (`Object line <${x}>`);
+        let fields = parseObjLine (x);
+        com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
+        if (x == "") {
+            console.log ("skipping blank line");
+        } else if(fields.operation == "module") {
+            om.dclmodname = fields.operands[0];
+            com.mode.devlog (`  Module name: ${om.dclmodname}`);
+        } else if (fields.operation == "data") {
+            com.mode.devlog ("-- data");
+            for (let j = 0; j < fields.operands.length; j++) {
+                let val = arith.hex4ToWord(fields.operands[j]);
+                let safeval = val ? val : 0;
+                com.mode.devlog (`  ${arith.wordToHex4(ls.locationCounter)} `
+                                 + `${arith.wordToHex4(safeval)}`); 
+                ls.locationCounter++;
             }
+        } else if (fields.operation == "import") {
+            com.mode.devlog (`  Import (${fields.operands})`)
+            ls.isExecutable = false;
+        } else if (fields.operation == "export") {
+            com.mode.devlog (`  Export (${fields.operands})`)
+        } else if (fields.operation == "relocate") {
+            com.mode.devlog (`  Relocate (${fields.operands})`)
+        } else {
+            com.mode.devlog (`>>> Syntax error (${fields.operation})`)
+            ls.isExecutable = false;
         }
     }
 }
