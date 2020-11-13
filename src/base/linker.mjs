@@ -70,7 +70,7 @@ export function showLS (ls) {
     xs += "Modules:\n";
     for (const om of ls.oms) {
         xs += showObjectModule (om);
-//        xs += om.modName;
+//        xs += om.omName;
 //        xs += "\n";
     }
     return xs;
@@ -82,27 +82,81 @@ export function showLS (ls) {
 
 // The ObjectModule class collects information about each module being
 // linked, as well as the executable.  Constructor arguments: modname
-// is string giving base name of the module; objText is a string
-// giving the object code text, and objMd is a string giving the
+// is string giving base name of the module; omText is a string
+// giving the object code text, and omMd is a string giving the
 // metadata text (null if there is no metadata).
 
 export class ObjectModule {
-    constructor(modName, objText, objMd) {
-        this.modName = modName;
-        this.objText = objText;
-        this.objectLines = objText.split("\n");
-        this.objMd = objMd;
-        this.mdLines = objMd.split("\n");
-        this.mdAsMap = [];
-        this.mdAsmListingPlain = [];
-        this.mdAsmListingDec = [];
-        this.dataBlocks = [new ObjectBlock ()];
-        this.imports = [];
-        this.exports = [];
-        this.origin = 0;
-        this.size = 0;
-        this.startAddress = 0;
-        this.endAddress = 0;
+    constructor(omName, omText, omMd) {
+        this.omName = omName;
+        this.omText = omText;
+        this.omObjectLines = omText.split("\n");
+        this.omMd = omMd;
+        this.omMdLines = omMd.split("\n");
+        this.omDataBlocks = [new ObjectBlock (0)];
+        this.omRelocations = [];
+        this.omAsMap = [];
+        this.omMdAsmListingPlain = [];
+        this.omMdAsmListingDec = [];
+        this.omAsmImports = [];
+        this.omAsmExportMap = new Map ();
+        this.omAsmExports = [];
+        this.omOrigin = 0;
+        this.omSize = 0;
+        this.omStartAddress = 0;
+        this.omEndAddress = 0;
+    }
+}
+
+// Constructor arguments: module that exports a name, the name, the
+// address/field where the imported value will be inserted.
+
+class AsmImport {
+    constructor (mod, name, addr, field) {
+        this.mod = mod;
+        this.name = name;
+        this.addr = addr;
+        this.field = field;
+    }
+    show () {
+        return `AsmImport mod=${this.mod} name=${this.name} `
+        + `addr=${arith.wordToHex4(this.addr)} field=${this.field}\n`;
+    }
+}
+
+class AsmExport {
+    constructor (name,val,status) {
+        this.name = name;
+        this.val = val;
+        this.status = status;
+    }
+    show () {
+        return `Export name=${this.name} val=${arith.wordToHex4(this.val)}`
+            + ` status=${this.status}`;
+    }
+}
+
+function adjust (ls, om, addr, f) {
+    let found = false;
+    let i = 0;
+    while (!found && i < om.omDataBlocks.length) {
+        let b = om.omDataBlocks[i];
+        console.log (`Block ${i} at=${b.blockStart} size=${b.blockSize} a=${addr}`);
+        console.log (b.blockStart <= addr && addr < b.blockStart+b.blockSize);
+        if (b.blockStart <= addr && addr < b.blockStart+b.blockSize) {
+            console.log (`adjust found it i=${i}`);
+            let x = om.omDataBlocks[i].xs[addr-b.blockStart];
+            let y = f (x);
+            console.log (`adjusting addr=${addr} `
+                         + ` x=${arith.wordToHex4(x)}`
+                         + ` y=${arith.wordToHex4(y)}`);
+            om.omDataBlocks[i].xs[addr-b.blockStart] = y;
+            found = true;
+        }
+        i++;
+    }
+    if (!found) {
+        console.log (`Linker error: address ${arith.wordToHex4(addr)} not defined`);
     }
 }
 
@@ -113,9 +167,9 @@ export class ObjectBlock {
         this.xs = [];
     }
     showBlock () {
-        return `Block ${this.blockSize} words at `
-            + `${arith.wordToHex4(this.blockStart)}`
-            + `${this.xs}`;
+        return `Block of ${this.blockSize} words from `
+            + `${arith.wordToHex4(this.blockStart)}: `
+            + `${this.xs.map(arith.wordToHex4)}`;
     }
     insertWord (x) {
         this.xs.push(x);
@@ -124,21 +178,52 @@ export class ObjectBlock {
 }
 
 function showObjectModule (om) {
-    const xs = `${om.modName}\n`
-          + `  lines of code = ${om.objectLines.length}\n`
-          + `  start address = ${om.startAddress}\n`
-          + `  end address = ${om.endAddress}\n`
-          + `  imports = ${om.imports}\n`
-          + `  exports = ${om.exports}\n`
-          + `  AS map = ${om.mdAsMap}`
-          + showBlocks (om.dataBlocks)
+    const xs = `${om.omName}\n`
+          + `  lines of code = ${om.omObjectLines.length}\n`
+          + `  start address = ${om.omStartAddress}\n`
+          + `  end address = ${om.omEndAddress}\n`
+          + `  omRelocations = ${om.omRelocations}\n`
+          + showAsmImports (om.omAsmImports)
+          + showAsmExports (om.omAsmExports)
+          + showAsmExportMap (om.omAsmExportMap)
+          + `  AS map = ${om.omAsMap}\n`
+          + showBlocks (om.omDataBlocks)
           + "\n";
     return xs;
 }
 
+function showAsmImports (xs) {
+    let r = "AsmImports...\n";
+    for (const x of xs) { r += x.show() }
+    return r;
+}
+
+function showModMap (m) {
+    let r = "Module map...\n";
+    for (const k of m.keys()) {
+        r += `key ${k} -> ${m.get(k).omObjectLines.length}\n`;
+    }
+    return r;
+
+}
+function showAsmExportMap (m) {
+    //    let r = "AsmExport map...\n";
+    let r = "";
+    for (const k of m.keys()) {
+        r += `key ${k} -> ${m.get(k).show()}`;
+    }
+    return r;
+}
+
+
+function showAsmExports (xs) {
+    let r = "AsmExports...\n";
+    for (const x of xs) { r += x.show() }
+    return r;
+}
+
 function showBlocks (bs) {
-    console.log ("this is showBlocks");
-    let xs = "Blocks\n";
+    let xs = "";
     for (const b of bs) {
         xs += b.showBlock();
         console.log (b.xs);
@@ -146,41 +231,6 @@ function showBlocks (bs) {
     return xs;
 }
 
-//-------------------------------------------------------------------------------
-// Linker main interface
-//-------------------------------------------------------------------------------
-
-// The linker takes two arguments: the name of the executable and a
-// list of object modules.  Each object module should have two or
-// three fields defined: the module name, object text, and metadata
-// (or null if there is no metadata).  The linker creates and returns
-// an executable module.  If there are linker errors, the messages are
-// placed in the result module; if there are no linker errors, the
-// result module can be booted.
-
-export function linker (exeName, ms) {
-    console.log (`Linking executable ${exeName} from ${ms.length} object modules`);
-    let ls = new LinkerState (exeName, ms);
-    console.log ("Initial linker state:\n" + showLS (ls));
-    console.log ("----------------------");
-/*
-    let b = new ObjectBlock (500);
-    console.log (`asdfasdf ${b.blockStart}`);
-    console.log (b.showBlock());
-    b.insertWord(12);
-    console.log (b.showBlock());
-    b.insertWord(2);
-    b.insertWord(35);
-    b.insertWord(19);
-    console.log (b.showBlock());
-    return ;
-*/
-    for (const om of ls.oms) {
-        parseObject (ls, om);
-    }
-    console.log ("Final linker state:\n" + showLS (ls));
-    console.log ("Linker returning");
-}
 
 //-------------------------------------------------------------------------------
 // GUI interface to linker
@@ -231,7 +281,7 @@ export function getLinkerModulesGui () {
     if (exeMod===null) {
         exeMod = new ObjectModule(`${exeBaseName}.ext.txt`);
     }
-    exeMod.modName = `${exeBaseName}.obj.txt`; // redundant
+    exeMod.omName = `${exeBaseName}.obj.txt`; // redundant
     for (let i = 1; i < modlist.length; i++) {
         let mbn = modlist[i];
         console.log (`getLinkerModulesGui i=${i} mbn=${mbn}\n`);
@@ -247,8 +297,8 @@ export function getLinkerModulesGui () {
                     let xs = `\nObject from assembler ${mbn}.asm.txt\n`;
                     console.log (xs);
                     ys += xs;
-                    om.objText = x.asmInfo.objectText;
-                    ys += "\nObject text:\n" + om.objText + "\n";
+                    om.omText = x.asmInfo.objectText;
+                    ys += "\nObject text:\n" + om.omText + "\n";
                     om.mdText = x.asmInfo.metadataText;
                     console.log (om.mdText);
                     ys += "\nMetadata text:\n" + om.mdText + "\n";
@@ -258,11 +308,11 @@ export function getLinkerModulesGui () {
                     ys += xs;
                 }
             } else if (x.file && x.file.name===`${mbn}.obj.txt`) {
-                om.objText = x.text;
+                om.omText = x.text;
                 console.log ("4444444444444444444444444444");
-                console.log (om.objText);
+                console.log (om.omText);
                 console.log ("55555555555555555555555555555");
-                let xs = `\nObject from ${mbn}.obj.txt\n` + om.objText;
+                let xs = `\nObject from ${mbn}.obj.txt\n` + om.omText;
                 console.log (xs);
                 ys += xs;
             } else if (x.file && x.file.name===`${mbn}.md.txt`) {
@@ -281,7 +331,7 @@ export function getLinkerModulesGui () {
         zs += "<hr>";
         zs += `${om.modname}\n`;
         zs += "Object code:\n";
-        zs += om.objText;
+        zs += om.omText;
         zs += "\n";
         zs += "Metadata:\n";
 //        zs += om.mdText;  // skipping md for now
@@ -312,19 +362,46 @@ export function linkShowExeMetadata () {
 }
 
 //-------------------------------------------------------------------------------
-// Linker
+// Linker main interface
 //-------------------------------------------------------------------------------
 
-// Parse the text lines of an object module and record the information
+// The linker takes two arguments: the name of the executable and a
+// list of object modules.  Each object module should have two or
+// three fields defined: the module name, object text, and metadata
+// (or null if there is no metadata).  The linker creates and returns
+// an executable module.  If there are linker errors, the messages are
+// placed in the result module; if there are no linker errors, the
+// result module can be booted.
 
+export function linker (exeName, ms) {
+    console.log (`Linking executable ${exeName} from ${ms.length} object modules`);
+    let ls = new LinkerState (exeName, ms);
+    pass1 (ls); // Parse object and record directives
+    pass2 (ls); // Adjust data
+    console.log ("Linker returning");
+}
 
+//-------------------------------------------------------------------------------
+// Linker pass 1
+//-------------------------------------------------------------------------------
+
+// Pass 1 traverses the text lines of an object module, parses the
+// syntax, builds data blocks, and records the directives
+
+function pass1 (ls) {
+    console.log ("Pass 1");
+    for (const om of ls.oms) {
+        parseObject (ls, om);
+    }
+}
 
 function parseObject (ls, om) {
     com.mode.trace = true;
-    console.log (`parseObject ${om.modName}`);
-    om.origin = ls.locationCounter;
-    ls.modMap.set (om.modName, om);
-    for (let x of om.objectLines) {
+    console.log (`parseObject ${om.omName}`);
+    om.omOrigin = ls.locationCounter;
+    ls.modMap.set (om.omName, om);
+    om.omAsmExportMap = new Map ();
+    for (let x of om.omObjectLines) {
         console.log (`Object line <${x}>`);
         let fields = parseObjLine (x);
         com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
@@ -339,19 +416,59 @@ function parseObject (ls, om) {
                 let val = arith.hex4ToWord(fields.operands[j]);
                 let safeval = val ? val : 0;
                 com.mode.devlog (`  ${arith.wordToHex4(ls.locationCounter)} `
-                                 + `${arith.wordToHex4(safeval)}`); 
+                                 + `${arith.wordToHex4(safeval)}`);
+                om.omDataBlocks[om.omDataBlocks.length-1].insertWord(safeval);
                 ls.locationCounter++;
             }
         } else if (fields.operation == "import") {
-            com.mode.devlog (`  Import (${fields.operands})`)
-            ls.isExecutable = false;
+            om.omAsmImports.push(new AsmImport (...fields.operands));
         } else if (fields.operation == "export") {
-            com.mode.devlog (`  Export (${fields.operands})`)
+            const x = new AsmExport (...fields.operands);
+            om.omAsmExportMap.set(fields.operands[0], x);
         } else if (fields.operation == "relocate") {
-            com.mode.devlog (`  Relocate (${fields.operands})`)
+            om.omRelocations.push(...fields.operands);
         } else {
             com.mode.devlog (`>>> Syntax error (${fields.operation})`)
             ls.isExecutable = false;
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------
+// Linker pass 2
+//-------------------------------------------------------------------------------
+
+// Pass 2 revisits the imports and relocations that were recorded
+// during Pass 1, and makes the necessary adjustments to the object
+// code.
+
+function pass2 (ls) {
+    console.log ("Pass 2");
+    for (const om of ls.oms) {
+        resolveImports (ls, om);
+    }
+}
+
+// Replace old value of data word with new
+const setWord = (x) => (y) => y;
+
+function resolveImports (ls, om) {
+    console.log (`Resolving imports for ${om.omName}`);
+    for (const x of om.omAsmImports) {
+        console.log (`  Importing ${x.name} from ${x.mod}`);
+        if (ls.modMap.has(x.mod)) { // Does module we're importing from exist?
+            const exporter = ls.modMap.get(x.mod);
+            if (exporter.omAsmExportMap.has(x.name)) { // Is the name exported?
+                let v = exporter.omAsmExportMap.get(x.name);
+                console.log (`    Found: ${v.show()}`);
+                console.log (`    Adjust ${x.addr}.${x.field} := ${v.val}`);
+                adjust (ls, om, x.addr, setWord(v.val));
+                // can use v.name, v.val, v.status
+            } else {
+                console.log (`Linker error: ${x.name} not exported by ${x.mod}`);
+            }
+        } else {
+            console.log (`Linker error: ${x.mod} not found`);
         }
     }
 }
@@ -361,22 +478,22 @@ function parseObject (ls, om) {
 //-------------------------------------------------------------------------------
 
 // Given source lines for the metadata, build the metadata object for emulator
-function parseObjMetadata (mdLines) {
+function parseObjMetadata (omMdLines) {
     console.log ("parseObjMetadata");
-    console.log (mdLines);
-    let mdAsMap = [];
+    console.log (omMdLines);
+    let omAsMap = [];
     let mdPlainLines = [];
     let mdDecLines = [];
     let i = 0;
-    while (i < mdLines.length & mdLines[i] != "Source") {
-        console.log (`asmap entry ${mdLines[i]}`);
+    while (i < omMdLines.length & omMdLines[i] != "Source") {
+        console.log (`asmap entry ${omMdLines[i]}`);
         i++
     }
-    console.log (`source starts at line ${i} --${mdLines[i]--}`);
-    let nSrcLines = mdLines[i];
+    console.log (`source starts at line ${i} --${omMdLines[i]--}`);
+    let nSrcLines = omMdLines[i];
     console.log (`nSrcLines = ${nSrcLines}`);
     return nSrcLines;
-//    return {mdLines, mdAsMap, mdPlainLines, mdDecLines}
+//    return {omMdLines, omAsMap, mdPlainLines, mdDecLines}
 }
 
 // A line of object code contains a required operation code, white
@@ -408,7 +525,7 @@ function mkObjStmt (i,srcLine,operation,operands) {
         objOperation : operation,
         objOperands : operands,
         objLocation : 0,
-        objSize : 0,
+        objOmSize : 0,
         objOperandNames : [],
         objLine : []
     }
@@ -420,7 +537,7 @@ function combine (oms) {
     for (om of oms) {
         xs += "\n------------------------\n";
         xs += `om.modname\n`;
-        xs += om.objText;
+        xs += om.omText;
         xs += om.mdText.slice(0,100);
     }
 }

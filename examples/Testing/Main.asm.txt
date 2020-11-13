@@ -17,8 +17,12 @@ Main  module
       load   R3,pqr[R0]
       load   R4,z[R0]
       add    R5,R1,R3
+      jal    R14,fcn[R0]
       store  R3,x[R0]
+      store  R3,res[R0]
       trap   R0,R0,R0
+fcn   import Mod1,fcn      
+res   data   0
 x     import Mod1,abc
 y     import Mod1,def
 pqr   import Mod2,pqr

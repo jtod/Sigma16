@@ -2,7 +2,11 @@
 ; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
 Mod1  module
+fcn   load     R8,abc[R0]
+      add      R1,R1,R8
+      jump     0[R14]
 abc   data     15
-def   data     27
+def   data     fcn
+      export   fcn
       export   abc
       export   def
