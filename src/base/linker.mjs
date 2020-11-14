@@ -101,7 +101,6 @@ export class ObjectModule {
         this.omAsmImports = [];
         this.omAsmExportMap = new Map ();
         this.omAsmExports = [];
-        this.omOrigin = 0;
         this.omSize = 0;
         this.omStartAddress = 0;
         this.omEndAddress = 0;
@@ -124,6 +123,10 @@ class AsmImport {
     }
 }
 
+// name (string) is the identifier being exported, val (number) is the
+// value of the identifier, status (string) is either "relocatable" or
+// "fixed".
+
 class AsmExport {
     constructor (name,val,status) {
         this.name = name;
@@ -136,20 +139,25 @@ class AsmExport {
     }
 }
 
+// adjust an object code word, for either import or relocation.
+// context is ls (linker state) and om (object module).
+// addr (number) is address of object code word to change.
+// f is function to calculate new value of object code word.
+
 function adjust (ls, om, addr, f) {
     let found = false;
     let i = 0;
     while (!found && i < om.omDataBlocks.length) {
         let b = om.omDataBlocks[i];
-        console.log (`Block ${i} at=${b.blockStart} size=${b.blockSize} a=${addr}`);
-        console.log (b.blockStart <= addr && addr < b.blockStart+b.blockSize);
         if (b.blockStart <= addr && addr < b.blockStart+b.blockSize) {
-            console.log (`adjust found it i=${i}`);
             let x = om.omDataBlocks[i].xs[addr-b.blockStart];
             let y = f (x);
-            console.log (`adjusting addr=${addr} `
-                         + ` x=${arith.wordToHex4(x)}`
-                         + ` y=${arith.wordToHex4(y)}`);
+            console.log (`    Adjusting block ${i}`
+                         + ` start=${arith.wordToHex4(b.blockStart)}`
+                         + ` size=${b.blockSize}`
+                         + ` addr=${arith.wordToHex4(addr)}`
+                         + ` old=${arith.wordToHex4(x)}`
+                         + ` new=${arith.wordToHex4(y)}`);
             om.omDataBlocks[i].xs[addr-b.blockStart] = y;
             found = true;
         }
@@ -376,9 +384,15 @@ export function linkShowExeMetadata () {
 export function linker (exeName, ms) {
     console.log (`Linking executable ${exeName} from ${ms.length} object modules`);
     let ls = new LinkerState (exeName, ms);
-    pass1 (ls); // Parse object and record directives
-    pass2 (ls); // Adjust data
-    console.log ("Linker returning");
+    pass1 (ls); // parse object and record directives
+//    console.log ("\n-------------------------------------------------");
+//    console.log ("Linker state after pass 1:");
+//    console.log (showLS (ls))
+    pass2 (ls); // process imports and relocations
+//    console.log ("\n-------------------------------------------------");
+//    console.log ("Final linker state:");
+//    console.log (showLS (ls))
+    return emitCode (ls);
 }
 
 //-------------------------------------------------------------------------------
@@ -397,10 +411,11 @@ function pass1 (ls) {
 
 function parseObject (ls, om) {
     com.mode.trace = true;
-    console.log (`parseObject ${om.omName}`);
-    om.omOrigin = ls.locationCounter;
+    om.omStartAddress = ls.locationCounter;
     ls.modMap.set (om.omName, om);
     om.omAsmExportMap = new Map ();
+    const relK = om.omStartAddress; // relocation constant for the object module
+    console.log (`Parse ${om.omName} relocation=${arith.wordToHex4(relK)}`);
     for (let x of om.omObjectLines) {
         console.log (`Object line <${x}>`);
         let fields = parseObjLine (x);
@@ -423,7 +438,16 @@ function parseObject (ls, om) {
         } else if (fields.operation == "import") {
             om.omAsmImports.push(new AsmImport (...fields.operands));
         } else if (fields.operation == "export") {
-            const x = new AsmExport (...fields.operands);
+            const [name,val,status] = [...fields.operands];
+            const valNum = arith.hex4ToWord(val);
+            const valExp = status == "relocatable" ? valNum + relK : valNum;
+            console.log ("Building export pass 1 export:");
+            console.log (`name=${name} ${typeof name}`);
+            console.log (`val=${val} ${typeof val}`);
+            console.log (`valNum=${arith.wordToHex4(valNum)} ${typeof valNum}`);
+            console.log (`valExp=${arith.wordToHex4(valExp)} ${typeof valExp}`);
+            console.log (`status=${status} ${typeof status}`);
+            const x = new AsmExport (name, valExp, status);
             om.omAsmExportMap.set(fields.operands[0], x);
         } else if (fields.operation == "relocate") {
             om.omRelocations.push(...fields.operands);
@@ -446,11 +470,9 @@ function pass2 (ls) {
     console.log ("Pass 2");
     for (const om of ls.oms) {
         resolveImports (ls, om);
+        resolveRelocations (ls, om);
     }
 }
-
-// Replace old value of data word with new
-const setWord = (x) => (y) => y;
 
 function resolveImports (ls, om) {
     console.log (`Resolving imports for ${om.omName}`);
@@ -459,11 +481,13 @@ function resolveImports (ls, om) {
         if (ls.modMap.has(x.mod)) { // Does module we're importing from exist?
             const exporter = ls.modMap.get(x.mod);
             if (exporter.omAsmExportMap.has(x.name)) { // Is the name exported?
-                let v = exporter.omAsmExportMap.get(x.name);
-                console.log (`    Found: ${v.show()}`);
-                console.log (`    Adjust ${x.addr}.${x.field} := ${v.val}`);
-                adjust (ls, om, x.addr, setWord(v.val));
-                // can use v.name, v.val, v.status
+                const v = exporter.omAsmExportMap.get(x.name);
+                console.log (`LOOK v status = ${v.status}`);
+                const addrNum = arith.hex4ToWord(x.addr);
+                const valNum = v.val;
+                console.log (`look at resolveImport ${valNum} ${typeof valNum}`);
+                console.log (`    Set ${x.addr}.${x.field} := ${v.val}`);
+                adjust (ls, om, addrNum, (y) => valNum);
             } else {
                 console.log (`Linker error: ${x.name} not exported by ${x.mod}`);
             }
@@ -471,6 +495,65 @@ function resolveImports (ls, om) {
             console.log (`Linker error: ${x.mod} not found`);
         }
     }
+}
+
+function resolveRelocations (ls, om) {
+    const relK = om.omStartAddress; // relocation constant for the object module
+    console.log (`Resolving relocations for ${om.omName}`
+                 + ` relocation=${arith.wordToHex4(relK)}`);
+    for (const a of om.omRelocations) {
+        console.log (`  relocate ${arith.wordToHex4(a)}`);
+        const addressNum = arith.hex4ToWord(a);
+        adjust (ls, om, addressNum, (y) => y + relK);
+    }
+}
+
+
+//-------------------------------------------------------------------------------
+// Emit object code
+//-------------------------------------------------------------------------------
+
+function emitCode (ls) {
+    console.log ("Emit object code");
+    let exeCode = "";
+    if (ls.linkErrors.length > 0) {
+        console.log ("Link errors, cannot emit code");
+    } else {
+        for (const om of ls.oms) {
+            console.log (`Emitting code for ${om.omName}`);
+            exeCode += `module ${om.omName}\n`;
+//            exeCode += `org ${arith.wordToHex4(om.omStartAddress)}\n`;
+            for (const b of om.omDataBlocks) {
+                exeCode += emitObjectWords (b.xs);
+            }
+        }
+        console.log ("Executable code:");
+        console.log (exeCode);
+    }
+    return exeCode;
+}
+//                let ys = b.xs.map(arith.wordToHex4);
+//                let zs = ys.join(",");
+//                console.log (`emit ys=${ys}\n zs=${zs}`);
+//                exeCode += `data ${zs}\n`;
+
+
+// ws is a list of words to be emitted as a sequence of data
+// statements, with a limited number of words per data statement in
+// order to keep the lines to a reasonable length.
+
+const objBufferLimit = 8;
+
+function emitObjectWords (ws) {
+    let xs, ys, zs;
+    let code = "";
+    while (ws.length > 0) {
+        xs = ws.splice (0, objBufferLimit);
+        ys = xs.map( (w) => arith.wordToHex4(w));
+        zs = 'data ' + ys.join(',') + "\n";
+        code += zs;
+    }
+    return code;
 }
 
 //-------------------------------------------------------------------------------

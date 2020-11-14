@@ -234,7 +234,8 @@ function linkCLI () {
         let om = new link.ObjectModule (baseName, objText, objMd);
         oms.push (om);
     }
-    link.linker (exeBaseName, oms);
+    const exeCode = link.linker (exeBaseName, oms);
+    writeFile (`${exeBaseName}.exe.txt`, exeCode);
 }
 
 //-----------------------------------------------------------------------------

@@ -2,7 +2,9 @@
 ; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
 Mod2  module
-pqr   data       3
-xyz   data     255
-      export   pqr
-      export   xyz
+      add     R1,R2,R3
+      sub     R8,R11,R12
+pqr   data    3
+xyz   equ     5
+      export  pqr
+      export  xyz
