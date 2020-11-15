@@ -1,0 +1,12 @@
+; ProgA.lnk.txt: Command to build executable Prog.exe.txt from object
+; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+
+; There are two ways to use this:
+; (GUI) read the files, then click Read in Linker tab
+: (CLI) enter these commands on the terminal window (see Installation
+; section)
+
+sigma16 assemble ProgA
+sigma16 assemble ProgAmod1
+sigma16 assemble ProgAmod2
+sigma16 link ProgA ProgAmain ProgAmod1 ProgAmod2

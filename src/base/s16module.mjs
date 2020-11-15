@@ -26,6 +26,72 @@ import * as com from './common.mjs';
 //   Modules: Refresh button -- refreshModulesList
 
 //------------------------------------------------------------------------------
+// New approach
+//------------------------------------------------------------------------------
+
+/*
+Nov 15 2020, new approach for handling modules and files
+
+Previously, there is a list of files which are mostly .asm files.
+
+However, it would be good to be able to read obj and md files, and lnk
+files, as well as asm files.  This is needed for the gui interface to
+the linker.  But this has a drawback: the connection between
+foo.asm.txt and foo.obj.txt would be lost.  Furthermore, it will be
+easier to click the check box to select all the eligible files in a
+directory, rather than clicking each file individually, in the file
+chooser.  This could bring in various .md .obj files as well as the
+.asm file.
+
+New idea: the state is a map from basename to module group, which is a
+class containing an asm, an obj, a lnk.  Each of these may be null; if
+not null, it is an object created by new.
+
+What about the editor?  The user may make a new source file in the
+editor, and there could be several of these.
+
+These will have module group names *Editor1 *Editor2, etc.  Then, when
+assembled, we would get *Editor.obj.txt, etc.  There are two feasible
+ways for the user to give a better name: either a module statement, or
+possibly a gui command (though that hardly seems worth doing).
+
+There should be a display of each module that describes its status
+  - does it have an assembly source module?
+  - does it have an object module?
+  - is it a link file?  This would be a main program
+
+When files are read
+  - get the basename and the file type (asm, obj, etc)
+  - create an asmModule, objModule, etc and put in the file text
+  - from the system state map, look for a mapping for the basename, and
+    create one if it doesn't exist
+    - then put the newly created submodule (asm, obj or whatever) into
+      the module group container
+
+*/
+
+// A ModuleGroup is a container for all the files and objects that
+// share the same basename
+
+export let globalModuleGroups = new Map ();
+
+export class ModuleGroup {
+    constructor (basename) {
+        this.basename = basename;
+        this.asmModule = null;
+        this.objModule = null;
+        this.mainProgram = null;
+        globalModuleGroups.set (basename, this);
+    }
+}
+
+export function showGlobalModules () {
+    for (const bn of globalModuleGroups.keys()) {
+        console.log (`${bn}`);
+    }
+}
+
+//------------------------------------------------------------------------------
 // Set of modules
 //------------------------------------------------------------------------------
 
@@ -143,6 +209,12 @@ function modClose (m) {
 export function initModules () {
 //    com.mode.trace = true;
     com.mode.devlog ("initModules");
+
+    let foom1 = new ModuleGroup ("foo");
+    let foom2 = new ModuleGroup ("bar");
+    let foom3 = new ModuleGroup ("baz");
+    showGlobalModules();
+    
     s16modules = new Map (); // throw away any existing map, create new one
     let m = new s16module ();
     com.mode.devlog ("initModules about to show map...");
@@ -202,11 +274,53 @@ export function prepareChooseFiles () {
 
 let newModules = [];
 
+// Parse string xs and check that it's in the form basename.ftype.txt
+// where basename is any string not containing . and ftype is one of
+// asm, obj, md, lst, lnk
+
+export function checkFileName (xs) {
+    const components = xs.split(".");
+    let errors = [];
+    let basename = "";
+    let filetype = "";
+    if (components.length != 3 ) {
+        errors = [`Filename ${xs} must have three components, e.g.`
+                  + `ProgramName.asm.txt`];
+    } else if (components[2] != "txt") {
+        errors = [`Last component of flename ${xs} is ${components[2]}`
+                  + ` but it must be ".txt"`];
+    } else if (!["asm", "obj", "lst", "md", "lnk"].includes(components[1])) {
+        errors = [`Second component of flename ${xs} is ${components[1]}`
+                  + ` but it must be one of asm,obj,md,lnk`];
+    } else {
+        basename = components[0];
+        filetype = components[1];
+    }
+    let result = {errors, basename, filetype};
+    com.mode.devlog (`checkFileName ${xs}\n errors=${result.errors}\n `
+                     + `basename=${result.basename}\n filetype=${result.filetype}`);
+    return result;
+}
+
 export function handleSelectedFiles (flist) {
     com.mode.devlog (`handleSelectedFiles filst size = ${flist.length}`);
     newModules = [];
     for (let f of flist) {
-        com.mode.devlog (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
+        // Get properties of the file
+        const fname = f.name;
+        const ftype = f.type;
+        const fsize = f.size;
+        const fmoddate = f.lastModifiedDate;
+        console.log ("--- File ---");
+        
+        com.mode.devlog (`>>> File fname=${fname} ftype=${ftype} `
+                     + `fsize=${fsize} lastModified=${fmoddate}`);
+        const fnameComponents = checkFileName (fname);
+        console.log (`Filename ${fnameComponents}`);
+
+        // Check to see if ftype is text/plain ?
+// com.mode.devlog (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
+        
         let type = AsmModule;  // should calculate based on filename ???????????
         let m = new s16module (type);
         newModules.push (m);
@@ -219,6 +333,7 @@ export function handleSelectedFiles (flist) {
 
 function mkReader (m) {
     let fr = new FileReader();
+    com.mode.trace = true;
     com.mode.devlog (`Creating file reader ${m.file.name}`);
     fr.onload = function (e) {
 	com.mode.devlog (`File reader ${m.file.name} onload event starting`);

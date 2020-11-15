@@ -3428,6 +3428,12 @@ However:
  restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1] |
 
 * User interface
+*** Files and modules
+- In Modules tab, click Choose Files
+  - The dialogue shows .asm.txt, .lnk.txt, .obj.txt, .md.txt
+  - To select all the relevant files in a directory, click the little
+    box at the left on the row giving "Name, date modified, ..."
+  - Click Open (or cancel)
 *** Simple standalone programs
 
  If a program does not import any names, it is *standalone*.  The text

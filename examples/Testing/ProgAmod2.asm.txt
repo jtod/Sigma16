@@ -1,6 +1,8 @@
 ; Mod2: test linker (imported by LinkMain)
 ; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
+foobar
+
 Mod2  module
       add     R1,R2,R3
       sub     R8,R11,R12

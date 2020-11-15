@@ -239,10 +239,18 @@ function showBlocks (bs) {
     return xs;
 }
 
-
 //-------------------------------------------------------------------------------
 // GUI interface to linker
 //-------------------------------------------------------------------------------
+
+/* From gui.mjs
+// Linker pane (LP)
+prepareButton ('LP_Read_Object',   link.getLinkerModules);
+prepareButton ('LP_Link',          link.linkerGUI);
+prepareButton ('LP_Show_Object',   link.linkShowExeObject);
+prepareButton ('LP_Show_Metadata', link.linkShowExeMetadata);
+prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));
+*/
 
 // Obtain the modules to link: the editor pane should contain a list
 // consisting of the executable base name, followed by basenames of
@@ -259,15 +267,15 @@ function showBlocks (bs) {
 
 export function linkerGui () {
     console.log ("linkerGui");
-    let {exeMod, objMod} = getLinkerModulesGui ();
+//    let {exeMod, objMod} = getLinkerModulesGui ();
 //    console.log (`exemod = ${exeMod.dclmodname}`);
 }
 
-// getLinkerModulesGui takes modlist, a list of base names.  The modlist
-// must have one basename per line; the first entry is the executable
-// and the rest are the modules to link.  It searches the modules
-// list, looks for anything tthat matches one of the modlist, and
-// returns a corresponding array of ObjectModules.
+// getLinkerModulesGui looks at the selected module, which should be a
+// linker command file.  It builds and returns a list of object
+// modules; if any object module isn't present it provides an error
+// message and returns null.
+
 
 export function getLinkerModulesGui () {
     console.log ('getLinkerModulesGui');

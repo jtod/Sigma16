@@ -1,11 +1,11 @@
-; Main: test linker; imports Mod1, Mod2
+; ProgA: test linker
 ; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
 
 ; Usage:
-;   sigma16 assemble Main
-;   sigma16 assemble Mod1
-;   sigma16 assemble Mod2
-;   sigma16 link Exe Main Mod1
+;   sigma16 assemble ProgA
+;   sigma16 assemble ProgAmod1
+;   sigma16 assemble ProgAmod2
+;   sigma16 link Exe Main ProgAmod1
 
 ; In the link command, the operands are separated by spaces.  The
 ; first operand is the basename of the executable output. This is
@@ -21,10 +21,10 @@ Main  module
       store  R3,x[R0]
       store  R3,res[R0]
       trap   R0,R0,R0
-fcn   import Mod1,fcn      
+fcn   import ProgAmod1,fcn      
 res   data   0
-x     import Mod1,abc
-y     import Mod1,def
-pqr   import Mod2,pqr
-z     import Mod2,xyz
+x     import ProgAmod1,abc
+y     import ProgAmod1,def
+pqr   import ProgAmod2,pqr
+z     import ProgAmod2,xyz
 
