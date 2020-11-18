@@ -15,11 +15,12 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-------------------------------------------------------------------------------
-// module.mjs defines the representation of source and object modules
+// module.mjs defines the representation of source and object modules for the gui
 //-------------------------------------------------------------------------------
 
 // import * as fs from "fs";
 import * as com from './common.mjs';
+import * as st from './state.mjs';
 
 // Interface
 //   Modules: Choose Files button -- "change" event calls handleSelectedFiles
@@ -62,7 +63,7 @@ There should be a display of each module that describes its status
 
 When files are read
   - get the basename and the file type (asm, obj, etc)
-  - create an asmModule, objModule, etc and put in the file text
+  - create an asmModule, objInfo, etc and put in the file text
   - from the system state map, look for a mapping for the basename, and
     create one if it doesn't exist
     - then put the newly created submodule (asm, obj or whatever) into
@@ -70,26 +71,17 @@ When files are read
 
 */
 
-// A ModuleGroup is a container for all the files and objects that
-// share the same basename
 
-export let globalModuleGroups = new Map ();
-
-export class ModuleGroup {
-    constructor (basename) {
-        this.basename = basename;
-        this.asmModule = null;
-        this.objModule = null;
-        this.mainProgram = null;
-        globalModuleGroups.set (basename, this);
-    }
+// Select the module with basename bn
+function handleSelect (bn) {
+    console.log (`handleSelect ${bn}`);
 }
 
-export function showGlobalModules () {
-    for (const bn of globalModuleGroups.keys()) {
-        console.log (`${bn}`);
-    }
+// Close the module with basename bn
+function handleClose (bn) {
+    console.log (`handleClose ${bn}`);
 }
+
 
 //------------------------------------------------------------------------------
 // Set of modules
@@ -210,10 +202,10 @@ export function initModules () {
 //    com.mode.trace = true;
     com.mode.devlog ("initModules");
 
-    let foom1 = new ModuleGroup ("foo");
-    let foom2 = new ModuleGroup ("bar");
-    let foom3 = new ModuleGroup ("baz");
-    showGlobalModules();
+    let foom1 = new S16Module ("foo");
+    let foom2 = new S16Module ("bar");
+    let foom3 = new S16Module ("baz");
+    showS16Module();
     
     s16modules = new Map (); // throw away any existing map, create new one
     let m = new s16module ();
@@ -383,6 +375,20 @@ let buttonPrefixNumber = 0;
 // Produce a formatted list of all open modules and display in Modules page
 
 export function refreshModulesList() {
+    console.log ('refreshModulesList');
+    const xs = showS16Module ();
+    console.log (xs);
+    document.getElementById('FilesBody').innerHTML = xs;
+    for (const bn of moduleEnvironment.keys()) {
+        const m = moduleEnvironment.get(bn);
+        const selElt = document.getElementById(m.selectId);
+        selElt.addEventListener ("click", event => { handleSelect (bn) });
+        const closeElt = document.getElementById(m.closeId);
+        closeElt.addEventListener ("click", event => { handleClose (bn) });
+    }
+}
+
+/*     oLD refreshModulesList
     com.mode.devlog ('refreshModulesList');
     let xs, ys = "\n<hr>";
     ys += `<br>${s16modules.size} modules<br><hr><br>`;
@@ -420,8 +426,9 @@ export function refreshModulesList() {
     }
     refreshEditorBuffer ();
     com.mode.devlog ("refreshModulesList returning");
-}
+*/
 
+    
 // Copy text of the selected module to the editor buffer
 
 function refreshEditorBuffer () {

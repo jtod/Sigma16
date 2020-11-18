@@ -48,14 +48,17 @@ let curAsmap = [];
 // avoiding a group of global variables.  Normally there will be only
 // one object in the class, which can be a global variable or passed
 // as an argument to user interface functions.  When a linker state is
-// created it is given the file basename of the executable to be
+// created it is given the file baseName of the executable to be
 // created, and a list of text strings comprising the object code of
 // the modules to be linked.
 
+// exeMod is an S16Module in which an executable will be built in
+// linkerInfo, and oms is a list of S15Modules that contain objInfo
+
 export class LinkerState  {
-    constructor (exeName, oms) {
-        this.exeName = exeName;
-        this.oms = oms;
+    constructor (exeMod, objMods) {
+        this.exeMod = exeMod;
+        this.objMods = objMods;
         this.modMap = new Map ();
         this.locationCounter = 0;
         this.linkErrors = []; // error messages
@@ -64,7 +67,7 @@ export class LinkerState  {
 
 export function showLS (ls) {
     let xs = "Linker state:\n"
-    xs += `Executable: ${ls.exeName}\n`
+    xs += `Executable: ${ls.parent.baseName}\n`
     xs += `Location counter = ${arith.wordToHex4(ls.locationCounter)}\n`;
     xs += `${ls.linkErrors.length} Error messages: ${ls.linkErrors}\n`;
     xs += "Modules:\n";
@@ -76,37 +79,6 @@ export function showLS (ls) {
     return xs;
 }
     
-//-------------------------------------------------------------------------------
-// Object module
-//-------------------------------------------------------------------------------
-
-// The ObjectModule class collects information about each module being
-// linked, as well as the executable.  Constructor arguments: modname
-// is string giving base name of the module; omText is a string
-// giving the object code text, and omMd is a string giving the
-// metadata text (null if there is no metadata).
-
-export class ObjectModule {
-    constructor(omName, omText, omMd) {
-        this.omName = omName;
-        this.omText = omText;
-        this.omObjectLines = omText.split("\n");
-        this.omMd = omMd;
-        this.omMdLines = omMd.split("\n");
-        this.omDataBlocks = [new ObjectBlock (0)];
-        this.omRelocations = [];
-        this.omAsMap = [];
-        this.omMdAsmListingPlain = [];
-        this.omMdAsmListingDec = [];
-        this.omAsmImports = [];
-        this.omAsmExportMap = new Map ();
-        this.omAsmExports = [];
-        this.omSize = 0;
-        this.omStartAddress = 0;
-        this.omEndAddress = 0;
-    }
-}
-
 // Constructor arguments: module that exports a name, the name, the
 // address/field where the imported value will be inserted.
 
@@ -139,32 +111,34 @@ class AsmExport {
     }
 }
 
-// adjust an object code word, for either import or relocation.
-// context is ls (linker state) and om (object module).
-// addr (number) is address of object code word to change.
-// f is function to calculate new value of object code word.
+//-------------------------------------------------------------------------------
+// Object Info
+//-------------------------------------------------------------------------------
 
-function adjust (ls, om, addr, f) {
-    let found = false;
-    let i = 0;
-    while (!found && i < om.omDataBlocks.length) {
-        let b = om.omDataBlocks[i];
-        if (b.blockStart <= addr && addr < b.blockStart+b.blockSize) {
-            let x = om.omDataBlocks[i].xs[addr-b.blockStart];
-            let y = f (x);
-            console.log (`    Adjusting block ${i}`
-                         + ` start=${arith.wordToHex4(b.blockStart)}`
-                         + ` size=${b.blockSize}`
-                         + ` addr=${arith.wordToHex4(addr)}`
-                         + ` old=${arith.wordToHex4(x)}`
-                         + ` new=${arith.wordToHex4(y)}`);
-            om.omDataBlocks[i].xs[addr-b.blockStart] = y;
-            found = true;
-        }
-        i++;
-    }
-    if (!found) {
-        console.log (`Linker error: address ${arith.wordToHex4(addr)} not defined`);
+// The ObjectInfo class collects information about each module being
+// linked, as well as the executable.  Constructor arguments: modname
+// is string giving base name of the module; omText is a string
+// giving the object code text, and omMd is a string giving the
+// metadata text (null if there is no metadata).
+
+export class ObjectInfo {
+    constructor(parent) { // omModule is the parent container
+        this.parent = parent;
+        this.omText = "";
+        this.omObjectLines = [];
+        this.omMd = "";
+        this.omMdLines = [];
+        this.omDataBlocks = [new ObjectBlock (0)];
+        this.omRelocations = [];
+        this.omAsMap = [];
+        this.omMdAsmListingPlain = [];
+        this.omMdAsmListingDec = [];
+        this.omAsmImports = [];
+        this.omAsmExportMap = new Map ();
+        this.omAsmExports = [];
+        this.omSize = 0;
+        this.omStartAddress = 0;
+        this.omEndAddress = 0;
     }
 }
 
@@ -185,7 +159,7 @@ export class ObjectBlock {
     }
 }
 
-function showObjectModule (om) {
+function showObjectInfo (om) {
     const xs = `${om.omName}\n`
           + `  lines of code = ${om.omObjectLines.length}\n`
           + `  start address = ${om.omStartAddress}\n`
@@ -239,6 +213,35 @@ function showBlocks (bs) {
     return xs;
 }
 
+// adjust an object code word, for either import or relocation.
+// context is ls (linker state) and om (object module).
+// addr (number) is address of object code word to change.
+// f is function to calculate new value of object code word.
+
+function adjust (ls, om, addr, f) {
+    let found = false;
+    let i = 0;
+    while (!found && i < om.omDataBlocks.length) {
+        let b = om.omDataBlocks[i];
+        if (b.blockStart <= addr && addr < b.blockStart+b.blockSize) {
+            let x = om.omDataBlocks[i].xs[addr-b.blockStart];
+            let y = f (x);
+            console.log (`    Adjusting block ${i}`
+                         + ` start=${arith.wordToHex4(b.blockStart)}`
+                         + ` size=${b.blockSize}`
+                         + ` addr=${arith.wordToHex4(addr)}`
+                         + ` old=${arith.wordToHex4(x)}`
+                         + ` new=${arith.wordToHex4(y)}`);
+            om.omDataBlocks[i].xs[addr-b.blockStart] = y;
+            found = true;
+        }
+        i++;
+    }
+    if (!found) {
+        console.log (`Linker error: address ${arith.wordToHex4(addr)} not defined`);
+    }
+}
+
 //-------------------------------------------------------------------------------
 // GUI interface to linker
 //-------------------------------------------------------------------------------
@@ -253,15 +256,15 @@ prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));
 */
 
 // Obtain the modules to link: the editor pane should contain a list
-// consisting of the executable base name, followed by basenames of
+// consisting of the executable base name, followed by baseNames of
 // the modules to be linked.  These should be given on separate lines,
 // with no white space.
 
-// Finding object/metadata text for a given module basename mbn
+// Finding object/metadata text for a given module baseName mbn
 //   Module name: if there is a filename, the extension asm/obj
 //   Search the list of modules for one that matches mbn M
 //   If not found then error
-//     else (m matches basename)
+//     else (m matches baseName)
 //        If m.asmInfo exists, obtain obj and md there (error if not found)
 //        
 
@@ -295,7 +298,7 @@ export function getLinkerModulesGui () {
         }
     }
     if (exeMod===null) {
-        exeMod = new ObjectModule(`${exeBaseName}.ext.txt`);
+        exeMod = new smod.ObjectModule(`${exeBaseName}.ext.txt`);
     }
     exeMod.omName = `${exeBaseName}.obj.txt`; // redundant
     for (let i = 1; i < modlist.length; i++) {
@@ -304,7 +307,7 @@ export function getLinkerModulesGui () {
         if (mbn==="") break; // skip blank lines
         ys += "\n---------------------------------\n";
         ys += `Moduleaaa ${mbn}\n`;
-        let om = new ObjectModule (mbn);
+        let om = new smod.ObjectModule (mbn);
         objMod.push (om);
         for (let x of smod.s16modules.values()) { // does this module match?
             if (x.file && x.file.name===`${mbn}.asm.txt`) {
@@ -389,9 +392,11 @@ export function linkShowExeMetadata () {
 // placed in the result module; if there are no linker errors, the
 // result module can be booted.
 
-export function linker (exeName, ms) {
-    console.log (`Linking executable ${exeName} from ${ms.length} object modules`);
-    let ls = new LinkerState (exeName, ms);
+export function linker (exeMod, objMods) {
+    const ls = new LinkerState (exeMod, objMods);
+    exeMod.objInfo = new ObjectInfo (exeMod);
+    console.log (`Linking executable ${exeMod.baseName}`
+                 + ` from ${objMods.length} object modules`);
     pass1 (ls); // parse object and record directives
 //    console.log ("\n-------------------------------------------------");
 //    console.log ("Linker state after pass 1:");
@@ -400,7 +405,14 @@ export function linker (exeName, ms) {
 //    console.log ("\n-------------------------------------------------");
 //    console.log ("Final linker state:");
 //    console.log (showLS (ls))
-    return emitCode (ls);
+    const objectCode = emitCode (ls);
+    console.log ("linker, Here is the objectcode");
+    console.log (objectCode);
+    const linkerListing = "Linker listing\n";
+    console.log ("linker, Here is the linker listing");
+    console.log (linkerListing);
+    const result = {exeCode: objectCode, lnkTxt: linkerListing};
+    return result
 }
 
 //-------------------------------------------------------------------------------
@@ -412,27 +424,34 @@ export function linker (exeName, ms) {
 
 function pass1 (ls) {
     console.log ("Pass 1");
-    for (const om of ls.oms) {
+    const exeMod = ls.exeMod;
+    const objMods = ls.objMods;
+    for (const om of objMods) {
+        const objInfo = om.objInfo;
+        objInfo.omObjectLines = objInfo.omText.split("\n");
+        objInfo.omMdLines = objInfo.omMd.split("\n");
         parseObject (ls, om);
     }
 }
 
+// Parse object module om with linker state ls
+
 function parseObject (ls, om) {
     com.mode.trace = true;
-    om.omStartAddress = ls.locationCounter;
-    ls.modMap.set (om.omName, om);
-    om.omAsmExportMap = new Map ();
-    const relK = om.omStartAddress; // relocation constant for the object module
-    console.log (`Parse ${om.omName} relocation=${arith.wordToHex4(relK)}`);
-    for (let x of om.omObjectLines) {
+    const obj = om.objInfo;
+    obj.omStartAddress = ls.locationCounter;
+    ls.modMap.set (obj.omName, obj);
+    obj.omAsmExportMap = new Map ();
+    const relK = obj.omStartAddress; // relocation constant for the object module
+    for (let x of obj.omObjectLines) {
         console.log (`Object line <${x}>`);
         let fields = parseObjLine (x);
         com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
         if (x == "") {
             console.log ("skipping blank line");
         } else if(fields.operation == "module") {
-            om.dclmodname = fields.operands[0];
-            com.mode.devlog (`  Module name: ${om.dclmodname}`);
+            obj.dclmodname = fields.operands[0];
+            com.mode.devlog (`  Module name: ${obj.dclmodname}`);
         } else if (fields.operation == "data") {
             com.mode.devlog ("-- data");
             for (let j = 0; j < fields.operands.length; j++) {
@@ -440,11 +459,11 @@ function parseObject (ls, om) {
                 let safeval = val ? val : 0;
                 com.mode.devlog (`  ${arith.wordToHex4(ls.locationCounter)} `
                                  + `${arith.wordToHex4(safeval)}`);
-                om.omDataBlocks[om.omDataBlocks.length-1].insertWord(safeval);
+                obj.omDataBlocks[obj.omDataBlocks.length-1].insertWord(safeval);
                 ls.locationCounter++;
             }
         } else if (fields.operation == "import") {
-            om.omAsmImports.push(new AsmImport (...fields.operands));
+            obj.omAsmImports.push(new AsmImport (...fields.operands));
         } else if (fields.operation == "export") {
             const [name,val,status] = [...fields.operands];
             const valNum = arith.hex4ToWord(val);
@@ -456,12 +475,11 @@ function parseObject (ls, om) {
             console.log (`valExp=${arith.wordToHex4(valExp)} ${typeof valExp}`);
             console.log (`status=${status} ${typeof status}`);
             const x = new AsmExport (name, valExp, status);
-            om.omAsmExportMap.set(fields.operands[0], x);
+            obj.omAsmExportMap.set(fields.operands[0], x);
         } else if (fields.operation == "relocate") {
-            om.omRelocations.push(...fields.operands);
+            obj.omRelocations.push(...fields.operands);
         } else {
             com.mode.devlog (`>>> Syntax error (${fields.operation})`)
-            ls.isExecutable = false;
         }
     }
 }
@@ -476,11 +494,13 @@ function parseObject (ls, om) {
 
 function pass2 (ls) {
     console.log ("Pass 2");
-    for (const om of ls.oms) {
-        resolveImports (ls, om);
-        resolveRelocations (ls, om);
+    for (const om of ls.objMods) {
+        resolveImports (ls, om.objInfo);
+        resolveRelocations (ls, om.objInfo);
     }
 }
+
+// om is an objInfo object
 
 function resolveImports (ls, om) {
     console.log (`Resolving imports for ${om.omName}`);
@@ -527,12 +547,12 @@ function emitCode (ls) {
     if (ls.linkErrors.length > 0) {
         console.log ("Link errors, cannot emit code");
     } else {
-        for (const om of ls.oms) {
+        for (const om of ls.objMods) {
             console.log (`Emitting code for ${om.omName}`);
-            exeCode += `module ${om.omName}\n`;
-//            exeCode += `org ${arith.wordToHex4(om.omStartAddress)}\n`;
-            for (const b of om.omDataBlocks) {
-                exeCode += emitObjectWords (b.xs);
+            exeCode += `module ${om.baseName}\n`;
+            exeCode += `org ${arith.wordToHex4(om.omStartAddress)}\n`;
+            for (const b of om.objInfo.omDataBlocks) {
+                             exeCode += emitObjectWords (b.xs);
             }
         }
         console.log ("Executable code:");

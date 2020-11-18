@@ -3,6 +3,8 @@
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
+// Sigma16.mjs defines command line tools using node.js
+
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License as published by the Free Software Foundation, either
@@ -14,16 +16,16 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-// Sigma16.mjs defines command line tools
-
 //-----------------------------------------------------------------------------
 // ***** Configuration *****
 //-----------------------------------------------------------------------------
 
-// Specify the port to use for communicating with the browser.  This
+// This program can run locally in a shell and launch the GUI in a
+// browser.  It communicates with the browser using a port, which
 // should be between 1024 and 49151.  The default is defined to be
 // 3000; this can be changed to avoid clash with any other
-// application.
+// application.  To use the system from the command line, without the
+// GUI, the port is not used.
 
 const port = 3000;
 
@@ -48,9 +50,10 @@ Usage: node Sigma16.mjs <command> <argument> ... <argument>
   Writes metadata to <exe>.md.txt
   Writes linker listing to <exe>.lst.txt
 
-Examples, assuming alias for sigma16 is defined (see Installation below)
+Assume "sigma16" is an alias for "node /path/to/Sigma16.mjs" (see
+ Installation below)
 
-  sigma16                   launch gui, visit http://localhost:3000/
+  sigma16                   same as "sigma16 gui"
   sigma16 gui               launch gui, visit http://localhost:3000/
   sigma16 assemble foo      read foo.asm.txt, write foo.obj.txt, .lst.txt, .md.txt
   sigma16 link foo m1 m2... read m1.obj.txt ..., write foo.obj.txt
@@ -88,6 +91,7 @@ import * as fs from "fs";
 import { fileURLToPath } from 'url';
 
 // Components of Sigma16
+import * as st from "../base//state.mjs";
 import * as smod from "../base//s16module.mjs";
 import * as asm  from "../base//assembler.mjs";
 import * as link from "../base//linker.mjs";
@@ -207,35 +211,42 @@ function assembleCLI () {
 }
 
 //-----------------------------------------------------------------------------
-// Linker
+// Command line interface to linker
 //-----------------------------------------------------------------------------
 
-// Usage: node Sigma16.mjs link <exe> <mod1> <mod2> ...
+// Usage: sigma16.mjs link <exe> <mod1> <mod2> ...
 //   Reads object from <mod1>.obj.txt, ...     (required)
 //   Reads metadata from <mod1>.md.txt, ...    (ok if they don't exist)
 //   Writes executable to <exe>.obj.txt
 //   Writes metadata to <exe>.md.txt
 //   Writes linker listing to <exe>.lst.txt
 
-// Command line interfact to the Linker.  Call it with the executable
-// name and a list of object modules; each object module should be
-// initialized with the module name, the object text, and the metadata
-// (null if there is no metadata file).  The linkCLI function obtains
-// the file names from the command line, reads the files, creates the
-// object modules, and calls the linker.
+// Command line interface to the Linker.  Read the object code from
+// the specified files, create an S16Module for each, and populate
+// with the object code and the metadata (if it exists).  Create an
+// S16Module for the executable, call the linker, and write the
+// executable file and linker listing.
 
 function linkCLI () {
     const exeBaseName = process.argv[3]; // first command argument
-    const modBaseNames = process.argv.slice(4); // subsequent command arguments
-    let oms = []; // list of object modules
-    for (const baseName of modBaseNames) {
-        let objText = readFile (`${baseName}.obj.txt`);
-        let objMd = readFile (`${baseName}.md.txt`);
-        let om = new link.ObjectModule (baseName, objText, objMd);
-        oms.push (om);
+    const objBaseNames = process.argv.slice(4); // subsequent command arguments
+    const exeMod = new st.S16Module (exeBaseName); // container for executable
+    st.moduleEnvironment.set (exeBaseName, exeMod);
+    let objMods = []; // containers for object modules to be linked
+    for (const baseName of objBaseNames) {
+        const objText = readFile (`${baseName}.obj.txt`);
+        const objMd = readFile (`${baseName}.md.txt`);
+        const mod = new st.S16Module (baseName); // container for the basename
+        const objInfo= new link.ObjectInfo (mod); // object code info
+        mod.objInfo = objInfo;
+        objInfo.omText = objText;
+        objInfo.omMd = objMd;
+        st.moduleEnvironment.set (baseName, mod);
+        objMods.push (mod);
     }
-    const exeCode = link.linker (exeBaseName, oms);
+    const {exeCode, lnkTxt} = link.linker (exeMod, objMods);
     writeFile (`${exeBaseName}.exe.txt`, exeCode);
+    writeFile (`${exeBaseName}.lnk.txt`, lnkTxt);
 }
 
 //-----------------------------------------------------------------------------

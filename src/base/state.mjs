@@ -26,7 +26,66 @@
 // interface functios with the state, for example boot(emulatorState).
 
 import * as com from './common.mjs';
-import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
-import * as arith from './arithmetic.mjs';
+
+//-----------------------------------------------------------------------------
+// Global system module environment
+//-----------------------------------------------------------------------------
+
+// The system state is held in a global variable, moduleEnvironment.
+// This is a map from a base name foo to an S16Module object.  This,
+// in turn, contains optional information about foo.asm.txt,
+// foo.obj.txt, and foo.lnk.txt.
+
+export const moduleEnvironment = new Map ();
+
+// An S16Module is a container for all the files and objects that
+// share the same basename
+
+export class S16Module {
+    constructor (baseName) {
+        this.baseName = baseName;
+        moduleEnvironment.set (baseName, this);
+        this.asmModule = null; // ??? rename to asmInfo
+        this.objInfo = null;
+        this.linkerInfo = null;
+        this.selectId = `select_${baseName}`;
+        this.closeId = `close_${baseName}`;
+        this.selectButton = `<button id='${this.selectId}'>Select</button>`;
+        this.closeButton = `<button id='${this.closeId}'>Close</button>`;
+    }
+}
+
+export function showS16Module () {
+    console.log ("showS16Module");
+    let xs = "<ul>\n";
+    for (const bn of moduleEnvironment.keys()) {
+        const m = moduleEnvironment.get(bn);
+        xs += `<li> <b> ${bn} </b>`;
+        xs += m.selectButton;
+        xs += m.closeButton;
+        xs += showAsmSubmodule (bn);
+        xs += showObjSubmodule (bn);
+        xs += showLinkSubmodule (bn);
+        xs += "info about it"
+        xs += `</li>\n`;
+    }
+    xs += "</ul>\n";
+    return xs;
+}
+
+function showAsmSubmodule (m) {
+    let xs = "Asm submodule"
+    return xs;
+}
+
+function showObjSubmodule (m) {
+    let xs = "Obj submodule"
+    return xs;
+}
+
+function showLinkSubmodule (m) {
+    let xs = "Link submodule"
+    return xs;
+}
 
