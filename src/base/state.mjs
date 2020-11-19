@@ -46,7 +46,8 @@ export class S16Module {
     constructor (baseName) {
         this.baseName = baseName;
         moduleEnvironment.set (baseName, this);
-        this.asmModule = null; // ??? rename to asmInfo
+        //        this.asmModule = null; // ??? rename to asmInfo
+        this.asmInfo = null;
         this.objInfo = null;
         this.linkerInfo = null;
         this.selectId = `select_${baseName}`;

@@ -184,17 +184,21 @@ function launchGUI () {
 // Assembler
 //-----------------------------------------------------------------------------
 
-// Usage: node Sigma16.mjs assemble myprog
-//   Reads source from myprog.asm.txt
-//   Writes object code to myprog.obj.txt
-//   Writes metadata to myprog.md.txt
-//   Writes listing to standard output (or myprog.lst.txt?)
+// Usage: node Sigma16.mjs assemble <prog>
+//   Reads source from prog.asm.txt
+//   Writes object code to prog.obj.txt
+//   Writes metadata to prog.md.txt
+//   Writes listing to prog.lst.txt
 
 function assembleCLI () {
     const baseName = process.argv[3]; // first command argument
     const srcFileName = `${baseName}.asm.txt`;
     const maybeSrc = readFile (srcFileName);
-    let ma = asm.assemblerCLI (maybeSrc);
+    const mod = new st.S16Module (baseName);
+    const ma = new asm.AsmInfo (mod);
+    mod.asmInfo = ma;
+    ma.text = maybeSrc;
+    asm.assembler (ma);
     if (ma.nAsmErrors === 0) {
         let obj = ma.objectCode;
         let lst = ma.asmListingText;
@@ -214,7 +218,7 @@ function assembleCLI () {
 // Command line interface to linker
 //-----------------------------------------------------------------------------
 
-// Usage: sigma16.mjs link <exe> <mod1> <mod2> ...
+// Usage: node sigma16.mjs link <exe> <mod1> <mod2> ...
 //   Reads object from <mod1>.obj.txt, ...     (required)
 //   Reads metadata from <mod1>.md.txt, ...    (ok if they don't exist)
 //   Writes executable to <exe>.obj.txt

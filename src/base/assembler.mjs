@@ -41,6 +41,32 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 // The state is kept in an object created by mkModuleAsm, and stored
 // in module m as m.asmInfo
 
+// ??? should take parent module as parameter, and use class notation
+
+export class AsmInfo {
+    constructor (parent) {
+        this.parent = parent;
+	this.modName = "";              // check: should = parent.baseName
+        this.text = "";                 // raw source text
+        this.asmSrcLines = [];          // list of lines of source text
+	this.asmStmt = [];              // statements correspond to lines of source
+	this.symbols = [];              // symbols used in the source
+	this.symbolTable = new Map ();  // symbol table
+	this.locationCounter = 0;       //  next code address
+	this.asmListingPlain = [];      // assembler listing
+	this.asmListingDec = [];        // decorated assembler listing
+	this.objectCode = [];           // string hex representation of object
+        this.objectText = "";           // object code as single string
+        this.metadata = [];             // lines of metadata code
+        this.metadataText = "";         // metadata as single string
+        this.asArrMap = [];             // address-sourceline map
+        this.imports = [];              // imported module/identifier
+        this.exports = [];             // exported identifiers
+	this.nAsmErrors = 0;            // errors in assembly source code
+    }
+}
+
+/*
 export function mkModuleAsm () {
     com.mode.devlog("mkModuleAsm");
     return {
@@ -63,6 +89,7 @@ export function mkModuleAsm () {
 	nAsmErrors : 0              // number of errors in assembly source code
     }
 }
+*/
 
 //-----------------------------------------------------------------------------
 // Character set
@@ -444,6 +471,8 @@ export function assemblerGUI () {
     
 // Interface to assembler for use in the command line interface
 
+// Obsolete, changing to assembleCLI in cli/Sigma16.mjs
+
 export function assemblerCLI (src) {
     com.mode.devlog ("assemblerCLI starting");
     let ma = mkModuleAsm ();
@@ -470,7 +499,7 @@ export function assembler (ma) {
     ma.asmSrcLines = src2.split("\n");
     com.mode.devlog (`assembler nloc=${ma.asmSrcLines.length}`);
 
-    ma.modName = null;
+//    ma.modName = null;
     ma.nAsmErrors = 0;
     ma.asmStmt = [];
     ma.symbols = [];
