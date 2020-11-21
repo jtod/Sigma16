@@ -64,6 +64,12 @@ export class AsmInfo {
         this.exports = [];             // exported identifiers
 	this.nAsmErrors = 0;            // errors in assembly source code
     }
+    show () {
+        let xs = "Assembly language\n";
+        xs += `this.parent.baseName\n`;
+        xs += this.text;
+        return xs;
+    }
 }
 
 /*
@@ -473,6 +479,7 @@ export function assemblerGUI () {
 
 // Obsolete, changing to assembleCLI in cli/Sigma16.mjs
 
+/*
 export function assemblerCLI (src) {
     com.mode.devlog ("assemblerCLI starting");
     let ma = mkModuleAsm ();
@@ -480,6 +487,7 @@ export function assemblerCLI (src) {
     assembler (ma);
     return ma;
  }
+*/
 
 //-----------------------------------------------------------------------------
 //  Assembler
@@ -494,6 +502,7 @@ export function assemblerCLI (src) {
 
 export function assembler (ma) {
     let src = ma.text;
+    console.log (src);
     let src2 = removeCR (src);
 //    let badlocs = validateChars (src2);
     ma.asmSrcLines = src2.split("\n");

@@ -309,6 +309,8 @@ prepareButton ('EXP_Select_Example',    smod.selectExample);
 // Modules pane (MP)
 // prepareButton ('MP_New',    smod.newModule);
 prepareButton ('MP_Refresh',    smod.refreshModulesList);
+prepareButton ('MP_New',        smod.newMod);
+prepareButton ('MP_Test',       smod.test);
 
 // Editor pane (EDP)
 prepareButton ('EDP_Clear',    ed.editorClear);

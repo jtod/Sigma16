@@ -194,7 +194,7 @@ function assembleCLI () {
     const baseName = process.argv[3]; // first command argument
     const srcFileName = `${baseName}.asm.txt`;
     const maybeSrc = readFile (srcFileName);
-    const mod = new st.S16Module (baseName);
+    const mod = st.env.mkSelectModule (baseName);
     const ma = new asm.AsmInfo (mod);
     mod.asmInfo = ma;
     ma.text = maybeSrc;
@@ -234,18 +234,16 @@ function assembleCLI () {
 function linkCLI () {
     const exeBaseName = process.argv[3]; // first command argument
     const objBaseNames = process.argv.slice(4); // subsequent command arguments
-    const exeMod = new st.S16Module (exeBaseName); // container for executable
-    st.moduleEnvironment.set (exeBaseName, exeMod);
+    const exeMod = st.env.mkSelectModule (exeBaseName);
     let objMods = []; // containers for object modules to be linked
     for (const baseName of objBaseNames) {
         const objText = readFile (`${baseName}.obj.txt`);
         const objMd = readFile (`${baseName}.md.txt`);
-        const mod = new st.S16Module (baseName); // container for the basename
+        const mod = new st.S16Module (baseName);
         const objInfo= new link.ObjectInfo (mod); // object code info
         mod.objInfo = objInfo;
         objInfo.omText = objText;
         objInfo.omMd = objMd;
-        st.moduleEnvironment.set (baseName, mod);
         objMods.push (mod);
     }
     const {exeCode, lnkTxt} = link.linker (exeMod, objMods);
