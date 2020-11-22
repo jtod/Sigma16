@@ -51,7 +51,7 @@ export function editorDownload () {
 
 export function copyEditorBufferToModule () {
     com.mode.devlog ("copyEditorBufferToModule");
-    let m = smod.getSelectedModule ();
+    const m = st.env.getSelectedModule ();
     m.text = document.getElementById("EditorTextArea").value;
 }
 

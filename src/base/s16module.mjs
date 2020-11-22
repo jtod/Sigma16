@@ -72,14 +72,33 @@ When files are read
 */
 
 
-export function test() {
-    console.log ("smod.test");
-    console.log (`modules = ${st.moduleEnvironment.keys()}`);
-    for (const k of st.moduleEnvironment.keys()) {
-        console.log (`key = ${k}`);
+//-------------------------------------------------------------------------------
+// File record
+//-------------------------------------------------------------------------------
+
+export class FileRecord {
+    constructor (f, baseName, stage, mod) { // f is file handle provided by html
+        this.fileHandle = f;
+        this.baseName = baseName; // base part of filename
+        this.stage = stage; // asm, obj, lnk, exe
+        this.mod = mod; // module corresponding to baseName
+        this.fileName = f.name; // full filename
+        this.type = f.type;
+        this.size = f.size;
+        this.moddate = f.lastModifiedDate;
+        this.text = "";
+        this.fileReader = mkFileReader (this);
+        this.fileReadComplete = false;
+        this.fileReader.readAsText (f);
     }
-    
 }
+
+//-------------------------------------------------------------------------------
+// Module pane buttons
+//-------------------------------------------------------------------------------
+
+// Handle the New button on Modules pane by creating a new anonymous
+// module
 
 export function newMod () {
     const x = st.env.mkSelectModule ();
@@ -87,25 +106,292 @@ export function newMod () {
     refreshModulesList();
 }
 
-// Select the module with basename bn
+// Handle a "Select" button click in the list of modules on the
+// Modules page: select the module with basename bn.
+
 function handleSelect (bn) {
     console.log (`handleSelect ${bn}`);
     let mod = st.env.mkSelectModule (bn);
     refreshModulesList ();
 }
 
-// Close the module with basename bn
+// Handle a "Close" button click in the list of modules on the Modules
+// page: close the module with basename bn.
+
 function handleClose (bn) {
     console.log (`handleClose ${bn}`);
     st.env.closeModule (bn);
     refreshModulesList ();
 }
 
+// Temporary testing code
+
+export function test() {
+    console.log ("smod.test");
+    refreshModulesList ();
+    console.log (`modules = ${st.moduleEnvironment.keys()}`);
+    for (const k of st.moduleEnvironment.keys()) {
+        console.log (`key = ${k}`);
+    }
+}
 
 //------------------------------------------------------------------------------
 // Set of modules
 //------------------------------------------------------------------------------
 
+
+//------------------------------------------------------------------------------
+// Representation of a module
+//------------------------------------------------------------------------------
+
+// A module may come from either a file or the editor pane, and may contain
+//   - AsmInfo: assembly language source and information collected by assembler
+//   - ObjInfo: object language source and information collected by linker
+//   - LinkInfo: commands for the linker
+
+// Each module has a moduleType indicating whether it originates from
+// the assembler, from reading in an object module, etc.  The type is
+// determined by the user's choice of command or from the filename (if
+// any) but not by parsing the contents.  For example, if the user
+// Assembles a file, then it is deemed to be assembly text.
+
+
+/*
+export const AsmModule = Symbol ("");  // assembly source, may have object
+export const ObjModule = Symbol ("");  // object only
+export const LinkModule = Symbol ("");  // commands for linking
+
+*/
+
+//-------------------------------------------------------------------------------
+// Initialize modules
+//-------------------------------------------------------------------------------
+
+// Create and select an initial module
+
+export function initModules () {
+    com.mode.trace = true;
+    com.mode.devlog ("initModules");
+
+    st.env.clearModules ();
+    let foom1 = st.env.mkSelectModule ("foo");
+    let foom2 = st.env.mkSelectModule ("bar");
+    let foom3 = st.env.mkSelectModule ("baz");
+
+    let m1 = st.env.getSelectedModule();
+    console.log (`m1 selected module ${m1.baseName}`);
+    let m2 = st.env.mkSelectModule ("bar");
+    console.log (`m2 is ${m2.baseName}`);
+    
+    
+//    s16modules = new Map (); // throw away any existing map, create new one
+//    let m = new st.S16Module ();
+//    com.mode.devlog ("initModules about to show map...");
+//    showModules ();
+//    com.mode.devlog ("initModules has just shown map...");
+    //    let m = new s16module (AsmModule);
+    refreshEditorBuffer();
+    refreshModulesList();
+}
+
+
+//-------------------------------------------------------------------------------
+// Reading files in the Sigma16 directories
+//-------------------------------------------------------------------------------
+
+// Make new module, copy example text into it, and select it
+
+export function selectExample() {
+    com.mode.devlog ('selectExample');
+    let exElt = document.getElementById('ExamplesIframeId');
+    let xs = exElt.contentWindow.document.body.innerHTML;
+    com.mode.devlog (`xs = ${xs}`);
+    let skipPreOpen = xs.replace(com.openingPreTag,"");
+    let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
+    com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
+    let ys = skipPreClose;
+    //    s16modules.push(mkSelectModule());
+    //    selectedModule = new s16module(); // create module; its symbol is selected
+//    let m = s16modules[selectedModule];
+//    m.asmInfo.modSrc = ys;   // deprecated ????????
+    let m = new st.S16Module ();
+    m.modText = ys;
+    refreshEditorBuffer();
+    refreshModulesList();
+}
+
+//-------------------------------------------------------------------------------
+// Reading files selected by user
+//-------------------------------------------------------------------------------
+
+// When the user is in the Modules page and clicks Choose Files, a
+// multiple file chooser widget is displayed, and its onchange event
+// signals handleSelectedFiles with a list of file objects that were
+// selected.  The function reads the files and creates entries in the
+// modules list for them.
+
+// Initialize the Modules page by setting up an event handler for the
+// FileInput element.
+
+export function prepareChooseFiles () {
+    com.mode.devlog ("prepareChooseFiles");
+    let elt = document.getElementById('FileInput');
+    elt.addEventListener('change', event => {
+        com.mode.devlog ("prepareChooseFiles change listener invoked");
+        handleSelectedFiles(elt.files);
+    });
+}
+
+// Parse string xs and check that it's in the form basename.ftype.txt
+// where basename is any string not containing "." and ftype is one of
+// asm, obj, md, lst, lnk.
+
+export function checkFileName (xs) {
+    const components = xs.split(".");
+    let errors = [];
+    let basename = "";
+    let filetype = "";
+    if (components.length != 3 ) {
+        errors = [`Filename ${xs} must have three components, e.g.`
+                  + `ProgramName.asm.txt`];
+    } else if (components[2] != "txt") {
+        errors = [`Last component of flename ${xs} is ${components[2]}`
+                  + ` but it must be ".txt"`];
+    } else if (!["asm", "obj", "lst", "md", "lnk"].includes(components[1])) {
+        errors = [`Second component of flename ${xs} is ${components[1]}`
+                  + ` but it must be one of asm,obj,md,lnk`];
+    } else {
+        basename = components[0];
+        filetype = components[1];
+    }
+    let result = {errors, basename, filetype};
+    com.mode.devlog (`checkFileName ${xs}\n errors=${result.errors}\n `
+                     + `basename=${result.basename}\n filetype=${result.filetype}`);
+    return result;
+}
+
+// When the user clicks Choose files, the browser produces a FileList
+// object.  This function traverses that list and creates a module for
+// each file
+
+let newFiles = []; // should move to st.env
+
+// When the Choose Files button is clicked, a file chooser dialogue
+// box appears.  If the user selects one or more files and clicks
+// open, handleSelectedFiles is called with a list of file handles for
+// the files chosen by the user.  This function obtains and records
+// metadata for each file, creates a fileReader object, and initiates
+// the file read.
+
+export function handleSelectedFiles (flist) {
+    com.mode.trace = true;
+    com.mode.devlog (`handleSelectedFiles: ${flist.length} files`);
+    newFiles = [];
+    for (let f of flist) {
+        com.mode.devlog (`>>> File fname=${f.name} ftype=${f.type} `
+                     + `fsize=${f.size} lastModified=${f.lastModifiedDate}`);
+        const {errors, baseName, stage} = checkFileName (f.name);
+        console.log (`  er=${errors} bn=${baseName} stage=${stage}`);
+        const mod = st.env.mkSelectModule (baseName);
+        const fileRecord = new FileRecord (f, baseName, stage, mod);
+        newFiles.push (fileRecord);
+    }
+}
+
+function mkFileReader (fileRecord) {
+    com.mode.trace = true;
+    const fr = new FileReader();
+    com.mode.trace = true;
+    fr.onload = function (e) {
+	com.mode.devlog (`File reader ${fileRecord.fileName} onload`);
+        fileRecord.text = e.target.result;
+        fileRecord.fileReadComplete = true;
+    }
+    fr.onerror = function (e) {
+        com.mode.devlog (`Error: could not read file ${fileRecord.fileName}`
+                     + ` (error code = ${e.target.error.code})`);
+        fileRecord.fileReadComplete = true;
+    }
+    return fr;
+}
+
+// If all the files selected in the file chooser have been read in,
+// refresh the modules list.  The refresh should be called just one
+// time.
+
+function refreshWhenReadsFinished  (m) {
+    com.mode.devlog (`refreshWhenReadsFinished`);
+    let allOK = true;
+    for (let x of newFiles) {
+        com.mode.devlog (`RWRF allOK=${allOK} x.frc=${x.fileReadComplete}`);
+            allOK = allOK && x.fileReadComplete;
+        }
+        com.mode.devlog (`check finished loop DONE aok=${allOK}`);
+        if (allOK) {
+            com.mode.devlog (`check finished calling refresh`);
+            refreshModulesList(); // do after all files are in
+        } else {
+            com.mode.devlog (`mkOfReader onload NOT calling refresh`);
+        }
+    com.mode.devlog (`checkAllReadsFinished returning`);
+}
+
+//-------------------------------------------------------------------------------
+// Display list of modules
+//-------------------------------------------------------------------------------
+
+// Produce a formatted list of all open modules and display in Modules page
+
+export function refreshModulesList() {
+    let xs = "";
+    for (const bn of st.env.modules.keys ()) {
+        xs += st.env.modules.get(bn).showHtml();
+    }
+    document.getElementById('FilesBody').innerHTML = xs;
+    for (const bn of st.env.modules.keys ()) {
+        const m = st.env.modules.get (bn);
+        const selElt = document.getElementById(m.selectId);
+        selElt.addEventListener ("click", event => { handleSelect (bn) });
+        const closeElt = document.getElementById(m.closeId);
+        closeElt.addEventListener ("click", event => { handleClose (bn) });
+    }
+}
+
+//-------------------------------------------------------------------------------
+// Update editor buffer
+//-------------------------------------------------------------------------------
+    
+// Copy text of the selected module to the editor buffer
+
+function refreshEditorBuffer () {
+    com.mode.devlog (`refreshEditorBuffer`);
+    const mod = st.env.getSelectedModule ();
+    const xs = mod.asmInfo ? mod.asmInfo.text : "";
+    document.getElementById("EditorTextArea").value = xs;
+}
+
+//--------------------------------------------------
+// Deprecated
+
+//    com.mode.devlog (`Creating file reader ${m.file.name}`);
+//        refreshWhenReadsFinished (m); // if all files are in, then refresh
+//	com.mode.devlog (`File reader ${m.file.name} onload event finished`);
+//        com.mode.devlog (m.text);
+//        m.text = "";
+//        m.fileReadComplete = true;
+
+//        m.fileReadComplete = false;
+// Check to see if ftype is text/plain ?
+// com.mode.devlog (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
+//        let type = AsmModule;  // should calculate based on filename ???????????
+//        let m = new s16module (type);
+//        newFiles.push (m);
+//        m.file = f;
+//	m.fileReader = mkReader (m);
+//        m.fileReadComplete = false;
+//	m.fileReader.readAsText (f);
+
+/*
 // Each module is identified by a Symbol, and the set of modules is
 // represented as a Map indexed by the module symbols.  The
 // selectedModule is the symbol of the current module.  When a new
@@ -114,6 +400,7 @@ function handleClose (bn) {
 export let s16modules = null; // initModules gives it initial value
 export let moduleGenSym = 0;  // give unique descriptor to each symbol
 export let selectedModule; // symbol for the object representing selected module
+*/
 
 // selectedModule contains the symbol for the map entry in s16modules
 // for the currently selected module.  There should always be at least
@@ -142,232 +429,6 @@ export function getSelectedModule () {
     return m;
 }
 */
-
-//------------------------------------------------------------------------------
-// Representation of a module
-//------------------------------------------------------------------------------
-
-// A module may come from either a file or the editor pane, and may contain
-//   - AsmInfo: assembly language source and information collected by assembler
-//   - ObjInfo: object language source and information collected by linker
-//   - LinkInfo: commands for the linker
-
-// Each module has a moduleType indicating whether it originates from
-// the assembler, from reading in an object module, etc.  The type is
-// determined by the user's choice of command or from the filename (if
-// any) but not by parsing the contents.  For example, if the user
-// Assembles a file, then it is deemed to be assembly text.
-
-export const AsmModule = Symbol ("");  // assembly source, may have object
-export const ObjModule = Symbol ("");  // object only
-export const LinkModule = Symbol ("");  // commands for linking
-
-
-//-------------------------------------------------------------------------------
-// Initialize modules
-//-------------------------------------------------------------------------------
-
-// Create and select an initial module
-
-export function initModules () {
-    com.mode.trace = true;
-    com.mode.devlog ("initModules");
-
-    st.env.clearModules ();
-    let foom1 = st.env.mkSelectModule ("foo");
-    let foom2 = st.env.mkSelectModule ("bar");
-    let foom3 = st.env.mkSelectModule ("baz");
-
-    let m1 = st.env.getSelectedModule();
-    console.log (`m1 selected module ${m1.baseName}`);
-    let m2 = st.env.mkSelectModule ("bar");
-    console.log (`m2 is ${m2.baseName}`);
-    
-    
-//    s16modules = new Map (); // throw away any existing map, create new one
-//    let m = new st.S16Module ();
-//    com.mode.devlog ("initModules about to show map...");
-//    showModules ();
-//    com.mode.devlog ("initModules has just shown map...");
-    refreshEditorBuffer();
-    refreshModulesList();
-}
-    //    let m = new s16module (AsmModule);
-
-// Make new module, copy example text into it, and select it
-
-export function selectExample() {
-    com.mode.devlog ('selectExample');
-    let exElt = document.getElementById('ExamplesIframeId');
-    let xs = exElt.contentWindow.document.body.innerHTML;
-    com.mode.devlog (`xs = ${xs}`);
-    let skipPreOpen = xs.replace(com.openingPreTag,"");
-    let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
-    com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
-    let ys = skipPreClose;
-    //    s16modules.push(mkSelectModule());
-    //    selectedModule = new s16module(); // create module; its symbol is selected
-//    let m = s16modules[selectedModule];
-//    m.asmInfo.modSrc = ys;   // deprecated ????????
-    let m = new st.S16Module ();
-    m.modText = ys;
-    refreshEditorBuffer();
-    refreshModulesList();
-}
-
-//-------------------------------------------------------------------------------
-// File operations on existing modules
-//-------------------------------------------------------------------------------
-
-// When the user is in the Modules page and clicks Choose Files, a
-// multiple file chooser widget is displayed, and its onchange event
-// signals handleSelectedFiles with a list of file objects that were
-// selected.  The function reads the files and creates entries in the
-// modules list for them.
-
-// Set handler for s16modules/ open file operation
-// html contained:  onchange="handleSelectedFiles(this.files);"
-
-export function prepareChooseFiles () {
-    com.mode.devlog ("prepareChooseFiles");
-    let elt = document.getElementById('FileInput');
-    elt.addEventListener('change', event => {
-        com.mode.devlog ("prepareChooseFiles change listener invoked");
-        handleSelectedFiles(elt.files);
-    });
-}
-
-// When the user clicks Choose files, the browser produces a FileList
-// object.  This function traverses that list and creates a module for
-// each file
-
-let newModules = [];
-
-// Parse string xs and check that it's in the form basename.ftype.txt
-// where basename is any string not containing . and ftype is one of
-// asm, obj, md, lst, lnk
-
-export function checkFileName (xs) {
-    const components = xs.split(".");
-    let errors = [];
-    let basename = "";
-    let filetype = "";
-    if (components.length != 3 ) {
-        errors = [`Filename ${xs} must have three components, e.g.`
-                  + `ProgramName.asm.txt`];
-    } else if (components[2] != "txt") {
-        errors = [`Last component of flename ${xs} is ${components[2]}`
-                  + ` but it must be ".txt"`];
-    } else if (!["asm", "obj", "lst", "md", "lnk"].includes(components[1])) {
-        errors = [`Second component of flename ${xs} is ${components[1]}`
-                  + ` but it must be one of asm,obj,md,lnk`];
-    } else {
-        basename = components[0];
-        filetype = components[1];
-    }
-    let result = {errors, basename, filetype};
-    com.mode.devlog (`checkFileName ${xs}\n errors=${result.errors}\n `
-                     + `basename=${result.basename}\n filetype=${result.filetype}`);
-    return result;
-}
-
-export function handleSelectedFiles (flist) {
-    com.mode.trace = true;
-    com.mode.devlog (`handleSelectedFiles filst size = ${flist.length}`);
-    newModules = [];
-    for (let f of flist) {
-        // Get properties of the file
-        const fname = f.name;
-        const ftype = f.type;
-        const fsize = f.size;
-        const fmoddate = f.lastModifiedDate;
-        console.log ("--- File ---");
-        
-        com.mode.devlog (`>>> File fname=${fname} ftype=${ftype} `
-                     + `fsize=${fsize} lastModified=${fmoddate}`);
-        const fnameComponents = checkFileName (fname);
-        console.log (`Filename ${fnameComponents}`);
-
-
-// Check to see if ftype is text/plain ?
-// com.mode.devlog (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
-        
-//        let type = AsmModule;  // should calculate based on filename ???????????
-//        let m = new s16module (type);
-//        newModules.push (m);
-        m.file = f;
-	m.fileReader = mkReader (m);
-        m.fileReadComplete = false;
-	m.fileReader.readAsText (f);
-    }
-}
-
-function mkReader (m) {
-    com.mode.trace = true;
-    let fr = new FileReader();
-    com.mode.trace = true;
-    com.mode.devlog (`Creating file reader ${m.file.name}`);
-    fr.onload = function (e) {
-	com.mode.devlog (`File reader ${m.file.name} onload event starting`);
-        m.text = e.target.result;
-        com.mode.devlog (m.text);
-        m.fileReadComplete = true;
-        refreshWhenReadsFinished (m); // if all files are in, then refresh
-	com.mode.devlog (`File reader ${m.file.name} onload event finished`);
-    }
-    fr.onerror = function (e) {
-        com.mode.devlog (`Error: could not read file ${m.file.fname}`
-                     + ` (error code = ${e.target.error.code})`);
-        m.text = "";
-        m.fileReadComplete = true;
-    }
-    return fr;
-}
-
-// If all the files selected in the file chooser have been read in,
-// refresh the modules list.  The refresh should be called just one
-// time.
-
-function refreshWhenReadsFinished  (m) {
-    com.mode.devlog (`refreshWhenReadsFinished`);
-    let allOK = true;
-    for (let x of newModules) {
-        com.mode.devlog (`RWRF allOK=${allOK} x.frc=${x.fileReadComplete}`);
-            allOK = allOK && x.fileReadComplete;
-        }
-        com.mode.devlog (`check finished loop DONE aok=${allOK}`);
-        if (allOK) {
-            com.mode.devlog (`check finished calling refresh`);
-            refreshModulesList(); // do after all files are in
-        } else {
-            com.mode.devlog (`mkOfReader onload NOT calling refresh`);
-        }
-    com.mode.devlog (`checkAllReadsFinished returning`);
-}
-
-//-------------------------------------------------------------------------------
-// Display list of modules
-//-------------------------------------------------------------------------------
-
-// Use unique number for prefix name for each button
-let buttonPrefixNumber = 0;
-
-// Produce a formatted list of all open modules and display in Modules page
-
-export function refreshModulesList() {
-    let xs = "";
-    for (const bn of st.env.modules.keys ()) {
-        xs += st.env.modules.get(bn).showHtml();
-    }
-    document.getElementById('FilesBody').innerHTML = xs;
-    for (const bn of st.env.modules.keys ()) {
-        const m = st.env.modules.get (bn);
-        const selElt = document.getElementById(m.selectId);
-        selElt.addEventListener ("click", event => { handleSelect (bn) });
-        const closeElt = document.getElementById(m.closeId);
-        closeElt.addEventListener ("click", event => { handleClose (bn) });
-    }
-}
 
 /*     oLD refreshModulesList
     com.mode.devlog ('refreshModulesList');
@@ -409,14 +470,10 @@ export function refreshModulesList() {
     com.mode.devlog ("refreshModulesList returning");
 */
 
-    
-// Copy text of the selected module to the editor buffer
+//    document.getElementById("EditorTextArea").value = getSelectedModule().text;
 
-function refreshEditorBuffer () {
-    com.mode.devlog (`refreshEditorBuffer`);
-    const mod = st.env.getSelectedModule ();
-    const a = mod.asmInfo.text;
-    const atext = a ? a : "";
-    document.getElementById("EditorTextArea").value = atext;
-}
- //    document.getElementById("EditorTextArea").value = getSelectedModule().text;
+/*
+// Use unique number for prefix name for each button
+let buttonPrefixNumber = 0;
+*/
+
