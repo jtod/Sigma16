@@ -59,7 +59,8 @@ export class SystemState {
             this.modules.set (xs, new S16Module (xs));
             this.selectedModule = xs;
         }
-        return this.selectedModule;
+        //        return this.selectedModule;
+        return this.modules.get(this.selectedModule);
     }
     closeModule (mname) {
         this.modules.delete (mname);
@@ -102,9 +103,14 @@ export class S16Module {
         env.modules.set (baseName, this);
         this.selectId = `select_${baseName}`;
         this.closeId = `close_${baseName}`;
+        this.asmFile = null;
+        this.objFile = null;
+        this.exeFile = null;
+        this.linkFile = null;
         this.asmInfo = null;
         this.objInfo = null;
         this.linkInfo = null;
+        this.exeInfo = null;
     }
     showShort () {
         let xs = `Module ${this.baseName}\n`;
@@ -120,6 +126,7 @@ export class S16Module {
         xs += `<button id='${this.selectId}'>Select</button>`;
         xs += `<button id='${this.closeId}'>Close</button>`;
         xs += "<br>";
+        xs += this.asmFile ? this.asmFile.text : "No asm file";
         xs += this.asmInfo ? this.asmInfo.showHtml() : "No assembly code<br>";
         xs += this.objInfo ? this.objInfo.showHtml() : "No object code<br>";
         xs += this.linkInfo ? this.linkInfo.showHtml() : "No linker code<br>";

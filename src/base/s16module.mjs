@@ -22,74 +22,34 @@
 import * as com from './common.mjs';
 import * as st from './state.mjs';
 
+//------------------------------------------------------------------------------
+// Files and modules
+//------------------------------------------------------------------------------
+
 // Interface
 //   Modules: Choose Files button -- "change" event calls handleSelectedFiles
 //   Modules: Refresh button -- refreshModulesList
-
-//------------------------------------------------------------------------------
-// New approach
-//------------------------------------------------------------------------------
-
-/*
-Nov 15 2020, new approach for handling modules and files
-
-Previously, there is a list of files which are mostly .asm files.
-
-However, it would be good to be able to read obj and md files, and lnk
-files, as well as asm files.  This is needed for the gui interface to
-the linker.  But this has a drawback: the connection between
-foo.asm.txt and foo.obj.txt would be lost.  Furthermore, it will be
-easier to click the check box to select all the eligible files in a
-directory, rather than clicking each file individually, in the file
-chooser.  This could bring in various .md .obj files as well as the
-.asm file.
-
-New idea: the state is a map from basename to module group, which is a
-class containing an asm, an obj, a lnk.  Each of these may be null; if
-not null, it is an object created by new.
-
-What about the editor?  The user may make a new source file in the
-editor, and there could be several of these.
-
-These will have module group names *Editor1 *Editor2, etc.  Then, when
-assembled, we would get *Editor.obj.txt, etc.  There are two feasible
-ways for the user to give a better name: either a module statement, or
-possibly a gui command (though that hardly seems worth doing).
-
-There should be a display of each module that describes its status
-  - does it have an assembly source module?
-  - does it have an object module?
-  - is it a link file?  This would be a main program
-
-When files are read
-  - get the basename and the file type (asm, obj, etc)
-  - create an asmModule, objInfo, etc and put in the file text
-  - from the system state map, look for a mapping for the basename, and
-    create one if it doesn't exist
-    - then put the newly created submodule (asm, obj or whatever) into
-      the module group container
-
-*/
-
 
 //-------------------------------------------------------------------------------
 // File record
 //-------------------------------------------------------------------------------
 
+// A file record "fr" contains information about a file that has been
+// selected and opened by the user.  It is constructed with "file", a
+// file handle provided by html in response to a user open file
+// request; the baseName of the file, and the stage (asm, obj, exe,
+// lnk).  To extract metadata of a file from file record fr, use
+// fr.f.type, fr.f.size, and fr.f.lastModifiedDate.
+
 export class FileRecord {
-    constructor (f, baseName, stage, mod) { // f is file handle provided by html
-        this.fileHandle = f;
+    constructor (f, baseName, stage) {
+        this.f = f;
+        this.fileName = f.name; // full filename
         this.baseName = baseName; // base part of filename
         this.stage = stage; // asm, obj, lnk, exe
-        this.mod = mod; // module corresponding to baseName
-        this.fileName = f.name; // full filename
-        this.type = f.type;
-        this.size = f.size;
-        this.moddate = f.lastModifiedDate;
         this.text = "";
         this.fileReader = mkFileReader (this);
         this.fileReadComplete = false;
-        this.fileReader.readAsText (f);
     }
 }
 
@@ -129,10 +89,17 @@ function handleClose (bn) {
 export function test() {
     console.log ("smod.test");
     refreshModulesList ();
+/*
+    for (let x of newFiles) {
+        console.log (`\n\n${x.fileName} stage=${x.stage}\n`);
+        console.log (x.text)
+        console.log ("\n-------------------------------\n");
+    }
     console.log (`modules = ${st.moduleEnvironment.keys()}`);
     for (const k of st.moduleEnvironment.keys()) {
         console.log (`key = ${k}`);
     }
+*/
 }
 
 //------------------------------------------------------------------------------
@@ -249,8 +216,8 @@ export function prepareChooseFiles () {
 export function checkFileName (xs) {
     const components = xs.split(".");
     let errors = [];
-    let basename = "";
-    let filetype = "";
+    let baseName = "";
+    let stage = "";
     if (components.length != 3 ) {
         errors = [`Filename ${xs} must have three components, e.g.`
                   + `ProgramName.asm.txt`];
@@ -261,12 +228,12 @@ export function checkFileName (xs) {
         errors = [`Second component of flename ${xs} is ${components[1]}`
                   + ` but it must be one of asm,obj,md,lnk`];
     } else {
-        basename = components[0];
-        filetype = components[1];
+        baseName = components[0];
+        stage = components[1];
     }
-    let result = {errors, basename, filetype};
+    let result = {errors, baseName, stage};
     com.mode.devlog (`checkFileName ${xs}\n errors=${result.errors}\n `
-                     + `basename=${result.basename}\n filetype=${result.filetype}`);
+                     + `baseName=${result.baseName}\n stage=${result.stage}`);
     return result;
 }
 
@@ -274,7 +241,6 @@ export function checkFileName (xs) {
 // object.  This function traverses that list and creates a module for
 // each file
 
-let newFiles = []; // should move to st.env
 
 // When the Choose Files button is clicked, a file chooser dialogue
 // box appears.  If the user selects one or more files and clicks
@@ -283,20 +249,41 @@ let newFiles = []; // should move to st.env
 // metadata for each file, creates a fileReader object, and initiates
 // the file read.
 
+let newfiles = [];
+
 export function handleSelectedFiles (flist) {
     com.mode.trace = true;
     com.mode.devlog (`handleSelectedFiles: ${flist.length} files`);
-    newFiles = [];
+    newfiles = [];
     for (let f of flist) {
-        com.mode.devlog (`>>> File fname=${f.name} ftype=${f.type} `
-                     + `fsize=${f.size} lastModified=${f.lastModifiedDate}`);
         const {errors, baseName, stage} = checkFileName (f.name);
         console.log (`  er=${errors} bn=${baseName} stage=${stage}`);
         const mod = st.env.mkSelectModule (baseName);
-        const fileRecord = new FileRecord (f, baseName, stage, mod);
-        newFiles.push (fileRecord);
+        const fileRecord = new FileRecord (f, baseName, stage);
+        newfiles.push(fileRecord);
+        switch (stage) {
+        case "asm" :
+            mod.asmFile = fileRecord;
+            break;
+        case "obj":
+            mod.objFile = fileRecord;
+            break;
+        case "exe":
+            mod.exeFile = fileRecord;
+            break;
+        case "lnk":
+            mod.linkFile = fileRecord;
+            break
+        }
+        fileRecord.fileReader.readAsText (f);
     }
 }
+
+// let newFiles = []; // should move to st.env
+//    newFiles = [];
+//        newFiles.push (fileRecord);
+//        com.mode.devlog (`>>> File fname=${f.name} ftype=${f.type} `
+//                     + `fsize=${f.size} lastModified=${f.lastModifiedDate}`);
 
 function mkFileReader (fileRecord) {
     com.mode.trace = true;
@@ -348,7 +335,9 @@ export function refreshModulesList() {
         xs += st.env.modules.get(bn).showHtml();
     }
     document.getElementById('FilesBody').innerHTML = xs;
-    for (const bn of st.env.modules.keys ()) {
+    //    for (const bn of st.env.modules.keys ()) {
+    for (const fr of newfiles) {
+        const bn = fr.baseName;
         const m = st.env.modules.get (bn);
         const selElt = document.getElementById(m.selectId);
         selElt.addEventListener ("click", event => { handleSelect (bn) });
