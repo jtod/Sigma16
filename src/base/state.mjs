@@ -37,9 +37,21 @@ import * as arch from './architecture.mjs';
 // in turn, contains optional information about foo.asm.txt,
 // foo.obj.txt, and foo.lnk.txt.
 
+export function envSummary () {
+    console.log ("Begin envSummary");
+    for (const x of env.modules.keys()) {
+        console.log (`key = ${x}`);
+        const m = env.modules.get(x);
+        console.log (`  bn=${m.baseName}`);
+    }
+    console.log ("End envSummary");
+}
+
 export class SystemState {
     constructor () {
-        this.clearModules ();
+        this.modules = new Map ();
+        this.selectedModule = null;
+        this.anonymousCount = 0;
         this.emState = null;
     }
     clearModules () {
@@ -48,10 +60,10 @@ export class SystemState {
         this.selectedModule = null;
     }
     mkSelectModule (mname) {
-        console.log (`>>>>> mkSelectModule ${mname}`);
-        if (this.modules.has (mname)) {
+        if (mname && this.modules.has (mname)) {
             this.selectedModule = mname;
         } else if (mname) {
+            this.selectedModule = mname;
             this.modules.set (mname, new S16Module (mname));
         } else {
             this.anonymousCount++;
@@ -59,23 +71,26 @@ export class SystemState {
             this.modules.set (xs, new S16Module (xs));
             this.selectedModule = xs;
         }
-        //        return this.selectedModule;
-        return this.modules.get(this.selectedModule);
+        const m = this.modules.get(this.selectedModule);
+        return m;
     }
     closeModule (mname) {
         this.modules.delete (mname);
     }
     getSelectedModule () {
         if (env.modules.size == 0) { // no modules
-            return mkModule ();
+            this.anonymousCount++;
+            const xs = `anonymous${this.anonymousCount}`;
+            this.modules.set (xs, new S16Module (xs));
+            this.selectedModule = xs;
         } else if (!this.selectedModule) { // nothing selected
-            this.selectedModule = [...this.modules.keys()][0];
-            return this.modules.get (this.selectedModule);
+            this.selectedModule = [...this.modules.keys()][0].baseName;
         } else if (this.modules.get(this.selectedModule)) { // it exists
-            return this.modules.get (this.selectedModule);
         } else  { // it doesn't exist
             return this.mkModule (this.selectedModule);
         }
+        return this.modules.get (this.selectedModule);
+
     }
     
 }
@@ -121,119 +136,45 @@ export class S16Module {
     }
     showHtml () {
         let xs = "<ul>\n";
-        xs += `<li> <b> ${this.baseName} </b>`;
-        xs += (env.selectedModule == this.baseName ? "Selected" : "Not selected" );
+        xs += `<li> <b>`;
+        xs += ((env.selectedModule == this.baseName)
+               ? `<span class='SELECTEDFILE'>${this.baseName}</span>`
+               : `${this.baseName}`);
+        xs += `</b>\n`;
+        xs += (env.selectedModule == this.baseName ? "Selected" : "" );
         xs += `<button id='${this.selectId}'>Select</button>`;
         xs += `<button id='${this.closeId}'>Close</button>`;
         xs += "<br>";
-        xs += this.asmFile ? this.asmFile.text : "No asm file";
-        xs += this.asmInfo ? this.asmInfo.showHtml() : "No assembly code<br>";
-        xs += this.objInfo ? this.objInfo.showHtml() : "No object code<br>";
-        xs += this.linkInfo ? this.linkInfo.showHtml() : "No linker code<br>";
+        xs += showFilePrefix (this.asmFile, "Assembly code:");
+        //        xs += this.asmFile ? this.asmFile.text : "No asm file";
+//        xs += this.asmFile
+//            ? "<br>Assembly language:<br>" + textPrefix(this.asmFile.text)
+//            : "No asm file";
+//        xs += this.asmInfo ? this.asmInfo.showHtml() : "No assembly code<br>";
+//        xs += this.objInfo ? this.objInfo.showHtml() : "No object code<br>";
+//        xs += this.linkInfo ? this.linkInfo.showHtml() : "No linker code<br>";
         xs += `</li>\n`;
         xs += "</ul>\n";
         return xs;
     }
 }
 
- // m.selectButton;
+export const TextPrefixLength = 6;
 
-//    for (const bn of moduleEnvironment.keys()) {
-
-/*
-function showAsmSubmodule (m) {
-    let xs = "Asm submodule"
-    const info = m.asmInfo;
-    if (info == null) {
-        xs += `Module ${m.baseName} has no assembly data`;
+function showFilePrefix (fr, label) {
+    if (fr) {
+        return "<div class='HighlightedTextAsHtml'>"
+            + fr.text.split("\n").slice(0,TextPrefixLength).join("<br>")
+            + "<div>\n";
     } else {
-        xs += info.show;
-    }
-    return xs;
-}
-
-function showObjSubmodule (m) {
-    let xs = "Obj submodule"
-    return xs;
-}
-
-function showLinkSubmodule (m) {
-    let xs = "Link submodule"
-    return xs;
-}
-*/
-
-
-// Deprecated
-
-
-/*
-export function showS16Module (m) {
-    let xs = "<ul>\n";
-        xs += `<li> <b> ${bn} </b>`;
-        xs += m.selectButton;
-        xs += m.closeButton;
-        xs += "<br>";
-        xs += m.asmInfo ? m.asmInfo.show() : "No assembly code<br>";
-        xs += m.objInfo ? m.objInfo.show() : "No object code<br>";
-        xs += m.linkInfo ? m.linkInfo.show() : "No linker code<br>";
-        xs += `</li>\n`;
-    }
-    xs += "</ul>\n";
-    return xs;
-}
-*/
-
-/*
-export class s16module {
-    constructor () {
-        const s = Symbol (`module_#${moduleGenSym}`);   // the key to this module in s16modules
-        moduleGenSym++;
-        s16modules.set (s, this);   // record this module in the set
-        selectedModule = s;         // select the module as it's created
-        com.mode.devlog (`NEW S16MODULE SETTING selectedModule ${selectedModule.description}`);
-        this.sym = s;                  // make the key available, given module
-        this.text = "init mod text";                // raw source text
-        this.modName = null;
-        this.file = null;
-        this.fileReader = null;
-        this.fileReadComplete = true;
-        this.asmInfo = null;           // to be filled in by assembler
-        this.objInfo = null;           // to be filled in by linker
-        this.selectId = `select_${this.idNumber}`;
-        this.closeId = `close_${this.idNumber}`;
-        this.selectButton = `<button id='${this.selectId}'>Select</button>`;
-        this.closeButton = `<button id='${this.closeId}'>Close</button>`;
-    }
-    show () {
-        return "module"
-//                + showModType (this.type)
-                + this.text
+        return "";
     }
 }
+    
+    
 
-function modSelect (m) {
-    com.mode.devlog ("modSelect");
-    selectedModule = m.sym;
-    refreshModulesList ();
-    refreshEditorBuffer ();
-    com.mode.devlog ("modSelect returning");
+function textPrefix (xs) {
+    return "<div class='HighlightedTextAsHtml'>"
+        + xs.split("\n").slice(0,4).join("<br>");
+        + "<div>\n";
 }
-
-
-function modClose (m) {
-    com.mode.devlog ("close");
-    let s = m.sym;
-    let closedSelected = s === selectedModule;
-    s16modules.delete (s);
-    if (s16modules.size === 0) {
-        com.mode.devlog ("closed last module, reinitializing");
-        initModules ();
-    }
-    if (closedSelected) {
-        //        selectedModule = [...s16modules.keys()][0];
-        com.mode.devlog ("closedSelected... FIX THIS ??????????");
-    }
-    refreshModulesList ();
-}
-*/

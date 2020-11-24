@@ -62,7 +62,7 @@ export class FileRecord {
 
 export function newMod () {
     const x = st.env.mkSelectModule ();
-    console.log (`newMod ${x}`)
+    com.mode.devlog (`newMod ${x}`)
     refreshModulesList();
 }
 
@@ -70,7 +70,7 @@ export function newMod () {
 // Modules page: select the module with basename bn.
 
 function handleSelect (bn) {
-    console.log (`handleSelect ${bn}`);
+    com.mode.devlog (`Select button for ${bn} invoked`);
     let mod = st.env.mkSelectModule (bn);
     refreshModulesList ();
 }
@@ -79,7 +79,7 @@ function handleSelect (bn) {
 // page: close the module with basename bn.
 
 function handleClose (bn) {
-    console.log (`handleClose ${bn}`);
+    com.mode.devlog (`Close button for ${bn} invoked`);
     st.env.closeModule (bn);
     refreshModulesList ();
 }
@@ -89,23 +89,11 @@ function handleClose (bn) {
 export function test() {
     console.log ("smod.test");
     refreshModulesList ();
-/*
-    for (let x of newFiles) {
-        console.log (`\n\n${x.fileName} stage=${x.stage}\n`);
-        console.log (x.text)
-        console.log ("\n-------------------------------\n");
-    }
-    console.log (`modules = ${st.moduleEnvironment.keys()}`);
+    console.log (`modules:`);
     for (const k of st.moduleEnvironment.keys()) {
         console.log (`key = ${k}`);
     }
-*/
 }
-
-//------------------------------------------------------------------------------
-// Set of modules
-//------------------------------------------------------------------------------
-
 
 //------------------------------------------------------------------------------
 // Representation of a module
@@ -122,14 +110,6 @@ export function test() {
 // any) but not by parsing the contents.  For example, if the user
 // Assembles a file, then it is deemed to be assembly text.
 
-
-/*
-export const AsmModule = Symbol ("");  // assembly source, may have object
-export const ObjModule = Symbol ("");  // object only
-export const LinkModule = Symbol ("");  // commands for linking
-
-*/
-
 //-------------------------------------------------------------------------------
 // Initialize modules
 //-------------------------------------------------------------------------------
@@ -139,28 +119,10 @@ export const LinkModule = Symbol ("");  // commands for linking
 export function initModules () {
     com.mode.trace = true;
     com.mode.devlog ("initModules");
-
     st.env.clearModules ();
-    let foom1 = st.env.mkSelectModule ("foo");
-    let foom2 = st.env.mkSelectModule ("bar");
-    let foom3 = st.env.mkSelectModule ("baz");
-
-    let m1 = st.env.getSelectedModule();
-    console.log (`m1 selected module ${m1.baseName}`);
-    let m2 = st.env.mkSelectModule ("bar");
-    console.log (`m2 is ${m2.baseName}`);
-    
-    
-//    s16modules = new Map (); // throw away any existing map, create new one
-//    let m = new st.S16Module ();
-//    com.mode.devlog ("initModules about to show map...");
-//    showModules ();
-//    com.mode.devlog ("initModules has just shown map...");
-    //    let m = new s16module (AsmModule);
     refreshEditorBuffer();
     refreshModulesList();
 }
-
 
 //-------------------------------------------------------------------------------
 // Reading files in the Sigma16 directories
@@ -177,10 +139,6 @@ export function selectExample() {
     let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
     com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
-    //    s16modules.push(mkSelectModule());
-    //    selectedModule = new s16module(); // create module; its symbol is selected
-//    let m = s16modules[selectedModule];
-//    m.asmInfo.modSrc = ys;   // deprecated ????????
     let m = new st.S16Module ();
     m.modText = ys;
     refreshEditorBuffer();
@@ -249,18 +207,18 @@ export function checkFileName (xs) {
 // metadata for each file, creates a fileReader object, and initiates
 // the file read.
 
-let newfiles = [];
+let newFiles = [];
 
 export function handleSelectedFiles (flist) {
     com.mode.trace = true;
     com.mode.devlog (`handleSelectedFiles: ${flist.length} files`);
-    newfiles = [];
+    newFiles = [];
     for (let f of flist) {
         const {errors, baseName, stage} = checkFileName (f.name);
         console.log (`  er=${errors} bn=${baseName} stage=${stage}`);
         const mod = st.env.mkSelectModule (baseName);
         const fileRecord = new FileRecord (f, baseName, stage);
-        newfiles.push(fileRecord);
+        newFiles.push(fileRecord);
         switch (stage) {
         case "asm" :
             mod.asmFile = fileRecord;
@@ -277,13 +235,9 @@ export function handleSelectedFiles (flist) {
         }
         fileRecord.fileReader.readAsText (f);
     }
+    console.log ("handleSelectedFiles at end");
+    st.envSummary();
 }
-
-// let newFiles = []; // should move to st.env
-//    newFiles = [];
-//        newFiles.push (fileRecord);
-//        com.mode.devlog (`>>> File fname=${f.name} ftype=${f.type} `
-//                     + `fsize=${f.size} lastModified=${f.lastModifiedDate}`);
 
 function mkFileReader (fileRecord) {
     com.mode.trace = true;
@@ -292,7 +246,9 @@ function mkFileReader (fileRecord) {
     fr.onload = function (e) {
 	com.mode.devlog (`File reader ${fileRecord.fileName} onload`);
         fileRecord.text = e.target.result;
+        console.log (`file onload bn=${fileRecord.baseName} fileName=${fileRecord.fileName} text=${fileRecord.text}`);
         fileRecord.fileReadComplete = true;
+        refreshWhenReadsFinished ();
     }
     fr.onerror = function (e) {
         com.mode.devlog (`Error: could not read file ${fileRecord.fileName}`
@@ -306,7 +262,8 @@ function mkFileReader (fileRecord) {
 // refresh the modules list.  The refresh should be called just one
 // time.
 
-function refreshWhenReadsFinished  (m) {
+// function refreshWhenReadsFinished  (m) {
+function refreshWhenReadsFinished  () {
     com.mode.devlog (`refreshWhenReadsFinished`);
     let allOK = true;
     for (let x of newFiles) {
@@ -335,9 +292,7 @@ export function refreshModulesList() {
         xs += st.env.modules.get(bn).showHtml();
     }
     document.getElementById('FilesBody').innerHTML = xs;
-    //    for (const bn of st.env.modules.keys ()) {
-    for (const fr of newfiles) {
-        const bn = fr.baseName;
+    for (const bn of st.env.modules.keys ()) {
         const m = st.env.modules.get (bn);
         const selElt = document.getElementById(m.selectId);
         selElt.addEventListener ("click", event => { handleSelect (bn) });
@@ -358,111 +313,3 @@ function refreshEditorBuffer () {
     const xs = mod.asmInfo ? mod.asmInfo.text : "";
     document.getElementById("EditorTextArea").value = xs;
 }
-
-//--------------------------------------------------
-// Deprecated
-
-//    com.mode.devlog (`Creating file reader ${m.file.name}`);
-//        refreshWhenReadsFinished (m); // if all files are in, then refresh
-//	com.mode.devlog (`File reader ${m.file.name} onload event finished`);
-//        com.mode.devlog (m.text);
-//        m.text = "";
-//        m.fileReadComplete = true;
-
-//        m.fileReadComplete = false;
-// Check to see if ftype is text/plain ?
-// com.mode.devlog (`handleSelectedFiles fname=${f.name} size=${f.size} bytes`);
-//        let type = AsmModule;  // should calculate based on filename ???????????
-//        let m = new s16module (type);
-//        newFiles.push (m);
-//        m.file = f;
-//	m.fileReader = mkReader (m);
-//        m.fileReadComplete = false;
-//	m.fileReader.readAsText (f);
-
-/*
-// Each module is identified by a Symbol, and the set of modules is
-// represented as a Map indexed by the module symbols.  The
-// selectedModule is the symbol of the current module.  When a new
-// module is created it is selected.
-
-export let s16modules = null; // initModules gives it initial value
-export let moduleGenSym = 0;  // give unique descriptor to each symbol
-export let selectedModule; // symbol for the object representing selected module
-*/
-
-// selectedModule contains the symbol for the map entry in s16modules
-// for the currently selected module.  There should always be at least
-// one module in s16modules (after initialization) and selectedModule
-// should always be defined as the symbol of one of these.
-
-// Return the module correspondong to the symbol stored in selectedModule
-
-/*
-export function showModules () {
-    com.mode.devlog (`Modules: selected = ${typeof selectedModule} ${selectedModule.description}`);
-    s16modules.forEach ( (val,key,map) => {
-        com.mode.devlog (`>>> sym=${val.sym.description} tl=${val.text.length}`);
-    });
-}
-*/
-
-// Find the symbol for the selectedModule and return the actual module object
-/*
-export function getSelectedModule () {
-    com.mode.devlog ("getSelectedModule");
-    showModules ();
-    com.mode.devlog ("getSelectedModule about to get...");
-    let m = s16modules.get (selectedModule);
-//    com.mode.devlog (`getSelectedModule ${m.modName} ${m.text}`);
-    return m;
-}
-*/
-
-/*     oLD refreshModulesList
-    com.mode.devlog ('refreshModulesList');
-    let xs, ys = "\n<hr>";
-    ys += `<br>${s16modules.size} modules<br><hr><br>`;
-    let sel, spanClass, mName, fName, mfName;
-    for (let x of s16modules.values()) {
-	let spanClass = x.sym===selectedModule
-            ? " class='SELECTEDFILE'"
-            : " class='UNSELECTEDFILE'";
-        let fileInfo = x.file ? `${x.file.name}, ${x.file.size} bytes.`
-            : "<no file>";
-	xs = `&nbsp;`
-            + `<span ${spanClass}>`
-//            + `${fileInfo}  ${showModType(x.type)}`
-            + "</span>"
-            + ` ${x.selectButton} ${x.closeButton}`
-            + '<br><pre>'
-            + x.text.split('\n').slice(0,8).join('\n')
-	    + '</pre>\n\n'
-            + '<hr>\n';
-        ys += xs;
-    }
-    let elt = document.getElementById('FilesBody');
-    elt.innerHTML = ys;
-    for (let x of s16modules.values()) {
-        document.getElementById(x.selectId)
-            .addEventListener("click",
-                              event => {com.mode.devlog(`${x.selectId}`);
-                                        modSelect(x);
-                                        });
-        document.getElementById(x.closeId)
-            .addEventListener("click",
-                              event => {com.mode.devlog(`${x.closeId}`);
-                                        modClose(x);
-                                        });
-    }
-    refreshEditorBuffer ();
-    com.mode.devlog ("refreshModulesList returning");
-*/
-
-//    document.getElementById("EditorTextArea").value = getSelectedModule().text;
-
-/*
-// Use unique number for prefix name for each button
-let buttonPrefixNumber = 0;
-*/
-
