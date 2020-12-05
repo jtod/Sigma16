@@ -25,13 +25,123 @@ import * as arch  from '../base/architecture.mjs';
 import * as arith from '../base/arithmetic.mjs';
 import * as st    from '../base/state.mjs';
 
+//-----------------------------------------------------------------------------
+// Operations on editor buffer
+//-----------------------------------------------------------------------------
+
+export function getEditorBufferText () {
+    const xs = document.getElementById("EditorTextArea").value;
+    return xs;
+}
+
+export function setEditorBufferText (xs) {
+    document.getElementById("EditorTextArea").value = xs;
+}
+
+
+
+//-----------------------------------------------------------------------------
+// Actions on entering and leaving the editor
+//-----------------------------------------------------------------------------
+
+export function enterEditor () {
+    com.mode.trace = true;
+    com.mode.devlog ("ed.enterEditor");
+    let m = st.env.getSelectedModule (); // module to be edited
+    let bn = m.baseName; // name of the module
+    let stage = m.edCurrentStage; // stage of the module to edit
+    let xs = `${bn} ${stage.description}`;
+    document.getElementById("EDP_Selected").innerText = xs;
+    edGetTextToEdit (m);
+}
+
+// Get the text to edit
+export function edGetTextToEdit (m) {
+    const s = m.edCurrentStage;
+    const xs = s == st.StageAsm ? m.getAsmText ()
+          : s == st.StageObj ? m.getObjText ()
+          : s == st.StageLnk ? m.getLnkText ()
+          : s == st.StageExe ? m.getExeText ()
+          : "";
+    setEditorBufferText (xs);    
+}
+
+export function edSaveTextToEdit (m) {
+    const xs = getEditorBufferText ();
+    const s = m.edCurrentStage;
+    switch (s) {
+    case st.StageAsm: m.asmEdText = xs; break;
+    case st.StageObj: m.objEdText = xs; break;
+    case st.StageLnk: m.lnkEdText = xs; break;
+    case st.StageExe: m.exeEdText = xs; break;
+    }
+}
+
+export function edSelectedButton () {
+    console.log ("edSelectedButton clicked");
+}
+
+export function edTest () {
+    console.log ("edTest");
+    console.log (getEditorBufferText ());
+    document.getElementById("EDP_Selected").innerText = "<b>hello</b>there";
+    setEditorBufferText ("This is new text for the ed buffer");
+    console.log (getEditorBufferText ());
+}
+
+// Check to see if the contents of the editor buffer have changed
+
+export function leaveEditor () {
+    com.mode.devlog ('leaveEditor called');
+    const m = st.env.getSelectedModule (); // module to be edited
+    edSaveTextToEdit (m);
+}
+
+
+function setEditorText (stage, text) {
+    document.getElementById('EditorTextArea').value = text;
+    currentStage = stage;
+}
+
+//-----------------------------------------------------------------------------
+// Editor buttons
+//-----------------------------------------------------------------------------
+
+export function edClear () {
+    document.getElementById('EditorTextArea').value = "";
+}
+
+export function edNew () {
+    console.log ("Editor new");
+}
+
+export function edRevert () {
+    console.log ("Editor revert");
+}
+
+export function edAsm () {
+    console.log ("Editor assembly language");
+}
+
+export function edObj () {
+    console.log ("Editor object code");
+}
+
+export function edExe () {
+    console.log ("Editor executable code");
+}
+
+export function edLink () {
+    console.log ("Editor linker command");
+}
+
 // In a browser, the CORS restrictions make it impossible to do a
 // general file "Save As..." operation.  Instead, the user can
 // "Download" which allows them to decide where to save a file, and
 // what filename to use.  The default is to save the file in the
 // default Downloads folder.
 
-export function editorDownload () {
+export function edDownload () {
     console.log ("editorPrepareDownload");
     let downloadElt = document.getElementById("editorDownloadAnchor");
     let edText = document.getElementById("EditorTextArea").value;
@@ -55,32 +165,3 @@ export function copyEditorBufferToModule () {
     m.text = document.getElementById("EditorTextArea").value;
 }
 
-// Check to see if the contents of the editor buffer have changed
-
-export function leaveEditor () {
-    com.mode.devlog ('leaveEditor called');
-    copyEditorBufferToModule ();
-
-//    let m = smod.s16modules[smod.selectedModule];
-
-//    let ma = m.asmInfo;
-//    if (m) {
-//        let oldSrc = ma.modSrc;
-//        let oldSrcCanonical = oldSrc.replace (/\r\n/gm, '\n');
-//        let newSrc = document.getElementById("EditorTextArea").value;
-//        let newSrcCanonical = newSrc.replace (/\r\n/gm, '\n');
-//        if (m.mFile && (oldSrcCanonical != newSrcCanonical)) {
-//            m.fileStale = true;
-//        }
-//        ma.modSrc = newSrc;
-//        let srcHead = ma.modSrc.split('\n').slice(0,4).join('\n');
-//        console.log (`leaving editor, src=${srcHead}`);
-//    } else {
-//        console.log ("leaving editor, don't have module")
-//    }
-//    hideTabbedPane("EditorPane");
-}
-
-export function editorClear () {
-    document.getElementById('EditorTextArea').value = "";
-}

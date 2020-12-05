@@ -4,7 +4,10 @@ protected
 DevNotes.org
 src/node_modules
 examples/Sigma16/Advanced/Testing/TempTest*
+*.epub
 *.exe.txt
 *.obj.txt
 *.lst.txt
-*.md.txt
+*.omd.txt
+*.xmd.txt
+*.epub

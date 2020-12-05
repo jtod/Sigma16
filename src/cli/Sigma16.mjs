@@ -294,6 +294,36 @@ export function writeFile (fname, txt) {
 
 function runtest () {
     console.log ("runtest");
+
+    const x = new st.Metadata ();
+    console.log (x.toText());
+    x.addMappingSrc (4,104, "fourplain", "fourdec");
+    x.addMappingSrc (7,107, "sevenplain", "sevendec");
+    x.addMappingSrc (1,101, "one", "one dec");
+    x.addMappingSrc (2,102, "two", "two dec");
+    x.addMappingSrc (3,103, "three", "three dec");
+    x.addMappingSrc (8,104, "eight", "eight dec");
+    x.addMappingSrc (9,109, "nine", "nine dec");
+
+    console.log (x.toText());
+    console.log (x.getSrcPlain(4));
+    console.log (x.getSrcPlain(5));  // not defined
+    console.log (x.getSrcDec(7));
+    console.log (x.toText());
+    console.log (x.getSrcPlain(3));
+    console.log (x.getSrcDec(9));
+    let a = x.fromText ("2,3,4\n5,6,7,8\n10,11\nsource\nalpha ");
+
+
+    console.log ("...................");
+    const foo = new st.Metadata ();
+    foo.fromText("100,0,101,2\nsource\nalpha\nbeta\ngamma\ndelta\n");
+    console.log (`pairs ${foo.pairs}`);
+    console.log (`plain ${foo.plain}`);
+    console.log ("final result");
+    console.log (foo.toText());
+    
+ /*    
     let v1 = new asm.Value (23, false);
     let v2 = new asm.Value (78, true);
     console.log (`v1 ${v1.show()}`);
@@ -314,7 +344,7 @@ function runtest () {
     let bb = smod.news16modules.get(s2).txt;
     console.log (`s1 txt = ${aa}`);
     console.log (`s2 txt = ${bb}`);
-
+*/
     
     console.log ("runtest finished");
 }

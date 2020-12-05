@@ -43,6 +43,8 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 
 // ??? should take parent module as parameter, and use class notation
 
+const emptyExe = {objectCode : "", metadata : null};
+
 export class AsmInfo {
     constructor (parent) {
         this.parent = parent;
@@ -57,12 +59,13 @@ export class AsmInfo {
 	this.asmListingDec = [];        // decorated assembler listing
 	this.objectCode = [];           // string hex representation of object
         this.objectText = "";           // object code as single string
-        this.metadata = [];             // lines of metadata code
-        this.metadataText = "";         // metadata as single string
-        this.asArrMap = [];             // address-sourceline map
+        this.metadata = [];             // lines of metadata code // ASMAP
+        this.metadataText = "";         // metadata as single string ASMAP
+        this.asArrMap = [];             // address-sourceline map // ASMAP
         this.imports = [];              // imported module/identifier
-        this.exports = [];             // exported identifiers
+        this.exports = [];              // exported identifiers
 	this.nAsmErrors = 0;            // errors in assembly source code
+        this.executable = st.emptyExe;  // {object code, maybe metadata}
     }
     show () {
         let xs = "Assembly language\n";
@@ -71,6 +74,7 @@ export class AsmInfo {
         return xs;
     }
 }
+
 
 /*
 export function mkModuleAsm () {
@@ -445,26 +449,28 @@ function mkErrMsg (ma,s,err) {
 // Interfaces to the assembler
 //-----------------------------------------------------------------------------
 
-// When Assembler pane is entered, if an AsmInfo doesn't exist then
-// create one and insert it into the current module.  Copy the text of
-// the current module into the AsmInfo.
+// Enter the assembler pane and show the source code for the selected module
 
 export function enterAssembler () {
-    let m = smod.getSelectedModule ();
-    if (!m.asmInfo) {
-        m.asmInfo = mkModuleAsm ();
-    }
-    m.asmInfo.asmSrcLines = m.text.split('\n');
+    console.log ("enterAssembler");
+    setAsmSource ();
 }
 
 // Interface to assembler for use in the GUI
 
 export function assemblerGUI () {
+    console.log ("assemblerGUI starting");
     com.mode.devlog ("assemblerGUI starting");
-    let m = smod.getSelectedModule ();
-    let ma =  mkModuleAsm ();
+    console.log ("---------------------------");
+    console.log ("Summary of selected module");
+    let m = st.env.getSelectedModule ();
+    console.log (m.showShort());
+    console.log ("---------------------------");
+    let ma = new AsmInfo (m);
     m.asmInfo = ma;
-    ma.text = m.text;
+    ma.text = m.getAsmText ();
+    console.log (`ma.text = ${ma.text}`);
+    m.asmInfo.asmSrcLines = ma.text.split('\n');
     document.getElementById('AsmTextHtml').innerHTML = ""; // clear text in asm
     document.getElementById('ProcAsmListing').innerHTML = ""; // clear text in proc
     com.clearObjectCode (); // clear text in linker pane
@@ -518,7 +524,7 @@ export function assembler (ma) {
     ma.objectCode = [];
     ma.exports = [];
     ma.locationCounter = new Value (0, Local, Relocatable);
-    ma.asArrMap = [];
+    ma.asArrMap = []; // ASMAP
     ma.symbolTable.clear();
     ma.asmListingText.push ("Line Addr Code Code Source");
     ma.asmListingPlain.push(
@@ -1363,6 +1369,9 @@ function asmPass2 (ma) {
     ma.objectText = ma.objectCode.join("\n");
     emitMetadata (ma);
     ma.metadataText = ma.metadata.join("\n");
+    ma.executable = new st.Executable (ma.objectText, ma.metadataText);
+    console.log ("Pass 2 executable is:");
+    console.log (ma.executable.showShort());
 }
 
 // handleVal: Generate relocation or import if necessary
@@ -1404,7 +1413,7 @@ function fixHtmlSymbols (str) {
 
 function generateObjectWord (ma, s, a, x) {
     objectWordBuffer.push (x);
-    ma.asArrMap[a] = s.lineNumber;
+    ma.asArrMap[a] = s.lineNumber; // ASMAP
 }
 
 function emitObjectWords (ma) {
@@ -1481,8 +1490,8 @@ const NitemsPerLine = 10;
 function emitMetadata (ma) {
     com.mode.devlog ("emitMetadata");
     let xs, ys;
-    xs = [...ma.asArrMap];
-    ma.metadata.push (`asmap ${xs.length}`);
+    xs = [...ma.asArrMap]; // ASMAP
+    ma.metadata.push (`asmap ${xs.length}`); // ASMAP
     while (xs.length > 0) {
         let ys = xs.slice (0, NitemsPerLine);
         xs.splice (0, NitemsPerLine);
@@ -1506,22 +1515,39 @@ export function showAsMap (x) {
     }
 }
 
+export function setAsmSource () {
+    com.mode.devlog ("setAsmSource");
+    const m = st.env.getSelectedModule ();
+    let xs = m.getAsmText().split("\n");
+    xs.unshift("<pre class='HighlightedTextAsHtml'>");
+    xs.push("</pre>");
+    let ys = xs.join("<br>");
+    console.log ("---------");
+    console.log ("setAsmSource");
+    console.log (ys);
+    console.log ("---------");
+    document.getElementById('AsmTextHtml').innerHTML = ys;
+}
+
 export function setAsmListing () {
     com.mode.devlog ("setAsmListing");
-    let listingDec = smod.getSelectedModule().asmInfo.asmListingDec;
+    //    let listingDec = smod.getSelectedModule().asmInfo.asmListingDec;
+    let listingDec = st.env.getSelectedModule().asmInfo.asmListingDec;
     let listing = listingDec ? listingDec.join('\n') : 'no listing';
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
 export function setObjectListing () {
-    let code = smod.getSelectedModule().asmInfo.objectCode;
+    //    let code = smod.getSelectedModule().asmInfo.objectCode;
+    let code = st.env.getSelectedModule().asmInfo.objectCode;
     let codeText = code ? code.join('<br>') : 'no code';
     let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
 export function setMetadata () {
-    let code = smod.getSelectedModule().asmInfo.metadata;
+    //    let code = smod.getSelectedModule().asmInfo.metadata;
+    let code = st.env.getSelectedModule().asmInfo.metadata;
     let codeText = code ? code.join('<br>') : 'no code';
     let listing = "<pre class='HighlightedTextAsHtml'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;

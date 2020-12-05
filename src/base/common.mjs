@@ -39,6 +39,15 @@ export let mode = {
 }
 
 
+//------------------------------------------------------------------------------
+// Dialogues with the user
+//------------------------------------------------------------------------------
+
+export function modalWarning (msg) {
+    alert (msg);
+}
+
+
 // The innerHTML
 // string is <pre ...>text of example</pre>.  The pre and pre tags
 // need to be removed: they would confuse the assembler.

@@ -29,6 +29,12 @@ import * as ed    from './editor.mjs';
 import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
+import * as gt    from "./guitools.mjs";
+
+
+export function modalWarning (msg) {
+    alert (msg);
+}
 
 //-------------------------------------------------------------------------------
 // Parameters and global variables
@@ -47,14 +53,6 @@ let midMainLeft;     // mid-main-left; set in onload
 let midMainRight;     // mid-main-right; set in onload, not used anywhere
 let midLRratio = 0.6;  // width of midMainLeft / midMainRight; set in onLoad
 let midSecExtraWidth = 15;  // width of borders in px
-
-//------------------------------------------------------------------------------
-// Dialogues with the user
-//------------------------------------------------------------------------------
-
-function modalWarning (msg) {
-    alert (msg);
-}
 
 //------------------------------------------------------------------------------
 // Tabbed panes
@@ -107,6 +105,7 @@ export function showPane (p) {
         smod.refreshModulesList ();
         break;
     case EditorPane:
+        ed.enterEditor ();
         break;
     case AssemblerPane:
         asm.enterAssembler ();
@@ -313,15 +312,27 @@ prepareButton ('MP_New',        smod.newMod);
 prepareButton ('MP_Test',       smod.test);
 
 // Editor pane (EDP)
-prepareButton ('EDP_Clear',    ed.editorClear);
-prepareButton ('EDP_New_asm',  () => smod.newModule (AsmModule));
-prepareButton ('EDP_New_obj',  () => smod.newModule (ObjModule));
-prepareButton ('EDP_New_link',  () => smod.newModule (LnkModule));
-prepareButton ('EDP_Hello_World',  () => insert_example(example_hello_world));
-prepareButton ('EDP_Save',  ed.editorDownload);
+prepareButton ('EDP_Selected',    ed.edSelectedButton);
+prepareButton ('EDP_Clear',       ed.edClear);
+prepareButton ('EDP_New',         ed.edNew);
+prepareButton ('EDP_Revert',      ed.edRevert);
+prepareButton ('EDP_Asm',         ed.edAsm);
+prepareButton ('EDP_Obj',         ed.edObj);
+prepareButton ('EDP_Exe',         ed.edExe);
+prepareButton ('EDP_Link',        ed.edLink);
+prepareButton ('EDP_Hello_World', () => insert_example(example_hello_world));
+prepareButton ('EDP_Test',        ed.edTest);
+prepareButton ('EDP_Save',        ed.edDownload);
+
+// prepareButton ('EDP_asm',      () => smod.edAsm (AsmModule));
+// prepareButton ('EDP_New_obj',  () => smod.newModule (ObjModule));
+// prepareButton ('EDP_New_link',  () => smod.newModule (LnkModule));
+// prepareButton ('EDP_Hello_World',  () => insert_example(example_hello_world));
+// prepareButton ('EDP_Save',  ed.editorDownload);
 
 // Assembler pane (AP)
 prepareButton ('AP_Assemble',  asm.assemblerGUI);
+prepareButton ('AP_Show_Source',  asm.setAsmSource);
 prepareButton ('AP_Show_Object',  asm.setObjectListing);
 prepareButton ('AP_Show_Listing',  asm.setAsmListing);
 prepareButton ('AP_Show_Metadata',  asm.setMetadata);

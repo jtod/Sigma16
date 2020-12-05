@@ -18,9 +18,8 @@
 // module.mjs defines the representation of source and object modules for the gui
 //-------------------------------------------------------------------------------
 
-// import * as fs from "fs";
-import * as com from './common.mjs';
-import * as st from './state.mjs';
+import * as com from "./common.mjs";
+import * as st  from "./state.mjs";
 
 //------------------------------------------------------------------------------
 // Files and modules
@@ -89,8 +88,14 @@ function handleClose (bn) {
 export function test() {
     console.log ("smod.test");
     refreshModulesList ();
+
+    console.log ("Summary of selected module");
+    let m = st.env.getSelectedModule ();
+    console.log (m.showShort());
+    
+    com.modalWarning ("This is a\nmodal warning!");
     console.log (`modules:`);
-    for (const k of st.moduleEnvironment.keys()) {
+    for (const k of st.env.modules.keys()) {
         console.log (`key = ${k}`);
     }
 }
@@ -120,7 +125,7 @@ export function initModules () {
     com.mode.trace = true;
     com.mode.devlog ("initModules");
     st.env.clearModules ();
-    refreshEditorBuffer();
+//    refreshEditorBuffer();  only do this when entering editor
     refreshModulesList();
 }
 
@@ -167,6 +172,7 @@ export function prepareChooseFiles () {
     });
 }
 
+
 // Parse string xs and check that it's in the form basename.ftype.txt
 // where basename is any string not containing "." and ftype is one of
 // asm, obj, md, lst, lnk.
@@ -174,24 +180,26 @@ export function prepareChooseFiles () {
 export function checkFileName (xs) {
     const components = xs.split(".");
     let errors = [];
-    let baseName = "";
-    let stage = "";
+    let baseName = null;
+    let stage = st.StageExe;
     if (components.length != 3 ) {
         errors = [`Filename ${xs} must have three components, e.g.`
                   + `ProgramName.asm.txt`];
     } else if (components[2] != "txt") {
         errors = [`Last component of flename ${xs} is ${components[2]}`
                   + ` but it must be ".txt"`];
-    } else if (!["asm", "obj", "lst", "md", "lnk"].includes(components[1])) {
+    } else if (!["asm", "obj", "lst", "omd", "lnk", "exe", "xmd"]
+               .includes(components[1])) {
         errors = [`Second component of flename ${xs} is ${components[1]}`
                   + ` but it must be one of asm,obj,md,lnk`];
     } else {
         baseName = components[0];
-        stage = components[1];
+        stage = st.getStageSym (components[1]);
     }
     let result = {errors, baseName, stage};
-    com.mode.devlog (`checkFileName ${xs}\n errors=${result.errors}\n `
-                     + `baseName=${result.baseName}\n stage=${result.stage}`);
+    com.mode.devlog (`checkFileName ${xs}\n errors=${result.errors}`
+                     + ` baseName=${result.baseName}`
+                     + ` stage=${result.stage.description}`);
     return result;
 }
 
@@ -211,29 +219,30 @@ let newFiles = [];
 
 export function handleSelectedFiles (flist) {
     com.mode.trace = true;
-    com.mode.devlog (`handleSelectedFiles: ${flist.length} files`);
+    com.mode.devlog (`*********** handleSelectedFiles: ${flist.length} files`);
     newFiles = [];
     for (let f of flist) {
         const {errors, baseName, stage} = checkFileName (f.name);
-        console.log (`  er=${errors} bn=${baseName} stage=${stage}`);
         const mod = st.env.mkSelectModule (baseName);
         const fileRecord = new FileRecord (f, baseName, stage);
         newFiles.push(fileRecord);
         switch (stage) {
-        case "asm" :
+        case st.StageAsm :
             mod.asmFile = fileRecord;
             break;
-        case "obj":
+        case st.StageObj:
             mod.objFile = fileRecord;
             break;
-        case "exe":
+        case st.StageExe:
             mod.exeFile = fileRecord;
             break;
-        case "lnk":
+        case st.StageLnk:
             mod.linkFile = fileRecord;
             break
         }
         fileRecord.fileReader.readAsText (f);
+        console.log ("******** handleSelected Files: mod.showshort");
+        console.log (mod.showShort());
     }
     console.log ("handleSelectedFiles at end");
     st.envSummary();
@@ -309,6 +318,7 @@ export function refreshModulesList() {
 
 function refreshEditorBuffer () {
     com.mode.devlog (`refreshEditorBuffer`);
+    console.log (`refreshEditorBuffer`);
     const mod = st.env.getSelectedModule ();
     const xs = mod.asmInfo ? mod.asmInfo.text : "";
     document.getElementById("EditorTextArea").value = xs;

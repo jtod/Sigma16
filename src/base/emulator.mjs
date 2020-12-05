@@ -86,6 +86,7 @@ export function initListing (m,es) {
     es.curInstrAddr = 0;
     es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
     es.nextInstrAddr = 0;
+    // ASMAP
     es.nextInstrLineNo = es.asArrMap[es.nextInstrAddr] + listingLineInitialOffset;
     com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
     setProcAsmListing (es,m);
@@ -116,6 +117,20 @@ function linkerBootLine (es,m,i,x) {
 // Find the object code to execute; this may come from the assembler
 // or the linker
 
+function obtainObjectCode (es,m) { // temp version, needs rewrite
+    let mod = st.env.getSelectedModule ();
+    let ma = mod.asmInfo;
+    //    let xs = mod.getExeText ();
+    //    console.log (`obtainObjectCode ${xs}`);
+    es.asArrMap = ma.asArrMap;     // ASMAP
+    es.asmListingPlain = ma.listingPlain;
+    es.asmListingDec = ma.listingDec;
+    return ma.objectCode;  // has been split into list of lines  
+//    return xs.split("\n");
+}
+
+/* Old version deprecated
+
 function obtainObjectCode (es, m) {
     console.log ("obtainObjectCode");
     let ma = m.asmInfo;
@@ -138,14 +153,44 @@ function obtainObjectCode (es, m) {
     es.asmListingDec = listingDec;
     return objectCode;
 }
+*/
+
+export function obtainExecutable () {
+    let m = st.env.getSelectedModule();
+    console.log (`44444444444 obtainExecutable ${m.baseName}`);
+    let ai = m.asmInfo;
+    let exe = st.emptyExe;
+    if (ai) {
+        console.log (`obtainExecutable, found asmInfo`);
+        console.log (`location counter = ${ai.locationCounter}`);
+        exe = ai.executable;
+    } else {
+        console.log (`obtainExecutable, asmInfo doesn't exist`);
+    }
+    console.log (`obtainExecutable returning: ${exe.showShort()}`);
+    return exe;
+}
+
+    //    let m = smod.getSelectedModule (); //
+      // s16modules[smod.selectedModule]; // get current module
 
 export function boot (es) {
     com.mode.trace = true;
     com.mode.devlog ("boot");
+
+    let exe = obtainExecutable ();
+    com.mode.devlog (`boot, exe is: ${exe.showShort()}`);
+    const objectCodeText = exe.code;
+    const metadataText = exe.metadata;
+    com.mode.devlog (`boot, extracted code = ${objectCodeText}`);
+    com.mode.devlog (`boot, extracted md = ${metadataText}`);
+
+    let objectCode = objectCodeText.split("\n");
+    let metadata = metadataText ? metadataText.split("\n") : [];
+    
     memClearAccesses ();
-    let m = smod.getSelectedModule (); //
-      // s16modules[smod.selectedModule]; // get current module
-    let objectCode = obtainObjectCode (es, m);
+    let m = st.env.getSelectedModule (); //
+    console.log (`6666666666666666666 ObjectCode boot ${objectCode}7777777777`);
     let xs = "";
     let fields = null;
     let isExecutable = true; // will set to false if module isn't bootable
@@ -192,7 +237,7 @@ export function boot (es) {
         es.asmListingCurrent = [...es.asmListingDec];
         initListing (m,es);
         com.mode.devlog("asMap:");
-        if (com.mode.trace) asm.showAsMap (es.asArrMap);
+        if (com.mode.trace) asm.showAsMap (es.asArrMap); // ASMAP
         setProcStatus (es,Ready);
         getListingDims(es);
         resetRegisters ();
@@ -467,7 +512,7 @@ export let emulatorState =
 	instrEA       : null,
 	instrEAStr    : "",
 	instrEffect   : [],
-        asArrMap : [],
+        asArrMap : [],  // ASMAP
 	asmListingPlain    : [], // plain listing shows address, code, source
 	asmListingDec      : [], // decorated listing uses highlighting for fields
 	asmListingCurrent  : [], // version of listing displayed in emulator pane
@@ -1129,11 +1174,6 @@ function showListingParameters (es) {
 		 + ' es.nextInstrLineNo=' + es.nextInstrLineNo);
 }
 
-// temp for testing...
-function fooby (i) {
-    com.mode.devlog (`${emulatorState.asmListingCurrent[i]}`);
-}
-
 // Prepare the running listing before starting instructionby removing
 // any existing highlighting of current and next instruction
 
@@ -1166,6 +1206,7 @@ function highlightListingAfterInstr (es) {
     com.mode.devlog ('  nextInstrAddr = ' + es.nextInstrAddr);
 
     // Highlight the instruction that just executed
+    // ASMAP
     es.curInstrLineNo = es.asArrMap[es.curInstrAddr] + listingLineInitialOffset;
     console.log (`highlight listing line a=${es.curInstrAddr} s=${es.curInstrLineNo}`)
     com.mode.devlog ('  curInstrLineNo = ' + es.curInstrLineNo);
@@ -1174,6 +1215,7 @@ function highlightListingAfterInstr (es) {
     }
 
     // Highlight the instruction that will be executed next
+    // ASMAP
     es.nextInstrLineNo = es.asArrMap[es.nextInstrAddr] + listingLineInitialOffset;
     com.mode.devlog ('  nextInstrLineNo = ' + es.nextInstrLineNo);
     if (es.nextInstrLineNo >= 0) {

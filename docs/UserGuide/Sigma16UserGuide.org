@@ -3957,6 +3957,7 @@ was defined, and the source code lines where it was used.
 | identifier | import | identifier,identifier | Import  value  from module |
 |            | export | identifier            | Export values              |
 
+
 * Object code and linker
 
 Small programs often consist of just one module (or file).  The
@@ -4076,17 +4077,72 @@ Each location is relcated.  The word The addresses
 
 ** Module metadata
 
+The assembler and linker create metadata files which enable the
+emulator to show the assembly language statement corresponding to the
+instruction currently being executed.  The metadata is not part of the
+machine language, and the emulator doesn't look at it in order to
+execute the program.  It is entirely optional: the emulator can run a
+program without any metadata, although without it the emulator cannot
+display the current assembly language source statement.  This section
+explains how the metadata works and the format of the files.
+
 The emulator attempts to show the assembly language source as the
 program runs, and it highlights the current and next instruction.  To
 do this, the emulator needs to have some information that isn't
 present in the object code.  This extra information is supplied in a
-separate file called *module metadata* produced by the assembler.
+separate metadata file produced by the assembler and the linker.
 
-The user can ignore the metadata.  However, you can look at it if
-you're curious.  The metadata contains the source code in two forms:
+An object file foo.obj.txt may have a corresponding metadata file
+foo.omd.txt ("object metadata").  An executable file foo.exe.txt may
+have a corresponding metadata file foo.xmd.txt ("executable
+metadata").  The format of the metadata is identical for object and
+executable; the reason for the distinction is that the user might have
+a program with main program foo.asm.txt, and later give the executable
+the same name foo.  In that case, there will be separate metadata
+files for the object and the executable.
+
+  The metadata contains the source code in two forms:
 plain text and with html tags for highlighting the fields.  In
 addition, the metadata contains a mapping from address to source code
 line number.
+
+The metadata file format is parsed in order to populate several data
+structures that enable the emulator to 
+The metadata contains the lines of text of the assembly listing.
+These lines contain the address, the object code at that address, and
+the assembly language source statement.  Each line of the assembly
+listing appears t  The emulator displays most
+lines of the assembly listing with the same field highlighting
+
+A metadata file contains two sections: the ASmap followed by the
+source listing text.
+A metadata file must have the following contents:
+
+$a0,s0,a1,s1,a2,s2, ..., a_{n-1},s_{n-1}$
+
+When the pc contains address $a_i$ then the source statement $s_i$
+should be displayed.
+
+
+- =fsmap= /n/
+- comma separated list of /n/ numbers, which may be split into lines
+- =source= /n/
+- /n/ lines of html giving the assembly listing.  Each line appears
+  twice: first a "plain" form, followed by a "decorated" form that
+  contains html span elements for highlighting the fields of the text
+
+Here is an example of a metadata file:
+
+#+BEGIN_EXAMPLE
+fasmap 17
+14,14,15,15,16,16,17,17,18,19
+19,20,20,21,21,22,24
+source 32
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+   1 0000            ; Main: test linker
+   1 0000           <span class='FIELDLABEL'> ... </span>
+#+END_EXAMPLE
 
 ** Linker
 ** Loader
