@@ -108,8 +108,10 @@ scroll from working */
     --IOinputbuffer-background: yellow;
 /* fonts */    
     --main-font-family: 'Lucida Console',monospace;
-    --main-font-size: 0.9em;
-    --pre-font-size: 0.9em;
+/*    --main-font-size: 0.9em; */
+    --main-font-size: 1.0em;
+/*    --pre-font-size: 0.9em; */
+    --pre-font-size: 1.0em;
     --text-color-get: blue;
     --text-color-put: red;
     --text-color-cur: red;
@@ -344,6 +346,20 @@ guide). */
 
 #ProcTextHtml, #ProcListingHtml {
 }
+
+.VerbatimText {
+    width: 100%;
+    height: 100%;
+    margin: 0em;  /* needed to make the text fill its box */
+    box-sizing: border-box;
+    background-color: white;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    overflow-y: scroll;
+    overflow-x: visible;
+}
+/*    scroll-behavior: smooth;   slow if scrolling a long distance */ 
+/*    background-color: var(--subpanel-background-color); */
 
 .HighlightedTextAsHtml {
     width: 100%;

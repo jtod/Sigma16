@@ -63,7 +63,7 @@ export class SystemState {
         this.modules = new Map ();
         this.selectedModule = null;
         this.anonymousCount = 0;
-        this.emState = null;
+        this.emulatorState = null;
     }
     showSelectedModuleName () {
         return this.selectedModule ? this.selectedModule : "No module selected";
@@ -178,7 +178,9 @@ export class S16Module {
         this.asmInfo = null;
         this.objInfo = null;
         this.linkInfo = null;
-        this.executable = null;
+// containers for object code and metadata
+        this.objMd = null;       // ObjMd created by assembler
+        this.executable = null;  // ObjMd created by linker
     }
 // In case a module has data for several stages, choose one to use    
     getPrimaryStage () {
@@ -303,6 +305,13 @@ export class ObjMd {
     constructor (objText, mdText) {
         this.objText = objText;
         this.mdText = mdText;
+        this.md = new Metadata ();
+        this.md.fromText (this.mdText);
+    }
+    showShort () {
+        let xs = `${this.objText.split("\n").length} lines of object text,`
+        + ` ${this.mdText.split("\n").length} lines of metadata`;
+        return xs;
     }
 }
 
@@ -343,34 +352,52 @@ export class Metadata {
     clear () {
         this.pairs = [];   // list of (a,i) pairs for serializing
         this.mapArr = [];  // mapArr[a] = i
-        this.plain = [];   // source lines
-        this.dec = [];     // source lines decorated with html span elements
+        this.listingText = [];
+        this.listingPlain = [];   // source lines
+        this.listingDec = [];     // source lines decorated with html span elements
+        this.mdText = null;
     }
-    addMappingSrc (a, i, srcPlain, srcDec) { // add a new entry with source
+    addMappingSrc (a, i, srcText, srcPlain, srcDec) {
         this.pairs.push({a,i});
         this.mapArr[a] = i;
-        this.plain[i] = srcPlain;
-        this.dec[i] = srcDec;
+        this.listingText[i] = srcText;
+        this.listingPlain[i] = srcPlain;
+        this.listingDec[i] = srcDec;
     }
     addMapping (a, i) { // add new mapping
         this.pairs.push({a,i});
         this.mapArr[a] = i;
+        console.log (`*** Metadata addMapping ${a} ${i}`);
     }
-    addSrc (i, srcPlain, srcDec) { // insert source at given index
-        this.plain[i] = srcPlain;
-        this.dec[i] = srcDec;
+    pushSrc (srcText, srcPlain, srcDec) {
+        this.listingText.push (srcText);
+        this.listingPlain.push (srcPlain);
+        this.listingDec.push (srcDec);
+    }
+    addSrc (i, srcText, srcPlain, srcDec) { // insert source at given index
+        this.listingText[i] = srcText;
+        this.listingPlain[i] = srcPlain;
+        this.listingDec[i] = srcDec;
     }
     getSrcIdx (a) { // find source line index corresponding to address a
         const i = this.mapArr[a];
         return i ? i : 0;
     }
+    getSrcText (a) { // return text source line corresponding to address a
+        const x = this.listingText[this.getSrcIdx(a)];
+        return x ? x : `no text src for ${a}`
+    }
     getSrcPlain (a) { // return plain source line corresponding to address a
-        const x = this.plain[this.getSrcIdx(a)];
+        const x = this.listingPlain[this.getSrcIdx(a)];
         return x ? x : `no plain src for ${a}`
     }
     getSrcDec (a) { // return decorated source line corresponding to address a
-        const x = this.dec[this.getSrcIdx(a)];
+        const x = this.listingDec[this.getSrcIdx(a)];
         return x ? x : `no decorated src for ${a}`
+    }
+    getMdText () {
+        if (!this.mdText) { this.mdText = this.toText () }
+        return this.mdText
     }
     fromText (x) { // parse text and populate the object
         this.clear ();
@@ -378,10 +405,8 @@ export class Metadata {
         let ns = [];
         let i = 0;
         while (i < xs.length && xs[i].substring(0,6) != "source" ) {
-            console.log (`from loop 1 i=${i} ${xs[i]}`);
             let ys = xs[i].split(",");
-            ns.push(ys);
-            console.log (`from loop 1 ns = ${ns}`);
+            ns = ns.concat (ys.map ((q) => parseInt(q)));
             i++;
         }
         let j = 0;
@@ -394,28 +419,40 @@ export class Metadata {
         i++; // skip "source"
         j = 0;
         while (i < xs.length) {
-            console.log (`from loop 3 i=${i} j=${j} xs[i]=${xs[i]}`);
-            this.plain[j] = xs[i] ? xs[i] : "";
-            this.dec[j]   = xs[i+1] ? xs[i+1] : "";
-            i++;
-            j++;
+            if (xs[i] != "") {
+                this.listingText[j]  = xs[i] ? xs[i] : "";
+                this.listingPlain[j] = xs[i+1] ? xs[i+1] : "";
+                this.listingDec[j]   = xs[i+2] ? xs[i+2] : "";
+                j += 1;
+                i += 3;
+            } else {
+                i++; //skip empty line
+            }
         }
     }
     toText () { // convert contents of object to text
         let ys = [];
         for (const {a,i} of this.pairs) {
             ys.push(a,i);
-            console.log (`in loop 1, a=${a} i=${i}`);
-            console.log (`in loop 1, ys = ${ys}`);
         }
         let xs = "";
         while (ys.length > 0) {
             xs += ys.splice(0,eltsPerLineLimit) + "\n";
         }
         xs += "source\n";
-        for (const {a,i} of this.pairs) {
-            xs += this.getSrcPlain (a) + "\n";
-            xs += this.getSrcDec (a) + "\n";
+
+        this.listingPlain[0] = "<pre class='HighlightedTextAsHtml'>"
+            + this.listingPlain[0];
+        this.listingDec[0] = "<pre class='HighlightedTextAsHtml'>"
+            + this.listingDec[0];
+        const k = this.listingPlain.length;
+        this.listingPlain[k-1] += "</pre>";
+        this.listingDec[k-1] += "</pre>";
+
+        for (let i = 0; i < this.listingPlain.length; i++) {
+            xs += this.listingText[i] + "\n";
+            xs += this.listingPlain[i] + "\n";
+            xs += this.listingDec[i] + "\n";
         }
         return xs;
     }

@@ -342,7 +342,7 @@ prepareButton ('LP_Read_Object',   link.getLinkerModules);
 prepareButton ('LP_Link',          link.linkerGUI);
 prepareButton ('LP_Show_Object',   link.linkShowExeObject);
 prepareButton ('LP_Show_Metadata', link.linkShowExeMetadata);
-prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));
+prepareButton ('LP_Boot',          () => em.boot(em.emulatorState));
 
 // Processor pane (PP)
 prepareButton ('PP_Reset',        () => em.procReset(em.emulatorState));

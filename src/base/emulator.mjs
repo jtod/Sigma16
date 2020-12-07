@@ -157,40 +157,29 @@ function obtainObjectCode (es, m) {
 
 export function obtainExecutable () {
     let m = st.env.getSelectedModule();
-    console.log (`44444444444 obtainExecutable ${m.baseName}`);
-    let ai = m.asmInfo;
-    let exe = st.emptyExe;
-    if (ai) {
-        console.log (`obtainExecutable, found asmInfo`);
-        console.log (`location counter = ${ai.locationCounter}`);
-        exe = ai.executable;
+    let exe = m.executable ? m.executable : m.objMd;
+    if (exe) {
+        console.log (`Found executable for selected module`);
+        return exe;
     } else {
-        console.log (`obtainExecutable, asmInfo doesn't exist`);
+        console.log (`Cannot find executable`);
+        return null;
     }
-    console.log (`obtainExecutable returning: ${exe.showShort()}`);
-    return exe;
 }
-
-    //    let m = smod.getSelectedModule (); //
-      // s16modules[smod.selectedModule]; // get current module
 
 export function boot (es) {
     com.mode.trace = true;
     com.mode.devlog ("boot");
-
+    let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
-    com.mode.devlog (`boot, exe is: ${exe.showShort()}`);
-    const objectCodeText = exe.code;
-    const metadataText = exe.metadata;
-    com.mode.devlog (`boot, extracted code = ${objectCodeText}`);
-    com.mode.devlog (`boot, extracted md = ${metadataText}`);
+    const objectCodeText = exe.objText;
+    const metadataText   = exe.mdText;
+    const md = exe.md;
 
     let objectCode = objectCodeText.split("\n");
-    let metadata = metadataText ? metadataText.split("\n") : [];
+//    let metadata = metadataText ? metadataText.split("\n") : null;
     
     memClearAccesses ();
-    let m = st.env.getSelectedModule (); //
-    console.log (`6666666666666666666 ObjectCode boot ${objectCode}7777777777`);
     let xs = "";
     let fields = null;
     let isExecutable = true; // will set to false if module isn't bootable
@@ -263,6 +252,11 @@ export function boot (es) {
     }
     com.mode.devlog ("boot returning");
 }
+
+//    com.mode.devlog (`boot, exe is: ${exe.showShort()}`);
+//    com.mode.devlog (`boot, extracted code = ${objectCodeText}`);
+//    com.mode.devlog (`boot, extracted md = ${metadataText}`);
+
 
 export let highlightedRegisters = [];
 

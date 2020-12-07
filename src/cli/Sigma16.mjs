@@ -294,7 +294,7 @@ export function writeFile (fname, txt) {
 
 function runtest () {
     console.log ("runtest");
-
+/*
     const x = new st.Metadata ();
     console.log (x.toText());
     x.addMappingSrc (4,104, "fourplain", "fourdec");
@@ -313,14 +313,24 @@ function runtest () {
     console.log (x.getSrcPlain(3));
     console.log (x.getSrcDec(9));
     let a = x.fromText ("2,3,4\n5,6,7,8\n10,11\nsource\nalpha ");
+*/
 
-
-    console.log ("...................");
+    console.log ("........................................");
     const foo = new st.Metadata ();
-    foo.fromText("100,0,101,2\nsource\nalpha\nbeta\ngamma\ndelta\n");
+    foo.fromText("100,0,101,1,102,2\nsource\nPLalpha\nDEalpha\nPLbeta\nDEbeta\nPLgamma\nDEgamma\n");
     console.log (`pairs ${foo.pairs}`);
     console.log (`plain ${foo.plain}`);
-    console.log ("final result");
+    console.log (`dec ${foo.dec}`);
+    console.log ("********************** final result foo ************");
+    console.log (`pairs.len = ${foo.pairs.length}`);
+    console.log (`mapArr.len = ${foo.mapArr.length}`);
+    console.log (`plain.len = ${foo.plain.length}`);
+    console.log (`dec.len = ${foo.dec.length}`);
+    console.log (`100 ${foo.getSrcIdx(100)}`);
+    console.log (`101 ${foo.getSrcIdx(101)}`);
+    console.log (`102 ${foo.getSrcIdx(102)}`);
+    console.log (`pl 101 ${foo.getSrcPlain(101)}`);
+    console.log ("********************** final result foo.teText ************");
     console.log (foo.toText());
     
  /*    
