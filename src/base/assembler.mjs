@@ -40,7 +40,7 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 
 export class AsmInfo {
     constructor () {
-	this.modName = "";              // defined in optional module statement
+	this.modName = "anonymous";     // defined in optional module statement
         this.text = "";                 // raw source text
         this.asmSrcLines = [];          // list of lines of source text
 	this.asmStmt = [];              // statements correspond to lines of source

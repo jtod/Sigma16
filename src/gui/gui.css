@@ -97,13 +97,13 @@ pane height
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
     --subpanel-background-color: beige;
-    --mem-display-width: 6.1em;  /* try 12em to confirm line breaks are there */
+    --mem-display-width: 6.8em;  /* 6.1em too narrow */
 
     /* YES???????????  with wide size we get several locations per line,
 that's why I need <pre> but if <pre> is in a separate array element it prevents
 scroll from working */
 
-    --mem-display-height: 14em;
+    --mem-display-height: 15em; /* not correct */
     --reg-name-val-sep: 0.7em;
     --IOinputbuffer-background: yellow;
 /* fonts */    

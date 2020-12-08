@@ -71,7 +71,8 @@ export function highlightField (xs,highlight) {
 
 export function highlightListingLine (es,i,highlight) {
     es.asmListingCurrent[i] =
-        "<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
+        //        "<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
+    "<span class='" + highlight + "'>" + es.metadata.listingPlain[i] + "</span>";
 }
 
 // "<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";

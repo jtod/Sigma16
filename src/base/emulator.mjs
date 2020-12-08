@@ -24,7 +24,6 @@ import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
-// import * as ed from './editor.mjs';
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
 
@@ -42,9 +41,9 @@ function getListingDims (es) {
     let h = e.scrollHeight; // height of content (not of the window)
     es.asmListingHeight = h; // save in emulator state
     com.mode.devlog (`h=${h} w=${w}`);
-    let n = es.asmListingPlain.length;
+    let n = es.metadata.listingPlain.length;
     com.mode.devlog(`getListingDims: n=${n}`);
-    pxPerChar = h / n; // update this global variable, used for scrolling
+    pxPerChar = n ? h/n : 10; // update this global variable, used for scrolling
     com.mode.devlog (`getListingDims: pxPerChar = ${pxPerChar}`);
 }
 
@@ -86,12 +85,12 @@ export function initListing (m,es) {
     es.curInstrAddr = 0;
     es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
     es.nextInstrAddr = 0;
-    // ASMAP
-    es.nextInstrLineNo = es.asArrMap[es.nextInstrAddr] + listingLineInitialOffset;
+    es.nextInstrLineNo = es.metadata.getSrcIdx (es.nextInstrAddr)
+        + listingLineInitialOffset;
+    
     com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
     setProcAsmListing (es,m);
 }
-
 
 // Should check the operation, implement org, and provide suitable
 // error messages, but that's for later.  For now, just assume it is
@@ -109,51 +108,12 @@ function linkerBootLine (es,m,i,x) {
     bootCurrentLocation++;
 }
 
-
 //-------------------------------------------------------------------------------
 // Booter
 //-------------------------------------------------------------------------------
 
-// Find the object code to execute; this may come from the assembler
-// or the linker
-
-function obtainObjectCode (es,m) { // temp version, needs rewrite
-    let mod = st.env.getSelectedModule ();
-    let ma = mod.asmInfo;
-    //    let xs = mod.getExeText ();
-    //    console.log (`obtainObjectCode ${xs}`);
-    es.asArrMap = ma.asArrMap;     // ASMAP
-    es.asmListingPlain = ma.listingPlain;
-    es.asmListingDec = ma.listingDec;
-    return ma.objectCode;  // has been split into list of lines  
-//    return xs.split("\n");
-}
-
-/* Old version deprecated
-
-function obtainObjectCode (es, m) {
-    console.log ("obtainObjectCode");
-    let ma = m.asmInfo;
-    let objectCode, asArrMap, listingPlain, listingDec;
-    if (true) { // if can obtain obj etc from assembler
-        com.mode.devlog ("Obtaining object code from assembler");
-        objectCode = ma.objectCode;
-        asArrMap = ma.asArrMap;
-        listingPlain = ma.asmListingPlain;
-        listingDec =  ma.asmListingDec;
-    } else { // obtain obj etc from linker
-        com.mode.devlog ("Obtaining object code from linker");
-        objectCode = [];
-        asArrMap = [];
-        listingPlain = [];
-        listingDec = [];
-    }
-    es.asArrMap = asArrMap;
-    es.asmListingPlain = listingPlain;
-    es.asmListingDec = listingDec;
-    return objectCode;
-}
-*/
+// Find the executable; it may come from assembler (object code) or
+// linker (executable code).
 
 export function obtainExecutable () {
     let m = st.env.getSelectedModule();
@@ -174,10 +134,10 @@ export function boot (es) {
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
-    const md = exe.md;
+    es.metadata = new st.Metadata ();
+    es.metadata.fromText (metadataText);
 
     let objectCode = objectCodeText.split("\n");
-//    let metadata = metadataText ? metadataText.split("\n") : null;
     
     memClearAccesses ();
     let xs = "";
@@ -190,14 +150,15 @@ export function boot (es) {
 	es.nInstructionsExecuted;
     ioLogBuffer = "";
     refreshIOlogBuffer();
+    com.mode.trace = true;
     for (let i = 0; i < objectCode.length; i++) {
         xs = objectCode[i];
-        com.mode.devlog (`boot: objectCode line ${i} = ${xs}`);
+        com.mode.devlog (`boot: objectCode line ${i} = <${xs}>`);
         fields = link.parseObjLine (xs);
-        com.mode.devlog (`op=${fields.operation} args=${fields.operands}`);
+        com.mode.devlog (`boot op=<${fields.operation}> args=<${fields.operands}>`);
         if (fields.operation == "module") {
             let modname = fields.operands[0];
-            let safemodname = modname ? modname : "(unknown)";
+            let safemodname = modname ? modname : "(anonymous)";
             com.mode.devlog (`boot: module ${safemodname}`);
         } else if (fields.operation == "data") {
             com.mode.devlog ("boot: data");
@@ -223,10 +184,9 @@ export function boot (es) {
     }
     if (isExecutable) {
         com.mode.devlog ("boot ok so far, preparing...");
-        es.asmListingCurrent = [...es.asmListingDec];
+        es.asmListingCurrent = es.metadata.listingDec;
+        
         initListing (m,es);
-        com.mode.devlog("asMap:");
-        if (com.mode.trace) asm.showAsMap (es.asArrMap); // ASMAP
         setProcStatus (es,Ready);
         getListingDims(es);
         resetRegisters ();
@@ -253,14 +213,10 @@ export function boot (es) {
     com.mode.devlog ("boot returning");
 }
 
-//    com.mode.devlog (`boot, exe is: ${exe.showShort()}`);
-//    com.mode.devlog (`boot, extracted code = ${objectCodeText}`);
-//    com.mode.devlog (`boot, extracted md = ${metadataText}`);
-
-
 export let highlightedRegisters = [];
 
 // Update the display of all registers and memory (all of memory)
+
 export function displayFullState () {
     com.mode.devlog ('displayFullState');
     clearRegisterHighlighting ();
@@ -287,7 +243,8 @@ export let Halted = Symbol ("Halted");  // trap 0 has executed
 // let sEnable, sProg, sProgEnd, sDat, sDatEnd;   // segment control registers
 
 // Move to appropriate place... ??????????????
-export let modeHighlightAccess = true;  // for tracing: highlight reg/mem that is accessed
+export let modeHighlightAccess = true;
+  // for tracing: highlight reg/mem that is accessed
 
 // The registers are defined as global variables.  These variables are
 // declared here but their values are set only when window has been
@@ -312,20 +269,17 @@ export let register = [];      // array of all the registers: regfile and contro
 // containing all the registers, so the emulator can refresh them all
 // together.
 
-export const ctlRegIndexOffset = 20; // add to ctl reg number to get index in register[]
-export let sysCtlRegIdx = 0;       // index of first system control reg
-
-export let registerIndex = 0;          // unique index for each reg
+export const ctlRegIndexOffset = 20;  // add to ctl reg no. to get register[] index
+export let sysCtlRegIdx = 0;          // index of first system control reg
+export let registerIndex = 0;         // unique index for each reg
 export let regStored = [];
 export let regFetched = [];
-
 
 // Instructions refer to the system control registers by a 4-bit
 // index, but the system control register that has instruction index 0
 // will actually have a higher index (16) in the emulator's array of
 // registers.  To refer to sysctl reg i, it can be accessed as
 // register [sysCtlRegIdx + i].
-
 
 // Each register is represented by an object that contains its current
 // value, as well as methods to get and set the value, and to refresh
@@ -369,10 +323,8 @@ function testReg2 () {
     regShowAccesses();
 }
 
-
-// The registers are actually created in gui.js in the window.onload
-// function, because they need the gui display elements to be created
-// first
+// The registers are created in gui.js in the window.onload function,
+// because they need the gui display elements to be created first
 
 export function mkReg (rn,eltName,showfcn) {
     let r = Object.create({
@@ -506,9 +458,7 @@ export let emulatorState =
 	instrEA       : null,
 	instrEAStr    : "",
 	instrEffect   : [],
-        asArrMap : [],  // ASMAP
-	asmListingPlain    : [], // plain listing shows address, code, source
-	asmListingDec      : [], // decorated listing uses highlighting for fields
+        metadata : null,
 	asmListingCurrent  : [], // version of listing displayed in emulator pane
         asmListingHeight   : 0,   // height in pixels of the listing
 	curInstrAddr       : 0,
@@ -517,17 +467,12 @@ export let emulatorState =
 	nextInstrLineNo    : -1,
 	saveCurSrcLine     : "",
 	saveNextSrcLine    : "",
-//	srcLinePlain       : [],
-//	srcLineHighlightedFields : []
     }
-
-
 
 //------------------------------------------------------------------------------
 // Initialize machine state
 //------------------------------------------------------------------------------
 
-//---------------------------------------------------------------------------
 // Processor elements: html elements for displaying instruction decode
 
 let instrCodeElt;
@@ -538,7 +483,6 @@ let instrEAElt;
 let instrCCElt;
 let instrEffect1Elt;
 let instrEffect2Elt;
-
 
 export function initializeProcessorElements () {
     com.mode.devlog ('initializeProcessorElements');
@@ -551,7 +495,6 @@ export function initializeProcessorElements () {
     instrEffect1Elt = document.getElementById("InstrEffect1");
     instrEffect2Elt = document.getElementById("InstrEffect2");
 }
-
 
 export function initializeMachineState () {
     com.mode.devlog ("emulator: initializeMachineState");
@@ -616,8 +559,6 @@ export function initializeMachineState () {
 
     memInitialize();
     resetRegisters();
-
-    
 }
 
 //------------------------------------------------------------------------------
@@ -677,7 +618,6 @@ function refreshInstrDecode (es) {
 //     memDisplayFull ()          render html elements showing full memory
 //     memDisplay ()              use display mode to select fast or full
 
-
 // The memory is represented as array of words (represented as an
 // integer between 0 and 2^16-q) and a corresponding array of strings
 // showing each word as a hex number.  There are html elements for
@@ -691,9 +631,9 @@ let memElt1, memElt2;  // html elements for two views into the memory
 let memFetchInstrLog = [];
 let memFetchDataLog = [];
 let memStoreLog = [];
-export let memDisplayModeFull = false;  // show entire memory? or just a little of it?
-let memDisplayFastWindow = 16;   // how many locations to show in fast mode
-let memDispOffset = 3;    // how many locations above highligted one
+export let memDisplayModeFull = false;  // show entire/partial memory
+let memDisplayFastWindow = 16;          // how many locations to show in fast mode
+let memDispOffset = 3;                  // how many locations above highligted one
 
 // Must wait until onload event
 
@@ -851,23 +791,15 @@ function memDisplay () {
 // Set the memory displays, showing only part of the memory to save time
 
 function memDisplayFast () {
-//    com.mode.devlog ('memDisplayFast');
     let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
-
     xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
     xa = xa < 0 ? 0 : xa;
     xb = xa + memDisplayFastWindow;
     xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
     	+ memString.slice(xa,xb).join('\n')
 	+ "</code></pre>";
-
-//    xs = "<pre><code class='HighlightedTextAsHtml'>TEST</code></pre>";
-//    xs = "<pre><code>TEST</code></pre>";
-//    xs = "<code>TEST</code>";
-//    xs = "<pre>TEST</pre>";
     com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
     memElt1.innerHTML = xs;
-
     yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
     yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
     ya = yafet > 0 && yafet < yasto ? yafet : yasto;
@@ -936,8 +868,6 @@ function memTest1b () {
     memStore(300,20);
     memShowAccesses();
     memDisplay ();
-//    com.mode.devlog('testMem1 x = ' + x);  // should be 0, highlight Fetch
-//    com.mode.devlog('testMem1 y = ' + y);  // should be 7, highlight Store
 }
 
 function memTest2 () {
@@ -949,9 +879,6 @@ function memTest2 () {
     memShowAccesses ();
     memDisplay ();
 }
-
-
-// ?????
 
 //------------------------------------------------------------------------------
 // Processor execution status
@@ -970,8 +897,6 @@ function showProcStatus (s) {
         : "Unknown"
 }
 
-
-
 // Global variables for instruction decode; used in emulator
 
 let displayInstrDecode = true;
@@ -981,8 +906,6 @@ let instrOpStr = "";
 let instrArgsStr = "";
 let instrEA, instrEAStr;
 let instrEffect = [];
-
-
 
 // Fields of the current instruction
 
@@ -994,11 +917,8 @@ let ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
 let ea = 0;  // effective address
 
 // Global variables for handling listing display as program runs.
-// Uses global variables set by linker: exMod is executing module and
-// curAsmap is map from addresses to source lines
 
 let srcLine;        // copy of source statements
-
 
 // Keep track of the address of the currently executing instruction,
 // the address of the next instruction, and the line numbers where
@@ -1008,10 +928,8 @@ let srcLine;        // copy of source statements
 let curInstrAddr, curInstrLineNo, saveCurSrcLine;
 let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
 
-
 export function initializeSubsystems () {
     memDisplayModeFull = false;
-//    document.getElementById('FullDisplayToggleButton').value = "Fast display";
     document.getElementById('PP_Toggle_Display').value = "Fast display";  
 }
 
@@ -1154,11 +1072,7 @@ function showEffect (es,i) {
 // highlighting of fields from overriding the highlighting of the
 // current/next instruction, that is done using listingPlain.
 
-// Given address a, the corresponding source statement is
-//   i = es.curAsmap[a]
-//   if i=null then no source is avaiable
-//     else currentModule.asmStmt[i].srcLine
-
+// Given address a, the corresponding source statement is found using metadata
 
 function showListingParameters (es) {
     com.mode.devlog ('showListingParameters'
@@ -1175,11 +1089,11 @@ function prepareListingBeforeInstr (es) {
     com.mode.devlog ('prepareListingBeforeInstr');
     if (es.curInstrLineNo >= 0) {
 	es.asmListingCurrent[es.curInstrLineNo] =
-	    es.asmListingDec[es.curInstrLineNo];
+            es.metadata.listingDec[es.curInstrLineNo];
     }
     if (es.nextInstrLineNo >= 0) {
 	es.asmListingCurrent[es.nextInstrLineNo] =
-	    es.asmListingDec[es.nextInstrLineNo];
+	    es.metadata.listingDec[es.nextInstrLineNo];
     }
     es.curInstrLineNo = -1;
     es.nextInstrLineNo = -1;
@@ -1200,17 +1114,20 @@ function highlightListingAfterInstr (es) {
     com.mode.devlog ('  nextInstrAddr = ' + es.nextInstrAddr);
 
     // Highlight the instruction that just executed
-    // ASMAP
-    es.curInstrLineNo = es.asArrMap[es.curInstrAddr] + listingLineInitialOffset;
-    console.log (`highlight listing line a=${es.curInstrAddr} s=${es.curInstrLineNo}`)
+
+    es.curInstrLineNo = es.metadata.getSrcIdx (es.curInstrAddr)
+            + listingLineInitialOffset;
+
+    console.log (`highlight line a=${es.curInstrAddr} s=${es.curInstrLineNo}`)
     com.mode.devlog ('  curInstrLineNo = ' + es.curInstrLineNo);
     if (es.curInstrLineNo >= 0) {
 	com.highlightListingLine (es, es.curInstrLineNo, "CUR");
     }
 
-    // Highlight the instruction that will be executed next
-    // ASMAP
-    es.nextInstrLineNo = es.asArrMap[es.nextInstrAddr] + listingLineInitialOffset;
+// Highlight the instruction that will be executed next
+    es.nextInstrLineNo = es.metadata.getSrcIdx (es.nextInstrAddr)
+            + listingLineInitialOffset;
+
     com.mode.devlog ('  nextInstrLineNo = ' + es.nextInstrLineNo);
     if (es.nextInstrLineNo >= 0) {
 	com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
@@ -1237,7 +1154,6 @@ function highlightListingFull (es,m) {
 //    curline.scrollIntoView();
 }
 
-
 function setProcAsmListing (es) {
     com.mode.devlog ('setProcAsmListing');
     let xs = "<pre><code class='HighlightedTextAsHtml'>"
@@ -1247,9 +1163,8 @@ function setProcAsmListing (es) {
 }
 
 //------------------------------------------------------------------------------
-
-// function clearCtlRegs () {
-// }
+// Step and run instructions
+//------------------------------------------------------------------------------
 
 export function procStep(es) {
     com.mode.devlog ('procStep');
@@ -1351,7 +1266,6 @@ export function hideBreakDialogue () {
     document.getElementById("BreakDialogue").style.display = "none";
     breakDialogueVisible = false;
 }
-
 
 function breakRefresh (es) {
     com.mode.devlog ("breakRefresh");
@@ -1556,7 +1470,7 @@ function executeInstruction (es) {
 	return;
     };
 
-// No interrupt, go ahead with instruction
+// No interrupt, so proceed with next instruction
     es.curInstrAddr = pc.get();
     instrCode = memFetchInstr (es.curInstrAddr);
     ir.put (instrCode);
@@ -1859,7 +1773,6 @@ const dispatch_primary_opcode =
         handle_EXP,               // e  escape to EXP
         handle_rx ]               // f  escape to RX
 
-
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
 // the primary result is loaded into rd and the secondary result is
@@ -1981,7 +1894,6 @@ function rx_nop (es) {
 
 // EXP format
 
-
 function exp1_nop (es) {
     com.mode.devlog ('exp1_nop');
 }
@@ -2028,7 +1940,6 @@ function sr_looper (f,addr,first,last) {
 }
 
 function bininc4 (x) { return x >= 15 ? 0 : x+1 }
-
 
 // temp like put
 function exp2_getctl (es) {
