@@ -423,10 +423,10 @@ export function assemblerGUI () {
     document.getElementById('AsmTextHtml').innerHTML = ""; // clear text in asm
     document.getElementById('ProcAsmListing').innerHTML = ""; // clear text in proc
     com.clearObjectCode (); // clear text in linker pane
-    const ai = assembler (src);
+    const ai = assembler (m.baseName, src);
     m.asmInfo = ai;
     m.objMd = ai.objMd;
-    setAsmListing (ai.objMd);
+    setAsmListing ();
 }
 
 export function setAsmSource () {
@@ -440,7 +440,7 @@ export function setAsmListing () {
     const m = st.env.getSelectedModule ();
     const ai =  m.asmInfo;
     com.mode.devlog ("setAsmListing");
-    const lst = ai.objMd.md.listingDec; // array of listing lines
+    const lst = ai.metadata.listingDec; // array of listing lines
     console.log (`------ setAsmListing 1 ${lst} ---`);
     const listing = lst.join("\n");
     console.log (`------ setAsmListing 2 ${listing} ---`);
@@ -474,7 +474,7 @@ export function setMetadata () {
 // object is returned.  This is the main translator, used for both gui
 // and cli.
 
-export function assembler (srcText) {
+export function assembler (baseName, srcText) {
     const ai = new AsmInfo ();
     ai.text = srcText;
     let src2 = removeCR (srcText);
@@ -503,7 +503,9 @@ export function assembler (srcText) {
     }
     displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
-    ai.objMd = new st.ObjMd (ai.objectText, mdText);
+    ai.objectText = ai.objectCode.join("\n");
+    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
+    console.log (ai.objectText);
     return ai;
 }
 

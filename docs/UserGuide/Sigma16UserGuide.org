@@ -4145,6 +4145,14 @@ source 32
 #+END_EXAMPLE
 
 ** Linker
+- GUI: selected module is main program and also receives the
+  executable.  All other modules are linked, and their object code is
+  placed after that of the selected module.  It is an error if any
+  module has not been assembled.  The order of the object code depends
+  on the order of the modules in the module list, which is essentially
+  arbitrary, except that the selected module always comes first in the
+  executable.
+
 ** Loader
 *** Executable code
 

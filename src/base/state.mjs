@@ -302,15 +302,20 @@ const emptyExe = new Executable ("no object code", null);
 // populate an AdrSrcMap.
 
 export class ObjMd {
-    constructor (objText, mdText) {
+    constructor (baseName, objText, mdText) {
+        this.baseName = baseName;
         this.objText = objText;
+        console.log ("$$$$$$$$$$$$$$$$$$$$$$$$");
+        console.log (this.objText);
         this.mdText = mdText;
-        this.md = new Metadata ();
-        this.md.fromText (this.mdText);
+    }
+    hasObjectCode () {
+        return this.objText ? true : false
     }
     showShort () {
-        let xs = `${this.objText.split("\n").length} lines of object text,`
-        + ` ${this.mdText.split("\n").length} lines of metadata`;
+        let xs = `Object/metadata (${this.baseName}): `
+            + `${this.objText.split("\n").length} lines of object text,`
+            + ` ${this.mdText.split("\n").length} lines of metadata`;
         return xs;
     }
 }

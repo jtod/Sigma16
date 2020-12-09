@@ -34,7 +34,7 @@ let curAsmap = [];
 // Main linker function is linker (exe, mods)
 // Interface to CLI: read object files, call linker, write exe file
 // Interface to GUI: button id and function
-//   LP_Read_Object     getLinkerModulesGui
+//   LP_Read_Object     getLinkerModulesGui deprecated
 //   LP_Link            linkerGUI
 //   LP_Show_Object     linkShowExeObject
 //   LP_Show_Metadata   linkShowExeMetadata
@@ -56,12 +56,14 @@ let curAsmap = [];
 // linkerInfo, and oms is a list of S15Modules that contain objInfo
 
 export class LinkerState  {
-    constructor (exeMod, objMods) {
-        this.exeMod = exeMod;
-        this.objMods = objMods;
+    //    constructor (exeMod, objMods) {
+    constructor (obMdTexts) { // obMdTexts is an ObjMd object with text for obj, md
+        this.obMdTexts = obMdTexts;
         this.modMap = new Map ();
+        this.oiList = [];
         this.locationCounter = 0;
         this.linkErrors = []; // error messages
+        this.exeObjMd = null; // result of link
     }
 }
 
@@ -121,13 +123,26 @@ class AsmExport {
 // giving the object code text, and omMd is a string giving the
 // metadata text (null if there is no metadata).
 
+// Return just the first few lines of a (possibly long) text
+function takePrefix (xs) {
+    return xs ? xs.split("\n").slice(0,3).join("\n") : xs
+}
+
 export class ObjectInfo {
-    constructor(parent) { // omModule is the parent container
-        this.parent = parent;
-        this.omText = "";
+    //    constructor(parent) { // omModule is the parent container
+    constructor (i, obmdtext) {
+//        this.parent = parent; // ???
+        //        this.omText = "";
+        this.index = i;
+        this.obmdtext = obmdtext;
+        this.baseName = this.obmdtext.baseName;
+        this.objectText = this.obmdtext.objText;
+        this.mdText = this.obmdtext.mdText;
+        
         this.omObjectLines = [];
-        this.omMd = "";
+        this.omMdText = "";
         this.omMdLines = [];
+        this.omMetadata = null;
         this.omDataBlocks = [new ObjectBlock (0)];
         this.omRelocations = [];
         this.omAsMap = [];
@@ -268,10 +283,29 @@ prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));
 //        If m.asmInfo exists, obtain obj and md there (error if not found)
 //        
 
-export function linkerGui () {
-    console.log ("linkerGui");
-//    let {exeMod, objMod} = getLinkerModulesGui ();
-//    console.log (`exemod = ${exeMod.dclmodname}`);
+// linkerGUI is invoked when the Link button on the Linker tab is
+// clicked.  It gathers all the modules that are loaded and calls the
+// linker; the selected module is the main program and the executable
+// is stored in the selected module.
+
+export function linkerGUI () {
+    console.log ("linkerGUI");
+    //    const selm = st.env.showSelectedModuleName();
+//    console.log (`linkerGUI main program is ${selm}`);
+    const selm = st.env.getSelectedModule ();
+    const selOMD = selm.objMd;
+    let objs = [selOMD];
+    for (const m of st.env.modules.values ()) {
+        const isSel = selm.baseName === m.baseName;
+        if (!isSel) { objs.push(m.objMd) }
+        console.log (`linkerGUI ${isSel} ${m.baseName}`);
+    }
+    for (let foo of objs) {
+        console.log (`Object module ${foo.baseName}`);
+    }
+//    let exe = new st.ObjMd ();
+    //    linker (exe, mods);
+    linker (objs);
 }
 
 // getLinkerModulesGui looks at the selected module, which should be a
@@ -279,7 +313,7 @@ export function linkerGui () {
 // modules; if any object module isn't present it provides an error
 // message and returns null.
 
-
+/* deprecated
 export function getLinkerModulesGui () {
     console.log ('getLinkerModulesGui');
     let modlist = document.getElementById('EditorTextArea').value.split('\n');
@@ -361,6 +395,7 @@ export function getLinkerModulesGui () {
     console.log (modlist);
     return {exeMod, objMod};
 }
+*/
 
 // Linker object button
 export function linkShowExeObject () {
@@ -392,11 +427,34 @@ export function linkShowExeMetadata () {
 // placed in the result module; if there are no linker errors, the
 // result module can be booted.
 
-export function linker (exeMod, objMods) {
-    const ls = new LinkerState (exeMod, objMods);
-    exeMod.objInfo = new ObjectInfo (exeMod);
-    console.log (`Linking executable ${exeMod.baseName}`
-                 + ` from ${objMods.length} object modules`);
+// The argument is a list of ObjMd records; each contains an objText
+// which is a string, and an mdText which is either a string
+// representing the metadata, or null.  The linker returns a
+// LinkerState object which contains an ObjMd that holds the
+// executable code and optionally metadata for it.
+
+export function linker (obMdTexts) {
+    const ls = new LinkerState (obMdTexts);
+    console.log ("-------------- entering linker...");
+    let mcount = 0;
+    for (const obtext of obMdTexts) {
+        console.log (`--- Module ${mcount}`);
+        console.log (obtext.showShort());
+        let oi = new ObjectInfo (mcount, obtext);
+        ls.modMap.set (obtext.baseName, oi);
+        mcount++;
+    }
+    for (let temp of ls.modMap.keys()) {
+        console.log (`Module key = ${temp}`);
+        let temp2 = ls.modMap.get(temp).baseName;
+        console.log (`baseName:\n ${temp2}`);
+        let temp3 = ls.modMap.get(temp).objectText;
+        console.log (`objText:\n ${takePrefix(temp3)}`);
+        let temp4 = ls.modMap.get(temp).mdText;
+        console.log (`mdText:\n ${takePrefix(temp4)}`);
+    }
+    console.log ("-------------- linker starting ...");
+
     pass1 (ls); // parse object and record directives
 //    console.log ("\n-------------------------------------------------");
 //    console.log ("Linker state after pass 1:");
@@ -424,7 +482,6 @@ export function linker (exeMod, objMods) {
 
 function pass1 (ls) {
     console.log ("Pass 1");
-    const exeMod = ls.exeMod;
     const objMods = ls.objMods;
     for (const om of objMods) {
         const objInfo = om.objInfo;

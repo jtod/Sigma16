@@ -1,0 +1,22 @@
+; Main: test linker
+; This file is part of Sigma16, see README and https://jtod.github.io/home/Sigma16/
+
+; sigma16 assemble Main
+; sigma16 assemble Mod1
+; sigma16 link ProgExe Main Mod1
+
+; The link command operands are the basename of the executable output
+; followed by the basenames of the object files.
+
+Main  module
+      load   R1,x[R0]
+      load   R2,y[R0]
+      add    R5,R1,R3
+      jal    R14,fcn[R0]
+      store  R3,x[R0]
+      store  R3,res[R0]
+      trap   R0,R0,R0
+fcn   import Mod1,fcn      
+res   data   0
+x     import Mod1,abc
+y     import Mod1,def
