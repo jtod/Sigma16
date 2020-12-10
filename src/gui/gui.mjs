@@ -331,18 +331,17 @@ prepareButton ('EDP_Save',        ed.edDownload);
 // prepareButton ('EDP_Save',  ed.editorDownload);
 
 // Assembler pane (AP)
-prepareButton ('AP_Assemble',  asm.assemblerGUI);
-prepareButton ('AP_Show_Source',  asm.setAsmSource);
-prepareButton ('AP_Show_Object',  asm.setObjectListing);
-prepareButton ('AP_Show_Listing',  asm.setAsmListing);
-prepareButton ('AP_Show_Metadata',  asm.setMetadata);
+prepareButton ('AP_Assemble',        asm.assemblerGUI);
+prepareButton ('AP_Show_Source',     asm.setAsmSource);
+prepareButton ('AP_Show_Object',     asm.setObjectListing);
+prepareButton ('AP_Show_Listing',    asm.setAsmListing);
+prepareButton ('AP_Show_Metadata',   asm.setMetadata);
 
 // Linker pane (LP)
-prepareButton ('LP_Read_Object',   link.getLinkerModules);
-prepareButton ('LP_Link',          link.linkerGUI);
-prepareButton ('LP_Show_Object',   link.linkShowExeObject);
-prepareButton ('LP_Show_Metadata', link.linkShowExeMetadata);
-prepareButton ('LP_Boot',          () => em.boot(em.emulatorState));
+prepareButton ('LP_Link',            link.linkerGUI);
+prepareButton ('LP_Read_Object',     link.getLinkerModules);
+prepareButton ('LP_Show_Executable', link.linkShowExecutable);
+prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
 // Processor pane (PP)
 prepareButton ('PP_Reset',        () => em.procReset(em.emulatorState));

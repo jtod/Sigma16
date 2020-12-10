@@ -29,12 +29,11 @@ import * as st from './state.mjs';
 import * as asm from './assembler.mjs';
 
 // refactor
-let curAsmap = [];
+// let curAsmap = []; deprecated
 
 // Main linker function is linker (exe, mods)
 // Interface to CLI: read object files, call linker, write exe file
 // Interface to GUI: button id and function
-//   LP_Read_Object     getLinkerModulesGui deprecated
 //   LP_Link            linkerGUI
 //   LP_Show_Object     linkShowExeObject
 //   LP_Show_Metadata   linkShowExeMetadata
@@ -63,6 +62,8 @@ export class LinkerState  {
         this.oiList = [];
         this.locationCounter = 0;
         this.linkErrors = []; // error messages
+        this.exeCode = "";
+        this.exeMetadata = "";
         this.exeObjMd = null; // result of link
     }
 }
@@ -138,7 +139,6 @@ export class ObjectInfo {
         this.baseName = this.obmdtext.baseName;
         this.objectText = this.obmdtext.objText;
         this.mdText = this.obmdtext.mdText;
-        
         this.omObjectLines = [];
         this.omMdText = "";
         this.omMdLines = [];
@@ -263,17 +263,17 @@ function adjust (ls, om, addr, f) {
 
 /* From gui.mjs
 // Linker pane (LP)
-prepareButton ('LP_Read_Object',   link.getLinkerModules);
 prepareButton ('LP_Link',          link.linkerGUI);
+prepareButton ('LP_Read_Object',   link.getLinkerModules);
 prepareButton ('LP_Show_Object',   link.linkShowExeObject);
 prepareButton ('LP_Show_Metadata', link.linkShowExeMetadata);
-prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));
+prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));  // No!
 */
 
-// Obtain the modules to link: the editor pane should contain a list
-// consisting of the executable base name, followed by baseNames of
-// the modules to be linked.  These should be given on separate lines,
-// with no white space.
+// Linker command: Obtain the modules to link: the editor pane should
+// contain a list consisting of the executable base name, followed by
+// baseNames of the modules to be linked.  These should be given on
+// separate lines, with no white space.
 
 // Finding object/metadata text for a given module baseName mbn
 //   Module name: if there is a filename, the extension asm/obj
@@ -282,6 +282,8 @@ prepareButton ('LP_Boot',          () => em.boot(st.emulatorState));
 //     else (m matches baseName)
 //        If m.asmInfo exists, obtain obj and md there (error if not found)
 //        
+
+// Link the open modules, and use selected module as main program
 
 // linkerGUI is invoked when the Link button on the Linker tab is
 // clicked.  It gathers all the modules that are loaded and calls the
@@ -306,6 +308,15 @@ export function linkerGUI () {
 //    let exe = new st.ObjMd ();
     //    linker (exe, mods);
     linker (objs);
+    let ls = st.env.linkerState;
+    let xs = "<pre class='HighlightedTextAsHtml'>"
+        + ls.exeCode
+        + "</pre>";
+    document.getElementById('LinkerBody').innerHTML = xs;
+
+    let xm = st.env.getSelectedModule ();
+    let exe = new st.ObjMd (xm.baseName, ls.exeCode, ls.exeMetadata);
+    xm.executable = exe;
 }
 
 // getLinkerModulesGui looks at the selected module, which should be a
@@ -397,20 +408,29 @@ export function getLinkerModulesGui () {
 }
 */
 
-// Linker object button
-export function linkShowExeObject () {
+// Display executable on the linker pane; invoked when "Show object"
+// button is clicked
+
+export function linkShowExecutable () {
     console.log ("linkShowExeObject");
+    let ls = st.env.linkerState;
+    let code = ls.exeCode;
     let xs = "<pre class='HighlightedTextAsHtml'>"
-        + "no object"
+        + code
         + "</pre>";
     document.getElementById('LinkerBody').innerHTML = xs;
 }
 
-// Linker metadata button
-export function linkShowExeMetadata () {
+// Display the executable metadata; invokded when "Show metadata"
+// button is clicked
+
+export function linkShowMetadata () {
     console.log ("linkShowExeMetadata");
+    console.log ("linkShowExeObject");
+    let ls = st.env.linkerState;
+    let md = "No metadata"
     let xs = "<pre class='HighlightedTextAsHtml'>"
-        + "<h3>no metadata</h3>\nNone available<br>yet"
+        + md
         + "</pre>";
     document.getElementById('LinkerBody').innerHTML = xs;
 }
@@ -435,15 +455,19 @@ export function linkShowExeMetadata () {
 
 export function linker (obMdTexts) {
     const ls = new LinkerState (obMdTexts);
+    st.env.linkerState = ls;
     console.log ("-------------- entering linker...");
-    let mcount = 0;
+    let mcount = 0; // number of object modules being linked
+    let oiList = []; // an ObjectInfo for each module being linked
     for (const obtext of obMdTexts) {
         console.log (`--- Module ${mcount}`);
         console.log (obtext.showShort());
-        let oi = new ObjectInfo (mcount, obtext);
-        ls.modMap.set (obtext.baseName, oi);
+        let oi = new ObjectInfo (mcount, obtext); // info about this module
+        ls.modMap.set (obtext.baseName, oi); // lookup for imports
+        ls.oiList.push (oi); // list keeps the modules in fixed order
         mcount++;
     }
+    console.log ("Traverse the keys...");
     for (let temp of ls.modMap.keys()) {
         console.log (`Module key = ${temp}`);
         let temp2 = ls.modMap.get(temp).baseName;
@@ -452,6 +476,10 @@ export function linker (obMdTexts) {
         console.log (`objText:\n ${takePrefix(temp3)}`);
         let temp4 = ls.modMap.get(temp).mdText;
         console.log (`mdText:\n ${takePrefix(temp4)}`);
+    }
+    console.log ("Traverse the oiList...");
+    for (let i = 0; i < ls.oiList.length; i++) {
+        console.log (`i=${i} baseName=${ls.oiList[i].baseName}`);
     }
     console.log ("-------------- linker starting ...");
 
@@ -466,11 +494,12 @@ export function linker (obMdTexts) {
     const objectCode = emitCode (ls);
     console.log ("linker, Here is the objectcode");
     console.log (objectCode);
+    ls.exeCode = objectCode;
     const linkerListing = "Linker listing\n";
     console.log ("linker, Here is the linker listing");
     console.log (linkerListing);
     const result = {exeCode: objectCode, lnkTxt: linkerListing};
-    return result
+    return result;
 }
 
 //-------------------------------------------------------------------------------
@@ -481,21 +510,33 @@ export function linker (obMdTexts) {
 // syntax, builds data blocks, and records the directives
 
 function pass1 (ls) {
-    console.log ("Pass 1");
+    console.log ("*** Linker pass 1");
+    for (let i = 0; i < ls.oiList.length; i++) {
+        let oi = ls.oiList[i];
+        console.log (`--- Object info ${i} (${oi.baseName})`);
+        oi.omObjectLines = oi.objectText.split("\n");
+        oi.omMdLines = oi.mdText.split("\n");
+        parseObject (ls, oi);
+    }
+
+}
+/* old version deprecated
     const objMods = ls.objMods;
     for (const om of objMods) {
         const objInfo = om.objInfo;
-        objInfo.omObjectLines = objInfo.omText.split("\n");
+        oi.omObjectLines = objInfo.omText.split("\n");
         objInfo.omMdLines = objInfo.omMd.split("\n");
         parseObject (ls, om);
     }
-}
+*/
+
 
 // Parse object module om with linker state ls
 
-function parseObject (ls, om) {
+function parseObject (ls, obj) {
     com.mode.trace = true;
-    const obj = om.objInfo;
+    //    const obj = om.objInfo;
+//    let obj = oi;
     obj.omStartAddress = ls.locationCounter;
     ls.modMap.set (obj.omName, obj);
     obj.omAsmExportMap = new Map ();
@@ -551,16 +592,29 @@ function parseObject (ls, om) {
 
 function pass2 (ls) {
     console.log ("Pass 2");
+    for (let i = 0; i < ls.oiList.length; i++) {
+        let oi = ls.oiList[i];
+        console.log (`--- pass 2 oi ${i} (${oi.baseName})`);
+        resolveImports (ls, oi);
+        resolveRelocations (ls, oi);
+    }
+}
+/*
+function pass2 (ls) {
+    console.log ("Pass 2");
     for (const om of ls.objMods) {
         resolveImports (ls, om.objInfo);
         resolveRelocations (ls, om.objInfo);
     }
 }
+*/
+
 
 // om is an objInfo object
 
 function resolveImports (ls, om) {
-    console.log (`Resolving imports for ${om.omName}`);
+    //    console.log (`Resolving imports for ${om.omName}`);
+    console.log (`Resolving imports for ${om.baseName}`);
     for (const x of om.omAsmImports) {
         console.log (`  Importing ${x.name} from ${x.mod}`);
         if (ls.modMap.has(x.mod)) { // Does module we're importing from exist?
@@ -584,7 +638,7 @@ function resolveImports (ls, om) {
 
 function resolveRelocations (ls, om) {
     const relK = om.omStartAddress; // relocation constant for the object module
-    console.log (`Resolving relocations for ${om.omName}`
+    console.log (`Resolving relocations for ${om.baseBame}`
                  + ` relocation=${arith.wordToHex4(relK)}`);
     for (const a of om.omRelocations) {
         console.log (`  relocate ${arith.wordToHex4(a)}`);
@@ -592,6 +646,7 @@ function resolveRelocations (ls, om) {
         adjust (ls, om, addressNum, (y) => y + relK);
     }
 }
+    //    console.log (`Resolving relocations for ${om.omName}`
 
 
 //-------------------------------------------------------------------------------
@@ -604,12 +659,14 @@ function emitCode (ls) {
     if (ls.linkErrors.length > 0) {
         console.log ("Link errors, cannot emit code");
     } else {
-        for (const om of ls.objMods) {
-            console.log (`Emitting code for ${om.omName}`);
-            exeCode += `module ${om.baseName}\n`;
-            exeCode += `org ${arith.wordToHex4(om.omStartAddress)}\n`;
-            for (const b of om.objInfo.omDataBlocks) {
-                             exeCode += emitObjectWords (b.xs);
+        //        for (const om of ls.objMods) {
+        for (let i = 0; i < ls.oiList.length; i++) {
+            let oi = ls.oiList[i];
+            console.log (`Emitting code for ${oi.baseName}`);
+            exeCode += `module ${oi.baseName}\n`;
+            exeCode += `org ${arith.wordToHex4(oi.omStartAddress)}\n`;
+            for (const b of oi.omDataBlocks) {
+                exeCode += emitObjectWords (b.xs);
             }
         }
         console.log ("Executable code:");
@@ -617,6 +674,11 @@ function emitCode (ls) {
     }
     return exeCode;
 }
+
+//            console.log (`Emitting code for ${om.omName}`);
+//            exeCode += `module ${om.baseName}\n`;
+//            exeCode += `org ${arith.wordToHex4(om.omStartAddress)}\n`;
+//            for (const b of om.objInfo.omDataBlocks) {
 //                let ys = b.xs.map(arith.wordToHex4);
 //                let zs = ys.join(",");
 //                console.log (`emit ys=${ys}\n zs=${zs}`);

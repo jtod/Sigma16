@@ -160,6 +160,8 @@ export function boot (es) {
             let modname = fields.operands[0];
             let safemodname = modname ? modname : "(anonymous)";
             com.mode.devlog (`boot: module ${safemodname}`);
+        } else if (fields.operation == "org") {
+            console.log ("--- skipping org");
         } else if (fields.operation == "data") {
             com.mode.devlog ("boot: data");
             for (let j = 0; j < fields.operands.length; j++) {

@@ -64,6 +64,7 @@ export class SystemState {
         this.selectedModule = null;
         this.anonymousCount = 0;
         this.emulatorState = null;
+        this.linkerState = null;
     }
     showSelectedModuleName () {
         return this.selectedModule ? this.selectedModule : "No module selected";
