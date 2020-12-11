@@ -309,7 +309,7 @@ prepareButton ('EXP_Select_Example',    smod.selectExample);
 // prepareButton ('MP_New',    smod.newModule);
 prepareButton ('MP_Refresh',    smod.refreshModulesList);
 prepareButton ('MP_New',        smod.newMod);
-prepareButton ('MP_Test',       smod.test);
+prepareButton ('MP_Hello_world', () => insert_example(example_hello_world));
 
 // Editor pane (EDP)
 prepareButton ('EDP_Selected',    ed.edSelectedButton);
@@ -320,15 +320,8 @@ prepareButton ('EDP_Asm',         ed.edAsm);
 prepareButton ('EDP_Obj',         ed.edObj);
 prepareButton ('EDP_Exe',         ed.edExe);
 prepareButton ('EDP_Link',        ed.edLink);
-prepareButton ('EDP_Hello_World', () => insert_example(example_hello_world));
-prepareButton ('EDP_Test',        ed.edTest);
+prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
 prepareButton ('EDP_Save',        ed.edDownload);
-
-// prepareButton ('EDP_asm',      () => smod.edAsm (AsmModule));
-// prepareButton ('EDP_New_obj',  () => smod.newModule (ObjModule));
-// prepareButton ('EDP_New_link',  () => smod.newModule (LnkModule));
-// prepareButton ('EDP_Hello_World',  () => insert_example(example_hello_world));
-// prepareButton ('EDP_Save',  ed.editorDownload);
 
 // Assembler pane (AP)
 prepareButton ('AP_Assemble',        asm.assemblerGUI);
@@ -555,6 +548,9 @@ function checkTestBody () {
 
 function insert_example(exampleText) {
     com.mode.devlog('Inserting example add into editor text');
+    let m = st.env.mkSelectModule ("HelloWorld");
+    m.asmEdText = exampleText;
+    smod.refreshModulesList ();
     document.getElementById('EditorTextArea').value = exampleText;
 };
 

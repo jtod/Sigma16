@@ -81,6 +81,7 @@ export function edSelectedButton () {
     console.log ("edSelectedButton clicked");
 }
 
+/* deprecated
 export function edTest () {
     console.log ("edTest");
     console.log (getEditorBufferText ());
@@ -88,6 +89,7 @@ export function edTest () {
     setEditorBufferText ("This is new text for the ed buffer");
     console.log (getEditorBufferText ());
 }
+*/
 
 // Check to see if the contents of the editor buffer have changed
 

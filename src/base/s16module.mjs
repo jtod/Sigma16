@@ -85,6 +85,7 @@ function handleClose (bn) {
 
 // Temporary testing code
 
+/* deprecated
 export function test() {
     console.log ("smod.test");
     refreshModulesList ();
@@ -99,6 +100,7 @@ export function test() {
         console.log (`key = ${k}`);
     }
 }
+*/
 
 //------------------------------------------------------------------------------
 // Representation of a module

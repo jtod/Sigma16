@@ -1,4 +1,3 @@
-
 /*
 Sigma16: gui.css
 Copyright (C) 2020 John T. O'Donnell
@@ -906,4 +905,25 @@ don't include fonts as these are specified by HighlightedTextAsHtml
     color: blue;
     font-family: sans-serif;
     font-weight: bold;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Color scheme: light */
+/* ------------------------------------------------------------------------ */
+
+:root {
+    --text-background-color: white;
+}
+.MidMainRight {
+    background-color: pink;
+    background-color: var(--mid-main-separator-color);
+    background-color: white;
+}
+
+.HighlightedTextAsHtml {
+    background-color: white;
+}
+
+.MidMainSection {
+    background-color: white;
 }

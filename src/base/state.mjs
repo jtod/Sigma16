@@ -405,8 +405,12 @@ export class Metadata {
         if (!this.mdText) { this.mdText = this.toText () }
         return this.mdText
     }
+    setMdText (xs) {
+        this.mdText = xs;
+    }
     fromText (x) { // parse text and populate the object
         this.clear ();
+        this.mdText = x;
         const xs = x.split ("\n");
         let ns = [];
         let i = 0;
@@ -459,6 +463,15 @@ export class Metadata {
             xs += this.listingText[i] + "\n";
             xs += this.listingPlain[i] + "\n";
             xs += this.listingDec[i] + "\n";
+        }
+        return xs;
+    }
+    gatherSrcLines () {
+        let xs = [];
+        for (let i = 0; i < this.listingPlain.length; i++) {
+            xs.push (this.listingText[i]);
+            xs.push (this.listingPlain[i]);
+            xs.push (this.listingDec[i]);
         }
         return xs;
     }
