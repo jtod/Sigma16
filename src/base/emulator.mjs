@@ -199,7 +199,6 @@ export function boot (es) {
             + "Boot was successful"
             + "</span><br>"
             + "</pre>";
-        document.getElementById('LinkerText').innerHTML = xs;
         com.mode.devlog ("boot was successful")
     } else {
         setProcStatus (es,Reset);

@@ -306,7 +306,6 @@ export class ObjMd {
     constructor (baseName, objText, mdText) {
         this.baseName = baseName;
         this.objText = objText;
-        console.log ("$$$$$$$$$$$$$$$$$$$$$$$$");
         console.log (this.objText);
         this.mdText = mdText;
     }
@@ -363,24 +362,24 @@ export class Metadata {
         this.listingDec = [];     // source lines decorated with html span elements
         this.mdText = null;
     }
-    addMappingSrc (a, i, srcText, srcPlain, srcDec) {
+    addMappingSrc (a, i, srcText, srcPlain, srcDec) { // add a->i plus src
         this.pairs.push({a,i});
         this.mapArr[a] = i;
         this.listingText[i] = srcText;
         this.listingPlain[i] = srcPlain;
         this.listingDec[i] = srcDec;
     }
-    addMapping (a, i) { // add new mapping
+    addMapping (a, i) { // add new mapping a->i
         this.pairs.push({a,i});
         this.mapArr[a] = i;
         console.log (`*** Metadata addMapping ${a} ${i}`);
     }
-    pushSrc (srcText, srcPlain, srcDec) {
+    pushSrc (srcText, srcPlain, srcDec) { // add src line in three forms at end
         this.listingText.push (srcText);
         this.listingPlain.push (srcPlain);
         this.listingDec.push (srcDec);
     }
-    addSrc (i, srcText, srcPlain, srcDec) { // insert source at given index
+    addSrc (i, srcText, srcPlain, srcDec) { // add src line in three forms at i
         this.listingText[i] = srcText;
         this.listingPlain[i] = srcPlain;
         this.listingDec[i] = srcDec;
@@ -404,6 +403,22 @@ export class Metadata {
     getMdText () {
         if (!this.mdText) { this.mdText = this.toText () }
         return this.mdText
+    }
+    addSrcLines (xs) {
+        for (let i = 0; i+3 < xs.length; i += 3) {
+            this.listingText.push (xs[i]);
+            this.listingPlain.push (xs[i+1]);
+            this.listingDec.push (xs[i+2]);
+        }
+    }
+    getSrcLines () {
+        let xs = [];
+        for (let i = 0; i < this.listingPlain.length; i++) {
+            xs.push (this.listingText[i]);
+            xs.push (this.listingPlain[i]);
+            xs.push (this.listingDec[i]);
+        }
+        return xs;
     }
     setMdText (xs) {
         this.mdText = xs;
@@ -463,15 +478,6 @@ export class Metadata {
             xs += this.listingText[i] + "\n";
             xs += this.listingPlain[i] + "\n";
             xs += this.listingDec[i] + "\n";
-        }
-        return xs;
-    }
-    gatherSrcLines () {
-        let xs = [];
-        for (let i = 0; i < this.listingPlain.length; i++) {
-            xs.push (this.listingText[i]);
-            xs.push (this.listingPlain[i]);
-            xs.push (this.listingDec[i]);
         }
         return xs;
     }

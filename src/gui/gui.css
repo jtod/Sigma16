@@ -150,6 +150,27 @@ scroll from working */
  */
 
 
+/* ------------------------------------------------------------------------ */
+/* Default color scheme
+/* ------------------------------------------------------------------------ */
+
+:root {
+    --text-background-color: white;
+}
+.MidMainRight {
+    background-color: pink;
+    background-color: var(--mid-main-separator-color);
+    background-color: white;
+}
+
+.HighlightedTextAsHtml {
+    background-color: white;
+}
+
+.MidMainSection {
+    background-color: white;
+}
+
 /* Specifying margin:0 for .pre doesn't work, as it is overridden by a
    setting of margin: 1em 0em.  But using <pre class="CodePre"> works:
    the following margin settings are applied and they override the
@@ -908,7 +929,7 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 }
 
 /* ------------------------------------------------------------------------ */
-/* Color scheme: light */
+/* Color scheme: light
 /* ------------------------------------------------------------------------ */
 
 :root {

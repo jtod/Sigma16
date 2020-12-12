@@ -54,11 +54,12 @@ export class LinkerState  {
         this.obMdTexts = obMdTexts;
         this.modMap = new Map ();
         this.oiList = [];
+        this.mcount = 0; // number of object modules
         this.locationCounter = 0;
-        this.md = new st.Metadata ();
+        this.metadata = new st.Metadata ();
+        this.objectLines = [];
         this.srcLines = [];
         this.linkErrors = []; // error messages
-        this.exeCode = "";
         this.exeObjMd = null; // result of link
     }
 }
@@ -127,7 +128,7 @@ export class ObjectInfo {
         this.index = i; // position in array of object modules
         this.obmdtext = obmdtext; // contains basename, object and metadata strings
         this.baseName = this.obmdtext.baseName;
-        this.objectText = this.obmdtext.objText;
+        this.objText = this.obmdtext.objText;
         this.mdText = this.obmdtext.mdText;
         this.objectLines = [];
         this.mdLines = this.mdText.split("\n");
@@ -260,19 +261,18 @@ export function linkerGUI () {
         if (!isSel) { objs.push(m.objMd) }
         console.log (`linkerGUI ${isSel} ${m.baseName}`);
     }
-    for (let foo of objs) {
-        console.log (`Object module ${foo.baseName}`);
-    }
-    linker (objs);
-    let ls = st.env.linkerState;
+    let result = linker (selm.baseName, objs);
+    let exeObjMd = result.exe;
+    let xm = st.env.getSelectedModule ();
+    xm.executable = exeObjMd;
+    let objectText = exeObjMd.objText;
+    let mdText = exeObjMd.mdText;
+    let listing = result.listing;
     let xs = "<pre class='HighlightedTextAsHtml'>"
-        + ls.exeCode
+        + objectText
         + "</pre>";
     document.getElementById('LinkerBody').innerHTML = xs;
 
-    let xm = st.env.getSelectedModule ();
-    let exe = new st.ObjMd (xm.baseName, ls.exeCode, ls.exeMetadata);
-    xm.executable = exe;
 }
 
 // Display executable on the linker pane; invoked when "Show object"
@@ -314,41 +314,23 @@ export function linkShowMetadata () {
 // linker errors, the messages are placed in the result module; if
 // there are no linker errors, the result module can be booted.
 
-export function linker (obMdTexts) {
-    const ls = new LinkerState (obMdTexts);
-    st.env.linkerState = ls;
+export function linker (exeName, obMdTexts) {
     console.log ("-------------- entering linker...");
-    let mcount = 0; // number of object modules being linked
-    let oiList = []; // an ObjectInfo for each module being linked
-    for (const obtext of obMdTexts) {
-        console.log (`--- Module ${mcount}`);
-        console.log (obtext.showShort());
-        let oi = new ObjectInfo (mcount, obtext); // info about this module
-        ls.modMap.set (obtext.baseName, oi); // lookup for imports
-        ls.oiList.push (oi); // list keeps the modules in fixed order
-        mcount++;
-    }
-    console.log ("Object modules:");
-    for (let i = 0; i < ls.oiList.length; i++) {
-        console.log (`i=${i} baseName=${ls.oiList[i].baseName}`);
-    }
+    const ls = new LinkerState (obMdTexts); // holds linker's variables
+    st.env.linkerState = ls; // record linker state in global environment
     pass1 (ls); // parse object and record directives
     pass2 (ls); // process imports and relocations
-    const objectCode = emitCode (ls);
-    console.log ("linker, Here is the objectcode");
-    console.log (objectCode);
-    ls.exeCode = objectCode;
-    console.log ("**** Executable metadata source lines:");
-    console.log (ls.srcLines.join("\n")); // need to add the lines to ois.md
-    console.log ("***");
+    ls.exeCodeText = emitCode (ls);
+    ls.exeMdText = ls.metadata.toText ();
+    ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);
+    console.log ("*** Executable code ***");
+    console.log (ls.exeCodeText);
+    console.log ("*** Executable metadata ***:");
+    console.log (ls.exeMdText);
 
-//    ls.mdLines.unshift (["dummy", "source"]);
-//    ls.mdText = ls.mdLines.join("\n");
-//    console.log (ls.mdText);
-    
     const linkerListing = "Linker listing\n";
     console.log (`Linker listing:\n${linkerListing}`);
-    const result = {exeCode: objectCode, lnkTxt: linkerListing};
+    const result = {exe: ls.exeObjMd, listing: linkerListing};
     return result;
 }
 
@@ -361,15 +343,22 @@ export function linker (obMdTexts) {
 
 function pass1 (ls) {
     console.log ("*** Linker pass 1");
-    for (let i = 0; i < ls.oiList.length; i++) {
-        let oi = ls.oiList[i];
-        oi.objectLines = oi.objectText.split("\n");
+    ls.mcount = 0; // number of object modules being linked
+    ls.oiList = []; // an ObjectInfo for each module being linked
+    for (const obtext of ls.obMdTexts) {
+        let oi = new ObjectInfo (ls.mcount, obtext); // info about this module
+        console.log (`Linker pass 1: i=${ls.mcount} baseName=${oi.baseName}`);
+        ls.modMap.set (obtext.baseName, oi); // support lookup for imports
+        ls.oiList.push (oi); // list keeps the modules in fixed order
+        oi.objectLines = oi.objText.split("\n");
         oi.metadata = new st.Metadata ();
         oi.metadata.fromText (oi.mdText);
-        oi.srcLineOrigin = oi.mdLines.length;
-        ls.srcLines.concat (oi.metadata.gatherSrcLines ());
-        console.log (`P1 ${i} ${oi.baseName} slo=${oi.srcLineOrigin}`);
+        oi.srcLineOrigin = ls.metadata.getSrcLines().length;
+        console.log (`pass 1 ${oi.baseName} origin=${oi.srcLineOrigin}`);
+        let foo = oi.metadata.getSrcLines ();
+        ls.metadata.addSrcLines (foo)
         parseObject (ls, oi);
+        ls.mcount++;
     }
 }
 
@@ -545,21 +534,3 @@ export function parseObjLine (xs) {
     }
         return {operation, operands}
 }
-
-// Deprecated
-
-/*
-function mkObjStmt (i,srcLine,operation,operands) {
-    return {
-        objLineNo : i,
-        objSrcLine : objSrcLine,
-        objOperation : operation,
-        objOperands : operands,
-        objLocation : 0,
-//        objOmSize : 0,
-        objOperandNames : [],
-        objLine : []
-    }
-}
-*/
-//        oi.omMdLines = oi.mdText.split("\n");
