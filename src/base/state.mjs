@@ -332,23 +332,8 @@ export class ObjMd {
 // optional Metadata is present, the emulator can also show the source
 // code corresponding to the current and next instruction.
 
-// NOTES during conversion...
-
-// In assembler:
-// see AsmInfo, emitMetadata, generateObjectWord
-//    ma.asArrMap[a] = s.lineNumber; // ASMAP in generateObjectWord
-//    xs = [...ma.asArrMap]; in emitMetadata
-//    xs = [...ma.asArrMap]; // ASMAP in emitMetadata
-//    ma.metadata.push (`asmap ${xs.length}`); // ASMAP in emitMetadata
-
-// In emulator:
-// See obtainObjectCode, showAsMap, highlightListingAfterInstr
-// Examples of usage...
-//    es.curInstrLineNo = es.asArrMap[es.curInstrAddr] + listingLineInitialOffset;
-//    es.nextInstrLineNo = es.asArrMap[es.nextInstrAddr] + listingLineInitialOffset;
-//        asArrMap : [],   in emulatorState
-
-const eltsPerLineLimit = 16; // how many numbers in the mapping per line    }
+// const eltsPerLineLimit = 16; // how many numbers in the mapping per line    }
+const eltsPerLineLimit = 4; // how many numbers in the mapping per line    }
 
 export class Metadata {
     constructor () {
@@ -361,23 +346,49 @@ export class Metadata {
         this.listingPlain = [];   // source lines
         this.listingDec = [];     // source lines decorated with html span elements
         this.mdText = null;
+        this.adrOffset = 0;
+        this.srcOffset = 0; // convert a->i to a->i+srcLineOffset
+    }
+    addPairs (ps) {
+        for (let p of ps) {
+            this.mapArr [p.address] = p.index
+            this.pairs.push (p)
+        }
+    }
+    translateMap (adrOffset, srcOffset) {
+        this.adrOffset = adrOffset
+        this.srcOffset = srcOffset
+        let xs = []
+        this.mapArr = []
+        for (const x of this.pairs) {
+            const p = {address: x.address + adrOffset, index: x.index + srcOffset}
+            xs.push (p)
+            this.mapArr [x.address + adrOffset] = x.index + srcOffset
+        }
+        this.pairs = xs
     }
     addMappingSrc (a, i, srcText, srcPlain, srcDec) { // add a->i plus src
-        this.pairs.push({a,i});
+        const p = {address: a, index: i}
+        this.pairs.push(p)
         this.mapArr[a] = i;
         this.listingText[i] = srcText;
         this.listingPlain[i] = srcPlain;
         this.listingDec[i] = srcDec;
     }
     addMapping (a, i) { // add new mapping a->i
-        this.pairs.push({a,i});
+        const p = {address: a, index: i}
+        this.pairs.push (p)
         this.mapArr[a] = i;
-        console.log (`*** Metadata addMapping ${a} ${i}`);
     }
     pushSrc (srcText, srcPlain, srcDec) { // add src line in three forms at end
         this.listingText.push (srcText);
         this.listingPlain.push (srcPlain);
         this.listingDec.push (srcDec);
+    }
+    unshiftSrc (srcText, srcPlain, srcDec) { // add src line at start
+        this.listingText.unshift (srcText);
+        this.listingPlain.unshift (srcPlain);
+        this.listingDec.unshift (srcDec);
     }
     addSrc (i, srcText, srcPlain, srcDec) { // add src line in three forms at i
         this.listingText[i] = srcText;
@@ -405,20 +416,11 @@ export class Metadata {
         return this.mdText
     }
     addSrcLines (xs) {
-        for (let i = 0; i+3 < xs.length; i += 3) {
+        for (let i = 0; i < xs.length; i += 3) {
             this.listingText.push (xs[i]);
             this.listingPlain.push (xs[i+1]);
             this.listingDec.push (xs[i+2]);
         }
-    }
-    getSrcLines () {
-        let xs = [];
-        for (let i = 0; i < this.listingPlain.length; i++) {
-            xs.push (this.listingText[i]);
-            xs.push (this.listingPlain[i]);
-            xs.push (this.listingDec[i]);
-        }
-        return xs;
     }
     setMdText (xs) {
         this.mdText = xs;
@@ -455,31 +457,42 @@ export class Metadata {
             }
         }
     }
-    toText () { // convert contents of object to text
-        let ys = [];
-        for (const {a,i} of this.pairs) {
-            ys.push(a,i);
+    mapToTexts () {  // convert map to list of lines of text
+        let xs = []; // flatten the pairs
+        for (const p of this.pairs) {
+            xs.push (p.address, p.index);
         }
-        let xs = "";
-        while (ys.length > 0) {
-            xs += ys.splice(0,eltsPerLineLimit) + "\n";
+        let ys = []; // list of length-limited lists
+        while (xs.length > 0) {
+            ys.push (xs.splice(0,eltsPerLineLimit))
         }
-        xs += "source\n";
-
-        this.listingPlain[0] = "<pre class='HighlightedTextAsHtml'>"
-            + this.listingPlain[0];
-        this.listingDec[0] = "<pre class='HighlightedTextAsHtml'>"
-            + this.listingDec[0];
-        const k = this.listingPlain.length;
-        this.listingPlain[k-1] += "</pre>";
-        this.listingDec[k-1] += "</pre>";
-
+        let zs = [] // list of strings showing the map
+        for (const y of ys) {
+            zs.push (y.toString())
+        }
+        return zs
+    }
+    getSrcLines () {
+        let xs = [];
         for (let i = 0; i < this.listingPlain.length; i++) {
-            xs += this.listingText[i] + "\n";
-            xs += this.listingPlain[i] + "\n";
-            xs += this.listingDec[i] + "\n";
+            xs.push (this.listingText[i]);
+            xs.push (this.listingPlain[i]);
+            xs.push (this.listingDec[i]);
         }
         return xs;
+    }
+    getPlainLines () {
+        let xs = [];
+        for (let i = 0; i < this.listingPlain.length; i++) {
+            xs.push (this.listingPlain[i]);
+        }
+        return xs;
+    }
+    toText () { // convert contents of object to text
+        let xs = this.mapToTexts ()
+        xs.push ("source")
+        xs = xs.concat (this.getSrcLines ())
+        return xs.join ("\n")
     }
 }
 

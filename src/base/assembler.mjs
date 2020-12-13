@@ -409,11 +409,7 @@ function mkErrMsg (ma,s,err) {
 export function enterAssembler () {
     const m = st.env.getSelectedModule ();
     const src = m.getAsmText();
-    let xs = src.split("\n");
-    xs.unshift("<pre class='VerbatimText'>");
-    xs.push("</pre>");
-    const ys = xs.join("");
-    document.getElementById('AsmTextHtml').innerHTML = ys;
+    setAsmSource (src)
 }
 
 export function assemblerGUI () {
@@ -429,24 +425,30 @@ export function assemblerGUI () {
     setAsmListing ();
 }
 
-export function setAsmSource () {
+export function displayAsmSource () {
     const m = st.env.getSelectedModule ();
     const ai =  m.asmInfo;
-    const src =  "<pre class='VerbatimText'>" + ai.text + "</pre>";
-    document.getElementById('AsmTextHtml').innerHTML = src;
+    setAsmSource (ai.text)
+}
+
+// Put the txt into the text element on the assembler page
+
+export function setAsmSource (txt) {
+    let xs = txt.split ("\n");
+    xs.unshift("<pre class='HighlightedTextAsHtml'>");
+    xs.push("</pre>");
+    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
 }
 
 export function setAsmListing () {
+    com.mode.devlog ("setAsmListing");
     const m = st.env.getSelectedModule ();
     const ai =  m.asmInfo;
-    com.mode.devlog ("setAsmListing");
-    const lst = ai.metadata.listingDec; // array of listing lines
-    console.log (`------ setAsmListing 1 ${lst} ---`);
-    const listing = lst.join("\n");
-    console.log (`------ setAsmListing 2 ${listing} ---`);
-    document.getElementById('AsmTextHtml').innerHTML = listing;
+    let lst = ai.metadata.listingDec; // array of listing lines
+    lst.unshift("<pre class='HighlightedTextAsHtml'>")
+    lst.push("</pre>")
+    document.getElementById('AsmTextHtml').innerHTML = lst.join("\n")
 }
-// export function setAsmListing (objMd) {
 
 export function setObjectListing () {
     const m = st.env.getSelectedModule ();
@@ -494,12 +496,9 @@ export function assembler (baseName, srcText) {
     asmPass1 (ai);
     asmPass2 (ai);
     if (ai.nAsmErrors > 0) {
-	ai.asmListingText.unshift // ???????????????????????? need to fix up
-          (`\n ${ai.nAsmErrors} errors detected\n`,'ERR');
-        	ai.asmListingPlain.unshift (com.highlightField
-           (`\n ${ai.nAsmErrors} errors detected\n`,'ERR'));
-        	ai.asmListingDec.unshift (com.highlightField
-           (`\n ${ai.nAsmErrors} errors detected\n`,'ERR'));
+        let x = `\n ${ai.nAsmErrors} errors detected\n`;
+        let y = com.highlightField (x, 'ERR');
+        ai.metadata.unshiftSrc (x, y, y);
     }
     displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
@@ -944,10 +943,11 @@ function asmPass2 (ma) {
     for (let i = 0; i < ma.asmStmt.length; i++) {
 	let s = ma.asmStmt[i];
 	com.mode.devlog(`Pass2 line ${s.lineNumber} = /${s.srcLine}/`);
-        console.log (`>>> pass2 operands = ${s.operands}`);
+        com.mode.devlog (`>>> pass2 operands = ${s.operands}`);
         let op = s.operation;
         com.mode.devlog (`Pass2 op ${s.fieldOperation} ${showOperation(op)}`);
-        console.log (`Pass2 op ifmt=${op.ifmt.description} afmt=${op.afmt.description} pseudo=${op.pseudo}`);
+        com.mode.devlog (`Pass2 op ifmt=${op.ifmt.description}`
+                         + ` afmt=${op.afmt.description} pseudo=${op.pseudo}`);
 // Directives        
         if (op.ifmt==arch.iDir && [arch.aBlock,arch.aOrg].includes(op.afmt)) {
             let a = s.orgAddr;
@@ -1408,10 +1408,6 @@ function emitImports (ma) {
         ma.objectCode.push(x);
     }
 }
-//        let sym = ma.symbolTable.get(x);
-//        let v = sym.value.value;
-//        let z = `import   ${sym.name},${v}`;
-//        ma.objectCode.push(z);
 
 function emitExports (ma) {
     let x, y, sym, w, r;
@@ -1435,164 +1431,7 @@ function emitExports (ma) {
     com.mode.trace = false;
 }
 
-
 function showOperation (op) {
     return `ifmt=${op.ifmt.description} afmt=${op.afmt.description}`
     + `opcode=${op.opcode} pseudo=${op.pseudo}`;
 }
-
-
-
-// ---------- Deprecated -------------------------------------
-
-// The size of text lines in object code and metadata is limited to
-// NitemsPerLine values.  This has two purposes: it makes the object
-// code and metadata more readable, and it helps avoid buffer overrun
-// while reading in the data in C programs.
-
-// const NitemsPerLine = 10;
-
-/*
-function emitMetadata (ai) {
-    com.mode.devlog ("emitMetadata");
-    let xs, ys;
-    ai.metadata.listingPlain = [...ai.asmListingPlain];
-    ai.metadata.listingDec   = [...ai.asmListingDec];
-
-    console.log ("****************** enter emitMetadata ***");
-    console.log (ai.metadata.toText());
-    console.log ("****************** end emitMetadata ***");
-}
-*/
-
-    //    ys = [...ma.asmListingDec];
-//    ma.metadata.push (`source ${xs.length}`);
-//    for (let i = 0; i < xs.length; i++) {
-//        ma.metadata.push(xs[i]);
-//        ma.metadata.push(ys[i]);
-    //    }
-
-//    xs = [...ma.asArrMap]; // ASMAP
-//    ma.metadata.push (`asmap ${xs.length}`); // ASMAP
-//    while (xs.length > 0) {
-//        let ys = xs.slice (0, NitemsPerLine);
-//        xs.splice (0, NitemsPerLine);
-//        ma.metadata.push (ys);
-//    }
-    //    xs = [...ma.asmListingPlain];
-
-
-/* deprecated
-// Convert  the address-source map x to a string
-export function showAsMap (x) {
-    console.log ('Address~Source map');
-    for (let i = 0; i < x.length; i++) {
-        console.log (`address ${arith.wordToHex4(i)} => ${x[i]}`);
-    }
-}
-*/
-
-
-/*  Deprecated
-
-// const rrrParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
-
-    deprecated */
-
-/*
-// Interface to assembler for use in the command line interface
-// Obsolete, changing to assembleCLI in cli/Sigma16.mjs
-export function assemblerCLI (src) {
-    com.mode.devlog ("assemblerCLI starting");
-    let ma = mkModuleAsm ();
-    ma.text = src;
-    assembler (ma);
-    return ma;
- }
-*/
-
-    //    let src = ma.text;
-//    ma.asmListingText.push ("Line Addr Code Code Source");
-//    ma.asmListingPlain.push(
-//	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
-//    ma.asmListingDec.push(
-//	"<span class='ListingHeader'>Line Addr Code Code Source</span>");
-//    ma.asArrMap = []; // ASMAP
-//    ma.asmListingText = [];
-//    ma.asmListingPlain = [];
-//    ma.asmListingDec = [];
-//    ma.modName = null;
-//    ma.asmListingPlain.unshift("<pre class='HighlightedTextAsHtml'>");
-//    ma.asmListingDec.unshift("<pre class='HighlightedTextAsHtml'>");
-//    ma.asmListingPlain.push("</pre>");
-//    ma.asmListingDec.push("</pre>");
-//    ma.objMd = new st.ObjMd (ma.objectText, ma.metadata.toText ());
-
-//	    ma.asmListingText.push('Error: ' + s.errors[i],'ERR');
-//            	    ma.asmListingPlain.push (com.highlightField
-//                                     ('Error: ' + s.errors[i],'ERR'));
-//            ma.asmListingDec.push(com.highlightField
-//                                  ('Error: ' + s.errors[i],'ERR'));
-
-//	ma.asmListingText.push(s.listingLinePlain);
-//	ma.asmListingPlain.push(s.listingLinePlain);
-//	ma.asmListingDec.push(s.listingLineHighlightedFields);
-
-//    emitMetadata (ma);
-//    ma.metadataText = ma.metadata.join("\n");
-//    ma.executable = new st.Executable (ma.objectText, ma.metadataText);
-//    console.log ("Pass 2 executable is:");
-//    console.log (ma.executable.showShort());
-
-//    ma.asmListingText.push('');
-//    ma.asmListingPlain.push('');
-//    ma.asmListingDec.push('');
-
-//    ma.asmListingText.push("Symbol table");
-//    ma.asmListingPlain.push("<span class='ListingHeader'>Symbol table</span>");
-//    ma.asmListingDec.push("<span class='ListingHeader'>Symbol table</span>");
-
-//    ma.asmListingText.push(symtabHeader);
-//    ma.asmListingPlain.push(`<span class='ListingHeader'>${symtabHeader}</span>`);
-//    ma.asmListingDec.push(`<span class='ListingHeader'>${symtabHeader}</span>`);
-
-//        ma.asmListingText.push(xs);
-//        ma.asmListingPlain.push(xs);
-//        ma.asmListingDec.push(xs);
-
-/*
-    show () {
-        let xs = "Assembly language\n";
-        xs += this.text;
-        return xs;
-    }
-// const emptyExe = {objectCode : "", metadata : null};
-//	this.asmListingPlain = [];      // assembler listing
-//	this.asmListingDec = [];        // decorated assembler listing
-//        this.metadata = [];             // lines of metadata code // ASMAP
-//        this.metadataText = "";         // metadata as single string ASMAP
-//        this.asArrMap = [];             // address-sourceline map // ASMAP
-export function mkModuleAsm () {
-    com.mode.devlog("mkModuleAsm");
-    return {
-	modName : "(anonymous)",    // name of module specified in module stmt
-        text : "",                  // raw source text
-        asmSrcLines : [],           // list of lines of source text
-	asmStmt : [],               // statements correspond to lines of source
-	symbols : [],               // symbols used in the source
-	symbolTable : new Map (),   // symbol table
-	locationCounter : null,     //  next code address
-	asmListingPlain : [],       // assembler listing
-	asmListingDec : [],         // decorated assembler listing
-	objectCode : [],            // string hex representation of object
-        objectText : "",            // object code as single string
-        metadata : [],              // lines of metadata code
-        metadataText : "",          // metadata as single string
-        asArrMap : [],              // address-sourceline map
-        imports : [],               // imported module/identifier
-        exports : [],               // exported identifiers
-	nAsmErrors : 0              // number of errors in assembly source code
-    }
-}
-*/

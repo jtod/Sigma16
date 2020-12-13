@@ -60,6 +60,7 @@ export class LinkerState  {
         this.objectLines = [];
         this.srcLines = [];
         this.linkErrors = []; // error messages
+        this.listing = "";
         this.exeObjMd = null; // result of link
     }
 }
@@ -133,14 +134,13 @@ export class ObjectInfo {
         this.objectLines = [];
         this.mdLines = this.mdText.split("\n");
         this.metadata = null;
+        this.startAddress = 0;
         this.srcLineOrigin = 0;
         this.dataBlocks = [new ObjectBlock (0)];
         this.relocations = [];
         this.asmImports = [];
         this.asmExportMap = new Map ();
         this.omAsmExports = [];
-        this.startAddress = 0;
-        this.endAddress = 0;
     }
 }
 
@@ -263,6 +263,7 @@ export function linkerGUI () {
     }
     let result = linker (selm.baseName, objs);
     let exeObjMd = result.exe;
+    selm.objMd = exeObjMd;
     let xm = st.env.getSelectedModule ();
     xm.executable = exeObjMd;
     let objectText = exeObjMd.objText;
@@ -270,8 +271,15 @@ export function linkerGUI () {
     let listing = result.listing;
     let xs = "<pre class='HighlightedTextAsHtml'>"
         + objectText
+        + listing
+        + "\n\nMetadata\n"
+        + mdText
         + "</pre>";
     document.getElementById('LinkerBody').innerHTML = xs;
+    console.log ("--------------------------");
+    console.log ("linkerGUI exeObjMd");
+    console.log (exeObjMd);
+    console.log ("--------------------------");
 
 }
 
@@ -280,6 +288,7 @@ export function linkerGUI () {
 
 export function linkShowExecutable () {
     console.log ("linkShowExeObject");
+    return // temp while ls.exeCode not working
     let ls = st.env.linkerState;
     let code = ls.exeCode;
     let xs = "<pre class='HighlightedTextAsHtml'>"
@@ -292,14 +301,44 @@ export function linkShowExecutable () {
 // button is clicked
 
 export function linkShowMetadata () {
-    console.log ("linkShowExeMetadata");
-    console.log ("linkShowExeObject");
+    testMetadata ()      // testing
+    return
     let ls = st.env.linkerState;
     let md = "No metadata"
     let xs = "<pre class='HighlightedTextAsHtml'>"
         + md
         + "</pre>";
     document.getElementById('LinkerBody').innerHTML = xs;
+
+}
+export function testMetadata () {     // testing
+    
+    console.log ("******************************* testMetadata");
+    let x = new st.Metadata ()
+    x.addMapping (5,6)
+    x.addMapping (23,24)
+    x.addMapping (100,101)
+    x.addMapping (200,201)
+    x.addMapping (300,301)
+    x.addMapping (400,401)
+    x.addMapping (500,501)
+    x.addSrcLines (["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l" ])
+    console.log (`getSrcLines = ${x.getSrcLines()}`)
+    console.log (`5 maps to ${x.mapArr[5]}`)
+    console.log (`200 maps to ${x.mapArr[200]}`)
+    console.log (` mapToTexts() = ${x.mapToTexts()}`)
+    console.log ("----------------- this is x to text -----------")
+    const xtext = x.toText()
+    console.log (`xtext = ${xtext}`)
+
+    let y = new st.Metadata ()
+    console.log ("----------------- defining y from xtext -----------")
+    y.fromText (xtext)
+    console.log ("----------------- this is y to text -----------")
+    const ytext = y.toText()
+    console.log (`ytext = ${ytext}`)
+    
+    return
 }
 
 //-------------------------------------------------------------------------------
@@ -323,14 +362,16 @@ export function linker (exeName, obMdTexts) {
     ls.exeCodeText = emitCode (ls);
     ls.exeMdText = ls.metadata.toText ();
     ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);
-    console.log ("*** Executable code ***");
-    console.log (ls.exeCodeText);
-    console.log ("*** Executable metadata ***:");
-    console.log (ls.exeMdText);
+    const result = {exe: ls.exeObjMd, listing: ls.listing};
 
-    const linkerListing = "Linker listing\n";
-    console.log (`Linker listing:\n${linkerListing}`);
-    const result = {exe: ls.exeObjMd, listing: linkerListing};
+    console.log ("-------------------------- linker executable code -----")
+    console.log (`ls.metadata.pairs.length = ${ls.metadata.pairs.length}`)
+    console.log ("-------------------------- linker executable code -----")
+    console.log (ls.exeCodeText);
+    console.log ("-------------------------- linker exe metadata -----")
+    console.log (ls.exeMdText);
+    console.log ("-------------------------- end of exe metadata -----")
+
     return result;
 }
 
@@ -353,14 +394,39 @@ function pass1 (ls) {
         oi.objectLines = oi.objText.split("\n");
         oi.metadata = new st.Metadata ();
         oi.metadata.fromText (oi.mdText);
-        oi.srcLineOrigin = ls.metadata.getSrcLines().length;
-        console.log (`pass 1 ${oi.baseName} origin=${oi.srcLineOrigin}`);
-        let foo = oi.metadata.getSrcLines ();
-        ls.metadata.addSrcLines (foo)
+        oi.startAddress = ls.locationCounter
+        oi.srcLineOrigin = ls.metadata.getPlainLines().length;
+        ls.metadata.addSrcLines (oi.metadata.getSrcLines ());
         parseObject (ls, oi);
+        ls.metadata.addSrcLines (oi.metadata.getSrcLines ());
+        oi.metadata.translateMap (oi.startAddress, oi.srcLineOrigin)
+        ls.metadata.addPairs (oi.metadata.pairs)
         ls.mcount++;
     }
 }
+
+//        console.log (`pass 1 ${oi.baseName} origin=${oi.srcLineOrigin}`);
+//        let foo = oi.metadata.getSrcLines ();
+//        ls.metadata.addSrcLines (foo)
+//        let foo = oi.metadata.getSrcLines ();
+/*
+        ls.listing +=
+            `Object module ${oi.baseName}\n`
+            + `Start address = ${oi.startAddress}`
+            + ` Source origin = ${oi.SrcLineOrigin}\n`
+            + "Module object code\n"
+            + `${oi.objText}`
+            + "Module metadata\n"
+            + oi.metadata.toText ()
+            + "---- pairs:\n"
+            + oi.metadata.pairs.toString()
+            + "\n";
+*/
+//        console.log ("--------- pass1 pairs length .***************..")
+//        console.log (`ls.metadata.pairs.length = ${ls.metadata.pairs.length}`)
+        //        oi.srcLineOrigin = ls.metadata.getSrcLines().length;
+//        console.log (`----------------- BEFORE TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
+//        console.log (`----------------- AFTER TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
 
 // Parse object module om with linker state ls
 
@@ -371,11 +437,11 @@ function parseObject (ls, obj) {
     obj.asmExportMap = new Map ();
     const relK = obj.startAddress; // relocation constant for the object module
     for (let x of obj.objectLines) {
-        console.log (`Object line <${x}>`);
+//        console.log (`Object line <${x}>`);
         let fields = parseObjLine (x);
         com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
         if (x == "") {
-            console.log ("skipping blank line");
+//            console.log ("skipping blank line");
         } else if(fields.operation == "module") {
             obj.dclmodname = fields.operands[0];
             com.mode.devlog (`  Module name: ${obj.dclmodname}`);

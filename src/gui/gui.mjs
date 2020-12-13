@@ -325,7 +325,7 @@ prepareButton ('EDP_Save',        ed.edDownload);
 
 // Assembler pane (AP)
 prepareButton ('AP_Assemble',        asm.assemblerGUI);
-prepareButton ('AP_Show_Source',     asm.setAsmSource);
+prepareButton ('AP_Show_Source',     asm.displayAsmSource);
 prepareButton ('AP_Show_Object',     asm.setObjectListing);
 prepareButton ('AP_Show_Listing',    asm.setAsmListing);
 prepareButton ('AP_Show_Metadata',   asm.setMetadata);

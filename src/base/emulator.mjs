@@ -134,6 +134,10 @@ export function boot (es) {
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
+    console.log ("------------- boot reading code --------------- ")
+    console.log (`*** Boot object code = ${objectCodeText}`)
+    console.log (`*** Boot metadata = ${metadataText}`)
+    console.log ("------------- boot starting --------------- ")
     es.metadata = new st.Metadata ();
     es.metadata.fromText (metadataText);
 
@@ -1087,22 +1091,30 @@ function showListingParameters (es) {
 // any existing highlighting of current and next instruction
 
 function prepareListingBeforeInstr (es) {
+    com.mode.trace = true;
     com.mode.devlog ('prepareListingBeforeInstr');
+    showListingParameters (es)
+
     if (es.curInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
 	es.asmListingCurrent[es.curInstrLineNo] =
             es.metadata.listingDec[es.curInstrLineNo];
     }
     if (es.nextInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
 	es.asmListingCurrent[es.nextInstrLineNo] =
 	    es.metadata.listingDec[es.nextInstrLineNo];
     }
     es.curInstrLineNo = -1;
     es.nextInstrLineNo = -1;
     showListingParameters(es);
+    console.log ("returning from prepareListingbeforeInstr")
+    showListingParameters (es)
+    com.mode.trace = false;
 }
 
 // Number of header lines in the listing before the source lines begin
-const listingLineInitialOffset = 2;
+const listingLineInitialOffset = 1;
 
 // As it executes an instruction, the emulator sets curInstrAddr and
 // nextInstrAddr.  After the instruction has finished, these
@@ -1111,34 +1123,32 @@ const listingLineInitialOffset = 2;
 function highlightListingAfterInstr (es) {
     com.mode.trace = true;
     com.mode.devlog ('highlightListingAfterInstr');
+    showListingParameters (es)
     com.mode.devlog ('  curInstrAddr = ' + es.curInstrAddr);
     com.mode.devlog ('  nextInstrAddr = ' + es.nextInstrAddr);
 
     // Highlight the instruction that just executed
-
     es.curInstrLineNo = es.metadata.getSrcIdx (es.curInstrAddr)
             + listingLineInitialOffset;
+    com.highlightListingLine (es, es.curInstrLineNo, "CUR");
+    com.mode.devlog (`Highlight current instruction: a=${es.curInstrAddr}`
+                 + ` s=${es.curInstrLineNo}`)
 
-    console.log (`highlight line a=${es.curInstrAddr} s=${es.curInstrLineNo}`)
-    com.mode.devlog ('  curInstrLineNo = ' + es.curInstrLineNo);
-    if (es.curInstrLineNo >= 0) {
-	com.highlightListingLine (es, es.curInstrLineNo, "CUR");
-    }
-
-// Highlight the instruction that will be executed next
+    // Highlight the instruction that will be executed next
     es.nextInstrLineNo = es.metadata.getSrcIdx (es.nextInstrAddr)
-            + listingLineInitialOffset;
+        + listingLineInitialOffset;
+    com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
+    com.mode.devlog (`Highlight next instruction: a=${es.nextInstrAddr}`
+                 + ` s=${es.nextInstrLineNo}`)
 
-    com.mode.devlog ('  nextInstrLineNo = ' + es.nextInstrLineNo);
-    if (es.nextInstrLineNo >= 0) {
-	com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
-    }
-
+    // Display the memory
     if (memDisplayModeFull) {
 	highlightListingFull (es)
     } else {
-	highlightListingFull (es)    // temp ?????
+	highlightListingFull (es)    // temporary ?????
     }
+    showListingParameters (es)
+    console.log ("returning from highlightlistingAfterInstr")
     com.mode.trace = false;
 }
 

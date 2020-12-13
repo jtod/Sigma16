@@ -56,27 +56,29 @@ export const openingPreTag = /^<[^>]*>/;   // <pre...> at beginning
 export const closingPreTag = /<[^>]*>$/;   // ...</pre> at end
 
 // Clear the display of the object code in the linker pane
+
 export function clearObjectCode () {
     let listing = "<pre class='HighlightedTextAsHtml'>"
         + "</pre>"
-    //    document.getElementById('LinkerText').innerHTML = listing;
-    console.log ("clearObjectCode skipping clear LinkerText");
+    document.getElementById('LinkerText').innerHTML = listing;
+//    console.log ("clearObjectCode skipping clear LinkerText");
 }
 
-// similar to highlightListingLine in emulator
+// Similar to highlightListingLine in emulator
 
 export function highlightField (xs,highlight) {
     return "<span class='" + highlight + "'>" + xs + "</span>";
 }
 
 export function highlightListingLine (es,i,highlight) {
-    es.asmListingCurrent[i] =
-        //        "<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
-    "<span class='" + highlight + "'>" + es.metadata.listingPlain[i] + "</span>";
+    if (i > 0) {
+        es.asmListingCurrent[i] =
+            "<span class='" + highlight + "'>"
+            + es.metadata.listingPlain[i]
+            + "</span>";
+    }
 }
 
-// "<span class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
-// "<div class='" + highlight + "'>" + es.asmListingPlain[i] + "</span>";
 // scrolling doesn't work if it just uses <pre> but not <code>
 
 export let editorBufferTextArea; /* set when window.onload */
