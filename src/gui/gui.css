@@ -929,11 +929,12 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 }
 
 /* ------------------------------------------------------------------------ */
-/* Color scheme: light
+/* Color scheme: Light
 /* ------------------------------------------------------------------------ */
 
 :root {
     --text-background-color: white;
+}
 }
 .MidMainRight {
     background-color: pink;
@@ -947,4 +948,8 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 
 .MidMainSection {
     background-color: white;
+}
+
+.CodeListing {
+    background-color: green;
 }

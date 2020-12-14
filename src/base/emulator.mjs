@@ -190,8 +190,7 @@ export function boot (es) {
     }
     if (isExecutable) {
         com.mode.devlog ("boot ok so far, preparing...");
-        es.asmListingCurrent = es.metadata.listingDec;
-        
+        es.metadata.listingDec.forEach ((x,i) => es.asmListingCurrent[i] = x);
         initListing (m,es);
         setProcStatus (es,Ready);
         getListingDims(es);
@@ -930,8 +929,8 @@ let srcLine;        // copy of source statements
 // these instructions appear in the assembly listing.  -1 indicates no
 // line has been highlighted
 
-let curInstrAddr, curInstrLineNo, saveCurSrcLine;
-let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
+// let curInstrAddr, curInstrLineNo, saveCurSrcLine;
+// let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
 
 export function initializeSubsystems () {
     memDisplayModeFull = false;
@@ -1090,6 +1089,15 @@ function showListingParameters (es) {
 // Prepare the running listing before starting instructionby removing
 // any existing highlighting of current and next instruction
 
+
+function showLst (es, xs, i) {
+    return // disable
+    console.log (`--- Listing line ${i} ${xs}`)
+    console.log (`----- Cur = ${es.asmListingCurrent[i].slice(0,30)}`)
+    console.log (`----- Pla = ${es.metadata.listingPlain[i].slice(0,30)}`)
+    console.log (`----- Dec = ${es.metadata.listingDec[i].slice(0,30)}`)
+}
+
 function prepareListingBeforeInstr (es) {
     com.mode.trace = true;
     com.mode.devlog ('prepareListingBeforeInstr');
@@ -1097,13 +1105,15 @@ function prepareListingBeforeInstr (es) {
 
     if (es.curInstrLineNo >= 0) {
         com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
-	es.asmListingCurrent[es.curInstrLineNo] =
-            es.metadata.listingDec[es.curInstrLineNo];
+        showLst (es, "prepare before revert current", es.curInstrLineNo)
+        com.revertListingLine (es, es.curInstrLineNo)
+        showLst (es, "prepare after revert current", es.curInstrLineNo)
     }
     if (es.nextInstrLineNo >= 0) {
         com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
-	es.asmListingCurrent[es.nextInstrLineNo] =
-	    es.metadata.listingDec[es.nextInstrLineNo];
+        showLst (es, "prepare before revert next", es.nextInstrLineNo)
+        com.revertListingLine (es, es.nextInstrLineNo)
+        showLst (es, "prepare after revert next", es.nextInstrLineNo)
     }
     es.curInstrLineNo = -1;
     es.nextInstrLineNo = -1;
@@ -1130,14 +1140,18 @@ function highlightListingAfterInstr (es) {
     // Highlight the instruction that just executed
     es.curInstrLineNo = es.metadata.getSrcIdx (es.curInstrAddr)
             + listingLineInitialOffset;
+    showLst (es, "highlight, before highlight cur", es.curInstrLineNo)
     com.highlightListingLine (es, es.curInstrLineNo, "CUR");
+    showLst (es, "highlight, after highlight cur", es.curInstrLineNo)
     com.mode.devlog (`Highlight current instruction: a=${es.curInstrAddr}`
                  + ` s=${es.curInstrLineNo}`)
 
     // Highlight the instruction that will be executed next
     es.nextInstrLineNo = es.metadata.getSrcIdx (es.nextInstrAddr)
         + listingLineInitialOffset;
+    showLst (es, "highlight, before highlight next", es.nextInstrLineNo)
     com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
+    showLst (es, "highlight, after highlight next", es.nextInstrLineNo)
     com.mode.devlog (`Highlight next instruction: a=${es.nextInstrAddr}`
                  + ` s=${es.nextInstrLineNo}`)
 

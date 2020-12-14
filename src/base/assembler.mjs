@@ -1289,7 +1289,6 @@ function asmPass2 (ma) {
 
 	s.listingLinePlain =  (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + arith.wordToHex4(s.address.word)
-            + (s.address.movability==Fixed ? "." : " ")
 	    + ' ' + (s.codeSize.word>0 ? arith.wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize.word>1 ? arith.wordToHex4(s.codeWord2) : '    ')
             + ' '
@@ -1304,7 +1303,7 @@ function asmPass2 (ma) {
 	    + ' ' + (s.codeSize.word>0 ? arith.wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize.word>1 ? arith.wordToHex4(s.codeWord2) : '    ')
             + ' '
-	    + com.highlightField (s.fieldLabel, "FIELDLABEL")
+    	    + com.highlightField (s.fieldLabel, "FIELDLABEL")
 	    + s.fieldSpacesAfterLabel
 	    + com.highlightField (s.fieldOperation, "FIELDOPERATION")
 	    + s.fieldSpacesAfterOperation

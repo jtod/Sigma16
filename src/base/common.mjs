@@ -79,6 +79,16 @@ export function highlightListingLine (es,i,highlight) {
     }
 }
 
+export function revertListingLine (es, i) {
+    if (i > 0) {
+        es.asmListingCurrent[i] = es.metadata.listingDec[i]
+    }
+}
+//        es.asmListingCurrent[i] = es.metadata.listingPlain[i].copy()
+//   copy() didn't help
+//        es.asmListingCurrent[i] = "-" + es.metadata.listingDec[i]
+// adding the - didn't help
+
 // scrolling doesn't work if it just uses <pre> but not <code>
 
 export let editorBufferTextArea; /* set when window.onload */
