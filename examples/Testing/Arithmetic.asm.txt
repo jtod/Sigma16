@@ -1,5 +1,5 @@
 ; Arithmetic: test cases for arithmetic instructions
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Loading primary and secondary into register file
 
@@ -23,18 +23,28 @@
       lea    R2,1[R0]       ; R2 =  1 = $0001
       add    R3,R1,R2       ; R3 = $0000, R15 = $0000
 
+; addc: add with carry
+
+      add    R15,R0,R0
+      lea    R1,$ffff[R0]
+      addc   R2,R1,R1
+      add    R15,R0,R0
+      lea    R1,3[R0]
+      addc   R2,R1,R1
+
+
 ; muln
 
       lea    R1,10000[R0]
       lea    R2,10000[R0]
-      muln   R3,R1,R2       ; result is 100000
+      muln   R3,R1,R2       ; result in R3 and R15
 
 
 ; divn
 
       lea    R1,10000[R0]
       lea    R2,10000[R0]
-      muln   R3,R1,R2       ; result is 100000
+      divn   R3,R1,R2       ;  dividend in R1,R15, q in R3, rem in R15
 
       trap   R0,R0,R0       ; terminate
 

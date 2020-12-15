@@ -787,9 +787,8 @@ function parseOperation (ma,s) {
             }
 	} else {
             s.operation = arch.emptyOperation;
-            //            s.codeSize = 0;
             s.codeSize = Zero;
-            // GIVE ERROR MESSAGE ?????
+            mkErrMsg (ma, s, `${op} is not a valid operation`)
 	}
     } else {
         s.operation = arch.emptyOperation;

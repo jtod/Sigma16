@@ -1785,7 +1785,7 @@ const dispatch_primary_opcode =
         ab_dc (arith.op_sub),     // 1
         ab_dc (arith.op_mul),     // 2
         ab_dc (arith.op_div),     // 3
-        ab_dc (arith.op_addc),    // 4
+        cab_dc (arith.op_addc),   // 4
         cab_dc (arith.op_muln),   // 5
         cab_dc (arith.op_divn),   // 6
         ab_c  (arith.op_cmp),     // 7

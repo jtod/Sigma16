@@ -1609,23 +1609,26 @@ The bits in R15 are indexed from bit 0 (the most significant, or
 lefttmost bit) to bit 15 (the least significant, or rightmost).  The
 condition code bits that have specific meanings are called *flags*.
 
-- Each bit position corresponds to a relation
+- Each bit position holds a Boolean value (either True or False,
+  represented by 0 or 1).
+- Each Booleans indicates whether a  relation holds or whether an
+  event has occurred
 - After a cmp instruction, if the bit is 1 the relation holds; if the
   bit is 0 the relation does not hold
-- Use jumpc0 to jump if the relation does not hold
-- Use jumpc1 to jump if the relation holds
+- Use jumpc0 to jump if the Boolean is False
+- Use jumpc1 to jump if the Boolean is True
 - N - natural number (binary)
 - I - integer (two's complement)
 
 Table: Condition code flags
 
-| 0 | 1 | 2  | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
-|---+---+----+---+---+---+---+---+---+---+----+----+----+----+----+----|
-| G | g | E  | l | L | v | C |   |   |   |    |    |    |    |    |    |
-| G | > | E  | l | L | v | C |   |   |   |    |    |    |    |    |    |
-|---+---+----+---+---+---+---+---+---+---+----+----+----+----+----+----|
-| > | > | =  | < | < | v | C |   |   |   |    |    |    |    |    |    |
-| N | I | NI | I | N | I | N |   |   |   |    |    |    |    |    |    |
+| 0 | 1 | 2  | 3 | 4 | 5 | 6 | 7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|---+---+----+---+---+---+---+---+----+----+----+----+----+----+----+----|
+| G | g | E  | L | l | V | v | C | SO | SU |    |    |    |    |    |    |
+| G | > | E  | L | l | V | v | C |    |    |    |    |    |    |    |    |
+|---+---+----+---+---+---+---+---+----+----+----+----+----+----+----+----|
+| > | > | =  | < | < |   | v | C |    |    |    |    |    |    |    |    |
+| N | I | NI | N | I |   | I | N |    |    |    |    |    |    |    |    |
 
 ** Memory
 
@@ -2427,11 +2430,12 @@ division by 0.
 
 *** addc
 
-The addc instruction adds two registers and the carry bit in the
-condition code register, R15.  The sum is loaded into the destination
-register Rd and the carry output is written back into the carry bit,
-overwriting its previous value.  Overflow is not possible with this
-instruction.
+The addc instruction performs a binary addition with carry
+propagation.  It adds the two operand registers and the carry bit in
+the condition code register, R15.  The sum is loaded into the
+destination register Rd and the carry output is written back into the
+carry bit, overwriting its previous value.  Overflow is not possible
+with this instruction.
 
 *** muln
 

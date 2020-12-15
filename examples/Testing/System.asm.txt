@@ -1,6 +1,5 @@
 ; System - test system control registers and instructions
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
-
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Control registers
 
@@ -68,9 +67,12 @@ loop
      add    R2,R2,R3                ; i := i+1
      jump   loop[R0]                ; goto loop
 
+; Mutual exclusion
+     testset R5,mutex[R0]
 done
      trap   R0,R0,R0
 
+mutex data  0
 
 intVector
      jump   handleTimer[R0]

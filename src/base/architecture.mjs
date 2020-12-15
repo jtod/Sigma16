@@ -144,12 +144,14 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 export const bit_ccG = 0;   //    G   >          binary
 export const bit_ccg = 1;   //    >   >          two's complement
 export const bit_ccE = 2;   //    =   =          all types
-export const bit_ccl = 3;   //    <   <          two's complement
-export const bit_ccL = 4;   //    L   <          binary
-export const bit_ccv = 5;   //    v   overflow   two's complement
-export const bit_ccC = 6;   //    c   carry      binary
-export const bit_ccStackOverflow  = 7;   //    c   carry      binary
-export const bit_ccStackUnderflow = 8;   //    c   carry      binary
+export const bit_ccL = 3;   //    L   <          binary
+export const bit_ccl = 4;   //    <   <          two's complement
+export const bit_ccV = 5;   //    v   overflow   two's complement
+export const bit_ccv = 6;   //    v   overflow   two's complement
+export const bit_ccC = 7;   //    c   carry      binary
+
+export const bit_ccStackOverflow  = 8;   //    c   carry      binary
+export const bit_ccStackUnderflow = 9;   //    c   carry      binary
 
 //-----------------------------------------------------------------------------
 // Status register bits

@@ -638,15 +638,17 @@ export function op_xor (a,b) {
 }
 
 export function op_addc (c,a,b) {
-    let sum = a + b + extractBitBE(c,bit_ccC);
+    let sum = a + b + extractBitBE(c,arch.bit_ccC);
     let primary = sum & 0x0000ffff;
     let msb = extractBitBE (sum, 15);
-    let carryOut = extractBitBE (sum,16);
-    let binOverflow = carryOut === 1;
+    //    let carryOut = extractBitBE (sum,16);
+    let carryOut = sum > 65535
+    let binOverflow = carryOut
     let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
+    console.log (`************ op_addc co=${carryOut}`)
     return [primary, secondary];
 }
 
@@ -658,11 +660,14 @@ export function op_addc (c,a,b) {
 const ccG = setBitBE(arch.bit_ccG);
 const ccg = setBitBE(arch.bit_ccg);
 const ccE = setBitBE(arch.bit_ccE);
-const ccl = setBitBE(arch.bit_ccl);
 const ccL = setBitBE(arch.bit_ccL);
+const ccl = setBitBE(arch.bit_ccl);
 const ccV = setBitBE(arch.bit_ccV);
 const ccv = setBitBE(arch.bit_ccv);
 const ccC = setBitBE(arch.bit_ccC);
+
+const ccSO = setBitBE (arch.bit_ccStackOverflow);
+const ccSU = setBitBE (arch.bit_ccStackUnderflow);
 
 export function showCC (c) {
     com.mode.devlog (`showCC ${c}`);
