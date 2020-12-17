@@ -4784,6 +4784,63 @@ example, if an instruction has a different opcode but is otherwise
 unchanged.  Other changes may require some alterations to assembly
 language programs.
 
+*** Version 3.2.0, December 2020
+
+Version 3.2 brings several changes that will be visible to users of
+previous versions of Sigma16:
+
+- /cmplt, cmpeq, cmpgt are removed./ Instead, use the cmp instruction,
+  which sets the condition code (R15), and use the condition code with
+  any of jumplt, jumple, jumpeq, jumpne, jumpge, jumpgt.
+
+- /jumpf is renamed to jumpz, jumpt is renamed to jumpnz./ The new
+  names stand for "jump if zero" and "jump if not zero".  The new
+  names reflect more accurately what the instructions actually do.
+  Most old programs will use one of these after cmplt, cmpeq, or
+  cmpgt, but following cmp you should use one of jumplt, jumple,
+  jumpeq, jumpne, jumpge, jumpgt.
+
+- /[R0] is optional./ In all previous versions of Sigma16, every
+  displacement requires the index register to be stated explicitly,
+  even if it's R0: for example, load R3,xyz[R0].  Now, the [R0] can be
+  omitted, although you can include it.  Thus "load R3,xyz" and "load
+  R3,xyz[R0]" are equivalent.  (The reason for requiring [R0] in the
+  past was to emphasise the regularity of the instruction
+  representation.  However, a primary aim of the design of Sigma16 is
+  to provide "subsetting" of the architecture, supporting a spiral
+  approach to learning the instruction set.  Another aim is to provide
+  a good platform for schools or other students who will just learn a
+  little of the system.  Removing the requirement for [R0] makes
+  thnigs simpler for a beginner.  Furthermore, for an experienced
+  expert programmer it's more readable to omit the [R0] as this
+  reduces the amount of clutter in the code.)
+
+- /Disallow register names as identifiers./ Previously, you could
+  write "R4 data 5" but this is now disallowed, as is "r4 data 6".
+  The reason is that there were two separate namespaces: one for
+  registers and another for identifiers (i.e. labels).  This allows
+  the programmer more freedom in choosing names, but it allows code
+  that looks misleading: for example, lea R4,R4[R4] is legal but
+  likely confusing.  This is now disallowed: previously, you could
+  write "r8 data 42" but that now gives an error.
+
+- /Allow lower case "r" in register names./ You can write r8 as well
+  as R8 (and of course the same for the rest of the register file).
+  Both names refer to the same register.  This is a trivial syntax
+  issue.  There's no technical reason to prefer r8 or R8; this is
+  entirely a matter of personal preference.  It may be easier to read
+  r8 because the lower case r is shorter than the digits.  It is good
+  style to use either the Rn or rn form consistently, but the assembly
+  language doesn't enforce this.
+
+- /System names begin with #./
+
+There are some new instructions and features, and some old
+instructions and features that weren't documented before, but these
+won't affect existing programs.  They just enhance the capabilities of
+the system.  These include interrupts, mutual exclusion, modules and
+linking, relocation, and segmentation.
+
 *** Version 3.2
 
 Implemented in JavaScript.  Runs in browser without requiring any

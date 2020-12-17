@@ -496,3 +496,23 @@ export class Metadata {
     }
 }
 
+
+//-------------------------------------------------------------------------------
+// Counter
+//-------------------------------------------------------------------------------
+
+export function getCount () {
+    console.log ("entering getCount");    
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.open('GET', 'https://hitcounter.pythonanywhere.com/count', false);
+    xmlHttp.send(null);
+    let count = xmlHttp.responseText;
+    console.log (`getCount finishing: <${count}>`);
+}
+
+/*
+s16module.mjs:80 [Deprecation] Synchronous XMLHttpRequest on the main
+thread is deprecated because of its detrimental effects to the end
+user's experience. For more help, check https://xhr.spec.whatwg.org/.
+*/
+

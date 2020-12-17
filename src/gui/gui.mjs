@@ -1,5 +1,5 @@
 // Sigma16: gui.mjs
-// Copyright (C) 2020 John T. O'Donnell
+// Copyright (C) 2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -30,7 +30,6 @@ import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 import * as gt    from "./guitools.mjs";
-
 
 export function modalWarning (msg) {
     alert (msg);
@@ -356,10 +355,13 @@ prepareButton ("BreakClose", em.breakClose());
 */
 
 // DevTools
-prepareButton ('DevTools1',    devTools1);
-prepareButton ('DevTools2',    devTools2);
-prepareButton ('DevTools3',    devTools3);
-prepareButton ('DevTools4',    devTools4);
+prepareButton ('DevTools100',    devTools100);
+prepareButton ('DevTools101',    devTools101);
+prepareButton ('DevTools102',    devTools102);
+prepareButton ('DevTools103',    devTools103);
+prepareButton ('DevTools104',    devTools104);
+prepareButton ('DevTools105',    devTools105);
+prepareButton ('DevTools106',    devTools106);
 prepareButton ('DisableDevTools', disableDevTools);
 
 //------------------------------------------------------------------------------
@@ -619,74 +621,13 @@ window.onresize = function () {
 }
 
 //-------------------------------------------------------------------------------
-// Emulator process
-//-------------------------------------------------------------------------------
-
-// Create shared array
-
-const sharedBuf = new SharedArrayBuffer(5 * Uint16Array.BYTES_PER_ELEMENT);
-const sharedArray = new Uint16Array(sharedBuf);
-
-// Define worker process
-
-const worker = new Worker("../base/emprocess.mjs");
-
-// Initialize main
-
-let processCounter = 0;  // global state for main-worker interaction
-
-worker.addEventListener("message", e => {
-    if (e.data && e.data.type === "ping") {
-        console.log("updated: " + formatArray(sharedArray));
-        if (++processCounter < 10) {
-            worker.postMessage({type: "pong"});
-        } else {
-            console.log("done");
-        }
-    }
-});
-
-// Start the worker process
-
-function startEmProcess () {
-    console.log ("startEmProcess");
-    processCounter = 0; // initialize global variable
-    console.log ("initial: " + formatArray(sharedArray));
-    worker.postMessage ({type: "init", sharedArray});
-}
-
-// Read data from the array
-
-function formatArray (array) {
-    return Array.from(
-        array,
-        b => b.toString(16).toUpperCase().padStart(4, "0")
-    ).join(" ");
-}
-
-
-//-------------------------------------------------------------------------------
-// Counter
-//-------------------------------------------------------------------------------
-
-export function getCount () {
-    console.log ("entering getCount");    
-    let xmlHttp = new XMLHttpRequest();
-    xmlHttp.open('GET', 'https://hitcounter.pythonanywhere.com/count', false);
-    xmlHttp.send(null);
-    let count = xmlHttp.responseText;
-    console.log (`getCount finishing: <${count}>`);
-}
-
-/*
-s16module.mjs:80 [Deprecation] Synchronous XMLHttpRequest on the main
-thread is deprecated because of its detrimental effects to the end
-user's experience. For more help, check https://xhr.spec.whatwg.org/.
-*/
-
-//-------------------------------------------------------------------------------
 // DevTools
 //-------------------------------------------------------------------------------
+
+// These are experimental tools that are normally disabled.  They
+// aren't documented, aren't intended for users, and aren't stable.
+// To use these functions, press F12 to display the browser console,
+// then enter enableDevTools()
 
 function showDevToolsButton () {
     console.log ("showDevToolsButton");
@@ -709,13 +650,188 @@ function enableDevTools () {
     showDevToolsButton ();
 }
 
-// Attach the enableDevTools function to the window in order to put it
-// into scope at the top level.  To use the tools, press F12 to
-// display browser tools, then enter enableDevTools() in the console
+// Attach the enableDevTools function to the window to put it into
+// scope at the top level
 
 window.enableDevTools = enableDevTools;
 
-/* experiment
+function devTools100 () {
+    console.log ("DevTools100 clicked");
+    action100 ()
+}
+
+function devTools101 () {
+    console.log ("DevTools101 clicked");
+    action101 ()
+}
+
+function devTools102 () {
+    console.log ("DevTools102 clicked");
+    action102 ()
+}
+
+function devTools103 () {
+    console.log ("DevTools103 clicked");
+    action103 ()
+}
+
+function devTools104 () {
+    console.log ("DevTools104 clicked");
+    action104 ()
+}
+function devTools105 () {
+    console.log ("DevTools105 clicked");
+    action105 ()
+}
+function devTools106 () {
+    console.log ("DevTools106 clicked");
+    action106 ()
+}
+
+//-------------------------------------------------------------------------------
+// Emulator thread
+//-------------------------------------------------------------------------------
+
+// Local state for main gui thread
+
+let foo = 300 // dummy state belonging to main thread
+let bar = 0
+
+// Shared system state
+
+const EMCTLSIZE   = 8
+const REGFILESIZE = 16
+const CREGSIZE    = 16
+const MEMSIZE     = 65536
+
+const StateSize =  2 * (EMCTLSIZE + REGFILESIZE + CREGSIZE + MEMSIZE)
+const sysStateBuf = new SharedArrayBuffer (StateSize)
+const sysStateArr = new Uint16Array (sysStateBuf)
+
+sysStateArr[23] = 42
+
+// const sharedStateBuf = new SharedArrayBuffer(5 * Uint16Array.BYTES_PER_ELEMENT);
+
+
+// const sharedArray = new Uint16Array(sharedBuf);
+
+// Define worker thread
+
+const emthread = new Worker("../base/emthread.mjs");
+
+// A message is an object of the form {code: ..., payload: ...}.  The
+// gui main thread uses codes 100, 101, ... and the emulator thread
+// uses codes 200, 201, ...
+
+// Actions
+
+function action100 () {
+    console.log ("action 100")
+    initThreads ()
+}
+
+function action101 () {
+    console.log ("action 101")
+    send101 ()
+}
+function action102 () {
+    console.log ("action 102")
+    send102 (foo + 1000)
+}
+
+function action103 () {
+    console.log (`action103`)
+    let msg = {code: 103, payload: foo}
+    console.log (`main sending: <${msg}>`)
+    emthread.postMessage (msg)    
+}
+
+// Request to print sysStateArr[23] and increment it
+
+function action104 () {
+    console.log ("action 104")
+    let msg = {code: 104, payload: 104}
+    emthread.postMessage (msg)    
+}
+
+
+function action105 () {
+    console.log ("action 105")
+    console.log (`sysStateArr[23] = ${sysStateArr[23]}`)
+}
+
+
+function action106 () {
+    console.log ("action 106")
+}
+
+function initThreads () {
+    console.log ("initThreads")
+    let msg = {code: 100, payload: sysStateArr}
+    emthread.postMessage (msg)
+}
+
+// Code 101
+function send101 () {
+    console.log (`send101 foo=${foo}`)
+    let msg = {code: 101, payload: foo}
+    console.log (`main sending: <${msg}>`)
+    emthread.postMessage (msg)    
+}
+
+// Code 102
+function send102 () {
+    console.log (`sendToWorkeFoor foo=${foo}`)
+    let msg = {code: 102, payload: foo}
+    console.log (`main sending: <${msg}>`)
+    emthread.postMessage (msg)    
+}
+
+// Handle incoming messages
+
+emthread.addEventListener ("message", e => {
+    console.log ("main has received a message")
+    if (e.data) {
+        console.log ("main has received event data")
+        let mval = e.data.payload
+        switch (e.data.code) {
+        case 200:
+            console.log (`main rec 200 val=${mval} bar=${bar}`)
+            bar += mval
+            console.log (`main updated bar=${bar}`)
+            break
+        case 201:
+            console.log (`main received code 201 val=${mval} bar=${bar} do nothing`)
+            break
+        default:
+            console.log (`main received bad code = ${e.data.code}`)
+        }
+        console.log (`main event handler returning`)
+
+    }
+})
+
+// Check whether the browser supports workers.  Print a message on the
+// console and return a Boolen: true if workers are supported
+
+function checkBrowserWorkerSupport () {
+    com.mode.devlog ("checkBrowserWorkerSupport")
+    let workersSupported = false
+    if (window.Worker) {
+        com.mode.devlog ("Browser supports concurrent worker threads");
+        workersSupported = true
+    } else {
+        com.mode.devlog ("Browser does not support concurrent worker threads");
+    }
+    return workersSupported
+}
+
+
+// Thread deprecated
+
+/*
+
+//  experiment
 let myWorker;
 myWorker = new Worker ("../base/emprocess.mjs");
 myWorker.onmessage = function (e) {
@@ -723,41 +839,56 @@ myWorker.onmessage = function (e) {
     let incoming = e.data;
     console.log (`I am main, received ${incoming}`);
 }
+
+//    console.log ("DevTools3");
+//    const xs = getCount ();
+//    startEmThread ();
+
+let processCounter = 0;  // global state for interaction
+
+// Start thread
+
+function startEmProcess () {
+    console.log ("startEmProcess");
+    processCounter = 0; // initialize global variable
+    console.log ("initial: " + formatArray(sharedArray));
+    emthread.postMessage ({type: "init", sharedArray});
+}
+
+// Read data from the array
+
+function formatArray (array) {
+    return Array.from(
+        array,
+        b => b.toString(16).toUpperCase().padStart(4, "0")
+    ).join(" ");
+}
+
+//    let somedata = [4,9,2,3];
+//    myWorker.postMessage ("This is text being sent from main");
+//    myWorker.postMessage (somedata);
+
+emthread.addEventListener("message", e => {
+    if (e.data && e.data.type === "ping") {
+        console.log("updated: " + formatArray(sharedArray));
+        if (++processCounter < 10) {
+            emthread.postMessage({type: "pong"});
+        } else {
+            console.log("done");
+        }
+    }
+});
+
 */
 
-function devTools1 () {
-    console.log ("DevTools1");
-    if (window.Worker) {
-        console.log ("window.Worker is ok");
-    } else {
-        console.log ("window.Worker is undefined");
-    }
-}
-
-function devTools2 () {
-    console.log ("DevTools2");
-    let somedata = [4,9,2,3];
-    //    myWorker.postMessage ("This is text being sent from main");
-    myWorker.postMessage (somedata);
-}
-
-function devTools3 () {
-    console.log ("DevTools3");
-    const xs = getCount ();
-    startEmProcess ();
-}
-
-function devTools4 () {
-    console.log ("DevTools4");
-}
-
-
 //-------------------------------------------------------------------------------
-// Complete initialization when onload occurs
+// Run the initializers when onload event occurs
 //-------------------------------------------------------------------------------
+
+let browserSupportsWorkers = false
 
 window.onload = function () {
-    com.mode.devlog("window.onload activated");
+    com.mode.devlog("window.onload activated: starting initializers");
     em.hideBreakDialogue ();
     em.initializeMachineState ();
     em.initializeSubsystems ();
@@ -771,5 +902,7 @@ window.onload = function () {
     smod.initModules ();
     window.mode = com.mode;
     hideDevToolsButton ();
+    browserSupportsWorkers = checkBrowserWorkerSupport ()
+    enableDevTools () // if commented out, this can be entered manually in console
     com.mode.devlog("Initialization complete");
 }
