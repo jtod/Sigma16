@@ -692,32 +692,15 @@ function devTools106 () {
 // Emulator thread
 //-------------------------------------------------------------------------------
 
-// Local state for main gui thread
-
-let foo = 300 // dummy state belonging to main thread
-let bar = 0
-
-// Shared system state
-
-const EMCTLSIZE   = 8
-const REGFILESIZE = 16
-const CREGSIZE    = 16
-const MEMSIZE     = 65536
-
-const StateSize =  2 * (EMCTLSIZE + REGFILESIZE + CREGSIZE + MEMSIZE)
-const sysStateBuf = new SharedArrayBuffer (StateSize)
-const sysStateArr = new Uint16Array (sysStateBuf)
-
-sysStateArr[23] = 42
-
-// const sharedStateBuf = new SharedArrayBuffer(5 * Uint16Array.BYTES_PER_ELEMENT);
-
-
-// const sharedArray = new Uint16Array(sharedBuf);
-
 // Define worker thread
 
 const emthread = new Worker("../base/emthread.mjs");
+
+function initThreads () {
+    console.log ("main initThreads")
+    let msg = {code: 100, payload: st.sysStateArr}
+    emthread.postMessage (msg)
+}
 
 // A message is an object of the form {code: ..., payload: ...}.  The
 // gui main thread uses codes 100, 101, ... and the emulator thread
@@ -725,69 +708,44 @@ const emthread = new Worker("../base/emthread.mjs");
 
 // Actions
 
-function action100 () {
-    console.log ("action 100")
-    initThreads ()
-}
-
-function action101 () {
-    console.log ("action 101")
-    send101 ()
-}
-function action102 () {
-    console.log ("action 102")
-    send102 (foo + 1000)
-}
-
-function action103 () {
-    console.log (`action103`)
-    let msg = {code: 103, payload: foo}
+function action101 () { // send foo
+    console.log (`action 101 foo=${st.foo}`)
+    let msg = {code: 101, payload: st.foo}
     console.log (`main sending: <${msg}>`)
     emthread.postMessage (msg)    
 }
 
-// Request to print sysStateArr[23] and increment it
-
-function action104 () {
-    console.log ("action 104")
-    let msg = {code: 104, payload: 104}
+function action102 () { // send foo, emt replies with emtCount, main202 prints
+    console.log (`main action 102 send foo=${st.foo}`)
+    let msg = {code: 102, payload: st.foo}
     emthread.postMessage (msg)    
 }
 
+function action103 () { // send foo
+    console.log (`main action 103 foo=${st.foo}`)
+    let msg = {code: 103, payload: st.foo}
+    console.log (`main sending: <${msg}>`)
+    emthread.postMessage (msg)    
+}
 
-function action105 () {
-    console.log ("action 105")
-    console.log (`sysStateArr[23] = ${sysStateArr[23]}`)
+function action104 () { // Tell emt to increment arr[23]
+    console.log ("main action 104")
+    let msg = {code: 104, payload: null}
+    emthread.postMessage (msg)    
+}
+
+function action105 () { // Tell emt to print regfile
+//    console.log (`main action 105 arr[23] = ${st.sysStateArr[23]}`)
+    let msg = {code: 105, payload: null}
+    emthread.postMessage (msg)    
 }
 
 
 function action106 () {
-    console.log ("action 106")
+    console.log ("main 106")
 }
 
-function initThreads () {
-    console.log ("initThreads")
-    let msg = {code: 100, payload: sysStateArr}
-    emthread.postMessage (msg)
-}
-
-// Code 101
-function send101 () {
-    console.log (`send101 foo=${foo}`)
-    let msg = {code: 101, payload: foo}
-    console.log (`main sending: <${msg}>`)
-    emthread.postMessage (msg)    
-}
-
-// Code 102
-function send102 () {
-    console.log (`sendToWorkeFoor foo=${foo}`)
-    let msg = {code: 102, payload: foo}
-    console.log (`main sending: <${msg}>`)
-    emthread.postMessage (msg)    
-}
-
-// Handle incoming messages
+// Handle incoming messages from emt
 
 emthread.addEventListener ("message", e => {
     console.log ("main has received a message")
@@ -796,12 +754,10 @@ emthread.addEventListener ("message", e => {
         let mval = e.data.payload
         switch (e.data.code) {
         case 200:
-            console.log (`main rec 200 val=${mval} bar=${bar}`)
-            bar += mval
-            console.log (`main updated bar=${bar}`)
+            console.log (`main rec 200 received val=${mval}`)
             break
-        case 201:
-            console.log (`main received code 201 val=${mval} bar=${bar} do nothing`)
+        case 202:
+            console.log (`main 202 rec ${mval} st.foobar=${st.foobar}`)
             break
         default:
             console.log (`main received bad code = ${e.data.code}`)
@@ -826,61 +782,6 @@ function checkBrowserWorkerSupport () {
     return workersSupported
 }
 
-
-// Thread deprecated
-
-/*
-
-//  experiment
-let myWorker;
-myWorker = new Worker ("../base/emprocess.mjs");
-myWorker.onmessage = function (e) {
-    console.log ("main received message from worker");
-    let incoming = e.data;
-    console.log (`I am main, received ${incoming}`);
-}
-
-//    console.log ("DevTools3");
-//    const xs = getCount ();
-//    startEmThread ();
-
-let processCounter = 0;  // global state for interaction
-
-// Start thread
-
-function startEmProcess () {
-    console.log ("startEmProcess");
-    processCounter = 0; // initialize global variable
-    console.log ("initial: " + formatArray(sharedArray));
-    emthread.postMessage ({type: "init", sharedArray});
-}
-
-// Read data from the array
-
-function formatArray (array) {
-    return Array.from(
-        array,
-        b => b.toString(16).toUpperCase().padStart(4, "0")
-    ).join(" ");
-}
-
-//    let somedata = [4,9,2,3];
-//    myWorker.postMessage ("This is text being sent from main");
-//    myWorker.postMessage (somedata);
-
-emthread.addEventListener("message", e => {
-    if (e.data && e.data.type === "ping") {
-        console.log("updated: " + formatArray(sharedArray));
-        if (++processCounter < 10) {
-            emthread.postMessage({type: "pong"});
-        } else {
-            console.log("done");
-        }
-    }
-});
-
-*/
-
 //-------------------------------------------------------------------------------
 // Run the initializers when onload event occurs
 //-------------------------------------------------------------------------------
@@ -903,6 +804,9 @@ window.onload = function () {
     window.mode = com.mode;
     hideDevToolsButton ();
     browserSupportsWorkers = checkBrowserWorkerSupport ()
+    if (browserSupportsWorkers) {
+        initThreads ()
+    }
     enableDevTools () // if commented out, this can be entered manually in console
     com.mode.devlog("Initialization complete");
 }

@@ -330,15 +330,21 @@ function testReg2 () {
 // The registers are created in gui.js in the window.onload function,
 // because they need the gui display elements to be created first
 
+let nextRegIndex = 8
+
 export function mkReg (rn,eltName,showfcn) {
     let r = Object.create({
-	regIdx : 0, // will be overwritten with actual index
+      	regIdx : 0, // will be overwritten with actual index
+        regArrIdx : nextRegIndex,
 	regName : rn,
 	show : showfcn,
 	val : 0,
 	elt : document.getElementById(eltName),
 	put : function (x) {
 	    this.val = x;
+            let arridx = this.regArrIdx // emt!! + REGOFFSET
+            st.sysStateArr [arridx] = x
+            console.log (`reg-put regIdx=${this.regIdx} arridx=${arridx} x=${x}`)
 	    com.mode.devlog (`reg put rn=${rn} idx=${this.regIdx} x=${x}`);
 	    if (this.regIdx<16) {
 		// record regfile put
@@ -358,6 +364,7 @@ export function mkReg (rn,eltName,showfcn) {
 	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
     });
 //    register[nRegisters] = this;
+    nextRegIndex++ // emt!!
     nRegisters++;
     return r;
 }
@@ -513,7 +520,7 @@ export function initializeMachineState () {
 	thisReg = (i==0) ?
 	    mkReg0 (regname, regname, arith.wordToHex4)
 	    : mkReg (regname, regname, arith.wordToHex4);
-	thisReg.regIdx = i;
+	thisReg.regIdx = i; // emt change!! no...
 	regFile[i] = thisReg;
 	register[i] = thisReg;
     }
@@ -557,7 +564,7 @@ export function initializeMachineState () {
     controlRegisters.forEach (function (r) {
 	com.mode.devlog('making reg ' + nRegisters + ' = ' + r.regName);
 	register[nRegisters] = r;
-	r.regIdx = nRegisters;
+	r.regIdx = nRegisters; // emt change!! ... no...
 	nRegisters++;
         });
 

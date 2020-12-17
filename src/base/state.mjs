@@ -516,3 +516,28 @@ thread is deprecated because of its detrimental effects to the end
 user's experience. For more help, check https://xhr.spec.whatwg.org/.
 */
 
+
+//-------------------------------------------------------------------------------
+// Emulator thread
+//-------------------------------------------------------------------------------
+
+
+// Local state for main gui thread
+
+export let foo = 300 // dummy state belonging to main thread
+export let foobar = 0
+
+// Constant parameters
+
+export const EMCTLSIZE   = 8
+export const REGFILESIZE = 16
+export const CREGSIZE    = 16
+export const MEMSIZE     = 65536
+export const StateSize =  2 * (EMCTLSIZE + REGFILESIZE + CREGSIZE + MEMSIZE)
+
+// Shared system state
+
+export const sysStateBuf = new SharedArrayBuffer (StateSize)
+export const sysStateArr = new Uint16Array (sysStateBuf)
+
+const REGOFFSET = EMCTLSIZE

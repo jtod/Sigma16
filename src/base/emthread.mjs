@@ -16,6 +16,14 @@
 
 // Emulator worker thread
 
+// Constant parameters must be identical to definitions in state.mjs
+
+const EMCTLSIZE   = 8
+const REGFILESIZE = 16
+const CREGSIZE    = 16
+const MEMSIZE     = 65536
+const StateSize =  2 * (EMCTLSIZE + REGFILESIZE + CREGSIZE + MEMSIZE)
+
 // Local state
 
 let emtCount = 0
@@ -36,13 +44,19 @@ this.addEventListener ("message", e => {
             break
         case 102:
             console.log (`emt rec 102, n=${emtCount} val=<${e.data.payload}>`)
-            let msg = {code: 200, payload: emtCount}
+            let msg = {code: 202, payload: emtCount}
             this.postMessage (msg)
-        case 104: // Request to print sysStateArr[23] and increment it
-            console.log (`emt 104`)
-            console.log (`emt 104 before ++ ${sysstate[23]}`)
+        case 104: // Increment sysStateArr[23]
+//            console.log (`emt 104`)
+//            console.log (`emt 104 before ++ ${sysstate[23]}`)
             sysstate[23]++
-            console.log (`emt 104 after ++ ${sysstate[23]}`)
+//            console.log (`emt 104 after ++ ${sysstate[23]}`)
+            break
+        case 105: //
+            for (let i = 0; i < 64; i++) {
+                let x = sysstate [i] // 8 is REGOFFSET, should be 8+i
+                console.log (`emt R${i} = ${x}`)
+            }
             break
         default:
             console.log (`emt received bad code ${e.data.code}`)
@@ -50,47 +64,3 @@ this.addEventListener ("message", e => {
         emtCount++
     }
 })
-
-// old deprecated
-
-/*
-let shared;
-let index;
-
-const updateAndPing = () => {
-    ++shared[index];
-    index = (index + 1) % shared.length;
-    this.postMessage({type: "ping"});
-}
-
-this.addEventListener("message", e => {
-    if (e.data) {
-        switch (e.data.type) {
-            case "init":
-                shared = e.data.sharedArray;
-                index = 0;
-                updateAndPing();
-                break;
-            case "pong":
-                updateAndPing();
-                break;
-        }
-    }
-});
-*/
-
-/*
-let workerCounter = 0;
-
-onmessage = function (e) {
-    console.log ("worker received a message");
-    let result = e.data;
-    console.log (`I am the worker, this is what I received: /${result}/`);
-    postMessage (workerCounter);
-    console.log (`I am the worker, replying with ${workerCounter}`);
-    workerCounter++;
-    
-}
-*/
-
-// basic-SharedArrayBuffer-worker.js
