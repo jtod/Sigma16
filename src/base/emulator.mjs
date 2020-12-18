@@ -134,16 +134,16 @@ export function boot (es) {
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
-    console.log ("------------- boot reading code --------------- ")
-    console.log (`*** Boot object code = ${objectCodeText}`)
-    console.log (`*** Boot metadata = ${metadataText}`)
-    console.log ("------------- boot starting --------------- ")
+//    console.log ("------------- boot reading code --------------- ")
+//    console.log (`*** Boot object code = ${objectCodeText}`)
+//    console.log (`*** Boot metadata = ${metadataText}`)
+//    console.log ("------------- boot starting --------------- ")
     es.metadata = new st.Metadata ();
     es.metadata.fromText (metadataText);
 
     let objectCode = objectCodeText.split("\n");
     
-    memClearAccesses ();
+//    memClearAccesses ();
     let xs = "";
     let fields = null;
     let isExecutable = true; // will set to false if module isn't bootable
@@ -195,7 +195,6 @@ export function boot (es) {
         setProcStatus (es,Ready);
         getListingDims(es);
         resetRegisters ();
-        memShowAccesses();
         memDisplay();
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
@@ -223,9 +222,8 @@ export let highlightedRegisters = [];
 
 export function displayFullState () {
     com.mode.devlog ('displayFullState');
-    clearRegisterHighlighting ();
-    refreshRegisters ();
-    memClearAccesses ();
+    updateRegisters ()
+    updateMemory ()
     memDisplayFull ();
 }
 
@@ -242,10 +240,6 @@ export let Halted = Symbol ("Halted");  // trap 0 has executed
 //  Registers
 //----------------------------------------------------------------------
 
-// deprecated
-// let enable, mask, req, isys, ipc, handle;           // interrupt control
-// let sEnable, sProg, sProgEnd, sDat, sDatEnd;   // segment control registers
-
 // Move to appropriate place... ??????????????
 export let modeHighlightAccess = true;
   // for tracing: highlight reg/mem that is accessed
@@ -255,14 +249,13 @@ export let modeHighlightAccess = true;
 // loaded (the onload event in gui.js), because the gui elements will
 // exist at that time.
 
-// Declare the registers
+// Declare the registers - window.onload sets their values
 export let regFile = [];                            // register file R0,..., R15
 export let pc, ir, adr, dat;                        // instruction control registers
 export let statusreg, mask, req, istat, ipc, vect;  // interrupt control registers
 export let bpseg, epseg, bdseg, edseg;              // segment control registers
 
 // Generating and accessing registers
-export let nRegisters = 0;     // total number of registers; increment as created
 export let controlRegisters;   // array of the control registers
 export let register = [];      // array of all the registers: regfile and control
 
@@ -276,8 +269,10 @@ export let register = [];      // array of all the registers: regfile and contro
 export const ctlRegIndexOffset = 20;  // add to ctl reg no. to get register[] index
 export let sysCtlRegIdx = 0;          // index of first system control reg
 export let registerIndex = 0;         // unique index for each reg
-export let regStored = [];
 export let regFetched = [];
+export let regFetchedOld = [];
+export let regStored = [];
+export let regStoredOld = [];
 
 // Instructions refer to the system control registers by a 4-bit
 // index, but the system control register that has instruction index 0
@@ -287,21 +282,7 @@ export let regFetched = [];
 
 // Each register is represented by an object that contains its current
 // value, as well as methods to get and set the value, and to refresh
-// the display.  The mkReg function makes a register corresponding to
-// a gui element.  To remove highlight, use refresh.
-
-// Arguments
-//   regName is the name of the register, e.g. "pc"
-//   eltName is the html id of the gui element
-//   show(x) converts a value x to a string that can be displayed
-// Set by creation loop
-//   regIdx is the unique index in the array of all registers
-// Local state
-//   val is the current contents of the register
-//   elt is gui element used to display the register
-//   put(x) discards current val and replaces it with x (highlight if mode set)
-//   get() returns current val (highlight if mode set)
-//   refresh() puts the current val into display, without any highlighting
+// the display.
 
 // Textual representation of system status, for the emulator display
 
@@ -311,111 +292,117 @@ function showSysStat (s) {
 
 function testReg1 () {
     com.mode.devlog("testReg1");
-    regClearAccesses();
+//    regClearAccesses();
     pc.put(3);
     com.mode.devlog ("ir = " + ir.get());
     com.mode.devlog ("pc = " + pc.get());
-    regShowAccesses();
+//    regShowAccesses();
 }
 
 function testReg2 () {
     com.mode.devlog("testReg1");
-    regClearAccesses();
+//    regClearAccesses();
     com.mode.devlog ("ir = " + ir.get());
     com.mode.devlog ("pc = " + pc.get());
     adr.put(20);
-    regShowAccesses();
+//    regShowAccesses();
 }
 
+//-----------------------------------------------------------------------------
+// Registers
+//-----------------------------------------------------------------------------
+
+// genregister creates and returns an object representing a register.
 // The registers are created in gui.js in the window.onload function,
-// because they need the gui display elements to be created first
+// because they need the gui display elements to be created first.
+// Arguments to the constructor are:
 
-let nextRegIndex = 8
+//   - regNumber is index in a reg file (0 if irrelevant); e.g. for R5 it's 5
+//   - regName is string representation; e.g. for R5 it's "R5"
+//   - eltName is the html id of the gui element that displays the register
+//   - showFcn converts the value to a string
 
-export function mkReg (rn,eltName,showfcn) {
-    let r = Object.create({
-      	regIdx : 0, // will be overwritten with actual index
-        regArrIdx : nextRegIndex,
-	regName : rn,
-	show : showfcn,
-	val : 0,
-	elt : document.getElementById(eltName),
-	put : function (x) {
-	    this.val = x;
-            let arridx = this.regArrIdx // emt!! + REGOFFSET
-            st.sysStateArr [arridx] = x
-            console.log (`reg-put regIdx=${this.regIdx} arridx=${arridx} x=${x}`)
-	    com.mode.devlog (`reg put rn=${rn} idx=${this.regIdx} x=${x}`);
-	    if (this.regIdx<16) {
-		// record regfile put
-		instrEffect.push (["R", this.regIdx, x, this.regName]);
-	    com.mode.devlog (`mkReg put recording effect 0 ${instrEffect[0]}`);
-	    com.mode.devlog (`mkReg put recording effect 1 ${instrEffect[1]}`);
-	    }
-	    if (modeHighlight) { regStored.push(this) } },
-        get : function () {
-	        let x = this.val;
-	        if (modeHighlight) { regFetched.push(this) };
-	        return x },
-	refresh : function() {
-	    com.mode.devlog (`refresh register ${rn}`);
-	    this.elt.innerHTML = this.show(this.val);
-	},
-	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
-    });
-//    register[nRegisters] = this;
-    nextRegIndex++ // emt!!
-    nRegisters++;
-    return r;
-}
+// The actual value of a register is kept in the system state vector,
+// where its index is regStIndex.  As registers are created, the
+// number of existing registers (nRegisters) is used as the value of
+// regStIndex.  So it's important to create the registers in a
+// sensible order, with the register file first.
 
-// R0 is special: it always contains 0 and cannot be changed
-export function mkReg0 (rn,eltName,showfcn) {
-    let r = Object.create({
-	regName : rn,
-	show : showfcn,
-	val : 0,
-	elt : document.getElementById(eltName),
-	put : function (x) { },
-        get : function () { return 0 },
-	refresh : function() {this.elt.innerHTML = this.show(this.val);},
-	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
-    });
-    nRegisters++;
-    return r;
-}
+let nRegisters = 0  // number of registers that have been defined
 
-function regShowAccesses () {
-    let i, r;
-    for (i = 0; i < regFetched.length; i++) {
-	r = regFetched[i];
-	r.elt.innerHTML = highlightText(r.show(r.val),'GET')
+export class genregister {
+    constructor (regNumber, regName, eltName, showFcn) {
+        this.regStIndex = nRegisters
+        nRegisters++
+        this.regNumber = regNumber
+        this.regName = regName
+        this.eltName = eltName
+        this.show = showFcn
+        this.elt = document.getElementById (eltName)
+	this.elt.innerHTML = this.regStIndex
+        console.log (`--- Generate reg regNum=${this.regNumber}`
+                     + ` name=${this.regName} idx=${this.regStIndex}`)
     }
-    for (i = 0; i < regStored.length; i++) {
-	r = regStored[i];
-	r.elt.innerHTML = highlightText(r.show(r.val),'PUT')
+    get () {
+        regFetched.push (this)
+        let i = st.EmRegBlockOffset + this.regStIndex
+        let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+        console.log (`--- reg get ${this.regName} =`
+                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
+        return x
+    }
+    put (x) {
+        regStored.push (this)
+        let i = st.EmRegBlockOffset + this.regStIndex
+        st.sysStateVec [i] = x
+        if (this.regIdx < 16) { // register file
+            instrEffect.push (["R", this.regNumber, x, this.regName]);
+        }
+        console.log (`--- reg put ${this.regName} :=`
+                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
+    }
+    highlight (key) {
+        let i = st.EmRegBlockOffset + this.regStIndex
+        let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+        let xs = highlightText (this.show(x), key)
+        console.log (`--- reg highlight ${this.regName} := ${xs} (idx=${i})`)
+        this.elt.innerHTML = xs
+    }
+    refresh () {
+        let i = st.EmRegBlockOffset + this.regStIndex
+        let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+        let xs = this.show (x)
+        console.log (`--- reg refresh ${this.regName} :=`
+                     + ` ${arith.wordToHex4(x)} = ${x} /${xs}/ (idx=${i})`)
+        this.elt.innerHTML = xs
     }
 }
 
-function regClearAccesses () {
-    let r;
-    for (let i = 0; i < regFetched.length; i++) {
-	regFetched[i].refresh();
-    }
-    for (let i = 0; i <regStored.length; i++) {
-	regStored[i].refresh();
-    }
-    regFetched = [];
-    regStored = [];
+// Show any changes to registers in the gui display
 
+function updateRegisters () {
+    console.log ("--- updateRegisters ---")
+    // Clear previous highlighting by refreshing the registers
+    for (let x of regFetchedOld) { x.refresh () }
+    for (let x of regStoredOld)  { x.refresh () }
+    // Update the new register accesses
+    for (let x of regFetched)    { x.highlight ("GET") }
+    for (let x of regStored)     { x.highlight ("PUT") }
+    regFetchedOld = regFetched
+    regStoredOld = regStored
+    regFetched = []
+    regStored = []
+    console.log ("--- updateRegisters returning ---")
 }
 
-// Resetting the registers sets them all to 0, 
+// Reset every register to 0
+
 function resetRegisters () {
     com.mode.devlog('Resetting registers');
+    return // ??????????
     for (let i = 0; i < nRegisters; i++) {
-	register[i].val = 0;
-	register[i].refresh();
+        register[i].put (0)
+        register[i].refresh ()
     }
 }
 
@@ -427,6 +414,10 @@ function refreshRegisters() {
     for (let i = 0; i < nRegisters; i++) {
 	register[i].refresh();
     }
+    regFetched = []
+    regFetchedOld = []
+    regStored = []
+    regStoredOld = []
 }
 
 //------------------------------------------------------------------------------
@@ -512,46 +503,42 @@ export function initializeMachineState () {
     initializeProcessorElements ();  // so far, it's just instr decode
     clearInstrDecode (emulatorState);
 
-    // Build the register file; R0 is built specially as it is
-    // constant; all others are built with mkReg
-    for (let i = 0; i<16; i++) {
+    // Build the register file; sysStateVec index = reg number
+    for (let i = 0; i < 16; i++) {
 	let regname = 'R' + i; // also the id for element name
-        let thisReg;
-	thisReg = (i==0) ?
-	    mkReg0 (regname, regname, arith.wordToHex4)
-	    : mkReg (regname, regname, arith.wordToHex4);
-	thisReg.regIdx = i; // emt change!! no...
-	regFile[i] = thisReg;
-	register[i] = thisReg;
+        regFile[i] = new genregister (i, regname, regname, arith.wordToHex4)
+	register[i] = regFile[i]
     }
 
     // Instruction control registers
-    pc    = mkReg ('pc',       'pcElt',       arith.wordToHex4);
-    ir    = mkReg ('ir',       'irElt',       arith.wordToHex4);
-    adr   = mkReg ('adr',      'adrElt',      arith.wordToHex4);
-    dat   = mkReg ('dat',      'datElt',      arith.wordToHex4);
+    pc   = new genregister (0,  'pc',   'pcElt',    arith.wordToHex4);
+    ir   = new genregister (0,  'ir',   'irElt',    arith.wordToHex4);
+    adr  = new genregister (0,  'adr',  'adrElt',   arith.wordToHex4);
+    dat  = new genregister (0,  'dat',  'datElt',   arith.wordToHex4);
 
     // Interrupt control registers
-    statusreg   = mkReg ('statusreg',  'statusElt',  arith.wordToHex4);
+    statusreg  = new genregister (0, 'statusreg', 'statusElt',  arith.wordToHex4);
     // bit 0 (lsb) :  0 = User state, 1 = System state
     // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
     // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
-    mask  = mkReg ('mask',     'maskElt',    arith.wordToHex4);
-    req   = mkReg ('req',      'reqElt',     arith.wordToHex4);
+
+    mask  = new genregister (0, 'mask', 'maskElt',  arith.wordToHex4);
+    req   = new genregister (0, 'req',  'reqElt',   arith.wordToHex4);
     // mask and request use the same bit positions for flags
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
-    istat    = mkReg ('istat',    'istatElt',      arith.wordToHex4);
-    ipc      = mkReg ('ipc',      'ipcElt',      arith.wordToHex4);
-    vect     = mkReg ('vect',   'vectElt', arith.wordToHex4);
+
+    istat    = new genregister (0, 'istat',  'istatElt',  arith.wordToHex4);
+    ipc      = new genregister (0, 'ipc',    'ipcElt',    arith.wordToHex4);
+    vect     = new genregister (0, 'vect',   'vectElt',   arith.wordToHex4);
 
 // Segment control registers
-    bpseg = mkReg ('bpseg',    'bpsegElt',    arith.wordToHex4);
-    epseg = mkReg ('epseg',    'epsegElt',    arith.wordToHex4);
-    bdseg = mkReg ('bdseg',    'bdsegElt',    arith.wordToHex4);
-    edseg = mkReg ('edseg',    'edsegElt',    arith.wordToHex4);
+    bpseg = new genregister (0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
+    epseg = new genregister (0, 'epseg',  'epsegElt',  arith.wordToHex4);
+    bdseg = new genregister (0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
+    edseg = new genregister (0, 'edseg',  'edsegElt',  arith.wordToHex4);
 
 // Record the control registers    
     controlRegisters =
@@ -559,14 +546,7 @@ export function initializeMachineState () {
 	 // the following can be used for getctl/getctl, indexing from 0
 	 statusreg, mask, req, istat, ipc, vect,
          bpseg, epseg, bdseg, edseg
-	];
-    nRegisters = 16;  // Start after the first 16 (the regfile)
-    controlRegisters.forEach (function (r) {
-	com.mode.devlog('making reg ' + nRegisters + ' = ' + r.regName);
-	register[nRegisters] = r;
-	r.regIdx = nRegisters; // emt change!! ... no...
-	nRegisters++;
-        });
+	]
 
     memInitialize();
     resetRegisters();
@@ -642,6 +622,10 @@ let memElt1, memElt2;  // html elements for two views into the memory
 let memFetchInstrLog = [];
 let memFetchDataLog = [];
 let memStoreLog = [];
+let memFetchInstrLogOld = [];
+let memFetchDataLogOld = [];
+let memStoreLogOld = [];
+
 export let memDisplayModeFull = false;  // show entire/partial memory
 let memDisplayFastWindow = 16;          // how many locations to show in fast mode
 let memDispOffset = 3;                  // how many locations above highligted one
@@ -677,8 +661,9 @@ function memInitialize () {
 // Set all memory locations to 0
 
 function memClear () {
-    for (let i = 0; i < memSize; i++) {
-	memory[i] = 0;
+    for (let a = 0; a < memSize; a++) {
+        //	memory[i] = 0;
+        memStore (a, 0)
     }
     memFetchInstrLog = [];
     memFetchDataLog = [];
@@ -697,12 +682,9 @@ function memClear () {
 
 function memRefresh () {
     memString = [];  // clear out and collect any existing elements
-//    memString[0] =  "hello";  // "<pre class='HighlightedTextAsHtml'>"
     for (let i = 0; i < memSize; i++) {
 	setMemString(i);
     }
-//    memString.push("bye");    // "</pre>");
-
 }
 
 // Create a string to represent a memory location; the actual value is
@@ -710,8 +692,18 @@ function memRefresh () {
 // array.  memString[0] = <pre class="HighlightedTextAsHtml"> and
 // mem[a] corresponds to memString[a+1].
 
+
+function memHighlight (a, highlight) {
+    let x = st.sysStateVec [st.EmMemOffset + a]
+    memString[a] =
+	"<span class='" + highlight + "'>"
+	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
+        + "</span>";
+}
+
 function setMemString(a) {
-    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(memory[a]);
+    let x = st.sysStateVec [st.EmMemOffset + a]
+    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
 }
 
 // Fetch and return a word from memory at address a, and record the
@@ -719,12 +711,14 @@ function setMemString(a) {
 
 function memFetchInstr (a) {
     memFetchInstrLog.push(a);
-    return memory[a];
+    let x = st.sysStateVec [st.EmMemOffset + a]
+    return x
 }
 
 function memFetchData (a) {
     memFetchDataLog.push(a);
-    return memory[a];
+    let x = st.sysStateVec [st.EmMemOffset + a]
+    return x
 }
 
 // Store a word x into memory at address a, and record the address so
@@ -733,7 +727,7 @@ function memFetchData (a) {
 function memStore (a,x) {
     memStoreLog.push(a);
     instrEffect.push(["M", a, x]);
-    memory[a] = x;
+    st.sysStateVec [st.EmMemOffset + a] = x
 }
 
 // Update the memory string for each location that has been accessed,
@@ -742,53 +736,26 @@ function memStore (a,x) {
 // stores: this ensures that if a location has both been fetched and
 // stored, the highlighting for the store will take precedence.
 
-function memShowAccesses () {
-    let i, a;
-    for (i = 0; i < memFetchInstrLog.length; i++) {
-	a = memFetchInstrLog[i];
-	highlightMemString(a,"GET");
-    }
-    for (i = 0; i < memFetchDataLog.length; i++) {
-	a = memFetchDataLog[i];
-	highlightMemString(a,"GET");
-    }
-    for (i = 0; i < memStoreLog.length; i++) {
-	a = memStoreLog[i];
-	highlightMemString(a,"PUT");
-    }
-}
-
-// Remove the highlighting for the memory locations that have been accessed
-
-function memClearAccesses () {
-    let a;
-    for (let i = 0; i < memFetchInstrLog.length; i++) {
-	a = memFetchInstrLog[i];
-	setMemString(a);
-    }
-    for (let i = 0; i < memFetchDataLog.length; i++) {
-	a = memFetchDataLog[i];
-	setMemString(a);
-    }
-    for (let i = 0; i < memStoreLog.length; i++) {
-	a = memStoreLog[i];
-	setMemString(a);
-    }
-    memFetchInstrLog = [];
-    memFetchDataLog = [];
-    memStoreLog = [];
+function updateMemory () {
+    // Clear previous highlighting
+    for (let x of memFetchInstrLogOld) { memRefresh (x) }
+    for (let x of memFetchDataLogOld)  { memRefresh (x) }
+    for (let x of memStoreLogOld)      { memRefresh (x) }
+    // Update new memory accesses
+    for (let x of memFetchInstrLog)    { memHighlight (x, "GET") }
+    for (let x of memFetchDataLog)     { memHighlight (x, "GET") }
+    for (let x of memStoreLog)         { memHighlight (x, "PUT") }
+    memFetchInstrLogOld = memFetchInstrLog
+    memFetchDataLogOld = memFetchDataLog
+    memStoreLogOld = memStoreLog
+    memFetchInstrLog = []
+    memFetchDataLog = []
+    memStoreLog = []
 }
 
 // Create a string with a span class to represent a memory location
 // with highlighting; the actual value is in the memory array, and the
 // string is placed in the memString array.
-
-function highlightMemString(a,highlight) {
-    memString[a] =
-	"<span class='" + highlight + "'>"
-	+ arith.wordToHex4(a) + " " + arith.wordToHex4(memory[a])
-        + "</span>";
-}
 
 // Set the memory displays, using the memString array.  Check mode to
 // determine whether the display should be partial and fast or
@@ -868,16 +835,13 @@ function memTest1a () {
     memClear ();
     memStore(3,7);
     memStore(6,2);
-    memShowAccesses ();
     memDisplay ();
 }
 
 function memTest1b () {
     com.mode.devlog('testMem1b');
-    memClearAccesses ();
     let y = memFetchInstr(6);
     memStore(300,20);
-    memShowAccesses();
     memDisplay ();
 }
 
@@ -887,7 +851,7 @@ function memTest2 () {
     let y = memFetchInstr (32768);
     let q = memFetchData (50);
     memStore (65520, 7);
-    memShowAccesses ();
+//    memShowAccesses ();
     memDisplay ();
 }
 
@@ -982,18 +946,6 @@ function setModeHighlight (x) {
 function highlightText (txt,tag) {
     return "<span class='" + tag + "'>" + txt + "</span>";
 }
-
-function clearRegisterHighlighting () {
-    let n =  highlightedRegisters.length;
-    let r;
-    for (let i = 0; i < n; i++) {
-	r = highlightedRegisters[i];
-	com.mode.devlog('clear highlight ' + i + ' reg = ' + r.regName);
-	r.refresh();
-    };
-    highlightedRegisters = [];
-}
-
 
 //-----------------------------------------------------------------------------
 // Interrupts
@@ -1223,7 +1175,7 @@ export function procReset(es) {
     resetRegisters ();
     refreshRegisters ();
     memClear ();
-    memClearAccesses ();
+//    memClearAccesses ();
     memDisplay ();
     document.getElementById('ProcAsmListing').innerHTML = "";
     clearInstrDecode (es);
@@ -1265,10 +1217,9 @@ function instructionLooper (es) {
 export function procPause(es) {
     com.mode.devlog ("procPause");
     setProcStatus (es,Paused);
-    refreshRegisters();
-    regShowAccesses();
-    memRefresh();
-    memShowAccesses ();
+
+    updateRegisters ()
+    updateMemory ()
     memDisplayFull();
     showInstrDecode (es);
     highlightListingAfterInstr (es);
@@ -1347,9 +1298,7 @@ function breakClose () {
 
 function execRunPrepare (es) {
     com.mode.devlog ("execRunPrepare");
-    regClearAccesses ();             // remove register highlighting, clear logs
-    regShowAccesses()
-    memClearAccesses ();             // remove mem highlighting, clear logs
+    refreshRegisters ()
     memRefresh();
     memDisplay ();                   // refresh memory display
     clearInstrDecode (es);           // remove decoding of last instruction
@@ -1365,8 +1314,8 @@ function execRunPrepare (es) {
 function execInstrPrepareFast (es) {
     com.mode.devlog ("execInstrPrepareFast");
 // don't refresh the registers (no regClearAccesses), just clear logs
-    regFetched = [];  // clear reg fetch log
-    regStored = [];   // clear reg update log
+//    regFetched = [];  // clear reg fetch log
+//    regStored = [];   // clear reg update log
 // don't refresh memory (no memClearAccesses), just clear logs
     memFetchInstrLog = [];
     memFetchDataLog = [];
@@ -1380,8 +1329,6 @@ function execInstrPrepareFast (es) {
 
 function execInstrPrepareFull (es) {
     com.mode.devlog ("execInstrPrepareFast");
-    regClearAccesses ();
-    memClearAccesses ();
     clearInstrDecode (es);
     prepareListingBeforeInstr (es);
 }
@@ -1390,18 +1337,20 @@ function execInstrPrepareFull (es) {
 
 function execInstrPostDisplay (es) {
     if (es.procStatus===Halted) { // do a full display
-        refreshRegisters ();
-	regShowAccesses()
-	memShowAccesses();
-        memRefresh();
-        memShowAccesses();
+        updateRegisters ()
+        updateMemory ()
         memDisplayFull ();
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
     } else if (es.procStatus===Paused) {
+        updateRegisters ()
+        updateMemory ()
+	memDisplay ();
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
     } else { // do normal display
-	regShowAccesses()
-	memShowAccesses();
+        updateRegisters ()
+        updateMemory ()
 	memDisplay ();
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
@@ -1410,11 +1359,10 @@ function execInstrPostDisplay (es) {
 
 function runInstrPostDisplay (es) {
     com.mode.devlog("runInstrPostDisplay");
-    memClearAccesses ();
-    memRefresh();
-    memDisplayFull ();
     clearRegisterHighlighting ();
-    refreshRegisters ();
+    updateRegisters ()
+    updateMemory ()
+    memDisplayFull ();
 }
 
 // Prepare to execute an instruction by clearing the buffers holiding
@@ -1424,37 +1372,9 @@ function prepareExecuteInstruction (es) {
     com.mode.devlog ("prepareExecuteInstruction");
 
 // Preparations before the instruction
-    regClearAccesses ();
-    memClearAccesses ();
     memDisplay ();
     clearInstrDecode (es);
     prepareListingBeforeInstr (es);
-}
-
-// Final actions after the instruction
-function finalizeExecuteInstruction (es) {
-    if (es.procStatus===Halted) {
-        com.mode.devlog ("procStep: execute instruction: halted")
-	regShowAccesses()
-        memRefresh();
-	memShowAccesses();
-	memDisplayFull ();
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
-    } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-	com.mode.devlog ("Breakpoint");
-        setProcStatus (es,Paused);
-        memRefresh();
-        displayFullState();
-    } else {
-	regShowAccesses()
-	memShowAccesses();
-	memDisplay ();
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
-    }
-
-    com.mode.devlog ("runOneInstruction: end");
 }
 
 //------------------------------------------------------------------------------
@@ -1471,6 +1391,26 @@ function finalizeExecuteInstruction (es) {
 //	    com.mode.devlog(`find interrupt trying i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
 
 function executeInstruction (es) {
+
+    /*
+    console.log ("^^^^^^^^^^ execute instruction")
+    console.log (`nregs=${nRegisters} ${register.length}`)
+    for (let x of register) {
+        console.log (`${x.regStIndex} ${x.regName}`)
+    }
+    console.log ("^^^^^^^^^^ execute instruction thats all folks")
+    console.log ("^^^^^^^^^^ execute instruction")
+    console.log (`ssv[3] = ${st.sysStateVec[3]}`)
+    st.sysStateVec[3] = 42
+    console.log (`ssv[3] = ${st.sysStateVec[3]}`)
+
+    console.log (`pc = ${pc.get()}`)
+    console.log (`ir = ${ir.get()}`)
+    pc.put (5)
+    console.log (`pc = ${pc.get()}`)
+    console.log ("^^^^^^^^^^ execute instruction thats all folks")
+    */
+
     com.mode.devlog ('executeInstruction');
     es.nInstructionsExecuted++;
     document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
@@ -1498,7 +1438,8 @@ function executeInstruction (es) {
 		       & arith.maskToClearBitBE(arch.intEnableBit)
 		       & arith.maskToClearBitBE(arch.userStateBit));
 //	com.mode.devlog (`statusreg=${arith.wordToHex4(statusreg.get())}`);
-//	regShowAccesses();
+        //	regShowAccesses();
+//        updateRegisters ()
 	return;
     };
 
@@ -1522,6 +1463,7 @@ function executeInstruction (es) {
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     console.log ("Dispatch primary opcode");
     dispatch_primary_opcode [es.ir_op] (es);
+//    updateRegisters () // display values and highlighting
 }
 
 // RRR instruction pattern functions
@@ -1644,7 +1586,9 @@ const op_trap = (es) => {
     if (code===0) { // Halt
 	com.mode.devlog ("Trap: halt");
         setProcStatus (es,Halted);
-        refreshRegisters();
+        //        refreshRegisters();
+        updateRegisters ()
+        updateMemory ()
         memRefresh();
     } else if (code==1) { // Read
         trapRead(es);
@@ -1988,7 +1932,7 @@ function exp2_putctl (es) {
     com.mode.devlog (`putctl src e==${es.field_e} val=${regFile[es.field_e].get()}`);
     com.mode.devlog (`putctl dest f=${es.field_f} cregn=${cregn} cregidx=${cregidx}`);
     register[cregidx].put(regFile[es.field_e].get());
-    register[cregidx].refresh();
+    register[cregidx].refresh(); // ???
 }
 
 function exp2_execute (es) {
@@ -2202,3 +2146,294 @@ function testpane2 () {
 function testpane3 () {
     com.mode.devlog ('testpane 3 clicked');
 }
+
+
+// ----------------------------------------------------------------------------
+// Deprecated
+// ----------------------------------------------------------------------------
+
+// The mkReg function makes a register corresponding to
+// a gui element.  To remove highlight, use refresh.
+
+// Arguments
+//   regName is the name of the register, e.g. "pc"
+//   eltName is the html id of the gui element
+//   show(x) converts a value x to a string that can be displayed
+// Set by creation loop
+//   regIdx is the unique index in the array of all registers
+// Local state
+//   val is the current contents of the register
+//   elt is gui element used to display the register
+//   put(x) discards current val and replaces it with x (highlight if mode set)
+//   get() returns current val (highlight if mode set)
+//   refresh() puts the current val into display, without any highlighting
+
+
+/*
+export function mkReg (rn,eltName,showfcn) {
+    let r = Object.create({
+      	regIdx : 0, // will be overwritten with actual index
+        regArrIdx : nextRegIndex,
+	regName : rn,
+	show : showfcn,
+	val : 0,
+	elt : document.getElementById(eltName),
+	put : function (x) {
+	    this.val = x;
+            let arridx = this.regArrIdx // emt!! + REGOFFSET
+            st.sysStateArr [arridx] = x
+            console.log (`reg-put regIdx=${this.regIdx} arridx=${arridx} x=${x}`)
+	    com.mode.devlog (`reg put rn=${rn} idx=${this.regIdx} x=${x}`);
+	    if (this.regIdx<16) {
+		// record regfile put
+		instrEffect.push (["R", this.regIdx, x, this.regName]);
+	    com.mode.devlog (`mkReg put recording effect 0 ${instrEffect[0]}`);
+	    com.mode.devlog (`mkReg put recording effect 1 ${instrEffect[1]}`);
+	    }
+	    if (modeHighlight) { regStored.push(this) } },
+        get : function () {
+	        let x = this.val;
+	        if (modeHighlight) { regFetched.push(this) };
+	        return x },
+	refresh : function() {
+	    com.mode.devlog (`refresh register ${rn}`);
+	    this.elt.innerHTML = this.show(this.val);
+	},
+	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
+    });
+//    register[nRegisters] = this;
+    nextRegIndex++ // emt!!
+    nRegisters++;
+    return r;
+}
+
+// R0 is special: it always contains 0 and cannot be changed
+export function mkReg0 (rn,eltName,showfcn) {
+    let r = Object.create({
+	regName : rn,
+	show : showfcn,
+	val : 0,
+	elt : document.getElementById(eltName),
+	put : function (x) { },
+        get : function () { return 0 },
+	refresh : function() {this.elt.innerHTML = this.show(this.val);},
+	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
+    });
+    nRegisters++;
+    return r;
+}
+*/
+//        this.value = 0
+
+/*
+function regShowAccesses () {
+    let i, r;
+    for (i = 0; i < regFetched.length; i++) {
+	r = regFetched[i];
+	r.elt.innerHTML = highlightText(r.show(r.val),'GET')
+    }
+    for (i = 0; i < regStored.length; i++) {
+	r = regStored[i];
+	r.elt.innerHTML = highlightText(r.show(r.val),'PUT')
+    }
+}
+
+function regClearAccesses () {
+    let r;
+    for (let i = 0; i < regFetched.length; i++) {
+	regFetched[i].refresh();
+    }
+    for (let i = 0; i <regStored.length; i++) {
+	regStored[i].refresh();
+    }
+    regFetched = [];
+    regStored = [];
+
+}
+*/
+        //	register[i].val = 0;
+//        register[i].value = 0; // ????? use put? set sysStateVec???
+//	register[i].refresh();
+
+    // xxxxx R0 is built specially as it is
+    // xxxxx constant; all others are built with mkReg
+//    console.log ("************** ************* ************* ************")
+//    console.log ("make registers")
+//    console.log ("************** ************* ************* ************")
+
+//        let thisReg;
+//	thisReg = (i==0) ?
+//	    mkReg0 (regname, regname, arith.wordToHex4)
+//	    : mkReg (regname, regname, arith.wordToHex4);
+//	thisReg.regIdx = i; // emt change!! no...
+
+//    pc    = mkReg ('pc',       'pcElt',       arith.wordToHex4);
+//    ir    = mkReg ('ir',       'irElt',       arith.wordToHex4);
+//    adr   = mkReg ('adr',      'adrElt',      arith.wordToHex4);
+//    dat   = mkReg ('dat',      'datElt',      arith.wordToHex4);
+
+//    statusreg   = mkReg ('statusreg',  'statusElt',  arith.wordToHex4);
+
+//    mask  = mkReg ('mask',     'maskElt',    arith.wordToHex4);
+//    req   = mkReg ('req',      'reqElt',     arith.wordToHex4);
+
+//    istat    = mkReg ('istat',    'istatElt',      arith.wordToHex4);
+//    ipc      = mkReg ('ipc',      'ipcElt',      arith.wordToHex4);
+//    vect     = mkReg ('vect',   'vectElt', arith.wordToHex4);
+
+//    bpseg = mkReg ('bpseg',    'bpsegElt',    arith.wordToHex4);
+//    epseg = mkReg ('epseg',    'epsegElt',    arith.wordToHex4);
+//    bdseg = mkReg ('bdseg',    'bdsegElt',    arith.wordToHex4);
+//    edseg = mkReg ('edseg',    'edsegElt',    arith.wordToHex4);
+
+/*
+function memShowAccesses () {
+    let i, a;
+    for (i = 0; i < memFetchInstrLog.length; i++) {
+	a = memFetchInstrLog[i];
+	highlightMemString(a,"GET");
+    }
+    for (i = 0; i < memFetchDataLog.length; i++) {
+	a = memFetchDataLog[i];
+	highlightMemString(a,"GET");
+    }
+    for (i = 0; i < memStoreLog.length; i++) {
+	a = memStoreLog[i];
+	highlightMemString(a,"PUT");
+    }
+}
+
+// Remove the highlighting for the memory locations that have been accessed
+
+function memClearAccesses () {
+    let a;
+    for (let i = 0; i < memFetchInstrLog.length; i++) {
+	a = memFetchInstrLog[i];
+	setMemString(a);
+    }
+    for (let i = 0; i < memFetchDataLog.length; i++) {
+	a = memFetchDataLog[i];
+	setMemString(a);
+    }
+    for (let i = 0; i < memStoreLog.length; i++) {
+	a = memStoreLog[i];
+	setMemString(a);
+    }
+    memFetchInstrLog = [];
+    memFetchDataLog = [];
+    memStoreLog = [];
+}
+*/
+//        memShowAccesses();
+
+//    clearRegisterHighlighting ();
+    //    refreshRegisters ();
+
+//    memClearAccesses ();
+
+// deprecated
+// let enable, mask, req, isys, ipc, handle;           // interrupt control
+// let sEnable, sProg, sProgEnd, sDat, sDatEnd;   // segment control registers
+
+// Record the control registers...
+//    nRegisters = 16;  // Start after the first 16 (the regfile)
+//    controlRegisters.forEach (function (r) {
+//	com.mode.devlog('making reg ' + nRegisters + ' = ' + r.regName);
+//	register[nRegisters] = r;
+//	r.regIdx = nRegisters; // emt change!! ... no...
+//	nRegisters++;
+
+//    memString[0] =  "hello";  // "<pre class='HighlightedTextAsHtml'>"
+
+//    memString.push("bye");    // "</pre>");
+
+/* old version
+function highlightMemString(a,highlight) {
+    memString[a] =
+	"<span class='" + highlight + "'>"
+	+ arith.wordToHex4(a) + " " + arith.wordToHex4(memory[a])
+        + "</span>";
+}
+*/
+
+//    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(memory[a]);
+//    return memory[a];
+//    return memory[a];
+//    memory[a] = x;
+//    memShowAccesses ();
+//    memClearAccesses ();
+//    memShowAccesses();
+
+
+/*
+function clearRegisterHighlighting () {
+    return // deprecated, use updateRegisters
+    let n =  highlightedRegisters.length;
+    let r;
+    for (let i = 0; i < n; i++) {
+	r = highlightedRegisters[i];
+	com.mode.devlog('clear highlight ' + i + ' reg = ' + r.regName);
+	r.refresh();
+    };
+    highlightedRegisters = [];
+}
+*/
+
+//    refreshRegisters();
+//    regShowAccesses();
+//    memRefresh();
+//    memShowAccesses ();
+
+//    regClearAccesses ();             // remove register highlighting, clear logs
+
+//    regShowAccesses()
+//    memClearAccesses ();             // remove mem highlighting, clear logs
+
+//    regClearAccesses ();
+//    memClearAccesses ();
+
+        //        refreshRegisters ();
+
+//	regShowAccesses()
+//	memShowAccesses();
+//        memRefresh();
+//        memShowAccesses();
+//	memShowAccesses();
+
+        //	regShowAccesses()
+//	memShowAccesses();
+//    memClearAccesses ();
+//    memRefresh();
+    //    refreshRegisters ();
+//    regClearAccesses ();
+//    memClearAccesses ();
+
+/* redundant, use  execInstrPostDisplay
+// Final actions after the instruction
+function finalizeExecuteInstruction (es) {
+    if (es.procStatus===Halted) {
+        com.mode.devlog ("procStep: execute instruction: halted")
+        //	regShowAccesses()
+        updateRegisters ()
+        memRefresh();
+	memShowAccesses();
+	memDisplayFull ();
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+	com.mode.devlog ("Breakpoint");
+        setProcStatus (es,Paused);
+        memRefresh();
+        displayFullState();
+    } else {
+        //	regShowAccesses()
+        updateRegisters ()
+	memShowAccesses();
+	memDisplay ();
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    }
+
+    com.mode.devlog ("runOneInstruction: end");
+}
+*/

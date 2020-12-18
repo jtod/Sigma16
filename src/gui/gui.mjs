@@ -791,7 +791,6 @@ let browserSupportsWorkers = false
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     em.hideBreakDialogue ();
-    em.initializeMachineState ();
     em.initializeSubsystems ();
     document.getElementById('LinkerText').innerHTML = "";    
     smod.prepareChooseFiles ();
@@ -803,6 +802,7 @@ window.onload = function () {
     smod.initModules ();
     window.mode = com.mode;
     hideDevToolsButton ();
+    em.initializeMachineState ();
     browserSupportsWorkers = checkBrowserWorkerSupport ()
     if (browserSupportsWorkers) {
         initThreads ()

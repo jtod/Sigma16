@@ -529,15 +529,22 @@ export let foobar = 0
 
 // Constant parameters
 
-export const EMCTLSIZE   = 8
-export const REGFILESIZE = 16
-export const CREGSIZE    = 16
-export const MEMSIZE     = 65536
-export const StateSize =  2 * (EMCTLSIZE + REGFILESIZE + CREGSIZE + MEMSIZE)
+// The following sizes and offsets are measured in words
 
-// Shared system state
+export const EmCtlSize        = 16
+export const EmRegFileSize    = 16
+export const EmSysRegSize     = 16
+export const EmRegBlockSize   = EmRegFileSize + EmSysRegSize
+export const EmMemSize        = 65536
+export const EmRegBlockOffset = EmCtlSize
+export const EmMemOffset      = EmRegBlockOffset + EmRegBlockSize
+export const EmStateSizeWord  = EmCtlSize + EmRegBlockSize + EmMemSize
 
-export const sysStateBuf = new SharedArrayBuffer (StateSize)
-export const sysStateArr = new Uint16Array (sysStateBuf)
+// The following sizes and offsets are measured in bytes
 
-const REGOFFSET = EMCTLSIZE
+export const EmStateSizeByte  = 2 * EmStateSizeWord
+
+// System state vector
+
+export const sysStateBuf = new SharedArrayBuffer (EmStateSizeByte)
+export const sysStateVec = new Uint16Array (sysStateBuf)
