@@ -31,6 +31,8 @@ import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 import * as gt    from "./guitools.mjs";
 
+export const procAsmListingElt = document.getElementById('ProcAsmListing');
+
 export function modalWarning (msg) {
     alert (msg);
 }
@@ -343,6 +345,12 @@ prepareButton ('PP_Run',          () => em.procRun(em.emulatorState));
 prepareButton ('PP_Pause',        () => em.procPause(em.emulatorState));
 prepareButton ('PP_Interrupt',    () => em.procInterrupt(em.emulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint(em.emulatorState));
+prepareButton ('PP_EmtStep',      emtStep);
+prepareButton ('PP_EmtShowRegs',  emtShowRegs);
+prepareButton ('PP_EmtShowMem',   emtShowMem);
+prepareButton ('PP_EmtLongComp',  emtLongComp);
+prepareButton ('PP_RegMemTest',  regMemTest);
+
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
 prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
 
@@ -355,8 +363,6 @@ prepareButton ("BreakClose", em.breakClose());
 */
 
 // DevTools
-prepareButton ('DevTools100',    devTools100);
-prepareButton ('DevTools101',    devTools101);
 prepareButton ('DevTools102',    devTools102);
 prepareButton ('DevTools103',    devTools103);
 prepareButton ('DevTools104',    devTools104);
@@ -621,6 +627,81 @@ window.onresize = function () {
 }
 
 //-------------------------------------------------------------------------------
+// Processor protocol
+//-------------------------------------------------------------------------------
+
+// Emt Initialize
+// Main sends 100 and delivers shared system state vector
+
+// Emt Step
+// Main sends 101, emt responds with 201
+//   <button id="PP_EmtStep"> emt step </button>
+//   prepareButton ('PP_EmtStep', emtStep);
+
+function emtStep () { // 101:201 Execute one instruction
+    console.log ("main: emt step clicked");
+    let msg = {code: 101, payload: 0}
+    emthread.postMessage (msg) // when done, emt will reply with 201
+}
+
+function handleStepResponse (p) { // run when emt sends 201
+    console.log (`main handleStepResponse, emt responded p=${p}`)
+}
+
+// emtShowRegs -- display registers
+// Main sends 102, emt responds with 202
+
+function emtShowRegs () {
+    console.log ("main: emtShowRegs")
+    let msg = {code: 102, payload: 0}
+    emthread.postMessage (msg) // when done, emt will reply with 202
+}
+
+function emtShowRegsResponse (p) { // run when emt sends 202
+    console.log (`main emtShowRegsResponse`)
+}
+
+// emtShowMem  -- display memory from 0 to limit
+// Main sends 103, emt responds with 203
+
+function emtShowMem () {
+    console.log ("main: emtShowRegs")
+    let msg = {code: 103, payload: 30} // payload is upper limit of a
+    emthread.postMessage (msg) // when done, emt will reply with 202
+}
+
+function emtShowMemResponse (p) { // run when emt sends 203
+    console.log (`main emtShowMemResponse`)
+}
+
+// emtLongComp -- perform a long computation and return
+// Main sends 104, emt responds with 204
+
+function emtLongComp () {
+    console.log ("main: emtLongComp")
+    let msg = {code: 104, payload: 100} // payload is...
+    emthread.postMessage (msg) // when done, emt will reply with 202
+}
+
+function emtLongCompResponse (p) { // 
+    console.log (`main emtLongCompxsResponse p=${p}`)
+}
+
+// regMemAccessTest
+// Main sends 105, emt responds with 205
+
+function regMemTest () {
+    console.log ("main: regMemTest")
+    let msg = {code: 105, payload: 100} // payload is...
+    emthread.postMessage (msg) // when done, emt will reply with 205
+}
+
+function regMemTestResponse (p) { // 
+    console.log (`main regMemResponse p=${p}`)
+}
+
+
+//-------------------------------------------------------------------------------
 // DevTools
 //-------------------------------------------------------------------------------
 
@@ -660,10 +741,6 @@ function devTools100 () {
     action100 ()
 }
 
-function devTools101 () {
-    console.log ("DevTools101 clicked");
-    action101 ()
-}
 
 function devTools102 () {
     console.log ("DevTools102 clicked");
@@ -694,12 +771,19 @@ function devTools106 () {
 
 // Define worker thread
 
-const emthread = new Worker("../base/emthread.mjs");
+// const emthread = new Worker("../base/emthread.mjs");
+const emthread = new Worker("../base/emthread.mjs", {type:"module"});
 
-function initThreads () {
-    console.log ("main initThreads")
-    let msg = {code: 100, payload: st.sysStateArr}
+function initThreads () { // called by onload initializer, request 100
+    console.log ("***** ***** ***** main initThreads ***** ***** *****")
+    st.sysStateVec[0] = 123
+    st.sysStateVec[1] = 456
+    let msg = {code: 100, payload: st.sysStateVec}
     emthread.postMessage (msg)
+}
+
+function initThreadsResponse () { // response 200
+    console.log ("***** ***** main received response to initThreads ***** *****")
 }
 
 // A message is an object of the form {code: ..., payload: ...}.  The
@@ -708,35 +792,35 @@ function initThreads () {
 
 // Actions
 
-function action101 () { // send foo
-    console.log (`action 101 foo=${st.foo}`)
-    let msg = {code: 101, payload: st.foo}
+function action100 () { // Initialize
+    console.log (`main action 100 Initialize`)
+    let msg = {code: 100, payload: 0}
+    emthread.postMessage (msg)    
+}
+
+
+function action112 () { // send foo, emt replies with emtCount, main212 prints
+    console.log (`main action 112 send foo=${st.foo}`)
+    let msg = {code: 112, payload: st.foo}
+    emthread.postMessage (msg)    
+}
+
+function action113 () { // send foo
+    console.log (`main action 113 foo=${st.foo}`)
+    let msg = {code: 113, payload: st.foo}
     console.log (`main sending: <${msg}>`)
     emthread.postMessage (msg)    
 }
 
-function action102 () { // send foo, emt replies with emtCount, main202 prints
-    console.log (`main action 102 send foo=${st.foo}`)
-    let msg = {code: 102, payload: st.foo}
+function action114 () { // Tell emt to increment arr[23]
+    console.log ("main action 114")
+    let msg = {code: 114, payload: null}
     emthread.postMessage (msg)    
 }
 
-function action103 () { // send foo
-    console.log (`main action 103 foo=${st.foo}`)
-    let msg = {code: 103, payload: st.foo}
-    console.log (`main sending: <${msg}>`)
-    emthread.postMessage (msg)    
-}
-
-function action104 () { // Tell emt to increment arr[23]
-    console.log ("main action 104")
-    let msg = {code: 104, payload: null}
-    emthread.postMessage (msg)    
-}
-
-function action105 () { // Tell emt to print regfile
-//    console.log (`main action 105 arr[23] = ${st.sysStateArr[23]}`)
-    let msg = {code: 105, payload: null}
+function action115 () { // Tell emt to print regfile
+//    console.log (`main action 115 arr[23] = ${st.sysStateVec[23]}`)
+    let msg = {code: 115, payload: null}
     emthread.postMessage (msg)    
 }
 
@@ -751,16 +835,38 @@ emthread.addEventListener ("message", e => {
     console.log ("main has received a message")
     if (e.data) {
         console.log ("main has received event data")
-        let mval = e.data.payload
+        let p = e.data.payload
         switch (e.data.code) {
-        case 200:
-            console.log (`main rec 200 received val=${mval}`)
+        case 200: // initialize
+            console.log (`main rec 200 received val=${p}`)
+            initThreadsResponse ()
             break
-        case 202:
-            console.log (`main 202 rec ${mval} st.foobar=${st.foobar}`)
+        case 201: // reply to step request
+            console.log (`main rec 201 response to step`)
+            handleStepResponse (p)
             break
+        case 202: // reply to showRegs request
+            console.log (`main rec 202 response to showRegs`)
+            emtShowMemResponse ()
+            break
+        case 203: // reply to showMem request
+            console.log (`main rec 203 response to showMem`)
+            break
+        case 204: // reply to longComp request
+            console.log (`main rec 20 response to longComp`)
+            emtLongCompResponse (p)
+            break
+        case 205: // reg/mem access test
+            console.log (`main rec 205 response to reg/mem access text`)
+            regMemTestResponse (p)
+            break
+        case 212:
+            console.log (`main 212 rec ${p} st.foobar=${st.foobar}`)
+            break
+        case 900:
+            
         default:
-            console.log (`main received bad code = ${e.data.code}`)
+            console.log (`main received unknown code = ${e.data.code}`)
         }
         console.log (`main event handler returning`)
 
@@ -788,6 +894,8 @@ function checkBrowserWorkerSupport () {
 
 let browserSupportsWorkers = false
 
+let flags
+
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     em.hideBreakDialogue ();
@@ -808,5 +916,7 @@ window.onload = function () {
         initThreads ()
     }
     enableDevTools () // if commented out, this can be entered manually in console
+    flags = new st.emflags (100)
     com.mode.devlog("Initialization complete");
+    console.log (`----- gui.mjs whoami = ${flags.whoami}`)
 }

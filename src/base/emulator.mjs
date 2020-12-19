@@ -1,5 +1,5 @@
 // Sigma16: emulator.mjs
-// Copyright (C) 2020 John T. O'Donnell
+// Copyright (C) 2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -26,6 +26,13 @@ import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
+
+// 0 is gui, 1 is emt
+const whoami = true
+
+function updateInstructionCount (n) {
+    document.getElementById("nInstrExecuted").innerHTML = n;
+}
 
 // Calculate the value of pxPerChar, which is needed to control the
 // scrolling to make the current line visible.  The calculated value
@@ -71,7 +78,7 @@ function refreshIOlogBuffer() {
 }
 
 export let ioLogBuffer = "";
-export const procAsmListingElt = document.getElementById('ProcAsmListing');
+// export const procAsmListingElt = document.getElementById('ProcAsmListing');
 
 // export let procAsmListingElt; // global variables for emulator
 
@@ -340,8 +347,8 @@ export class genregister {
         this.show = showFcn
         this.elt = document.getElementById (eltName)
 	this.elt.innerHTML = this.regStIndex
-        console.log (`--- Generate reg regNum=${this.regNumber}`
-                     + ` name=${this.regName} idx=${this.regStIndex}`)
+//        console.log (`--- Generate reg regNum=${this.regNumber}`
+//                     + ` name=${this.regName} idx=${this.regStIndex}`)
     }
     get () {
         regFetched.push (this)
@@ -428,6 +435,7 @@ function refreshRegisters() {
 // don't use it directly, in order to avoid excessive use of globals.
 // The current emulator state is passed as needed to functions (the
 // convention is that the parameter name is 'es').
+
 
 export let emulatorState =
     {
@@ -1391,6 +1399,7 @@ function prepareExecuteInstruction (es) {
 //	    com.mode.devlog(`find interrupt trying i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
 
 function executeInstruction (es) {
+    console.log ("executeInstruction")
 
     /*
     console.log ("^^^^^^^^^^ execute instruction")
@@ -1413,7 +1422,10 @@ function executeInstruction (es) {
 
     com.mode.devlog ('executeInstruction');
     es.nInstructionsExecuted++;
-    document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
+    if (guiDisplayMode) {
+        updateInstructionCount (es.nInstructionsExecuted)
+        //    document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
+    }
 
 // Check for interrupt
     let mr = mask.get() & req.get();

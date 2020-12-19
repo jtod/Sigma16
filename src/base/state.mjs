@@ -548,3 +548,9 @@ export const EmStateSizeByte  = 2 * EmStateSizeWord
 
 export const sysStateBuf = new SharedArrayBuffer (EmStateSizeByte)
 export const sysStateVec = new Uint16Array (sysStateBuf)
+
+export class emflags {
+    constructor (x) {
+        this.whoami = x
+    }
+}
