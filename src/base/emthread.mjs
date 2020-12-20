@@ -22,19 +22,21 @@ import * as arith from './arithmetic.mjs';
 import * as st  from './state.mjs';
 import * as em from "./emulator.mjs"
 
-console.log (`ccL = ${arch.bit_ccL} should be 3`)
-
-
-
-let guiDisplayMode = false
+console.log (`ccL = ${arch.bit_ccL} should be 3`) // check import works
 
 //-----------------------------------------------------------------------------
 // Parameters
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Emulator state
+//-----------------------------------------------------------------------------
+
+let emtEmulatorState = new em.EmulatorState (em.Mode_Console)
+em.initializeMachineState (emtEmulatorState)
 
 //-----------------------------------------------------------------------------
-// State
+// System state vector
 //-----------------------------------------------------------------------------
 
 let sysStateVec // shared state isgiven value when main sends message code 100
@@ -327,29 +329,13 @@ function regMemTest () {
 }
 
 //-----------------------------------------------------------------------------
-// Emulator state
-//-----------------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------------
 // Emulator
 //-----------------------------------------------------------------------------
 
-
 function doStep () {
     console.log (`emt doStep`)
-    em.executeInstruction (emulatorState)
+    em.executeInstruction (emtEmulatorState)
     console.log (`emt doStep returning`)
 }
 
-
-
-
-//-----------------------------------------------------------------------------
-// Run initializer
-//-----------------------------------------------------------------------------
-
-initializeMachineState ()
-
-let flags = new st.emflags (200)
-console.log (`------ emt whoami = ${flags.whoami}`)
+console.log ("emtthread initialization has finished")

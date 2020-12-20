@@ -27,7 +27,11 @@ import * as st from './state.mjs';
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
 
+// The mode determines the quantity and destination of output
+
 export const Mode_GuiDisplay = 100
+export const Mode_Console    = 200
+export const Mode_Quiet      = 300
 
 function updateInstructionCount (n) {
     document.getElementById("nInstrExecuted").innerHTML = n;
@@ -137,7 +141,7 @@ export function boot (es) {
     com.mode.trace = true;
     com.mode.devlog ("boot");
     console.log (`current emulator mode = ${es.mode}`)
-    initializeProcessorElements ();  // so far, it's just instr decode
+    initializeProcessorElements (es);  // so far, it's just instr decode
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
@@ -203,7 +207,7 @@ export function boot (es) {
         setProcStatus (es,Ready);
         getListingDims(es);
         resetRegisters ();
-        memDisplay();
+        memDisplay(es);
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
             + "Boot was successful"
@@ -228,11 +232,11 @@ export let highlightedRegisters = [];
 
 // Update the display of all registers and memory (all of memory)
 
-export function displayFullState () {
+export function displayFullState (es) {
     com.mode.devlog ('displayFullState');
-    updateRegisters ()
-    updateMemory ()
-    memDisplayFull ();
+    updateRegisters (es)
+    updateMemory (es)
+    memDisplayFull (es);
 }
 
 //------------------------------------------------------------------------------
@@ -258,14 +262,14 @@ export let modeHighlightAccess = true;
 // exist at that time.
 
 // Declare the registers - window.onload sets their values
-export let regFile = [];                            // register file R0,..., R15
-export let pc, ir, adr, dat;                        // instruction control registers
-export let statusreg, mask, req, istat, ipc, vect;  // interrupt control registers
-export let bpseg, epseg, bdseg, edseg;              // segment control registers
+// export let regFile = [];                            // register file R0,..., R15
+//export let pc, ir, adr, dat;                        // instruction control registers
+// export let statusreg, mask, req, istat, ipc, vect;  // interrupt control registers
+// export let bpseg, epseg, bdseg, edseg;              // segment control registers
 
 // Generating and accessing registers
-export let controlRegisters;   // array of the control registers
-export let register = [];      // array of all the registers: regfile and control
+// export let controlRegisters;   // array of the control registers
+// export let register = [];      // array of all the registers: regfile and control
 
 // The system control registers are specified in the instruction by an
 // index starting from i=0..., but the actual emulator data structures
@@ -301,18 +305,18 @@ function showSysStat (s) {
 function testReg1 () {
     com.mode.devlog("testReg1");
 //    regClearAccesses();
-    pc.put(3);
-    com.mode.devlog ("ir = " + ir.get());
-    com.mode.devlog ("pc = " + pc.get());
+    es.pc.put(3);
+    com.mode.devlog ("ir = " + es.ir.get());
+    com.mode.devlog ("pc = " + es.pc.get());
 //    regShowAccesses();
 }
 
 function testReg2 () {
     com.mode.devlog("testReg1");
 //    regClearAccesses();
-    com.mode.devlog ("ir = " + ir.get());
-    com.mode.devlog ("pc = " + pc.get());
-    adr.put(20);
+    com.mode.devlog ("ir = " + es.ir.get());
+    com.mode.devlog ("pc = " + es.pc.get());
+    es.adr.put(20);
 //    regShowAccesses();
 }
 
@@ -336,20 +340,21 @@ function testReg2 () {
 // regStIndex.  So it's important to create the registers in a
 // sensible order, with the register file first.
 
-let nRegisters = 0  // number of registers that have been defined
+// let nRegisters = 0  // number of registers that have been defined
 
 export class genregister {
-    constructor (regNumber, regName, eltName, showFcn) {
-        this.regStIndex = nRegisters
-        nRegisters++
+    constructor (es, regNumber, regName, eltName, showFcn) {
+        this.es = es
+        this.regStIndex = es.nRegisters
+        es.nRegisters++
         this.regNumber = regNumber
         this.regName = regName
         this.eltName = eltName
         this.show = showFcn
-        this.elt = document.getElementById (eltName)
-	this.elt.innerHTML = this.regStIndex
-//        console.log (`--- Generate reg regNum=${this.regNumber}`
-//                     + ` name=${this.regName} idx=${this.regStIndex}`)
+        this.elt = es.mode === Mode_GuiDisplay
+            ? document.getElementById (eltName)
+            : null
+        es.register.push (this)
     }
     get () {
         regFetched.push (this)
@@ -370,25 +375,31 @@ export class genregister {
                      + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
     }
     highlight (key) {
-        let i = st.EmRegBlockOffset + this.regStIndex
-        let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
-        let xs = highlightText (this.show(x), key)
-        console.log (`--- reg highlight ${this.regName} := ${xs} (idx=${i})`)
-        this.elt.innerHTML = xs
+        if (this.es.mode === Mode_GuiDisplay) {
+            let i = st.EmRegBlockOffset + this.regStIndex
+            let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+            let xs = highlightText (this.show(x), key)
+            console.log (`--- reg highlight ${this.regName} := ${xs} (idx=${i})`)
+            this.elt.innerHTML = xs
+        } else {
+            console.log (`reg ${this.regName} skippling highlight ${key}`)
+        }
     }
     refresh () {
-        let i = st.EmRegBlockOffset + this.regStIndex
-        let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
-        let xs = this.show (x)
-        console.log (`--- reg refresh ${this.regName} :=`
-                     + ` ${arith.wordToHex4(x)} = ${x} /${xs}/ (idx=${i})`)
-        this.elt.innerHTML = xs
+        if (this.es.mode === Mode_GuiDisplay) {
+            let i = st.EmRegBlockOffset + this.regStIndex
+            let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+            let xs = this.show (x)
+            console.log (`--- reg refresh ${this.regName} :=`
+                         + ` ${arith.wordToHex4(x)} = ${x} /${xs}/ (idx=${i})`)
+            this.elt.innerHTML = xs
+        }
     }
 }
 
 // Show any changes to registers in the gui display
 
-function updateRegisters () {
+function updateRegisters (es) {
     console.log ("--- updateRegisters ---")
     // Clear previous highlighting by refreshing the registers
     for (let x of regFetchedOld) { x.refresh () }
@@ -405,22 +416,27 @@ function updateRegisters () {
 
 // Reset every register to 0
 
-function resetRegisters () {
+function resetRegisters (es) {
     com.mode.devlog('Resetting registers');
     return // ??????????
-    for (let i = 0; i < nRegisters; i++) {
-        register[i].put (0)
-        register[i].refresh ()
+    for (let i = 0; i < es.nRegisters; i++) {
+        es.register[i].put (0)
+        es.register[i].refresh ()
     }
+}
+
+export function refresh (es) {
+    refreshRegisters (es)
+    memDisplayFull (es)
 }
 
 // Refresh all the registers.  This ensures the display corresponds to the
 // current values, and it also removes any highlighting of the registers.
 
-function refreshRegisters() {
+function refreshRegisters (es) {
     com.mode.devlog('Refreshing registers');
-    for (let i = 0; i < nRegisters; i++) {
-	register[i].refresh();
+    for (let i = 0; i < es.nRegisters; i++) {
+	es.register[i].refresh();
     }
     regFetched = []
     regFetchedOld = []
@@ -454,6 +470,24 @@ export class EmulatorState {
 	this.breakEnabled           = false
      	this.breakPCvalue       = 0
 	this.doInterrupt        = 0
+        this.pc                 = null
+        this.ir                 = null
+        this.adr                 = null
+        this.dat                 = null
+        this.statusreg          = null
+        this.mask               = null
+        this.req  = null
+        this.istat  = null
+        this.ipc = null
+        this.vect = null
+        this.bpseg = null
+        this.epseg = null
+        this.bdseg = null
+        this.edseg = null
+        this.regfile = []
+        this.controlRegisters = []
+        this.nRegisters = 0
+        this.register = []
 	this.ir_op              = 0
 	this.ir_d               = 0
 	this.ir_a               = 0
@@ -500,72 +534,74 @@ let instrCCElt;
 let instrEffect1Elt;
 let instrEffect2Elt;
 
-export function initializeProcessorElements () {
-    com.mode.devlog ('initializeProcessorElements');
-    instrCodeElt = document.getElementById("InstrCode");
-    instrFmtElt  = document.getElementById("InstrFmt");
-    instrOpElt   = document.getElementById("InstrOp");
-    instrArgsElt = document.getElementById("InstrArgs");
-    instrEAElt   = document.getElementById("InstrEA");
-    instrCCElt   = document.getElementById("InstrCC");
-    instrEffect1Elt = document.getElementById("InstrEffect1");
-    instrEffect2Elt = document.getElementById("InstrEffect2");
+export function initializeProcessorElements (es) {
+    if (es.mode === Mode_GuiDisplay) {
+        com.mode.devlog ('initializeProcessorElements');
+        instrCodeElt = document.getElementById("InstrCode");
+        instrFmtElt  = document.getElementById("InstrFmt");
+        instrOpElt   = document.getElementById("InstrOp");
+        instrArgsElt = document.getElementById("InstrArgs");
+        instrEAElt   = document.getElementById("InstrEA");
+        instrCCElt   = document.getElementById("InstrCC");
+        instrEffect1Elt = document.getElementById("InstrEffect1");
+        instrEffect2Elt = document.getElementById("InstrEffect2");
+    }
 }
 
 export function initializeMachineState (es) {
     com.mode.devlog ("emulator: initializeMachineState");
     console.log (`current emulator mode = ${es.mode}`)
-    initializeProcessorElements ();  // so far, it's just instr decode
+    initializeProcessorElements (es);  // so far, it's just instr decode
 //    clearInstrDecode (emulatorState);
     clearInstrDecode (es);
 
     // Build the register file; sysStateVec index = reg number
     for (let i = 0; i < 16; i++) {
 	let regname = 'R' + i; // also the id for element name
-        regFile[i] = new genregister (i, regname, regname, arith.wordToHex4)
-	register[i] = regFile[i]
+        es.regfile[i] = new genregister (es, i, regname, regname, arith.wordToHex4)
+	es.register[i] = es.regfile[i]
     }
 
     // Instruction control registers
-    pc   = new genregister (0,  'pc',   'pcElt',    arith.wordToHex4);
-    ir   = new genregister (0,  'ir',   'irElt',    arith.wordToHex4);
-    adr  = new genregister (0,  'adr',  'adrElt',   arith.wordToHex4);
-    dat  = new genregister (0,  'dat',  'datElt',   arith.wordToHex4);
+    es.pc   = new genregister (es, 0,  'pc',   'pcElt',    arith.wordToHex4);
+    es.ir   = new genregister (es, 0,  'ir',   'irElt',    arith.wordToHex4);
+    es.adr  = new genregister (es, 0,  'adr',  'adrElt',   arith.wordToHex4);
+    es.dat  = new genregister (es, 0,  'dat',  'datElt',   arith.wordToHex4);
 
     // Interrupt control registers
-    statusreg  = new genregister (0, 'statusreg', 'statusElt',  arith.wordToHex4);
+    es.statusreg  = new genregister (es, 0, 'statusreg', 'statusElt',  arith.wordToHex4);
     // bit 0 (lsb) :  0 = User state, 1 = System state
     // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
     // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
 
-    mask  = new genregister (0, 'mask', 'maskElt',  arith.wordToHex4);
-    req   = new genregister (0, 'req',  'reqElt',   arith.wordToHex4);
+    es.mask  = new genregister (es, 0, 'mask', 'maskElt',  arith.wordToHex4);
+    es.req   = new genregister (es, 0, 'req',  'reqElt',   arith.wordToHex4);
     // mask and request use the same bit positions for flags
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
 
-    istat    = new genregister (0, 'istat',  'istatElt',  arith.wordToHex4);
-    ipc      = new genregister (0, 'ipc',    'ipcElt',    arith.wordToHex4);
-    vect     = new genregister (0, 'vect',   'vectElt',   arith.wordToHex4);
+    es.istat    = new genregister (es, 0, 'istat',  'istatElt',  arith.wordToHex4);
+    es.ipc      = new genregister (es, 0, 'ipc',    'ipcElt',    arith.wordToHex4);
+    es.vect     = new genregister (es, 0, 'vect',   'vectElt',   arith.wordToHex4);
 
 // Segment control registers
-    bpseg = new genregister (0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
-    epseg = new genregister (0, 'epseg',  'epsegElt',  arith.wordToHex4);
-    bdseg = new genregister (0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
-    edseg = new genregister (0, 'edseg',  'edsegElt',  arith.wordToHex4);
+    es.bpseg = new genregister (es, 0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
+    es.epseg = new genregister (es, 0, 'epseg',  'epsegElt',  arith.wordToHex4);
+    es.bdseg = new genregister (es, 0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
+    es.edseg = new genregister (es, 0, 'edseg',  'edsegElt',  arith.wordToHex4);
 
 // Record the control registers    
-    controlRegisters =
-	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
+    es.controlRegisters =
+	[es.pc, es.ir, es.adr, es.dat,   // not accessible to getctl/putctl instructions
 	 // the following can be used for getctl/getctl, indexing from 0
-	 statusreg, mask, req, istat, ipc, vect,
-         bpseg, epseg, bdseg, edseg
+	 es.statusreg, es.mask, es.req, es.istat, es.ipc, es.vect,
+         es.bpseg, es.epseg, es.bdseg, es.edseg
 	]
 
-    memInitialize();
-    resetRegisters();
+    memInitialize (es);
+    resetRegisters (es);
 }
 
 //------------------------------------------------------------------------------
@@ -599,7 +635,7 @@ function refreshInstrDecode (es) {
     instrOpElt.innerHTML   = es.instrOpStr;
     instrArgsElt.innerHTML = showArgs(es); // instrArgsStr;
     instrEAElt.innerHTML   = es.instrEAStr;
-    let ccval = regFile[15].val;
+    let ccval = es.regfile[15].val;
     instrCCElt.innerHTML      = arith.showCC(ccval);
     instrEffect1Elt.innerHTML = showEffect(es,0);
     instrEffect2Elt.innerHTML = showEffect(es,1);
@@ -648,12 +684,14 @@ let memDispOffset = 3;                  // how many locations above highligted o
 
 // Must wait until onload event
 
-function memInitialize () {
-    memElt1 = document.getElementById('MemDisplay1');
-    memElt2 = document.getElementById('MemDisplay2');
-    memClear();    // set each location to 0
-    memRefresh();  // generate a string showing each location
-    memDisplay();  // put the strings into the gui display elements
+function memInitialize (es) {
+    if (es.mode === Mode_GuiDisplay) {
+        memElt1 = document.getElementById('MemDisplay1');
+        memElt2 = document.getElementById('MemDisplay2');
+        memClear(es);    // set each location to 0
+        memRefresh(es);  // generate a string showing each location
+        memDisplay(es);  // put the strings into the gui display elements
+    }
 }
 
 // There are two primary memory accesses: fetch and store.  These
@@ -777,7 +815,7 @@ function updateMemory () {
 // determine whether the display should be partial and fast or
 // complete but slow.
 
-function memDisplay () {
+function memDisplay (es) {
     if (memDisplayModeFull) { memDisplayFull () }
     else { memDisplayFast () }
 }
@@ -970,7 +1008,7 @@ function highlightText (txt,tag) {
 export function timerInterrupt() {
     com.mode.devlog ("Timer Interrupt clicked");
     arith.setBitInRegBE (req, arch.timerBit);
-    req.refresh();
+    es.req.refresh();
 }
 
 //------------------------------------------------------------------------------
@@ -1167,7 +1205,7 @@ function setProcAsmListing (es) {
 // Step and run instructions
 //------------------------------------------------------------------------------
 
-export function procStep(es) {
+export function procStep (es) {
     com.mode.devlog ('procStep');
     if (es.procStatus===Paused) { setProcStatus (es,Ready); }
     if (es.procStatus===Ready) {
@@ -1186,11 +1224,11 @@ export function procRun(es) {
     runInstrPostDisplay (es);
 }
 
-export function procReset(es) {
+export function procReset (es) {
     com.mode.devlog ("reset the processor");
     setProcStatus (es,Reset);
-    resetRegisters ();
-    refreshRegisters ();
+    resetRegisters (es);
+    refreshRegisters (es);
     memClear ();
 //    memClearAccesses ();
     memDisplay ();
@@ -1218,10 +1256,10 @@ function instructionLooper (es) {
 	    com.mode.devlog ("looper: halted");
             execInstrPostDisplay (es);
         } else if (es.procStatus===Paused) {
-        } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
+        } else if (es.breakEnabled && es.pc.get() === es.breakPCvalue) {
 	    com.mode.devlog ("looper: breakpoint");
             setProcStatus (es,Paused);
-            displayFullState();
+            displayFullState (es);
 	} else {
 	    setTimeout (function () {instructionLooper(es)});
         }
@@ -1315,7 +1353,7 @@ function breakClose () {
 
 function execRunPrepare (es) {
     com.mode.devlog ("execRunPrepare");
-    refreshRegisters ()
+    refreshRegisters (es)
     memRefresh();
     memDisplay ();                   // refresh memory display
     clearInstrDecode (es);           // remove decoding of last instruction
@@ -1354,21 +1392,21 @@ function execInstrPrepareFull (es) {
 
 function execInstrPostDisplay (es) {
     if (es.procStatus===Halted) { // do a full display
-        updateRegisters ()
-        updateMemory ()
-        memDisplayFull ();
+        updateRegisters (es)
+        updateMemory (es)
+        memDisplayFull (es);
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
     } else if (es.procStatus===Paused) {
-        updateRegisters ()
-        updateMemory ()
-	memDisplay ();
+        updateRegisters (es)
+        updateMemory (es)
+	memDisplay (es);
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
     } else { // do normal display
-        updateRegisters ()
-        updateMemory ()
-	memDisplay ();
+        updateRegisters (es)
+        updateMemory (es)
+	memDisplay (es);
 	showInstrDecode (es);
 	highlightListingAfterInstr (es);
     }
@@ -1407,8 +1445,8 @@ function prepareExecuteInstruction (es) {
 // com.mode.devlog (`interrupt priority search mask=${wordToHex4(mask.get())} req=${wordToHex4(req.get())}`);
 //	    com.mode.devlog(`find interrupt trying i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
 
-function executeInstruction (es) {
-    console.log ("executeInstruction")
+export function executeInstruction (es) {
+    console.log (`executeInstruction mode=${es.mode}`)
 
     /*
     console.log ("^^^^^^^^^^ execute instruction")
@@ -1437,25 +1475,26 @@ function executeInstruction (es) {
     }
 
 // Check for interrupt
-    let mr = mask.get() & req.get();
+    let mr = es.mask.get() & es.req.get();
 //    com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`);
-    if (arith.getBitInRegBE (statusreg,arch.intEnableBit) && mr) {
+    if (arith.getBitInRegBE (es.statusreg,arch.intEnableBit) && mr) {
+        console.log (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
 	while (i<16 && arith.getBitInWordBE(mr,i)==0) { i++ };
 	com.mode.devlog (`\n*** Interrupt ${i} ***`);
-	ipc.put(pc.get());           // save the pc
-	istat.put(statusreg.get());   // save the status register
+	es.ipc.put(es.pc.get());           // save the pc
+	es.istat.put(es.statusreg.get());   // save the status register
 //	com.mode.devlog (`ipc=${ipc.get()}`);
 //	com.mode.devlog (`req=${arith.wordToHex4(req.get())}`);
 	arith.clearBitInRegBE (req,i);        // clear the interrupt that was taken
 //	com.mode.devlog (`req=${arith.wordToHex4(req.get())}`);
 //	com.mode.devlog (`pc=${arith.wordToHex4(pc.get())}`);
 //	com.mode.devlog (`vect=${arith.wordToHex4(vect.get())} i=${i}`);
-	pc.put (vect.get() + 2*i);  // jump to handler
+	es.pc.put (es.vect.get() + 2*i);  // jump to handler
 //	com.mode.devlog (`pc=${arith.wordToHex4(pc.get())}`);
         // Disable interrupts and enter system state
 //	com.mode.devlog (`status=${arith.wordToHex4(statusreg.get())}`);
-	statusreg.put (statusreg.get()
+	es.statusreg.put (es.statusreg.get()
 		       & arith.maskToClearBitBE(arch.intEnableBit)
 		       & arith.maskToClearBitBE(arch.userStateBit));
 //	com.mode.devlog (`statusreg=${arith.wordToHex4(statusreg.get())}`);
@@ -1464,14 +1503,19 @@ function executeInstruction (es) {
 	return;
     };
 
-// No interrupt, so proceed with next instruction
-    es.curInstrAddr = pc.get();
+    // No interrupt, so proceed with next instruction
+    console.log (`no interrupt, proceeding...`)
+    es.curInstrAddr = es.pc.get();
+    console.log (`execute instruction: pc=${arith.wordToHex4(es.curInstrAddr)}`)
     instrCode = memFetchInstr (es.curInstrAddr);
-    ir.put (instrCode);
+    es.ir.put (instrCode);
+    console.log (`execute instruction: ir=${arith.wordToHex4(instrCode)}`)
     es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
-    pc.put (es.nextInstrAddr);
+    es.pc.put (es.nextInstrAddr);
+    console.log (`ex instr: nextInstrAddrc=${arith.wordToHex4(es.nextInstrAddr)}`)
+    
 //    com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) + ' ir = ' + arith.wordToHex4(instr));
-    let tempinstr = ir.get();
+    let tempinstr = es.ir.get();
     es.ir_b = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.ir_a = tempinstr & 0x000f;
@@ -1479,7 +1523,8 @@ function executeInstruction (es) {
     es.ir_d = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
-    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+//    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+    console.log(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     console.log ("Dispatch primary opcode");
@@ -1533,59 +1578,59 @@ function executeInstruction (es) {
 // defined by f.
 
 const ab_dc = (f) => (es) => {
-    let a = regFile[es.ir_a].get();
-    let b = regFile[es.ir_b].get();
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
     let [primary, secondary] = f (a,b);
-    regFile[es.ir_d].put(primary);
-    if (es.ir_d<15) { regFile[15].put(secondary) }
+    es.regfile[es.ir_d].put(primary);
+    if (es.ir_d<15) { es.regfile[15].put(secondary) }
 }
 
 // ab_dac instructions (e.g. pop):
 const ab_dac = (f) => (es) => {
-    let a = regFile[es.ir_a].get();
-    let b = regFile[es.ir_b].get();
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
     let [primary,secondary] = f (a,b);
-    regFile[es.ir_a].put(primary);
-    if (es.ir_a<15) { regFile[15].put(secondary) }
+    es.regfile[es.ir_a].put(primary);
+    if (es.ir_a<15) { es.regfile[15].put(secondary) }
 }
 
 
 // Apply f to d, a, b
 const rrrc = (f) => (es) => {
-    let a = regFile[es.ir_a].get();
-    let b = regFile[es.ir_b].get();
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
     let [primary, secondary] = f (a,b);
-    regFile[es.ir_d].put(primary);
-    if (es.ir_d<15) { regFile[15].put(secondary) }
+    es.regfile[es.ir_d].put(primary);
+    if (es.ir_d<15) { es.regfile[15].put(secondary) }
 }
 
 // Apply f to a and load primary result into d (e.g. inv)
 
 const rd = (f) => (es) => {
-    let a = regFile[es.ir_a].get();
+    let a = es.regfile[es.ir_a].get();
     let primary = f (a);
-    regFile[es.ir_d].put(primary);
+    es.regfile[es.ir_d].put(primary);
 }
 
 // Apply f to a and b, and load primary result into d (e.g. cmplt)
 
 const rrd = (f) => (es) => {
-    let a = regFile[es.ir_a].get();
-    let b = regFile[es.ir_b].get();
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
     let primary = f (a,b);
-    regFile[es.ir_d].put(primary);
+    es.regfile[es.ir_d].put(primary);
 }
 
 // ab_c -- Arguments are in a and b.  The result is loaded into the
 // condition code.  The instruction semantics is defined by f.
 
 const ab_c = (f) => (es) => {
-    let a = regFile[es.ir_a].get();
-    let b = regFile[es.ir_b].get();
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
     let cc = f (a,b);
     com.mode.devlog (`ab_c cc=${cc}`);
     console.log (`CMP/AB_C ab_c cc=${cc}`);
-    regFile[15].put(cc);
+    es.regfile[15].put(cc);
 }
 
 // cab_dc -- arguments are in c, a, and b.  The primary result is
@@ -1593,16 +1638,16 @@ const ab_c = (f) => (es) => {
 // semantics is defined by f.
 
 const cab_dc = (f) => (es) => {
-    let c = regFile[15].get();
-    let a = regFile[es.ir_a].get();
-    let b = regFile[es.ir_b].get();
+    let c = es.regfile[15].get();
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
     let [primary, secondary] = f (c,a,b);
-    regFile[es.ir_d].put(primary);
-    if (es.ir_d<15) { regFile[15].put(secondary) }
+    es.regfile[es.ir_d].put(primary);
+    if (es.ir_d<15) { es.regfile[15].put(secondary) }
 }
 
 const op_trap = (es) => {
-    let code = regFile[es.ir_d].get();
+    let code = es.regfile[es.ir_d].get();
     com.mode.devlog (`trap code=${code}`);
     if (code===0) { // Halt
 	com.mode.devlog ("Trap: halt");
@@ -1634,8 +1679,8 @@ const op_trap = (es) => {
 function trapRead (es) {
     let inputElt = document.getElementById("IOinputBuffer")
     let xs = inputElt.value;
-    let a = regFile[es.ir_a].get(); // buffer address
-    let b = regFile[es.ir_b].get(); // buffer size
+    let a = es.regfile[es.ir_a].get(); // buffer address
+    let b = es.regfile[es.ir_b].get(); // buffer size
     let n = xs.length; // number of chars available in buffer
     let m = n <= b ? n : b; // number of chars actually input
     let xs2 = xs.substring (m,n); // excess chars from input window are not used
@@ -1651,8 +1696,8 @@ function trapRead (es) {
 	com.mode.devlog (`Read: mem[${a}] := ${charcode}`);
 	a++;
     }
-    regFile[es.ir_a].put(a); // just after last address stored
-    regFile[es.ir_b].put(m); // number of chars actually input
+    es.regfile[es.ir_a].put(a); // just after last address stored
+    es.regfile[es.ir_b].put(m); // number of chars actually input
     ioLogBuffer += highlightField(ys,"READ");   // display chars that were read
     refreshIOlogBuffer ();
     inputElt.value = xs2; // leave unread characters in input buffer
@@ -1660,8 +1705,8 @@ function trapRead (es) {
 
 // Write b characters starting from address a
 function trapWrite (es) {
-    let a = regFile[es.ir_a].get(); // buffer address
-    let b = regFile[es.ir_b].get(); // buffer size
+    let a = es.regfile[es.ir_a].get(); // buffer address
+    let b = es.regfile[es.ir_b].get(); // buffer size
     let xs = "";
     for (let i = 0; i<b; i++) {
 	xs += String.fromCharCode(memFetchData(a));
@@ -1691,13 +1736,13 @@ const handle_EXP = (es) => {
 }
 
 const op_push  = (es) => {
-    const d = regFile[es.ir_d].get();
+    const d = es.regfile[es.ir_d].get();
     const ra = es.ir_a;
-    const a = regFile[ra].get();
-    const b = regFile[es.ir_b].get();
+    const a = es.regfile[ra].get();
+    const b = es.regfile[es.ir_b].get();
     console.log (`push d=${d} ra=${ra} a=${a} b=${b}`)
     if (a < b) {
-        regFile[ra].put(a+1);
+        es.regfile[ra].put(a+1);
         memStore (a+1, d);
     } else {
         console.log (`push: stack overflow`);
@@ -1708,11 +1753,11 @@ const op_push  = (es) => {
 // pop: Rd = data, Ra = top, Rb = base
 
 const op_pop  = (es) => {
-    const a = regFile[es.ir_a].get();
-    const b = regFile[es.ir_b].get();
+    const a = es.regfile[es.ir_a].get();
+    const b = es.regfile[es.ir_b].get();
     if (a >= b) {
-        regFile[es.ir_d].put(memFetchData(a));
-        regFile[es.ir_a].put(a-1);
+        es.regfile[es.ir_d].put(memFetchData(a));
+        es.regfile[es.ir_a].put(a-1);
     } else {
         console.log (`pop: stack underflow`);
         arith.setBitInRegBE (req, arch.stackUnderflowBit);
@@ -1720,10 +1765,10 @@ const op_pop  = (es) => {
 }
 
 const op_top  = (es) => {
-    const a = regFile[es.ir_a].get();
-    const b = regFile[es.ir_b].get();
+    const a = es.regfile[es.ir_a].get();
+    const b = es.regfile[es.ir_b].get();
     if (a >= b) {
-        regFile[es.ir_d].put(memFetchData(a));
+        es.regfile[es.ir_d].put(memFetchData(a));
     } else {
         console.log (`pop: stack underflow`);
         arith.setBitInRegBE (req, arch.stackUnderflowBit);
@@ -1786,15 +1831,15 @@ const dispatch_primary_opcode =
 const rx = (f) => (es) => {
     com.mode.devlog('rx');
     es.instrOpStr = arch.mnemonicRX[es.ir_b];
-    es.instrDisp = memFetchInstr (pc.get());
-    adr.put (es.instrDisp);
+    es.instrDisp = memFetchInstr (es.pc.get());
+    es.adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
-    pc.put (es.nextInstrAddr);
+    es.pc.put (es.nextInstrAddr);
     //    es.ea = arith.binAdd (regFile[es.ir_a].get(), adr.get());
-    es.ea = arith.binAdd (regFile[es.ir_a].get(), es.instrDisp);
+    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
     es.instrEA = es.ea;
     com.mode.devlog (`rx ea, disp=${arith.wordToHex4(es.instrDisp)}`);
-    com.mode.devlog (`rx ea, idx=${arith.wordToHex4(regFile[es.ir_a].get())}`);
+    com.mode.devlog (`rx ea, idx=${arith.wordToHex4(es.regfile[es.ir_a].get())}`);
     com.mode.devlog('rx ea = ' + arith.wordToHex4(es.ea));
     f (es);
 }
@@ -1819,70 +1864,70 @@ const dispatch_RX =
 
 function rx_lea (es) {
     com.mode.devlog('rx_lea');
-    regFile[es.ir_d].put(es.ea);
+    es.regfile[es.ir_d].put(es.ea);
 }
 
 function rx_load (es) {
     com.mode.devlog('rx_load');
-    regFile[es.ir_d].put(memFetchData(es.ea));
+    es.regfile[es.ir_d].put(memFetchData(es.ea));
 }
 
 function rx_store (es) {
     com.mode.devlog('rx_store');
-    memStore (es.ea, regFile[es.ir_d].get());
+    memStore (es.ea, es.regfile[es.ir_d].get());
 }
 
 function rx_jump (es) {
     com.mode.devlog('rx_jump');
     es.nextInstrAddr = es.ea;
-    pc.put(es.nextInstrAddr);
+    es.pc.put(es.nextInstrAddr);
 }
 
 function rx_jumpc0 (es) {
     com.mode.devlog('rx_jumpc0');
-    let cc = regFile[15].get();
+    let cc = es.regfile[15].get();
     if (arith.extractBitBE (cc,es.ir_d)===0) {
 	es.nextInstrAddr = es.ea;
-	pc.put(es.nextInstrAddr);
+	es.pc.put(es.nextInstrAddr);
     }
 }
 
 function rx_jumpc1 (es) {
     com.mode.devlog('rx_jumpc1');
-    let cc = regFile[15].get();
+    let cc = es.regfile[15].get();
     if (arith.extractBitBE (cc,es.ir_d)===1) {
 	es.nextInstrAddr = es.ea;
-	pc.put(es.nextInstrAddr);
+	es.pc.put(es.nextInstrAddr);
     }
 }
 
 function rx_jumpz (es) {
     com.mode.devlog('rx_jumpz');
-    if (! arith.wordToBool (regFile[es.ir_d].get())) {
+    if (! arith.wordToBool (es.regfile[es.ir_d].get())) {
 	es.nextInstrAddr = es.ea;
-	pc.put (es.nextInstrAddr);
+	es.pc.put (es.nextInstrAddr);
     }
 }
 
 function rx_jumpnz (es) {
     com.mode.devlog('rx_jumpnz');
-    if (arith.wordToBool (regFile[es.ir_d].get())) {
+    if (arith.wordToBool (es.regfile[es.ir_d].get())) {
 	es.nextInstrAddr = es.ea;
-	pc.put (es.nextInstrAddr);
+	es.pc.put (es.nextInstrAddr);
     }
 }
 
 function rx_testset (es) {
     console.log (`testset`);
-    regFile[es.ir_d].put(memFetchData(es.ea));
+    es.regfile[es.ir_d].put(memFetchData(es.ea));
     memStore(es.ea,1);
 }
 
 function rx_jal (es) {
     com.mode.devlog('rx_jal');
-    regFile[es.ir_d].put (pc.get());
+    es.regfile[es.ir_d].put (es.pc.get());
     es.nextInstrAddr = es.ea;
-    pc.put (es.nextInstrAddr);
+    es.pc.put (es.nextInstrAddr);
 }
 
 function rx_nop (es) {
@@ -1897,31 +1942,31 @@ function exp1_nop (es) {
 
 function exp1_resume (es) {
     com.mode.devlog ('exp1_resume');
-    statusreg.put (istat.get());
-    pc.put (ipc.get());
+    es.statusreg.put (es.istat.get());
+    es.pc.put (ies.pc.get());
 }
 
 function exp2_save (es) {
     const rStart = es.ir_d;
     const rEnd = es.field_e;
-    const index = regFile[es.field_f].get();
+    const index = es.regfile[es.field_f].get();
     const offset = es.field_gh;
     const ea = index + offset;
     console.log (`save regs = ${rStart}..${rEnd} index=${index}`
                  + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
-    sr_looper ((a,r) => memStore (a, regFile[r].get()), ea, rStart, rEnd);
+    sr_looper ((a,r) => memStore (a, es.regfile[r].get()), ea, rStart, rEnd);
 }
 
 function exp2_restore (es) {
     com.mode.devlog ('exp2_restore');
     const rStart = es.ir_d;
     const rEnd = es.field_e;
-    const index = regFile[es.field_f].get();
+    const index = es.regfile[es.field_f].get();
     const offset = es.field_gh;
     const ea = index + offset;
     console.log (`restore regs = ${rStart}..${rEnd} index=${index}`
                  + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
-    sr_looper ((a,r) => regFile[r].put(memFetchData(a)), ea, rStart, rEnd);
+    sr_looper ((a,r) => es.regfile[r].put(memFetchData(a)), ea, rStart, rEnd);
 }
 
 function sr_looper (f,addr,first,last) {
@@ -1944,16 +1989,16 @@ function exp2_getctl (es) {
     let cregn = es.field_f;
     let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
     com.mode.devlog (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
-    regFile[es.field_e].put(register[cregidx].get());
+    es.regfile[es.field_e].put(es.register[cregidx].get());
 }
 function exp2_putctl (es) {
     com.mode.devlog ('putctl');
     let cregn = es.field_f;
     let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
-    com.mode.devlog (`putctl src e==${es.field_e} val=${regFile[es.field_e].get()}`);
+    com.mode.devlog (`putctl src e==${es.field_e} val=${es.regfile[es.field_e].get()}`);
     com.mode.devlog (`putctl dest f=${es.field_f} cregn=${cregn} cregidx=${cregidx}`);
-    register[cregidx].put(regFile[es.field_e].get());
-    register[cregidx].refresh(); // ???
+    es.register[cregidx].put(es.regfile[es.field_e].get());
+    es.register[cregidx].refresh(); // ???
 }
 
 function exp2_execute (es) {
@@ -1963,13 +2008,13 @@ function exp2_execute (es) {
 function exp2_push (es) {
     com.mode.devlog ('exp2_push');
  //   com.mode.devlog (`e=${es.field_e} f=${es.field_f} g=${es.field_g} h=${es.field_h} `);
-    let top = regFile[es.field_f].get();
-    let last = regFile[es.field_g].get();
+    let top = es.regfile[es.field_f].get();
+    let last = es.regfile[es.field_g].get();
 //    com.mode.devlog (`push: top=${top} last=${last}`);
     if (top < last) {
         top += 1;
-        memStore (top, regFile[es.field_e].get());
-        regFile[es.field_f].put(top);
+        memStore (top, es.regfile[es.field_e].get());
+        es.regfile[es.field_f].put(top);
     } else {
         com.mode.devlog ("push: stack overflow")
     }
@@ -1977,12 +2022,12 @@ function exp2_push (es) {
 
 function exp2_pop (es) {
     com.mode.devlog ('exp2_pop');
-    let top = regFile[es.field_f].get();
-    let first = regFile[es.field_g].get();
+    let top = es.regfile[es.field_f].get();
+    let first = es.regfile[es.field_g].get();
     if (top >= first) {
-        regFile[es.field_e].put(memFetchData(top));
+        es.regfile[es.field_e].put(memFetchData(top));
         top -= 1;
-        regFile[es.field_f].put(top);
+        es.regfile[es.field_f].put(top);
     } else {
         com.mode.devlog ("pop: stack underflow")
     }
@@ -1990,11 +2035,11 @@ function exp2_pop (es) {
 
 function exp2_top (es) {
     com.mode.devlog ('exp2_top');
-    let top = regFile[es.field_f].get();
-    let first = regFile[es.field_g].get();
+    let top = es.regfile[es.field_f].get();
+    let first = es.regfile[es.field_g].get();
     if (top >= first) {
-        regFile[es.field_e].put(memFetchData(top));
-        regFile[es.field_f].put(top);
+        es.regfile[es.field_e].put(memFetchData(top));
+        es.regfile[es.field_f].put(top);
     } else {
         com.mode.devlog ("top: stack underflow")
     }
@@ -2003,27 +2048,27 @@ function exp2_top (es) {
 function exp2_shiftl (es) {
     com.mode.devlog ("exp2_shiftl");
     console.log (`shift d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
-    const x = regFile[es.field_e].get();
+    const x = es.regfile[es.field_e].get();
     const k = es.field_f;
     const result = arith.shiftL (x,k);
 //    const result1 = x << k;  // logical shift
 //    const result2 = arith.truncateWord (result1);
     console.log (`shiftl x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
     com.mode.devlog (`shiftl ${arith.wordToHex4(x)} left by ${k} bits => ${arith.wordToHex4(result)}`);
-    regFile[es.ir_d].put(result);
+    es.regfile[es.ir_d].put(result);
 }
 
 function exp2_shiftr (es) {
     com.mode.devlog ("exp2_shiftr");
     console.log (`shiftr d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
-    let x = regFile[es.field_e].get();
+    let x = es.regfile[es.field_e].get();
     let k = es.field_f;
     const result = arith.shiftR (x,k);
 //    let result1 = x >>> k;  // logical shift
 //    const result2 = arith.truncateWord (result1);
     console.log (`shiftr x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
     com.mode.devlog (`shiftr ${arith.wordToHex4(x)} right by ${k} bits => ${arith.wordToHex4(result)}`);
-    regFile[es.ir_d].put(result);
+    es.regfile[es.ir_d].put(result);
 }
 
 // extract
@@ -2031,47 +2076,47 @@ function exp2_shiftr (es) {
 function exp2_extract (es) {
     com.mode.devlog ('exp2_extract');
     console.log ('exp2_extract');
-    const src = regFile[es.field_g].get();
+    const src = es.regfile[es.field_g].get();
     const srci = es.field_h;
-    const yold = regFile[es.ir_d].get();
+    const yold = es.regfile[es.ir_d].get();
     const yi = es.field_e;
     const size = es.field_f;
     const ynew = arith.calculateExtract (16, size, src, srci, yold, yi);
     console.log (`extract src=${arith.wordToHex4(src)} srci=${srci} `
                  + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
                  + ` ynew=${arith.wordToHex4(ynew)}`);
-    regFile[es.ir_d].put(ynew);
+    es.regfile[es.ir_d].put(ynew);
 }
 
 function exp2_extracti (es) {
     com.mode.devlog ('exp2_extracti');
-    const src = regFile[es.field_g].get();
+    const src = es.regfile[es.field_g].get();
     const srci = es.field_h;
-    const yold = regFile[es.ir_d].get();
+    const yold = es.regfile[es.ir_d].get();
     const yi = es.field_e;
     const size = es.field_f;
     const ynew = arith.calculateExtracti (16,size,src,srci,yi);
     console.log (`extract src=${arith.wordToHex4(src)} srci=${srci} `
                  + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
                  + ` ynew=${arith.wordToHex4(ynew)}`);
-    regFile[es.ir_d].put(ynew);
+    es.regfile[es.ir_d].put(ynew);
 }
 
 function exp2_logicw (es) {
     console.log ('EXP2 logicw');
     com.mode.devlog ('exp2_logicw');
-    let x = regFile[es.field_e].get(); // operand 1
-    let y = regFile[es.field_f].get(); // operand 2
+    let x = es.regfile[es.field_e].get(); // operand 1
+    let y = es.regfile[es.field_f].get(); // operand 2
     let fcn = es.field_h; // logic function
     let result = arith.applyLogicFcnWord (fcn,x,y); // fcn x y
     console.log (`logicw x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)} result=${arith.wordToHex4(result)}`);
-    regFile[es.ir_d].put(result);
+    es.regfile[es.ir_d].put(result);
 }
 
 function exp2_logicb (es) {
     console.log (`>>>>>>>>>>>>>>>>>>>>>>>> exp2_logicb`);
     com.mode.devlog (`exp2_logicb`);
-    const x = regFile[es.ir_d].get();
+    const x = es.regfile[es.ir_d].get();
     const f = arith.getBitInWordBE (x, es.field_f);
     const g = arith.getBitInWordBE (x, es.field_g);
     const fcn = es.field_h;  // logic function
@@ -2079,7 +2124,7 @@ function exp2_logicb (es) {
     const y = arith.putBitInWord (x, es.field_e, bresult); // word result
     console.log (`logicb x=${arith.wordToHex4(x)} f=${f} g=${g} `
                  + `fcn=${fcn} b=${bresult} result=${arith.wordToHex4(y)}`);;
-    regFile[es.ir_d].put(y);
+    es.regfile[es.ir_d].put(y);
 }
 
 // EXP format instructions that use only one word
@@ -2097,10 +2142,10 @@ const exp2 = (f) => (es) => {
     console.log (`>>> EXP2 instruction`);
     let expCode = 16*es.ir_a + es.ir_b;
     es.instrOpStr = `EXP2 mnemonic code=${expCode}`;  // ????????????
-    es.instrDisp = memFetchInstr (pc.get());
-    adr.put (es.instrDisp);
+    es.instrDisp = memFetchInstr (es.pc.get());
+    es.adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
-    pc.put (es.nextInstrAddr);
+    es.pc.put (es.nextInstrAddr);
     let tempinstr = es.instrDisp;
     es.field_gh = tempinstr & 0x00ff;
     es.field_h = tempinstr & 0x000f;

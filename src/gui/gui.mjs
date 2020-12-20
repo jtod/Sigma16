@@ -339,6 +339,7 @@ prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
 // Processor pane (PP)
 prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
+prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
 prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
 prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
 prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
@@ -646,6 +647,7 @@ function emtStep () { // 101:201 Execute one instruction
 
 function handleStepResponse (p) { // run when emt sends 201
     console.log (`main handleStepResponse, emt responded p=${p}`)
+    
 }
 
 // emtShowRegs -- display registers
