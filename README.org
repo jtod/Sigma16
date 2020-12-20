@@ -1,10 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="index.css" />
-#+EXPORT_FILE_NAME: index
-
 * Sigma16 source directory
-
-This is the README file for the Sigma16 source directory.  The source
-file is written using org format.
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
