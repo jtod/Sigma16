@@ -5,6 +5,7 @@ DevNotes.org
 src/node_modules
 examples/Sigma16/Advanced/Testing/TempTest*
 *.html
+!src/gui/Sigma16.html
 *.epub
 *.exe.txt
 *.obj.txt

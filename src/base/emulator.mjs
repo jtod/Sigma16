@@ -27,8 +27,7 @@ import * as st from './state.mjs';
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
 
-// 0 is gui, 1 is emt
-const whoami = true
+export const Mode_GuiDisplay = 100
 
 function updateInstructionCount (n) {
     document.getElementById("nInstrExecuted").innerHTML = n;
@@ -137,6 +136,8 @@ export function obtainExecutable () {
 export function boot (es) {
     com.mode.trace = true;
     com.mode.devlog ("boot");
+    console.log (`current emulator mode = ${es.mode}`)
+    initializeProcessorElements ();  // so far, it's just instr decode
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
@@ -436,48 +437,53 @@ function refreshRegisters() {
 // The current emulator state is passed as needed to functions (the
 // convention is that the parameter name is 'es').
 
+// The mode determines how much output the emulator provides and where
+// it goes.  The mode values are: 100: gui display, 200: console
+// display, 300: fast and quiet.  initialMode is provided when the
+// state is created, and mode is the current value, which might change
+// during execution.
 
-export let emulatorState =
-    {
-// Processor
-        //	procStatus : "Reset",  ??????
-        procStatus : Reset,
-	nInstructionsExecuted : 0,
-	instrLooperDelay : 1000,
-	instrLooperShow : false,
-	breakEnabled : false,
-	breakPCvalue : 0,
-	// Instruction being executed
-	doInterrupt   : 0,
-	ir_op         : 0,
-	ir_d          : 0,
-	ir_a          : 0,
-	ir_b          : 0,
-        ea            : 0,
-	instrDisp     : 0,
-        field_e       : 0,
-        field_f       : 0,
-        field_g       : 0,
-        field_h       : 0,
-        field_gh       : 0,
-	instrOpCode   : null,
-	instrCodeStr  : "",
-	instrFmtStr   : "",
-	instrOp       : "",
-	instrArgs     : "",
-	instrEA       : null,
-	instrEAStr    : "",
-	instrEffect   : [],
-        metadata : null,
-	asmListingCurrent  : [], // version of listing displayed in emulator pane
-        asmListingHeight   : 0,   // height in pixels of the listing
-	curInstrAddr       : 0,
-	nextInstrAddr      : 0,
-	curInstrLineNo     : -1,  // -1 indicates no line has been highlighted
-	nextInstrLineNo    : -1,
-	saveCurSrcLine     : "",
-	saveNextSrcLine    : "",
+export class EmulatorState {
+    constructor (initialMode) {
+        this.initialMode            = initialMode
+        this.mode                   = initialMode
+        this.procStatus             = Reset
+	this.nInstructionsExecuted  = 0
+	this.instrLooperDelay       = 1000
+	this.instrLooperShow        = false
+	this.breakEnabled           = false
+     	this.breakPCvalue       = 0
+	this.doInterrupt        = 0
+	this.ir_op              = 0
+	this.ir_d               = 0
+	this.ir_a               = 0
+	this.ir_b               = 0
+        this.ea                 = 0
+	this.instrDisp          = 0
+        this.field_e            = 0
+        this.field_f            = 0
+        this.field_g            = 0
+        this.field_h            = 0
+        this.field_gh           = 0
+	this.instrOpCode        = null
+	this.instrCodeStr       = ""
+	this.instrFmtStr        = ""
+	this.instrOp            = ""
+	this.instrArgs          = ""
+	this.instrEA            = null
+	this.instrEAStr         = ""
+	this.instrEffect        = []
+        this.metadata           = null
+	this.asmListingCurrent  = [] // listing displayed in emulator pane
+        this.asmListingHeight   = 0   // height in pixels of the listing
+	this.curInstrAddr       = 0
+	this.nextInstrAddr      = 0
+	this.curInstrLineNo     = -1  // -1 indicates no line has been highlighted
+	this.nextInstrLineNo    = -1
+	this.saveCurSrcLine     = ""
+	this.saveNextSrcLine    - ""
     }
+}
 
 //------------------------------------------------------------------------------
 // Initialize machine state
@@ -506,10 +512,12 @@ export function initializeProcessorElements () {
     instrEffect2Elt = document.getElementById("InstrEffect2");
 }
 
-export function initializeMachineState () {
+export function initializeMachineState (es) {
     com.mode.devlog ("emulator: initializeMachineState");
+    console.log (`current emulator mode = ${es.mode}`)
     initializeProcessorElements ();  // so far, it's just instr decode
-    clearInstrDecode (emulatorState);
+//    clearInstrDecode (emulatorState);
+    clearInstrDecode (es);
 
     // Build the register file; sysStateVec index = reg number
     for (let i = 0; i < 16; i++) {
@@ -1140,7 +1148,8 @@ function highlightListingFull (es,m) {
     xa = xa < 0 ? 0 : xa;
     let scrollOffset = xa * pxPerChar;
     com.mode.devlog ('curInstrLineNo = ' + es.curInstrLineNo
-		 + '  scrollOffset = ' + scrollOffset);
+		     + '  scrollOffset = ' + scrollOffset);
+    let procAsmListingElt = document.getElementById('ProcAsmListing');
     procAsmListingElt.scroll (0, scrollOffset);
 //    let curline = procAsmListingElt.getElementById('CUR');
 //    curline.scrollIntoView();
@@ -1422,7 +1431,7 @@ function executeInstruction (es) {
 
     com.mode.devlog ('executeInstruction');
     es.nInstructionsExecuted++;
-    if (guiDisplayMode) {
+    if (es.mode === Mode_GuiDisplay) {
         updateInstructionCount (es.nInstructionsExecuted)
         //    document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
     }
@@ -2121,7 +2130,6 @@ const dispatch_EXP =
     ]
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 
-
 //------------------------------------------------------------------------------
 // Test pane
 //------------------------------------------------------------------------------
@@ -2135,7 +2143,6 @@ const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 // default style that overrides the existing font.  Solution is to use
 // <pre class="HighlightedTextAsHtml"> but don't put it inside a div
 // with HighlightedTExtAsHtml
-
 
 function testpane1() {
     com.mode.devlog ('testpane 1 clicked')
@@ -2158,7 +2165,6 @@ function testpane2 () {
 function testpane3 () {
     com.mode.devlog ('testpane 3 clicked');
 }
-
 
 // ----------------------------------------------------------------------------
 // Deprecated
@@ -2376,7 +2382,6 @@ function highlightMemString(a,highlight) {
 //    memClearAccesses ();
 //    memShowAccesses();
 
-
 /*
 function clearRegisterHighlighting () {
     return // deprecated, use updateRegisters
@@ -2448,4 +2453,48 @@ function finalizeExecuteInstruction (es) {
 
     com.mode.devlog ("runOneInstruction: end");
 }
+*/
+
+/*
+export let emulatorState =
+    {
+// Processor
+        //	procStatus : "Reset",  ??????
+        procStatus : Reset,
+	nInstructionsExecuted : 0,
+	instrLooperDelay : 1000,
+	instrLooperShow : false,
+	breakEnabled : false,
+	breakPCvalue : 0,
+	// Instruction being executed
+	doInterrupt   : 0,
+	ir_op         : 0,
+	ir_d          : 0,
+	ir_a          : 0,
+	ir_b          : 0,
+        ea            : 0,
+	instrDisp     : 0,
+        field_e       : 0,
+        field_f       : 0,
+        field_g       : 0,
+        field_h       : 0,
+        field_gh       : 0,
+	instrOpCode   : null,
+	instrCodeStr  : "",
+	instrFmtStr   : "",
+	instrOp       : "",
+	instrArgs     : "",
+	instrEA       : null,
+	instrEAStr    : "",
+	instrEffect   : [],
+        metadata : null,
+	asmListingCurrent  : [], // version of listing displayed in emulator pane
+        asmListingHeight   : 0,   // height in pixels of the listing
+	curInstrAddr       : 0,
+	nextInstrAddr      : 0,
+	curInstrLineNo     : -1,  // -1 indicates no line has been highlighted
+	nextInstrLineNo    : -1,
+	saveCurSrcLine     : "",
+	saveNextSrcLine    : "",
+    }
 */

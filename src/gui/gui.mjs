@@ -338,18 +338,18 @@ prepareButton ('LP_Show_Executable', link.linkShowExecutable);
 prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
 // Processor pane (PP)
-prepareButton ('PP_Reset',        () => em.procReset(em.emulatorState));
-prepareButton ('PP_Boot',         () => em.boot(em.emulatorState));
-prepareButton ('PP_Step',         () => em.procStep(em.emulatorState));
-prepareButton ('PP_Run',          () => em.procRun(em.emulatorState));
-prepareButton ('PP_Pause',        () => em.procPause(em.emulatorState));
-prepareButton ('PP_Interrupt',    () => em.procInterrupt(em.emulatorState));
-prepareButton ('PP_Breakpoint',   () => em.procBreakpoint(em.emulatorState));
+prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
+prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
+prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
+prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
+prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
+prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
+prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
 prepareButton ('PP_EmtStep',      emtStep);
 prepareButton ('PP_EmtShowRegs',  emtShowRegs);
 prepareButton ('PP_EmtShowMem',   emtShowMem);
 prepareButton ('PP_EmtLongComp',  emtLongComp);
-prepareButton ('PP_RegMemTest',  regMemTest);
+prepareButton ('PP_RegMemTest',   regMemTest);
 
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
 prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
@@ -895,6 +895,7 @@ function checkBrowserWorkerSupport () {
 let browserSupportsWorkers = false
 
 let flags
+let guiEmulatorState // declare here, define at onload event 
 
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
@@ -910,7 +911,9 @@ window.onload = function () {
     smod.initModules ();
     window.mode = com.mode;
     hideDevToolsButton ();
-    em.initializeMachineState ();
+    guiEmulatorState = new em.EmulatorState (em.Mode_GuiDisplay)
+    em.initializeMachineState (guiEmulatorState)
+    console.log (`gui mode = ${guiEmulatorState.mode}`)
     browserSupportsWorkers = checkBrowserWorkerSupport ()
     if (browserSupportsWorkers) {
         initThreads ()
