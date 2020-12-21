@@ -162,6 +162,7 @@ export function boot (es) {
     let location = 0; // address where next word will be stored
     document.getElementById('ProcAsmListing').innerHTML = "";
     es.nInstructionsExecuted = 0;
+    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
     document.getElementById("nInstrExecuted").innerHTML =
 	es.nInstructionsExecuted;
     ioLogBuffer = "";
@@ -429,7 +430,12 @@ function resetRegisters (es) {
 
 export function refresh (es) {
     refreshRegisters (es)
+    memRefresh (es)
     memDisplayFull (es)
+    console.log (`refresh getting n`)
+    let n = st.readSCB (es, st.SCB_nInstrExecuted)
+    console.log (`refresh n=${n}`)
+    updateInstructionCount (n)
 }
 
 // Refresh all the registers.  This ensures the display corresponds to the
@@ -867,6 +873,9 @@ function memDisplayFast (es) {
 //	+ "</code></pre>";
 
 function memDisplayFull (es) {
+    let memElt1 = document.getElementById('MemDisplay1');
+    let memElt2 = document.getElementById('MemDisplay2');
+
     let xs;                 // display text
     let xt, xo;             // display 1 targets and offsets
     let yafet, yasto, ya, yo, yt;
@@ -1245,6 +1254,7 @@ export function procReset (es) {
     clearInstrDecode (es);
     refreshInstrDecode (es);
     es.nInstructionsExecuted = 0;
+    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
     document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
 }
 
@@ -1479,6 +1489,7 @@ export function executeInstruction (es) {
 
     com.mode.devlog ('executeInstruction');
     es.nInstructionsExecuted++;
+    st.incrSCB (es, st.SCB_nInstrExecuted)
     console.log (`ExInstr nInstrExecuted=${es.nInstructionsExecuted}`)
     if (es.mode === Mode_GuiDisplay) {
         updateInstructionCount (es.nInstructionsExecuted)
@@ -1665,6 +1676,7 @@ const op_trap = (es) => {
     com.mode.devlog (`trap code=${code}`);
     if (code===0) { // Halt
 	com.mode.devlog ("Trap: halt");
+        st.writeSCB (es, st.SCB_halted, 1)
         setProcStatus (es,Halted);
         //        refreshRegisters();
         updateRegisters ()

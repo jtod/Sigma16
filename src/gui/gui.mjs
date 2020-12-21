@@ -118,7 +118,7 @@ emthread.addEventListener ("message", e => {
             break
         case 201: // reply to step request
             console.log (`main rec 201 response to step`)
-            handleStepResponse (p)
+            handleRunResponse (p)
             break
         case 202: // reply to showRegs request
             console.log (`main rec 202 response to showRegs`)
@@ -473,9 +473,9 @@ prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
 prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
 prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
+prepareButton ('PP_EmtRun',      emtRun);
 prepareButton ('PP_EmtStep',      emtStep);
-prepareButton ('PP_EmtShowRegs',  emtShowRegs);
-prepareButton ('PP_EmtShowMem',   emtShowMem);
+prepareButton ('PP_EmtShow',      emtShow);
 prepareButton ('PP_EmtLongComp',  emtLongComp);
 prepareButton ('PP_RegMemTest',   regMemTest);
 
@@ -761,32 +761,45 @@ window.onresize = function () {
 // Emt Initialize
 // Main sends 100 and delivers shared system state vector
 
+function emtRun () { // 101:201 run until halt
+    console.log ("main: emt run clicked");
+    let msg = {code: 101, payload: 0}
+    emthread.postMessage (msg) // when done, emt will reply with 201
+}
+
+function handleRunResponse (p) { // run when emt sends 201
+    console.log (`main handleRunResponse, emt responded p=${p}`)
+    em.refresh (guiEmulatorState)
+    console.log (`main handleStepResponse returning`)
+    
+}
 // Emt Step
 // Main sends 101, emt responds with 201
 //   <button id="PP_EmtStep"> emt step </button>
 //   prepareButton ('PP_EmtStep', emtStep);
 
-function emtStep () { // 101:201 Execute one instruction
+function emtStep () { // 102:202 Execute one instruction
     console.log ("main: emt step clicked");
-    let msg = {code: 101, payload: 0}
+    let msg = {code: 102, payload: 0}
     emthread.postMessage (msg) // when done, emt will reply with 201
 }
 
-function handleStepResponse (p) { // run when emt sends 201
+function handleStepResponse (p) { // run when emt sends 202
     console.log (`main handleStepResponse, emt responded p=${p}`)
-    
+    em.refresh (guiEmulatorState)
+    console.log (`main handleStepResponse returning`)
 }
 
 // emtShowRegs -- display registers
 // Main sends 102, emt responds with 202
 
-function emtShowRegs () {
+function emtShow () {
     console.log ("main: emtShowRegs")
-    let msg = {code: 102, payload: 0}
-    emthread.postMessage (msg) // when done, emt will reply with 202
+    let msg = {code: 103, payload: 0}
+    emthread.postMessage (msg) // when done, emt will reply with 203
 }
 
-function emtShowRegsResponse (p) { // run when emt sends 202
+function emtShowResponse (p) { // run when emt sends 203
     console.log (`main emtShowRegsResponse`)
 }
 

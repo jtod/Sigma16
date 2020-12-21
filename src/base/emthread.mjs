@@ -65,21 +65,23 @@ self.addEventListener ("message", e => {
             //            this.postMessage (msg)
             self.postMessage (msg)
             break
-        case 101: // step
-            console.log (`emt step`)
-            result = doStep () // When done, reply with 201
-            msg = {code: 201, payload: result}
-            self.postMessage (msg)
-//            this.postMessage (msg)
-            break
-        case 102: // showRegs
-            showRegs ()
+        case 101: // emt run
+            console.log (`request emt run`)
+            doRun ()
             msg = {code: 202, payload: 0}
 //            this.postMessage (msg)
             self.postMessage (msg)
             break
-        case 103: // showMem
-            showMem (20)
+        case 102: // emt step
+            console.log (`request emt step`)
+            doStep () // When done, reply with 201
+            msg = {code: 201, payload: 0}
+            self.postMessage (msg)
+//            this.postMessage (msg)
+            break
+        case 103: // show
+            //            showMem (20)
+            show ()
             msg = {code: 203, payload: 0}
             self.postMessage (msg)
 //            this.postMessage (msg)
@@ -282,6 +284,11 @@ function memStore (a,x) {
 // Test
 //-----------------------------------------------------------------------------
 
+function show () {
+    showRegs ()
+    showMem (20)
+}
+
 function showRegs () {
     console.log (`emt showRegs`)
     for (let i = 0; i < shm.EmRegBlockSize; i++) {
@@ -338,6 +345,18 @@ function doStep () {
     console.log (`emt doStep`)
     em.executeInstruction (emt.es)
     console.log (`emt doStep returning`)
+}
+
+function doRun () {
+    console.log (`emt doRun`)
+    let count = 0
+    while (count < 100 && st.readSCB (emt.es, st.SCB_halted) != 1) {
+        console.log (`emt doRun count=${count}`)
+        em.executeInstruction (emt.es)
+        count++
+    }
+    em.refresh (emt.es)
+    console.log (`emt doRun stopped after ${count} instructions`)
 }
 
 console.log ("emtthread has been read")

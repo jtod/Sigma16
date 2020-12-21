@@ -531,6 +531,7 @@ export let foobar = 0
 
 // The following sizes and offsets are measured in words
 
+export const EmSCBOffset      = 0
 export const EmCtlSize        = 16
 export const EmRegFileSize    = 16
 export const EmSysRegSize     = 16
@@ -543,6 +544,33 @@ export const EmStateSizeWord  = EmCtlSize + EmRegBlockSize + EmMemSize
 // The following sizes and offsets are measured in bytes
 
 export const EmStateSizeByte  = 2 * EmStateSizeWord
+
+// Codes for system control block
+
+export const SCB_writeRight      =  0  // 0: main, 1:emt
+export const SCB_nInstrExecuted  =  1  // count instructions executed
+export const SCB_halted          =  2  // 1 if halted
+
+
+export function writeSCB (es, code, x) {
+    let i = EmSCBOffset + code
+    es.shm [i] = x
+}
+
+export function readSCB (es, code) {
+    let i = EmSCBOffset + code
+    let x = es.shm [i]
+    console.log (`st.readSCB code=${code} i=${i} x=${x}`)
+    return x
+}
+export function incrSCB (es, code) {
+    let i = EmSCBOffset + code
+    let x = es.shm[i]
+    x++
+    es.shm[i] = x
+    return x
+}
+
 
 // System state vector
 
