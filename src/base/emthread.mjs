@@ -1,4 +1,4 @@
-// Sigma16: gui.mjs
+// Sigma16: emthread.mjs
 // Copyright (C) 2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt

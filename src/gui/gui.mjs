@@ -38,6 +38,133 @@ export function modalWarning (msg) {
 }
 
 //-------------------------------------------------------------------------------
+// Emulator thread
+//-------------------------------------------------------------------------------
+
+// Define worker thread
+
+// const emthread = new Worker("../base/emthread.mjs");
+console.log (`----- main is creating emthread worker`)
+const emthread = new Worker("../base/emthread.mjs", {type:"module"});
+console.log (`----- main has just created emthread worker`)
+
+function initThreads () { // called by onload initializer, request 100
+    console.log ("***** main initThreads *****")
+    st.sysStateVec[0] = 123
+    st.sysStateVec[1] = 456
+    let msg = {code: 100, payload: st.sysStateVec}
+    emthread.postMessage (msg)
+    console.log (`main gui just sent 100`)
+}
+
+function initThreadsResponse () { // response 200
+    console.log ("***** ***** main received response to initThreads ***** *****")
+}
+
+// A message is an object of the form {code: ..., payload: ...}.  The
+// gui main thread uses codes 100, 101, ... and the emulator thread
+// uses codes 200, 201, ...
+
+// Actions
+
+function action100 () { // Initialize
+    console.log (`main action 100 Initialize`)
+    let msg = {code: 100, payload: 0}
+    emthread.postMessage (msg)    
+}
+
+
+function action112 () { // send foo, emt replies with emtCount, main212 prints
+    console.log (`main action 112 send foo=${st.foo}`)
+    let msg = {code: 112, payload: st.foo}
+    emthread.postMessage (msg)    
+}
+
+function action113 () { // send foo
+    console.log (`main action 113 foo=${st.foo}`)
+    let msg = {code: 113, payload: st.foo}
+    console.log (`main sending: <${msg}>`)
+    emthread.postMessage (msg)    
+}
+
+function action114 () { // Tell emt to increment arr[23]
+    console.log ("main action 114")
+    let msg = {code: 114, payload: null}
+    emthread.postMessage (msg)    
+}
+
+function action115 () { // Tell emt to print regfile
+//    console.log (`main action 115 arr[23] = ${st.sysStateVec[23]}`)
+    let msg = {code: 115, payload: null}
+    emthread.postMessage (msg)    
+}
+
+
+function action106 () {
+    console.log ("main 106")
+}
+
+// Handle incoming messages from emt
+
+emthread.addEventListener ("message", e => {
+    console.log ("main has received a message")
+    if (e.data) {
+        console.log ("main has received event data")
+        let p = e.data.payload
+        switch (e.data.code) {
+        case 200: // initialize
+            console.log (`main rec 200 received val=${p}`)
+            initThreadsResponse ()
+            break
+        case 201: // reply to step request
+            console.log (`main rec 201 response to step`)
+            handleStepResponse (p)
+            break
+        case 202: // reply to showRegs request
+            console.log (`main rec 202 response to showRegs`)
+            emtShowMemResponse ()
+            break
+        case 203: // reply to showMem request
+            console.log (`main rec 203 response to showMem`)
+            break
+        case 204: // reply to longComp request
+            console.log (`main rec 20 response to longComp`)
+            emtLongCompResponse (p)
+            break
+        case 205: // reg/mem access test
+            console.log (`main rec 205 response to reg/mem access text`)
+            regMemTestResponse (p)
+            break
+        case 212:
+            console.log (`main 212 rec ${p} st.foobar=${st.foobar}`)
+            break
+        case 900:
+            
+        default:
+            console.log (`main received unknown code = ${e.data.code}`)
+        }
+        console.log (`main event handler returning`)
+
+    }
+})
+
+// Check whether the browser supports workers.  Print a message on the
+// console and return a Boolen: true if workers are supported
+
+function checkBrowserWorkerSupport () {
+    com.mode.devlog ("checkBrowserWorkerSupport")
+    let workersSupported = false
+    if (window.Worker) {
+        com.mode.devlog ("Browser supports concurrent worker threads");
+        workersSupported = true
+    } else {
+        com.mode.devlog ("Browser does not support concurrent worker threads");
+    }
+    return workersSupported
+}
+
+
+//-------------------------------------------------------------------------------
 // Parameters and global variables
 //-------------------------------------------------------------------------------
 
@@ -768,129 +895,6 @@ function devTools106 () {
 }
 
 //-------------------------------------------------------------------------------
-// Emulator thread
-//-------------------------------------------------------------------------------
-
-// Define worker thread
-
-// const emthread = new Worker("../base/emthread.mjs");
-const emthread = new Worker("../base/emthread.mjs", {type:"module"});
-
-function initThreads () { // called by onload initializer, request 100
-    console.log ("***** ***** ***** main initThreads ***** ***** *****")
-    st.sysStateVec[0] = 123
-    st.sysStateVec[1] = 456
-    let msg = {code: 100, payload: st.sysStateVec}
-    emthread.postMessage (msg)
-}
-
-function initThreadsResponse () { // response 200
-    console.log ("***** ***** main received response to initThreads ***** *****")
-}
-
-// A message is an object of the form {code: ..., payload: ...}.  The
-// gui main thread uses codes 100, 101, ... and the emulator thread
-// uses codes 200, 201, ...
-
-// Actions
-
-function action100 () { // Initialize
-    console.log (`main action 100 Initialize`)
-    let msg = {code: 100, payload: 0}
-    emthread.postMessage (msg)    
-}
-
-
-function action112 () { // send foo, emt replies with emtCount, main212 prints
-    console.log (`main action 112 send foo=${st.foo}`)
-    let msg = {code: 112, payload: st.foo}
-    emthread.postMessage (msg)    
-}
-
-function action113 () { // send foo
-    console.log (`main action 113 foo=${st.foo}`)
-    let msg = {code: 113, payload: st.foo}
-    console.log (`main sending: <${msg}>`)
-    emthread.postMessage (msg)    
-}
-
-function action114 () { // Tell emt to increment arr[23]
-    console.log ("main action 114")
-    let msg = {code: 114, payload: null}
-    emthread.postMessage (msg)    
-}
-
-function action115 () { // Tell emt to print regfile
-//    console.log (`main action 115 arr[23] = ${st.sysStateVec[23]}`)
-    let msg = {code: 115, payload: null}
-    emthread.postMessage (msg)    
-}
-
-
-function action106 () {
-    console.log ("main 106")
-}
-
-// Handle incoming messages from emt
-
-emthread.addEventListener ("message", e => {
-    console.log ("main has received a message")
-    if (e.data) {
-        console.log ("main has received event data")
-        let p = e.data.payload
-        switch (e.data.code) {
-        case 200: // initialize
-            console.log (`main rec 200 received val=${p}`)
-            initThreadsResponse ()
-            break
-        case 201: // reply to step request
-            console.log (`main rec 201 response to step`)
-            handleStepResponse (p)
-            break
-        case 202: // reply to showRegs request
-            console.log (`main rec 202 response to showRegs`)
-            emtShowMemResponse ()
-            break
-        case 203: // reply to showMem request
-            console.log (`main rec 203 response to showMem`)
-            break
-        case 204: // reply to longComp request
-            console.log (`main rec 20 response to longComp`)
-            emtLongCompResponse (p)
-            break
-        case 205: // reg/mem access test
-            console.log (`main rec 205 response to reg/mem access text`)
-            regMemTestResponse (p)
-            break
-        case 212:
-            console.log (`main 212 rec ${p} st.foobar=${st.foobar}`)
-            break
-        case 900:
-            
-        default:
-            console.log (`main received unknown code = ${e.data.code}`)
-        }
-        console.log (`main event handler returning`)
-
-    }
-})
-
-// Check whether the browser supports workers.  Print a message on the
-// console and return a Boolen: true if workers are supported
-
-function checkBrowserWorkerSupport () {
-    com.mode.devlog ("checkBrowserWorkerSupport")
-    let workersSupported = false
-    if (window.Worker) {
-        com.mode.devlog ("Browser supports concurrent worker threads");
-        workersSupported = true
-    } else {
-        com.mode.devlog ("Browser does not support concurrent worker threads");
-    }
-    return workersSupported
-}
-
-//-------------------------------------------------------------------------------
 // Run the initializers when onload event occurs
 //-------------------------------------------------------------------------------
 
@@ -913,7 +917,8 @@ window.onload = function () {
     smod.initModules ();
     window.mode = com.mode;
     hideDevToolsButton ();
-    guiEmulatorState = new em.EmulatorState (em.Mode_GuiDisplay)
+//  guiEmulatorState = new em.EmulatorState (em.Mode_GuiDisplay)
+    guiEmulatorState = new em.EmulatorState (st.sysStateVec, em.Mode_GuiDisplay)
     em.initializeMachineState (guiEmulatorState)
     console.log (`gui mode = ${guiEmulatorState.mode}`)
     browserSupportsWorkers = checkBrowserWorkerSupport ()

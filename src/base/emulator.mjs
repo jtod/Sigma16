@@ -184,7 +184,7 @@ export function boot (es) {
                 let val = arith.hex4ToWord(fields.operands[j]);
                 if (!val) {com.mode.devlog(`boot: bad data (${val})`)};
                 let safeval = val ? val : 0;
-                memStore (location,safeval);
+                memStore (es, location, safeval);
                 com.mode.devlog (`boot data mem[${location}]:=${val}`);
                 location++;
             }
@@ -359,7 +359,9 @@ export class genregister {
     get () {
         regFetched.push (this)
         let i = st.EmRegBlockOffset + this.regStIndex
-        let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+        console.log (`--- reg get ${this.regName} with`
+                     + `  (idx=${i})`)
+        let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
         console.log (`--- reg get ${this.regName} =`
                      + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
         return x
@@ -367,7 +369,7 @@ export class genregister {
     put (x) {
         regStored.push (this)
         let i = st.EmRegBlockOffset + this.regStIndex
-        st.sysStateVec [i] = x
+        this.es.shm[i] = x
         if (this.regIdx < 16) { // register file
             instrEffect.push (["R", this.regNumber, x, this.regName]);
         }
@@ -377,7 +379,7 @@ export class genregister {
     highlight (key) {
         if (this.es.mode === Mode_GuiDisplay) {
             let i = st.EmRegBlockOffset + this.regStIndex
-            let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = highlightText (this.show(x), key)
             console.log (`--- reg highlight ${this.regName} := ${xs} (idx=${i})`)
             this.elt.innerHTML = xs
@@ -388,7 +390,7 @@ export class genregister {
     refresh () {
         if (this.es.mode === Mode_GuiDisplay) {
             let i = st.EmRegBlockOffset + this.regStIndex
-            let x = this.regStIndex === 0 ? 0 : st.sysStateVec [i]
+            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = this.show (x)
             console.log (`--- reg refresh ${this.regName} :=`
                          + ` ${arith.wordToHex4(x)} = ${x} /${xs}/ (idx=${i})`)
@@ -460,7 +462,8 @@ function refreshRegisters (es) {
 // during execution.
 
 export class EmulatorState {
-    constructor (initialMode) {
+    constructor (shm, initialMode) {
+        this.shm = shm
         this.initialMode            = initialMode
         this.mode                   = initialMode
         this.procStatus             = Reset
@@ -550,7 +553,7 @@ export function initializeProcessorElements (es) {
 
 export function initializeMachineState (es) {
     com.mode.devlog ("emulator: initializeMachineState");
-    console.log (`current emulator mode = ${es.mode}`)
+    console.log (`em.initializeMachineState: current emulator mode = ${es.mode}`)
     initializeProcessorElements (es);  // so far, it's just instr decode
 //    clearInstrDecode (emulatorState);
     clearInstrDecode (es);
@@ -714,15 +717,15 @@ function memInitialize (es) {
 
 // Set all memory locations to 0
 
-function memClear () {
+function memClear (es) {
     for (let a = 0; a < memSize; a++) {
         //	memory[i] = 0;
-        memStore (a, 0)
+        memStore (es, a, 0)
     }
     memFetchInstrLog = [];
     memFetchDataLog = [];
     memStoreLog = [];
-    memRefresh ();
+    memRefresh (es);
 }
 
 // Refresh all the memory strings; the memString array should be accurate
@@ -734,10 +737,10 @@ function memClear () {
 // scrolling didn't work, possibly because of this dummy element with
 // its newline inserted when the array is joined up.
 
-function memRefresh () {
+function memRefresh (es) {
     memString = [];  // clear out and collect any existing elements
     for (let i = 0; i < memSize; i++) {
-	setMemString(i);
+	setMemString(es,i);
     }
 }
 
@@ -747,41 +750,45 @@ function memRefresh () {
 // mem[a] corresponds to memString[a+1].
 
 
-function memHighlight (a, highlight) {
-    let x = st.sysStateVec [st.EmMemOffset + a]
+function memHighlight (es, a, highlight) {
+    let x = es.shm[st.EmMemOffset + a]
     memString[a] =
 	"<span class='" + highlight + "'>"
 	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
         + "</span>";
 }
 
-function setMemString(a) {
-    let x = st.sysStateVec [st.EmMemOffset + a]
+function setMemString(es,a) {
+    let x = es.shm[st.EmMemOffset + a]
     memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
 }
 
 // Fetch and return a word from memory at address a, and record the
 // address so the display can show this access.
 
-function memFetchInstr (a) {
+function memFetchInstr (es, a) {
     memFetchInstrLog.push(a);
-    let x = st.sysStateVec [st.EmMemOffset + a]
+    let i = st.EmMemOffset + a
+    let x =  es.shm[i]
+//    let x = st.sysStateVec [st.EmMemOffset + a]
+    console.log (`memFetchInstr a=${arith.wordToHex4(a)}`
+                 + ` offset=${st.EmMemOffset} i=${i} x=${arith.wordToHex4(x)}`)
     return x
 }
 
-function memFetchData (a) {
+function memFetchData (es, a) {
     memFetchDataLog.push(a);
-    let x = st.sysStateVec [st.EmMemOffset + a]
+    let x = es.shm[st.EmMemOffset + a]
     return x
 }
 
 // Store a word x into memory at address a, and record the address so
 // the display can show this access.
 
-function memStore (a,x) {
+function memStore (es, a,x) {
     memStoreLog.push(a);
     instrEffect.push(["M", a, x]);
-    st.sysStateVec [st.EmMemOffset + a] = x
+    es.shm[st.EmMemOffset + a] = x
 }
 
 // Update the memory string for each location that has been accessed,
@@ -790,15 +797,15 @@ function memStore (a,x) {
 // stores: this ensures that if a location has both been fetched and
 // stored, the highlighting for the store will take precedence.
 
-function updateMemory () {
+function updateMemory (es) {
     // Clear previous highlighting
-    for (let x of memFetchInstrLogOld) { memRefresh (x) }
-    for (let x of memFetchDataLogOld)  { memRefresh (x) }
-    for (let x of memStoreLogOld)      { memRefresh (x) }
+    for (let x of memFetchInstrLogOld) { memRefresh (es) }
+    for (let x of memFetchDataLogOld)  { memRefresh (es) }
+    for (let x of memStoreLogOld)      { memRefresh (es) }
     // Update new memory accesses
-    for (let x of memFetchInstrLog)    { memHighlight (x, "GET") }
-    for (let x of memFetchDataLog)     { memHighlight (x, "GET") }
-    for (let x of memStoreLog)         { memHighlight (x, "PUT") }
+    for (let x of memFetchInstrLog)    { memHighlight (es, x, "GET") }
+    for (let x of memFetchDataLog)     { memHighlight (es, x, "GET") }
+    for (let x of memStoreLog)         { memHighlight (es, x, "PUT") }
     memFetchInstrLogOld = memFetchInstrLog
     memFetchDataLogOld = memFetchDataLog
     memStoreLogOld = memStoreLog
@@ -816,13 +823,13 @@ function updateMemory () {
 // complete but slow.
 
 function memDisplay (es) {
-    if (memDisplayModeFull) { memDisplayFull () }
-    else { memDisplayFast () }
+    if (memDisplayModeFull) { memDisplayFull (es) }
+    else { memDisplayFast (es) }
 }
 
 // Set the memory displays, showing only part of the memory to save time
 
-function memDisplayFast () {
+function memDisplayFast (es) {
     let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
     xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
     xa = xa < 0 ? 0 : xa;
@@ -859,7 +866,7 @@ function memDisplayFast () {
 //	+ memString.join('\n')
 //	+ "</code></pre>";
 
-function memDisplayFull () {
+function memDisplayFull (es) {
     let xs;                 // display text
     let xt, xo;             // display 1 targets and offsets
     let yafet, yasto, ya, yo, yt;
@@ -892,21 +899,21 @@ function memTest1a () {
     memDisplay ();
 }
 
-function memTest1b () {
+function memTest1b (es) {
     com.mode.devlog('testMem1b');
-    let y = memFetchInstr(6);
+    let y = memFetchInstr(es,6);
     memStore(300,20);
     memDisplay ();
 }
 
-function memTest2 () {
+function memTest2 (es) {
     com.mode.devlog('testMem2');
     memClear ();
-    let y = memFetchInstr (32768);
-    let q = memFetchData (50);
+    let y = memFetchInstr (es,32768);
+    let q = memFetchData (es,50);
     memStore (65520, 7);
 //    memShowAccesses ();
-    memDisplay ();
+    memDisplay (es);
 }
 
 //------------------------------------------------------------------------------
@@ -1231,7 +1238,7 @@ export function procReset (es) {
     refreshRegisters (es);
     memClear ();
 //    memClearAccesses ();
-    memDisplay ();
+    memDisplay (es);
     document.getElementById('ProcAsmListing').innerHTML = "";
     clearInstrDecode (es);
     refreshInstrDecode (es);
@@ -1273,9 +1280,9 @@ export function procPause(es) {
     com.mode.devlog ("procPause");
     setProcStatus (es,Paused);
 
-    updateRegisters ()
-    updateMemory ()
-    memDisplayFull();
+    updateRegisters (es)
+    updateMemory (es)
+    memDisplayFull(es);
     showInstrDecode (es);
     highlightListingAfterInstr (es);
 }
@@ -1354,8 +1361,8 @@ function breakClose () {
 function execRunPrepare (es) {
     com.mode.devlog ("execRunPrepare");
     refreshRegisters (es)
-    memRefresh();
-    memDisplay ();                   // refresh memory display
+    memRefresh(es);
+    memDisplay (es);                   // refresh memory display
     clearInstrDecode (es);           // remove decoding of last instruction
     prepareListingBeforeInstr (es);  //remove any instruction highlighting
     setProcAsmListing (es);
@@ -1414,10 +1421,10 @@ function execInstrPostDisplay (es) {
 
 function runInstrPostDisplay (es) {
     com.mode.devlog("runInstrPostDisplay");
-    clearRegisterHighlighting ();
-    updateRegisters ()
-    updateMemory ()
-    memDisplayFull ();
+    clearRegisterHighlighting (es);
+    updateRegisters (es)
+    updateMemory (es)
+    memDisplayFull (es);
 }
 
 // Prepare to execute an instruction by clearing the buffers holiding
@@ -1427,7 +1434,7 @@ function prepareExecuteInstruction (es) {
     com.mode.devlog ("prepareExecuteInstruction");
 
 // Preparations before the instruction
-    memDisplay ();
+    memDisplay (es);
     clearInstrDecode (es);
     prepareListingBeforeInstr (es);
 }
@@ -1446,6 +1453,7 @@ function prepareExecuteInstruction (es) {
 //	    com.mode.devlog(`find interrupt trying i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
 
 export function executeInstruction (es) {
+    console.log (`em.executeInstruction starting`)
     console.log (`executeInstruction mode=${es.mode}`)
 
     /*
@@ -1469,15 +1477,18 @@ export function executeInstruction (es) {
 
     com.mode.devlog ('executeInstruction');
     es.nInstructionsExecuted++;
+    console.log (`ExInstr nInstrExecuted=${es.nInstructionsExecuted}`)
     if (es.mode === Mode_GuiDisplay) {
         updateInstructionCount (es.nInstructionsExecuted)
         //    document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
     }
 
 // Check for interrupt
-    let mr = es.mask.get() & es.req.get();
+    //    let mr = es.mask.get() & es.req.get(); ??????????????????????
+    let mr = 0
 //    com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`);
-    if (arith.getBitInRegBE (es.statusreg,arch.intEnableBit) && mr) {
+    //    if (arith.getBitInRegBE (es.statusreg,arch.intEnableBit) && mr) {
+    if (false) { // ????????????????? testing
         console.log (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
 	while (i<16 && arith.getBitInWordBE(mr,i)==0) { i++ };
@@ -1506,16 +1517,17 @@ export function executeInstruction (es) {
     // No interrupt, so proceed with next instruction
     console.log (`no interrupt, proceeding...`)
     es.curInstrAddr = es.pc.get();
-    console.log (`execute instruction: pc=${arith.wordToHex4(es.curInstrAddr)}`)
-    instrCode = memFetchInstr (es.curInstrAddr);
+    console.log (`ExInstr pc=${arith.wordToHex4(es.curInstrAddr)}`)
+    instrCode = memFetchInstr (es, es.curInstrAddr);
+    console.log (`ExInstr ir=${arith.wordToHex4(instrCode)}`)
     es.ir.put (instrCode);
-    console.log (`execute instruction: ir=${arith.wordToHex4(instrCode)}`)
     es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
     es.pc.put (es.nextInstrAddr);
-    console.log (`ex instr: nextInstrAddrc=${arith.wordToHex4(es.nextInstrAddr)}`)
+    console.log (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
     
-//    com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) + ' ir = ' + arith.wordToHex4(instr));
+// com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) + ' ir = ' + arith.wordToHex4(instr));
     let tempinstr = es.ir.get();
+    console.log (`ExInstr instr=${arith.wordToHex4(tempinstr)}`)
     es.ir_b = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.ir_a = tempinstr & 0x000f;
@@ -1524,10 +1536,10 @@ export function executeInstruction (es) {
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
 //    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
-    console.log(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+    console.log(`ExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
-    console.log ("Dispatch primary opcode");
+    console.log (`ExInstr dispatch primary opcode ${es.ir_op}`);
     dispatch_primary_opcode [es.ir_op] (es);
 //    updateRegisters () // display values and highlighting
 }
@@ -1654,8 +1666,8 @@ const op_trap = (es) => {
         setProcStatus (es,Halted);
         //        refreshRegisters();
         updateRegisters ()
-        updateMemory ()
-        memRefresh();
+        updateMemory (es)
+        memRefresh(es);
     } else if (code==1) { // Read
         trapRead(es);
     } else if (code==2) { // Write
@@ -1692,7 +1704,7 @@ function trapRead (es) {
     com.mode.devlog (`Read: xs2=/${xs2}/ ys=/${ys}/`);
     for (let i = 0; i<m; i++) {
 	charcode = ys.charCodeAt(i);
-	memStore (a, charcode);
+	memStore (es, a, charcode);
 	com.mode.devlog (`Read: mem[${a}] := ${charcode}`);
 	a++;
     }
@@ -1709,7 +1721,7 @@ function trapWrite (es) {
     let b = es.regfile[es.ir_b].get(); // buffer size
     let xs = "";
     for (let i = 0; i<b; i++) {
-	xs += String.fromCharCode(memFetchData(a));
+	xs += String.fromCharCode(memFetchData(es,a));
 	a++
     }
     com.mode.devlog (`Write a=${a} b=${b} >>> /${xs}/`);
@@ -1720,6 +1732,7 @@ function trapWrite (es) {
 
 const handle_rx = (es) => {
     com.mode.devlog ('handle rx' + es.ir_b);
+    console.log (`handle rx secondary=${es.ir_b}`);
     es.instrFmtStr = "RX";
     dispatch_RX [es.ir_b] (es);
 }
@@ -1743,7 +1756,7 @@ const op_push  = (es) => {
     console.log (`push d=${d} ra=${ra} a=${a} b=${b}`)
     if (a < b) {
         es.regfile[ra].put(a+1);
-        memStore (a+1, d);
+        memStore (es, a+1, d);
     } else {
         console.log (`push: stack overflow`);
         arith.setBitInRegBE (req, arch.stackOverflowBit);
@@ -1756,7 +1769,7 @@ const op_pop  = (es) => {
     const a = es.regfile[es.ir_a].get();
     const b = es.regfile[es.ir_b].get();
     if (a >= b) {
-        es.regfile[es.ir_d].put(memFetchData(a));
+        es.regfile[es.ir_d].put(memFetchData(es,a));
         es.regfile[es.ir_a].put(a-1);
     } else {
         console.log (`pop: stack underflow`);
@@ -1768,7 +1781,7 @@ const op_top  = (es) => {
     const a = es.regfile[es.ir_a].get();
     const b = es.regfile[es.ir_b].get();
     if (a >= b) {
-        es.regfile[es.ir_d].put(memFetchData(a));
+        es.regfile[es.ir_d].put(memFetchData(es,a));
     } else {
         console.log (`pop: stack underflow`);
         arith.setBitInRegBE (req, arch.stackUnderflowBit);
@@ -1829,9 +1842,10 @@ const dispatch_primary_opcode =
 // with state bits, but ensure that its readout produces 0.
 
 const rx = (f) => (es) => {
+        
     com.mode.devlog('rx');
     es.instrOpStr = arch.mnemonicRX[es.ir_b];
-    es.instrDisp = memFetchInstr (es.pc.get());
+    es.instrDisp = memFetchInstr (es, es.pc.get());
     es.adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.pc.put (es.nextInstrAddr);
@@ -1869,12 +1883,12 @@ function rx_lea (es) {
 
 function rx_load (es) {
     com.mode.devlog('rx_load');
-    es.regfile[es.ir_d].put(memFetchData(es.ea));
+    es.regfile[es.ir_d].put(memFetchData(es,es.ea));
 }
 
 function rx_store (es) {
     com.mode.devlog('rx_store');
-    memStore (es.ea, es.regfile[es.ir_d].get());
+    memStore (es, es.ea, es.regfile[es.ir_d].get());
 }
 
 function rx_jump (es) {
@@ -1920,7 +1934,7 @@ function rx_jumpnz (es) {
 function rx_testset (es) {
     console.log (`testset`);
     es.regfile[es.ir_d].put(memFetchData(es.ea));
-    memStore(es.ea,1);
+    memStore (es, es.ea, 1);
 }
 
 function rx_jal (es) {
@@ -1954,7 +1968,7 @@ function exp2_save (es) {
     const ea = index + offset;
     console.log (`save regs = ${rStart}..${rEnd} index=${index}`
                  + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
-    sr_looper ((a,r) => memStore (a, es.regfile[r].get()), ea, rStart, rEnd);
+    sr_looper ((a,r) => memStore (es, a, es.regfile[r].get()), ea, rStart, rEnd);
 }
 
 function exp2_restore (es) {
@@ -1966,7 +1980,7 @@ function exp2_restore (es) {
     const ea = index + offset;
     console.log (`restore regs = ${rStart}..${rEnd} index=${index}`
                  + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
-    sr_looper ((a,r) => es.regfile[r].put(memFetchData(a)), ea, rStart, rEnd);
+    sr_looper ((a,r) => es.regfile[r].put(memFetchData(es,a)), ea, rStart, rEnd);
 }
 
 function sr_looper (f,addr,first,last) {
@@ -2013,7 +2027,7 @@ function exp2_push (es) {
 //    com.mode.devlog (`push: top=${top} last=${last}`);
     if (top < last) {
         top += 1;
-        memStore (top, es.regfile[es.field_e].get());
+        memStore (es, top, es.regfile[es.field_e].get());
         es.regfile[es.field_f].put(top);
     } else {
         com.mode.devlog ("push: stack overflow")
@@ -2025,7 +2039,7 @@ function exp2_pop (es) {
     let top = es.regfile[es.field_f].get();
     let first = es.regfile[es.field_g].get();
     if (top >= first) {
-        es.regfile[es.field_e].put(memFetchData(top));
+        es.regfile[es.field_e].put(memFetchData(es,top));
         top -= 1;
         es.regfile[es.field_f].put(top);
     } else {
@@ -2038,7 +2052,7 @@ function exp2_top (es) {
     let top = es.regfile[es.field_f].get();
     let first = es.regfile[es.field_g].get();
     if (top >= first) {
-        es.regfile[es.field_e].put(memFetchData(top));
+        es.regfile[es.field_e].put(memFetchData(es,top));
         es.regfile[es.field_f].put(top);
     } else {
         com.mode.devlog ("top: stack underflow")
