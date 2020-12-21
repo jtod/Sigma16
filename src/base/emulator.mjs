@@ -922,7 +922,9 @@ function memTest2 (es) {
 
 function setProcStatus (es,s) {
     es.procStatus = s;
-    document.getElementById("procStatus").innerHTML = showProcStatus(s);
+    if (es.mode === Mode_GuiDisplay) {
+        document.getElementById("procStatus").innerHTML = showProcStatus(s);
+    }
 }
 
 function showProcStatus (s) {

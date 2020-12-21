@@ -25,22 +25,20 @@ import * as em from "./emulator.mjs"
 console.log (`ccL = ${arch.bit_ccL} should be 3`) // check import works
 
 //-----------------------------------------------------------------------------
-// Parameters
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Emulator state
 //-----------------------------------------------------------------------------
 
-let emtEmulatorState = new em.EmulatorState (em.Mode_Console)
-em.initializeMachineState (emtEmulatorState)
+let emt =
+    {initialized: false,
+     shm: null, // shared system state vector
+     es: null // emulator state
+    }
 
-//-----------------------------------------------------------------------------
-// System state vector
-//-----------------------------------------------------------------------------
-
-let sysStateVec // shared state isgiven value when main sends message code 100
 let emtCount = 0 // local variable for testng
+
+// let emtEmulatorState = new em.EmulatorState (em.Mode_Console)
+// let emtEmulatorState = new em.EmulatorState (shm, em.Mode_Console)
+// em.initializeMachineState (emtEmulatorState)
 
 //-----------------------------------------------------------------------------
 // Communication protocol
@@ -53,12 +51,16 @@ self.addEventListener ("message", e => {
         let result = 0
         let msg = {code:200, payload: result} // default dummy message
         switch (e.data.code) {
-        case 100: // Initiize shared system state vector
-            console.log ("----- ***** ----- emt initializing ----- ***** -----")
-            sysStateVec = e.data.payload
-            console.log ("Defined sysStateVec")
-            console.log (`ssv[0] = ${sysStateVec[0]}`)
-            console.log (`ssv[1] = ${sysStateVec[1]}`)
+        case 100: // Received shared system state vector
+            console.log ("***** emt initializing")
+            emt.shm = e.data.payload
+            emt.es = new em.EmulatorState (emt.shm, em.Mode_Quiet)
+            em.initializeMachineState (emt.es)
+            emt.initialized = true
+//            sysStateVec = e.data.payload
+//            console.log ("Defined sysStateVec")
+//            console.log (`ssv[0] = ${sysStateVec[0]}`)
+//            console.log (`ssv[1] = ${sysStateVec[1]}`)
             msg = {code: 200, payload: 0}
             //            this.postMessage (msg)
             self.postMessage (msg)
@@ -334,8 +336,8 @@ function regMemTest () {
 
 function doStep () {
     console.log (`emt doStep`)
-    em.executeInstruction (emtEmulatorState)
+    em.executeInstruction (emt.es)
     console.log (`emt doStep returning`)
 }
 
-console.log ("emtthread initialization has finished")
+console.log ("emtthread has been read")
