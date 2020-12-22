@@ -41,112 +41,9 @@ export function modalWarning (msg) {
 // Emulator thread
 //-------------------------------------------------------------------------------
 
-// Define worker thread
-
-// const emthread = new Worker("../base/emthread.mjs");
-console.log (`----- main is creating emthread worker`)
-const emthread = new Worker("../base/emthread.mjs", {type:"module"});
-console.log (`----- main has just created emthread worker`)
-
-function initThreads () { // called by onload initializer, request 100
-    console.log ("***** main initThreads *****")
-    st.sysStateVec[0] = 123
-    st.sysStateVec[1] = 456
-    let msg = {code: 100, payload: st.sysStateVec}
-    emthread.postMessage (msg)
-    console.log (`main gui just sent 100`)
-}
-
-function initThreadsResponse () { // response 200
-    console.log ("***** ***** main received response to initThreads ***** *****")
-}
-
-// A message is an object of the form {code: ..., payload: ...}.  The
-// gui main thread uses codes 100, 101, ... and the emulator thread
-// uses codes 200, 201, ...
-
-// Actions
-
-function action100 () { // Initialize
-    console.log (`main action 100 Initialize`)
-    let msg = {code: 100, payload: 0}
-    emthread.postMessage (msg)    
-}
-
-
-function action112 () { // send foo, emt replies with emtCount, main212 prints
-    console.log (`main action 112 send foo=${st.foo}`)
-    let msg = {code: 112, payload: st.foo}
-    emthread.postMessage (msg)    
-}
-
-function action113 () { // send foo
-    console.log (`main action 113 foo=${st.foo}`)
-    let msg = {code: 113, payload: st.foo}
-    console.log (`main sending: <${msg}>`)
-    emthread.postMessage (msg)    
-}
-
-function action114 () { // Tell emt to increment arr[23]
-    console.log ("main action 114")
-    let msg = {code: 114, payload: null}
-    emthread.postMessage (msg)    
-}
-
-function action115 () { // Tell emt to print regfile
-//    console.log (`main action 115 arr[23] = ${st.sysStateVec[23]}`)
-    let msg = {code: 115, payload: null}
-    emthread.postMessage (msg)    
-}
-
-
-function action106 () {
-    console.log ("main 106")
-}
-
-// Handle incoming messages from emt
-
-emthread.addEventListener ("message", e => {
-    console.log ("main has received a message")
-    if (e.data) {
-        console.log ("main has received event data")
-        let p = e.data.payload
-        switch (e.data.code) {
-        case 200: // initialize
-            console.log (`main rec 200 received val=${p}`)
-            initThreadsResponse ()
-            break
-        case 201: // reply to step request
-            console.log (`main rec 201 response to step`)
-            handleRunResponse (p)
-            break
-        case 202: // reply to showRegs request
-            console.log (`main rec 202 response to showRegs`)
-            emtShowMemResponse ()
-            break
-        case 203: // reply to showMem request
-            console.log (`main rec 203 response to showMem`)
-            break
-        case 204: // reply to longComp request
-            console.log (`main rec 20 response to longComp`)
-            emtLongCompResponse (p)
-            break
-        case 205: // reg/mem access test
-            console.log (`main rec 205 response to reg/mem access text`)
-            regMemTestResponse (p)
-            break
-        case 212:
-            console.log (`main 212 rec ${p} st.foobar=${st.foobar}`)
-            break
-        case 900:
-            
-        default:
-            console.log (`main received unknown code = ${e.data.code}`)
-        }
-        console.log (`main event handler returning`)
-
-    }
-})
+//----------------------------------------
+// Check capabilities of the platform
+//----------------------------------------
 
 // Check whether the browser supports workers.  Print a message on the
 // console and return a Boolen: true if workers are supported
@@ -163,6 +60,176 @@ function checkBrowserWorkerSupport () {
     return workersSupported
 }
 
+//----------------------------------------
+// Start the emulator thread
+//----------------------------------------
+
+// The thread is defined here and will start automatically.  It must
+// be initialized by calling initThreads (), which uses the
+// communication protocol to deliver the shared memory to the worker.
+
+const emthread = new Worker("../base/emthread.mjs", {type:"module"});
+
+//----------------------------------------
+// Communications protocol
+//----------------------------------------
+
+// The main gui thread and emulator thread communicate through two
+// mechanisms: message passing and shared memory.  A consistent
+// protocol is used for the message passing.
+
+// Messages are oranized into pairs: a request sent by the main gui to
+// the emulator thread, and a response sent by the emulator thread
+// back to the main gui.  A message is an object of the form {code:
+// ..., payload: ...}.  The gui main thread uses codes 100, 101,
+// ... and the emulator thread uses codes 200, 201, ...  If a request
+// has code x, the response has code x+100.  The codes are:
+
+//   100 initialize: emt receives shared memory and builds emulator state
+//   101 step: emt executes one instruction
+//   102 run: emt executes instructions until a stopping condition
+//   103 print state: emt prints key registers and part of memory to console
+//   104 emt test 1 - for testing and development
+//   105 emt test 2 - for testing and development
+
+//----------------------------------------
+// emt 100: initialize
+//----------------------------------------
+
+// The main process sends the shared system state vector to the
+// emulator worker thread, which saves it in a local object.  The
+// worker also creates an emulator state which points to the shared
+// system state vector, and initializes the emulator state.
+
+// This action is essential and it's performed automatically in the
+// window.onload event handler.
+
+function emtInit () { // called by onload initializer, request 100
+    console.log ("main gui: emtInit")
+    let msg = {code: 100, payload: st.sysStateVec}
+    emthread.postMessage (msg)
+}
+
+function handleEmtInitResponse (p) {
+    console.log (`main gui: received response to emt init ${p}`)
+}
+
+//----------------------------------------
+// emt 101: step
+//----------------------------------------
+
+function emtStep () {
+    console.log ("main: emt step");
+    let msg = {code: 101, payload: 0}
+    emthread.postMessage (msg)
+}
+
+function handleEmtStepResponse (p) {
+    console.log (`main: handle emt step response ${p}`)
+    em.refresh (guiEmulatorState)
+    console.log (`main handle emt step response finished`)
+}
+
+//----------------------------------------
+// emt 102: run
+//----------------------------------------
+
+function emtRun () { // run until stopping condition
+    console.log ("main: emt run");
+    let instrLimit = 60000 // stop after this many instructions
+    let msg = {code: 102, payload: instrLimit}
+    emthread.postMessage (msg)
+}
+
+function handleEmtRunResponse (p) { // run when emt sends 201
+    console.log (`main: handle emt run response ${p}`)
+    em.refresh (guiEmulatorState)
+    console.log (`main: emt run stopped after ${p} instructions`)
+    console.log (`main: handle emt run response finished`)
+}
+
+//----------------------------------------
+// emt 103: print state on console
+//----------------------------------------
+
+function emtShow () {
+    console.log ("main: emtShowRegs")
+    let msg = {code: 103, payload: 0}
+    emthread.postMessage (msg)
+}
+
+function handleEmtShowResponse (p) {
+    console.log (`main: handle emt show response ${p}`)
+}
+
+//----------------------------------------
+// emt 104: emt test 1
+//----------------------------------------
+
+function emtTest1 () {
+    console.log ("main: emt test 1")
+    let msg = {code: 104, payload: 73} // arbitrary payload
+    emthread.postMessage (msg)
+}
+
+function handleEmtTest1Response (p) {
+    console.log (`main: handle emt test 1 response ${p}`)
+}
+
+//----------------------------------------
+// emt 105: emt test 2
+//----------------------------------------
+
+function emtTest2 () {
+    console.log ("main: emt test 2")
+    let msg = {code: 105, payload: 78} // arbitrary payload
+    emthread.postMessage (msg)
+}
+
+function handleEmtTest2Response (p) { // 
+    console.log (`main: handle emt test 2 response ${p}`)
+}
+
+//----------------------------------------
+// Handle responses from emt
+//----------------------------------------
+
+emthread.addEventListener ("message", e => {
+    console.log ("main has received a message")
+    if (e.data) {
+        console.log ("main has received data from message")
+        let p = e.data.payload
+        switch (e.data.code) {
+        case 200: // initialize
+            console.log (`main: received 200 init response`)
+            handleEmtInitResponse (p)
+            break
+        case 201: // emt step
+            console.log (`main: received 201 step response`)
+            handleEmtStepResponse (p)
+            break
+        case 202: // emt run
+            console.log (`main rec 202 run response`)
+            handleEmtRunResponse (p)
+            break
+        case 203: // emt show
+            console.log (`main: rec 203 emt show response`)
+            handleEmtShowResponse (p)
+            break
+        case 204: // emt test 1
+            console.log (`main: rec 204 emt test 1 response`)
+            handleEmtTest1Response (p)
+            break
+        case 205: // emt test 2
+            console.log (`main: rec 205 emt test 2 response`)
+            handleEmtTest2Response (p)
+            break
+        default:
+            console.log (`main: received unknown code = ${e.data.code}`)
+        }
+        console.log (`main event handler returning`)
+    }
+})
 
 //-------------------------------------------------------------------------------
 // Parameters and global variables
@@ -473,11 +540,11 @@ prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
 prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
 prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
-prepareButton ('PP_EmtRun',      emtRun);
-prepareButton ('PP_EmtStep',      emtStep);
-prepareButton ('PP_EmtShow',      emtShow);
-prepareButton ('PP_EmtLongComp',  emtLongComp);
-prepareButton ('PP_RegMemTest',   regMemTest);
+prepareButton ('PP_emtStep',      emtStep);
+prepareButton ('PP_emtRun',       emtRun);
+prepareButton ('PP_emtShow',      emtShow);
+prepareButton ('PP_emtTest1',     emtTest1);
+prepareButton ('PP_emtTest2',     emtTest2);
 
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
 prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
@@ -755,95 +822,6 @@ window.onresize = function () {
 }
 
 //-------------------------------------------------------------------------------
-// Processor protocol
-//-------------------------------------------------------------------------------
-
-// Emt Initialize
-// Main sends 100 and delivers shared system state vector
-
-function emtRun () { // 101:201 run until halt
-    console.log ("main: emt run clicked");
-    let msg = {code: 101, payload: 0}
-    emthread.postMessage (msg) // when done, emt will reply with 201
-}
-
-function handleRunResponse (p) { // run when emt sends 201
-    console.log (`main handleRunResponse, emt responded p=${p}`)
-    em.refresh (guiEmulatorState)
-    console.log (`main handleStepResponse returning`)
-    
-}
-// Emt Step
-// Main sends 101, emt responds with 201
-//   <button id="PP_EmtStep"> emt step </button>
-//   prepareButton ('PP_EmtStep', emtStep);
-
-function emtStep () { // 102:202 Execute one instruction
-    console.log ("main: emt step clicked");
-    let msg = {code: 102, payload: 0}
-    emthread.postMessage (msg) // when done, emt will reply with 201
-}
-
-function handleStepResponse (p) { // run when emt sends 202
-    console.log (`main handleStepResponse, emt responded p=${p}`)
-    em.refresh (guiEmulatorState)
-    console.log (`main handleStepResponse returning`)
-}
-
-// emtShowRegs -- display registers
-// Main sends 102, emt responds with 202
-
-function emtShow () {
-    console.log ("main: emtShowRegs")
-    let msg = {code: 103, payload: 0}
-    emthread.postMessage (msg) // when done, emt will reply with 203
-}
-
-function emtShowResponse (p) { // run when emt sends 203
-    console.log (`main emtShowRegsResponse`)
-}
-
-// emtShowMem  -- display memory from 0 to limit
-// Main sends 103, emt responds with 203
-
-function emtShowMem () {
-    console.log ("main: emtShowRegs")
-    let msg = {code: 103, payload: 30} // payload is upper limit of a
-    emthread.postMessage (msg) // when done, emt will reply with 202
-}
-
-function emtShowMemResponse (p) { // run when emt sends 203
-    console.log (`main emtShowMemResponse`)
-}
-
-// emtLongComp -- perform a long computation and return
-// Main sends 104, emt responds with 204
-
-function emtLongComp () {
-    console.log ("main: emtLongComp")
-    let msg = {code: 104, payload: 100} // payload is...
-    emthread.postMessage (msg) // when done, emt will reply with 202
-}
-
-function emtLongCompResponse (p) { // 
-    console.log (`main emtLongCompxsResponse p=${p}`)
-}
-
-// regMemAccessTest
-// Main sends 105, emt responds with 205
-
-function regMemTest () {
-    console.log ("main: regMemTest")
-    let msg = {code: 105, payload: 100} // payload is...
-    emthread.postMessage (msg) // when done, emt will reply with 205
-}
-
-function regMemTestResponse (p) { // 
-    console.log (`main regMemResponse p=${p}`)
-}
-
-
-//-------------------------------------------------------------------------------
 // DevTools
 //-------------------------------------------------------------------------------
 
@@ -880,7 +858,6 @@ window.enableDevTools = enableDevTools;
 
 function devTools100 () {
     console.log ("DevTools100 clicked");
-    action100 ()
 }
 
 
@@ -933,13 +910,57 @@ window.onload = function () {
 //  guiEmulatorState = new em.EmulatorState (em.Mode_GuiDisplay)
     guiEmulatorState = new em.EmulatorState (st.sysStateVec, em.Mode_GuiDisplay)
     em.initializeMachineState (guiEmulatorState)
-    console.log (`gui mode = ${guiEmulatorState.mode}`)
+    com.mode.devlog (`gui mode = ${guiEmulatorState.mode}`)
     browserSupportsWorkers = checkBrowserWorkerSupport ()
-    if (browserSupportsWorkers) {
-        initThreads ()
-    }
+    if (browserSupportsWorkers) { emtInit () }
     enableDevTools () // if commented out, this can be entered manually in console
     flags = new st.emflags (100)
+    com.mode.trace = true
     com.mode.devlog("Initialization complete");
-    console.log (`----- gui.mjs whoami = ${flags.whoami}`)
+    com.mode.trace = false
 }
+
+//-------------------------------------------------------------------------
+// Deprecated
+//-------------------------------------------------------------------------
+
+/*
+// Actions
+
+function action100 () { // Initialize
+    console.log (`main action 100 Initialize`)
+    let msg = {code: 100, payload: 0}
+    emthread.postMessage (msg)    
+}
+
+
+function action112 () { // send foo, emt replies with emtCount, main212 prints
+    console.log (`main action 112 send foo=${st.foo}`)
+    let msg = {code: 112, payload: st.foo}
+    emthread.postMessage (msg)    
+}
+
+function action113 () { // send foo
+    console.log (`main action 113 foo=${st.foo}`)
+    let msg = {code: 113, payload: st.foo}
+    console.log (`main sending: <${msg}>`)
+    emthread.postMessage (msg)    
+}
+
+function action114 () { // Tell emt to increment arr[23]
+    console.log ("main action 114")
+    let msg = {code: 114, payload: null}
+    emthread.postMessage (msg)    
+}
+
+function action115 () { // Tell emt to print regfile
+//    console.log (`main action 115 arr[23] = ${st.sysStateVec[23]}`)
+    let msg = {code: 115, payload: null}
+    emthread.postMessage (msg)    
+}
+
+
+function action106 () {
+    console.log ("main 106")
+}
+*/

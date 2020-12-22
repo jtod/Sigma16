@@ -550,7 +550,7 @@ export const EmStateSizeByte  = 2 * EmStateSizeWord
 export const SCB_writeRight      =  0  // 0: main, 1:emt
 export const SCB_nInstrExecuted  =  1  // count instructions executed
 export const SCB_halted          =  2  // 1 if halted
-
+export const SCB_pause_request   =  3
 
 export function writeSCB (es, code, x) {
     let i = EmSCBOffset + code
@@ -560,7 +560,7 @@ export function writeSCB (es, code, x) {
 export function readSCB (es, code) {
     let i = EmSCBOffset + code
     let x = es.shm [i]
-    console.log (`st.readSCB code=${code} i=${i} x=${x}`)
+//    console.log (`st.readSCB code=${code} i=${i} x=${x}`)
     return x
 }
 export function incrSCB (es, code) {

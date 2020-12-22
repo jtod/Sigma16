@@ -33,57 +33,6 @@ export const Mode_GuiDisplay = 100
 export const Mode_Console    = 200
 export const Mode_Quiet      = 300
 
-function updateInstructionCount (n) {
-    document.getElementById("nInstrExecuted").innerHTML = n;
-}
-
-// Calculate the value of pxPerChar, which is needed to control the
-// scrolling to make the current line visible.  The calculated value
-// overrides the initialized value.  The method is to measure the
-// height of the listing in pixels and divide by the number of lines
-// in the listing.  Some other geometric parameters are also obtained,
-// but aren't currently used.
-
-function getListingDims (es) {
-    let e = document.getElementById('ProcAsmListing');
-    let x = e.getBoundingClientRect(); // dimensions of visible listing area
-    let w = e.scrollWidth; // width of the content, not used
-    let h = e.scrollHeight; // height of content (not of the window)
-    es.asmListingHeight = h; // save in emulator state
-    com.mode.devlog (`h=${h} w=${w}`);
-    let n = es.metadata.listingPlain.length;
-    com.mode.devlog(`getListingDims: n=${n}`);
-    pxPerChar = n ? h/n : 10; // update this global variable, used for scrolling
-    com.mode.devlog (`getListingDims: pxPerChar = ${pxPerChar}`);
-}
-
-// asmScrollOffsetAbove specifies the preferred number of lines that
-// should appear above the scroll target in the processor assembly
-// listing
-
-const asmScrollOffsetAbove = 8;
-
-// pxPerChar is the height of characters used in the processor
-// assembly listing.  This is needed to scroll the listing to keep the
-// current line visible.  There doesn't appear to be a good way to
-// measure this; the value is found by trial and error.  Measuring it
-// or extracting it from font metadata would be far better.
-
-let pxPerChar = 13.05;
-
-
-
-function refreshIOlogBuffer() {
-    com.mode.devlog (`refreshIOlogBugfer ${ioLogBuffer}`);
-    let elt = document.getElementById("IOlog");
-    elt.innerHTML = "<pre>" + ioLogBuffer + "</pre>";
-    elt.scrollTop = elt.scrollHeight;
-}
-
-export let ioLogBuffer = "";
-// export const procAsmListingElt = document.getElementById('ProcAsmListing');
-
-// export let procAsmListingElt; // global variables for emulator
 
 //------------------------------------------------------------------------------
 // Booter 
@@ -107,7 +56,7 @@ export function initListing (m,es) {
 // hexdata with valid argument
 
 function linkerBootLine (es,m,i,x) {
-    console.log (`linkerBootLine i=${i}`)
+    com.mode.devlog (`linkerBootLine i=${i}`)
     let y = parseAsmLine (m,i,x);
 //    printAsmLine (y);
     let w = y.fieldOperands;
@@ -129,10 +78,10 @@ export function obtainExecutable () {
     let m = st.env.getSelectedModule();
     let exe = m.executable ? m.executable : m.objMd;
     if (exe) {
-        console.log (`Found executable for selected module`);
+        com.mode.devlog (`Found executable for selected module`);
         return exe;
     } else {
-        console.log (`Cannot find executable`);
+        com.mode.devlog (`Cannot find executable`);
         return null;
     }
 }
@@ -140,16 +89,16 @@ export function obtainExecutable () {
 export function boot (es) {
     com.mode.trace = true;
     com.mode.devlog ("boot");
-    console.log (`current emulator mode = ${es.mode}`)
+    com.mode.devlog (`current emulator mode = ${es.mode}`)
     initializeProcessorElements (es);  // so far, it's just instr decode
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
-//    console.log ("------------- boot reading code --------------- ")
-//    console.log (`*** Boot object code = ${objectCodeText}`)
-//    console.log (`*** Boot metadata = ${metadataText}`)
-//    console.log ("------------- boot starting --------------- ")
+//    com.mode.devlog ("------------- boot reading code --------------- ")
+//    com.mode.devlog (`*** Boot object code = ${objectCodeText}`)
+//    com.mode.devlog (`*** Boot metadata = ${metadataText}`)
+//    com.mode.devlog ("------------- boot starting --------------- ")
     es.metadata = new st.Metadata ();
     es.metadata.fromText (metadataText);
 
@@ -178,7 +127,7 @@ export function boot (es) {
             let safemodname = modname ? modname : "(anonymous)";
             com.mode.devlog (`boot: module ${safemodname}`);
         } else if (fields.operation == "org") {
-            console.log ("--- skipping org");
+            com.mode.devlog ("--- skipping org");
         } else if (fields.operation == "data") {
             com.mode.devlog ("boot: data");
             for (let j = 0; j < fields.operands.length; j++) {
@@ -195,7 +144,7 @@ export function boot (es) {
         } else if (fields.operation == "export") {
         } else if (fields.operation == "relocate") {
         } else if (fields.operation == "") {
-            console.log ("boot: skipping blank object code line");
+            com.mode.devlog ("boot: skipping blank object code line");
         } else {
             com.mode.devlog (`boot: bad operation (${fields.operation})`)
             isExecutable = false;
@@ -360,10 +309,10 @@ export class genregister {
     get () {
         regFetched.push (this)
         let i = st.EmRegBlockOffset + this.regStIndex
-        console.log (`--- reg get ${this.regName} with`
+        com.mode.devlog (`--- reg get ${this.regName} with`
                      + `  (idx=${i})`)
         let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-        console.log (`--- reg get ${this.regName} =`
+        com.mode.devlog (`--- reg get ${this.regName} =`
                      + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
         return x
     }
@@ -374,7 +323,7 @@ export class genregister {
         if (this.regIdx < 16) { // register file
             instrEffect.push (["R", this.regNumber, x, this.regName]);
         }
-        console.log (`--- reg put ${this.regName} :=`
+        com.mode.devlog (`--- reg put ${this.regName} :=`
                      + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
     }
     highlight (key) {
@@ -382,10 +331,10 @@ export class genregister {
             let i = st.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = highlightText (this.show(x), key)
-            console.log (`--- reg highlight ${this.regName} := ${xs} (idx=${i})`)
+            com.mode.devlog (`--- reg highlight ${this.regName} := ${xs} (idx=${i})`)
             this.elt.innerHTML = xs
         } else {
-            console.log (`reg ${this.regName} skippling highlight ${key}`)
+            com.mode.devlog (`reg ${this.regName} skippling highlight ${key}`)
         }
     }
     refresh () {
@@ -393,8 +342,8 @@ export class genregister {
             let i = st.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = this.show (x)
-            console.log (`--- reg refresh ${this.regName} :=`
-                         + ` ${arith.wordToHex4(x)} = ${x} /${xs}/ (idx=${i})`)
+//            com.mode.devlog (`--- reg refresh ${this.regName} :=`
+//                         + ` ${arith.wordToHex4(x)} = ${x} /${xs}/ (idx=${i})`)
             this.elt.innerHTML = xs
         }
     }
@@ -403,7 +352,7 @@ export class genregister {
 // Show any changes to registers in the gui display
 
 function updateRegisters (es) {
-    console.log ("--- updateRegisters ---")
+    com.mode.devlog ("--- updateRegisters ---")
     // Clear previous highlighting by refreshing the registers
     for (let x of regFetchedOld) { x.refresh () }
     for (let x of regStoredOld)  { x.refresh () }
@@ -414,7 +363,7 @@ function updateRegisters (es) {
     regStoredOld = regStored
     regFetched = []
     regStored = []
-    console.log ("--- updateRegisters returning ---")
+    com.mode.devlog ("--- updateRegisters returning ---")
 }
 
 // Reset every register to 0
@@ -432,9 +381,9 @@ export function refresh (es) {
     refreshRegisters (es)
     memRefresh (es)
     memDisplayFull (es)
-    console.log (`refresh getting n`)
+    com.mode.devlog (`refresh getting n`)
     let n = st.readSCB (es, st.SCB_nInstrExecuted)
-    console.log (`refresh n=${n}`)
+    com.mode.devlog (`refresh n=${n}`)
     updateInstructionCount (n)
 }
 
@@ -532,34 +481,10 @@ export class EmulatorState {
 // Initialize machine state
 //------------------------------------------------------------------------------
 
-// Processor elements: html elements for displaying instruction decode
-
-let instrCodeElt;
-let instrFmtElt;
-let instrOpElt;
-let instrArgsElt;
-let instrEAElt;
-let instrCCElt;
-let instrEffect1Elt;
-let instrEffect2Elt;
-
-export function initializeProcessorElements (es) {
-    if (es.mode === Mode_GuiDisplay) {
-        com.mode.devlog ('initializeProcessorElements');
-        instrCodeElt = document.getElementById("InstrCode");
-        instrFmtElt  = document.getElementById("InstrFmt");
-        instrOpElt   = document.getElementById("InstrOp");
-        instrArgsElt = document.getElementById("InstrArgs");
-        instrEAElt   = document.getElementById("InstrEA");
-        instrCCElt   = document.getElementById("InstrCC");
-        instrEffect1Elt = document.getElementById("InstrEffect1");
-        instrEffect2Elt = document.getElementById("InstrEffect2");
-    }
-}
 
 export function initializeMachineState (es) {
     com.mode.devlog ("emulator: initializeMachineState");
-    console.log (`em.initializeMachineState: current emulator mode = ${es.mode}`)
+    com.mode.devlog (`em.initializeMachineState: current emulator mode = ${es.mode}`)
     initializeProcessorElements (es);  // so far, it's just instr decode
 //    clearInstrDecode (emulatorState);
     clearInstrDecode (es);
@@ -635,19 +560,6 @@ export function clearInstrDecode (es) {
     es.instrEA = null;
     es.instrEAStr    = "";
     es.instrEffect = [];
-}
-
-function refreshInstrDecode (es) {
-    com.mode.devlog ("refreshInstrDecode");
-    instrCodeElt.innerHTML = es.instrCodeStr;
-    instrFmtElt.innerHTML  = es.instrFmtStr;
-    instrOpElt.innerHTML   = es.instrOpStr;
-    instrArgsElt.innerHTML = showArgs(es); // instrArgsStr;
-    instrEAElt.innerHTML   = es.instrEAStr;
-    let ccval = es.regfile[15].val;
-    instrCCElt.innerHTML      = arith.showCC(ccval);
-    instrEffect1Elt.innerHTML = showEffect(es,0);
-    instrEffect2Elt.innerHTML = showEffect(es,1);
 }
 
 //----------------------------------------------------------------------
@@ -734,40 +646,6 @@ function memClear (es) {
     memRefresh (es);
 }
 
-// Refresh all the memory strings; the memString array should be accurate
-// but this function will recalculate all elements of that array
-
-// Note on data structure.  I tried having a preliminary element [0]
-// containing just "<pre class='HighlightedTextAsHtml'>", so address a
-// is shown in memString[a+1].  The indexing was fine but the
-// scrolling didn't work, possibly because of this dummy element with
-// its newline inserted when the array is joined up.
-
-function memRefresh (es) {
-    memString = [];  // clear out and collect any existing elements
-    for (let i = 0; i < memSize; i++) {
-	setMemString(es,i);
-    }
-}
-
-// Create a string to represent a memory location; the actual value is
-// in the memory array, and the string is placed in the memString
-// array.  memString[0] = <pre class="HighlightedTextAsHtml"> and
-// mem[a] corresponds to memString[a+1].
-
-
-function memHighlight (es, a, highlight) {
-    let x = es.shm[st.EmMemOffset + a]
-    memString[a] =
-	"<span class='" + highlight + "'>"
-	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
-        + "</span>";
-}
-
-function setMemString(es,a) {
-    let x = es.shm[st.EmMemOffset + a]
-    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
-}
 
 // Fetch and return a word from memory at address a, and record the
 // address so the display can show this access.
@@ -777,7 +655,7 @@ function memFetchInstr (es, a) {
     let i = st.EmMemOffset + a
     let x =  es.shm[i]
 //    let x = st.sysStateVec [st.EmMemOffset + a]
-    console.log (`memFetchInstr a=${arith.wordToHex4(a)}`
+    com.mode.devlog (`memFetchInstr a=${arith.wordToHex4(a)}`
                  + ` offset=${st.EmMemOffset} i=${i} x=${arith.wordToHex4(x)}`)
     return x
 }
@@ -797,108 +675,6 @@ function memStore (es, a,x) {
     es.shm[st.EmMemOffset + a] = x
 }
 
-// Update the memory string for each location that has been accessed,
-// so that it contains an html div element which can be used to
-// highlight the memory location.  Do the fetches first, then the
-// stores: this ensures that if a location has both been fetched and
-// stored, the highlighting for the store will take precedence.
-
-function updateMemory (es) {
-    // Clear previous highlighting
-    for (let x of memFetchInstrLogOld) { memRefresh (es) }
-    for (let x of memFetchDataLogOld)  { memRefresh (es) }
-    for (let x of memStoreLogOld)      { memRefresh (es) }
-    // Update new memory accesses
-    for (let x of memFetchInstrLog)    { memHighlight (es, x, "GET") }
-    for (let x of memFetchDataLog)     { memHighlight (es, x, "GET") }
-    for (let x of memStoreLog)         { memHighlight (es, x, "PUT") }
-    memFetchInstrLogOld = memFetchInstrLog
-    memFetchDataLogOld = memFetchDataLog
-    memStoreLogOld = memStoreLog
-    memFetchInstrLog = []
-    memFetchDataLog = []
-    memStoreLog = []
-}
-
-// Create a string with a span class to represent a memory location
-// with highlighting; the actual value is in the memory array, and the
-// string is placed in the memString array.
-
-// Set the memory displays, using the memString array.  Check mode to
-// determine whether the display should be partial and fast or
-// complete but slow.
-
-function memDisplay (es) {
-    if (memDisplayModeFull) { memDisplayFull (es) }
-    else { memDisplayFast (es) }
-}
-
-// Set the memory displays, showing only part of the memory to save time
-
-function memDisplayFast (es) {
-    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
-    xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
-    xa = xa < 0 ? 0 : xa;
-    xb = xa + memDisplayFastWindow;
-    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-    	+ memString.slice(xa,xb).join('\n')
-	+ "</code></pre>";
-    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
-    memElt1.innerHTML = xs;
-    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
-    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
-    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
-    ya = ya < 0 ? 0 : ya;
-    yb = ya + memDisplayFastWindow;
-    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	+ memString.slice(ya,yb).join('\n')
-	+ "</code></pre>";
-    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
-    memElt2.innerHTML = ys;
-}
-
-// Set the memory displays, showing the full memory
-
-// Need <pre> to get the formatting correct with line breaks.  but
-// <pre> prevents scrolling from working.  Could try not using pre,
-// but putting <br> after each line, but that still wouldn't work
-// because multiple spaces in code wouldn't work..  Try <code>; With
-// <code class=... scrolling works, but the line breaks aren't
-// there.. Is there a problem with HighlightedTextAsHtml?
-
-// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
-
-//    xs = "<pre><code class='HighlightedTextAsHtml'>"
-//	+ memString.join('\n')
-//	+ "</code></pre>";
-
-function memDisplayFull (es) {
-    let memElt1 = document.getElementById('MemDisplay1');
-    let memElt2 = document.getElementById('MemDisplay2');
-
-    let xs;                 // display text
-    let xt, xo;             // display 1 targets and offsets
-    let yafet, yasto, ya, yo, yt;
-    com.mode.devlog ('memDisplayFull');
-    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	+ memString.join('\n')
-	+ "</code></pre>";
-    memElt1.innerHTML = xs;
-    xt = (memFetchInstrLog.length===0)? 0 : memFetchInstrLog[0] - memDispOffset;
-    xo = xt * pxPerChar;
-    com.mode.devlog('  target1 xt = ' + xt + '   offset1 = ' + xo);
-    memElt1.scroll(0,xo);
-    
-    memElt2.innerHTML = xs;
-    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
-    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
-    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
-    yt = yt < 0 ? 0 : yt;
-    yo = yt * pxPerChar;
-    com.mode.devlog('  yafet=' + yafet + ' yasto=' + yasto
-		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
-    memElt2.scroll(0,yo);
-}
 
 function memTest1a () {
     com.mode.devlog('testMem1a');
@@ -929,12 +705,6 @@ function memTest2 (es) {
 // Processor execution status
 //------------------------------------------------------------------------------
 
-function setProcStatus (es,s) {
-    es.procStatus = s;
-    if (es.mode === Mode_GuiDisplay) {
-        document.getElementById("procStatus").innerHTML = showProcStatus(s);
-    }
-}
 
 function showProcStatus (s) {
     return s == Reset ? "Reset"
@@ -963,61 +733,6 @@ let ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
 
 let ea = 0;  // effective address
 
-// Global variables for handling listing display as program runs.
-
-let srcLine;        // copy of source statements
-
-// Keep track of the address of the currently executing instruction,
-// the address of the next instruction, and the line numbers where
-// these instructions appear in the assembly listing.  -1 indicates no
-// line has been highlighted
-
-// let curInstrAddr, curInstrLineNo, saveCurSrcLine;
-// let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
-
-export function initializeSubsystems () {
-    memDisplayModeFull = false;
-    document.getElementById('PP_Toggle_Display').value = "Fast display";  
-}
-
-export function toggleFullDisplay () {
-    com.mode.devlog ('toggleFullDisplay clicked');
-    memDisplayModeFull = ! memDisplayModeFull;
-    document.getElementById('FullDisplayToggleButton').value =
-	memDisplayModeFull ? "Full display" : "Fast display";
-    if (memDisplayModeFull) { memDisplayFull () }
-    else { memDisplayFast ()
-	 }  // loses info but makes tab switching faster
-}
-
-// ------------------------------------------------------------------------
-// Highlighting registers to indicate accesses
-
-// When a register is accessed, its display in the gui is highlighted
-// by setting the text color.  If the register has not been used it
-// has the default color black, if it has been read but not written
-// its color is READ, and if it has been written its color is WRITE.
-// The meanings of the tags for syntax highlighting are defined in
-// Sigma16gui.css.  Normally we would use blue for READ and red for
-// WRITE.
-
-let modeHighlight = true;  // indicate get/put by setting text color
-
-function setModeHighlight (x) {
-    if (x) {
-	com.mode.devlog('Setting modeHighlight to True');
-	modeHighlight = true;
-    }
-    else {
-	com.mode.devlog('Setting modeHighlight to False');
-	modeHighlight = false;
-	refreshRegisters();
-    }
-}
-
-function highlightText (txt,tag) {
-    return "<span class='" + tag + "'>" + txt + "</span>";
-}
 
 //-----------------------------------------------------------------------------
 // Interrupts
@@ -1123,100 +838,10 @@ function showListingParameters (es) {
 
 function showLst (es, xs, i) {
     return // disable
-    console.log (`--- Listing line ${i} ${xs}`)
-    console.log (`----- Cur = ${es.asmListingCurrent[i].slice(0,30)}`)
-    console.log (`----- Pla = ${es.metadata.listingPlain[i].slice(0,30)}`)
-    console.log (`----- Dec = ${es.metadata.listingDec[i].slice(0,30)}`)
-}
-
-function prepareListingBeforeInstr (es) {
-    com.mode.trace = true;
-    com.mode.devlog ('prepareListingBeforeInstr');
-    showListingParameters (es)
-
-    if (es.curInstrLineNo >= 0) {
-        com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
-        showLst (es, "prepare before revert current", es.curInstrLineNo)
-        com.revertListingLine (es, es.curInstrLineNo)
-        showLst (es, "prepare after revert current", es.curInstrLineNo)
-    }
-    if (es.nextInstrLineNo >= 0) {
-        com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
-        showLst (es, "prepare before revert next", es.nextInstrLineNo)
-        com.revertListingLine (es, es.nextInstrLineNo)
-        showLst (es, "prepare after revert next", es.nextInstrLineNo)
-    }
-    es.curInstrLineNo = -1;
-    es.nextInstrLineNo = -1;
-    showListingParameters(es);
-    console.log ("returning from prepareListingbeforeInstr")
-    showListingParameters (es)
-    com.mode.trace = false;
-}
-
-// Number of header lines in the listing before the source lines begin
-const listingLineInitialOffset = 1;
-
-// As it executes an instruction, the emulator sets curInstrAddr and
-// nextInstrAddr.  After the instruction has finished, these
-// instructions are highlighted in the listing
-
-function highlightListingAfterInstr (es) {
-    com.mode.trace = true;
-    com.mode.devlog ('highlightListingAfterInstr');
-    showListingParameters (es)
-    com.mode.devlog ('  curInstrAddr = ' + es.curInstrAddr);
-    com.mode.devlog ('  nextInstrAddr = ' + es.nextInstrAddr);
-
-    // Highlight the instruction that just executed
-    es.curInstrLineNo = es.metadata.getSrcIdx (es.curInstrAddr)
-            + listingLineInitialOffset;
-    showLst (es, "highlight, before highlight cur", es.curInstrLineNo)
-    com.highlightListingLine (es, es.curInstrLineNo, "CUR");
-    showLst (es, "highlight, after highlight cur", es.curInstrLineNo)
-    com.mode.devlog (`Highlight current instruction: a=${es.curInstrAddr}`
-                 + ` s=${es.curInstrLineNo}`)
-
-    // Highlight the instruction that will be executed next
-    es.nextInstrLineNo = es.metadata.getSrcIdx (es.nextInstrAddr)
-        + listingLineInitialOffset;
-    showLst (es, "highlight, before highlight next", es.nextInstrLineNo)
-    com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
-    showLst (es, "highlight, after highlight next", es.nextInstrLineNo)
-    com.mode.devlog (`Highlight next instruction: a=${es.nextInstrAddr}`
-                 + ` s=${es.nextInstrLineNo}`)
-
-    // Display the memory
-    if (memDisplayModeFull) {
-	highlightListingFull (es)
-    } else {
-	highlightListingFull (es)    // temporary ?????
-    }
-    showListingParameters (es)
-    console.log ("returning from highlightlistingAfterInstr")
-    com.mode.trace = false;
-}
-
-function highlightListingFull (es,m) {
-    com.mode.devlog ('highlightListingFull');
-    setProcAsmListing (es);
-    let xa = es.curInstrLineNo - asmScrollOffsetAbove;
-    xa = xa < 0 ? 0 : xa;
-    let scrollOffset = xa * pxPerChar;
-    com.mode.devlog ('curInstrLineNo = ' + es.curInstrLineNo
-		     + '  scrollOffset = ' + scrollOffset);
-    let procAsmListingElt = document.getElementById('ProcAsmListing');
-    procAsmListingElt.scroll (0, scrollOffset);
-//    let curline = procAsmListingElt.getElementById('CUR');
-//    curline.scrollIntoView();
-}
-
-function setProcAsmListing (es) {
-    com.mode.devlog ('setProcAsmListing');
-    let xs = "<pre><code class='HighlightedTextAsHtml'>"
-    	+ es.asmListingCurrent.join('\n')
-	+ "</code></pre>";
-    document.getElementById('ProcAsmListing').innerHTML = xs;
+    com.mode.devlog (`--- Listing line ${i} ${xs}`)
+    com.mode.devlog (`----- Cur = ${es.asmListingCurrent[i].slice(0,30)}`)
+    com.mode.devlog (`----- Pla = ${es.metadata.listingPlain[i].slice(0,30)}`)
+    com.mode.devlog (`----- Dec = ${es.metadata.listingDec[i].slice(0,30)}`)
 }
 
 //------------------------------------------------------------------------------
@@ -1291,12 +916,14 @@ function instructionLooper (es) {
 export function procPause(es) {
     com.mode.devlog ("procPause");
     setProcStatus (es,Paused);
-
+    st.writeSCB (es, st.SCB_pause_request, 1)
+/*
     updateRegisters (es)
     updateMemory (es)
     memDisplayFull(es);
     showInstrDecode (es);
     highlightListingAfterInstr (es);
+*/
 }
 
 //---------------------------------------------------------------------------
@@ -1465,32 +1092,32 @@ function prepareExecuteInstruction (es) {
 //	    com.mode.devlog(`find interrupt trying i=${i} r=${getBitInReg(req,i)} m=${getBitInReg(mask,i)}`);
 
 export function executeInstruction (es) {
-    console.log (`em.executeInstruction starting`)
-    console.log (`executeInstruction mode=${es.mode}`)
+    com.mode.devlog (`em.executeInstruction starting`)
+    com.mode.devlog (`executeInstruction mode=${es.mode}`)
 
     /*
-    console.log ("^^^^^^^^^^ execute instruction")
-    console.log (`nregs=${nRegisters} ${register.length}`)
+    com.mode.devlog ("^^^^^^^^^^ execute instruction")
+    com.mode.devlog (`nregs=${nRegisters} ${register.length}`)
     for (let x of register) {
-        console.log (`${x.regStIndex} ${x.regName}`)
+        com.mode.devlog (`${x.regStIndex} ${x.regName}`)
     }
-    console.log ("^^^^^^^^^^ execute instruction thats all folks")
-    console.log ("^^^^^^^^^^ execute instruction")
-    console.log (`ssv[3] = ${st.sysStateVec[3]}`)
+    com.mode.devlog ("^^^^^^^^^^ execute instruction thats all folks")
+    com.mode.devlog ("^^^^^^^^^^ execute instruction")
+    com.mode.devlog (`ssv[3] = ${st.sysStateVec[3]}`)
     st.sysStateVec[3] = 42
-    console.log (`ssv[3] = ${st.sysStateVec[3]}`)
+    com.mode.devlog (`ssv[3] = ${st.sysStateVec[3]}`)
 
-    console.log (`pc = ${pc.get()}`)
-    console.log (`ir = ${ir.get()}`)
+    com.mode.devlog (`pc = ${pc.get()}`)
+    com.mode.devlog (`ir = ${ir.get()}`)
     pc.put (5)
-    console.log (`pc = ${pc.get()}`)
-    console.log ("^^^^^^^^^^ execute instruction thats all folks")
+    com.mode.devlog (`pc = ${pc.get()}`)
+    com.mode.devlog ("^^^^^^^^^^ execute instruction thats all folks")
     */
 
     com.mode.devlog ('executeInstruction');
     es.nInstructionsExecuted++;
     st.incrSCB (es, st.SCB_nInstrExecuted)
-    console.log (`ExInstr nInstrExecuted=${es.nInstructionsExecuted}`)
+    com.mode.devlog (`ExInstr nInstrExecuted=${es.nInstructionsExecuted}`)
     if (es.mode === Mode_GuiDisplay) {
         updateInstructionCount (es.nInstructionsExecuted)
         //    document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
@@ -1502,7 +1129,7 @@ export function executeInstruction (es) {
 //    com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`);
     //    if (arith.getBitInRegBE (es.statusreg,arch.intEnableBit) && mr) {
     if (false) { // ????????????????? testing
-        console.log (`execute instruction: interrupt`)
+        com.mode.devlog (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
 	while (i<16 && arith.getBitInWordBE(mr,i)==0) { i++ };
 	com.mode.devlog (`\n*** Interrupt ${i} ***`);
@@ -1528,19 +1155,19 @@ export function executeInstruction (es) {
     };
 
     // No interrupt, so proceed with next instruction
-    console.log (`no interrupt, proceeding...`)
+    com.mode.devlog (`no interrupt, proceeding...`)
     es.curInstrAddr = es.pc.get();
-    console.log (`ExInstr pc=${arith.wordToHex4(es.curInstrAddr)}`)
+    com.mode.devlog (`ExInstr pc=${arith.wordToHex4(es.curInstrAddr)}`)
     instrCode = memFetchInstr (es, es.curInstrAddr);
-    console.log (`ExInstr ir=${arith.wordToHex4(instrCode)}`)
+    com.mode.devlog (`ExInstr ir=${arith.wordToHex4(instrCode)}`)
     es.ir.put (instrCode);
     es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
     es.pc.put (es.nextInstrAddr);
-    console.log (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
+    com.mode.devlog (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
     
 // com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) + ' ir = ' + arith.wordToHex4(instr));
     let tempinstr = es.ir.get();
-    console.log (`ExInstr instr=${arith.wordToHex4(tempinstr)}`)
+    com.mode.devlog (`ExInstr instr=${arith.wordToHex4(tempinstr)}`)
     es.ir_b = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.ir_a = tempinstr & 0x000f;
@@ -1549,10 +1176,10 @@ export function executeInstruction (es) {
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
 //    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
-    console.log(`ExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+    com.mode.devlog(`ExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
-    console.log (`ExInstr dispatch primary opcode ${es.ir_op}`);
+    com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
     dispatch_primary_opcode [es.ir_op] (es);
 //    updateRegisters () // display values and highlighting
 }
@@ -1654,7 +1281,7 @@ const ab_c = (f) => (es) => {
     let b = es.regfile[es.ir_b].get();
     let cc = f (a,b);
     com.mode.devlog (`ab_c cc=${cc}`);
-    console.log (`CMP/AB_C ab_c cc=${cc}`);
+    com.mode.devlog (`CMP/AB_C ab_c cc=${cc}`);
     es.regfile[15].put(cc);
 }
 
@@ -1746,7 +1373,7 @@ function trapWrite (es) {
 
 const handle_rx = (es) => {
     com.mode.devlog ('handle rx' + es.ir_b);
-    console.log (`handle rx secondary=${es.ir_b}`);
+    com.mode.devlog (`handle rx secondary=${es.ir_b}`);
     es.instrFmtStr = "RX";
     dispatch_RX [es.ir_b] (es);
 }
@@ -1755,7 +1382,7 @@ const handle_EXP = (es) => {
     es.instrFmtStr = "EXP";
     let code = 16*es.ir_a + es.ir_b;
     if (code < limitEXPcode) {
-	console.log (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
+	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
 	dispatch_EXP [code] (es);
     } else {
 	com.mode.devlog (`EXP bad code ${arith.wordToHex4(code)}`);
@@ -1767,12 +1394,12 @@ const op_push  = (es) => {
     const ra = es.ir_a;
     const a = es.regfile[ra].get();
     const b = es.regfile[es.ir_b].get();
-    console.log (`push d=${d} ra=${ra} a=${a} b=${b}`)
+    com.mode.devlog (`push d=${d} ra=${ra} a=${a} b=${b}`)
     if (a < b) {
         es.regfile[ra].put(a+1);
         memStore (es, a+1, d);
     } else {
-        console.log (`push: stack overflow`);
+        com.mode.devlog (`push: stack overflow`);
         arith.setBitInRegBE (req, arch.stackOverflowBit);
     }
 }
@@ -1786,7 +1413,7 @@ const op_pop  = (es) => {
         es.regfile[es.ir_d].put(memFetchData(es,a));
         es.regfile[es.ir_a].put(a-1);
     } else {
-        console.log (`pop: stack underflow`);
+        com.mode.devlog (`pop: stack underflow`);
         arith.setBitInRegBE (req, arch.stackUnderflowBit);
     }
 }
@@ -1797,7 +1424,7 @@ const op_top  = (es) => {
     if (a >= b) {
         es.regfile[es.ir_d].put(memFetchData(es,a));
     } else {
-        console.log (`pop: stack underflow`);
+        com.mode.devlog (`pop: stack underflow`);
         arith.setBitInRegBE (req, arch.stackUnderflowBit);
     }
 }
@@ -1946,7 +1573,7 @@ function rx_jumpnz (es) {
 }
 
 function rx_testset (es) {
-    console.log (`testset`);
+    com.mode.devlog (`testset`);
     es.regfile[es.ir_d].put(memFetchData(es.ea));
     memStore (es, es.ea, 1);
 }
@@ -1980,7 +1607,7 @@ function exp2_save (es) {
     const index = es.regfile[es.field_f].get();
     const offset = es.field_gh;
     const ea = index + offset;
-    console.log (`save regs = ${rStart}..${rEnd} index=${index}`
+    com.mode.devlog (`save regs = ${rStart}..${rEnd} index=${index}`
                  + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
     sr_looper ((a,r) => memStore (es, a, es.regfile[r].get()), ea, rStart, rEnd);
 }
@@ -1992,7 +1619,7 @@ function exp2_restore (es) {
     const index = es.regfile[es.field_f].get();
     const offset = es.field_gh;
     const ea = index + offset;
-    console.log (`restore regs = ${rStart}..${rEnd} index=${index}`
+    com.mode.devlog (`restore regs = ${rStart}..${rEnd} index=${index}`
                  + ` offset=${offset} ea=${arith.wordToHex4(ea)}`);
     sr_looper ((a,r) => es.regfile[r].put(memFetchData(es,a)), ea, rStart, rEnd);
 }
@@ -2075,26 +1702,26 @@ function exp2_top (es) {
 
 function exp2_shiftl (es) {
     com.mode.devlog ("exp2_shiftl");
-    console.log (`shift d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
+    com.mode.devlog (`shift d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
     const x = es.regfile[es.field_e].get();
     const k = es.field_f;
     const result = arith.shiftL (x,k);
 //    const result1 = x << k;  // logical shift
 //    const result2 = arith.truncateWord (result1);
-    console.log (`shiftl x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
+    com.mode.devlog (`shiftl x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
     com.mode.devlog (`shiftl ${arith.wordToHex4(x)} left by ${k} bits => ${arith.wordToHex4(result)}`);
     es.regfile[es.ir_d].put(result);
 }
 
 function exp2_shiftr (es) {
     com.mode.devlog ("exp2_shiftr");
-    console.log (`shiftr d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
+    com.mode.devlog (`shiftr d=${arith.wordToHex4(es.field_d)} e=${arith.wordToHex4(es.field_e)}  f=${arith.wordToHex4(es.field_f)} `);
     let x = es.regfile[es.field_e].get();
     let k = es.field_f;
     const result = arith.shiftR (x,k);
 //    let result1 = x >>> k;  // logical shift
 //    const result2 = arith.truncateWord (result1);
-    console.log (`shiftr x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
+    com.mode.devlog (`shiftr x=${arith.wordToHex4(x)} k=${arith.wordToHex4(k)} r1=${arith.wordToHex4(result)}`);
     com.mode.devlog (`shiftr ${arith.wordToHex4(x)} right by ${k} bits => ${arith.wordToHex4(result)}`);
     es.regfile[es.ir_d].put(result);
 }
@@ -2103,14 +1730,14 @@ function exp2_shiftr (es) {
 
 function exp2_extract (es) {
     com.mode.devlog ('exp2_extract');
-    console.log ('exp2_extract');
+    com.mode.devlog ('exp2_extract');
     const src = es.regfile[es.field_g].get();
     const srci = es.field_h;
     const yold = es.regfile[es.ir_d].get();
     const yi = es.field_e;
     const size = es.field_f;
     const ynew = arith.calculateExtract (16, size, src, srci, yold, yi);
-    console.log (`extract src=${arith.wordToHex4(src)} srci=${srci} `
+    com.mode.devlog (`extract src=${arith.wordToHex4(src)} srci=${srci} `
                  + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
                  + ` ynew=${arith.wordToHex4(ynew)}`);
     es.regfile[es.ir_d].put(ynew);
@@ -2124,25 +1751,25 @@ function exp2_extracti (es) {
     const yi = es.field_e;
     const size = es.field_f;
     const ynew = arith.calculateExtracti (16,size,src,srci,yi);
-    console.log (`extract src=${arith.wordToHex4(src)} srci=${srci} `
+    com.mode.devlog (`extract src=${arith.wordToHex4(src)} srci=${srci} `
                  + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
                  + ` ynew=${arith.wordToHex4(ynew)}`);
     es.regfile[es.ir_d].put(ynew);
 }
 
 function exp2_logicw (es) {
-    console.log ('EXP2 logicw');
+    com.mode.devlog ('EXP2 logicw');
     com.mode.devlog ('exp2_logicw');
     let x = es.regfile[es.field_e].get(); // operand 1
     let y = es.regfile[es.field_f].get(); // operand 2
     let fcn = es.field_h; // logic function
     let result = arith.applyLogicFcnWord (fcn,x,y); // fcn x y
-    console.log (`logicw x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)} result=${arith.wordToHex4(result)}`);
+    com.mode.devlog (`logicw x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)} result=${arith.wordToHex4(result)}`);
     es.regfile[es.ir_d].put(result);
 }
 
 function exp2_logicb (es) {
-    console.log (`>>>>>>>>>>>>>>>>>>>>>>>> exp2_logicb`);
+    com.mode.devlog (`>>>>>>>>>>>>>>>>>>>>>>>> exp2_logicb`);
     com.mode.devlog (`exp2_logicb`);
     const x = es.regfile[es.ir_d].get();
     const f = arith.getBitInWordBE (x, es.field_f);
@@ -2150,14 +1777,14 @@ function exp2_logicb (es) {
     const fcn = es.field_h;  // logic function
     const bresult = arith.applyLogicFcnBit (fcn, f, g); // bit result
     const y = arith.putBitInWord (x, es.field_e, bresult); // word result
-    console.log (`logicb x=${arith.wordToHex4(x)} f=${f} g=${g} `
+    com.mode.devlog (`logicb x=${arith.wordToHex4(x)} f=${f} g=${g} `
                  + `fcn=${fcn} b=${bresult} result=${arith.wordToHex4(y)}`);;
     es.regfile[es.ir_d].put(y);
 }
 
 // EXP format instructions that use only one word
 const exp1 = (f) => (es) => {
-    console.log (`>>> EXP1 instruction`);
+    com.mode.devlog (`>>> EXP1 instruction`);
     let expCode = 16*es.ir_a + es.ir_b;
     es.instrOpStr = `EXP1 menonic code=${expCode}`;  // ?????????????
     com.mode.devlog(`EXP1 code=${expCode} d=${es.ir_d}`);
@@ -2167,7 +1794,7 @@ const exp1 = (f) => (es) => {
 // EXP2 format instructions require a second word
 
 const exp2 = (f) => (es) => {
-    console.log (`>>> EXP2 instruction`);
+    com.mode.devlog (`>>> EXP2 instruction`);
     let expCode = 16*es.ir_a + es.ir_b;
     es.instrOpStr = `EXP2 mnemonic code=${expCode}`;  // ????????????
     es.instrDisp = memFetchInstr (es.pc.get());
@@ -2183,7 +1810,7 @@ const exp2 = (f) => (es) => {
     es.field_f = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.field_e = tempinstr & 0x000f;
-    console.log(`>>> EXP2 code=${expCode} d=${es.ir_d} e=${es.field_e} `
+    com.mode.devlog(`>>> EXP2 code=${expCode} d=${es.ir_d} e=${es.field_e} `
                 + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
     f (es);
 }
@@ -2239,335 +1866,397 @@ function testpane3 () {
     com.mode.devlog ('testpane 3 clicked');
 }
 
+//-----------------------------------------------------------------------------
+// Emulator gui
+//-----------------------------------------------------------------------------
+
+function updateInstructionCount (n) {
+    document.getElementById("nInstrExecuted").innerHTML = n;
+}
+
+// Calculate the value of pxPerChar, which is needed to control the
+// scrolling to make the current line visible.  The calculated value
+// overrides the initialized value.  The method is to measure the
+// height of the listing in pixels and divide by the number of lines
+// in the listing.  Some other geometric parameters are also obtained,
+// but aren't currently used.
+
+function getListingDims (es) {
+    let e = document.getElementById('ProcAsmListing');
+    let x = e.getBoundingClientRect(); // dimensions of visible listing area
+    let w = e.scrollWidth; // width of the content, not used
+    let h = e.scrollHeight; // height of content (not of the window)
+    es.asmListingHeight = h; // save in emulator state
+    com.mode.devlog (`h=${h} w=${w}`);
+    let n = es.metadata.listingPlain.length;
+    com.mode.devlog(`getListingDims: n=${n}`);
+    pxPerChar = n ? h/n : 10; // update this global variable, used for scrolling
+    com.mode.devlog (`getListingDims: pxPerChar = ${pxPerChar}`);
+}
+
+// asmScrollOffsetAbove specifies the preferred number of lines that
+// should appear above the scroll target in the processor assembly
+// listing
+
+const asmScrollOffsetAbove = 8;
+
+// pxPerChar is the height of characters used in the processor
+// assembly listing.  This is needed to scroll the listing to keep the
+// current line visible.  There doesn't appear to be a good way to
+// measure this; the value is found by trial and error.  Measuring it
+// or extracting it from font metadata would be far better.
+
+let pxPerChar = 13.05;
+
+
+
+function refreshIOlogBuffer() {
+    com.mode.devlog (`refreshIOlogBugfer ${ioLogBuffer}`);
+    let elt = document.getElementById("IOlog");
+    elt.innerHTML = "<pre>" + ioLogBuffer + "</pre>";
+    elt.scrollTop = elt.scrollHeight;
+}
+
+export let ioLogBuffer = "";
+// export const procAsmListingElt = document.getElementById('ProcAsmListing');
+
+// export let procAsmListingElt; // global variables for emulator
+
+// Update the memory string for each location that has been accessed,
+// so that it contains an html div element which can be used to
+// highlight the memory location.  Do the fetches first, then the
+// stores: this ensures that if a location has both been fetched and
+// stored, the highlighting for the store will take precedence.
+
+function updateMemory (es) {
+    // Clear previous highlighting
+    for (let x of memFetchInstrLogOld) { memRefresh (es) }
+    for (let x of memFetchDataLogOld)  { memRefresh (es) }
+    for (let x of memStoreLogOld)      { memRefresh (es) }
+    // Update new memory accesses
+    for (let x of memFetchInstrLog)    { memHighlight (es, x, "GET") }
+    for (let x of memFetchDataLog)     { memHighlight (es, x, "GET") }
+    for (let x of memStoreLog)         { memHighlight (es, x, "PUT") }
+    memFetchInstrLogOld = memFetchInstrLog
+    memFetchDataLogOld = memFetchDataLog
+    memStoreLogOld = memStoreLog
+    memFetchInstrLog = []
+    memFetchDataLog = []
+    memStoreLog = []
+}
+
+// Create a string with a span class to represent a memory location
+// with highlighting; the actual value is in the memory array, and the
+// string is placed in the memString array.
+
+// Set the memory displays, using the memString array.  Check mode to
+// determine whether the display should be partial and fast or
+// complete but slow.
+
+function memDisplay (es) {
+    if (memDisplayModeFull) { memDisplayFull (es) }
+    else { memDisplayFast (es) }
+}
+
+// Set the memory displays, showing only part of the memory to save time
+
+function memDisplayFast (es) {
+    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
+    xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
+    xa = xa < 0 ? 0 : xa;
+    xb = xa + memDisplayFastWindow;
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+    	+ memString.slice(xa,xb).join('\n')
+	+ "</code></pre>";
+    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
+    memElt1.innerHTML = xs;
+    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
+    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
+    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
+    ya = ya < 0 ? 0 : ya;
+    yb = ya + memDisplayFastWindow;
+    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ memString.slice(ya,yb).join('\n')
+	+ "</code></pre>";
+    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
+    memElt2.innerHTML = ys;
+}
+
+// Set the memory displays, showing the full memory
+
+// Need <pre> to get the formatting correct with line breaks.  but
+// <pre> prevents scrolling from working.  Could try not using pre,
+// but putting <br> after each line, but that still wouldn't work
+// because multiple spaces in code wouldn't work..  Try <code>; With
+// <code class=... scrolling works, but the line breaks aren't
+// there.. Is there a problem with HighlightedTextAsHtml?
+
+// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
+
+//    xs = "<pre><code class='HighlightedTextAsHtml'>"
+//	+ memString.join('\n')
+//	+ "</code></pre>";
+
+function memDisplayFull (es) {
+    let memElt1 = document.getElementById('MemDisplay1');
+    let memElt2 = document.getElementById('MemDisplay2');
+
+    let xs;                 // display text
+    let xt, xo;             // display 1 targets and offsets
+    let yafet, yasto, ya, yo, yt;
+    com.mode.devlog ('memDisplayFull');
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ memString.join('\n')
+	+ "</code></pre>";
+    memElt1.innerHTML = xs;
+    xt = (memFetchInstrLog.length===0)? 0 : memFetchInstrLog[0] - memDispOffset;
+    xo = xt * pxPerChar;
+    com.mode.devlog('  target1 xt = ' + xt + '   offset1 = ' + xo);
+    memElt1.scroll(0,xo);
+    
+    memElt2.innerHTML = xs;
+    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
+    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
+    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
+    yt = yt < 0 ? 0 : yt;
+    yo = yt * pxPerChar;
+    com.mode.devlog('  yafet=' + yafet + ' yasto=' + yasto
+		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
+    memElt2.scroll(0,yo);
+}
+
+function setProcStatus (es,s) {
+    es.procStatus = s;
+    if (es.mode === Mode_GuiDisplay) {
+        document.getElementById("procStatus").innerHTML = showProcStatus(s);
+    }
+}
+
+// Global variables for handling listing display as program runs.
+
+let srcLine;        // copy of source statements
+
+// Keep track of the address of the currently executing instruction,
+// the address of the next instruction, and the line numbers where
+// these instructions appear in the assembly listing.  -1 indicates no
+// line has been highlighted
+
+// let curInstrAddr, curInstrLineNo, saveCurSrcLine;
+// let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
+
+export function initializeSubsystems () {
+    memDisplayModeFull = false;
+    document.getElementById('PP_Toggle_Display').value = "Fast display";  
+}
+
+export function toggleFullDisplay () {
+    com.mode.devlog ('toggleFullDisplay clicked');
+    memDisplayModeFull = ! memDisplayModeFull;
+    document.getElementById('FullDisplayToggleButton').value =
+	memDisplayModeFull ? "Full display" : "Fast display";
+    if (memDisplayModeFull) { memDisplayFull () }
+    else { memDisplayFast ()
+	 }  // loses info but makes tab switching faster
+}
+
+// ------------------------------------------------------------------------
+// Highlighting registers to indicate accesses
+
+// When a register is accessed, its display in the gui is highlighted
+// by setting the text color.  If the register has not been used it
+// has the default color black, if it has been read but not written
+// its color is READ, and if it has been written its color is WRITE.
+// The meanings of the tags for syntax highlighting are defined in
+// Sigma16gui.css.  Normally we would use blue for READ and red for
+// WRITE.
+
+let modeHighlight = true;  // indicate get/put by setting text color
+
+function setModeHighlight (x) {
+    if (x) {
+	com.mode.devlog('Setting modeHighlight to True');
+	modeHighlight = true;
+    }
+    else {
+	com.mode.devlog('Setting modeHighlight to False');
+	modeHighlight = false;
+	refreshRegisters();
+    }
+}
+
+function highlightText (txt,tag) {
+    return "<span class='" + tag + "'>" + txt + "</span>";
+}
+
+function prepareListingBeforeInstr (es) {
+    com.mode.trace = true;
+    com.mode.devlog ('prepareListingBeforeInstr');
+    showListingParameters (es)
+
+    if (es.curInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
+        showLst (es, "prepare before revert current", es.curInstrLineNo)
+        com.revertListingLine (es, es.curInstrLineNo)
+        showLst (es, "prepare after revert current", es.curInstrLineNo)
+    }
+    if (es.nextInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
+        showLst (es, "prepare before revert next", es.nextInstrLineNo)
+        com.revertListingLine (es, es.nextInstrLineNo)
+        showLst (es, "prepare after revert next", es.nextInstrLineNo)
+    }
+    es.curInstrLineNo = -1;
+    es.nextInstrLineNo = -1;
+    showListingParameters(es);
+    com.mode.devlog ("returning from prepareListingbeforeInstr")
+    showListingParameters (es)
+    com.mode.trace = false;
+}
+
+// Number of header lines in the listing before the source lines begin
+const listingLineInitialOffset = 1;
+
+// As it executes an instruction, the emulator sets curInstrAddr and
+// nextInstrAddr.  After the instruction has finished, these
+// instructions are highlighted in the listing
+
+function highlightListingAfterInstr (es) {
+    com.mode.trace = true;
+    com.mode.devlog ('highlightListingAfterInstr');
+    showListingParameters (es)
+    com.mode.devlog ('  curInstrAddr = ' + es.curInstrAddr);
+    com.mode.devlog ('  nextInstrAddr = ' + es.nextInstrAddr);
+
+    // Highlight the instruction that just executed
+    es.curInstrLineNo = es.metadata.getSrcIdx (es.curInstrAddr)
+            + listingLineInitialOffset;
+    showLst (es, "highlight, before highlight cur", es.curInstrLineNo)
+    com.highlightListingLine (es, es.curInstrLineNo, "CUR");
+    showLst (es, "highlight, after highlight cur", es.curInstrLineNo)
+    com.mode.devlog (`Highlight current instruction: a=${es.curInstrAddr}`
+                 + ` s=${es.curInstrLineNo}`)
+
+    // Highlight the instruction that will be executed next
+    es.nextInstrLineNo = es.metadata.getSrcIdx (es.nextInstrAddr)
+        + listingLineInitialOffset;
+    showLst (es, "highlight, before highlight next", es.nextInstrLineNo)
+    com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
+    showLst (es, "highlight, after highlight next", es.nextInstrLineNo)
+    com.mode.devlog (`Highlight next instruction: a=${es.nextInstrAddr}`
+                 + ` s=${es.nextInstrLineNo}`)
+
+    // Display the memory
+    if (memDisplayModeFull) {
+	highlightListingFull (es)
+    } else {
+	highlightListingFull (es)    // temporary ?????
+    }
+    showListingParameters (es)
+    com.mode.devlog ("returning from highlightlistingAfterInstr")
+    com.mode.trace = false;
+}
+
+function highlightListingFull (es,m) {
+    com.mode.devlog ('highlightListingFull');
+    setProcAsmListing (es);
+    let xa = es.curInstrLineNo - asmScrollOffsetAbove;
+    xa = xa < 0 ? 0 : xa;
+    let scrollOffset = xa * pxPerChar;
+    com.mode.devlog ('curInstrLineNo = ' + es.curInstrLineNo
+		     + '  scrollOffset = ' + scrollOffset);
+    let procAsmListingElt = document.getElementById('ProcAsmListing');
+    procAsmListingElt.scroll (0, scrollOffset);
+//    let curline = procAsmListingElt.getElementById('CUR');
+//    curline.scrollIntoView();
+}
+
+function setProcAsmListing (es) {
+    com.mode.devlog ('setProcAsmListing');
+    let xs = "<pre><code class='HighlightedTextAsHtml'>"
+    	+ es.asmListingCurrent.join('\n')
+	+ "</code></pre>";
+    document.getElementById('ProcAsmListing').innerHTML = xs;
+}
+
+// // Initialize machine state
+
+// Processor elements: html elements for displaying instruction decode
+
+let instrCodeElt;
+let instrFmtElt;
+let instrOpElt;
+let instrArgsElt;
+let instrEAElt;
+let instrCCElt;
+let instrEffect1Elt;
+let instrEffect2Elt;
+
+export function initializeProcessorElements (es) {
+    if (es.mode === Mode_GuiDisplay) {
+        com.mode.devlog ('initializeProcessorElements');
+        instrCodeElt = document.getElementById("InstrCode");
+        instrFmtElt  = document.getElementById("InstrFmt");
+        instrOpElt   = document.getElementById("InstrOp");
+        instrArgsElt = document.getElementById("InstrArgs");
+        instrEAElt   = document.getElementById("InstrEA");
+        instrCCElt   = document.getElementById("InstrCC");
+        instrEffect1Elt = document.getElementById("InstrEffect1");
+        instrEffect2Elt = document.getElementById("InstrEffect2");
+    }
+}
+
+function refreshInstrDecode (es) {
+    com.mode.devlog ("refreshInstrDecode");
+    instrCodeElt.innerHTML = es.instrCodeStr;
+    instrFmtElt.innerHTML  = es.instrFmtStr;
+    instrOpElt.innerHTML   = es.instrOpStr;
+    instrArgsElt.innerHTML = showArgs(es); // instrArgsStr;
+    instrEAElt.innerHTML   = es.instrEAStr;
+    let ccval = es.regfile[15].val;
+    instrCCElt.innerHTML      = arith.showCC(ccval);
+    instrEffect1Elt.innerHTML = showEffect(es,0);
+    instrEffect2Elt.innerHTML = showEffect(es,1);
+}
+
+
+// Memory display
+
+// Refresh all the memory strings; the memString array should be accurate
+// but this function will recalculate all elements of that array
+
+// Note on data structure.  I tried having a preliminary element [0]
+// containing just "<pre class='HighlightedTextAsHtml'>", so address a
+// is shown in memString[a+1].  The indexing was fine but the
+// scrolling didn't work, possibly because of this dummy element with
+// its newline inserted when the array is joined up.
+
+function memRefresh (es) {
+    memString = [];  // clear out and collect any existing elements
+    for (let i = 0; i < memSize; i++) {
+	setMemString(es,i);
+    }
+}
+
+// Create a string to represent a memory location; the actual value is
+// in the memory array, and the string is placed in the memString
+// array.  memString[0] = <pre class="HighlightedTextAsHtml"> and
+// mem[a] corresponds to memString[a+1].
+
+
+function memHighlight (es, a, highlight) {
+    let x = es.shm[st.EmMemOffset + a]
+    memString[a] =
+	"<span class='" + highlight + "'>"
+	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
+        + "</span>";
+}
+
+function setMemString(es,a) {
+    let x = es.shm[st.EmMemOffset + a]
+    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
+}
+
+
 // ----------------------------------------------------------------------------
 // Deprecated
 // ----------------------------------------------------------------------------
-
-// The mkReg function makes a register corresponding to
-// a gui element.  To remove highlight, use refresh.
-
-// Arguments
-//   regName is the name of the register, e.g. "pc"
-//   eltName is the html id of the gui element
-//   show(x) converts a value x to a string that can be displayed
-// Set by creation loop
-//   regIdx is the unique index in the array of all registers
-// Local state
-//   val is the current contents of the register
-//   elt is gui element used to display the register
-//   put(x) discards current val and replaces it with x (highlight if mode set)
-//   get() returns current val (highlight if mode set)
-//   refresh() puts the current val into display, without any highlighting
-
-
-/*
-export function mkReg (rn,eltName,showfcn) {
-    let r = Object.create({
-      	regIdx : 0, // will be overwritten with actual index
-        regArrIdx : nextRegIndex,
-	regName : rn,
-	show : showfcn,
-	val : 0,
-	elt : document.getElementById(eltName),
-	put : function (x) {
-	    this.val = x;
-            let arridx = this.regArrIdx // emt!! + REGOFFSET
-            st.sysStateArr [arridx] = x
-            console.log (`reg-put regIdx=${this.regIdx} arridx=${arridx} x=${x}`)
-	    com.mode.devlog (`reg put rn=${rn} idx=${this.regIdx} x=${x}`);
-	    if (this.regIdx<16) {
-		// record regfile put
-		instrEffect.push (["R", this.regIdx, x, this.regName]);
-	    com.mode.devlog (`mkReg put recording effect 0 ${instrEffect[0]}`);
-	    com.mode.devlog (`mkReg put recording effect 1 ${instrEffect[1]}`);
-	    }
-	    if (modeHighlight) { regStored.push(this) } },
-        get : function () {
-	        let x = this.val;
-	        if (modeHighlight) { regFetched.push(this) };
-	        return x },
-	refresh : function() {
-	    com.mode.devlog (`refresh register ${rn}`);
-	    this.elt.innerHTML = this.show(this.val);
-	},
-	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
-    });
-//    register[nRegisters] = this;
-    nextRegIndex++ // emt!!
-    nRegisters++;
-    return r;
-}
-
-// R0 is special: it always contains 0 and cannot be changed
-export function mkReg0 (rn,eltName,showfcn) {
-    let r = Object.create({
-	regName : rn,
-	show : showfcn,
-	val : 0,
-	elt : document.getElementById(eltName),
-	put : function (x) { },
-        get : function () { return 0 },
-	refresh : function() {this.elt.innerHTML = this.show(this.val);},
-	showNameVal: function() {return this.regName + '=' + this.show(this.val);}
-    });
-    nRegisters++;
-    return r;
-}
-*/
-//        this.value = 0
-
-/*
-function regShowAccesses () {
-    let i, r;
-    for (i = 0; i < regFetched.length; i++) {
-	r = regFetched[i];
-	r.elt.innerHTML = highlightText(r.show(r.val),'GET')
-    }
-    for (i = 0; i < regStored.length; i++) {
-	r = regStored[i];
-	r.elt.innerHTML = highlightText(r.show(r.val),'PUT')
-    }
-}
-
-function regClearAccesses () {
-    let r;
-    for (let i = 0; i < regFetched.length; i++) {
-	regFetched[i].refresh();
-    }
-    for (let i = 0; i <regStored.length; i++) {
-	regStored[i].refresh();
-    }
-    regFetched = [];
-    regStored = [];
-
-}
-*/
-        //	register[i].val = 0;
-//        register[i].value = 0; // ????? use put? set sysStateVec???
-//	register[i].refresh();
-
-    // xxxxx R0 is built specially as it is
-    // xxxxx constant; all others are built with mkReg
-//    console.log ("************** ************* ************* ************")
-//    console.log ("make registers")
-//    console.log ("************** ************* ************* ************")
-
-//        let thisReg;
-//	thisReg = (i==0) ?
-//	    mkReg0 (regname, regname, arith.wordToHex4)
-//	    : mkReg (regname, regname, arith.wordToHex4);
-//	thisReg.regIdx = i; // emt change!! no...
-
-//    pc    = mkReg ('pc',       'pcElt',       arith.wordToHex4);
-//    ir    = mkReg ('ir',       'irElt',       arith.wordToHex4);
-//    adr   = mkReg ('adr',      'adrElt',      arith.wordToHex4);
-//    dat   = mkReg ('dat',      'datElt',      arith.wordToHex4);
-
-//    statusreg   = mkReg ('statusreg',  'statusElt',  arith.wordToHex4);
-
-//    mask  = mkReg ('mask',     'maskElt',    arith.wordToHex4);
-//    req   = mkReg ('req',      'reqElt',     arith.wordToHex4);
-
-//    istat    = mkReg ('istat',    'istatElt',      arith.wordToHex4);
-//    ipc      = mkReg ('ipc',      'ipcElt',      arith.wordToHex4);
-//    vect     = mkReg ('vect',   'vectElt', arith.wordToHex4);
-
-//    bpseg = mkReg ('bpseg',    'bpsegElt',    arith.wordToHex4);
-//    epseg = mkReg ('epseg',    'epsegElt',    arith.wordToHex4);
-//    bdseg = mkReg ('bdseg',    'bdsegElt',    arith.wordToHex4);
-//    edseg = mkReg ('edseg',    'edsegElt',    arith.wordToHex4);
-
-/*
-function memShowAccesses () {
-    let i, a;
-    for (i = 0; i < memFetchInstrLog.length; i++) {
-	a = memFetchInstrLog[i];
-	highlightMemString(a,"GET");
-    }
-    for (i = 0; i < memFetchDataLog.length; i++) {
-	a = memFetchDataLog[i];
-	highlightMemString(a,"GET");
-    }
-    for (i = 0; i < memStoreLog.length; i++) {
-	a = memStoreLog[i];
-	highlightMemString(a,"PUT");
-    }
-}
-
-// Remove the highlighting for the memory locations that have been accessed
-
-function memClearAccesses () {
-    let a;
-    for (let i = 0; i < memFetchInstrLog.length; i++) {
-	a = memFetchInstrLog[i];
-	setMemString(a);
-    }
-    for (let i = 0; i < memFetchDataLog.length; i++) {
-	a = memFetchDataLog[i];
-	setMemString(a);
-    }
-    for (let i = 0; i < memStoreLog.length; i++) {
-	a = memStoreLog[i];
-	setMemString(a);
-    }
-    memFetchInstrLog = [];
-    memFetchDataLog = [];
-    memStoreLog = [];
-}
-*/
-//        memShowAccesses();
-
-//    clearRegisterHighlighting ();
-    //    refreshRegisters ();
-
-//    memClearAccesses ();
-
-// deprecated
-// let enable, mask, req, isys, ipc, handle;           // interrupt control
-// let sEnable, sProg, sProgEnd, sDat, sDatEnd;   // segment control registers
-
-// Record the control registers...
-//    nRegisters = 16;  // Start after the first 16 (the regfile)
-//    controlRegisters.forEach (function (r) {
-//	com.mode.devlog('making reg ' + nRegisters + ' = ' + r.regName);
-//	register[nRegisters] = r;
-//	r.regIdx = nRegisters; // emt change!! ... no...
-//	nRegisters++;
-
-//    memString[0] =  "hello";  // "<pre class='HighlightedTextAsHtml'>"
-
-//    memString.push("bye");    // "</pre>");
-
-/* old version
-function highlightMemString(a,highlight) {
-    memString[a] =
-	"<span class='" + highlight + "'>"
-	+ arith.wordToHex4(a) + " " + arith.wordToHex4(memory[a])
-        + "</span>";
-}
-*/
-
-//    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(memory[a]);
-//    return memory[a];
-//    return memory[a];
-//    memory[a] = x;
-//    memShowAccesses ();
-//    memClearAccesses ();
-//    memShowAccesses();
-
-/*
-function clearRegisterHighlighting () {
-    return // deprecated, use updateRegisters
-    let n =  highlightedRegisters.length;
-    let r;
-    for (let i = 0; i < n; i++) {
-	r = highlightedRegisters[i];
-	com.mode.devlog('clear highlight ' + i + ' reg = ' + r.regName);
-	r.refresh();
-    };
-    highlightedRegisters = [];
-}
-*/
-
-//    refreshRegisters();
-//    regShowAccesses();
-//    memRefresh();
-//    memShowAccesses ();
-
-//    regClearAccesses ();             // remove register highlighting, clear logs
-
-//    regShowAccesses()
-//    memClearAccesses ();             // remove mem highlighting, clear logs
-
-//    regClearAccesses ();
-//    memClearAccesses ();
-
-        //        refreshRegisters ();
-
-//	regShowAccesses()
-//	memShowAccesses();
-//        memRefresh();
-//        memShowAccesses();
-//	memShowAccesses();
-
-        //	regShowAccesses()
-//	memShowAccesses();
-//    memClearAccesses ();
-//    memRefresh();
-    //    refreshRegisters ();
-//    regClearAccesses ();
-//    memClearAccesses ();
-
-/* redundant, use  execInstrPostDisplay
-// Final actions after the instruction
-function finalizeExecuteInstruction (es) {
-    if (es.procStatus===Halted) {
-        com.mode.devlog ("procStep: execute instruction: halted")
-        //	regShowAccesses()
-        updateRegisters ()
-        memRefresh();
-	memShowAccesses();
-	memDisplayFull ();
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
-    } else if (es.breakEnabled && pc.get() === es.breakPCvalue) {
-	com.mode.devlog ("Breakpoint");
-        setProcStatus (es,Paused);
-        memRefresh();
-        displayFullState();
-    } else {
-        //	regShowAccesses()
-        updateRegisters ()
-	memShowAccesses();
-	memDisplay ();
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
-    }
-
-    com.mode.devlog ("runOneInstruction: end");
-}
-*/
-
-/*
-export let emulatorState =
-    {
-// Processor
-        //	procStatus : "Reset",  ??????
-        procStatus : Reset,
-	nInstructionsExecuted : 0,
-	instrLooperDelay : 1000,
-	instrLooperShow : false,
-	breakEnabled : false,
-	breakPCvalue : 0,
-	// Instruction being executed
-	doInterrupt   : 0,
-	ir_op         : 0,
-	ir_d          : 0,
-	ir_a          : 0,
-	ir_b          : 0,
-        ea            : 0,
-	instrDisp     : 0,
-        field_e       : 0,
-        field_f       : 0,
-        field_g       : 0,
-        field_h       : 0,
-        field_gh       : 0,
-	instrOpCode   : null,
-	instrCodeStr  : "",
-	instrFmtStr   : "",
-	instrOp       : "",
-	instrArgs     : "",
-	instrEA       : null,
-	instrEAStr    : "",
-	instrEffect   : [],
-        metadata : null,
-	asmListingCurrent  : [], // version of listing displayed in emulator pane
-        asmListingHeight   : 0,   // height in pixels of the listing
-	curInstrAddr       : 0,
-	nextInstrAddr      : 0,
-	curInstrLineNo     : -1,  // -1 indicates no line has been highlighted
-	nextInstrLineNo    : -1,
-	saveCurSrcLine     : "",
-	saveNextSrcLine    : "",
-    }
-*/

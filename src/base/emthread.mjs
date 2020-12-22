@@ -22,8 +22,6 @@ import * as arith from './arithmetic.mjs';
 import * as st  from './state.mjs';
 import * as em from "./emulator.mjs"
 
-console.log (`ccL = ${arch.bit_ccL} should be 3`) // check import works
-
 //-----------------------------------------------------------------------------
 // Emulator state
 //-----------------------------------------------------------------------------
@@ -36,87 +34,57 @@ let emt =
 
 let emtCount = 0 // local variable for testng
 
-// let emtEmulatorState = new em.EmulatorState (em.Mode_Console)
-// let emtEmulatorState = new em.EmulatorState (shm, em.Mode_Console)
-// em.initializeMachineState (emtEmulatorState)
-
 //-----------------------------------------------------------------------------
 // Communication protocol
 //-----------------------------------------------------------------------------
 
-// this.addEventListener ("message", e => {
 self.addEventListener ("message", e => {
     if (e.data) {
         console.log (`ent code = ${e.data.code}`)
-        let result = 0
-        let msg = {code:200, payload: result} // default dummy message
+        let result = 0 // default
+        let msg = {code:0 , payload: 0} // default
         switch (e.data.code) {
-        case 100: // Received shared system state vector
-            console.log ("***** emt initializing")
+        case 100: // emt init: received shared system state vector
+            console.log ("emt: received request init")
             emt.shm = e.data.payload
             emt.es = new em.EmulatorState (emt.shm, em.Mode_Quiet)
             em.initializeMachineState (emt.es)
             emt.initialized = true
-//            sysStateVec = e.data.payload
-//            console.log ("Defined sysStateVec")
-//            console.log (`ssv[0] = ${sysStateVec[0]}`)
-//            console.log (`ssv[1] = ${sysStateVec[1]}`)
             msg = {code: 200, payload: 0}
-            //            this.postMessage (msg)
             self.postMessage (msg)
             break
-        case 101: // emt run
-            console.log (`request emt run`)
-            doRun ()
-            msg = {code: 202, payload: 0}
-//            this.postMessage (msg)
-            self.postMessage (msg)
-            break
-        case 102: // emt step
-            console.log (`request emt step`)
-            doStep () // When done, reply with 201
+        case 101: // emt step
+            console.log (`emt: received request step`)
+            doStep ()
             msg = {code: 201, payload: 0}
             self.postMessage (msg)
-//            this.postMessage (msg)
+            break
+        case 102: // emt run
+            console.log (`emt: received request run`)
+            result = doRun (e.data.payload)
+            msg = {code: 202, payload: result}
+            self.postMessage (msg)
             break
         case 103: // show
-            //            showMem (20)
+            console.log (`emt: received request show`)
             show ()
             msg = {code: 203, payload: 0}
             self.postMessage (msg)
-//            this.postMessage (msg)
             break
-        case 104: // longComp
+        case 104: // test 1
+            console.log (`emt: received request test 1`)
             let slowResult = longComputation ()
             msg = {code: 204, payload: slowResult}
             self.postMessage (msg)
-//            this.postMessage (msg)
             break
-        case 105: // regMemTest
+        case 105: // test 2
+            console.log (`emt: received request test 2`)
             let rmtestResult = regMemTest ()
             msg = {code: 205, payload: rmtestResult}
             self.postMessage (msg)
-//            this.postMessage (msg)
-            break
-        case 112: //
-            console.log (`emt rec 112, n=${emtCount} val=<${e.data.payload}>`)
-            msg = {code: 212, payload: emtCount}
-            self.postMessage (msg)
-//            this.postMessage (msg)
-        case 104: // Increment sysStateVecArr[23]
-//            console.log (`emt 104`)
-//            console.log (`emt 104 before ++ ${sysStateVec[23]}`)
-//            sysStateVec[23]++
-//            console.log (`emt 104 after ++ ${sysStateVec[23]}`)
-            break
-        case 115: //
-            for (let i = 0; i < 64; i++) {
-                let x = sysStateVec [i] // 8 is REGOFFSET, should be 8+i
-                console.log (`emt R${i} = ${x}`)
-            }
             break
         default:
-            console.log (`emt received bad code ${e.data.code}`)
+            console.log (`emt: received unknown code ${e.data.code}`)
         }
         emtCount++
     }
@@ -338,7 +306,7 @@ function regMemTest () {
 }
 
 //-----------------------------------------------------------------------------
-// Emulator
+// Interface to emulator
 //-----------------------------------------------------------------------------
 
 function doStep () {
@@ -347,16 +315,21 @@ function doStep () {
     console.log (`emt doStep returning`)
 }
 
-function doRun () {
-    console.log (`emt doRun`)
+function doRun (limit) {
+    console.log (`emt: start doRun limit=${limit}`)
     let count = 0
-    while (count < 100 && st.readSCB (emt.es, st.SCB_halted) != 1) {
-        console.log (`emt doRun count=${count}`)
+    let startTime = new Date ()
+    while (st.readSCB (emt.es, st.SCB_halted) != 1
+           && st.readSCB (emt.es, st.SCB_pause_request) != 1) {
         em.executeInstruction (emt.es)
         count++
-    }
-    em.refresh (emt.es)
-    console.log (`emt doRun stopped after ${count} instructions`)
+      }
+    let finishTime = new Date ()
+    let elapsedTime = (finishTime - startTime) / 1000
+    console.log (`emt: doRun finished, executed ${count} instructions`
+                 + ` in ${elapsedTime} sec`)
+    return count
 }
+//        console.log (`emt doRun count=${count}`)
 
 console.log ("emtthread has been read")

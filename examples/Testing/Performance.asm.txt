@@ -1,26 +1,21 @@
 ; Performance: a looper program for timing measurements
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16, see README and https://jtod.github.io/home/Sigma16/
 
 ; for i := 0 to n
 ;   for j := 0 to m
-;      nop
-;   write "a"
+;      sum := sum + 1
 
 ; R1   constant 1
 ; R2   n  number of iterations for outer loop
 ; R3   m  number of iterations for inner loop
 ; R4   i, outer loop counter:  0 ... n
 ; R5   j, inner loop counter   0 ... m
-; R6   constant 2, trap write code
-; R7   address of string to write
-; R8   number of characters to write
+; R9   sum
 
      lea    R1,1[R0]      ; R1 = constant 1, loop increment
      load   R2,n[R0]      ; R2 = outer loop limit
      load   R3,m[R0]      ; R3 = inner loop limit
-     lea    R6,2[R0]      ; R6 := 2 = trap write code
-     lea    R7,out[R0]    ; R7 = address of output string
-     lea    R8,1[R0]      ; R8 = length of output string
+     add    R9,R0,R0      ; R9 = sum := 0
 
      add    R4,R0,R0      ; i := 0, initialize outer loop counter
 outerloop
@@ -32,42 +27,17 @@ innerloop
      cmp    R5,R3         ; j >= m
      jumpge innerdone[R0] ; if j >= m then goto innerdone
      add    R5,R5,R1      ; j := j + 1
+     add    R9,R9,R1      ; sum := sum + 1
      jump   innerloop[R0] ; goto innerloop
 
 innerdone
-     trap   R6,R7,R8      ; write "a"
      add    R4,R4,R1      ; i := i + 1
      jump   outerloop[R0] ; goto outer loop
 
 done
+     store  R9,result[R0] ; result := sum
      trap   R0,R0,R0      ; terminate
 
-n    data    10          ; outer loop iterations
-m    data  1000          ; inner loop iterations
-out  data    97          ; character code for 'a'
-
-
-old version
-
-; StoreLoop - repeat many store instructions
-
-; n := 1000
-; i := 0
-; while i < n do
-;   x := i
-;   i := i+1
-
-    lea    R1,1000[R0]      ; n := 1000,  number of iterations
-    add    R2,R0,R0         ; i := 0      loop index
-    lea    R3,1[R0]         ; R3 := 1     constant
-loop
-    cmp    R2,R1            ; compare i with n
-    jumpge R4,done[R0]      ; if i >= n then goto done
-    store  R2,x[R0]         ; x := i
-    add    R2,R2,R3         ; i := i+1
-    jump   loop[R0]         ; goto loop
-done
-    trap   R0,R0,R0         ; terminate
-
-x   data   0
-
+n    data   1000           ; outer loop iterations
+m    data   1000           ; inner loop iterations
+result data 0
