@@ -63,6 +63,9 @@ with the tutorials, which show you how to enter and run a program and
 how to use the programming environment.
 
 * Tutorial
+:PROPERTIES:
+:CUSTOM_ID: sec-tutorial
+:END:
 
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
@@ -1504,7 +1507,12 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
+
 * Architecture
+:PROPERTIES:
+:CUSTOM_ID: sec-architecture
+:END:
+
 ** Overview of the subsystems
 
 The system contains several main subsystems.  The most important of
@@ -2280,6 +2288,10 @@ EXP instructions are represented in two words
 The a and b fields form an 8-bit value called ab.
 
 * Instruction set
+:PROPERTIES:
+:CUSTOM_ID: sec-instruction-set
+:END:
+
 ** Arithmetic
 
 The add instruction can be used for both binary addition (on natural
@@ -3517,7 +3529,11 @@ last saved.  If so, a dialogue asks whether the file should be saved.
 Select is for switching among the existing modules, while New and Open
 are for introducing a new module.
 
+
 * Assembly language
+:PROPERTIES:
+:CUSTOM_ID: sec-assembly-language
+:END:
 
 A computer is a digital circuit that executes programs in machine
 language, which is hard for humans to read because it consists
@@ -3962,7 +3978,10 @@ was defined, and the source code lines where it was used.
 |            | export | identifier            | Export values              |
 
 
-* Object code and linker
+* Linker
+:PROPERTIES:
+:CUSTOM_ID: sec-linker
+:END:
 
 Small programs often consist of just one module (or file).  The
 assembler translates the assembly language source code into machine
@@ -4177,7 +4196,11 @@ source 32
   a valid executable module.  If so, it loads the code into the memory.
   If not, it indicates that the program cannot be booted.
 
+
 * Programming
+:PROPERTIES:
+:CUSTOM_ID: sec-programming
+:END:
 
 ** Structure of a program
 
@@ -4753,7 +4776,12 @@ npm install electron-builder --save-dev   in src/app
 npm run mkdist
 #+END_EXAMPLE
 
+
 * About Sigma16
+:PROPERTIES:
+:CUSTOM_ID: sec-about-sigma16
+:END:
+
 ** Copyright and license
 
 The architecture, software tools, and documentation were designed,

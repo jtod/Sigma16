@@ -156,7 +156,9 @@ export function boot (es) {
         initListing (m,es);
         setProcStatus (es,Ready);
         getListingDims(es);
-        resetRegisters ();
+        resetRegisters (es);
+        es.pc.put (0) // shouldn't be needed?
+        refreshRegisters (es)
         memDisplay(es);
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
@@ -349,22 +351,6 @@ export class genregister {
     }
 }
 
-// Show any changes to registers in the gui display
-
-function updateRegisters (es) {
-    com.mode.devlog ("--- updateRegisters ---")
-    // Clear previous highlighting by refreshing the registers
-    for (let x of regFetchedOld) { x.refresh () }
-    for (let x of regStoredOld)  { x.refresh () }
-    // Update the new register accesses
-    for (let x of regFetched)    { x.highlight ("GET") }
-    for (let x of regStored)     { x.highlight ("PUT") }
-    regFetchedOld = regFetched
-    regStoredOld = regStored
-    regFetched = []
-    regStored = []
-    com.mode.devlog ("--- updateRegisters returning ---")
-}
 
 // Reset every register to 0
 
@@ -911,20 +897,6 @@ function instructionLooper (es) {
     com.mode.devlog ('instructionLooper terminated');
 }
 
-// The Pause button stops the instruction looper and displays the state.
-
-export function procPause(es) {
-    com.mode.devlog ("procPause");
-    setProcStatus (es,Paused);
-    st.writeSCB (es, st.SCB_pause_request, 1)
-/*
-    updateRegisters (es)
-    updateMemory (es)
-    memDisplayFull(es);
-    showInstrDecode (es);
-    highlightListingAfterInstr (es);
-*/
-}
 
 //---------------------------------------------------------------------------
 // Breakpoint
@@ -1299,22 +1271,33 @@ const cab_dc = (f) => (es) => {
 }
 
 const op_trap = (es) => {
-    let code = es.regfile[es.ir_d].get();
-    com.mode.devlog (`trap code=${code}`);
-    if (code===0) { // Halt
-	com.mode.devlog ("Trap: halt");
-        st.writeSCB (es, st.SCB_halted, 1)
-        setProcStatus (es,Halted);
-        //        refreshRegisters();
-        updateRegisters ()
-        updateMemory (es)
-        memRefresh(es);
-    } else if (code==1) { // Read
-        trapRead(es);
-    } else if (code==2) { // Write
-        trapWrite(es);
-    } else { // Undefined trap is nop
-        com.mode.devlog (`trap with unbound code = ${code}`)
+    let q = st.readSCB (es, st.SCB_shm_token)
+    switch (q) {
+    case st.SCB_main_gui_thread:
+        console.log (`handle trap in main thread`)
+        let code = es.regfile[es.ir_d].get();
+        com.mode.devlog (`trap code=${code}`);
+        if (code===0) { // Halt
+	    com.mode.devlog ("Trap: halt");
+            st.writeSCB (es, st.SCB_halted, 1)
+            setProcStatus (es,Halted);
+            //        refreshRegisters();
+            updateRegisters ()
+            updateMemory (es)
+            memRefresh(es);
+        } else if (code==1) { // Read
+            trapRead(es);
+        } else if (code==2) { // Write
+            trapWrite(es);
+        } else { // Undefined trap is nop
+            com.mode.devlog (`trap with unbound code = ${code}`)
+        }
+        break
+    case st.SCB_worker_thread:
+        console.log (`emworker: relinquish control on a trap`)
+        break
+    default:
+        console.log (`system error: trap has bad shm_token ${q}`)
     }
 }
 
@@ -1917,7 +1900,9 @@ function refreshIOlogBuffer() {
     elt.scrollTop = elt.scrollHeight;
 }
 
+
 export let ioLogBuffer = "";
+
 // export const procAsmListingElt = document.getElementById('ProcAsmListing');
 
 // export let procAsmListingElt; // global variables for emulator
@@ -2255,6 +2240,49 @@ function setMemString(es,a) {
     let x = es.shm[st.EmMemOffset + a]
     memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
 }
+
+//-------------------------------------------------
+// Display processor state in the gui
+//-------------------------------------------------
+
+// Show any changes to registers in the gui display
+
+function updateRegisters (es) {
+    com.mode.devlog ("--- updateRegisters ---")
+    // Clear previous highlighting by refreshing the registers
+    for (let x of regFetchedOld) { x.refresh () }
+    for (let x of regStoredOld)  { x.refresh () }
+    // Update the new register accesses
+    for (let x of regFetched)    { x.highlight ("GET") }
+    for (let x of regStored)     { x.highlight ("PUT") }
+    regFetchedOld = regFetched
+    regStoredOld = regStored
+    regFetched = []
+    regStored = []
+    com.mode.devlog ("--- updateRegisters returning ---")
+}
+
+
+//-------------------------------------------------
+// Emulator control from the gui
+//-------------------------------------------------
+
+// The Pause button stops the instruction looper and displays the state.
+
+export function procPause(es) {
+    com.mode.devlog ("procPause");
+    setProcStatus (es,Paused);
+    st.writeSCB (es, st.SCB_pause_request, 1)
+/* should update the display when the emwt responds to its previous run request
+    updateRegisters (es)
+    updateMemory (es)
+    memDisplayFull(es);
+    showInstrDecode (es);
+    highlightListingAfterInstr (es);
+*/
+}
+
+
 
 
 // ----------------------------------------------------------------------------

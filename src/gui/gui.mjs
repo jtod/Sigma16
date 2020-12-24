@@ -29,7 +29,6 @@ import * as ed    from './editor.mjs';
 import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
-import * as gt    from "./guitools.mjs";
 
 export const procAsmListingElt = document.getElementById('ProcAsmListing');
 
@@ -68,7 +67,7 @@ function checkBrowserWorkerSupport () {
 // be initialized by calling initThreads (), which uses the
 // communication protocol to deliver the shared memory to the worker.
 
-const emthread = new Worker("../base/emthread.mjs", {type:"module"});
+const emwThread = new Worker("../base/emwt.mjs", {type:"module"});
 
 //----------------------------------------
 // Communications protocol
@@ -85,15 +84,15 @@ const emthread = new Worker("../base/emthread.mjs", {type:"module"});
 // ... and the emulator thread uses codes 200, 201, ...  If a request
 // has code x, the response has code x+100.  The codes are:
 
-//   100 initialize: emt receives shared memory and builds emulator state
-//   101 step: emt executes one instruction
-//   102 run: emt executes instructions until a stopping condition
-//   103 print state: emt prints key registers and part of memory to console
-//   104 emt test 1 - for testing and development
-//   105 emt test 2 - for testing and development
+//   100 initialize: emwt receives shared memory and builds emulator state
+//   101 step: emwt executes one instruction
+//   102 run: emwt executes instructions until a stopping condition
+//   103 print state: emwt prints key registers and part of memory to console
+//   104 emwt test 1 - for testing and development
+//   105 emwt test 2 - for testing and development
 
 //----------------------------------------
-// emt 100: initialize
+// emwt 100: initialize
 //----------------------------------------
 
 // The main process sends the shared system state vector to the
@@ -104,97 +103,97 @@ const emthread = new Worker("../base/emthread.mjs", {type:"module"});
 // This action is essential and it's performed automatically in the
 // window.onload event handler.
 
-function emtInit () { // called by onload initializer, request 100
-    console.log ("main gui: emtInit")
+function emwtInit () { // called by onload initializer, request 100
+    console.log ("main gui: emwtInit")
     let msg = {code: 100, payload: st.sysStateVec}
-    emthread.postMessage (msg)
+    emwThread.postMessage (msg)
 }
 
-function handleEmtInitResponse (p) {
-    console.log (`main gui: received response to emt init ${p}`)
+function handleEmwtInitResponse (p) {
+    console.log (`main gui: received response to emwt init ${p}`)
 }
 
 //----------------------------------------
-// emt 101: step
+// emwt 101: step
 //----------------------------------------
 
-function emtStep () {
-    console.log ("main: emt step");
+function emwtStep () {
+    console.log ("main: emwt step");
     let msg = {code: 101, payload: 0}
-    emthread.postMessage (msg)
+    emwThread.postMessage (msg)
 }
 
-function handleEmtStepResponse (p) {
-    console.log (`main: handle emt step response ${p}`)
+function handleEmwtStepResponse (p) {
+    console.log (`main: handle emwt step response ${p}`)
     em.refresh (guiEmulatorState)
-    console.log (`main handle emt step response finished`)
+    console.log (`main handle emwt step response finished`)
 }
 
 //----------------------------------------
-// emt 102: run
+// emwt 102: run
 //----------------------------------------
 
-function emtRun () { // run until stopping condition
-    console.log ("main: emt run");
+function emwtRun () { // run until stopping condition
+    console.log ("main: emwt run");
     let instrLimit = 60000 // stop after this many instructions
     let msg = {code: 102, payload: instrLimit}
-    emthread.postMessage (msg)
+    emwThread.postMessage (msg)
 }
 
-function handleEmtRunResponse (p) { // run when emt sends 201
-    console.log (`main: handle emt run response ${p}`)
+function handleEmwtRunResponse (p) { // run when emwt sends 201
+    console.log (`main: handle emwt run response ${p}`)
     em.refresh (guiEmulatorState)
-    console.log (`main: emt run stopped after ${p} instructions`)
-    console.log (`main: handle emt run response finished`)
+    console.log (`main: emwt run stopped after ${p} instructions`)
+    console.log (`main: handle emwt run response finished`)
 }
 
 //----------------------------------------
-// emt 103: print state on console
+// emwt 103: print state on console
 //----------------------------------------
 
-function emtShow () {
-    console.log ("main: emtShowRegs")
+function emwtShow () {
+    console.log ("main: emwtShowRegs")
     let msg = {code: 103, payload: 0}
-    emthread.postMessage (msg)
+    emwThread.postMessage (msg)
 }
 
-function handleEmtShowResponse (p) {
-    console.log (`main: handle emt show response ${p}`)
+function handleEmwtShowResponse (p) {
+    console.log (`main: handle emwt show response ${p}`)
 }
 
 //----------------------------------------
-// emt 104: emt test 1
+// emwt 104: emwt test 1
 //----------------------------------------
 
-function emtTest1 () {
-    console.log ("main: emt test 1")
+function emwtTest1 () {
+    console.log ("main: emwt test 1")
     let msg = {code: 104, payload: 73} // arbitrary payload
-    emthread.postMessage (msg)
+    emwthread.postMessage (msg)
 }
 
-function handleEmtTest1Response (p) {
-    console.log (`main: handle emt test 1 response ${p}`)
+function handleEmwtTest1Response (p) {
+    console.log (`main: handle emwt test 1 response ${p}`)
 }
 
 //----------------------------------------
-// emt 105: emt test 2
+// emwt 105: emwt test 2
 //----------------------------------------
 
-function emtTest2 () {
-    console.log ("main: emt test 2")
+function emwtTest2 () {
+    console.log ("main: emwt test 2")
     let msg = {code: 105, payload: 78} // arbitrary payload
-    emthread.postMessage (msg)
+    emwThread.postMessage (msg)
 }
 
-function handleEmtTest2Response (p) { // 
-    console.log (`main: handle emt test 2 response ${p}`)
+function handleEmwtTest2Response (p) { // 
+    console.log (`main: handle emwt test 2 response ${p}`)
 }
 
 //----------------------------------------
-// Handle responses from emt
+// Handle responses from emwt
 //----------------------------------------
 
-emthread.addEventListener ("message", e => {
+emwThread.addEventListener ("message", e => {
     console.log ("main has received a message")
     if (e.data) {
         console.log ("main has received data from message")
@@ -202,27 +201,27 @@ emthread.addEventListener ("message", e => {
         switch (e.data.code) {
         case 200: // initialize
             console.log (`main: received 200 init response`)
-            handleEmtInitResponse (p)
+            handleEmwtInitResponse (p)
             break
-        case 201: // emt step
+        case 201: // emwt step
             console.log (`main: received 201 step response`)
-            handleEmtStepResponse (p)
+            handleEmwtStepResponse (p)
             break
-        case 202: // emt run
+        case 202: // emwt run
             console.log (`main rec 202 run response`)
-            handleEmtRunResponse (p)
+            handleEmwtRunResponse (p)
             break
-        case 203: // emt show
-            console.log (`main: rec 203 emt show response`)
-            handleEmtShowResponse (p)
+        case 203: // emwt show
+            console.log (`main: rec 203 emwt show response`)
+            handleEmwtShowResponse (p)
             break
-        case 204: // emt test 1
-            console.log (`main: rec 204 emt test 1 response`)
-            handleEmtTest1Response (p)
+        case 204: // emwt test 1
+            console.log (`main: rec 204 emwt test 1 response`)
+            handleEmwtTest1Response (p)
             break
-        case 205: // emt test 2
-            console.log (`main: rec 205 emt test 2 response`)
-            handleEmtTest2Response (p)
+        case 205: // emwt test 2
+            console.log (`main: rec 205 emwt test 2 response`)
+            handleEmwtTest2Response (p)
             break
         default:
             console.log (`main: received unknown code = ${e.data.code}`)
@@ -476,7 +475,8 @@ prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
 prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
 prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
 prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
-prepareButton ('About_Button',         () => showGuideSection('about-sigma16'));  
+prepareButton ('About_Button',
+               () => showGuideSection('sec-about-sigma16'));  
 
 // User guide resize (UGR) buttons
 // UGR Distance (px) to move boundary between gui and userguide on resize
@@ -488,13 +488,15 @@ prepareButton ('UG_Resize_Left_Small_Button', () => user_guide_resize(-UGRSMALL)
 prepareButton ('UG_Resize_Left_Large_Button', () => user_guide_resize(-UGRLARGE));
 
 // Welcome pane (WP)
-prepareButton ('WP_Guide_Top', jumpToGuideTop);
-prepareButton ('WP_Tutorials', () => showGuideSection('tutorial'));
-prepareButton ('WP_Architecture', () => showGuideSection('architecture'));
-prepareButton ('WP_ISA', () => showGuideSection('instruction-set'));
-prepareButton ('WP_Assembly_Language', () => showGuideSection('assembly-language'));
-prepareButton ('WP_Linker', () => showGuideSection('linker'));
-prepareButton ('WP_Programming', () => showGuideSection('programming'));
+// prepareButton ('WP_Guide_Top', jumpToGuideTop);
+prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
+prepareButton ('WP_Tutorials', () => showGuideSection('sec-tutorial'));
+prepareButton ('WP_Architecture', () => showGuideSection('sec-architecture'));
+prepareButton ('WP_ISA', () => showGuideSection('sec-instruction-set'));
+prepareButton ('WP_Assembly_Language',
+               () => showGuideSection('sec-assembly-language'));
+prepareButton ('WP_Linker', () => showGuideSection('sec-linker'));
+prepareButton ('WP_Programming', () => showGuideSection('sec-programming'));
 
 // Examples pane (EXP)
 prepareButton ('EXP_Examples_Home',    examplesHome);
@@ -509,14 +511,14 @@ prepareButton ('MP_Hello_world', () => insert_example(example_hello_world));
 // Editor pane (EDP)
 prepareButton ('EDP_Selected',    ed.edSelectedButton);
 prepareButton ('EDP_Clear',       ed.edClear);
-prepareButton ('EDP_New',         ed.edNew);
 prepareButton ('EDP_Revert',      ed.edRevert);
-prepareButton ('EDP_Asm',         ed.edAsm);
-prepareButton ('EDP_Obj',         ed.edObj);
-prepareButton ('EDP_Exe',         ed.edExe);
-prepareButton ('EDP_Link',        ed.edLink);
-prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
+prepareButton ('EDP_New',         ed.edNew);
 prepareButton ('EDP_Save',        ed.edDownload);
+prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
+// prepareButton ('EDP_Asm',         ed.edAsm);
+// prepareButton ('EDP_Obj',         ed.edObj);
+// prepareButton ('EDP_Exe',         ed.edExe);
+// prepareButton ('EDP_Link',        ed.edLink);
 
 // Assembler pane (AP)
 prepareButton ('AP_Assemble',        asm.assemblerGUI);
@@ -532,19 +534,19 @@ prepareButton ('LP_Show_Executable', link.linkShowExecutable);
 prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
 // Processor pane (PP)
-prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
-prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
 prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
 prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
 prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
 prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
 prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
-prepareButton ('PP_emtStep',      emtStep);
-prepareButton ('PP_emtRun',       emtRun);
-prepareButton ('PP_emtShow',      emtShow);
-prepareButton ('PP_emtTest1',     emtTest1);
-prepareButton ('PP_emtTest2',     emtTest2);
+prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
+prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
+prepareButton ('PP_emwtRun',       emwtRun);
+prepareButton ('PP_emwtTest1',     emwtTest1);
+// prepareButton ('PP_emwtStep',      emwtStep);
+// prepareButton ('PP_emwtShow',      emwtShow);
+// prepareButton ('PP_emwtTest2',     emwtTest2);
 
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
 prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
@@ -912,8 +914,8 @@ window.onload = function () {
     em.initializeMachineState (guiEmulatorState)
     com.mode.devlog (`gui mode = ${guiEmulatorState.mode}`)
     browserSupportsWorkers = checkBrowserWorkerSupport ()
-    if (browserSupportsWorkers) { emtInit () }
-    enableDevTools () // if commented out, this can be entered manually in console
+    if (browserSupportsWorkers) { emwtInit () }
+//    enableDevTools () // if commented out, this can be entered manually in console
     flags = new st.emflags (100)
     com.mode.trace = true
     com.mode.devlog("Initialization complete");
@@ -930,33 +932,33 @@ window.onload = function () {
 function action100 () { // Initialize
     console.log (`main action 100 Initialize`)
     let msg = {code: 100, payload: 0}
-    emthread.postMessage (msg)    
+    emwThread.postMessage (msg)    
 }
 
 
-function action112 () { // send foo, emt replies with emtCount, main212 prints
+function action112 () { // send foo, emwt replies with emwtCount, main212 prints
     console.log (`main action 112 send foo=${st.foo}`)
     let msg = {code: 112, payload: st.foo}
-    emthread.postMessage (msg)    
+    emwthread.postMessage (msg)    
 }
 
 function action113 () { // send foo
     console.log (`main action 113 foo=${st.foo}`)
     let msg = {code: 113, payload: st.foo}
     console.log (`main sending: <${msg}>`)
-    emthread.postMessage (msg)    
+    emwThread.postMessage (msg)    
 }
 
-function action114 () { // Tell emt to increment arr[23]
+function action114 () { // Tell emwt to increment arr[23]
     console.log ("main action 114")
     let msg = {code: 114, payload: null}
-    emthread.postMessage (msg)    
+    emwthread.postMessage (msg)    
 }
 
-function action115 () { // Tell emt to print regfile
+function action115 () { // Tell emwt to print regfile
 //    console.log (`main action 115 arr[23] = ${st.sysStateVec[23]}`)
     let msg = {code: 115, payload: null}
-    emthread.postMessage (msg)    
+    emwThread.postMessage (msg)    
 }
 
 

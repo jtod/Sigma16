@@ -547,10 +547,27 @@ export const EmStateSizeByte  = 2 * EmStateSizeWord
 
 // Codes for system control block
 
-export const SCB_writeRight      =  0  // 0: main, 1:emt
-export const SCB_nInstrExecuted  =  1  // count instructions executed
-export const SCB_halted          =  2  // 1 if halted
-export const SCB_pause_request   =  3
+
+// SCB flag indices
+export const SCB_shm_token        =  4
+export const SCB_nInstrExecuted   =  1  // count instructions executed
+export const SCB_cur_instr_addr   =  7
+export const SCB_next_instr_addr  =  8
+export const SCB_emwt_run_mode    =  5
+export const SCB_emwt_trap        =  6
+export const SCB_pause_request    =  3
+
+// Values of SCB_shm_owner token
+export const SCB_main_gui_thread  = 0
+export const SCB_worker_thread    = 1
+
+// Values of SCB_status token
+export const SCB_reset            = 0
+export const SCB_ready            = 1
+export const SCB_halted           = 2
+export const SCB_paused           = 3
+export const SCB_wait_trap        = 4
+export const SCB_blocked_input    = 5
 
 export function writeSCB (es, code, x) {
     let i = EmSCBOffset + code

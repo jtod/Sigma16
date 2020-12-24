@@ -31,7 +31,7 @@ for detailed documentation.
 The User Guide appears in the right side of the window.  You can
 increase or decrease its size by clicking the arrow buttons at the
 right side of the top button box, and you can also <a
-href="../../docs/html/userguide/userguide.html" target="_blank">open
+href="../../docs/UserGuide/Sigma16UserGuide.html" target="_blank">open
 the user guide in a new window</a>.
 #+END_EXPORT
 

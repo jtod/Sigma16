@@ -65,7 +65,7 @@ visiting this file in a browser.
 	<button id="Assembler_Pane_Button"> Assembler </button>
 	<button id="Linker_Pane_Button"> Linker </button>
 	<button id="Processor_Pane_Button"> Processor </button>
-	<button id="About_Button"> About Sigma16 </button>
+	<button id="About_Button"> About </button>
 	<button class="RightButton" id="UG_Resize_Right_Large_Button">
           &#x27f9;
         </button>
@@ -78,6 +78,7 @@ visiting this file in a browser.
 	<button class="RightButton" id="UG_Resize_Left_Large_Button">
 	  &#x27f8;
 	</button>
+	<button  id="Options_Button"> Options </button>
 	<button class="Hidden" id="DevTools_Pane_Button"> DevTools </button>
       </div>
       <div class="MiddleSection" id="MiddleSection">
@@ -86,10 +87,13 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
-		<button id="WP_Guide_Top"> Contents </button>
+<!--
+		<button id="WP_Guide_Top"> Top </button>
+-->
+		<button id="WP_TOC"> Contents </button>
 		<button id="WP_Tutorials"> Tutorials </button>
 		<button id="WP_Architecture"> Architecture </button>
-		<button id="WP_ISA"> Instruction set </button>
+		<button id="WP_ISA"> Instructions </button>
 		<button id="WP_Assembly_Language"> Assembly language </button>
 		<button id="WP_Linker"> Linker </button>
 		<button id="WP_Programming"> Programming </button>
@@ -138,17 +142,19 @@ visiting this file in a browser.
 		<button id="EDP_Clear"> Clear </button>
 		<button id="EDP_Revert"> Revert </button>
 		<button id="EDP_New"> New </button>
-		<button id="EDP_Asm"> Asm </button>
-		<button id="EDP_Obj"> Obj </button>
-		<button id="EDP_Exe"> Exe </button>
-		<button id="EDP_Link"> Link </button>
-		<button id="EDP_Hello_world"> Hello, world! </button>
-		<button id="EDP_Test"> Test </button>
                 <button id="EDP_Save"> Save </button>
 		<a download="S16DownloadFile.txt"
 		   id="editorDownloadAnchor"
 		   style="display: none">
 		</a>
+		<button id="EDP_Hello_world"> Hello, world! </button>
+                <!--
+		<button id="EDP_Asm"> Asm </button>
+		<button id="EDP_Obj"> Obj </button>
+		<button id="EDP_Exe"> Exe </button>
+		<button id="EDP_Link"> Link </button>
+		<button id="EDP_Test"> Test </button>
+                -->
 	      </div>
 	      <div class="PaneBody" id="EditorBody">
 		<textarea class="Editor" spellcheck="false" id="EditorTextArea">
@@ -185,19 +191,21 @@ visiting this file in a browser.
 	    
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
-		<button id="PP_Reset"> Reset </button>
 		<button id="PP_Boot"> Boot </button>
 		<button id="PP_Step"> Step </button>
 		<button id="PP_Run"> Run </button>
 		<button id="PP_Pause"> Pause </button>
 		<button id="PP_Interrupt"> Interrupt </button>
-                <button id="PP_emtStep"> emt step </button>
-                <button id="PP_emtRun"> emt run </button>
-                <button id="PP_emtShow"> emt show </button>
-                <button id="PP_emtTest1"> emt test1 </button>
-                <button id="PP_emtTest2"> emt test2 </button>
 		<button id="PP_Breakpoint"> Breakpoint </button>
 		<button id="PP_Refresh"> Refresh </button>
+		<button id="PP_Reset"> Reset </button>
+                <button id="PP_emwtRun"> emwtR </button>
+                <button id="PP_emwtTest1"> emwt1 </button>
+<!--
+                <button id="PP_emtStep"> emt step </button>
+                <button id="PP_emtShow"> emt show </button>
+                <button id="PP_emtTest2"> emt test2 </button>
+-->
 
 	      </div>
 	      <div class="PaneBody" id="ProcessorBody">
