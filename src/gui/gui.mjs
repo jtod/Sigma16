@@ -909,8 +909,10 @@ window.onload = function () {
     smod.initModules ();
     window.mode = com.mode;
     hideDevToolsButton ();
-//  guiEmulatorState = new em.EmulatorState (em.Mode_GuiDisplay)
-    guiEmulatorState = new em.EmulatorState (st.sysStateVec, em.Mode_GuiDisplay)
+// guiEmulatorState = new em.EmulatorState (em.Mode_GuiDisplay)
+// guiEmulatorState = new em.EmulatorState (st.sysStateVec, em.Mode_GuiDisplay)
+    guiEmulatorState = new em.EmulatorState (em.ES_gui_thread, st.sysStateVec)
+    console.log (`***** ----- mk es  ${em.ES_gui_thread}`)
     em.initializeMachineState (guiEmulatorState)
     com.mode.devlog (`gui mode = ${guiEmulatorState.mode}`)
     browserSupportsWorkers = checkBrowserWorkerSupport ()

@@ -547,27 +547,47 @@ export const EmStateSizeByte  = 2 * EmStateSizeWord
 
 // Codes for system control block
 
+// The system control block is stored in shared memory and contains
+// information that pertains to the entire system, including all
+// running emulators.  Any information that is specific to a
+// particular emulator (either the main gui thread or a worker thread)
+// is kept in the EmulatorState belonging to that thread.
 
 // SCB flag indices
-export const SCB_shm_token        =  4
-export const SCB_nInstrExecuted   =  1  // count instructions executed
-export const SCB_cur_instr_addr   =  7
-export const SCB_next_instr_addr  =  8
-export const SCB_emwt_run_mode    =  5
-export const SCB_emwt_trap        =  6
-export const SCB_pause_request    =  3
+export const SCB_status            =  0  // condition of the entire system
+export const SCB_nInstrExecuted    =  1  // count instructions executed
+export const SCB_cur_instr_addr    =  7  // address of instruction executing now
+export const SCB_next_instr_addr   =  8  // address of next instruction
+export const SCB_emwt_run_mode     =  5
+export const SCB_emwt_trap         =  6
+export const SCB_pause_request     =  3  // pause request is pending
 
-// Values of SCB_shm_owner token
-export const SCB_main_gui_thread  = 0
-export const SCB_worker_thread    = 1
 
-// Values of SCB_status token
-export const SCB_reset            = 0
-export const SCB_ready            = 1
-export const SCB_halted           = 2
-export const SCB_paused           = 3
-export const SCB_wait_trap        = 4
-export const SCB_blocked_input    = 5
+// SCB_status specifies the condition of the entire system
+export const SCB_reset             = 0 // after initialization or Reset command
+export const SCB_ready             = 1 // after boot
+export const SCB_running_gui       = 2 // running in main gui thread
+export const SCB_running_emwt      = 3 // running in emulator worker thread
+export const SCB_paused            = 4 // after Pause command
+export const SCB_break             = 5 // after Pause command
+export const SCB_halted            = 6 // after trap 0
+export const SCB_blocked           = 7 // during blocking read trap
+export const SCB_relinquish        = 8 // emwt relinquished control temporarily
+
+export function showSCBstatus (es) {
+    switch (readSCB (es, SCB_status)) {
+    case 0: return "Reset"
+    case 1: return "Ready"
+    case 2: return "Running"  // run in gui
+    case 3: return "Running"  // run in emwt
+    case 4: return "Paused"
+    case 5: return "Break"
+    case 6: return "Halted"
+    case 7: return "Blocked"
+    case 8: return "Relinquish"  // relinquish
+    default: ""
+    }
+}
 
 export function writeSCB (es, code, x) {
     let i = EmSCBOffset + code

@@ -26,13 +26,11 @@ import * as em from "./emulator.mjs"
 // Emulator state
 //-----------------------------------------------------------------------------
 
-let emwt =
-    {initialized: false,
-     shm: null, // shared system state vector
-     es: null // emulator state
+let emwt = {
+    shm: null, // shared system state vector
+    es: null // emulator state
     }
 
-let emwtCount = 0 // local variable for testng
 
 //-----------------------------------------------------------------------------
 // Communication protocol
@@ -47,7 +45,7 @@ self.addEventListener ("message", e => {
         case 100: // emwt init: received shared system state vector
             console.log ("emwt: received request init")
             emwt.shm = e.data.payload
-            emwt.es = new em.EmulatorState (emwt.shm, em.Mode_Quiet)
+            emwt.es = new em.EmulatorState (em.ES_worker_thread, emwt.shm)
             em.initializeMachineState (emwt.es)
             emwt.initialized = true
             msg = {code: 200, payload: 0}
@@ -86,7 +84,6 @@ self.addEventListener ("message", e => {
         default:
             console.log (`emwt: received unknown code ${e.data.code}`)
         }
-        emwtCount++
     }
 })
 
