@@ -125,26 +125,54 @@ function emwtStep () {
 
 function handleEmwtStepResponse (p) {
     console.log (`main: handle emwt step response ${p}`)
-    em.refresh (guiEmulatorState)
-    console.log (`main handle emwt step response finished`)
+    //    em.refresh (guiEmulatorState)
+    em.execInstrPostDisplay (guiEmulatorState)
+    let newstatus = st.readSCB (guiEmulatorState, st.SCB_status)
+    console.log (`main handle emwt step response: status=${newstatus}`)
+    if (newstatus === st.SCB_relinquish) {
+        console.log (`***** main gui: handle worker step relinquish`)
+    }
 }
 
 //----------------------------------------
 // emwt 102: run
 //----------------------------------------
 
-function emwtRun () { // run until stopping condition
+function emwtRun () { // run until stopping condition; relinquish on trap
     console.log ("main: emwt run");
-    let instrLimit = 60000 // stop after this many instructions
+    let instrLimit = 0 // disabled; stop after this many instructions
     let msg = {code: 102, payload: instrLimit}
+    st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
     emwThread.postMessage (msg)
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 201
     console.log (`main: handle emwt run response ${p}`)
-    em.refresh (guiEmulatorState)
-    console.log (`main: emwt run stopped after ${p} instructions`)
+//    em.refresh (guiEmulatorState)
+    em.execInstrPostDisplay (guiEmulatorState)
+    let newstatus = st.readSCB (guiEmulatorState, st.SCB_status)
+    console.log (`main handle emwt run response: status=${newstatus}`)
     console.log (`main: handle emwt run response finished`)
+    if (newstatus === st.SCB_relinquish) {
+        console.log (`***** main gui: handle worker run relinquish`)
+        console.log (`SCB status = ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
+        console.log (`handle WT Run response, run one instruction in main thread`)
+        em.procStep (guiEmulatorState)
+        console.log (`SCB status = ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
+        console.log (`***** main handle run relinquish, finished one instruction`)
+        let newerStatus = st.readSCB (guiEmulatorState, st.SCB_status)
+        console.log (`*** main handle run relinquish, newerStatus=${newerStatus}`)
+        switch (newerStatus) {
+        case st.SCB_halted:
+            console.log (`main handle run relinquish, halted, stop run`)
+            break
+        case st.SCB_ready:
+            console.log (`main handle run relinquish, resuming run`)
+            emwtRun ()
+            break
+        default: console.log (`main handle relinquish, status=${newerStatus}`)
+        }
+    }
 }
 
 //----------------------------------------
@@ -542,8 +570,9 @@ prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
 prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
 prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
-prepareButton ('PP_emwtRun',       emwtRun);
-prepareButton ('PP_emwtTest1',     emwtTest1);
+prepareButton ('PP_StepWT'  ,     emwtStep);
+prepareButton ('PP_RunWT',        emwtRun);
+prepareButton ('PP_emwtTest1',    emwtTest1);
 // prepareButton ('PP_emwtStep',      emwtStep);
 // prepareButton ('PP_emwtShow',      emwtShow);
 // prepareButton ('PP_emwtTest2',     emwtTest2);
@@ -895,6 +924,7 @@ let browserSupportsWorkers = false
 let flags
 let guiEmulatorState // declare here, define at onload event 
 
+// This runs in the main gui thread but not in worker thread
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     em.hideBreakDialogue ();
@@ -917,9 +947,10 @@ window.onload = function () {
     com.mode.devlog (`gui mode = ${guiEmulatorState.mode}`)
     browserSupportsWorkers = checkBrowserWorkerSupport ()
     if (browserSupportsWorkers) { emwtInit () }
-//    enableDevTools () // if commented out, this can be entered manually in console
+    em.procReset (guiEmulatorState)
     flags = new st.emflags (100)
     com.mode.trace = true
+    // Can enter into console: enableDevTools ()
     com.mode.devlog("Initialization complete");
     com.mode.trace = false
 }

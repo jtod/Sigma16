@@ -160,7 +160,8 @@ export function boot (es) {
         resetRegisters (es);
         es.pc.put (0) // shouldn't be needed?
         refreshRegisters (es)
-        memDisplay(es);
+        updateMemory (es)
+        memDisplayFull(es);
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
             + "Boot was successful"
@@ -198,11 +199,12 @@ export function displayFullState (es) {
 //------------------------------------------------------------------------------
 // Processor execution status
 //------------------------------------------------------------------------------
-
+/* deprecated
 export let Reset  = Symbol ("Reset");   // registers and memory cleared
 export let Ready  = Symbol ("Ready");   // can execute instruction
 export let Paused = Symbol ("Paused");  // temporary halt for inspecting state
 export let Halted = Symbol ("Halted");  // trap 0 has executed
+*/
 
 //----------------------------------------------------------------------
 //  Registers
@@ -307,11 +309,9 @@ export class genregister {
         this.regName = regName
         this.eltName = eltName
         this.show = showFcn
-        console.log (`genreg set elt ${this.regName} - ${this.es.thread_host} ${this.es.thread_host === ES_gui_thread}`)
         this.elt = this.es.thread_host === ES_gui_thread
             ? document.getElementById (this.eltName)
             : null
-        if (this.elt) { this.elt.innerHTML = "HELLO"}
         es.register.push (this)
     }
     get () {
@@ -335,7 +335,7 @@ export class genregister {
                      + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
     }
     highlight (key) {
-        console.log (`reg-highlight ${this.regName} ${key}`)
+//        console.log (`reg-highlight ${this.regName} ${key}`)
         if (this.es.thread_host === ES_gui_thread) {
             let i = st.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
@@ -359,7 +359,6 @@ export class genregister {
 
 function resetRegisters (es) {
     com.mode.devlog('Resetting registers');
-    return // ??????????
     for (let i = 0; i < es.nRegisters; i++) {
         es.register[i].put (0)
         es.register[i].refresh ()
@@ -367,6 +366,7 @@ function resetRegisters (es) {
 }
 
 export function refresh (es) {
+    console.log ("Refresh")
     refreshRegisters (es)
     memRefresh (es)
     memDisplayFull (es)
@@ -629,7 +629,6 @@ function memInitialize (es) {
 
 function memClear (es) {
     for (let a = 0; a < memSize; a++) {
-        //	memory[i] = 0;
         memStore (es, a, 0)
     }
     memFetchInstrLog = [];
@@ -667,44 +666,9 @@ function memStore (es, a,x) {
     es.shm[st.EmMemOffset + a] = x
 }
 
-
-function memTest1a () {
-    com.mode.devlog('testMem1a');
-    memClear ();
-    memStore(3,7);
-    memStore(6,2);
-    memDisplay ();
-}
-
-function memTest1b (es) {
-    com.mode.devlog('testMem1b');
-    let y = memFetchInstr(es,6);
-    memStore(300,20);
-    memDisplay ();
-}
-
-function memTest2 (es) {
-    com.mode.devlog('testMem2');
-    memClear ();
-    let y = memFetchInstr (es,32768);
-    let q = memFetchData (es,50);
-    memStore (65520, 7);
-//    memShowAccesses ();
-    memDisplay (es);
-}
-
 //------------------------------------------------------------------------------
 // Processor execution status
 //------------------------------------------------------------------------------
-
-
-function showProcStatus (s) {
-    return s == Reset ? "Reset"
-        : s == Ready  ? "Ready"
-        : s == Paused ? "Paused"
-        : s == Halted ? "Halted"
-        : "Unknown"
-}
 
 // Global variables for instruction decode; used in emulator
 
@@ -852,7 +816,8 @@ export function procStep (es) {
     case st.SCB_ready:
     case st.SCB_paused:
     case st.SCB_break:
-        console.log ("procStep executing instruction...")
+    case st.SCB_relinquish:
+        console.log ("procStep: main thread executing instruction...")
         st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
         executeInstruction (es)
         if (st.readSCB (es, st.SCB_status) != st.SCB_halted) {
@@ -866,7 +831,6 @@ export function procStep (es) {
     case st.SCB_running_emwt:
     case st.SCB_halted:
     case st.SCB_blocked:
-    case st.SCB_relinquish:
         console.log ("procStep skipping instruction...")
         break
     default: console.log (`error: procStep unknown SCB_tatus= ${q}`)
@@ -874,11 +838,12 @@ export function procStep (es) {
 }
 
 export function procReset (es) {
+    console.log ("Reset");
     com.mode.devlog ("reset the processor");
     st.writeSCB (es, st.SCB_status, st.SCB_reset)
     resetRegisters (es);
     refreshRegisters (es);
-    memClear ();
+    memClear (es);
 //    memClearAccesses ();
     memDisplay (es);
     document.getElementById('ProcAsmListing').innerHTML = "";
@@ -1002,7 +967,7 @@ function breakClose () {
 
 // (for stepping) Display the effects of the instruction
 
-function execInstrPostDisplay (es) {
+export function execInstrPostDisplay (es) {
     console.log ("execInstrPostDisplay")
     switch (es.thread_host) {
     case ES_worker_thread: // should be impossible
@@ -1077,7 +1042,9 @@ export function executeInstruction (es) {
 // Check for interrupt
 //    let mr = es.mask.get() & es.req.get(); ??????????????????????
 //        com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`);
-//    if (arith.getBitInRegBE (es.statusreg,arch.intEnableBit) && mr) {
+    //    if (arith.getBitInRegBE (es.statusreg,arch.intEnableBit) && mr) {
+
+    st.writeSCB (es, st.SCB_cur_instr_addr, es.pc.get())
     if (false) { // ????????????????? disable for testing
         com.mode.devlog (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
@@ -1113,6 +1080,8 @@ export function executeInstruction (es) {
     es.ir.put (instrCode);
     es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
     es.pc.put (es.nextInstrAddr);
+    st.writeSCB (es, st.SCB_next_instr_addr, es.nextInstrAddr)
+
     com.mode.devlog (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
     
 // com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) + ' ir = ' + arith.wordToHex4(instr));
@@ -1271,6 +1240,10 @@ const op_trap = (es) => {
         break
     case ES_worker_thread:
         console.log (`emworker: relinquish control on a trap`)
+        st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
+        console.log (`trap relinquish before fixup, pc = ${es.pc.get()}`)
+        es.pc.put (st.readSCB (es, st.SCB_cur_instr_addr))
+        console.log (`trap relinquish after fixup, pc = ${es.pc.get()}`)
         break
     default:
         console.log (`system error: trap has bad shm_token ${q}`)
@@ -1449,6 +1422,7 @@ const rx = (f) => (es) => {
     es.adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.pc.put (es.nextInstrAddr);
+    st.writeSCB (es, st.SCB_next_instr_addr, es.nextInstrAddr)
     //    es.ea = arith.binAdd (regFile[es.ir_a].get(), adr.get());
     es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
     es.instrEA = es.ea;
@@ -2497,3 +2471,13 @@ function setProcStatus (es,s) {
     highlightListingAfterInstr (es);
 */
 
+
+/*
+function showProcStatus (s) {
+    return s == Reset ? "Reset"
+        : s == Ready  ? "Ready"
+        : s == Paused ? "Paused"
+        : s == Halted ? "Halted"
+        : "Unknown"
+}
+*/

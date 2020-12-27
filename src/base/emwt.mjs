@@ -315,20 +315,26 @@ function doStep () {
 function doRun (limit) {
     console.log (`emwt: start doRun limit=${limit}`)
     let count = 0
-    //    let startTime = new Date ()
     let startTime = performance.now ()
-    while (st.readSCB (emwt.es, st.SCB_halted) != 1
-           && st.readSCB (emwt.es, st.SCB_pause_request) != 1) {
+    let b;
+    b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
+          && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
+    console.log (`doRun count=${count} b=${b}`)
+//    while (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
+    //           && st.readSCB (emwt.es, st.SCB_pause_request) === 0) {
+    while (b) {
+        console.log ("emwt doRun execute instruction")
         em.executeInstruction (emwt.es)
         count++
+        b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
+              && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
+        console.log (`doRun count=${count} b=${b}`)
       }
-    //    let finishTime = new Date ()
     let finishTime = performance.now ()
     let elapsedTime = (finishTime - startTime) / 1000
     console.log (`emwt: doRun finished, executed ${count} instructions`
                  + ` in ${elapsedTime} sec`)
     return count
 }
-//        console.log (`emwt doRun count=${count}`)
 
 console.log ("emwthread has been read")
