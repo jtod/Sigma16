@@ -149,7 +149,7 @@ function emwtRun () { // run until stopping condition; relinquish on trap
 function handleEmwtRunResponse (p) { // run when emwt sends 201
     console.log (`main: handle emwt run response ${p}`)
 //    em.refresh (guiEmulatorState)
-    em.execInstrPostDisplay (guiEmulatorState)
+//    em.execInstrPostDisplay (guiEmulatorState) ??? 2020-12-28 cut highlighting
     let newstatus = st.readSCB (guiEmulatorState, st.SCB_status)
     console.log (`main handle emwt run response: status=${newstatus}`)
     console.log (`main: handle emwt run response finished`)
@@ -157,9 +157,20 @@ function handleEmwtRunResponse (p) { // run when emwt sends 201
         console.log (`***** main gui: handle worker run relinquish`)
         console.log (`SCB status = ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
         console.log (`handle WT Run response, run one instruction in main thread`)
-        em.procStep (guiEmulatorState)
+
+// 2020-12-28 test: highlighting causes slowdown on relinquish; must be disabled
+//        em.procStep (guiEmulatorState) // ??? 2020-12-28 test
+        st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
+          // ??? 2020-12-28 test
+        em.executeInstruction (guiEmulatorState) // ??? 2020-12-28 test
+        if (st.readSCB (guiEmulatorState, st.SCB_status) != st.SCB_halted) {
+            // ? 2020-12-28 test
+            st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
+            // ??? 2020-12-28 test
+        } // ??? 2020-12-28 test
+
         console.log (`SCB status = ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
-        console.log (`***** main handle run relinquish, finished one instruction`)
+//        console.log (`***** main handle run relinquish, finished one instruction`)
         let newerStatus = st.readSCB (guiEmulatorState, st.SCB_status)
         console.log (`*** main handle run relinquish, newerStatus=${newerStatus}`)
         switch (newerStatus) {

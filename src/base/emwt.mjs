@@ -323,12 +323,12 @@ function doRun (limit) {
 //    while (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
     //           && st.readSCB (emwt.es, st.SCB_pause_request) === 0) {
     while (b) {
-        console.log ("emwt doRun execute instruction")
+//        console.log ("emwt doRun execute instruction")
         em.executeInstruction (emwt.es)
         count++
         b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
               && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
-        console.log (`doRun count=${count} b=${b}`)
+//        console.log (`doRun count=${count} b=${b}`)
       }
     let finishTime = performance.now ()
     let elapsedTime = (finishTime - startTime) / 1000
