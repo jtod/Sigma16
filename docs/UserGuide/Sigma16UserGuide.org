@@ -4561,6 +4561,7 @@ similar to this:
 #+END_EXAMPLE
 
 
+
 * Installation
 
 ** The easy way: running in browser with no installation
@@ -4788,7 +4789,7 @@ The architecture, software tools, and documentation were designed,
 implemented, and written by John O'Donnell.  Contact email:
 john.t.odonnell9@gmail.com
 
-Copyright (c) 2020 John T. O'Donnell
+Copyright (C) 2020, 2021 John T. O'Donnell
 
 License: GNU GPL Version 3 or later.  The full text of the GPL-3
 license is given below.
@@ -4806,81 +4807,24 @@ If not, see <https://www.gnu.org/licenses/>.
 ** Release notes
 
 Sigma16 has gone through several versions.  Its aims and principles
-have remained the same, but various details have changed.  Some
-changes can be ignored by the assembly language programmer: for
-example, if an instruction has a different opcode but is otherwise
-unchanged.  Other changes may require some alterations to assembly
-language programs.
+remain the same but some details have changed.  Most changes can be
+ignored by the assembly language programmer: for example, if an
+instruction has a different opcode but is otherwise unchanged.  Other
+changes may require some alterations to assembly language programs.
 
-*** Version 3.2.0, December 2020
+*** Version 3.2.0, January 2021
 
 Version 3.2 brings several changes that will be visible to users of
 previous versions of Sigma16:
 
-- /cmplt, cmpeq, cmpgt are removed./ Instead, use the cmp instruction,
-  which sets the condition code (R15), and use the condition code with
-  any of jumplt, jumple, jumpeq, jumpne, jumpge, jumpgt.
-
-- /jumpf is renamed to jumpz, jumpt is renamed to jumpnz./ The new
-  names stand for "jump if zero" and "jump if not zero".  The new
-  names reflect more accurately what the instructions actually do.
-  Most old programs will use one of these after cmplt, cmpeq, or
-  cmpgt, but following cmp you should use one of jumplt, jumple,
-  jumpeq, jumpne, jumpge, jumpgt.
-
-- /[R0] is optional./ In all previous versions of Sigma16, every
-  displacement requires the index register to be stated explicitly,
-  even if it's R0: for example, load R3,xyz[R0].  Now, the [R0] can be
-  omitted, although you can include it.  Thus "load R3,xyz" and "load
-  R3,xyz[R0]" are equivalent.  (The reason for requiring [R0] in the
-  past was to emphasise the regularity of the instruction
-  representation.  However, a primary aim of the design of Sigma16 is
-  to provide "subsetting" of the architecture, supporting a spiral
-  approach to learning the instruction set.  Another aim is to provide
-  a good platform for schools or other students who will just learn a
-  little of the system.  Removing the requirement for [R0] makes
-  thnigs simpler for a beginner.  Furthermore, for an experienced
-  expert programmer it's more readable to omit the [R0] as this
-  reduces the amount of clutter in the code.)
-
-- /Disallow register names as identifiers./ Previously, you could
-  write "R4 data 5" but this is now disallowed, as is "r4 data 6".
-  The reason is that there were two separate namespaces: one for
-  registers and another for identifiers (i.e. labels).  This allows
-  the programmer more freedom in choosing names, but it allows code
-  that looks misleading: for example, lea R4,R4[R4] is legal but
-  likely confusing.  This is now disallowed: previously, you could
-  write "r8 data 42" but that now gives an error.
-
-- /Allow lower case "r" in register names./ You can write r8 as well
-  as R8 (and of course the same for the rest of the register file).
-  Both names refer to the same register.  This is a trivial syntax
-  issue.  There's no technical reason to prefer r8 or R8; this is
-  entirely a matter of personal preference.  It may be easier to read
-  r8 because the lower case r is shorter than the digits.  It is good
-  style to use either the Rn or rn form consistently, but the assembly
-  language doesn't enforce this.
-
-- /System names begin with #./
-
-There are some new instructions and features, and some old
-instructions and features that weren't documented before, but these
-won't affect existing programs.  They just enhance the capabilities of
-the system.  These include interrupts, mutual exclusion, modules and
-linking, relocation, and segmentation.
-
-*** Version 3.2
-
-Implemented in JavaScript.  Runs in browser without requiring any
-download or installation.  There are additional command line tools
-that can be downloades and installed (see Installation section in User
-Guide).
-
-**** Changes visible to the assembly language programmer
-
-- The following instructions from previous releases have been removed:
-  cmplt, cmpeq, cmpgt.  Instead, use the cmp instruction, followed by
-  one of jumplt, jumple, jumpeq, jumpne, jumpge, jumpgt.  For example:
+- /cmplt, cmpeq, cmpgt are removed./ Instead, use the =cmp=
+  instruction, which sets the condition code (=R15=), and then use any
+  of the conditional jump instructions =jumplt=, =jumple=, =jumpeq=,
+  =jumpne=, =jumpge=, =jumpgt=.  (Rationale: There are more Booleans
+  in the condition code than just less-than, equal, and greater-than.
+  The new style accomodates all the conditions in a uniform manner,
+  but the old style does not.  Version 3.1 already supported =cmp= and
+  the conditional jumps.)  Here's an example:
 
 #+BEGIN_EXAMPLE
 ; Old style -- these instructions have been removed
@@ -4891,15 +4835,83 @@ Guide).
      jumplt  loop[R0]      ; if R2 < R3 then goto loop
 #+END_EXAMPLE
 
-- The following instructions from previous releases have been renamed:
-  jumpf is now jumpz, jumpt is not jumpnz.
+- /jumpf is renamed to jumpz, and jumpt is renamed to jumpnz./ The new
+  names stand for /jump if zero/ and /jump if not zero/.  Most old
+  programs will use =jumpf= or =jumpt= only after =cmplt=, =cmpeq=, or
+  =cmpgt=, but following =cmp= you should use one of the conditional
+  jumps listed above. (Rationale: The new names reflect more
+  accurately what the instructions actually do.  The decision about
+  whether to jump depends on whether the entire register contains 0;
+  it isn't a decision based on checking just a single bit.)
 
-**** Changes to the architecture
+- /Disallow register names as identifiers./ Previously, you could
+  write =R4 data 5= but this is now disallowed, as is =r4 data 6=.
+  For example, =lea R4,R4[R4]= used to be legal, but now it's an error
+  to use a register name as a label.  (Rationale: The old syntax
+  allowed the programmer more freedom in choosing names at the cost of
+  poor readability.  Code like =lea R4,R4[R4]= is misleading,
+  confusing, bad style, and likely to be misunderstood.  Previously,
+  there was one namespace for all identifiers, including registers and
+  labels, so you could define R8 as a label.  Now, registers and
+  labels have separate namespaces.  This shouldn't requre changes to
+  any old programs, unless they are written in bad style.)
 
-- The word logic instructions inv, and, or, xor are now
-  pseudoinstructions that generate logicw instructions.  The assembly
-  language syntax is the same as before; only the underlying machine
-  language representation is different
+The following changes do not require modifying old programs; they just
+relax the syntax rules so some programs would no longer give an error
+message.
+
+- /[R0] is optional./ In previous versions of Sigma16, every
+  displacement requires the index register to be stated explicitly,
+  even if it's =R0=: for example, =load R3,xyz[R0]=.  Now, the =[R0]=
+  can be omitted, although you can include it if you wish.  Thus =load
+  R3,xyz= and =load R3,xyz[R0]= are equivalent.  (Rationale: The
+  reason for requiring =[R0]= in the past was to emphasise the
+  regularity of the instruction representation.  However, a primary
+  aim of the design of Sigma16 is to provide subsetting of the
+  architecture, which supports a spiral approach to learning computer
+  architecture.  Another aim is to provide a good platform for schools
+  or other students who will just learn a little of the system.
+  Removing the requirement for =[R0]= simplifies the language for a
+  beginner.  Furthermore, for an experienced expert programmer it's
+  more readable to omit the =[R0]= as this reduces the amount of
+  clutter in the code.)
+
+- /Allow lower case "r" in register names./ In previous versions,
+  elements of the register file required an upper case =R=: for
+  example, =R8=.  Now you can write =r8= as well as =R8=, and both
+  names refer to the same register.  (Of course the same holds for the
+  rest of the register file.)  This is a trivial syntax issue.
+  There's no technical reason to prefer =r8= or =R8=; it's just a
+  matter of personal preference.  It may be easier to read =r8=
+  because the lower case =r= is shorter than the digits.  It's good
+  style to use either the =Rn= or =rn= form consistently, but the
+  assembly language doesn't enforce that. Labels are case sensitive but
+  registers are not.    Labels are case-sensitive,
+  so =xyz= and =XYZ= are distinct names, but registers are not labels,
+  and registers are not case sensitive.
+
+- /System names begin with #./ The system library modules have names
+  that bewtin with =#=, as do the control registers.  Rationale: a
+  beginner won't know about some of the advanced features of the
+  architecture, and might quite reasonably define a label with the
+  same name as a control register or library module.  The =#= syntax
+  puts the system labels into a different namespace than user labels.
+
+There are some changes to the machine language that don't affect
+assembly language programs.
+
+- Some of the opcodes have changed, so programs need to be
+  reassembled.
+
+- The word logic instructions =inv=, =and=, =or=, =xor= are now
+  pseudoinstructions that generate the =logicw= instruction.  The
+  assembly language syntax is the same as before; only the underlying
+  machine language representation is different
+
+There are some new instructions and features, as well as some
+instructions and features that have been in the architecture for some
+time but weren't documented in the User Gude.  These won't affect
+existing programs.
 
 ** Text of GPL3 License
 

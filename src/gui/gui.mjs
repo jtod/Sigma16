@@ -148,8 +148,6 @@ function emwtRun () { // run until stopping condition; relinquish on trap
 
 function handleEmwtRunResponse (p) { // run when emwt sends 201
     console.log (`main: handle emwt run response ${p}`)
-//    em.refresh (guiEmulatorState)
-//    em.execInstrPostDisplay (guiEmulatorState) ??? 2020-12-28 cut highlighting
     let newstatus = st.readSCB (guiEmulatorState, st.SCB_status)
     console.log (`main handle emwt run response: status=${newstatus}`)
     console.log (`main: handle emwt run response finished`)
@@ -158,27 +156,22 @@ function handleEmwtRunResponse (p) { // run when emwt sends 201
         console.log (`SCB status = ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
         console.log (`handle WT Run response, run one instruction in main thread`)
 
-// 2020-12-28 test: highlighting causes slowdown on relinquish; must be disabled
-//        em.procStep (guiEmulatorState) // ??? 2020-12-28 test
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
-          // ??? 2020-12-28 test
-        em.executeInstruction (guiEmulatorState) // ??? 2020-12-28 test
+        em.executeInstruction (guiEmulatorState)
         if (st.readSCB (guiEmulatorState, st.SCB_status) != st.SCB_halted) {
-            // ? 2020-12-28 test
             st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
-            // ??? 2020-12-28 test
-        } // ??? 2020-12-28 test
+        }
 
-        console.log (`SCB status = ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
-//        console.log (`***** main handle run relinquish, finished one instruction`)
+        console.log (`main relinquish after instruction, SCB status =`
+                     + ` ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
         let newerStatus = st.readSCB (guiEmulatorState, st.SCB_status)
-        console.log (`*** main handle run relinquish, newerStatus=${newerStatus}`)
+        console.log (`main relinquixh after instruction, status=${newerStatus}`)
         switch (newerStatus) {
         case st.SCB_halted:
-            console.log (`main handle run relinquish, halted, stop run`)
+            console.log (`main handle run relinquish, halted`)
             break
         case st.SCB_ready:
-            console.log (`main handle run relinquish, resuming run`)
+            console.log (`main handle run relinquish, resuming`)
             emwtRun ()
             break
         default: console.log (`main handle relinquish, status=${newerStatus}`)

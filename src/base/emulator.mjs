@@ -317,11 +317,11 @@ export class genregister {
     get () {
         this.es.regFetched.push (this)
         let i = st.EmRegBlockOffset + this.regStIndex
-        com.mode.devlog (`--- reg get ${this.regName} with`
-                     + `  (idx=${i})`)
+//        com.mode.devlog (`--- reg get ${this.regName} with`
+//                     + `  (idx=${i})`)
         let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-        com.mode.devlog (`--- reg get ${this.regName} =`
-                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
+//        com.mode.devlog (`--- reg get ${this.regName} =`
+//                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
         return x
     }
     put (x) {
@@ -331,8 +331,8 @@ export class genregister {
         if (this.regIdx < 16) { // register file
             instrEffect.push (["R", this.regNumber, x, this.regName]);
         }
-        com.mode.devlog (`--- reg put ${this.regName} :=`
-                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
+//        com.mode.devlog (`--- reg put ${this.regName} :=`
+//                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
     }
     highlight (key) {
 //        console.log (`reg-highlight ${this.regName} ${key}`)
@@ -837,8 +837,9 @@ export function procStep (es) {
     }
 }
 
+// Separate clearing state from refreshing display
 export function procReset (es) {
-    console.log ("Reset");
+    console.log ("em.procReset");
     com.mode.devlog ("reset the processor");
     st.writeSCB (es, st.SCB_status, st.SCB_reset)
     resetRegisters (es);
@@ -852,7 +853,9 @@ export function procReset (es) {
 //    es.nInstructionsExecuted = 0;
     st.writeSCB (es, st.SCB_nInstrExecuted, 0)
     guiDisplayNinstr (es)
-// document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
+    // document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
+    ioLogBuffer = ""
+    refreshIOlogBuffer ()
 }
 
 //------------------------------------------------------------------------------
@@ -1848,9 +1851,10 @@ const asmScrollOffsetAbove = 8;
 let pxPerChar = 13.05;
 
 
-
+// Should move to gui.mjs
 function refreshIOlogBuffer() {
     com.mode.devlog (`refreshIOlogBugfer ${ioLogBuffer}`);
+    console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
     let elt = document.getElementById("IOlog");
     elt.innerHTML = "<pre>" + ioLogBuffer + "</pre>";
     elt.scrollTop = elt.scrollHeight;
@@ -1909,7 +1913,7 @@ function memDisplayFast (es) {
     xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
     	+ memString.slice(xa,xb).join('\n')
 	+ "</code></pre>";
-    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
+//    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
     guiDisplayMem (es, es.memElt1, xs)
 //    memElt1.innerHTML = xs;
     yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
@@ -1920,7 +1924,7 @@ function memDisplayFast (es) {
     ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
 	+ memString.slice(ya,yb).join('\n')
 	+ "</code></pre>";
-    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
+//    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
     //    memElt2.innerHTML = ys;
     guiDisplayMem (es, es.memElt2, xs)
 }
