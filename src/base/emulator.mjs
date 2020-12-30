@@ -185,6 +185,11 @@ export function boot (es) {
     com.mode.devlog ("boot returning");
 }
 
+export function refreshProcStatusDisplay (es) {
+    let xs = st.showSCBstatus (es)
+    document.getElementById("procStatus").innerHTML = xs
+}
+
 export let highlightedRegisters = [];
 
 // Update the display of all registers and memory (all of memory)
@@ -370,6 +375,7 @@ export function refresh (es) {
     refreshRegisters (es)
     memRefresh (es)
     memDisplayFull (es)
+    refreshProcStatusDisplay (es)
     guiDisplayNinstr (es)
 }
 //    let n = st.readSCB (es, st.SCB_nInstrExecuted)
@@ -839,23 +845,30 @@ export function procStep (es) {
 
 // Separate clearing state from refreshing display
 export function procReset (es) {
-    console.log ("em.procReset");
+    console.log ("em reset");
     com.mode.devlog ("reset the processor");
     st.writeSCB (es, st.SCB_status, st.SCB_reset)
+    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
+    st.writeSCB (es, st.SCB_cur_instr_addr, 0)
+    st.writeSCB (es, st.SCB_next_instr_addr, 0)
+    st.writeSCB (es, st.SCB_emwt_run_mode, 0)
+    st.writeSCB (es, st.SCB_emwt_trap, 0)
+    st.writeSCB (es, st.SCB_pause_request, 0)
     resetRegisters (es);
-    refreshRegisters (es);
     memClear (es);
-//    memClearAccesses ();
+    refreshDisplay (es)
+}
+
+export function refreshDisplay (es) {
+    refreshRegisters (es);
     memDisplay (es);
     document.getElementById('ProcAsmListing').innerHTML = "";
     clearInstrDecode (es);
     refreshInstrDecode (es);
-//    es.nInstructionsExecuted = 0;
-    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
     guiDisplayNinstr (es)
-    // document.getElementById("nInstrExecuted").innerHTML = es.nInstructionsExecuted;
     ioLogBuffer = ""
     refreshIOlogBuffer ()
+//    memClearAccesses ();
 }
 
 //------------------------------------------------------------------------------
@@ -2264,6 +2277,7 @@ function refreshRegisters (es) {
 export function procPause(es) {
     com.mode.devlog ("procPause");
     st.writeSCB (es, st.SCB_pause_request, 1)
+    console.log ("em wrote procPause request")
 }
 
 //-----------------------------------------------------------------------------
