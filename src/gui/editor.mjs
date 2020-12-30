@@ -81,16 +81,6 @@ export function edSelectedButton () {
     console.log ("edSelectedButton clicked");
 }
 
-/* deprecated
-export function edTest () {
-    console.log ("edTest");
-    console.log (getEditorBufferText ());
-    document.getElementById("EDP_Selected").innerText = "<b>hello</b>there";
-    setEditorBufferText ("This is new text for the ed buffer");
-    console.log (getEditorBufferText ());
-}
-*/
-
 // Check to see if the contents of the editor buffer have changed
 
 export function leaveEditor () {
@@ -98,7 +88,6 @@ export function leaveEditor () {
     const m = st.env.getSelectedModule (); // module to be edited
     edSaveTextToEdit (m);
 }
-
 
 function setEditorText (stage, text) {
     document.getElementById('EditorTextArea').value = text;

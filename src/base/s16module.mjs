@@ -83,25 +83,6 @@ function handleClose (bn) {
     refreshModulesList ();
 }
 
-// Temporary testing code
-
-/* deprecated
-export function test() {
-    console.log ("smod.test");
-    refreshModulesList ();
-
-    console.log ("Summary of selected module");
-    let m = st.env.getSelectedModule ();
-    console.log (m.showShort());
-    
-    com.modalWarning ("This is a\nmodal warning!");
-    console.log (`modules:`);
-    for (const k of st.env.modules.keys()) {
-        console.log (`key = ${k}`);
-    }
-}
-*/
-
 //------------------------------------------------------------------------------
 // Representation of a module
 //------------------------------------------------------------------------------
@@ -127,7 +108,6 @@ export function initModules () {
     com.mode.trace = true;
     com.mode.devlog ("initModules");
     st.env.clearModules ();
-//    refreshEditorBuffer();  only do this when entering editor
     refreshModulesList();
 }
 
@@ -220,8 +200,8 @@ export function checkFileName (xs) {
 let newFiles = [];
 
 export function handleSelectedFiles (flist) {
-    com.mode.trace = true;
-    com.mode.devlog (`*********** handleSelectedFiles: ${flist.length} files`);
+//    com.mode.trace = true;
+    com.mode.devlog (`*** handleSelectedFiles: ${flist.length} files`);
     newFiles = [];
     for (let f of flist) {
         const {errors, baseName, stage} = checkFileName (f.name);
@@ -257,8 +237,23 @@ function mkFileReader (fileRecord) {
     fr.onload = function (e) {
 	com.mode.devlog (`File reader ${fileRecord.fileName} onload`);
         fileRecord.text = e.target.result;
-        console.log (`file onload bn=${fileRecord.baseName} fileName=${fileRecord.fileName} text=${fileRecord.text}`);
+        console.log (`file onload bn=${fileRecord.baseName} `
+                     + `fileName=${fileRecord.fileName} text=${fileRecord.text}`);
         fileRecord.fileReadComplete = true;
+        let m = st.env.mkSelectModule (fileRecord.baseName)
+        switch (fileRecord.stage) {
+        case st.StageAsm: m.asmEdText = fileRecord.text
+            console.log (`set asmEdText = ${m.asmEdText}`)
+            break
+        case st.StageObj: m.objEdText = fileRecord.text
+            break
+        case st.StageLnk: m.lnkEdText = fileRecord.text
+            break
+        case st.StageExe: m.exeEdText = fileRecord.text
+            break
+        default:
+            console.log ("*** Error file read, unknown stage")
+        }
         refreshWhenReadsFinished ();
     }
     fr.onerror = function (e) {

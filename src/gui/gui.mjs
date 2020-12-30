@@ -67,7 +67,9 @@ function checkBrowserWorkerSupport () {
 // be initialized by calling initThreads (), which uses the
 // communication protocol to deliver the shared memory to the worker.
 
+console.log ("gui.mjs starting emwt")
 const emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+console.log ("gui.mjs has started emwt")
 
 //----------------------------------------
 // Communications protocol
@@ -107,6 +109,7 @@ function emwtInit () { // called by onload initializer, request 100
     console.log ("main gui: emwtInit")
     let msg = {code: 100, payload: st.sysStateVec}
     emwThread.postMessage (msg)
+    console.log ("main gui: posted init message 100 to emwt")
 }
 
 function handleEmwtInitResponse (p) {
@@ -141,8 +144,8 @@ function handleEmwtStepResponse (p) {
 function emwtRun () { // run until stopping condition; relinquish on trap
     console.log ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
-    let msg = {code: 102, payload: instrLimit}
     st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
+    let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
 }
 
@@ -169,6 +172,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 201
         switch (newerStatus) {
         case st.SCB_halted:
             console.log (`main handle run relinquish, halted`)
+            em.refresh (guiEmulatorState)
             break
         case st.SCB_ready:
             console.log (`main handle run relinquish, resuming`)
