@@ -556,11 +556,11 @@ export const EmStateSizeByte  = 2 * EmStateSizeWord
 // SCB flag indices
 export const SCB_status            =  0  // condition of the entire system
 export const SCB_nInstrExecuted    =  1  // count instructions executed
-export const SCB_cur_instr_addr    =  7  // address of instruction executing now
-export const SCB_next_instr_addr   =  8  // address of next instruction
-export const SCB_emwt_run_mode     =  5
-export const SCB_emwt_trap         =  6
-export const SCB_pause_request     =  3  // pause request is pending
+export const SCB_cur_instr_addr    =  2  // address of instruction executing now
+export const SCB_next_instr_addr   =  3  // address of next instruction
+export const SCB_emwt_run_mode     =  4
+export const SCB_emwt_trap         =  5
+export const SCB_pause_request     =  6  // pause request is pending
 
 
 // SCB_status specifies the condition of the entire system
@@ -587,6 +587,16 @@ export function showSCBstatus (es) {
     case 8: return "Relinquish"  // relinquish
     default: ""
     }
+}
+
+export function resetSCB (es) {
+    writeSCB (es, SCB_status, SCB_reset)
+    writeSCB (es, SCB_nInstrExecuted, 0)
+    writeSCB (es, SCB_cur_instr_addr, 0)
+    writeSCB (es, SCB_next_instr_addr, 0)
+    writeSCB (es, SCB_emwt_run_mode, 0)
+    writeSCB (es, SCB_emwt_trap, 0)
+    writeSCB (es, SCB_pause_request, 0)
 }
 
 export function writeSCB (es, code, x) {

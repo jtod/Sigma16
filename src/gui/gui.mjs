@@ -40,6 +40,25 @@ export function modalWarning (msg) {
 // Emulator thread
 //-------------------------------------------------------------------------------
 
+function logShmStatus (es) {
+    let status = st.showSCBstatus (es)
+    let n = st.readSCB (es, st.SCB_nInstrExecuted)
+    let cur = st.readSCB (es, st.SCB_cur_instr_addr)
+    let next = st.readSCB (es, st.SCB_next_instr_addr)
+    let mode = st.readSCB (es, st.SCB_emwt_run_mode)
+    let trap =  st.readSCB (es, st.SCB_emwt_trap)
+    let pause = st.readSCB (es, st.SCB_pause_request)
+    let xs = `Shm flags:\n`
+        + ` status = ${status}\n`
+        + ` n = ${n}\n`
+        + ` cur = ${cur}\n`
+        + ` next = ${next}\n`
+        + ` mode = ${mode}\n`
+        + ` trap = ${trap}\n`
+        + ` pause = ${pause}\n`
+    return xs
+}
+
 //----------------------------------------
 // Check capabilities of the platform
 //----------------------------------------
@@ -150,11 +169,63 @@ function emwtRun () { // run until stopping condition; relinquish on trap
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 201
-    console.log (`main: handle emwt run response ${p}`)
-    let newstatus = st.readSCB (guiEmulatorState, st.SCB_status)
-    console.log (`main handle emwt run response: status=${newstatus}`)
-    console.log (`main: handle emwt run response finished`)
-    if (newstatus === st.SCB_relinquish) {
+    let status = st.readSCB (guiEmulatorState, st.SCB_status)
+    let  msg = {code: 0, payload: 0}
+    console.log (`main: handle emwt run response: p=${p} status=${status}`)
+    switch (status) {
+    case st.SCB_halted:
+        console.log (`*** main: handle emwt halt`)
+        em.refresh (guiEmulatorState)
+        st.showSCBstatus (guiEmulatorState)
+        break
+    case st.SCB_paused:
+        console.log (`*** main: handle emwt pause`)
+        em.refresh (guiEmulatorState)
+        st.showSCBstatus (guiEmulatorState)
+        st.writeSCB (guiEmulatorState, st.SCB_pause_request, 0)
+        st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
+        st.showSCBstatus (guiEmulatorState)
+        console.log (`*** main: finished handle emwt pause`)
+        break
+    case st.SCB_break:
+        console.log (`*** main: handle emwt break`)
+        em.refresh (guiEmulatorState)
+        st.showSCBstatus (guiEmulatorState)
+        st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
+        st.showSCBstatus (guiEmulatorState)
+        console.log (`*** main: finished handle emwt break`)
+        break
+    case st.SCB_blocked:
+        console.log (`*** main: handle emwt blocked`)
+        break
+    case st.SCB_relinquish: // emwt halt signals halt, not relinquish
+        console.log (`*** main: handle emwt relinquish`)
+        st.showSCBstatus (guiEmulatorState)
+        st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
+        em.executeInstruction (guiEmulatorState)
+        if (st.readSCB (guiEmulatorState, st.SCB_status) === st.SCB_halted) {
+            em.refresh (guiEmulatorState)
+            console.log (`*** main: handle emwt relinquish then halted`)
+        } else {
+            console.log (`*** main: handle emwt relinquish resuming`)
+            st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
+            msg = {code: 102, payload: 0}
+            emwThread.postMessage (msg)
+        }
+        console.log (`*** main: finished handle emwt relinquish`)
+        break
+    case st.SCB_reset:
+    case st.SCB_ready:
+    case st.SCB_running_gui:
+    case st.SCB_running_emwt:
+    default:
+        console.log (`main:handleEmwtRunResponse unknown status = ${status}`)
+    }
+    console.log ("main: handleEmwtRunResponse finished")
+}
+
+/*        
+//    if (newstatus === st.SCB_relinquish) {
         console.log (`***** main gui: handle worker run relinquish`)
         console.log (`SCB status = ${st.readSCB (guiEmulatorState, st.SCB_status)}`)
         console.log (`handle WT Run response, run one instruction in main thread`)
@@ -181,7 +252,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 201
         default: console.log (`main handle relinquish, status=${newerStatus}`)
         }
     }
-}
+*/
 
 //----------------------------------------
 // emwt 103: print state on console
@@ -203,9 +274,10 @@ function handleEmwtShowResponse (p) {
 
 function emwtTest1 () {
     console.log ("main: emwt test 1")
-    let msg = {code: 104, payload: 73} // arbitrary payload
-    emwthread.postMessage (msg)
+    console.log (logShmStatus (guiEmulatorState))
 }
+//    let msg = {code: 104, payload: 73} // arbitrary payload
+//    emwthread.postMessage (msg)
 
 function handleEmwtTest1Response (p) {
     console.log (`main: handle emwt test 1 response ${p}`)

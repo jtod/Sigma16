@@ -90,6 +90,7 @@ export function boot (es) {
     com.mode.trace = true;
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
+    st.resetSCB (es)
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
@@ -847,6 +848,12 @@ export function procStep (es) {
 export function procReset (es) {
     console.log ("em reset");
     com.mode.devlog ("reset the processor");
+    st.resetSCB (es)
+    resetRegisters (es);
+    memClear (es);
+    refreshDisplay (es)
+}
+/* redundant, now use resetSCB
     st.writeSCB (es, st.SCB_status, st.SCB_reset)
     st.writeSCB (es, st.SCB_nInstrExecuted, 0)
     st.writeSCB (es, st.SCB_cur_instr_addr, 0)
@@ -854,10 +861,7 @@ export function procReset (es) {
     st.writeSCB (es, st.SCB_emwt_run_mode, 0)
     st.writeSCB (es, st.SCB_emwt_trap, 0)
     st.writeSCB (es, st.SCB_pause_request, 0)
-    resetRegisters (es);
-    memClear (es);
-    refreshDisplay (es)
-}
+*/
 
 export function refreshDisplay (es) {
     refreshRegisters (es);
@@ -868,6 +872,7 @@ export function refreshDisplay (es) {
     guiDisplayNinstr (es)
     ioLogBuffer = ""
     refreshIOlogBuffer ()
+    st.showSCBstatus (es)
 //    memClearAccesses ();
 }
 
@@ -2276,7 +2281,9 @@ function refreshRegisters (es) {
 
 export function procPause(es) {
     com.mode.devlog ("procPause");
+    st.showSCBstatus (es)
     st.writeSCB (es, st.SCB_pause_request, 1)
+    st.showSCBstatus (es)
     console.log ("em wrote procPause request")
 }
 

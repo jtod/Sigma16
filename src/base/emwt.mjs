@@ -314,27 +314,43 @@ function doStep () {
 
 function doRun (limit) {
     console.log (`emwt: start doRun limit=${limit}`)
-    let count = 0
     let startTime = performance.now ()
-    let b;
-    b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
-          && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
-    console.log (`doRun count=${count} b=${b}`)
-//    while (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
-    //           && st.readSCB (emwt.es, st.SCB_pause_request) === 0) {
-    while (b) {
-//        console.log ("emwt doRun execute instruction")
+    let count = 0
+
+    let curStatus = st.readSCB (emwt.es, st.SCB_status)
+    let curPauseReq = 0
+    console.log (`starting run status${curStatus}`)
+    let b = curStatus === st.SCB_running_emwt
+    while (b) { // stop on trap or pause
         em.executeInstruction (emwt.es)
         count++
-        b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
-              && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
-//        console.log (`doRun count=${count} b=${b}`)
-      }
+        curPauseReq = st.readSCB (emwt.es, st.SCB_pause_request)
+        if (curPauseReq === 1) {
+            console.log ("emwt received pause request")
+            st.writeSCB (emwt.es, st.SCB_status, st.SCB_paused)
+//            st.writeSCB (emwt.es, st.SCB_pause_request, 0)
+        }
+        curStatus = st.readSCB (emwt.es, st.SCB_status)
+        b = curStatus === st.SCB_running_emwt
+        //        b = curStatus === st.SCB_running_emwt && curPauseReq === 0
+    }
+    console.log (`emwt run stopped, count=${count},`
+                 + `status=${curStatus}, pause=${curPauseReq}`)
     let finishTime = performance.now ()
     let elapsedTime = (finishTime - startTime) / 1000
     console.log (`emwt: doRun finished, executed ${count} instructions`
                  + ` in ${elapsedTime} sec`)
     return count
 }
+
+//        b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
+//              && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
+//    console.log (`doRun count=${count} b=${b}`)
+//    b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
+//          && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
+//        console.log (`doRun count=${count} b=${b}`)
+//        console.log ("emwt doRun execute instruction")
+//    while (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
+//           && st.readSCB (emwt.es, st.SCB_pause_request) === 0) {
 
 console.log ("emwthread has been read")
