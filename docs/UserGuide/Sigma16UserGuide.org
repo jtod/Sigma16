@@ -1630,13 +1630,19 @@ condition code bits that have specific meanings are called *flags*.
 
 Table: Condition code flags
 
-| 0 | 1 | 2  | 3 | 4 | 5 | 6 | 7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 |
-|---+---+----+---+---+---+---+---+----+----+----+----+----+----+----+----|
-| G | g | E  | L | l | V | v | C | SO | SU |    |    |    |    |    |    |
-| G | > | E  | L | l | V | v | C |    |    |    |    |    |    |    |    |
-|---+---+----+---+---+---+---+---+----+----+----+----+----+----+----+----|
-| > | > | =  | < | < |   | v | C |    |    |    |    |    |    |    |    |
-| N | I | NI | N | I |   | I | N |    |    |    |    |    |    |    |    |
+| index   | 0     | 1     | 2 | 3     | 4     | 5        | 6        | 7     |
+|---------+-------+-------+---+-------+-------+----------+----------+-------|
+| name    | L     | l     | E | G     | g     | V        | v        | C     |
+| symbol  | L     | <     | = | G     | >     | V        | v        | C     |
+| meaning | < nat | < int | = | > nat | > int | ovfl nat | ovfl int | carry |
+
+| index   | 8          | 9         | 10 | 11 | 12 | 13 | 14 | 15 |
+|---------+------------+-----------+----+----+----+----+----+----|
+| name    | S          | s         |    |    |    |    |    |    |
+| symbol  | S          | s         |    |    |    |    |    |    |
+| meaning | stack ovfl | stack ufl |    |    |    |    |    |    |
+
+
 
 ** Memory
 
@@ -2866,21 +2872,82 @@ Re and Rf, and the result is loaded into the destination register Rd.
 - Assembly format: RRRKEXP
 - Rd := (function g) Re Rf
 
+| x | y | result |
+|---+---+--------|
+| 0 | 0 | a      |
+| 0 | 1 | b      |
+| 1 | 0 | c      |
+| 1 | 1 | d      |
+
+
+| abcd | hex | function |
+| 0000 |   0 |          |
+| 0001 |   1 |          |
+| 0010 |   2 |          |
+| 0011 |   3 |          |
+| 0100 |   4 |          |
+| 0101 |   5 |          |
+| 0110 |   6 |          |
+| 0111 |   7 |          |
+| 1000 |   8 |          |
+| 1001 |   9 |          |
+| 1010 |  10 |          |
+| 1011 |  11 |          |
+| 1100 |  12 |          |
+| 1101 |  13 |          |
+| 1110 |  14 |          |
+| 1111 |  15 |          |
+
+
+| x | y | x and y | x xor y | x or y |
+|---+---+---------+---------+--------+
+| 0 | 0 |       0 |       0 |      0 |
+| 0 | 1 |       0 |       1 |      1 |
+| 1 | 0 |       0 |       1 |      1 |
+| 1 | 1 |       1 |       0 |      1 |
+|---+---+---------+---------+--------+
+|   |   |       1 |       6 |      7 |
+|---+---+---------+---------+--------|
+
+| x | y | x nor y | inv y | inv x | x nand y |
+|---+---+---------+-------+-------+----------|
+| 0 | 0 |       1 |     1 |     1 |        1 |
+| 0 | 1 |       0 |     0 |     1 |        1 |
+| 1 | 0 |       0 |     1 |     0 |        1 |
+| 1 | 1 |       0 |     0 |     0 |        0 |
+|---+---+---------+-------+-------+----------|
+|   |   |       8 |     a |     c |        e |
+|---+---+---------+-------+-------+----------|
+
+
+| function | abcd | code |
+|----------+------+------|
+| and      | 0001 |    1 |
+| or       | 0111 |    7 |
+| xor      | 0110 |    6 |
+| inv x    | 1100 |   12 |
+| inv y    |      |      |
+
+
 *** logicb
 
 The /logicb/ instruction performs an arbitrary Boolean logic function
 on two operand bits, producing a result bit.  All three bits must be
-in the same register.
+in the same register.  If a program keeps a collection of Boolean
+variables in one register, logicb supports evaluation of general
+expressions using those variables.
 
-In the following example, we are performing logic on bits within R1.
-The logic function is 6 (see Logic Functions), the operands are bits
-2 and 2, and the result is placed into bit 3.  The instruction could
-be read as: within R1, perform logic function 6 on bits 9 and 2, and
-place the result in bit 3.
+This logicb instruction performs R1.3 := R1.9 xor R1.2:
 
 #+BEGIN_EXAMPLE
       logicb  R1,3,9,2,6
 #+END_EXAMPLE
+
+This instruction performs logic on bits within R1.  The logic function
+is 6 (see Logic Functions), the operands are bits 9 and 2, and the
+result is placed into bit 3.  The instruction could be read as: within
+R1, perform logic function 6 on bits 9 and 2, and place the result in
+bit 3.
 
 Pseudoinstructions are provided for the most common logic functions;
 these all generate a logicb instruction.  The operands for these are
@@ -3333,8 +3400,6 @@ function operand set to perform an xor.
 
 ** Summary of instruction set
 
-*** Notation
-
 The following notations and abbreviations are used to specify
 precisely and concisely the effects of the instructions:
 
@@ -3358,12 +3423,14 @@ precisely and concisely the effects of the instructions:
 
 *** Instructions
 
+The following table summarises the full instruction set:
+
 - Mnemonic: instruction name used in assembly language
 - P: if true, the instruction is privileged
-- Fmt: architecture instruction format
-- Args: format of arguments used in assembly language
+- Fmt: machine language instruction format
+- Args: assembly language argument format
 - Code: operation code; primary,secondary opcode
-- Effect: brief synopsis
+- Effect: brief synopsis of what the instruction does
 
 |----------+---+------+-------+------+---------------------------------------|
 | Mnemonic | P | Fmt  | Args  | Code | Effect                                |
@@ -3376,14 +3443,14 @@ precisely and concisely the effects of the instructions:
 | muln     |   | RRR  | RRR   | 5    | R15++Rd := Ra :*: Rb                  |
 | divn     |   | RRR  | RRR   | 6    | R15++Rd := R15++Ra :/: Rb             |
 | cmp      |   | RRR  | RR    | 7    | R15 := Ra cmp Rb                      |
-| shift    |   | RRR  | RRR   | 8    | Rd := Ra shift Rb, >0 left, <0 right  |
-| push     |   | RRR  | RRR   | 9    | M[ea] := Rd, Rb++                     |
-| pop      |   | RRR  | RRR   | a    | Rb--, Rd := M[ea]                     |
-| top      |   | RRR  | RRR   | b    | Rd := M[ea]                           |
-|          |   | RRR  |       | c    | -- reserved --                        |
-| trap     |   | RRR  | RRR   | d    | interrupt                             |
-|          |   | ---  |       | e    | escape to EXP format                  |
-|          |   | ---  |       | f    | escape to RX format                   |
+| push     |   | RRR  | RRR   | 8    | M[ea] := Rd, Rb++                     |
+| pop      |   | RRR  | RRR   | 9    | Rb--, Rd := M[ea]                     |
+| top      |   | RRR  | RRR   | a    | Rd := M[ea]                           |
+| ---      |   | RRR  |       | b    | reserved                              |
+| trap     |   | RRR  | RRR   | c    | interrupt                             |
+|          |   |      |       | d    | escape to EXP format                  |
+|          |   |      |       | e    | escape to LW format                   |
+|          |   |      |       | f    | escape to RX format                   |
 |----------+---+------+-------+------+---------------------------------------|
 | lea      |   | RX   | RX    | f,0  | Rd := ea                              |
 | load     |   | RX   | RX    | f,1  | Rd := M[ea]                           |
@@ -3392,11 +3459,11 @@ precisely and concisely the effects of the instructions:
 | jal      |   | RX   | RX    | f,4  | Rd := pc, pc := ea                    |
 | jumpc0   |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea              |
 | jumpc1   |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea              |
-| jumpz    |   | RX   | RX    | f,7  | if Rd=0 then pc := ea                 |
-| jumpnz   |   | RX   | RX    | f,8  | if Rd!=0 then pc := ea                |
-| testset  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1               |
-|          |   | RX   |       | f,a  | -- reserved --                        |
-|          |   | RX   |       | f,b  | -- reserved --                        |
+| jumpn    |   | RX   | RX    | f,7  | if Rd < 0 then pc := ea               |
+| jumpz    |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea               |
+| jumpnz   |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea              |
+| jumpp    |   | RX   | RX    | f,a  | if Rd > 0 then pc := ea               |
+| testset  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1               |
 |          |   | RX   |       | f,c  | -- reserved --                        |
 |          |   | RX   |       | f,d  | -- reserved --                        |
 |          |   | RX   |       | f,e  | -- reserved --                        |
@@ -3404,17 +3471,17 @@ precisely and concisely the effects of the instructions:
 |----------+---+------+-------+------+---------------------------------------|
 | resume   | P | EXP1 | R     | e,00 | pc := ipc, status := istatus          |
 |----------+---+------+-------+------+---------------------------------------|
-| getctl   | P | EXP2 | RC    | e,01 | Rd := Sc                              |
-| putctl   | P | EXP2 | RC    | e,02 | Sc := Rd                              |
-| logicw   |   | EXP2 | RRRk  | e,03 | Rd := Re (lut g) Rf                   |
-| logicb   |   | EXP2 | Rkkkk | e,04 | Rd.e := Rd.f (lut h) Rd.g             |
-| shiftl   |   | EXP2 | RRk   | e,05 | Rd := Ra shl b                        |
-| shiftr   |   | EXP2 | RRk   | e,06 | Rd := Ra shr b                        |
+| save     |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd     |
+| restore  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1]     |
+| shiftl   |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                        |
+| shiftr   |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                        |
+| logicw   |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf                   |
+| logicb   |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g             |
 | extract  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si        |
 | extracti |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si       |
-| save     |   | EXP2 | RRRk  | e,09 | M[ea] := R1, ..., M[ea+d-1] := Rd     |
-| restore  |   | EXP2 | RRRk  | e,0a | R1 := M[ea], ..., Rd := M[ea+d-1]     |
-|          |   | EXP2 |       | e,09 | -- reserved --                        |
+| getctl   | P | EXP2 | RC    | e,09 | Rd := Sc                              |
+| putctl   | P | EXP2 | RC    | e,0a | Sc := Rd                              |
+|          |   | EXP2 |       | e,0b | -- reserved --                        |
 |          |   | EXP2 |       | ...  | -- reserved --                        |
 |          |   | EXP2 |       | e,ff | -- reserved --                        |
 |----------+---+------+-------+------+---------------------------------------|

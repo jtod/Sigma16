@@ -1413,12 +1413,12 @@ const dispatch_primary_opcode =
         cab_dc (arith.op_muln),   // 5
         cab_dc (arith.op_divn),   // 6
         ab_c  (arith.op_cmp),     // 7
-        ab_dc (arith.op_shift),   // 8
-        op_push,                  // 9
-        op_pop,                   // a
-        op_top,                   // b
-        ab_dc (arith.op_nop),     // c  reserved, currently nop
-        op_trap,                  // d  trap=13
+        op_push,                  // 8
+        op_pop,                   // 9
+        op_top,                   // a
+        ab_dc (arith.op_nop),     // b  reserved, currently nop
+        op_trap,                  // c  trap=13
+        ab_dc (arith.op_nop),     // d  reserved for expanding opcode
         handle_EXP,               // e  escape to EXP
         handle_rx ]               // f  escape to RX
 
@@ -1461,11 +1461,11 @@ const dispatch_RX =
       rx (rx_jal),       // 4
       rx (rx_jumpc0),    // 5
       rx (rx_jumpc1),    // 6
-      rx (rx_jumpz),     // 7
-      rx (rx_jumpnz),    // 8
-      rx (rx_testset),   // 9
-      rx (rx_nop),       // a
-      rx (rx_nop),       // b
+      rx (rx_jumpz),     // 7 should be jumpn ?????????
+      rx (rx_jumpz),     // 8
+      rx (rx_jumpnz),    // 9
+      rx (rx_jumpz),     // a should be jumpp ?????????
+      rx (rx_testset),   // b
       rx (rx_nop),       // c
       rx (rx_nop),       // d
       rx (rx_nop),       // e
@@ -1771,16 +1771,16 @@ const exp2 = (f) => (es) => {
 
 const dispatch_EXP =
       [ exp1 (exp1_resume),    // 0
-        exp2 (exp2_getctl),    // 1
-        exp2 (exp2_putctl),    // 2
-        exp2 (exp2_logicw),    // 2
-        exp2 (exp2_logicb),    // 4
-        exp2 (exp2_shiftl),    // 5
-        exp2 (exp2_shiftr),    // 6
+        exp2 (exp2_save),      // 1
+        exp2 (exp2_restore),   // 2
+        exp2 (exp2_shiftl),    // 3
+        exp2 (exp2_shiftr),    // 4
+        exp2 (exp2_logicw),    // 5
+        exp2 (exp2_logicb),    // 6
         exp2 (exp2_extract),   // 7
         exp2 (exp2_extracti),  // 8
-        exp2 (exp2_save),      // 9
-        exp2 (exp2_restore)    // a
+        exp2 (exp2_getctl),    // 9
+        exp2 (exp2_putctl)     // a
     ]
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 

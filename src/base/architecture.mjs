@@ -61,7 +61,7 @@ export const aRX      = Symbol ("RX");       // load     R1,xyz[R2]
 export const akX      = Symbol ("KX");       // jumpc0   3,next[R0]
 export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
 export const aRkkkk   = Symbol ("Rkkkk");    // logicb   R1,3,8,2,xor
-export const aRkkk    = Symbol ("Rkkkk");    // xorb     R1,3,8,2
+export const aRkkk    = Symbol ("Rkkk");     // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");     // logicw   R1,R2,R3,xor
 export const aRkkRk   = Symbol ("RkkRk");    // extract  R1,3,5,R2,7
 export const aRRRkk   = Symbol ("RRRkk");    // inject   R1,R2,R3,5,7
@@ -141,17 +141,17 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // together to produce the final condition code.
 
 // These definitions give the bit index
-export const bit_ccG = 0;   //    G   >          binary
-export const bit_ccg = 1;   //    >   >          two's complement
-export const bit_ccE = 2;   //    =   =          all types
-export const bit_ccL = 3;   //    L   <          binary
-export const bit_ccl = 4;   //    <   <          two's complement
-export const bit_ccV = 5;   //    v   overflow   two's complement
-export const bit_ccv = 6;   //    v   overflow   two's complement
-export const bit_ccC = 7;   //    c   carry      binary
+export const bit_ccL = 0   //  L   <          binary
+export const bit_ccl = 1   //  <   <          two's complement
+export const bit_ccE = 2   //  =   =          all types
+export const bit_ccG = 3   //  G   >          binary
+export const bit_ccg = 4   //  >   >          two's complement
+export const bit_ccV = 5   //  v   overflow   nat
+export const bit_ccv = 6   //  v   overflow   two's complement
+export const bit_ccC = 7   //  c   carry      binary
 
-export const bit_ccStackOverflow  = 8;   //    c   carry      binary
-export const bit_ccStackUnderflow = 9;   //    c   carry      binary
+export const bit_ccStackOverflow  = 8;   // stack overflow
+export const bit_ccStackUnderflow = 9;   // stack underflow
 
 //-----------------------------------------------------------------------------
 // Status register bits
@@ -231,22 +231,24 @@ statementSpec.set("addc",     {ifmt:iRRR,  afmt:aRRR,    opcode:[4]});
 statementSpec.set("muln",     {ifmt:iRRR,  afmt:aRRR,    opcode:[5]});
 statementSpec.set("divn",     {ifmt:iRRR,  afmt:aRRR,    opcode:[6]});
 statementSpec.set("cmp",      {ifmt:iRRR,  afmt:aRR,     opcode:[7]});
-statementSpec.set("shift",    {ifmt:iRRR,  afmt:aRRR,    opcode:[8]});
-statementSpec.set("push",     {ifmt:iRRR,  afmt:aRRR,    opcode:[9]});
-statementSpec.set("pop",      {ifmt:iRRR,  afmt:aRRR,    opcode:[10]});
-statementSpec.set("top",      {ifmt:iRRR,  afmt:aRRR,    opcode:[11]});
-statementSpec.set("trap",     {ifmt:iRRR,  afmt:aRRR,    opcode:[13]});
+statementSpec.set("push",     {ifmt:iRRR,  afmt:aRRR,    opcode:[8]});
+statementSpec.set("pop",      {ifmt:iRRR,  afmt:aRRR,    opcode:[9]});
+statementSpec.set("top",      {ifmt:iRRR,  afmt:aRRR,    opcode:[10]});
+// opcode b is reserved; currently treated as nop
+statementSpec.set("trap",     {ifmt:iRRR,  afmt:aRRR,    opcode:[12]});
 
 // RX instructions have primary opcode f and secondary opcode in b field
 statementSpec.set("lea",     {ifmt:iRX,  afmt:aRX,    opcode:[15,0]});
-statementSpec.set("load",    {ifmt:iRX,  afmt:aRX,      opcode:[15,1], pseudo:false});
+statementSpec.set("load",    {ifmt:iRX,  afmt:aRX,    opcode:[15,1], pseudo:false});
 statementSpec.set("store",   {ifmt:iRX,  afmt:aRX,    opcode:[15,2]});
 statementSpec.set("jump",    {ifmt:iRX,  afmt:aX,     opcode:[15,3]});
 statementSpec.set("jal",     {ifmt:iRX,  afmt:aRX,    opcode:[15,4]});
 statementSpec.set("jumpc0",  {ifmt:iRX,  afmt:akX,    opcode:[15,5]});
 statementSpec.set("jumpc1",  {ifmt:iRX,  afmt:akX,    opcode:[15,6]});
-statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,7]});
-statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,8]});
+statementSpec.set("jumpn",   {ifmt:iRX,  afmt:aRX,    opcode:[15,7]});
+statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,8]});
+statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,9]});
+statementSpec.set("jumpp",   {ifmt:iRX,  afmt:aRX,    opcode:[15,10]});
 statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,11]});
 
 // EXP instructions have primary opcode e and 8-bit secondary opcode
@@ -256,16 +258,16 @@ statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,11]});
 statementSpec.set("resume",   {ifmt:iEXP1, afmt:a0,   opcode:[14,0]});
 
 // EXP2 - instruction is 2 words
-statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,1]});
-statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,2]});
-statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,  opcode:[14,3]});
-statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRkkkk, opcode:[14,4]});
-statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,5]});
-statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,6]});
+statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,   opcode:[14,1]});
+statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,   opcode:[14,2]});
+statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,3]});
+statementSpec.set("shiftr",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,4]});
+statementSpec.set("logicw",   {ifmt:iEXP2, afmt:aRRRk,  opcode:[14,5]});
+statementSpec.set("logicb",   {ifmt:iEXP2, afmt:aRkkkk, opcode:[14,6]});
 statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,7]});
 statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,8]});
-statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,   opcode:[14,9]});
-statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,   opcode:[14,10]});
+statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,9]});
+statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,10]});
 
 // statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,  opcode:[14,12]});
 
@@ -317,26 +319,26 @@ statementSpec.set("jumpco",  {ifmt:iRX,  afmt:aX,  opcode:[15,6,bit_ccC],
 
 // Mnemonics for logic instructions
 
-statementSpec.set("invw",    {ifmt:iEXP2, afmt:aRR,    opcode:[14,3,12],
+statementSpec.set("invw",    {ifmt:iEXP2, afmt:aRR,    opcode:[14,5,12],
                               pseudo:true});
-statementSpec.set("andw",    {ifmt:iEXP2, afmt:aRRR,    opcode:[14,3,1],
+statementSpec.set("andw",    {ifmt:iEXP2, afmt:aRRR,    opcode:[14,5,1],
                               pseudo:true});
-statementSpec.set("orw",     {ifmt:iEXP2, afmt:aRRR,    opcode:[14,3,7],
+statementSpec.set("orw",     {ifmt:iEXP2, afmt:aRRR,    opcode:[14,5,7],
                               pseudo:true});
-statementSpec.set("xorw",    {ifmt:iEXP2, afmt:aRRR, opcode:[14,3,6],
+statementSpec.set("xorw",    {ifmt:iEXP2, afmt:aRRR, opcode:[14,5,6],
                               pseudo:true});
 
 // Mnemonics for logicb instructions
 
-statementSpec.set("invb",    {ifmt:iEXP2, afmt:aRkk, opcode:[14,4,12],
+statementSpec.set("invb",    {ifmt:iEXP2, afmt:aRkk, opcode:[14,6,12],
                               pseudo:true});
-statementSpec.set("andb",    {ifmt:iEXP2, afmt:aRkkk, opcode:[14,4,1],
+statementSpec.set("andb",    {ifmt:iEXP2, afmt:aRkkk, opcode:[14,6,1],
                               pseudo:true});
-statementSpec.set("orb",     {ifmt:iEXP2, afmt:aRkkk, opcode:[14,4,7],
+statementSpec.set("orb",     {ifmt:iEXP2, afmt:aRkkk, opcode:[14,6,7],
                               pseudo:true});
-statementSpec.set("xorb",    {ifmt:iEXP2, afmt:aRkkk, opcode:[14,4,6],
+statementSpec.set("xorb",    {ifmt:iEXP2, afmt:aRkkk, opcode:[14,6,6],
                               pseudo:true});
 
 // Mnemonic for bit field
 
-statementSpec.set("field",   {ifmt:iEXP2, afmt:aRkk,  opcode:[14,22], pseudo:true});
+statementSpec.set("field",   {ifmt:iEXP2, afmt:aRkk,  opcode:[14,8], pseudo:true});

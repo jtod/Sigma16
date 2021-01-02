@@ -22,95 +22,108 @@ Stmts  module
 ; RRR instructions
 ;-------------------------------------------------------------
 
-       add      R5,R12,R7      ; 05c7
-       sub      R12,R3,R15     ; 1c3f
-       mul      R1,R2,R3       ; 2123
-x      div      R1,R2,R3       ; 3123  x = 0003 relocatable
-       addc     R1,R2,R3       ; 4123
-loop   add      R1,R2,R3       ; 0123  loop = 0005 relocatable
-       cmp      R1,R2          ; 5012
-       push     R7,R8,R10      ; 678a
-       pop      R7,R8,R10      ; 778a
-       top      R7,R8,R10      ; 878a
-       shift    R11,R12,R13    ; 9bcd
-       muln     R11,R12,R13    ; abcd
-       divn     R11,R12,R13    ; bbcd
-       trap     R1,R2,R3       ; d123
+       add      R5,R12,R7     ; 05c7
+       sub      R12,R3,R15    ; 1c3f
+       mul      R1,R2,R3      ; 2123
+x      div      R1,R2,R3      ; 3123  x = 0003 relocatable
+       addc     R1,R2,R3      ; 4123
+       muln     R11,R12,R13   ; 5bcd
+       divn     R11,R12,R13   ; 6bcd
+loop   cmp      R1,R2         ; 7012  loop = 0007 relocatable
+       push     R7,R8,R10     ; 878a
+       pop      R7,R8,R10     ; 978a
+       top      R7,R8,R10     ; a78a
+       trap     R1,R2,R3      ; c123
+
+       add      r7,r8,r9
+       sub      R2,r5,R2
 
 ;-------------------------------------------------------------
 ; RX instructions
 ;-------------------------------------------------------------
 
-       lea      R3,loop[R3]    ; f330 0005
-       lea      R12,$b3c2[R4]  ; fc40 b3c2
-       lea      R1,23[R2]      ; f120 0017
-       lea      R5,-1[R5]      ; f550 ffff
-       load     R1,loop[R2]    ; f121 0005
-       store    R9,$2b7f[R10]  ; f9a2 2b7f
-       jump     loop[R2]       ; f023 0005
-       jal      R13,loop[R0]   ; fd04 0005
-       jumpc0   11,10[R0]      ; fb05 000a
-       jumpc1   5,11[R1]       ; f516 000b
-       jumpz    R7,12[R2]      ; f727 000c
-       jumpnz   R8,13[R9]      ; f898 000d
-       save     R6,2[R14]      ; f6e9 0002
-       restore  R6,2[R14]      ; f6ea 0002
-       testset  R5,x[R0]       ; f50b 0003
+       lea      R3,loop[R4]   ; f340 0007
+       lea      R1,23[R2]     ; f120 0017
+       lea      R5,-1[R12]    ; f5c0 ffff
+       lea      r3,loop[R0]       ; f300 0007
+       lea      r3,loop       ; f300 0007
+       load     R4,x[R7]      ; f471 0003
+       load     R4,x[R0]      ; f401 0003
+       load     R4,x          ; f401 0003
+
+       lea      R12,$b3c2[R4] ; fc40 b3c2
+       load     R1,loop[R2]   ; f121 0007
+       store    R9,$2b7f[R10] ; f9a2 2b7f
+       jump     x[R2]         ; f023 0003
+       jal      R13,loop[R0]  ; fd04 0007
+       jumpc0   11,10[R0]     ; fb05 000a
+       jumpc1   5,11[R1]      ; f516 000b
+       jumpn    R7,12[R2]     ; f727 000c
+       jumpz    R2,12[R7]     ; f278 000c
+       jumpnz   R8,13[R9]     ; f899 000d
+       jumpp    R7,12[R2]     ; f72a 000c
+       testset  R5,x[R0]      ; f50b 0003
+
+       lea      r3,x[r8]
+       load     R4,x[r2]
+       store    r8,x[R12]
 
 ;-------------------------------------------------------------
 ; EXP instructions
 ;-------------------------------------------------------------
 
-       resume                  ; e000
-       getctl   R2,req         ; e001 2200
-       putctl   R4,status      ; e002 4000
-       putctl   R4,mask        ; e002 4100
-       putctl   R4,req         ; e002 4200
-       putctl   R4,istat       ; e002 4300
-       putctl   R4,ipc         ; e002 4400
-       putctl   R4,vect        ; e002 4500
-       putctl   R4,psegBeg     ; e002 4600
-       putctl   R4,psegEnd     ; e002 4700
-       putctl   R4,dsegBeg     ; e002 4800
-       putctl   R4,dsegEnd     ; e002 4900
-       shiftl   R5,R3,7        ; e504 3700
-       shiftr   R4,R3,8        ; e405 3800
-       logicb   R1,R2,R3,6,13  ; e10b 236d
-       logicw   R1,R2,R3,6     ; e10a 2360
-       extract  R2,R3,5,6      ; e206 3056
-       extracti R2,R3,5,6      ; e207 3056
-       inject   R2,R3,R4,5,6   ; e208 3456
-       injecti  R2,R3,R4,5,6   ; e209 3456
+       resume                 ; e000
+
+       save     R2,R9,40[R14] ; e201 9e28
+       restore  R2,R9,40[R14] ; e202 9e28
+       shiftl   R5,R3,7       ; e503 3700
+       shiftr   R4,R3,8       ; e404 3800
+       logicw   R1,R2,R3,6    ; e105 2306
+       logicb   R1,2,3,6,13   ; e106 236d
+       extract  R1,3,5,R6,7   ; e107 3567
+       extracti R2,3,5,R6,7   ; e208 3567
+
+       getctl   R2,req        ; e009 2200
+       putctl   R4,status     ; e00a 4000
+       putctl   R4,mask       ; e00a 4100
+       putctl   R4,req        ; e00a 4200
+       putctl   R4,istat      ; e00a 4300
+       putctl   R4,ipc        ; e00a 4400
+       putctl   R4,vect       ; e00a 4500
+       putctl   R4,psegBeg    ; e00a 4600
+       putctl   R4,psegEnd    ; e00a 4700
+       putctl   R4,dsegBeg    ; e00a 4800
+       putctl   R4,dsegEnd    ; e00a 4900
+
+       save     r2,r9,40[r14] ; e201 9e28
 
 ;-------------------------------------------------------------
 ; Pseudoinstructions
 ;-------------------------------------------------------------
 
-       jumple   21[R1]         ; jumpc0
-       jumpne   22[R3]         ; jumpc0
-       jumpge   23[R5]         ; jumpc0
-       jumpnv   24[R7]         ; jumpc0
-       jumpnvu  25[R9]         ; jumpc0
-       jumpnco  27[R11]        ; jumpc0
+       jumple   21[R1]        ; f415 0015   jumpc0 not >
+       jumpne   22[R3]        ; f235 0016   jumpc0 not =
+       jumpge   23[R5]        ; f155 0017   jumpc0 not <
+       jumpnv   32[R7]        ; f675 0020   jumpc0 not v
+       jumpnco  42[R11]       ; f7b5 002a   jumpc0 not co
 
-       jumplt   16[R0]         ; jumpc1
-       jumpeq   18[R2]         ;  jumpc1
-       jumpgt   20[R4]         ; jumpc1
-       jumpv    22[R6]         ; jumpc1
-       jumpvu   24[R8]         ; jumpc1
-       jumpco   26[R10]        ; jumpc1
+       jumplt   16[R0]        ; f106 0010   jumpc1 <
+       jumpeq   18[R2]        ; f226 0012   jumpc1 =
+       jumpgt   20[R4]        ; f446 0014   jumpc1 >
+       jumpv    22[R6]        ; f666 0016   jumpc1 v
+       jumpco   26[R10]       ; f7a6 001a   jumpc1 co
 
-       inv      R6,R7          ; logicw
-       and      R6,R7,R8       ; logicw
-       or       R6,R7,R8       ; logicw
-       xor      R6,R7,R8       ; logicw
+       invw     R6,R7         ; e605 700c  logicw
+       andw     R6,R7,R8      ; e605 7801  logicw
+       orw      R6,R7,R8      ; e605 7807  logicw
+       xorw     R6,R7,R8      ; e605 7806  logicw
 
-       invb     R6,R7,15       ; logicb
-       andb     R6,R7,R8,15    ; logicb
-       orb      R6,R7,R8,15    ; logicb
-       xorb     R6,R7,R8,15    ; logicb
+       invb     R1,3,9        ; e106 390c  logicb
+       andb     R2,3,4,5      ; e206 3451  logicb
+       orb      R15,8,9,10    ; ef06 89a7  logicb
+       xorb     R8,0,13,7     ; e806 0d76  logicb
 
-       field    R4,7,5         ; injecti
+       field    R6,3,7        ; e608 3700  extracti
 
 ;-------------------------------------------------------------
 ; Directives
@@ -118,33 +131,35 @@ loop   add      R1,R2,R3       ; 0123  loop = 0005 relocatable
 
 ; org statement
 ;       org      $00a4
-; bbb   add      R1,R2,R3       ; 0123  bbb  = 00a4 relocatable
+; bbb   add      R1,R2,R3     ; 0123  bbb  = 00a4 relocatable
 
 ; block statement
-a1     data     1              ; 0001  a    = 00a5 relocatable
-arr    block    5              ;       arr  = 00a6
-a2     data     2              ; 0002  b    = 00ab relocatable
+a1     data     1             ; 0001  a    = 00a5 relocatable
+arr    block    5             ;       arr  = 00a6
+a2     data     2             ; 0002  b    = 00ab relocatable
 
 ; equ statement
-seven  equ      7              ;       seven = 0007 fixed
-loop2  equ      loop           ;       loop = 0005 relocatable
+eight  equ      8             ;       eight = 0008 fixed
+loop2  equ      loop          ;       loop2 = 0007 relocatable
 
 ; import statement
 foo    import   Mod1,foo
 f      import   Mod2,fcn
 
 ; export statement
-       export   x
-       export   seven
+       export   x             ; 0003 relocatable
+       export   eight         ; 0008 fixed
+       export   loop          ; 0007 relocatable
+       export   loop2         ; 0007 relocatable
 
 ;-------------------------------------------------------------
 ; Data statements
 ;-------------------------------------------------------------
 
-answer data     42             ; positive integer
-       data     60000          ; large natural ea60
-       data     -1             ; negative integer
-       data     $03f2          ; hex
-       data     x              ; relocatable label
-bla    data     loop2          ; relocatable equ
-       data     seven          ; fixed equ
+answer data     42            ; 002a  positive integer
+       data     60000         ;       large natural ea60
+       data     -1            ; ffff  negative integer
+       data     $03f2         ; 03f2  hex
+       data     x             ; 0003  relocatable label
+bla    data     loop2         ; 0007  relocatable equ
+       data     eight         ; 0008  fixed equ
