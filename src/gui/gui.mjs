@@ -644,15 +644,18 @@ prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 // Processor pane (PP)
 prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
 prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
-prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
+prepareButton ('PP_Run',        emwtRun);
 prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
 prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
 prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
 prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
 prepareButton ('PP_StepWT'  ,     emwtStep);
-prepareButton ('PP_RunWT',        emwtRun);
 prepareButton ('PP_emwtTest1',    emwtTest1);
+// prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
+prepareButton ('PP_RunMT',          () => em.procRun (guiEmulatorState));
+// prepareButton ('PP_RunWT',        emwtRun);
+
 // prepareButton ('PP_emwtStep',      emwtStep);
 // prepareButton ('PP_emwtShow',      emwtShow);
 // prepareButton ('PP_emwtTest2',     emwtTest2);

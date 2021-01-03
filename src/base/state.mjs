@@ -101,9 +101,12 @@ export class SystemState {
             this.modules.set (xs, new S16Module (xs));
             this.selectedModule = xs;
         } else if (!this.selectedModule) { // nothing selected
+            console.log ("getSelectedModule, in nothing selected")
             this.selectedModule = [...this.modules.keys()][0].baseName;
         } else if (this.modules.get(this.selectedModule)) { // it exists
+            console.log ("getSelectedModule, found it")
         } else  { // it doesn't exist
+            console.log ("getSelectedModule, doesn't exist, making it")
             return this.mkModule (this.selectedModule);
         }
         return this.modules.get (this.selectedModule);
@@ -529,21 +532,21 @@ export let foobar = 0
 
 // Constant parameters
 
-// The following sizes and offsets are measured in words
+// Sizes of memory blocks (words)
+export const EmSCBsize        =  16
+export const EmRegFileSize    =  16
+export const EmSysRegSize     =  16
+export const EmRegBlockSize   =  EmRegFileSize + EmSysRegSize
+export const EmMemSize        =  65536
 
-export const EmSCBOffset      = 0
-export const EmCtlSize        = 16
-export const EmRegFileSize    = 16
-export const EmSysRegSize     = 16
-export const EmRegBlockSize   = EmRegFileSize + EmSysRegSize
-export const EmMemSize        = 65536
-export const EmRegBlockOffset = EmCtlSize
-export const EmMemOffset      = EmRegBlockOffset + EmRegBlockSize
-export const EmStateSizeWord  = EmCtlSize + EmRegBlockSize + EmMemSize
+// Size of the shared memory (words and bytes)
+export const EmStateSizeWord  =  EmSCBsize + EmRegBlockSize + EmMemSize
+export const EmStateSizeByte  =  2 * EmStateSizeWord
 
-// The following sizes and offsets are measured in bytes
-
-export const EmStateSizeByte  = 2 * EmStateSizeWord
+// Offsets of memory blocks (words)
+export const EmSCBOffset      =  0
+export const EmRegBlockOffset =  EmSCBsize
+export const EmMemOffset      =  EmRegBlockOffset + EmRegBlockSize
 
 // Codes for system control block
 
@@ -554,13 +557,15 @@ export const EmStateSizeByte  = 2 * EmStateSizeWord
 // is kept in the EmulatorState belonging to that thread.
 
 // SCB flag indices
-export const SCB_status            =  0  // condition of the entire system
-export const SCB_nInstrExecuted    =  1  // count instructions executed
-export const SCB_cur_instr_addr    =  2  // address of instruction executing now
-export const SCB_next_instr_addr   =  3  // address of next instruction
-export const SCB_emwt_run_mode     =  4
-export const SCB_emwt_trap         =  5
-export const SCB_pause_request     =  6  // pause request is pending
+export const SCB_nInstrExecutedMSB =  0  // count instructions executed
+export const SCB_nInstrExecutedLSB =  1  // count instructions executed
+export const SCB_status            =  2  // condition of the entire system
+export const SCB_nInstrExecuted    =  3  // count instructions executed
+export const SCB_cur_instr_addr    =  4  // address of instruction executing now
+export const SCB_next_instr_addr   =  5  // address of next instruction
+export const SCB_emwt_run_mode     =  6
+export const SCB_emwt_trap         =  7
+export const SCB_pause_request     =  8  // pause request is pending
 
 
 // SCB_status specifies the condition of the entire system
@@ -589,7 +594,23 @@ export function showSCBstatus (es) {
     }
 }
 
+export function readNinstrExecuted (es) {
+    const upper = readSCB (es, SCB_nInstrExecutedMSB)
+    const lower = readSCB (es, SCB_nInstrExecutedMSB)
+    const n = upper << 16 | lower
+    return n
+}
+
+export function writeNinstrExecuted (es, n) {
+    const upper = n >>> 16
+    const lower = n & 0x0000ffff
+    writeSCB (es, SCB_nInstrExecutedMSB, upper)
+    writeSCB (es, SCB_nInstrExecutedLSB, lower)
+}
+
 export function resetSCB (es) {
+    writeSCB (es, SCB_nInstrExecutedMSB, 0)
+    writeSCB (es, SCB_nInstrExecutedLSB, 0)
     writeSCB (es, SCB_status, SCB_reset)
     writeSCB (es, SCB_nInstrExecuted, 0)
     writeSCB (es, SCB_cur_instr_addr, 0)

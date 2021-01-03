@@ -1,5 +1,5 @@
 // Sigma16: module.mjs
-// Copyright (C) 2020 John T. O'Donnell
+// Copyright (C) 2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -146,14 +146,12 @@ export function selectExample() {
 // FileInput element.
 
 export function prepareChooseFiles () {
-    com.mode.devlog ("prepareChooseFiles");
-    let elt = document.getElementById('FileInput');
-    elt.addEventListener('change', event => {
-        com.mode.devlog ("prepareChooseFiles change listener invoked");
-        handleSelectedFiles(elt.files);
-    });
+    com.mode.devlog ("prepareChooseFiles")
+    let elt = document.getElementById('FileInput')
+    elt.addEventListener ('change', event => {
+        handleSelectedFiles (elt.files)
+    })
 }
-
 
 // Parse string xs and check that it's in the form basename.ftype.txt
 // where basename is any string not containing "." and ftype is one of
@@ -202,6 +200,7 @@ let newFiles = [];
 export function handleSelectedFiles (flist) {
 //    com.mode.trace = true;
     com.mode.devlog (`*** handleSelectedFiles: ${flist.length} files`);
+    console.log (`*** handleSelectedFiles: ${flist.length} files`);
     newFiles = [];
     for (let f of flist) {
         const {errors, baseName, stage} = checkFileName (f.name);
@@ -236,6 +235,7 @@ function mkFileReader (fileRecord) {
     com.mode.trace = true;
     fr.onload = function (e) {
 	com.mode.devlog (`File reader ${fileRecord.fileName} onload`);
+	console.log (`File reader ${fileRecord.fileName} onload`);
         fileRecord.text = e.target.result;
         console.log (`file onload bn=${fileRecord.baseName} `
                      + `fileName=${fileRecord.fileName} text=${fileRecord.text}`);
@@ -280,6 +280,8 @@ function refreshWhenReadsFinished  () {
         if (allOK) {
             com.mode.devlog (`check finished calling refresh`);
             refreshModulesList(); // do after all files are in
+            let elt = document.getElementById('FileInput');
+            elt.value = "" // clear file name(s) to allow re-reading same file(s)
         } else {
             com.mode.devlog (`mkOfReader onload NOT calling refresh`);
         }

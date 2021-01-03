@@ -315,7 +315,8 @@ function doStep () {
 function doRun (limit) {
     console.log (`emwt: start doRun limit=${limit}`)
     let startTime = performance.now ()
-    let count = 0
+    //    let count = 0
+    let count = st.readNinstrExecuted (emwt.es)
 
     let curStatus = st.readSCB (emwt.es, st.SCB_status)
     let curPauseReq = 0
@@ -334,6 +335,8 @@ function doRun (limit) {
         b = curStatus === st.SCB_running_emwt
         //        b = curStatus === st.SCB_running_emwt && curPauseReq === 0
     }
+    st.writeNinstrExecuted (emwt.es, count)
+
     console.log (`emwt run stopped, count=${count},`
                  + `status=${curStatus}, pause=${curPauseReq}`)
     let finishTime = performance.now ()
