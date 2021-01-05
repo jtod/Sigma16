@@ -71,13 +71,14 @@ self.addEventListener ("message", e => {
             break
         case 104: // test 1
             console.log (`emwt: received request test 1`)
-            let slowResult = longComputation ()
-            msg = {code: 204, payload: slowResult}
+            //            let slowResult = longComputation ()
+            result = runTest1 ()
+            msg = {code: 204, payload: result}
             self.postMessage (msg)
             break
         case 105: // test 2
             console.log (`emwt: received request test 2`)
-            let rmtestResult = regMemwtest ()
+            rmtestResult = regMemwtest ()
             msg = {code: 205, payload: rmtestResult}
             self.postMessage (msg)
             break
@@ -272,6 +273,25 @@ function showMem (limit) {
         console.log (`emwt m[${a}] = ${x}`)
     }
 }
+
+function runTest1 () {
+    console.log ("emwt long computation, here goes...")
+    let sum = 0
+    const lim1 = 1000
+    const lim2 = 1000
+    const lim3 = 1000
+    for (let i = 0; i < lim1; i++) {
+        for (let j = 0; j < lim2; j++) {
+            for (let k = 0; k < lim2; k++) {
+                sum += k
+            }
+        }
+    }
+    console.log ("emwt long computation finished!")
+    return sum
+}
+
+
 
 function longComputation () {
     console.log ("emwt long computation, here goes...")

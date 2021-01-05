@@ -36,9 +36,9 @@ export function modalWarning (msg) {
     alert (msg);
 }
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Emulator thread
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 function logShmStatus (es) {
     let status = st.showSCBstatus (es)
@@ -166,6 +166,7 @@ function emwtRun () { // run until stopping condition; relinquish on trap
     st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
     let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
+    console.log ("main: emwt run posted start message");
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 201
@@ -644,21 +645,15 @@ prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 // Processor pane (PP)
 prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
 prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
-prepareButton ('PP_Run',        emwtRun);
+prepareButton ('PP_RunGui',       () => em.procRun (guiEmulatorState));
+prepareButton ('PP_RunWorker',    emwtRun);
 prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
 prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
 prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
 prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
-prepareButton ('PP_StepWT'  ,     emwtStep);
-prepareButton ('PP_emwtTest1',    emwtTest1);
-// prepareButton ('PP_Run',          () => em.procRun (guiEmulatorState));
-prepareButton ('PP_RunMT',          () => em.procRun (guiEmulatorState));
-// prepareButton ('PP_RunWT',        emwtRun);
-
-// prepareButton ('PP_emwtStep',      emwtStep);
-// prepareButton ('PP_emwtShow',      emwtShow);
-// prepareButton ('PP_emwtTest2',     emwtTest2);
+prepareButton ('PP_Test1',        emwtTest1);
+prepareButton ('PP_Test2',        emwtTest2);
 
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
 prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);

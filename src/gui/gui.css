@@ -95,7 +95,8 @@ pane height
     --examplesBotSecHeight: 30em; /* calc or make full height */
 /* Basic GUI elements */
     --button-box-background-color: var(--light-blue);
-    --subpanel-background-color: beige;
+/*    --subpanel-background-color: beige; */
+    --subpanel-background-color: ivory;
     --mem-display-width: 6.8em;  /* 6.1em too narrow */
 
     /* YES???????????  with wide size we get several locations per line,
@@ -158,7 +159,6 @@ scroll from working */
     --text-background-color: white;
 }
 .MidMainRight {
-    background-color: pink;
     background-color: var(--mid-main-separator-color);
     background-color: white;
 }
@@ -551,7 +551,8 @@ guide). */
     grid-column-end: ProcStateVlineIOstart;
     grid-row-start: ProcStateHlineStart;
     grid-row-end: ProcStateHlineEnd;
-    background-color: beige;
+/*    background-color: beige; */
+    background-color: ivory;
     display: grid;
     height: auto;
     width: auto;
@@ -937,7 +938,6 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 }
 }
 .MidMainRight {
-    background-color: pink;
     background-color: var(--mid-main-separator-color);
     background-color: white;
 }
@@ -953,3 +953,13 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 .CodeListing {
     background-color: green;
 }
+
+#ProcAsmListing {
+    background-color: white;
+}
+
+#WelcomeIframeId, #ExamplesIframeId, #EditorTextArea {
+    background-color: white;
+}
+
+

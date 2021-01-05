@@ -2484,6 +2484,7 @@ in R15 (replacing the leftmost part of the numerator).  The rightmost
 All the numbers -- numerator, denominator, quotient, remainder -- are
 natural numbers represented in binary.
 
+
 ** Memory
 
 A memory address is a 16-bit binary number.  Instructions don't
@@ -2845,7 +2846,8 @@ The effect is equivalent to
    load  R10,11[R14]
 #+END_EXAMPLE
 
-** Logic
+
+** Logic and bits
 
 *** cmp
 
@@ -2928,7 +2930,6 @@ Re and Rf, and the result is loaded into the destination register Rd.
 | inv x    | 1100 |   12 |
 | inv y    |      |      |
 
-
 *** logicb
 
 The /logicb/ instruction performs an arbitrary Boolean logic function
@@ -2977,63 +2978,7 @@ The instruction format is EXP2, with the following fields:
 - g is the index of the second argument bit
 - h is the logic function
 
-** Jumping
-
-*** jump
-
-The **jump** instruction *jump disp[Ra]* transfers control to the
-instruction in memory at the effective address *disp+Ra*.
-
-*** jal
-
-The **jump and link** instruction *jal Rd,disp[Ra]* loads the address
-of the following instruction into the destination register Rd, and
-transfers control to the instruction in memory at the effective
-address *disp+Ra*.
-
-The value loaded into Rd is the address of the instruction that
-immediately follows the jal.  This instruction is used for calling
-procedures or functions: the effective address is the location of the
-procedure, and the return address is in Rd.  The procedure can then
-return by jumping to the return address, e.g. with *jump 0[Rd]*.
-
-*** jumpc0
-
-The **jump if condition code bit is 0** instruction *jumpc0
-k,disp[Ra]* checks the value of bit k in R15, which is the condition
-code register.  If this bit is *0*, then the instruction transfers
-control to the instruction in memory at the effective address
-*disp+Ra*; otherwise the instruction does nothing.
-
-*** jumpc1
-
-The **jump if condition code bit is 1** instruction *jumpc1
-k,disp[Ra]* checks the value of bit k in R15, which is the condition
-code register.  If this bit is *1*, then the instruction transfers
-control to the instruction in memory at the effective address
-*disp+Ra*; otherwise the instruction does nothing.
-
-*** jumpz
-
-#+BEGIN_EXAMPLE
-     jumpz  Rd,disp[Ra]
-#+END_EXAMPLE
-
-The jumpz instruction jumps to the effective address if Rd contains 0;
-otherwise the instruction does nothing and execution goes on to the
-following instruction.
-
-*** jumpnz
-
-#+BEGIN_EXAMPLE
-     jumpnz Rd,disp[Ra]
-#+END_EXAMPLE
-
-The jumpnz instruction jumps to the effective address if Rd contains
-any value other than 0; otherwise the instruction does nothing and
-execution goes on to the following instruction.
-
-** Bit fields
+*** Bit fields
 
 Several instructions operate on some but not all of the bits in a
 word.  Each of these instructions can be implemented using a
@@ -3099,28 +3044,6 @@ changed.
 
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
-
-*** shift
-
-This shift instruction allows for the direction and distance of a
-shift to be variable, specified in a register.  (The shiftl and shiftr
-instructions perform shift with a fixed constant direction and
-distance.)
-
-#+BEGIN_EXAMPLE
-shift Rd,Ra,Rb
-#+END_EXAMPLE
-
-Shift Ra by the number of bits given in Rb, and load the result in
-Rd.
-
-The word in Rb is interpreted as an integer, and its sign determines
-the direction of the shift.  If Rb>0 shift left; if Rb<0 shift right.
-
-The shift instruction can be used to multiply a natural number by a
-power of 2.  Interpreting Ra and Rd as natural (binary) numbers, and
-interpreting Rb as an integer (two's complement), the effect is Rd :=
-Ra * 2 ^ Rb.
 
 *** extract
 
@@ -3234,6 +3157,82 @@ the bits that are inserted into the destination.
 
 The secondary opcode is 8.
 
+
+** Jumping
+
+*** jump
+
+The **jump** instruction *jump disp[Ra]* transfers control to the
+instruction in memory at the effective address *disp+Ra*.
+
+*** jal
+
+The **jump and link** instruction *jal Rd,disp[Ra]* loads the address
+of the following instruction into the destination register Rd, and
+transfers control to the instruction in memory at the effective
+address *disp+Ra*.
+
+The value loaded into Rd is the address of the instruction that
+immediately follows the jal.  This instruction is used for calling
+procedures or functions: the effective address is the location of the
+procedure, and the return address is in Rd.  The procedure can then
+return by jumping to the return address, e.g. with *jump 0[Rd]*.
+
+*** jumpc0
+
+The **jump if condition code bit is 0** instruction *jumpc0
+k,disp[Ra]* checks the value of bit k in R15, which is the condition
+code register.  If this bit is *0*, then the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
+
+Aim is to jump if an arbitrary bit is 0 (or 1).  Would like an
+instruction like:
+- jumpb0 R3,5,loop[R1]
+However:
+- To specify the address to jump to, the instruction would need to be
+  RX
+- This leaves only the d field for specifying everything else
+- Need to specify register containing the bit
+- Need to specify the bit index
+- Not enough room in the RX format!
+- Hence we omit specifying the register, and always use R15.  That's
+  why jumpc0 and jumpc1 don't allow you to specify which register
+  contains the Boolean
+
+*** jumpc1
+
+The **jump if condition code bit is 1** instruction *jumpc1
+k,disp[Ra]* checks the value of bit k in R15, which is the condition
+code register.  If this bit is *1*, then the instruction transfers
+control to the instruction in memory at the effective address
+*disp+Ra*; otherwise the instruction does nothing.
+
+*** jumpz
+
+#+BEGIN_EXAMPLE
+     jumpz  Rd,disp[Ra]
+#+END_EXAMPLE
+
+The jumpz instruction jumps to the effective address if Rd contains 0;
+otherwise the instruction does nothing and execution goes on to the
+following instruction.
+
+*** jumpn
+*** jumpz
+*** jumpnz
+
+#+BEGIN_EXAMPLE
+     jumpnz Rd,disp[Ra]
+#+END_EXAMPLE
+
+The jumpnz instruction jumps to the effective address if Rd contains
+any value other than 0; otherwise the instruction does nothing and
+execution goes on to the following instruction.
+
+*** jumpp
+
+
 ** System
 *** resume
 
@@ -3298,14 +3297,25 @@ regions/ in the /Programming techniques/ chapter.
 | jumpnco | RX | jumpc0 |                 |                   |
 | jumplt  | RX | jumpc0 |                 |                   |
 
-*** jumpXX conditional jump pseudoinstructions
-- jumplt
-- jumple
-- jumpne
-- jumpeq
-- jumpne
-- jumpge
-- jumpgt
+*** Conditional jumps
+
+Several pseudoinstructions jump if a given condition holds; for
+example, jumplt jumps if the condition code indicates "less than".
+These instructions have operations of the form jumpXX.  Conditional
+jumps are normally used immediately following a cmp instruction:
+
+- jumplt < (less than)
+- jumple <= (less than or equal)
+- jumpne != (not equal)
+- jumpeq = (equal)
+- jumpge >= (greater than or equal)
+- jumpgt > (greater than
+
+These pseudoinstructions generate either a jumpc0 or jumpc1
+instruction.  For example, jumplt jumps if the less-than flag in the
+condition code is 1 so it generates a jumpc1 instruction with Rd
+specifying the index of the less-than flag.  However, jumple jumps if
+the greather-than flag is 0, so it generates a jumpc0 instruction.
 
 *** logic pseudoinstructions
 - invw
@@ -3398,7 +3408,7 @@ function operand set to perform an xor.
 
 *** invb, andb, orb, xorb
 
-** Summary of instruction set
+** List of instructions
 
 The following notations and abbreviations are used to specify
 precisely and concisely the effects of the instructions:
@@ -3420,10 +3430,6 @@ precisely and concisely the effects of the instructions:
 - Rb = regfile[ir.b]
 - ea (effective address) = Ra + adr.disp
 - x.i = bit i of word x (x.0 is leftmost bit)
-
-*** Instructions
-
-The following table summarises the full instruction set:
 
 - Mnemonic: instruction name used in assembly language
 - P: if true, the instruction is privileged
@@ -3488,21 +3494,6 @@ The following table summarises the full instruction set:
 |          |   |      |       |      | <37>                                  |
 |----------+---+------+-------+------+---------------------------------------|
 
-*** Rationale for jumpc0 and jumpc1
-
-Aim is to jump if an arbitrary bit is 0 (or 1).  Would like an
-instruction like:
-- jumpb0 R3,5,loop[R1]
-However:
-- To specify the address to jump to, the instruction would need to be
-  RX
-- This leaves only the d field for specifying everything else
-- Need to specify register containing the bit
-- Need to specify the bit index
-- Not enough room in the RX format!
-- Hence we omit specifying the register, and always use R15.  That's
-  why jumpc0 and jumpc1 don't allow you to specify which register
-  contains the Boolean
 
 *** Pseudoinstructions
 
@@ -4911,18 +4902,6 @@ previous versions of Sigma16:
   whether to jump depends on whether the entire register contains 0;
   it isn't a decision based on checking just a single bit.)
 
-- /Disallow register names as identifiers./ Previously, you could
-  write =R4 data 5= but this is now disallowed, as is =r4 data 6=.
-  For example, =lea R4,R4[R4]= used to be legal, but now it's an error
-  to use a register name as a label.  (Rationale: The old syntax
-  allowed the programmer more freedom in choosing names at the cost of
-  poor readability.  Code like =lea R4,R4[R4]= is misleading,
-  confusing, bad style, and likely to be misunderstood.  Previously,
-  there was one namespace for all identifiers, including registers and
-  labels, so you could define R8 as a label.  Now, registers and
-  labels have separate namespaces.  This shouldn't requre changes to
-  any old programs, unless they are written in bad style.)
-
 The following changes do not require modifying old programs; they just
 relax the syntax rules so some programs would no longer give an error
 message.
@@ -4956,13 +4935,6 @@ message.
   registers are not.    Labels are case-sensitive,
   so =xyz= and =XYZ= are distinct names, but registers are not labels,
   and registers are not case sensitive.
-
-- /System names begin with #./ The system library modules have names
-  that bewtin with =#=, as do the control registers.  Rationale: a
-  beginner won't know about some of the advanced features of the
-  architecture, and might quite reasonably define a label with the
-  same name as a control register or library module.  The =#= syntax
-  puts the system labels into a different namespace than user labels.
 
 There are some changes to the machine language that don't affect
 assembly language programs.
