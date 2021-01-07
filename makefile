@@ -185,7 +185,7 @@ copybuild :
 .PHONY : set-version
 set-version :
 	echo "Version $(VERSION), $(MONTHYEAR).\
-	  Copyright (c) $(YEAR) John T. O'Donnell" \
+	  Copyright (c) $(YEAR) John T. O'Donnell.  " \
 	  > VERSION.txt
 	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
 

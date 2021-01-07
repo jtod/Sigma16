@@ -118,16 +118,15 @@ export function initModules () {
 // Make new module, copy example text into it, and select it
 
 export function selectExample() {
-    com.mode.devlog ('selectExample');
     let exElt = document.getElementById('ExamplesIframeId');
     let xs = exElt.contentWindow.document.body.innerHTML;
-    com.mode.devlog (`xs = ${xs}`);
+    com.mode.devlog (`smod.selectExample raw xs = ${xs}`);
     let skipPreOpen = xs.replace(com.openingPreTag,"");
     let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
     com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
-    let m = new st.S16Module ();
-    m.modText = ys;
+    let m = new st.S16Module ("Example");
+    m.asmEdText = ys;
     refreshEditorBuffer();
     refreshModulesList();
 }

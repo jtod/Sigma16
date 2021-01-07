@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../index.css" />
 #+TITLE: Subroutines
 
 These programs illustrate the basic mechanisms of subroutines,

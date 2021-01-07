@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../index.css" />
 #+TITLE: Simple programs
 
 - [[./ConstArith.asm.txt][ConstArith.asm.txt]] This is a good example to

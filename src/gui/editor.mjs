@@ -67,13 +67,14 @@ export function edGetTextToEdit (m) {
 }
 
 export function edSaveTextToEdit (m) {
-    const xs = getEditorBufferText ();
-    const s = m.edCurrentStage;
+    const xs = getEditorBufferText ()
+    const s = m.edCurrentStage
     switch (s) {
     case st.StageAsm: m.asmEdText = xs; break;
     case st.StageObj: m.objEdText = xs; break;
     case st.StageLnk: m.lnkEdText = xs; break;
     case st.StageExe: m.exeEdText = xs; break;
+    default: m.asmEdText = xs
     }
 }
 

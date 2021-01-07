@@ -105,7 +105,7 @@ scroll from working */
 
     --mem-display-height: 15em; /* not correct */
     --reg-name-val-sep: 0.7em;
-    --IOinputbuffer-background: yellow;
+    --IOinputbuffer-background: ivory;
 /* fonts */    
     --main-font-family: 'Lucida Console',monospace;
 /*    --main-font-size: 0.9em; */
@@ -823,7 +823,7 @@ don't include fonts as these are specified by HighlightedTextAsHtml
     height: var(--ProcAsmTextHeight);
 }
 
-/* Highlighting */
+/* At startup, hide devtools elements  */
 
 .Hidden {
     visibility: hidden;

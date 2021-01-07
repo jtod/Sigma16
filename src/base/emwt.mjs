@@ -344,6 +344,7 @@ function doRun (limit) {
     let b = curStatus === st.SCB_running_emwt
     while (b) { // stop on trap or pause
         em.executeInstruction (emwt.es)
+        em.clearLoggingData (emwt.es)
         count++
         curPauseReq = st.readSCB (emwt.es, st.SCB_pause_request)
         if (curPauseReq === 1) {

@@ -193,20 +193,15 @@ visiting this file in a browser.
 	      <div class="PaneButtons">
 		<button id="PP_Boot"> Boot </button>
 		<button id="PP_Step"> Step </button>
-                <button id="PP_RunGui"> Run G </button>
-		<button id="PP_RunWorker"> Run W </button>
+		<button id="PP_RunWorker"> Run </button>
 		<button id="PP_Pause"> Pause </button>
 		<button id="PP_Interrupt"> Interrupt </button>
 		<button id="PP_Breakpoint"> Breakpoint </button>
 		<button id="PP_Refresh"> Refresh </button>
 		<button id="PP_Reset"> Reset </button>
-                <button id="PP_Test1"> Test1 </button>
-                <button id="PP_Test2"> Test2 </button>
-<!--
-                <button id="PP_emtStep"> emt step </button>
-                <button id="PP_emtShow"> emt show </button>
-                <button id="PP_emtTest2"> emt test2 </button>
--->
+                <button class="Hidden" id="PP_RunGui"> Run main thread </button>
+                <button class="Hidden" id="PP_Test1"> Test1 </button>
+                <button class="Hidden" id="PP_Test2"> Test2 </button>
 
 	      </div>
 	      <div class="PaneBody" id="ProcessorBody">
@@ -317,12 +312,14 @@ visiting this file in a browser.
 		  <div class="ProcStateSection" id="Emulator">
 		    <div class="Registers">
 		      <div class="NewRegSecName">Emulator</div>
-		      <div class="RegisterName">s</div>
+		      <div class="RegisterName"> state </div>
 		      <div class="RegisterValue" id="procStatus"></div>
-		      <div class="RegisterName">n</div>
+		      <div class="RegisterName"> count </div>
 		      <div class="RegisterValue" id="nInstrExecuted"></div>
-		      <div class="RegisterName">m</div>
-		      <div class="RegisterValue">break</div>
+		      <div class="RegisterName"> m </div>
+		      <div class="RegisterValue"> </div>
+		      <div class="RegisterName"> Time </div>
+		      <div class="RegisterValue" id="PP_time"> 0 </div>
 		      <input id="PP_Timer_Interrupt" class="EmCtlLine"
 			     type="button"
 			     value="Timer interrupt">

@@ -163,6 +163,7 @@ export class S16Module {
 // general properties of a module        
         this.baseName = baseName;
         env.modules.set (baseName, this);
+        env.selectedModule = baseName
         this.selectId = `select_${baseName}`;
         this.closeId = `close_${baseName}`;
 // files containing text for various stages of a module        
@@ -200,7 +201,7 @@ export class S16Module {
         let xs = this.asmEdText ? this.asmEdText
             : this.asmFile ? this.asmFile.text
             : "";
-        console.log (`getAsmText is returning ${xs}`);
+        console.log (`getAsmText returning basename=${this.baseName} <${xs}>`);
         return xs;
     }
     getObjText () {

@@ -33,6 +33,29 @@ export const Mode_GuiDisplay = 100
 export const Mode_Console    = 200
 export const Mode_Quiet      = 300
 
+// Number of header lines in the listing before the source lines begin
+const listingLineInitialOffset = 1;
+
+// Time
+
+export function clearTime (es) {
+    const now = new Date ()
+    es.startTime = now.getTime ()
+    document.getElementById("PP_time").innerHTML = `0ms`
+}
+
+export function updateTime (es) {
+    const now = new Date ()
+    const elapsed = now.getTime () - es.startTime
+    const xs = `${elapsed}ms`
+    console.log (`updateTime: ${xs}`)
+    document.getElementById("PP_time").innerHTML = xs
+}
+
+export function test1 (es) {
+    updateTime (es)
+    refreshRFdisplay (es)
+}
 
 //------------------------------------------------------------------------------
 // Booter 
@@ -91,6 +114,7 @@ export function boot (es) {
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     st.resetSCB (es)
+    
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
@@ -156,6 +180,14 @@ export function boot (es) {
         com.mode.devlog ("boot ok so far, preparing...");
         es.metadata.listingDec.forEach ((x,i) => es.asmListingCurrent[i] = x);
         initListing (m,es);
+        es.curInstrAddr = 0;
+        es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+        es.nextInstrAddr = 0;
+        es.nextInstrLineNo = es.metadata.getSrcIdx (es.nextInstrAddr)
+            + listingLineInitialOffset;
+            com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
+        setProcAsmListing (es,m);
+
         st.writeSCB (es, st.SCB_status, st.SCB_ready)
         getListingDims(es);
         resetRegisters (es);
@@ -163,6 +195,7 @@ export function boot (es) {
         refreshRegisters (es)
         updateMemory (es)
         memDisplayFull(es);
+        clearTime (es)
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
             + "Boot was successful"
@@ -201,16 +234,6 @@ export function displayFullState (es) {
     updateMemory (es)
     memDisplayFull (es);
 }
-
-//------------------------------------------------------------------------------
-// Processor execution status
-//------------------------------------------------------------------------------
-/* deprecated
-export let Reset  = Symbol ("Reset");   // registers and memory cleared
-export let Ready  = Symbol ("Ready");   // can execute instruction
-export let Paused = Symbol ("Paused");  // temporary halt for inspecting state
-export let Halted = Symbol ("Halted");  // trap 0 has executed
-*/
 
 //----------------------------------------------------------------------
 //  Registers
@@ -323,11 +346,7 @@ export class genregister {
     get () {
         this.es.regFetched.push (this)
         let i = st.EmRegBlockOffset + this.regStIndex
-//        com.mode.devlog (`--- reg get ${this.regName} with`
-//                     + `  (idx=${i})`)
         let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-//        com.mode.devlog (`--- reg get ${this.regName} =`
-//                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
         return x
     }
     put (x) {
@@ -408,6 +427,7 @@ export class EmulatorState {
     constructor (thread_host, shm) {
         this.thread_host      = thread_host
         this.shm              = shm
+        this.startTime        = null
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false
@@ -851,6 +871,7 @@ export function procReset (es) {
     st.resetSCB (es)
     resetRegisters (es);
     memClear (es);
+    clearTime (es)
     refreshDisplay (es)
 }
 /* redundant, now use resetSCB
@@ -996,49 +1017,29 @@ export function execInstrPostDisplay (es) {
     case ES_gui_thread:
         //    clearRegisterHighlighting (es); // deprecated
         console.log ("main: execInstrPostDisplay, proceeding")
-        updateMemory (es)
         memDisplay (es)
         showInstrDecode (es)
-        highlightListingAfterInstr (es)
         guiDisplayNinstr (es)
         updateRegisters (es)
         document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
+        highlightListingAfterInstr (es)
+        updateMemory (es)
         break
     default: // should be impossible
         console.log (`error: execInstrPostDisplay host=${es.thread_host}`)
     }
 }
 
-/* deprecated, use execInstrPostDisplay
-function runInstrPostDisplay (es) {
-    com.mode.devlog("runInstrPostDisplay");
-    clearRegisterHighlighting (es);
-    updateRegisters (es)
-    updateMemory (es)
-    memDisplayFull (es);
-}
+// When running, the logging data isn't needed.  The worker thread
+// needs to clear it to prevent a space leak.
 
-/*    
-    if (es.procStatus===Halted) { // do a full display
-        updateRegisters (es)
-        updateMemory (es)
-        memDisplayFull (es);
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
-    } else if (es.procStatus===Paused) {
-        updateRegisters (es)
-        updateMemory (es)
-	memDisplay (es);
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
-    } else { // do normal display
-        updateRegisters (es)
-        updateMemory (es)
-	memDisplay (es);
-	showInstrDecode (es);
-	highlightListingAfterInstr (es);
-    }
-*/
+export function clearLoggingData (es) {
+    es.regFetched = []
+    es.regStored = []
+    memFetchInstrLog = []
+    memFetchDataLog = []
+    memStoreLog = []
+}
 
 // Prepare to execute an instruction by clearing the buffers holiding
 // log information.
@@ -2072,9 +2073,6 @@ function prepareListingBeforeInstr (es) {
     com.mode.trace = false;
 }
 
-// Number of header lines in the listing before the source lines begin
-const listingLineInitialOffset = 1;
-
 // As it executes an instruction, the emulator sets curInstrAddr and
 // nextInstrAddr.  After the instruction has finished, these
 // instructions are highlighted in the listing
@@ -2085,6 +2083,23 @@ function highlightListingAfterInstr (es) {
     showListingParameters (es)
     com.mode.devlog ('  curInstrAddr = ' + es.curInstrAddr);
     com.mode.devlog ('  nextInstrAddr = ' + es.nextInstrAddr);
+
+// Clear any statement highlighting, if any
+
+        if (es.curInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
+        showLst (es, "prepare before revert current", es.curInstrLineNo)
+        com.revertListingLine (es, es.curInstrLineNo)
+        showLst (es, "prepare after revert current", es.curInstrLineNo)
+    }
+    if (es.nextInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
+        showLst (es, "prepare before revert next", es.nextInstrLineNo)
+        com.revertListingLine (es, es.nextInstrLineNo)
+        showLst (es, "prepare after revert next", es.nextInstrLineNo)
+    }
+    es.curInstrLineNo = -1;
+    es.nextInstrLineNo = -1;
 
     // Highlight the instruction that just executed
     es.curInstrLineNo = es.metadata.getSrcIdx (es.curInstrAddr)
@@ -2227,6 +2242,17 @@ function setMemString(es,a) {
 // Register display
 //-------------------------------------------------
 
+// Show the current values of the register file without highlighting
+
+function refreshRFdisplay (es) {
+    for (let i = 0; i < es.nRegisters; i++) {
+        let j = st.EmRegBlockOffset + i
+        let x = i === 0 ? 0 : es.shm[j]
+        let e = es.register[i].elt
+        e.innerHTML = arith.wordToHex4 (x)
+    }
+}
+
 // Display any changes to registers with highlighting
 
 function updateRegisters (es) {
@@ -2306,6 +2332,10 @@ export function guiDisplayMem (es, elt, xs) {
     if (es.thread_host === ES_gui_thread) elt.innerHTML = xs
 }
 
+// ----------------------------------------------------------------------------
+// Deprecated
+// ----------------------------------------------------------------------------
+
 
 /*
 export function guiDisplayMem1 (es, xs) {
@@ -2318,9 +2348,6 @@ export function guiDisplayMem1 (es, xs) {
 //    elt.innerHTML = xs
 
 
-// ----------------------------------------------------------------------------
-// Deprecated
-// ----------------------------------------------------------------------------
 //  if (this.es.mode === Mode_GuiDisplay) {
 //         com.mode.devlog (`--- reg refresh ${this.regName} :=`
 //                     + ` ${arith.wordToHex4(x)} = ${x} /${xs}/ (idx=${i})`)
@@ -2506,3 +2533,50 @@ function showProcStatus (s) {
         : "Unknown"
 }
 */
+
+//------------------------------------------------------------------------------
+// Processor execution status
+//------------------------------------------------------------------------------
+/* deprecated
+export let Reset  = Symbol ("Reset");   // registers and memory cleared
+export let Ready  = Symbol ("Ready");   // can execute instruction
+export let Paused = Symbol ("Paused");  // temporary halt for inspecting state
+export let Halted = Symbol ("Halted");  // trap 0 has executed
+*/
+
+
+/* deprecated, use execInstrPostDisplay
+function runInstrPostDisplay (es) {
+    com.mode.devlog("runInstrPostDisplay");
+    clearRegisterHighlighting (es);
+    updateRegisters (es)
+    updateMemory (es)
+    memDisplayFull (es);
+}
+
+/*    
+    if (es.procStatus===Halted) { // do a full display
+        updateRegisters (es)
+        updateMemory (es)
+        memDisplayFull (es);
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    } else if (es.procStatus===Paused) {
+        updateRegisters (es)
+        updateMemory (es)
+	memDisplay (es);
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    } else { // do normal display
+        updateRegisters (es)
+        updateMemory (es)
+	memDisplay (es);
+	showInstrDecode (es);
+	highlightListingAfterInstr (es);
+    }
+*/
+
+//        com.mode.devlog (`--- reg get ${this.regName} with`
+//                     + `  (idx=${i})`)
+//        com.mode.devlog (`--- reg get ${this.regName} =`
+//                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)

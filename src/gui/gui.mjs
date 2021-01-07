@@ -166,6 +166,7 @@ function emwtRun () { // run until stopping condition; relinquish on trap
     st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
     let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
+    em.clearTime (guiEmulatorState)
     console.log ("main: emwt run posted start message");
 }
 
@@ -176,6 +177,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 201
     switch (status) {
     case st.SCB_halted:
         console.log (`*** main: handle emwt halt`)
+        em.updateTime (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         break
@@ -652,7 +654,7 @@ prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
 prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
 prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
-prepareButton ('PP_Test1',        emwtTest1);
+prepareButton ('PP_Test1',        () => em.test1 (guiEmulatorState))
 prepareButton ('PP_Test2',        emwtTest2);
 
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
@@ -936,34 +938,32 @@ window.onresize = function () {
 
 // These are experimental tools that are normally disabled.  They
 // aren't documented, aren't intended for users, and aren't stable.
-// To use these functions, press F12 to display the browser console,
-// then enter enableDevTools()
+// To use them, press F12 to display the browser console, then enter
+// enableDevTools() which will make the tools' buttons visible; to
+// hide them again enter disableDevTools().
 
-function showDevToolsButton () {
-    console.log ("showDevToolsButton");
-    document.getElementById("DevTools_Pane_Button").style.visibility = "visible";
-}
+// DevElts is list of ids of elements to be shown or hidden.  To
+// ensure they are hidden by default, they should have class="Hidden"
+// specified in their html element: the css for .Hidden specifies
+// visibility: "hidden".
 
-function hideDevToolsButton () {
-    com.mode.devlog ("hideDevToolsButton");
-    showPane (WelcomePane);
-    document.getElementById("DevTools_Pane_Button").style.visibility = "hidden";
-}
+const DevElts = [ "DevTools_Pane_Button", "PP_RunGui", "PP_Test1", "PP_Test2"]
 
-function disableDevTools () {
-    com.mode.devlog ("disableDevTools");
-    hideDevToolsButton ();
-}
+// Define functions that show/hide the DevElts and attach the
+// functions to the window to put them into scope at the top level
 
-function enableDevTools () {
-    com.mode.devlog ("enableDevTools called");
-    showDevToolsButton ();
-}
-
-// Attach the enableDevTools function to the window to put it into
-// scope at the top level
-
+function disableDevTools () { DevElts.map (hideElement) }
+function enableDevTools ()  { DevElts.map (showElement) }
 window.enableDevTools = enableDevTools;
+window.disableDevTools = disableDevTools;
+
+function showElement (eltName) {
+    document.getElementById(eltName).style.visibility = "visible";
+}
+
+function hideElement (eltName) {
+    document.getElementById(eltName).style.visibility = "hidden";
+}
 
 function devTools100 () {
     console.log ("DevTools100 clicked");
@@ -998,11 +998,10 @@ function devTools106 () {
 //-------------------------------------------------------------------------------
 
 let browserSupportsWorkers = false
-
 let flags
 let guiEmulatorState // declare here, define at onload event 
 
-// This runs in the main gui thread but not in worker thread
+// The onload function runs in the main gui thread but not in worker thread
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     em.hideBreakDialogue ();
@@ -1016,64 +1015,14 @@ window.onload = function () {
     initializePane ();
     smod.initModules ();
     window.mode = com.mode;
-    hideDevToolsButton ();
-// guiEmulatorState = new em.EmulatorState (em.Mode_GuiDisplay)
-// guiEmulatorState = new em.EmulatorState (st.sysStateVec, em.Mode_GuiDisplay)
     guiEmulatorState = new em.EmulatorState (em.ES_gui_thread, st.sysStateVec)
-    console.log (`***** ----- mk es  ${em.ES_gui_thread}`)
     em.initializeMachineState (guiEmulatorState)
-    com.mode.devlog (`gui mode = ${guiEmulatorState.mode}`)
     browserSupportsWorkers = checkBrowserWorkerSupport ()
     if (browserSupportsWorkers) { emwtInit () }
     em.procReset (guiEmulatorState)
     flags = new st.emflags (100)
+    em.clearTime (guiEmulatorState)
     com.mode.trace = true
-    // Can enter into console: enableDevTools ()
-    com.mode.devlog("Initialization complete");
+    com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
     com.mode.trace = false
 }
-
-//-------------------------------------------------------------------------
-// Deprecated
-//-------------------------------------------------------------------------
-
-/*
-// Actions
-
-function action100 () { // Initialize
-    console.log (`main action 100 Initialize`)
-    let msg = {code: 100, payload: 0}
-    emwThread.postMessage (msg)    
-}
-
-
-function action112 () { // send foo, emwt replies with emwtCount, main212 prints
-    console.log (`main action 112 send foo=${st.foo}`)
-    let msg = {code: 112, payload: st.foo}
-    emwthread.postMessage (msg)    
-}
-
-function action113 () { // send foo
-    console.log (`main action 113 foo=${st.foo}`)
-    let msg = {code: 113, payload: st.foo}
-    console.log (`main sending: <${msg}>`)
-    emwThread.postMessage (msg)    
-}
-
-function action114 () { // Tell emwt to increment arr[23]
-    console.log ("main action 114")
-    let msg = {code: 114, payload: null}
-    emwthread.postMessage (msg)    
-}
-
-function action115 () { // Tell emwt to print regfile
-//    console.log (`main action 115 arr[23] = ${st.sysStateVec[23]}`)
-    let msg = {code: 115, payload: null}
-    emwThread.postMessage (msg)    
-}
-
-
-function action106 () {
-    console.log ("main 106")
-}
-*/

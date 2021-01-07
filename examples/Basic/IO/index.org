@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../index.css" />
 #+TITLE: Input/Output
 
 These programs illustrate how to do Input/Output.  This is done by
