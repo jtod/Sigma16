@@ -334,15 +334,12 @@ function doStep () {
 
 function doRun (limit) {
     console.log (`emwt: start doRun limit=${limit}`)
-    let startTime = performance.now ()
-    //    let count = 0
     let count = st.readNinstrExecuted (emwt.es)
-
     let curStatus = st.readSCB (emwt.es, st.SCB_status)
     let curPauseReq = 0
     console.log (`starting run status${curStatus}`)
-    let b = curStatus === st.SCB_running_emwt
-    while (b) { // stop on trap or pause
+    let continueRunning = curStatus === st.SCB_running_emwt
+    while (continueRunning) {
         em.executeInstruction (emwt.es)
         em.clearLoggingData (emwt.es)
         count++
@@ -350,23 +347,26 @@ function doRun (limit) {
         if (curPauseReq === 1) {
             console.log ("emwt received pause request")
             st.writeSCB (emwt.es, st.SCB_status, st.SCB_paused)
-//            st.writeSCB (emwt.es, st.SCB_pause_request, 0)
+            st.writeSCB (emwt.es, st.SCB_pause_request, 0)
+            continueRunning = false
         }
         curStatus = st.readSCB (emwt.es, st.SCB_status)
-        b = curStatus === st.SCB_running_emwt
-        //        b = curStatus === st.SCB_running_emwt && curPauseReq === 0
+        if (curStatus === st.SCB_relinquish) {
+            continueRunning = false
+        }
     }
     st.writeNinstrExecuted (emwt.es, count)
-
     console.log (`emwt run stopped, count=${count},`
                  + `status=${curStatus}, pause=${curPauseReq}`)
-    let finishTime = performance.now ()
-    let elapsedTime = (finishTime - startTime) / 1000
-    console.log (`emwt: doRun finished, executed ${count} instructions`
-                 + ` in ${elapsedTime} sec`)
     return count
 }
 
+//    let startTime = performance.now ()
+//    let finishTime = performance.now ()
+//    let elapsedTime = (finishTime - startTime) / 1000
+//    console.log (`emwt: doRun finished, executed ${count} instructions`
+//                 + ` in ${elapsedTime} sec`)
+//     b = curStatus === st.SCB_running_emwt && curPauseReq === 0
 //        b =  (st.readSCB (emwt.es, st.SCB_status) === st.SCB_running_emwt
 //              && st.readSCB (emwt.es, st.SCB_pause_request) === 0)
 //    console.log (`doRun count=${count} b=${b}`)

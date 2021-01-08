@@ -603,6 +603,20 @@ guide). */
 }
 
 
+.EmuDisplay {
+    display: grid;
+    height: auto;
+    width: auto;
+    background-color: var(--subpanel-background-color);
+    color: black;
+    grid-template-rows: [RegHlineStart] min-content [RegHlineEnd];
+    grid-template-columns: [RegVlineStart] min-content
+					   [RegVlineRNameEnd]
+					   var(--reg-name-val-sep)
+					   [RegVlineRValStart] min-content
+					   [RegVlineEnd];
+}
+
 .Registers {
     display: grid;
     height: auto;

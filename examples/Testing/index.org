@@ -5,30 +5,29 @@ These files are for testing the implementation of Sigma16.  They also
 provide examples of all the assembly language statements and the
 instruction set.
 
-- [[./AsmCodeGen.asm.txt][AsmCodeGen]] Test an example of each
-  assembly language statement, including instructions and directives.
+- [[./Arithmetic.asm.txt][Arithmetic]] Test arithmetic operations
 
-- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Examples of errors that
-  are detectable by the assembler.
+- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Test error messages
+  with invalid statements
 
-- [[./Arithmetic.asm.txt][TestArithmetic]] Test arithmetic operations.
+- [[./AsmStatements.asm.txt][AsmStatements]] Test code generation and
+  directives
 
-- [[./StoreLoop.asm.txt][StoreLoop]] While loop containing a store
-  instruction.
+- [[./BitField.asm.txt][BitField]] Bit and bit field manipulation
 
-- [[./Logic.asm.txt][Logic]] Test the operations on bits, fields, and
-  words.
+- [[./Exception.asm.txt][Exception]] Bit and bit field manipulation
+
+- [[./Jumping.asm.txt][Jumping]] Test the comparisons, jumps, and
+  conditional jumps.
+
+- [[./Linker/index.html][Linker]]
+
+- [[./Logic.asm.txt][Logic]] Test the operations on Booleans and logic
+  functions
+
+- [[./Looper.asm.txt][Looper]] Long running program with no I/O
 
 - [[./Memory.asm.txt][Memory]] Loads, stores, stack operations, saving
   and restoring registers.
 
-- [[./CmpJump.asm.txt][CmpJump]] Test the comparisons, jumps, and
-  conditional jumps.
-
-- [[./Performance.asm.txt][Performance]] A long nested loop that
-  executes a large number of instructions, allowing measurements of
-  the perfornace of an emulator or other implementation.
-
-- [[./PrimarySecondary.asm.txt][PrimarySecondary]]
-
-- [[./RFwrite.asm.txt][RFwrite]]
+- [[./System.asm.txt][System]] Privileged instructions

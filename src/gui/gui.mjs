@@ -160,6 +160,56 @@ function handleEmwtStepResponse (p) {
 // emwt 102: run
 //----------------------------------------
 
+const guiRefreshInterval = 1000 // period of display refresh during run (ms)
+
+function periodicRefresher () {
+//    console.log ("periodicRefresher")
+    updateClock (guiEmulatorState)
+    refreshRFdisplay (guiEmulatorState)
+}
+
+// Show the current values of the register file without highlighting
+
+function refreshRFdisplay (es) {
+    for (let i = 0; i < es.nRegisters; i++) {
+        let j = st.EmRegBlockOffset + i
+        let x = i === 0 ? 0 : es.shm[j]
+        let e = es.register[i].elt
+        e.innerHTML = arith.wordToHex4 (x)
+    }
+}
+
+
+const ClockWidth = 4
+
+export function updateClock (es) {
+    const now = new Date ()
+    const elapsed = now.getTime () - es.startTime
+    const xs = elapsed < 1000
+          ? `${elapsed.toFixed(0)} ms`
+          : `${(elapsed/1000).toPrecision(ClockWidth)} s`
+    document.getElementById("PP_time").innerHTML = xs
+}
+
+function startClock (es) {
+    em.clearTime (es)
+    updateClock (es)
+    es.eventTimer = setInterval (periodicRefresher, guiRefreshInterval)
+}
+
+function stopClock (es) {
+    clearInterval (es.eventTimer)
+    console.log ("stopClock")
+    updateClock (es)
+    es.eventTimer = null
+}
+
+export function test1 (es) {
+    updateClock (es)
+    refreshRFdisplay (es)
+}
+
+
 function emwtRun () { // run until stopping condition; relinquish on trap
     console.log ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
@@ -167,22 +217,24 @@ function emwtRun () { // run until stopping condition; relinquish on trap
     let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
     em.clearTime (guiEmulatorState)
+    startClock (guiEmulatorState)
     console.log ("main: emwt run posted start message");
 }
 
-function handleEmwtRunResponse (p) { // run when emwt sends 201
+function handleEmwtRunResponse (p) { // run when emwt sends 202
     let status = st.readSCB (guiEmulatorState, st.SCB_status)
     let  msg = {code: 0, payload: 0}
     console.log (`main: handle emwt run response: p=${p} status=${status}`)
     switch (status) {
     case st.SCB_halted:
         console.log (`*** main: handle emwt halt`)
-        em.updateTime (guiEmulatorState)
+        stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         break
     case st.SCB_paused:
         console.log (`*** main: handle emwt pause`)
+        stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_pause_request, 0)
@@ -192,6 +244,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 201
         break
     case st.SCB_break:
         console.log (`*** main: handle emwt break`)
+        stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
@@ -207,6 +260,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 201
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
         em.executeInstruction (guiEmulatorState)
         if (st.readSCB (guiEmulatorState, st.SCB_status) === st.SCB_halted) {
+            stopClock (guiEmulatorState)
             em.refresh (guiEmulatorState)
             console.log (`*** main: handle emwt relinquish then halted`)
         } else {
@@ -654,11 +708,11 @@ prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
 prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
 prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
-prepareButton ('PP_Test1',        () => em.test1 (guiEmulatorState))
+prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
 prepareButton ('PP_Test2',        emwtTest2);
 
 prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
-prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
+// prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
 
 // Breakpoint popup dialogue
 /*
@@ -874,11 +928,11 @@ const example_hello_world =
 
 ; Calculate result := 6 * x, where x = 7
 
-     lea    R1,6[R0]       ; R1 := 6
-     load   R2,x[R0]       ; R2 := x (variable initialized to 7)
-     mul    R3,R1,R2       ; R3 := 6 * x = 42 (hex 002a)
-     store  R3,result[R0]  ; result := 6 * x
-     trap   R0,R0,R0       ; halt
+     lea    R1,6       ; R1 := 6
+     load   R2,x       ; R2 := x (variable initialized to 7)
+     mul    R3,R1,R2   ; R3 := 6 * x = 42 (hex 002a)
+     store  R3,result  ; result := 6 * x
+     trap   R0,R0,R0   ; halt
 
 ; How to run the program:
 ;   (1) Translate to machine language: Assembler tab, click Assemble

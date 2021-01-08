@@ -9,10 +9,4 @@
   pointers, bit fields, linked data structures, recursion, and case
   dispatch.
 
-# - [[./Advanced/index.org][Advanced examples]] More complex programs using advanced
-#   techniques
-
-# - [[./SysLib/index.org][SysLib]] Library functions that can be linked
-#   with your programs.
-
-- [[./Testing/index.org][Testing]] Programs for testing the system.
+- [[./Testing/index.html][Testing]] Programs for testing the system.

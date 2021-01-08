@@ -42,6 +42,6 @@ done
      trap   R0,R0,R0      ; terminate
 
 ; Parameters determine run time: n * m iterations
-n    data   2           ; outer loop iterations
-m    data   3           ; inner loop iterations
+n    data   1000          ; outer loop iterations
+m    data   10000         ; inner loop iterations
 result data 0
