@@ -67,13 +67,14 @@ function logShmStatus (es) {
 // console and return a Boolen: true if workers are supported
 
 function checkBrowserWorkerSupport () {
-    com.mode.devlog ("checkBrowserWorkerSupport")
+    console.log ("checkBrowserWorkerSupport")
+    console.log ("checkBrowserWorkerSupport")
     let workersSupported = false
     if (window.Worker) {
-        com.mode.devlog ("Browser supports concurrent worker threads");
+        console.log ("Browser supports concurrent worker threads");
         workersSupported = true
     } else {
-        com.mode.devlog ("Browser does not support concurrent worker threads");
+        console.log ("Browser does not support concurrent worker threads");
     }
     return workersSupported
 }
@@ -426,6 +427,7 @@ export const EditorPane    = Symbol ("EditorPane");
 export const AssemblerPane = Symbol ("AssemblerPane");
 export const LinkerPane    = Symbol ("LinkerPane");
 export const ProcessorPane = Symbol ("ProcessorPane");
+export const OptionsPane   = Symbol ("OptionsPane");
 export const DevToolsPane  = Symbol ("DevToolsPane");
 
 let currentPane = WelcomePane; // The current pane is displayed; others are hidden
@@ -445,6 +447,7 @@ function initializePane () {
     f (AssemblerPane, "none");
     f (LinkerPane, "none");
     f (ProcessorPane, "none");
+    f (OptionsPane, "none");
     f (DevToolsPane, "none");
 }
 
@@ -473,6 +476,8 @@ export function showPane (p) {
         break;
     case ProcessorPane:
         break;
+    case OptionsPane:
+        break;
     case DevToolsPane:
         break;
     }
@@ -499,6 +504,8 @@ export function finalizeLeaveCurrentPane () {
     case LinkerPane:
         break;
     case ProcessorPane:
+        break;
+    case OptionsPane:
         break;
     case DevToolsPane:
         break;
@@ -639,6 +646,7 @@ prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
 prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
 prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
 prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
+prepareButton ('Options_Pane_Button'  , () => showPane(OptionsPane));
 prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
 prepareButton ('About_Button',
                () => showGuideSection('sec-about-sigma16'));  
@@ -711,7 +719,7 @@ prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
 prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
 prepareButton ('PP_Test2',        emwtTest2);
 
-prepareButton ('PP_Timer_Interrupt',  em.timerInterrupt);
+prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
 // prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
 
 // Breakpoint popup dialogue
@@ -1051,13 +1059,24 @@ function devTools106 () {
 // Run the initializers when onload event occurs
 //-------------------------------------------------------------------------------
 
-let browserSupportsWorkers = false
 let flags
 let guiEmulatorState // declare here, define at onload event 
+let browserSupportsWorkers = false
 
 // The onload function runs in the main gui thread but not in worker thread
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
+    browserSupportsWorkers = checkBrowserWorkerSupport ()
+    if (browserSupportsWorkers) {
+        emwtInit ()
+        console.log ("Browser supports worker thread<br>")
+            document.getElementById("OptionsBody").innerHTML =
+               "Browser supports worker thread<br>"
+    } else {
+           document.getElementById("OptionsBody").innerHTML =
+               "Browser dows not support worker thready<br>"
+        console.log ("Browser dows not support worker thready<br>")
+    }
     em.hideBreakDialogue ();
     em.initializeSubsystems ();
     document.getElementById('LinkerText').innerHTML = "";    
@@ -1071,8 +1090,6 @@ window.onload = function () {
     window.mode = com.mode;
     guiEmulatorState = new em.EmulatorState (em.ES_gui_thread, st.sysStateVec)
     em.initializeMachineState (guiEmulatorState)
-    browserSupportsWorkers = checkBrowserWorkerSupport ()
-    if (browserSupportsWorkers) { emwtInit () }
     em.procReset (guiEmulatorState)
     flags = new st.emflags (100)
     em.clearTime (guiEmulatorState)

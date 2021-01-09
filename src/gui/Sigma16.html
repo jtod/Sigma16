@@ -65,6 +65,7 @@ visiting this file in a browser.
 	<button id="Assembler_Pane_Button"> Assembler </button>
 	<button id="Linker_Pane_Button"> Linker </button>
 	<button id="Processor_Pane_Button"> Processor </button>
+	<button id="Options_Pane_Button"> Options </button>
 	<button id="About_Button"> About </button>
 	<button class="RightButton" id="UG_Resize_Right_Large_Button">
           &#x27f9;
@@ -78,7 +79,6 @@ visiting this file in a browser.
 	<button class="RightButton" id="UG_Resize_Left_Large_Button">
 	  &#x27f8;
 	</button>
-	<button  id="Options_Button"> Options </button>
 	<button class="Hidden" id="DevTools_Pane_Button"> DevTools </button>
       </div>
       <div class="MiddleSection" id="MiddleSection">
@@ -228,10 +228,10 @@ visiting this file in a browser.
 		      <div class="RegisterValue" id="maskElt"></div>
 		      <div class="RegisterName">req</div>
 		      <div class="RegisterValue" id="reqElt"></div>
-		      <div class="RegisterName">istat</div>
-		      <div class="RegisterValue" id='istatElt'></div>
-		      <div class="RegisterName">ipc</div>
-		      <div class="RegisterValue" id='ipcElt'></div>
+		      <div class="RegisterName">rstat</div>
+		      <div class="RegisterValue" id='rstatElt'></div>
+		      <div class="RegisterName">rpc</div>
+		      <div class="RegisterValue" id='rpcElt'></div>
 		      <div class="RegisterName">vect</div>
 		      <div class="RegisterValue" id="vectElt"></div>
 		    </div>
@@ -373,6 +373,14 @@ visiting this file in a browser.
 	      </div>
 	    </div>
 
+	    <div class="Pane" id="OptionsPane">
+	      <div class="PaneButtons">
+		<button id="Options1"> Options 1 </button>
+              </div>
+	      <div class="HighlightedTextAsHtml" id="OptionsBody">
+              </div>
+            </div>
+            
 	    <div class="Pane" id="DevToolsPane">
 	      <div class="PaneButtons">
 		<button id="DevTools100"> DevTools 100 </button>

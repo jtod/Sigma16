@@ -9,6 +9,9 @@ Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.
 
+The app runs in a web browser.  There's no need to download or install
+anything.  Currently it runs in Chrome and Edge, but not in Firefox.
+
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
   <a href="https://jtod.github.io/home/Sigma16/releases/3.1.3/app/Sigma16.html">
@@ -19,7 +22,7 @@ for experimenting with the architecture.
 
 When you run the app in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed
-specirication of the architecture, assembly language, and programming
+yspecirication of the architecture, assembly language, and programming
 techniques.  You can also
 [[https://jtod.github.io/home/Sigma16/releases/3.1.3/docs/html/userguide/userguide.html][open
 the User Guide]].

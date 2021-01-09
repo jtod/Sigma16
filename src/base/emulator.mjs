@@ -239,7 +239,7 @@ export let modeHighlightAccess = true;
 // Declare the registers - window.onload sets their values
 // export let regFile = [];                            // register file R0,..., R15
 //export let pc, ir, adr, dat;                        // instruction control registers
-// export let statusreg, mask, req, istat, ipc, vect;  // interrupt control registers
+// export let statusreg, mask, req, rstat, rpc, vect;  // interrupt control registers
 // export let bpseg, epseg, bdseg, edseg;              // segment control registers
 
 // Generating and accessing registers
@@ -429,8 +429,8 @@ export class EmulatorState {
         this.statusreg        = null
         this.mask             = null
         this.req  = null
-        this.istat  = null
-        this.ipc = null
+        this.rstat  = null
+        this.rpc = null
         this.vect = null
         this.bpseg = null
         this.epseg = null
@@ -524,8 +524,8 @@ export function initializeMachineState (es) {
     // bit 2        trap 3
     // bit 3        
 
-    es.istat    = new genregister (es, 0, 'istat',  'istatElt',  arith.wordToHex4);
-    es.ipc      = new genregister (es, 0, 'ipc',    'ipcElt',    arith.wordToHex4);
+    es.rstat    = new genregister (es, 0, 'rstat',  'rstatElt',  arith.wordToHex4);
+    es.rpc      = new genregister (es, 0, 'rpc',    'rpcElt',    arith.wordToHex4);
     es.vect     = new genregister (es, 0, 'vect',   'vectElt',   arith.wordToHex4);
 
 // Segment control registers
@@ -538,7 +538,7 @@ export function initializeMachineState (es) {
     es.controlRegisters =
 	[es.pc, es.ir, es.adr, es.dat,   // not accessible to getctl/putctl instructions
 	 // the following can be used for getctl/getctl, indexing from 0
-	 es.statusreg, es.mask, es.req, es.istat, es.ipc, es.vect,
+	 es.statusreg, es.mask, es.req, es.rstat, es.rpc, es.vect,
          es.bpseg, es.epseg, es.bdseg, es.edseg
 	]
 
@@ -710,9 +710,9 @@ let ea = 0;  // effective address
 // Interrupts
 //-----------------------------------------------------------------------------
 
-export function timerInterrupt() {
+export function timerInterrupt (es) {
     com.mode.devlog ("Timer Interrupt clicked");
-    arith.setBitInRegBE (req, arch.timerBit);
+    arith.setBitInRegBE (es.req, arch.timerBit);
     es.req.refresh();
 }
 
@@ -997,13 +997,13 @@ export function execInstrPostDisplay (es) {
     case ES_gui_thread:
         //    clearRegisterHighlighting (es); // deprecated
         console.log ("main: execInstrPostDisplay, proceeding")
+        updateMemory (es)
         memDisplay (es)
         showInstrDecode (es)
         guiDisplayNinstr (es)
         updateRegisters (es)
         document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
         highlightListingAfterInstr (es)
-        updateMemory (es)
         break
     default: // should be impossible
         console.log (`error: execInstrPostDisplay host=${es.thread_host}`)
@@ -1041,37 +1041,27 @@ function prepareExecuteInstruction (es) {
 
 export function executeInstruction (es) {
     com.mode.devlog (`em.executeInstruction starting`)
-// Check for interrupt
-//    let mr = es.mask.get() & es.req.get(); ??????????????????????
-//        com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`);
-    //    if (arith.getBitInRegBE (es.statusreg,arch.intEnableBit) && mr) {
 
+    // Check for interrupt
+    let mr = es.mask.get() & es.req.get() // ???
+    com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
     st.writeSCB (es, st.SCB_cur_instr_addr, es.pc.get())
-    if (false) { // ????????????????? disable for testing
+    if (arith.getBitInRegBE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
+        console.log (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
-	while (i<16 && arith.getBitInWordBE(mr,i)==0) { i++ };
-	com.mode.devlog (`\n*** Interrupt ${i} ***`);
-	es.ipc.put(es.pc.get());           // save the pc
-	es.istat.put(es.statusreg.get());   // save the status register
-//	com.mode.devlog (`ipc=${ipc.get()}`);
-//	com.mode.devlog (`req=${arith.wordToHex4(req.get())}`);
-	arith.clearBitInRegBE (req,i);        // clear the interrupt that was taken
-//	com.mode.devlog (`req=${arith.wordToHex4(req.get())}`);
-//	com.mode.devlog (`pc=${arith.wordToHex4(pc.get())}`);
-//	com.mode.devlog (`vect=${arith.wordToHex4(vect.get())} i=${i}`);
-	es.pc.put (es.vect.get() + 2*i);  // jump to handler
-//	com.mode.devlog (`pc=${arith.wordToHex4(pc.get())}`);
+	while (i<16 && arith.getBitInWordBE(mr,i)==0) { i++ }
+	com.mode.devlog (`\n*** Interrupt ${i} ***`)
+	es.rpc.put(es.pc.get())           // save the pc
+	es.rstat.put(es.statusreg.get())   // save the status register
+	arith.clearBitInRegBE (es.req,i)  // clear the interrupt that was taken
+	es.pc.put (es.vect.get() + 2*i)  // jump to handler
         // Disable interrupts and enter system state
-//	com.mode.devlog (`status=${arith.wordToHex4(statusreg.get())}`);
 	es.statusreg.put (es.statusreg.get()
 		       & arith.maskToClearBitBE(arch.intEnableBit)
-		       & arith.maskToClearBitBE(arch.userStateBit));
-//	com.mode.devlog (`statusreg=${arith.wordToHex4(statusreg.get())}`);
-        //	regShowAccesses();
-//        updateRegisters ()
-	return;
-    };
+		       & arith.maskToClearBitBE(arch.userStateBit))
+	return
+    }
 
     // No interrupt, so proceed with next instruction
     com.mode.devlog (`no interrupt, proceeding...`)
@@ -1317,6 +1307,7 @@ const handle_EXP = (es) => {
     let code = 16*es.ir_a + es.ir_b;
     if (code < limitEXPcode) {
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
+	console.log (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
 	dispatch_EXP [code] (es);
     } else {
 	com.mode.devlog (`EXP bad code ${arith.wordToHex4(code)}`);
@@ -1532,8 +1523,8 @@ function exp1_nop (es) {
 
 function exp1_resume (es) {
     com.mode.devlog ('exp1_resume');
-    es.statusreg.put (es.istat.get());
-    es.pc.put (ies.pc.get());
+    es.statusreg.put (es.rstat.get());
+    es.pc.put (es.rpc.get());
 }
 
 function exp2_save (es) {
@@ -1730,9 +1721,10 @@ const exp1 = (f) => (es) => {
 
 const exp2 = (f) => (es) => {
     com.mode.devlog (`>>> EXP2 instruction`);
-    let expCode = 16*es.ir_a + es.ir_b;
+    console.log (`>>> EXP2 instruction`);
+    let expCode = 16 * es.ir_a + es.ir_b;
     es.instrOpStr = `EXP2 mnemonic code=${expCode}`;  // ????????????
-    es.instrDisp = memFetchInstr (es.pc.get());
+    es.instrDisp = memFetchInstr (es, es.pc.get());
     es.adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.pc.put (es.nextInstrAddr);
@@ -2137,7 +2129,8 @@ function setProcAsmListing (es) {
 // Processor elements: html elements for displaying instruction decode
 
 export function initializeProcessorElements (es) {
-    if (es.mode === Mode_GuiDisplay) {
+    //    if (es.mode === Mode_GuiDisplay) {
+    if (es.thread_host === ES_gui_thread) {
         com.mode.devlog ('initializeProcessorElements');
         es.instrCodeElt = document.getElementById("InstrCode");
         es.instrFmtElt  = document.getElementById("InstrFmt");
@@ -2152,14 +2145,15 @@ export function initializeProcessorElements (es) {
 
 function refreshInstrDecode (es) {
     com.mode.devlog ("refreshInstrDecode");
-    if (false) { // ????????????????????? temporary...
-//    if (es.thread_host === ES_gui_thread) {
+//    if (false) { // ????????????????????? temporary...
+    if (es.thread_host === ES_gui_thread) {
         es.instrCodeElt.innerHTML = es.instrCodeStr;
         es.instrFmtElt.innerHTML  = es.instrFmtStr;
         es.instrOpElt.innerHTML   = es.instrOpStr;
         es.instrArgsElt.innerHTML = showArgs(es); // instrArgsStr;
         es.instrEAElt.innerHTML   = es.instrEAStr;
-        let ccval = es.regfile[15].val;
+        //        let ccval = es.regfile[15].val;
+        let ccval = es.regfile[15].get ()
         es.instrCCElt.innerHTML      = arith.showCC(ccval);
         es.instrEffect1Elt.innerHTML = showEffect(es,0);
         es.instrEffect2Elt.innerHTML = showEffect(es,1);
