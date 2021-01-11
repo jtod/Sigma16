@@ -37,9 +37,10 @@
 # Usage
 #-------------------------------------------------------------------------------
 
+# Build html files from org using emacs export
 # make webbuild      build a web release in the ./build directory
 # make copybuild     copy the web release to the github homepage repository
-# make set-version   find version from package.json and write VERSION.txt
+
 # make showparams    print the version, file locations, date, etc
 # make clean         remove temporary files
 
@@ -123,11 +124,7 @@ showparams:
 # make webbuild -- prepare the release in build directory
 #-------------------------------------------------------------------------------
 
-#     Build html files from org source using emacs
-#     make set-version
-#     make release
-#     git commit -m "S16 <release number>"
-#     git tag -a v3.0.26 -m 'move to version v3.0.26'
+
 
 .PHONY: webbuild
 webbuild:
@@ -158,8 +155,16 @@ webbuild:
 	cp -upr src/datafiles/*.html $(WEBBUILD)/$(VERSION)/src/datafiles
 
 #-------------------------------------------------------------------------------
-# make copybuild - copy the build into S16 home repository
+# Copy the build into S16 home repository
 #-------------------------------------------------------------------------------
+
+# Build the system and copy files to git repository for Sigma16 home page
+
+all :
+	make webbuild
+	make copybuild
+	make copyS16homepage
+	make copytesting
 
 # Copy the current release buffer into the local repository for the
 # github home page
@@ -170,6 +175,22 @@ copybuild :
 	ls $(S16HOMEPAGE)/releases
 	/bin/rm -rf $(S16HOMEPAGE)/releases/${VERSION}
 	cp -r $(WEBBUILD)/$(VERSION) $(S16HOMEPAGE)/releases
+
+# Copy the home page index and style to the Sigma16 home page
+
+.PHONY : copyS16homepage
+copyS16homepage :
+	cp -up docs/S16homepage/index.html  $(S16HOMEPAGE)
+	cp -up docs/S16homepage/index.css  $(S16HOMEPAGE)
+
+# Copy the testing files to the Sigma16 home page
+
+.PHONY : copytesting
+copytesting :
+	mkdir -p $(S16HOMEPAGE)/testing/compatibility
+	/bin/rm -rf $(S16HOMEPAGE)/testing/compatibility/*
+	cp -r src/compatibility/*.html $(S16HOMEPAGE)/testing/compatibility
+	cp -r src/compatibility/*.mjs $(S16HOMEPAGE)/testing/compatibility
 
 #-------------------------------------------------------------------------------
 # make set-version -- find version and define Version files

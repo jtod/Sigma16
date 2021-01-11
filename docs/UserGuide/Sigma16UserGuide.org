@@ -1604,7 +1604,6 @@ conventions.
  0 after executing such an instruction.  Such an instruction will
  simply have no lasting effect.
 
-
 *** R15 is the condition code register
 
 Several instructions produce status information: the result of a
@@ -1641,7 +1640,6 @@ Table: Condition code flags
 | name    | S          | s         |    |    |    |    |    |    |
 | symbol  | S          | s         |    |    |    |    |    |    |
 | meaning | stack ovfl | stack ufl |    |    |    |    |    |    |
-
 
 
 ** Memory

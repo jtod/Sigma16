@@ -1,7 +1,7 @@
-#+TITLE: Sigma16 home page
+s#+TITLE: Sigma16 home page
 #+AUTHOR: John T. O'Donnell
 
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/cs" href="index.css" />
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 
@@ -160,6 +160,9 @@ software, and are not recommended for general use.
   and testing of the software.  It may be unstable, and is not
   recommended for general users.  However, it may contain new features
   not yet in the latest release.
+
+- [[./testing/compatibility/worker.html][compatibility test w]]
+  Testing browser compatibility
 
 ** About the software
 

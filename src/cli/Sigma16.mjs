@@ -100,6 +100,7 @@ import * as link from "../base//linker.mjs";
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
 const homeDir = path.join (cliDir, "/../../")
 const guiDir = path.join (homeDir, "/src/gui/")
+const compatDir = path.join (homeDir, "/src/compatibility/")
 const baseDir = path.join (homeDir, "/src/base/");
 const datafilesDir = path.join (homeDir, "/src/datafiles/");
 const docsDir = path.join (homeDir, "/docs/")
@@ -170,7 +171,6 @@ app.get('/', (req, res) => res.sendFile(guiDir + '/Sigma16.html'));
 
 app.get('/gui/*', (req, res) => res.sendFile(guiDir));
 app.get('/base/*', (req, res) => res.sendFile(baseDir));
-
 app.get('/docs/*', (req, res) => res.sendFile(docsDir));
 app.get('*', (req, res) => res.sendFile(guiDir));
 
