@@ -288,7 +288,7 @@ export function linkerGUI () {
 
 export function linkShowExecutable () {
     console.log ("linkShowExeObject");
-    return // temp while ls.exeCode not working
+//    return // temp while ls.exeCode not working
     let ls = st.env.linkerState;
     let code = ls.exeCode;
     let xs = "<pre class='HighlightedTextAsHtml'>"
@@ -302,7 +302,7 @@ export function linkShowExecutable () {
 
 export function linkShowMetadata () {
     testMetadata ()      // testing
-    return
+//    return
     let ls = st.env.linkerState;
     let md = "No metadata"
     let xs = "<pre class='HighlightedTextAsHtml'>"

@@ -140,16 +140,16 @@ export const env = new SystemState ();
 
 export class Executable {
     constructor (code, metadata) {
-        this.code = code;
-        this.metadata = metadata;
-        console.log (`*********** new Executable ${this.code}`);
-        console.log (this.showShort ());
+        this.code = code
+        this.metadata = metadata
+        console.log (`new executable: ${this.showShort ()}`)
+//        console.log (this.showShort ());
     }
     showShort () {
-        let xs = `Executable: ${this.code.length} lines object code`;
+        let xs = `Executable: ${this.code.length} lines object code`
         xs += this.metadata ? `${this.metadata.length} lines metadata`
-            : `no metadata`;
-        return xs;
+            : `no metadata`
+        return xs
     }
 }
 
@@ -287,7 +287,7 @@ function showFilePrefix (fr, label) {
 
 function textPrefix (xs) {
     return "<div class='HighlightedTextAsHtml'>"
-        + xs.split("\n").slice(0,4).join("<br>");
+        + xs.split("\n").slice(0,4).join("<br>")
         + "<div>\n";
 }
 

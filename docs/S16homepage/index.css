@@ -1,5 +1,6 @@
 body {
     margin: auto;
+    max-width: 45em;
     padding-right: 2em;
     padding-left: 2em;
     border-left: 1px solid black;

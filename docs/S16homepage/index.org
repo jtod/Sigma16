@@ -150,7 +150,7 @@ replaced by newer ones!
   [[https://github.com/jtod/Sigma16/releases/tag/v3.1.0][download
   3.1.0]]
 
-*** Development versions
+*** Development version
 
 The following versions are intended for development and testing of the
 software, and are not recommended for general use.
@@ -161,8 +161,10 @@ software, and are not recommended for general use.
   not recommended for general users.  However, it may contain new
   features not yet in the latest release.
 
-- [[./testing/compatibility/worker.html][compatibility test w]]
-  Testing browser compatibility
+- [[./testing/compatibility/worker.html][compatibility test: worker]]
+
+- [[./testing/compatibility/typedarray.html][compatibility test: array]]
+
 
 ** About the software
 

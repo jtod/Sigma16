@@ -809,7 +809,7 @@ function showListingParameters (es) {
 
 
 function showLst (es, xs, i) {
-    return // disable
+//    return // disable
     com.mode.devlog (`--- Listing line ${i} ${xs}`)
     com.mode.devlog (`----- Cur = ${es.asmListingCurrent[i].slice(0,30)}`)
     com.mode.devlog (`----- Pla = ${es.metadata.listingPlain[i].slice(0,30)}`)
