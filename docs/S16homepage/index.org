@@ -161,9 +161,16 @@ software, and are not recommended for general use.
   not recommended for general users.  However, it may contain new
   features not yet in the latest release.
 
-- [[./testing/compatibility/worker.html][compatibility test: worker]]
+- [[./testing/compatibility/Worker.html][compatibility test: web worker]]
 
-- [[./testing/compatibility/typedarray.html][compatibility test: array]]
+- [[./testing/compatibility/TypedArray.html][compatibility test: typed
+  array]]
+
+- [[./testing/compatibility/SharedArray.html][compatibility test: shared
+  array]]
+
+- [[./testing/compatibility/FreezeShm.html][compatibility test: freeze
+  shared array]]
 
 
 ** About the software

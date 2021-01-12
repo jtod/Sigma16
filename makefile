@@ -37,12 +37,20 @@
 # Usage
 #-------------------------------------------------------------------------------
 
-# Build html files from org using emacs export
-# make webbuild      build a web release in the ./build directory
-# make copybuild     copy the web release to the github homepage repository
+# Build system in ${SIGMASYSTEM}/Sigma16
+#   Build html files from org using emacs export
+#   make webbuild      build a web release in the ./build directory
 
-# make showparams    print the version, file locations, date, etc
-# make clean         remove temporary files
+# Copy files to homepage repository
+#   make copybuild     copy the web release to the github homepage repository
+#   make copyS16homepage
+
+# Maintainance
+#   make showparams    print the version, file locations, date, etc
+#   make clean         remove temporary files
+
+# Build and copy development version
+#  make all
 
 #-------------------------------------------------------------------------------
 # Define parameters
@@ -55,7 +63,7 @@ SIGMASYSTEM:=./..
 # S16HOMEPAGE is the local source repository for the Sigma16 Home
 # Page.  This can be pushed to github.
 
-S16HOMEPAGE:=$(SIGMASYSTEM)/homepage/jtod.github.io/home/Sigma16
+S16HOMEPAGE:=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
 
 # The executable web version is created in WEBBUILD and later uploaded to
 # github in the releases directory

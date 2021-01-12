@@ -14,16 +14,18 @@ function printarr () {
     output (xs)
 }
 
-output ("Starting")
+output ("<br>Starting<br>")
 
+output ("<br>Defining array<br>")
 const n = 5
 const arr = new Uint16Array (n)
-
 output ("<br> Defined arr <br>")
 
+output ("<br>Updating array<br>")
 for (let i = 0;  i < n; i++) arr[i] = i
 printarr ()
 for (let i = 0;  i < n; i++) arr[i] += 100
 printarr ()
+output ("<br>Updating array...finished<br>")
 
 output ("<br>Finished<br>")
