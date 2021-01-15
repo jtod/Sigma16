@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
 #+TITLE: Sorting
 
 - [[./InsertionSort.asm.txt][InsertionSort]] A program that uses the

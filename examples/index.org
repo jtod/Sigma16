@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docs/docstyle.css" />
 #+TITLE: Sigma16 example programs
 
 - [[./Basic/index.org][Basic examples.]] Simple programs, using basic

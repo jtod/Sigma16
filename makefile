@@ -146,8 +146,6 @@ webbuild:
 
 	mkdir -p $(WEBBUILD)/$(VERSION)/docs
 	cp -up docs/*.css $(WEBBUILD)/$(VERSION)/docs
-#	cp -up docs/docstyle.css $(WEBBUILD)/$(VERSION)/docs
-#	cp docs/UserGuide/*.css $(WEBBUILD)/$(VERSION)/docs/UserGuide
 
 	mkdir -p $(WEBBUILD)/$(VERSION)/docs/UserGuide
 	cp -up docs/UserGuide/*.html $(WEBBUILD)/$(VERSION)/docs/UserGuide
@@ -161,8 +159,11 @@ webbuild:
 	cp -upr src/gui/*.html $(WEBBUILD)/$(VERSION)/src/gui
 	cp -upr src/gui/*.css $(WEBBUILD)/$(VERSION)/src/gui
 	cp -upr src/base/*.mjs $(WEBBUILD)/$(VERSION)/src/base
-	cp -upr src/datafiles/*.css $(WEBBUILD)/$(VERSION)/src/datafiles
 	cp -upr src/datafiles/*.html $(WEBBUILD)/$(VERSION)/src/datafiles
+
+#	cp -up docs/docstyle.css $(WEBBUILD)/$(VERSION)/docs
+#	cp docs/UserGuide/*.css $(WEBBUILD)/$(VERSION)/docs/UserGuide
+#	cp -upr src/datafiles/*.css $(WEBBUILD)/$(VERSION)/src/datafiles
 
 #-------------------------------------------------------------------------------
 # Copy the build into S16 home repository

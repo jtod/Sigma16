@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
 #+TITLE: Data type conversion
 
 - [[./ShowInt.asm.txt][ShowInt]] Convert an integer to a string of
