@@ -132,8 +132,6 @@ showparams:
 # make webbuild -- prepare the release in build directory
 #-------------------------------------------------------------------------------
 
-
-
 .PHONY: webbuild
 webbuild:
 	make set-version
@@ -146,11 +144,15 @@ webbuild:
 
 	cp -upr examples $(WEBBUILD)/$(VERSION)
 
+	mkdir -p $(WEBBUILD)/$(VERSION)/docs
+	cp -up docs/*.css $(WEBBUILD)/$(VERSION)/docs
+#	cp -up docs/docstyle.css $(WEBBUILD)/$(VERSION)/docs
+#	cp docs/UserGuide/*.css $(WEBBUILD)/$(VERSION)/docs/UserGuide
+
 	mkdir -p $(WEBBUILD)/$(VERSION)/docs/UserGuide
-	cp docs/UserGuide/*.css $(WEBBUILD)/$(VERSION)/docs/UserGuide
-	cp docs/UserGuide/*.html $(WEBBUILD)/$(VERSION)/docs/UserGuide
-	cp -pr docs/UserGuide/png $(WEBBUILD)/$(VERSION)/docs/UserGuide
-	cp -pr docs/UserGuide/svg $(WEBBUILD)/$(VERSION)/docs/UserGuide
+	cp -up docs/UserGuide/*.html $(WEBBUILD)/$(VERSION)/docs/UserGuide
+	cp -upr docs/UserGuide/png $(WEBBUILD)/$(VERSION)/docs/UserGuide
+	cp -upr docs/UserGuide/svg $(WEBBUILD)/$(VERSION)/docs/UserGuide
 
 	mkdir -p $(WEBBUILD)/$(VERSION)/src/base
 	mkdir -p $(WEBBUILD)/$(VERSION)/src/gui
@@ -189,7 +191,8 @@ copybuild :
 .PHONY : copyS16homepage
 copyS16homepage :
 	cp -up docs/S16homepage/index.html  $(S16HOMEPAGE)
-	cp -up docs/S16homepage/index.css  $(S16HOMEPAGE)
+	cp -up docs/docstyle.css  $(S16HOMEPAGE)
+#	cp -up docs/S16homepage/index.css  $(S16HOMEPAGE)
 
 # Copy the testing files to the Sigma16 home page
 

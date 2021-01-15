@@ -1070,8 +1070,9 @@ window.onload = function () {
     if (browserSupportsWorkers) {
         emwtInit ()
         console.log ("Browser supports worker thread<br>")
-            document.getElementById("OptionsBody").innerHTML =
-               "Browser supports worker thread<br>"
+//            document.getElementById("OptionsBody").innerHTML =
+        //               "Browser supports worker thread<br>"
+        // ????? handle feature compatibility testing
     } else {
            document.getElementById("OptionsBody").innerHTML =
                "Browser dows not support worker thready<br>"

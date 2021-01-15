@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../datafiles/index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 
@@ -8,6 +8,10 @@
 
 #+INCLUDE: "../../VERSION.txt" export html
 #+INCLUDE: "../../LATESTVERSION.txt" export html
+
+testing
+temp code #+HTML_HEAD: link rel="stylesheet" type="text/css"
+href="../datafiles/index.css" /
 
 ** Overview
 

@@ -13,7 +13,7 @@
 # copy of the GNU General Public License along with Sigma16.  If not,
 # see <https://www.gnu.org/licenses/>.
 
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docstyle.css" />
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 
@@ -75,7 +75,7 @@ panel.
 ** Hello, world!
 
 To launch the program, visit the Sigma16 Home Page and click on the
-link to run it.
+link to run it.  No download or installation is necessary.
 
 The main window contains two main sections.  The largest area, on the
 left side, is the *main working area*.  When the program launches,

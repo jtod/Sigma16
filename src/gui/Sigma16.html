@@ -31,6 +31,7 @@ visiting this file in a browser.
 				   computer architecture, assembler,
 				   emulator, application">
     <title>Sigma16</title>
+    <script type="module" src="./config.mjs"> </script>
     <script type="module" src="../base/version.mjs"> </script>
     <script type="module" src="../base/s16module.mjs"> </script>
     <script type="module" src="../base/architecture.mjs"> </script>
@@ -376,9 +377,11 @@ visiting this file in a browser.
 	    <div class="Pane" id="OptionsPane">
 	      <div class="PaneButtons">
 		<button id="Options1"> Options 1 </button>
+		<button id="Options2"> Options 2 </button>
               </div>
-	      <div class="HighlightedTextAsHtml" id="OptionsBody">
-              </div>
+              <div class="HighlightedTextAsHtml" id="OptionsBody">
+		<div id="OptionsText"></div>
+	      </div>
             </div>
             
 	    <div class="Pane" id="DevToolsPane">

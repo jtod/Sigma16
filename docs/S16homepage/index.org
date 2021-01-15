@@ -1,16 +1,18 @@
 #+TITLE: Sigma16 home page
 #+AUTHOR: John T. O'Donnell
 
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="index.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="docstyle.css" />
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
-for experimenting with the architecture.
+for programming in assembly and machine language and experimenting
+with the architecture.
 
 The app runs in a web browser.  There's no need to download or install
-anything.  Currently it runs in Chrome and Edge, but not in Firefox.
+anything.  Currently it runs in Chrome and Edge, but not in Firefox
+and not in tablets.
 
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
@@ -22,15 +24,15 @@ anything.  Currently it runs in Chrome and Edge, but not in Firefox.
 
 When you run the app in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed
-yspecirication of the architecture, assembly language, and programming
+specification of the architecture, assembly language, and programming
 techniques.  You can also
 [[https://jtod.github.io/home/Sigma16/releases/3.1.3/docs/html/userguide/userguide.html][open
-the User Guide]].
+the User Guide in your browser]].
 
-** Introduction to the architecture
+** Introduction
 
-This architecture is simpler than most commercial products making it a
-good vehicle for teaching and experimentation.
+This architecture is simpler than most commercial products, making it
+a good vehicle for teaching and experimentation:
 
 - A 16-bit architecture with a simple yet powerful instruction set.
 
@@ -43,54 +45,27 @@ good vehicle for teaching and experimentation.
   techniques, data structures, compilation patterns, concurrency and
   mutual exclusion, and more.
 
-- There is a digital circuit that implements Sigma16, which includes
-  several microarchitecture implementations as well as logic designs
-  specified at the level of logic gates and flip flops.  These
-  circuits are specified using Hydra, a functional computer hardware
-  description language.  Sigma16 programs can be executed using the
-  emulator, and they can also be executed by simulating the digital
-  circuit using the Hydra tools.
+- There is a digital circuit that implements Sigma16. The circuit is
+  specified at the level of logic gates and flip flops, and is
+  expressed in Hydra, a functional computer hardware description
+  language.  Sigma16 programs can be executed using the emulator, and
+  they can also be executed by simulating the digital circuit using
+  the Hydra tools.
 
 - The User Guide is displayed in the running application, and you can
   also read it without launching the program.
 
 ** Where to find Sigma16
 
-To launch Sigma16 via the Internet, visit this home page and click the
-link in the red box above.  That will launch the latest stable
-version.  It's a good idea to bookmark this page:
-[https://jtod.github.io/home/Sigma16/](https://jtod.github.io/home/Sigma16/)
+It's best to bookmark this page, and to launch the app by clicking the
+link in the red box above.  That will always launch the latest
+released version.
 
 To view and download the source code, see the [source
 repository](https://github.com/jtod/Sigma16/).  You can't run the app
 directly from the source repository; you need this home page to launch
 it.
 
-There are links to past releases below.  Normally you shouldn't use
-obsolete releases, but if you encounter a bug in the latest version
-you may be able to work around the problem by running an earlier one.
-If that happens, please file a bug report.  It is essential in a bug
-report (for any software, not just Sigma16) to provide all of the
-following information:
-
-- State what version of the software you’re running.  This is visible
-  in the browser's URL field and also at the top of the User Guide.
-  Also, make sure you’re running the latest version!
-
-- State what browser and operating system you're using.  There are
-  some incompatibilities between Chrome, Firefox, Edge, and Safari, as
-  well as differences between operating systems.
-  
-- Describe what the problem was.
-
-- Provide the source code of the assembly language program you’re
-  running.
-
-- If possible, provide some photos or screen shots showing the app at
-  the point where the problem arose.  Smartphone photos are fine.  Be
-  sure to show the register display, the assembly listing display, and
-  the version number (this is visible in the browser's display of the
-  URL, and it's also visible at the top of the User Guide).
 
 ** Running the app
 
@@ -125,14 +100,18 @@ for more details see the User Guide.
 
 *** Releases
 
-The link in the red box at the top of this page runs the latest
-release, which is the top one in the list below.  Links to specific
-releases are given below.  Don't bookmark a specific version unless
-you need it for a specific reason: that will prevent you from
-accessing the latest version.  Previous versions are guaranteed to
-have either missing features, missing documentation, bugs, or all of
-the above.  After all, that’s the reason that old versions get
-replaced by newer ones!
+To run the latest release, click the link in the red box at the top of
+this page.
+
+Links to older releases appear below.  Normally you shouldn't use
+those, but if you encounter a bug in the latest version you may be
+able to work around the problem by running an earlier one.  Don't
+bookmark a specific version unless you need it for a specific reason,
+as that will prevent you from accessing the latest one.
+
+Previous versions may have either missing features, missing
+documentation, or bugs.  After all, that’s the reason that old
+versions get replaced by newer ones!
   
 - [[./releases/3.1.3/app/Sigma16.html][launch 3.1.3]] and
   [[https://github.com/jtod/Sigma16/releases/tag/v3.1.3][download
@@ -158,8 +137,8 @@ software, and are not recommended for general use.
 - [[./releases/3.1.4/src/gui/Sigma16.html][Run the latest development
   version]] This is a pre-release for the next version, intended for
   development and testing of the software.  It may be unstable, and is
-  not recommended for general users.  However, it may contain new
-  features not yet in the latest release.
+  not recommended for general users, but it may contain new features
+  not yet in the latest release.
 
 - [[./testing/compatibility/Worker.html][compatibility test: web worker]]
 
@@ -172,12 +151,38 @@ software, and are not recommended for general use.
 - [[./testing/compatibility/FreezeShm.html][compatibility test: freeze
   shared array]]
 
+- [[./testing/compatibility/config.html][config test]]
+
+** In case of problems
+
+If you encounter a problem with the app, please file a bug report.  It
+is essential in a bug report (for any software, not just Sigma16) to
+provide all of the following information:
+
+- State what version of the software you’re running.  This is visible
+  in the browser's URL field.  Also, make sure you’re running the
+  latest version!
+
+- State what browser and operating system you're using.  There are
+  some incompatibilities between Chrome, Firefox, Edge, and Safari, as
+  well as differences between operating systems.
+  
+- Describe what the problem was.
+
+- Provide the source code of the assembly language program you’re
+  running.
+
+- If possible, provide some photos or screen shots showing the app at
+  the point where the problem arose.  Smartphone photos are fine.  Be
+  sure to show the register display, the assembly listing display, and
+  the version number (this is visible in the browser's display of the
+  URL, and it's also visible at the top of the User Guide).
 
 ** About the software
 
 *** Copyright
 
-Copyright (C) 2019, 2020 John T. O'Donnell.
+Copyright (C) 2019-2021 John T. O'Donnell.
 
 The architecture is designed by, and the software tools are written
 by, [John O'Donnell](https://jtod.github.io/index.html).  Email:
@@ -187,9 +192,7 @@ john.t.odonnnell9@gmail.com
 
 The Sigma16 app (the integrated development environment -- i.e. the
 GUI) is implemented in JavaScript, html 5, and css.  The digital
-circuit is implemented in Hydra, which requires Haskell.  Additional
-software tools, including a high speed emulator, are in progress and
-expected to be available in late 2020.
+circuit is implemented in Hydra, which requires Haskell.
 
 *** License: GPL3
 

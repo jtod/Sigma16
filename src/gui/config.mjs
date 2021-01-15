@@ -1,11 +1,27 @@
-// Compatibility test: freeze creation of shared array
+// Sigma16: config.mjs
+// Copyright (C) 2021 John T. O'Donnell
+// email: john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
-let curtext = "<h1>Freeze shared array test</h1>\n<p>"
+// This file is part of Sigma16.  Sigma16 is free software: you can
+// redistribute it and/or modify it under the terms of the GNU General
+// Public License as published by the Free Software Foundation, either
+// version 3 of the License, or (at your option) any later version.
+// Sigma16 is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.  You should have received
+// a copy of the GNU General Public License along with Sigma16.  If
+// not, see <https://www.gnu.org/licenses/>.
+
+// Configuration: test browser compatibility and set options to
+// configure the app
+
 
 function output (xs) {
     console.log (`*** output ${xs}`)
-    curtext += `${xs}<br>`
-    document.getElementById("OptionsBody").innerHTML = curtext
+    let txt = document.getElementById("OptionsBody").innerHTML
+    document.getElementById("OptionsBody").innerHTML = txt + `${xs}<br>`
 }
 
 function printarr () {
@@ -13,8 +29,6 @@ function printarr () {
     for (let i = 0;  i < n; i++) xs += ` ${i}->${arr[i]}`
     output (xs)
 }
-
-output ("<br>Starting<br>")
 
 function shmFeatureTest () {
     let ok = window.SharedArrayBuffer
@@ -34,10 +48,6 @@ function checkBrowserWorkerSupport () {
     return workersSupported
 }
 
-output ("Trying worker support")
-const workerOK = checkBrowserWorkerSupport ()
-output (`worker support = ${workerOK}`)
-
 function checkSharedMemorySupport () {
     output ("checkSharedMemorySupport")
     let shmSupported = false
@@ -50,25 +60,11 @@ function checkSharedMemorySupport () {
     return shmSupported
 }
 
-output ("Trying shared array buffer")
-const shmOK = checkSharedMemorySupport ()
-output (`shared memory support = ${shmOK}`)
-
-let maybeShm
 function tryNewShm () {
     output ("tryNewShm starting")
     maybeShm = new SharedArrayBuffer (10)
     output ("tryNewShm finished")
 }
-
-output ("Calling tryNewShm")
-output (tryNewShm () )
-output ("Called tryNewShm")
-
-const n = 5
-const nb = 2 * n
-let sysStateBuf
-let arr
 
 function freezeShm (b) {
     if (b) {
@@ -86,6 +82,23 @@ function freezeShm (b) {
     }
 }
 
+output ("Starting configuration")
+const workerOK = checkBrowserWorkerSupport ()
+output (`worker support = ${workerOK}`)
+const shmOK = checkSharedMemorySupport ()
+output (`shared memory support = ${shmOK}`)
+
+let maybeShm
+
+output ("Calling tryNewShm")
+output (tryNewShm () )
+output ("Called tryNewShm")
+
+const n = 5
+const nb = 2 * n
+let sysStateBuf
+let arr
+
 freezeShm (false)
 
 output ("<br>Updating shared array in main thread<br>")
@@ -93,6 +106,18 @@ for (let i = 0;  i < n; i++) arr[i] = i
 printarr ()
 for (let i = 0;  i < n; i++) arr[i] += 100
 printarr ()
-output ("<br>Updating array...finished<br>")
+output ("Updating array...finished")
 
-output ("<br>Finished<br>")
+output ("Finished")
+
+/* deprecated
+function outputold (xs) {
+    console.log (`*** output ${xs}`)
+    curtext += `${xs}<br>`
+    document.getElementById("OptionsBody").innerHTML = curtext
+}
+
+output ("Trying worker support")
+output ("Trying shared array buffer")
+
+*/
