@@ -91,6 +91,7 @@ import * as fs from "fs";
 import { fileURLToPath } from 'url';
 
 // Components of Sigma16
+import * as cn from "../gui/config.mjs";
 import * as st from "../base//state.mjs";
 import * as smod from "../base//s16module.mjs";
 import * as asm  from "../base//assembler.mjs";
@@ -100,8 +101,8 @@ import * as link from "../base//linker.mjs";
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
 const homeDir = path.join (cliDir, "/../../")
 const guiDir = path.join (homeDir, "/src/gui/")
-const compatDir = path.join (homeDir, "/src/compatibility/")
 const baseDir = path.join (homeDir, "/src/base/");
+const compatDir = path.join (homeDir, "/src/compatibility/")
 const datafilesDir = path.join (homeDir, "/src/datafiles/");
 const docsDir = path.join (homeDir, "/docs/")
 const examplesDir = path.join (homeDir, "/examples");

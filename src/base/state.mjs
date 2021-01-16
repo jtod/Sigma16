@@ -643,11 +643,24 @@ export function incrSCB (es, code) {
 
 // System state vector
 
-export const sysStateBuf = new SharedArrayBuffer (EmStateSizeByte)
-export const sysStateVec = new Uint16Array (sysStateBuf)
+export let sysStateBuf
+export let sysStateVec
 
+export function mkSharedStateVec () { // call only if browser supports it
+    sysStateBuf = new SharedArrayBuffer (EmStateSizeByte)
+    sysStateVec = new Uint16Array (sysStateBuf)
+}
+
+export function mkUnsharedStateVec () {
+    sysStateVec = new Uint16Array (EmStateSizeWord)
+}
+
+
+
+/*
 export class emflags {
     constructor (x) {
         this.whoami = x
     }
 }
+*/

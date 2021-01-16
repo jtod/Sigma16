@@ -20,6 +20,7 @@
 //-----------------------------------------------------------------------------
 
 import * as ver   from '../base/version.mjs';
+import * as cn    from './config.mjs';
 import * as com   from '../base/common.mjs';
 import * as smod  from '../base/s16module.mjs';
 import * as arch  from '../base/architecture.mjs';
@@ -1055,6 +1056,40 @@ function devTools106 () {
     action106 ()
 }
 
+// Allocate state vector
+
+function allocateStateVec () {
+//    cn.output ("Checking browser feature support...")
+    let supportWorker = cn.checkBrowserWorkerSupport ()
+    cn.output (`Browser supports web workers = ${supportWorker}`)
+    let supportSharedMem = cn.checkSharedMemorySupport ()
+    cn.output (`Browser supports shared array buffers = ${supportSharedMem}`)
+    let useEmwt = supportWorker&&  supportSharedMem
+    cn.output (`Using emulator worker thread = ${useEmwt}`)
+    if (useEmwt) {
+        st.mkSharedStateVec ()
+    } else {
+        st.mkUnsharedStateVec ()
+    }
+    cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
+    cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
+    cn.output (`sysStateVec contains ${st.sysStateVec.length} elements`)
+    if (false) { 
+        cn.output ("Testing sysStateVec...")
+        let xs = ""
+        let n = 5
+        for (let i = 0; i < n; i++) st.sysStateVec[i] = i
+        for (let i = 0;  i < n; i++) xs += ` ${i}->${st.sysStateVec[i]}`
+        cn.output (xs)
+        xs = ""
+        for (let i = 0; i < n; i++) st.sysStateVec[i] += 100
+        for (let i = 0;  i < n; i++) xs += ` ${i}->${st.sysStateVec[i]}`
+        cn.output ("...Test finished")
+        cn.output (xs)
+    }
+    cn.output ("State vector allocated")
+}
+
 //-------------------------------------------------------------------------------
 // Run the initializers when onload event occurs
 //-------------------------------------------------------------------------------
@@ -1066,18 +1101,19 @@ let browserSupportsWorkers = false
 // The onload function runs in the main gui thread but not in worker thread
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
-    browserSupportsWorkers = checkBrowserWorkerSupport ()
-    if (browserSupportsWorkers) {
-        emwtInit ()
-        console.log ("Browser supports worker thread<br>")
+//    browserSupportsWorkers = checkBrowserWorkerSupport ()
+//    if (browserSupportsWorkers) {
+//        emwtInit ()
+//        console.log ("Browser supports worker thread<br>")
 //            document.getElementById("OptionsBody").innerHTML =
-        //               "Browser supports worker thread<br>"
-        // ????? handle feature compatibility testing
-    } else {
-           document.getElementById("OptionsBody").innerHTML =
-               "Browser dows not support worker thready<br>"
-        console.log ("Browser dows not support worker thready<br>")
-    }
+//               "Browser supports worker thread<br>"
+// ????? handle feature compatibility testing
+//    } else {
+//           document.getElementById("OptionsBody").innerHTML =
+//               "Browser dows not support worker thready<br>"
+//        console.log ("Browser dows not support worker thready<br>")
+//    }
+        
     em.hideBreakDialogue ();
     em.initializeSubsystems ();
     document.getElementById('LinkerText').innerHTML = "";    
@@ -1089,10 +1125,11 @@ window.onload = function () {
     initializePane ();
     smod.initModules ();
     window.mode = com.mode;
+    allocateStateVec ()
     guiEmulatorState = new em.EmulatorState (em.ES_gui_thread, st.sysStateVec)
     em.initializeMachineState (guiEmulatorState)
     em.procReset (guiEmulatorState)
-    flags = new st.emflags (100)
+//    flags = new st.emflags (100)
     em.clearTime (guiEmulatorState)
     com.mode.trace = true
     com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)

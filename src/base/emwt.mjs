@@ -14,9 +14,8 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-// Emulator thread
+// Emulator worker thread
 
-import * as shm from "./shmparams.mjs"
 import * as arch from './architecture.mjs'
 import * as arith from './arithmetic.mjs';
 import * as st  from './state.mjs';
