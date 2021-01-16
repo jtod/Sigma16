@@ -4860,6 +4860,32 @@ the GNU General Public License for more details.  You should have
 received a copy of the GNU General Public License along with Sigma16.
 If not, see <https://www.gnu.org/licenses/>.
 
+** In case of problems
+
+If you encounter a problem with the app, please file a bug report.  It
+is essential in a bug report (for any software, not just Sigma16) to
+provide as much as possible of the following information.
+
+- State what version of the software you’re running.  This is visible
+  in the browser's URL field.  Also, make sure you’re running the
+  latest version!
+
+- State what browser and operating system you're using.  There are
+  some incompatibilities between Chrome, Firefox, Edge, and Safari, as
+  well as differences between operating systems.
+  
+- Describe what the problem was.
+
+- Provide the source code of the assembly language program you’re
+  running.
+
+- If possible, provide some photos or screen shots showing the app at
+  the point where the problem arose.  Smartphone photos are fine.  Try
+  to show the register display, the assembly listing display, and the
+  version number (this is visible in the browser's display of the URL,
+  and it's also visible at the top of the User Guide).
+
+
 ** Release notes
 
 Sigma16 has gone through several versions.  Its aims and principles

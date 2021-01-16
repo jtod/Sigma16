@@ -407,14 +407,19 @@ export function refresh (es) {
 // state is created, and mode is the current value, which might change
 // during execution.
 
-// ES_thread_host indicates which thread this emulator instance is running in
+// ES_thread_host indicates which thread this emulator instance is
+// running in.  This is represented with an unsigned int, not a
+// symbol, so it can be stored in the system state vector.
+
 export const ES_gui_thread   = 0
 export const ES_worker_thread     = 1
 
 export class EmulatorState {
-    constructor (thread_host, shm) {
-        this.thread_host      = thread_host
-        this.shm              = shm
+    constructor (thread_host) {
+        this.thread_host      = thread_host // which thread runs this instance
+        this.shm              = null // set by allocateStateVec
+        this.emRunCapability  = ES_gui_thread // default: run in main thread
+        this.emRunThread      = ES_gui_thread // default: run in main thread
         this.startTime        = null
         this.eventTimer       = null  // returned by setInterval
 	this.instrLooperDelay = 1000
@@ -743,7 +748,7 @@ export function timerInterrupt (es) {
 //   procReset(es)       -- put processor into initial state
 //   boot(es)            -- copy the executable into memory
 //   procStep(es)        -- execute one instruction
-//   procRun(es)         -- execute instructions repeatedly until halted
+//   procRunMainThread(es)         -- execute instructions repeatedly until halted
 //   procPause(es)       -- halt execution (can resume execution later)
 //   procInterrupt()   -- not implemented yet
 //   procBreakpoint()  -- not implemented yet
@@ -885,14 +890,14 @@ export function refreshDisplay (es) {
 // Yield control each iteration to avoid blocking the user interface,
 // particularly the manual timer interrupt button.
 
-export function procRun (es) {
+export function procRunMainThread (es) {
     let q = st.readSCB (es, st.SCB_status)
     if (q === st.SCB_ready || q === st.SCB_paused) {
-        com.mode.devlog ("procRun: start looper in gui thread");
+        com.mode.devlog ("procRunMainThread: start looper in gui thread");
         instructionLooper (es);
         execInstrPostDisplay (es)
     } else {
-        console.log (`procRun skipping: SCB_status=${q}`)
+        console.log (`procRunMainThread skipping: SCB_status=${q}`)
     }
 }
 

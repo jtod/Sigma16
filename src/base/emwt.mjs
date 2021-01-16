@@ -44,7 +44,8 @@ self.addEventListener ("message", e => {
         case 100: // emwt init: received shared system state vector
             console.log ("emwt: received request init")
             emwt.shm = e.data.payload
-            emwt.es = new em.EmulatorState (em.ES_worker_thread, emwt.shm)
+            emwt.es = new em.EmulatorState (em.ES_worker_thread)
+            emwt.es.shm = e.data.payload
             em.initializeMachineState (emwt.es)
             emwt.initialized = true
             msg = {code: 200, payload: 0}

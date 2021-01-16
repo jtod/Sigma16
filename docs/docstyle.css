@@ -21,6 +21,10 @@ code {
     font-family: monospace;
     }
 
+.quickstartbox {
+    line-height: 2.5;
+}
+
 pre.example {
     background-color: #e6ffff; /* light blue background */
     color: black;

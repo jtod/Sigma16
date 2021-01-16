@@ -9,10 +9,6 @@
 #+INCLUDE: "../../VERSION.txt" export html
 #+INCLUDE: "../../LATESTVERSION.txt" export html
 
-testing
-temp code #+HTML_HEAD: link rel="stylesheet" type="text/css"
-href="../datafiles/index.css" /
-
 ** Overview
 
 Sigma16 is a computer architecture designed for research and teaching

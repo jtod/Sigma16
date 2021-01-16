@@ -10,17 +10,21 @@ in computer systems.  This application provides a complete environment
 for programming in assembly and machine language and experimenting
 with the architecture.
 
-The app runs in a web browser.  There's no need to download or install
-anything.  Currently it runs in Chrome and Edge, but not in Firefox
-and not in tablets.
+The app runs in a web browser.  Just click the link in the box;
+there's no need to download or install anything.
+
 
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
   <a href="https://jtod.github.io/home/Sigma16/releases/3.1.3/app/Sigma16.html">
-    Click to run Sigma16 in your browser
+    Click to run Sigma16
   </a>
 </div>
 #+END_EXPORT
+
+The primary supported platforms are Chrome and Edge on a desktop or
+laptop computer (Windows, Macintosh, Gnu/Linux).  Currently there are
+some incompatibilities with Firefox, Safari, and with tablets.
 
 When you run the app in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed
@@ -61,57 +65,35 @@ It's best to bookmark this page, and to launch the app by clicking the
 link in the red box above.  That will always launch the latest
 released version.
 
-To view and download the source code, see the [source
-repository](https://github.com/jtod/Sigma16/).  You can't run the app
-directly from the source repository; you need this home page to launch
-it.
+To view and download the source code, see the [[https://github.com/jtod/Sigma16/][source repository]].  You
+can't run the app directly from the source repository; you need this
+home page to launch it.
 
+You can download the source code and then run in locally on your
+machine, without further access to the Internet.  There are also
+command line tools which require downloading and installation.  See
+the User Guide for details.
 
-** Running the app
-
-There are several ways to run the software.  Here is a brief summary;
-for more details see the User Guide.
-
-- *Running via the Internet: no download or installation is
-  necessary.* The main app can be executed directly in a web browser:
-  simply click the link in the red box at the top of this page.
-
-- *Download and run on local machine.* You can download the source
-  files from the source repository; see the download link in the
-  *Releases* section.  Then open index.html in a browser; this page
-  provides a link to launch the program (see the section "Links to
-  local files").  This way you can run the app without being connected
-  to the Internet, but there are a few limitations on accessing files.
-  (These limitations are enforced by browsers to ensure security.)  In
-  particular, when you open one of the example programs, you need to
-  copy it and paste it manually (right click and select Copy or Paste)
-  into the Editor tab, as the button "Select example" won't work.  See
-  the Installation section in the User Guide.
-
-- *Local installation.* You can download the source and compile an
-  executable for your platform.  This will enable the app to run a
-  little faster and alleviate the restrictions on accessing files.
-  See the Installation section in the User Guide.
-
-* *Additional software tools.* Some of the features of the system,
-  including the digital circuit simulation, require downloading
-  software and executing it in a shell.  These tools won't run in a
-  browser.  See the Circuit section in the User Guide.
+Some of the features of the system, including the digital circuit
+simulation, require downloading software and executing it in a shell.
+These tools won't run in a browser.  See the Circuit section in the
+User Guide.
 
 *** Releases
 
 To run the latest release, click the link in the red box at the top of
 this page.
 
-Links to older releases appear below.  Normally you shouldn't use
-those, but if you encounter a bug in the latest version you may be
-able to work around the problem by running an earlier one.  Don't
-bookmark a specific version unless you need it for a specific reason,
-as that will prevent you from accessing the latest one.
+Links to some older releases are listed below.  The top link points to
+the latest release, and it's the same as the link in the red box at
+the top of the page.
 
-Previous versions may have either missing features, missing
-documentation, or bugs.  After all, that’s the reason that old
-versions get replaced by newer ones!
+Normally you shouldn't use these older links, but if you encounter a
+bug in the latest version you may be able to work around the problem
+by running an earlier one.  Don't bookmark a specific version unless
+you need it for a specific reason.  Previous versions may have missing
+features, missing documentation, or bugs.  After all, that’s the
+reason old versions get replaced by newer ones!
   
 - [[./releases/3.1.3/app/Sigma16.html][launch 3.1.3]] and
   [[https://github.com/jtod/Sigma16/releases/tag/v3.1.3][download
@@ -129,16 +111,16 @@ versions get replaced by newer ones!
   [[https://github.com/jtod/Sigma16/releases/tag/v3.1.0][download
   3.1.0]]
 
-*** Development version
+**** Development version
 
-The following versions are intended for development and testing of the
+The following links are intended for development and testing of the
 software, and are not recommended for general use.
 
 - [[./releases/3.1.4/src/gui/Sigma16.html][Run the latest development
-  version]] This is a pre-release for the next version, intended for
-  development and testing of the software.  It may be unstable, and is
-  not recommended for general users, but it may contain new features
-  not yet in the latest release.
+  snapshot.]] This is a pre-release intended for development and
+  testing of the software.  It may be unstable and is not recommended
+  for general users, but it may contain new features not yet in the
+  latest release.
 
 - [[./testing/compatibility/Worker.html][compatibility test: web worker]]
 
@@ -153,31 +135,6 @@ software, and are not recommended for general use.
 
 - [[./testing/compatibility/config.html][config test]]
 
-** In case of problems
-
-If you encounter a problem with the app, please file a bug report.  It
-is essential in a bug report (for any software, not just Sigma16) to
-provide all of the following information:
-
-- State what version of the software you’re running.  This is visible
-  in the browser's URL field.  Also, make sure you’re running the
-  latest version!
-
-- State what browser and operating system you're using.  There are
-  some incompatibilities between Chrome, Firefox, Edge, and Safari, as
-  well as differences between operating systems.
-  
-- Describe what the problem was.
-
-- Provide the source code of the assembly language program you’re
-  running.
-
-- If possible, provide some photos or screen shots showing the app at
-  the point where the problem arose.  Smartphone photos are fine.  Be
-  sure to show the register display, the assembly listing display, and
-  the version number (this is visible in the browser's display of the
-  URL, and it's also visible at the top of the User Guide).
-
 ** About the software
 
 *** Copyright
@@ -185,14 +142,12 @@ provide all of the following information:
 Copyright (C) 2019-2021 John T. O'Donnell.
 
 The architecture is designed by, and the software tools are written
-by, [John O'Donnell](https://jtod.github.io/index.html).  Email:
-john.t.odonnnell9@gmail.com
+by, [[https://jtod.github.io/index.html][John O'Donnell]].  Email: john.t.odonnnell9@gmail.com
 
 *** Implementation
 
-The Sigma16 app (the integrated development environment -- i.e. the
-GUI) is implemented in JavaScript, html 5, and css.  The digital
-circuit is implemented in Hydra, which requires Haskell.
+The Sigma16 app is implemented in JavaScript, html 5, and css.  The
+digital circuit is implemented in Hydra, which requires Haskell.
 
 *** License: GPL3
 

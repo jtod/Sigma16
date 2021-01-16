@@ -126,12 +126,14 @@ console.log ("gui.mjs has started emwt")
 // This action is essential and it's performed automatically in the
 // window.onload event handler.
 
-function emwtInit () { // called by onload initializer, request 100
+function emwtInit (es) { // called by onload initializer, request 100
     console.log ("main gui: emwtInit")
-    let msg = {code: 100, payload: st.sysStateVec}
+    let msg = {code: 100, payload: es.shm}
     emwThread.postMessage (msg)
     console.log ("main gui: posted init message 100 to emwt")
 }
+    //    let msg = {code: 100, payload: st.sysStateVec}
+    //    let msg = {code: 100, payload: guiEmulatorState.shm}
 
 function handleEmwtInitResponse (p) {
     console.log (`main gui: received response to emwt init ${p}`)
@@ -181,7 +183,6 @@ function refreshRFdisplay (es) {
     }
 }
 
-
 const ClockWidth = 4
 
 export function updateClock (es) {
@@ -212,7 +213,9 @@ export function test1 (es) {
 }
 
 
-function emwtRun () { // run until stopping condition; relinquish on trap
+// (es should be guiEmulatorState)
+
+function emwtRun (es) { // run until stopping condition; relinquish on trap
     console.log ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
     st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
@@ -514,230 +517,28 @@ export function finalizeLeaveCurrentPane () {
     document.getElementById(paneIdString(currentPane)).style.display = "none";
 }
 
-//-------------------------------------------------------------------------------
-// Debug, testing, and experiments
-//-------------------------------------------------------------------------------
-
-// Each field controls debug/test output for one aspect of the
-// program.  The output will be produced iff the field is set to true.
-// This can be done interactively in the browser console, which is
-// toggled by shift-control-I.  For example, to give more information
-// in the Modules list, enter developer.files = true in the console.
-
-let developer = {
-    files : null,   // give full file information in Modules list
-    assembler : null
-}
-
-function makeTextFile (text) {
-    let data = new Blob([text], {type: 'text/plain'});
-
-    // If we are replacing a previously generated file we need to
-    // manually revoke the object URL to avoid memory leaks.
-    if (textFile !== null) {
-      window.URL.revokeObjectURL(textFile);
-    }
-
-    textFile = window.URL.createObjectURL(data);
-
-    return textFile;
-}
-
-function jumpToAnchorInGuide () {
-    com.mode.devlog ("jumpToAnchorInGuide");
-    let anchor = "#how-to-run-the-program";
-    let elt = document.getElementById("UserGuideIframeId");
-    let elthtml = elt.contentWindow.document.body.innerHTML;
-    com.mode.devlog (`anchor = ${anchor} elt=${elthtml}`);
-    elthtml.location.hash = anchor;
-}
-
-function tryfoobar () {
-/* Try to make button go to a point in the user guide */
-    console.log ('trySearchUserguide');    
-/*
-    let midmainright = document.getElementById('MidMainRight');
-    console.log ('midmainright = ' + midmainright);
-    usrguidecontent = document.getElementById("WelcomeHtml").innerHTML;
-    console.log ('usrguidecontent = ' + usrguidecontent);
- */
-    let e = document.getElementById("THISISIT");
-    console.log('e = ' + e);
-}
-
-function jumpToAnchor (target){
-    com.mode.devlog( 'jumpToAnchor ' + target);
-    com.mode.devlog('about to do it');
-    let elt = document.getElementById('WelcomeHtml');
-    com.mode.devlog('did it');
-    com.mode.devlog('elt = ' + elt);
-    let loc = elt.location;
-    com.mode.devlog('loc = ' + loc);
-    elt.location.hash=target;
-}
-
-/* onclick="jumpToAnchor('itemAttributes');jumpToAnchor('x')"> */
-
-// find out how slow it is to refresh a register
-// is it worthwhile avoiding refreshing a register if it will also be highlighted?
-// For n=10000 the time is about 88ms, fine for interactive use
-
-// measure time for n register put operations
-function measureRegPut (n) {
-    let tstart = performance.now();
-    for (let i = 0; i<n; i++) {
-	pc.put(i);
-    }
-    let tend = performance.now();
-    com.mode.devlog('measureRegRefresh (' + n + ') took '
-		+ (tend - tstart) + ' ms');
-}
-
-// function springen(anker) { 
-//    let childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
-//     childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
-// }
-
-// Scroll user guide to an anchor
-function showGuideSection (anchor) {
-    let elt = document.getElementById("UserGuideIframeId").contentWindow;
-    elt.scrollTo(0,elt.document.getElementById(anchor).offsetTop);
-}
-
-// Scroll user guide to top
-function jumpToGuideTop () {
-    let elt = document.getElementById("UserGuideIframeId").contentWindow;
-    elt.scrollTo(0,0);
-}
-
-// Want to make Editor button 1 go to an anchor in the User Guide
-// Doesn't work yet
-// I put this manually into the user guide: <a href="HREFTESTING">dummy href</a>
-function editorButton1() {
-    com.mode.devlog("Editor button 1 clicked");
-    // Try to visit <a  href="file:Readme"> in the user guide
-    let userGuideElt = document.getElementById("MidMainRight");
-    com.mode.devlog("UserGuideElt = " + userGuideElt);
-    window.location.hash = "#HREFTESTING";
-	
-//    let loc = userGuideElt.location;
-//    console.log ("ed button 1, loc = " + loc);
-//    loc.href = "#HREFTESTING";
-    
-}
-
 //------------------------------------------------------------------------------
-// Define actions for buttons
+// Processor pane
 //------------------------------------------------------------------------------
 
-// Connect a button in the html with its corresponding function
 
-function prepareButton (bid,fcn) {
-    com.mode.devlog (`prepare button ${bid}`);
-    document.getElementById(bid)
-        .addEventListener('click', event => {fcn()});
+// Run instructions until stopping condition on selected emulator thread
+
+function procRun (es) {
+    console.log (`procRun, thread = ${es.emRunThread}`)
+    switch (es.emRunThread) {
+    case em.ES_gui_thread:
+        em.procRunMainThread (es)
+        break
+    case em.ES_worker_thread:
+        emwtRun (es)
+        break
+    default:
+        console.log (`Error procRun ${es.emRunThread}`)
+    }
+    console.log (`procRun finished`)
 }
 
-// Pane buttons
-
-prepareButton ('Welcome_Pane_Button',   () => showPane(WelcomePane));
-prepareButton ('Examples_Pane_Button',  () => showPane(ExamplesPane));
-prepareButton ('Modules_Pane_Button',   () => showPane(ModulesPane));
-prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
-prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
-prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
-prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
-prepareButton ('Options_Pane_Button'  , () => showPane(OptionsPane));
-prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
-prepareButton ('About_Button',
-               () => showGuideSection('sec-about-sigma16'));  
-
-// User guide resize (UGR) buttons
-// UGR Distance (px) to move boundary between gui and userguide on resize
-const UGRSMALL = 1;
-const UGRLARGE = 20;
-prepareButton ('UG_Resize_Right_Large_Button', () => user_guide_resize(UGRLARGE));
-prepareButton ('UG_Resize_Right_Small_Button', () => user_guide_resize(UGRSMALL));
-prepareButton ('UG_Resize_Left_Small_Button', () => user_guide_resize(-UGRSMALL));
-prepareButton ('UG_Resize_Left_Large_Button', () => user_guide_resize(-UGRLARGE));
-
-// Welcome pane (WP)
-// prepareButton ('WP_Guide_Top', jumpToGuideTop);
-prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
-prepareButton ('WP_Tutorials', () => showGuideSection('sec-tutorial'));
-prepareButton ('WP_Architecture', () => showGuideSection('sec-architecture'));
-prepareButton ('WP_ISA', () => showGuideSection('sec-instruction-set'));
-prepareButton ('WP_Assembly_Language',
-               () => showGuideSection('sec-assembly-language'));
-prepareButton ('WP_Linker', () => showGuideSection('sec-linker'));
-prepareButton ('WP_Programming', () => showGuideSection('sec-programming'));
-
-// Examples pane (EXP)
-prepareButton ('EXP_Examples_Home',    examplesHome);
-prepareButton ('EXP_Select_Example',    smod.selectExample);
-
-// Modules pane (MP)
-// prepareButton ('MP_New',    smod.newModule);
-prepareButton ('MP_Refresh',    smod.refreshModulesList);
-prepareButton ('MP_New',        smod.newMod);
-prepareButton ('MP_Hello_world', () => insert_example(example_hello_world));
-
-// Editor pane (EDP)
-prepareButton ('EDP_Selected',    ed.edSelectedButton);
-prepareButton ('EDP_Clear',       ed.edClear);
-prepareButton ('EDP_Revert',      ed.edRevert);
-prepareButton ('EDP_New',         ed.edNew);
-prepareButton ('EDP_Save',        ed.edDownload);
-prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
-// prepareButton ('EDP_Asm',         ed.edAsm);
-// prepareButton ('EDP_Obj',         ed.edObj);
-// prepareButton ('EDP_Exe',         ed.edExe);
-// prepareButton ('EDP_Link',        ed.edLink);
-
-// Assembler pane (AP)
-prepareButton ('AP_Assemble',        asm.assemblerGUI);
-prepareButton ('AP_Show_Source',     asm.displayAsmSource);
-prepareButton ('AP_Show_Object',     asm.setObjectListing);
-prepareButton ('AP_Show_Listing',    asm.setAsmListing);
-prepareButton ('AP_Show_Metadata',   asm.setMetadata);
-
-// Linker pane (LP)
-prepareButton ('LP_Link',            link.linkerGUI);
-prepareButton ('LP_Read_Object',     link.getLinkerModules);
-prepareButton ('LP_Show_Executable', link.linkShowExecutable);
-prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
-
-// Processor pane (PP)
-prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
-prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
-prepareButton ('PP_RunGui',       () => em.procRun (guiEmulatorState));
-prepareButton ('PP_RunWorker',    emwtRun);
-prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
-prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
-prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
-prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
-prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
-prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
-prepareButton ('PP_Test2',        emwtTest2);
-
-prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
-// prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
-
-// Breakpoint popup dialogue
-/*
-prepareButton ("BreakRefresh", em.breakRefresh(em.emulatorState));
-prepareButton ("BreakEnable", em.breakEnable(em.emulatorState));
-prepareButton ("BreakDisable", em.breakDisable(em.emulatorState));
-prepareButton ("BreakClose", em.breakClose());
-*/
-
-// DevTools
-prepareButton ('DevTools102',    devTools102);
-prepareButton ('DevTools103',    devTools103);
-prepareButton ('DevTools104',    devTools104);
-prepareButton ('DevTools105',    devTools105);
-prepareButton ('DevTools106',    devTools106);
-prepareButton ('DisableDevTools', disableDevTools);
 
 //------------------------------------------------------------------------------
 // Examples pane
@@ -772,6 +573,7 @@ function copyExampleToClipboard () {
 //-------------------------------------------------------------------------------
 // Editor pane
 //-------------------------------------------------------------------------------
+
 
 //-------------------------------------------------------------------------------
 // Window sizing: adjust relative size of system and user guide
@@ -1056,64 +858,299 @@ function devTools106 () {
     action106 ()
 }
 
-// Allocate state vector
-
-function allocateStateVec () {
-//    cn.output ("Checking browser feature support...")
+function configureBrowser (es) {
     let supportWorker = cn.checkBrowserWorkerSupport ()
     cn.output (`Browser supports web workers = ${supportWorker}`)
     let supportSharedMem = cn.checkSharedMemorySupport ()
     cn.output (`Browser supports shared array buffers = ${supportSharedMem}`)
-    let useEmwt = supportWorker&&  supportSharedMem
-    cn.output (`Using emulator worker thread = ${useEmwt}`)
-    if (useEmwt) {
-        st.mkSharedStateVec ()
-    } else {
-        st.mkUnsharedStateVec ()
+    es.emRunCapability = supportWorker &&  supportSharedMem
+        ? em.ES_worker_thread
+        : em.ES_gui_thread
+    es.emRunThread = es.emRunCapability // default: run according to capability
+    cn.output (`Emulator run capability = ${es.emRunCapability}`)
+}
+
+// System state vector
+
+export let sysStateBuf = null
+export let sysStateVec = null
+
+// Memory is allocated in the main thread and sent to the worker
+// thread, if there is a worker
+
+function allocateStateVector (es) {
+    switch (es.emRunCapability) {
+    case em.ES_worker_thread:
+        sysStateBuf = new SharedArrayBuffer (st.EmStateSizeByte)
+        sysStateVec = new Uint16Array (sysStateBuf)
+        es.shm = sysStateVec
+        emwtInit (es)
+        break
+    case em.ES_gui_thread:
+        sysStateVec = new Uint16Array (st.EmStateSizeWord)
+        es.shm = sysStateVec
+        break
+    default:
+        cn.output (`allocateStateVector: bad emRunCapability = `
+                   + `${es.emRunCapability}`)
     }
+    es.shm = sysStateVec
     cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
     cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
-    cn.output (`sysStateVec contains ${st.sysStateVec.length} elements`)
-    if (false) { 
-        cn.output ("Testing sysStateVec...")
-        let xs = ""
-        let n = 5
-        for (let i = 0; i < n; i++) st.sysStateVec[i] = i
-        for (let i = 0;  i < n; i++) xs += ` ${i}->${st.sysStateVec[i]}`
-        cn.output (xs)
-        xs = ""
-        for (let i = 0; i < n; i++) st.sysStateVec[i] += 100
-        for (let i = 0;  i < n; i++) xs += ` ${i}->${st.sysStateVec[i]}`
-        cn.output ("...Test finished")
-        cn.output (xs)
-    }
-    cn.output ("State vector allocated")
+    cn.output (`sysStateVec contains ${es.shm.length} elements`)
 }
+
+function testSysStateVec (es) {
+    cn.output (`Testing emulator memory: ${es.thread_host.description}...`)
+    let xs = ""
+    let n = 5
+    for (let i = 0; i < n; i++) es.shm[i] = i
+    for (let i = 0; i < n; i++) es.shm[i] += 100
+    for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
+    cn.output (`${es.thread_host.description} ${xs} ... finished`)
+}
+//    for (let i = 0; i < n; i++) st.sysStateVec[i] = i
+//    for (let i = 0; i < n; i++) st.sysStateVec[i] += 100
+//    for (let i = 0;  i < n; i++) xs += ` ${i}->${st.sysStateVec[i]}`
+
+//-------------------------------------------------------------------------------
+// Debug, testing, and experiments
+//-------------------------------------------------------------------------------
+
+// Each field controls debug/test output for one aspect of the
+// program.  The output will be produced iff the field is set to true.
+// This can be done interactively in the browser console, which is
+// toggled by shift-control-I.  For example, to give more information
+// in the Modules list, enter developer.files = true in the console.
+
+let developer = {
+    files : null,   // give full file information in Modules list
+    assembler : null
+}
+
+function makeTextFile (text) {
+    let data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+
+    textFile = window.URL.createObjectURL(data);
+
+    return textFile;
+}
+
+function jumpToAnchorInGuide () {
+    com.mode.devlog ("jumpToAnchorInGuide");
+    let anchor = "#how-to-run-the-program";
+    let elt = document.getElementById("UserGuideIframeId");
+    let elthtml = elt.contentWindow.document.body.innerHTML;
+    com.mode.devlog (`anchor = ${anchor} elt=${elthtml}`);
+    elthtml.location.hash = anchor;
+}
+
+function tryfoobar () {
+/* Try to make button go to a point in the user guide */
+    console.log ('trySearchUserguide');    
+/*
+    let midmainright = document.getElementById('MidMainRight');
+    console.log ('midmainright = ' + midmainright);
+    usrguidecontent = document.getElementById("WelcomeHtml").innerHTML;
+    console.log ('usrguidecontent = ' + usrguidecontent);
+ */
+    let e = document.getElementById("THISISIT");
+    console.log('e = ' + e);
+}
+
+function jumpToAnchor (target){
+    com.mode.devlog( 'jumpToAnchor ' + target);
+    com.mode.devlog('about to do it');
+    let elt = document.getElementById('WelcomeHtml');
+    com.mode.devlog('did it');
+    com.mode.devlog('elt = ' + elt);
+    let loc = elt.location;
+    com.mode.devlog('loc = ' + loc);
+    elt.location.hash=target;
+}
+
+/* onclick="jumpToAnchor('itemAttributes');jumpToAnchor('x')"> */
+
+// find out how slow it is to refresh a register
+// is it worthwhile avoiding refreshing a register if it will also be highlighted?
+// For n=10000 the time is about 88ms, fine for interactive use
+
+// measure time for n register put operations
+function measureRegPut (n) {
+    let tstart = performance.now();
+    for (let i = 0; i<n; i++) {
+	pc.put(i);
+    }
+    let tend = performance.now();
+    com.mode.devlog('measureRegRefresh (' + n + ') took '
+		+ (tend - tstart) + ' ms');
+}
+
+// function springen(anker) { 
+//    let childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
+//     childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
+// }
+
+// Scroll user guide to an anchor
+function showGuideSection (anchor) {
+    let elt = document.getElementById("UserGuideIframeId").contentWindow;
+    elt.scrollTo(0,elt.document.getElementById(anchor).offsetTop);
+}
+
+// Scroll user guide to top
+function jumpToGuideTop () {
+    let elt = document.getElementById("UserGuideIframeId").contentWindow;
+    elt.scrollTo(0,0);
+}
+
+// Want to make Editor button 1 go to an anchor in the User Guide
+// Doesn't work yet
+// I put this manually into the user guide: <a href="HREFTESTING">dummy href</a>
+function editorButton1() {
+    com.mode.devlog("Editor button 1 clicked");
+    // Try to visit <a  href="file:Readme"> in the user guide
+    let userGuideElt = document.getElementById("MidMainRight");
+    com.mode.devlog("UserGuideElt = " + userGuideElt);
+    window.location.hash = "#HREFTESTING";
+	
+//    let loc = userGuideElt.location;
+//    console.log ("ed button 1, loc = " + loc);
+//    loc.href = "#HREFTESTING";
+    
+}
+
+//------------------------------------------------------------------------------
+// Define actions for buttons
+//------------------------------------------------------------------------------
+
+// Connect a button in the html with its corresponding function
+
+function prepareButton (bid,fcn) {
+    com.mode.devlog (`prepare button ${bid}`);
+    document.getElementById(bid)
+        .addEventListener('click', event => {fcn()});
+}
+
+// Pane buttons
+
+prepareButton ('Welcome_Pane_Button',   () => showPane(WelcomePane));
+prepareButton ('Examples_Pane_Button',  () => showPane(ExamplesPane));
+prepareButton ('Modules_Pane_Button',   () => showPane(ModulesPane));
+prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
+prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
+prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
+prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
+prepareButton ('Options_Pane_Button'  , () => showPane(OptionsPane));
+prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
+prepareButton ('About_Button',
+               () => showGuideSection('sec-about-sigma16'));  
+
+// User guide resize (UGR) buttons
+// UGR Distance (px) to move boundary between gui and userguide on resize
+const UGRSMALL = 1;
+const UGRLARGE = 20;
+prepareButton ('UG_Resize_Right_Large_Button', () => user_guide_resize(UGRLARGE));
+prepareButton ('UG_Resize_Right_Small_Button', () => user_guide_resize(UGRSMALL));
+prepareButton ('UG_Resize_Left_Small_Button', () => user_guide_resize(-UGRSMALL));
+prepareButton ('UG_Resize_Left_Large_Button', () => user_guide_resize(-UGRLARGE));
+
+// Welcome pane (WP)
+// prepareButton ('WP_Guide_Top', jumpToGuideTop);
+prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
+prepareButton ('WP_Tutorials', () => showGuideSection('sec-tutorial'));
+prepareButton ('WP_Architecture', () => showGuideSection('sec-architecture'));
+prepareButton ('WP_ISA', () => showGuideSection('sec-instruction-set'));
+prepareButton ('WP_Assembly_Language',
+               () => showGuideSection('sec-assembly-language'));
+prepareButton ('WP_Linker', () => showGuideSection('sec-linker'));
+prepareButton ('WP_Programming', () => showGuideSection('sec-programming'));
+
+// Examples pane (EXP)
+prepareButton ('EXP_Examples_Home',    examplesHome);
+prepareButton ('EXP_Select_Example',    smod.selectExample);
+
+// Modules pane (MP)
+// prepareButton ('MP_New',    smod.newModule);
+prepareButton ('MP_Refresh',    smod.refreshModulesList);
+prepareButton ('MP_New',        smod.newMod);
+prepareButton ('MP_Hello_world', () => insert_example(example_hello_world));
+
+// Editor pane (EDP)
+prepareButton ('EDP_Selected',    ed.edSelectedButton);
+prepareButton ('EDP_Clear',       ed.edClear);
+prepareButton ('EDP_Revert',      ed.edRevert);
+prepareButton ('EDP_New',         ed.edNew);
+prepareButton ('EDP_Save',        ed.edDownload);
+prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
+// prepareButton ('EDP_Asm',         ed.edAsm);
+// prepareButton ('EDP_Obj',         ed.edObj);
+// prepareButton ('EDP_Exe',         ed.edExe);
+// prepareButton ('EDP_Link',        ed.edLink);
+
+// Assembler pane (AP)
+prepareButton ('AP_Assemble',        asm.assemblerGUI);
+prepareButton ('AP_Show_Source',     asm.displayAsmSource);
+prepareButton ('AP_Show_Object',     asm.setObjectListing);
+prepareButton ('AP_Show_Listing',    asm.setAsmListing);
+prepareButton ('AP_Show_Metadata',   asm.setMetadata);
+
+// Linker pane (LP)
+prepareButton ('LP_Link',            link.linkerGUI);
+prepareButton ('LP_Read_Object',     link.getLinkerModules);
+prepareButton ('LP_Show_Executable', link.linkShowExecutable);
+prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
+
+// Processor pane (PP)
+prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
+prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
+prepareButton ('PP_Run',          () => procRun (guiEmulatorState));
+prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
+prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
+prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
+prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
+prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
+prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
+prepareButton ('PP_RunMain',      () => em.procRunMainThread (guiEmulatorState));
+prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
+prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
+prepareButton ('PP_Test2',        emwtTest2);
+
+prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
+// prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
+
+// Breakpoint popup dialogue
+/*
+prepareButton ("BreakRefresh", em.breakRefresh(em.emulatorState));
+prepareButton ("BreakEnable", em.breakEnable(em.emulatorState));
+prepareButton ("BreakDisable", em.breakDisable(em.emulatorState));
+prepareButton ("BreakClose", em.breakClose());
+*/
+
+// DevTools
+prepareButton ('DevTools102',    devTools102);
+prepareButton ('DevTools103',    devTools103);
+prepareButton ('DevTools104',    devTools104);
+prepareButton ('DevTools105',    devTools105);
+prepareButton ('DevTools106',    devTools106);
+prepareButton ('DisableDevTools', disableDevTools);
 
 //-------------------------------------------------------------------------------
 // Run the initializers when onload event occurs
 //-------------------------------------------------------------------------------
 
-let flags
 let guiEmulatorState // declare here, define at onload event 
 let browserSupportsWorkers = false
 
 // The onload function runs in the main gui thread but not in worker thread
+
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
-//    browserSupportsWorkers = checkBrowserWorkerSupport ()
-//    if (browserSupportsWorkers) {
-//        emwtInit ()
-//        console.log ("Browser supports worker thread<br>")
-//            document.getElementById("OptionsBody").innerHTML =
-//               "Browser supports worker thread<br>"
-// ????? handle feature compatibility testing
-//    } else {
-//           document.getElementById("OptionsBody").innerHTML =
-//               "Browser dows not support worker thready<br>"
-//        console.log ("Browser dows not support worker thready<br>")
-//    }
-        
     em.hideBreakDialogue ();
     em.initializeSubsystems ();
     document.getElementById('LinkerText').innerHTML = "";    
@@ -1125,13 +1162,29 @@ window.onload = function () {
     initializePane ();
     smod.initModules ();
     window.mode = com.mode;
-    allocateStateVec ()
-    guiEmulatorState = new em.EmulatorState (em.ES_gui_thread, st.sysStateVec)
+    guiEmulatorState = new em.EmulatorState (em.ES_gui_thread)
+    configureBrowser (guiEmulatorState)
+    allocateStateVector (guiEmulatorState)
+    testSysStateVec (guiEmulatorState)
     em.initializeMachineState (guiEmulatorState)
     em.procReset (guiEmulatorState)
-//    flags = new st.emflags (100)
     em.clearTime (guiEmulatorState)
     com.mode.trace = true
     com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
     com.mode.trace = false
 }
+
+// deprecated
+// let flags
+//    flags = new st.emflags (100)
+//    browserSupportsWorkers = checkBrowserWorkerSupport ()
+//    if (browserSupportsWorkers) {
+//        console.log ("Browser supports worker thread<br>")
+//            document.getElementById("OptionsBody").innerHTML =
+//               "Browser supports worker thread<br>"
+// ????? handle feature compatibility testing
+//    } else {
+//           document.getElementById("OptionsBody").innerHTML =
+//               "Browser dows not support worker thready<br>"
+//        console.log ("Browser dows not support worker thready<br>")
+//    }
