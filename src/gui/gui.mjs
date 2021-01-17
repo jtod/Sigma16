@@ -81,18 +81,6 @@ function checkBrowserWorkerSupport () {
 }
 
 //----------------------------------------
-// Start the emulator thread
-//----------------------------------------
-
-// The thread is defined here and will start automatically.  It must
-// be initialized by calling initThreads (), which uses the
-// communication protocol to deliver the shared memory to the worker.
-
-console.log ("gui.mjs starting emwt")
-const emwThread = new Worker("../base/emwt.mjs", {type:"module"});
-console.log ("gui.mjs has started emwt")
-
-//----------------------------------------
 // Communications protocol
 //----------------------------------------
 
@@ -195,7 +183,7 @@ export function updateClock (es) {
 }
 
 function startClock (es) {
-    em.clearTime (es)
+    clearTime (es)
     updateClock (es)
     es.eventTimer = setInterval (periodicRefresher, guiRefreshInterval)
 }
@@ -221,7 +209,7 @@ function emwtRun (es) { // run until stopping condition; relinquish on trap
     st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
     let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
-    em.clearTime (guiEmulatorState)
+    clearTime (guiEmulatorState)
     startClock (guiEmulatorState)
     console.log ("main: emwt run posted start message");
 }
@@ -363,42 +351,44 @@ function handleEmwtTest2Response (p) { //
 // Handle responses from emwt
 //----------------------------------------
 
-emwThread.addEventListener ("message", e => {
-    console.log ("main has received a message")
-    if (e.data) {
-        console.log ("main has received data from message")
-        let p = e.data.payload
-        switch (e.data.code) {
-        case 200: // initialize
-            console.log (`main: received 200 init response`)
-            handleEmwtInitResponse (p)
-            break
-        case 201: // emwt step
-            console.log (`main: received 201 step response`)
-            handleEmwtStepResponse (p)
-            break
-        case 202: // emwt run
-            console.log (`main rec 202 run response`)
-            handleEmwtRunResponse (p)
-            break
-        case 203: // emwt show
-            console.log (`main: rec 203 emwt show response`)
-            handleEmwtShowResponse (p)
-            break
-        case 204: // emwt test 1
-            console.log (`main: rec 204 emwt test 1 response`)
-            handleEmwtTest1Response (p)
-            break
-        case 205: // emwt test 2
-            console.log (`main: rec 205 emwt test 2 response`)
-            handleEmwtTest2Response (p)
-            break
-        default:
-            console.log (`main: received unknown code = ${e.data.code}`)
+function initializeEmwtProtocol (es) {
+    emwThread.addEventListener ("message", e => {
+        console.log ("main has received a message")
+        if (e.data) {
+            console.log ("main has received data from message")
+            let p = e.data.payload
+            switch (e.data.code) {
+            case 200: // initialize
+                console.log (`main: received 200 init response`)
+                handleEmwtInitResponse (p)
+                break
+            case 201: // emwt step
+                console.log (`main: received 201 step response`)
+                handleEmwtStepResponse (p)
+                break
+            case 202: // emwt run
+                console.log (`main rec 202 run response`)
+                handleEmwtRunResponse (p)
+                break
+            case 203: // emwt show
+                console.log (`main: rec 203 emwt show response`)
+                handleEmwtShowResponse (p)
+                break
+            case 204: // emwt test 1
+                console.log (`main: rec 204 emwt test 1 response`)
+                handleEmwtTest1Response (p)
+                break
+            case 205: // emwt test 2
+                console.log (`main: rec 205 emwt test 2 response`)
+                handleEmwtTest2Response (p)
+                break
+            default:
+                console.log (`main: received unknown code = ${e.data.code}`)
+            }
+            console.log (`main event handler returning`)
         }
-        console.log (`main event handler returning`)
-    }
-})
+    })
+}
 
 //-------------------------------------------------------------------------------
 // Parameters and global variables
@@ -537,6 +527,74 @@ function procRun (es) {
         console.log (`Error procRun ${es.emRunThread}`)
     }
     console.log (`procRun finished`)
+}
+
+// Main interface function to step one instruction; runs in main gui
+// thread
+
+export function procStep (es) {
+    if (es.thread_host != em.ES_gui_thread) {
+        console.log (`procStep: host=${es.thread_host}, skipping`)
+        return
+    }
+    let q = st.readSCB (es, st.SCB_status)
+    switch (q) {
+    case st.SCB_ready:
+    case st.SCB_paused:
+    case st.SCB_break:
+    case st.SCB_relinquish:
+        console.log ("procStep: main thread executing instruction...")
+        st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
+        em.executeInstruction (es)
+        if (st.readSCB (es, st.SCB_status) != st.SCB_halted) {
+            st.writeSCB (es, st.SCB_status, st.SCB_ready)
+        }
+        em.execInstrPostDisplay (es)
+        em.guiDisplayNinstr (es)
+        break
+    case st.SCB_reset:
+    case st.SCB_running_gui:
+    case st.SCB_running_emwt:
+    case st.SCB_halted:
+    case st.SCB_blocked:
+        console.log ("procStep skipping instruction...")
+        break
+    default: console.log (`error: procStep unknown SCB_tatus= ${q}`)
+    }
+}
+
+// Separate clearing state from refreshing display
+export function procReset (es) {
+    console.log ("em reset");
+    com.mode.devlog ("reset the processor");
+    st.resetSCB (es)
+    em.resetRegisters (es);
+    em.memClear (es);
+    clearTime (es)
+    refreshDisplay (es)
+}
+
+export function refreshDisplay (es) {
+    em.refreshRegisters (es);
+    em.memDisplay (es);
+    document.getElementById('ProcAsmListing').innerHTML = "";
+    em.clearInstrDecode (es);
+    em.refreshInstrDecode (es);
+    em.guiDisplayNinstr (es)
+    es.ioLogBuffer = ""
+    em.refreshIOlogBuffer (es)
+    st.showSCBstatus (es)
+//    memClearAccesses ();
+}
+
+
+
+// Time
+
+export function clearTime (es) {
+    const now = new Date ()
+    es.startTime = now.getTime ()
+    document.getElementById("PP_time").innerHTML = `0ms`
 }
 
 
@@ -874,6 +932,7 @@ function configureBrowser (es) {
 
 export let sysStateBuf = null
 export let sysStateVec = null
+let emwThread = null
 
 // Memory is allocated in the main thread and sent to the worker
 // thread, if there is a worker
@@ -884,7 +943,12 @@ function allocateStateVector (es) {
         sysStateBuf = new SharedArrayBuffer (st.EmStateSizeByte)
         sysStateVec = new Uint16Array (sysStateBuf)
         es.shm = sysStateVec
+        // Start the emulator thread and initialize it
+        console.log ("gui.mjs starting emwt")
+        emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+        initializeEmwtProtocol (es)
         emwtInit (es)
+        console.log ("gui.mjs has started emwt")
         break
     case em.ES_gui_thread:
         sysStateVec = new Uint16Array (st.EmStateSizeWord)
@@ -1018,11 +1082,6 @@ function editorButton1() {
     let userGuideElt = document.getElementById("MidMainRight");
     com.mode.devlog("UserGuideElt = " + userGuideElt);
     window.location.hash = "#HREFTESTING";
-	
-//    let loc = userGuideElt.location;
-//    console.log ("ed button 1, loc = " + loc);
-//    loc.href = "#HREFTESTING";
-    
 }
 
 //------------------------------------------------------------------------------
@@ -1037,8 +1096,9 @@ function prepareButton (bid,fcn) {
         .addEventListener('click', event => {fcn()});
 }
 
-// Pane buttons
+// Pane buttons; initialization must occur after emulator state is defined
 
+function initializeButtons () {
 prepareButton ('Welcome_Pane_Button',   () => showPane(WelcomePane));
 prepareButton ('Examples_Pane_Button',  () => showPane(ExamplesPane));
 prepareButton ('Modules_Pane_Button',   () => showPane(ModulesPane));
@@ -1108,14 +1168,14 @@ prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
 // Processor pane (PP)
 prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
-prepareButton ('PP_Step',         () => em.procStep (guiEmulatorState));
+prepareButton ('PP_Step',         () => procStep (guiEmulatorState));
 prepareButton ('PP_Run',          () => procRun (guiEmulatorState));
 prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
 prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
 prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
 prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
-prepareButton ('PP_Refresh',      () => em.refresh (guiEmulatorState));
-prepareButton ('PP_Reset',        () => em.procReset (guiEmulatorState));
+prepareButton ('PP_Refresh',      () => refresh (guiEmulatorState));
+prepareButton ('PP_Reset',        () => procReset (guiEmulatorState));
 prepareButton ('PP_RunMain',      () => em.procRunMainThread (guiEmulatorState));
 prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
 prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
@@ -1139,6 +1199,7 @@ prepareButton ('DevTools104',    devTools104);
 prepareButton ('DevTools105',    devTools105);
 prepareButton ('DevTools106',    devTools106);
 prepareButton ('DisableDevTools', disableDevTools);
+}
 
 //-------------------------------------------------------------------------------
 // Run the initializers when onload event occurs
@@ -1167,24 +1228,10 @@ window.onload = function () {
     allocateStateVector (guiEmulatorState)
     testSysStateVec (guiEmulatorState)
     em.initializeMachineState (guiEmulatorState)
-    em.procReset (guiEmulatorState)
-    em.clearTime (guiEmulatorState)
+    initializeButtons ()
+    procReset (guiEmulatorState)
+    clearTime (guiEmulatorState)
     com.mode.trace = true
     com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
     com.mode.trace = false
 }
-
-// deprecated
-// let flags
-//    flags = new st.emflags (100)
-//    browserSupportsWorkers = checkBrowserWorkerSupport ()
-//    if (browserSupportsWorkers) {
-//        console.log ("Browser supports worker thread<br>")
-//            document.getElementById("OptionsBody").innerHTML =
-//               "Browser supports worker thread<br>"
-// ????? handle feature compatibility testing
-//    } else {
-//           document.getElementById("OptionsBody").innerHTML =
-//               "Browser dows not support worker thready<br>"
-//        console.log ("Browser dows not support worker thready<br>")
-//    }

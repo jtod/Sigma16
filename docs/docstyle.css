@@ -1,10 +1,11 @@
 body {
     margin: auto;
     max-width: 45em;
-    padding-right: 2em;
-    padding-left: 2em;
-    border-left: 1px solid black;
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+/*    border-left: 1px solid black;
     border-right: 1px solid black;
+*/
     color: black;
     font-family: Verdana, sans-serif;
     font-size: 100%;

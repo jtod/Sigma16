@@ -37,13 +37,6 @@ export const Mode_Quiet      = 300
 const listingLineInitialOffset = 1;
 
 
-// Time
-
-export function clearTime (es) {
-    const now = new Date ()
-    es.startTime = now.getTime ()
-    document.getElementById("PP_time").innerHTML = `0ms`
-}
 
 //------------------------------------------------------------------------------
 // Booter 
@@ -128,8 +121,8 @@ export function boot (es) {
     guiDisplayNinstr (es)
 //    document.getElementById("nInstrExecuted").innerHTML =
 //	es.nInstructionsExecuted;
-    ioLogBuffer = "";
-    refreshIOlogBuffer();
+    es.ioLogBuffer = "";
+    refreshIOlogBuffer (es);
     com.mode.trace = true;
     for (let i = 0; i < objectCode.length; i++) {
         xs = objectCode[i];
@@ -183,7 +176,7 @@ export function boot (es) {
         refreshRegisters (es)
         updateMemory (es)
         memDisplayFull(es);
-        clearTime (es)
+//        clearTime (es) ?? don't want to import gui, where it's defined
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
             + "Boot was successful"
@@ -370,7 +363,7 @@ export class genregister {
 
 // Reset every register to 0
 
-function resetRegisters (es) {
+export function resetRegisters (es) {
     com.mode.devlog('Resetting registers');
     for (let i = 0; i < es.nRegisters; i++) {
         es.register[i].put (0)
@@ -427,6 +420,7 @@ export class EmulatorState {
 	this.breakEnabled     = false
      	this.breakPCvalue     = 0
 	this.doInterrupt      = 0
+        this.ioLogBuffer      = ""
         this.pc               = null
         this.ir               = null
         this.adr              = null
@@ -648,7 +642,7 @@ function memInitialize (es) {
 
 // Set all memory locations to 0
 
-function memClear (es) {
+export function memClear (es) {
     for (let a = 0; a < memSize; a++) {
         memStore (es, a, 0)
     }
@@ -825,62 +819,6 @@ function showLst (es, xs, i) {
 // Step and run instructions
 //------------------------------------------------------------------------------
 
-// Runs in main gui thread
-
-export function procStep (es) {
-    if (es.thread_host != ES_gui_thread) {
-        console.log (`procStep: host=${es.thread_host}, skipping`)
-        return
-    }
-    let q = st.readSCB (es, st.SCB_status)
-    switch (q) {
-    case st.SCB_ready:
-    case st.SCB_paused:
-    case st.SCB_break:
-    case st.SCB_relinquish:
-        console.log ("procStep: main thread executing instruction...")
-        st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
-        executeInstruction (es)
-        if (st.readSCB (es, st.SCB_status) != st.SCB_halted) {
-            st.writeSCB (es, st.SCB_status, st.SCB_ready)
-        }
-        execInstrPostDisplay (es)
-        guiDisplayNinstr (es)
-        break
-    case st.SCB_reset:
-    case st.SCB_running_gui:
-    case st.SCB_running_emwt:
-    case st.SCB_halted:
-    case st.SCB_blocked:
-        console.log ("procStep skipping instruction...")
-        break
-    default: console.log (`error: procStep unknown SCB_tatus= ${q}`)
-    }
-}
-
-// Separate clearing state from refreshing display
-export function procReset (es) {
-    console.log ("em reset");
-    com.mode.devlog ("reset the processor");
-    st.resetSCB (es)
-    resetRegisters (es);
-    memClear (es);
-    clearTime (es)
-    refreshDisplay (es)
-}
-
-export function refreshDisplay (es) {
-    refreshRegisters (es);
-    memDisplay (es);
-    document.getElementById('ProcAsmListing').innerHTML = "";
-    clearInstrDecode (es);
-    refreshInstrDecode (es);
-    guiDisplayNinstr (es)
-    ioLogBuffer = ""
-    refreshIOlogBuffer ()
-    st.showSCBstatus (es)
-//    memClearAccesses ();
-}
 
 //------------------------------------------------------------------------------
 // Controlling instruction execution
@@ -1280,8 +1218,8 @@ function trapRead (es) {
     }
     es.regfile[es.ir_a].put(a); // just after last address stored
     es.regfile[es.ir_b].put(m); // number of chars actually input
-    ioLogBuffer += highlightField(ys,"READ");   // display chars that were read
-    refreshIOlogBuffer ();
+    es.ioLogBuffer += highlightField(ys,"READ");   // display chars that were read
+    refreshIOlogBuffer (es);
     inputElt.value = xs2; // leave unread characters in input buffer
 }
 
@@ -1295,10 +1233,20 @@ function trapWrite (es) {
 	a++
     }
     com.mode.devlog (`Write a=${a} b=${b} >>> /${xs}/`);
-    ioLogBuffer += xs;
-    com.mode.devlog (ioLogBuffer);
-    refreshIOlogBuffer();
+    es.ioLogBuffer += xs;
+    com.mode.devlog (es.ioLogBuffer);
+    refreshIOlogBuffer (es);
 }
+
+// Should make more abstract; shouldn't refer to DOM
+export function refreshIOlogBuffer (es) {
+    com.mode.devlog (`refreshIOlogBugfer ${es.ioLogBuffer}`);
+    console.log (`refreshIOlogBugfer ${es.ioLogBuffer}`);
+    let elt = document.getElementById("IOlog");
+    elt.innerHTML = "<pre>" + es.ioLogBuffer + "</pre>";
+    elt.scrollTop = elt.scrollHeight;
+}
+
 
 const handle_rx = (es) => {
     com.mode.devlog ('handle rx' + es.ir_b);
@@ -1847,17 +1795,7 @@ const asmScrollOffsetAbove = 8;
 let pxPerChar = 13.05;
 
 
-// Should move to gui.mjs
-function refreshIOlogBuffer() {
-    com.mode.devlog (`refreshIOlogBugfer ${ioLogBuffer}`);
-    console.log (`refreshIOlogBugfer ${ioLogBuffer}`);
-    let elt = document.getElementById("IOlog");
-    elt.innerHTML = "<pre>" + ioLogBuffer + "</pre>";
-    elt.scrollTop = elt.scrollHeight;
-}
-
-
-export let ioLogBuffer = "";
+// export let ioLogBuffer = ""; now in es
 
 // export const procAsmListingElt = document.getElementById('ProcAsmListing');
 
@@ -1894,7 +1832,7 @@ function updateMemory (es) {
 // determine whether the display should be partial and fast or
 // complete but slow.
 
-function memDisplay (es) {
+export function memDisplay (es) {
     if (memDisplayModeFull) { memDisplayFull (es) }
     else { memDisplayFast (es) }
 }
@@ -2148,7 +2086,7 @@ export function initializeProcessorElements (es) {
     }
 }
 
-function refreshInstrDecode (es) {
+export function refreshInstrDecode (es) {
     com.mode.devlog ("refreshInstrDecode");
 //    if (false) { // ????????????????????? temporary...
     if (es.thread_host === ES_gui_thread) {
@@ -2239,7 +2177,7 @@ function initRegHightlghting (es) {
 
 // Display all the registers and remove highlighting.
 
-function refreshRegisters (es) {
+export function refreshRegisters (es) {
     com.mode.devlog('Refreshing registers');
     if (es.thread_host != ES_gui_thread) {
         console.log (`refreshRegisters host=${es.thread_host}, skipping`)
