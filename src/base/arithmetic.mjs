@@ -1,5 +1,5 @@
 // Sigma16: arithmetic.mjs
-// Copyright (C) 2020 John T. O'Donnell
+// Copyright (C) 2020-2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -236,7 +236,7 @@ function validateWord (x) {
 
 export function truncateWord (x) {
     const r = (x < 0) ? 0 : (x & 0xffff);
-    console.log (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
+    com.mode.devlog (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
     return r;
 }
 
@@ -538,7 +538,7 @@ export function op_muln (c,a,b) {
     const product = x * b;
     const primary  = product % k16;
     const secondary = Math.floor (product / k16);
-    console.log (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
+    com.mode.devlog (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
     return [primary, secondary];
 }
 
@@ -551,7 +551,7 @@ export function op_divn (a,b) {
 
     const primary  = product % k16;
     const secondary = Math.floor (product / k16);
-    console.log (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
+    com.mode.devlog (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
     return [primary, secondary];
 
 }
@@ -648,7 +648,7 @@ export function op_addc (c,a,b) {
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
         | (carryOut ? ccC : 0);
-    console.log (`************ op_addc co=${carryOut}`)
+    com.mode.devlog (`************ op_addc co=${carryOut}`)
     return [primary, secondary];
 }
 

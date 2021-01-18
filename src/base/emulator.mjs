@@ -1,5 +1,5 @@
 // Sigma16: emulator.mjs
-// Copyright (C) 2021 John T. O'Donnell
+// Copyright (C) 2020-2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -91,7 +91,7 @@ export function obtainExecutable () {
 }
 
 export function boot (es) {
-    com.mode.trace = true;
+    com.mode.trace = false;
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     st.resetSCB (es)
@@ -123,7 +123,7 @@ export function boot (es) {
 //	es.nInstructionsExecuted;
     es.ioLogBuffer = "";
     refreshIOlogBuffer (es);
-    com.mode.trace = true;
+    com.mode.trace = false;
     for (let i = 0; i < objectCode.length; i++) {
         xs = objectCode[i];
         com.mode.devlog (`boot: objectCode line ${i} = <${xs}>`);
@@ -341,7 +341,7 @@ export class genregister {
 //                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
     }
     highlight (key) {
-//        console.log (`reg-highlight ${this.regName} ${key}`)
+//        com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
         if (this.es.thread_host === ES_gui_thread) {
             let i = st.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
@@ -372,7 +372,7 @@ export function resetRegisters (es) {
 }
 
 export function refresh (es) {
-    console.log ("Refresh")
+    com.mode.devlog ("Refresh")
     refreshRegisters (es)
     memRefresh (es)
     memDisplayFull (es)
@@ -408,13 +408,17 @@ export const ES_gui_thread   = 0
 export const ES_worker_thread     = 1
 
 export class EmulatorState {
-    constructor (thread_host) {
+    constructor (thread_host, f, g, h) {
         this.thread_host      = thread_host // which thread runs this instance
+        this.initRunDisplay   = f
+        this.duringRunDisplay = g
+        this.endRunDisplay    = h
         this.shm              = null // set by allocateStateVec
         this.emRunCapability  = ES_gui_thread // default: run in main thread
         this.emRunThread      = ES_gui_thread // default: run in main thread
         this.startTime        = null
         this.eventTimer       = null  // returned by setInterval
+        this.emInstrSliceSize = 1000 // n instructions before looper yields
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false
@@ -824,18 +828,24 @@ function showLst (es, xs, i) {
 // Controlling instruction execution
 //------------------------------------------------------------------------------
 
-// Run instructions repeatedly until a stopping condition arises.
-// Yield control each iteration to avoid blocking the user interface,
-// particularly the manual timer interrupt button.
+// Using the main gui thread, run instructions repeatedly until a
+// stopping condition arises.  Yield control each iteration to avoid
+// blocking the user interface, particularly the manual timer
+// interrupt button.
 
 export function procRunMainThread (es) {
     let q = st.readSCB (es, st.SCB_status)
-    if (q === st.SCB_ready || q === st.SCB_paused) {
+    switch (q) {
+    case st.SCB_ready:
+    case st.SCB_paused:
+    case st.SCB_blocked:
         com.mode.devlog ("procRunMainThread: start looper in gui thread");
-        instructionLooper (es);
-        execInstrPostDisplay (es)
-    } else {
-        console.log (`procRunMainThread skipping: SCB_status=${q}`)
+        es.initRunDisplay (es)
+        mainInstructionLooper (es);
+//        execInstrPostDisplay (es) no, 
+        break
+    default:
+        com.mode.devlog (`procRunMainThread skipping: SCB_status=${q}`)
     }
 }
 
@@ -843,7 +853,49 @@ export function procRunMainThread (es) {
 // system status before calling the looper; it's assumed that it is ok
 // to execute an instruction in the gui thread.
 
-function instructionLooper (es) {
+function mainInstructionLooper (es) {
+    com.mode.devlog ("mainInstructionLooper starting")
+    st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
+    let i = 0
+    let status = 0
+    let noPauseReq = true
+    let continueRunning = true
+    let finished = false
+    while (continueRunning) {
+        executeInstruction (es)
+        clearLoggingData (es)
+        i++
+        status = st.readSCB (es, st.SCB_status)
+        noPauseReq = st.readSCB (es, st.SCB_pause_request) === 0
+        switch (status) {
+        case st.SCB_halted:
+            finished = true
+            break
+        case st.SCB_paused:
+            st.writeSCB (emwt.es, st.SCB_pause_request, 0)
+            finished = true
+            break
+        case st.SCB_break:
+            finished = true
+            break
+        default:
+        }
+        continueRunning = !finished  && noPauseReq && i < es.emInstrSliceSize
+    }
+    if (finished) {
+        console.log (`mainInstructionLooper finished, status=${status}`)
+        es.endRunDisplay (es)
+        execInstrPostDisplay (es)
+        com.mode.devlog ('instructionLooper terminated')
+    } else {
+        console.log (`mainInstructionLooper ${i}`)
+        es.duringRunDisplay (es)
+	setTimeout (function () {mainInstructionLooper (es)})
+    }
+    console.log (`mainInstructionLooper returning`)
+}
+
+function instructionLooper (es) { // one instruction, then yield
     st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
     executeInstruction (es);
     let q = st.readSCB (es, st.SCB_status)
@@ -933,13 +985,13 @@ function breakClose () {
 // (for stepping) Display the effects of the instruction
 
 export function execInstrPostDisplay (es) {
-    console.log ("execInstrPostDisplay")
+    com.mode.devlog ("execInstrPostDisplay")
     switch (es.thread_host) {
     case ES_worker_thread: // should be impossible
         break;
     case ES_gui_thread:
         //    clearRegisterHighlighting (es); // deprecated
-        console.log ("main: execInstrPostDisplay, proceeding")
+        com.mode.devlog ("main: execInstrPostDisplay, proceeding")
         updateMemory (es)
         memDisplay (es)
         showInstrDecode (es)
@@ -949,7 +1001,7 @@ export function execInstrPostDisplay (es) {
         highlightListingAfterInstr (es)
         break
     default: // should be impossible
-        console.log (`error: execInstrPostDisplay host=${es.thread_host}`)
+        com.mode.devlog (`error: execInstrPostDisplay host=${es.thread_host}`)
     }
 }
 
@@ -991,7 +1043,7 @@ export function executeInstruction (es) {
     st.writeSCB (es, st.SCB_cur_instr_addr, es.pc.get())
     if (arith.getBitInRegBE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
-        console.log (`execute instruction: interrupt`)
+        com.mode.devlog (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
 	while (i<16 && arith.getBitInWordBE(mr,i)==0) { i++ }
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
@@ -1155,7 +1207,7 @@ const cab_dc = (f) => (es) => {
 const op_trap = (es) => {
     switch (es.thread_host) {
     case ES_gui_thread:
-        console.log (`handle trap in main thread`)
+        com.mode.devlog (`handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
         com.mode.devlog (`trap code=${code}`);
         if (code===0) { // Halt
@@ -1174,11 +1226,11 @@ const op_trap = (es) => {
         }
         break
     case ES_worker_thread:
-        console.log (`emworker: relinquish control on a trap`)
+        com.mode.devlog (`emworker: relinquish control on a trap`)
         st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
-        console.log (`trap relinquish before fixup, pc = ${es.pc.get()}`)
+        com.mode.devlog (`trap relinquish before fixup, pc = ${es.pc.get()}`)
         es.pc.put (st.readSCB (es, st.SCB_cur_instr_addr))
-        console.log (`trap relinquish after fixup, pc = ${es.pc.get()}`)
+        com.mode.devlog (`trap relinquish after fixup, pc = ${es.pc.get()}`)
         break
     default:
         console.log (`system error: trap has bad shm_token ${q}`)
@@ -1241,7 +1293,7 @@ function trapWrite (es) {
 // Should make more abstract; shouldn't refer to DOM
 export function refreshIOlogBuffer (es) {
     com.mode.devlog (`refreshIOlogBugfer ${es.ioLogBuffer}`);
-    console.log (`refreshIOlogBugfer ${es.ioLogBuffer}`);
+    com.mode.devlog (`refreshIOlogBugfer ${es.ioLogBuffer}`);
     let elt = document.getElementById("IOlog");
     elt.innerHTML = "<pre>" + es.ioLogBuffer + "</pre>";
     elt.scrollTop = elt.scrollHeight;
@@ -1260,7 +1312,7 @@ const handle_EXP = (es) => {
     let code = 16*es.ir_a + es.ir_b;
     if (code < limitEXPcode) {
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
-	console.log (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
+	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
 	dispatch_EXP [code] (es);
     } else {
 	com.mode.devlog (`EXP bad code ${arith.wordToHex4(code)}`);
@@ -1674,7 +1726,7 @@ const exp1 = (f) => (es) => {
 
 const exp2 = (f) => (es) => {
     com.mode.devlog (`>>> EXP2 instruction`);
-    console.log (`>>> EXP2 instruction`);
+    com.mode.devlog (`>>> EXP2 instruction`);
     let expCode = 16 * es.ir_a + es.ir_b;
     es.instrOpStr = `EXP2 mnemonic code=${expCode}`;  // ????????????
     es.instrDisp = memFetchInstr (es, es.pc.get());
@@ -1964,7 +2016,7 @@ function highlightText (txt,tag) {
 }
 
 function prepareListingBeforeInstr (es) {
-    com.mode.trace = true;
+    com.mode.trace = false;
     com.mode.devlog ('prepareListingBeforeInstr');
     showListingParameters (es)
 
@@ -1993,7 +2045,7 @@ function prepareListingBeforeInstr (es) {
 // instructions are highlighted in the listing
 
 function highlightListingAfterInstr (es) {
-    com.mode.trace = true;
+    com.mode.trace = false;
     com.mode.devlog ('highlightListingAfterInstr');
     showListingParameters (es)
     com.mode.devlog ('  curInstrAddr = ' + es.curInstrAddr);
@@ -2149,14 +2201,14 @@ function setMemString(es,a) {
 
 function updateRegisters (es) {
     if (es.thread_host != ES_gui_thread) {
-        console.log (`updateRegisters host=${es.thread_host}: skipping`)
+        com.mode.devlog (`updateRegisters host=${es.thread_host}: skipping`)
         return
     }
     // Clear previous highlighting by refreshing the registers
-    console.log (`${es.regFetchedOld.length}`)
-    console.log (`${es.regStoredOld.length}`)
-    console.log (`${es.regFetched.length}`)
-    console.log (`${es.regStored.length}`)
+    com.mode.devlog (`${es.regFetchedOld.length}`)
+    com.mode.devlog (`${es.regStoredOld.length}`)
+    com.mode.devlog (`${es.regFetched.length}`)
+    com.mode.devlog (`${es.regStored.length}`)
     for (let x of es.regFetchedOld) { x.refresh () }
     for (let x of es.regStoredOld)  { x.refresh () }
     // Update the new register accesses
@@ -2180,7 +2232,7 @@ function initRegHightlghting (es) {
 export function refreshRegisters (es) {
     com.mode.devlog('Refreshing registers');
     if (es.thread_host != ES_gui_thread) {
-        console.log (`refreshRegisters host=${es.thread_host}, skipping`)
+        com.mode.devlog (`refreshRegisters host=${es.thread_host}, skipping`)
     }
     for (let i = 0; i < es.nRegisters; i++) {
 	es.register[i].refresh();
@@ -2202,7 +2254,7 @@ export function procPause(es) {
     st.showSCBstatus (es)
     st.writeSCB (es, st.SCB_pause_request, 1)
     st.showSCBstatus (es)
-    console.log ("em wrote procPause request")
+    com.mode.devlog ("em wrote procPause request")
 }
 
 //-----------------------------------------------------------------------------

@@ -68,14 +68,14 @@ function logShmStatus (es) {
 // console and return a Boolen: true if workers are supported
 
 function checkBrowserWorkerSupport () {
-    console.log ("checkBrowserWorkerSupport")
-    console.log ("checkBrowserWorkerSupport")
+    com.mode.devlog ("checkBrowserWorkerSupport")
+    com.mode.devlog ("checkBrowserWorkerSupport")
     let workersSupported = false
     if (window.Worker) {
-        console.log ("Browser supports concurrent worker threads");
+        com.mode.devlog ("Browser supports concurrent worker threads");
         workersSupported = true
     } else {
-        console.log ("Browser does not support concurrent worker threads");
+        com.mode.devlog ("Browser does not support concurrent worker threads");
     }
     return workersSupported
 }
@@ -115,16 +115,16 @@ function checkBrowserWorkerSupport () {
 // window.onload event handler.
 
 function emwtInit (es) { // called by onload initializer, request 100
-    console.log ("main gui: emwtInit")
+    com.mode.devlog ("main gui: emwtInit")
     let msg = {code: 100, payload: es.shm}
     emwThread.postMessage (msg)
-    console.log ("main gui: posted init message 100 to emwt")
+    com.mode.devlog ("main gui: posted init message 100 to emwt")
 }
     //    let msg = {code: 100, payload: st.sysStateVec}
     //    let msg = {code: 100, payload: guiEmulatorState.shm}
 
 function handleEmwtInitResponse (p) {
-    console.log (`main gui: received response to emwt init ${p}`)
+    com.mode.devlog (`main gui: received response to emwt init ${p}`)
 }
 
 //----------------------------------------
@@ -132,19 +132,19 @@ function handleEmwtInitResponse (p) {
 //----------------------------------------
 
 function emwtStep () {
-    console.log ("main: emwt step");
+    com.mode.devlog ("main: emwt step");
     let msg = {code: 101, payload: 0}
     emwThread.postMessage (msg)
 }
 
 function handleEmwtStepResponse (p) {
-    console.log (`main: handle emwt step response ${p}`)
+    com.mode.devlog (`main: handle emwt step response ${p}`)
     //    em.refresh (guiEmulatorState)
     em.execInstrPostDisplay (guiEmulatorState)
     let newstatus = st.readSCB (guiEmulatorState, st.SCB_status)
-    console.log (`main handle emwt step response: status=${newstatus}`)
+    com.mode.devlog (`main handle emwt step response: status=${newstatus}`)
     if (newstatus === st.SCB_relinquish) {
-        console.log (`***** main gui: handle worker step relinquish`)
+        com.mode.devlog (`***** main gui: handle worker step relinquish`)
     }
 }
 
@@ -155,7 +155,7 @@ function handleEmwtStepResponse (p) {
 const guiRefreshInterval = 1000 // period of display refresh during run (ms)
 
 function periodicRefresher () {
-//    console.log ("periodicRefresher")
+//    com.mode.devlog ("periodicRefresher")
     updateClock (guiEmulatorState)
     refreshRFdisplay (guiEmulatorState)
 }
@@ -182,6 +182,20 @@ export function updateClock (es) {
     document.getElementById("PP_time").innerHTML = xs
 }
 
+function updateWhileRunning (es) {
+    updateClock (es)
+    refreshRFdisplay (es)
+}
+
+function initRun (es) {
+    clearTime (es)
+    updateClock (es)
+}
+
+function finishRun (es) { // for running in main thread
+    updateClock (es)
+}
+
 function startClock (es) {
     clearTime (es)
     updateClock (es)
@@ -190,7 +204,7 @@ function startClock (es) {
 
 function stopClock (es) {
     clearInterval (es.eventTimer)
-    console.log ("stopClock")
+    com.mode.devlog ("stopClock")
     updateClock (es)
     es.eventTimer = null
 }
@@ -204,74 +218,74 @@ export function test1 (es) {
 // (es should be guiEmulatorState)
 
 function emwtRun (es) { // run until stopping condition; relinquish on trap
-    console.log ("main: emwt run");
+    com.mode.devlog ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
     st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
     let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
     clearTime (guiEmulatorState)
     startClock (guiEmulatorState)
-    console.log ("main: emwt run posted start message");
+    com.mode.devlog ("main: emwt run posted start message");
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 202
     let status = st.readSCB (guiEmulatorState, st.SCB_status)
     let  msg = {code: 0, payload: 0}
-    console.log (`main: handle emwt run response: p=${p} status=${status}`)
+    com.mode.devlog (`main: handle emwt run response: p=${p} status=${status}`)
     switch (status) {
     case st.SCB_halted:
-        console.log (`*** main: handle emwt halt`)
+        com.mode.devlog (`*** main: handle emwt halt`)
         stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         break
     case st.SCB_paused:
-        console.log (`*** main: handle emwt pause`)
+        com.mode.devlog (`*** main: handle emwt pause`)
         stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_pause_request, 0)
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
         st.showSCBstatus (guiEmulatorState)
-        console.log (`*** main: finished handle emwt pause`)
+        com.mode.devlog (`*** main: finished handle emwt pause`)
         break
     case st.SCB_break:
-        console.log (`*** main: handle emwt break`)
+        com.mode.devlog (`*** main: handle emwt break`)
         stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
         st.showSCBstatus (guiEmulatorState)
-        console.log (`*** main: finished handle emwt break`)
+        com.mode.devlog (`*** main: finished handle emwt break`)
         break
     case st.SCB_blocked:
-        console.log (`*** main: handle emwt blocked`)
+        com.mode.devlog (`*** main: handle emwt blocked`)
         break
     case st.SCB_relinquish: // emwt halt signals halt, not relinquish
-        console.log (`*** main: handle emwt relinquish`)
+        com.mode.devlog (`*** main: handle emwt relinquish`)
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
         em.executeInstruction (guiEmulatorState)
         if (st.readSCB (guiEmulatorState, st.SCB_status) === st.SCB_halted) {
             stopClock (guiEmulatorState)
             em.refresh (guiEmulatorState)
-            console.log (`*** main: handle emwt relinquish then halted`)
+            com.mode.devlog (`*** main: handle emwt relinquish then halted`)
         } else {
-            console.log (`*** main: handle emwt relinquish resuming`)
+            com.mode.devlog (`*** main: handle emwt relinquish resuming`)
             st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
             msg = {code: 102, payload: 0}
             emwThread.postMessage (msg)
         }
-        console.log (`*** main: finished handle emwt relinquish`)
+        com.mode.devlog (`*** main: finished handle emwt relinquish`)
         break
     case st.SCB_reset:
     case st.SCB_ready:
     case st.SCB_running_gui:
     case st.SCB_running_emwt:
     default:
-        console.log (`main:handleEmwtRunResponse unknown status = ${status}`)
+        com.mode.devlog (`main:handleEmwtRunResponse unknown status = ${status}`)
     }
-    console.log ("main: handleEmwtRunResponse finished")
+    com.mode.devlog ("main: handleEmwtRunResponse finished")
 }
 
 /*        
@@ -309,13 +323,13 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
 //----------------------------------------
 
 function emwtShow () {
-    console.log ("main: emwtShowRegs")
+    com.mode.devlog ("main: emwtShowRegs")
     let msg = {code: 103, payload: 0}
     emwThread.postMessage (msg)
 }
 
 function handleEmwtShowResponse (p) {
-    console.log (`main: handle emwt show response ${p}`)
+    com.mode.devlog (`main: handle emwt show response ${p}`)
 }
 
 //----------------------------------------
@@ -353,39 +367,39 @@ function handleEmwtTest2Response (p) { //
 
 function initializeEmwtProtocol (es) {
     emwThread.addEventListener ("message", e => {
-        console.log ("main has received a message")
+        com.mode.devlog ("main has received a message")
         if (e.data) {
-            console.log ("main has received data from message")
+            com.mode.devlog ("main has received data from message")
             let p = e.data.payload
             switch (e.data.code) {
             case 200: // initialize
-                console.log (`main: received 200 init response`)
+                com.mode.devlog (`main: received 200 init response`)
                 handleEmwtInitResponse (p)
                 break
             case 201: // emwt step
-                console.log (`main: received 201 step response`)
+                com.mode.devlog (`main: received 201 step response`)
                 handleEmwtStepResponse (p)
                 break
             case 202: // emwt run
-                console.log (`main rec 202 run response`)
+                com.mode.devlog (`main rec 202 run response`)
                 handleEmwtRunResponse (p)
                 break
             case 203: // emwt show
-                console.log (`main: rec 203 emwt show response`)
+                com.mode.devlog (`main: rec 203 emwt show response`)
                 handleEmwtShowResponse (p)
                 break
             case 204: // emwt test 1
-                console.log (`main: rec 204 emwt test 1 response`)
+                com.mode.devlog (`main: rec 204 emwt test 1 response`)
                 handleEmwtTest1Response (p)
                 break
             case 205: // emwt test 2
-                console.log (`main: rec 205 emwt test 2 response`)
+                com.mode.devlog (`main: rec 205 emwt test 2 response`)
                 handleEmwtTest2Response (p)
                 break
             default:
-                console.log (`main: received unknown code = ${e.data.code}`)
+                com.mode.devlog (`main: received unknown code = ${e.data.code}`)
             }
-            console.log (`main event handler returning`)
+            com.mode.devlog (`main event handler returning`)
         }
     })
 }
@@ -511,22 +525,25 @@ export function finalizeLeaveCurrentPane () {
 // Processor pane
 //------------------------------------------------------------------------------
 
-
-// Run instructions until stopping condition on selected emulator thread
+// Run instructions until stopping condition is reached.  This will be
+// performed using either the main gui thread (procRunMainThread) or
+// on the worker thread (emwtRun).
 
 function procRun (es) {
-    console.log (`procRun, thread = ${es.emRunThread}`)
+    com.mode.devlog (`gui.procRun: thread = ${es.emRunThread}`)
     switch (es.emRunThread) {
     case em.ES_gui_thread:
+        console.log ("gui.procRun: run in main gui thread")
         em.procRunMainThread (es)
         break
     case em.ES_worker_thread:
+        console.log ("gui.procRun: run in worker thread")
         emwtRun (es)
         break
     default:
-        console.log (`Error procRun ${es.emRunThread}`)
+        com.mode.devlog (`Error procRun ${es.emRunThread}`)
     }
-    console.log (`procRun finished`)
+    com.mode.devlog (`procRun finished`)
 }
 
 // Main interface function to step one instruction; runs in main gui
@@ -534,7 +551,7 @@ function procRun (es) {
 
 export function procStep (es) {
     if (es.thread_host != em.ES_gui_thread) {
-        console.log (`procStep: host=${es.thread_host}, skipping`)
+        com.mode.devlog (`procStep: host=${es.thread_host}, skipping`)
         return
     }
     let q = st.readSCB (es, st.SCB_status)
@@ -543,7 +560,7 @@ export function procStep (es) {
     case st.SCB_paused:
     case st.SCB_break:
     case st.SCB_relinquish:
-        console.log ("procStep: main thread executing instruction...")
+        com.mode.devlog ("procStep: main thread executing instruction...")
         st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
         em.executeInstruction (es)
         if (st.readSCB (es, st.SCB_status) != st.SCB_halted) {
@@ -557,15 +574,15 @@ export function procStep (es) {
     case st.SCB_running_emwt:
     case st.SCB_halted:
     case st.SCB_blocked:
-        console.log ("procStep skipping instruction...")
+        com.mode.devlog ("procStep skipping instruction...")
         break
-    default: console.log (`error: procStep unknown SCB_tatus= ${q}`)
+    default: com.mode.devlog (`error: procStep unknown SCB_tatus= ${q}`)
     }
 }
 
 // Separate clearing state from refreshing display
 export function procReset (es) {
-    console.log ("em reset");
+    com.mode.devlog ("em reset");
     com.mode.devlog ("reset the processor");
     st.resetSCB (es)
     em.resetRegisters (es);
@@ -944,11 +961,11 @@ function allocateStateVector (es) {
         sysStateVec = new Uint16Array (sysStateBuf)
         es.shm = sysStateVec
         // Start the emulator thread and initialize it
-        console.log ("gui.mjs starting emwt")
+        com.mode.devlog ("gui.mjs starting emwt")
         emwThread = new Worker("../base/emwt.mjs", {type:"module"});
         initializeEmwtProtocol (es)
         emwtInit (es)
-        console.log ("gui.mjs has started emwt")
+        com.mode.devlog ("gui.mjs has started emwt")
         break
     case em.ES_gui_thread:
         sysStateVec = new Uint16Array (st.EmStateSizeWord)
@@ -1099,106 +1116,108 @@ function prepareButton (bid,fcn) {
 // Pane buttons; initialization must occur after emulator state is defined
 
 function initializeButtons () {
-prepareButton ('Welcome_Pane_Button',   () => showPane(WelcomePane));
-prepareButton ('Examples_Pane_Button',  () => showPane(ExamplesPane));
-prepareButton ('Modules_Pane_Button',   () => showPane(ModulesPane));
-prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
-prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
-prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
-prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
-prepareButton ('Options_Pane_Button'  , () => showPane(OptionsPane));
-prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
-prepareButton ('About_Button',
-               () => showGuideSection('sec-about-sigma16'));  
+    prepareButton ('Welcome_Pane_Button',   () => showPane(WelcomePane));
+    prepareButton ('Examples_Pane_Button',  () => showPane(ExamplesPane));
+    prepareButton ('Modules_Pane_Button',   () => showPane(ModulesPane));
+    prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
+    prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
+    prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
+    prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
+    prepareButton ('Options_Pane_Button'  , () => showPane(OptionsPane));
+    prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
+    prepareButton ('About_Button',
+                   () => showGuideSection('sec-about-sigma16'));  
 
-// User guide resize (UGR) buttons
-// UGR Distance (px) to move boundary between gui and userguide on resize
-const UGRSMALL = 1;
-const UGRLARGE = 20;
-prepareButton ('UG_Resize_Right_Large_Button', () => user_guide_resize(UGRLARGE));
-prepareButton ('UG_Resize_Right_Small_Button', () => user_guide_resize(UGRSMALL));
-prepareButton ('UG_Resize_Left_Small_Button', () => user_guide_resize(-UGRSMALL));
-prepareButton ('UG_Resize_Left_Large_Button', () => user_guide_resize(-UGRLARGE));
+    // User guide resize (UGR) buttons
+    // UGR Distance (px) to move boundary between gui and userguide on resize
+    const UGRSMALL = 1;
+    const UGRLARGE = 20;
+    prepareButton ('UG_Resize_Right_Large_Button', () => user_guide_resize(UGRLARGE));
+    prepareButton ('UG_Resize_Right_Small_Button', () => user_guide_resize(UGRSMALL));
+    prepareButton ('UG_Resize_Left_Small_Button', () => user_guide_resize(-UGRSMALL));
+    prepareButton ('UG_Resize_Left_Large_Button', () => user_guide_resize(-UGRLARGE));
 
-// Welcome pane (WP)
-// prepareButton ('WP_Guide_Top', jumpToGuideTop);
-prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
-prepareButton ('WP_Tutorials', () => showGuideSection('sec-tutorial'));
-prepareButton ('WP_Architecture', () => showGuideSection('sec-architecture'));
-prepareButton ('WP_ISA', () => showGuideSection('sec-instruction-set'));
-prepareButton ('WP_Assembly_Language',
-               () => showGuideSection('sec-assembly-language'));
-prepareButton ('WP_Linker', () => showGuideSection('sec-linker'));
-prepareButton ('WP_Programming', () => showGuideSection('sec-programming'));
+    // Welcome pane (WP)
+    // prepareButton ('WP_Guide_Top', jumpToGuideTop);
+    prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
+    prepareButton ('WP_Tutorials', () => showGuideSection('sec-tutorial'));
+    prepareButton ('WP_Architecture', () => showGuideSection('sec-architecture'));
+    prepareButton ('WP_ISA', () => showGuideSection('sec-instruction-set'));
+    prepareButton ('WP_Assembly_Language',
+                   () => showGuideSection('sec-assembly-language'));
+    prepareButton ('WP_Linker', () => showGuideSection('sec-linker'));
+    prepareButton ('WP_Programming', () => showGuideSection('sec-programming'));
 
-// Examples pane (EXP)
-prepareButton ('EXP_Examples_Home',    examplesHome);
-prepareButton ('EXP_Select_Example',    smod.selectExample);
+    // Examples pane (EXP)
+    prepareButton ('EXP_Examples_Home',    examplesHome);
+    prepareButton ('EXP_Select_Example',    smod.selectExample);
 
-// Modules pane (MP)
-// prepareButton ('MP_New',    smod.newModule);
-prepareButton ('MP_Refresh',    smod.refreshModulesList);
-prepareButton ('MP_New',        smod.newMod);
-prepareButton ('MP_Hello_world', () => insert_example(example_hello_world));
+    // Modules pane (MP)
+    // prepareButton ('MP_New',    smod.newModule);
+    prepareButton ('MP_Refresh',    smod.refreshModulesList);
+    prepareButton ('MP_New',        smod.newMod);
+    prepareButton ('MP_Hello_world', () => insert_example(example_hello_world));
 
-// Editor pane (EDP)
-prepareButton ('EDP_Selected',    ed.edSelectedButton);
-prepareButton ('EDP_Clear',       ed.edClear);
-prepareButton ('EDP_Revert',      ed.edRevert);
-prepareButton ('EDP_New',         ed.edNew);
-prepareButton ('EDP_Save',        ed.edDownload);
-prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
-// prepareButton ('EDP_Asm',         ed.edAsm);
-// prepareButton ('EDP_Obj',         ed.edObj);
-// prepareButton ('EDP_Exe',         ed.edExe);
-// prepareButton ('EDP_Link',        ed.edLink);
+    // Editor pane (EDP)
+    prepareButton ('EDP_Selected',    ed.edSelectedButton);
+    prepareButton ('EDP_Clear',       ed.edClear);
+    prepareButton ('EDP_Revert',      ed.edRevert);
+    prepareButton ('EDP_New',         ed.edNew);
+    prepareButton ('EDP_Save',        ed.edDownload);
+    prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
+    // prepareButton ('EDP_Asm',         ed.edAsm);
+    // prepareButton ('EDP_Obj',         ed.edObj);
+    // prepareButton ('EDP_Exe',         ed.edExe);
+    // prepareButton ('EDP_Link',        ed.edLink);
 
-// Assembler pane (AP)
-prepareButton ('AP_Assemble',        asm.assemblerGUI);
-prepareButton ('AP_Show_Source',     asm.displayAsmSource);
-prepareButton ('AP_Show_Object',     asm.setObjectListing);
-prepareButton ('AP_Show_Listing',    asm.setAsmListing);
-prepareButton ('AP_Show_Metadata',   asm.setMetadata);
+    // Assembler pane (AP)
+    prepareButton ('AP_Assemble',        asm.assemblerGUI);
+    prepareButton ('AP_Show_Source',     asm.displayAsmSource);
+    prepareButton ('AP_Show_Object',     asm.setObjectListing);
+    prepareButton ('AP_Show_Listing',    asm.setAsmListing);
+    prepareButton ('AP_Show_Metadata',   asm.setMetadata);
+    
+    // Linker pane (LP)
+    prepareButton ('LP_Link',            link.linkerGUI);
+    prepareButton ('LP_Read_Object',     link.getLinkerModules);
+    prepareButton ('LP_Show_Executable', link.linkShowExecutable);
+    prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
-// Linker pane (LP)
-prepareButton ('LP_Link',            link.linkerGUI);
-prepareButton ('LP_Read_Object',     link.getLinkerModules);
-prepareButton ('LP_Show_Executable', link.linkShowExecutable);
-prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
+    // Processor pane (PP)
+    prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
+    prepareButton ('PP_Step',         () => procStep (guiEmulatorState));
+    prepareButton ('PP_Run',          () => procRun (guiEmulatorState));
+    prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
+    prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
+    prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
+    prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
+    prepareButton ('PP_Refresh',      () => refresh (guiEmulatorState));
+    prepareButton ('PP_Reset',        () => procReset (guiEmulatorState));
+    prepareButton ('PP_RunMain',      () => em.procRunMainThread (guiEmulatorState));
+    prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
+    prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
+    prepareButton ('PP_Test2',        emwtTest2);
 
-// Processor pane (PP)
-prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
-prepareButton ('PP_Step',         () => procStep (guiEmulatorState));
-prepareButton ('PP_Run',          () => procRun (guiEmulatorState));
-prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
-prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
-prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
-prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
-prepareButton ('PP_Refresh',      () => refresh (guiEmulatorState));
-prepareButton ('PP_Reset',        () => procReset (guiEmulatorState));
-prepareButton ('PP_RunMain',      () => em.procRunMainThread (guiEmulatorState));
-prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
-prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
-prepareButton ('PP_Test2',        emwtTest2);
+    prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
+    // prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
 
-prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
-// prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
+    // Breakpoint popup dialogue
+    /*
+      prepareButton ("BreakRefresh", em.breakRefresh(em.emulatorState));
+      prepareButton ("BreakEnable", em.breakEnable(em.emulatorState));
+      prepareButton ("BreakDisable", em.breakDisable(em.emulatorState));
+      prepareButton ("BreakClose", em.breakClose());
+    */
 
-// Breakpoint popup dialogue
-/*
-prepareButton ("BreakRefresh", em.breakRefresh(em.emulatorState));
-prepareButton ("BreakEnable", em.breakEnable(em.emulatorState));
-prepareButton ("BreakDisable", em.breakDisable(em.emulatorState));
-prepareButton ("BreakClose", em.breakClose());
-*/
-
-// DevTools
-prepareButton ('DevTools102',    devTools102);
-prepareButton ('DevTools103',    devTools103);
-prepareButton ('DevTools104',    devTools104);
-prepareButton ('DevTools105',    devTools105);
-prepareButton ('DevTools106',    devTools106);
-prepareButton ('DisableDevTools', disableDevTools);
+    // Options
+    
+    // DevTools
+    prepareButton ('DevTools102',    devTools102);
+    prepareButton ('DevTools103',    devTools103);
+    prepareButton ('DevTools104',    devTools104);
+    prepareButton ('DevTools105',    devTools105);
+    prepareButton ('DevTools106',    devTools106);
+    prepareButton ('DisableDevTools', disableDevTools);
 }
 
 //-------------------------------------------------------------------------------
@@ -1223,7 +1242,8 @@ window.onload = function () {
     initializePane ();
     smod.initModules ();
     window.mode = com.mode;
-    guiEmulatorState = new em.EmulatorState (em.ES_gui_thread)
+    guiEmulatorState = new em.EmulatorState
+        (em.ES_gui_thread, initRun, updateWhileRunning, finishRun)
     configureBrowser (guiEmulatorState)
     allocateStateVector (guiEmulatorState)
     testSysStateVec (guiEmulatorState)

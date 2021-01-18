@@ -10,9 +10,11 @@ in computer systems.  This application provides a complete environment
 for programming in assembly and machine language and experimenting
 with the architecture.
 
-The app runs in a web browser.  Just click the link in the box;
-there's no need to download or install anything.
-
+The app runs in a web browser: just click the link in the box below.
+There's no need to download or install anything.  Most browsers and
+platforms are supported, but it runs faster in Chrome and Edge than in
+Firefox or Safari.  Also, it runs faster on a laptop or desktop
+computer than on a tablet or phone.
 
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
@@ -21,10 +23,6 @@ there's no need to download or install anything.
   </a>
 </div>
 #+END_EXPORT
-
-The primary supported platforms are Chrome and Edge on a desktop or
-laptop computer (Windows, Macintosh, Gnu/Linux).  Currently there are
-some incompatibilities with Firefox, Safari, and with tablets.
 
 When you run the app in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed

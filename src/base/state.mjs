@@ -75,7 +75,7 @@ export class SystemState {
         this.selectedModule = null;
     }
     mkSelectModule (mname) {
-        console.log (`mkSelectModule ${mname}`);
+        com.mode.devlog (`mkSelectModule ${mname}`);
         if (mname && this.modules.has (mname)) {
             this.selectedModule = mname;
         } else if (mname) {
@@ -94,19 +94,19 @@ export class SystemState {
         this.modules.delete (mname);
     }
     getSelectedModule () {
-        console.log ("getSelectedModule");
+        com.mode.devlog ("getSelectedModule");
         if (env.modules.size == 0) { // no modules
             this.anonymousCount++;
             const xs = `anonymous${this.anonymousCount}`;
             this.modules.set (xs, new S16Module (xs));
             this.selectedModule = xs;
         } else if (!this.selectedModule) { // nothing selected
-            console.log ("getSelectedModule, in nothing selected")
+            com.mode.devlog ("getSelectedModule, in nothing selected")
             this.selectedModule = [...this.modules.keys()][0].baseName;
         } else if (this.modules.get(this.selectedModule)) { // it exists
-            console.log ("getSelectedModule, found it")
+            com.mode.devlog ("getSelectedModule, found it")
         } else  { // it doesn't exist
-            console.log ("getSelectedModule, doesn't exist, making it")
+            com.mode.devlog ("getSelectedModule, doesn't exist, making it")
             return this.mkModule (this.selectedModule);
         }
         return this.modules.get (this.selectedModule);
@@ -116,13 +116,13 @@ export class SystemState {
 // Return a string giving a concise overfiew of system state
 
 export function envSummary () {
-    console.log ("Begin envSummary");
+    com.mode.devlog ("Begin envSummary");
     for (const x of env.modules.keys()) {
-        console.log (`key = ${x}`);
+        com.mode.devlog (`key = ${x}`);
         const m = env.modules.get(x);
-        console.log (`  bn=${m.baseName}`);
+        com.mode.devlog (`  bn=${m.baseName}`);
     }
-    console.log ("End envSummary");
+    com.mode.devlog ("End envSummary");
 }
 
 //-----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ export class Executable {
     constructor (code, metadata) {
         this.code = code
         this.metadata = metadata
-        console.log (`new executable: ${this.showShort ()}`)
+        com.mode.devlog (`new executable: ${this.showShort ()}`)
 //        console.log (this.showShort ());
     }
     showShort () {
@@ -159,7 +159,7 @@ export class Executable {
 
 export class S16Module {
     constructor (baseName) {
-        console.log (`>>> new S16Module ${baseName}`);
+        com.mode.devlog (`>>> new S16Module ${baseName}`);
 // general properties of a module        
         this.baseName = baseName;
         env.modules.set (baseName, this);
@@ -197,11 +197,11 @@ export class S16Module {
     }
 // Obtain assembly language source code for assembler
     getAsmText () {
-        console.log (`This is getAsmText for ${this.baseName}`);
+        com.mode.devlog (`This is getAsmText for ${this.baseName}`);
         let xs = this.asmEdText ? this.asmEdText
             : this.asmFile ? this.asmFile.text
             : "";
-        console.log (`getAsmText returning basename=${this.baseName} <${xs}>`);
+        com.mode.devlog (`getAsmText returning basename=${this.baseName} <${xs}>`);
         return xs;
     }
     getObjText () {
@@ -310,7 +310,7 @@ export class ObjMd {
     constructor (baseName, objText, mdText) {
         this.baseName = baseName;
         this.objText = objText;
-        console.log (this.objText);
+        com.mode.devlog (this.objText);
         this.mdText = mdText;
     }
     hasObjectCode () {
@@ -506,12 +506,12 @@ export class Metadata {
 //-------------------------------------------------------------------------------
 
 export function getCount () {
-    console.log ("entering getCount");    
+    com.mode.devlog ("entering getCount");    
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.open('GET', 'https://hitcounter.pythonanywhere.com/count', false);
     xmlHttp.send(null);
     let count = xmlHttp.responseText;
-    console.log (`getCount finishing: <${count}>`);
+    com.mode.devlog (`getCount finishing: <${count}>`);
 }
 
 /*
