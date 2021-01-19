@@ -418,7 +418,7 @@ export class EmulatorState {
         this.emRunThread      = ES_gui_thread // default: run in main thread
         this.startTime        = null
         this.eventTimer       = null  // returned by setInterval
-        this.emInstrSliceSize = 1000 // n instructions before looper yields
+        this.emInstrSliceSize = 500 // n instructions before looper yields
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false
@@ -574,7 +574,7 @@ export function clearInstrDecode (es) {
 }
 
 //----------------------------------------------------------------------
-//  Memory
+//  Memory representation and access
 //----------------------------------------------------------------------
 
 // Usage
@@ -683,6 +683,156 @@ function memStore (es, a,x) {
     memStoreLog.push(a);
     instrEffect.push(["M", a, x]);
     es.shm[st.EmMemOffset + a] = x
+}
+
+
+//-----------------------------------------------------------------------------
+// Memory display
+//-----------------------------------------------------------------------------
+
+// Note on data structure.  I tried having a preliminary element [0]
+// containing just "<pre class='HighlightedTextAsHtml'>", so address a
+// is shown in memString[a+1].  The indexing was fine but the
+// scrolling didn't work, possibly because of this dummy element with
+// its newline inserted when the array is joined up.
+
+// memRefresh -- refresh all the memory strings; the memString array
+// should be accurate but this function will recalculate all elements
+// of that array
+
+function memRefresh (es) {
+    memString = [];  // clear out and collect any existing elements
+    for (let i = 0; i < memSize; i++) {
+	setMemString(es,i);
+    }
+}
+
+// Update the memory string for each location that has been accessed,
+// so that it contains an html div element which can be used to
+// highlight the memory location.  Do the fetches first, then the
+// stores: this ensures that if a location has both been fetched and
+// stored, the highlighting for the store will take precedence.
+
+// Need to rewrite this for efficiency ???
+function updateMemory (es) {
+    if (st.readSCB (es, st.SCB_status) != st.SCB_running_gui) {
+        // Clear previous highlighting
+        for (let x of memFetchInstrLogOld) { setMemString (es,x) }
+        for (let x of memFetchDataLogOld)  { setMemString (es,x) }
+        for (let x of memStoreLogOld)      { setMemString (es,x) }
+        // Update new memory accesses
+        for (let x of memFetchInstrLog)    { memHighlight (es, x, "GET") }
+        for (let x of memFetchDataLog)     { memHighlight (es, x, "GET") }
+        for (let x of memStoreLog)         { memHighlight (es, x, "PUT") }
+        memFetchInstrLogOld = memFetchInstrLog
+        memFetchDataLogOld = memFetchDataLog
+        memStoreLogOld = memStoreLog
+        memFetchInstrLog = []
+        memFetchDataLog = []
+        memStoreLog = []
+    }
+}
+
+// Memoize memory location strings.  Create a string to represent a
+// memory location; the actual value is in the memory array, and the
+// string is placed in the memString array.  memString[0] = <pre
+// class="HighlightedTextAsHtml"> and mem[a] corresponds to
+// memString[a+1].
+
+function memHighlight (es, a, highlight) {
+    let x = es.shm[st.EmMemOffset + a]
+    memString[a] =
+	"<span class='" + highlight + "'>"
+	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
+        + "</span>";
+}
+
+function setMemString(es,a) {
+    let x = es.shm[st.EmMemOffset + a]
+    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
+}
+
+
+// Create a string with a span class to represent a memory location
+// with highlighting; the actual value is in the memory array, and the
+// string is placed in the memString array.
+
+// Set the memory displays, using the memString array.  Check mode to
+// determine whether the display should be partial and fast or
+// complete but slow.
+
+export function memDisplay (es) {
+    if (memDisplayModeFull) { memDisplayFull (es) }
+    else { memDisplayFast (es) }
+}
+
+// Set the memory displays, showing only part of the memory to save time
+
+function memDisplayFast (es) {
+    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
+    xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
+    xa = xa < 0 ? 0 : xa;
+    xb = xa + memDisplayFastWindow;
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+    	+ memString.slice(xa,xb).join('\n')
+	+ "</code></pre>";
+//    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
+    guiDisplayMem (es, es.memElt1, xs)
+//    memElt1.innerHTML = xs;
+    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
+    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
+    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
+    ya = ya < 0 ? 0 : ya;
+    yb = ya + memDisplayFastWindow;
+    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ memString.slice(ya,yb).join('\n')
+	+ "</code></pre>";
+//    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
+    //    memElt2.innerHTML = ys;
+    guiDisplayMem (es, es.memElt2, xs)
+}
+
+// Set the memory displays, showing the full memory
+
+// Need <pre> to get the formatting correct with line breaks.  but
+// <pre> prevents scrolling from working.  Could try not using pre,
+// but putting <br> after each line, but that still wouldn't work
+// because multiple spaces in code wouldn't work..  Try <code>; With
+// <code class=... scrolling works, but the line breaks aren't
+// there.. Is there a problem with HighlightedTextAsHtml?
+
+// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
+
+//    xs = "<pre><code class='HighlightedTextAsHtml'>"
+//	+ memString.join('\n')
+//	+ "</code></pre>";
+
+function memDisplayFull (es) {
+    let memElt1 = document.getElementById('MemDisplay1');
+    let memElt2 = document.getElementById('MemDisplay2');
+
+    let xs;                 // display text
+    let xt, xo;             // display 1 targets and offsets
+    let yafet, yasto, ya, yo, yt;
+    com.mode.devlog ('memDisplayFull');
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ memString.join('\n')
+	+ "</code></pre>";
+    memElt1.innerHTML = xs;
+    xt = (memFetchInstrLog.length===0)? 0 : memFetchInstrLog[0] - memDispOffset;
+    xo = xt * pxPerChar;
+    com.mode.devlog('  target1 xt = ' + xt + '   offset1 = ' + xo);
+    memElt1.scroll(0,xo);
+    
+    memElt2.innerHTML = xs;
+    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
+    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
+    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
+    yt = yt < 0 ? 0 : yt;
+    yo = yt * pxPerChar;
+    com.mode.devlog('  yafet=' + yafet + ' yasto=' + yasto
+		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
+    memElt2.scroll(0,yo);
 }
 
 //------------------------------------------------------------------------------
@@ -833,32 +983,34 @@ function showLst (es, xs, i) {
 // blocking the user interface, particularly the manual timer
 // interrupt button.
 
-export function procRunMainThread (es) {
+// Run instructions in the main gui thread.  Caller should check the
+// system status before calling the looper; it's assumed that it is ok
+// to execute an instruction in the gui thread.
+
+/*
+export function startRunMainThread (es) {
     let q = st.readSCB (es, st.SCB_status)
     switch (q) {
     case st.SCB_ready:
     case st.SCB_paused:
     case st.SCB_blocked:
-        com.mode.devlog ("procRunMainThread: start looper in gui thread");
+        console.log ("procRunMainThread: start looper");
         es.initRunDisplay (es)
-        mainInstructionLooper (es);
+        mainInstructionLooper (es)
+        console.log ("procRunMainThread: looper finished");
 //        execInstrPostDisplay (es) no, 
         break
     default:
         com.mode.devlog (`procRunMainThread skipping: SCB_status=${q}`)
     }
 }
+*/
 
-// Run instructions in the main gui thread.  Caller should check the
-// system status before calling the looper; it's assumed that it is ok
-// to execute an instruction in the gui thread.
-
-function mainInstructionLooper (es) {
+export function mainThreadLooper (es) {
     com.mode.devlog ("mainInstructionLooper starting")
-    st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
     let i = 0
     let status = 0
-    let noPauseReq = true
+    let pauseReq = false
     let continueRunning = true
     let finished = false
     while (continueRunning) {
@@ -866,48 +1018,28 @@ function mainInstructionLooper (es) {
         clearLoggingData (es)
         i++
         status = st.readSCB (es, st.SCB_status)
-        noPauseReq = st.readSCB (es, st.SCB_pause_request) === 0
         switch (status) {
         case st.SCB_halted:
-            finished = true
-            break
         case st.SCB_paused:
-            st.writeSCB (emwt.es, st.SCB_pause_request, 0)
-            finished = true
-            break
         case st.SCB_break:
             finished = true
             break
         default:
         }
-        continueRunning = !finished  && noPauseReq && i < es.emInstrSliceSize
+        pauseReq = st.readSCB (es, st.SCB_pause_request) != 0
+        continueRunning = !finished  && !pauseReq && i < es.emInstrSliceSize
     }
+        if (pauseReq && status != st.SCB_halted) {
+            com.mode.devlog ("main looper pausing")
+            st.writeSCB (es, st.SCB_status, st.SCB_paused)
+            st.writeSCB (es, st.SCB_pause_request, 0)
+        }
     if (finished) {
-        console.log (`mainInstructionLooper finished, status=${status}`)
         es.endRunDisplay (es)
-        execInstrPostDisplay (es)
-        com.mode.devlog ('instructionLooper terminated')
     } else {
-        console.log (`mainInstructionLooper ${i}`)
         es.duringRunDisplay (es)
-	setTimeout (function () {mainInstructionLooper (es)})
+	setTimeout (function () {mainThreadLooper (es)})
     }
-    console.log (`mainInstructionLooper returning`)
-}
-
-function instructionLooper (es) { // one instruction, then yield
-    st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
-    executeInstruction (es);
-    let q = st.readSCB (es, st.SCB_status)
-    switch (q) {
-    case st.SCB_running_gui:
-	setTimeout (function () {instructionLooper(es)});
-        break
-    default:
-        execInstrPostDisplay (es)
-    }
-    st.writeSCB (es, st.SCB_status, st.SCB_ready)
-    com.mode.devlog ('instructionLooper terminated');
 }
 
 //---------------------------------------------------------------------------
@@ -1208,15 +1340,17 @@ const op_trap = (es) => {
     switch (es.thread_host) {
     case ES_gui_thread:
         com.mode.devlog (`handle trap in main thread`)
+        console.log (`handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
         com.mode.devlog (`trap code=${code}`);
         if (code===0) { // Halt
 	    console.log ("Trap: halt");
 	    com.mode.devlog ("Trap: halt");
             st.writeSCB (es, st.SCB_status, st.SCB_halted)
+//            displayFullState (es)
             updateRegisters (es)
             updateMemory (es)
-            memRefresh(es);
+//            memRefresh(es);
         } else if (code==1) { // Read
             trapRead(es);
         } else if (code==2) { // Write
@@ -1285,6 +1419,7 @@ function trapWrite (es) {
 	a++
     }
     com.mode.devlog (`Write a=${a} b=${b} >>> /${xs}/`);
+    console.log (`Write a=${a} b=${b} >>> /${xs}/`);
     es.ioLogBuffer += xs;
     com.mode.devlog (es.ioLogBuffer);
     refreshIOlogBuffer (es);
@@ -1853,111 +1988,10 @@ let pxPerChar = 13.05;
 
 // export let procAsmListingElt; // global variables for emulator
 
-// Update the memory string for each location that has been accessed,
-// so that it contains an html div element which can be used to
-// highlight the memory location.  Do the fetches first, then the
-// stores: this ensures that if a location has both been fetched and
-// stored, the highlighting for the store will take precedence.
 
-function updateMemory (es) {
-    // Clear previous highlighting
-    for (let x of memFetchInstrLogOld) { memRefresh (es) }
-    for (let x of memFetchDataLogOld)  { memRefresh (es) }
-    for (let x of memStoreLogOld)      { memRefresh (es) }
-    // Update new memory accesses
-    for (let x of memFetchInstrLog)    { memHighlight (es, x, "GET") }
-    for (let x of memFetchDataLog)     { memHighlight (es, x, "GET") }
-    for (let x of memStoreLog)         { memHighlight (es, x, "PUT") }
-    memFetchInstrLogOld = memFetchInstrLog
-    memFetchDataLogOld = memFetchDataLog
-    memStoreLogOld = memStoreLog
-    memFetchInstrLog = []
-    memFetchDataLog = []
-    memStoreLog = []
-}
-
-// Create a string with a span class to represent a memory location
-// with highlighting; the actual value is in the memory array, and the
-// string is placed in the memString array.
-
-// Set the memory displays, using the memString array.  Check mode to
-// determine whether the display should be partial and fast or
-// complete but slow.
-
-export function memDisplay (es) {
-    if (memDisplayModeFull) { memDisplayFull (es) }
-    else { memDisplayFast (es) }
-}
-
-// Set the memory displays, showing only part of the memory to save time
-
-function memDisplayFast (es) {
-    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
-    xa = (memFetchInstrLog.length===0) ? 0 : (memFetchInstrLog[0] - memDispOffset);
-    xa = xa < 0 ? 0 : xa;
-    xb = xa + memDisplayFastWindow;
-    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-    	+ memString.slice(xa,xb).join('\n')
-	+ "</code></pre>";
-//    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
-    guiDisplayMem (es, es.memElt1, xs)
-//    memElt1.innerHTML = xs;
-    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
-    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
-    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
-    ya = ya < 0 ? 0 : ya;
-    yb = ya + memDisplayFastWindow;
-    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	+ memString.slice(ya,yb).join('\n')
-	+ "</code></pre>";
-//    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
-    //    memElt2.innerHTML = ys;
-    guiDisplayMem (es, es.memElt2, xs)
-}
-
-// Set the memory displays, showing the full memory
-
-// Need <pre> to get the formatting correct with line breaks.  but
-// <pre> prevents scrolling from working.  Could try not using pre,
-// but putting <br> after each line, but that still wouldn't work
-// because multiple spaces in code wouldn't work..  Try <code>; With
-// <code class=... scrolling works, but the line breaks aren't
-// there.. Is there a problem with HighlightedTextAsHtml?
-
-// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
-
-//    xs = "<pre><code class='HighlightedTextAsHtml'>"
-//	+ memString.join('\n')
-//	+ "</code></pre>";
-
-function memDisplayFull (es) {
-    let memElt1 = document.getElementById('MemDisplay1');
-    let memElt2 = document.getElementById('MemDisplay2');
-
-    let xs;                 // display text
-    let xt, xo;             // display 1 targets and offsets
-    let yafet, yasto, ya, yo, yt;
-    com.mode.devlog ('memDisplayFull');
-    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	+ memString.join('\n')
-	+ "</code></pre>";
-    memElt1.innerHTML = xs;
-    xt = (memFetchInstrLog.length===0)? 0 : memFetchInstrLog[0] - memDispOffset;
-    xo = xt * pxPerChar;
-    com.mode.devlog('  target1 xt = ' + xt + '   offset1 = ' + xo);
-    memElt1.scroll(0,xo);
-    
-    memElt2.innerHTML = xs;
-    yafet = (memFetchDataLog.length===0) ? 0 : (memFetchDataLog[0] - memDispOffset);
-    yasto = (memStoreLog.length===0) ? 0 :(memStoreLog[0] - memDispOffset);
-    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
-    yt = yt < 0 ? 0 : yt;
-    yo = yt * pxPerChar;
-    com.mode.devlog('  yafet=' + yafet + ' yasto=' + yasto
-		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
-    memElt2.scroll(0,yo);
-}
-
+//-----------------------------------------------------------------------------
+// Assembly listing
+//-----------------------------------------------------------------------------
 
 // Global variables for handling listing display as program runs.
 
@@ -2155,43 +2189,6 @@ export function refreshInstrDecode (es) {
     }
 }
 
-// Memory display
-
-// Refresh all the memory strings; the memString array should be accurate
-// but this function will recalculate all elements of that array
-
-// Note on data structure.  I tried having a preliminary element [0]
-// containing just "<pre class='HighlightedTextAsHtml'>", so address a
-// is shown in memString[a+1].  The indexing was fine but the
-// scrolling didn't work, possibly because of this dummy element with
-// its newline inserted when the array is joined up.
-
-function memRefresh (es) {
-    memString = [];  // clear out and collect any existing elements
-    for (let i = 0; i < memSize; i++) {
-	setMemString(es,i);
-    }
-}
-
-// Create a string to represent a memory location; the actual value is
-// in the memory array, and the string is placed in the memString
-// array.  memString[0] = <pre class="HighlightedTextAsHtml"> and
-// mem[a] corresponds to memString[a+1].
-
-
-function memHighlight (es, a, highlight) {
-    let x = es.shm[st.EmMemOffset + a]
-    memString[a] =
-	"<span class='" + highlight + "'>"
-	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
-        + "</span>";
-}
-
-function setMemString(es,a) {
-    let x = es.shm[st.EmMemOffset + a]
-    memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
-}
-
 //-------------------------------------------------
 // Register display
 //-------------------------------------------------
@@ -2251,9 +2248,10 @@ export function refreshRegisters (es) {
 
 export function procPause(es) {
     com.mode.devlog ("procPause");
-    st.showSCBstatus (es)
+    console.log (`procPause st=${st.readSCB (es,st.SCB_status)}`)
+    console.log (`procPause preq=${st.readSCB (es,st.SCB_pause_request)}`)
     st.writeSCB (es, st.SCB_pause_request, 1)
-    st.showSCBstatus (es)
+    console.log (`procPause preq=${st.readSCB (es,st.SCB_pause_request)}`)
     com.mode.devlog ("em wrote procPause request")
 }
 

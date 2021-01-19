@@ -37,6 +37,80 @@ export function modalWarning (msg) {
     alert (msg);
 }
 
+
+//-----------------------------------------------------------------------------
+// Clock
+//-----------------------------------------------------------------------------
+
+const ClockWidth = 7 // number of characters to display
+
+// Clear the display of the clock
+export function clearClock (es) {
+    document.getElementById("PP_time").innerHTML = ""
+}
+
+// Note the current starting time and start the interval timer
+function startClock (es) {
+    console.log ("startClock")
+    clearClock (es)
+    const now = new Date ()
+    es.startTime = now.getTime ()
+    es.eventTimer = setInterval (duringRunRefresher, guiRefreshInterval)
+}
+
+function stopClock (es) {
+    console.log ("stopClock")
+    clearInterval (es.eventTimer)
+    es.eventTimer = null
+    com.mode.devlog ("stopClock")
+    updateClock (es)
+}
+
+export function updateClock (es) {
+    const now = new Date ()
+    const elapsed = now.getTime () - es.startTime
+    const xs = elapsed < 1000
+          ? `${elapsed.toFixed(0)} ms`
+          : `${(elapsed/1000).toPrecision(ClockWidth)} s`
+    document.getElementById("PP_time").innerHTML = xs
+}
+
+function updateWhileRunning (es) {
+    updateClock (es)
+    refreshRFdisplay (es)
+}
+
+export function test1 (es) {
+    updateClock (es)
+    refreshRFdisplay (es)
+}
+
+//-----------------------------------------------------------------------------
+// Interface to emulator
+//-----------------------------------------------------------------------------
+
+// These functions are passed to the emulator, which calls them
+
+function initRun (es) {
+    startClock (es)
+}
+
+function finishRun (es) {
+    em.execInstrPostDisplay (es)
+    stopClock (es)
+}
+
+const guiRefreshInterval = 1000 // period of display refresh during run (ms)
+
+// To keep the display alive during a long run, call the
+// duringRunRefresher from time to time.  It can be triggered either by
+// the interval timer or by a trap.
+
+function duringRunRefresher () {
+    updateClock (guiEmulatorState)
+    refreshRFdisplay (guiEmulatorState)
+}
+
 //-----------------------------------------------------------------------------
 // Emulator thread
 //-----------------------------------------------------------------------------
@@ -152,13 +226,6 @@ function handleEmwtStepResponse (p) {
 // emwt 102: run
 //----------------------------------------
 
-const guiRefreshInterval = 1000 // period of display refresh during run (ms)
-
-function periodicRefresher () {
-//    com.mode.devlog ("periodicRefresher")
-    updateClock (guiEmulatorState)
-    refreshRFdisplay (guiEmulatorState)
-}
 
 // Show the current values of the register file without highlighting
 
@@ -171,49 +238,6 @@ function refreshRFdisplay (es) {
     }
 }
 
-const ClockWidth = 4
-
-export function updateClock (es) {
-    const now = new Date ()
-    const elapsed = now.getTime () - es.startTime
-    const xs = elapsed < 1000
-          ? `${elapsed.toFixed(0)} ms`
-          : `${(elapsed/1000).toPrecision(ClockWidth)} s`
-    document.getElementById("PP_time").innerHTML = xs
-}
-
-function updateWhileRunning (es) {
-    updateClock (es)
-    refreshRFdisplay (es)
-}
-
-function initRun (es) {
-    clearTime (es)
-    updateClock (es)
-}
-
-function finishRun (es) { // for running in main thread
-    updateClock (es)
-}
-
-function startClock (es) {
-    clearTime (es)
-    updateClock (es)
-    es.eventTimer = setInterval (periodicRefresher, guiRefreshInterval)
-}
-
-function stopClock (es) {
-    clearInterval (es.eventTimer)
-    com.mode.devlog ("stopClock")
-    updateClock (es)
-    es.eventTimer = null
-}
-
-export function test1 (es) {
-    updateClock (es)
-    refreshRFdisplay (es)
-}
-
 
 // (es should be guiEmulatorState)
 
@@ -223,7 +247,7 @@ function emwtRun (es) { // run until stopping condition; relinquish on trap
     st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
     let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
-    clearTime (guiEmulatorState)
+//    clearClock (guiEmulatorState)
     startClock (guiEmulatorState)
     com.mode.devlog ("main: emwt run posted start message");
 }
@@ -529,21 +553,36 @@ export function finalizeLeaveCurrentPane () {
 // performed using either the main gui thread (procRunMainThread) or
 // on the worker thread (emwtRun).
 
+// Decide whether to go aheead with the run; if so, decide which
+// thread to run it in.
+
 function procRun (es) {
     com.mode.devlog (`gui.procRun: thread = ${es.emRunThread}`)
-    switch (es.emRunThread) {
-    case em.ES_gui_thread:
-        console.log ("gui.procRun: run in main gui thread")
-        em.procRunMainThread (es)
+    let q = st.readSCB (es, st.SCB_status)
+    switch (q) {
+    case st.SCB_ready:
+    case st.SCB_paused:
+    case st.SCB_blocked:
+        switch (es.emRunThread) {
+        case em.ES_gui_thread:
+            console.log ("procRun: starting in main gui thread")
+            st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
+            es.initRunDisplay (es)
+            em.mainThreadLooper (es)
+            break
+        case em.ES_worker_thread:
+            console.log ("procRun: starting in worker thread")
+            startClock (es) // will be stopped by procRunMainThread
+            st.writeSCB (es, st.SCB_status, st.SCB_running_emwt)
+            emwtRun (es)
+            break
+        default:
+            com.mode.devlog (`Error procRun ${es.emRunThread}`)
+        }
         break
-    case em.ES_worker_thread:
-        console.log ("gui.procRun: run in worker thread")
-        emwtRun (es)
-        break
-    default:
-        com.mode.devlog (`Error procRun ${es.emRunThread}`)
+    default: // State is not appropriate for run, so don't do it
+        com.mode.devlog (`procRun skipping because SCB_status=${q}`)
     }
-    com.mode.devlog (`procRun finished`)
 }
 
 // Main interface function to step one instruction; runs in main gui
@@ -554,6 +593,7 @@ export function procStep (es) {
         com.mode.devlog (`procStep: host=${es.thread_host}, skipping`)
         return
     }
+    st.writeSCB (es, st.SCB_pause_request, 0)
     let q = st.readSCB (es, st.SCB_status)
     switch (q) {
     case st.SCB_ready:
@@ -561,11 +601,9 @@ export function procStep (es) {
     case st.SCB_break:
     case st.SCB_relinquish:
         com.mode.devlog ("procStep: main thread executing instruction...")
-        st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
         em.executeInstruction (es)
-        if (st.readSCB (es, st.SCB_status) != st.SCB_halted) {
-            st.writeSCB (es, st.SCB_status, st.SCB_ready)
-        }
+        let qnew = st.readSCB (es, st.SCB_status)
+        if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
         em.execInstrPostDisplay (es)
         em.guiDisplayNinstr (es)
         break
@@ -587,7 +625,7 @@ export function procReset (es) {
     st.resetSCB (es)
     em.resetRegisters (es);
     em.memClear (es);
-    clearTime (es)
+    clearClock (es)
     refreshDisplay (es)
 }
 
@@ -603,17 +641,6 @@ export function refreshDisplay (es) {
     st.showSCBstatus (es)
 //    memClearAccesses ();
 }
-
-
-
-// Time
-
-export function clearTime (es) {
-    const now = new Date ()
-    es.startTime = now.getTime ()
-    document.getElementById("PP_time").innerHTML = `0ms`
-}
-
 
 //------------------------------------------------------------------------------
 // Examples pane
@@ -1242,15 +1269,19 @@ window.onload = function () {
     initializePane ();
     smod.initModules ();
     window.mode = com.mode;
-    guiEmulatorState = new em.EmulatorState
-        (em.ES_gui_thread, initRun, updateWhileRunning, finishRun)
+    guiEmulatorState = new em.EmulatorState (
+        em.ES_gui_thread,
+        () => initRun (guiEmulatorState),
+        () => updateWhileRunning (guiEmulatorState),
+        () => finishRun (guiEmulatorState) )
     configureBrowser (guiEmulatorState)
     allocateStateVector (guiEmulatorState)
     testSysStateVec (guiEmulatorState)
     em.initializeMachineState (guiEmulatorState)
     initializeButtons ()
     procReset (guiEmulatorState)
-    clearTime (guiEmulatorState)
+    clearClock (guiEmulatorState)
+    guiEmulatorState.emRunThread = em.ES_gui_thread // default run mode
     com.mode.trace = true
     com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
     com.mode.trace = false

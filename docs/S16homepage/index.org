@@ -11,10 +11,7 @@ for programming in assembly and machine language and experimenting
 with the architecture.
 
 The app runs in a web browser: just click the link in the box below.
-There's no need to download or install anything.  Most browsers and
-platforms are supported, but it runs faster in Chrome and Edge than in
-Firefox or Safari.  Also, it runs faster on a laptop or desktop
-computer than on a tablet or phone.
+There's no need to download or install anything.
 
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
