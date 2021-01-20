@@ -27,6 +27,8 @@ import * as em from "./emulator.mjs"
 
 let emwt = {
     shm: null, // shared system state vector
+//    vec16 : null,
+//    vec32 : null,
     es: null // emulator state
     }
 
@@ -42,9 +44,17 @@ self.addEventListener ("message", e => {
         switch (e.data.code) {
         case 100: // emwt init: received shared system state vector
             console.log ("emwt: received request init")
-            emwt.shm = e.data.payload
             emwt.es = new em.EmulatorState (em.ES_worker_thread)
-            emwt.es.shm = e.data.payload
+            emwt.es.vecbuf = e.data.payload
+            emwt.es.vec16 = new Uint16Array (emwt.es.vecbuf)
+            emwt.es.vec32 = new Uint32Array (emwt.es.vecbuf)
+            emwt.es.shm = emwt.es.vec16
+
+            emwt.es.vec32[0] = 123
+            emwt.es.vec32[1] = 2 * emwt.es.vec32[0]
+            console.log (`***foobar**** ${emwt.es.vec32[0]} ${emwt.es.vec32[1]}`)
+
+            
             em.initializeMachineState (emwt.es)
             emwt.initialized = true
             msg = {code: 200, payload: 0}
@@ -332,15 +342,21 @@ function doStep () {
 }
 
 function doRun (limit) {
+    console.log ("emwt doRun")
     let count = 0
     let status = 0
     let pauseReq = false
     let continueRunning = true
     let finished = false
     while (continueRunning) {
+//        console.log ("continueRunning emwt doRun")
         em.executeInstruction (emwt.es)
         em.clearLoggingData (emwt.es)
-        count++
+//        count = emwt.es.vec32[0]
+//        console.log (`doRun count=${count}`)
+        emwt.es.vec32[0] = emwt.es.vec32[0] + 1
+//        count = st.readVec32 (emwt.es, 0)
+//        st.writeVec32 (emwt.es, 0, count + 1)
         status = st.readSCB (emwt.es, st.SCB_status)
         switch (status) {
         case st.SCB_halted:
@@ -355,11 +371,9 @@ function doRun (limit) {
         continueRunning = !finished  && !pauseReq
     }
     if (pauseReq && status != st.SCB_halted) {
-        com.mode.devlog ("worker looper pausing")
         st.writeSCB (emwt.es, st.SCB_status, st.SCB_paused)
         st.writeSCB (emwt.es, st.SCB_pause_request, 0)
     }
-    st.writeNinstrExecuted (emwt.es, count)
     return count
 }
 

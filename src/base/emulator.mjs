@@ -414,6 +414,9 @@ export class EmulatorState {
         this.duringRunDisplay = g
         this.endRunDisplay    = h
         this.shm              = null // set by allocateStateVec
+        this.vecbuf           = null
+        this.vec32            = null
+        this.vec16            = null
         this.emRunCapability  = ES_gui_thread // default: run in main thread
         this.emRunThread      = ES_gui_thread // default: run in main thread
         this.startTime        = null
@@ -2264,7 +2267,8 @@ export function procPause(es) {
 
 export function guiDisplayNinstr (es) {
     if (es.thread_host === ES_gui_thread) {
-        let n = st.readSCB (es, st.SCB_nInstrExecuted)
+        //        let n = st.readSCB (es, st.SCB_nInstrExecuted)
+        let n = es.vec32[0]
         document.getElementById("nInstrExecuted").innerHTML = n
     }
 }

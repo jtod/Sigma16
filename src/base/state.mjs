@@ -534,7 +534,7 @@ export let foobar = 0
 // Constant parameters
 
 // Sizes of memory blocks (words)
-export const EmSCBsize        =  16
+export const EmSCBsize        =  32
 export const EmRegFileSize    =  16
 export const EmSysRegSize     =  16
 export const EmRegBlockSize   =  EmRegFileSize + EmSysRegSize
@@ -557,16 +557,16 @@ export const EmMemOffset      =  EmRegBlockOffset + EmRegBlockSize
 // particular emulator (either the main gui thread or a worker thread)
 // is kept in the EmulatorState belonging to that thread.
 
+//export const SCB_nInstrExecuted    =   5  // count instructions executed
+
 // SCB flag indices
-export const SCB_nInstrExecutedMSB =  0  // count instructions executed
-export const SCB_nInstrExecutedLSB =  1  // count instructions executed
-export const SCB_status            =  2  // condition of the entire system
-export const SCB_nInstrExecuted    =  3  // count instructions executed
-export const SCB_cur_instr_addr    =  4  // address of instruction executing now
-export const SCB_next_instr_addr   =  5  // address of next instruction
-export const SCB_emwt_run_mode     =  6
-export const SCB_emwt_trap         =  7
-export const SCB_pause_request     =  8  // pause request is pending
+export const SCB_nInstrExecuted    =   0  // count instructions executed
+export const SCB_status            =   4  // condition of the entire system
+export const SCB_cur_instr_addr    =   5  // address of instruction executing now
+export const SCB_next_instr_addr   =   6  // address of next instruction
+export const SCB_emwt_run_mode     =   7
+export const SCB_emwt_trap         =   8
+export const SCB_pause_request     =   9  // pause request is pending
 
 
 // SCB_status specifies the condition of the entire system
@@ -596,22 +596,24 @@ export function showSCBstatus (es) {
 }
 
 export function readNinstrExecuted (es) {
-    const upper = readSCB (es, SCB_nInstrExecutedMSB)
-    const lower = readSCB (es, SCB_nInstrExecutedMSB)
-    const n = upper << 16 | lower
+//    const upper = readSCB (es, SCB_nInstrExecutedMSB)
+//    const lower = readSCB (es, SCB_nInstrExecutedMSB)
+//    const n = upper << 16 | lower
+    let ne = readVec32 (es, 0)
     return n
 }
 
 export function writeNinstrExecuted (es, n) {
-    const upper = n >>> 16
-    const lower = n & 0x0000ffff
-    writeSCB (es, SCB_nInstrExecutedMSB, upper)
-    writeSCB (es, SCB_nInstrExecutedLSB, lower)
+    writeVec32 (es, 0, n)
+//    const upper = n >>> 16
+//    const lower = n & 0x0000ffff
+//    writeSCB (es, SCB_nInstrExecutedMSB, upper)
+//    writeSCB (es, SCB_nInstrExecutedLSB, lower)
 }
 
 export function resetSCB (es) {
-    writeSCB (es, SCB_nInstrExecutedMSB, 0)
-    writeSCB (es, SCB_nInstrExecutedLSB, 0)
+    writeVec32 (es, 0, 0) // use sym const for address 0
+
     writeSCB (es, SCB_status, SCB_reset)
     writeSCB (es, SCB_nInstrExecuted, 0)
     writeSCB (es, SCB_cur_instr_addr, 0)
@@ -632,6 +634,18 @@ export function readSCB (es, code) {
 //    console.log (`st.readSCB code=${code} i=${i} x=${x}`)
     return x
 }
+
+export function writeVec32 (es, a, x) {
+    console.log (`*** writeVec32 [${a}] := ${x}`)
+    es.vec32 [a] = x
+}
+
+export function readVec32 (es, a) {
+    let x = es.vec64 [a]
+    console.log (`*** readVec32 [${a}] => ${x}`)
+    return x
+}
+
 export function incrSCB (es, code) {
     let i = EmSCBOffset + code
     let x = es.shm[i]

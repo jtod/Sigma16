@@ -109,6 +109,7 @@ const guiRefreshInterval = 1000 // period of display refresh during run (ms)
 function duringRunRefresher () {
     updateClock (guiEmulatorState)
     refreshRFdisplay (guiEmulatorState)
+    em.guiDisplayNinstr (guiEmulatorState)
 }
 
 //-----------------------------------------------------------------------------
@@ -190,7 +191,9 @@ function checkBrowserWorkerSupport () {
 
 function emwtInit (es) { // called by onload initializer, request 100
     com.mode.devlog ("main gui: emwtInit")
-    let msg = {code: 100, payload: es.shm}
+    //    let msg = {code: 100, payload: es.shm}
+    //    let msg = {code: 100, payload: sysStateBuf}
+    let msg = {code: 100, payload: es.vecbuf}
     emwThread.postMessage (msg)
     com.mode.devlog ("main gui: posted init message 100 to emwt")
 }
@@ -986,8 +989,8 @@ function configureBrowser (es) {
 
 // System state vector
 
-export let sysStateBuf = null
-export let sysStateVec = null
+// export let sysStateBuf = null
+// export let sysStateVec = null
 let emwThread = null
 
 // Memory is allocated in the main thread and sent to the worker
@@ -996,9 +999,14 @@ let emwThread = null
 function allocateStateVector (es) {
     switch (es.emRunCapability) {
     case em.ES_worker_thread:
-        sysStateBuf = new SharedArrayBuffer (st.EmStateSizeByte)
-        sysStateVec = new Uint16Array (sysStateBuf)
-        es.shm = sysStateVec
+        console.log ("Run capability: Worker supported")
+        es.vecbuf = new SharedArrayBuffer (st.EmStateSizeByte)
+        es.vec16 = new Uint16Array (es.vecbuf)
+        es.vec32 = new Uint32Array (es.vecbuf)
+        es.shm = es.vec16
+        es.vec32[0] = 456
+        es.vec32[1] = 2 * es.vec32[0]
+        console.log (`***blarg**** ${es.vec32[0]} ${es.vec32[1]}`)
         // Start the emulator thread and initialize it
         com.mode.devlog ("gui.mjs starting emwt")
         emwThread = new Worker("../base/emwt.mjs", {type:"module"});
@@ -1007,18 +1015,36 @@ function allocateStateVector (es) {
         com.mode.devlog ("gui.mjs has started emwt")
         break
     case em.ES_gui_thread:
-        sysStateVec = new Uint16Array (st.EmStateSizeWord)
-        es.shm = sysStateVec
+        console.log ("Run capability: Worker not supported")
+        es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
+        es.vec16 = new Uint16Array (es.vecbuf)
+        es.vec32 = new Uint32Array (es.vecbuf)
+        es.shm = es.vec16
         break
     default:
         cn.output (`allocateStateVector: bad emRunCapability = `
                    + `${es.emRunCapability}`)
     }
-    es.shm = sysStateVec
     cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
     cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
-    cn.output (`sysStateVec contains ${es.shm.length} elements`)
+    cn.output (`vec16 contains ${es.vec16.length} elements`)
 }
+
+
+/*      
+//    es.shm = sysStateVec
+        sysStateVec = new Uint16Array (st.EmStateSizeWord)
+        es.shm = sysStateVec
+        break
+        sysStateBuf = new SharedArrayBuffer (st.EmStateSizeByte)
+        sysStateVec = new Uint16Array (sysStateBuf)
+        es.shm = sysStateVec
+        // Start the emulator thread and initialize it
+        com.mode.devlog ("gui.mjs starting emwt")
+        emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+        initializeEmwtProtocol (es)
+        emwtInit (es)
+*/
 
 function testSysStateVec (es) {
     cn.output (`Testing emulator memory: ${es.thread_host.description}...`)
@@ -1147,7 +1173,7 @@ function editorButton1() {
 // Connect a button in the html with its corresponding function
 
 function prepareButton (bid,fcn) {
-    com.mode.devlog (`prepare button ${bid}`);
+//    com.mode.devlog (`prepare button ${bid}`);
     document.getElementById(bid)
         .addEventListener('click', event => {fcn()});
 }
@@ -1229,7 +1255,7 @@ function initializeButtons () {
     prepareButton ('PP_Pause',      () => em.procPause (guiEmulatorState));
     prepareButton ('PP_Interrupt',  () => em.procInterrupt (guiEmulatorState));
     prepareButton ('PP_Breakpoint', () => em.procBreakpoint (guiEmulatorState));
-    prepareButton ('PP_Refresh',    () => refresh (guiEmulatorState));
+    prepareButton ('PP_Refresh',    () => em.refresh (guiEmulatorState));
     prepareButton ('PP_Reset',      () => procReset (guiEmulatorState));
     prepareButton ('PP_RunMain',    () => runMain (guiEmulatorState))
     prepareButton ('PP_RunWorker',  () => runWorker (guiEmulatorState))
@@ -1286,13 +1312,15 @@ window.onload = function () {
         () => updateWhileRunning (guiEmulatorState),
         () => finishRun (guiEmulatorState) )
     configureBrowser (guiEmulatorState)
+    console.log ("allocate state vector")
     allocateStateVector (guiEmulatorState)
+    console.log ("allocate state vector done")
     testSysStateVec (guiEmulatorState)
     em.initializeMachineState (guiEmulatorState)
     initializeButtons ()
-    procReset (guiEmulatorState)
     clearClock (guiEmulatorState)
     guiEmulatorState.emRunThread = em.ES_gui_thread // default run mode
+    procReset (guiEmulatorState)
     com.mode.trace = true
     com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
     com.mode.trace = false
