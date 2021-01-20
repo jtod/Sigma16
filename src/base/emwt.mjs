@@ -30,7 +30,6 @@ let emwt = {
     es: null // emulator state
     }
 
-
 //-----------------------------------------------------------------------------
 // Communication protocol
 //-----------------------------------------------------------------------------
@@ -333,7 +332,45 @@ function doStep () {
 }
 
 function doRun (limit) {
-    console.log (`emwt: start doRun limit=${limit}`)
+    let count = 0
+    let status = 0
+    let pauseReq = false
+    let continueRunning = true
+    let finished = false
+    while (continueRunning) {
+        em.executeInstruction (emwt.es)
+        em.clearLoggingData (emwt.es)
+        count++
+        status = st.readSCB (emwt.es, st.SCB_status)
+        switch (status) {
+        case st.SCB_halted:
+        case st.SCB_paused:
+        case st.SCB_break:
+        case st.SCB_relinquish:
+            finished = true
+            break
+        default:
+        }
+        pauseReq = st.readSCB (emwt.es, st.SCB_pause_request) != 0
+        continueRunning = !finished  && !pauseReq
+    }
+    if (pauseReq && status != st.SCB_halted) {
+        com.mode.devlog ("worker looper pausing")
+        st.writeSCB (emwt.es, st.SCB_status, st.SCB_paused)
+        st.writeSCB (emwt.es, st.SCB_pause_request, 0)
+    }
+    st.writeNinstrExecuted (emwt.es, count)
+    return count
+}
+
+//        es.endRunDisplay (es)
+//      es.duringRunDisplay (es)
+//	setTimeout (function () {mainThreadLooper (es)})
+//    if (finished) {
+
+/*
+function doRun (limit) {
+//    console.log (`emwt: start doRun limit=${limit}`)
     let count = st.readNinstrExecuted (emwt.es)
     let curStatus = st.readSCB (emwt.es, st.SCB_status)
     let curPauseReq = 0
@@ -360,6 +397,7 @@ function doRun (limit) {
                  + `status=${curStatus}, pause=${curPauseReq}`)
     return count
 }
+*/
 
 //    let startTime = performance.now ()
 //    let finishTime = performance.now ()

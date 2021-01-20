@@ -37,7 +37,6 @@ export function modalWarning (msg) {
     alert (msg);
 }
 
-
 //-----------------------------------------------------------------------------
 // Clock
 //-----------------------------------------------------------------------------
@@ -71,7 +70,7 @@ export function updateClock (es) {
     const elapsed = now.getTime () - es.startTime
     const xs = elapsed < 1000
           ? `${elapsed.toFixed(0)} ms`
-          : `${(elapsed/1000).toPrecision(ClockWidth)} s`
+          : ` ${(elapsed/1000).toPrecision(ClockWidth)} s`
     document.getElementById("PP_time").innerHTML = xs
 }
 
@@ -91,13 +90,14 @@ export function test1 (es) {
 
 // These functions are passed to the emulator, which calls them
 
+// Perform any operations on the gui display to prepare for a run
 function initRun (es) {
     startClock (es)
 }
 
 function finishRun (es) {
-    em.execInstrPostDisplay (es)
     stopClock (es)
+    em.execInstrPostDisplay (es)
 }
 
 const guiRefreshInterval = 1000 // period of display refresh during run (ms)
@@ -238,17 +238,16 @@ function refreshRFdisplay (es) {
     }
 }
 
+// Initiate a run using the worker thread.  This function is the main
+// gui's interface to the worker, so es should be guiEmulatorState.
+// It will run instructions until a stopping condition, but will
+// relinquish control to the main thread on a trap.
 
-// (es should be guiEmulatorState)
-
-function emwtRun (es) { // run until stopping condition; relinquish on trap
+function emwtRun (es) {
     com.mode.devlog ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
-    st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
     let msg = {code: 102, payload: instrLimit}
     emwThread.postMessage (msg)
-//    clearClock (guiEmulatorState)
-    startClock (guiEmulatorState)
     com.mode.devlog ("main: emwt run posted start message");
 }
 
@@ -259,9 +258,10 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
     switch (status) {
     case st.SCB_halted:
         com.mode.devlog (`*** main: handle emwt halt`)
-        stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
-        st.showSCBstatus (guiEmulatorState)
+//        st.showSCBstatus (guiEmulatorState)
+        //        stopClock (guiEmulatorState)
+        finishRun (guiEmulatorState)
         break
     case st.SCB_paused:
         com.mode.devlog (`*** main: handle emwt pause`)
@@ -291,11 +291,12 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
         em.executeInstruction (guiEmulatorState)
         if (st.readSCB (guiEmulatorState, st.SCB_status) === st.SCB_halted) {
-            stopClock (guiEmulatorState)
-            em.refresh (guiEmulatorState)
-            com.mode.devlog (`*** main: handle emwt relinquish then halted`)
+            console.log ("main: handle emwt relinquish: halted")
+//            em.refresh (guiEmulatorState)
+//            stopClock (guiEmulatorState)
+            finishRun (guiEmulatorState)
         } else {
-            com.mode.devlog (`*** main: handle emwt relinquish resuming`)
+            console.log (`main: handle emwt relinquish: resuming`)
             st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
             msg = {code: 102, payload: 0}
             emwThread.postMessage (msg)
@@ -549,15 +550,26 @@ export function finalizeLeaveCurrentPane () {
 // Processor pane
 //------------------------------------------------------------------------------
 
-// Run instructions until stopping condition is reached.  This will be
-// performed using either the main gui thread (procRunMainThread) or
-// on the worker thread (emwtRun).
+// The runMain and runWorker functions set the preferred thread and
+// then call procRun, so they set the thread choice persistently.
 
-// Decide whether to go aheead with the run; if so, decide which
+function runMain (es) {
+    es.emRunThread = em.ES_gui_thread
+    procRun (es)
+}
+
+function runWorker (es) {
+    es.emRunThread = em.ES_worker_thread
+    procRun (es)
+}
+
+// Run instructions until stopping condition is reached.  This will be
+// performed using either the main gui thread or on the worker thread.
+// First decide whether to go aheead with the run; if so, decide which
 // thread to run it in.
 
 function procRun (es) {
-    com.mode.devlog (`gui.procRun: thread = ${es.emRunThread}`)
+    com.mode.devlog (`gui.procRun, thread = ${es.emRunThread}`)
     let q = st.readSCB (es, st.SCB_status)
     switch (q) {
     case st.SCB_ready:
@@ -572,7 +584,7 @@ function procRun (es) {
             break
         case em.ES_worker_thread:
             console.log ("procRun: starting in worker thread")
-            startClock (es) // will be stopped by procRunMainThread
+            es.initRunDisplay (es)
             st.writeSCB (es, st.SCB_status, st.SCB_running_emwt)
             emwtRun (es)
             break
@@ -1211,19 +1223,18 @@ function initializeButtons () {
     prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
     // Processor pane (PP)
-    prepareButton ('PP_Boot',         () => em.boot (guiEmulatorState));
-    prepareButton ('PP_Step',         () => procStep (guiEmulatorState));
-    prepareButton ('PP_Run',          () => procRun (guiEmulatorState));
-    prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
-    prepareButton ('PP_Pause',        () => em.procPause (guiEmulatorState));
-    prepareButton ('PP_Interrupt',    () => em.procInterrupt (guiEmulatorState));
-    prepareButton ('PP_Breakpoint',   () => em.procBreakpoint (guiEmulatorState));
-    prepareButton ('PP_Refresh',      () => refresh (guiEmulatorState));
-    prepareButton ('PP_Reset',        () => procReset (guiEmulatorState));
-    prepareButton ('PP_RunMain',      () => em.procRunMainThread (guiEmulatorState));
-    prepareButton ('PP_RunWorker',    () => emwtRun (guiEmulatorState));
-    prepareButton ('PP_Test1',        () => test1 (guiEmulatorState))
-    prepareButton ('PP_Test2',        emwtTest2);
+    prepareButton ('PP_Boot',       () => em.boot (guiEmulatorState));
+    prepareButton ('PP_Step',       () => procStep (guiEmulatorState));
+    prepareButton ('PP_Run',        () => procRun (guiEmulatorState));
+    prepareButton ('PP_Pause',      () => em.procPause (guiEmulatorState));
+    prepareButton ('PP_Interrupt',  () => em.procInterrupt (guiEmulatorState));
+    prepareButton ('PP_Breakpoint', () => em.procBreakpoint (guiEmulatorState));
+    prepareButton ('PP_Refresh',    () => refresh (guiEmulatorState));
+    prepareButton ('PP_Reset',      () => procReset (guiEmulatorState));
+    prepareButton ('PP_RunMain',    () => runMain (guiEmulatorState))
+    prepareButton ('PP_RunWorker',  () => runWorker (guiEmulatorState))
+    prepareButton ('PP_Test1',      () => test1 (guiEmulatorState))
+    prepareButton ('PP_Test2',      emwtTest2);
 
     prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
     // prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
