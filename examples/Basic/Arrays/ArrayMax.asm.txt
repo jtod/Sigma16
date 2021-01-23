@@ -1,5 +1,5 @@
-; ArrayMax - find maximum element of an array
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; ArrayMax: find maximum element of an array
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ;---------------------------------------------------------------------
 ; The program finds the maximum element of an array.  It is given

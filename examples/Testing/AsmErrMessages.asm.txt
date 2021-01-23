@@ -1,5 +1,5 @@
-; AsmErrMessages - test assembly language error messages
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; AsmErrMessages: test assembly language error messages
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Test error messages
 

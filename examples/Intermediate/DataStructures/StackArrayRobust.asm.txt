@@ -1,5 +1,5 @@
-; StackArrayRobust - stack implemented using array
-; John O'Donnell. This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; StackArrayRobust: stack implemented using array
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ;------------------------------------------------------------------------
 ; Main program

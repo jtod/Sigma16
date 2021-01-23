@@ -1,5 +1,5 @@
-; ReadWrite - read a string and write it
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; ReadWrite: read a string and write it
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Read up to 4 characters into str
         lea    R1,1[R0]       ; trap code for Read

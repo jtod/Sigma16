@@ -1,5 +1,5 @@
-; AddDecimal - add BCD numbers
-; John O'Donnell. This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; AddDecimal: add BCD numbers
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; This program illustrates how to add binary coded decimal (BCD)
 ; numbers.  It follows on from WriteBCD; it's a good idea to look at

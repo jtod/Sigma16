@@ -1,5 +1,5 @@
 ; Performance: a looper program for timing measurements
-; This file is part of Sigma16, see README and https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; for i := 0 to n
 ;   for j := 0 to m

@@ -23,6 +23,10 @@ export function output (xs) {
     document.getElementById("OptionsBody").innerHTML = txt + `${xs}<br>`
 }
 
+export function checkBrowserStorageSupport () {
+    return !!localStorage
+}
+
 export function checkBrowserWorkerSupport () {
 //    output ("Checking browser support for web workers...")
     return !!window.Worker

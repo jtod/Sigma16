@@ -293,6 +293,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
         em.executeInstruction (guiEmulatorState)
+        st.decrInstrCount (guiEmulatorState) // instruction was counted twice
         if (st.readSCB (guiEmulatorState, st.SCB_status) === st.SCB_halted) {
             console.log ("main: handle emwt relinquish: halted")
 //            em.refresh (guiEmulatorState)
@@ -671,6 +672,11 @@ function examplesHome() {
 	"../../examples/index.html";
 }
 
+function examplesBack () {
+    console.log (`examplesBack`)
+}
+
+
 // Copy the example text to the editor.  The example is shown as a web
 // page and its content is obtained using innerHTML.
 
@@ -729,7 +735,7 @@ function initialize_mid_main_resizing () {
 
 // Update the saved ratio
 function setMidMainLRratio (r) {
-//    com.mode.devlog ('setMidMainLRratio:  midLRratio = ' + r)
+    com.mode.devlog (`setMidMainLRratio:  old=${midLRratio} new=${r}`)
     midLRratio = r;
 }
 
@@ -758,6 +764,8 @@ function setMidMainLeftWidth (newxl) {
     let newxr = ww - newxl;
     let newxlp = newxl + "px";
     let newratio = newxl / (newxl + newxr);
+    console.log (`setMidMainLeftWidth old ratio = ${midLRratio} `
+                 + `new ratio = ${newratio}`)
     com.mode.devlog ('  new dimensions: ww = ' + ww +
 		 ' newxl=' + newxl + ' newxr=' + newxr + ' newratio=' + newratio);
 
@@ -827,6 +835,44 @@ function user_guide_resize(x) {
     showSizeParameters ();
 }
 
+
+let showingUserGuide = true
+let toggleGuideSaveRatio = midLRratio
+
+function rememberCurrentMidMainLeftWidth () {
+    currentMidMainLeftWidth = midMainLeft.style.width
+}
+
+// let currentMidMainWidth = midMainLeft.style.width
+
+function toggleUserGuide () {
+    let xs
+    if (showingUserGuide) {
+        xs = "Show User Guide"
+        toggleGuideSaveRatio = midLRratio
+        hideUserGuide ()
+    } else {
+        xs = "Hide User Guide"
+        midLRratio = toggleGuideSaveRatio
+        showUserGuide ()
+    }
+    showingUserGuide = !showingUserGuide
+    document.getElementById("Toggle_UserGuide_Button").textContent = xs
+}
+
+function showUserGuide () {
+    console.log (`showUserGuide midLRratio=${midLRratio}`)
+//    setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
+    showSizeParameters();
+    adjustToMidMainLRratio();
+}
+//    setMidMainLeftWidth (currentMidMainWidth)
+//    adjustToMidMainLRratio ()
+
+function hideUserGuide () {
+    setMidMainLeftWidth (window.innerWidth)
+}
+
 //    let containerOffsetLeft = middleSection.offsetLeft;
 //		+ ' containerOffsetLeft=' + containerOffsetLeft
 
@@ -841,6 +887,45 @@ function checkTestBody () {
 //-------------------------------------------------------------------------------
 // Example programs
 //-------------------------------------------------------------------------------
+
+export function prepareExampleText () {
+    console.log ("prepareExmapleText")
+    document.getElementById("ExamplesIframeId")
+        .addEventListener("load", event => checkExample ())
+}
+
+function checkExample () {
+    const htmlDetector = /\s*<pre\sstyle=/
+    const elt = document.getElementById("ExamplesIframeId")
+    const xs = elt.contentWindow.document.body.innerHTML;
+    const y = xs.split("\n")[0]
+    const q = htmlDetector.exec (y)
+    if (q) {
+        console.log (`checkExample: looks like example text <${y}>`)
+        selectExample ()
+    } else {
+        console.log (`checkExample: looks like html <${y}>`)
+    }
+//    console.log (`checkExample <${xs}>\n<${ys}>`)
+}
+
+
+// Make new module, copy example text into it, and select it
+
+function selectExample() {
+    let exElt = document.getElementById('ExamplesIframeId');
+    let xs = exElt.contentWindow.document.body.innerHTML;
+    com.mode.devlog (`selectExample raw xs = ${xs}`);
+    let skipPreOpen = xs.replace(com.openingPreTag,"");
+    let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
+    com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
+    let ys = skipPreClose;
+    let m = new st.S16Module ("Example");
+    m.asmEdText = ys;
+    smod.refreshEditorBuffer();
+    smod.refreshModulesList();
+}
+
 
 function insert_example(exampleText) {
     com.mode.devlog('Inserting example add into editor text');
@@ -976,9 +1061,11 @@ function devTools106 () {
 }
 
 function configureBrowser (es) {
-    let supportWorker = cn.checkBrowserWorkerSupport ()
+    const supportLocalStorage = cn.checkBrowserStorageSupport ()
+    cn.output (`Browser supports local storage = ${supportLocalStorage}`)
+    const supportWorker = cn.checkBrowserWorkerSupport ()
     cn.output (`Browser supports web workers = ${supportWorker}`)
-    let supportSharedMem = cn.checkSharedMemorySupport ()
+    const supportSharedMem = cn.checkSharedMemorySupport ()
     cn.output (`Browser supports shared array buffers = ${supportSharedMem}`)
     es.emRunCapability = supportWorker &&  supportSharedMem
         ? em.ES_worker_thread
@@ -1047,17 +1134,14 @@ function allocateStateVector (es) {
 */
 
 function testSysStateVec (es) {
-    cn.output (`Testing emulator memory: ${es.thread_host.description}...`)
+    cn.output (`Testing emulator memory: ${es.thread_host}`)
     let xs = ""
-    let n = 5
+    let n = 3
     for (let i = 0; i < n; i++) es.shm[i] = i
     for (let i = 0; i < n; i++) es.shm[i] += 100
     for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
-    cn.output (`${es.thread_host.description} ${xs} ... finished`)
+    cn.output (`thread host ${es.thread_host}: ${xs} finished`)
 }
-//    for (let i = 0; i < n; i++) st.sysStateVec[i] = i
-//    for (let i = 0; i < n; i++) st.sysStateVec[i] += 100
-//    for (let i = 0;  i < n; i++) xs += ` ${i}->${st.sysStateVec[i]}`
 
 //-------------------------------------------------------------------------------
 // Debug, testing, and experiments
@@ -1074,19 +1158,6 @@ let developer = {
     assembler : null
 }
 
-function makeTextFile (text) {
-    let data = new Blob([text], {type: 'text/plain'});
-
-    // If we are replacing a previously generated file we need to
-    // manually revoke the object URL to avoid memory leaks.
-    if (textFile !== null) {
-      window.URL.revokeObjectURL(textFile);
-    }
-
-    textFile = window.URL.createObjectURL(data);
-
-    return textFile;
-}
 
 function jumpToAnchorInGuide () {
     com.mode.devlog ("jumpToAnchorInGuide");
@@ -1192,6 +1263,7 @@ function initializeButtons () {
     prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
     prepareButton ('About_Button',
                    () => showGuideSection('sec-about-sigma16'));  
+    prepareButton ('Toggle_UserGuide_Button', toggleUserGuide)
 
     // User guide resize (UGR) buttons
     // UGR Distance (px) to move boundary between gui and userguide on resize
@@ -1215,7 +1287,7 @@ function initializeButtons () {
 
     // Examples pane (EXP)
     prepareButton ('EXP_Examples_Home',    examplesHome);
-    prepareButton ('EXP_Select_Example',    smod.selectExample);
+    prepareButton ('EXP_Back',    examplesBack);
 
     // Modules pane (MP)
     // prepareButton ('MP_New',    smod.newModule);
@@ -1301,8 +1373,9 @@ window.onload = function () {
     smod.prepareChooseFiles ();
     initialize_mid_main_resizing ();
     setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
-    showSizeParameters();
+    toggleGuideSaveRatio = midLRratio
     adjustToMidMainLRratio();
+    //    showSizeParameters();
     initializePane ();
     smod.initModules ();
     window.mode = com.mode;
@@ -1318,6 +1391,7 @@ window.onload = function () {
     testSysStateVec (guiEmulatorState)
     em.initializeMachineState (guiEmulatorState)
     initializeButtons ()
+    prepareExampleText ()
     clearClock (guiEmulatorState)
     guiEmulatorState.emRunThread = em.ES_gui_thread // default run mode
     procReset (guiEmulatorState)

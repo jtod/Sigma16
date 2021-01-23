@@ -1,4 +1,4 @@
-; System - test system control registers and instructions
+; System: test system control registers and instructions
 ; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Control registers

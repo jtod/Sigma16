@@ -1,5 +1,5 @@
-; Memory - test instructions that access memory
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; Memory: test instructions that access memory
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ;   jump    test_stack[R0]
 

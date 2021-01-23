@@ -115,22 +115,6 @@ export function initModules () {
 // Reading files in the Sigma16 directories
 //-------------------------------------------------------------------------------
 
-// Make new module, copy example text into it, and select it
-
-export function selectExample() {
-    let exElt = document.getElementById('ExamplesIframeId');
-    let xs = exElt.contentWindow.document.body.innerHTML;
-    com.mode.devlog (`smod.selectExample raw xs = ${xs}`);
-    let skipPreOpen = xs.replace(com.openingPreTag,"");
-    let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
-    com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
-    let ys = skipPreClose;
-    let m = new st.S16Module ("Example");
-    m.asmEdText = ys;
-    refreshEditorBuffer();
-    refreshModulesList();
-}
-
 //-------------------------------------------------------------------------------
 // Reading files selected by user
 //-------------------------------------------------------------------------------
@@ -314,7 +298,7 @@ export function refreshModulesList() {
     
 // Copy text of the selected module to the editor buffer
 
-function refreshEditorBuffer () {
+export function refreshEditorBuffer () {
     com.mode.devlog (`refreshEditorBuffer`);
     console.log (`refreshEditorBuffer`);
     const mod = st.env.getSelectedModule ();

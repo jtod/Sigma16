@@ -1,6 +1,6 @@
-; BigPowers2 - print powers of 2 using BCD arithmetic
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
-y
+; BigPowers2:  print powers of 2 using BCD arithmetic
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+
 ; Print the first n powers of 2, where the powers are represented as
 ; k-digit BCD
 

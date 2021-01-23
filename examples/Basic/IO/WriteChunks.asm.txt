@@ -1,5 +1,5 @@
-; WriteChunks - write several short strings on the same output line
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; WriteChunks: write several short strings on the same output line
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
         lea    R1,2[R0]       ; trap code for Write
 

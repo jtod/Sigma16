@@ -1,5 +1,5 @@
 ; Add: a minimal program that adds two integer variables
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Execution starts at location 0, where the first instruction will be
 ; placed when the program is executed.

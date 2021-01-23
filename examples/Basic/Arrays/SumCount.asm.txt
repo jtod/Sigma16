@@ -1,5 +1,5 @@
-; SumCount - traverse array and calculate two values
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; SumCount: traverse array and calculate two values
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Traverse array and calculate two values, possum and negcount
 

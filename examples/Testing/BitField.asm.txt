@@ -1,5 +1,5 @@
 ; BitField: test instructions that operate on bit fields
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Extracting bit fields
 

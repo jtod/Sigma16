@@ -101,26 +101,17 @@ export function boot (es) {
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
     initializeProcessorElements (es);  // so far, it's just instr decode
-//    com.mode.devlog ("------------- boot reading code --------------- ")
-//    com.mode.devlog (`*** Boot object code = ${objectCodeText}`)
-//    com.mode.devlog (`*** Boot metadata = ${metadataText}`)
-//    com.mode.devlog ("------------- boot starting --------------- ")
     es.metadata = new st.Metadata ();
     es.metadata.fromText (metadataText);
 
     let objectCode = objectCodeText.split("\n");
     
-//    memClearAccesses ();
     let xs = "";
     let fields = null;
     let isExecutable = true; // will set to false if module isn't bootable
     let location = 0; // address where next word will be stored
     document.getElementById('ProcAsmListing').innerHTML = "";
-//    es.nInstructionsExecuted = 0;
-    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
-    guiDisplayNinstr (es)
-//    document.getElementById("nInstrExecuted").innerHTML =
-//	es.nInstructionsExecuted;
+    st.clearInstrCount
     es.ioLogBuffer = "";
     refreshIOlogBuffer (es);
     com.mode.trace = false;
@@ -159,6 +150,7 @@ export function boot (es) {
     }
     if (isExecutable) {
         com.mode.devlog ("boot ok so far, preparing...");
+        es.asmListingCurrent = []
         es.metadata.listingDec.forEach ((x,i) => es.asmListingCurrent[i] = x);
         initListing (m,es);
         es.curInstrAddr = 0;
@@ -176,7 +168,6 @@ export function boot (es) {
         refreshRegisters (es)
         updateMemory (es)
         memDisplayFull(es);
-//        clearTime (es) ?? don't want to import gui, where it's defined
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
             + "Boot was successful"
@@ -199,6 +190,17 @@ export function boot (es) {
     }
     com.mode.devlog ("boot returning");
 }
+//    com.mode.devlog ("------------- boot reading code --------------- ")
+//    com.mode.devlog (`*** Boot object code = ${objectCodeText}`)
+//    com.mode.devlog (`*** Boot metadata = ${metadataText}`)
+//    com.mode.devlog ("------------- boot starting --------------- ")
+//    memClearAccesses ();
+//    es.nInstructionsExecuted = 0;
+    //    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
+//    guiDisplayNinstr (es)
+//    document.getElementById("nInstrExecuted").innerHTML =
+//	es.nInstructionsExecuted;
+//        clearTime (es) ?? don't want to import gui, where it's defined
 
 export function refreshProcStatusDisplay (es) {
     let xs = st.showSCBstatus (es)
@@ -1222,7 +1224,7 @@ export function executeInstruction (es) {
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
     dispatch_primary_opcode [es.ir_op] (es);
-    st.incrSCB (es, st.SCB_nInstrExecuted)
+    st.incrInstrCount (es)
 }
 
 // RRR instruction pattern functions

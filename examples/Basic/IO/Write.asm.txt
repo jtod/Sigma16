@@ -1,5 +1,5 @@
-; Write - demonstrate output
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; Write: demonstrate output
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Demonstrate output by writing several character strings
 

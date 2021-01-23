@@ -1,5 +1,5 @@
-; CmpJump - demonstrate a conditional jump
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; CmpJump: demonstrate a conditional jump
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Given the constants in the lea instructions, the instruction
 ; labelled yes should be executed.  You can modify the constants in

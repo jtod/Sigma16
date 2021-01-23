@@ -1,5 +1,5 @@
-; ArraySum - find sum of the elements of an array
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; ArraySum: find sum of the elements of an array
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; The program is given
 ;   *  a natural number n, assume n >= 0

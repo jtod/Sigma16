@@ -1,5 +1,5 @@
-; Mult - demonstrate the multiplication instruction
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; Mult: demonstrate the multiplication instruction
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
      load   R1,a[R0]
      load   R2,b[R0]

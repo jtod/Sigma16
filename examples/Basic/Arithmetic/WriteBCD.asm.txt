@@ -1,5 +1,5 @@
-; WriteBCD - print a BCD number
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; WriteBCD: print a BCD number
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; This program illustrates how to print a binary coded decimal (BCD)
 ; number, and how to write non-reentrant procedures with static local

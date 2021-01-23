@@ -96,10 +96,11 @@ export class SystemState {
     getSelectedModule () {
         com.mode.devlog ("getSelectedModule");
         if (env.modules.size == 0) { // no modules
-            this.anonymousCount++;
-            const xs = `anonymous${this.anonymousCount}`;
-            this.modules.set (xs, new S16Module (xs));
-            this.selectedModule = xs;
+//            this.anonymousCount++;
+//            const xs = `anonymous${this.anonymousCount}`;
+//            this.modules.set (xs, new S16Module (xs));
+//            this.selectedModule = xs;
+            this.selectedModule = null
         } else if (!this.selectedModule) { // nothing selected
             com.mode.devlog ("getSelectedModule, in nothing selected")
             this.selectedModule = [...this.modules.keys()][0].baseName;
@@ -595,21 +596,6 @@ export function showSCBstatus (es) {
     }
 }
 
-export function readNinstrExecuted (es) {
-//    const upper = readSCB (es, SCB_nInstrExecutedMSB)
-//    const lower = readSCB (es, SCB_nInstrExecutedMSB)
-//    const n = upper << 16 | lower
-    let ne = readVec32 (es, 0)
-    return n
-}
-
-export function writeNinstrExecuted (es, n) {
-    writeVec32 (es, 0, n)
-//    const upper = n >>> 16
-//    const lower = n & 0x0000ffff
-//    writeSCB (es, SCB_nInstrExecutedMSB, upper)
-//    writeSCB (es, SCB_nInstrExecutedLSB, lower)
-}
 
 export function resetSCB (es) {
     writeVec32 (es, 0, 0) // use sym const for address 0
@@ -646,6 +632,28 @@ export function readVec32 (es, a) {
     return x
 }
 
+// Instruction count
+
+export function clearInstrCount (es) {
+    es.vec32[0] = 0
+}
+
+export function readInstrCount (es) {
+    return es.vec32[0]
+}
+
+export function incrInstrCount (es) {
+    es.vec32[0] = es.vec32[0] + 1
+}
+
+// If an instruction has been relinquished, the instruction count was
+// incremented already, so the reexecution of the instruction would
+// cause it to be counted twice.
+
+export function decrInstrCount (es) {
+    es.vec32[0] = es.vec32[0] - 1
+}
+
 export function incrSCB (es, code) {
     let i = EmSCBOffset + code
     let x = es.shm[i]
@@ -653,11 +661,3 @@ export function incrSCB (es, code) {
     es.shm[i] = x
     return x
 }
-
-/*
-export class emflags {
-    constructor (x) {
-        this.whoami = x
-    }
-}
-*/

@@ -1,5 +1,5 @@
-; ArrayAddk - add k to each element of an array
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; ArrayAddk: add k to each element of an array
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Traverse an array and add constant k to each element
 

@@ -1,5 +1,5 @@
-; Exception - exception handlers
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; Exception: exception handlers
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Arithmetic exceptions: overflow and division by 0
 

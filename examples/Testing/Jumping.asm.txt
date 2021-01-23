@@ -1,5 +1,5 @@
-; Jump - test the instructions for transfer of control
-; This file is part of Sigma16, see https://jtod.github.io/home/Sigma16/
+; Jumping: test the instructions for transfer of control
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; Data for comparisons
       lea     R7,1[R0]    ; increment

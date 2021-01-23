@@ -38,24 +38,75 @@ export function setEditorBufferText (xs) {
     document.getElementById("EditorTextArea").value = xs;
 }
 
-
-
 //-----------------------------------------------------------------------------
 // Actions on entering and leaving the editor
 //-----------------------------------------------------------------------------
+
+// If there is a selected module, copy its text into the editor
+// buffer; if not, then clear the editor buffer, and later when
+// leaving the editor a module to hold it will be created and selected
 
 export function enterEditor () {
     com.mode.trace = true;
     com.mode.devlog ("ed.enterEditor");
     let m = st.env.getSelectedModule (); // module to be edited
-    let bn = m.baseName; // name of the module
-    let stage = m.edCurrentStage; // stage of the module to edit
-    let xs = `${bn} ${stage.description}`;
-    document.getElementById("EDP_Selected").innerText = xs;
-    edGetTextToEdit (m);
+    if (m) {
+        console.log ("enterEditor, found selectedModule")
+        let bn = m.baseName; // name of the module
+        let stage = m.edCurrentStage; // stage of the module to edit
+        let xs = `${bn} ${stage.description}`;
+        document.getElementById("EDP_Selected").innerText = xs;
+        edGetTextToEdit (m);
+    } else {
+        console.log ("enterEditor, no selectedModule")
+        setEditorBufferText ("")
+    }
 }
 
-// Get the text to edit
+// If there is a selected module, copy the text from the editor buffer
+// back to that module.  If not, create a new module and copy the
+// editor buffer text into it.
+
+export function leaveEditor () {
+    com.mode.devlog ('leaveEditor called');
+    const m = st.env.getSelectedModule (); // module to be edited
+    if (m) {
+        saveEditorBufferText (m);
+    } else {
+        const y = findModName (getEditorBufferText ())
+        const x = y ? y : "EditorText"
+        console.log (`leaveEditor ${x}`)
+        let m = st.env.mkSelectModule (y)
+        saveEditorBufferText (m)
+    }
+}
+
+function findModName (xs) {
+    const modNameParser = /\s*;\s*([a-zA-Z0-9_]+)/
+    const q = modNameParser.exec (xs.split("\n")[0])
+    let y
+    if (q) {
+        console.log (`findModName 0=<${q[0]}> 1=<${q[1]}> 2=<${q[2]}>`)
+        y = q[1]
+    } else {
+        y = "EditorText"
+    }
+    return y
+}
+
+
+function isEditorTextHtml (xs) {
+    const htmlDetector = /\s*<\?xml\sversion=/
+    const q = htmlDetector.exec (xs.split("\n")[0])
+    let isHtml
+    if (q) { // xs looks like an html index
+        isHtml = true
+    } else { // xs looks like example program text
+        isHtml = false
+    }
+}
+
+// Get the text to edit from module m
 export function edGetTextToEdit (m) {
     const s = m.edCurrentStage;
     const xs = s == st.StageAsm ? m.getAsmText ()
@@ -66,7 +117,7 @@ export function edGetTextToEdit (m) {
     setEditorBufferText (xs);    
 }
 
-export function edSaveTextToEdit (m) {
+export function saveEditorBufferText (m) {
     const xs = getEditorBufferText ()
     const s = m.edCurrentStage
     switch (s) {
@@ -82,18 +133,12 @@ export function edSelectedButton () {
     console.log ("edSelectedButton clicked");
 }
 
-// Check to see if the contents of the editor buffer have changed
-
-export function leaveEditor () {
-    com.mode.devlog ('leaveEditor called');
-    const m = st.env.getSelectedModule (); // module to be edited
-    edSaveTextToEdit (m);
-}
 
 function setEditorText (stage, text) {
     document.getElementById('EditorTextArea').value = text;
     currentStage = stage;
 }
+
 
 //-----------------------------------------------------------------------------
 // Editor buttons
@@ -105,6 +150,8 @@ export function edClear () {
 
 export function edNew () {
     console.log ("Editor new");
+    st.env.selectedModule = null
+    setEditorBufferText ("")
 }
 
 export function edRevert () {
@@ -139,6 +186,20 @@ export function edDownload () {
     let edText = document.getElementById("EditorTextArea").value;
     downloadElt.href = makeTextFile(edText);  // provide text to download
     downloadElt.click();  // perform the download
+}
+
+
+let textFile = null
+
+function makeTextFile (text) {
+    let data = new Blob([text], {type: 'text/plain'})
+// If a previously generated file is being replaced, it's necessary to
+// manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+    textFile = window.URL.createObjectURL(data)
+    return textFile
 }
 
 // Leave the editor but first check to see if the editor is showing a

@@ -1,6 +1,7 @@
 ; Looper: a long-running program for timing measurements
-; This file is part of Sigma16, see README and https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
+; Configure by editing the values of n and m.
 ; Run for n * m iterations of the inner loop body.  Change the values
 ; of n and m (defined near the end) in the editor before assembling.
 

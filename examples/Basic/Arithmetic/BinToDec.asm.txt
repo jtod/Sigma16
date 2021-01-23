@@ -1,5 +1,5 @@
-; BinToDec - convert binary to decimal
-; This file is part of Sigma16, https://jtod.github.io/home/Sigma16/
+; BinToDec: convert binary to decimal
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
 ; This program illustrates how to print a binary number, how to use
 ; binary coded decimal (BCD), and how to write procedures that aren't
