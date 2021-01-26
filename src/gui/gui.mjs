@@ -38,6 +38,117 @@ export function modalWarning (msg) {
 }
 
 //-----------------------------------------------------------------------------
+// Configuration
+//-----------------------------------------------------------------------------
+
+export function checkBrowserStorageSupport () {
+    let ok = !!window.localStorage
+    return ok
+}
+
+//-----------------------------------------------------------------------------
+// Keystrokes
+//-----------------------------------------------------------------------------
+
+const procKeyMap = new Map ([
+    ["KeyH",  () => procHelp (guiEmulatorState)],
+    ["KeyB",  () => em.boot (guiEmulatorState)],
+    ["KeyS",  () => procStep (guiEmulatorState)],
+    ["KeyR",  () => procRun (guiEmulatorState)],
+    ["KeyP",  () => procPause (guiEmulatorState)],
+    ["KeyI",  () => procInterrupt (guiEmulatorState)],
+])
+
+function procHelp () {
+    console.log ("procHelp")
+}
+
+let currentKeyMap = procKeyMap
+
+let modulesHelpDialogueVisible = false
+export function toggleModulesHelp () {
+    document.getElementById("ModulesHelpDialogue").style.display
+	= modulesHelpDialogueVisible ? "none" : "block";
+    modulesHelpDialogueVisible = !modulesHelpDialogueVisible;
+}
+
+let examplesHelpDialogueVisible = false
+export function toggleExamplesHelp () {
+    document.getElementById("ExamplesHelpDialogue").style.display
+	= examplesHelpDialogueVisible ? "none" : "block";
+    examplesHelpDialogueVisible = !examplesHelpDialogueVisible;
+}
+
+let editorHelpDialogueVisible = false
+export function toggleEditorHelp () {
+    document.getElementById("EditorHelpDialogue").style.display
+	= editorHelpDialogueVisible ? "none" : "block";
+    editorHelpDialogueVisible = !editorHelpDialogueVisible;
+}
+
+let assemblerHelpDialogueVisible = false
+export function toggleAssemblerHelp () {
+    document.getElementById("AssemblerHelpDialogue").style.display
+	= assemblerHelpDialogueVisible ? "none" : "block";
+    assemblerHelpDialogueVisible = !assemblerHelpDialogueVisible;
+}
+
+let linkerHelpDialogueVisible = false
+export function toggleLinkerHelp () {
+    document.getElementById("LinkerHelpDialogue").style.display
+	= linkerHelpDialogueVisible ? "none" : "block";
+    linkerHelpDialogueVisible = !linkerHelpDialogueVisible;
+}
+
+let procHelpDialogueVisible = false
+export function toggleProcHelp () {
+    com.mode.devlog ("toggleProcHelp");
+    document.getElementById("ProcHelpDialogue").style.display
+	= procHelpDialogueVisible ? "none" : "block";
+    procHelpDialogueVisible = !procHelpDialogueVisible;
+}
+
+function handleKeyDown (e) {
+    console.log (`handleKeyDown code=${e.code} keyCode=${e.keyCode}`)
+    let action = currentKeyMap.get (e.code)
+    if (action) {
+        e.handled = true
+        console.log (`=== do action for key code=${e.code} keyCode=${e.keyCode}`)
+        action ()
+        console.log (`finished action for key code=${e.code} keyCode=${e.keyCode}`)
+    } else {
+        console.log (`no action for key code=${e.code} keyCode=${e.keyCode}`)
+    }
+}
+
+function handleIOinbufferKeyDown (e) {
+    console.log (`handleIOinbufferKeyDown code=${e.code} keyCode=${e.keyCode}`)
+    e.stopPropagation () // inhibit using key as keyboard shortcut command
+}
+
+document.addEventListener ("keydown", handleKeyDown)
+document.getElementById("IOinputBuffer")
+    .addEventListener ("keydown", handleIOinbufferKeyDown)
+
+
+/*
+eventTarget.addEventListener("keydown", event => {
+  if (event.isComposing || event.keyCode === 229) {
+    return;
+  }
+  // do something
+});
+*/
+
+/*
+document.getElementById("MidMainLeft")
+    .addEventListener ("keydown", event => {
+        console.log (`keydown ${event.keyCode}`)
+    })
+*/
+
+
+//-----------------------------------------------------------------------------
 // Clock
 //-----------------------------------------------------------------------------
 
@@ -605,6 +716,7 @@ function procRun (es) {
 // thread
 
 export function procStep (es) {
+    console.log ("procStep")
     if (es.thread_host != em.ES_gui_thread) {
         com.mode.devlog (`procStep: host=${es.thread_host}, skipping`)
         return
@@ -630,8 +742,9 @@ export function procStep (es) {
     case st.SCB_blocked:
         com.mode.devlog ("procStep skipping instruction...")
         break
-    default: com.mode.devlog (`error: procStep unknown SCB_tatus= ${q}`)
+    default: com.mode.devlog (`error: procStep unknown SCB_status= ${q}`)
     }
+    console.log ("procStep finished")
 }
 
 // Separate clearing state from refreshing display
@@ -682,6 +795,7 @@ function examplesBack () {
 
 // This does not work.  Perhaps because it's an iframe, not an input?
 // Copy text of example buffer to clipboard
+/*
 function copyExampleToClipboard () {
     com.mode.devlog ('Copy example to clipboard');
     let exElt = document.getElementById('ExamplesIframeId');
@@ -689,6 +803,7 @@ function copyExampleToClipboard () {
     exElt.setSelectionRange(0,5);
     document.execCommand('copy');
 }
+*/
 
 // let myIFrame = document.getElementById("myIframe");
 // let content = myIFrame.contentWindow.document.body.innerHTML;
@@ -920,7 +1035,8 @@ function selectExample() {
     let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
     com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
-    let m = new st.S16Module ("Example");
+    //    let m = new st.S16Module ("Example");
+    let m = new st.S16Module (ed.findModName (ys))
     m.asmEdText = ys;
     smod.refreshEditorBuffer();
     smod.refreshModulesList();
@@ -1061,7 +1177,7 @@ function devTools106 () {
 }
 
 function configureBrowser (es) {
-    const supportLocalStorage = cn.checkBrowserStorageSupport ()
+    const supportLocalStorage = checkBrowserStorageSupport ()
     cn.output (`Browser supports local storage = ${supportLocalStorage}`)
     const supportWorker = cn.checkBrowserWorkerSupport ()
     cn.output (`Browser supports web workers = ${supportWorker}`)
@@ -1286,16 +1402,25 @@ function initializeButtons () {
     prepareButton ('WP_Programming', () => showGuideSection('sec-programming'));
 
     // Examples pane (EXP)
+    prepareButton ('EXP_Help',       () => toggleExamplesHelp ());
+    prepareButton ('ExamplesHelpClose',       () => toggleExamplesHelp ());
     prepareButton ('EXP_Examples_Home',    examplesHome);
     prepareButton ('EXP_Back',    examplesBack);
 
     // Modules pane (MP)
-    // prepareButton ('MP_New',    smod.newModule);
-    prepareButton ('MP_Refresh',    smod.refreshModulesList);
-    prepareButton ('MP_New',        smod.newMod);
-    prepareButton ('MP_Hello_world', () => insert_example(example_hello_world));
+    // prepareButton ('MP_New',    smod.newModule)
+    prepareButton ('MP_Help',       () => toggleModulesHelp ());
+    prepareButton ('ModulesHelpClose',  () => toggleModulesHelp ());
+    prepareButton ('MP_Refresh',    smod.refreshModulesList)
+    prepareButton ('MP_New',        smod.newMod)
+    prepareButton ('MP_Hello_world', () => insert_example(example_hello_world))
+    prepareButton ('MP_Test1',        smod.test1)
+    prepareButton ('MP_Test2',        smod.test2)
+    prepareButton ('MP_Test3',        smod.test3)
 
     // Editor pane (EDP)
+    prepareButton ('EDP_Help',       () => toggleEditorHelp ());
+    prepareButton ('EditorHelpClose',       () => toggleEditorHelp ());
     prepareButton ('EDP_Selected',    ed.edSelectedButton);
     prepareButton ('EDP_Clear',       ed.edClear);
     prepareButton ('EDP_Revert',      ed.edRevert);
@@ -1308,6 +1433,8 @@ function initializeButtons () {
     // prepareButton ('EDP_Link',        ed.edLink);
 
     // Assembler pane (AP)
+    prepareButton ('AP_Help',       () => toggleAssemblerHelp ());
+    prepareButton ('AssemblerHelpClose',       () => toggleAssemblerHelp ());
     prepareButton ('AP_Assemble',        asm.assemblerGUI);
     prepareButton ('AP_Show_Source',     asm.displayAsmSource);
     prepareButton ('AP_Show_Object',     asm.setObjectListing);
@@ -1315,12 +1442,16 @@ function initializeButtons () {
     prepareButton ('AP_Show_Metadata',   asm.setMetadata);
     
     // Linker pane (LP)
+    prepareButton ('LP_Help',       () => toggleLinkerHelp ());
+    prepareButton ('LinkerHelpClose',       () => toggleLinkerHelp ());
     prepareButton ('LP_Link',            link.linkerGUI);
     prepareButton ('LP_Read_Object',     link.getLinkerModules);
     prepareButton ('LP_Show_Executable', link.linkShowExecutable);
     prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
     // Processor pane (PP)
+    prepareButton ('PP_Help',       () => toggleProcHelp ());
+    prepareButton ('ProcHelpClose',       () => toggleProcHelp ());
     prepareButton ('PP_Boot',       () => em.boot (guiEmulatorState));
     prepareButton ('PP_Step',       () => procStep (guiEmulatorState));
     prepareButton ('PP_Run',        () => procRun (guiEmulatorState));
@@ -1333,6 +1464,7 @@ function initializeButtons () {
     prepareButton ('PP_RunWorker',  () => runWorker (guiEmulatorState))
     prepareButton ('PP_Test1',      () => test1 (guiEmulatorState))
     prepareButton ('PP_Test2',      emwtTest2);
+
 
     prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
     // prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);

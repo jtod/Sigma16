@@ -25,8 +25,9 @@
 // gui operations, defined in Sigma16.html, call the emulator's
 // interface functios with the state, for example boot(emulatorState).
 
-import * as com from './common.mjs';
-import * as arch from './architecture.mjs';
+import * as com from './common.mjs'
+import * as cn from '../gui/config.mjs'
+import * as arch from './architecture.mjs'
 
 //-----------------------------------------------------------------------------
 // Stages

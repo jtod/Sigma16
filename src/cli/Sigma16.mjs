@@ -158,6 +158,7 @@ const app = express();
 // Provide locations of static source files, docs, and examples
 app.use( '/', express.static (guiDir));
 app.use( '/home', express.static (homeDir));
+app.use( '/gui', express.static (guiDir));
 app.use( '/base', express.static (baseDir));
 app.use( '/datafiles', express.static (datafilesDir));
 app.use( '/docs', express.static (docsDir));

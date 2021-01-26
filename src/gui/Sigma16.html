@@ -58,6 +58,66 @@ visiting this file in a browser.
 	</textarea>
       </div>
 
+      <div class="DialoguePopup" id="ModulesHelpDialogue">
+	<div class="PaneButtons">
+	  <button id="ModulesHelpClose">Close</button>
+	</div>
+	<iframe src="../../docs/help/modulesHelp.html"
+		name="ModulesHelpIframe"
+		id="ModulesHelp">
+	</iframe>
+      </div>
+
+      <div class="DialoguePopup" id="ExamplesHelpDialogue">
+	<div class="PaneButtons">
+	  <button id="ExamplesHelpClose">Close</button>
+	</div>
+	<iframe src="../../docs/help/examplesHelp.html"
+		name="ExamplesHelpIframe"
+		id="ExamplesHelp">
+	</iframe>
+      </div>
+
+      <div class="DialoguePopup" id="EditorHelpDialogue">
+	<div class="PaneButtons">
+	  <button id="EditorHelpClose">Close</button>
+	</div>
+	<iframe src="../../docs/help/editorHelp.html"
+		name="EditorHelpIframe"
+		id="EditorHelp">
+	</iframe>
+      </div>
+
+      <div class="DialoguePopup" id="AssemblerHelpDialogue">
+	<div class="PaneButtons">
+	  <button id="AssemblerHelpClose">Close</button>
+	</div>
+	<iframe src="../../docs/help/assemblerHelp.html"
+		name="AssemblerHelpIframe"
+		id="AssemblerHelp">
+	</iframe>
+      </div>
+
+      <div class="DialoguePopup" id="LinkerHelpDialogue">
+	<div class="PaneButtons">
+	  <button id="LinkerHelpClose">Close</button>
+	</div>
+	<iframe src="../../docs/help/linkerhelp.html"
+		name="LinkerHelpIframe"
+		id="LinkerHelp">
+	</iframe>
+      </div>
+
+            <div class="DialoguePopup" id="ProcHelpDialogue">
+	<div class="PaneButtons">
+	  <button id="ProcHelpClose">Close</button>
+	</div>
+	<iframe src="../../docs/help/prochelp.html"
+		name="ProcHelpIframe"
+		id="ProcHelp">
+	</iframe>
+      </div>
+
       <div class="TopSection">
 	<button id="Welcome_Pane_Button"> Welcome </button>
 	<button id="Examples_Pane_Button"> Examples </button>
@@ -113,6 +173,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="ExamplesPane">
 	      <div class="PaneButtons">
+		<button id="EXP_Help"> Help </button>
 		<button id="EXP_Examples_Home"> Examples </button>
 		<button id="EXP_Back"> Back </button>
 	      </div>
@@ -126,6 +187,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="ModulesPane">
 	      <div class="PaneButtons">
+		<button id="MP_Help"> Help </button>
 		<input type="file" multiple id="FileInput"
                        accept=".asm.txt, .obj.txt, .md.txt, .lnk.txt"
 		       name="myfileselector">
@@ -133,6 +195,9 @@ visiting this file in a browser.
 		<button id="MP_Refresh"> Refresh </button>
 		<button id="MP_New"> New </button>
 		<button id="MP_Hello_world"> Hello, world! </button>
+		<button id="MP_Test1"> Test 1 </button>
+		<button id="MP_Test2"> Test 2 </button>
+		<button id="MP_Test3"> Test 3 </button>
 	      </div>
 	      <div class="HighlightedTextAsHtml" id="FilesBody">
 	      </div>
@@ -140,6 +205,7 @@ visiting this file in a browser.
 	    
 	    <div class="Pane" id="EditorPane">
 	      <div class="PaneButtons">
+		<button id="EDP_Help"> Help </button>
                 <button id="EDP_Selected"> selected </button>
 		<button id="EDP_Clear"> Clear </button>
 		<button id="EDP_Revert"> Revert </button>
@@ -166,6 +232,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="AssemblerPane">
 	      <div class="PaneButtons">
+		<button id="AP_Help"> Help </button>
 		<button id="AP_Assemble"> Assemble </button>
 		<button id="AP_Show_Source"> Show source </button>
 		<button id="AP_Show_Object"> Show object </button>
@@ -179,6 +246,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
+		<button id="LP_Help"> Help </button>
 		<button id="LP_Link"> Link </button>
                 <button id="LP_Show_Executable"> Show executable </button>
                 <button id="LP_Show_Metadata"> Show metadata </button>
@@ -193,6 +261,7 @@ visiting this file in a browser.
 	    
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
+		<button id="PP_Help"> Help </button>
 		<button id="PP_Boot"> Boot </button>
 		<button id="PP_Step"> Step </button>
 		<button id="PP_Run"> Run </button>

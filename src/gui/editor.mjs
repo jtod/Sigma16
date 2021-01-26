@@ -81,7 +81,7 @@ export function leaveEditor () {
     }
 }
 
-function findModName (xs) {
+export function findModName (xs) {
     const modNameParser = /\s*;\s*([a-zA-Z0-9_]+)/
     const q = modNameParser.exec (xs.split("\n")[0])
     let y
