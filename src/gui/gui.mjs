@@ -50,8 +50,48 @@ export function checkBrowserStorageSupport () {
 // Keystrokes
 //-----------------------------------------------------------------------------
 
+const defaultKeyMap = new Map ([
+    ["KeyH",  toggleDefaultHelp],
+])
+
+let currentKeyMap = defaultKeyMap
+
+const modulesKeyMap = new Map ([
+    ["KeyH",  toggleModulesHelp],
+    ["KeyR",  smod.refreshModulesList],
+    ["KeyW",  () => insert_example(example_hello_world)],
+])
+
+const examplesKeyMap = new Map ([
+    ["KeyH",  toggleExamplesHelp],
+])
+
+const editorKeyMap = new Map ([
+    ["KeyH",  toggleEditorHelp],
+    ["KeyC",  ed.edClear],
+    ["KeyN",  ed.edNew],
+    ["KeyS",  ed.edDownload],
+    ["KeyW",  () => insert_example(example_hello_world)],
+])
+
+const asmKeyMap = new Map ([
+    ["KeyH",  toggleAssemblerHelp],
+    ["KeyA",  asm.assemblerGUI],
+    ["KeyS",  asm.displayAsmSource],
+    ["KeyO",  asm.setObjectListing],
+    ["KeyL",  asm.setAsmListing],
+    ["KeyM",  asm.setMetadata],
+])
+
+const linkerKeyMap = new Map ([
+    ["KeyH",  toggleLinkerHelp],
+    ["KeyL",  link.linkerGUI],
+    ["KeyE",  link.showExecutable],
+    ["KeyM",  link.showMetadata],
+])
+
 const procKeyMap = new Map ([
-    ["KeyH",  () => procHelp (guiEmulatorState)],
+    ["KeyH",  toggleProcHelp],
     ["KeyB",  () => em.boot (guiEmulatorState)],
     ["KeyS",  () => procStep (guiEmulatorState)],
     ["KeyR",  () => procRun (guiEmulatorState)],
@@ -59,11 +99,12 @@ const procKeyMap = new Map ([
     ["KeyI",  () => procInterrupt (guiEmulatorState)],
 ])
 
-function procHelp () {
-    console.log ("procHelp")
+let defaultHelpDialogueVisible = false
+export function toggleDefaultHelp () {
+    document.getElementById("DefaultHelpDialogue").style.display
+	= defaultHelpDialogueVisible ? "none" : "block";
+    defaultHelpDialogueVisible = !defaultHelpDialogueVisible;
 }
-
-let currentKeyMap = procKeyMap
 
 let modulesHelpDialogueVisible = false
 export function toggleModulesHelp () {
@@ -608,25 +649,34 @@ export function showPane (p) {
     currentPane = p;
     switch (currentPane) {
     case WelcomePane:
+        currentKeyMap = defaultKeyMap
         break;
     case ExamplesPane: ;
+        currentKeyMap = examplesKeyMap
         break;
-    case ModulesPane: ;
+    case ModulesPane:
+        currentKeyMap = modulesKeyMap
         smod.refreshModulesList ();
         break;
     case EditorPane:
+        currentKeyMap = editorKeyMap
         ed.enterEditor ();
         break;
     case AssemblerPane:
+        currentKeyMap = asmKeyMap
         asm.enterAssembler ();
         break;
     case LinkerPane:
+        currentKeyMap = linkerKeyMap
         break;
     case ProcessorPane:
+        currentKeyMap = procKeyMap
         break;
     case OptionsPane:
+        currentKeyMap = defaultKeyMap
         break;
     case DevToolsPane:
+        currentKeyMap = defaultKeyMap
         break;
     }
     document.getElementById(paneIdString(p)).style.display = "block";
@@ -658,6 +708,7 @@ export function finalizeLeaveCurrentPane () {
     case DevToolsPane:
         break;
     }
+    currentKeyMap = defaultKeyMap
     document.getElementById(paneIdString(currentPane)).style.display = "none";
 }
 
