@@ -409,6 +409,15 @@ export function refresh (es) {
 export const ES_gui_thread   = 0
 export const ES_worker_thread     = 1
 
+// export const ES_gui_thread_sym = Symbol ("main")
+// export const ES_workerShm_thread_sym = Symbol ("workerShm")
+
+export function showThread (x) {
+    return x==0 ? ES_gui_thread_sym
+        : x==1 ? ES_worker_thread_sym
+        : null
+}
+
 export class EmulatorState {
     constructor (thread_host, f, g, h) {
         this.thread_host      = thread_host // which thread runs this instance

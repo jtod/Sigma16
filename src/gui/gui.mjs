@@ -1,5 +1,5 @@
 // Sigma16: gui.mjs
-// Copyright (C) 2021 John T. O'Donnell
+// Copyright (C) 2019-2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -38,13 +38,24 @@ export function modalWarning (msg) {
 }
 
 //-----------------------------------------------------------------------------
+// Gui state
+//-----------------------------------------------------------------------------
+
+class GuiState {
+    constructor () {
+        this.supportLocalStorage = false
+        this.supportWorker = false
+        this.supportSharedMem = false
+        this.runCapability = null
+        this.emRunThread = null
+    }
+}
+
+
+//-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
 
-export function checkBrowserStorageSupport () {
-    let ok = !!window.localStorage
-    return ok
-}
 
 //-----------------------------------------------------------------------------
 // Keystrokes
@@ -170,24 +181,6 @@ function handleIOinbufferKeyDown (e) {
 document.addEventListener ("keydown", handleKeyDown)
 document.getElementById("IOinputBuffer")
     .addEventListener ("keydown", handleIOinbufferKeyDown)
-
-
-/*
-eventTarget.addEventListener("keydown", event => {
-  if (event.isComposing || event.keyCode === 229) {
-    return;
-  }
-  // do something
-});
-*/
-
-/*
-document.getElementById("MidMainLeft")
-    .addEventListener ("keydown", event => {
-        console.log (`keydown ${event.keyCode}`)
-    })
-*/
-
 
 //-----------------------------------------------------------------------------
 // Clock
@@ -1227,6 +1220,12 @@ function devTools106 () {
     action106 ()
 }
 
+/*
+function configureBrowser (gst) {
+    console.log ("configureBrowser")
+    cn.runConfig (gst)
+}
+
 function configureBrowser (es) {
     const supportLocalStorage = checkBrowserStorageSupport ()
     cn.output (`Browser supports local storage = ${supportLocalStorage}`)
@@ -1240,6 +1239,7 @@ function configureBrowser (es) {
     es.emRunThread = es.emRunCapability // default: run according to capability
     cn.output (`Emulator run capability = ${es.emRunCapability}`)
 }
+*/
 
 // System state vector
 
@@ -1548,9 +1548,13 @@ let browserSupportsWorkers = false
 
 // The onload function runs in the main gui thread but not in worker thread
 
+let gst // global GUI state, set during initialization
+
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     em.hideBreakDialogue ();
+    gst = new GuiState ()
+    cn.configureOptions (gst)
     em.initializeSubsystems ();
     document.getElementById('LinkerText').innerHTML = "";    
     smod.prepareChooseFiles ();
@@ -1567,7 +1571,6 @@ window.onload = function () {
         () => initRun (guiEmulatorState),
         () => updateWhileRunning (guiEmulatorState),
         () => finishRun (guiEmulatorState) )
-    configureBrowser (guiEmulatorState)
     console.log ("allocate state vector")
     allocateStateVector (guiEmulatorState)
     console.log ("allocate state vector done")

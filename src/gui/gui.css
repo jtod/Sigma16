@@ -981,4 +981,6 @@ don't include fonts as these are specified by HighlightedTextAsHtml
     background-color: white;
 }
 
-
+.redText {
+    color: red;
+}

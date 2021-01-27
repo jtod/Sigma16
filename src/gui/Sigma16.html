@@ -174,7 +174,7 @@ visiting this file in a browser.
 	      </div>
 	      <div class="PaneBody" id="WelcomeHtml">
 		<div class="HtmlUnscrolled">
-		  <iframe src="../datafiles/welcome.html"
+                  <iframe src="../../docs/welcome/welcome.html"
 			  name="WelcomeIframe"
 			  id="WelcomeIframeId">
 		  </iframe>
@@ -272,17 +272,17 @@ visiting this file in a browser.
 	    
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
-		<button id="PP_Help"> Help </button>
-		<button id="PP_Boot"> Boot </button>
-		<button id="PP_Step"> Step </button>
-		<button id="PP_Run"> Run </button>
-		<button id="PP_Pause"> Pause </button>
-		<button id="PP_Interrupt"> Interrupt </button>
+		<button id="PP_Help"> <u>H</u>elp </button>
+		<button id="PP_Reset"> Rese<u>t</u> </button>
+		<button id="PP_Boot"> <u>B</u>oot </button>
+		<button id="PP_Step"> <u>S</u>tep </button>
+		<button id="PP_Run"> <u>R</u>un </button>
+		<button id="PP_Pause"> <u>P</u>ause </button>
+		<button id="PP_Interrupt"> <u>I</u>nterrupt </button>
 		<button id="PP_Breakpoint"> Breakpoint </button>
-		<button id="PP_Refresh"> Refresh </button>
-		<button id="PP_Reset"> Reset </button>
-                <button id="PP_RunMain"> RunM </button>
-                <button id="PP_RunWorker"> RunW </button>
+		<button id="PP_Refresh"> Re<u>f</u>resh </button>
+                <button class="Hidden" id="PP_RunMain"> RunM </button>
+                <button class="Hidden" id="PP_RunWorker"> RunW </button>
                 <button class="Hidden" id="PP_Test1"> Test1 </button>
                 <button class="Hidden" id="PP_Test2"> Test2 </button>
 
@@ -457,14 +457,66 @@ visiting this file in a browser.
 	    </div>
 
 	    <div class="Pane" id="OptionsPane">
+              <div class="HighlightedTextAsHtml">
+                <h2> Options </h2>
+                <h3> Host capabilities </h3>
+                <p> Sigma16 can use features that are supported by
+                  some, but not all, browsers and platforms.  Here are
+                  the capabilities of your current environment: </p>
+                <ul>
+                  <li> Local storage supported:
+                    <span class="redText" id="SupportLocalStorage"> ? </span>
+                  </li>
+                  <li> Workers supported:
+                    <span class="redText" id="SupportWorker"> ? </span>
+                  </li>
+                  <li> Shared memory supported:
+                    <span class="redText" id="SupportSharedMem"> ? </span>
+                  </li>
+                </ul>
+                <h3> Execution thread </h3>
+                <p> There are several options for running the
+                  emulator, and you can select which one to use if the
+                  browser and platform support the required features.
+                  If the preferred choice isn't supported, Main will
+                  be used. </p>
+                <p>
+                  <input type="radio" name="RunThread" id="RTmain"
+                         value="Main">
+                  <label for="RTmain">
+                    Main with slice size
+                  </label>
+                  <br>
+                  <input type="radio" name="RunThread" id="RTworkerShm"
+                         value="Worker" checked>
+                  <label for="RTworkerShm"> Worker (shared memory) </label> <br>
+                </p>
+                <ul>
+                  <li> Execution slice size for main thread:
+                    <span class="redText" id="ExecSlice"> ? </span>
+                  </li>
+                  <li> Set slice size:
+                    <input type="text" size=6 value="  500"
+                           id="MTsliceSize">
+                    <button id="UpdateSliceSize"> Update </button>
+                  </li>
+
+                </ul>
+
+                <h3> More </h3>
+                
+              </div>
+            </div>
+
+            <!--              
 	      <div class="PaneButtons">
-		<button id="Options1"> Options 1 </button>
-		<button id="Options2"> Options 2 </button>
+		<button id="OptMain"> Force main </button>
+		<button id="OptWorker"> Prefer worker </button>
               </div>
               <div class="HighlightedTextAsHtml" id="OptionsBody">
 		<div id="OptionsText"></div>
 	      </div>
-            </div>
+-->
             
 	    <div class="Pane" id="DevToolsPane">
 	      <div class="PaneButtons">

@@ -19,18 +19,61 @@
 
 export function output (xs) {
     console.log (`config: output ${xs}`)
-    let txt = document.getElementById("OptionsBody").innerHTML
-    document.getElementById("OptionsBody").innerHTML = txt + `${xs}<br>`
+//    let txt = document.getElementById("OptionsBody").innerHTML
+//    document.getElementById("OptionsBody").innerHTML = txt + `${xs}<br>`
 }
 
-
-export function checkBrowserWorkerSupport () {
-//    output ("Checking browser support for web workers...")
-    return !!window.Worker
+export function configureOptions (gst) {
+    console.log ("configurerOptions")
+    checkLocalStorageSupport (gst)
+    checkBrowserWorkerSupport (gst)
+    checkSharedMemSupport (gst)
+    initializeListeners (gst)
 }
 
-export function checkSharedMemorySupport () {
-//    output ("Checking browser support for shared array buffers...")
-    return !!window.SharedArrayBuffer
+function checkLocalStorageSupport (gst) {
+    gst.supportLocalStorage = !!window.localStorage
+    console.log (`support local storage = ${gst.supportLocalStorage}`)
+    document.getElementById("SupportLocalStorage").innerHTML =
+        gst.supportLocalStorage
 }
 
+function checkBrowserWorkerSupport (gst) {
+    console.log ("checkBrowserWorkerSupport")
+    gst.supportWorker = !!window.Worker
+    console.log (`support worker = ${gst.supportWorker}`)
+    document.getElementById("SupportWorker").innerHTML = gst.supportWorker
+}
+
+function checkSharedMemSupport (gst) {
+    gst.supportSharedMem = !!window.SharedArrayBuffer
+    console.log (`support shared memory = ${gst.supportSharedMem}`)
+    document.getElementById("SupportSharedMem").innerHTML = gst.supportSharedMem
+}
+
+export function initializeListeners (gst) {
+    document.getElementById("RTmain")
+        .addEventListener ("change", setRTmain)
+    document.getElementById("RTworkerShm")
+        .addEventListener ("change", setRTworkerShm)
+    
+    document.getElementById("MTsliceSize")
+        .addEventListener ("keydown", (e) => { e.stopPropagation () })
+    document.getElementById("MTsliceSize")
+        .addEventListener ("change", setMTsliceSize (gst))
+}
+
+const setMTsliceSize = (gst) => (e) => {
+    console.log ("setMTsliceSize")
+    e.stopPropagation ()
+    let x = document.getElementById("MTsliceSize").value
+    console.log (`Setting MTsliceSize <${x}>`)
+}
+
+function setRTmain (event) {
+    console.log ("setRTmain")
+}
+
+function setRTworkerShm (event) {
+    console.log ("setRTworkerShm")
+}

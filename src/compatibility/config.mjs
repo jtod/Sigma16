@@ -17,6 +17,12 @@
 // Configuration: test browser compatibility and set options to
 // configure the app
 
+function output (xs) {
+    console.log (`*** output ${xs}`)
+//    let txt = document.getElementById("OptionsText").innerHTML
+    document.getElementById("OptionsText").innerHTML = txt + `${xs}<br>`
+}
+
 function checkBrowserWorkerSupport () {
     output ("checkBrowserWorkerSupport")
     let workersSupported = false
@@ -41,11 +47,6 @@ function checkSharedMemorySupport () {
     return shmSupported
 }
 
-function output (xs) {
-    console.log (`*** output ${xs}`)
-    let txt = document.getElementById("OptionsText").innerHTML
-    document.getElementById("OptionsText").innerHTML = txt + `${xs}<br>`
-}
 
 function printarr () {
     let xs = "<br>printarr...<br>"
@@ -77,6 +78,7 @@ function freezeShm (b) {
     }
 }
 
+output ("<h1> Testing </h1>\n")
 output ("Starting configuration")
 
 // Discover whether the browser supports key features
