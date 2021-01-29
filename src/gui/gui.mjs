@@ -37,6 +37,11 @@ export function modalWarning (msg) {
     alert (msg);
 }
 
+function updateWhileRunning (es) {
+    em.updateClock (es)
+    em.refreshRFdisplay (es)
+}
+
 //-----------------------------------------------------------------------------
 // Gui state
 //-----------------------------------------------------------------------------
@@ -47,7 +52,11 @@ class GuiState {
         this.supportWorker = false
         this.supportSharedMem = false
         this.runCapability = null
-        this.emRunThread = null
+        this.currentKeyMap = defaultKeyMap
+        this.currentPaneButton = "Welcome_Pane_Button"
+        console.log ("****** set currentPaneButton")
+        this.emRunThread = st.ES_gui_thread
+        this.mainSliceSize = 1
     }
 }
 
@@ -65,7 +74,7 @@ const defaultKeyMap = new Map ([
     ["KeyH",  toggleDefaultHelp],
 ])
 
-let currentKeyMap = defaultKeyMap
+// let currentKeyMap = defaultKeyMap
 
 const modulesKeyMap = new Map ([
     ["KeyH",  toggleModulesHelp],
@@ -162,7 +171,7 @@ export function toggleProcHelp () {
 
 function handleKeyDown (e) {
     console.log (`handleKeyDown code=${e.code} keyCode=${e.keyCode}`)
-    let action = currentKeyMap.get (e.code)
+    let action = gst.currentKeyMap.get (e.code)
     if (action) {
         e.handled = true
         console.log (`=== do action for key code=${e.code} keyCode=${e.keyCode}`)
@@ -182,52 +191,6 @@ document.addEventListener ("keydown", handleKeyDown)
 document.getElementById("IOinputBuffer")
     .addEventListener ("keydown", handleIOinbufferKeyDown)
 
-//-----------------------------------------------------------------------------
-// Clock
-//-----------------------------------------------------------------------------
-
-const ClockWidth = 7 // number of characters to display
-
-// Clear the display of the clock
-export function clearClock (es) {
-    document.getElementById("PP_time").innerHTML = ""
-}
-
-// Note the current starting time and start the interval timer
-function startClock (es) {
-    console.log ("startClock")
-    clearClock (es)
-    const now = new Date ()
-    es.startTime = now.getTime ()
-    es.eventTimer = setInterval (duringRunRefresher, guiRefreshInterval)
-}
-
-function stopClock (es) {
-    console.log ("stopClock")
-    clearInterval (es.eventTimer)
-    es.eventTimer = null
-    com.mode.devlog ("stopClock")
-    updateClock (es)
-}
-
-export function updateClock (es) {
-    const now = new Date ()
-    const elapsed = now.getTime () - es.startTime
-    const xs = elapsed < 1000
-          ? `${elapsed.toFixed(0)} ms`
-          : ` ${(elapsed/1000).toPrecision(ClockWidth)} s`
-    document.getElementById("PP_time").innerHTML = xs
-}
-
-function updateWhileRunning (es) {
-    updateClock (es)
-    refreshRFdisplay (es)
-}
-
-export function test1 (es) {
-    updateClock (es)
-    refreshRFdisplay (es)
-}
 
 //-----------------------------------------------------------------------------
 // Interface to emulator
@@ -237,24 +200,12 @@ export function test1 (es) {
 
 // Perform any operations on the gui display to prepare for a run
 function initRun (es) {
-    startClock (es)
+    em.startClock (es)
 }
 
 function finishRun (es) {
-    stopClock (es)
+    em.stopClock (es)
     em.execInstrPostDisplay (es)
-}
-
-const guiRefreshInterval = 1000 // period of display refresh during run (ms)
-
-// To keep the display alive during a long run, call the
-// duringRunRefresher from time to time.  It can be triggered either by
-// the interval timer or by a trap.
-
-function duringRunRefresher () {
-    updateClock (guiEmulatorState)
-    refreshRFdisplay (guiEmulatorState)
-    em.guiDisplayNinstr (guiEmulatorState)
 }
 
 //-----------------------------------------------------------------------------
@@ -375,16 +326,6 @@ function handleEmwtStepResponse (p) {
 //----------------------------------------
 
 
-// Show the current values of the register file without highlighting
-
-function refreshRFdisplay (es) {
-    for (let i = 0; i < es.nRegisters; i++) {
-        let j = st.EmRegBlockOffset + i
-        let x = i === 0 ? 0 : es.shm[j]
-        let e = es.register[i].elt
-        e.innerHTML = arith.wordToHex4 (x)
-    }
-}
 
 // Initiate a run using the worker thread.  This function is the main
 // gui's interface to the worker, so es should be guiEmulatorState.
@@ -413,7 +354,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         break
     case st.SCB_paused:
         com.mode.devlog (`*** main: handle emwt pause`)
-        stopClock (guiEmulatorState)
+        em.stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_pause_request, 0)
@@ -423,7 +364,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         break
     case st.SCB_break:
         com.mode.devlog (`*** main: handle emwt break`)
-        stopClock (guiEmulatorState)
+        em.stopClock (guiEmulatorState)
         em.refresh (guiEmulatorState)
         st.showSCBstatus (guiEmulatorState)
         st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
@@ -636,44 +577,71 @@ function initializePane () {
 // Leave the current pane and switch to p; run showInitializer if the
 // pane has one.  Provide for possible hooks.
 
-export function showPane (p) {
+//export function showPane (p) {
+
+const showPane = (gst) => (p) => {
     com.mode.devlog (`showPane ${p.description}`);
     finalizeLeaveCurrentPane ();
     currentPane = p;
     switch (currentPane) {
     case WelcomePane:
-        currentKeyMap = defaultKeyMap
+        gst.currentKeyMap = defaultKeyMap
+        highlightPaneButton (gst, "Welcome_Pane_Button")
         break;
     case ExamplesPane: ;
-        currentKeyMap = examplesKeyMap
+        gst.currentKeyMap = examplesKeyMap
+        highlightPaneButton (gst, "Examples_Pane_Button")
         break;
     case ModulesPane:
-        currentKeyMap = modulesKeyMap
+        gst.currentKeyMap = modulesKeyMap
+        highlightPaneButton (gst, "Modules_Pane_Button")
         smod.refreshModulesList ();
         break;
     case EditorPane:
-        currentKeyMap = editorKeyMap
+        gst.currentKeyMap = editorKeyMap
+        highlightPaneButton (gst, "Editor_Pane_Button")
         ed.enterEditor ();
         break;
     case AssemblerPane:
-        currentKeyMap = asmKeyMap
+        gst.currentKeyMap = asmKeyMap
+        highlightPaneButton (gst, "Assembler_Pane_Button")
         asm.enterAssembler ();
         break;
     case LinkerPane:
-        currentKeyMap = linkerKeyMap
+        gst.currentKeyMap = linkerKeyMap
+        highlightPaneButton (gst, "Linker_Pane_Button")
         break;
     case ProcessorPane:
-        currentKeyMap = procKeyMap
+        gst.currentKeyMap = procKeyMap
+        highlightPaneButton (gst, "Processor_Pane_Button")
         break;
     case OptionsPane:
-        currentKeyMap = defaultKeyMap
+        gst.currentKeyMap = defaultKeyMap
+        highlightPaneButton (gst, "Options_Pane_Button")
         break;
     case DevToolsPane:
-        currentKeyMap = defaultKeyMap
+        gst.currentKeyMap = defaultKeyMap
         break;
     }
     document.getElementById(paneIdString(p)).style.display = "block";
     com.mode.devlog(`Show pane ${p.description}`);
+}
+
+const DefaultPaneButtonBackground = "#f8f8f8"
+const HighlightedPaneButtonBackground = "#e0fde0"
+
+function highlightPaneButton (gst, bid) {
+    console.log (`highlightPaneButton ${bid}`)
+    document.getElementById(bid).style.background = HighlightedPaneButtonBackground
+    gst.currentPaneButton = bid
+}
+
+function unhighlightPaneButton (gst) {
+    console.log (`unhighlightPaneButton ${gst.currentPaneButton}`)
+    const b = gst.currentPaneButton
+    let oldbackground = document.getElementById(b).style.background
+    console.log (`oldbackground = ${oldbackground}`)
+    document.getElementById(b).style.background = DefaultPaneButtonBackground
 }
 
 // Provide a finalizer to save state when pane is hidden
@@ -701,7 +669,9 @@ export function finalizeLeaveCurrentPane () {
     case DevToolsPane:
         break;
     }
-    currentKeyMap = defaultKeyMap
+    unhighlightPaneButton (gst)
+    gst.currentPaneButton = "Welcome_Pane_Button"
+    gst.currentKeyMap = defaultKeyMap
     document.getElementById(paneIdString(currentPane)).style.display = "none";
 }
 
@@ -711,14 +681,32 @@ export function finalizeLeaveCurrentPane () {
 
 // The runMain and runWorker functions set the preferred thread and
 // then call procRun, so they set the thread choice persistently.
+// runGeneric checks the emRunThread field in the gui state to decide
+// which to use.
+
+function runGeneric (gst) {
+    console.log (`runGeneric emRunThread = ${gst.emRunThread}`)
+    switch (gst.emRunThread) {
+    case com.ES_gui_thread:
+        console.log ("runGeneric: use main thread")
+        runMain (guiEmulatorState)
+        break
+    case com.ES_worker_thread:
+        console.log ("runGeneric: use worker thread")
+        runWorker (guiEmulatorState)
+        break
+    default:
+        console.log ("runGeneric: invalid emRunThread")
+    }
+}
 
 function runMain (es) {
-    es.emRunThread = em.ES_gui_thread
+    es.emRunThread = com.ES_gui_thread
     procRun (es)
 }
 
 function runWorker (es) {
-    es.emRunThread = em.ES_worker_thread
+    es.emRunThread = com.ES_worker_thread
     procRun (es)
 }
 
@@ -735,13 +723,13 @@ function procRun (es) {
     case st.SCB_paused:
     case st.SCB_blocked:
         switch (es.emRunThread) {
-        case em.ES_gui_thread:
+        case com.ES_gui_thread:
             console.log ("procRun: starting in main gui thread")
             st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
             es.initRunDisplay (es)
             em.mainThreadLooper (es)
             break
-        case em.ES_worker_thread:
+        case com.ES_worker_thread:
             console.log ("procRun: starting in worker thread")
             es.initRunDisplay (es)
             st.writeSCB (es, st.SCB_status, st.SCB_running_emwt)
@@ -761,7 +749,7 @@ function procRun (es) {
 
 export function procStep (es) {
     console.log ("procStep")
-    if (es.thread_host != em.ES_gui_thread) {
+    if (es.thread_host != com.ES_gui_thread) {
         com.mode.devlog (`procStep: host=${es.thread_host}, skipping`)
         return
     }
@@ -791,29 +779,6 @@ export function procStep (es) {
     console.log ("procStep finished")
 }
 
-// Separate clearing state from refreshing display
-export function procReset (es) {
-    com.mode.devlog ("em reset");
-    com.mode.devlog ("reset the processor");
-    st.resetSCB (es)
-    em.resetRegisters (es);
-    em.memClear (es);
-    clearClock (es)
-    refreshDisplay (es)
-}
-
-export function refreshDisplay (es) {
-    em.refreshRegisters (es);
-    em.memDisplay (es);
-    document.getElementById('ProcAsmListing').innerHTML = "";
-    em.clearInstrDecode (es);
-    em.refreshInstrDecode (es);
-    em.guiDisplayNinstr (es)
-    es.ioLogBuffer = ""
-    em.refreshIOlogBuffer (es)
-    st.showSCBstatus (es)
-//    memClearAccesses ();
-}
 
 //------------------------------------------------------------------------------
 // Examples pane
@@ -1016,7 +981,7 @@ function toggleUserGuide () {
         showUserGuide ()
     }
     showingUserGuide = !showingUserGuide
-    document.getElementById("Toggle_UserGuide_Button").textContent = xs
+    document.getElementById("Toggle_UserGuide").textContent = xs
 }
 
 function showUserGuide () {
@@ -1251,9 +1216,11 @@ let emwThread = null
 // thread, if there is a worker
 
 function allocateStateVector (es) {
+    console.log (`allocateStateVector es.emRunCapability = ${es.emRunCapability}`)
+    com.mode.trace = true
     switch (es.emRunCapability) {
-    case em.ES_worker_thread:
-        console.log ("Run capability: Worker supported")
+    case com.ES_worker_thread:
+        console.log ("allocateStateVector, run capability: Worker supported")
         es.vecbuf = new SharedArrayBuffer (st.EmStateSizeByte)
         es.vec16 = new Uint16Array (es.vecbuf)
         es.vec32 = new Uint32Array (es.vecbuf)
@@ -1267,9 +1234,10 @@ function allocateStateVector (es) {
         initializeEmwtProtocol (es)
         emwtInit (es)
         com.mode.devlog ("gui.mjs has started emwt")
+        com.mode.trace = false
         break
-    case em.ES_gui_thread:
-        console.log ("Run capability: Worker not supported")
+    case com.ES_gui_thread:
+        console.log ("allocateStateVector, run capability: Worker not supported")
         es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
         es.vec16 = new Uint16Array (es.vecbuf)
         es.vec32 = new Uint32Array (es.vecbuf)
@@ -1419,18 +1387,18 @@ function prepareButton (bid,fcn) {
 // Pane buttons; initialization must occur after emulator state is defined
 
 function initializeButtons () {
-    prepareButton ('Welcome_Pane_Button',   () => showPane(WelcomePane));
-    prepareButton ('Examples_Pane_Button',  () => showPane(ExamplesPane));
-    prepareButton ('Modules_Pane_Button',   () => showPane(ModulesPane));
-    prepareButton ('Editor_Pane_Button',    () => showPane(EditorPane));
-    prepareButton ('Assembler_Pane_Button', () => showPane(AssemblerPane));
-    prepareButton ('Linker_Pane_Button',    () => showPane(LinkerPane));
-    prepareButton ('Processor_Pane_Button', () => showPane(ProcessorPane));
-    prepareButton ('Options_Pane_Button'  , () => showPane(OptionsPane));
-    prepareButton ('DevTools_Pane_Button', () => showPane(DevToolsPane));
+    prepareButton ('Welcome_Pane_Button',   () => showPane (gst) (WelcomePane));
+    prepareButton ('Examples_Pane_Button',  () => showPane (gst) (ExamplesPane));
+    prepareButton ('Modules_Pane_Button',   () => showPane (gst) (ModulesPane));
+    prepareButton ('Editor_Pane_Button',    () => showPane (gst) (EditorPane));
+    prepareButton ('Assembler_Pane_Button', () => showPane (gst) (AssemblerPane));
+    prepareButton ('Linker_Pane_Button',    () => showPane (gst) (LinkerPane));
+    prepareButton ('Processor_Pane_Button', () => showPane (gst) (ProcessorPane));
+    prepareButton ('Options_Pane_Button'  , () => showPane (gst) (OptionsPane));
+    prepareButton ('DevTools_Pane_Button', () => showPane (gst) (DevToolsPane));
     prepareButton ('About_Button',
                    () => showGuideSection('sec-about-sigma16'));  
-    prepareButton ('Toggle_UserGuide_Button', toggleUserGuide)
+    prepareButton ('Toggle_UserGuide', toggleUserGuide)
 
     // User guide resize (UGR) buttons
     // UGR Distance (px) to move boundary between gui and userguide on resize
@@ -1505,12 +1473,12 @@ function initializeButtons () {
     prepareButton ('ProcHelpClose',       () => toggleProcHelp ());
     prepareButton ('PP_Boot',       () => em.boot (guiEmulatorState));
     prepareButton ('PP_Step',       () => procStep (guiEmulatorState));
-    prepareButton ('PP_Run',        () => procRun (guiEmulatorState));
+    prepareButton ('PP_Run',        () => runGeneric (gst))
     prepareButton ('PP_Pause',      () => em.procPause (guiEmulatorState));
     prepareButton ('PP_Interrupt',  () => em.procInterrupt (guiEmulatorState));
     prepareButton ('PP_Breakpoint', () => em.procBreakpoint (guiEmulatorState));
     prepareButton ('PP_Refresh',    () => em.refresh (guiEmulatorState));
-    prepareButton ('PP_Reset',      () => procReset (guiEmulatorState));
+    prepareButton ('PP_Reset',      () => em.procReset (guiEmulatorState));
     prepareButton ('PP_RunMain',    () => runMain (guiEmulatorState))
     prepareButton ('PP_RunWorker',  () => runWorker (guiEmulatorState))
     prepareButton ('PP_Test1',      () => test1 (guiEmulatorState))
@@ -1554,7 +1522,6 @@ window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     em.hideBreakDialogue ();
     gst = new GuiState ()
-    cn.configureOptions (gst)
     em.initializeSubsystems ();
     document.getElementById('LinkerText').innerHTML = "";    
     smod.prepareChooseFiles ();
@@ -1567,20 +1534,21 @@ window.onload = function () {
     smod.initModules ();
     window.mode = com.mode;
     guiEmulatorState = new em.EmulatorState (
-        em.ES_gui_thread,
+        com.ES_gui_thread,
         () => initRun (guiEmulatorState),
         () => updateWhileRunning (guiEmulatorState),
         () => finishRun (guiEmulatorState) )
     console.log ("allocate state vector")
+    cn.configureOptions (gst, guiEmulatorState)
     allocateStateVector (guiEmulatorState)
     console.log ("allocate state vector done")
     testSysStateVec (guiEmulatorState)
     em.initializeMachineState (guiEmulatorState)
     initializeButtons ()
     prepareExampleText ()
-    clearClock (guiEmulatorState)
-    guiEmulatorState.emRunThread = em.ES_gui_thread // default run mode
-    procReset (guiEmulatorState)
+    em.clearClock (guiEmulatorState)
+    guiEmulatorState.emRunThread = com.ES_gui_thread // default run mode
+    em.procReset (guiEmulatorState)
     com.mode.trace = true
     com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
     com.mode.trace = false

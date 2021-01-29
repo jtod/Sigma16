@@ -16,6 +16,7 @@
 
 // Emulator worker thread
 
+import * as com from './common.mjs';
 import * as arch from './architecture.mjs'
 import * as arith from './arithmetic.mjs';
 import * as st  from './state.mjs';
@@ -44,7 +45,7 @@ self.addEventListener ("message", e => {
         switch (e.data.code) {
         case 100: // emwt init: received shared system state vector
             console.log ("emwt: received request init")
-            emwt.es = new em.EmulatorState (em.ES_worker_thread)
+            emwt.es = new em.EmulatorState (com.ES_worker_thread)
             emwt.es.vecbuf = e.data.payload
             emwt.es.vec16 = new Uint16Array (emwt.es.vecbuf)
             emwt.es.vec32 = new Uint32Array (emwt.es.vecbuf)

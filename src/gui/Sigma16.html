@@ -130,16 +130,16 @@ visiting this file in a browser.
       </div>
 
       <div class="TopSection">
-	<button id="Welcome_Pane_Button"> Welcome </button>
-	<button id="Examples_Pane_Button"> Examples </button>
-	<button id="Modules_Pane_Button"> Modules </button>
-	<button id="Editor_Pane_Button"> Editor </button>
-	<button id="Assembler_Pane_Button"> Assembler </button>
-	<button id="Linker_Pane_Button"> Linker </button>
-	<button id="Processor_Pane_Button"> Processor </button>
-	<button id="Options_Pane_Button"> Options </button>
-	<button id="About_Button"> About </button>
-	<button id="Toggle_UserGuide_Button"> Hide User Guide </button>
+	<button class="PaneButton" id="Welcome_Pane_Button"> Welcome </button>
+	<button class="PaneButton" id="Examples_Pane_Button"> Examples </button>
+	<button class="PaneButton" id="Modules_Pane_Button"> Modules </button>
+	<button class="PaneButton" id="Editor_Pane_Button"> Editor </button>
+	<button class="PaneButton" id="Assembler_Pane_Button"> Assembler </button>
+	<button class="PaneButton" id="Linker_Pane_Button"> Linker </button>
+	<button class="PaneButton" id="Processor_Pane_Button"> Processor </button>
+	<button class="PaneButton" id="Options_Pane_Button"> Options </button>
+	<button class="PaneButton" id="About_Button"> About </button>
+	<button class="PaneButton" id="Toggle_UserGuide"> Hide User Guide </button>
 	<button class="RightButton" id="UG_Resize_Right_Large_Button">
           &#x27f9;
         </button>
@@ -281,8 +281,8 @@ visiting this file in a browser.
 		<button id="PP_Interrupt"> <u>I</u>nterrupt </button>
 		<button id="PP_Breakpoint"> Breakpoint </button>
 		<button id="PP_Refresh"> Re<u>f</u>resh </button>
-                <button class="Hidden" id="PP_RunMain"> RunM </button>
-                <button class="Hidden" id="PP_RunWorker"> RunW </button>
+                <button id="PP_RunMain"> RunM </button>
+                <button id="PP_RunWorker"> RunW </button>
                 <button class="Hidden" id="PP_Test1"> Test1 </button>
                 <button class="Hidden" id="PP_Test2"> Test2 </button>
 
@@ -458,7 +458,6 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="OptionsPane">
               <div class="HighlightedTextAsHtml">
-                <h2> Options </h2>
                 <h3> Host capabilities </h3>
                 <p> Sigma16 can use features that are supported by
                   some, but not all, browsers and platforms.  Here are
@@ -492,12 +491,11 @@ visiting this file in a browser.
                   <label for="RTworkerShm"> Worker (shared memory) </label> <br>
                 </p>
                 <ul>
-                  <li> Execution slice size for main thread:
-                    <span class="redText" id="ExecSlice"> ? </span>
+                  <li> Main execution slice size:
+                    <span class="redText" id="MainSliceSize"> ? </span>
                   </li>
-                  <li> Set slice size:
-                    <input type="text" size=6 value="  500"
-                           id="MTsliceSize">
+                  <li> Change main execution slice size:
+                    <input type="text" size=6 value=" " id="EnterMainSliceSize">
                     <button id="UpdateSliceSize"> Update </button>
                   </li>
 

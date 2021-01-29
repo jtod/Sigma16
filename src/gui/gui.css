@@ -984,3 +984,8 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 .redText {
     color: red;
 }
+
+.PaneButton {
+    background-color: #f8f8f8;
+    border: none;
+}

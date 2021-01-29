@@ -1,9 +1,11 @@
 ; Looper: a long-running program for timing measurements
 ; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
-; Configure by editing the values of n and m.
-; Run for n * m iterations of the inner loop body.  Change the values
-; of n and m (defined near the end) in the editor before assembling.
+; Configure the program by editing the values of n and m.  The program
+; will execute 5*n*m instructions in the inner loop.  For experiments,
+; it's useful to use the editor to change the values of n and m, which
+; are defined near the end, then assemble and run.  This program is
+; useful for comparing performance of the emulator threads.
 
 ; for i := 0 to n
 ;   for j := 0 to m
@@ -44,5 +46,5 @@ done
 
 ; Parameters determine run time: n * m iterations
 n    data   1000          ; outer loop iterations
-m    data   10000         ; inner loop iterations
+m    data   1000         ; inner loop iterations
 result data 0

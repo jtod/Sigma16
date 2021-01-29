@@ -147,6 +147,12 @@ webbuild:
 	mkdir -p $(WEBBUILD)/$(VERSION)/docs
 	cp -up docs/*.css $(WEBBUILD)/$(VERSION)/docs
 
+	mkdir -p $(WEBBUILD)/$(VERSION)/docs/help
+	cp -up docs/help/*.html $(WEBBUILD)/$(VERSION)/docs/help
+
+	mkdir -p $(WEBBUILD)/$(VERSION)/docs/Welcome
+	cp -up docs/Welcome/*.html $(WEBBUILD)/$(VERSION)/docs/Welcome
+
 	mkdir -p $(WEBBUILD)/$(VERSION)/docs/UserGuide
 	cp -up docs/UserGuide/*.html $(WEBBUILD)/$(VERSION)/docs/UserGuide
 	cp -upr docs/UserGuide/png $(WEBBUILD)/$(VERSION)/docs/UserGuide
@@ -154,13 +160,12 @@ webbuild:
 
 	mkdir -p $(WEBBUILD)/$(VERSION)/src/base
 	mkdir -p $(WEBBUILD)/$(VERSION)/src/gui
-	mkdir -p $(WEBBUILD)/$(VERSION)/src/datafiles
 	cp -upr src/gui/*.mjs $(WEBBUILD)/$(VERSION)/src/gui
 	cp -upr src/gui/*.html $(WEBBUILD)/$(VERSION)/src/gui
 	cp -upr src/gui/*.css $(WEBBUILD)/$(VERSION)/src/gui
 	cp -upr src/base/*.mjs $(WEBBUILD)/$(VERSION)/src/base
-	cp -upr src/datafiles/*.html $(WEBBUILD)/$(VERSION)/src/datafiles
 
+# cp -upr src/datafiles/*.html $(WEBBUILD)/$(VERSION)/src/datafiles
 #	cp -up docs/docstyle.css $(WEBBUILD)/$(VERSION)/docs
 #	cp docs/UserGuide/*.css $(WEBBUILD)/$(VERSION)/docs/UserGuide
 #	cp -upr src/datafiles/*.css $(WEBBUILD)/$(VERSION)/src/datafiles

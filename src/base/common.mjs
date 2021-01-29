@@ -18,6 +18,20 @@
 // common.js
 //-------------------------------------------------------------------------------
 
+// ES_thread_host indicates which thread this emulator instance is
+// running in.  This is represented with an unsigned int, not a
+// symbol, so it can be stored in the system state vector.
+
+export const ES_gui_thread      = 0
+export const ES_worker_thread   = 1
+
+export function showThread (x) {
+    return x==0 ? ES_gui_thread_sym
+        : x==1 ? ES_worker_thread_sym
+        : null
+}
+
+
 export let mode = {
     trace: false,
     showErr: true,

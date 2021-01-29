@@ -17,18 +17,27 @@
 // Configuration: test browser compatibility and set options to
 // configure the app
 
+
+import * as com from '../base/common.mjs';
+
 export function output (xs) {
     console.log (`config: output ${xs}`)
 //    let txt = document.getElementById("OptionsBody").innerHTML
 //    document.getElementById("OptionsBody").innerHTML = txt + `${xs}<br>`
 }
 
-export function configureOptions (gst) {
+export function configureOptions (gst, es) {
     console.log ("configurerOptions")
     checkLocalStorageSupport (gst)
     checkBrowserWorkerSupport (gst)
     checkSharedMemSupport (gst)
+    setMainSliceSize (gst, defaultExecSliceSize)
     initializeListeners (gst)
+    es.emRunCapability = gst.supportWorker && gst.supportSharedMem
+        ? com.ES_worker_thread
+        : com.ES_gui_thread
+    es.emRunThread = es.emRunCapability // default: run according to capability
+    console.log (`Emulator run capability = ${es.emRunCapability}`)
 }
 
 function checkLocalStorageSupport (gst) {
@@ -51,29 +60,46 @@ function checkSharedMemSupport (gst) {
     document.getElementById("SupportSharedMem").innerHTML = gst.supportSharedMem
 }
 
+const defaultExecSliceSize = 500
+
 export function initializeListeners (gst) {
+    setRTworker (gst) (null) // use worker if available
     document.getElementById("RTmain")
-        .addEventListener ("change", setRTmain)
+        .addEventListener ("change", setRTmain (gst))
     document.getElementById("RTworkerShm")
-        .addEventListener ("change", setRTworkerShm)
-    
-    document.getElementById("MTsliceSize")
+        .addEventListener ("change", setRTworker (gst))
+    document.getElementById("EnterMainSliceSize")
         .addEventListener ("keydown", (e) => { e.stopPropagation () })
-    document.getElementById("MTsliceSize")
-        .addEventListener ("change", setMTsliceSize (gst))
+    document.getElementById("UpdateSliceSize")
+        .addEventListener ("click", updateMainSliceSize (gst))
 }
 
-const setMTsliceSize = (gst) => (e) => {
-    console.log ("setMTsliceSize")
+function setMainSliceSize (gst, x) {
+    console.log (`setMainSliceSize ${x}`)
+    document.getElementById("MainSliceSize").innerHTML = x
+    gst.mainSliceSize = x
+}
+
+const updateMainSliceSize = (gst) => (e) => {
+    console.log ("updateMTsliceSize")
     e.stopPropagation ()
-    let x = document.getElementById("MTsliceSize").value
-    console.log (`Setting MTsliceSize <${x}>`)
+    let xs = document.getElementById("EnterMainSliceSize").value
+    let x = parseInt (xs)
+    console.log (`update MTsliceSize <${xs}> = ${x}`)
+    if (!isNaN(x)) setMainSliceSize (gst, x)
 }
 
-function setRTmain (event) {
+const setRTmain = (gst) => (e) => {
     console.log ("setRTmain")
+    gst.emRunThread = com.ES_gui_thread
 }
 
-function setRTworkerShm (event) {
-    console.log ("setRTworkerShm")
+const setRTworker = (gst) => (e) => {
+    if (gst.supportWorker && gst.supportSharedMem) {
+        console.log ("setRTworker: success")
+        gst.emRunThread = com.ES_worker_thread
+    } else {
+        console.log (`setRTworker: Platform does not support worker, using main`)
+        setRTmain (gst) (null)
+    }
 }

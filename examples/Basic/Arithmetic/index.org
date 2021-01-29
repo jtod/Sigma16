@@ -16,6 +16,9 @@
 
 - [[./Logic.asm.txt][Logic]]
 
+- [[./Bool.asm.txt][Bool]] Create and manipulate Booleans represented
+  as individual bits
+
 - [[./Mult.asm.txt][Mult]]
 
 - [[./Shift.asm.txt][Shift]]

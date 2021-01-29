@@ -597,7 +597,6 @@ export function showSCBstatus (es) {
     }
 }
 
-
 export function resetSCB (es) {
     writeVec32 (es, 0, 0) // use sym const for address 0
 

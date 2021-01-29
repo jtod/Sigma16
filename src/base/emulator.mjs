@@ -37,6 +37,95 @@ export const Mode_Quiet      = 300
 const listingLineInitialOffset = 1;
 
 
+// Separate clearing state from refreshing display
+export function procReset (es) {
+    com.mode.devlog ("em reset");
+    com.mode.devlog ("reset the processor");
+    st.resetSCB (es)
+    resetRegisters (es);
+    memClear (es);
+    clearClock (es)
+    refreshDisplay (es)
+}
+
+export function refreshDisplay (es) {
+    refreshRegisters (es);
+    memDisplay (es);
+    document.getElementById('ProcAsmListing').innerHTML = "";
+    clearInstrDecode (es);
+    refreshInstrDecode (es);
+    guiDisplayNinstr (es)
+    es.ioLogBuffer = ""
+    refreshIOlogBuffer (es)
+    st.showSCBstatus (es)
+//    memClearAccesses ();
+}
+
+//-----------------------------------------------------------------------------
+// Clock
+//-----------------------------------------------------------------------------
+
+const ClockWidth = 7 // number of characters to display
+
+// Clear the display of the clock
+export function clearClock (es) {
+    document.getElementById("PP_time").innerHTML = ""
+}
+
+// Note the current starting time and start the interval timer
+export function startClock (es) {
+    console.log ("startClock")
+    clearClock (es)
+    const now = new Date ()
+    es.startTime = now.getTime ()
+    es.eventTimer = setInterval (duringRunRefresher (es), guiRefreshInterval)
+}
+
+export function stopClock (es) {
+    console.log ("stopClock")
+    clearInterval (es.eventTimer)
+    es.eventTimer = null
+    com.mode.devlog ("stopClock")
+    updateClock (es)
+}
+
+export function updateClock (es) {
+    const now = new Date ()
+    const elapsed = now.getTime () - es.startTime
+    const xs = elapsed < 1000
+          ? `${elapsed.toFixed(0)} ms`
+          : ` ${(elapsed/1000).toPrecision(ClockWidth)} s`
+    document.getElementById("PP_time").innerHTML = xs
+}
+
+
+const guiRefreshInterval = 1000 // period of display refresh during run (ms)
+
+// To keep the display alive during a long run, call the
+// duringRunRefresher from time to time.  It can be triggered either by
+// the interval timer or by a trap.
+
+const duringRunRefresher = (es) => () => {
+    updateClock (es)
+    refreshRFdisplay (es)
+    guiDisplayNinstr (es)
+}
+
+// Show the current values of the register file without highlighting
+
+export function refreshRFdisplay (es) {
+    for (let i = 0; i < es.nRegisters; i++) {
+        let j = st.EmRegBlockOffset + i
+        let x = i === 0 ? 0 : es.shm[j]
+        let e = es.register[i].elt
+        e.innerHTML = arith.wordToHex4 (x)
+    }
+}
+
+export function test1 (es) {
+    updateClock (es)
+    refreshRFdiysplay (es)
+}
 
 //------------------------------------------------------------------------------
 // Booter 
@@ -95,6 +184,7 @@ export function boot (es) {
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     st.resetSCB (es)
+    procReset (es)
     
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
@@ -115,6 +205,12 @@ export function boot (es) {
     es.ioLogBuffer = "";
     refreshIOlogBuffer (es);
     com.mode.trace = false;
+    // reset
+    st.resetSCB (es)
+    resetRegisters (es);
+    memClear(es)
+    clearClock (es)
+
     for (let i = 0; i < objectCode.length; i++) {
         xs = objectCode[i];
         com.mode.devlog (`boot: objectCode line ${i} = <${xs}>`);
@@ -160,10 +256,8 @@ export function boot (es) {
             + listingLineInitialOffset;
             com.highlightListingLine (es, es.nextInstrLineNo, "NEXT");
         setProcAsmListing (es,m);
-
         st.writeSCB (es, st.SCB_status, st.SCB_ready)
         getListingDims(es);
-        resetRegisters (es);
         es.pc.put (0) // shouldn't be needed?
         refreshRegisters (es)
         updateMemory (es)
@@ -185,7 +279,7 @@ export function boot (es) {
         com.mode.devlog ("boot failed");
         alert ("boot failed");
     }
-    if (es.thread_host === ES_gui_thread) {
+    if (es.thread_host === com.ES_gui_thread) {
         document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
     }
     com.mode.devlog ("boot returning");
@@ -321,7 +415,7 @@ export class genregister {
         this.regName = regName
         this.eltName = eltName
         this.show = showFcn
-        this.elt = this.es.thread_host === ES_gui_thread
+        this.elt = this.es.thread_host === com.ES_gui_thread
             ? document.getElementById (this.eltName)
             : null
         es.register.push (this)
@@ -344,7 +438,7 @@ export class genregister {
     }
     highlight (key) {
 //        com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
-        if (this.es.thread_host === ES_gui_thread) {
+        if (this.es.thread_host === com.ES_gui_thread) {
             let i = st.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = highlightText (this.show(x), key)
@@ -353,7 +447,7 @@ export class genregister {
         }
     }
     refresh () {
-        if (this.es.thread_host === ES_gui_thread) {
+        if (this.es.thread_host === com.ES_gui_thread) {
             let i = st.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = this.show (x)
@@ -402,21 +496,6 @@ export function refresh (es) {
 // state is created, and mode is the current value, which might change
 // during execution.
 
-// ES_thread_host indicates which thread this emulator instance is
-// running in.  This is represented with an unsigned int, not a
-// symbol, so it can be stored in the system state vector.
-
-export const ES_gui_thread   = 0
-export const ES_worker_thread     = 1
-
-// export const ES_gui_thread_sym = Symbol ("main")
-// export const ES_workerShm_thread_sym = Symbol ("workerShm")
-
-export function showThread (x) {
-    return x==0 ? ES_gui_thread_sym
-        : x==1 ? ES_worker_thread_sym
-        : null
-}
 
 export class EmulatorState {
     constructor (thread_host, f, g, h) {
@@ -428,8 +507,8 @@ export class EmulatorState {
         this.vecbuf           = null
         this.vec32            = null
         this.vec16            = null
-        this.emRunCapability  = ES_gui_thread // default: run in main thread
-        this.emRunThread      = ES_gui_thread // default: run in main thread
+        this.emRunCapability  = com.ES_gui_thread // default: run in main thread
+        this.emRunThread      = com.ES_gui_thread // default: run in main thread
         this.startTime        = null
         this.eventTimer       = null  // returned by setInterval
         this.emInstrSliceSize = 500 // n instructions before looper yields
@@ -631,7 +710,7 @@ let memDispOffset = 3;                  // how many locations above highligted o
 // Must wait until onload event
 
 function memInitialize (es) {
-    if (es.thread_host === ES_gui_thread) {
+    if (es.thread_host === com.ES_gui_thread) {
         es.memElt1 = document.getElementById('MemDisplay1');
         es.memElt2 = document.getElementById('MemDisplay2');
         memClear(es);    // set each location to 0
@@ -1133,9 +1212,9 @@ function breakClose () {
 export function execInstrPostDisplay (es) {
     com.mode.devlog ("execInstrPostDisplay")
     switch (es.thread_host) {
-    case ES_worker_thread: // should be impossible
+    case com.ES_worker_thread: // should be impossible
         break;
-    case ES_gui_thread:
+    case com.ES_gui_thread:
         //    clearRegisterHighlighting (es); // deprecated
         com.mode.devlog ("main: execInstrPostDisplay, proceeding")
         updateMemory (es)
@@ -1351,8 +1430,9 @@ const cab_dc = (f) => (es) => {
 }
 
 const op_trap = (es) => {
+    console.log (`*** op_trap es.thread_host=${es.thread_host}`)
     switch (es.thread_host) {
-    case ES_gui_thread:
+    case com.ES_gui_thread:
         com.mode.devlog (`handle trap in main thread`)
         console.log (`handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
@@ -1373,7 +1453,7 @@ const op_trap = (es) => {
             com.mode.devlog (`trap with unbound code = ${code}`)
         }
         break
-    case ES_worker_thread:
+    case com.ES_worker_thread:
         com.mode.devlog (`emworker: relinquish control on a trap`)
         st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
         com.mode.devlog (`trap relinquish before fixup, pc = ${es.pc.get()}`)
@@ -2173,7 +2253,7 @@ function setProcAsmListing (es) {
 
 export function initializeProcessorElements (es) {
     //    if (es.mode === Mode_GuiDisplay) {
-    if (es.thread_host === ES_gui_thread) {
+    if (es.thread_host === com.ES_gui_thread) {
         com.mode.devlog ('initializeProcessorElements');
         es.instrCodeElt = document.getElementById("InstrCode");
         es.instrFmtElt  = document.getElementById("InstrFmt");
@@ -2189,7 +2269,7 @@ export function initializeProcessorElements (es) {
 export function refreshInstrDecode (es) {
     com.mode.devlog ("refreshInstrDecode");
 //    if (false) { // ????????????????????? temporary...
-    if (es.thread_host === ES_gui_thread) {
+    if (es.thread_host === com.ES_gui_thread) {
         es.instrCodeElt.innerHTML = es.instrCodeStr;
         es.instrFmtElt.innerHTML  = es.instrFmtStr;
         es.instrOpElt.innerHTML   = es.instrOpStr;
@@ -2211,7 +2291,7 @@ export function refreshInstrDecode (es) {
 // Display any changes to registers with highlighting
 
 function updateRegisters (es) {
-    if (es.thread_host != ES_gui_thread) {
+    if (es.thread_host != com.ES_gui_thread) {
         com.mode.devlog (`updateRegisters host=${es.thread_host}: skipping`)
         return
     }
@@ -2242,7 +2322,7 @@ function initRegHightlghting (es) {
 
 export function refreshRegisters (es) {
     com.mode.devlog('Refreshing registers');
-    if (es.thread_host != ES_gui_thread) {
+    if (es.thread_host != com.ES_gui_thread) {
         com.mode.devlog (`refreshRegisters host=${es.thread_host}, skipping`)
     }
     for (let i = 0; i < es.nRegisters; i++) {
@@ -2277,7 +2357,7 @@ export function procPause(es) {
 // document DOM out of the emulator
 
 export function guiDisplayNinstr (es) {
-    if (es.thread_host === ES_gui_thread) {
+    if (es.thread_host === com.ES_gui_thread) {
         //        let n = st.readSCB (es, st.SCB_nInstrExecuted)
         let n = es.vec32[0]
         document.getElementById("nInstrExecuted").innerHTML = n
@@ -2285,5 +2365,5 @@ export function guiDisplayNinstr (es) {
 }
 
 export function guiDisplayMem (es, elt, xs) {
-    if (es.thread_host === ES_gui_thread) elt.innerHTML = xs
+    if (es.thread_host === com.ES_gui_thread) elt.innerHTML = xs
 }
