@@ -96,7 +96,7 @@ You can also open the User Guide in a separate browser tab or window.
 The Welcome page contains a link to do this.
 
 A good way to get started is to go through the entire process of
-running a simple program called *Hellow, world!*.  For now, we focus
+running a simple program called *Hello, world!*.  For now, we focus
 just on how to use the software tools to run the program; an
 explanation of the Sigma16 architecture and what the statements mean
 will come later.
@@ -108,9 +108,9 @@ switch between them:
    and links.
    
 - **Examples** contains a collection of assembly language programs
-   organized by topic.  The simplest examples just use the *Core* part
-   of the architecture, while the *Advanced* examples use additional
-   features.
+  organized by topic.  The simplest examples just use the core part of
+  the architecture, while the advanced examples use additional
+  features.
 
 - **Modules** shows a summary of all the files and modules you
   currently have open.  It also provides buttons allowing you to open
@@ -139,9 +139,10 @@ Let's begin by running a simple example program.
 
 - Click **Assembler** and then the **Assemble** button.  This
   translates the program in the Editor page from assembly language to
-  machine language.  The **Assembly Listing** button displays the
-  result of the translation, including any error messages.  The
-  **Object Code** button displays the output from the translation.
+  machine language.  The **Show Listing** button displays the result
+  of the translation, including any error messages.  The **Show
+  object** button displays the object code, which is the machine
+  language program produced by the translation.
 
 - For this simple example, we don't need the Linker, so you can skip
   it.  The linker is needed for larger and more complex programs with
@@ -238,9 +239,10 @@ convention used in assignment statements in many programming
 languages: the registers in sub R1,R2,R3 appear in the same order as
 the variables in R1 := R2-R3.
 
-For now, just ignore the **[R0]** part.  This has a purpose but that
-won't become clear until later.  Also, the name "lea" may look odd,
-but this also has a meaning that will become clear later.
+For now, just ignore the **[R0]** part.  It's optional: you can omit
+it or include it.  The [R0] has a purpose but that won't become clear
+until later.  Also, the name "lea" may look odd, but this also has a
+meaning that will become clear later.
 
 All arithmetic operations take place in the registers, and there is a
 separate instruction for each operation.  For example, the following
@@ -383,9 +385,9 @@ Try running this program.  You can go to the Editor and type it in,
 but this program is part of the collection of examples built in to
 Sigma16.  Here's how to run it:
 
-- Go to the Examples page.  Click Core, then Simple, then ConstArith.  You
-  should see the listing of the program.
-- Click Copy example to editor
+- Go to the Examples page.  Click Examples, then Basic examples, then
+  Small and simple programs, then ConstArith.  You should see the
+  listing of the program.
 - Click Editor, and you should see the text of the program in the
   window.
 - Go to the Assembler page.  Click Assemble.
@@ -449,12 +451,10 @@ Summary.
 - The general form of an arithmetic instruction is *op d,a,b*.  
   The meaning is *R_d := R_a  op  R_b*, and the fields are:
 
-----  ------------------------------------------------
- op    operation: add, sub, mul,div
-  d    destination register: where the result goes
-  a    first operand register
-  b    second operand register
-----  ------------------------------------------------
+| op | operation: add, sub, mul,div                |
+| d  | destination register: where the result goes |
+| a  | first operand register                      |
+| b  | second operand register                     |
 
 ** Keeping variables in memory
 

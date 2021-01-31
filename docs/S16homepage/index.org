@@ -15,7 +15,7 @@ There's no need to download or install anything.
 
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
-  <a href="https://jtod.github.io/home/Sigma16/releases/3.1.3/app/Sigma16.html">
+  <a href="https://jtod.github.io/home/Sigma16/releases/3.2.0/src/gui/Sigma16.html">
     Click to run Sigma16
   </a>
 </div>
@@ -25,7 +25,7 @@ When you run the app in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed
 specification of the architecture, assembly language, and programming
 techniques.  You can also
-[[https://jtod.github.io/home/Sigma16/releases/3.1.3/docs/html/userguide/userguide.html][open
+[[https://jtod.github.io/home/Sigma16/releases/3.2.0/docs/html/userguide/userguide.html][open
 the User Guide in your browser]].
 
 ** Introduction
@@ -90,6 +90,14 @@ you need it for a specific reason.  Previous versions may have missing
 features, missing documentation, or bugs.  After all, that’s the
 reason old versions get replaced by newer ones!
   
+- [[./releases/3.2.0/app/Sigma16.html][launch 3.2.0]] and
+  [[https://github.com/jtod/Sigma16/releases/tag/v3.2.0][download
+  3.2.0]]
+  
+- [[./releases/3.1.4/app/Sigma16.html][launch 3.1.4]] and
+  [[https://github.com/jtod/Sigma16/releases/tag/v3.1.4][download
+  3.1.4]]
+
 - [[./releases/3.1.3/app/Sigma16.html][launch 3.1.3]] and
   [[https://github.com/jtod/Sigma16/releases/tag/v3.1.3][download
   3.1.3]]
