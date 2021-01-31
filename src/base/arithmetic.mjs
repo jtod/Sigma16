@@ -61,11 +61,14 @@ function setBitBE(i) { return 1 << 15-i }
 // old little endian version
 //function setBit(i) { return 1 << i }
 
-// return bit i in word x, where the rightmost bit has index 0
+// return bit i in word x, where the leftmost bit has index 0
 export function extractBitBE (x,i) {
-    return (x >>> 15-i) & 0x00000001;
-// old little endian version
-//    return (x >>> i) & 0x00000001;
+    return (x >>> 15-i) & 0x00000001
+}
+
+// return bit i in word x, where the rightmost bit has index 0
+export function extractBitLE (x,i) {
+    return (x >>> i) & 0x00000001
 }
 
 // return Boolean from bit i in word x, where the rightmost bit has index 0
@@ -469,6 +472,40 @@ export function shiftR (x,k) {
     return truncateWord (x >>> k);
 }
 
+// Set the condition code after performing addition-like arithmetic:
+// add, addc, sub.  This is calculated by examining the most
+// significant bit of the result, and the carry output.
+
+export function additionCC (a,b,primary,sum) {
+    const msba = extractBitLE (a, 15)
+    const msbb = extractBitLE (b, 15)
+    const msbsum = extractBitLE (sum, 15)
+    const carryOut = extractBitLE (sum,16)
+    const binOverflow = carryOut === 1
+    const tcOverflow = (msba===0 && msbb===0 && msbsum===1 )
+          || (msba===1 && msbb===1 && msbsum===0)
+    const is0 = primary === 0
+    const binPos = sum != 0
+    const tcPos = !tcOverflow && msbsum === 0
+    const tcNeg = !tcOverflow && msbsum === 1
+    const secondary = (binOverflow ? ccV : 0)
+ 	  | (binOverflow ? ccV : 0)
+          | (binOverflow ? ccC : 0)
+ 	  | (tcOverflow ? ccv : 0)
+          | (is0 ? ccE : 0)
+          | (binPos ? ccG : 0)
+          | (tcNeg ? ccl : 0)
+          | (tcPos ? ccg : 0)
+    return secondary
+    //     if (tcOverflow) { setBitInRegBE (req,overflowBit) } ??????????????? req
+/*
+    console.log (`additionCC sum = ${wordToHex4(sum)}`)
+    console.log (`  addCC msb = ${msb} carryOut = ${carryOut}`)
+    console.log (`  addCC binOverflow = ${binOverflow} tcOverflow = ${tcOverflow}`)
+    console.log (`  addCC secondary = ${wordToHex4(secondary)}`)
+*/
+}
+
 // Arithmetic for the add instruction (rrdc).  There is no carry input
 // bit, so the condition code is not needed as an argument.  The
 // primary result is the two's complement sum, and the secondary
@@ -476,46 +513,27 @@ export function shiftR (x,k) {
 // of binary overflow and integer overflow.
 
 export function op_add (a,b) {
-    let sum = a + b;
-    let primary = sum & 0x0000ffff;
-    let msb = extractBitBE (sum, 15);
-    let carryOut = extractBitBE (sum,16);
-    let binOverflow = carryOut === 1;
-    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
-    let secondary = (binOverflow ? ccV : 0)
- 	| (tcOverflow ? ccv : 0)
-        | (carryOut ? ccC : 0);
-//     if (tcOverflow) { setBitInRegBE (req,overflowBit) } ??????????????? req
-    return [primary, secondary];
+    const sum = a + b
+    const primary = sum & 0x0000ffff
+    const secondary = additionCC (a,b,primary,sum)
+    console.log (`*** op_add a=${wordToHex4(a)} b=${wordToHex4(b)} p=${wordToHex4(primary)} s=${wordToHex4(secondary)}`)
+    return [primary, secondary]
 }
 
-function test_add () {
-    test_rr ("add", op_add, 2, 3, "5 []");
-    test_rr ("add", op_add, 49, intToWord(-7), "42 []");
-    test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
-    test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
+export function op_addc (c,a,b) {
+    let sum = a + b + extractBitBE(c,arch.bit_ccC);
+    let primary = sum & 0x0000ffff;
+    const secondary = additionCC (a,b,primary,sum)
+    return [primary, secondary]
 }
 
 export function op_sub (a,b) {
     let sum = a + wordInvert (b) + 1;
     let primary = sum & 0x0000ffff;
-    let msb = extractBitBE (sum, 15);
-    let carryOut = extractBitBE (sum,16);
-    let binOverflow = carryOut === 1;
-    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
-    let secondary = (binOverflow ? ccV : 0)
- 	| (tcOverflow ? ccv : 0)
-        | (carryOut ? ccC : 0);
-    return [primary, secondary];
+    const secondary = additionCC (a,b,primary,sum)
+    return [primary, secondary]
 }
 
-function test_sub () {
-    test_rr ("sub", op_sub, 24, 7, "17 []");
-    test_rr ("sub", op_sub, 2, 3, "-1 []");
-    test_rr ("sub", op_sub, 49, intToWord(-7), "56 []");
-    test_rr ("sub", op_sub, intToWord(-3), intToWord(-10), "7 []");
-    test_rr ("sub", op_sub, 20000, 30000, "tc -10000 [v]");
-}
 
 function representableAsTc (x) {
     return minTc <= x && x <= maxTc
@@ -637,21 +655,6 @@ export function op_xor (a,b) {
     return primary;
 }
 
-export function op_addc (c,a,b) {
-    let sum = a + b + extractBitBE(c,arch.bit_ccC);
-    let primary = sum & 0x0000ffff;
-    let msb = extractBitBE (sum, 15);
-    //    let carryOut = extractBitBE (sum,16);
-    let carryOut = sum > 65535
-    let binOverflow = carryOut
-    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
-    let secondary = (binOverflow ? ccV : 0)
- 	| (tcOverflow ? ccv : 0)
-        | (carryOut ? ccC : 0);
-    com.mode.devlog (`************ op_addc co=${carryOut}`)
-    return [primary, secondary];
-}
-
 //------------------------------------------------------------------------------
 // Accessing condition codes
 //------------------------------------------------------------------------------
@@ -729,3 +732,44 @@ export function testCalculateExport () {
     calculateExtract (16,4, 0xffff, 8, 0, 12);
     calculateExtract (16, 5, 0xffff, 3, 7, 9); // 007c = 0000 0000 0111 11000
 }
+
+function test_add () {
+    test_rr ("add", op_add, 2, 3, "5 []");
+    test_rr ("add", op_add, 49, intToWord(-7), "42 []");
+    test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
+    test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
+}
+
+/*
+    let msb = extractBitBE (sum, 15);
+    let carryOut = extractBitBE (sum,16);
+    let binOverflow = carryOut === 1;
+    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
+    let secondary = (binOverflow ? ccV : 0)
+ 	| (tcOverflow ? ccv : 0)
+        | (carryOut ? ccC : 0);
+    return [primary, secondary];
+*/
+
+/*
+function test_sub () {
+    test_rr ("sub", op_sub, 24, 7, "17 []");
+    test_rr ("sub", op_sub, 2, 3, "-1 []");
+    test_rr ("sub", op_sub, 49, intToWord(-7), "56 []");
+    test_rr ("sub", op_sub, intToWord(-3), intToWord(-10), "7 []");
+    test_rr ("sub", op_sub, 20000, 30000, "tc -10000 [v]");
+}
+
+*/
+/* addc    
+    let msb = extractBitBE (sum, 15);
+    //    let carryOut = extractBitBE (sum,16);
+    let carryOut = sum > 65535
+    let binOverflow = carryOut
+    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
+    let secondary = (binOverflow ? ccV : 0)
+ 	| (tcOverflow ? ccv : 0)
+        | (carryOut ? ccC : 0);
+    com.mode.devlog (`************ op_addc co=${carryOut}`)
+    return [primary, secondary];
+*/

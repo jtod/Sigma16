@@ -33,6 +33,23 @@ import * as em    from '../base/emulator.mjs';
 
 export const procAsmListingElt = document.getElementById('ProcAsmListing');
 
+//-----------------------------------------------------------------------------
+// Dev tools
+//-----------------------------------------------------------------------------
+
+// Needed only for console debugging; otherwise can be deleted or
+// commented out
+
+window.test_op_add = (x,y) => {
+    let [p,s] = arith.op_add (x,y)
+    return (`primary: ${arith.wordToHex4(p)} = ${p}`
+            + ` cc: ${arith.wordToHex4(s)} ccflags=${arith.showCC(s)}`)
+}
+
+//-----------------------------------------------------------------------------
+// Misc
+//-----------------------------------------------------------------------------
+
 export function modalWarning (msg) {
     alert (msg);
 }

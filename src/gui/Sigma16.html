@@ -281,8 +281,8 @@ visiting this file in a browser.
 		<button id="PP_Interrupt"> <u>I</u>nterrupt </button>
 		<button id="PP_Breakpoint"> Breakpoint </button>
 		<button id="PP_Refresh"> Re<u>f</u>resh </button>
-                <button id="PP_RunMain"> RunM </button>
-                <button id="PP_RunWorker"> RunW </button>
+                <button class="Hidden" id="PP_RunMain"> RunM </button>
+                <button class="Hidden" id="PP_RunWorker"> RunW </button>
                 <button class="Hidden" id="PP_Test1"> Test1 </button>
                 <button class="Hidden" id="PP_Test2"> Test2 </button>
 
@@ -479,18 +479,27 @@ visiting this file in a browser.
                   browser and platform support the required features.
                   If the preferred choice isn't supported, Main will
                   be used. </p>
-                <p>
-                  <input type="radio" name="RunThread" id="RTmain"
-                         value="Main">
-                  <label for="RTmain">
-                    Main with slice size
-                  </label>
-                  <br>
-                  <input type="radio" name="RunThread" id="RTworkerShm"
-                         value="Worker" checked>
-                  <label for="RTworkerShm"> Worker (shared memory) </label> <br>
-                </p>
                 <ul>
+                  <li> Current thread selection:
+                    <span class="redText" id="CurrentThreadSelection"> ? </span>
+                  </li>
+                  <li> Worker thread available:
+                    <span class="redText" id="WorkerThreadOK"> ? </span>
+                  </li>
+                  <li> Choose preferred thread: <br>
+                    <input type="radio" name="RunThread" id="RTmain"
+                           value="Main">
+                    <label for="RTmain">
+                      Main
+                    </label>
+                    <br>
+                    <input type="radio" name="RunThread" id="RTworkerShm"
+                           value="Worker" checked>
+                    <label for="RTworkerShm">
+                      Worker with shared memory (if available)
+                    </label>
+                    <br>
+                  </li>
                   <li> Main execution slice size:
                     <span class="redText" id="MainSliceSize"> ? </span>
                   </li>
@@ -498,24 +507,10 @@ visiting this file in a browser.
                     <input type="text" size=6 value=" " id="EnterMainSliceSize">
                     <button id="UpdateSliceSize"> Update </button>
                   </li>
-
                 </ul>
-
-                <h3> More </h3>
-                
               </div>
             </div>
 
-            <!--              
-	      <div class="PaneButtons">
-		<button id="OptMain"> Force main </button>
-		<button id="OptWorker"> Prefer worker </button>
-              </div>
-              <div class="HighlightedTextAsHtml" id="OptionsBody">
-		<div id="OptionsText"></div>
-	      </div>
--->
-            
 	    <div class="Pane" id="DevToolsPane">
 	      <div class="PaneButtons">
 		<button id="DevTools100"> DevTools 100 </button>

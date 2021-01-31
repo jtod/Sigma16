@@ -1357,8 +1357,8 @@ export function executeInstruction (es) {
 // ab_dc instructions take two register arguments in a and b, and
 // produce two results: primary and secondary.  The primary is loaded
 // into d.  The secondary is normally loaded into condition code, but
-// if d=15 the secondary is discarded.  The instruction semantics is
-// defined by f.
+// if d=15 the secondary is discarded and the primary is loaded into
+// R15.  The instruction semantics is defined by f.
 
 const ab_dc = (f) => (es) => {
     let a = es.regfile[es.ir_a].get();

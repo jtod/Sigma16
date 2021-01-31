@@ -30,5 +30,7 @@ instruction set.
 - [[./Memory.asm.txt][Memory]] Loads, stores, stack operations, saving
   and restoring registers.
 
+- [[./System.asm.txt][System]] System control registers
+
 - [[./TimerInterrupt.asm.txt][TimerInterrupt]] Run a loop while
   responding to interrupt requests

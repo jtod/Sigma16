@@ -1616,30 +1616,95 @@ The bits in R15 are indexed from bit 0 (the most significant, or
 lefttmost bit) to bit 15 (the least significant, or rightmost).  The
 condition code bits that have specific meanings are called *flags*.
 
-- Each bit position holds a Boolean value (either True or False,
-  represented by 0 or 1).
-- Each Booleans indicates whether a  relation holds or whether an
-  event has occurred
-- After a cmp instruction, if the bit is 1 the relation holds; if the
-  bit is 0 the relation does not hold
+- Each bit position holds a Boolean value, either False or True,
+  represented by 0 or 1 respectively.
+- Each flag gives the status of a relation or event.  If the flag is
+  True (1) the relation holds or the event has occurred.  If the flag
+  is False (0) the relation does not hold, or the event has not
+  occurred.
+
+One way to use flags in the condition code is to control conditional
+jumps:
 - Use jumpc0 to jump if the Boolean is False
 - Use jumpc1 to jump if the Boolean is True
-- N - natural number (binary)
-- I - integer (two's complement)
+
+Another way to use condition code flags is to save them as Boolean
+variables and perform logic operations on them.  This is done using
+the extract and logicb instructions.
+
+There are separate flags for integers (represented as two's complement) and natural
+numbers (represented as binary).  This is necessary because the
+relation between two words sometimes depends on the type of the data.
+For example, consider the word ffff (all 1 bits).  On its own, ffff is
+just a word of bits and has no inherent meaning.
+- If ffff is interpreted as a natural number (i.e. binary), it is
+  positive and has the value 65,535, and ffff > 0000
+- If ffff is interpreted as an integer (i.e. two's complement), then
+  it is negative and has the value -1, and ffff < 0000.
+Each flag has a short 1-character name to enable them to be displayed
+compactly.  A naming convention is that flags for integers (two's
+complement) have lower case letters, while flags for natural numbers
+(binary) have upper case letters.  For example:
+- l means < for integers
+- L means > for integers
+However, equality is the same regardless of type.  If two words
+consist of exactly the same bits, then they have the same value as
+integers, natural numbers, characters, addresses, and for any other
+possible type as well.  Therefore there is only one flag for equality,
+and its symbol is =.
+
+The following table lists all the condition code flags.  The index is
+the bit position in the condition code register (bit index 0 is the
+leftmost bit).  The symbol is a character that is displayed if the
+flag is 1.  The name is an alphabetic letter used in programs where
+the symbol is not allowed: for example you can't have a variable named
+is< so isE can be used instead.
+
+- index: Each flag has an index which gives its bit position in the
+  condition code.  Bits are numbered from right to left, starting
+  with 0.  Thus the least significant bit has index 0, and the most
+  significant bit has index 15.
+- meaning: Description using English or mathematical notation
+- symbol: Character that is displayed when the flag is True
+- name: Alphabetical name suggested for use within variable names.
+
+There is an exception for division by zero, but no corresponding flag
+in the condition code.  The reason is that the div instruction places
+the remainder in R15, so the condition code isn't available to
+represent division by 0.  You can test explicity for division by 0 by
+using jumpz specifying the register containing the divisor /before/
+execuing the div instruction.
 
 Table: Condition code flags
 
-| index   | 0     | 1     | 2 | 3     | 4     | 5        | 6        | 7     |
-|---------+-------+-------+---+-------+-------+----------+----------+-------|
-| name    | L     | l     | E | G     | g     | V        | v        | C     |
-| symbol  | L     | <     | = | G     | >     | V        | v        | C     |
-| meaning | < nat | < int | = | > nat | > int | ovfl nat | ovfl int | carry |
-
-| index   | 8          | 9         | 10 | 11 | 12 | 13 | 14 | 15 |
-|---------+------------+-----------+----+----+----+----+----+----|
-| name    | S          | s         |    |    |    |    |    |    |
-| symbol  | S          | s         |    |    |    |    |    |    |
-| meaning | stack ovfl | stack ufl |    |    |    |    |    |    |
+|---------+------------+-----------+----------+-------|
+| index   | 0          | 1         | 2        | 3     |
+|---------+------------+-----------+----------+-------|
+| meaning | < nat      | < int     | =        | > nat |
+| symbol  | L          | <         | =        | G     |
+| name    | L          | l         | E        | G     |
+|---------+------------+-----------+----------+-------|
+|---------+------------+-----------+----------+-------|
+| index   | 4          | 5         | 6        | 7     |
+|---------+------------+-----------+----------+-------|
+| meaning | > int      | ovfl nat  | ovfl int | carry |
+| symbol  | >          | V         | v        | C     |
+| name    | g          | V         | v        | C     |
+|---------+------------+-----------+----------+-------|
+|---------+------------+-----------+----------+-------|
+| index   | 8          | 9         | 10       | 11    |
+|---------+------------+-----------+----------+-------|
+| meaning | stack ovfl | stack ufl |          |       |
+| symbol  | S          | s         |          |       |
+| name    | S          | s         |          |       |
+|---------+------------+-----------+----------+-------|
+|---------+------------+-----------+----------+-------|
+| index   | 12         | 13        | 14       | 15    |
+|---------+------------+-----------+----------+-------|
+| meaning |            |           |          |       |
+| symbol  |            |           |          |       |
+| name    |            |           |          |       |
+|---------+------------+-----------+----------+-------|
 
 
 ** Memory
@@ -2849,12 +2914,32 @@ The effect is equivalent to
 
 *** cmp
 
-The comparison instructions compare the values in two operand
+The compare instruction =cmp Ra,Rb= compares the values in the operand
+registers =Ra= and =Rb=, and then sets flags in the condition code
+(R15) to indicate the result. The notation R15.i means bit /i/ in R15;
+thus R15.0 is the leftmost bit of R15.  The instruction performs both
+natural number comparison (binary) and integer comparison (two's
+complement).  The resulting flags are
 
-The **compare** instruction *cmp Ra,Rb* performs both an integer (two's
-complement) and a natural (binary) comparison of the operands.  The
-results are indicated in several of the flags in the condition code
-register, which is R15.
+- binary less than (L) in R15.0
+- two's complement less than (<) in R15.1
+- equal in R15.2
+- binary greater than (G) in R15.3
+- two's complement greater than (>) in R15.4
+
+The result of a cmp instruction can be used to control a conditional
+jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
+and the jumpc1 instruction jumps if a specified bit is 1.
+
+Pseudoinstructions provide the most common cases; for example jumple
+jumps if the condition code indicates that a comparison produced
+either integer less-than or equal.  A common pattern is a cmp followed
+by a jump pseudoinstruction, for example:
+
+#+BEGIN_EXAMPLE
+    cmp     R4,R9      ; compare R4 with R9
+    jumpgt  abc]R0]    ; if R4 > R9 then goto abc
+#+END_EXAMPLE
 
 *** logicw
 
@@ -3287,33 +3372,48 @@ regions/ in the /Programming techniques/ chapter.
 
 ** Pseudoinstructions
 
-| jumple  | RX | jumpc0 | jumple disp[Ra] | jumpc0 b,disp[Ra] |
-| jumpne  | RX | numpc0 |                 |                   |
-| jumpge  | RX | jumpc0 |                 |                   |
-| jumpnv  | RX | jumpc0 |                 |                   |
-| jumpvu  | RX | jumpc0 |                 |                   |
-| jumpnco | RX | jumpc0 |                 |                   |
-| jumplt  | RX | jumpc0 |                 |                   |
+A pseudoinstruction is assembly language syntax that generates a real
+machine language instruction, using a simpler notation than would be
+required for the instruction in its most general form.
+Pseudoinstructions do not exist in machine language; they are purely a
+notational convenience.  There are pseudoinstructions for conditional
+jumping and for logic functions.
 
-*** Conditional jumps
+*** Conditional jumping pseudoinstructions
 
 Several pseudoinstructions jump if a given condition holds; for
 example, jumplt jumps if the condition code indicates "less than".
-These instructions have operations of the form jumpXX.  Conditional
-jumps are normally used immediately following a cmp instruction:
+These instructions have mnemonics of the form jumpXX, where XX is the
+relation (such as lt or eq).  Conditional jumps are normally used
+immediately following a cmp instruction.
 
-- jumplt < (less than)
-- jumple <= (less than or equal)
-- jumpne != (not equal)
-- jumpeq = (equal)
-- jumpge >= (greater than or equal)
-- jumpgt > (greater than
+The =jumpc0= and =jumpc1= instructions provide general conditional
+jumps based on any condition code bit.  To use these instructions, you
+need to know which condition code bit to use, and whether to jump if
+that bit is 0 or 1.  Pseudoinstructions provide an easier way to
+express a conditional jump, by incorporating the relation in the
+operation code.  For example, the jumplt pseudoinstruction jumps if
+the condition code indicates the < relation:
 
-These pseudoinstructions generate either a jumpc0 or jumpc1
-instruction.  For example, jumplt jumps if the less-than flag in the
-condition code is 1 so it generates a jumpc1 instruction with Rd
-specifying the index of the less-than flag.  However, jumple jumps if
-the greather-than flag is 0, so it generates a jumpc0 instruction.
+#+BEGIN_EXAMPLE
+     cmp      R1,R2       ; compare R1 with R2
+     jumplt   loop[R0]    ; if R1 < R2 then goto loop
+#+END_EXAMPLE
+
+Some pseudoinstructions generate a jumpc1; for exmaple, jumplt
+generates a jumpc1 specifying the condition code bit for the <
+relation.  Others generate a jumpc0; for example, jumple needs to jump
+if the > relation is false.  The following pseudoinstructions jump
+based on comparison of two integers (two's complement):
+
+| jumplt | <  | less than             |
+| jumple | <= | less than or equal    |
+| jumpne | != | not equal             |
+| jumpeq | =  | equal                 |
+| jumpge | >= | greater than or equal |
+| jumpgt | >  | greater than          |
+
+
 
 *** logic pseudoinstructions
 - invw

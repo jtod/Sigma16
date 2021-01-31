@@ -26,11 +26,18 @@ export const ES_gui_thread      = 0
 export const ES_worker_thread   = 1
 
 export function showThread (x) {
+    return x==0 ? "main"
+        : x==1 ? "worker with shared memory"
+        : "?"
+}
+
+/*
+export function showThread (x) {
     return x==0 ? ES_gui_thread_sym
         : x==1 ? ES_worker_thread_sym
         : null
 }
-
+*/
 
 export let mode = {
     trace: false,

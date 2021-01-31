@@ -33,11 +33,14 @@ export function configureOptions (gst, es) {
     checkSharedMemSupport (gst)
     setMainSliceSize (gst, defaultExecSliceSize)
     initializeListeners (gst)
-    es.emRunCapability = gst.supportWorker && gst.supportSharedMem
-        ? com.ES_worker_thread
-        : com.ES_gui_thread
+    let workerShmOK = gst.supportWorker && gst.supportSharedMem
+    es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
     es.emRunThread = es.emRunCapability // default: run according to capability
     console.log (`Emulator run capability = ${es.emRunCapability}`)
+    let capabilityStr =
+        es.emRunCapability === com.ES_worker_thread ? "worker/shm"
+        : "main"
+    document.getElementById("WorkerThreadOK").innerHTML = workerShmOK
 }
 
 function checkLocalStorageSupport (gst) {
@@ -92,12 +95,16 @@ const updateMainSliceSize = (gst) => (e) => {
 const setRTmain = (gst) => (e) => {
     console.log ("setRTmain")
     gst.emRunThread = com.ES_gui_thread
+    document.getElementById("CurrentThreadSelection").innerHTML
+        = com.showThread (com.ES_gui_thread)
 }
 
 const setRTworker = (gst) => (e) => {
     if (gst.supportWorker && gst.supportSharedMem) {
         console.log ("setRTworker: success")
         gst.emRunThread = com.ES_worker_thread
+        document.getElementById("CurrentThreadSelection").innerHTML
+            = com.showThread (com.ES_worker_thread)
     } else {
         console.log (`setRTworker: Platform does not support worker, using main`)
         setRTmain (gst) (null)

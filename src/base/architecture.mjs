@@ -132,26 +132,26 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // Condition codes
 //------------------------------------------------------------------------------
 
-// Bits are numbered from right to left, starting with 0.  Thus the
-// least significant bit has index 0, and the most significant bit has
-// index 15.
-
-// Define a word for each condition that is representable in the
-// condition code.  The arithmetic operations may or several of these
-// together to produce the final condition code.
+// A word is defined for each condition code flag.  An instruction may
+// 'or' several of these words together to produce the final condition
+// code.  Bits are numbered from right to left, starting with 0.  Thus
+// the least significant bit has index 0, and the most significant bit
+// has index 15.
 
 // These definitions give the bit index
-export const bit_ccL = 0   //  L   <          binary
-export const bit_ccl = 1   //  <   <          two's complement
-export const bit_ccE = 2   //  =   =          all types
-export const bit_ccG = 3   //  G   >          binary
-export const bit_ccg = 4   //  >   >          two's complement
-export const bit_ccV = 5   //  v   overflow   nat
-export const bit_ccv = 6   //  v   overflow   two's complement
-export const bit_ccC = 7   //  c   carry      binary
+export const bit_ccL = 0   //  < natural (binary)
+export const bit_ccl = 1   //  < integer (two's complement)
+export const bit_ccE = 2   //  = all types
+export const bit_ccG = 3   //  > natural (binary)
+export const bit_ccg = 4   //  > integer (two's complement)
+export const bit_ccV = 5   //  overflow natural (binary)
+export const bit_ccv = 6   //  overflow integer (two's complement)
+export const bit_ccC = 7   //  carry propagation natural (binary)
+export const bit_ccS = 8;  //  stack overflow
+export const bit_ccs = 9;  //  stack underflow
 
-export const bit_ccStackOverflow  = 8;   // stack overflow
-export const bit_ccStackUnderflow = 9;   // stack underflow
+// export const bit_ccStackOverflow  = 8;   // stack overflow
+// export const bit_ccStackUnderflow = 9;   // stack underflow
 
 //-----------------------------------------------------------------------------
 // Status register bits
