@@ -199,15 +199,22 @@ function handleKeyDown (e) {
     }
 }
 
-function handleIOinbufferKeyDown (e) {
-    console.log (`handleIOinbufferKeyDown code=${e.code} keyCode=${e.keyCode}`)
+
+function handleTextBufferKeyDown (e) {
+    console.log (`handleTextBbufferKeyDown code=${e.code} keyCode=${e.keyCode}`)
     e.stopPropagation () // inhibit using key as keyboard shortcut command
 }
 
+// Enable keyboard shortcuts
 document.addEventListener ("keydown", handleKeyDown)
-document.getElementById("IOinputBuffer")
-    .addEventListener ("keydown", handleIOinbufferKeyDown)
 
+// Disable keyboard shortcuts for text entry buffers
+document.getElementById("IOinputBuffer")
+    .addEventListener ("keydown", handleTextBufferKeyDown)
+document.getElementById("BreakTextArea")
+    .addEventListener ("keydown", handleTextBufferKeyDown)
+document.getElementById("EditorTextArea")
+    .addEventListener ("keydown", handleTextBufferKeyDown)
 
 //-----------------------------------------------------------------------------
 // Interface to emulator
