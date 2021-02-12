@@ -1521,6 +1521,7 @@ function initializeButtons () {
     */
 
     // Options
+    prepareButton ('QuerySigServer', checkLatest)
     
     // DevTools
     prepareButton ('DevTools102',    devTools102);
@@ -1529,6 +1530,26 @@ function initializeButtons () {
     prepareButton ('DevTools105',    devTools105);
     prepareButton ('DevTools106',    devTools106);
     prepareButton ('DisableDevTools', disableDevTools);
+}
+
+
+//-----------------------------------------------------------------------------
+// Query SigServer
+//-----------------------------------------------------------------------------
+
+const SigServerURL = "https://sigma16.herokuapp.com"
+
+function checkLatest () {
+    console.log ("checkLatest starting")
+    fetch (SigServerURL + "/status/latest")
+        .then  (data => {
+            console.log (`checkLatest received ${data}`)
+            document.getElementById('LatestVersion').innerHTML = data
+        })
+        .catch (error => {
+            console.log (`checkLatest error ${error}`)
+        })
+    console.log ("checkLatest returning")
 }
 
 //-------------------------------------------------------------------------------

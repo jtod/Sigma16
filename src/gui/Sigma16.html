@@ -458,6 +458,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="OptionsPane">
               <div class="HighlightedTextAsHtml">
+                <h3> Options </h3>
                 <h3> Host capabilities </h3>
                 <p> Sigma16 can use features that are supported by
                   some, but not all, browsers and platforms.  Here are
@@ -506,6 +507,21 @@ visiting this file in a browser.
                   <li> Change main execution slice size:
                     <input type="text" size=6 value=" " id="EnterMainSliceSize">
                     <button id="UpdateSliceSize"> Update </button>
+                  </li>
+                </ul>
+                <h3> Version </h3>
+                <ul>
+                  <li> This version:
+                  </li>
+                  <li>
+                    <button id="QuerySigServer">
+                      Check for update
+                    </button>
+                  </li>
+                  <li> Latest version:
+                    <span class="redText" id="LatestVersion">
+                      See home page
+                    </span>
                   </li>
                 </ul>
               </div>

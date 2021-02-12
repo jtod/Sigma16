@@ -1,6 +1,6 @@
 {
     "name": "sigma16",
-    "version": "3.2.1",
+    "version": "3.2.2",
     "description": "Computer architecture for research and teaching",
     "repository": {
         "type": "git",
@@ -12,8 +12,8 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
-        "computer architecture",
         "Sigma16",
+        "computer architecture",
         "machine language",
         "assembly language",
         "assembler",

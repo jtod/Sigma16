@@ -177,8 +177,17 @@ webbuild:
 # Build the system and copy files to git repository for Sigma16 home page
 
 all :
+	make build
+	make homepage
+
+# Build the development version and copy to homepage repository
+.PHONY : build
+build :
 	make webbuild
 	make copybuild
+
+# Build the homepage and copy to homepage repository
+homepage :
 	make copyS16homepage
 	make copytesting
 

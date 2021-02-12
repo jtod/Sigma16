@@ -1,8 +1,10 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docs/docstyle.css" />
 #+TITLE: Sigma16 example programs
 
-- [[./Basic/index.org][Basic examples.]] Simple programs, using basic
+- [[./Basic/index.html][Basic examples.]] Simple programs, using basic
   programming techniques and mostly using the core architecture.
+
+- [[./Core/index.html][Core examples.]] Core concepts
 
 - [[./Intermediate/index.org][Intermediate examples]] These programs
   illustrate intermediate programming techniques, such as records,
