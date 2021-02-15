@@ -51,21 +51,19 @@ a good vehicle for teaching and experimentation:
   they can also be executed by simulating the digital circuit using
   the Hydra tools.
 
-- The User Guide is displayed in the running application, and you can
-  also read it without launching the program.
-
 ** Where to find Sigma16
 
 It's best to bookmark this page, and to launch the app by clicking the
 link in the red box above.  That will always launch the latest
 released version.  Don't bookmark a specific release.
 
-To view and download the source code, see the [[https://github.com/jtod/Sigma16/][source repository]].  You
-can't run the app directly from the source repository; you need this
-home page to launch it.
+To read the source code, see the [[https://github.com/jtod/Sigma16/][source repository]].  You can't run the
+app directly from the source repository; you need this home page to
+launch it.
 
 You can download the source code and run the app locally on your
-machine, without further access to the Internet.  There are also
+machine, without further access to the Internet.  If you do, be sure
+to check this page for updates from time to time.  There are also
 command line tools which require downloading and installation.  See
 the User Guide for details.
 
@@ -74,9 +72,9 @@ the User Guide for details.
 To run the latest release, click the link in the red box at the top of
 this page.
 
-Links to some recent releases are listed below.  The top item is the
-latest release, and it's the same as the link in the red box at the
-top of the page.  Normally you shouldn't use an older version.
+Some recent releases are listed below.  The top item is the latest
+release, and it's the same as the link in the red box at the top of
+the page.  Normally you shouldn't use an older version.
   
 - [[./releases/3.2.1/src/gui/Sigma16.html][launch 3.2.1]]
 

@@ -205,7 +205,9 @@ copybuild :
 
 .PHONY : copyS16homepage
 copyS16homepage :
-	cp -up docs/S16homepage/index.html  $(S16HOMEPAGE)
+	mkdir -p $(S16HOMEPAGE)/admin
+	cp -up protected/SIGSERVERURL.txt $(S16HOMEPAGE)/admin
+	cp -up docs/S16homepage/index.html $(S16HOMEPAGE)
 	cp -up docs/docstyle.css  $(S16HOMEPAGE)
 #	cp -up docs/S16homepage/index.css  $(S16HOMEPAGE)
 

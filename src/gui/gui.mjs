@@ -32,6 +32,7 @@ import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 
 export const procAsmListingElt = document.getElementById('ProcAsmListing');
+let latestVersion = 'unknown'
 
 //-----------------------------------------------------------------------------
 // Dev tools
@@ -1521,7 +1522,6 @@ function initializeButtons () {
     */
 
     // Options
-    prepareButton ('QuerySigServer', checkLatest)
     
     // DevTools
     prepareButton ('DevTools102',    devTools102);
@@ -1532,24 +1532,42 @@ function initializeButtons () {
     prepareButton ('DisableDevTools', disableDevTools);
 }
 
-
 //-----------------------------------------------------------------------------
-// Query SigServer
+// Query SigServer for latest version
 //-----------------------------------------------------------------------------
 
-const SigServerURL = "https://sigma16.herokuapp.com"
+// Find version number of currently running program and set it in the gui
 
-function checkLatest () {
-    console.log ("checkLatest starting")
-    fetch (SigServerURL + "/status/latest")
-        .then  (data => {
-            console.log (`checkLatest received ${data}`)
-            document.getElementById('LatestVersion').innerHTML = data
+function findThisVersion () {
+    const v = ver.s16version
+    document.getElementById('ThisVersion').innerHTML = v
+}
+
+// Query Sigma16 home page on github pages for the SigServer location,
+// then query server for the latest version number
+
+function findLatestVersion () {
+    console.log ("*** findLatestVersion starting")
+    const serverAddressLoc = `${com.S16HOMEPAGEURL}/admin/SIGSERVERURL.txt`
+    fetch (serverAddressLoc)
+        .then (repositoryResponse => {
+            return repositoryResponse.text()
+        }).then (serverURL => {
+            const latestURL = `${serverURL}/status/latest/${ver.s16version}`
+            console.log (`*** findLatestVersion server= ${serverURL}`)
+            console.log (`*** findLatestVersion latestURL= ${latestURL}`)
+            return fetch (latestURL)
+        }).then (serverResponse => {
+            return serverResponse.text()
+        }).then (latest => {
+            console.log (`*** findLatestVersion latest= ${latest}`)
+            latestVersion = latest
+            document.getElementById('LatestVersion').innerHTML = latest
         })
         .catch (error => {
-            console.log (`checkLatest error ${error}`)
+            console.log (`findLatestVersion error ${error}`)
         })
-    console.log ("checkLatest returning")
+    console.log ("*** findLatestVersion started actions, now returning")
 }
 
 //-------------------------------------------------------------------------------
@@ -1594,6 +1612,8 @@ window.onload = function () {
     em.clearClock (guiEmulatorState)
     guiEmulatorState.emRunThread = com.ES_gui_thread // default run mode
     em.procReset (guiEmulatorState)
+    findThisVersion ()
+    findLatestVersion ()
     com.mode.trace = true
     com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
     com.mode.trace = false
