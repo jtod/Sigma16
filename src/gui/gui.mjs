@@ -15,9 +15,10 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-----------------------------------------------------------------------------
-// gui.mjs is the main program for the browser version.  It's launched
-// by Sigma16.html and is the last JavaScript file to be loaded
-//-----------------------------------------------------------------------------
+// gui.mjs is the main program for the browser interface.  It's
+// launched by Sigma16.html and is the last JavaScript file to be
+// loaded
+// -----------------------------------------------------------------------------
 
 import * as ver   from '../base/version.mjs';
 import * as cn    from './config.mjs';
@@ -31,24 +32,119 @@ import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 
-export const procAsmListingElt = document.getElementById('ProcAsmListing');
-let latestVersion = 'unknown'
-
 //-----------------------------------------------------------------------------
-// Dev tools
+// Constant parameters
 //-----------------------------------------------------------------------------
 
-// Needed only for console debugging; otherwise can be deleted or
-// commented out
+const defaultExecSliceSize = 500
+const InitMidLRratio = 0.6  // width ratio: midMainLeft/midMainRight
 
-window.test_op_add = (x,y) => {
-    let [p,s] = arith.op_add (x,y)
-    return (`primary: ${arith.wordToHex4(p)} = ${p}`
-            + ` cc: ${arith.wordToHex4(s)} ccflags=${arith.showCC(s)}`)
+//-------------------------------------------------------------------------------
+// Global state variable
+//-------------------------------------------------------------------------------
+
+// The gui state is an instance of the GuiState class.  It's retained
+// in a local variable gst, which is defined here to get it into
+// scope, and initialized later when the onload event occurs.  The
+// onload function runs in the main gui thread but not in worker
+// thread: if there is a worker, it has an emulator state but that
+// isn't kept in a GuiState.
+
+let gst = null
+
+//-----------------------------------------------------------------------------
+// Gui state class
+//-----------------------------------------------------------------------------
+
+// The global gui state gst is an instance of GuiState
+
+class GuiState {
+    constructor () {
+        // Configuration parameters
+        this.latestVersion = 'see Sigma16 Home Page'
+        this.supportLocalStorage = false
+        this.supportWorker = false
+        this.supportSharedMem = false
+        this.runCapability = null
+
+        // Emulator state
+        this.es = null // emulator state, initialize in onload handler
+        this.currentPaneButton = "Welcome_Pane_Button"
+        this.emRunThread = st.ES_gui_thread
+        this.mainSliceSize = 1
+        this.memDispSize = 30
+
+        // Keyboard
+        this.currentKeyMap = defaultKeyMap
+
+        // Window layout
+        this.windowWidth = null
+        this.middleSection = null
+        this.midMainLeft = null
+        this.midMainRight = null
+        this.midLRratio = InitMidLRratio
+        this.midSecExtraWidth = 15
+        this.showingUserGuide = true
+        this.toggleGuideSaveRatio = InitMidLRratio
+    }
+}
+
+function showGuiState (gst) {
+    console.log ('showGuiState...')
+    console.log (`  memDispSize = ${gst.memDispSize}`)
 }
 
 //-----------------------------------------------------------------------------
-// Misc
+// Options
+//-----------------------------------------------------------------------------
+
+function configureOptions (gst, es) {
+    console.log ("configurerOptions")
+    gst.supportLocalStorage = cn.checkLocalStorageSupport ()
+    document.getElementById("SupportLocalStorage").innerHTML =
+        gst.supportLocalStorage
+    gst.supportWorker = cn.checkBrowserWorkerSupport ()
+    document.getElementById("SupportWorker").innerHTML = gst.supportWorker
+    gst.supportSharedMem = cn.checkSharedMemSupport ()
+    document.getElementById("SupportSharedMem").innerHTML = gst.supportSharedMem
+    let workerShmOK = gst.supportWorker && gst.supportSharedMem
+    document.getElementById("WorkerThreadOK").innerHTML = workerShmOK
+    es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
+    es.emRunThread = es.emRunCapability // default: run according to capability
+    console.log (`Emulator run capability = ${es.emRunCapability}`)
+    let capabilityStr =
+        es.emRunCapability === com.ES_worker_thread ? "worker/shm"
+        : "main"
+    setMainSliceSize (gst, defaultExecSliceSize)
+}
+
+export function setMainSliceSize (gst, x) {
+    console.log (`setMainSliceSize ${x}`)
+    document.getElementById("MainSliceSize").innerHTML = x
+    gst.mainSliceSize = x
+}
+
+const setRTmain = (gst) => (e) => {
+    console.log ("setRTmain")
+    gst.emRunThread = com.ES_gui_thread
+    document.getElementById("CurrentThreadSelection").innerHTML
+        = com.showThread (com.ES_gui_thread)
+}
+
+const setRTworker = (gst) => (e) => {
+    if (gst.supportWorker && gst.supportSharedMem) {
+        console.log ("setRTworker: success")
+        gst.emRunThread = com.ES_worker_thread
+        document.getElementById("CurrentThreadSelection").innerHTML
+            = com.showThread (com.ES_worker_thread)
+    } else {
+        console.log (`setRTworker: Platform does not support worker, using main`)
+        setRTmain (gst) (null)
+    }
+}
+
+//-----------------------------------------------------------------------------
+// Misc utilities
 //-----------------------------------------------------------------------------
 
 export function modalWarning (msg) {
@@ -61,31 +157,7 @@ function updateWhileRunning (es) {
 }
 
 //-----------------------------------------------------------------------------
-// Gui state
-//-----------------------------------------------------------------------------
-
-class GuiState {
-    constructor () {
-        this.supportLocalStorage = false
-        this.supportWorker = false
-        this.supportSharedMem = false
-        this.runCapability = null
-        this.currentKeyMap = defaultKeyMap
-        this.currentPaneButton = "Welcome_Pane_Button"
-        console.log ("****** set currentPaneButton")
-        this.emRunThread = st.ES_gui_thread
-        this.mainSliceSize = 1
-    }
-}
-
-
-//-----------------------------------------------------------------------------
-// Configuration
-//-----------------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------------
-// Keystrokes
+// Key maps
 //-----------------------------------------------------------------------------
 
 const defaultKeyMap = new Map ([
@@ -130,11 +202,11 @@ const linkerKeyMap = new Map ([
 
 const procKeyMap = new Map ([
     ["KeyH",  toggleProcHelp],
-    ["KeyB",  () => em.boot (guiEmulatorState)],
-    ["KeyS",  () => procStep (guiEmulatorState)],
-    ["KeyR",  () => procRun (guiEmulatorState)],
-    ["KeyP",  () => procPause (guiEmulatorState)],
-    ["KeyI",  () => procInterrupt (guiEmulatorState)],
+    ["KeyB",  () => em.boot (gst.es)],
+    ["KeyS",  () => procStep (gst.es)],
+    ["KeyR",  () => procRun (gst.es)],
+    ["KeyP",  () => procPause (gst.es)],
+    ["KeyI",  () => procInterrupt (gst.es)],
 ])
 
 let defaultHelpDialogueVisible = false
@@ -187,6 +259,10 @@ export function toggleProcHelp () {
     procHelpDialogueVisible = !procHelpDialogueVisible;
 }
 
+//-----------------------------------------------------------------------------
+// Keyboard
+//-----------------------------------------------------------------------------
+
 function handleKeyDown (e) {
     console.log (`handleKeyDown code=${e.code} keyCode=${e.keyCode}`)
     let action = gst.currentKeyMap.get (e.code)
@@ -198,12 +274,6 @@ function handleKeyDown (e) {
     } else {
         console.log (`no action for key code=${e.code} keyCode=${e.keyCode}`)
     }
-}
-
-
-function handleTextBufferKeyDown (e) {
-    console.log (`handleTextBbufferKeyDown code=${e.code} keyCode=${e.keyCode}`)
-    e.stopPropagation () // inhibit using key as keyboard shortcut command
 }
 
 // Enable keyboard shortcuts
@@ -338,8 +408,8 @@ function emwtStep () {
 function handleEmwtStepResponse (p) {
     com.mode.devlog (`main: handle emwt step response ${p}`)
     //    em.refresh (guiEmulatorState)
-    em.execInstrPostDisplay (guiEmulatorState)
-    let newstatus = st.readSCB (guiEmulatorState, st.SCB_status)
+    em.execInstrPostDisplay (gst.es)
+    let newstatus = st.readSCB (gst.es, st.SCB_status)
     com.mode.devlog (`main handle emwt step response: status=${newstatus}`)
     if (newstatus === st.SCB_relinquish) {
         com.mode.devlog (`***** main gui: handle worker step relinquish`)
@@ -353,7 +423,7 @@ function handleEmwtStepResponse (p) {
 
 
 // Initiate a run using the worker thread.  This function is the main
-// gui's interface to the worker, so es should be guiEmulatorState.
+// gui's interface to the worker, so es should be gst.es.
 // It will run instructions until a stopping condition, but will
 // relinquish control to the main thread on a trap.
 
@@ -366,34 +436,34 @@ function emwtRun (es) {
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 202
-    let status = st.readSCB (guiEmulatorState, st.SCB_status)
+    let status = st.readSCB (gst.es, st.SCB_status)
     let  msg = {code: 0, payload: 0}
     com.mode.devlog (`main: handle emwt run response: p=${p} status=${status}`)
     switch (status) {
     case st.SCB_halted:
         com.mode.devlog (`*** main: handle emwt halt`)
-        em.refresh (guiEmulatorState)
+        em.refresh (gst.es)
 //        st.showSCBstatus (guiEmulatorState)
         //        stopClock (guiEmulatorState)
-        finishRun (guiEmulatorState)
+        finishRun (gst.es)
         break
     case st.SCB_paused:
         com.mode.devlog (`*** main: handle emwt pause`)
-        em.stopClock (guiEmulatorState)
-        em.refresh (guiEmulatorState)
-        st.showSCBstatus (guiEmulatorState)
-        st.writeSCB (guiEmulatorState, st.SCB_pause_request, 0)
-        st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
-        st.showSCBstatus (guiEmulatorState)
+        em.stopClock (gst.es)
+        em.refresh (gst.es)
+        st.showSCBstatus (gst.es)
+        st.writeSCB (gst.es, st.SCB_pause_request, 0)
+        st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
+        st.showSCBstatus (gst.es)
         com.mode.devlog (`*** main: finished handle emwt pause`)
         break
     case st.SCB_break:
         com.mode.devlog (`*** main: handle emwt break`)
-        em.stopClock (guiEmulatorState)
-        em.refresh (guiEmulatorState)
-        st.showSCBstatus (guiEmulatorState)
-        st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_ready)
-        st.showSCBstatus (guiEmulatorState)
+        em.stopClock (gst.es)
+        em.refresh (gst.es)
+        st.showSCBstatus (gst.es)
+        st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
+        st.showSCBstatus (gst.es)
         com.mode.devlog (`*** main: finished handle emwt break`)
         break
     case st.SCB_blocked:
@@ -401,18 +471,18 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         break
     case st.SCB_relinquish: // emwt halt signals halt, not relinquish
         com.mode.devlog (`*** main: handle emwt relinquish`)
-        st.showSCBstatus (guiEmulatorState)
-        st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_gui)
-        em.executeInstruction (guiEmulatorState)
-        st.decrInstrCount (guiEmulatorState) // instruction was counted twice
-        if (st.readSCB (guiEmulatorState, st.SCB_status) === st.SCB_halted) {
+        st.showSCBstatus (gst.es)
+        st.writeSCB (gst.es, st.SCB_status, st.SCB_running_gui)
+        em.executeInstruction (gst.es)
+        st.decrInstrCount (gst.es) // instruction was counted twice
+        if (st.readSCB (gst.es, st.SCB_status) === st.SCB_halted) {
             console.log ("main: handle emwt relinquish: halted")
 //            em.refresh (guiEmulatorState)
 //            stopClock (guiEmulatorState)
-            finishRun (guiEmulatorState)
+            finishRun (gst.es)
         } else {
             console.log (`main: handle emwt relinquish: resuming`)
-            st.writeSCB (guiEmulatorState, st.SCB_status, st.SCB_running_emwt)
+            st.writeSCB (gst.es, st.SCB_status, st.SCB_running_emwt)
             msg = {code: 102, payload: 0}
             emwThread.postMessage (msg)
         }
@@ -478,7 +548,7 @@ function handleEmwtShowResponse (p) {
 
 function emwtTest1 () {
     console.log ("main: emwt test 1")
-    console.log (logShmStatus (guiEmulatorState))
+    console.log (logShmStatus (gst.es))
 }
 //    let msg = {code: 104, payload: 73} // arbitrary payload
 //    emwthread.postMessage (msg)
@@ -544,23 +614,6 @@ function initializeEmwtProtocol (es) {
     })
 }
 
-//-------------------------------------------------------------------------------
-// Parameters and global variables
-//-------------------------------------------------------------------------------
-
-// probably won't need this
-let globalObject = this; // to enable script in userguide to define glob var
-
-let fileContents = "file not read yet"
-
-// Persistent variables given values by initialize_mid_main_resizing ()
-
-let windowWidth;     // inner width of entire browser window
-let middleSection;  // the middle section of the window; set in onload
-let midMainLeft;     // mid-main-left; set in onload
-let midMainRight;     // mid-main-right; set in onload, not used anywhere
-let midLRratio = 0.6;  // width of midMainLeft / midMainRight; set in onLoad
-let midSecExtraWidth = 15;  // width of borders in px
 
 //------------------------------------------------------------------------------
 // Tabbed panes
@@ -714,11 +767,11 @@ function runGeneric (gst) {
     switch (gst.emRunThread) {
     case com.ES_gui_thread:
         console.log ("runGeneric: use main thread")
-        runMain (guiEmulatorState)
+        runMain (gst.es)
         break
     case com.ES_worker_thread:
         console.log ("runGeneric: use worker thread")
-        runWorker (guiEmulatorState)
+        runWorker (gst.es)
         break
     default:
         console.log ("runGeneric: invalid emRunThread")
@@ -876,23 +929,23 @@ function copyExampleToClipboard () {
 
 function initialize_mid_main_resizing () {
     com.mode.devlog ('initializing mid-main resizing')
-    middleSection = document.getElementById("MiddleSection");
-    midMainLeft = document.getElementById("MidMainLeft");
-    midMainRight = document.getElementById("MidMainRight");
-    windowWidth =  window.innerWidth;
+    gst.middleSection = document.getElementById("MiddleSection");
+    gst.midMainLeft = document.getElementById("MidMainLeft");
+    gst.midMainRight = document.getElementById("MidMainRight");
+    gst.windowWidth =  window.innerWidth;
 }
 
 // Update the saved ratio
 function setMidMainLRratio (r) {
-    com.mode.devlog (`setMidMainLRratio:  old=${midLRratio} new=${r}`)
-    midLRratio = r;
+    com.mode.devlog (`setMidMainLRratio:  old=${gst.midLRratio} new=${r}`)
+    gst.midLRratio = r;
 }
 
 // Readjust the widths of left and right sections to match ratio r
 function adjustToMidMainLRratio () {
-    com.mode.devlog ('adjustToMidMainLRratio:  midLRratio = ' + midLRratio)
-    let ww =  window.innerWidth - midSecExtraWidth;
-    let x = midLRratio * ww;
+    com.mode.devlog ('adjustToMidMainLRratio:  midLRratio = ' + gst.midLRratio)
+    let ww =  window.innerWidth - gst.midSecExtraWidth;
+    let x = gst.midLRratio * ww;
 //    com.mode.devlog ('  windowWidth = ' + windowWidth);
 //    com.mode.devlog ('  setting left width = ' + x);
 //    com.mode.devlog ('  about to call set left width');
@@ -900,20 +953,21 @@ function adjustToMidMainLRratio () {
 //    com.mode.devlog ('  back from calling set left width');
 }
 
-// grow/shrink the left section to w pixels
+// Grow/shrink the left section to w pixels
+
 function setMidMainLeftWidth (newxl) {
     com.mode.devlog ('setMidMainLeftWidth ' + newxl);
 
-    let ww =  window.innerWidth - midSecExtraWidth;
-    let oldxl = midMainLeft.style.width;
-    let oldratio = midLRratio;
+    let ww =  window.innerWidth - gst.midSecExtraWidth;
+    let oldxl = gst.midMainLeft.style.width;
+    let oldratio = gst.midLRratio;
     com.mode.devlog ('  old dimensions: ww = ' + ww +
 		 ' oldxl=' + oldxl + ' oldratio=' + oldratio);
 
     let newxr = ww - newxl;
     let newxlp = newxl + "px";
     let newratio = newxl / (newxl + newxr);
-    console.log (`setMidMainLeftWidth old ratio = ${midLRratio} `
+    console.log (`setMidMainLeftWidth old ratio = ${gst.midLRratio} `
                  + `new ratio = ${newratio}`)
     com.mode.devlog ('  new dimensions: ww = ' + ww +
 		 ' newxl=' + newxl + ' newxr=' + newxr + ' newratio=' + newratio);
@@ -921,13 +975,13 @@ function setMidMainLeftWidth (newxl) {
     setMidMainLRratio (newratio);
 
     com.mode.devlog ('  setting left = ' + newxl + '  right = ' + newxr);
-    midMainLeft.style.width = newxlp;
-    midMainLeft.style.flexGrow = 0; // without this they don't grow/shrink together
+    gst.midMainLeft.style.width = newxlp;
+    gst.midMainLeft.style.flexGrow = 0;  // make them grow/shrink together
 
     com.mode.devlog ('  left width:   old=' + oldxl + ' new=' + newxl);
     com.mode.devlog ('  ratio:  old=' + oldratio + '  new=' + newratio);
     com.mode.devlog ('setMidMainLeftWidth finished');
-
+}
     /*
     midMainLeft.style.width = xl;
     midMainRight.style.width = xl;
@@ -939,27 +993,26 @@ function setMidMainLeftWidth (newxl) {
     midMainLeft.style.flexBasis = xlp
     midMainRight.style.flexBasis = xrp;
     */
-}
 
 function expLRflex (xl) {
     com.mode.devlog ('expLRflex');
-    let ww =  window.innerWidth - midSecExtraWidth;
+    let ww =  window.innerWidth - gst.midSecExtraWidth;
     let xr = ww - xl;
     let xlp = xl + 'px';
     let xrp = xr + 'px';
-    midMainLeft.style.flexBasis = xlp;
-    midMainLeft.style.flexGrow = '0px';
-    midMainRight.style.flexBasis = xrp;
-    midMainRight.style.flexGrow = '0px';
+    gst.midMainLeft.style.flexBasis = xlp;
+    gst.midMainLeft.style.flexGrow = '0px';
+    gst.midMainRight.style.flexBasis = xrp;
+    gst.midMainRight.style.flexGrow = '0px';
 }
 
 function showSizeParameters () {
-//    com.mode.devlog ('showSizeParameters');
-    let ww =  window.innerWidth - midSecExtraWidth;
-    let y = midMainLeft.style.width;
-//    com.mode.devlog ('  windowWidth = ' + ww);
-//    com.mode.devlog ('  midMainLeftWidth = ' + y);
-//    com.mode.devlog ('  midLRratio = ' + midLRratio);
+    com.mode.devlog ('showSizeParameters');
+    let ww =  window.innerWidth - gst.midSecExtraWidth;
+    let y = gst.midMainLeft.style.width;
+    com.mode.devlog ('  windowWidth = ' + ww);
+    com.mode.devlog ('  midMainLeftWidth = ' + y);
+    com.mode.devlog ('  midLRratio = ' + gst.midLRratio);
 }
 
 // Resize the system (midMainLeft) and user guide (midMainRight)
@@ -970,9 +1023,9 @@ function showSizeParameters () {
 function user_guide_resize(x) {
     com.mode.devlog ('user_guide_resize ' + x);
 //    showSizeParameters ();
-    let old_width = midMainLeft.style.width;
+    let old_width = gst.midMainLeft.style.width;
     com.mode.devlog ('  old width = ' + old_width);
-    let w = parseInt(midMainLeft.style.width,10);
+    let w = parseInt(gst.midMainLeft.style.width,10);
     com.mode.devlog ('  old width number = ' + w);
     let new_width = w+x;
     com.mode.devlog ('  new_width = ' + new_width)
@@ -985,32 +1038,30 @@ function user_guide_resize(x) {
 }
 
 
-let showingUserGuide = true
-let toggleGuideSaveRatio = midLRratio
 
 function rememberCurrentMidMainLeftWidth () {
-    currentMidMainLeftWidth = midMainLeft.style.width
+    currentMidMainLeftWidth = gst.midMainLeft.style.width
 }
 
 // let currentMidMainWidth = midMainLeft.style.width
 
 function toggleUserGuide () {
     let xs
-    if (showingUserGuide) {
+    if (gst.showingUserGuide) {
         xs = "Show User Guide"
-        toggleGuideSaveRatio = midLRratio
+        gst.toggleGuideSaveRatio = gst.midLRratio
         hideUserGuide ()
     } else {
         xs = "Hide User Guide"
-        midLRratio = toggleGuideSaveRatio
+        gst.midLRratio = gst.toggleGuideSaveRatio
         showUserGuide ()
     }
-    showingUserGuide = !showingUserGuide
+    gst.showingUserGuide = !gst.showingUserGuide
     document.getElementById("Toggle_UserGuide").textContent = xs
 }
 
 function showUserGuide () {
-    console.log (`showUserGuide midLRratio=${midLRratio}`)
+    console.log (`showUserGuide midLRratio=${gst.midLRratio}`)
 //    setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
     showSizeParameters();
     adjustToMidMainLRratio();
@@ -1210,28 +1261,9 @@ function devTools106 () {
     action106 ()
 }
 
-/*
-function configureBrowser (gst) {
-    console.log ("configureBrowser")
-    cn.runConfig (gst)
-}
-
-function configureBrowser (es) {
-    const supportLocalStorage = checkBrowserStorageSupport ()
-    cn.output (`Browser supports local storage = ${supportLocalStorage}`)
-    const supportWorker = cn.checkBrowserWorkerSupport ()
-    cn.output (`Browser supports web workers = ${supportWorker}`)
-    const supportSharedMem = cn.checkSharedMemorySupport ()
-    cn.output (`Browser supports shared array buffers = ${supportSharedMem}`)
-    es.emRunCapability = supportWorker &&  supportSharedMem
-        ? em.ES_worker_thread
-        : em.ES_gui_thread
-    es.emRunThread = es.emRunCapability // default: run according to capability
-    cn.output (`Emulator run capability = ${es.emRunCapability}`)
-}
-*/
-
+//-----------------------------------------------------------------------------
 // System state vector
+//-----------------------------------------------------------------------------
 
 // export let sysStateBuf = null
 // export let sysStateVec = null
@@ -1496,21 +1528,21 @@ function initializeButtons () {
     // Processor pane (PP)
     prepareButton ('PP_Help',       () => toggleProcHelp ());
     prepareButton ('ProcHelpClose',       () => toggleProcHelp ());
-    prepareButton ('PP_Boot',       () => em.boot (guiEmulatorState));
-    prepareButton ('PP_Step',       () => procStep (guiEmulatorState));
+    prepareButton ('PP_Boot',       () => em.boot (gst.es));
+    prepareButton ('PP_Step',       () => procStep (gst.es));
     prepareButton ('PP_Run',        () => runGeneric (gst))
-    prepareButton ('PP_Pause',      () => em.procPause (guiEmulatorState));
-    prepareButton ('PP_Interrupt',  () => em.procInterrupt (guiEmulatorState));
-    prepareButton ('PP_Breakpoint', () => em.procBreakpoint (guiEmulatorState));
-    prepareButton ('PP_Refresh',    () => em.refresh (guiEmulatorState));
-    prepareButton ('PP_Reset',      () => em.procReset (guiEmulatorState));
-    prepareButton ('PP_RunMain',    () => runMain (guiEmulatorState))
-    prepareButton ('PP_RunWorker',  () => runWorker (guiEmulatorState))
-    prepareButton ('PP_Test1',      () => test1 (guiEmulatorState))
+    prepareButton ('PP_Pause',      () => em.procPause (gst.es));
+    prepareButton ('PP_Interrupt',  () => em.procInterrupt (gst.es));
+    prepareButton ('PP_Breakpoint', () => em.procBreakpoint (gst.es));
+    prepareButton ('PP_Refresh',    () => em.refresh (gst.es));
+    prepareButton ('PP_Reset',      () => em.procReset (gst.es));
+    prepareButton ('PP_RunMain',    () => runMain (gst.es))
+    prepareButton ('PP_RunWorker',  () => runWorker (gst.es))
+    prepareButton ('PP_Test1',      () => test1 (gst.es))
     prepareButton ('PP_Test2',      emwtTest2);
 
 
-    prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (guiEmulatorState));
+    prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (gst.es));
     // prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
 
     // Breakpoint popup dialogue
@@ -1522,7 +1554,19 @@ function initializeButtons () {
     */
 
     // Options
-    
+    prepareButton ('UpdateSliceSize',      () => updateMainSliceSize (gst))
+    prepareButton ('UpdateMemDisplaySize',    () => updateMemDisplaySize (gst))
+
+    setRTworker (gst) (null) // use worker if available
+    document.getElementById("RTmain")
+        .addEventListener ("change", setRTmain (gst))
+    document.getElementById("RTworkerShm")
+        .addEventListener ("change", setRTworker (gst))
+    document.getElementById("EnterMainSliceSize")
+        .addEventListener ("keydown", (e) => { e.stopPropagation () })
+    document.getElementById("EnterMemDisplaySize")
+        .addEventListener ("keydown", (e) => { e.stopPropagation () })
+
     // DevTools
     prepareButton ('DevTools102',    devTools102);
     prepareButton ('DevTools103',    devTools103);
@@ -1531,6 +1575,9 @@ function initializeButtons () {
     prepareButton ('DevTools106',    devTools106);
     prepareButton ('DisableDevTools', disableDevTools);
 }
+
+
+
 
 //-----------------------------------------------------------------------------
 // Query SigServer for latest version
@@ -1546,7 +1593,7 @@ function findThisVersion () {
 // Query Sigma16 home page on github pages for the SigServer location,
 // then query server for the latest version number
 
-function findLatestVersion () {
+function findLatestVersion (gst) {
     console.log ("*** findLatestVersion starting")
     const serverAddressLoc = `${com.S16HOMEPAGEURL}/admin/SIGSERVERURL.txt`
     fetch (serverAddressLoc)
@@ -1561,7 +1608,7 @@ function findLatestVersion () {
             return serverResponse.text()
         }).then (latest => {
             console.log (`*** findLatestVersion latest= ${latest}`)
-            latestVersion = latest
+            gst.latestVersion = latest
             document.getElementById('LatestVersion').innerHTML = latest
         })
         .catch (error => {
@@ -1570,51 +1617,131 @@ function findLatestVersion () {
     console.log ("*** findLatestVersion started actions, now returning")
 }
 
-//-------------------------------------------------------------------------------
-// Run the initializers when onload event occurs
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Stop key down event propagation in text entry areas
+//-----------------------------------------------------------------------------
 
-let guiEmulatorState // declare here, define at onload event 
-let browserSupportsWorkers = false
+function handleTextBufferKeyDown (e) {
+    console.log (`handleTextBbufferKeyDown code=${e.code} keyCode=${e.keyCode}`)
+    e.stopPropagation () // inhibit using key as keyboard shortcut command
+}
 
-// The onload function runs in the main gui thread but not in worker thread
+const updateMainSliceSize = (gst) => (e) => {
+    console.log ("updateMTsliceSize")
+    e.stopPropagation ()
+    let xs = document.getElementById("EnterMainSliceSize").value
+    let x = parseInt (xs)
+    console.log (`update MTsliceSize <${xs}> = ${x}`)
+    if (!isNaN(x)) setMainSliceSize (gst, x)
+}
 
-let gst // global GUI state, set during initialization
+// const updateMemDisplaySize = (gst) => (e) => {
+function updateMemDisplaySize (gst) {
+    console.log ("updateMemDisplaySize")
+//    e.stopPropagation ()
+    let xs = document.getElementById("EnterMemDisplaySize").value
+    let x = parseInt (xs)
+    console.log (`update MemDispSize <${xs}> = ${x}`)
+    //    if (!isNaN(x)) setMemDispSize (gst, x)
+    if (!isNaN(x)) {
+        document.getElementById('CurrentMemDisplaySize').innerHTML = x
+        gst.memDispSize = x
+    }
+    showGuiState (gst)
+}
+
+
+//-----------------------------------------------------------------------------
+// Dev tools
+//-----------------------------------------------------------------------------
+
+// Needed only for console debugging; otherwise can be deleted or
+// commented out
+
+window.test_op_add = (x,y) => {
+    let [p,s] = arith.op_add (x,y)
+    return (`primary: ${arith.wordToHex4(p)} = ${p}`
+            + ` cc: ${arith.wordToHex4(s)} ccflags=${arith.showCC(s)}`)
+}
+
+
+//-----------------------------------------------------------------------------
+// Initialization
+//-----------------------------------------------------------------------------
+
+function initializeMainEmulator (gst) {
+    gst.es = new em.EmulatorState (
+        com.ES_gui_thread,
+        () => initRun (gst.es),
+        () => updateWhileRunning (gst.es),
+        () => finishRun (gst.es) )
+    console.log ("allocate state vector")
+    configureOptions (gst, gst.es)
+    allocateStateVector (gst.es)
+    console.log ("allocate state vector done")
+    testSysStateVec (gst.es)
+    em.initializeMachineState (gst.es)
+    em.initializeSubsystems ();
+    em.clearClock (gst.es)
+    gst.es.emRunThread = com.ES_gui_thread // default run mode
+    em.procReset (gst.es)
+}
+
+function initializeGuiLayout (gst) {
+    gst.showingUserGuide = true
+    initialize_mid_main_resizing ();
+    setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
+    gst.toggleGuideSaveRatio = gst.midLRratio
+    adjustToMidMainLRratio();
+    initializePane (gst);
+}
+
+function initializeGuiElements (gst) {
+    em.hideBreakDialogue ();
+    document.getElementById('LinkerText').innerHTML = "";    
+    smod.prepareChooseFiles ();
+    smod.initModules (gst);
+    window.mode = com.mode;
+    initializeButtons (gst)
+    prepareExampleText (gst)
+}
+
+function findVersion (gst) {
+    findThisVersion (gst)
+    findLatestVersion (gst)
+}
+
+function initializeTracing (gst) {
+    com.mode.trace = true
+    com.mode.devlog (`Thread ${gst.es.mode} initialization complete`)
+    com.mode.trace = false
+}
+
+//-----------------------------------------------------------------------------
+// Run initializers
+//-----------------------------------------------------------------------------
+
+// The initializers require the DOM elements to exist and the
+// functions to be defined, so they are performed after all the
+// modules have been loaded.
 
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
-    em.hideBreakDialogue ();
-    gst = new GuiState ()
-    em.initializeSubsystems ();
-    document.getElementById('LinkerText').innerHTML = "";    
-    smod.prepareChooseFiles ();
-    initialize_mid_main_resizing ();
-    setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
-    toggleGuideSaveRatio = midLRratio
-    adjustToMidMainLRratio();
-    //    showSizeParameters();
-    initializePane ();
-    smod.initModules ();
-    window.mode = com.mode;
-    guiEmulatorState = new em.EmulatorState (
-        com.ES_gui_thread,
-        () => initRun (guiEmulatorState),
-        () => updateWhileRunning (guiEmulatorState),
-        () => finishRun (guiEmulatorState) )
-    console.log ("allocate state vector")
-    cn.configureOptions (gst, guiEmulatorState)
-    allocateStateVector (guiEmulatorState)
-    console.log ("allocate state vector done")
-    testSysStateVec (guiEmulatorState)
-    em.initializeMachineState (guiEmulatorState)
-    initializeButtons ()
-    prepareExampleText ()
-    em.clearClock (guiEmulatorState)
-    guiEmulatorState.emRunThread = com.ES_gui_thread // default run mode
-    em.procReset (guiEmulatorState)
-    findThisVersion ()
-    findLatestVersion ()
-    com.mode.trace = true
-    com.mode.devlog (`Thread ${guiEmulatorState.mode} initialization complete`)
-    com.mode.trace = false
+    gst = new GuiState ()          // Create gui state
+    initializeMainEmulator (gst)   // Create emulator state
+    initializeGuiLayout (gst)      // Initialize gui layout
+    initializeGuiElements (gst)    // Initialize gui elements
+    findVersion (gst)              // Determine running and latest version
+    initializeTracing (gst)        // Initialize tracing mode
+    // System should now be running
 }
+
+
+//  Deprecated
+// let fileContents = "file not read yet"
+
+/*
+// probably won't need this
+let globalObject = this; // to enable script in userguide to define glob var
+*/
+// const procAsmListingElt = document.getElementById('ProcAsmListing');
