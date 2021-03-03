@@ -514,7 +514,7 @@ function handleEmwtStepResponse (p) {
     if (newstatus === st.SCB_relinquish) {
         com.mode.devlog (`***** main gui: handle worker step relinquish`)
     }
-    procRefresh (gst)
+//    procRefresh (gst)
 }
 
 //----------------------------------------
@@ -927,6 +927,7 @@ function procRun (gst) {
 function procReset (gst) {
     console.log ('gui.procReset')
     em.procReset (gst.es)
+//    initRegHighlighting (gst) // clear loads to the registers
     procRefresh (gst)
 }
 
@@ -962,7 +963,7 @@ export function procStep (gst) {
         if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
         execInstrPostDisplay (gst)
         guiDisplayNinstr (es)
-        procRefresh (gst)
+//        procRefresh (gst)
         break
     case st.SCB_reset:
     case st.SCB_running_gui:
@@ -1033,7 +1034,8 @@ export function execInstrPostDisplay (gst) {
 function procRefresh (gst) {
     console.log ("procRefresh")
     com.mode.devlog ("procRefresh")
-        refreshRegisters (gst)
+    //        refreshRegisters (gst)
+    updateRegisters (gst)
         memRefresh (gst)
         memDisplayFull (gst)
         refreshProcStatusDisplay (gst)
@@ -1048,7 +1050,7 @@ function initRun (gst) {
 function finishRun (gst) {
     stopClock (gst)
     execInstrPostDisplay (gst)
-    procRefresh (gst)
+//    procRefresh (gst)
 }
 
 //********************************************************************************
@@ -1200,6 +1202,7 @@ export function boot (gst) {
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
+
     initializeProcessorElements (gst);  // so far, it's just instr decode
     gst.metadata = new st.Metadata ();
     gst.metadata.fromText (metadataText);
@@ -1719,7 +1722,7 @@ export function refreshInstrDecode (gst) {
 
 function updateRegisters (gst) {
     const es = gst.es
-
+    console.log ('updateRegisters')
     // Clear previous highlighting by refreshing the registers
     com.mode.devlog (`${es.regFetchedOld.length}`)
     com.mode.devlog (`${es.regStoredOld.length}`)
@@ -1737,6 +1740,7 @@ function updateRegisters (gst) {
     es.regStored = []
 }
 
+
 export function initRegHighlighting (gst) {
     const es = gst.es
     es.regFetchedOld = []
@@ -1748,6 +1752,7 @@ export function initRegHighlighting (gst) {
 // Display all the registers and remove highlighting.
 
 export function refreshRegisters (gst) {
+    console.log('Refreshing registers');
     com.mode.devlog('Refreshing registers');
     for (let i = 0; i < gst.es.nRegisters; i++) {
 	gst.es.register[i].refresh();
