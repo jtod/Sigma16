@@ -22,6 +22,8 @@
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 
+export const memSize = 65536; // number of memory locations = 2^16
+
 //-----------------------------------------------------------------------------
 // Instruction formats
 //-----------------------------------------------------------------------------
@@ -342,3 +344,5 @@ statementSpec.set("xorb",    {ifmt:iEXP2, afmt:aRkkk, opcode:[14,6,6],
 // Mnemonic for bit field
 
 statementSpec.set("field",   {ifmt:iEXP2, afmt:aRkk,  opcode:[14,8], pseudo:true});
+
+

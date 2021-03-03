@@ -93,24 +93,6 @@ export function highlightField (xs,highlight) {
     return "<span class='" + highlight + "'>" + xs + "</span>";
 }
 
-export function highlightListingLine (es,i,highlight) {
-    if (i > 0) {
-        es.asmListingCurrent[i] =
-            "<span class='" + highlight + "'>"
-            + es.metadata.listingPlain[i]
-            + "</span>";
-    }
-}
-
-export function revertListingLine (es, i) {
-    if (i > 0) {
-        es.asmListingCurrent[i] = es.metadata.listingDec[i]
-    }
-}
-//        es.asmListingCurrent[i] = es.metadata.listingPlain[i].copy()
-//   copy() didn't help
-//        es.asmListingCurrent[i] = "-" + es.metadata.listingDec[i]
-// adding the - didn't help
 
 // scrolling doesn't work if it just uses <pre> but not <code>
 
@@ -118,3 +100,9 @@ export let editorBufferTextArea; /* set when window.onload */
 export let textFile = null; /* for save download */
 export let create;  /* for save download */
 export let textbox; /* for save download */
+
+// Text
+
+export function highlightText (txt,tag) {
+    return "<span class='" + tag + "'>" + txt + "</span>";
+}

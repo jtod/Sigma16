@@ -522,11 +522,9 @@ thread is deprecated because of its detrimental effects to the end
 user's experience. For more help, check https://xhr.spec.whatwg.org/.
 */
 
-
 //-------------------------------------------------------------------------------
 // Emulator thread
 //-------------------------------------------------------------------------------
-
 
 // Local state for main gui thread
 
@@ -569,7 +567,6 @@ export const SCB_next_instr_addr   =   6  // address of next instruction
 export const SCB_emwt_run_mode     =   7
 export const SCB_emwt_trap         =   8
 export const SCB_pause_request     =   9  // pause request is pending
-
 
 // SCB_status specifies the condition of the entire system
 export const SCB_reset             = 0 // after initialization or Reset command

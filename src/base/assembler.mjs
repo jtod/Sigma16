@@ -538,7 +538,7 @@ comments field
 const identParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const nameParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const intParser = /^-?[0-9]+$/;
-const hexParser = /^\$([0-9a-f]{4})$/;
+export const hexParser = /^\$([0-9a-f]{4})$/;
 
 const rcParser =
     /^R([0-9a-f]|(?:1[0-5])),([a-zA-Z][a-zA-Z0-9]*)$/;

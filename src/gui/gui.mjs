@@ -38,6 +38,7 @@ import * as em    from '../base/emulator.mjs';
 
 const defaultExecSliceSize = 500
 const InitMidLRratio = 0.6  // width ratio: midMainLeft/midMainRight
+const InitGuiRefreshInterval = 1000 // period of display refresh during run (ms)
 
 //-------------------------------------------------------------------------------
 // Global state variable
@@ -67,12 +68,7 @@ class GuiState {
         this.supportSharedMem = false
         this.runCapability = null
 
-        // Emulator state
-        this.es = null // emulator state, initialize in onload handler
-        this.currentPaneButton = "Welcome_Pane_Button"
-        this.emRunThread = st.ES_gui_thread
-        this.mainSliceSize = 1
-        this.memDispSize = 30
+        // Current running mode
 
         // Keyboard
         this.currentKeyMap = defaultKeyMap
@@ -86,8 +82,44 @@ class GuiState {
         this.midSecExtraWidth = 15
         this.showingUserGuide = true
         this.toggleGuideSaveRatio = InitMidLRratio
+
+        // Emulator state
+        this.es = null   // emulator state for main thread (worker has its own)
+        this.currentPaneButton = "Welcome_Pane_Button"
+        this.emRunThread = st.ES_gui_thread
+        this.mainSliceSize = 1
+
+        // Processor display
+        this.MemDispMode = ModeMemDisplayHBA
+        this.memDispArg = 30
+        this.memString = []
+        this.instrCodeElt = null
+        this.instrFmtElt = null
+        this.instrOpElt = null
+        this.instrArgsElt = null
+        this.instrEAElt =  null
+        this.instrCCElt =  null
+        this.instrEffect1Elt = null
+        this.instrEffect2Elt = null
+        this.memElt1 = null
+        this.memElt2 = null
+        this.metadata           = null
+	this.asmListingCurrent  = [] // listing displayed in emulator pane
+        this.asmListingHeight   = 0   // height in pixels of the listing
+	this.curInstrAddr       = 0
+	this.nextInstrAddr      = 0
+	this.curInstrLineNo     = -1  // -1 indicates no line has been highlighted
+	this.nextInstrLineNo    = -1
+	this.saveCurSrcLine     = ""
+	this.saveNextSrcLine    - ""
+
+        // Clock
+        this.startTime = null
+        this.eventTimer = null
+        this.guiRefreshInterval = InitGuiRefreshInterval
     }
 }
+
 
 function showGuiState (gst) {
     console.log ('showGuiState...')
@@ -98,8 +130,9 @@ function showGuiState (gst) {
 // Options
 //-----------------------------------------------------------------------------
 
-function configureOptions (gst, es) {
+function configureOptions (gst) {
     console.log ("configurerOptions")
+    const es = gst.es
     gst.supportLocalStorage = cn.checkLocalStorageSupport ()
     document.getElementById("SupportLocalStorage").innerHTML =
         gst.supportLocalStorage
@@ -143,17 +176,32 @@ const setRTworker = (gst) => (e) => {
     }
 }
 
+const setMDhba = (gst) => (e) => {
+    console.log ('setMDhba')
+    gst.es.memDispMode = ModeMemDisplayHBA
+}
+
+const setMDsliding = (gst) => (e) => {
+    console.log ('setMDsliding')
+    gst.es.memDispMode = ModeMemDisplaySliding
+}
+
+const setMDfull = (gst) => (e) => {
+    console.log ('setMDfull')
+    gst.es.memDispMode = ModeMmDisplayFull
+}
+
 //-----------------------------------------------------------------------------
-// Misc utilities
+// Utilities
 //-----------------------------------------------------------------------------
 
 export function modalWarning (msg) {
     alert (msg);
 }
 
-function updateWhileRunning (es) {
-    em.updateClock (es)
-    em.refreshRFdisplay (es)
+function updateWhileRunning (gst) {
+    updateClock (gst)
+    refreshRFdisplay (gst)
 }
 
 //-----------------------------------------------------------------------------
@@ -202,11 +250,13 @@ const linkerKeyMap = new Map ([
 
 const procKeyMap = new Map ([
     ["KeyH",  toggleProcHelp],
-    ["KeyB",  () => em.boot (gst.es)],
+    ["KeyB",  () => procBoot (gst)],
     ["KeyS",  () => procStep (gst.es)],
     ["KeyR",  () => procRun (gst.es)],
-    ["KeyP",  () => procPause (gst.es)],
-    ["KeyI",  () => procInterrupt (gst.es)],
+    //    ["KeyP",  () => procPause (gst.es)],
+    ["KeyP",  () => procPause (gst)],
+    //    ["KeyI",  () => procInterrupt (gst.es)],
+    ["KeyI",  () => procInterrupt (gst)],
 ])
 
 let defaultHelpDialogueVisible = false
@@ -287,20 +337,61 @@ document.getElementById("BreakTextArea")
 document.getElementById("EditorTextArea")
     .addEventListener ("keydown", handleTextBufferKeyDown)
 
-//-----------------------------------------------------------------------------
-// Interface to emulator
-//-----------------------------------------------------------------------------
 
-// These functions are passed to the emulator, which calls them
+//---------------------------------------------------------------------------
+// Breakpoint
+//---------------------------------------------------------------------------
 
-// Perform any operations on the gui display to prepare for a run
-function initRun (es) {
-    em.startClock (es)
+// Temporary: enter a hex constant e.g. $02c9 into the text area and
+// click Refresh.  The emulator will break when the pc reaches this
+// value.  Spaces before the constant are not allowed, and the $ is
+// required.  Later this will be replaced by a richer language for
+// specifying the break condition.
+
+
+export let breakDialogueVisible = false;
+
+export function procBreakpoint (gst) {
+    com.mode.devlog ("procBreakpoint");
+    document.getElementById("BreakDialogue").style.display
+	= breakDialogueVisible ? "none" : "block";
+    breakDialogueVisible = !breakDialogueVisible;
 }
 
-function finishRun (es) {
-    em.stopClock (es)
-    em.execInstrPostDisplay (es)
+export function hideBreakDialogue () {
+    document.getElementById("BreakDialogue").style.display = "none";
+    breakDialogueVisible = false;
+}
+
+// function breakRefresh (es) {
+function breakRefresh (gst) {
+    com.mode.devlog ("breakRefresh");
+    let x = document.getElementById('BreakTextArea').value;
+    if (x.search(asm.hexParser) == 0) {
+	let w = arith.hex4ToWord (x.slice(1));
+	gst.es.breakPCvalue = w;
+	com.mode.devlog (`breakPCvalue = + ${w}`);
+    } else {
+	com.mode.devlog (`breakRefresh cannot parse + x`);
+    }
+}
+
+// function breakEnable (es) {
+function breakEnable (gst) {
+    com.mode.devlog ("breakEnable");
+    gst.es.breakEnabled = true;
+    com.mode.devlog (`breakEnable ${gst.es.breakPCvalue}`);
+}
+
+// function breakDisable (es) {
+function breakDisable (gst) {
+    com.mode.devlog ("breakDisable");
+    gst.es.breakEnabled = false;
+}
+
+function breakClose (gst) {
+    com.mode.devlog ("breakClose");
+    hideBreakDialogue ();
 }
 
 //-----------------------------------------------------------------------------
@@ -354,6 +445,12 @@ function checkBrowserWorkerSupport () {
 // mechanisms: message passing and shared memory.  A consistent
 // protocol is used for the message passing.
 
+// The emulator state object cannot be shared between threads; only
+// the shared array buffers are accessible to both.  The main thread
+// creates its own emulator state, and populates it with the shared
+// state array.  A reference to the shared array is sent to the worker
+// thread on initialization.
+
 // Messages are oranized into pairs: a request sent by the main gui to
 // the emulator thread, and a response sent by the emulator thread
 // back to the main gui.  A message is an object of the form {code:
@@ -380,11 +477,14 @@ function checkBrowserWorkerSupport () {
 // This action is essential and it's performed automatically in the
 // window.onload event handler.
 
+
 function emwtInit (es) { // called by onload initializer, request 100
     com.mode.devlog ("main gui: emwtInit")
     //    let msg = {code: 100, payload: es.shm}
     //    let msg = {code: 100, payload: sysStateBuf}
-    let msg = {code: 100, payload: es.vecbuf}
+    //    let msg = {code: 100, payload: es.vecbuf}
+    //    let msg = {code: 100, payload: es.vecbuf}
+    let msg = {code: 100, payload: es.vecbuf} // provide the es to emwt
     emwThread.postMessage (msg)
     com.mode.devlog ("main gui: posted init message 100 to emwt")
 }
@@ -408,19 +508,18 @@ function emwtStep () {
 function handleEmwtStepResponse (p) {
     com.mode.devlog (`main: handle emwt step response ${p}`)
     //    em.refresh (guiEmulatorState)
-    em.execInstrPostDisplay (gst.es)
+    execInstrPostDisplay (gst)
     let newstatus = st.readSCB (gst.es, st.SCB_status)
     com.mode.devlog (`main handle emwt step response: status=${newstatus}`)
     if (newstatus === st.SCB_relinquish) {
         com.mode.devlog (`***** main gui: handle worker step relinquish`)
     }
+    procRefresh (gst)
 }
 
 //----------------------------------------
 // emwt 102: run
 //----------------------------------------
-
-
 
 // Initiate a run using the worker thread.  This function is the main
 // gui's interface to the worker, so es should be gst.es.
@@ -442,15 +541,15 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
     switch (status) {
     case st.SCB_halted:
         com.mode.devlog (`*** main: handle emwt halt`)
-        em.refresh (gst.es)
+        procRefresh (gst.es)
 //        st.showSCBstatus (guiEmulatorState)
         //        stopClock (guiEmulatorState)
-        finishRun (gst.es)
+        finishRun (gst)
         break
     case st.SCB_paused:
         com.mode.devlog (`*** main: handle emwt pause`)
-        em.stopClock (gst.es)
-        em.refresh (gst.es)
+        stopClock (gst.es)
+        procRefresh (gst.es)
         st.showSCBstatus (gst.es)
         st.writeSCB (gst.es, st.SCB_pause_request, 0)
         st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
@@ -459,8 +558,8 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         break
     case st.SCB_break:
         com.mode.devlog (`*** main: handle emwt break`)
-        em.stopClock (gst.es)
-        em.refresh (gst.es)
+        stopClock (gst.es)
+        procRefresh (gst.es)
         st.showSCBstatus (gst.es)
         st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
         st.showSCBstatus (gst.es)
@@ -479,7 +578,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
             console.log ("main: handle emwt relinquish: halted")
 //            em.refresh (guiEmulatorState)
 //            stopClock (guiEmulatorState)
-            finishRun (gst.es)
+            finishRun (gst)
         } else {
             console.log (`main: handle emwt relinquish: resuming`)
             st.writeSCB (gst.es, st.SCB_status, st.SCB_running_emwt)
@@ -613,6 +712,7 @@ function initializeEmwtProtocol (es) {
         }
     })
 }
+
 
 
 //------------------------------------------------------------------------------
@@ -767,25 +867,25 @@ function runGeneric (gst) {
     switch (gst.emRunThread) {
     case com.ES_gui_thread:
         console.log ("runGeneric: use main thread")
-        runMain (gst.es)
+        runMain (gst)
         break
     case com.ES_worker_thread:
         console.log ("runGeneric: use worker thread")
-        runWorker (gst.es)
+        runWorker (gst)
         break
     default:
         console.log ("runGeneric: invalid emRunThread")
     }
 }
 
-function runMain (es) {
-    es.emRunThread = com.ES_gui_thread
-    procRun (es)
+function runMain (gst) {
+    gst.es.emRunThread = com.ES_gui_thread
+    procRun (gst)
 }
 
-function runWorker (es) {
-    es.emRunThread = com.ES_worker_thread
-    procRun (es)
+function runWorker (gst) {
+    gst.es.emRunThread = com.ES_worker_thread
+    procRun (gst)
 }
 
 // Run instructions until stopping condition is reached.  This will be
@@ -793,7 +893,8 @@ function runWorker (es) {
 // First decide whether to go aheead with the run; if so, decide which
 // thread to run it in.
 
-function procRun (es) {
+function procRun (gst) {
+    const es = gst.es
     com.mode.devlog (`gui.procRun, thread = ${es.emRunThread}`)
     let q = st.readSCB (es, st.SCB_status)
     switch (q) {
@@ -822,13 +923,30 @@ function procRun (es) {
     }
 }
 
+
+function procReset (gst) {
+    console.log ('gui.procReset')
+    em.procReset (gst.es)
+    procRefresh (gst)
+}
+
+// Interface to emulator boot
+
+function procBoot (gst) {
+    clearProcessorDisplay (gst)
+    boot (gst)
+    procRefresh (gst)
+}
+
 // Main interface function to step one instruction; runs in main gui
 // thread
 
-export function procStep (es) {
+// export function procStep (es) {
+export function procStep (gst) {
+    const es = gst.es
     console.log ("procStep")
-    if (es.thread_host != com.ES_gui_thread) {
-        com.mode.devlog (`procStep: host=${es.thread_host}, skipping`)
+    if (gst.es.thread_host != com.ES_gui_thread) {
+        com.mode.devlog (`procStep: host=${gst.es.thread_host}, skipping`)
         return
     }
     st.writeSCB (es, st.SCB_pause_request, 0)
@@ -842,8 +960,9 @@ export function procStep (es) {
         em.executeInstruction (es)
         let qnew = st.readSCB (es, st.SCB_status)
         if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
-        em.execInstrPostDisplay (es)
-        em.guiDisplayNinstr (es)
+        execInstrPostDisplay (gst)
+        guiDisplayNinstr (es)
+        procRefresh (gst)
         break
     case st.SCB_reset:
     case st.SCB_running_gui:
@@ -857,6 +976,1210 @@ export function procStep (es) {
     console.log ("procStep finished")
 }
 
+//-----------------------------------------------------------------------------
+// Interface to emulator
+//-----------------------------------------------------------------------------
+
+
+// For single stepping, we want to keep display of registers and
+// memory up to date and show access by highlighting the fetched and
+// updated locations.  For Run mode, we want to avoid updating the
+// memory continuosly, although it may be useful to keep the register
+// displays updated.
+
+// The strategy is: (1) for stepping, there is a function to prepare
+// before executing an instruction, and another to update the displays
+// after execution, with the expectation that the user will spend some
+// time looking at the displays before steppign again.  (2) For Run,
+
+// (for running) Prepare the displays before running sequence of
+// instructions (the Run button).
+
+
+// (for stepping) Display the effects of the instruction
+// Prepare to execute an instruction by clearing the buffers holiding
+// log information.
+
+// function prepareExecuteInstruction (es) {
+function prepareExecuteInstruction (gst) {
+    com.mode.devlog ("prepareExecuteInstruction");
+    memDisplay (gst);
+    clearInstrDecode (gst);
+    prepareListingBeforeInstr (gst);
+}
+
+export function execInstrPostDisplay (gst) {
+    console.log ('execInstrPostDisplay')
+    com.mode.devlog ("execInstrPostDisplay")
+    const es = gst.es
+        com.mode.devlog ("main: execInstrPostDisplay, proceeding")
+        updateRegisters (gst)
+        updateMemory (gst)
+        memDisplay (gst)
+        highlightListingAfterInstr (gst)
+//        showInstrDecode (gst) ???????????????????? here ?????????????????????
+        guiDisplayNinstr (gst)
+        document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
+}
+//        break
+//    default: // should be impossible
+//        com.mode.devlog (`error: execInstrPostDisplay host=${es.thread_host}`)
+//    }
+//    switch (es.thread_host) {
+//    case com.ES_worker_thread: // should be impossible
+//        break;
+//    case com.ES_gui_thread:
+
+function procRefresh (gst) {
+    console.log ("procRefresh")
+    com.mode.devlog ("procRefresh")
+        refreshRegisters (gst)
+        memRefresh (gst)
+        memDisplayFull (gst)
+        refreshProcStatusDisplay (gst)
+        guiDisplayNinstr (gst)
+}
+
+// Perform any operations on the gui display to prepare for a run
+function initRun (gst) {
+    startClock (gst)
+}
+
+function finishRun (gst) {
+    stopClock (gst)
+    execInstrPostDisplay (gst)
+    procRefresh (gst)
+}
+
+//********************************************************************************
+
+// functions to provide to emulator, put in es.function
+
+// maybe emulator doesn't need to refresh interface at all.  The
+// interface can decide whether to tell the emulator to execute one
+// instruction, or to keep going until a stopping condition, and the
+// interface can decide when and what to display
+
+// user interface will refresh all the main elements of the display,
+// and will use the memory display mode to decide how much of the
+// memory to display
+
+/* from memInitialize
+//        memRefresh(es);  // generate a string showing each location
+//        es.initializeMemDisplay (es)
+//        es.memElt1 = document.getElementById('MemDisplay1');
+//        es.memElt2 = document.getElementById('MemDisplay2');
+//        memDisplay(es);  // put the strings into the gui display elements
+
+ */
+
+const refreshProcessorDisplay = (gst) => (es) => {
+}
+
+
+// shouldn't need this?  emulator can do
+//   resetProcessor, then
+//   refreshProcessorDisplay
+
+function initiallizeMemDisplay (gst) {
+    //        memRefresh(es);  // generate a string showing each location
+//        es.initializeMemDisplay (es)
+//        es.memElt1 = document.getElementById('MemDisplay1');
+//        es.memElt2 = document.getElementById('MemDisplay2');
+//        memDisplay(es);  // put the strings into the gui display elements
+}
+
+// Just clear regs & memory, then refreshProcessorDisplay
+function clearProcessorDisplay (gst) {
+    console.log ('clearProcessorDisplay')
+    initializeProcessorElements (gst);  // so far, it's just instr decode
+    gst.es.asmListingCurrent = []
+    clearInstrDecode (gst);
+}
+
+// Processor elements: html elements for displaying instruction decode
+
+export function initializeProcessorElements (gst) {
+    //    if (es.mode === Mode_GuiDisplay) {
+//    const es = gst.es
+    if (gst.es.thread_host === com.ES_gui_thread) {
+        com.mode.devlog ('initializeProcessorElements');
+        gst.instrCodeElt = document.getElementById("InstrCode");
+        gst.instrFmtElt  = document.getElementById("InstrFmt");
+        gst.instrOpElt   = document.getElementById("InstrOp");
+        gst.instrArgsElt = document.getElementById("InstrArgs");
+        gst.instrEAElt   = document.getElementById("InstrEA");
+        gst.instrCCElt   = document.getElementById("InstrCC");
+        gst.instrEffect1Elt = document.getElementById("InstrEffect1");
+        gst.instrEffect2Elt = document.getElementById("InstrEffect2");
+    }
+}
+
+// Copy executable listing to processor asm display, used by boot
+
+function setProcAsmListing (gst) {
+    console.log ('setProcAsmListing');
+    com.mode.devlog ('setProcAsmListing');
+    const es = gst.es
+//    gst.asmListingCurrent = []
+    gst.curInstrAddr = 0;
+    gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+    gst.nextInstrAddr = 0;
+    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.nextInstrAddr)
+        + listingLineInitialOffset;
+    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
+    let xs = "<pre><code class='HighlightedTextAsHtml'>"
+    	+ gst.asmListingCurrent.join('\n')
+	+ "</code></pre>";
+    document.getElementById('ProcAsmListing').innerHTML = xs;
+    getListingDims(gst);
+}
+//    console.log (`setProcAsmListing: ${xs}`)
+//    es.pc.put (0) // shouldn't be needed?
+//    refreshRegisters (gst)
+//    updateMemory (gst)
+//    memDisplayFull(gst);
+//    let ys =  "<pre class='HighlightedTextAsHtml'>"
+//        + "<span class='ExecutableStatus'>"
+//        + "Boot was successful"
+//        + "</span><br>"
+//        + "</pre>";
+
+export function highlightListingLine (gst, i, highlight) {
+    if (i > 0) {
+        gst.asmListingCurrent[i] =
+            "<span class='" + highlight + "'>"
+            + gst.metadata.listingPlain[i]
+            + "</span>";
+    }
+}
+
+function revertListingLine (gst, i) {
+    if (i > 0) {
+        gst.asmListingCurrent[i] = gst.metadata.listingDec[i]
+    }
+}
+//    let md=gst.metadata
+//    console.log (`revertListingLine i=${i}`)
+//    console.log (`revertListingLine i=${i} ${md.listingDec[i]}`)
+//    console.log (`revertListingLine i=${i} ${md.listingPlain[i]}`)
+//        es.asmListingCurrent[i] = es.metadata.listingPlain[i].copy()
+//   copy() didn't help
+//        es.asmListingCurrent[i] = "-" + es.metadata.listingDec[i]
+// adding the - didn't help
+
+//********************************************************************************
+
+//-------------------------------------------------------------------------------
+// Booter
+//-------------------------------------------------------------------------------
+
+// Find the executable; it may come from assembler (object code) or
+// linker (executable code).
+
+export function obtainExecutable () {
+    let m = st.env.getSelectedModule();
+    let exe = m.executable ? m.executable : m.objMd;
+    if (exe) {
+        com.mode.devlog (`Found executable for selected module`);
+        return exe;
+    } else {
+        com.mode.devlog (`Cannot find executable`);
+        return null;
+    }
+}
+
+export function boot (gst) {
+    const es = gst.es
+    com.mode.trace = false;
+    com.mode.devlog ("boot");
+    com.mode.devlog (`current emulator mode = ${es.mode}`)
+    st.resetSCB (es)
+    procReset (gst)
+    let m = st.env.getSelectedModule ();
+    let exe = obtainExecutable ();
+    const objectCodeText = exe.objText;
+    const metadataText   = exe.mdText;
+    initializeProcessorElements (gst);  // so far, it's just instr decode
+    gst.metadata = new st.Metadata ();
+    gst.metadata.fromText (metadataText);
+
+    let objectCode = objectCodeText.split("\n");
+    
+    let xs = "";
+    let fields = null;
+    let isExecutable = true; // will set to false if module isn't bootable
+    let location = 0; // address where next word will be stored
+    document.getElementById('ProcAsmListing').innerHTML = "";
+    st.clearInstrCount
+    es.ioLogBuffer = "";
+    em.refreshIOlogBuffer (es);
+    com.mode.trace = false;
+    // reset
+    st.resetSCB (es)
+    em.resetRegisters (es);
+    em.memClear(es)
+    clearClock (gst)
+
+    for (let i = 0; i < objectCode.length; i++) {
+        xs = objectCode[i];
+        com.mode.devlog (`boot: objectCode line ${i} = <${xs}>`);
+        fields = link.parseObjLine (xs);
+        com.mode.devlog (`boot op=<${fields.operation}> args=<${fields.operands}>`);
+        if (fields.operation == "module") {
+            let modname = fields.operands[0];
+            let safemodname = modname ? modname : "(anonymous)";
+            com.mode.devlog (`boot: module ${safemodname}`);
+        } else if (fields.operation == "org") {
+            com.mode.devlog ("--- skipping org");
+        } else if (fields.operation == "data") {
+            com.mode.devlog ("boot: data");
+            for (let j = 0; j < fields.operands.length; j++) {
+                let val = arith.hex4ToWord(fields.operands[j]);
+                if (!val) {com.mode.devlog(`boot: bad data (${val})`)};
+                let safeval = val ? val : 0;
+                em.memStore (es, location, safeval);
+                com.mode.devlog (`boot data mem[${location}]:=${val}`);
+                location++;
+            }
+        } else if (fields.operation == "import") {
+            com.mode.devlog (`boot: import (${fields.operands})`)
+            isExecutable = false;
+        } else if (fields.operation == "export") {
+        } else if (fields.operation == "relocate") {
+        } else if (fields.operation == "") {
+            com.mode.devlog ("boot: skipping blank object code line");
+        } else {
+            com.mode.devlog (`boot: bad operation (${fields.operation})`)
+            isExecutable = false;
+        }
+    }
+    if (isExecutable) {
+        com.mode.devlog ("boot ok so far, preparing...");
+        gst.asmListingCurrent = []
+        gst.metadata.listingDec.forEach ((x,i) => gst.asmListingCurrent[i] = x);
+        initListing (gst);
+        st.writeSCB (es, st.SCB_status, st.SCB_ready)
+        es.curInstrAddr = 0;
+        es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+        es.nextInstrAddr = 0;
+        es.nextInstrLineNo = gst.metadata.getSrcIdx (es.nextInstrAddr)
+            + listingLineInitialOffset;
+            highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
+        st.writeSCB (es, st.SCB_status, st.SCB_ready)
+        getListingDims(gst);
+        es.pc.put (0) // shouldn't be needed?
+        //        refreshRegisters (gst)
+        updateRegisters (gst)
+        updateMemory (gst)
+        memDisplayFull(gst);
+        let xs =  "<pre class='HighlightedTextAsHtml'>"
+            + "<span class='ExecutableStatus'>"
+            + "Boot was successful"
+            + "</span><br>"
+            + "</pre>";
+        com.mode.devlog ("boot was successful")
+    } else {
+        st.writeSCB (es, st.SCB_status, st.SCB_reset)
+        let xs =  "<pre class='HighlightedTextAsHtml'>"
+            + "<span class='ExecutableStatus'>"
+            + "Boot failed: module is not executable"
+            + "</span><br>"
+            + "</pre>";
+        document.getElementById('LinkerText').innerHTML = xs;
+        com.mode.devlog ("boot failed");
+        alert ("boot failed");
+    }
+    if (es.thread_host === com.ES_gui_thread) {
+        document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
+    }
+    com.mode.devlog ("boot returning");
+}
+//    com.mode.devlog ("------------- boot reading code --------------- ")
+//    com.mode.devlog (`*** Boot object code = ${objectCodeText}`)
+//    com.mode.devlog (`*** Boot metadata = ${metadataText}`)
+//    com.mode.devlog ("------------- boot starting --------------- ")
+//    memClearAccesses ();
+//    es.nInstructionsExecuted = 0;
+    //    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
+//    guiDisplayNinstr (es)
+//    document.getElementById("nInstrExecuted").innerHTML =
+//	es.nInstructionsExecuted;
+//        clearTime (es) ?? don't want to import gui, where it's defined
+
+
+
+//********************************************************************************
+
+//------------------------------------------------------------------------------
+// Emulator Interface to gui
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// Assembly listing
+//------------------------------------------------------------------------------
+
+// Prepare assembly listing when executable is booted
+
+// export function initListing (m,es) {
+export function initListing (gst) {
+    console.log ('initListing')
+    gst.curInstrAddr = 0;
+    gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+    gst.nextInstrAddr = 0;
+    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.nextInstrAddr)
+        + listingLineInitialOffset;
+    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT")
+    setProcAsmListing (gst);
+}
+
+// Should check the operation, implement org, and provide suitable
+// error messages, but that's for later.  For now, just assume it is
+// hexdata with valid argument
+
+function linkerBootLine (es,m,i,x) {
+    com.mode.devlog (`linkerBootLine i=${i}`)
+    let y = parseAsmLine (m,i,x);
+//    printAsmLine (y);
+    let w = y.fieldOperands;
+    let n =  arith.hex4ToWord(w);
+//    com.mode.devlog('linkerBootLine ' + w + ' = ' + n);
+    com.mode.devlog('linkerBootLine ' + i + ' ---' + x + '--- = ' + n);
+    updateMem2(bootCurrentLocation,n);
+    bootCurrentLocation++;
+}
+
+export function refreshProcStatusDisplay (gst) {
+    let xs = st.showSCBstatus (gst.es)
+    document.getElementById("procStatus").innerHTML = xs
+}
+
+export let highlightedRegisters = [];
+
+// Update the display of all registers and memory (all of memory)
+
+// export function displayFullState (es) {
+export function displayFullState (gst) {
+    com.mode.devlog ('displayFullState');
+    updateRegisters (gst)
+    updateMemory (gst)
+    memDisplayFull (gst);
+}
+
+//------------------------------------------------------------------------------
+// Instruction decode
+//------------------------------------------------------------------------------
+
+
+export function clearInstrDecode (es) {
+    return // ?????????????????????????????
+    es.instrOpCode = null;
+    es.instrDisp = null;
+    es.instrCodeStr  = "";
+    es.instrFmtStr   = "";
+    es.instrOp    = "";
+    es.instrArgs  = "";
+    es.instrEA = null;
+    es.instrEAStr    = "";
+    es.instrEffect = [];
+}
+
+
+
+//------------------------------------------------------------------------------
+// Interface to the gui
+//------------------------------------------------------------------------------
+
+// The functions receive a parameter 'es' which carries the current
+// emulator state.  The gui, when it calls one of the main interface
+// functions, passes the global emulatorState.
+
+// The machine state (registers and memory) are global and initialized
+// by gui.  The emulator state is a global variable named
+// emulatorState, defined in state.js.
+
+// The interface to the emulator consists of the following functions,
+// which are called directly by the gui. When they call other
+// functions, es is passed as a parameter.  Thus only the following
+// interface functions access a global variable.
+
+// Called by ?
+//   parseCopyObjectModuleToMemory (es)
+    
+// Called by gui.js
+//   clearInstrDecode ()
+
+// Called by events in Sigma16.html
+//   procReset(es)       -- put processor into initial state
+//   boot(es)            -- copy the executable into memory
+//   procStep(es)        -- execute one instruction
+//   procRunMainThread(es)         -- execute instructions repeatedly until halted
+//   procPause(es)       -- halt execution (can resume execution later)
+//   procInterrupt()   -- not implemented yet
+//   procBreakpoint()  -- not implemented yet
+
+
+function showArgs (es) {
+    if (es.instrFmtStr==="RRR") {
+	return `R${es.ir_d},R${es.ir_a},R${es.ir_b}`;
+    } else if (es.instrFmtStr==="RX") {
+	return `R${es.ir_d},${arith.wordToHex4(es.instrDisp)}[R${es.ir_a}]`;
+    } else {
+	return "?";
+    }
+}
+
+function showEffect (es,i) {
+    com.mode.devlog(`showEffect ${i}`);
+    if (es.instrEffect[i]) {
+	let [dest,idx,val,name] = es.instrEffect[i];
+	if (dest==="R") {
+	    com.mode.devlog (`showEffect ${i} ${es.instrEffect[i]}`);
+//	    com.mode.devlog (`showEffect ${i}  ${dest} ${idx} := ${val});
+	    return `${name} := ${arith.wordToHex4(val)}`;
+	} else if (dest==="M") {
+	    com.mode.devlog ("showEffect M");
+	    return `M[${arith.wordToHex4(idx)}]:=${arith.wordToHex4(val)}`;
+	}
+    } else { return ""; }
+}
+
+//------------------------------------------------------------------------------
+// Highlighting current and next instruction in processor assembly listing
+//------------------------------------------------------------------------------
+
+// The assembler provides an array of source lines, which it passes on
+// to the linker and thence to the emulator.  There are two strings
+// for each source line: one contains <span> elements to enable the
+// fields to be highlighted, just as in the assembly listing.  The
+// other omits these elements, so the entire line can be highlighted
+// to indicate (with just one color for the line) the instruction that
+// has just executed and the instruction that will be executed next.
+
+// The assembler produces listing lines with <span> elements to allow
+// the fields of the line to be highlighted. These are stored in
+// listingHighlightedFields.  However, the emulator highlights an
+// entire listing line to indicate the instruction that is currently
+// executing, or that will execute next.  In order to prevent the
+// highlighting of fields from overriding the highlighting of the
+// current/next instruction, that is done using listingPlain.
+
+// Given address a, the corresponding source statement is found using metadata
+
+function showListingParameters (es) {
+    com.mode.devlog ('showListingParameters'
+		 + ' es.curInstrAddr=' + es.curInstrAddr
+		 + ' es.curInstrLineNo=' + es.curInstrLineNo
+		 + ' es.nextInstrAddr=' + es.nextInstrAddr
+		 + ' es.nextInstrLineNo=' + es.nextInstrLineNo);
+}
+
+// Prepare the running listing before starting instructionby removing
+// any existing highlighting of current and next instruction
+
+
+function showLst (es, xs, i) {
+//    return // disable
+    com.mode.devlog (`--- Listing line ${i} ${xs}`)
+    com.mode.devlog (`----- Cur = ${gst.asmListingCurrent[i].slice(0,30)}`)
+    com.mode.devlog (`----- Pla = ${gst.metadata.listingPlain[i].slice(0,30)}`)
+    com.mode.devlog (`----- Dec = ${gst.metadata.listingDec[i].slice(0,30)}`)
+}
+
+//-----------------------------------------------------------------------------
+// Emulator gui
+//-----------------------------------------------------------------------------
+
+// Calculate the value of pxPerChar, which is needed to control the
+// scrolling to make the current line visible.  The calculated value
+// overrides the initialized value.  The method is to measure the
+// height of the listing in pixels and divide by the number of lines
+// in the listing.  Some other geometric parameters are also obtained,
+// but aren't currently used.
+
+function getListingDims (gst) {
+    const es = gst.es
+    let e = document.getElementById('ProcAsmListing');
+    let x = e.getBoundingClientRect(); // dimensions of visible listing area
+    let w = e.scrollWidth; // width of the content, not used
+    let h = e.scrollHeight; // height of content (not of the window)
+    es.asmListingHeight = h; // save in emulator state
+    com.mode.devlog (`h=${h} w=${w}`);
+    let n = gst.metadata.listingPlain.length;
+    com.mode.devlog(`getListingDims: n=${n}`);
+    pxPerChar = n ? h/n : 10; // update this global variable, used for scrolling
+    com.mode.devlog (`getListingDims: pxPerChar = ${pxPerChar}`);
+}
+
+// asmScrollOffsetAbove specifies the preferred number of lines that
+// should appear above the scroll target in the processor assembly
+// listing
+
+const asmScrollOffsetAbove = 8;
+
+// pxPerChar is the height of characters used in the processor
+// assembly listing.  This is needed to scroll the listing to keep the
+// current line visible.  There doesn't appear to be a good way to
+// measure this; the value is found by trial and error.  Measuring it
+// or extracting it from font metadata would be far better.
+
+let pxPerChar = 13.05;
+
+
+// export let ioLogBuffer = ""; now in es
+
+// export const procAsmListingElt = document.getElementById('ProcAsmListing');
+
+// export let procAsmListingElt; // global variables for emulator
+
+
+//-----------------------------------------------------------------------------
+// Assembly listing
+//-----------------------------------------------------------------------------
+
+// Global variables for handling listing display as program runs.
+
+let srcLine;        // copy of source statements
+
+// Keep track of the address of the currently executing instruction,
+// the address of the next instruction, and the line numbers where
+// these instructions appear in the assembly listing.  -1 indicates no
+// line has been highlighted
+
+// let curInstrAddr, curInstrLineNo, saveCurSrcLine;
+// let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
+
+export function initializeSubsystems () {
+    memDisplayModeFull = false;
+//     document.getElementById('PP_Toggle_Display').value = "Fast display";  
+}
+
+export function toggleFullDisplay () {
+    com.mode.devlog ('toggleFullDisplay clicked');
+    memDisplayModeFull = ! memDisplayModeFull;
+    document.getElementById('FullDisplayToggleButton').value =
+	memDisplayModeFull ? "Full display" : "Fast display";
+    if (memDisplayModeFull) { memDisplayFull () }
+    else { memDisplayFast ()
+	 }  // loses info but makes tab switching faster
+}
+
+// ------------------------------------------------------------------------
+// Highlighting registers to indicate accesses
+
+// When a register is accessed, its display in the gui is highlighted
+// by setting the text color.  If the register has not been used it
+// has the default color black, if it has been read but not written
+// its color is READ, and if it has been written its color is WRITE.
+// The meanings of the tags for syntax highlighting are defined in
+// Sigma16gui.css.  Normally we would use blue for READ and red for
+// WRITE.
+
+let modeHighlight = true;  // indicate get/put by setting text color
+
+function setModeHighlight (x) {
+    if (x) {
+	com.mode.devlog('Setting modeHighlight to True');
+	modeHighlight = true;
+    }
+    else {
+	com.mode.devlog('Setting modeHighlight to False');
+	modeHighlight = false;
+	refreshRegisters(gst);
+    }
+}
+
+
+function prepareListingBeforeInstr (gst) {
+    const es = gst.es
+    com.mode.trace = false;
+    com.mode.devlog ('prepareListingBeforeInstr');
+    showListingParameters (es)
+
+    if (es.curInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
+        showLst (es, "prepare before revert current", es.curInstrLineNo)
+        revertListingLine (gst, es.curInstrLineNo)
+        showLst (es, "prepare after revert current", es.curInstrLineNo)
+    }
+    if (es.nextInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
+        showLst (es, "prepare before revert next", es.nextInstrLineNo)
+        com.revertListingLine (gst, es.nextInstrLineNo)
+        showLst (es, "prepare after revert next", es.nextInstrLineNo)
+    }
+    es.curInstrLineNo = -1;
+    es.nextInstrLineNo = -1;
+    showListingParameters(es);
+    com.mode.devlog ("returning from prepareListingbeforeInstr")
+    showListingParameters (es)
+    com.mode.trace = false;
+}
+
+// As it executes an instruction, the emulator sets curInstrAddr and
+// nextInstrAddr.  After the instruction has finished, these
+// instructions are highlighted in the listing
+
+function highlightListingAfterInstr (gst) {
+    console.log ('highlightListingAfterInstr')
+    const es = gst.es
+    com.mode.trace = false;
+    com.mode.devlog ('highlightListingAfterInstr');
+    showListingParameters (gst)
+    com.mode.devlog ('  curInstrAddr = ' + gst.curInstrAddr);
+    com.mode.devlog ('  nextInstrAddr = ' + gst.nextInstrAddr);
+
+// Clear any statement highlighting, if any
+
+        if (gst.curInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting cur: line ${gst.curInstrLineNo}`)
+        showLst (gst, "prepare before revert current", gst.curInstrLineNo)
+        revertListingLine (gst, es.curInstrLineNo)
+        showLst (gst, "prepare after revert current", gst.curInstrLineNo)
+    }
+    if (gst.nextInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting next: line ${gst.nextInstrLineNo}`)
+        showLst (gst, "prepare before revert next", gst.nextInstrLineNo)
+        revertListingLine (gst, gst.nextInstrLineNo)
+        showLst (gst, "prepare after revert next", gst.nextInstrLineNo)
+    }
+    gst.curInstrLineNo = -1;
+    gst.nextInstrLineNo = -1;
+
+    // Highlight the instruction that just executed
+    gst.curInstrLineNo = gst.metadata.getSrcIdx (gst.curInstrAddr)
+            + listingLineInitialOffset;
+    showLst (gst, "highlight, before highlight cur", gst.curInstrLineNo)
+    highlightListingLine (gst, gst.curInstrLineNo, "CUR");
+    showLst (gst, "highlight, after highlight cur", gst.curInstrLineNo)
+    com.mode.devlog (`Highlight current instruction: a=${gst.curInstrAddr}`
+                 + ` s=${gst.curInstrLineNo}`)
+
+    // Highlight the instruction that will be executed next
+    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.nextInstrAddr)
+        + listingLineInitialOffset;
+    showLst (gst, "highlight, before highlight next", gst.nextInstrLineNo)
+    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
+    showLst (gst, "highlight, after highlight next", gst.nextInstrLineNo)
+    com.mode.devlog (`Highlight next instruction: a=${gst.nextInstrAddr}`
+                 + ` s=${gst.nextInstrLineNo}`)
+
+    // Display the memory
+    if (memDisplayModeFull) {
+	highlightListingFull (gst)
+    } else {
+	highlightListingFull (gst)    // temporary ?????
+    }
+    showListingParameters (gst)
+    com.mode.devlog ("returning from highlightlistingAfterInstr")
+    com.mode.trace = false;
+}
+
+// function highlightListingFull (es,m) {
+function highlightListingFull (gst,m) {
+    com.mode.devlog ('highlightListingFull');
+        setProcAsmListing (gst)
+    let xa = gst.curInstrLineNo - asmScrollOffsetAbove;
+    xa = xa < 0 ? 0 : xa;
+    let scrollOffset = xa * pxPerChar;
+    com.mode.devlog ('curInstrLineNo = ' + gst.curInstrLineNo
+		     + '  scrollOffset = ' + scrollOffset);
+    let procAsmListingElt = document.getElementById('ProcAsmListing');
+    procAsmListingElt.scroll (0, scrollOffset);
+//    let curline = procAsmListingElt.getElementById('CUR');
+//    curline.scrollIntoView();
+}
+
+// Initialize machine state
+
+export function refreshInstrDecode (gst) {
+    com.mode.devlog ("refreshInstrDecode");
+    return
+    const es = gst.es
+//    if (false) { // ????????????????????? temporary...
+    if (es.thread_host === com.ES_gui_thread) {
+        gst.instrCodeElt.innerHTML = es.instrCodeStr;
+        gst.instrFmtElt.innerHTML  = es.instrFmtStr;
+        gst.instrOpElt.innerHTML   = es.instrOpStr;
+        gst.instrArgsElt.innerHTML = showArgs(es); // instrArgsStr;
+        gst.instrEAElt.innerHTML   = es.instrEAStr;
+        //        let ccval = es.regfile[15].val;
+        let ccval = es.regfile[15].get ()
+        gst.instrCCElt.innerHTML      = arith.showCC(ccval);
+        gst.instrEffect1Elt.innerHTML = showEffect(es,0);
+        gst.instrEffect2Elt.innerHTML = showEffect(es,1);
+    }
+}
+
+//-------------------------------------------------
+// Register display
+//-------------------------------------------------
+
+// Display any changes to registers with highlighting
+
+function updateRegisters (gst) {
+    const es = gst.es
+
+    // Clear previous highlighting by refreshing the registers
+    com.mode.devlog (`${es.regFetchedOld.length}`)
+    com.mode.devlog (`${es.regStoredOld.length}`)
+    com.mode.devlog (`${es.regFetched.length}`)
+    com.mode.devlog (`${es.regStored.length}`)
+    for (let x of es.regFetchedOld) { x.refresh () }
+    for (let x of es.regStoredOld)  { x.refresh () }
+
+    // Update the new register accesses
+    for (let x of es.regFetched) x.highlight ("GET")
+    for (let x of es.regStored)  x.highlight ("PUT")
+    es.regFetchedOld = es.regFetched
+    es.regStoredOld = es.regStored
+    es.regFetched = []
+    es.regStored = []
+}
+
+export function initRegHighlighting (gst) {
+    const es = gst.es
+    es.regFetchedOld = []
+    es.regStoredOld = []
+    es.regFetched = []
+    es.regStored = []
+}
+
+// Display all the registers and remove highlighting.
+
+export function refreshRegisters (gst) {
+    com.mode.devlog('Refreshing registers');
+    for (let i = 0; i < gst.es.nRegisters; i++) {
+	gst.es.register[i].refresh();
+    }
+    gst.es.regFetched = []
+    gst.es.regFetchedOld = []
+    gst.es.regStored = []
+    gst.es.regStoredOld = []
+}
+
+//-------------------------------------------------
+// Emulator control from the gui
+//-------------------------------------------------
+
+function procInterrupt (gst) {
+    console.log ('*** procInterrupt')
+}
+
+// The Pause button stops the instruction looper and displays the state.
+
+// export function procPause(es) {
+export function procPause (gst) {
+    com.mode.devlog ("procPause");
+    console.log (`procPause st=${st.readSCB (gst.es,st.SCB_status)}`)
+    console.log (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
+    st.writeSCB (gst.es, st.SCB_pause_request, 1)
+    console.log (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
+    com.mode.devlog ("em wrote procPause request")
+}
+
+//-----------------------------------------------------------------------------
+// Gui display
+//-----------------------------------------------------------------------------
+
+// These functions display information on the gui; they abstract the
+// document DOM out of the emulator
+
+export function guiDisplayNinstr (es) {
+    if (es.thread_host === com.ES_gui_thread) {
+        //        let n = st.readSCB (es, st.SCB_nInstrExecuted)
+        let n = es.vec32[0]
+        document.getElementById("nInstrExecuted").innerHTML = n
+    }
+}
+
+export function guiDisplayMem (gst, elt, xs) {
+    if (gst.es.thread_host === com.ES_gui_thread) elt.innerHTML = xs
+}
+
+//------------------------------------------------------------------------------
+// Test pane
+//------------------------------------------------------------------------------
+
+// From emulator.js
+
+// In the mem display, the formatting is ok when the container
+// specifies the style class.  However, when <pre> ... </pre> are
+// added around the text, the font and size are wrong and the
+// specified style is ignored.  Perhaps <pre> has an inappropriate
+// default style that overrides the existing font.  Solution is to use
+// <pre class="HighlightedTextAsHtml"> but don't put it inside a div
+// with HighlightedTExtAsHtml
+
+function testpane1() {
+    com.mode.devlog ('testpane 1 clicked')
+    let xs = ["<pre class='HighlightedTextAsHtml'>", 'line 1 text',
+	      "<span class='CUR'>this is line 2 text</span>",
+	      'and finally line 3', '</pre>'];
+    com.mode.devlog ('xs = ' + xs);
+    let ys = xs.join('\n');
+    com.mode.devlog ('ys = ' + ys);
+
+    let qs = ys;
+    com.mode.devlog ('qs = ' + qs);
+    document.getElementById('TestPaneBody').innerHTML = qs;
+}
+
+function testpane2 () {
+    com.mode.devlog ('testpane 2 clicked');
+}
+
+function testpane3 () {
+    com.mode.devlog ('testpane 3 clicked');
+}
+
+// ********************************************************************************
+
+//-----------------------------------------------------------------------------
+// Memory display
+//-----------------------------------------------------------------------------
+
+
+export let memDisplayModeFull = false;  // show entire/partial memory
+let memDisplayFastWindow = 16;          // how many locations to show in fast mode
+let memDispOffset = 3;                  // how many locations above highligted one
+
+
+// The user interface (either gui or cli) updates the memory display;
+// the emulator just records memory accesses
+
+// The memory display shows two windows into the memory: the left one
+// normally shows the instruction that has been fetched, and the right
+// one normally shows data that was stored or fetched (if any).  The
+// following steps set the display:
+
+// 1. Options page sets memory display mode in the emulator state (es)
+// 2. Obtain memory display mode from es
+// 3. Obtain instruction fetch target address and data access target address
+//    getMemTargetAddresses (es)
+//      => {ifet: a, daccess: a}   (a is an address)
+// 4. Calculate first and last address to be displayed for both elements
+//    findMemDispIntervals (es)
+//      => {ifirst: a, ilast: a, dfirst: a, dlast: a}
+// 5. Define list of memory strings to display
+// 6. Populate the DOM elements with the strings
+// 7. Scroll each memory window to the target address
+
+// The memory display mode is set on the Options page.  It is saved in
+// es.memDispMode (which should be one of the following symbols) as
+// well as es.memDispArg, which gives the highest booted address (for
+// es.memDispMode = ModeMemDisplayHBA) or the sliding window size (for
+// es.memDispMode = ModeMemDisplaySliding).
+
+export const ModeMemDisplayHBA = Symbol ("MD HBA")  // 0 to highest booted address
+export const ModeMemDisplaySliding = Symbol ("MD sliding") // sliding window
+export const ModeMmDisplayFull = Symbol ("MD full")  // full memory
+
+
+
+// Memory accesses are recorded in three arrays of addresses:
+// memFetchInstr, memFetchData, memStore.  These addresses are used to
+// highlight the memory location in the memory display, as well as to
+// scroll the display to make that location visible.
+
+
+// The memory display is updated by calling updateMemDisplay; this can
+// be done after an instruction, after a breakpoint or halt, or while
+// a concurrent emulator thread is running.
+
+// Note on data structure.  I tried having a preliminary element [0]
+// containing just "<pre class='HighlightedTextAsHtml'>", so address a
+// is shown in memString[a+1].  The indexing was fine but the
+// scrolling didn't work, possibly because of this dummy element with
+// its newline inserted when the array is joined up.
+
+
+//--------------------------------------
+// The memString array
+//--------------------------------------
+
+// memString is an array of strings that represent the contents of the
+// memory, which is an array of words.  setMemString (es,a) converts
+// mem[a] to a string and puts it into memString[a].
+
+//function setMemString(es,a) {
+function setMemString(gst,a) {
+    let x = gst.es.shm[st.EmMemOffset + a]
+    gst.memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
+}
+
+// memRefresh -- refresh all the memory strings; the memString array
+// should be accurate but this function will recalculate all elements
+// of that array
+
+// function memRefresh (es) {
+function memRefresh (gst) {
+    gst.memString = [];  // clear out and collect any existing elements
+    for (let i = 0; i < arch.memSize; i++) {
+	setMemString(gst,i);
+    }
+}
+
+// Memoize memory location strings.  Create a string to represent a
+// memory location; the actual value is in the memory array, and the
+// string is placed in the memString array.  memString[0] = <pre
+// class="HighlightedTextAsHtml"> and mem[a] corresponds to
+// memString[a+1].
+
+// function memHighlight (es, a, highlight) {
+function memHighlight (gst, a, highlight) {
+    let x = gst.es.shm[st.EmMemOffset + a]
+    gst.memString[a] =
+	"<span class='" + highlight + "'>"
+	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
+        + "</span>";
+}
+
+// Create a string with a span class to represent a memory location
+// with highlighting; the actual value is in the memory array, and the
+// string is placed in the memString array.
+
+// Set the memory displays, using the memString array.  Check mode to
+// determine whether the display should be partial and fast or
+// complete but slow.
+
+
+// Update the memory string for each location that has been accessed,
+// so that it contains an html div element which can be used to
+// highlight the memory location.  Do the fetches first, then the
+// stores: this ensures that if a location has both been fetched and
+// stored, the highlighting for the store will take precedence.
+
+// Need to rewrite this for efficiency ???
+
+function updateMemory (gst) {
+    const es = gst.es
+    if (st.readSCB (es, st.SCB_status) != st.SCB_running_gui) {
+        // Clear previous highlighting
+        for (let x of es.memFetchInstrLogOld) { setMemString (gst, x) }
+        for (let x of es.memFetchDataLogOld)  { setMemString (gst, x) }
+        for (let x of es.memStoreLogOld)      { setMemString (gst, x) }
+        // Update new memory accesses
+        for (let x of es.memFetchInstrLog)    { memHighlight (gst, x, "GET") }
+        for (let x of es.memFetchDataLog)     { memHighlight (gst, x, "GET") }
+        for (let x of es.memStoreLog)         { memHighlight (gst, x, "PUT") }
+        es.memFetchInstrLogOld = es.memFetchInstrLog
+        es.memFetchDataLogOld = es.memFetchDataLog
+        es.memStoreLogOld = es.memStoreLog
+        es.memFetchInstrLog = []
+        es.memFetchDataLog = []
+        es.memStoreLog = []
+    }
+}
+
+
+//--------------------------------------
+// Display portion of memString array
+//--------------------------------------
+
+// export function memDisplay (es) {
+export function memDisplay (gst) {
+//    if (memDisplayModeFull) { memDisplayFull (es) }
+    //    else { memDisplayFast (es) }
+    //    memDisplayFast (gst)
+    memDisplayFull (gst)
+}
+
+// Set the memory displays, showing only part of the memory to save time
+
+// function memDisplayFast (es) {
+export function memDisplayFast (gst) {
+    const es = gst.es
+    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
+    xa = (es.memFetchInstrLog.length===0) ? 0 : (es.memFetchInstrLog[0] - memDispOffset);
+    xa = xa < 0 ? 0 : xa;
+    xb = xa + memDisplayFastWindow;
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+    	+ gst.memString.slice(xa,xb).join('\n')
+	+ "</code></pre>";
+//    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
+    guiDisplayMem (gst, gst.memElt1, xs)
+//    memElt1.innerHTML = xs;
+    yafet = (es.memFetchDataLog.length===0) ? 0 : (es.memFetchDataLog[0] - memDispOffset);
+    yasto = (es.memStoreLog.length===0) ? 0 :(es.memStoreLog[0] - memDispOffset);
+    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
+    ya = ya < 0 ? 0 : ya;
+    yb = ya + memDisplayFastWindow;
+    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ gst.memString.slice(ya,yb).join('\n')
+	+ "</code></pre>";
+//    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
+    //    memElt2.innerHTML = ys;
+    guiDisplayMem (gst, gst.memElt2, xs)
+}
+
+// Set the memory displays, showing the full memory
+
+// Need <pre> to get the formatting correct with line breaks.  but
+// <pre> prevents scrolling from working.  Could try not using pre,
+// but putting <br> after each line, but that still wouldn't work
+// because multiple spaces in code wouldn't work..  Try <code>; With
+// <code class=... scrolling works, but the line breaks aren't
+// there.. Is there a problem with HighlightedTextAsHtml?
+
+// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
+
+//    xs = "<pre><code class='HighlightedTextAsHtml'>"
+//	+ memString.join('\n')
+//	+ "</code></pre>";
+
+// function memDisplayFull (es) {
+function memDisplayFull (gst) {
+    const es = gst.es
+    let memElt1 = document.getElementById('MemDisplay1');
+    let memElt2 = document.getElementById('MemDisplay2');
+
+    let xs;                 // display text
+    let xt, xo;             // display 1 targets and offsets
+    let yafet, yasto, ya, yo, yt;
+    com.mode.devlog ('memDisplayFull');
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ gst.memString.join('\n')
+	+ "</code></pre>";
+
+    memElt1.innerHTML = xs;
+    xt = (es.memFetchInstrLog.length===0)? 0 : es.memFetchInstrLog[0] - memDispOffset;
+    xo = xt * pxPerChar;
+    com.mode.devlog('  target1 xt = ' + xt + '   offset1 = ' + xo);
+    memElt1.scroll(0,xo);
+    
+    memElt2.innerHTML = xs;
+    yafet = (es.memFetchDataLog.length===0) ? 0 : (es.memFetchDataLog[0] - memDispOffset);
+    yasto = (es.memStoreLog.length===0) ? 0 :(es.memStoreLog[0] - memDispOffset);
+    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
+    yt = yt < 0 ? 0 : yt;
+    yo = yt * pxPerChar;
+    com.mode.devlog('  yafet=' + yafet + ' yasto=' + yasto
+		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
+    memElt2.scroll(0,yo);
+}
+
+
+// Display mem[first]...mem[last] in elt.  Highlight fet and/or sto,
+// if these are between first and last.
+
+// function memDisplayNew (es, first, last, fet, sto, elt) {
+function memDisplayNew (gst, first, last, fet, sto, elt) {
+    const es = gst.es
+    const xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	  + gst.memString.slice(first,last+1).join('\n')
+	  + "</code></pre>";
+
+    if (first <= fet && fet <= last) {
+        // give fetch highlighting to xs[fet-first]
+        xs[fet-first] = com.highlightField (xs[fet-first], FET)
+    }
+    if (first <= sto && sto <= last) {
+        // give store highlighting to xs[sto-first]
+    }
+    elt.innerHTML = xs.join('\n')
+    if (first <= sto && sto <= last)       scrollMem (elt, sto)
+    else if (first <= fet && fet <= last)  scrollMem (elt, fet)
+}
+/*
+*/
+
+//------------------------------------------------------------------------------
+// Processor display
+//------------------------------------------------------------------------------
+
+// The mode determines the quantity and destination of output
+
+export const Mode_GuiDisplay = 100
+export const Mode_Console    = 200
+export const Mode_Quiet      = 300
+
+// Number of header lines in the listing before the source lines begin
+const listingLineInitialOffset = 1;
+
+
+
+// export function refreshDisplay (es) {
+export function refreshDisplay (gst) {
+    refreshRegisters (gst);
+    memDisplay (gst);
+    document.getElementById('ProcAsmListing').innerHTML = "";
+    clearInstrDecode (gst);
+    refreshInstrDecode (gst);
+    guiDisplayNinstr (gst)
+    es.ioLogBuffer = ""
+    em.refreshIOlogBuffer (gst.es)
+    st.showSCBstatus (gst.es)
+//    memClearAccesses ();
+}
+
+//------------------------------------------------------------------------------
+// Elapsed time clock
+//------------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Clock
+//-----------------------------------------------------------------------------
+
+const ClockWidth = 7 // number of characters to display
+
+// Clear the display of the clock
+export function clearClock (gst) {
+    document.getElementById("PP_time").innerHTML = ""
+}
+
+// Note the current starting time and start the interval timer
+export function startClock (gst) {
+    console.log ("startClock")
+    clearClock (gst)
+    const now = new Date ()
+    gst.startTime = now.getTime ()
+    gst.eventTimer = setInterval (duringRunRefresher (gst), gst.guiRefreshInterval)
+}
+
+export function stopClock (gst) {
+    console.log ("stopClock")
+    clearInterval (gst.eventTimer)
+    gst.eventTimer = null
+    com.mode.devlog ("stopClock")
+    updateClock (gst)
+}
+
+export function updateClock (gst) {
+    const now = new Date ()
+    const elapsed = now.getTime () - gst.startTime
+    const xs = elapsed < 1000
+          ? `${elapsed.toFixed(0)} ms`
+          : ` ${(elapsed/1000).toPrecision(ClockWidth)} s`
+    document.getElementById("PP_time").innerHTML = xs
+}
+
+
+// To keep the display alive during a long run, call the
+// duringRunRefresher from time to time.  It can be triggered either by
+// the interval timer or by a trap.
+
+const duringRunRefresher = (gst) => () => {
+    updateClock (gst)
+    refreshRFdisplay (gst)
+    guiDisplayNinstr (gst)
+}
+
+// Show the current values of the register file without highlighting
+
+export function refreshRFdisplay (es) {
+    for (let i = 0; i < es.nRegisters; i++) {
+        let j = st.EmRegBlockOffset + i
+        let x = i === 0 ? 0 : es.shm[j]
+        let e = es.register[i].elt
+        e.innerHTML = arith.wordToHex4 (x)
+    }
+}
+
+export function test1 (es) {
+    updateClock (es)
+    refreshRFdiysplay (es)
+}
 
 //------------------------------------------------------------------------------
 // Examples pane
@@ -1326,13 +2649,16 @@ function allocateStateVector (es) {
 */
 
 function testSysStateVec (es) {
-    cn.output (`Testing emulator memory: ${es.thread_host}`)
+    console.log ('%ctestSysStateVec starting...', 'color:blue')
+    console.log (`Testing emulator memory: ${es.thread_host}`)
+    console.log (`Testing emulator memory: ${es.thread_host}`)
     let xs = ""
     let n = 3
     for (let i = 0; i < n; i++) es.shm[i] = i
     for (let i = 0; i < n; i++) es.shm[i] += 100
     for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
-    cn.output (`thread host ${es.thread_host}: ${xs} finished`)
+    console.log (`thread host ${es.thread_host}: ${xs} finished`)
+    console.log ('%c...testSysStateVec finished', 'color:blue')
 }
 
 //-------------------------------------------------------------------------------
@@ -1526,42 +2852,46 @@ function initializeButtons () {
     prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
     // Processor pane (PP)
-    prepareButton ('PP_Help',       () => toggleProcHelp ());
-    prepareButton ('ProcHelpClose',       () => toggleProcHelp ());
-    prepareButton ('PP_Boot',       () => em.boot (gst.es));
-    prepareButton ('PP_Step',       () => procStep (gst.es));
+    prepareButton ('PP_Help',       () => toggleProcHelp ())
+    prepareButton ('ProcHelpClose', () => toggleProcHelp ())
+    prepareButton ('PP_Boot',       () => procBoot (gst))
+    prepareButton ('PP_Step',       () => procStep (gst))
     prepareButton ('PP_Run',        () => runGeneric (gst))
-    prepareButton ('PP_Pause',      () => em.procPause (gst.es));
-    prepareButton ('PP_Interrupt',  () => em.procInterrupt (gst.es));
-    prepareButton ('PP_Breakpoint', () => em.procBreakpoint (gst.es));
-    prepareButton ('PP_Refresh',    () => em.refresh (gst.es));
-    prepareButton ('PP_Reset',      () => em.procReset (gst.es));
-    prepareButton ('PP_RunMain',    () => runMain (gst.es))
-    prepareButton ('PP_RunWorker',  () => runWorker (gst.es))
-    prepareButton ('PP_Test1',      () => test1 (gst.es))
+    prepareButton ('PP_Pause',      () => procPause (gst))
+    prepareButton ('PP_Interrupt',  () => procInterrupt (gst))
+    prepareButton ('PP_Breakpoint', () => procBreakpoint (gst))
+    prepareButton ('PP_Refresh',    () => procRefresh (gst))
+    prepareButton ('PP_Reset',      () => procReset (gst))
+    prepareButton ('PP_RunMain',    () => runMain (gst))
+    prepareButton ('PP_RunWorker',  () => runWorker (gst))
+    prepareButton ('PP_Test1',      () => test1 (gst))
     prepareButton ('PP_Test2',      emwtTest2);
-
-
-    prepareButton ('PP_Timer_Interrupt',  () => em.timerInterrupt (gst.es));
-    // prepareButton ('PP_Toggle_Display',  em.toggleFullDisplay);
+    prepareButton ('PP_Timer_Interrupt', () => es.timerInterrupt (gst));
 
     // Breakpoint popup dialogue
-    /*
-      prepareButton ("BreakRefresh", em.breakRefresh(em.emulatorState));
-      prepareButton ("BreakEnable", em.breakEnable(em.emulatorState));
-      prepareButton ("BreakDisable", em.breakDisable(em.emulatorState));
-      prepareButton ("BreakClose", em.breakClose());
-    */
+    prepareButton ("BreakRefresh", breakRefresh(gst));
+    prepareButton ("BreakEnable",  breakEnable(gst));
+    prepareButton ("BreakDisable", breakDisable(gst));
+    prepareButton ("BreakClose",   breakClose(gst));
 
     // Options
     prepareButton ('UpdateSliceSize',      () => updateMainSliceSize (gst))
-    prepareButton ('UpdateMemDisplaySize',    () => updateMemDisplaySize (gst))
+    prepareButton ('UpdateMemDisplaySize', () => updateMemDisplaySize (gst))
 
     setRTworker (gst) (null) // use worker if available
     document.getElementById("RTmain")
         .addEventListener ("change", setRTmain (gst))
     document.getElementById("RTworkerShm")
         .addEventListener ("change", setRTworker (gst))
+
+
+    document.getElementById("MDhba")
+        .addEventListener ("change", setMDhba (gst))
+    document.getElementById("MDsliding")
+        .addEventListener ("change", setMDsliding (gst))
+    document.getElementById("MDfull")
+        .addEventListener ("change", setMDfull (gst))
+
     document.getElementById("EnterMainSliceSize")
         .addEventListener ("keydown", (e) => { e.stopPropagation () })
     document.getElementById("EnterMemDisplaySize")
@@ -1664,7 +2994,6 @@ window.test_op_add = (x,y) => {
             + ` cc: ${arith.wordToHex4(s)} ccflags=${arith.showCC(s)}`)
 }
 
-
 //-----------------------------------------------------------------------------
 // Initialization
 //-----------------------------------------------------------------------------
@@ -1672,17 +3001,17 @@ window.test_op_add = (x,y) => {
 function initializeMainEmulator (gst) {
     gst.es = new em.EmulatorState (
         com.ES_gui_thread,
-        () => initRun (gst.es),
-        () => updateWhileRunning (gst.es),
-        () => finishRun (gst.es) )
+        () => initRun (gst),
+        () => updateWhileRunning (gst),
+        () => finishRun (gst) )
     console.log ("allocate state vector")
-    configureOptions (gst, gst.es)
+    configureOptions (gst)
     allocateStateVector (gst.es)
-    console.log ("allocate state vector done")
+    console.log ("allocate state vector done in gst")
     testSysStateVec (gst.es)
     em.initializeMachineState (gst.es)
-    em.initializeSubsystems ();
-    em.clearClock (gst.es)
+    initializeSubsystems ();
+    clearClock (gst)
     gst.es.emRunThread = com.ES_gui_thread // default run mode
     em.procReset (gst.es)
 }
@@ -1697,7 +3026,7 @@ function initializeGuiLayout (gst) {
 }
 
 function initializeGuiElements (gst) {
-    em.hideBreakDialogue ();
+    hideBreakDialogue ();
     document.getElementById('LinkerText').innerHTML = "";    
     smod.prepareChooseFiles ();
     smod.initModules (gst);
@@ -1717,6 +3046,17 @@ function initializeTracing (gst) {
     com.mode.trace = false
 }
 
+function initializeSystem () {
+    com.mode.devlog ('Initializing system')
+    gst = new GuiState ()          // Create gui state and set global variable
+    initializeMainEmulator (gst)   // Create emulator state
+    initializeGuiLayout (gst)      // Initialize gui layout
+    initializeGuiElements (gst)    // Initialize gui elements
+    procRefresh (gst)
+    findVersion (gst)              // Determine running and latest version
+    initializeTracing (gst)        // Initialize tracing mode
+}
+
 //-----------------------------------------------------------------------------
 // Run initializers
 //-----------------------------------------------------------------------------
@@ -1727,21 +3067,8 @@ function initializeTracing (gst) {
 
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
-    gst = new GuiState ()          // Create gui state
-    initializeMainEmulator (gst)   // Create emulator state
-    initializeGuiLayout (gst)      // Initialize gui layout
-    initializeGuiElements (gst)    // Initialize gui elements
-    findVersion (gst)              // Determine running and latest version
-    initializeTracing (gst)        // Initialize tracing mode
-    // System should now be running
+    initializeSystem ()
+    com.mode.devlog ('System is now running')
 }
 
-
-//  Deprecated
-// let fileContents = "file not read yet"
-
-/*
-// probably won't need this
-let globalObject = this; // to enable script in userguide to define glob var
-*/
-// const procAsmListingElt = document.getElementById('ProcAsmListing');
+// Deprecated
