@@ -344,6 +344,7 @@ function doStep () {
 
 function doRun (limit) {
     console.log ("emwt doRun")
+    em.initRegHighlighting (emwt.es)
     let count = 0
     let status = 0
     let pauseReq = false

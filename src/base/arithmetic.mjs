@@ -516,7 +516,7 @@ export function op_add (a,b) {
     const sum = a + b
     const primary = sum & 0x0000ffff
     const secondary = additionCC (a,b,primary,sum)
-    console.log (`*** op_add a=${wordToHex4(a)} b=${wordToHex4(b)} p=${wordToHex4(primary)} s=${wordToHex4(secondary)}`)
+// com.mode.devlog (`*** op_add a=${wordToHex4(a)} b=${wordToHex4(b)} p=${wordToHex4(primary)} s=${wordToHex4(secondary)}`)
     return [primary, secondary]
 }
 

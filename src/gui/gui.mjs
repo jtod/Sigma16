@@ -36,9 +36,9 @@ import * as em    from '../base/emulator.mjs';
 // Constant parameters
 //-----------------------------------------------------------------------------
 
+const InitMidLRratio = 0.6  // width ratio midMainLeft/midMainRight
 const defaultExecSliceSize = 500
-const InitMidLRratio = 0.6  // width ratio: midMainLeft/midMainRight
-const InitGuiRefreshInterval = 1000 // period of display refresh during run (ms)
+const InitGuiRefreshInterval = 250 // period (ms) of worker display refresh
 
 //-------------------------------------------------------------------------------
 // Global state variable
@@ -106,8 +106,6 @@ class GuiState {
         this.metadata           = null
 	this.asmListingCurrent  = [] // listing displayed in emulator pane
         this.asmListingHeight   = 0   // height in pixels of the listing
-//	this.curInstrAddr       = 0
-//	this.nextInstrAddr      = 0
 	this.curInstrLineNo     = -1  // -1 indicates no line has been highlighted
 	this.nextInstrLineNo    = -1
 	this.saveCurSrcLine     = ""
@@ -509,6 +507,7 @@ function handleEmwtStepResponse (p) {
     com.mode.devlog (`main: handle emwt step response ${p}`)
     //    em.refresh (guiEmulatorState)
     execInstrPostDisplay (gst)
+    updateRegisters (gst)
     let newstatus = st.readSCB (gst.es, st.SCB_status)
     com.mode.devlog (`main handle emwt step response: status=${newstatus}`)
     if (newstatus === st.SCB_relinquish) {
@@ -880,6 +879,7 @@ function runGeneric (gst) {
 
 function runMain (gst) {
     gst.es.emRunThread = com.ES_gui_thread
+    em.initRegHighlighting (gst.es)
     procRun (gst)
 }
 
@@ -962,8 +962,7 @@ export function procStep (gst) {
         let qnew = st.readSCB (es, st.SCB_status)
         if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
         execInstrPostDisplay (gst)
-        guiDisplayNinstr (es)
-//        procRefresh (gst)
+        updateRegisters (gst)
         break
     case st.SCB_reset:
     case st.SCB_running_gui:
@@ -996,38 +995,21 @@ export function procStep (gst) {
 // (for running) Prepare the displays before running sequence of
 // instructions (the Run button).
 
-
-// (for stepping) Display the effects of the instruction
-// Prepare to execute an instruction by clearing the buffers holiding
-// log information.
-
-function prepareExecuteInstruction (gst) {
-    com.mode.devlog ("prepareExecuteInstruction");
-//    memDisplay (gst);
-//    clearInstrDecode (gst);
-}
+// After this, either updateRegisters or refreshRegisters
 
 export function execInstrPostDisplay (gst) {
     console.log ('execInstrPostDisplay')
     com.mode.devlog ("execInstrPostDisplay")
     const es = gst.es
         com.mode.devlog ("main: execInstrPostDisplay, proceeding")
-        updateRegisters (gst)
+//        updateRegisters (gst)
         updateMemory (gst)
         memDisplay (gst)
         highlightListingAfterInstr (gst)
-//        showInstrDecode (gst) ???????????????????? here ?????????????????????
+        updateInstrDecode (gst)
         guiDisplayNinstr (gst)
         document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
 }
-//        break
-//    default: // should be impossible
-//        com.mode.devlog (`error: execInstrPostDisplay host=${es.thread_host}`)
-//    }
-//    switch (es.thread_host) {
-//    case com.ES_worker_thread: // should be impossible
-//        break;
-//    case com.ES_gui_thread:
 
 function procRefresh (gst) {
     console.log ("procRefresh")
@@ -1048,71 +1030,35 @@ function initRun (gst) {
 function finishRun (gst) {
     stopClock (gst)
     execInstrPostDisplay (gst)
+    updateRegisters (gst)
 //    procRefresh (gst)
 }
 
-//********************************************************************************
-
-// functions to provide to emulator, put in es.function
-
-// maybe emulator doesn't need to refresh interface at all.  The
-// interface can decide whether to tell the emulator to execute one
-// instruction, or to keep going until a stopping condition, and the
-// interface can decide when and what to display
-
-// user interface will refresh all the main elements of the display,
-// and will use the memory display mode to decide how much of the
-// memory to display
-
-/* from memInitialize
-//        memRefresh(es);  // generate a string showing each location
-//        es.initializeMemDisplay (es)
-//        es.memElt1 = document.getElementById('MemDisplay1');
-//        es.memElt2 = document.getElementById('MemDisplay2');
-//        memDisplay(es);  // put the strings into the gui display elements
-
- */
 
 const refreshProcessorDisplay = (gst) => (es) => {
 }
 
 
-// shouldn't need this?  emulator can do
-//   resetProcessor, then
-//   refreshProcessorDisplay
-
-function initiallizeMemDisplay (gst) {
-    //        memRefresh(es);  // generate a string showing each location
-//        es.initializeMemDisplay (es)
-//        es.memElt1 = document.getElementById('MemDisplay1');
-//        es.memElt2 = document.getElementById('MemDisplay2');
-//        memDisplay(es);  // put the strings into the gui display elements
-}
-
 // Just clear regs & memory, then refreshProcessorDisplay
 function clearProcessorDisplay (gst) {
     console.log ('clearProcessorDisplay')
-    initializeProcessorElements (gst);  // so far, it's just instr decode
+    initializeProcessorElements (gst)
     gst.es.asmListingCurrent = []
-    clearInstrDecode (gst);
+    em.clearInstrDecode (gst.es)
 }
 
 // Processor elements: html elements for displaying instruction decode
 
 export function initializeProcessorElements (gst) {
-    //    if (es.mode === Mode_GuiDisplay) {
-//    const es = gst.es
-    if (gst.es.thread_host === com.ES_gui_thread) {
-        com.mode.devlog ('initializeProcessorElements');
-        gst.instrCodeElt = document.getElementById("InstrCode");
-        gst.instrFmtElt  = document.getElementById("InstrFmt");
-        gst.instrOpElt   = document.getElementById("InstrOp");
-        gst.instrArgsElt = document.getElementById("InstrArgs");
-        gst.instrEAElt   = document.getElementById("InstrEA");
-        gst.instrCCElt   = document.getElementById("InstrCC");
-        gst.instrEffect1Elt = document.getElementById("InstrEffect1");
-        gst.instrEffect2Elt = document.getElementById("InstrEffect2");
-    }
+    com.mode.devlog ('initializeProcessorElements');
+    gst.instrCodeElt = document.getElementById("InstrCode");
+    gst.instrFmtElt  = document.getElementById("InstrFmt");
+    gst.instrOpElt   = document.getElementById("InstrOp");
+    gst.instrArgsElt = document.getElementById("InstrArgs");
+    gst.instrEAElt   = document.getElementById("InstrEA");
+    gst.instrCCElt   = document.getElementById("InstrCC");
+    gst.instrEffect1Elt = document.getElementById("InstrEffect1");
+    gst.instrEffect2Elt = document.getElementById("InstrEffect2");
 }
 
 // Copy executable listing to processor asm display
@@ -1156,7 +1102,7 @@ export function boot (gst) {
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
 
-    initializeProcessorElements (gst);  // so far, it's just instr decode
+    initializeProcessorElements (gst)
     gst.metadata = new st.Metadata ();
     gst.metadata.fromText (metadataText);
 
@@ -1250,17 +1196,6 @@ export function boot (gst) {
     }
     com.mode.devlog ("boot returning");
 }
-//    com.mode.devlog ("------------- boot reading code --------------- ")
-//    com.mode.devlog (`*** Boot object code = ${objectCodeText}`)
-//    com.mode.devlog (`*** Boot metadata = ${metadataText}`)
-//    com.mode.devlog ("------------- boot starting --------------- ")
-//    memClearAccesses ();
-//    es.nInstructionsExecuted = 0;
-    //    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
-//    guiDisplayNinstr (es)
-//    document.getElementById("nInstrExecuted").innerHTML =
-//	es.nInstructionsExecuted;
-//        clearTime (es) ?? don't want to import gui, where it's defined
 
 
 
@@ -1307,21 +1242,23 @@ export function displayFullState (gst) {
 // Instruction decode
 //------------------------------------------------------------------------------
 
+// Use instruction fields to display the decoded instruction
 
-export function clearInstrDecode (es) {
-    return // ?????????????????????????????
-    es.instrOpCode = null;
-    es.instrDisp = null;
-    es.instrCodeStr  = "";
-    es.instrFmtStr   = "";
-    es.instrOp    = "";
-    es.instrArgs  = "";
-    es.instrEA = null;
-    es.instrEAStr    = "";
-    es.instrEffect = [];
+// Emulator state contains numeric fields, gui state contains strings
+
+export function updateInstrDecode (gst) {
+    com.mode.devlog ("updateInstrDecode");
+    const es = gst.es
+    const ccval = es.regfile[15].get ()
+    gst.instrCodeElt.innerHTML    = es.instrCodeStr;
+    gst.instrFmtElt.innerHTML     = es.instrFmtStr;
+    gst.instrOpElt.innerHTML      = es.instrOpStr;
+    gst.instrArgsElt.innerHTML    = showArgs(es); // instrArgsStr;
+    gst.instrEAElt.innerHTML      = es.instrEAStr;
+    gst.instrCCElt.innerHTML      = arith.showCC(ccval);
+    gst.instrEffect1Elt.innerHTML =  showEffect(es,0);
+    gst.instrEffect2Elt.innerHTML =  showEffect(es,1);
 }
-
-
 
 //------------------------------------------------------------------------------
 // Interface to the gui
@@ -1583,25 +1520,6 @@ function setModeHighlight (x) {
 
 // Initialize machine state
 
-export function refreshInstrDecode (gst) {
-    com.mode.devlog ("refreshInstrDecode");
-    return
-    const es = gst.es
-//    if (false) { // ????????????????????? temporary...
-    if (es.thread_host === com.ES_gui_thread) {
-        gst.instrCodeElt.innerHTML = es.instrCodeStr;
-        gst.instrFmtElt.innerHTML  = es.instrFmtStr;
-        gst.instrOpElt.innerHTML   = es.instrOpStr;
-        gst.instrArgsElt.innerHTML = showArgs(es); // instrArgsStr;
-        gst.instrEAElt.innerHTML   = es.instrEAStr;
-        //        let ccval = es.regfile[15].val;
-        let ccval = es.regfile[15].get ()
-        gst.instrCCElt.innerHTML      = arith.showCC(ccval);
-        gst.instrEffect1Elt.innerHTML = showEffect(es,0);
-        gst.instrEffect2Elt.innerHTML = showEffect(es,1);
-    }
-}
-
 //-------------------------------------------------
 // Register display
 //-------------------------------------------------
@@ -1629,17 +1547,20 @@ function updateRegisters (gst) {
 }
 
 
-export function initRegHighlighting (gst) {
-    const es = gst.es
-    es.regFetchedOld = []
-    es.regStoredOld = []
-    es.regFetched = []
-    es.regStored = []
+// Display all the registers without highlighting.
+
+function refreshRegisters (gst) {
+    com.mode.devlog('Refreshing registers');
+    for (let i = 0; i < gst.es.nRegisters; i++) {
+	gst.es.register[i].refresh();
+    }
+    gst.es.regFetched = []
+    gst.es.regFetchedOld = []
+    gst.es.regStored = []
+    gst.es.regStoredOld = []
 }
 
-// Display all the registers and remove highlighting.
-
-export function refreshRegisters (gst) {
+export function OLDrefreshRegisters (gst) {
     console.log('Refreshing registers');
     com.mode.devlog('Refreshing registers');
     for (let i = 0; i < gst.es.nRegisters; i++) {
@@ -1651,6 +1572,8 @@ export function refreshRegisters (gst) {
     gst.es.regStoredOld = []
 }
 
+
+
 //-------------------------------------------------
 // Emulator control from the gui
 //-------------------------------------------------
@@ -1658,6 +1581,13 @@ export function refreshRegisters (gst) {
 function procInterrupt (gst) {
     console.log ('*** procInterrupt')
 }
+
+function timerInterrupt (gst) {
+    com.mode.devlog ("Timer Interrupt clicked")
+    arith.setBitInRegBE (gst.es.req, arch.timerBit)
+    gst.es.req.refresh()
+}
+
 
 // The Pause button stops the instruction looper and displays the state.
 
@@ -1678,12 +1608,9 @@ export function procPause (gst) {
 // These functions display information on the gui; they abstract the
 // document DOM out of the emulator
 
-export function guiDisplayNinstr (es) {
-    if (es.thread_host === com.ES_gui_thread) {
-        //        let n = st.readSCB (es, st.SCB_nInstrExecuted)
-        let n = es.vec32[0]
+export function guiDisplayNinstr (gst) {
+        let n = gst.es.vec32[0]
         document.getElementById("nInstrExecuted").innerHTML = n
-    }
 }
 
 export function guiDisplayMem (gst, elt, xs) {
@@ -1997,7 +1924,7 @@ export function refreshDisplay (gst) {
     refreshRegisters (gst);
     memDisplay (gst);
     document.getElementById('ProcAsmListing').innerHTML = "";
-    clearInstrDecode (gst);
+//    es.clearInstrDecode (es.gst);
     refreshInstrDecode (gst);
     guiDisplayNinstr (gst)
     es.ioLogBuffer = ""
@@ -2060,7 +1987,8 @@ const duringRunRefresher = (gst) => () => {
 
 // Show the current values of the register file without highlighting
 
-export function refreshRFdisplay (es) {
+export function refreshRFdisplay (gst) {
+    const es = gst.es
     for (let i = 0; i < es.nRegisters; i++) {
         let j = st.EmRegBlockOffset + i
         let x = i === 0 ? 0 : es.shm[j]
@@ -2757,7 +2685,7 @@ function initializeButtons () {
     prepareButton ('PP_RunWorker',  () => runWorker (gst))
     prepareButton ('PP_Test1',      () => test1 (gst))
     prepareButton ('PP_Test2',      emwtTest2);
-    prepareButton ('PP_Timer_Interrupt', () => es.timerInterrupt (gst));
+    prepareButton ('PP_Timer_Interrupt', () => timerInterrupt (gst));
 
     // Breakpoint popup dialogue
     prepareButton ("BreakRefresh", breakRefresh(gst));
@@ -3077,5 +3005,75 @@ function showLst (es, xs, i) {
     com.mode.devlog (`----- Pla = ${gst.metadata.listingPlain[i].slice(0,30)}`)
     com.mode.devlog (`----- Dec = ${gst.metadata.listingDec[i].slice(0,30)}`)
 }
+
+// (for stepping) Display the effects of the instruction
+// Prepare to execute an instruction by clearing the buffers holiding
+// log information.
+
+function prepareExecuteInstruction (gst) {
+    com.mode.devlog ("prepareExecuteInstruction");
+//    memDisplay (gst);
+//    clearInstrDecode (gst);
+}
+
+//        break
+//    default: // should be impossible
+//        com.mode.devlog (`error: execInstrPostDisplay host=${es.thread_host}`)
+//    }
+//    switch (es.thread_host) {
+//    case com.ES_worker_thread: // should be impossible
+//        break;
+//    case com.ES_gui_thread:
+
+    //    if (es.mode === Mode_GuiDisplay) {
+//    const es = gst.es
+    if (gst.es.thread_host === com.ES_gui_thread) {
+
+//********************************************************************************
+
+// functions to provide to emulator, put in es.function
+
+// maybe emulator doesn't need to refresh interface at all.  The
+// interface can decide whether to tell the emulator to execute one
+// instruction, or to keep going until a stopping condition, and the
+// interface can decide when and what to display
+
+// user interface will refresh all the main elements of the display,
+// and will use the memory display mode to decide how much of the
+// memory to display
+
+// from memInitialize
+//        memRefresh(es);  // generate a string showing each location
+//        es.initializeMemDisplay (es)
+//        es.memElt1 = document.getElementById('MemDisplay1');
+//        es.memElt2 = document.getElementById('MemDisplay2');
+//        memDisplay(es);  // put the strings into the gui display elements
+
+// shouldn't need this?  emulator can do
+//   resetProcessor, then
+//   refreshProcessorDisplay
+
+function initiallizeMemDisplay (gst) {
+    //        memRefresh(es);  // generate a string showing each location
+//        es.initializeMemDisplay (es)
+//        es.memElt1 = document.getElementById('MemDisplay1');
+//        es.memElt2 = document.getElementById('MemDisplay2');
+//        memDisplay(es);  // put the strings into the gui display elements
+}
+
+//    com.mode.devlog ("------------- boot reading code --------------- ")
+//    com.mode.devlog (`*** Boot object code = ${objectCodeText}`)
+//    com.mode.devlog (`*** Boot metadata = ${metadataText}`)
+//    com.mode.devlog ("------------- boot starting --------------- ")
+//    memClearAccesses ();
+//    es.nInstructionsExecuted = 0;
+    //    st.writeSCB (es, st.SCB_nInstrExecuted, 0)
+//    guiDisplayNinstr (es)
+//    document.getElementById("nInstrExecuted").innerHTML =
+//	es.nInstructionsExecuted;
+//        clearTime (es) ?? don't want to import gui, where it's defined
+
+//    if (es.thread_host === com.ES_gui_thread) {
+     //        let n = st.readSCB (es, st.SCB_nInstrExecuted)
 
 */

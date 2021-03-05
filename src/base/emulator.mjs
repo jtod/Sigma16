@@ -48,6 +48,14 @@ import * as link from './linker.mjs';
 
 export let modeHighlightAccess = true;
 
+export function initRegHighlighting (es) {
+    console.log ('initRegHighlighting')
+    es.regFetchedOld = []
+    es.regStoredOld = []
+    es.regFetched = []
+    es.regStored = []
+}
+
 //------------------------------------------------------------------------------
 // Emulator state
 //------------------------------------------------------------------------------
@@ -126,17 +134,8 @@ export class EmulatorState {
 	this.instrEA            = null
 	this.instrEAStr         = ""
 	this.instrEffect        = []
-//        this.metadata           = null
-//	this.asmListingCurrent  = [] // listing displayed in emulator pane
-//        this.asmListingHeight   = 0   // height in pixels of the listing
 	this.curInstrAddr       = 0
 	this.nextInstrAddr      = 0
-//	this.curInstrLineNo     = -1  // -1 indicates no line has been highlighted
-//	this.nextInstrLineNo    = -1
-//	this.saveCurSrcLine     = ""
-//	this.saveNextSrcLine    - ""
-//        this.memElt1 = null
-//        this.memElt2 = null
         this.instrCodeElt = null
         this.instrFmtElt  = null
         this.instrOpElt   = null
@@ -460,6 +459,7 @@ export function initializeMachineState (es) {
     resetRegisters (es);
 }
 
+
 // Must wait until onload event
 
 function memInitialize (es) {
@@ -477,11 +477,13 @@ function memInitialize (es) {
 // Interrupts
 //-----------------------------------------------------------------------------
 
+/* move to gui
 export function timerInterrupt (es) {
     com.mode.devlog ("Timer Interrupt clicked");
     arith.setBitInRegBE (es.req, arch.timerBit);
     es.req.refresh();
 }
+*/
 
 //------------------------------------------------------------------------------
 // Decode instruction
@@ -580,7 +582,7 @@ export function clearLoggingData (es) {
     es.memStoreLog = []
 }
 
-
+/*
 export function clearInstrDecode (es) {
     return ; // ?????????????????????
     es.instrOpCode = null;
@@ -594,18 +596,33 @@ export function clearInstrDecode (es) {
     es.instrEffect = [];
 }
 
-
+*/
 
 //------------------------------------------------------------------------------
 // Machine language semantics
 //------------------------------------------------------------------------------
+
+export function clearInstrDecode (es) {
+    es.instrOpCode = null
+    es.instrDisp = null
+    es.instrCodeStr  = ""
+    es.instrFmtStr   = ""
+    es.instrOp    = ""
+    es.instrArgs  = ""
+    es.instrEA = null
+    es.instrEAStr    = ""
+    es.instrEffect1 = ""
+    es.instrEffect2 = ""
+    es.instrEffect = []
+}
+
 
 // Execute one instruction; runs in either in any thread.  The choice
 // of thread is determined by es.
 
 export function executeInstruction (es) {
     com.mode.devlog (`em.executeInstruction starting`)
-
+    clearInstrDecode (es)
     // Check for interrupt
     let mr = es.mask.get() & es.req.get() // ???
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
@@ -842,7 +859,7 @@ function trapRead (es) {
     }
     es.regfile[es.ir_a].put(a); // just after last address stored
     es.regfile[es.ir_b].put(m); // number of chars actually input
-    es.ioLogBuffer += highlightField(ys,"READ");   // display chars that were read
+    es.ioLogBuffer += com.highlightField(ys,"READ"); // display input
     refreshIOlogBuffer (es)
     inputElt.value = xs2; // leave unread characters in input buffer
 }
