@@ -129,8 +129,8 @@ export class EmulatorState {
 //        this.metadata           = null
 //	this.asmListingCurrent  = [] // listing displayed in emulator pane
 //        this.asmListingHeight   = 0   // height in pixels of the listing
-//	this.curInstrAddr       = 0
-//	this.nextInstrAddr      = 0
+	this.curInstrAddr       = 0
+	this.nextInstrAddr      = 0
 //	this.curInstrLineNo     = -1  // -1 indicates no line has been highlighted
 //	this.nextInstrLineNo    = -1
 //	this.saveCurSrcLine     = ""

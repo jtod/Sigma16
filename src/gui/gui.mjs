@@ -106,8 +106,8 @@ class GuiState {
         this.metadata           = null
 	this.asmListingCurrent  = [] // listing displayed in emulator pane
         this.asmListingHeight   = 0   // height in pixels of the listing
-	this.curInstrAddr       = 0
-	this.nextInstrAddr      = 0
+//	this.curInstrAddr       = 0
+//	this.nextInstrAddr      = 0
 	this.curInstrLineNo     = -1  // -1 indicates no line has been highlighted
 	this.nextInstrLineNo    = -1
 	this.saveCurSrcLine     = ""
@@ -1001,12 +1001,10 @@ export function procStep (gst) {
 // Prepare to execute an instruction by clearing the buffers holiding
 // log information.
 
-// function prepareExecuteInstruction (es) {
 function prepareExecuteInstruction (gst) {
     com.mode.devlog ("prepareExecuteInstruction");
-    memDisplay (gst);
-    clearInstrDecode (gst);
-    prepareListingBeforeInstr (gst);
+//    memDisplay (gst);
+//    clearInstrDecode (gst);
 }
 
 export function execInstrPostDisplay (gst) {
@@ -1117,60 +1115,16 @@ export function initializeProcessorElements (gst) {
     }
 }
 
-// Copy executable listing to processor asm display, used by boot
+// Copy executable listing to processor asm display
 
-function setProcAsmListing (gst) {
-    console.log ('setProcAsmListing');
-    com.mode.devlog ('setProcAsmListing');
-    const es = gst.es
-//    gst.asmListingCurrent = []
-    gst.curInstrAddr = 0;
-    gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
-    gst.nextInstrAddr = 0;
-    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.nextInstrAddr)
-        + listingLineInitialOffset;
-    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
-    let xs = "<pre><code class='HighlightedTextAsHtml'>"
+function displayProcAsmListing (gst) {
+    console.log ('displayProcAsmListing');
+    const xs = "<pre><code class='HighlightedTextAsHtml'>"
     	+ gst.asmListingCurrent.join('\n')
 	+ "</code></pre>";
     document.getElementById('ProcAsmListing').innerHTML = xs;
-    getListingDims(gst);
-}
-//    console.log (`setProcAsmListing: ${xs}`)
-//    es.pc.put (0) // shouldn't be needed?
-//    refreshRegisters (gst)
-//    updateMemory (gst)
-//    memDisplayFull(gst);
-//    let ys =  "<pre class='HighlightedTextAsHtml'>"
-//        + "<span class='ExecutableStatus'>"
-//        + "Boot was successful"
-//        + "</span><br>"
-//        + "</pre>";
-
-export function highlightListingLine (gst, i, highlight) {
-    if (i > 0) {
-        gst.asmListingCurrent[i] =
-            "<span class='" + highlight + "'>"
-            + gst.metadata.listingPlain[i]
-            + "</span>";
-    }
 }
 
-function revertListingLine (gst, i) {
-    if (i > 0) {
-        gst.asmListingCurrent[i] = gst.metadata.listingDec[i]
-    }
-}
-//    let md=gst.metadata
-//    console.log (`revertListingLine i=${i}`)
-//    console.log (`revertListingLine i=${i} ${md.listingDec[i]}`)
-//    console.log (`revertListingLine i=${i} ${md.listingPlain[i]}`)
-//        es.asmListingCurrent[i] = es.metadata.listingPlain[i].copy()
-//   copy() didn't help
-//        es.asmListingCurrent[i] = "-" + es.metadata.listingDec[i]
-// adding the - didn't help
-
-//********************************************************************************
 
 //-------------------------------------------------------------------------------
 // Booter
@@ -1193,7 +1147,6 @@ export function obtainExecutable () {
 
 export function boot (gst) {
     const es = gst.es
-    com.mode.trace = false;
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     st.resetSCB (es)
@@ -1217,7 +1170,6 @@ export function boot (gst) {
     st.clearInstrCount
     es.ioLogBuffer = "";
     em.refreshIOlogBuffer (es);
-    com.mode.trace = false;
     // reset
     st.resetSCB (es)
     em.resetRegisters (es);
@@ -1317,24 +1269,6 @@ export function boot (gst) {
 //------------------------------------------------------------------------------
 // Emulator Interface to gui
 //------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// Assembly listing
-//------------------------------------------------------------------------------
-
-// Prepare assembly listing when executable is booted
-
-// export function initListing (m,es) {
-export function initListing (gst) {
-    console.log ('initListing')
-    gst.curInstrAddr = 0;
-    gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
-    gst.nextInstrAddr = 0;
-    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.nextInstrAddr)
-        + listingLineInitialOffset;
-    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT")
-    setProcAsmListing (gst);
-}
 
 // Should check the operation, implement org, and provide suitable
 // error messages, but that's for later.  For now, just assume it is
@@ -1448,7 +1382,7 @@ function showEffect (es,i) {
 }
 
 //------------------------------------------------------------------------------
-// Highlighting current and next instruction in processor assembly listing
+// Assembly listing
 //------------------------------------------------------------------------------
 
 // The assembler provides an array of source lines, which it passes on
@@ -1467,26 +1401,81 @@ function showEffect (es,i) {
 // highlighting of fields from overriding the highlighting of the
 // current/next instruction, that is done using listingPlain.
 
-// Given address a, the corresponding source statement is found using metadata
+// Prepare assembly listing when executable is booted
 
-function showListingParameters (es) {
-    com.mode.devlog ('showListingParameters'
-		 + ' es.curInstrAddr=' + es.curInstrAddr
-		 + ' es.curInstrLineNo=' + es.curInstrLineNo
-		 + ' es.nextInstrAddr=' + es.nextInstrAddr
-		 + ' es.nextInstrLineNo=' + es.nextInstrLineNo);
+export function initListing (gst) {
+    console.log ('initListing')
+    gst.es.curInstrAddr = 0;
+    gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+    gst.es.nextInstrAddr = 0;
+    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.es.nextInstrAddr)
+        + listingLineInitialOffset;
+    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT")
+    displayProcAsmListing (gst)
 }
 
-// Prepare the running listing before starting instructionby removing
-// any existing highlighting of current and next instruction
+// Highlighting current and next instruction in processor assembly listing
 
+// As it executes an instruction, the emulator sets curInstrAddr and
+// nextInstrAddr.  After the instruction has finished, these
+// instructions are highlighted in the listing.  Any existing
+// highlighting is removed, the line numbers of the current and next
+// instruction are calculated, and the highlighting is applied.
 
-function showLst (es, xs, i) {
-//    return // disable
-    com.mode.devlog (`--- Listing line ${i} ${xs}`)
-    com.mode.devlog (`----- Cur = ${gst.asmListingCurrent[i].slice(0,30)}`)
-    com.mode.devlog (`----- Pla = ${gst.metadata.listingPlain[i].slice(0,30)}`)
-    com.mode.devlog (`----- Dec = ${gst.metadata.listingDec[i].slice(0,30)}`)
+function highlightListingAfterInstr (gst) {
+    com.mode.trace = true;
+    com.mode.devlog ('highlightListingAfterInstr');
+    showListingParameters (gst)
+    // Clear any existing statement highlighting
+    if (gst.curInstrLineNo >= 0) {
+            revertListingLine (gst, gst.curInstrLineNo)
+            gst.curInstrLineNo = -1;
+        }
+    if (gst.nextInstrLineNo >= 0) {
+        revertListingLine (gst, gst.nextInstrLineNo)
+        gst.nextInstrLineNo = -1;
+    }
+    // Highlight the instruction that just executed
+    gst.curInstrLineNo = gst.metadata.getSrcIdx (gst.es.curInstrAddr)
+            + listingLineInitialOffset;
+    highlightListingLine (gst, gst.curInstrLineNo, "CUR");
+    // Highlight the instruction that will be executed next
+    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.es.nextInstrAddr)
+        + listingLineInitialOffset;
+    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
+    // Display the listing
+    displayProcAsmListing (gst)
+    com.mode.devlog ("Returning from highlightlistingAfterInstr")
+    showListingParameters (gst)
+    com.mode.trace = false;
+}
+
+export function highlightListingLine (gst, i, highlight) {
+    if (i > 0) {
+        gst.asmListingCurrent[i] =
+            "<span class='" + highlight + "'>"
+            + gst.metadata.listingPlain[i]
+            + "</span>";
+    }
+}
+
+function revertListingLine (gst, i) {
+    console.log (`revertListingLine ${i} `)
+    if (i > 0) {
+        console.log (`  revert old ${gst.asmListingCurrent[i]}`)
+        gst.asmListingCurrent[i] = gst.metadata.listingDec[i]
+        console.log (`  revert new ${gst.asmListingCurrent[i]}`)
+    }
+}
+
+// Given address a, the corresponding source statement is found using metadata
+
+function showListingParameters (gst) {
+    com.mode.devlog ('Proc asm listing parameters')
+    com.mode.devlog ('  gst.es.curInstrAddr  = ' + gst.es.curInstrAddr)
+    com.mode.devlog ('  gst.curInstrLineNo   = ' + gst.curInstrLineNo)
+    com.mode.devlog ('  gst.es.nextInstrAddr = ' + gst.es.nextInstrAddr)
+    com.mode.devlog ('  gst.nextInstrLineNo  = ' + gst.es.nextInstrLineNo)
 }
 
 //-----------------------------------------------------------------------------
@@ -1590,107 +1579,6 @@ function setModeHighlight (x) {
 	modeHighlight = false;
 	refreshRegisters(gst);
     }
-}
-
-
-function prepareListingBeforeInstr (gst) {
-    const es = gst.es
-    com.mode.trace = false;
-    com.mode.devlog ('prepareListingBeforeInstr');
-    showListingParameters (es)
-
-    if (es.curInstrLineNo >= 0) {
-        com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
-        showLst (es, "prepare before revert current", es.curInstrLineNo)
-        revertListingLine (gst, es.curInstrLineNo)
-        showLst (es, "prepare after revert current", es.curInstrLineNo)
-    }
-    if (es.nextInstrLineNo >= 0) {
-        com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
-        showLst (es, "prepare before revert next", es.nextInstrLineNo)
-        com.revertListingLine (gst, es.nextInstrLineNo)
-        showLst (es, "prepare after revert next", es.nextInstrLineNo)
-    }
-    es.curInstrLineNo = -1;
-    es.nextInstrLineNo = -1;
-    showListingParameters(es);
-    com.mode.devlog ("returning from prepareListingbeforeInstr")
-    showListingParameters (es)
-    com.mode.trace = false;
-}
-
-// As it executes an instruction, the emulator sets curInstrAddr and
-// nextInstrAddr.  After the instruction has finished, these
-// instructions are highlighted in the listing
-
-function highlightListingAfterInstr (gst) {
-    console.log ('highlightListingAfterInstr')
-    const es = gst.es
-    com.mode.trace = false;
-    com.mode.devlog ('highlightListingAfterInstr');
-    showListingParameters (gst)
-    com.mode.devlog ('  curInstrAddr = ' + gst.curInstrAddr);
-    com.mode.devlog ('  nextInstrAddr = ' + gst.nextInstrAddr);
-
-// Clear any statement highlighting, if any
-
-        if (gst.curInstrLineNo >= 0) {
-        com.mode.devlog (`prepare resetting cur: line ${gst.curInstrLineNo}`)
-        showLst (gst, "prepare before revert current", gst.curInstrLineNo)
-        revertListingLine (gst, es.curInstrLineNo)
-        showLst (gst, "prepare after revert current", gst.curInstrLineNo)
-    }
-    if (gst.nextInstrLineNo >= 0) {
-        com.mode.devlog (`prepare resetting next: line ${gst.nextInstrLineNo}`)
-        showLst (gst, "prepare before revert next", gst.nextInstrLineNo)
-        revertListingLine (gst, gst.nextInstrLineNo)
-        showLst (gst, "prepare after revert next", gst.nextInstrLineNo)
-    }
-    gst.curInstrLineNo = -1;
-    gst.nextInstrLineNo = -1;
-
-    // Highlight the instruction that just executed
-    gst.curInstrLineNo = gst.metadata.getSrcIdx (gst.curInstrAddr)
-            + listingLineInitialOffset;
-    showLst (gst, "highlight, before highlight cur", gst.curInstrLineNo)
-    highlightListingLine (gst, gst.curInstrLineNo, "CUR");
-    showLst (gst, "highlight, after highlight cur", gst.curInstrLineNo)
-    com.mode.devlog (`Highlight current instruction: a=${gst.curInstrAddr}`
-                 + ` s=${gst.curInstrLineNo}`)
-
-    // Highlight the instruction that will be executed next
-    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.nextInstrAddr)
-        + listingLineInitialOffset;
-    showLst (gst, "highlight, before highlight next", gst.nextInstrLineNo)
-    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
-    showLst (gst, "highlight, after highlight next", gst.nextInstrLineNo)
-    com.mode.devlog (`Highlight next instruction: a=${gst.nextInstrAddr}`
-                 + ` s=${gst.nextInstrLineNo}`)
-
-    // Display the memory
-    if (memDisplayModeFull) {
-	highlightListingFull (gst)
-    } else {
-	highlightListingFull (gst)    // temporary ?????
-    }
-    showListingParameters (gst)
-    com.mode.devlog ("returning from highlightlistingAfterInstr")
-    com.mode.trace = false;
-}
-
-// function highlightListingFull (es,m) {
-function highlightListingFull (gst,m) {
-    com.mode.devlog ('highlightListingFull');
-        setProcAsmListing (gst)
-    let xa = gst.curInstrLineNo - asmScrollOffsetAbove;
-    xa = xa < 0 ? 0 : xa;
-    let scrollOffset = xa * pxPerChar;
-    com.mode.devlog ('curInstrLineNo = ' + gst.curInstrLineNo
-		     + '  scrollOffset = ' + scrollOffset);
-    let procAsmListingElt = document.getElementById('ProcAsmListing');
-    procAsmListingElt.scroll (0, scrollOffset);
-//    let curline = procAsmListingElt.getElementById('CUR');
-//    curline.scrollIntoView();
 }
 
 // Initialize machine state
@@ -2602,7 +2490,6 @@ let emwThread = null
 
 function allocateStateVector (es) {
     console.log (`allocateStateVector es.emRunCapability = ${es.emRunCapability}`)
-    com.mode.trace = true
     switch (es.emRunCapability) {
     case com.ES_worker_thread:
         console.log ("allocateStateVector, run capability: Worker supported")
@@ -2619,7 +2506,6 @@ function allocateStateVector (es) {
         initializeEmwtProtocol (es)
         emwtInit (es)
         com.mode.devlog ("gui.mjs has started emwt")
-        com.mode.trace = false
         break
     case com.ES_gui_thread:
         console.log ("allocateStateVector, run capability: Worker not supported")
@@ -3046,9 +2932,7 @@ function findVersion (gst) {
 }
 
 function initializeTracing (gst) {
-    com.mode.trace = true
     com.mode.devlog (`Thread ${gst.es.mode} initialization complete`)
-    com.mode.trace = false
 }
 
 function initializeSystem () {
@@ -3077,3 +2961,121 @@ window.onload = function () {
 }
 
 // Deprecated
+/*
+//    prepareListingBeforeInstr (gst);
+
+function DEPRECATEDprepareListingBeforeInstr (gst) {
+    com.mode.trace = true
+    const es = gst.es
+    com.mode.devlog ('prepareListingBeforeInstr');
+    showListingParameters (es)
+
+    if (es.curInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting cur: line ${es.curInstrLineNo}`)
+        showLst (es, "prepare before revert current", es.curInstrLineNo)
+        revertListingLine (gst, es.curInstrLineNo)
+        showLst (es, "prepare after revert current", es.curInstrLineNo)
+    }
+    if (es.nextInstrLineNo >= 0) {
+        com.mode.devlog (`prepare resetting next: line ${es.nextInstrLineNo}`)
+        showLst (es, "prepare before revert next", es.nextInstrLineNo)
+        revertListingLine (gst, es.nextInstrLineNo)
+        showLst (es, "prepare after revert next", es.nextInstrLineNo)
+    }
+    es.curInstrLineNo = -1;
+    es.nextInstrLineNo = -1;
+    showListingParameters(es);
+    com.mode.devlog ("returning from prepareListingbeforeInstr")
+    showListingParameters (es)
+    com.mode.trace = false;
+}
+
+//    let md=gst.metadata
+//    console.log (`revertListingLine i=${i}`)
+//    console.log (`revertListingLine i=${i} ${md.listingDec[i]}`)
+//    console.log (`revertListingLine i=${i} ${md.listingPlain[i]}`)
+//        es.asmListingCurrent[i] = es.metadata.listingPlain[i].copy()
+//   copy() didn't help
+//        es.asmListingCurrent[i] = "-" + es.metadata.listingDec[i]
+// adding the - didn't help
+
+//********************************************************************************
+
+function OLDsetProcAsmListing (gst) {
+    console.log ('setProcAsmListing');
+    com.mode.devlog ('setProcAsmListing');
+    const es = gst.es
+//    gst.asmListingCurrent = []
+    gst.es.curInstrAddr = 0;
+    gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
+    gst.es.nextInstrAddr = 0;
+    gst.nextInstrLineNo = gst.metadata.getSrcIdx (gst.es.nextInstrAddr)
+        + listingLineInitialOffset;
+    highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
+    let xs = "<pre><code class='HighlightedTextAsHtml'>"
+    	+ gst.asmListingCurrent.join('\n')
+	+ "</code></pre>";
+    document.getElementById('ProcAsmListing').innerHTML = xs;
+    getListingDims(gst);
+}
+//    console.log (`setProcAsmListing: ${xs}`)
+//    es.pc.put (0) // shouldn't be needed?
+//    refreshRegisters (gst)
+//    updateMemory (gst)
+//    memDisplayFull(gst);
+//    let ys =  "<pre class='HighlightedTextAsHtml'>"
+//        + "<span class='ExecutableStatus'>"
+//        + "Boot was successful"
+//        + "</span><br>"
+//        + "</pre>";
+
+
+//    highlightListingFull (gst)
+//    const es = gst.es
+//     com.mode.devlog ('  curInstrAddr = '    + gst.es.curInstrAddr);
+//    com.mode.devlog ('  curInstrLineNo = '  + gst.curInstrLineNo);
+//    com.mode.devlog ('  nextInstrAddr = '   + gst.es.nextInstrAddr);
+//    com.mode.devlog ('  nextInstrLineNo = ' + gst.nextInstrLineNo);
+//    if (memDisplayModeFull) {
+//    } else {
+//	highlightListingFull (gst)    // temporary ?????
+//    }
+//    showLst (gst, "highlight, before highlight cur", gst.curInstrLineNo)
+//        com.mode.devlog (`prepare resetting cur: line ${gst.curInstrLineNo}`)
+//        showLst (gst, "prepare before revert current", gst.curInstrLineNo)
+//        showLst (gst, "prepare after revert current", gst.curInstrLineNo)
+//        com.mode.devlog (`prepare resetting next: line ${gst.nextInstrLineNo}`)
+//        showLst (gst, "prepare before revert next", gst.nextInstrLineNo)
+//        showLst (gst, "prepare after revert next", gst.nextInstrLineNo)
+//    showLst (gst, "highlight, after highlight cur", gst.curInstrLineNo)
+//    com.mode.devlog (`Highlight current instruction: a=${gst.es.curInstrAddr}`
+//                 + ` s=${gst.curInstrLineNo}`)
+//    showLst (gst, "highlight, before highlight next", gst.nextInstrLineNo)
+//    showLst (gst, "highlight, after highlight next", gst.nextInstrLineNo)
+//    com.mode.devlog (`Highlight next instruction: a=${gst.es.nextInstrAddr}`
+//                 + ` s=${gst.nextInstrLineNo}`)
+
+// function highlightListingFull (es,m) {
+function displayProcAsmListing (gst,m) {
+    com.mode.devlog ('displayProcAsmListing');
+        setProcAsmListing (gst)
+    let xa = gst.curInstrLineNo - asmScrollOffsetAbove;
+    xa = xa < 0 ? 0 : xa;
+    let scrollOffset = xa * pxPerChar;
+    com.mode.devlog ('curInstrLineNo = ' + gst.curInstrLineNo
+		     + '  scrollOffset = ' + scrollOffset);
+    let procAsmListingElt = document.getElementById('ProcAsmListing');
+    procAsmListingElt.scroll (0, scrollOffset);
+//    let curline = procAsmListingElt.getElementById('CUR');
+//    curline.scrollIntoView();
+}
+
+function showLst (es, xs, i) {
+//    return // disable
+    com.mode.devlog (`--- Listing line ${i} ${xs}`)
+    com.mode.devlog (`----- Cur = ${gst.asmListingCurrent[i].slice(0,30)}`)
+    com.mode.devlog (`----- Pla = ${gst.metadata.listingPlain[i].slice(0,30)}`)
+    com.mode.devlog (`----- Dec = ${gst.metadata.listingDec[i].slice(0,30)}`)
+}
+
+*/
