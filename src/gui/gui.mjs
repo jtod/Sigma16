@@ -548,7 +548,8 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
     case st.SCB_paused:
         com.mode.devlog (`*** main: handle emwt pause`)
         stopClock (gst.es)
-        procRefresh (gst.es)
+        execInstrPostDisplay (gst)
+//        procRefresh (gst.es) // want refreshRF, not updateRegisters
         st.showSCBstatus (gst.es)
         st.writeSCB (gst.es, st.SCB_pause_request, 0)
         st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
@@ -853,76 +854,22 @@ export function finalizeLeaveCurrentPane () {
 }
 
 //------------------------------------------------------------------------------
-// Processor pane
+// Processor
 //------------------------------------------------------------------------------
 
-// The runMain and runWorker functions set the preferred thread and
-// then call procRun, so they set the thread choice persistently.
-// runGeneric checks the emRunThread field in the gui state to decide
-// which to use.
+// Processor elements: html elements for displaying instruction decode
 
-function runGeneric (gst) {
-    console.log (`runGeneric emRunThread = ${gst.emRunThread}`)
-    switch (gst.emRunThread) {
-    case com.ES_gui_thread:
-        console.log ("runGeneric: use main thread")
-        runMain (gst)
-        break
-    case com.ES_worker_thread:
-        console.log ("runGeneric: use worker thread")
-        runWorker (gst)
-        break
-    default:
-        console.log ("runGeneric: invalid emRunThread")
-    }
+export function initializeProcessorElements (gst) {
+    com.mode.devlog ('initializeProcessorElements');
+    gst.instrCodeElt = document.getElementById("InstrCode");
+    gst.instrFmtElt  = document.getElementById("InstrFmt");
+    gst.instrOpElt   = document.getElementById("InstrOp");
+    gst.instrArgsElt = document.getElementById("InstrArgs");
+    gst.instrEAElt   = document.getElementById("InstrEA");
+    gst.instrCCElt   = document.getElementById("InstrCC");
+    gst.instrEffect1Elt = document.getElementById("InstrEffect1");
+    gst.instrEffect2Elt = document.getElementById("InstrEffect2");
 }
-
-function runMain (gst) {
-    gst.es.emRunThread = com.ES_gui_thread
-    em.initRegHighlighting (gst.es)
-    procRun (gst)
-}
-
-function runWorker (gst) {
-    gst.es.emRunThread = com.ES_worker_thread
-    procRun (gst)
-}
-
-// Run instructions until stopping condition is reached.  This will be
-// performed using either the main gui thread or on the worker thread.
-// First decide whether to go aheead with the run; if so, decide which
-// thread to run it in.
-
-function procRun (gst) {
-    const es = gst.es
-    com.mode.devlog (`gui.procRun, thread = ${es.emRunThread}`)
-    let q = st.readSCB (es, st.SCB_status)
-    switch (q) {
-    case st.SCB_ready:
-    case st.SCB_paused:
-    case st.SCB_blocked:
-        switch (es.emRunThread) {
-        case com.ES_gui_thread:
-            console.log ("procRun: starting in main gui thread")
-            st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
-            es.initRunDisplay (es)
-            em.mainThreadLooper (es)
-            break
-        case com.ES_worker_thread:
-            console.log ("procRun: starting in worker thread")
-            es.initRunDisplay (es)
-            st.writeSCB (es, st.SCB_status, st.SCB_running_emwt)
-            emwtRun (es)
-            break
-        default:
-            com.mode.devlog (`Error procRun ${es.emRunThread}`)
-        }
-        break
-    default: // State is not appropriate for run, so don't do it
-        com.mode.devlog (`procRun skipping because SCB_status=${q}`)
-    }
-}
-
 
 function procReset (gst) {
     console.log ('gui.procReset')
@@ -931,54 +878,46 @@ function procReset (gst) {
     procRefresh (gst)
 }
 
-// Interface to emulator boot
+//------------------------------------------------------------------------------
+// Processor display
+//------------------------------------------------------------------------------
 
-function procBoot (gst) {
-    clearProcessorDisplay (gst)
-    boot (gst)
-    procRefresh (gst)
+// The mode determines the quantity and destination of output
+
+export const Mode_GuiDisplay = 100
+export const Mode_Console    = 200
+export const Mode_Quiet      = 300
+
+// Number of header lines in the listing before the source lines begin
+const listingLineInitialOffset = 1;
+
+// export function refreshDisplay (es) {
+export function refreshDisplay (gst) {
+    refreshRegisters (gst);
+    memDisplay (gst);
+    document.getElementById('ProcAsmListing').innerHTML = "";
+//    es.clearInstrDecode (es.gst);
+    refreshInstrDecode (gst);
+    guiDisplayNinstr (gst)
+    es.ioLogBuffer = ""
+    em.refreshIOlogBuffer (gst.es)
+    st.showSCBstatus (gst.es)
+//    memClearAccesses ();
 }
 
-// Main interface function to step one instruction; runs in main gui
-// thread
+// These functions display information on the gui; they abstract the
+// document DOM out of the emulator
 
-// export function procStep (es) {
-export function procStep (gst) {
-    const es = gst.es
-    console.log ("procStep")
-    if (gst.es.thread_host != com.ES_gui_thread) {
-        com.mode.devlog (`procStep: host=${gst.es.thread_host}, skipping`)
-        return
-    }
-    st.writeSCB (es, st.SCB_pause_request, 0)
-    let q = st.readSCB (es, st.SCB_status)
-    switch (q) {
-    case st.SCB_ready:
-    case st.SCB_paused:
-    case st.SCB_break:
-    case st.SCB_relinquish:
-        com.mode.devlog ("procStep: main thread executing instruction...")
-        em.executeInstruction (es)
-        let qnew = st.readSCB (es, st.SCB_status)
-        if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
-        execInstrPostDisplay (gst)
-        updateRegisters (gst)
-        break
-    case st.SCB_reset:
-    case st.SCB_running_gui:
-    case st.SCB_running_emwt:
-    case st.SCB_halted:
-    case st.SCB_blocked:
-        com.mode.devlog ("procStep skipping instruction...")
-        break
-    default: com.mode.devlog (`error: procStep unknown SCB_status= ${q}`)
-    }
-    console.log ("procStep finished")
+export function guiDisplayNinstr (gst) {
+        let n = gst.es.vec32[0]
+        document.getElementById("nInstrExecuted").innerHTML = n
 }
 
-//-----------------------------------------------------------------------------
-// Interface to emulator
-//-----------------------------------------------------------------------------
+export function guiDisplayMem (gst, elt, xs) {
+    if (gst.es.thread_host === com.ES_gui_thread) elt.innerHTML = xs
+}
+
+// Displaying processor
 
 
 // For single stepping, we want to keep display of registers and
@@ -1022,18 +961,6 @@ function procRefresh (gst) {
         guiDisplayNinstr (gst)
 }
 
-// Perform any operations on the gui display to prepare for a run
-function initRun (gst) {
-    startClock (gst)
-}
-
-function finishRun (gst) {
-    stopClock (gst)
-    execInstrPostDisplay (gst)
-    updateRegisters (gst)
-//    procRefresh (gst)
-}
-
 
 const refreshProcessorDisplay = (gst) => (es) => {
 }
@@ -1047,20 +974,6 @@ function clearProcessorDisplay (gst) {
     em.clearInstrDecode (gst.es)
 }
 
-// Processor elements: html elements for displaying instruction decode
-
-export function initializeProcessorElements (gst) {
-    com.mode.devlog ('initializeProcessorElements');
-    gst.instrCodeElt = document.getElementById("InstrCode");
-    gst.instrFmtElt  = document.getElementById("InstrFmt");
-    gst.instrOpElt   = document.getElementById("InstrOp");
-    gst.instrArgsElt = document.getElementById("InstrArgs");
-    gst.instrEAElt   = document.getElementById("InstrEA");
-    gst.instrCCElt   = document.getElementById("InstrCC");
-    gst.instrEffect1Elt = document.getElementById("InstrEffect1");
-    gst.instrEffect2Elt = document.getElementById("InstrEffect2");
-}
-
 // Copy executable listing to processor asm display
 
 function displayProcAsmListing (gst) {
@@ -1071,10 +984,36 @@ function displayProcAsmListing (gst) {
     document.getElementById('ProcAsmListing').innerHTML = xs;
 }
 
+//------------------------------------------------------------------------------
+// Emulator Interface to gui
+//------------------------------------------------------------------------------
+
+export function refreshProcStatusDisplay (gst) {
+    let xs = st.showSCBstatus (gst.es)
+    document.getElementById("procStatus").innerHTML = xs
+}
+
+export let highlightedRegisters = [];
+
+// Update the display of all registers and memory (all of memory)
+
+// export function displayFullState (es) {
+export function displayFullState (gst) {
+    com.mode.devlog ('displayFullState');
+    updateRegisters (gst)
+    updateMemory (gst)
+    memDisplayFull (gst);
+}
 
 //-------------------------------------------------------------------------------
 // Booter
 //-------------------------------------------------------------------------------
+
+function procBoot (gst) {
+    clearProcessorDisplay (gst)
+    boot (gst)
+    procRefresh (gst)
+}
 
 // Find the executable; it may come from assembler (object code) or
 // linker (executable code).
@@ -1197,45 +1136,123 @@ export function boot (gst) {
     com.mode.devlog ("boot returning");
 }
 
-
-
-//********************************************************************************
-
 //------------------------------------------------------------------------------
-// Emulator Interface to gui
+// Running the emulator
 //------------------------------------------------------------------------------
 
-// Should check the operation, implement org, and provide suitable
-// error messages, but that's for later.  For now, just assume it is
-// hexdata with valid argument
+// Main interface function to step one instruction; runs in main gui
+// thread
 
-function linkerBootLine (es,m,i,x) {
-    com.mode.devlog (`linkerBootLine i=${i}`)
-    let y = parseAsmLine (m,i,x);
-//    printAsmLine (y);
-    let w = y.fieldOperands;
-    let n =  arith.hex4ToWord(w);
-//    com.mode.devlog('linkerBootLine ' + w + ' = ' + n);
-    com.mode.devlog('linkerBootLine ' + i + ' ---' + x + '--- = ' + n);
-    updateMem2(bootCurrentLocation,n);
-    bootCurrentLocation++;
+export function procStep (gst) {
+    const es = gst.es
+    console.log ("procStep")
+    if (gst.es.thread_host != com.ES_gui_thread) {
+        com.mode.devlog (`procStep: host=${gst.es.thread_host}, skipping`)
+        return
+    }
+    st.writeSCB (es, st.SCB_pause_request, 0)
+    let q = st.readSCB (es, st.SCB_status)
+    switch (q) {
+    case st.SCB_ready:
+    case st.SCB_paused:
+    case st.SCB_break:
+    case st.SCB_relinquish:
+        com.mode.devlog ("procStep: main thread executing instruction...")
+        em.executeInstruction (es)
+        let qnew = st.readSCB (es, st.SCB_status)
+        if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
+        execInstrPostDisplay (gst)
+        updateRegisters (gst)
+        break
+    case st.SCB_reset:
+    case st.SCB_running_gui:
+    case st.SCB_running_emwt:
+    case st.SCB_halted:
+    case st.SCB_blocked:
+        com.mode.devlog ("procStep skipping instruction...")
+        break
+    default: com.mode.devlog (`error: procStep unknown SCB_status= ${q}`)
+    }
+    console.log ("procStep finished")
 }
 
-export function refreshProcStatusDisplay (gst) {
-    let xs = st.showSCBstatus (gst.es)
-    document.getElementById("procStatus").innerHTML = xs
+// The runMain and runWorker functions set the preferred thread and
+// then call procRun, so they set the thread choice persistently.
+// runGeneric checks the emRunThread field in the gui state to decide
+// which to use.
+
+function runGeneric (gst) {
+    console.log (`runGeneric emRunThread = ${gst.emRunThread}`)
+    switch (gst.emRunThread) {
+    case com.ES_gui_thread:
+        console.log ("runGeneric: use main thread")
+        runMain (gst)
+        break
+    case com.ES_worker_thread:
+        console.log ("runGeneric: use worker thread")
+        runWorker (gst)
+        break
+    default:
+        console.log ("runGeneric: invalid emRunThread")
+    }
 }
 
-export let highlightedRegisters = [];
+function runMain (gst) {
+    gst.es.emRunThread = com.ES_gui_thread
+//    em.initRegHighlighting (gst.es)   do this in boot, would clear after break?
+    procRun (gst)
+}
 
-// Update the display of all registers and memory (all of memory)
+function runWorker (gst) {
+    gst.es.emRunThread = com.ES_worker_thread
+    procRun (gst)
+}
 
-// export function displayFullState (es) {
-export function displayFullState (gst) {
-    com.mode.devlog ('displayFullState');
+// Perform any operations on the gui display to prepare for a run
+function initRun (gst) {
+    startClock (gst)
+}
+
+function finishRun (gst) {
+    stopClock (gst)
+    execInstrPostDisplay (gst)
     updateRegisters (gst)
-    updateMemory (gst)
-    memDisplayFull (gst);
+//    procRefresh (gst)
+}
+
+// Run instructions until stopping condition is reached.  This will be
+// performed using either the main gui thread or on the worker thread.
+// First decide whether to go aheead with the run; if so, decide which
+// thread to run it in.
+
+function procRun (gst) {
+    const es = gst.es
+    com.mode.devlog (`gui.procRun, thread = ${es.emRunThread}`)
+    let q = st.readSCB (es, st.SCB_status)
+    switch (q) {
+    case st.SCB_ready:
+    case st.SCB_paused:
+    case st.SCB_blocked:
+        switch (es.emRunThread) {
+        case com.ES_gui_thread:
+            console.log ("procRun: starting in main gui thread")
+            st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
+            es.initRunDisplay (es)
+            em.mainThreadLooper (es)
+            break
+        case com.ES_worker_thread:
+            console.log ("procRun: starting in worker thread")
+            es.initRunDisplay (es)
+            st.writeSCB (es, st.SCB_status, st.SCB_running_emwt)
+            emwtRun (es)
+            break
+        default:
+            com.mode.devlog (`Error procRun ${es.emRunThread}`)
+        }
+        break
+    default: // State is not appropriate for run, so don't do it
+        com.mode.devlog (`procRun skipping because SCB_status=${q}`)
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -1572,8 +1589,6 @@ export function OLDrefreshRegisters (gst) {
     gst.es.regStoredOld = []
 }
 
-
-
 //-------------------------------------------------
 // Emulator control from the gui
 //-------------------------------------------------
@@ -1588,7 +1603,6 @@ function timerInterrupt (gst) {
     gst.es.req.refresh()
 }
 
-
 // The Pause button stops the instruction looper and displays the state.
 
 // export function procPause(es) {
@@ -1602,68 +1616,12 @@ export function procPause (gst) {
 }
 
 //-----------------------------------------------------------------------------
-// Gui display
-//-----------------------------------------------------------------------------
-
-// These functions display information on the gui; they abstract the
-// document DOM out of the emulator
-
-export function guiDisplayNinstr (gst) {
-        let n = gst.es.vec32[0]
-        document.getElementById("nInstrExecuted").innerHTML = n
-}
-
-export function guiDisplayMem (gst, elt, xs) {
-    if (gst.es.thread_host === com.ES_gui_thread) elt.innerHTML = xs
-}
-
-//------------------------------------------------------------------------------
-// Test pane
-//------------------------------------------------------------------------------
-
-// From emulator.js
-
-// In the mem display, the formatting is ok when the container
-// specifies the style class.  However, when <pre> ... </pre> are
-// added around the text, the font and size are wrong and the
-// specified style is ignored.  Perhaps <pre> has an inappropriate
-// default style that overrides the existing font.  Solution is to use
-// <pre class="HighlightedTextAsHtml"> but don't put it inside a div
-// with HighlightedTExtAsHtml
-
-function testpane1() {
-    com.mode.devlog ('testpane 1 clicked')
-    let xs = ["<pre class='HighlightedTextAsHtml'>", 'line 1 text',
-	      "<span class='CUR'>this is line 2 text</span>",
-	      'and finally line 3', '</pre>'];
-    com.mode.devlog ('xs = ' + xs);
-    let ys = xs.join('\n');
-    com.mode.devlog ('ys = ' + ys);
-
-    let qs = ys;
-    com.mode.devlog ('qs = ' + qs);
-    document.getElementById('TestPaneBody').innerHTML = qs;
-}
-
-function testpane2 () {
-    com.mode.devlog ('testpane 2 clicked');
-}
-
-function testpane3 () {
-    com.mode.devlog ('testpane 3 clicked');
-}
-
-// ********************************************************************************
-
-//-----------------------------------------------------------------------------
 // Memory display
 //-----------------------------------------------------------------------------
-
 
 export let memDisplayModeFull = false;  // show entire/partial memory
 let memDisplayFastWindow = 16;          // how many locations to show in fast mode
 let memDispOffset = 3;                  // how many locations above highligted one
-
 
 // The user interface (either gui or cli) updates the memory display;
 // the emulator just records memory accesses
@@ -1695,13 +1653,10 @@ export const ModeMemDisplayHBA = Symbol ("MD HBA")  // 0 to highest booted addre
 export const ModeMemDisplaySliding = Symbol ("MD sliding") // sliding window
 export const ModeMmDisplayFull = Symbol ("MD full")  // full memory
 
-
-
 // Memory accesses are recorded in three arrays of addresses:
 // memFetchInstr, memFetchData, memStore.  These addresses are used to
 // highlight the memory location in the memory display, as well as to
 // scroll the display to make that location visible.
-
 
 // The memory display is updated by calling updateMemDisplay; this can
 // be done after an instruction, after a breakpoint or halt, or while
@@ -1712,7 +1667,6 @@ export const ModeMmDisplayFull = Symbol ("MD full")  // full memory
 // is shown in memString[a+1].  The indexing was fine but the
 // scrolling didn't work, possibly because of this dummy element with
 // its newline inserted when the array is joined up.
-
 
 //--------------------------------------
 // The memString array
@@ -1791,7 +1745,6 @@ function updateMemory (gst) {
         es.memStoreLog = []
     }
 }
-
 
 //--------------------------------------
 // Display portion of memString array
@@ -1904,42 +1857,10 @@ function memDisplayNew (gst, first, last, fet, sto, elt) {
 /*
 */
 
-//------------------------------------------------------------------------------
-// Processor display
-//------------------------------------------------------------------------------
-
-// The mode determines the quantity and destination of output
-
-export const Mode_GuiDisplay = 100
-export const Mode_Console    = 200
-export const Mode_Quiet      = 300
-
-// Number of header lines in the listing before the source lines begin
-const listingLineInitialOffset = 1;
-
-
-
-// export function refreshDisplay (es) {
-export function refreshDisplay (gst) {
-    refreshRegisters (gst);
-    memDisplay (gst);
-    document.getElementById('ProcAsmListing').innerHTML = "";
-//    es.clearInstrDecode (es.gst);
-    refreshInstrDecode (gst);
-    guiDisplayNinstr (gst)
-    es.ioLogBuffer = ""
-    em.refreshIOlogBuffer (gst.es)
-    st.showSCBstatus (gst.es)
-//    memClearAccesses ();
-}
 
 //------------------------------------------------------------------------------
 // Elapsed time clock
 //------------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Clock
-//-----------------------------------------------------------------------------
 
 const ClockWidth = 7 // number of characters to display
 
@@ -1973,7 +1894,6 @@ export function updateClock (gst) {
           : ` ${(elapsed/1000).toPrecision(ClockWidth)} s`
     document.getElementById("PP_time").innerHTML = xs
 }
-
 
 // To keep the display alive during a long run, call the
 // duringRunRefresher from time to time.  It can be triggered either by
@@ -2405,6 +2325,42 @@ function devTools106 () {
     action106 ()
 }
 
+//------------------------------------------------------------------------------
+// Test pane
+//------------------------------------------------------------------------------
+
+// From emulator.js
+
+// In the mem display, the formatting is ok when the container
+// specifies the style class.  However, when <pre> ... </pre> are
+// added around the text, the font and size are wrong and the
+// specified style is ignored.  Perhaps <pre> has an inappropriate
+// default style that overrides the existing font.  Solution is to use
+// <pre class="HighlightedTextAsHtml"> but don't put it inside a div
+// with HighlightedTExtAsHtml
+
+function testpane1() {
+    com.mode.devlog ('testpane 1 clicked')
+    let xs = ["<pre class='HighlightedTextAsHtml'>", 'line 1 text',
+	      "<span class='CUR'>this is line 2 text</span>",
+	      'and finally line 3', '</pre>'];
+    com.mode.devlog ('xs = ' + xs);
+    let ys = xs.join('\n');
+    com.mode.devlog ('ys = ' + ys);
+
+    let qs = ys;
+    com.mode.devlog ('qs = ' + qs);
+    document.getElementById('TestPaneBody').innerHTML = qs;
+}
+
+function testpane2 () {
+    com.mode.devlog ('testpane 2 clicked');
+}
+
+function testpane3 () {
+    com.mode.devlog ('testpane 3 clicked');
+}
+
 //-----------------------------------------------------------------------------
 // System state vector
 //-----------------------------------------------------------------------------
@@ -2681,11 +2637,11 @@ function initializeButtons () {
     prepareButton ('PP_Breakpoint', () => procBreakpoint (gst))
     prepareButton ('PP_Refresh',    () => procRefresh (gst))
     prepareButton ('PP_Reset',      () => procReset (gst))
-    prepareButton ('PP_RunMain',    () => runMain (gst))
-    prepareButton ('PP_RunWorker',  () => runWorker (gst))
-    prepareButton ('PP_Test1',      () => test1 (gst))
-    prepareButton ('PP_Test2',      emwtTest2);
     prepareButton ('PP_Timer_Interrupt', () => timerInterrupt (gst));
+//    prepareButton ('PP_RunMain',    () => runMain (gst))
+//    prepareButton ('PP_RunWorker',  () => runWorker (gst))
+//    prepareButton ('PP_Test1',      () => test1 (gst))
+//    prepareButton ('PP_Test2',      emwtTest2);
 
     // Breakpoint popup dialogue
     prepareButton ("BreakRefresh", breakRefresh(gst));
@@ -2724,9 +2680,6 @@ function initializeButtons () {
     prepareButton ('DevTools106',    devTools106);
     prepareButton ('DisableDevTools', disableDevTools);
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 // Query SigServer for latest version
@@ -2798,7 +2751,6 @@ function updateMemDisplaySize (gst) {
     }
     showGuiState (gst)
 }
-
 
 //-----------------------------------------------------------------------------
 // Dev tools
@@ -3075,5 +3027,22 @@ function initiallizeMemDisplay (gst) {
 
 //    if (es.thread_host === com.ES_gui_thread) {
      //        let n = st.readSCB (es, st.SCB_nInstrExecuted)
+
+// Should check the operation, implement org, and provide suitable
+// error messages, but that's for later.  For now, just assume it is
+// hexdata with valid argument
+
+// No longer in use... early test version of booter
+function linkerBootLine (es,m,i,x) {
+    com.mode.devlog (`linkerBootLine i=${i}`)
+    let y = parseAsmLine (m,i,x);
+//    printAsmLine (y);
+    let w = y.fieldOperands;
+    let n =  arith.hex4ToWord(w);
+//    com.mode.devlog('linkerBootLine ' + w + ' = ' + n);
+    com.mode.devlog('linkerBootLine ' + i + ' ---' + x + '--- = ' + n);
+    updateMem2(bootCurrentLocation,n);
+    bootCurrentLocation++;
+}
 
 */

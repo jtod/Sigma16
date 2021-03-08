@@ -1675,7 +1675,7 @@ represent division by 0.  You can test explicity for division by 0 by
 using jumpz specifying the register containing the divisor /before/
 execuing the div instruction.
 
-Table: Condition code flags
+Table: Condition code flags: Bits 0-3
 
 |---------+------------+-----------+----------+-------|
 | index   | 0          | 1         | 2        | 3     |
@@ -1772,6 +1772,21 @@ program, and some instructions use them directly.
 
 The processor can be executing in several modes, which are determined
 by the **system control registers**.
+
+*** req and mask registers
+
+Interrupt request and mask bits (req and mask registers)
+
+|   | inp       | input                   |
+|   | out       | output                  |
+| 0 | timer     | timer interrupt request |
+| 1 | seg fault | segmentation fault      |
+|   | bin ovfl  | natural overflow        |
+|   | tc ovfl   | integer overflow        |
+| 2 | zdiv      | divide by 0             |
+|   | sovfl     | stack overflow          |
+|   | sufl      | stack underflow         |
+|   | utrap     | user trap               |
 
  - sys (bit 0)  -- system state (1-bit flag)
 
@@ -2909,8 +2924,37 @@ The effect is equivalent to
    load  R10,11[R14]
 #+END_EXAMPLE
 
-
 ** Logic and bits
+
+The instructions in this section treat a word as a sequence of bits,
+not as a number.  There are instructions that perform logic operations
+on individual bits, on all the bits in a word, and that operate on bit
+fields.
+
+The bits in a word x are indexed from 0 to 15, where 0 is the index of
+the leftmost (most significant) bit and 15 is the index or the
+rightmost (least significant) bit.  The notation x.i means the bit
+with index i in the word x.  For example, x.0 is the leftmost bit and
+x.15 is the rightmost bit.  When used in an instruction, a bit index
+is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
+
+A bit field is a contiguous sequence of bits in a word.  It is
+specified by the register containing a word, the index of the starting
+bit in the field, and the size of the field.
+
+The bit field instructions can be implemented using a combination of
+logic and shift instructions.  They are included in the architecture
+for several reasons:
+
+- These operations provide useful abstractions for writing
+  interpreters and simulators.
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
 
 *** cmp
 
@@ -3060,37 +3104,6 @@ The instruction format is EXP2, with the following fields:
 - f is the index of the first argument bit
 - g is the index of the second argument bit
 - h is the logic function
-
-*** Bit fields
-
-Several instructions operate on some but not all of the bits in a
-word.  Each of these instructions can be implemented using a
-combination of several logic and shift instructions.  They are
-included in the architecture for several reasons:
-
-- These operations are important for writing interpreters and
-  simulators, and they constutute important abstractions.
-
-- When used in an interpreter, bit field operations are executed
-  frequently: they are a crucial part of the "inner loop".  Therefore
-  the efficiency of common bit field operations is important.
-
-- The bit field instructions are easier to use and more readable than
-  the corresponding logic and shifts.
-
-- These instructions can be implemented efficiently in a digital
-  circuit and this implementation is an interesting design problem.
-  In particular, they can be implemented in a circuit much more
-  efficiently than as a sequence of logic and shift operations.
-
-A bit field is a contiguous sequence of bits in a word.  Bits are
-indexed from the left starting with 0, so the leftmost (most
-significant) bit has index 0, and the rightmost (least significant)
-has index 15.  A bit index is specified as a 4-bit binary number /i/
-such that 0 <= /i/ <= 15.
-
-A bit field is specified by the register containing a word, the index
-of the starting bit in the field, and the size of the field.
   
 *** shiftl
 
@@ -3342,9 +3355,18 @@ status register, it can be used to perform a context switch.
 *** getctl
 *** putctl
 *** trap
+
+| 0 | halt              |
+| 1 | nonblocking read  |
+| 2 | nonblocking write |
+| 3 | blocking read     |
+| 4 | break             |
+
 **** Halt
-**** Write
+**** Nonblocking Write
 **** Nonblocking read
+**** Blocking read
+**** Break
 
 *** testset
 

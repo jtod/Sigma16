@@ -532,28 +532,24 @@ visiting this file in a browser.
                   <li> Worker thread available:
                     <span class="redText" id="WorkerThreadOK"> ? </span>
                   </li>
-                  <li> Choose preferred thread: <br>
-                    <input type="radio" name="RunThread" id="RTmain"
-                           value="Main">
-                    <label for="RTmain">
-                      Main
-                    </label>
-                    <br>
-                    <input type="radio" name="RunThread" id="RTworkerShm"
-                           value="Worker" checked>
-                    <label for="RTworkerShm">
-                      Worker with shared memory (if available)
-                    </label>
-                    <br>
-                  </li>
-                  <li> Main execution slice size:
-                    <span class="redText" id="MainSliceSize"> ? </span>
-                  </li>
-                  <li> Change main execution slice size:
-                    <input type="text" size=6 value=" " id="EnterMainSliceSize">
-                    <button id="UpdateSliceSize"> Update </button>
-                  </li>
                 </ul>
+
+                <input type="radio" name="RunThread" id="RTmain"
+                       value="Main">
+                <label for="RTmain">
+                  Main
+                  <span class="redText" id="MainSliceSize"> ? </span>
+                  <input type="text" size=6 value=" " id="EnterMainSliceSize">
+                  <button id="UpdateSliceSize"> Update </button>
+                </label>
+                <br>
+                
+                <input type="radio" name="RunThread" id="RTworkerShm"
+                       value="Worker" checked>
+                <label for="RTworkerShm">
+                  Worker with shared memory (if available)
+                </label>
+                <br>
 
               </div>
             </div>

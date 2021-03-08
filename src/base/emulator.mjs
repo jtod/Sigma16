@@ -806,10 +806,17 @@ const op_trap = (es) => {
 //            updateRegisters (es)  update display in ui
 //            updateMemory (es)
 //            memRefresh(es);
-        } else if (code==1) { // Read
+        } else if (code==1) { // nonblocking read
+            console.log ('trap: nonblocking read')
             trapRead(es);
-        } else if (code==2) { // Write
+        } else if (code==2) { // nonblocking write
+            console.log ('trap: nonblocking write')
             trapWrite(es);
+        } else if (code==3) { //blocking read
+            console.log ('trap: blocking read (not implemented)')
+        } else if (code==4) { // break
+            console.log ('trap: break')
+            st.writeSCB (es, st.SCB_status, st.SCB_break)
         } else { // Undefined trap is nop
             com.mode.devlog (`trap with unbound code = ${code}`)
         }
