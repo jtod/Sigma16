@@ -63,7 +63,9 @@ self.addEventListener ("message", e => {
             break
         case 101: // emwt step
             console.log (`emwt: received request step`)
+            console.log (`emwt before doStep : ${em.showEsInfo (gst.es)}`)
             doStep ()
+            console.log (`emwt after doStep : ${em.showEsInfo (gst.es)}`)
             msg = {code: 201, payload: 0}
             self.postMessage (msg)
             break
@@ -338,13 +340,15 @@ function regMemTest () {
 
 function doStep () {
     console.log (`emwt doStep`)
+    em.clearLoggingData (emwt.es)
     em.executeInstruction (emwt.es)
     console.log (`emwt doStep returning`)
 }
 
 function doRun (limit) {
     console.log ("emwt doRun")
-    em.initRegHighlighting (emwt.es)
+    //    em.initRegHighlighting (emwt.es)
+    em.clearLoggingData (emwt.es)
     let count = 0
     let status = 0
     let pauseReq = false

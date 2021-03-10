@@ -46,6 +46,19 @@ import * as link from './linker.mjs';
 // execInstrPostDisplay (es)
 // setting breakpoints
 
+
+// Show key information stored in emulator state
+export function showEsInfo (es) {
+//    const rfet = es.regFetched.map(r=>r.regName) 
+//    const rsto = es.regStored.map(r=>r.regName) 
+    return `showEsInfo thread=${es.thread_host}\n`
+        + `  regFetched = ${es.copyable.regFetched.map(r=>r.regName)}\n`
+        + `  regStored = ${es.copyable.regStored.map(r=>r.regName)}\n`
+        + `  memFetchInstrLog = ${es.copyable.memFetchInstrLog}\n`
+        + `  memFetchDataLog = ${es.copyable.memFetchDataLog}\n`
+        + `  memStoreLog = ${es.copyable.memStoreLog}\n`
+}
+
 export let modeHighlightAccess = true;
 
 export function initRegHighlighting (es) {
@@ -69,6 +82,14 @@ export function initRegHighlighting (es) {
 // display, 300: fast and quiet.  initialMode is provided when the
 // state is created, and mode is the current value, which might change
 // during execution.
+
+const initEsCopyable = {
+    regFetched : [],
+    regStored : [],
+    memFetchInstrLog : [],
+    memFetchDataLog : [],
+    memStoreLog : []
+}
 
 export class EmulatorState {
     constructor (thread_host, f, g, h) {
@@ -144,18 +165,20 @@ export class EmulatorState {
         this.instrCCElt   = null
         this.instrEffect1Elt = null
         this.instrEffect2Elt = null
-        this.regFetchedOld = []
-        this.regStoredOld = []
-        this.regFetched = []
-        this.regStored = []
-        this.memFetchInstrLog = []
-        this.memFetchInstrLogOld = []
-        this.memFetchDataLog = []
-        this.memFetchDataLogOld = []
-        this.memStoreLog = []
-        this.memStoreLogOld = []
+        this.copyable = initEsCopyable
     }
 }
+//        this.regFetchedOld = []
+//        this.regStoredOld = []
+//        this.regFetched = []
+//        this.regStored = []
+//        this.memFetchInstrLog = []
+//        this.memFetchInstrLogOld = []
+//        this.memFetchDataLog = []
+//        this.memFetchDataLogOld = []
+//        this.memStoreLog = []
+//        this.memStoreLogOld = []
+
 
 // The system control registers are specified in the instruction by an
 // index starting from i=0..., but the actual emulator data structures
@@ -243,13 +266,13 @@ export class genregister {
         es.register.push (this)
     }
     get () {
-        this.es.regFetched.push (this)
+        this.es.copyable.regFetched.push (this)
         let i = st.EmRegBlockOffset + this.regStIndex
         let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
         return x
     }
     put (x) {
-        this.es.regStored.push (this)
+        this.es.copyable.regStored.push (this)
         let i = st.EmRegBlockOffset + this.regStIndex
         this.es.shm[i] = x
         if (this.regIdx < 16) { // register file
@@ -351,9 +374,9 @@ export function memClear (es) {
     for (let a = 0; a < arch.memSize; a++) {
         memStore (es, a, 0)
     }
-    es.memFetchInstrLog = [];
-    es.memFetchDataLog = [];
-    es.memStoreLog = [];
+    es.copyable.memFetchInstrLog = [];
+    es.copyable.memFetchDataLog = [];
+    es.copyable.memStoreLog = [];
 //    memRefresh (es);
 }
 
@@ -362,7 +385,7 @@ export function memClear (es) {
 // address so the display can show this access.
 
 export function memFetchInstr (es, a) {
-    es.memFetchInstrLog.push(a);
+    es.copyable.memFetchInstrLog.push(a);
     let i = st.EmMemOffset + a
     let x =  es.shm[i]
 //    let x = st.sysStateVec [st.EmMemOffset + a]
@@ -372,7 +395,7 @@ export function memFetchInstr (es, a) {
 }
 
 export function memFetchData (es, a) {
-    es.memFetchDataLog.push(a);
+    es.copyable.memFetchDataLog.push(a);
     let x = es.shm[st.EmMemOffset + a]
     return x
 }
@@ -381,7 +404,7 @@ export function memFetchData (es, a) {
 // the display can show this access.
 
 export function memStore (es, a,x) {
-    es.memStoreLog.push(a);
+    es.copyable.memStoreLog.push(a);
     es.instrEffect.push(["M", a, x]);
     es.shm[st.EmMemOffset + a] = x
 }
@@ -565,21 +588,19 @@ export function mainThreadLooper (es) {
     }
 }
 
-
 //------------------------------------------------------------------------------
 // Wrapper around instruction execution
 //------------------------------------------------------------------------------
-
 
 // When running, the logging data isn't needed.  The worker thread
 // needs to clear it to prevent a space leak.
 
 export function clearLoggingData (es) {
-    es.regFetched = []
-    es.regStored = []
-    es.memFetchInstrLog = []
-    es.memFetchDataLog = []
-    es.memStoreLog = []
+    es.copyable.regFetched = []
+    es.copyable.regStored = []
+    es.copyable.memFetchInstrLog = []
+    es.copyable.memFetchDataLog = []
+    es.copyable.memStoreLog = []
 }
 
 /*
@@ -674,6 +695,7 @@ export function executeInstruction (es) {
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
     dispatch_primary_opcode [es.ir_op] (es);
     st.incrInstrCount (es)
+    console.log (`Finished executeInstruction: ${showEsInfo(es)}`)
 }
 
 // RRR instruction pattern functions
