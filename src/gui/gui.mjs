@@ -1326,28 +1326,11 @@ function newUpdateRegisters (gst) {
 // Memory display
 //-----------------------------------------------------------------------------
 
-
 // Memory display  modes
 
 const ModeMemDisplayHBA = Symbol ("MD HBA")          // 0 to highest booted address
 const ModeMemDisplaySliding = Symbol ("MD sliding")  // sliding window
 const ModeMmDisplayFull = Symbol ("MD full")         // full memory
-
-// put these into gst
-let memDisplayModeFull = false;  // show entire/partial memory
-let memDisplayFastWindow = 16;          // how many locations to show in fast mode
-let memDispOffset = 3;                  // how many locations above highligted one
-
-//---------------------------------------------
-// Interface to memory display
-//---------------------------------------------
-
-// Display mem[a]...mem[b] in elt, using highlighting to indicate
-// memory accesses, and scroll to mem[p]
-
-// Get memory contents from shared array
-// Get target instruction address and target data address from access logs
-// Get address range to display using target addresses and option settings
 
 function memDisplay (gst) {
     const cp = gst.es.copyable
@@ -1361,20 +1344,24 @@ function memDisplay (gst) {
     for (let x of cp.memFetchInstrLog) memHighlight (gst, x, "GET")
     for (let x of cp.memFetchDataLog)  memHighlight (gst, x, "GET")
     for (let x of cp.memStoreLog)      memHighlight (gst, x, "PUT")
+    const iarr = gst.memString.slice (iRange.a, iRange.b)
+    const darr = gst.memString.slice (dRange.a, dRange.b)
     const itext = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	  + gst.memString.slice(iRange.a,iRange.b).join('\n')
+	  + iarr.join('\n')
 	  + "</code></pre>";
     const dtext = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	  + gst.memString.slice(dRange.a,dRange.b).join('\n')
+	  + darr.join('\n')
 	  + "</code></pre>";
-    document.getElementById('MemDisplay1').innerHTML = itext
-    document.getElementById('MemDisplay2').innerHTML = dtext
+    const memElt1 = document.getElementById('MemDisplay1')
+    const memElt2 = document.getElementById('MemDisplay2')
+    memElt1.innerHTML = itext
+    memElt2.innerHTML = dtext
+    const vat = 8 // lines above target that should be visible
+    scrollToTarget (memElt1, iarr, itarget, vat)
+    scrollToTarget (memElt2, darr, dtarget, vat)
 }
 
-//    gst.memElt1.innerHTML = itext
-//    gst.memElt2.innerHTML = dtext
-//    const itext = gst.memString.slice(iRange.a,iRange.b).join('\n')
-//    const dtext = gst.memString.slice(dRange.a,dRange.b).join('\n')
+// Use memory display mode to calculate this
 
 function getMemRange (t) {
     return {a: 0, b: 65536}
@@ -1394,223 +1381,17 @@ function memHighlight (gst, a, highlight) {
 	"<span class='" + highlight + "'>" + gst.memString[a] + "</span>"
 }
 
-//memHighlight...
-//	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
-//    let x = gst.es.shm[st.EmMemOffset + a]
-    
+// Scroll element displaying xs to make target line visible, leaving
+// visibleAboveTarget lines visible in the window above the target
+// line.
 
-
-// function updateMemString (gst, a, b) {
-//     const es = gst.es
-//     es.copyable.memFetchInstrLog = []
-//    es.copyable.memFetchDataLog = []
-//    es.copyable.memStoreLog = []
-//}
-// updateMemString...
-// function memUpdate (gst) {
-//    if (st.readSCB (es, st.SCB_status) != st.SCB_running_gui) {
-//    }
-//    // Clear previous highlighting
-//    for (let x of es.copyable.memFetchInstrLogOld)  setMemString (gst, x)
-//    for (let x of es.copyable.memFetchDataLogOld)   setMemString (gst, x)
-//    for (let x of es.copyable.memStoreLogOld)       setMemString (gst, x)
-// Save access logs and clear
-//    es.copyable.memFetchInstrLogOld = es.copyable.memFetchInstrLog
-//    es.copyable.memFetchDataLogOld = es.copyable.memFetchDataLog
-//    es.copyable.memStoreLogOld = es.copyable.memStoreLog
-
-
-// The user interface (either gui or cli) updates the memory display;
-// the emulator just records memory accesses
-
-// The memory display shows two windows into the memory: the left one
-// normally shows the instruction that has been fetched, and the right
-// one normally shows data that was stored or fetched (if any).  The
-// following steps set the display:
-
-// 1. Options page sets memory display mode in the emulator state (es)
-// 2. Obtain memory display mode from es
-// 3. Obtain instruction fetch target address and data access target address
-//    getMemTargetAddresses (es)
-//      => {ifet: a, daccess: a}   (a is an address)
-// 4. Calculate first and last address to be displayed for both elements
-//    findMemDispIntervals (es)
-//      => {ifirst: a, ilast: a, dfirst: a, dlast: a}
-// 5. Define list of memory strings to display
-// 6. Populate the DOM elements with the strings
-// 7. Scroll each memory window to the target address
-
-// The memory display mode is set on the Options page.  It is saved in
-// es.memDispMode (which should be one of the following symbols) as
-// well as es.memDispArg, which gives the highest booted address (for
-// es.memDispMode = ModeMemDisplayHBA) or the sliding window size (for
-// es.memDispMode = ModeMemDisplaySliding).
-
-// Memory accesses are recorded in three arrays of addresses:
-// memFetchInstr, memFetchData, memStore.  These addresses are used to
-// highlight the memory location in the memory display, as well as to
-// scroll the display to make that location visible.
-
-// The memory display is updated by calling updateMemDisplay; this can
-// be done after an instruction, after a breakpoint or halt, or while
-// a concurrent emulator thread is running.
-
-// Note on data structure.  I tried having a preliminary element [0]
-// containing just "<pre class='HighlightedTextAsHtml'>", so address a
-// is shown in memString[a+1].  The indexing was fine but the
-// scrolling didn't work, possibly because of this dummy element with
-// its newline inserted when the array is joined up.
-
-//---------------------------------------------
-// The memString array
-//---------------------------------------------
-
-// memString is an array of strings giving the hex representation of
-// the memory locations
-
-// CHECK THIS... Memoize memory location strings.  Create a string to
-// represent a memory location; the actual value is in the memory
-// array, and the string is placed in the memString array.
-// memString[0] = <pre class="HighlightedTextAsHtml"> and mem[a]
-// corresponds to memString[a+1].
-
-// Should emulator update memString[a] when it accesses mem[a] ?
-
-
-// Set memString[a] to the correct hex string for every address a.
-// The memString array should always be accurate but this function
-// will recalculate all elements of that array
-
-// function memRefresh (gst) {
-//    gst.memString = []  // discard any existing elements
-//    for (let i = 0; i < arch.memSize; i++) {
-//	setMemString (gst, i);
-//    }
-// }
-
-//---------------------------------------------
-// Highlighting memory accesses
-//---------------------------------------------
-
-
-// Create a string with a span class to represent a memory location
-// with highlighting; the actual value is in the memory array, and the
-// string is placed in the memString array.
-
-//---------------------------------------------
-// Update memString to indicate accesses
-//---------------------------------------------
-
-// Set the memory displays, using the memString array.  Check mode to
-// determine whether the display should be partial and fast or
-// complete but slow.
-
-// Update the memory string for each location that has been accessed,
-// so that it contains an html div element which can be used to
-// highlight the memory location.  Do the fetches first, then the
-// stores: this ensures that if a location has both been fetched and
-// stored, the highlighting for the store will take precedence.
-
-// Need to rewrite this for efficiency ???
-
-//---------------------------------------------
-// Display portion of memString array
-//---------------------------------------------
-
-// Set the memory displays, showing only part of the memory to save time
-
-// function memDisplayFast (es) {
-export function memDisplayFast (gst) {
-    const es = gst.es
-    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
-    xa = (es.copyable.memFetchInstrLog.length===0) ? 0 : (es.copyable.memFetchInstrLog[0] - memDispOffset);
-    xa = xa < 0 ? 0 : xa;
-    xb = xa + memDisplayFastWindow;
-    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-    	+ gst.memString.slice(xa,xb).join('\n')
-	+ "</code></pre>";
-//    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
-    guiDisplayMem (gst, gst.memElt1, xs)
-//    memElt1.innerHTML = xs;
-    yafet = (es.copyable.memFetchDataLog.length===0) ? 0 : (es.copyable.memFetchDataLog[0] - memDispOffset);
-    yasto = (es.copyable.memStoreLog.length===0) ? 0 :(es.copyable.memStoreLog[0] - memDispOffset);
-    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
-    ya = ya < 0 ? 0 : ya;
-    yb = ya + memDisplayFastWindow;
-    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	+ gst.memString.slice(ya,yb).join('\n')
-	+ "</code></pre>";
-//    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
-    //    memElt2.innerHTML = ys;
-    guiDisplayMem (gst, gst.memElt2, xs)
+function scrollToTarget (elt, xs, target, visibleAboveTarget) {
+    const htLinePx = elt.scrollHeight / xs.length
+    const i = Math.max (0, target - visibleAboveTarget)
+    const y = htLinePx * i
+    elt.scroll (0, y)
 }
 
-// Set the memory displays, showing the full memory
-
-// Need <pre> to get the formatting correct with line breaks.  but
-// <pre> prevents scrolling from working.  Could try not using pre,
-// but putting <br> after each line, but that still wouldn't work
-// because multiple spaces in code wouldn't work..  Try <code>; With
-// <code class=... scrolling works, but the line breaks aren't
-// there.. Is there a problem with HighlightedTextAsHtml?
-
-// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
-
-//    xs = "<pre><code class='HighlightedTextAsHtml'>"
-//	+ memString.join('\n')
-//	+ "</code></pre>";
-
-function memDisplayFull (gst) {
-    const es = gst.es
-    let memElt1 = document.getElementById('MemDisplay1');
-    let memElt2 = document.getElementById('MemDisplay2');
-
-    let xs;                 // display text
-    let xt, xo;             // display 1 targets and offsets
-    let yafet, yasto, ya, yo, yt;
-    com.mode.devlog ('memDisplayFull');
-    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	+ gst.memString.join('\n')
-	+ "</code></pre>";
-
-    memElt1.innerHTML = xs;
-    xt = (es.copyable.memFetchInstrLog.length===0)? 0 : es.copyable.memFetchInstrLog[0] - memDispOffset;
-    xo = xt * pxPerChar;
-    com.mode.devlog('  target1 xt = ' + xt + '   offset1 = ' + xo);
-    memElt1.scroll(0,xo);
-    
-    memElt2.innerHTML = xs;
-    yafet = (es.copyable.memFetchDataLog.length===0) ? 0 : (es.copyable.memFetchDataLog[0] - memDispOffset);
-    yasto = (es.copyable.memStoreLog.length===0) ? 0 :(es.copyable.memStoreLog[0] - memDispOffset);
-    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
-    yt = yt < 0 ? 0 : yt;
-    yo = yt * pxPerChar;
-    com.mode.devlog('  yafet=' + yafet + ' yasto=' + yasto
-		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
-    memElt2.scroll(0,yo);
-}
-
-// Display mem[first]...mem[last] in elt.  Highlight fet and/or sto,
-// if these are between first and last.
-
-// function memDisplayNew (es, first, last, fet, sto, elt) {
-function memDisplayNew (gst, first, last, fet, sto, elt) {
-    const es = gst.es
-    const xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
-	  + gst.memString.slice(first,last+1).join('\n')
-	  + "</code></pre>";
-
-    if (first <= fet && fet <= last) {
-        // give fetch highlighting to xs[fet-first]
-        xs[fet-first] = com.highlightField (xs[fet-first], FET)
-    }
-    if (first <= sto && sto <= last) {
-        // give store highlighting to xs[sto-first]
-    }
-    elt.innerHTML = xs.join('\n')
-    if (first <= sto && sto <= last)       scrollMem (elt, sto)
-    else if (first <= fet && fet <= last)  scrollMem (elt, fet)
-}
 
 //------------------------------------------------------------------------------
 // Assembly listing
@@ -1769,7 +1550,7 @@ let srcLine;        // copy of source statements
 // let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
 
 export function initializeSubsystems () {
-    memDisplayModeFull = false;
+//    memDisplayModeFull = false;
 //     document.getElementById('PP_Toggle_Display').value = "Fast display";  
 }
 
@@ -3126,5 +2907,247 @@ export function OLDrefreshRegisters (gst) {
 //    procRefresh (gst)
 //}
 //    procReset (gst)
+
+// memory display
+// put these into gst
+// let memDisplayModeFull = false;  // show entire/partial memory
+// let memDisplayFastWindow = 16;    // how many locations to show in fast mode
+// let memDispOffset = 3;            // how many locations above highligted one
+
+//---------------------------------------------
+// Interface to memory display
+//---------------------------------------------
+
+// Display mem[a]...mem[b] in elt, using highlighting to indicate
+// memory accesses, and scroll to mem[p]
+
+// Get memory contents from shared array
+// Get target instruction address and target data address from access logs
+// Get address range to display using target addresses and option settings
+
+// memDisplay...
+//   console.log (`memDisplay pxPerChar = ${pxPerChar}`)
+//    const y1 = itarget * pxPerChar
+//    const y2 = dtarget * pxPerChar
+//    memElt1.scroll (0, y1)
+//    memElt2.scroll (0, y2)
+//    gst.memElt1.innerHTML = itext
+//    gst.memElt2.innerHTML = dtext
+//    const itext = gst.memString.slice(iRange.a,iRange.b).join('\n')
+//    const dtext = gst.memString.slice(dRange.a,dRange.b).join('\n')
+
+// memHighlight...
+//	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
+//    let x = gst.es.shm[st.EmMemOffset + a]
+
+// function updateMemString (gst, a, b) {
+//     const es = gst.es
+//     es.copyable.memFetchInstrLog = []
+//    es.copyable.memFetchDataLog = []
+//    es.copyable.memStoreLog = []
+//}
+// updateMemString...
+// function memUpdate (gst) {
+//    if (st.readSCB (es, st.SCB_status) != st.SCB_running_gui) {
+//    }
+//    // Clear previous highlighting
+//    for (let x of es.copyable.memFetchInstrLogOld)  setMemString (gst, x)
+//    for (let x of es.copyable.memFetchDataLogOld)   setMemString (gst, x)
+//    for (let x of es.copyable.memStoreLogOld)       setMemString (gst, x)
+// Save access logs and clear
+//    es.copyable.memFetchInstrLogOld = es.copyable.memFetchInstrLog
+//    es.copyable.memFetchDataLogOld = es.copyable.memFetchDataLog
+//    es.copyable.memStoreLogOld = es.copyable.memStoreLog
+
+// The user interface (either gui or cli) updates the memory display;
+// the emulator just records memory accesses
+
+// The memory display shows two windows into the memory: the left one
+// normally shows the instruction that has been fetched, and the right
+// one normally shows data that was stored or fetched (if any).  The
+// following steps set the display:
+
+// 1. Options page sets memory display mode in the emulator state (es)
+// 2. Obtain memory display mode from es
+// 3. Obtain instruction fetch target address and data access target address
+//    getMemTargetAddresses (es)
+//      => {ifet: a, daccess: a}   (a is an address)
+// 4. Calculate first and last address to be displayed for both elements
+//    findMemDispIntervals (es)
+//      => {ifirst: a, ilast: a, dfirst: a, dlast: a}
+// 5. Define list of memory strings to display
+// 6. Populate the DOM elements with the strings
+// 7. Scroll each memory window to the target address
+
+// The memory display mode is set on the Options page.  It is saved in
+// es.memDispMode (which should be one of the following symbols) as
+// well as es.memDispArg, which gives the highest booted address (for
+// es.memDispMode = ModeMemDisplayHBA) or the sliding window size (for
+// es.memDispMode = ModeMemDisplaySliding).
+
+// Memory accesses are recorded in three arrays of addresses:
+// memFetchInstr, memFetchData, memStore.  These addresses are used to
+// highlight the memory location in the memory display, as well as to
+// scroll the display to make that location visible.
+
+// The memory display is updated by calling updateMemDisplay; this can
+// be done after an instruction, after a breakpoint or halt, or while
+// a concurrent emulator thread is running.
+
+// Note on data structure.  I tried having a preliminary element [0]
+// containing just "<pre class='HighlightedTextAsHtml'>", so address a
+// is shown in memString[a+1].  The indexing was fine but the
+// scrolling didn't work, possibly because of this dummy element with
+// its newline inserted when the array is joined up.
+
+//---------------------------------------------
+// The memString array
+//---------------------------------------------
+
+// memString is an array of strings giving the hex representation of
+// the memory locations
+
+// CHECK THIS... Memoize memory location strings.  Create a string to
+// represent a memory location; the actual value is in the memory
+// array, and the string is placed in the memString array.
+// memString[0] = <pre class="HighlightedTextAsHtml"> and mem[a]
+// corresponds to memString[a+1].
+
+// Should emulator update memString[a] when it accesses mem[a] ?
+
+
+// Set memString[a] to the correct hex string for every address a.
+// The memString array should always be accurate but this function
+// will recalculate all elements of that array
+
+// function memRefresh (gst) {
+//    gst.memString = []  // discard any existing elements
+//    for (let i = 0; i < arch.memSize; i++) {
+//	setMemString (gst, i);
+//    }
+// }
+
+//---------------------------------------------
+// Highlighting memory accesses
+//---------------------------------------------
+
+// Create a string with a span class to represent a memory location
+// with highlighting; the actual value is in the memory array, and the
+// string is placed in the memString array.
+
+//---------------------------------------------
+// Update memString to indicate accesses
+//---------------------------------------------
+
+// Set the memory displays, using the memString array.  Check mode to
+// determine whether the display should be partial and fast or
+// complete but slow.
+
+// Update the memory string for each location that has been accessed,
+// so that it contains an html div element which can be used to
+// highlight the memory location.  Do the fetches first, then the
+// stores: this ensures that if a location has both been fetched and
+// stored, the highlighting for the store will take precedence.
+
+// Need to rewrite this for efficiency ???
+
+//---------------------------------------------
+// Display portion of memString array
+//---------------------------------------------
+
+// Set the memory displays, showing only part of the memory to save time
+
+// function memDisplayFast (es) {
+export function memDisplayFast (gst) {
+    const es = gst.es
+    let xa, xb, xs1, xs, yafet, yasto, ya, yb, ys1, ys;
+    xa = (es.copyable.memFetchInstrLog.length===0) ? 0 : (es.copyable.memFetchInstrLog[0] - memDispOffset);
+    xa = xa < 0 ? 0 : xa;
+    xb = xa + memDisplayFastWindow;
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+    	+ gst.memString.slice(xa,xb).join('\n')
+	+ "</code></pre>";
+//    com.mode.devlog ('  xa=' + xa + '  xb=' + xb);
+    guiDisplayMem (gst, gst.memElt1, xs)
+//    memElt1.innerHTML = xs;
+    yafet = (es.copyable.memFetchDataLog.length===0) ? 0 : (es.copyable.memFetchDataLog[0] - memDispOffset);
+    yasto = (es.copyable.memStoreLog.length===0) ? 0 :(es.copyable.memStoreLog[0] - memDispOffset);
+    ya = yafet > 0 && yafet < yasto ? yafet : yasto;
+    ya = ya < 0 ? 0 : ya;
+    yb = ya + memDisplayFastWindow;
+    ys = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ gst.memString.slice(ya,yb).join('\n')
+	+ "</code></pre>";
+//    com.mode.devlog ('  ya=' + ya + '  yb=' + yb);
+    //    memElt2.innerHTML = ys;
+    guiDisplayMem (gst, gst.memElt2, xs)
+}
+
+// Set the memory displays, showing the full memory
+
+// Need <pre> to get the formatting correct with line breaks.  but
+// <pre> prevents scrolling from working.  Could try not using pre,
+// but putting <br> after each line, but that still wouldn't work
+// because multiple spaces in code wouldn't work..  Try <code>; With
+// <code class=... scrolling works, but the line breaks aren't
+// there.. Is there a problem with HighlightedTextAsHtml?
+
+// THE RIGHT WAY TO DO IT: code inside pre; class defined in code:
+
+//    xs = "<pre><code class='HighlightedTextAsHtml'>"
+//	+ memString.join('\n')
+//	+ "</code></pre>";
+
+function memDisplayFull (gst) {
+    const es = gst.es
+    let memElt1 = document.getElementById('MemDisplay1');
+    let memElt2 = document.getElementById('MemDisplay2');
+
+    let xs;                 // display text
+    let xt, xo;             // display 1 targets and offsets
+    let yafet, yasto, ya, yo, yt;
+    com.mode.devlog ('memDisplayFull');
+    xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	+ gst.memString.join('\n')
+	+ "</code></pre>";
+
+    memElt1.innerHTML = xs;
+    xt = (es.copyable.memFetchInstrLog.length===0)? 0 : es.copyable.memFetchInstrLog[0] - memDispOffset;
+    xo = xt * pxPerChar;
+    com.mode.devlog('  target1 xt = ' + xt + '   offset1 = ' + xo);
+    memElt1.scroll(0,xo);
+    
+    memElt2.innerHTML = xs;
+    yafet = (es.copyable.memFetchDataLog.length===0) ? 0 : (es.copyable.memFetchDataLog[0] - memDispOffset);
+    yasto = (es.copyable.memStoreLog.length===0) ? 0 :(es.copyable.memStoreLog[0] - memDispOffset);
+    yt = (yasto > 0 ? yasto : yafet) - memDispOffset;
+    yt = yt < 0 ? 0 : yt;
+    yo = yt * pxPerChar;
+    com.mode.devlog('  yafet=' + yafet + ' yasto=' + yasto
+		+ '  target1 yt = ' + yt + '   offset1 = ' + yo);
+    memElt2.scroll(0,yo);
+}
+
+// Display mem[first]...mem[last] in elt.  Highlight fet and/or sto,
+// if these are between first and last.
+
+// function memDisplayNew (es, first, last, fet, sto, elt) {
+function memDisplayNew (gst, first, last, fet, sto, elt) {
+    const es = gst.es
+    const xs = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	  + gst.memString.slice(first,last+1).join('\n')
+	  + "</code></pre>";
+
+    if (first <= fet && fet <= last) {
+        // give fetch highlighting to xs[fet-first]
+        xs[fet-first] = com.highlightField (xs[fet-first], FET)
+    }
+    if (first <= sto && sto <= last) {
+        // give store highlighting to xs[sto-first]
+    }
+    elt.innerHTML = xs.join('\n')
+    if (first <= sto && sto <= last)       scrollMem (elt, sto)
+    else if (first <= fet && fet <= last)  scrollMem (elt, fet)
+}
 
 */

@@ -22,6 +22,8 @@ instruction set.
 - [[./Jumping.asm.txt][Jumping]] Test the comparisons, jumps, and
   conditional jumps.
 
+- [[./LargeAddr.asm.txt][LargeAddr]]
+
 - [[./Linker/index.html][Linker]]
 
 - [[./Logic.asm.txt][Logic]] Test the operations on Booleans and logic
