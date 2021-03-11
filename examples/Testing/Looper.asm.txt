@@ -34,6 +34,7 @@ innerloop
      jumpge innerdone[R0] ; if j >= m then goto innerdone
      add    R5,R5,R1      ; j := j + 1
      add    R9,R9,R1      ; sum := sum + 1
+     store  R9,result     ; result := sum
      jump   innerloop[R0] ; goto innerloop
 
 innerdone

@@ -1064,8 +1064,8 @@ function procReset (gst) {
     //    initRegHighlighting (gst) // clear loads to the registers
 //    em.clearLoggingData (gst.es)
     newUpdateRegisters (gst)
-    updateMemory (gst)
-    memDisplay (gst)
+//    memUpdate (gst)
+//    memDisplay (gst)
     procRefresh (gst)
 }
 
@@ -1112,7 +1112,6 @@ export function guiDisplayMem (gst, elt, xs) {
 
 // Displaying processor
 
-
 // For single stepping, we want to keep display of registers and
 // memory up to date and show access by highlighting the fetched and
 // updated locations.  For Run mode, we want to avoid updating the
@@ -1134,7 +1133,7 @@ export function execInstrPostDisplay (gst) {
     const es = gst.es
     com.mode.devlog ("main: execInstrPostDisplay, proceeding")
     newUpdateRegisters (gst)
-    updateMemory (gst)
+//    memUpdate (gst)
     memDisplay (gst)
     highlightListingAfterInstr (gst)
     updateInstrDecode (gst)
@@ -1147,10 +1146,11 @@ function procRefresh (gst) {
     console.log ("procRefresh")
     com.mode.devlog ("procRefresh")
     newUpdateRegisters (gst)
-        memRefresh (gst)
-        memDisplayFull (gst)
-        refreshProcStatusDisplay (gst)
-        guiDisplayNinstr (gst)
+//        memRefresh (gst)
+    //        memDisplayFull (gst)
+    memDisplay (gst)
+    refreshProcStatusDisplay (gst)
+    guiDisplayNinstr (gst)
 }
     //        refreshRegisters (gst)
     //    updateRegisters (gst)
@@ -1223,8 +1223,9 @@ export function displayFullState (gst) {
     com.mode.devlog ('displayFullState');
     //    updateRegisters (gst)
     newUpdateRegisters (gst)
-    updateMemory (gst)
-    memDisplayFull (gst);
+    //    memUpdate (gst)
+    memDisplay (gst)
+//    memDisplayFull (gst);
 }
 
 //------------------------------------------------------------------------------
@@ -1325,12 +1326,99 @@ function newUpdateRegisters (gst) {
 // Memory display
 //-----------------------------------------------------------------------------
 
-export let memDisplayModeFull = false;  // show entire/partial memory
-let memDisplayFastWindow = 16;          // how many locations to show in fast mode
-let memDispOffset = 3;                  // how many locations above highligted one
+
+// Memory display  modes
+
 const ModeMemDisplayHBA = Symbol ("MD HBA")          // 0 to highest booted address
 const ModeMemDisplaySliding = Symbol ("MD sliding")  // sliding window
 const ModeMmDisplayFull = Symbol ("MD full")         // full memory
+
+// put these into gst
+let memDisplayModeFull = false;  // show entire/partial memory
+let memDisplayFastWindow = 16;          // how many locations to show in fast mode
+let memDispOffset = 3;                  // how many locations above highligted one
+
+//---------------------------------------------
+// Interface to memory display
+//---------------------------------------------
+
+// Display mem[a]...mem[b] in elt, using highlighting to indicate
+// memory accesses, and scroll to mem[p]
+
+// Get memory contents from shared array
+// Get target instruction address and target data address from access logs
+// Get address range to display using target addresses and option settings
+
+function memDisplay (gst) {
+    const cp = gst.es.copyable
+    const itarget = cp.memFetchInstrLog[0] ?? 0
+    const dtarget = cp.memStoreLog[0] ?? cp.memFetchDataLog[0] ?? 0
+    const iRange = getMemRange (itarget)
+    const dRange = getMemRange (dtarget)
+    const a = Math.min (iRange.a, dRange.a)
+    const b = Math.max (iRange.b, dRange.b)
+    for (let i = a; i < b; i++) setMemString (gst, i)
+    for (let x of cp.memFetchInstrLog) memHighlight (gst, x, "GET")
+    for (let x of cp.memFetchDataLog)  memHighlight (gst, x, "GET")
+    for (let x of cp.memStoreLog)      memHighlight (gst, x, "PUT")
+    const itext = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	  + gst.memString.slice(iRange.a,iRange.b).join('\n')
+	  + "</code></pre>";
+    const dtext = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	  + gst.memString.slice(dRange.a,dRange.b).join('\n')
+	  + "</code></pre>";
+    document.getElementById('MemDisplay1').innerHTML = itext
+    document.getElementById('MemDisplay2').innerHTML = dtext
+}
+
+//    gst.memElt1.innerHTML = itext
+//    gst.memElt2.innerHTML = dtext
+//    const itext = gst.memString.slice(iRange.a,iRange.b).join('\n')
+//    const dtext = gst.memString.slice(dRange.a,dRange.b).join('\n')
+
+function getMemRange (t) {
+    return {a: 0, b: 65536}
+}
+
+// Convert memory location to hex string
+
+function setMemString (gst, a) {
+    let x = gst.es.shm[st.EmMemOffset + a] // contents of mem[a]
+    gst.memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
+}
+
+// Highlight memory location string to indicate fetch or store access
+
+function memHighlight (gst, a, highlight) {
+    gst.memString[a] =
+	"<span class='" + highlight + "'>" + gst.memString[a] + "</span>"
+}
+
+//memHighlight...
+//	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
+//    let x = gst.es.shm[st.EmMemOffset + a]
+    
+
+
+// function updateMemString (gst, a, b) {
+//     const es = gst.es
+//     es.copyable.memFetchInstrLog = []
+//    es.copyable.memFetchDataLog = []
+//    es.copyable.memStoreLog = []
+//}
+// updateMemString...
+// function memUpdate (gst) {
+//    if (st.readSCB (es, st.SCB_status) != st.SCB_running_gui) {
+//    }
+//    // Clear previous highlighting
+//    for (let x of es.copyable.memFetchInstrLogOld)  setMemString (gst, x)
+//    for (let x of es.copyable.memFetchDataLogOld)   setMemString (gst, x)
+//    for (let x of es.copyable.memStoreLogOld)       setMemString (gst, x)
+// Save access logs and clear
+//    es.copyable.memFetchInstrLogOld = es.copyable.memFetchInstrLog
+//    es.copyable.memFetchDataLogOld = es.copyable.memFetchDataLog
+//    es.copyable.memStoreLogOld = es.copyable.memStoreLog
+
 
 // The user interface (either gui or cli) updates the memory display;
 // the emulator just records memory accesses
@@ -1373,55 +1461,49 @@ const ModeMmDisplayFull = Symbol ("MD full")         // full memory
 // scrolling didn't work, possibly because of this dummy element with
 // its newline inserted when the array is joined up.
 
+//---------------------------------------------
 // The memString array
+//---------------------------------------------
 
-// memString is an array of strings that represent the contents of the
-// memory, which is an array of words.  setMemString (es,a) converts
-// mem[a] to a string and puts it into memString[a].
+// memString is an array of strings giving the hex representation of
+// the memory locations
 
-//function setMemString(es,a) {
-function setMemString(gst,a) {
-    let x = gst.es.shm[st.EmMemOffset + a]
-    gst.memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
-}
+// CHECK THIS... Memoize memory location strings.  Create a string to
+// represent a memory location; the actual value is in the memory
+// array, and the string is placed in the memString array.
+// memString[0] = <pre class="HighlightedTextAsHtml"> and mem[a]
+// corresponds to memString[a+1].
 
-// memRefresh -- refresh all the memory strings; the memString array
-// should be accurate but this function will recalculate all elements
-// of that array
+// Should emulator update memString[a] when it accesses mem[a] ?
 
-function memRefresh (gst) {
-    gst.memString = [];  // clear out and collect any existing elements
-    for (let i = 0; i < arch.memSize; i++) {
-	setMemString(gst,i);
-    }
-}
 
-// Memoize memory location strings.  Create a string to represent a
-// memory location; the actual value is in the memory array, and the
-// string is placed in the memString array.  memString[0] = <pre
-// class="HighlightedTextAsHtml"> and mem[a] corresponds to
-// memString[a+1].
+// Set memString[a] to the correct hex string for every address a.
+// The memString array should always be accurate but this function
+// will recalculate all elements of that array
+
+// function memRefresh (gst) {
+//    gst.memString = []  // discard any existing elements
+//    for (let i = 0; i < arch.memSize; i++) {
+//	setMemString (gst, i);
+//    }
+// }
 
 //---------------------------------------------
 // Highlighting memory accesses
 //---------------------------------------------
 
-function memHighlight (gst, a, highlight) {
-    let x = gst.es.shm[st.EmMemOffset + a]
-    gst.memString[a] =
-	"<span class='" + highlight + "'>"
-	+ arith.wordToHex4(a) + " " + arith.wordToHex4(x)
-        + "</span>";
-}
 
 // Create a string with a span class to represent a memory location
 // with highlighting; the actual value is in the memory array, and the
 // string is placed in the memString array.
 
+//---------------------------------------------
+// Update memString to indicate accesses
+//---------------------------------------------
+
 // Set the memory displays, using the memString array.  Check mode to
 // determine whether the display should be partial and fast or
 // complete but slow.
-
 
 // Update the memory string for each location that has been accessed,
 // so that it contains an html div element which can be used to
@@ -1431,37 +1513,9 @@ function memHighlight (gst, a, highlight) {
 
 // Need to rewrite this for efficiency ???
 
-function updateMemory (gst) {
-    const es = gst.es
-    if (st.readSCB (es, st.SCB_status) != st.SCB_running_gui) {
-        // Clear previous highlighting
-//        for (let x of es.memFetchInstrLogOld) { setMemString (gst, x) }
-//        for (let x of es.memFetchDataLogOld)  { setMemString (gst, x) }
-//        for (let x of es.memStoreLogOld)      { setMemString (gst, x) }
-        // Update new memory accesses
-        for (let x of es.copyable.memFetchInstrLog)    { memHighlight (gst, x, "GET") }
-        for (let x of es.copyable.memFetchDataLog)     { memHighlight (gst, x, "GET") }
-        for (let x of es.copyable.memStoreLog)         { memHighlight (gst, x, "PUT") }
-//        es.memFetchInstrLogOld = es.memFetchInstrLog
-//        es.memFetchDataLogOld = es.memFetchDataLog
-//        es.memStoreLogOld = es.memStoreLog
-        es.copyable.memFetchInstrLog = []
-        es.copyable.memFetchDataLog = []
-        es.copyable.memStoreLog = []
-    }
-}
-
 //---------------------------------------------
 // Display portion of memString array
 //---------------------------------------------
-
-// export function memDisplay (es) {
-export function memDisplay (gst) {
-//    if (memDisplayModeFull) { memDisplayFull (es) }
-    //    else { memDisplayFast (es) }
-    //    memDisplayFast (gst)
-    memDisplayFull (gst)
-}
 
 // Set the memory displays, showing only part of the memory to save time
 
@@ -1733,12 +1787,6 @@ export function toggleFullDisplay () {
 // Booter
 //-------------------------------------------------------------------------------
 
-function procBoot (gst) {
-    clearProcessorDisplay (gst)
-    boot (gst)
-    procRefresh (gst)
-}
-
 // Find the executable; it may come from assembler (object code) or
 // linker (executable code).
 
@@ -1754,26 +1802,21 @@ export function obtainExecutable () {
     }
 }
 
-export function boot (gst) {
+export function procBoot (gst) {
     const es = gst.es
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     st.resetSCB (es)
-    procReset (gst)
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
 
     initializeProcessorElements (gst) // ????
-    em.procReset (es)
-    em.clearLoggingData (es)
-    updateMemory (gst)
     gst.metadata = new st.Metadata ();
     gst.metadata.fromText (metadataText);
 
     let objectCode = objectCodeText.split("\n");
-    
     let xs = "";
     let fields = null;
     let isExecutable = true; // will set to false if module isn't bootable
@@ -1786,6 +1829,9 @@ export function boot (gst) {
     st.resetSCB (es)
     em.resetRegisters (es);
     em.memClear(es)
+//    em.procReset (es)
+//    em.clearLoggingData (es)
+//    memUpdate (gst)
     clearClock (gst)
 
     for (let i = 0; i < objectCode.length; i++) {
@@ -1824,10 +1870,10 @@ export function boot (gst) {
     if (isExecutable) {
         com.mode.devlog ("boot ok so far, preparing...");
         newUpdateRegisters (gst)
-        updateMemory (gst)
+//        memUpdate (gst)
 //        memDisplayFull(gst);
         memDisplay (gst)
-        em.clearLoggingData (es)
+        em.clearLoggingData (gst.es)
         gst.asmListingCurrent = []
         gst.metadata.listingDec.forEach ((x,i) => gst.asmListingCurrent[i] = x);
         initListing (gst);
@@ -1978,6 +2024,7 @@ export function procStep (gst) {
     case st.SCB_break:
     case st.SCB_relinquish:
         com.mode.devlog ("procStep: main thread executing instruction...")
+        em.clearLoggingData (gst.es)
         em.executeInstruction (es)
         let qnew = st.readSCB (es, st.SCB_status)
         if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
@@ -2006,10 +2053,12 @@ function runGeneric (gst) {
     switch (gst.emRunThread) {
     case com.ES_gui_thread:
         console.log ("runGeneric: use main thread")
+        em.clearLoggingData (gst.es)
         runMain (gst)
         break
     case com.ES_worker_thread:
         console.log ("runGeneric: use worker thread")
+        em.clearLoggingData (gst.es)
         runWorker (gst)
         break
     default:
@@ -2126,14 +2175,15 @@ function breakRefresh (gst) {
 // function breakEnable (es) {
 function breakEnable (gst) {
     com.mode.devlog ("breakEnable");
-    gst.es.breakEnabled = true;
-    com.mode.devlog (`breakEnable ${gst.es.breakPCvalue}`);
+    return
+//    gst.es.breakEnabled = true;
+//    com.mode.devlog (`breakEnable ${gst.es.breakPCvalue}`);
 }
 
 // function breakDisable (es) {
 function breakDisable (gst) {
     com.mode.devlog ("breakDisable");
-    gst.es.breakEnabled = false;
+//    gst.es.breakEnabled = false;
 }
 
 function breakClose (gst) {
@@ -2731,9 +2781,10 @@ function initializeTracing (gst) {
 function initializeSystem () {
     com.mode.devlog ('Initializing system')
     gst = new GuiState ()          // Create gui state and set global variable
+    initializeGuiElements (gst)    // Initialize gui elements
     initializeMainEmulator (gst)   // Create emulator state
     initializeGuiLayout (gst)      // Initialize gui layout
-    initializeGuiElements (gst)    // Initialize gui elements
+    memDisplay (gst)
     //    procRefresh (gst)
     procReset (gst)
     findVersion (gst)              // Determine running and latest version
@@ -2815,7 +2866,7 @@ function OLDsetProcAsmListing (gst) {
 //    console.log (`setProcAsmListing: ${xs}`)
 //    es.pc.put (0) // shouldn't be needed?
 //    refreshRegisters (gst)
-//    updateMemory (gst)
+//    memUpdate (gst)
 //    memDisplayFull(gst);
 //    let ys =  "<pre class='HighlightedTextAsHtml'>"
 //        + "<span class='ExecutableStatus'>"
@@ -3068,5 +3119,12 @@ export function OLDrefreshRegisters (gst) {
 //    setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
 //    setMidMainLeftWidth (currentMidMainWidth)
 //    adjustToMidMainLRratio ()
+
+// function procBoot (gst) {
+    //    clearProcessorDisplay (gst)
+//    boot (gst)
+//    procRefresh (gst)
+//}
+//    procReset (gst)
 
 */

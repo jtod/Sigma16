@@ -51,10 +51,10 @@ self.addEventListener ("message", e => {
             emwt.es.vec32 = new Uint32Array (emwt.es.vecbuf)
             emwt.es.shm = emwt.es.vec16
 
-            emwt.es.vec32[0] = 123
-            emwt.es.vec32[1] = 2 * emwt.es.vec32[0]
-            console.log (`***foobar**** ${emwt.es.vec32[0]} ${emwt.es.vec32[1]}`)
-
+            // Temporary testing...
+            emwt.es.vec32[0] = 0 // n instructions executed
+            emwt.es.vec32[1] = 0 // 2 * emwt.es.vec32[0]
+            // console.log (`***foobar**** ${emwt.es.vec32[0]} ${emwt.es.vec32[1]}`)
             
             em.initializeMachineState (emwt.es)
             emwt.initialized = true

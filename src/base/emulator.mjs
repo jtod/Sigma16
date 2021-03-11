@@ -88,7 +88,10 @@ const initEsCopyable = {
     regStored : [],
     memFetchInstrLog : [],
     memFetchDataLog : [],
-    memStoreLog : []
+    memStoreLog : [],
+    memFetchInstrLogOld : [],
+    memFetchDataLogOld : [],
+    memStoreLogOld : []
 }
 
 export class EmulatorState {
@@ -190,10 +193,10 @@ export class EmulatorState {
 export const ctlRegIndexOffset = 20;  // add to ctl reg no. to get register[] index
 export let sysCtlRegIdx = 0;          // index of first system control reg
 export let registerIndex = 0;         // unique index for each reg
-export let regFetched = [];
-export let regFetchedOld = [];
-export let regStored = [];
-export let regStoredOld = [];
+// export let regFetched = [];
+// export let regFetchedOld = [];
+// export let regStored = [];
+// export let regStoredOld = [];
 
 // Instructions refer to the system control registers by a 4-bit
 // index, but the system control register that has instruction index 0
@@ -308,7 +311,7 @@ export function resetRegisters (es) {
     com.mode.devlog('Resetting registers');
     for (let i = 0; i < es.nRegisters; i++) {
         es.register[i].put (0)
-        es.register[i].refresh ()
+//        es.register[i].refresh ()
     }
 }
 
@@ -374,11 +377,12 @@ export function memClear (es) {
     for (let a = 0; a < arch.memSize; a++) {
         memStore (es, a, 0)
     }
-    es.copyable.memFetchInstrLog = [];
-    es.copyable.memFetchDataLog = [];
-    es.copyable.memStoreLog = [];
-//    memRefresh (es);
+    clearLoggingData (es)
 }
+//    es.copyable.memFetchInstrLog = [];
+//    es.copyable.memFetchDataLog = [];
+//    es.copyable.memStoreLog = [];
+//    memRefresh (es);
 
 
 // Fetch and return a word from memory at address a, and record the
@@ -599,8 +603,11 @@ export function clearLoggingData (es) {
     es.copyable.regFetched = []
     es.copyable.regStored = []
     es.copyable.memFetchInstrLog = []
+    es.copyable.memFetchInstrLogOld = []
     es.copyable.memFetchDataLog = []
+    es.copyable.memFetchDataLogOld = []
     es.copyable.memStoreLog = []
+    es.copyable.memStoreLogOld = []
 }
 
 /*
@@ -636,7 +643,6 @@ export function clearInstrDecode (es) {
     es.instrEffect2 = ""
     es.instrEffect = []
 }
-
 
 // Execute one instruction; runs in either in any thread.  The choice
 // of thread is determined by es.
