@@ -377,8 +377,8 @@ export function memClear (es) {
     for (let a = 0; a < arch.memSize; a++) {
         memStore (es, a, 0)
     }
-    clearLoggingData (es)
 }
+//    clearLoggingData (es)
 //    es.copyable.memFetchInstrLog = [];
 //    es.copyable.memFetchDataLog = [];
 //    es.copyable.memStoreLog = [];
@@ -565,7 +565,6 @@ export function mainThreadLooper (es) {
     let finished = false
     while (continueRunning) {
         executeInstruction (es)
-        clearLoggingData (es)
         i++
         status = st.readSCB (es, st.SCB_status)
         switch (status) {
@@ -599,15 +598,18 @@ export function mainThreadLooper (es) {
 // When running, the logging data isn't needed.  The worker thread
 // needs to clear it to prevent a space leak.
 
-export function clearLoggingData (es) {
-    es.copyable.regFetched = []
-    es.copyable.regStored = []
+export function clearMemLogging (es) {
     es.copyable.memFetchInstrLog = []
     es.copyable.memFetchInstrLogOld = []
     es.copyable.memFetchDataLog = []
     es.copyable.memFetchDataLogOld = []
     es.copyable.memStoreLog = []
     es.copyable.memStoreLogOld = []
+}
+
+export function clearRegLogging (es) {
+    es.copyable.regFetched = []
+    es.copyable.regStored = []
 }
 
 /*
@@ -649,6 +651,9 @@ export function clearInstrDecode (es) {
 
 export function executeInstruction (es) {
     com.mode.devlog (`em.executeInstruction starting`)
+    //    clearRegLoggingData (es)
+    clearRegLogging (es)
+    clearMemLogging (es)
     clearInstrDecode (es)
     // Check for interrupt
     let mr = es.mask.get() & es.req.get() // ???
@@ -701,7 +706,7 @@ export function executeInstruction (es) {
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
     dispatch_primary_opcode [es.ir_op] (es);
     st.incrInstrCount (es)
-    console.log (`Finished executeInstruction: ${showEsInfo(es)}`)
+//    console.log (`Finished executeInstruction: ${showEsInfo(es)}`)
 }
 
 // RRR instruction pattern functions
@@ -830,10 +835,6 @@ const op_trap = (es) => {
 	    console.log ("Trap: halt");
 	    com.mode.devlog ("Trap: halt");
             st.writeSCB (es, st.SCB_status, st.SCB_halted)
-//            displayFullState (es)
-//            updateRegisters (es)  update display in ui
-//            updateMemory (es)
-//            memRefresh(es);
         } else if (code==1) { // nonblocking read
             console.log ('trap: nonblocking read')
             trapRead(es);
@@ -1428,3 +1429,9 @@ const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 // Generating and accessing registers
 // export let controlRegisters;   // array of the control registers
 // export let register = [];      // array of all the registers: regfile and control
+
+// trap main thread, halted...
+//            displayFullState (es)
+//            updateRegisters (es)  update display in ui
+//            updateMemory (es)
+//            memRefresh(es);

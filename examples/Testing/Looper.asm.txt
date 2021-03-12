@@ -35,6 +35,8 @@ innerloop
      add    R5,R5,R1      ; j := j + 1
      add    R9,R9,R1      ; sum := sum + 1
      store  R9,result     ; result := sum
+     lea    R10,4         ; trap code for breakpoint
+     trap   R10,R0,R0     ; breakpoint
      jump   innerloop[R0] ; goto innerloop
 
 innerdone

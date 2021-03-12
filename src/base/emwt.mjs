@@ -340,7 +340,8 @@ function regMemTest () {
 
 function doStep () {
     console.log (`emwt doStep`)
-    em.clearLoggingData (emwt.es)
+    em.clearRegLogging (emwt.es)
+    em.clearMemLogging (emwt.es)
     em.executeInstruction (emwt.es)
     console.log (`emwt doStep returning`)
 }
@@ -348,15 +349,17 @@ function doStep () {
 function doRun (limit) {
     console.log ("emwt doRun")
     //    em.initRegHighlighting (emwt.es)
-    em.clearLoggingData (emwt.es)
+    em.clearRegLogging (emwt.es)
+    em.clearMemLogging (emwt.es)
     let count = 0
     let status = 0
     let pauseReq = false
     let continueRunning = true
     let finished = false
     while (continueRunning) {
+        em.clearRegLogging (emwt.es)
+        em.clearMemLogging (emwt.es)
         em.executeInstruction (emwt.es)
-        em.clearLoggingData (emwt.es)
         //        emwt.es.vec32[0] = emwt.es.vec32[0] + 1
         status = st.readSCB (emwt.es, st.SCB_status)
         switch (status) {

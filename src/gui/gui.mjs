@@ -36,12 +36,12 @@ import * as em    from '../base/emulator.mjs';
 // Constant parameters
 //-----------------------------------------------------------------------------
 
-// Initial values that can be changed
 const InitMidLRratio = 0.6  // initial width ratio midMainLeft/midMainRight
 const defaultExecSliceSize = 500 // user can override on options page
 const InitGuiRefreshInterval = 250 // period (ms) of worker display refresh
+const InitialMDslidingSize = 1000
+const MemDispMinSize = 20 // always display at least this many locations
 
-// Fixed values
 const UGRSMALL = 1  // small number of pixels to move for user guide resizing
 const UGRLARGE = 20 // large number of pixels to move for user guide resizing
 const DefaultPaneButtonBackground = "#f8f8f8"
@@ -93,8 +93,8 @@ class GuiState {
         // Emulator state
         this.es = null   // emulator state for main thread (worker has its own)
         this.currentPaneButton = "Welcome_Pane_Button"
-        this.emRunThread = st.ES_gui_thread
-        this.mainSliceSize = 1
+        //        this.emRunThread = st.ES_gui_thread
+        this.emRunThread = st.ES_worker_thread
 
         // Processor display
         this.MemDispMode = ModeMemDisplayHBA
@@ -117,6 +117,12 @@ class GuiState {
 	this.nextInstrLineNo    = -1
 	this.saveCurSrcLine     = ""
 	this.saveNextSrcLine    - ""
+        this.mainSliceSize = 1
+
+        // Memory display
+        this.memDispMode = ModeMemDisplaySliding
+        this.currentMDslidingSize = InitialMDslidingSize
+        this.highBootAddress = 0
 
         // Clock
         this.startTime = null
@@ -172,6 +178,8 @@ function configureOptions (gst) {
     setMainSliceSize (gst, defaultExecSliceSize)
 }
 
+// Emulator options
+
 export function setMainSliceSize (gst, x) {
     console.log (`setMainSliceSize ${x}`)
     document.getElementById("MainSliceSize").innerHTML = x
@@ -197,19 +205,57 @@ const setRTworker = (gst) => (e) => {
     }
 }
 
+// Memory display options
+
+const ModeMemDisplayHBA = Symbol ("MD HBA")          // 0 to highest booted address
+const ModeMemDisplaySliding = Symbol ("MD sliding")  // sliding window
+const ModeMemDisplayFull = Symbol ("MD full")         // full memory
+
+function showMemDisplayOptions () {
+    const s = gst
+    switch (s.memDispMode) {
+    case ModeMemDisplayHBA:
+        console.log (`memory display mode = HBA (${s.highBootAddress})`)
+        break
+    case ModeMemDisplaySliding:
+        console.log (`memory display mode = sliding (${s.currentMDslidingSize})`)
+        break
+    case ModeMemDisplayFull:
+        console.log (`memory display mode = full`)
+        break
+    default:
+        console.log (`Invalid memory display mode`)
+    }
+}
+
+window.showMemDisplayOptions = showMemDisplayOptions
+
 const setMDhba = (gst) => (e) => {
     console.log ('setMDhba')
-    gst.es.memDispMode = ModeMemDisplayHBA
+    gst.memDispMode = ModeMemDisplayHBA
 }
 
 const setMDsliding = (gst) => (e) => {
     console.log ('setMDsliding')
-    gst.es.memDispMode = ModeMemDisplaySliding
+    gst.memDispMode = ModeMemDisplaySliding
+}
+
+function updateMDslidingSize (gst) {
+    console.log ("updateMDslidingSize")
+    let xs = document.getElementById("EnterMDslidingSize").value
+    let x = parseInt (xs)
+    console.log (`update MemDispSize <${xs}> = ${x}`)
+    if (!isNaN(x)) {
+        document.getElementById('MDslidingSize').innerHTML = x
+        gst.currentMDslidingSize = x
+        console.log (`Updated memory display sliding size := ${x}`)
+    }
+    showGuiState (gst)
 }
 
 const setMDfull = (gst) => (e) => {
     console.log ('setMDfull')
-    gst.es.memDispMode = ModeMmDisplayFull
+    gst.memDispMode = ModeMemDisplayFull
 }
 
 //-----------------------------------------------------------------------------
@@ -730,7 +776,7 @@ function initializeButtons () {
 
     // Options
     prepareButton ('UpdateSliceSize',      () => updateMainSliceSize (gst))
-    prepareButton ('UpdateMemDisplaySize', () => updateMemDisplaySize (gst))
+    prepareButton ('UpdateMDslidingSize', () => updateMDslidingSize (gst))
 
     setRTworker (gst) (null) // use worker if available
     document.getElementById("RTmain")
@@ -748,7 +794,7 @@ function initializeButtons () {
 
     document.getElementById("EnterMainSliceSize")
         .addEventListener ("keydown", (e) => { e.stopPropagation () })
-    document.getElementById("EnterMemDisplaySize")
+    document.getElementById("EnterMDslidingSize")
         .addEventListener ("keydown", (e) => { e.stopPropagation () })
 
     // DevTools
@@ -909,20 +955,6 @@ const updateMainSliceSize = (gst) => (e) => {
     if (!isNaN(x)) setMainSliceSize (gst, x)
 }
 
-// const updateMemDisplaySize = (gst) => (e) => {
-function updateMemDisplaySize (gst) {
-    console.log ("updateMemDisplaySize")
-//    e.stopPropagation ()
-    let xs = document.getElementById("EnterMemDisplaySize").value
-    let x = parseInt (xs)
-    console.log (`update MemDispSize <${xs}> = ${x}`)
-    //    if (!isNaN(x)) setMemDispSize (gst, x)
-    if (!isNaN(x)) {
-        document.getElementById('CurrentMemDisplaySize').innerHTML = x
-        gst.memDispSize = x
-    }
-    showGuiState (gst)
-}
 
 //-------------------------------------------------------------------------------
 // Example programs
@@ -1061,11 +1093,7 @@ export function initializeProcessorElements (gst) {
 function procReset (gst) {
     console.log ('gui.procReset')
     em.procReset (gst.es)
-    //    initRegHighlighting (gst) // clear loads to the registers
-//    em.clearLoggingData (gst.es)
     newUpdateRegisters (gst)
-//    memUpdate (gst)
-//    memDisplay (gst)
     procRefresh (gst)
 }
 
@@ -1096,7 +1124,6 @@ export function refreshDisplay (gst) {
 }
 //    es.clearInstrDecode (es.gst);
 //    refreshRegisters (gst);
-
 
 // These functions display information on the gui; they abstract the
 // document DOM out of the emulator
@@ -1129,25 +1156,21 @@ export function guiDisplayMem (gst, elt, xs) {
 // After this, either updateRegisters or refreshRegisters
 
 export function execInstrPostDisplay (gst) {
-    console.log (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
+//    console.log (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
     const es = gst.es
     com.mode.devlog ("main: execInstrPostDisplay, proceeding")
     newUpdateRegisters (gst)
-//    memUpdate (gst)
     memDisplay (gst)
     highlightListingAfterInstr (gst)
     updateInstrDecode (gst)
     guiDisplayNinstr (gst)
     document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
 }
-    //        updateRegisters (gst)
 
 function procRefresh (gst) {
-    console.log ("procRefresh")
+//    console.log ("procRefresh")
     com.mode.devlog ("procRefresh")
     newUpdateRegisters (gst)
-//        memRefresh (gst)
-    //        memDisplayFull (gst)
     memDisplay (gst)
     refreshProcStatusDisplay (gst)
     guiDisplayNinstr (gst)
@@ -1161,7 +1184,7 @@ const refreshProcessorDisplay = (gst) => (es) => {
 
 // Just clear regs & memory, then refreshProcessorDisplay
 function clearProcessorDisplay (gst) {
-    console.log ('clearProcessorDisplay')
+//    console.log ('clearProcessorDisplay')
     initializeProcessorElements (gst)
     gst.es.asmListingCurrent = []
     em.clearInstrDecode (gst.es)
@@ -1170,12 +1193,22 @@ function clearProcessorDisplay (gst) {
 // Copy executable listing to processor asm display
 
 function displayProcAsmListing (gst) {
-    console.log ('displayProcAsmListing');
+//    console.log ('displayProcAsmListing')
+    const elt = document.getElementById('ProcAsmListing')
     const xs = "<pre><code class='HighlightedTextAsHtml'>"
     	+ gst.asmListingCurrent.join('\n')
-	+ "</code></pre>";
-    document.getElementById('ProcAsmListing').innerHTML = xs;
+	  + "</code></pre>"
+    elt.innerHTML = xs
+    const htLinePx = elt.scrollHeight / gst.asmListingCurrent.length
+    const vat = 5 // number of visible lines above current
+    const i = Math.max (0, gst.curInstrLineNo - vat)
+    const y = htLinePx * i
+    elt.scroll (0, y)
 }
+//    let range = {a: 0, b: n, n, scrollto: gst.curInstrLineNo}
+//    scrollToTarget (listingelt, range, 5)
+//    let listingElt = document.getElementById('ProcAsmListing').innerHTML = xs;
+//    document.getElementById('ProcAsmListing').innerHTML = xs;
 
 //------------------------------------------------------------------------------
 // Emulator Interface to gui
@@ -1311,33 +1344,29 @@ function setModeHighlight (x) {
 
 function newUpdateRegisters (gst) {
     const es = gst.es
-    console.log (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
+//    console.log (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
     for (let i = 0; i < gst.es.nRegisters; i++) {
 	gst.es.register[i].refresh();
     }
     // Update the new register accesses
     for (let x of es.copyable.regFetched) x.highlight ("GET")
     for (let x of es.copyable.regStored)  x.highlight ("PUT")
-    es.copyable.regFetched = []
-    es.copyable.regStored = []
 }
+//    es.copyable.regFetched = []
+//    es.copyable.regStored = []
 
 //-----------------------------------------------------------------------------
 // Memory display
 //-----------------------------------------------------------------------------
 
-// Memory display  modes
-
-const ModeMemDisplayHBA = Symbol ("MD HBA")          // 0 to highest booted address
-const ModeMemDisplaySliding = Symbol ("MD sliding")  // sliding window
-const ModeMmDisplayFull = Symbol ("MD full")         // full memory
+// Choose a range of memory locations and display them
 
 function memDisplay (gst) {
     const cp = gst.es.copyable
     const itarget = cp.memFetchInstrLog[0] ?? 0
     const dtarget = cp.memStoreLog[0] ?? cp.memFetchDataLog[0] ?? 0
-    const iRange = getMemRange (itarget)
-    const dRange = getMemRange (dtarget)
+    const iRange = getMemRange (gst, itarget)
+    const dRange = getMemRange (gst, dtarget)
     const a = Math.min (iRange.a, dRange.a)
     const b = Math.max (iRange.b, dRange.b)
     for (let i = a; i < b; i++) setMemString (gst, i)
@@ -1357,14 +1386,38 @@ function memDisplay (gst) {
     memElt1.innerHTML = itext
     memElt2.innerHTML = dtext
     const vat = 8 // lines above target that should be visible
-    scrollToTarget (memElt1, iarr, itarget, vat)
-    scrollToTarget (memElt2, darr, dtarget, vat)
+    scrollToTarget (memElt1, iRange, vat)
+    scrollToTarget (memElt2, dRange, vat)
 }
 
 // Use memory display mode to calculate this
 
-function getMemRange (t) {
-    return {a: 0, b: 65536}
+function getMemRange (gst, t) {
+    let a = 0
+    let b = 65535
+    switch (gst.memDispMode) {
+    case ModeMemDisplayHBA:
+        b = Math.max (gst.highBootAddress, MemDispMinSize)
+        break
+    case ModeMemDisplaySliding:
+        const x = Math.round (gst.currentMDslidingSize / 2)
+        a = t-x
+        b = t+x
+        break
+    case ModeMemDisplayFull:
+        break
+    default:
+        console.log (`getMemRange: invalid memDispMode`)
+    }
+    if (a < 0) {
+        b += -a
+        a = 0}
+    b = Math.min (b, 65536)
+    const n = b - a
+    const scrollto = t - a
+    const result = {a, b, n, scrollto}
+//    console.log (`getMemRange a=${a} b=${b} n=${n} t=${scrollto}`)
+    return result
 }
 
 // Convert memory location to hex string
@@ -1385,13 +1438,12 @@ function memHighlight (gst, a, highlight) {
 // visibleAboveTarget lines visible in the window above the target
 // line.
 
-function scrollToTarget (elt, xs, target, visibleAboveTarget) {
-    const htLinePx = elt.scrollHeight / xs.length
-    const i = Math.max (0, target - visibleAboveTarget)
+function scrollToTarget (elt, range, visibleAboveTarget) {
+    const htLinePx = elt.scrollHeight / range.n
+    const i = Math.max (0, range.scrollto - visibleAboveTarget)
     const y = htLinePx * i
     elt.scroll (0, y)
 }
-
 
 //------------------------------------------------------------------------------
 // Assembly listing
@@ -1416,7 +1468,7 @@ function scrollToTarget (elt, xs, target, visibleAboveTarget) {
 // Prepare assembly listing when executable is booted
 
 export function initListing (gst) {
-    console.log ('initListing')
+//    console.log ('initListing')
     gst.es.curInstrAddr = 0;
     gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
     gst.es.nextInstrAddr = 0;
@@ -1472,11 +1524,11 @@ export function highlightListingLine (gst, i, highlight) {
 }
 
 function revertListingLine (gst, i) {
-    console.log (`revertListingLine ${i} `)
+//    console.log (`revertListingLine ${i} `)
     if (i > 0) {
-        console.log (`  revert old ${gst.asmListingCurrent[i]}`)
+//        console.log (`  revert old ${gst.asmListingCurrent[i]}`)
         gst.asmListingCurrent[i] = gst.metadata.listingDec[i]
-        console.log (`  revert new ${gst.asmListingCurrent[i]}`)
+//        console.log (`  revert new ${gst.asmListingCurrent[i]}`)
     }
 }
 
@@ -1610,10 +1662,13 @@ export function procBoot (gst) {
     st.resetSCB (es)
     em.resetRegisters (es);
     em.memClear(es)
+    em.clearMemLogging (es)
+    em.clearRegLogging (es)
 //    em.procReset (es)
 //    em.clearLoggingData (es)
 //    memUpdate (gst)
     clearClock (gst)
+    gst.highBootAddress = 0
 
     for (let i = 0; i < objectCode.length; i++) {
         xs = objectCode[i];
@@ -1633,6 +1688,7 @@ export function procBoot (gst) {
                 if (!val) {com.mode.devlog(`boot: bad data (${val})`)};
                 let safeval = val ? val : 0;
                 em.memStore (es, location, safeval);
+                gst.highBootAddress = Math.max (gst.highBootAddress, location)
                 com.mode.devlog (`boot data mem[${location}]:=${val}`);
                 location++;
             }
@@ -1654,7 +1710,9 @@ export function procBoot (gst) {
 //        memUpdate (gst)
 //        memDisplayFull(gst);
         memDisplay (gst)
-        em.clearLoggingData (gst.es)
+        //        em.clearLoggingData (gst.es)
+        em.clearRegLogging (gst.es)
+        em.clearMemLogging (gst.es)
         gst.asmListingCurrent = []
         gst.metadata.listingDec.forEach ((x,i) => gst.asmListingCurrent[i] = x);
         initListing (gst);
@@ -1805,7 +1863,8 @@ export function procStep (gst) {
     case st.SCB_break:
     case st.SCB_relinquish:
         com.mode.devlog ("procStep: main thread executing instruction...")
-        em.clearLoggingData (gst.es)
+        em.clearMemLogging (gst.es)
+        em.clearRegLogging (gst.es)
         em.executeInstruction (es)
         let qnew = st.readSCB (es, st.SCB_status)
         if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
@@ -1834,13 +1893,17 @@ function runGeneric (gst) {
     switch (gst.emRunThread) {
     case com.ES_gui_thread:
         console.log ("runGeneric: use main thread")
-        em.clearLoggingData (gst.es)
+        em.clearMemLogging (gst.es)
+        em.clearRegLogging (gst.es)
         runMain (gst)
+        execInstrPostDisplay (gst)
         break
     case com.ES_worker_thread:
         console.log ("runGeneric: use worker thread")
-        em.clearLoggingData (gst.es)
+        em.clearMemLogging (gst.es)
+        em.clearRegLogging (gst.es)
         runWorker (gst)
+        execInstrPostDisplay (gst)
         break
     default:
         console.log ("runGeneric: invalid emRunThread")
@@ -1883,6 +1946,7 @@ function procRun (gst) {
     case st.SCB_ready:
     case st.SCB_paused:
     case st.SCB_blocked:
+    case st.SCB_break:
         switch (es.emRunThread) {
         case com.ES_gui_thread:
             console.log ("procRun: starting in main gui thread")
@@ -2190,6 +2254,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         break
     case st.SCB_break:
         com.mode.devlog (`*** main: handle emwt break`)
+        console.log (`*** main: handle emwt break`)
         st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
         finishRun (gst)
         com.mode.devlog (`*** main: finished handle emwt break`)
@@ -2205,6 +2270,9 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         st.decrInstrCount (gst.es) // instruction was counted twice
         if (st.readSCB (gst.es, st.SCB_status) === st.SCB_halted) {
             console.log ("main: handle emwt relinquish: halted")
+            finishRun (gst)
+        } else if (st.readSCB (gst.es, st.SCB_status) === st.SCB_break) {
+            console.log ("main: handle emwt relinquish: trap break")
             finishRun (gst)
         } else {
             console.log (`main: handle emwt relinquish: resuming`)
@@ -3149,5 +3217,15 @@ function memDisplayNew (gst, first, last, fet, sto, elt) {
     if (first <= sto && sto <= last)       scrollMem (elt, sto)
     else if (first <= fet && fet <= last)  scrollMem (elt, fet)
 }
+
+//    memUpdate (gst)
+//        updateRegisters (gst)
+//        memRefresh (gst)
+    //        memDisplayFull (gst)
+// ProcReset...
+//    initRegHighlighting (gst) // clear loads to the registers
+//    em.clearLoggingData (gst.es)
+//    memUpdate (gst)
+//    memDisplay (gst)
 
 */
