@@ -1508,6 +1508,113 @@ eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
 
+** Breakpoints
+
+If you're debugging some code in a large program, you may need to
+execute a lot of instructions before reaching the point you're
+interested in.  For example, many programs execute thousands of
+instructions just to initialize.  It's infeasible to step through all
+those instructions, yet if you just run at full speed you won't be
+able to see in detail what's happening in the section you are working
+on.
+
+A /breakpoint/ is a location in a program where execution will stop
+automatically.  The breakpoint indicates a specific instruction.  You
+Boot the program and set a breakpoint and then click Run.  It will
+execute at full speed until it reaches the instruction you've selected
+(the "breakpoint") and then execution stops.  You can examine the
+registers and memory and single step through the section of code
+you're working on.  At any time you can click Run and full speed
+execution resumes, until either another breakpoint is encountered or
+the program terminates.
+
+Both a breakpoint ahd halt will stop execution of the program.  The
+difference is that after a break you can click Step or Run to
+continue, but after halt the program cannot execute any more
+instructions.
+
+There are two ways to set a breakpoint
+
+- /Trap break/: Insert an instruction into the program that breaks
+  execution at that point.
+- /External break/: Define a breakpoint in the user interface, without
+  modifying the program.
+
+Both forms are useful.  Most of the time, while debugging a program, a
+trap break is easier and more convenient.  However, if you don't want
+to modify the program or reassemble it, or if you realise that you
+want a breakpoint after execution has already started, then an
+external break is better.  (Also, external breaks offer some further
+features that will be implemented in Sigma16 but are not availble
+yet.)
+
+*** Trap break
+
+You can use a trap instruction to break execution when it executes.
+The first operand of the instruction is a register that must contain
+4, the trap code for breakpoint.  The other two operands are ignored.
+
+Suppose you want to check in detail what the load instruction is doing
+in this code.
+
+#+BEGIN_EXAMPLE
+    ...
+    add    R1,R2,R3
+    load   R4,x[R1]
+    ...
+#+END_EXAMPLE
+
+Insert a breakpoint just /before/ the instruction you want to examine.
+The breakpoint requires two instructions.  The first instruction loads
+the break code into some register (say R9 but it doesn't matter
+which), and the second instruction is a trap which actually performs
+the break.
+
+#+BEGIN_EXAMPLE
+    ...
+    add    R1,R2,R3
+    lea    R9,4       ; R9 := trap break code
+    trap   R9,R0,R0   ; breakpoint
+    load   R4,x[R1]
+    ...
+#+END_EXAMPLE
+
+Now you can run the program at full speed, but when it executes the
+trap instruction, the emulator will stop.  Since the trap instruction
+has just executed, it will be highlighted in red, and the instruction
+you're interested in -- the load -- will be highlighted in blue.
+
+Now you can single step for a while, and click Run again at any time
+to resume full speed execution.
+
+For an example of a long running program with a trap break, see
+Examples / Testing / Looper.
+
+*** External break
+
+You can also tell the user interface to perform a breakpoint without
+modifying the program.  You need to know the address of the
+instruction to stop at; find that from the assembly listing.
+
+1. In the processor page, click Breakpoint
+2. This pops up a small window.  Type in the breakpoint address.  It
+   must be a hexadecimal address in assembly language format: it must
+   begin with a $ and then contain four hex digits.  No other
+   characters may be present, not even white space.
+3. Click Refresh.  This parses the address you entered and remembers
+   it.
+4. Click Enable.  This turns on the breakpoint.
+5. Click CLose.  This closes the breakpoint popup so you can see the
+   Processor again.
+
+Now click Run and the program will execute at full speed.  When the pc
+register is equal to the breakpoint address, the emulator will stop.
+Then you can Step or Run to continue execution.
+
+As long as the breakpoint is enabled, execution will stop every time
+that location is encountered.  You can prevent this by opening the
+breakpoint popup again and click Disable.
+
 * Architecture
 :PROPERTIES:
 :CUSTOM_ID: sec-architecture
@@ -3356,17 +3463,51 @@ status register, it can be used to perform a context switch.
 *** putctl
 *** trap
 
-| 0 | halt              |
-| 1 | nonblocking read  |
-| 2 | nonblocking write |
-| 3 | blocking read     |
-| 4 | break             |
+The trap instruction requests a service from the virtual operating system.
+It takes three register operands.  The first
+register contains a /trap code/ that indicates what service is being
+requested, and the other registers contain two more words that are
+available to the service.
+
+| trap code | service requested |
+|-----------+-------------------|
+|         0 | halt              |
+|         1 | nonblocking read  |
+|         2 | nonblocking write |
+|         3 | blocking read     |
+|         4 | break             |
+
+Any registers may be used for the operands; what's important is the
+contents of the registers, not which register you happen to use.  A
+trap instruction has the form trap Rd,Ra,Rb where Rd contains the trap
+code.
 
 **** Halt
-**** Nonblocking Write
+
+Terminate execution of the program.  The operands Ra and Rb are
+ignored.
+
+After a halt, the program cannot resume execution: Step and Run have
+no effect.  The only way to run again is to perform another Boot.
+
+Since the trap code is 0, and R0 always contains 0, and the other
+operands are ignored, the canonical way to terminate the program is
+/trap R0,R0,R0/
+
 **** Nonblocking read
+
+**** Nonblocking Write
+
 **** Blocking read
+
 **** Break
+
+Pause execution of the program.  The operands Ra and Rb are ignored.
+
+Break stops execution but you can resume it again by clicking
+Step or Run.  A breakpoint allows you to run at full speed until a
+particular location in the program, and then single step through a
+section of interest.
 
 *** testset
 
@@ -5016,7 +5157,14 @@ ignored by the assembly language programmer: for example, if an
 instruction has a different opcode but is otherwise unchanged.  Other
 changes may require some alterations to assembly language programs.
 
-*** Version 3.2.0, January 2021
+*** Version 3.2.2, March 2021
+
+- A bug in breakpoints is fixed
+- In addition, there is a new way to specify breakpoings using trap
+- When the emulator stops, the memory display is correct; you no
+  longer need to refresh it
+
+*** Version 3.2.1, February 2021
 
 Version 3.2 brings several changes that will be visible to users of
 previous versions of Sigma16:
