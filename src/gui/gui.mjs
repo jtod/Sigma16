@@ -39,7 +39,7 @@ import * as em    from '../base/emulator.mjs';
 const InitMidLRratio = 0.6  // initial width ratio midMainLeft/midMainRight
 const defaultExecSliceSize = 500 // user can override on options page
 const InitGuiRefreshInterval = 250 // period (ms) of worker display refresh
-const InitialMDslidingSize = 1000
+const InitialMDslidingSize = 4096
 const MemDispMinSize = 20 // always display at least this many locations
 
 const UGRSMALL = 1  // small number of pixels to move for user guide resizing
@@ -93,8 +93,8 @@ class GuiState {
         // Emulator state
         this.es = null   // emulator state for main thread (worker has its own)
         this.currentPaneButton = "Welcome_Pane_Button"
-        //        this.emRunThread = st.ES_gui_thread
-        this.emRunThread = st.ES_worker_thread
+        //        this.emRunThread = com.ES_gui_thread  part of es
+        //        this.emRunThread = com.ES_worker_thread
 
         // Processor display
         this.MemDispMode = ModeMemDisplayHBA
@@ -170,7 +170,8 @@ function configureOptions (gst) {
     let workerShmOK = gst.supportWorker && gst.supportSharedMem
     document.getElementById("WorkerThreadOK").innerHTML = workerShmOK
     es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
-    es.emRunThread = es.emRunCapability // default: run according to capability
+// es.emRunThread = es.emRunCapability // default: run according to capability
+    es.emRunThread = com.ES_gui_thread // override for robust case
     console.log (`Emulator run capability = ${es.emRunCapability}`)
     let capabilityStr =
         es.emRunCapability === com.ES_worker_thread ? "worker/shm"
@@ -188,7 +189,7 @@ export function setMainSliceSize (gst, x) {
 
 const setRTmain = (gst) => (e) => {
     console.log ("setRTmain")
-    gst.emRunThread = com.ES_gui_thread
+    gst.es.emRunThread = com.ES_gui_thread
     document.getElementById("CurrentThreadSelection").innerHTML
         = com.showThread (com.ES_gui_thread)
 }
@@ -196,7 +197,7 @@ const setRTmain = (gst) => (e) => {
 const setRTworker = (gst) => (e) => {
     if (gst.supportWorker && gst.supportSharedMem) {
         console.log ("setRTworker: success")
-        gst.emRunThread = com.ES_worker_thread
+        gst.es.emRunThread = com.ES_worker_thread
         document.getElementById("CurrentThreadSelection").innerHTML
             = com.showThread (com.ES_worker_thread)
     } else {
@@ -769,10 +770,10 @@ function initializeButtons () {
 //    prepareButton ('PP_Test2',      emwtTest2);
 
     // Breakpoint popup dialogue
-    prepareButton ("BreakRefresh", breakRefresh(gst));
-    prepareButton ("BreakEnable",  breakEnable(gst));
-    prepareButton ("BreakDisable", breakDisable(gst));
-    prepareButton ("BreakClose",   breakClose(gst));
+    prepareButton ("BreakRefresh", () => breakRefresh(gst));
+    prepareButton ("BreakEnable",  () => breakEnable(gst));
+    prepareButton ("BreakDisable", () => breakDisable(gst));
+    prepareButton ("BreakClose",   () => breakClose(gst));
 
     // Options
     prepareButton ('UpdateSliceSize',      () => updateMainSliceSize (gst))
@@ -1093,9 +1094,16 @@ export function initializeProcessorElements (gst) {
 function procReset (gst) {
     console.log ('gui.procReset')
     em.procReset (gst.es)
+    em.clearMemLogging (gst.es)
+    em.clearRegLogging (gst.es)
     newUpdateRegisters (gst)
-    procRefresh (gst)
+    memDisplay (gst)
+    refreshProcStatusDisplay (gst)
+    guiDisplayNinstr (gst)
+
 }
+//    procRefresh (gst)
+//    newUpdateRegisters (gst)
 
 //------------------------------------------------------------------------------
 // Processor display
@@ -1171,12 +1179,12 @@ function procRefresh (gst) {
 //    console.log ("procRefresh")
     com.mode.devlog ("procRefresh")
     newUpdateRegisters (gst)
-    memDisplay (gst)
+    memDisplayFull (gst)
     refreshProcStatusDisplay (gst)
     guiDisplayNinstr (gst)
 }
-    //        refreshRegisters (gst)
-    //    updateRegisters (gst)
+//        refreshRegisters (gst)
+//    updateRegisters (gst)
 
 
 const refreshProcessorDisplay = (gst) => (es) => {
@@ -1349,9 +1357,16 @@ function newUpdateRegisters (gst) {
 	gst.es.register[i].refresh();
     }
     // Update the new register accesses
-    for (let x of es.copyable.regFetched) x.highlight ("GET")
-    for (let x of es.copyable.regStored)  x.highlight ("PUT")
+    console.log (`newupdateRegisters rfet=${es.copyable.regFetched}`)
+    console.log (`newupdateRegisters rsto=${es.copyable.regStored}`)
+    for (let x of es.copyable.regFetched) es.register[x].highlight ("GET")
+    for (let x of es.copyable.regStored) {
+        es.register[x].refresh()
+        es.register[x].highlight ("PUT")
+    }
 }
+//    for (let x of es.copyable.regFetched) x.highlight ("GET")
+//    for (let x of es.copyable.regStored)  x.highlight ("PUT")
 //    es.copyable.regFetched = []
 //    es.copyable.regStored = []
 
@@ -1389,6 +1404,38 @@ function memDisplay (gst) {
     scrollToTarget (memElt1, iRange, vat)
     scrollToTarget (memElt2, dRange, vat)
 }
+
+function memDisplayFull (gst) { // refactor: abstraction
+    const cp = gst.es.copyable
+    const itarget = cp.memFetchInstrLog[0] ?? 0
+    const dtarget = cp.memStoreLog[0] ?? cp.memFetchDataLog[0] ?? 0
+//    const iRange = getMemRange (gst, itarget)
+//    const dRange = getMemRange (gst, dtarget)
+    const iRange = {a: 0, b: 65536, n: 65536, scrollto: itarget}
+    const dRange = {a: 0, b: 65536, n: 65536, scrollto: dtarget}
+    const a = Math.min (iRange.a, dRange.a)
+    const b = Math.max (iRange.b, dRange.b)
+    for (let i = a; i < b; i++) setMemString (gst, i)
+    for (let x of cp.memFetchInstrLog) memHighlight (gst, x, "GET")
+    for (let x of cp.memFetchDataLog)  memHighlight (gst, x, "GET")
+    for (let x of cp.memStoreLog)      memHighlight (gst, x, "PUT")
+    const iarr = gst.memString.slice (iRange.a, iRange.b)
+    const darr = gst.memString.slice (dRange.a, dRange.b)
+    const itext = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	  + iarr.join('\n')
+	  + "</code></pre>";
+    const dtext = "<pre class='CodePre'><code class='HighlightedTextAsHtml'>"
+	  + darr.join('\n')
+	  + "</code></pre>";
+    const memElt1 = document.getElementById('MemDisplay1')
+    const memElt2 = document.getElementById('MemDisplay2')
+    memElt1.innerHTML = itext
+    memElt2.innerHTML = dtext
+    const vat = 8 // lines above target that should be visible
+    scrollToTarget (memElt1, iRange, vat)
+    scrollToTarget (memElt2, dRange, vat)
+}
+
 
 // Use memory display mode to calculate this
 
@@ -1489,7 +1536,7 @@ export function initListing (gst) {
 function highlightListingAfterInstr (gst) {
     com.mode.trace = true;
     com.mode.devlog ('highlightListingAfterInstr');
-    showListingParameters (gst)
+//    showListingParameters (gst)
     // Clear any existing statement highlighting
     if (gst.curInstrLineNo >= 0) {
             revertListingLine (gst, gst.curInstrLineNo)
@@ -1510,7 +1557,7 @@ function highlightListingAfterInstr (gst) {
     // Display the listing
     displayProcAsmListing (gst)
     com.mode.devlog ("Returning from highlightlistingAfterInstr")
-    showListingParameters (gst)
+//    showListingParameters (gst)
     com.mode.trace = false;
 }
 
@@ -1889,26 +1936,26 @@ export function procStep (gst) {
 // which to use.
 
 function runGeneric (gst) {
-    console.log (`runGeneric emRunThread = ${gst.emRunThread}`)
-    switch (gst.emRunThread) {
-    case com.ES_gui_thread:
+    console.log (`runGeneric emRunThread = ${gst.es.emRunThread}`)
         console.log ("runGeneric: use main thread")
         em.clearMemLogging (gst.es)
         em.clearRegLogging (gst.es)
         runMain (gst)
         execInstrPostDisplay (gst)
-        break
-    case com.ES_worker_thread:
-        console.log ("runGeneric: use worker thread")
-        em.clearMemLogging (gst.es)
-        em.clearRegLogging (gst.es)
-        runWorker (gst)
-        execInstrPostDisplay (gst)
-        break
-    default:
-        console.log ("runGeneric: invalid emRunThread")
-    }
 }
+//    switch (gst.es.emRunThread) {
+//    case com.ES_gui_thread:
+//        break
+//    case com.ES_worker_thread:
+//        console.log ("runGeneric: use worker thread")
+//        em.clearMemLogging (gst.es)
+//        em.clearRegLogging (gst.es)
+//        runWorker (gst)
+//        execInstrPostDisplay (gst)
+//        break
+//    default:
+//        console.log ("runGeneric: invalid emRunThread")
+//    }
 
 function runMain (gst) {
     gst.es.emRunThread = com.ES_gui_thread
@@ -1994,6 +2041,7 @@ export let breakDialogueVisible = false;
 
 export function procBreakpoint (gst) {
     com.mode.devlog ("procBreakpoint");
+    console.log ("procBreakpoint");
     document.getElementById("BreakDialogue").style.display
 	= breakDialogueVisible ? "none" : "block";
     breakDialogueVisible = !breakDialogueVisible;
@@ -2004,35 +2052,42 @@ export function hideBreakDialogue () {
     breakDialogueVisible = false;
 }
 
-// function breakRefresh (es) {
 function breakRefresh (gst) {
     com.mode.devlog ("breakRefresh");
     let x = document.getElementById('BreakTextArea').value;
     if (x.search(asm.hexParser) == 0) {
 	let w = arith.hex4ToWord (x.slice(1));
-	gst.es.breakPCvalue = w;
-	com.mode.devlog (`breakPCvalue = + ${w}`);
+	gst.es.copyable.breakPCvalue = w;
+//	com.mode.devlog (`breakPCvalue = + ${w}`);
+	console.log (`breakPCvalue = ${w}`);
     } else {
-	com.mode.devlog (`breakRefresh cannot parse + x`);
+//	com.mode.devlog (`breakRefresh cannot parse + x`);
+	console.log (`breakRefresh cannot parse + x`);
     }
 }
 
 // function breakEnable (es) {
 function breakEnable (gst) {
     com.mode.devlog ("breakEnable");
-    return
+    console.log ("breakEnable");
+    gst.es.copyable.breakEnabled = true;
+    com.mode.devlog (`breakEnable ${gst.es.breakPCvalue}`);
+}
+//    return
 //    gst.es.breakEnabled = true;
 //    com.mode.devlog (`breakEnable ${gst.es.breakPCvalue}`);
-}
 
 // function breakDisable (es) {
 function breakDisable (gst) {
     com.mode.devlog ("breakDisable");
-//    gst.es.breakEnabled = false;
+    console.log ("breakDisable");
+    gst.es.copyable.breakEnabled = false;
 }
+//    gst.es.breakEnabled = false;
 
 function breakClose (gst) {
     com.mode.devlog ("breakClose");
+    console.log ("breakClose");
     hideBreakDialogue ();
 }
 
@@ -2230,13 +2285,16 @@ function handleEmwtStepResponse (p) {
 function emwtRun (es) {
     com.mode.devlog ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
-    let msg = {code: 102, payload: instrLimit}
+    let msg = {code: 102, payload: es.copyable}
     emwThread.postMessage (msg)
     com.mode.devlog ("main: emwt run posted start message");
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 202
+    console.log (`handleEmwtRunResponse`)
     let status = st.readSCB (gst.es, st.SCB_status)
+    gst.es.copyable = p
+    em.showCopyable (gst.es.copyable)
     let  msg = {code: 0, payload: 0}
     com.mode.devlog (`main: handle emwt run response: p=${p} status=${status}`)
     switch (status) {
@@ -2614,7 +2672,6 @@ function initializeGuiElements (gst) {
     smod.prepareChooseFiles ();
     smod.initModules (gst);
     window.mode = com.mode;
-    initializeButtons (gst)
     prepareExampleText (gst)
 }
 
@@ -2633,6 +2690,7 @@ function initializeSystem () {
     initializeGuiElements (gst)    // Initialize gui elements
     initializeMainEmulator (gst)   // Create emulator state
     initializeGuiLayout (gst)      // Initialize gui layout
+    initializeButtons (gst)
     memDisplay (gst)
     //    procRefresh (gst)
     procReset (gst)

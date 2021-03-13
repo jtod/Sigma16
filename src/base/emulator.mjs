@@ -52,12 +52,14 @@ export function showEsInfo (es) {
 //    const rfet = es.regFetched.map(r=>r.regName) 
 //    const rsto = es.regStored.map(r=>r.regName) 
     return `showEsInfo thread=${es.thread_host}\n`
-        + `  regFetched = ${es.copyable.regFetched.map(r=>r.regName)}\n`
-        + `  regStored = ${es.copyable.regStored.map(r=>r.regName)}\n`
+        + `  regFetched = ${es.copyable.regFetched}\n`
+        + `  regStored = ${es.copyable.regStored}\n`
         + `  memFetchInstrLog = ${es.copyable.memFetchInstrLog}\n`
         + `  memFetchDataLog = ${es.copyable.memFetchDataLog}\n`
         + `  memStoreLog = ${es.copyable.memStoreLog}\n`
 }
+//        + `  regFetched = ${es.copyable.regFetched.map(r=>r.regName)}\n`
+//        + `  regStored = ${es.copyable.regStored.map(r=>r.regName)}\n`
 
 export let modeHighlightAccess = true;
 
@@ -84,6 +86,8 @@ export function initRegHighlighting (es) {
 // during execution.
 
 const initEsCopyable = {
+    breakPCvalue : 0,
+    breakEnabled : false,
     regFetched : [],
     regStored : [],
     memFetchInstrLog : [],
@@ -92,6 +96,17 @@ const initEsCopyable = {
     memFetchInstrLogOld : [],
     memFetchDataLogOld : [],
     memStoreLogOld : []
+}
+
+export function showCopyable (x) {
+    console.log (`showCopyable`)
+    console.log (`breakEnabled = ${x.breakEenabled}`)
+    console.log (`breakPCvalue = ${x.breakPCvalue}`)
+    console.log (`regFetched = ${x.regFetched.join(',')}`)
+    console.log (`regStored = ${x.regStored.join(',')}`)
+    console.log (`memFetchInstrLog = ${x.memFetchInstrLog.join(',')}`)
+    console.log (`memFetchDataLog = ${x.memFetchDataLog.join(',')}`)
+    console.log (`memStoreLog = ${x.memStoreLog.join(',')}`)
 }
 
 export class EmulatorState {
@@ -117,7 +132,6 @@ export class EmulatorState {
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false
-     	this.breakPCvalue     = 0
 	this.doInterrupt      = 0
         this.ioLogBuffer      = ""
         this.pc               = null
@@ -252,14 +266,14 @@ function testReg2 () {
 // regStIndex.  So it's important to create the registers in a
 // sensible order, with the register file first.
 
-// let nRegisters = 0  // number of registers that have been defined
+//let nRegisters = 0  // number of registers that have been defined
 
 export class genregister {
-    constructor (es, regNumber, regName, eltName, showFcn) {
+    constructor (es, regName, eltName, showFcn) {
         this.es = es
         this.regStIndex = es.nRegisters
+        this.regNumber = es.nRegisters
         es.nRegisters++
-        this.regNumber = regNumber
         this.regName = regName
         this.eltName = eltName
         this.show = showFcn
@@ -269,13 +283,13 @@ export class genregister {
         es.register.push (this)
     }
     get () {
-        this.es.copyable.regFetched.push (this)
+        this.es.copyable.regFetched.push (this.regNumber)
         let i = st.EmRegBlockOffset + this.regStIndex
         let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
         return x
     }
     put (x) {
-        this.es.copyable.regStored.push (this)
+        this.es.copyable.regStored.push (this.regNumber)
         let i = st.EmRegBlockOffset + this.regStIndex
         this.es.shm[i] = x
         if (this.regIdx < 16) { // register file
@@ -304,7 +318,6 @@ export class genregister {
     }
 }
 
-
 // Reset every register to 0
 
 export function resetRegisters (es) {
@@ -314,7 +327,6 @@ export function resetRegisters (es) {
 //        es.register[i].refresh ()
     }
 }
-
 
 //----------------------------------------------------------------------
 //  Memory representation and access
@@ -440,39 +452,55 @@ export function initializeMachineState (es) {
     // Build the register file; sysStateVec index = reg number
     for (let i = 0; i < 16; i++) {
 	let regname = 'R' + i; // also the id for element name
-        es.regfile[i] = new genregister (es, i, regname, regname, arith.wordToHex4)
-	es.register[i] = es.regfile[i]
+        es.regfile[i] = new genregister (es, regname, regname, arith.wordToHex4)
+//     es.regfile[i] = new genregister (es, i, regname, regname, arith.wordToHex4)
+//	es.register[i] = es.regfile[i]
     }
 
     // Instruction control registers
-    es.pc   = new genregister (es, 0,  'pc',   'pcElt',    arith.wordToHex4);
-    es.ir   = new genregister (es, 0,  'ir',   'irElt',    arith.wordToHex4);
-    es.adr  = new genregister (es, 0,  'adr',  'adrElt',   arith.wordToHex4);
-    es.dat  = new genregister (es, 0,  'dat',  'datElt',   arith.wordToHex4);
+    es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
+    es.ir   = new genregister (es, 'ir',   'irElt',    arith.wordToHex4);
+    es.adr  = new genregister (es, 'adr',  'adrElt',   arith.wordToHex4);
+    es.dat  = new genregister (es, 'dat',  'datElt',   arith.wordToHex4);
+//    es.pc   = new genregister (es, 0,  'pc',   'pcElt',    arith.wordToHex4);
+//    es.ir   = new genregister (es, 0,  'ir',   'irElt',    arith.wordToHex4);
+//    es.adr  = new genregister (es, 0,  'adr',  'adrElt',   arith.wordToHex4);
+//    es.dat  = new genregister (es, 0,  'dat',  'datElt',   arith.wordToHex4);
 
     // Interrupt control registers
-    es.statusreg  = new genregister (es, 0, 'statusreg', 'statusElt',  arith.wordToHex4);
+    es.statusreg  = new genregister (es, 'statusreg', 'statusElt',  arith.wordToHex4);
+//   es.statusreg  = new genregister (es, 0, 'statusreg', 'statusElt',  arith.wordToHex4);
     // bit 0 (lsb) :  0 = User state, 1 = System state
     // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
     // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
 
-    es.mask  = new genregister (es, 0, 'mask', 'maskElt',  arith.wordToHex4);
-    es.req   = new genregister (es, 0, 'req',  'reqElt',   arith.wordToHex4);
+    es.mask  = new genregister (es, 'mask', 'maskElt',  arith.wordToHex4);
+    es.req   = new genregister (es, 'req',  'reqElt',   arith.wordToHex4);
+//    es.mask  = new genregister (es, 0, 'mask', 'maskElt',  arith.wordToHex4);
+//    es.req   = new genregister (es, 0, 'req',  'reqElt',   arith.wordToHex4);
     // mask and request use the same bit positions for flags
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
 
-    es.rstat    = new genregister (es, 0, 'rstat',  'rstatElt',  arith.wordToHex4);
-    es.rpc      = new genregister (es, 0, 'rpc',    'rpcElt',    arith.wordToHex4);
-    es.vect     = new genregister (es, 0, 'vect',   'vectElt',   arith.wordToHex4);
+    es.rstat    = new genregister (es, 'rstat',  'rstatElt',  arith.wordToHex4);
+    es.rpc      = new genregister (es, 'rpc',    'rpcElt',    arith.wordToHex4);
+    es.vect     = new genregister (es, 'vect',   'vectElt',   arith.wordToHex4);
+//  es.rstat    = new genregister (es, 0, 'rstat',  'rstatElt',  arith.wordToHex4);
+//  es.rpc      = new genregister (es, 0, 'rpc',    'rpcElt',    arith.wordToHex4);
+//  es.vect     = new genregister (es, 0, 'vect',   'vectElt',   arith.wordToHex4);
 
 // Segment control registers
-    es.bpseg = new genregister (es, 0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
-    es.epseg = new genregister (es, 0, 'epseg',  'epsegElt',  arith.wordToHex4);
-    es.bdseg = new genregister (es, 0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
-    es.edseg = new genregister (es, 0, 'edseg',  'edsegElt',  arith.wordToHex4);
+    es.bpseg = new genregister (es, 'bpseg',  'bpsegElt',  arith.wordToHex4);
+    es.epseg = new genregister (es, 'epseg',  'epsegElt',  arith.wordToHex4);
+    es.bdseg = new genregister (es, 'bdseg',  'bdsegElt',  arith.wordToHex4);
+    es.edseg = new genregister (es, 'edseg',  'edsegElt',  arith.wordToHex4);
+
+//    es.bpseg = new genregister (es, 0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
+//  es.epseg = new genregister (es, 0, 'epseg',  'epsegElt',  arith.wordToHex4);
+//  es.bdseg = new genregister (es, 0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
+//  es.edseg = new genregister (es, 0, 'edseg',  'edsegElt',  arith.wordToHex4);
 
 // Record the control registers    
     es.controlRegisters =
@@ -563,6 +591,7 @@ export function mainThreadLooper (es) {
     let pauseReq = false
     let continueRunning = true
     let finished = false
+    let externalBreak = false
     while (continueRunning) {
         executeInstruction (es)
         i++
@@ -571,10 +600,20 @@ export function mainThreadLooper (es) {
         case st.SCB_halted:
         case st.SCB_paused:
         case st.SCB_break:
+        case st.SCB_relinquish:
             finished = true
             break
         default:
         }
+        externalBreak = es.copyable.breakEnabled
+            && (es.pc.get() === es.copyable.breakPCvalue)
+        if (externalBreak) finished = true
+
+        console.log (`em after exec checkbreak: pc=${es.pc.get()}`
+                     + ` bEN=${es.copyable.breakEnabled}`
+                     + ` bPC=${es.copyable.breakPCvalue}`
+                     + ` eb=${externalBreak}`)
+
         pauseReq = st.readSCB (es, st.SCB_pause_request) != 0
         continueRunning = !finished  && !pauseReq && i < es.emInstrSliceSize
     }
@@ -582,6 +621,9 @@ export function mainThreadLooper (es) {
             com.mode.devlog ("main looper pausing")
             st.writeSCB (es, st.SCB_status, st.SCB_paused)
             st.writeSCB (es, st.SCB_pause_request, 0)
+        } else if (externalBreak) {
+            console.log (`external breakpoint`)
+            st.writeSCB (es, st.SCB_status, st.SCB_break)
         }
     if (finished) {
         es.endRunDisplay (es)
@@ -825,8 +867,8 @@ const cab_dc = (f) => (es) => {
 
 const op_trap = (es) => {
     console.log (`*** op_trap es.thread_host=${es.thread_host}`)
-    switch (es.thread_host) {
-    case com.ES_gui_thread:
+//    switch (es.thread_host) {
+//    case com.ES_gui_thread:
         com.mode.devlog (`handle trap in main thread`)
         console.log (`handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
@@ -849,18 +891,18 @@ const op_trap = (es) => {
         } else { // Undefined trap is nop
             com.mode.devlog (`trap with unbound code = ${code}`)
         }
-        break
-    case com.ES_worker_thread:
-        com.mode.devlog (`emworker: relinquish control on a trap`)
-        st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
-        com.mode.devlog (`trap relinquish before fixup, pc = ${es.pc.get()}`)
-        es.pc.put (st.readSCB (es, st.SCB_cur_instr_addr))
-        com.mode.devlog (`trap relinquish after fixup, pc = ${es.pc.get()}`)
-        break
-    default:
-        console.log (`system error: trap has bad shm_token ${q}`)
-    }
 }
+//        break
+//    case com.ES_worker_thread:
+//        com.mode.devlog (`emworker: relinquish control on a trap`)
+//        st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
+//        com.mode.devlog (`trap relinquish before fixup, pc = ${es.pc.get()}`)
+//        es.pc.put (st.readSCB (es, st.SCB_cur_instr_addr))
+//        com.mode.devlog (`trap relinquish after fixup, pc = ${es.pc.get()}`)
+//        break
+//    default:
+//        console.log (`system error: trap has bad shm_token ${q}`)
+//    }
 
 // trapRead performs in input from the contents of the input buffer: a
 // = address of the buffer, and b = size of buffer.  If the number of

@@ -71,8 +71,14 @@ self.addEventListener ("message", e => {
             break
         case 102: // emwt run
             console.log (`emwt: received request run`)
-            result = doRun (e.data.payload)
-            msg = {code: 202, payload: result}
+            emwt.es.copyable = e.data.payload
+            console.log (`emwt about to run...`)
+            em.showCopyable (emwt.es.copyable)
+            result = doRun ()
+            //            msg = {code: 202, payload: result}
+            msg = {code: 202, payload: emwt.es.copyable}
+            console.log (`emwt about to return from run...`)
+            em.showCopyable (emwt.es.copyable)
             self.postMessage (msg)
             break
         case 103: // show
@@ -346,19 +352,21 @@ function doStep () {
     console.log (`emwt doStep returning`)
 }
 
-function doRun (limit) {
+function doRun () {
     console.log ("emwt doRun")
+    const es = emwt.es
     //    em.initRegHighlighting (emwt.es)
-    em.clearRegLogging (emwt.es)
-    em.clearMemLogging (emwt.es)
+//    em.clearRegLogging (emwt.es)
+//    em.clearMemLogging (emwt.es)
     let count = 0
     let status = 0
     let pauseReq = false
     let continueRunning = true
     let finished = false
+    let externalBreak = false
     while (continueRunning) {
-        em.clearRegLogging (emwt.es)
-        em.clearMemLogging (emwt.es)
+//        em.clearRegLogging (emwt.es) executeInstruction does this now
+//        em.clearMemLogging (emwt.es)
         em.executeInstruction (emwt.es)
         //        emwt.es.vec32[0] = emwt.es.vec32[0] + 1
         status = st.readSCB (emwt.es, st.SCB_status)
@@ -371,13 +379,25 @@ function doRun (limit) {
             break
         default:
         }
+        externalBreak = emwt.es.pc.get() === emwt.es.copyable.breakPCvalue
+        if (externalBreak) finished = true
+
+        console.log (`emwt after exec checkbreak: pc=${es.pc.get()}`
+                     + ` bEN=${es.copyable.breakEnabled}`
+                     + ` bPC=${es.copyable.breakPCvalue}`
+                     + ` eb=${externalBreak}`)
+
         pauseReq = st.readSCB (emwt.es, st.SCB_pause_request) != 0
         continueRunning = !finished  && !pauseReq
     }
     if (pauseReq && status != st.SCB_halted) {
         st.writeSCB (emwt.es, st.SCB_status, st.SCB_paused)
         st.writeSCB (emwt.es, st.SCB_pause_request, 0)
+    } else if (externalBreak) {
+        console.log (`external breakpoint`)
+        st.writeSCB (emwt.es, st.SCB_status, st.SCB_break)
     }
+
     return count
 }
 
