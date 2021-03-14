@@ -1,11 +1,26 @@
 ; Looper: a long-running program for timing measurements
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021
+; This file is part of Sigma16, README and https://jtod.github.io/home/Sigma16/
+
+; This program contains two nested loops; its purpose is for testing,
+; performance measurements, and demonstrating breakpoints.
 
 ; Configure the program by editing the values of n and m.  The program
 ; will execute 5*n*m instructions in the inner loop.  For experiments,
 ; it's useful to use the editor to change the values of n and m, which
 ; are defined near the end, then assemble and run.  This program is
 ; useful for comparing performance of the emulator threads.
+
+; A breakpoint is set at the beginning of the outer loop.  Execution
+; will stop at that point on every iteration of the outer loop,
+; running approximately 6,000 instructions at full speed.  Try running
+; the program is it is; each time you click Run it will stop at the
+; breakpoint and you can see R4, the outer loop counter, advance.
+
+; You can disable this breakpoint by putting a ; before the trap
+; instruction, and set an external breakpoing: click Breakpoint, enter
+; the address where you want to stop (e.g. $0008), then Refresh,
+; Enable, Close.  Turn off the breakpoint by clicking Disable.
 
 ; for i := 0 to n
 ;   for j := 0 to m
@@ -25,6 +40,8 @@
 
      add    R4,R0,R0      ; i := 0, initialize outer loop counter
 outerloop
+     lea    R10,4         ; trap code for breakpoint  BREAKPOINT
+     trap   R10,R0,R0     ; breakpoint                BREAKPOINT
      cmp    R4,R2         ; i >= n
      jumpge done[R0]      ; if i >= n then goto done
 
@@ -35,8 +52,6 @@ innerloop
      add    R5,R5,R1      ; j := j + 1
      add    R9,R9,R1      ; sum := sum + 1
      store  R9,result     ; result := sum
-     lea    R10,4         ; trap code for breakpoint
-     trap   R10,R0,R0     ; breakpoint
      jump   innerloop[R0] ; goto innerloop
 
 innerdone

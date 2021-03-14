@@ -1510,6 +1510,14 @@ backward compatibility; this can lead to great complexity.
 
 ** Breakpoints
 
+Quick summary, explanation follows.  There are two ways to set a
+breakpoint:
+
+1. Insert a breakpoint in code: /lea  R10,4; trap R10,R0,R0/  Any
+   register (except R0) can be used in place of R10.
+2. Request a breakpoint in the user interface: Click Breakpoint, type
+   in address (e.g. $00b6), click Refresh, Enable, Close.
+
 If you're debugging some code in a large program, you may need to
 execute a lot of instructions before reaching the point you're
 interested in.  For example, many programs execute thousands of
@@ -1544,9 +1552,7 @@ Both forms are useful.  Most of the time, while debugging a program, a
 trap break is easier and more convenient.  However, if you don't want
 to modify the program or reassemble it, or if you realise that you
 want a breakpoint after execution has already started, then an
-external break is better.  (Also, external breaks offer some further
-features that will be implemented in Sigma16 but are not availble
-yet.)
+external break is better.
 
 *** Trap break
 
@@ -1612,8 +1618,8 @@ register is equal to the breakpoint address, the emulator will stop.
 Then you can Step or Run to continue execution.
 
 As long as the breakpoint is enabled, execution will stop every time
-that location is encountered.  You can prevent this by opening the
-breakpoint popup again and click Disable.
+that location is encountered.  To prevent this, open the breakpoint
+popup again and click Disable.
 
 * Architecture
 :PROPERTIES:
