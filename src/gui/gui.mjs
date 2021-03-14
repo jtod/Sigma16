@@ -158,7 +158,7 @@ function checkBrowserWorkerSupport () {
 }
 
 function configureOptions (gst) {
-    console.log ("configurerOptions")
+    com.mode.devlog ("configurerOptions")
     const es = gst.es
     gst.supportLocalStorage = cn.checkLocalStorageSupport ()
     document.getElementById("SupportLocalStorage").innerHTML =
@@ -172,7 +172,7 @@ function configureOptions (gst) {
     es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
 // es.emRunThread = es.emRunCapability // default: run according to capability
     es.emRunThread = com.ES_gui_thread // override for robust case
-    console.log (`Emulator run capability = ${es.emRunCapability}`)
+    com.mode.devlog (`Emulator run capability = ${es.emRunCapability}`)
     let capabilityStr =
         es.emRunCapability === com.ES_worker_thread ? "worker/shm"
         : "main"
@@ -182,13 +182,13 @@ function configureOptions (gst) {
 // Emulator options
 
 export function setMainSliceSize (gst, x) {
-    console.log (`setMainSliceSize ${x}`)
+    com.mode.devlog (`setMainSliceSize ${x}`)
     document.getElementById("MainSliceSize").innerHTML = x
     gst.mainSliceSize = x
 }
 
 const setRTmain = (gst) => (e) => {
-    console.log ("setRTmain")
+    com.mode.devlog ("setRTmain")
     gst.es.emRunThread = com.ES_gui_thread
     document.getElementById("CurrentThreadSelection").innerHTML
         = com.showThread (com.ES_gui_thread)
@@ -196,12 +196,12 @@ const setRTmain = (gst) => (e) => {
 
 const setRTworker = (gst) => (e) => {
     if (gst.supportWorker && gst.supportSharedMem) {
-        console.log ("setRTworker: success")
+        com.mode.devlog ("setRTworker: success")
         gst.es.emRunThread = com.ES_worker_thread
         document.getElementById("CurrentThreadSelection").innerHTML
             = com.showThread (com.ES_worker_thread)
     } else {
-        console.log (`setRTworker: Platform does not support worker, using main`)
+        com.mode.devlog (`setRTworker: Platform does not support worker, using main`)
         setRTmain (gst) (null)
     }
 }
@@ -232,30 +232,30 @@ function showMemDisplayOptions () {
 window.showMemDisplayOptions = showMemDisplayOptions
 
 const setMDhba = (gst) => (e) => {
-    console.log ('setMDhba')
+    com.mode.devlog ('setMDhba')
     gst.memDispMode = ModeMemDisplayHBA
 }
 
 const setMDsliding = (gst) => (e) => {
-    console.log ('setMDsliding')
+    com.mode.devlog ('setMDsliding')
     gst.memDispMode = ModeMemDisplaySliding
 }
 
 function updateMDslidingSize (gst) {
-    console.log ("updateMDslidingSize")
+    com.mode.devlog ("updateMDslidingSize")
     let xs = document.getElementById("EnterMDslidingSize").value
     let x = parseInt (xs)
-    console.log (`update MemDispSize <${xs}> = ${x}`)
+    com.mode.devlog (`update MemDispSize <${xs}> = ${x}`)
     if (!isNaN(x)) {
         document.getElementById('MDslidingSize').innerHTML = x
         gst.currentMDslidingSize = x
-        console.log (`Updated memory display sliding size := ${x}`)
+        com.mode.devlog (`Updated memory display sliding size := ${x}`)
     }
     showGuiState (gst)
 }
 
 const setMDfull = (gst) => (e) => {
-    console.log ('setMDfull')
+    com.mode.devlog ('setMDfull')
     gst.memDispMode = ModeMemDisplayFull
 }
 
@@ -274,27 +274,27 @@ function findThisVersion () {
 // then query server for the latest version number
 
 function findLatestVersion (gst) {
-    console.log ("*** findLatestVersion starting")
+    com.mode.devlog ("*** findLatestVersion starting")
     const serverAddressLoc = `${com.S16HOMEPAGEURL}/admin/SIGSERVERURL.txt`
     fetch (serverAddressLoc)
         .then (repositoryResponse => {
             return repositoryResponse.text()
         }).then (serverURL => {
             const latestURL = `${serverURL}/status/latest/${ver.s16version}`
-            console.log (`*** findLatestVersion server= ${serverURL}`)
-            console.log (`*** findLatestVersion latestURL= ${latestURL}`)
+            com.mode.devlog (`*** findLatestVersion server= ${serverURL}`)
+            com.mode.devlog (`*** findLatestVersion latestURL= ${latestURL}`)
             return fetch (latestURL)
         }).then (serverResponse => {
             return serverResponse.text()
         }).then (latest => {
-            console.log (`*** findLatestVersion latest= ${latest}`)
+            com.mode.devlog (`*** findLatestVersion latest= ${latest}`)
             gst.latestVersion = latest
             document.getElementById('LatestVersion').innerHTML = latest
         })
         .catch (error => {
-            console.log (`findLatestVersion error ${error}`)
+            com.mode.devlog (`findLatestVersion error ${error}`)
         })
-    console.log ("*** findLatestVersion started actions, now returning")
+    com.mode.devlog ("*** findLatestVersion started actions, now returning")
 }
 
 //-----------------------------------------------------------------------------
@@ -376,7 +376,7 @@ function setMidMainLeftWidth (newxl) {
     let newxr = ww - newxl;
     let newxlp = newxl + "px";
     let newratio = newxl / (newxl + newxr);
-    console.log (`setMidMainLeftWidth old ratio = ${gst.midLRratio} `
+    com.mode.devlog (`setMidMainLeftWidth old ratio = ${gst.midLRratio} `
                  + `new ratio = ${newratio}`)
     com.mode.devlog ('  new dimensions: ww = ' + ww +
 		 ' newxl=' + newxl + ' newxr=' + newxr + ' newratio=' + newratio);
@@ -509,7 +509,7 @@ function toggleUserGuide () {
 }
 
 function showUserGuide () {
-    console.log (`showUserGuide midLRratio=${gst.midLRratio}`)
+    com.mode.devlog (`showUserGuide midLRratio=${gst.midLRratio}`)
     showSizeParameters();
     adjustToMidMainLRratio();
 }
@@ -609,16 +609,16 @@ const showPane = (gst) => (p) => {
 }
 
 function highlightPaneButton (gst, bid) {
-    console.log (`highlightPaneButton ${bid}`)
+    com.mode.devlog (`highlightPaneButton ${bid}`)
     document.getElementById(bid).style.background = HighlightedPaneButtonBackground
     gst.currentPaneButton = bid
 }
 
 function unhighlightPaneButton (gst) {
-    console.log (`unhighlightPaneButton ${gst.currentPaneButton}`)
+    com.mode.devlog (`unhighlightPaneButton ${gst.currentPaneButton}`)
     const b = gst.currentPaneButton
     let oldbackground = document.getElementById(b).style.background
-    console.log (`oldbackground = ${oldbackground}`)
+    com.mode.devlog (`oldbackground = ${oldbackground}`)
     document.getElementById(b).style.background = DefaultPaneButtonBackground
 }
 
@@ -917,15 +917,15 @@ export function toggleProcHelp () {
 //-----------------------------------------------------------------------------
 
 function handleKeyDown (e) {
-    console.log (`handleKeyDown code=${e.code} keyCode=${e.keyCode}`)
+    com.mode.devlog (`handleKeyDown code=${e.code} keyCode=${e.keyCode}`)
     let action = gst.currentKeyMap.get (e.code)
     if (action) {
         e.handled = true
-        console.log (`=== do action for key code=${e.code} keyCode=${e.keyCode}`)
+        com.mode.devlog (`=== do action for key code=${e.code} keyCode=${e.keyCode}`)
         action ()
-        console.log (`finished action for key code=${e.code} keyCode=${e.keyCode}`)
+        com.mode.devlog (`finished action for key code=${e.code} keyCode=${e.keyCode}`)
     } else {
-        console.log (`no action for key code=${e.code} keyCode=${e.keyCode}`)
+        com.mode.devlog (`no action for key code=${e.code} keyCode=${e.keyCode}`)
     }
 }
 
@@ -943,16 +943,16 @@ document.getElementById("EditorTextArea")
 // Stop key down event propagation in text entry areas
 
 function handleTextBufferKeyDown (e) {
-    console.log (`handleTextBbufferKeyDown code=${e.code} keyCode=${e.keyCode}`)
+    com.mode.devlog (`handleTextBbufferKeyDown code=${e.code} keyCode=${e.keyCode}`)
     e.stopPropagation () // inhibit using key as keyboard shortcut command
 }
 
 const updateMainSliceSize = (gst) => (e) => {
-    console.log ("updateMTsliceSize")
+    com.mode.devlog ("updateMTsliceSize")
     e.stopPropagation ()
     let xs = document.getElementById("EnterMainSliceSize").value
     let x = parseInt (xs)
-    console.log (`update MTsliceSize <${xs}> = ${x}`)
+    com.mode.devlog (`update MTsliceSize <${xs}> = ${x}`)
     if (!isNaN(x)) setMainSliceSize (gst, x)
 }
 
@@ -972,11 +972,11 @@ function examplesHome() {
 }
 
 function examplesBack () {
-    console.log (`examplesBack`)
+    com.mode.devlog (`examplesBack`)
 }
 
 export function prepareExampleText () {
-    console.log ("prepareExmapleText")
+    com.mode.devlog ("prepareExmapleText")
     document.getElementById("ExamplesIframeId")
         .addEventListener("load", event => checkExample ())
 }
@@ -988,12 +988,12 @@ function checkExample () {
     const y = xs.split("\n")[0]
     const q = htmlDetector.exec (y)
     if (q) {
-        console.log (`checkExample: looks like example text <${y}>`)
+        com.mode.devlog (`checkExample: looks like example text <${y}>`)
         selectExample ()
     } else {
-        console.log (`checkExample: looks like html <${y}>`)
+        com.mode.devlog (`checkExample: looks like html <${y}>`)
     }
-//    console.log (`checkExample <${xs}>\n<${ys}>`)
+//    com.mode.devlog (`checkExample <${xs}>\n<${ys}>`)
 }
 
 // Make new module, copy example text into it, and select it
@@ -1092,7 +1092,7 @@ export function initializeProcessorElements (gst) {
 }
 
 function procReset (gst) {
-    console.log ('gui.procReset')
+    com.mode.devlog ('gui.procReset')
     em.procReset (gst.es)
     em.clearMemLogging (gst.es)
     em.clearRegLogging (gst.es)
@@ -1164,7 +1164,7 @@ export function guiDisplayMem (gst, elt, xs) {
 // After this, either updateRegisters or refreshRegisters
 
 export function execInstrPostDisplay (gst) {
-//    console.log (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
+//    com.mode.devlog (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
     const es = gst.es
     com.mode.devlog ("main: execInstrPostDisplay, proceeding")
     newUpdateRegisters (gst)
@@ -1176,7 +1176,7 @@ export function execInstrPostDisplay (gst) {
 }
 
 function procRefresh (gst) {
-//    console.log ("procRefresh")
+//    com.mode.devlog ("procRefresh")
     com.mode.devlog ("procRefresh")
     newUpdateRegisters (gst)
     memDisplayFull (gst)
@@ -1192,7 +1192,7 @@ const refreshProcessorDisplay = (gst) => (es) => {
 
 // Just clear regs & memory, then refreshProcessorDisplay
 function clearProcessorDisplay (gst) {
-//    console.log ('clearProcessorDisplay')
+//    com.mode.devlog ('clearProcessorDisplay')
     initializeProcessorElements (gst)
     gst.es.asmListingCurrent = []
     em.clearInstrDecode (gst.es)
@@ -1201,7 +1201,7 @@ function clearProcessorDisplay (gst) {
 // Copy executable listing to processor asm display
 
 function displayProcAsmListing (gst) {
-//    console.log ('displayProcAsmListing')
+//    com.mode.devlog ('displayProcAsmListing')
     const elt = document.getElementById('ProcAsmListing')
     const xs = "<pre><code class='HighlightedTextAsHtml'>"
     	+ gst.asmListingCurrent.join('\n')
@@ -1352,13 +1352,13 @@ function setModeHighlight (x) {
 
 function newUpdateRegisters (gst) {
     const es = gst.es
-//    console.log (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
+    com.mode.devlog (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
     for (let i = 0; i < gst.es.nRegisters; i++) {
 	gst.es.register[i].refresh();
     }
     // Update the new register accesses
-    console.log (`newupdateRegisters rfet=${es.copyable.regFetched}`)
-    console.log (`newupdateRegisters rsto=${es.copyable.regStored}`)
+    com.mode.devlog (`newupdateRegisters rfet=${es.copyable.regFetched}`)
+    com.mode.devlog (`newupdateRegisters rsto=${es.copyable.regStored}`)
     for (let x of es.copyable.regFetched) es.register[x].highlight ("GET")
     for (let x of es.copyable.regStored) {
         es.register[x].refresh()
@@ -1463,7 +1463,7 @@ function getMemRange (gst, t) {
     const n = b - a
     const scrollto = t - a
     const result = {a, b, n, scrollto}
-//    console.log (`getMemRange a=${a} b=${b} n=${n} t=${scrollto}`)
+//    com.mode.devlog (`getMemRange a=${a} b=${b} n=${n} t=${scrollto}`)
     return result
 }
 
@@ -1515,7 +1515,7 @@ function scrollToTarget (elt, range, visibleAboveTarget) {
 // Prepare assembly listing when executable is booted
 
 export function initListing (gst) {
-//    console.log ('initListing')
+//    com.mode.devlog ('initListing')
     gst.es.curInstrAddr = 0;
     gst.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
     gst.es.nextInstrAddr = 0;
@@ -1534,7 +1534,7 @@ export function initListing (gst) {
 // instruction are calculated, and the highlighting is applied.
 
 function highlightListingAfterInstr (gst) {
-    com.mode.trace = true;
+//    com.mode.trace = true;
     com.mode.devlog ('highlightListingAfterInstr');
 //    showListingParameters (gst)
     // Clear any existing statement highlighting
@@ -1571,11 +1571,11 @@ export function highlightListingLine (gst, i, highlight) {
 }
 
 function revertListingLine (gst, i) {
-//    console.log (`revertListingLine ${i} `)
+//    com.mode.devlog (`revertListingLine ${i} `)
     if (i > 0) {
-//        console.log (`  revert old ${gst.asmListingCurrent[i]}`)
+//        com.mode.devlog (`  revert old ${gst.asmListingCurrent[i]}`)
         gst.asmListingCurrent[i] = gst.metadata.listingDec[i]
-//        console.log (`  revert new ${gst.asmListingCurrent[i]}`)
+//        com.mode.devlog (`  revert new ${gst.asmListingCurrent[i]}`)
     }
 }
 
@@ -1817,10 +1817,10 @@ function timerInterrupt (gst) {
 // export function procPause(es) {
 export function procPause (gst) {
     com.mode.devlog ("procPause");
-    console.log (`procPause st=${st.readSCB (gst.es,st.SCB_status)}`)
-    console.log (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
+    com.mode.devlog (`procPause st=${st.readSCB (gst.es,st.SCB_status)}`)
+    com.mode.devlog (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
     st.writeSCB (gst.es, st.SCB_pause_request, 1)
-    console.log (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
+    com.mode.devlog (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
     com.mode.devlog ("em wrote procPause request")
 }
 
@@ -1897,7 +1897,7 @@ export function test1 (es) {
 
 export function procStep (gst) {
     const es = gst.es
-    console.log ("procStep")
+    com.mode.devlog ("procStep")
     if (gst.es.thread_host != com.ES_gui_thread) {
         com.mode.devlog (`procStep: host=${gst.es.thread_host}, skipping`)
         return
@@ -1927,7 +1927,7 @@ export function procStep (gst) {
         break
     default: com.mode.devlog (`error: procStep unknown SCB_status= ${q}`)
     }
-    console.log ("procStep finished")
+    com.mode.devlog ("procStep finished")
 }
 
 // The runMain and runWorker functions set the preferred thread and
@@ -1936,8 +1936,8 @@ export function procStep (gst) {
 // which to use.
 
 function runGeneric (gst) {
-    console.log (`runGeneric emRunThread = ${gst.es.emRunThread}`)
-        console.log ("runGeneric: use main thread")
+    com.mode.devlog (`runGeneric emRunThread = ${gst.es.emRunThread}`)
+        com.mode.devlog ("runGeneric: use main thread")
         em.clearMemLogging (gst.es)
         em.clearRegLogging (gst.es)
         runMain (gst)
@@ -1996,7 +1996,7 @@ function procRun (gst) {
     case st.SCB_break:
         switch (es.emRunThread) {
         case com.ES_gui_thread:
-            console.log ("procRun: starting in main gui thread")
+            com.mode.devlog ("procRun: starting in main gui thread")
             st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
             es.initRunDisplay (es)
             em.mainThreadLooper (es)
@@ -2041,7 +2041,7 @@ export let breakDialogueVisible = false;
 
 export function procBreakpoint (gst) {
     com.mode.devlog ("procBreakpoint");
-    console.log ("procBreakpoint");
+    com.mode.devlog ("procBreakpoint");
     document.getElementById("BreakDialogue").style.display
 	= breakDialogueVisible ? "none" : "block";
     breakDialogueVisible = !breakDialogueVisible;
@@ -2059,17 +2059,17 @@ function breakRefresh (gst) {
 	let w = arith.hex4ToWord (x.slice(1));
 	gst.es.copyable.breakPCvalue = w;
 //	com.mode.devlog (`breakPCvalue = + ${w}`);
-	console.log (`breakPCvalue = ${w}`);
+	com.mode.devlog (`breakPCvalue = ${w}`);
     } else {
 //	com.mode.devlog (`breakRefresh cannot parse + x`);
-	console.log (`breakRefresh cannot parse + x`);
+	com.mode.devlog (`breakRefresh cannot parse + x`);
     }
 }
 
 // function breakEnable (es) {
 function breakEnable (gst) {
     com.mode.devlog ("breakEnable");
-    console.log ("breakEnable");
+    com.mode.devlog ("breakEnable");
     gst.es.copyable.breakEnabled = true;
     com.mode.devlog (`breakEnable ${gst.es.breakPCvalue}`);
 }
@@ -2080,14 +2080,14 @@ function breakEnable (gst) {
 // function breakDisable (es) {
 function breakDisable (gst) {
     com.mode.devlog ("breakDisable");
-    console.log ("breakDisable");
+    com.mode.devlog ("breakDisable");
     gst.es.copyable.breakEnabled = false;
 }
 //    gst.es.breakEnabled = false;
 
 function breakClose (gst) {
     com.mode.devlog ("breakClose");
-    console.log ("breakClose");
+    com.mode.devlog ("breakClose");
     hideBreakDialogue ();
 }
 
@@ -2129,14 +2129,14 @@ function allocateStateVector (es) {
     console.log (`allocateStateVector es.emRunCapability = ${es.emRunCapability}`)
     switch (es.emRunCapability) {
     case com.ES_worker_thread:
-        console.log ("allocateStateVector, run capability: Worker supported")
+        com.mode.devlog ("allocateStateVector, run capability: Worker supported")
         es.vecbuf = new SharedArrayBuffer (st.EmStateSizeByte)
         es.vec16 = new Uint16Array (es.vecbuf)
         es.vec32 = new Uint32Array (es.vecbuf)
         es.shm = es.vec16
         es.vec32[0] = 456
         es.vec32[1] = 2 * es.vec32[0]
-        console.log (`***blarg**** ${es.vec32[0]} ${es.vec32[1]}`)
+//        com.mode.devlog (`***blarg**** ${es.vec32[0]} ${es.vec32[1]}`)
         // Start the emulator thread and initialize it
         com.mode.devlog ("gui.mjs starting emwt")
         emwThread = new Worker("../base/emwt.mjs", {type:"module"});
@@ -2145,7 +2145,7 @@ function allocateStateVector (es) {
         com.mode.devlog ("gui.mjs has started emwt")
         break
     case com.ES_gui_thread:
-        console.log ("allocateStateVector, run capability: Worker not supported")
+        com.mode.devlog ("allocateStateVector, run capability: Worker not supported")
         es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
         es.vec16 = new Uint16Array (es.vecbuf)
         es.vec32 = new Uint32Array (es.vecbuf)
@@ -2176,16 +2176,16 @@ function allocateStateVector (es) {
 */
 
 function testSysStateVec (es) {
-    console.log ('%ctestSysStateVec starting...', 'color:blue')
-    console.log (`Testing emulator memory: ${es.thread_host}`)
-    console.log (`Testing emulator memory: ${es.thread_host}`)
+    com.mode.devlog ('%ctestSysStateVec starting...', 'color:blue')
+    com.mode.devlog (`Testing emulator memory: ${es.thread_host}`)
+    com.mode.devlog (`Testing emulator memory: ${es.thread_host}`)
     let xs = ""
     let n = 3
     for (let i = 0; i < n; i++) es.shm[i] = i
     for (let i = 0; i < n; i++) es.shm[i] += 100
     for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
-    console.log (`thread host ${es.thread_host}: ${xs} finished`)
-    console.log ('%c...testSysStateVec finished', 'color:blue')
+    com.mode.devlog (`thread host ${es.thread_host}: ${xs} finished`)
+    com.mode.devlog ('%c...testSysStateVec finished', 'color:blue')
 }
 
 //-----------------------------------------------------------------------------
@@ -2257,11 +2257,11 @@ function emwtStep () {
 }
 
 function handleEmwtStepResponse (p) {
-    console.log (`main: handle emwt step response ${p}`)
     com.mode.devlog (`main: handle emwt step response ${p}`)
-    console.log (`gui at emwt step response 1: ${em.showEsInfo (gst.es)}`)
+    com.mode.devlog (`main: handle emwt step response ${p}`)
+    com.mode.devlog (`gui at emwt step response 1: ${em.showEsInfo (gst.es)}`)
     finishRun (gst)
-    console.log (`gui at emwt step response 2: ${em.showEsInfo (gst.es)}`)
+    com.mode.devlog (`gui at emwt step response 2: ${em.showEsInfo (gst.es)}`)
     let newstatus = st.readSCB (gst.es, st.SCB_status)
     com.mode.devlog (`main handle emwt step response: status=${newstatus}`)
     if (newstatus === st.SCB_relinquish) {

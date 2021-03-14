@@ -609,7 +609,7 @@ export function mainThreadLooper (es) {
             && (es.pc.get() === es.copyable.breakPCvalue)
         if (externalBreak) finished = true
 
-        console.log (`em after exec checkbreak: pc=${es.pc.get()}`
+        com.mode.devlog (`em after exec checkbreak: pc=${es.pc.get()}`
                      + ` bEN=${es.copyable.breakEnabled}`
                      + ` bPC=${es.copyable.breakPCvalue}`
                      + ` eb=${externalBreak}`)

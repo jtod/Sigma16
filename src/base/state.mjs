@@ -145,7 +145,6 @@ export class Executable {
         this.code = code
         this.metadata = metadata
         com.mode.devlog (`new executable: ${this.showShort ()}`)
-//        console.log (this.showShort ());
     }
     showShort () {
         let xs = `Executable: ${this.code.length} lines object code`
@@ -614,18 +613,18 @@ export function writeSCB (es, code, x) {
 export function readSCB (es, code) {
     let i = EmSCBOffset + code
     let x = es.shm [i]
-//    console.log (`st.readSCB code=${code} i=${i} x=${x}`)
+    com.mode.devlog (`st.readSCB code=${code} i=${i} x=${x}`)
     return x
 }
 
 export function writeVec32 (es, a, x) {
-    console.log (`*** writeVec32 [${a}] := ${x}`)
+    com.mode.devlog (`*** writeVec32 [${a}] := ${x}`)
     es.vec32 [a] = x
 }
 
 export function readVec32 (es, a) {
     let x = es.vec64 [a]
-    console.log (`*** readVec32 [${a}] => ${x}`)
+    com.mode.devlog (`*** readVec32 [${a}] => ${x}`)
     return x
 }
 

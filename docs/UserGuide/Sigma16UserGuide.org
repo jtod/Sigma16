@@ -5157,12 +5157,6 @@ provide as much as possible of the following information.
 
 ** Release notes
 
-Sigma16 has gone through several versions.  Its aims and principles
-remain the same but some details have changed.  Most changes can be
-ignored by the assembly language programmer: for example, if an
-instruction has a different opcode but is otherwise unchanged.  Other
-changes may require some alterations to assembly language programs.
-
 *** Version 3.2.2, March 2021
 
 - A bug in breakpoints is fixed
