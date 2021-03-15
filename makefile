@@ -80,7 +80,9 @@ VERSION:=$(shell cat src/package.json | grep version | head -1 | awk -F= "{ prin
 
 YEAR=$(shell date +"%Y")
 MONTHYEAR=$(shell date +"%B %Y")
-MONTHYEARDAY=$(shell date +"%F")
+YEARMONTHDAY=$(shell date +"%F")
+# MONTHYEARDAY=$(shell date +"%F")
+# YEARMONTHDAY=$(shell date -I")
 
 # make showparams - print out the defined values
 
@@ -91,7 +93,7 @@ showparams:
 	echo WEBBUILD = $(WEBBUILD)
 	echo VERSION = $(VERSION)
 	echo MONTHYEAR = $(MONTHYEAR)
-	echo MONTHYEARDAY = $(MONTHYEARDAY)
+	echo YEARMONTHDAY = $(YEARMONTHDAY)
 	echo YEAR = $(YEAR)
 
 #-------------------------------------------------------------------------------
@@ -250,6 +252,10 @@ clean :
 	          -name '*.xmd.txt' -o -name '*.xlt.txt' -o \
 	          -name '*.o' -o -name '*.hi' \) \
 	       -delete
+
+.PHONY : log
+log :
+	papertrail status/latest > protected/logs/$(YEARMONTHDAY).txt
 
 #-------------------------------------------------------------------------------
 # Build standalone program on local machine using electron

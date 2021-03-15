@@ -15,9 +15,7 @@ You don't need to download or install anything.
 
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
-  <a href="https://jtod.github.io/home/Sigma16/releases/3.2.1/src/gui/Sigma16.html">
-    Click to run Sigma16
-  </a>
+  <a href="./releases/3.2.2/src/gui/Sigma16.html"> Click to run Sigma16 </a>
 </div>
 #+END_EXPORT
 
@@ -25,10 +23,16 @@ When the app runs in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed
 specification of the architecture, assembly language, and programming
 techniques.  You can also
-[[https://jtod.github.io/home/Sigma16/releases/3.2.1/docs/UserGuide/Sigma16UserGuide.html][open
-the User Guide in your browser]].
+[[./releases/3.2.2/docs/UserGuide/Sigma16UserGuide.html][open the User
+Guide in your browser]].
 
+#+BEGIN_COMMENT
+# <a href="https://jtod.github.io/home/Sigma16/releases/3.2.2/src/gui/Sigma16.html">
+# Click to run Sigma16
+[[https://jtod.github.io/home/Sigma16/releases/3.2.2/docs/UserGuide/Sigma16UserGuide.html][open
+the User Guide in your browser]].
 [[./releases/3.2.2/src/gui/Sigma16.html][Release candidate 3.2.2]]
+#+END_COMMENT
 
 ** Introduction
 
@@ -78,6 +82,7 @@ Some recent releases are listed below.  The top item is the latest
 release, and it's the same as the link in the red box at the top of
 the page.  Normally you shouldn't use an older version.
   
+- [[./releases/3.2.2/src/gui/Sigma16.html][launch 3.2.2]]
 - [[./releases/3.2.1/src/gui/Sigma16.html][launch 3.2.1]]
 
 #+BEGIN_COMMENT
