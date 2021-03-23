@@ -253,9 +253,7 @@ clean :
 	          -name '*.o' -o -name '*.hi' \) \
 	       -delete
 
-.PHONY : log
-log :
-	papertrail status/latest > protected/logs/$(YEARMONTHDAY).txt
+
 
 #-------------------------------------------------------------------------------
 # Build standalone program on local machine using electron

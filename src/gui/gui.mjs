@@ -93,7 +93,7 @@ class GuiState {
         // Emulator state
         this.es = null   // emulator state for main thread (worker has its own)
         this.currentPaneButton = "Welcome_Pane_Button"
-        //        this.emRunThread = com.ES_gui_thread  part of es
+        this.emRunThread = com.ES_gui_thread
         //        this.emRunThread = com.ES_worker_thread
 
         // Processor display
@@ -170,14 +170,14 @@ function configureOptions (gst) {
     let workerShmOK = gst.supportWorker && gst.supportSharedMem
     document.getElementById("WorkerThreadOK").innerHTML = workerShmOK
     es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
-// es.emRunThread = es.emRunCapability // default: run according to capability
-    es.emRunThread = com.ES_gui_thread // override for robust case
+    es.emRunThread = es.emRunCapability // default: run according to capability
     com.mode.devlog (`Emulator run capability = ${es.emRunCapability}`)
     let capabilityStr =
         es.emRunCapability === com.ES_worker_thread ? "worker/shm"
         : "main"
     setMainSliceSize (gst, defaultExecSliceSize)
 }
+//    es.emRunThread = com.ES_gui_thread // override for robust case
 
 // Emulator options
 
@@ -1937,25 +1937,25 @@ export function procStep (gst) {
 
 function runGeneric (gst) {
     com.mode.devlog (`runGeneric emRunThread = ${gst.es.emRunThread}`)
-        com.mode.devlog ("runGeneric: use main thread")
+    switch (gst.es.emRunThread) {
+    case com.ES_gui_thread:
         em.clearMemLogging (gst.es)
         em.clearRegLogging (gst.es)
         runMain (gst)
         execInstrPostDisplay (gst)
+        break
+    case com.ES_worker_thread:
+        console.log ("runGeneric: use worker thread")
+        em.clearMemLogging (gst.es)
+        em.clearRegLogging (gst.es)
+        runWorker (gst)
+        execInstrPostDisplay (gst)
+        break
+    default:
+        console.log ("runGeneric: invalid emRunThread")
+    }
 }
-//    switch (gst.es.emRunThread) {
-//    case com.ES_gui_thread:
-//        break
-//    case com.ES_worker_thread:
-//        console.log ("runGeneric: use worker thread")
-//        em.clearMemLogging (gst.es)
-//        em.clearRegLogging (gst.es)
-//        runWorker (gst)
-//        execInstrPostDisplay (gst)
-//        break
-//    default:
-//        console.log ("runGeneric: invalid emRunThread")
-//    }
+//    com.mode.devlog ("runGeneric: use main thread")
 
 function runMain (gst) {
     gst.es.emRunThread = com.ES_gui_thread
