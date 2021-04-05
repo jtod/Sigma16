@@ -24,6 +24,10 @@ import * as smod from './s16module.mjs';
 
 export const memSize = 65536; // number of memory locations = 2^16
 
+export const S16 = Symbol ('S16')
+export const S32 = Symbol ('S32')
+
+
 //-----------------------------------------------------------------------------
 // Instruction formats
 //-----------------------------------------------------------------------------

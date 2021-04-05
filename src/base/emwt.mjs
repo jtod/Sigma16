@@ -382,10 +382,10 @@ function doRun () {
         externalBreak = emwt.es.pc.get() === emwt.es.copyable.breakPCvalue
         if (externalBreak) finished = true
 
-        console.log (`emwt after exec checkbreak: pc=${es.pc.get()}`
-                     + ` bEN=${es.copyable.breakEnabled}`
-                     + ` bPC=${es.copyable.breakPCvalue}`
-                     + ` eb=${externalBreak}`)
+//        console.log (`emwt after exec checkbreak: pc=${es.pc.get()}`
+//                     + ` bEN=${es.copyable.breakEnabled}`
+//                     + ` bPC=${es.copyable.breakPCvalue}`
+//                     + ` eb=${externalBreak}`)
 
         pauseReq = st.readSCB (emwt.es, st.SCB_pause_request) != 0
         continueRunning = !finished  && !pauseReq
