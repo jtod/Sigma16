@@ -3705,72 +3705,61 @@ precisely and concisely the effects of the instructions:
 - Code: operation code; primary,secondary opcode
 - Effect: brief synopsis of what the instruction does
 
-- Levels of architecture
-  - Core: minimal set of instructions, good starting point for beginners
-  - Standard: additional instructions for more flexible programming
-  - S16: full 16-bit instruction set
-  - S32: extension to 32-bit architecture.
-- There is a subsetting relationship:
-  - Core SUBSET Basic SUBSET S16 SUBSET S32
-
-|----------+------+---+------+-------+------+-----------------------------------|
-| Mnemonic |      | P | Fmt  | Args  | Code | Effect                            |
-|----------+------+---+------+-------+------+-----------------------------------|
-| add      | Core |   | RRR  | RRR   | 0    | Rd := Ra + Rb                     |
-| sub      | Core |   | RRR  | RRR   | 1    | Rd := Ra - Rb                     |
-| mul      | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
-| div      | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| addc     | Std  |   | RRR  | RRR   | 4    | Rd := Ra + Rb + R15.carry         |
-| muln     | Std  |   | RRR  | RRR   | 5    | R15++Rd := Ra :*: Rb              |
-| divn     | Std  |   | RRR  | RRR   | 6    | R15++Rd := R15++Ra :/: Rb         |
-| cmp      | Core |   | RRR  | RR    | 7    | R15 := Ra cmp Rb                  |
-| trap     | Core |   | RRR  | RRR   | 8    | user interrupt                    |
-|          |      |   |      |       | 9    | -- reserved --                    |
-|          |      |   |      |       | a    | -- reserved --                    |
-|          |      |   |      |       | b    | escape to RRR32 format            |
-|          |      |   |      |       | c    | escape to RX32 format             |
-|          |      |   |      |       | d    | escape to EXP32 format            |
-|          |      |   |      |       | e    | escape to EXP format              |
-|          |      |   |      |       | f    | escape to RX format               |
-|----------+------+---+------+-------+------+-----------------------------------|
-| lea      | Core |   | RX   | RX    | f,0  | Rd := ea                          |
-| load     | Core |   | RX   | RX    | f,1  | Rd := M[ea]                       |
-| store    | Core |   | RX   | RX    | f,2  | M[ea] := Rd                       |
-| jump     | Core |   | RX   | RX    | f,3  | pc := ea                          |
-| jal      | Core |   | RX   | RX    | f,4  | Rd := pc, pc := ea                |
-| jumpc0   | Core |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea          |
-| jumpc1   | Core |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea          |
-| jumpz    | Std  |   | RX   | RX    | f,7  | if Rd = 0 then pc := ea           |
-| jumpnz   | Std  |   | RX   | RX    | f,8  | if Rd != 0 then pc := ea          |
-| testset  | S16  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
-|          |      |   | RX   |       | f,a  | -- reserved --                    |
-|          |      |   | RX   |       | f,b  | -- reserved --                    |
-|          |      |   | RX   |       | f,c  | -- reserved --                    |
-|          |      |   | RX   |       | f,d  | -- reserved --                    |
-|          |      |   | RX   |       | f,e  | -- reserved --                    |
-|          |      |   | RX   |       | f,f  | -- reserved --                    |
-|----------+------+---+------+-------+------+-----------------------------------|
-| resume   | S16  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
-|----------+------+---+------+-------+------+-----------------------------------|
-| push     | Std  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
-| pop      | Std  |   | EXP2 | RRR   | 9    | Rb--, Rd := M[ea]                 |
-| top      | Std  |   | EXP2 | RRR   | a    | Rd := M[ea]                       |
-| save     | Std  |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
-| restore  | Std  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
-| shiftl   | Std  |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                    |
-| shiftr   | Std  |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                    |
-| logicw   | Std  |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf               |
-| logicb   | Std  |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
-| extract  | Std  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
-| extracti | Std  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
-| getctl   | S16  | P | EXP2 | RC    | e,09 | Rd := Sc                          |
-| putctl   | S16  | P | EXP2 | RC    | e,0a | Sc := Rd                          |
-|          |      |   | EXP2 |       | e,0b | -- reserved --                    |
-|          |      |   | EXP2 |       | ...  | -- reserved --                    |
-|          |      |   | EXP2 |       | e,ff | -- reserved --                    |
-|----------+------+---+------+-------+------+-----------------------------------|
-|          |      |   |      |       |      | <33>                              |
-|----------+------+---+------+-------+------+-----------------------------------|
+|----------+---+------+-------+------+---------------------------------------|
+| Mnemonic | P | Fmt  | Args  | Code | Effect                                |
+|----------+---+------+-------+------+---------------------------------------|
+| add      |   | RRR  | RRR   | 0    | Rd := Ra + Rb                         |
+| sub      |   | RRR  | RRR   | 1    | Rd := Ra - Rb                         |
+| mul      |   | RRR  | RRR   | 2    | Rd := Ra * Rb                         |
+| div      |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra remainder Rb |
+| addc     |   | RRR  | RRR   | 4    | Rd := Ra + Rb + R15.carry             |
+| muln     |   | RRR  | RRR   | 5    | R15++Rd := Ra :*: Rb                  |
+| divn     |   | RRR  | RRR   | 6    | R15++Rd := R15++Ra :/: Rb             |
+| cmp      |   | RRR  | RR    | 7    | R15 := Ra cmp Rb                      |
+| push     |   | RRR  | RRR   | 8    | M[ea] := Rd, Rb++                     |
+| pop      |   | RRR  | RRR   | 9    | Rb--, Rd := M[ea]                     |
+| top      |   | RRR  | RRR   | a    | Rd := M[ea]                           |
+| ---      |   | RRR  |       | b    | reserved                              |
+| trap     |   | RRR  | RRR   | c    | interrupt                             |
+|          |   |      |       | d    | escape to EXP format                  |
+|          |   |      |       | e    | escape to LW format                   |
+|          |   |      |       | f    | escape to RX format                   |
+|----------+---+------+-------+------+---------------------------------------|
+| lea      |   | RX   | RX    | f,0  | Rd := ea                              |
+| load     |   | RX   | RX    | f,1  | Rd := M[ea]                           |
+| store    |   | RX   | RX    | f,2  | M[ea] := Rd                           |
+| jump     |   | RX   | RX    | f,3  | pc := ea                              |
+| jal      |   | RX   | RX    | f,4  | Rd := pc, pc := ea                    |
+| jumpc0   |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea              |
+| jumpc1   |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea              |
+| jumpn    |   | RX   | RX    | f,7  | if Rd < 0 then pc := ea               |
+| jumpz    |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea               |
+| jumpnz   |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea              |
+| jumpp    |   | RX   | RX    | f,a  | if Rd > 0 then pc := ea               |
+| testset  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1               |
+|          |   | RX   |       | f,c  | -- reserved --                        |
+|          |   | RX   |       | f,d  | -- reserved --                        |
+|          |   | RX   |       | f,e  | -- reserved --                        |
+|          |   | RX   |       | f,f  | -- reserved --                        |
+|----------+---+------+-------+------+---------------------------------------|
+| resume   | P | EXP1 | R     | e,00 | pc := ipc, status := istatus          |
+|----------+---+------+-------+------+---------------------------------------|
+| save     |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd     |
+| restore  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1]     |
+| shiftl   |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                        |
+| shiftr   |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                        |
+| logicw   |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf                   |
+| logicb   |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g             |
+| extract  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si        |
+| extracti |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si       |
+| getctl   | P | EXP2 | RC    | e,09 | Rd := Sc                              |
+| putctl   | P | EXP2 | RC    | e,0a | Sc := Rd                              |
+|          |   | EXP2 |       | e,0b | -- reserved --                        |
+|          |   | EXP2 |       | ...  | -- reserved --                        |
+|          |   | EXP2 |       | e,ff | -- reserved --                        |
+|----------+---+------+-------+------+---------------------------------------|
+|          |   |      |       |      | <37>                                  |
+|----------+---+------+-------+------+---------------------------------------|
 
 
 *** Pseudoinstructions
@@ -5167,7 +5156,7 @@ provide as much as possible of the following information.
 
 
 ** Release notes
-*** Version 3.2.3, development from April 2021
+
 *** Version 3.2.2, March 2021
 
 - A bug in breakpoints is fixed

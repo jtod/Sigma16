@@ -93,7 +93,7 @@ class GuiState {
         // Emulator state
         this.es = null   // emulator state for main thread (worker has its own)
         this.currentPaneButton = "Welcome_Pane_Button"
-        this.emRunThread = com.ES_gui_thread
+        //        this.emRunThread = com.ES_gui_thread  part of es
         //        this.emRunThread = com.ES_worker_thread
 
         // Processor display
@@ -170,14 +170,14 @@ function configureOptions (gst) {
     let workerShmOK = gst.supportWorker && gst.supportSharedMem
     document.getElementById("WorkerThreadOK").innerHTML = workerShmOK
     es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
-    es.emRunThread = es.emRunCapability // default: run according to capability
+// es.emRunThread = es.emRunCapability // default: run according to capability
+    es.emRunThread = com.ES_gui_thread // override for robust case
     com.mode.devlog (`Emulator run capability = ${es.emRunCapability}`)
     let capabilityStr =
         es.emRunCapability === com.ES_worker_thread ? "worker/shm"
         : "main"
     setMainSliceSize (gst, defaultExecSliceSize)
 }
-//    es.emRunThread = com.ES_gui_thread // override for robust case
 
 // Emulator options
 
@@ -1936,31 +1936,30 @@ export function procStep (gst) {
 // which to use.
 
 function runGeneric (gst) {
-    console.log (`runGeneric emRunThread = ${gst.es.emRunThread}`)
-    switch (gst.es.emRunThread) {
-    case com.ES_gui_thread:
-        console.log ('runGeneric starting runMain')
+    com.mode.devlog (`runGeneric emRunThread = ${gst.es.emRunThread}`)
+        com.mode.devlog ("runGeneric: use main thread")
         em.clearMemLogging (gst.es)
         em.clearRegLogging (gst.es)
         runMain (gst)
         execInstrPostDisplay (gst)
-        console.log ('runGeneric runMain finished')
-        break
-    case com.ES_worker_thread:
-        console.log ("runGeneric starting emwt")
-        em.clearMemLogging (gst.es)
-        em.clearRegLogging (gst.es)
-        runWorker (gst)
-        execInstrPostDisplay (gst)
-        console.log ('runGeneric runWorker finished')
-        break
-    default:
-        console.log ("runGeneric: invalid emRunThread")
-    }
 }
+//    switch (gst.es.emRunThread) {
+//    case com.ES_gui_thread:
+//        break
+//    case com.ES_worker_thread:
+//        console.log ("runGeneric: use worker thread")
+//        em.clearMemLogging (gst.es)
+//        em.clearRegLogging (gst.es)
+//        runWorker (gst)
+//        execInstrPostDisplay (gst)
+//        break
+//    default:
+//        console.log ("runGeneric: invalid emRunThread")
+//    }
 
 function runMain (gst) {
     gst.es.emRunThread = com.ES_gui_thread
+//    em.initRegHighlighting (gst.es)   do this in boot, would clear after break?
     procRun (gst)
 }
 
@@ -1998,7 +1997,6 @@ function procRun (gst) {
         switch (es.emRunThread) {
         case com.ES_gui_thread:
             com.mode.devlog ("procRun: starting in main gui thread")
-            console.log ("procRun: starting in main gui thread")
             st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
             es.initRunDisplay (es)
             em.mainThreadLooper (es)
@@ -2132,7 +2130,6 @@ function allocateStateVector (es) {
     switch (es.emRunCapability) {
     case com.ES_worker_thread:
         com.mode.devlog ("allocateStateVector, run capability: Worker supported")
-        console.log (`Allocate shared memory with ${st.EmStateSizeByte} bytes`)
         es.vecbuf = new SharedArrayBuffer (st.EmStateSizeByte)
         es.vec16 = new Uint16Array (es.vecbuf)
         es.vec32 = new Uint32Array (es.vecbuf)
@@ -2699,73 +2696,7 @@ function initializeSystem () {
     procReset (gst)
     findVersion (gst)              // Determine running and latest version
     initializeTracing (gst)        // Initialize tracing mode
-    window.es = gst.es
 }
-
-//-----------------------------------------------------------------------------
-// Instruction set architecture selection
-//-----------------------------------------------------------------------------
-
-// The register value width rule is always at index 0 in the list of
-// css rules for the gui stylesheet.  initWL puts the initial width
-// rule for S16 into the list
-
-function initRegValWidth () {
-    const styleSheet = document.styleSheets[0]
-    const rule = '.RegisterValue {width: 2.75em;}'
-    styleSheet.insertRule (rule, 0)
-}
-
-// Delete the old rule for register value width and replace it with
-// the rule for arch (either S16 or S32)
-
-function setRegValWidth (isa) {
-    const styleSheet = document.styleSheets[0]
-    let rule
-    switch (isa) {
-    case arch.S16:
-        rule = '.RegisterValue {width: 3.5em;}'
-        break
-    case arch.S32:
-        rule = '.RegisterValue {width: 5.5em;}'
-        break
-    default:
-        console.log (`error: setRegValWidth bad arch`)
-    }
-    styleSheet.deleteRule (0)
-    styleSheet.insertRule (rule, 0)
-}
-
-// Set the emulator and gui to use arch, which must be either S16 or S32
-
-function setArch (gst, isa) {
-    console.log(`setArch ${isa.description}`)
-    let regvalshow
-    switch (isa) {
-    case arch.S16:
-        regvalshow = arith.wordToHex4
-        break
-    case arch.S32:
-        regvalshow = arith.wordToHex8
-        break
-    default:
-        console.log (`error setArch: invalid arch`)
-        break
-    }
-    setRegValWidth (isa)
-    for (let i = 0; i < gst.es.nRegisters; i++) {
-        gst.es.register[i].show = regvalshow
-    }
-    //    em.resetRegisters (es)
-    procReset (gst)
-}
-
-window.S16 = arch.S16
-window.S32 = arch.S32
-window.initRegValWidth = initRegValWidth
-window.setRegValWidth = setRegValWidth
-window.setArch = setArch
-window.setisa = (isa) => {setArch (gst, isa)}
 
 //-----------------------------------------------------------------------------
 // Run initializers
@@ -2778,8 +2709,6 @@ window.setisa = (isa) => {setArch (gst, isa)}
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     initializeSystem ()
-    initRegValWidth ()
-    setArch (gst, arch.S16)
     com.mode.devlog ('System is now running')
 }
 
@@ -3356,9 +3285,5 @@ function memDisplayNew (gst, first, last, fet, sto, elt) {
 //    em.clearLoggingData (gst.es)
 //    memUpdate (gst)
 //    memDisplay (gst)
-
-//    com.mode.devlog ("runGeneric: use main thread")
-// ... from runMain:
-//    em.initRegHighlighting (gst.es)   do this in boot, would clear after break?
 
 */

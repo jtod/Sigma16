@@ -538,19 +538,10 @@ export const EmRegFileSize    =  16
 export const EmSysRegSize     =  16
 export const EmRegBlockSize   =  EmRegFileSize + EmSysRegSize
 export const EmMemSize        =  65536
-export const EmStateSizeWord  =  EmSCBsize + EmRegBlockSize + EmMemSize
-
-const NetlistSize = 2**22  // 4 MB  // Circuit simulator
-const S32size = 2**23      // 8 MB   // Sigma32 memory
 
 // Size of the shared memory (words and bytes)
-// export const EmStateSizeByte  =  2 * EmStateSizeWord
-
-export const EmStateSizeByte  =  2 * EmStateSizeWord + NetlistSize + S32size
-
-
-
-
+export const EmStateSizeWord  =  EmSCBsize + EmRegBlockSize + EmMemSize
+export const EmStateSizeByte  =  2 * EmStateSizeWord
 
 // Offsets of memory blocks (words)
 export const EmSCBOffset      =  0

@@ -200,12 +200,7 @@ scroll from working */
 .RegisterValue {
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
-    id: "RegisterValueStyle";
 }
-/*
-Set the register value width to allow full word values
-    width: 5.5em;
-*/
 
 .FullFrame {
     position: fixed;
