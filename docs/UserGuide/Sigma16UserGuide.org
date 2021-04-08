@@ -5157,6 +5157,13 @@ provide as much as possible of the following information.
 
 ** Release notes
 
+*** Version 3.2.3, April 2021
+
+- A change to browsers planned for May 2021 will cause 3.2.2 and
+  earlier versions to cease working.  This release provides a
+  temporary workaround which is secure but will cause Sigma16 to run
+  somewhat slower.
+
 *** Version 3.2.2, March 2021
 
 - A bug in breakpoints is fixed
