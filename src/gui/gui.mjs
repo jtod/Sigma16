@@ -195,6 +195,10 @@ const setRTmain = (gst) => (e) => {
 }
 
 const setRTworker = (gst) => (e) => {
+    // temporary: completely disable workers
+    setRTmain (gst) (null)
+    return
+    
     if (gst.supportWorker && gst.supportSharedMem) {
         com.mode.devlog ("setRTworker: success")
         gst.es.emRunThread = com.ES_worker_thread
@@ -2125,10 +2129,25 @@ let emwThread = null
 // Memory is allocated in the main thread and sent to the worker
 // thread, if there is a worker
 
+// to do: change es.shm to es.vec16 in emulator and elsewhere if needed
+// temporary fix: disable shared array buffer, force use of ArrayBuffer
+
 function allocateStateVector (es) {
+    console.log ("allocateStateVector: ArrayBuffer")
+    es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
+    es.vec16 = new Uint16Array (es.vecbuf)
+    es.vec32 = new Uint32Array (es.vecbuf)
+    es.shm = es.vec16  // change usages of es.shm to es.vec16
+    cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
+    cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
+    cn.output (`vec16 contains ${es.vec16.length} elements`)
+}
+/*    
+        com.mode.devlog ("allocateStateVector, Worker not supported")
     console.log (`allocateStateVector es.emRunCapability = ${es.emRunCapability}`)
     switch (es.emRunCapability) {
     case com.ES_worker_thread:
+        console.log ("allocateStateVector: SharedArrayBuffer")
         com.mode.devlog ("allocateStateVector, run capability: Worker supported")
         es.vecbuf = new SharedArrayBuffer (st.EmStateSizeByte)
         es.vec16 = new Uint16Array (es.vecbuf)
@@ -2145,20 +2164,13 @@ function allocateStateVector (es) {
         com.mode.devlog ("gui.mjs has started emwt")
         break
     case com.ES_gui_thread:
-        com.mode.devlog ("allocateStateVector, run capability: Worker not supported")
-        es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
-        es.vec16 = new Uint16Array (es.vecbuf)
-        es.vec32 = new Uint32Array (es.vecbuf)
-        es.shm = es.vec16
+...
         break
     default:
         cn.output (`allocateStateVector: bad emRunCapability = `
                    + `${es.emRunCapability}`)
     }
-    cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
-    cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
-    cn.output (`vec16 contains ${es.vec16.length} elements`)
-}
+*/
 
 /*      
 //    es.shm = sysStateVec
