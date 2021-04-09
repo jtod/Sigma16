@@ -21,7 +21,6 @@
 //-----------------------------------------------------------------------------
 
 import * as ver   from '../base/version.mjs';
-import * as cn    from './config.mjs';
 import * as com   from '../base/common.mjs';
 import * as smod  from '../base/s16module.mjs';
 import * as arch  from '../base/architecture.mjs';
@@ -69,13 +68,7 @@ let gst = null
 class GuiState {
     constructor () {
         // Configuration parameters
-        this.latestVersion = 'see Sigma16 Home Page'
-        this.supportLocalStorage = false
-        this.supportWorker = false
-        this.supportSharedMem = false
-        this.runCapability = null
-
-        // Current running mode
+        this.options = new Options ()
 
         // Keyboard
         this.currentKeyMap = defaultKeyMap
@@ -140,39 +133,50 @@ function showGuiState (gst) {
 // Configuration options
 //-----------------------------------------------------------------------------
 
-// Check capabilities of the platform: Check whether the browser
-// supports workers.  Print a message on the console and return a
-// Boolen: true if workers are supported
+class Options {
+    constructor () {
+        // Environment enqueries to determine platform capabilities
+        this.supportLocalStorage = !!window.localStorage
+        this.supportWorker = !!window.Worker
+        this.supportSharedMem = !!window.SharedArrayBuffer
+        this.crosOriginIsolated = !!window.crossOriginIsolated
+        this.workerOK = this.supportWorker && this.supportSharedMem
+            && this.crosOriginIsolated
 
-function checkBrowserWorkerSupport () {
-    com.mode.devlog ("checkBrowserWorkerSupport")
-    com.mode.devlog ("checkBrowserWorkerSupport")
-    let workersSupported = false
-    if (window.Worker) {
-        com.mode.devlog ("Browser supports concurrent worker threads");
-        workersSupported = true
-    } else {
-        com.mode.devlog ("Browser does not support concurrent worker threads");
+        // Changeable settings
+        this.runCapability = com.ES_gui_thread
+        this.latestVersion = 'see Sigma16 Home Page'
     }
-    return workersSupported
 }
 
+// Update the configuration options according to user's inputs but
+// subject to platform capabilities
+
 function configureOptions (gst) {
-    com.mode.devlog ("configurerOptions")
+}
+
+function updateOptions (gst) {
+    const opt = gst.options
     const es = gst.es
-    gst.supportLocalStorage = cn.checkLocalStorageSupport ()
-    document.getElementById("SupportLocalStorage").innerHTML =
-        gst.supportLocalStorage
-    gst.supportWorker = cn.checkBrowserWorkerSupport ()
-    document.getElementById("SupportWorker").innerHTML = gst.supportWorker
-    gst.supportSharedMem = cn.checkSharedMemSupport ()
-    document.getElementById("SupportSharedMem").innerHTML = gst.supportSharedMem
-    let workerShmOK = gst.supportWorker && gst.supportSharedMem
-    document.getElementById("WorkerThreadOK").innerHTML = workerShmOK
+}
+
+// Set key operational parameters according to the options
+function applyOptions (gst) {
+    const op = gst.options
+    const es = gst.es
     es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
-// es.emRunThread = es.emRunCapability // default: run according to capability
     es.emRunThread = com.ES_gui_thread // override for robust case
-    com.mode.devlog (`Emulator run capability = ${es.emRunCapability}`)
+    setMainSliceSize (gst, defaultExecSliceSize)
+}
+
+// Show current values of the options in the gui
+function displayOptions (gst) {
+    const op = gst.options
+    document.getElementById("SupportLocalStorage").innerHTML =
+        opt.supportLocalStorage
+    document.getElementById("SupportWorker").innerHTML = opt.supportWorker
+    document.getElementById("SupportSharedMem").innerHTML = opt.supportSharedMem
+    document.getElementById("WorkerThreadOK").innerHTML = opt.workerShmOK
     let capabilityStr =
         es.emRunCapability === com.ES_worker_thread ? "worker/shm"
         : "main"
@@ -2138,9 +2142,9 @@ function allocateStateVector (es) {
     es.vec16 = new Uint16Array (es.vecbuf)
     es.vec32 = new Uint32Array (es.vecbuf)
     es.shm = es.vec16  // change usages of es.shm to es.vec16
-    cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
-    cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
-    cn.output (`vec16 contains ${es.vec16.length} elements`)
+//    cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
+//    cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
+//    cn.output (`vec16 contains ${es.vec16.length} elements`)
 }
 /*    
         com.mode.devlog ("allocateStateVector, Worker not supported")
@@ -3297,5 +3301,79 @@ function memDisplayNew (gst, first, last, fet, sto, elt) {
 //    em.clearLoggingData (gst.es)
 //    memUpdate (gst)
 //    memDisplay (gst)
+
+// Sigma16: config.mjs
+// Copyright (C) 2021 John T. O'Donnell
+// email: john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+
+// This file is part of Sigma16.  Sigma16 is free software: you can
+// redistribute it and/or modify it under the terms of the GNU General
+// Public License as published by the Free Software Foundation, either
+// version 3 of the License, or (at your option) any later version.
+// Sigma16 is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.  You should have received
+// a copy of the GNU General Public License along with Sigma16.  If
+// not, see <https://www.gnu.org/licenses/>.
+
+// Configuration: test browser compatibility
+
+export function output (xs) {
+    console.log (`config: output ${xs}`)
+}
+export function checkBrowserWorkerSupport () {
+    return !!window.Worker
+}
+export function checkLocalStorageSupport () {
+    return !!window.localStorage
+}
+export function checkSharedMemSupport () {
+    return !!window.SharedArrayBuffer
+}
+export function check_cross_origin_isolation () {
+    const b = window.crossOriginIsolated
+    console.log (`crossOriginIsolated = ${b}`)
+    return b
+}
+window.check_cross_origin_isolation = check_cross_origin_isolation
+
+// import * as cn    from './config.mjs';
+
+// Check capabilities of the platform: Check whether the browser
+// supports workers.  Print a message on the console and return a
+// Boolen: true if workers are supported
+
+/*
+function checkBrowserWorkerSupport () {
+    com.mode.devlog ("checkBrowserWorkerSupport")
+    com.mode.devlog ("checkBrowserWorkerSupport")
+    let workersSupported = false
+    if (window.Worker) {
+        com.mode.devlog ("Browser supports concurrent worker threads");
+        workersSupported = true
+    } else {
+        com.mode.devlog ("Browser does not support concurrent worker threads");
+    }
+    return workersSupported
+}
+
+function configureOptions (gst) {
+    com.mode.devlog ("configurerOptions")
+    const opt = gst.options
+    const es = gst.es
+    //    opt.supportWorker = cn.checkBrowserWorkerSupport ()
+    opt.workerShmOK = opt.supportWorker && opt.supportSharedMem
+    es.emRunThread = com.ES_gui_thread // override for robust case
+    com.mode.devlog (`Emulator run capability = ${es.emRunCapability}`)
+    let capabilityStr =
+        es.emRunCapability === com.ES_worker_thread ? "worker/shm"
+        : "main"
+    setMainSliceSize (gst, defaultExecSliceSize)
+}
+//    opt.supportLocalStorage = cn.checkLocalStorageSupport ()
+// es.emRunThread = es.emRunCapability // default: run according to capability
+//    opt.supportSharedMem = cn.checkSharedMemSupport ()
 
 */
