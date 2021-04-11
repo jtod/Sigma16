@@ -466,46 +466,13 @@ visiting this file in a browser.
                     <span class="redText" id="ThisVersion"> ? </span>
                   </li>
                   <li> Latest release:
-                    <span class="redText" id="LatestVersion">
+                    <span class="redText" id="LatestRelease">
                       See Sigma16 Home Page
                     </span>
                   </li>
                 </ul>
-                <h3> Memory display </h3>
-                <p> You can specify a region of the memory to display
-                  after each instruction step.  A larger region is
-                  better for tracing data structures but takes longer
-                  to render.
-                </p>
 
-                <input type="radio" name="MemStepDisplayWindow"
-                       id="MDhba"
-                       value="MDhba">
-                <label for="MDhba">
-                  0 to highest boot address
-                </label>
-                <br>
-
-                <input type="radio" name="MemStepDisplayWindow"
-                       id="MDsliding"
-                       value="MDsliding" checked>
-                <label for="MDsliding">
-                  Sliding window of size
-                  <span class="redText" id="MDslidingSize">
-                    1000
-                  </span>
-                  <input type="text" size=6 id="EnterMDslidingSize">
-                  <button id="UpdateMDslidingSize"> Update </button>
-                </label>
-                <br>
-                <input type="radio" name="MemStepDisplayWindow"
-                       id="MDfull"
-                       value="MDfull">
-                <label for="MDfull">
-                  Full memory display
-                </label>
-
-                <h3> Host capabilities </h3>
+                <h3> Platform capabilities </h3>
                 <p> Sigma16 can use features that are supported by
                   some, but not all, browsers and platforms.  Here are
                   the capabilities of your current environment: </p>
@@ -518,40 +485,113 @@ visiting this file in a browser.
                   </li>
                   <li> Shared memory supported:
                     <span class="redText" id="SupportSharedMem"> ? </span>
+                  <li> Cross origin isolated:
+                    <span class="redText" id="CrossOriginIsolated"> ? </span>
                   </li>
                 </ul>
-                <h3> Execution thread </h3>
+
+                <h3> Memory </h3>
+                <p> You can specify a region of the memory to display
+                  after each instruction step.  A larger region is
+                  better for tracing data structures but takes longer
+                  to render.
+                </p>
+
+                <ul>
+                  <li> Memory has been allocated:
+                    <span class="redText" id="MemoryIsAllocated">
+                      ? </span>
+                  </li>
+                  <li> Memory size (16-bit words)
+                    <span class="redText" id="MemorySize"> ? </span>
+                    <input type="text" size=8 id='EnterMemSize'>
+                    <button id='UpdateMemSize'> Update </button>
+                  </li>
+                  <li>
+                    Memory display
+                    <br>
+                    <input type="radio" name="MemStepDisplayWindow"
+                           id="MDhba"
+                           value="MDhba" checked>
+                    <label for="MDhba">
+                      0 to highest boot address
+                    </label>
+                    <br>
+                    <input type="radio" name="MemStepDisplayWindow"
+                           id="MDsliding"
+                           value="MDsliding">
+                    <label for="MDsliding">
+                      Sliding window of size
+                      <span class="redText" id="MDslidingSize">
+                        ?
+                      </span>
+                      <input type="text" size=6 id="EnterMDslidingSize">
+                      <button id="UpdateMDslidingSize"> Update </button>
+                    </label>
+                    <br>
+                    <input type="radio" name="MemStepDisplayWindow"
+                           id="MDfull"
+                           value="MDfull">
+                    <label for="MDfull">
+                      Full memory display
+                    </label>
+                  </li>
+
+                  <li> Buffer allocation
+                    <br>
+                    <input type="radio" name="ArrayBufferType"
+                           id="ArrayBufferLocal"
+                           value="ABlocal">
+                    <label for="ArrayBufferType">
+                      Local
+                    </label>
+                    <br>
+                    <input type="radio" name="ArrayBufferType"
+                           id="ArrayBufferShared"
+                           value="ABshared" checked>
+                    <label for="ArrayBufferType">
+                      Shared
+                    </label>
+                  </li>
+                </ul>
+
+                <h3> Emulator </h3>
                 <p> There are several options for running the
                   emulator, and you can select which one to use if the
                   browser and platform support the required features.
                   If the preferred choice isn't supported, Main will
                   be used. </p>
                 <ul>
-                  <li> Current thread selection:
-                    <span class="redText" id="CurrentThreadSelection"> ? </span>
+                  <li> Can use worker thread:
+                    <span class="redText" id="WorkerThreadOK">
+                      ? </span>
                   </li>
-                  <li> Worker thread available:
-                    <span class="redText" id="WorkerThreadOK"> ? </span>
+                  <li> Preferred thread
+                    <br>
+                    <input type="radio" name="RunThread" id="RTmain"
+                           value="Main">
+                    <label for="RTmain">
+                      Main with siice size (instructions):
+                      <span class="redText" id="MainSliceSize"> ? </span>
+                      <input type="text" size=6 value=" " id="EnterMainSliceSize">
+                      <button id="UpdateMainSliceSize"> Update </button>
+                    </label>
+                    <br>
+                    <input type="radio" name="RunThread" id="RTworkerShm"
+                           value="Worker" checked>
+                    <label for="RTworkerShm">
+                      Concurrent worker with update interval (ms):
+                      <span class="redText" id="WorkerUpdateInterval"> ? </span>
+                      <input type="text" size=6 value="?"
+                             id="EnterWorkerUpdateInterval">
+                      <button id="UpdateWorkerUpdateInterval"> Update </button>
+                    </label>
                   </li>
                 </ul>
-
-                <input type="radio" name="RunThread" id="RTmain"
-                       value="Main">
-                <label for="RTmain">
-                  Main
-                  <span class="redText" id="MainSliceSize"> ? </span>
-                  <input type="text" size=6 value=" " id="EnterMainSliceSize">
-                  <button id="UpdateSliceSize"> Update </button>
-                </label>
+                <li> Current thread selection:
+                  <span class="redText" id="CurrentThreadSelection"> ? </span>
+                </li>
                 <br>
-                
-                <input type="radio" name="RunThread" id="RTworkerShm"
-                       value="Worker" checked>
-                <label for="RTworkerShm">
-                  Worker with shared memory (if available)
-                </label>
-                <br>
-
               </div>
             </div>
 

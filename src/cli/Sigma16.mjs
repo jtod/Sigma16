@@ -91,7 +91,7 @@ import * as fs from "fs";
 import { fileURLToPath } from 'url';
 
 // Components of Sigma16
-import * as cn from "../gui/config.mjs";
+// import * as cn from "../gui/config.mjs";
 import * as st from "../base//state.mjs";
 import * as smod from "../base//s16module.mjs";
 import * as asm  from "../base//assembler.mjs";
