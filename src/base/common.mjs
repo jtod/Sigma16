@@ -29,7 +29,7 @@ export const ES_worker_thread   = 1
 
 export function showThread (x) {
     return x==0 ? "main"
-        : x==1 ? "worker with shared memory"
+        : x==1 ? "worker"
         : "?"
 }
 

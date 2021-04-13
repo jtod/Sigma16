@@ -120,8 +120,8 @@ class GuiState {
         this.mainSliceSize = 1
 
         // Memory display
-        this.memDispMode = ModeMemDisplaySliding
-        this.currentMDslidingSize = InitialMDslidingSize
+//        this.memDispMode = ModeMemDisplaySliding
+//        this.currentMDslidingSize = InitialMDslidingSize
         this.highBootAddress = 0
 
         // Clock
@@ -142,6 +142,7 @@ function showGuiState (gst) {
 
 class Options {
     constructor () {
+        console.log ('*** Creating options record')
         // Version
         this.thisVersion = ver.s16version
         this.latestRelease = 'see Sigma16 Home Page'
@@ -151,15 +152,39 @@ class Options {
         this.supportWorker = !!window.Worker
         this.supportSharedMem = !!window.SharedArrayBuffer
         this.crossOriginIsolated = !!window.crossOriginIsolated
-
+        this.crossOriginIsolated = true // temp test ????????????
         // Memory settings
         this.memoryIsAllocated = false
+        this.bufferType = ArrayBufferLocal
         this.memorySize = 65536
+        this.memDisplayMode = ModeMemDisplayHBA
+        this.currentMDslidingSize = InitialMDslidingSize
 
         // Emulator settings
         this.workerThreadOK = false  // update if conditions are met
         this.runCapability = com.ES_gui_thread
-        this.emCurrentThreadSelection = com.ES_gui_thread
+//            this.bufferAllocation === ArrayBufferShared
+//            ? com.ES_worker_thread
+//            : com.ES_gui_thread
+        this.currentThreadSelection = this.runCapability
+    }
+    checkRequirements () {
+        console.log ('*** checkRequirements')
+        // Set array buffer type
+        if (this.SupportWorker && this.supportSharedMem
+            && this.crossOriginIsolated) {
+            setArrayBufferShared ()
+        } else {
+            setArrayBufferLocal ()
+        }
+        // Set run capability and initial emulation thread
+        if (this.supportWorker && this.bufferType === ArrayBufferShared) {
+            this.runCapability = com.ES_worker_thread
+            setRTworker () 
+        } else {
+            this.runCapability = com.ES_gui_thread
+            setRTmain ()
+        }
     }
 }
 
@@ -175,22 +200,84 @@ window.temptest = temptest
 //   setMDfull
 // Emulator options:
 //   optRunCapability
-//   setRTmain, updateMainSliceSize
-//   setRTworker
+//   requestRTmain, updateMainSliceSize
+//   requestRTworker
 
 // Can use Worker if platform capabilities are sufficient and shared
 // memory was allocated
 
 // Memory options
 
+function warn_memory_change_after_allocation (xs) {
+    modalWarning (
+        `The ${xs} cannot be changed after memory has`
+            + ' been allocated.  To change this setting, restart the app'
+            + ' and make the change on the Options page before'
+            + ' visiting the Processor page.')
+}
+
+const requestArrayBufferLocal = (gst) => (e) => {
+    com.mode.devlog ('requestArrayBufferLocal')
+    gst.options.checkRequirements ()
+    if (gst.options.memoryIsAllocated) {
+        warn_memory_change_after_allocation ('memory buffer type')
+    } else {
+        setArrayBufferLocal (gst)
+    }
+}
+
+// Requirements must be checked before calling
+function setArrayBufferLocal () {
+    console.log ('set array buffer local')
+    gst.options.bufferType = ArrayBufferLocal
+    setRTmain (gst)
+    document.getElementById('ArrayBufferLocal').checked = true
+    refreshOptionsDisplay ()
+}
+
+const requestArrayBufferShared = (gst) => (e) => {
+    com.mode.devlog ('requestArrayBufferShared')
+    gst.options.checkRequirements ()
+    if (gst.options.memoryIsAllocated) {
+        warn_memory_change_after_allocation ()
+    } else {
+        if (gst.options.supportSharedMem && gst.options.crossOriginIsolated) {
+            setArrayBufferShared (gst)
+        } else {
+            modalWarning (
+                'Shared array buffer cannot be used because of'
+                    + ' limitations in your platform.')
+            setArrayBufferLocal ()
+        }
+    }
+    refreshOptionsDisplay ()
+}
+
+function setArrayBufferShared () {
+    console.log ('set array buffer shared')
+    gst.options.bufferType = ArrayBufferShared
+    document.getElementById('ArrayBufferShared').checked = true
+    refreshOptionsDisplay ()
+}
+window.setArrayBufferShared = setArrayBufferShared // temp ????
+window.setArrayBufferLocal = setArrayBufferLocal
+
+    
+// Memory display: radio buttons have ids MDhba, MDsliding, MDfull
+
 const setMDhba = (gst) => (e) => {
     com.mode.devlog ('setMDhba')
-    gst.memDispMode = ModeMemDisplayHBA
+    gst.options.memDispMode = ModeMemDisplayHBA
 }
 
 const setMDsliding = (gst) => (e) => {
     com.mode.devlog ('setMDsliding')
-    gst.memDispMode = ModeMemDisplaySliding
+    gst.options.memDispMode = ModeMemDisplaySliding
+}
+
+const setMDfull = (gst) => (e) => {
+    com.mode.devlog ('setMDfull')
+    gst.options.memDispMode = ModeMemDisplayFull
 }
 
 function updateMDslidingSize (gst) {
@@ -200,16 +287,12 @@ function updateMDslidingSize (gst) {
     com.mode.devlog (`update MemDispSize <${xs}> = ${x}`)
     if (!isNaN(x)) {
         document.getElementById('MDslidingSize').innerHTML = x
-        gst.currentMDslidingSize = x
+        gst.options.currentMDslidingSize = x
         com.mode.devlog (`Updated memory display sliding size := ${x}`)
     }
     showGuiState (gst)
 }
 
-const setMDfull = (gst) => (e) => {
-    com.mode.devlog ('setMDfull')
-    gst.memDispMode = ModeMemDisplayFull
-}
 
 // Emulator options
 
@@ -221,21 +304,35 @@ function optRunCapability (gst) {
 
     es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
     es.emRunThread = com.ES_gui_thread // override for robust case
+    opt.runCapability = es.emRunCapability
     setMainSliceSize (gst, OptInitMainSliceSize)
-    let capabilityStr = 'temptesting' 
-    //        gst.es.emRunCapability === com.ES_worker_thread ? "worker/shm"
-    //        : "main"
-    refreshOptionsDisplay (gst)
+    refreshOptionsDisplay ()
 }
 
-const setRTmain = (gst) => (e) => {
-    com.mode.devlog ("setRTmain")
-    gst.es.emRunThread = com.ES_gui_thread
-    document.getElementById("CurrentThreadSelection").innerHTML
-        = com.showThread (com.ES_gui_thread)
+
+function updateMemSize (gst) {
+    console.log ('updateMemSize')
+    if (gst.options.memoryIsAllocated) {
+        console.log ('updateMemSize: cannot change memory size')
+        modalWarning (
+            'The memory size cannot be changed after memory has been'
+                + ' allocated.  This happens when you first enter'
+                + ' the Processor page.  To adjust the memory size,'
+                + ' restart the app and change the options'
+                + ' before entering the Processor page.')
+    } else {
+        let xs = document.getElementById('EnterMemSize').value
+        console.log (`updateMemSize ${xs}`)
+        let x = parseInt (xs)
+        if (!isNaN (x)) {
+            gst.options.memorySize = x
+            refreshOptionsDisplay ()
+        }
+    }
 }
 
 const updateMainSliceSize = (gst) => (e) => {
+    console.log ("updateMTsliceSize")
     com.mode.devlog ("updateMTsliceSize")
     e.stopPropagation ()
     let xs = document.getElementById("EnterMainSliceSize").value
@@ -244,31 +341,50 @@ const updateMainSliceSize = (gst) => (e) => {
     if (!isNaN(x)) setMainSliceSize (gst, x)
 }
 
-const setRTworker = (gst) => (e) => {
-    // temporary: completely disable workers
-    setRTmain (gst) (null)
-    return
-    
-    if (gst.supportWorker && gst.supportSharedMem) {
-        com.mode.devlog ("setRTworker: success")
-        gst.es.emRunThread = com.ES_worker_thread
-        document.getElementById("CurrentThreadSelection").innerHTML
-            = com.showThread (com.ES_worker_thread)
+const requestRTmain = (gst) => (e) => {
+    console.log ("requestRTmain")
+}
+
+function setRTmain () {
+    console.log ('setRTmain')
+    gst.es.emRunThread = com.ES_gui_thread
+    gst.options.currentThreadSelection = com.ES_gui_thread
+    document.getElementById('RTmain').checked = true
+    refreshOptionsDisplay ()
+}
+//    document.getElementById("CurrentThreadSelection").innerHTML
+//        = com.showThread (com.ES_gui_thread)
+
+const requestRTworker = (gst) => (e) => {
+    console.log ('requestRTworker')
+    const opt = gst.options
+    if (!opt.supportWorker) {
+        modalWarning ('Worker not supported')
+        setRTmain ()
+    } else if (! (opt.bufferType === ArrayBufferShared)) {
+        modalWarning ('Cannot use worker without shared array buffer')
+        setRTmain ()
     } else {
-        com.mode.devlog (`setRTworker: Platform does not support worker, using main`)
-        setRTmain (gst) (null)
+        setRTworker ()
     }
+}
+// temporary: completely disable workers
+//    requestRTmain (gst) (null)
+//    return
+    
+function setRTworker () {
+    console.log ('setRTworker')
+    gst.es.emRunThread = com.ES_worker_thread
+    document.getElementById('RTworker').checked = true
+    gst.options.currentThreadSelection = com.ES_worker_thread
 }
 
 // Display current options in gui
 
-function setHtml (i,h) {
-    document.getElementById(i).innerHTML = h
-}
-
-function refreshOptionsDisplay (gst) {
+function refreshOptionsDisplay () {
     console.log ('displayOptions')
     const opt = gst.options
+    console.log (`LR = ${opt.latestRelease}`)
     setHtml ('ThisVersion', opt.thisVersion)
     setHtml ('LatestRelease', opt.latestRelease)
     setHtml ("SupportLocalStorage", opt.supportLocalStorage)
@@ -278,15 +394,16 @@ function refreshOptionsDisplay (gst) {
     setHtml ("CrossOriginIsolated", opt.crossOriginIsolated)
     setHtml ("WorkerThreadOK", opt.workerThreadOK)
     setHtml ('CrossOriginIsolated', opt.crossOriginIsolated)
-    
     setHtml ('MemoryIsAllocated', opt.memoryIsAllocated)
+    setHtml ('OptBufferType', opt.bufferType.description)
     setHtml ('MemorySize', opt.memorySize)
-    // memory display mode
+    setHtml ('MDslidingSize', opt.currentMDslidingSize)
     setHtml ('WorkerThreadOK', opt.workerThreadOK)
-    setHtml ('MainSliceSize', opt.mainSliceSize)
     setHtml ('WorkerUpdateInterval', opt.workerUpdateInterval)
-    setHtml ('CurrentThreadSelection', opt.currentThreadSelection)
-    
+    setHtml ('RunCapability', com.showThread(opt.runCapability))
+    setHtml ('CurrentThreadSelection', com.showThread(opt.currentThreadSelection))
+
+    setHtml ('MainSliceSize', opt.mainSliceSize)
     setMainSliceSize (gst, OptInitMainSliceSize)
 }
 
@@ -323,8 +440,10 @@ export function setMainSliceSize (gst, x) {
 }
 
 
-// Memory display options
+// Memory options
 
+const ArrayBufferShared = Symbol ('Shared')
+const ArrayBufferLocal = Symbol ('Local')
 const ModeMemDisplayHBA = Symbol ("MD HBA")          // 0 to highest booted address
 const ModeMemDisplaySliding = Symbol ("MD sliding")  // sliding window
 const ModeMemDisplayFull = Symbol ("MD full")         // full memory
@@ -358,7 +477,7 @@ window.showMemDisplayOptions = showMemDisplayOptions
 // then query server for the latest version number
 
 function findLatestRelease (gst) {
-    com.mode.devlog ("*** findLatestRelease starting")
+    console.log ('Looking up the latest release')
     const serverAddressLoc = `${com.S16HOMEPAGEURL}/admin/SIGSERVERURL.txt`
     fetch (serverAddressLoc)
         .then (repositoryResponse => {
@@ -371,9 +490,10 @@ function findLatestRelease (gst) {
         }).then (serverResponse => {
             return serverResponse.text()
         }).then (latest => {
-            com.mode.devlog (`*** findLatestRelease latest= ${latest}`)
-            gst.latestRelease = latest
-            document.getElementById('LatestRelease').innerHTML = latest
+            console.log (`Latest release is ${latest}`)
+            gst.options.latestRelease = latest
+            refreshOptionsDisplay ()
+//          document.getElementById('LatestRelease').innerHTML = latest
         })
         .catch (error => {
             com.mode.devlog (`findLatestRelease error ${error}`)
@@ -384,6 +504,12 @@ function findLatestRelease (gst) {
 //-----------------------------------------------------------------------------
 // Utilities
 //-----------------------------------------------------------------------------
+
+// Write the html text h into the DOM element with id i
+
+function setHtml (i,h) {
+    document.getElementById(i).innerHTML = h
+}
 
 export function modalWarning (msg) {
     alert (msg);
@@ -420,7 +546,7 @@ function updateWhileRunning (gst) {
 // in the onload event, because the DOI elements must exist before the
 // variables are assigned.
 
-function initialize_mid_main_resizing () {
+function initialize_mid_main_resizing (gst) {
     com.mode.devlog ('initializing mid-main resizing')
     gst.middleSection = document.getElementById("MiddleSection");
     gst.midMainLeft = document.getElementById("MidMainLeft");
@@ -679,6 +805,7 @@ const showPane = (gst) => (p) => {
     case ProcessorPane:
         gst.currentKeyMap = procKeyMap
         highlightPaneButton (gst, "Processor_Pane_Button")
+        enterProcessor (gst)
         break;
     case OptionsPane:
         gst.currentKeyMap = defaultKeyMap
@@ -859,16 +986,21 @@ function initializeButtons () {
     prepareButton ("BreakDisable", () => breakDisable(gst));
     prepareButton ("BreakClose",   () => breakClose(gst));
 
-    // Options
-    prepareButton ('UpdateMainSliceSize',      () => updateMainSliceSize (gst))
-    prepareButton ('UpdateMDslidingSize', () => updateMDslidingSize (gst))
+    // Options pane
+    prepareButton ('UpdateMemSize',         () => updateMemSize (gst))
+    prepareButton ('UpdateMainSliceSize',   () => updateMainSliceSize (gst))
+    prepareButton ('UpdateMDslidingSize',   () => updateMDslidingSize (gst))
 
-    setRTworker (gst) (null) // use worker if available
+//    requestRTworker (gst) (null) // use worker if available
     document.getElementById("RTmain")
-        .addEventListener ("change", setRTmain (gst))
-    document.getElementById("RTworkerShm")
-        .addEventListener ("change", setRTworker (gst))
+        .addEventListener ("change", requestRTmain (gst))
+    document.getElementById("RTworker")
+        .addEventListener ("change", requestRTworker (gst))
 
+    document.getElementById("ArrayBufferLocal")
+        .addEventListener ("change", requestArrayBufferLocal (gst))
+    document.getElementById("ArrayBufferShared")
+        .addEventListener ("change", requestArrayBufferShared (gst))
 
     document.getElementById("MDhba")
         .addEventListener ("change", setMDhba (gst))
@@ -1163,6 +1295,20 @@ export function initializeProcessorElements (gst) {
     gst.instrCCElt   = document.getElementById("InstrCC");
     gst.instrEffect1Elt = document.getElementById("InstrEffect1");
     gst.instrEffect2Elt = document.getElementById("InstrEffect2");
+}
+
+function enterProcessor (gst) {
+    console.log ('enterProcessor')
+    ensureMemoryAllocated (gst)
+}
+
+function ensureMemoryAllocated (gst) {
+    if (!gst.options.memoryIsAllocated) {
+        console.log ('allocating memory')
+        gst.options.memoryIsAllocated = true
+        refreshOptionsDisplay ()
+        allocateStateVector (gst.es)
+    }
 }
 
 function procReset (gst) {
@@ -2204,7 +2350,11 @@ let emwThread = null
 
 function allocateStateVector (es) {
     console.log ("allocateStateVector: ArrayBuffer")
-    es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
+    //     es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
+    es.vecbuf =
+        gst.options.bufferType === ArrayBufferShared
+        ? new SharedArrayBuffer (st.EmStateSizeByte)
+        : new ArrayBuffer (st.EmStateSizeByte)
     es.vec16 = new Uint16Array (es.vecbuf)
     es.vec32 = new Uint32Array (es.vecbuf)
     es.shm = es.vec16  // change usages of es.shm to es.vec16
@@ -2740,7 +2890,7 @@ function initializeMainEmulator (gst) {
 
 function initializeGuiLayout (gst) {
     gst.showingUserGuide = true
-    initialize_mid_main_resizing ();
+    initialize_mid_main_resizing (gst)
     setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
     gst.toggleGuideSaveRatio = gst.midLRratio
     adjustToMidMainLRratio();
@@ -2765,17 +2915,19 @@ function initializeSystem () {
     com.mode.devlog ('Initializing system')
     gst = new GuiState ()          // Create gui state and set global variable
     initializeGuiElements (gst)    // Initialize gui elements
-//        configureOptions (gst)
-    refreshOptionsDisplay (gst)
     initializeMainEmulator (gst)   // Create emulator state
     initializeGuiLayout (gst)      // Initialize gui layout
     initializeButtons (gst)
     memDisplay (gst)
-    //    procRefresh (gst)
     procReset (gst)
-//    findVersion (gst)              // Determine running and latest version
     initializeTracing (gst)        // Initialize tracing mode
+    gst.options.checkRequirements ()
+    refreshOptionsDisplay ()
+    findLatestRelease (gst)
 }
+    //    procRefresh (gst)
+//    findVersion (gst)              // Determine running and latest version
+//        configureOptions (gst)
 
 //-----------------------------------------------------------------------------
 // Run initializers
