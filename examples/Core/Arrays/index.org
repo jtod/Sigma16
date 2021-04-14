@@ -1,5 +1,6 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
 #+TITLE: Arrays
+#+OPTIONS: html-postamble:nil
 
 - [[./ArrayMax.asm.txt][ArrayMax]] Find the maximum element of an
   array.

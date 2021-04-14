@@ -1,5 +1,6 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
 #+TITLE: Simple programs
+#+OPTIONS: html-postamble:nil
 
 - [[./ConstArith.asm.txt][ConstArith.asm.txt]] This is a good example to
   start with.  It's a small program that does some arithmetic in the

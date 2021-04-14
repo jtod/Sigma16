@@ -1,5 +1,6 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
 #+TITLE: Testing
+#+OPTIONS: html-postamble:nil
 
 These files are for testing the implementation of Sigma16.  They also
 provide examples of all the assembly language statements and the

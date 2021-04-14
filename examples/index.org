@@ -1,9 +1,10 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docs/docstyle.css" />
 #+TITLE: Sigma16 example programs
+#+OPTIONS: html-postamble:nil
 
-- [[./Core/index.html][Core]] Simple programs that use only the small
-  core subset of the architecture.  The core instructions are add,
-  sub, mul, div, trap, lea, load, store, jump, jal, jumpXX.
+- [[./Core/index.html][Core]] Simple programs that use only the small core subset of the
+  architecture.  The core instructions are add, sub, mul, div, cmp,
+  trap, lea, load, store, jump, jal, jumpXX.
 
 - [[./Standard/index.html][Standard]] Programs that use the standard
   Sigma16 instruction set.  In addition to the Core instructions,

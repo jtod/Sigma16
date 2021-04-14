@@ -1,5 +1,6 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
 #+TITLE: Arithmetic examples
+#+OPTIONS: html-postamble:nil
 
 - [[./AddDecimal.asm.txt][AddDecimal.asm.txt]] Shows how to represent
   integers in decimal (actually *binary coded decimal*) and how to add
