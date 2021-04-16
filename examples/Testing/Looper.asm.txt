@@ -1,6 +1,6 @@
 ; Looper: a long-running program for timing measurements
-; John O'Donnell, 2021
-; This file is part of Sigma16, README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021.  This file is part of Sigma16.
+; See README and https://jtod.github.io/home/Sigma16/
 
 ; This program contains two nested loops; its purpose is for testing,
 ; performance measurements, and demonstrating breakpoints.
@@ -41,7 +41,7 @@
      add    R4,R0,R0      ; i := 0, initialize outer loop counter
 outerloop
      lea    R10,4         ; trap code for breakpoint  BREAKPOINT
-     trap   R10,R0,R0     ; breakpoint                BREAKPOINT
+;     trap   R10,R0,R0     ; breakpoint                BREAKPOINT
      cmp    R4,R2         ; i >= n
      jumpge done[R0]      ; if i >= n then goto done
 

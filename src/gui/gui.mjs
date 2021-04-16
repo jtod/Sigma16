@@ -45,12 +45,12 @@ const DefaultPaneButtonBackground = "#f8f8f8"
 const HighlightedPaneButtonBackground = "#e0fde0"
 
 // Initial options
-const OptInitMainSliceSize = 500 // user can override on options page
-const InitGuiRefreshInterval = 250 // period (ms) of worker display refresh
+const InitialMainSliceSize = 500 // user can override on options page
+const InitialWorkerRefreshInterval = 250 // period (ms) of worker display refresh
 const InitialMDslidingSize = 4096
 const MemDispMinSize = 20 // always display at least this many locations
-const OptInitMemSizeStr = '64KW'
-const OptInitMemSize = 65536
+const InitialMemorySizeStr = '64KW'
+const InitialMemorySize = 65536
 
 //-------------------------------------------------------------------------------
 // Global state variable
@@ -96,6 +96,9 @@ class GuiState {
         //        this.emRunThread = com.ES_gui_thread  part of es
         //        this.emRunThread = com.ES_worker_thread
 
+        // Worker thread
+        this.emwThread = null // may be set by initializeWorkerThread
+        
         // Processor display
         this.MemDispMode = ModeMemDisplayHBA
         this.memDispArg = 30
@@ -120,20 +123,12 @@ class GuiState {
         this.mainSliceSize = 1
 
         // Memory display
-//        this.memDispMode = ModeMemDisplaySliding
-//        this.currentMDslidingSize = InitialMDslidingSize
         this.highBootAddress = 0
 
         // Clock
         this.startTime = null
         this.eventTimer = null
-        this.guiRefreshInterval = InitGuiRefreshInterval
     }
-}
-
-function showGuiState (gst) {
-    console.log ('showGuiState...')
-    console.log (`  memDispSize = ${gst.memDispSize}`)
 }
 
 //-----------------------------------------------------------------------------
@@ -142,7 +137,8 @@ function showGuiState (gst) {
 
 class Options {
     constructor () {
-        console.log ('*** Creating options record')
+        console.log ('Creating options record')
+
         // Version
         this.thisVersion = ver.s16version
         this.latestRelease = 'see Sigma16 Home Page'
@@ -153,117 +149,149 @@ class Options {
         this.supportSharedMem = !!window.SharedArrayBuffer
         this.crossOriginIsolated = !!window.crossOriginIsolated
         this.crossOriginIsolated = true // temp test ????????????
+
         // Memory settings
         this.memoryIsAllocated = false
         this.bufferType = ArrayBufferLocal
-        this.memorySize = 65536
+        this.memorySize = InitialMemorySize
         this.memDisplayMode = ModeMemDisplayHBA
         this.currentMDslidingSize = InitialMDslidingSize
 
         // Emulator settings
-        this.workerThreadOK = false  // update if conditions are met
-        this.runCapability = com.ES_gui_thread
-//            this.bufferAllocation === ArrayBufferShared
-//            ? com.ES_worker_thread
-//            : com.ES_gui_thread
-        this.currentThreadSelection = this.runCapability
-    }
-    checkRequirements () {
-        console.log ('*** checkRequirements')
-        // Set array buffer type
-        if (this.SupportWorker && this.supportSharedMem
-            && this.crossOriginIsolated) {
-            setArrayBufferShared ()
-        } else {
-            setArrayBufferLocal ()
-        }
-        // Set run capability and initial emulation thread
-        if (this.supportWorker && this.bufferType === ArrayBufferShared) {
-            this.runCapability = com.ES_worker_thread
-            setRTworker () 
-        } else {
-            this.runCapability = com.ES_gui_thread
-            setRTmain ()
-        }
+        this.processorIsUninitialized = true
+        this.currentThreadSelection = com.ES_gui_thread
+        this.mainSliceSize = InitialMainSliceSize
+        this.workerRefreshInterval = InitialWorkerRefreshInterval
     }
 }
 
-function temptest (gst) {
-    document.getElementById('MDfull').disabled = true
-}
-window.temptest = temptest
-
-// Event handling functions for options are defined in initializeButtons
-// Memory options:
-//   setMDhba
-//   setMDsliding, updateMDslidingSize
-//   setMDfull
-// Emulator options:
-//   optRunCapability
-//   requestRTmain, updateMainSliceSize
-//   requestRTworker
-
-// Can use Worker if platform capabilities are sufficient and shared
-// memory was allocated
-
-// Memory options
-
-function warn_memory_change_after_allocation (xs) {
-    modalWarning (
-        `The ${xs} cannot be changed after memory has`
-            + ' been allocated.  To change this setting, restart the app'
-            + ' and make the change on the Options page before'
-            + ' visiting the Processor page.')
-}
-
-const requestArrayBufferLocal = (gst) => (e) => {
-    com.mode.devlog ('requestArrayBufferLocal')
-    gst.options.checkRequirements ()
-    if (gst.options.memoryIsAllocated) {
-        warn_memory_change_after_allocation ('memory buffer type')
+function adjustInitialOptions () {
+    console.log ('new Options, adjusting initial settings')
+    const opt = gst.options
+    if (isSetBufferSharedOk (false)) {
+        setArrayBufferShared (false)
     } else {
-        setArrayBufferLocal (gst)
+        setArrayBufferLocal (false)
+    }
+    if (isSetThreadWorkerOk (false)) {
+        setThreadWorker (false)
+    } else {
+        setThreadMain (false)
     }
 }
 
-// Requirements must be checked before calling
-function setArrayBufferLocal () {
+
+const warningChangeAfterAllocation =
+      'This memory option cannot be changed after memory has been allocated.'
+      + ' This happens when you first enter the Processor page.  To adjust'
+      + ' the setting, restart the app and change the options before entering'
+      + ' the Processor page.'
+
+const warningRequireSupportWorkerShared =
+      'This option cannot be selected because the platform does not support'
+      + ' both Workers and Shared Array Buffers.'
+
+const warningRequireCrossOriginIsolation =
+      'This option cannot be selected because the server does not provide'
+      + ' cross origin isolation.'
+
+const warningRequireSharedMemory =
+      'This option cannot be selected because it requires shared memory.'
+      + ' If memory is not yet allocated, you can select shared memory'
+      + ' and try again.'
+
+// Are requirements satisfied for selecting local typed array buffer?
+
+function isSetBufferLocalOk (warn) {
+    const opt = gst.options
+    let ok = true
+    if (opt.memoryIsAllocated) {
+        ok = false
+        maybeWarn (warn, warningChangeAfterAllocation)
+    }
+    console.log (`isSetBufferLocalOk = ${ok}`)
+    return ok
+}
+
+// Are requirements satisfied for selecting shared array buffer?
+
+function isSetBufferSharedOk (warn) {
+    const opt = gst.options
+    let ok = true
+    if (opt.memoryIsAllocated) {
+        ok = false
+        maybeWarn (warn, warningChangeAfterAllocation)
+    } else if (! (opt.supportWorker && opt.supportSharedMem)) {
+        ok = false
+        maybeWarn (warn, warningRequireSupportWorkerShared)
+    } else if (!opt.crossOriginIsolated) {
+        ok = false
+        maybeWarn (warn, warningRequireCrossOriginIsolation)
+    }
+    console.log (`isSetBufferSharedOk = ${ok}`)
+    return ok
+}
+
+// Are requirements satisfied for selecting worker thread?
+
+function isSetThreadWorkerOk (warn) {
+    const opt = gst.options
+    let ok = true
+    if (opt.bufferType === ArrayBufferLocal) {
+        ok = false
+        maybeWarn (warn, warningRequireSharedMemory)
+    }
+    console.log (`isSetThreadWorkerOk = ${ok}`)
+    return ok
+}
+
+function setArrayBufferLocal (warn) {
+    console.log ('setArrayBufferLocal')
+    const opt = gst.options
     console.log ('set array buffer local')
-    gst.options.bufferType = ArrayBufferLocal
-    setRTmain (gst)
-    document.getElementById('ArrayBufferLocal').checked = true
-    refreshOptionsDisplay ()
-}
+    if (isSetBufferLocalOk (warn)) {
+        console.log ('Setting array buffer local')
+        gst.options.bufferType = ArrayBufferLocal
+        document.getElementById('ArrayBufferLocal').checked = true
+        setThreadMain (gst)
+        refreshOptionsDisplay ()
+    }}
 
-const requestArrayBufferShared = (gst) => (e) => {
-    com.mode.devlog ('requestArrayBufferShared')
-    gst.options.checkRequirements ()
-    if (gst.options.memoryIsAllocated) {
-        warn_memory_change_after_allocation ()
-    } else {
-        if (gst.options.supportSharedMem && gst.options.crossOriginIsolated) {
-            setArrayBufferShared (gst)
-        } else {
-            modalWarning (
-                'Shared array buffer cannot be used because of'
-                    + ' limitations in your platform.')
-            setArrayBufferLocal ()
-        }
+function setArrayBufferShared (warn) {
+    const opt = gst.options
+    console.log ('setArrayBufferShared')
+    if (isSetBufferSharedOk (warn)) {
+        console.log ('Setting array buffer shared')
+        opt.bufferType = ArrayBufferShared
+        document.getElementById('ArrayBufferShared').checked = true
+        refreshOptionsDisplay ()
     }
+}
+
+
+function setThreadMain (warn) {
+    console.log ('setThreadMain')
+    const opt = gst.options
+    opt.currentThreadSelection = com.ES_gui_thread
+    document.getElementById('RTmain').checked = true
     refreshOptionsDisplay ()
 }
 
-function setArrayBufferShared () {
-    console.log ('set array buffer shared')
-    gst.options.bufferType = ArrayBufferShared
-    document.getElementById('ArrayBufferShared').checked = true
-    refreshOptionsDisplay ()
+function setThreadWorker (warn) {
+    console.log ('setThreadWorker')
+    const opt = gst.options
+    if (isSetThreadWorkerOk (warn)) {
+        opt.currentThreadSelection = com.ES_worker_thread
+        document.getElementById('RTworker').checked = true
+        refreshOptionsDisplay ()
+    } else {
+        setThreadMain (warn)
+    }
 }
-window.setArrayBufferShared = setArrayBufferShared // temp ????
-window.setArrayBufferLocal = setArrayBufferLocal
 
-    
-// Memory display: radio buttons have ids MDhba, MDsliding, MDfull
+
+// Set memory display mode according to radio buttons
+//have ids MDhba, MDsliding, MDfull
 
 const setMDhba = (gst) => (e) => {
     com.mode.devlog ('setMDhba')
@@ -280,7 +308,25 @@ const setMDfull = (gst) => (e) => {
     gst.options.memDispMode = ModeMemDisplayFull
 }
 
-function updateMDslidingSize (gst) {
+// User can update numerical parameters in options page
+
+function updateMemSize () {
+    console.log ('updateMemSize')
+    const opt = gst.options
+    if (opt.memoryIsAllocated) {
+        maybeWarn (true, warningChangeAfterAllocation)
+    } else {
+        let xs = document.getElementById('EnterMemSize').value
+        console.log (`updateMemSize ${xs}`)
+        let x = parseInt (xs)
+        if (!isNaN (x)) {
+            opt.memorySize = x
+            refreshOptionsDisplay ()
+        }
+    }
+}
+
+function updateMDslidingSize () {
     com.mode.devlog ("updateMDslidingSize")
     let xs = document.getElementById("EnterMDslidingSize").value
     let x = parseInt (xs)
@@ -290,93 +336,30 @@ function updateMDslidingSize (gst) {
         gst.options.currentMDslidingSize = x
         com.mode.devlog (`Updated memory display sliding size := ${x}`)
     }
-    showGuiState (gst)
 }
 
-
-// Emulator options
-
-function optRunCapability (gst) {
-    const op = gst.options
-    const es = gst.es
-    opt.workerThreadOK = opt.supportWorker && opt.supportSharedMem
-           && opt.crossOriginIsolated
-
-    es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
-    es.emRunThread = com.ES_gui_thread // override for robust case
-    opt.runCapability = es.emRunCapability
-    setMainSliceSize (gst, OptInitMainSliceSize)
-    refreshOptionsDisplay ()
-}
-
-
-function updateMemSize (gst) {
-    console.log ('updateMemSize')
-    if (gst.options.memoryIsAllocated) {
-        console.log ('updateMemSize: cannot change memory size')
-        modalWarning (
-            'The memory size cannot be changed after memory has been'
-                + ' allocated.  This happens when you first enter'
-                + ' the Processor page.  To adjust the memory size,'
-                + ' restart the app and change the options'
-                + ' before entering the Processor page.')
-    } else {
-        let xs = document.getElementById('EnterMemSize').value
-        console.log (`updateMemSize ${xs}`)
-        let x = parseInt (xs)
-        if (!isNaN (x)) {
-            gst.options.memorySize = x
-            refreshOptionsDisplay ()
-        }
-    }
-}
-
-const updateMainSliceSize = (gst) => (e) => {
-    console.log ("updateMTsliceSize")
-    com.mode.devlog ("updateMTsliceSize")
-    e.stopPropagation ()
+function updateMainSliceSize () {
+    console.log ("updateMainSliceSize")
+//    e.stopPropagation ()
     let xs = document.getElementById("EnterMainSliceSize").value
     let x = parseInt (xs)
-    com.mode.devlog (`update MTsliceSize <${xs}> = ${x}`)
-    if (!isNaN(x)) setMainSliceSize (gst, x)
-}
-
-const requestRTmain = (gst) => (e) => {
-    console.log ("requestRTmain")
-}
-
-function setRTmain () {
-    console.log ('setRTmain')
-    gst.es.emRunThread = com.ES_gui_thread
-    gst.options.currentThreadSelection = com.ES_gui_thread
-    document.getElementById('RTmain').checked = true
-    refreshOptionsDisplay ()
-}
-//    document.getElementById("CurrentThreadSelection").innerHTML
-//        = com.showThread (com.ES_gui_thread)
-
-const requestRTworker = (gst) => (e) => {
-    console.log ('requestRTworker')
-    const opt = gst.options
-    if (!opt.supportWorker) {
-        modalWarning ('Worker not supported')
-        setRTmain ()
-    } else if (! (opt.bufferType === ArrayBufferShared)) {
-        modalWarning ('Cannot use worker without shared array buffer')
-        setRTmain ()
-    } else {
-        setRTworker ()
+    if (!isNaN(x)) {
+        document.getElementById("MainSliceSize").innerHTML = x
+        gst.options.mainSliceSize = x
+        refreshOptionsDisplay ()
     }
 }
-// temporary: completely disable workers
-//    requestRTmain (gst) (null)
-//    return
-    
-function setRTworker () {
-    console.log ('setRTworker')
-    gst.es.emRunThread = com.ES_worker_thread
-    document.getElementById('RTworker').checked = true
-    gst.options.currentThreadSelection = com.ES_worker_thread
+
+function updateWorkerRefreshInterval () {
+    console.log ("updateWorkerRefreshInterval")
+//    e.stopPropagation ()
+    let xs = document.getElementById("EnterWorkerRefreshInterval").value
+    let x = parseInt (xs)
+    if (!isNaN(x)) {
+        document.getElementById("WorkerRefreshInterval").innerHTML = x
+        gst.options.workerRefreshInterval = x
+        refreshOptionsDisplay ()
+    }
 }
 
 // Display current options in gui
@@ -390,22 +373,18 @@ function refreshOptionsDisplay () {
     setHtml ("SupportLocalStorage", opt.supportLocalStorage)
     setHtml ("SupportWorker", opt.supportWorker)
     setHtml ("SupportSharedMem", opt.supportSharedMem)
-    setHtml ("WorkerThreadOK", opt.workerShmOK)
     setHtml ("CrossOriginIsolated", opt.crossOriginIsolated)
-    setHtml ("WorkerThreadOK", opt.workerThreadOK)
     setHtml ('CrossOriginIsolated', opt.crossOriginIsolated)
     setHtml ('MemoryIsAllocated', opt.memoryIsAllocated)
     setHtml ('OptBufferType', opt.bufferType.description)
     setHtml ('MemorySize', opt.memorySize)
     setHtml ('MDslidingSize', opt.currentMDslidingSize)
-    setHtml ('WorkerThreadOK', opt.workerThreadOK)
-    setHtml ('WorkerUpdateInterval', opt.workerUpdateInterval)
-    setHtml ('RunCapability', com.showThread(opt.runCapability))
     setHtml ('CurrentThreadSelection', com.showThread(opt.currentThreadSelection))
-
     setHtml ('MainSliceSize', opt.mainSliceSize)
-    setMainSliceSize (gst, OptInitMainSliceSize)
+    setHtml ('WorkerRefreshInterval', opt.workerRefreshInterval)
 }
+//    setMainSliceSize (gst, InitialMainSliceSize)
+//    setHtml ('RunCapability', com.showThread(opt.runCapability))
 
 // Show current values of the options in the gui
 // DOM id tags:
@@ -433,11 +412,6 @@ function refreshOptionsDisplay () {
     
 // Emulator options
 
-export function setMainSliceSize (gst, x) {
-    com.mode.devlog (`setMainSliceSize ${x}`)
-    document.getElementById("MainSliceSize").innerHTML = x
-    gst.mainSliceSize = x
-}
 
 
 // Memory options
@@ -504,6 +478,12 @@ function findLatestRelease (gst) {
 //-----------------------------------------------------------------------------
 // Utilities
 //-----------------------------------------------------------------------------
+
+// If warn then display msg in an alert
+
+function maybeWarn (warn, msg) {
+    if (warn) modalWarning (msg)
+}
 
 // Write the html text h into the DOM element with id i
 
@@ -805,7 +785,7 @@ const showPane = (gst) => (p) => {
     case ProcessorPane:
         gst.currentKeyMap = procKeyMap
         highlightPaneButton (gst, "Processor_Pane_Button")
-        enterProcessor (gst)
+        enterProcessor ()
         break;
     case OptionsPane:
         gst.currentKeyMap = defaultKeyMap
@@ -988,19 +968,10 @@ function initializeButtons () {
 
     // Options pane
     prepareButton ('UpdateMemSize',         () => updateMemSize (gst))
-    prepareButton ('UpdateMainSliceSize',   () => updateMainSliceSize (gst))
     prepareButton ('UpdateMDslidingSize',   () => updateMDslidingSize (gst))
-
-//    requestRTworker (gst) (null) // use worker if available
-    document.getElementById("RTmain")
-        .addEventListener ("change", requestRTmain (gst))
-    document.getElementById("RTworker")
-        .addEventListener ("change", requestRTworker (gst))
-
-    document.getElementById("ArrayBufferLocal")
-        .addEventListener ("change", requestArrayBufferLocal (gst))
-    document.getElementById("ArrayBufferShared")
-        .addEventListener ("change", requestArrayBufferShared (gst))
+    prepareButton ('UpdateMainSliceSize',   () => updateMainSliceSize (gst))
+    prepareButton ('UpdateWorkerRefreshInterval',
+                   () => updateWorkerRefreshInterval (gst))
 
     document.getElementById("MDhba")
         .addEventListener ("change", setMDhba (gst))
@@ -1009,7 +980,19 @@ function initializeButtons () {
     document.getElementById("MDfull")
         .addEventListener ("change", setMDfull (gst))
 
+    document.getElementById("RTmain")
+        .addEventListener ("change", (e) => setThreadMain (true))
+    document.getElementById("RTworker")
+        .addEventListener ("change", (e) => setThreadWorker (true))
+
+    document.getElementById("ArrayBufferLocal")
+        .addEventListener ("change", (e) => setArrayBufferLocal (true))
+    document.getElementById("ArrayBufferShared")
+        .addEventListener ("change", (e) => setArrayBufferShared (true))
+
     document.getElementById("EnterMainSliceSize")
+        .addEventListener ("keydown", (e) => { e.stopPropagation () })
+    document.getElementById("EnterWorkerRefreshInterval")
         .addEventListener ("keydown", (e) => { e.stopPropagation () })
     document.getElementById("EnterMDslidingSize")
         .addEventListener ("keydown", (e) => { e.stopPropagation () })
@@ -1072,9 +1055,7 @@ const procKeyMap = new Map ([
     ["KeyB",  () => procBoot (gst)],
     ["KeyS",  () => procStep (gst.es)],
     ["KeyR",  () => procRun (gst.es)],
-    //    ["KeyP",  () => procPause (gst.es)],
     ["KeyP",  () => procPause (gst)],
-    //    ["KeyI",  () => procInterrupt (gst.es)],
     ["KeyI",  () => procInterrupt (gst)],
 ])
 
@@ -1297,19 +1278,26 @@ export function initializeProcessorElements (gst) {
     gst.instrEffect2Elt = document.getElementById("InstrEffect2");
 }
 
-function enterProcessor (gst) {
+function enterProcessor () {
     console.log ('enterProcessor')
-    ensureMemoryAllocated (gst)
-}
-
-function ensureMemoryAllocated (gst) {
-    if (!gst.options.memoryIsAllocated) {
-        console.log ('allocating memory')
-        gst.options.memoryIsAllocated = true
-        refreshOptionsDisplay ()
-        allocateStateVector (gst.es)
+    if (gst.options.processorIsUninitialized) {
+        initializeProcessor ()
     }
 }
+
+function initializeProcessor () {
+    console.log ('Initializing processor')
+    allocateStateVector ()
+    refreshOptionsDisplay ()
+    if (gst.options.bufferType === ArrayBufferShared) {
+        gst.emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+        initializeEmwtProtocol (gst.es)
+        emwtInit (gst.es)
+        com.mode.devlog ("gui.mjs has started emwt")
+    }
+    gst.options.processorIsUninitialized = false
+}
+
 
 function procReset (gst) {
     com.mode.devlog ('gui.procReset')
@@ -2155,14 +2143,44 @@ export function procStep (gst) {
 // runGeneric checks the emRunThread field in the gui state to decide
 // which to use.
 
+function runMain () {
+    gst.options.currentThreadSelection = com.ES_gui_thread
+    procRun ()
+}
+
+function runWorker () {
+    gst.es.emRunThread = com.ES_worker_thread
+    procRun ()
+}
+
+function runGeneric () {
+    procRun ()
+}
+
+/*
 function runGeneric (gst) {
     com.mode.devlog (`runGeneric emRunThread = ${gst.es.emRunThread}`)
-        com.mode.devlog ("runGeneric: use main thread")
+    com.mode.devlog ("runGeneric: use main thread")
+    em.clearMemLogging (gst.es)
+    em.clearRegLogging (gst.es)
+    switch (gst.es.emRunThread) {
+    case com.ES_gui_thread:
+        break
+    case com.ES_worker_thread:
+        console.log ("runGeneric: use worker thread")
         em.clearMemLogging (gst.es)
         em.clearRegLogging (gst.es)
-        runMain (gst)
+        runWorker (gst)
         execInstrPostDisplay (gst)
+        break
+    default:
+        console.log ("runGeneric: invalid emRunThread")
+    }
+    execInstrPostDisplay (gst)
 }
+*/
+
+//        runMain (gst)
 //    switch (gst.es.emRunThread) {
 //    case com.ES_gui_thread:
 //        break
@@ -2177,16 +2195,6 @@ function runGeneric (gst) {
 //        console.log ("runGeneric: invalid emRunThread")
 //    }
 
-function runMain (gst) {
-    gst.es.emRunThread = com.ES_gui_thread
-//    em.initRegHighlighting (gst.es)   do this in boot, would clear after break?
-    procRun (gst)
-}
-
-function runWorker (gst) {
-    gst.es.emRunThread = com.ES_worker_thread
-    procRun (gst)
-}
 
 // Perform any operations on the gui display to prepare for a run
 function initRun (gst) {
@@ -2196,8 +2204,6 @@ function initRun (gst) {
 function finishRun (gst) {
     stopClock (gst)
     execInstrPostDisplay (gst)
-//    updateRegisters (gst)
-//    procRefresh (gst)
 }
 
 // Run instructions until stopping condition is reached.  This will be
@@ -2205,26 +2211,27 @@ function finishRun (gst) {
 // First decide whether to go aheead with the run; if so, decide which
 // thread to run it in.
 
-function procRun (gst) {
+function procRun () {
     const es = gst.es
-    com.mode.devlog (`gui.procRun, thread = ${es.emRunThread}`)
-    let q = st.readSCB (es, st.SCB_status)
+    gst.es.emRunThread = gst.options.currentThreadSelection
+    const q = st.readSCB (es, st.SCB_status)
+    console.log (`procRun, status=${q} thread=${es.emRunThread}`)
     switch (q) {
     case st.SCB_ready:
     case st.SCB_paused:
     case st.SCB_blocked:
     case st.SCB_break:
-        switch (es.emRunThread) {
+        switch (gst.options.currentThreadSelection) {
         case com.ES_gui_thread:
-            com.mode.devlog ("procRun: starting in main gui thread")
+            console.log ("procRun starting in main gui thread")
             st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
             es.initRunDisplay (es)
             em.mainThreadLooper (es)
             break
         case com.ES_worker_thread:
-            console.log ("procRun: starting in worker thread")
-            es.initRunDisplay (es)
+            console.log ("procRun starting in worker thread")
             st.writeSCB (es, st.SCB_status, st.SCB_running_emwt)
+            es.initRunDisplay (es)
             emwtRun (es)
             break
         default:
@@ -2340,7 +2347,7 @@ function logShmStatus (es) {
 
 // export let sysStateBuf = null
 // export let sysStateVec = null
-let emwThread = null
+// let emwThread = null
 
 // Memory is allocated in the main thread and sent to the worker
 // thread, if there is a worker
@@ -2348,21 +2355,37 @@ let emwThread = null
 // to do: change es.shm to es.vec16 in emulator and elsewhere if needed
 // temporary fix: disable shared array buffer, force use of ArrayBuffer
 
-function allocateStateVector (es) {
-    console.log ("allocateStateVector: ArrayBuffer")
-    //     es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
-    es.vecbuf =
+function allocateStateVector () {
+    console.log ("allocateStateVector")
+    gst.es = new em.EmulatorState (
+        com.ES_gui_thread,
+        () => initRun (gst),
+        () => updateWhileRunning (gst),
+        () => finishRun (gst) )
+    gst.es.vecbuf =
         gst.options.bufferType === ArrayBufferShared
         ? new SharedArrayBuffer (st.EmStateSizeByte)
         : new ArrayBuffer (st.EmStateSizeByte)
-    es.vec16 = new Uint16Array (es.vecbuf)
-    es.vec32 = new Uint32Array (es.vecbuf)
-    es.shm = es.vec16  // change usages of es.shm to es.vec16
+    gst.options.memoryIsAllocated = true
+    // Complete initialization using the state vector
+    gst.es.vec16 = new Uint16Array (gst.es.vecbuf)
+    gst.es.vec32 = new Uint32Array (gst.es.vecbuf)
+    gst.es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
+    gst.es.emRunThread = gst.options.currentThreadSelection
+    initializeMainEmulator ()   // Create emulator state
+    memDisplay (gst)
+    procReset (gst)
+    testSysStateVec (gst.es)  // testing
+}
+
+/*    
+//    console.log ('set allocated true')
+//  es.vecbuf = new ArrayBuffer (st.EmStateSizeByte)
+//   gst.options.sharedMemoryIsAllocated =
+//   gst.options.bufferType === ArrayBufferShared
 //    cn.output (`EmStateSizeWord = ${st.EmStateSizeWord}`)
 //    cn.output (`EmStateSizeByte = ${st.EmStateSizeByte}`)
 //    cn.output (`vec16 contains ${es.vec16.length} elements`)
-}
-/*    
         com.mode.devlog ("allocateStateVector, Worker not supported")
     console.log (`allocateStateVector es.emRunCapability = ${es.emRunCapability}`)
     switch (es.emRunCapability) {
@@ -2468,7 +2491,7 @@ function emwtInit (es) { // called by onload initializer, request 100
     //    let msg = {code: 100, payload: es.vecbuf}
     //    let msg = {code: 100, payload: es.vecbuf}
     let msg = {code: 100, payload: es.vecbuf} // provide the es to emwt
-    emwThread.postMessage (msg)
+    gst.emwThread.postMessage (msg)
     com.mode.devlog ("main gui: posted init message 100 to emwt")
 }
     //    let msg = {code: 100, payload: st.sysStateVec}
@@ -2485,7 +2508,7 @@ function handleEmwtInitResponse (p) {
 function emwtStep () {
     com.mode.devlog ("main: emwt step");
     let msg = {code: 101, payload: 0}
-    emwThread.postMessage (msg)
+    gst.emwThread.postMessage (msg)
 }
 
 function handleEmwtStepResponse (p) {
@@ -2518,7 +2541,7 @@ function emwtRun (es) {
     com.mode.devlog ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
     let msg = {code: 102, payload: es.copyable}
-    emwThread.postMessage (msg)
+    gst.emwThread.postMessage (msg)
     com.mode.devlog ("main: emwt run posted start message");
 }
 
@@ -2568,7 +2591,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
             console.log (`main: handle emwt relinquish: resuming`)
             st.writeSCB (gst.es, st.SCB_status, st.SCB_running_emwt)
             msg = {code: 102, payload: 0}
-            emwThread.postMessage (msg)
+            gst.emwThread.postMessage (msg)
         }
         com.mode.devlog (`*** main: finished handle emwt relinquish`)
         break
@@ -2589,7 +2612,7 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
 function emwtShow () {
     com.mode.devlog ("main: emwtShowRegs")
     let msg = {code: 103, payload: 0}
-    emwThread.postMessage (msg)
+    gst.emwThread.postMessage (msg)
 }
 
 function handleEmwtShowResponse (p) {
@@ -2618,7 +2641,7 @@ function handleEmwtTest1Response (p) {
 function emwtTest2 () {
     console.log ("main: emwt test 2")
     let msg = {code: 105, payload: 78} // arbitrary payload
-    emwThread.postMessage (msg)
+    gst.emwThread.postMessage (msg)
 }
 
 function handleEmwtTest2Response (p) { // 
@@ -2630,7 +2653,7 @@ function handleEmwtTest2Response (p) { //
 //----------------------------------------
 
 function initializeEmwtProtocol (es) {
-    emwThread.addEventListener ("message", e => {
+    gst.emwThread.addEventListener ("message", e => {
         com.mode.devlog ("main has received a message")
         if (e.data) {
             com.mode.devlog ("main has received data from message")
@@ -2871,16 +2894,9 @@ function testpane3 () {
 // Initialization
 //-----------------------------------------------------------------------------
 
-function initializeMainEmulator (gst) {
-    gst.es = new em.EmulatorState (
-        com.ES_gui_thread,
-        () => initRun (gst),
-        () => updateWhileRunning (gst),
-        () => finishRun (gst) )
+function initializeMainEmulator () {
     console.log ("allocate state vector")
-    allocateStateVector (gst.es)
     console.log ("allocate state vector done in gst")
-    testSysStateVec (gst.es)
     em.initializeMachineState (gst.es)
     initializeSubsystems ();
     clearClock (gst)
@@ -2914,17 +2930,14 @@ function initializeTracing (gst) {
 function initializeSystem () {
     com.mode.devlog ('Initializing system')
     gst = new GuiState ()          // Create gui state and set global variable
+    adjustInitialOptions ()
     initializeGuiElements (gst)    // Initialize gui elements
-    initializeMainEmulator (gst)   // Create emulator state
     initializeGuiLayout (gst)      // Initialize gui layout
     initializeButtons (gst)
-    memDisplay (gst)
-    procReset (gst)
-    initializeTracing (gst)        // Initialize tracing mode
-    gst.options.checkRequirements ()
     refreshOptionsDisplay ()
     findLatestRelease (gst)
 }
+//    initializeTracing (gst)        // Initialize tracing mode
     //    procRefresh (gst)
 //    findVersion (gst)              // Determine running and latest version
 //        configureOptions (gst)
@@ -3605,5 +3618,121 @@ function findVersion (gst) {
     findLatestRelease (gst)
 }
 
+function warn_memory_change_after_allocation (xs) {
+    modalWarning (
+        `The ${xs} cannot be changed after memory has`
+            + ' been allocated.  To change this setting, restart the app'
+            + ' and make the change on the Options page before'
+            + ' visiting the Processor page.')
+}
 
+const requestArrayBufferLocal = (gst) => (e) => {
+    com.mode.devlog ('requestArrayBufferLocal')
+    gst.options.checkRequirements ()
+    if (gst.options.memoryIsAllocated) {
+        warn_memory_change_after_allocation ('memory buffer type')
+    } else {
+        setArrayBufferLocal (gst)
+    }
+}
+// Emulator options
+
+function optRunCapability (gst) {
+    const op = gst.options
+    const es = gst.es
+    opt.workerThreadOK = opt.supportWorker && opt.supportSharedMem
+           && opt.crossOriginIsolated
+
+    es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
+    es.emRunThread = com.ES_gui_thread // override for robust case
+    opt.runCapability = es.emRunCapability
+    setMainSliceSize (gst, OptInitMainSliceSize)
+    refreshOptionsDisplay ()
+}
+
+//    gst.options.checkRequirements ()
+    checkRequirements () {
+        console.log ('*** checkRequirements')
+        // Set array buffer type
+        if (this.SupportWorker && this.supportSharedMem
+            && this.crossOriginIsolated) {
+            setArrayBufferShared ()
+        } else {
+            setArrayBufferLocal ()
+        }
+        // Set run capability and initial emulation thread
+        if (this.supportWorker && this.bufferType === ArrayBufferShared) {
+            this.runCapability = com.ES_worker_thread
+            setRTworker () 
+        } else {
+            this.runCapability = com.ES_gui_thread
+            setRTmain ()
+        }
+    }
+
+        // Emulator settings
+//        this.workerThreadOK = false  // update if conditions are met
+//        this.runCapability = com.ES_gui_thread
+//            this.bufferAllocation === ArrayBufferShared
+//            ? com.ES_worker_thread
+//            : com.ES_gui_thread
+
+//    allocateStateVector (gst.es)
+//    showGuiState (gst)
+
+
+function showGuiState (gst) {
+    console.log ('showGuiState...')
+    console.log (`  memDispSize = ${gst.memDispSize}`)
+}
+//        this.sharedMemoryIsAllocated = false
+//    setHtml ('RunCapability', com.showThread(opt.runCapability))
+
+                <li> Run capability
+                  <span class="redText" id="RunCapability"> ? </span>
+                </li>
+                  <li> Can use worker thread:
+                    <span class="redText" id="WorkerThreadOK">
+                      ? </span>
+                  </li>
+    setHtml ("WorkerThreadOK", opt.workerShmOK)
+    setHtml ("WorkerThreadOK", opt.workerThreadOK)
+    setHtml ('WorkerThreadOK', opt.workerThreadOK)
+        //        opt.currentThreadSelection = com.ES_worker_thread
+
+//        setMainSliceSize (gst, x)
+export function setMainSliceSize (gst, x) {
+    com.mode.devlog (`setMainSliceSize ${x}`)
+    document.getElementById("MainSliceSize").innerHTML = x
+    gst.mainSliceSize = x
+}
+//        console.log ('changing buffer type to shared')
+//        opt.bufferType = ArrayBufferShared
+//        document.getElementById('ArrayBufferShared').checked = true
+//        opt.bufferType = ArrayBufferLocal
+//        document.getElementById('ArrayBufferLocal').checked = true
+//        console.log ('changing current thread to worker')
+//        setThreadWorker (false)
+
+//    updateRegisters (gst)
+//    procRefresh (gst)
+
+    //    ["KeyI",  () => procInterrupt (gst.es)],
+    //    ["KeyP",  () => procPause (gst.es)],
+//    gst.es.emRunThread = com.ES_gui_thread
+//    em.initRegHighlighting (gst.es)   do this in boot, would clear after break?
+
+function initializeWorkerThread () {
+    gst.emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+    initializeEmwtProtocol (gst.es)
+    emwtInit (gst.es)
+    com.mode.devlog ("gui.mjs has started emwt")
+}
+function ensureMemoryAllocated () {
+    if (!gst.options.memoryIsAllocated) {
+        console.log ('allocating memory')
+        refreshOptionsDisplay ()
+        allocateStateVector ()
+    }
+}
 */

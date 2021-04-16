@@ -572,10 +572,9 @@ visiting this file in a browser.
                   If the preferred choice isn't supported, Main will
                   be used. </p>
                 <ul>
-                  <li> Can use worker thread:
-                    <span class="redText" id="WorkerThreadOK">
-                      ? </span>
-                  </li>
+                <li> Current thread selection:
+                  <span class="redText" id="CurrentThreadSelection"> ? </span>
+                </li>
                   <li> Preferred thread
                     <br>
                     <input type="radio" name="RunThread" id="RTmain"
@@ -591,19 +590,13 @@ visiting this file in a browser.
                            value="Worker">
                     <label for="RTworkerShm">
                       Concurrent worker with update interval (ms):
-                      <span class="redText" id="WorkerUpdateInterval"> ? </span>
-                      <input type="text" size=6 value="?"
-                             id="EnterWorkerUpdateInterval">
-                      <button id="UpdateWorkerUpdateInterval"> Update </button>
+                      <span class="redText" id="WorkerRefreshInterval"> </span>
+                      <input type="text" size=6 value=" "
+                             id="EnterWorkerRefreshInterval">
+                      <button id="UpdateWorkerRefreshInterval"> Update </button>
                     </label>
                   </li>
                 </ul>
-                <li> Run capability
-                  <span class="redText" id="RunCapability"> ? </span>
-                </li>
-                <li> Current thread selection:
-                  <span class="redText" id="CurrentThreadSelection"> ? </span>
-                </li>
                 <br>
               </div>
             </div>
