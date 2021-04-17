@@ -1899,6 +1899,7 @@ export function procBoot (gst) {
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
+    es.copyable = em.initEsCopyable
 
     initializeProcessorElements (gst) // ????
     gst.metadata = new st.Metadata ();
@@ -2216,6 +2217,7 @@ function procRun () {
     gst.es.emRunThread = gst.options.currentThreadSelection
     const q = st.readSCB (es, st.SCB_status)
     console.log (`procRun, status=${q} thread=${es.emRunThread}`)
+    es.copyable = em.initEsCopyable // does this clear data from main?????
     switch (q) {
     case st.SCB_ready:
     case st.SCB_paused:
@@ -2225,6 +2227,7 @@ function procRun () {
         case com.ES_gui_thread:
             console.log ("procRun starting in main gui thread")
             st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
+            
             es.initRunDisplay (es)
             em.mainThreadLooper (es)
             break
@@ -2540,6 +2543,9 @@ function handleEmwtStepResponse (p) {
 function emwtRun (es) {
     com.mode.devlog ("main: emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
+    console.log ('***** emwtRun here is es.copyable...')
+    em.showCopyable (es.copyable)
+    console.log ('emwtRun that was es.copyable...')
     let msg = {code: 102, payload: es.copyable}
     gst.emwThread.postMessage (msg)
     com.mode.devlog ("main: emwt run posted start message");
@@ -2590,7 +2596,8 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         } else {
             console.log (`main: handle emwt relinquish: resuming`)
             st.writeSCB (gst.es, st.SCB_status, st.SCB_running_emwt)
-            msg = {code: 102, payload: 0}
+//            msg = {code: 102, payload: 0}
+            msg = {code: 102, payload: gst.es.copyable}
             gst.emwThread.postMessage (msg)
         }
         com.mode.devlog (`*** main: finished handle emwt relinquish`)

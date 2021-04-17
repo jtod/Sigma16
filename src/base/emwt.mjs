@@ -73,7 +73,9 @@ self.addEventListener ("message", e => {
             console.log (`emwt: received request run`)
             emwt.es.copyable = e.data.payload
             console.log (`emwt about to run...`)
+            console.log (`emwt about to show copyable...`)
             em.showCopyable (emwt.es.copyable)
+            console.log (`emwt finished show copyable`)
             result = doRun ()
             //            msg = {code: 202, payload: result}
             msg = {code: 202, payload: emwt.es.copyable}
@@ -355,9 +357,9 @@ function doStep () {
 function doRun () {
     console.log ("emwt doRun")
     const es = emwt.es
-    //    em.initRegHighlighting (emwt.es)
-//    em.clearRegLogging (emwt.es)
-//    em.clearMemLogging (emwt.es)
+    em.initRegHighlighting (emwt.es)
+    em.clearRegLogging (emwt.es)
+    em.clearMemLogging (emwt.es)
     let count = 0
     let status = 0
     let pauseReq = false

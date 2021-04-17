@@ -85,7 +85,7 @@ export function initRegHighlighting (es) {
 // state is created, and mode is the current value, which might change
 // during execution.
 
-const initEsCopyable = {
+export const initEsCopyable = {
     breakPCvalue : 0,
     breakEnabled : false,
     regFetched : [],
@@ -565,24 +565,6 @@ export function showInstrDecode (es) {
 // system status before calling the looper; it's assumed that it is ok
 // to execute an instruction in the gui thread.
 
-/*
-export function startRunMainThread (es) {
-    let q = st.readSCB (es, st.SCB_status)
-    switch (q) {
-    case st.SCB_ready:
-    case st.SCB_paused:
-    case st.SCB_blocked:
-        console.log ("procRunMainThread: start looper");
-        es.initRunDisplay (es)
-        mainInstructionLooper (es)
-        console.log ("procRunMainThread: looper finished");
-//        execInstrPostDisplay (es) no, 
-        break
-    default:
-        com.mode.devlog (`procRunMainThread skipping: SCB_status=${q}`)
-    }
-}
-*/
 
 export function mainThreadLooper (es) {
     com.mode.devlog ("mainInstructionLooper starting")
@@ -867,10 +849,10 @@ const cab_dc = (f) => (es) => {
 
 const op_trap = (es) => {
     console.log (`*** op_trap es.thread_host=${es.thread_host}`)
-//    switch (es.thread_host) {
-//    case com.ES_gui_thread:
+    switch (es.thread_host) {
+    case com.ES_gui_thread:
         com.mode.devlog (`handle trap in main thread`)
-        console.log (`handle trap in main thread`)
+        console.log (`**** handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
         com.mode.devlog (`trap code=${code}`);
         if (code===0) { // Halt
@@ -891,18 +873,19 @@ const op_trap = (es) => {
         } else { // Undefined trap is nop
             com.mode.devlog (`trap with unbound code = ${code}`)
         }
+        break
+    case com.ES_worker_thread:
+        console.log (`**** handle trap in worker thread`)
+        console.log (`emworker: relinquish control on a trap`)
+        st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
+        console.log (`trap relinquish before fixup, pc = ${es.pc.get()}`)
+        es.pc.put (st.readSCB (es, st.SCB_cur_instr_addr))
+        console.log (`trap relinquish after fixup, pc = ${es.pc.get()}`)
+        break
+    default:
+        console.log (`system error: trap has bad shm_token ${q}`)
+    }
 }
-//        break
-//    case com.ES_worker_thread:
-//        com.mode.devlog (`emworker: relinquish control on a trap`)
-//        st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
-//        com.mode.devlog (`trap relinquish before fixup, pc = ${es.pc.get()}`)
-//        es.pc.put (st.readSCB (es, st.SCB_cur_instr_addr))
-//        com.mode.devlog (`trap relinquish after fixup, pc = ${es.pc.get()}`)
-//        break
-//    default:
-//        console.log (`system error: trap has bad shm_token ${q}`)
-//    }
 
 // trapRead performs in input from the contents of the input buffer: a
 // = address of the buffer, and b = size of buffer.  If the number of
@@ -960,8 +943,9 @@ function trapWrite (es) {
 
 // Should make more abstract; shouldn't refer to DOM
 export function refreshIOlogBuffer (es) {
+    console.log (`refreshIOlogBugfer ${es.ioLogBuffer}`);
     com.mode.devlog (`refreshIOlogBugfer ${es.ioLogBuffer}`);
-    com.mode.devlog (`refreshIOlogBugfer ${es.ioLogBuffer}`);
+
     let elt = document.getElementById("IOlog");
     elt.innerHTML = "<pre>" + es.ioLogBuffer + "</pre>";
     elt.scrollTop = elt.scrollHeight;
@@ -1477,3 +1461,22 @@ const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 //            updateRegisters (es)  update display in ui
 //            updateMemory (es)
 //            memRefresh(es);
+
+/*
+export function startRunMainThread (es) {
+    let q = st.readSCB (es, st.SCB_status)
+    switch (q) {
+    case st.SCB_ready:
+    case st.SCB_paused:
+    case st.SCB_blocked:
+        console.log ("procRunMainThread: start looper");
+        es.initRunDisplay (es)
+        mainInstructionLooper (es)
+        console.log ("procRunMainThread: looper finished");
+//        execInstrPostDisplay (es) no, 
+        break
+    default:
+        com.mode.devlog (`procRunMainThread skipping: SCB_status=${q}`)
+    }
+}
+*/
