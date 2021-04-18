@@ -1,5 +1,5 @@
 // Sigma16.mjs
-// Copyright (C) 2020 John T. O'Donnell
+// Copyright (C) 2020-2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -15,19 +15,6 @@
 // General Public License for more details.  You should have received
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
-
-//-----------------------------------------------------------------------------
-// ***** Configuration *****
-//-----------------------------------------------------------------------------
-
-// This program can run locally in a shell and launch the GUI in a
-// browser.  It communicates with the browser using a port, which
-// should be between 1024 and 49151.  The default is defined to be
-// 3000; this can be changed to avoid clash with any other
-// application.  To use the system from the command line, without the
-// GUI, the port is not used.
-
-const port = 3000;
 
 //-----------------------------------------------------------------------------
 // Usage
@@ -85,7 +72,7 @@ alias sigma16="node ${SIGMA16}/src/Sigma16/cli/Sigma16.mjs"
 //-----------------------------------------------------------------------------
 
 // Standard packages
-import express from 'express';
+// import express from 'express';
 import path from 'path';
 import * as fs from "fs";
 import { fileURLToPath } from 'url';
@@ -96,6 +83,7 @@ import * as st from "../base//state.mjs";
 import * as smod from "../base//s16module.mjs";
 import * as asm  from "../base//assembler.mjs";
 import * as link from "../base//linker.mjs";
+import * as serv from '../server/server.mjs'
 
 // Find paths to components of the software, relative to this file
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
@@ -132,7 +120,7 @@ function showParameters () {
 // Decide what operation is being requested, and do it
 function main  () {
     if (process.argv.length < 3 || command === "gui") {
-        launchGUI ();
+        serv.main ()
     } else if (command === "assemble") {
         assembleCLI (commandArg);
     } else if (command === "link") {
@@ -148,39 +136,6 @@ function main  () {
     }
 }
 
-//-----------------------------------------------------------------------------
-// Launch gui in browser (visit http://localhost:<port>/)
-//-----------------------------------------------------------------------------
-
-// Run express
-const app = express();
-
-// Provide locations of static source files, docs, and examples
-app.use( '/', express.static (guiDir));
-app.use( '/home', express.static (homeDir));
-app.use( '/gui', express.static (guiDir));
-app.use( '/base', express.static (baseDir));
-app.use( '/datafiles', express.static (datafilesDir));
-app.use( '/docs', express.static (docsDir));
-app.use( '/examples', express.static (examplesDir));
-
-// Deliver mime types as required by CORS
-express.static.mime.define({'application/javascript': ['js']});
-express.static.mime.define({'text/css': ['css']});
-
-// Respond to get requests by sending the requested files
-app.get('/', (req, res) => res.sendFile(guiDir + '/Sigma16.html'));
-
-app.get('/gui/*', (req, res) => res.sendFile(guiDir));
-app.get('/base/*', (req, res) => res.sendFile(baseDir));
-app.get('/docs/*', (req, res) => res.sendFile(docsDir));
-app.get('*', (req, res) => res.sendFile(guiDir));
-
-// Start the server
-function launchGUI () {
-    app.listen(port, () => console.log(`Listening on port ${port}`));
-    console.log (`Open http://localhost:${port}/ in your browser`);
-}
 
 //-----------------------------------------------------------------------------
 // Assembler
@@ -366,3 +321,6 @@ function runtest () {
 //-----------------------------------------------------------------------------
 
 main ();
+
+// Deprecated
+//        serv.launchGUI ();
