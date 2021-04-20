@@ -1290,7 +1290,9 @@ function initializeProcessor () {
     allocateStateVector ()
     refreshOptionsDisplay ()
     if (gst.options.bufferType === ArrayBufferShared) {
-        gst.emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+        console.log ('initializeProcessor: shared array buffer, starting emwt')
+        //        gst.emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+        gst.emwThread = new Worker("base/emwt.mjs", {type:"module"});
         initializeEmwtProtocol (gst.es)
         emwtInit (gst.es)
         com.mode.devlog ("gui.mjs has started emwt")
@@ -2365,6 +2367,8 @@ function allocateStateVector () {
         () => initRun (gst),
         () => updateWhileRunning (gst),
         () => finishRun (gst) )
+    console.log (`allocateStateVector:`
+                 + ` bufferType=${gst.options.bufferType.description}`)
     gst.es.vecbuf =
         gst.options.bufferType === ArrayBufferShared
         ? new SharedArrayBuffer (st.EmStateSizeByte)

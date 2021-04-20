@@ -83,7 +83,7 @@ import * as st from "../base//state.mjs";
 import * as smod from "../base//s16module.mjs";
 import * as asm  from "../base//assembler.mjs";
 import * as link from "../base//linker.mjs";
-import * as serv from '../server/server.mjs'
+import * as serv from '../server/sigserver.mjs'
 
 // Find paths to components of the software, relative to this file
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
@@ -120,7 +120,7 @@ function showParameters () {
 // Decide what operation is being requested, and do it
 function main  () {
     if (process.argv.length < 3 || command === "gui") {
-        serv.main ()
+//        serv.main ()
     } else if (command === "assemble") {
         assembleCLI (commandArg);
     } else if (command === "link") {
