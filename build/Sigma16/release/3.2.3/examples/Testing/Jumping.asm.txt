@@ -1,0 +1,123 @@
+; Jumping: test the instructions for transfer of control
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+
+; Data for comparisons
+      lea     R7,1[R0]    ; increment
+      add     R8,R0,R0    ; good count
+      add     R9,R0,R0    ; error count
+
+; Comparisons
+      lea   R1,3[R0]
+      lea   R2,5[R0]
+
+      cmp    R1,R2      ; < signed, > unsigned   (lG)    3,0     0008
+      cmp    R2,R1      ; > signed, < unsigned   (Lg)    4,1     0012
+
+      cmp    R2,R3      ; < signed, < unsigned   (Ll)    4,3     0018
+      cmp    R3,R2      ; > signed, > unsigned   (gG)    1,0     0003
+
+
+      lea     R1,-30000[R0]    ; R1 = I: -30000   N: 8ad0
+      lea     R2,-2[R0]        ; R2 = I:     -2   N: fffe
+      lea     R3,13[R0]        ; R3 = I:     13   N: 000d
+      lea     R4,28749[R0]     ; R4 = I:  28749   N: 704d
+
+; Condition code flags
+
+; Each flag has a symbolic name used in the implementation, and a
+;  display name used in the "instruction decode" panel on the emulator
+;  GUI.  The usual relations < = > are used for integers (binary
+;  representation) , while L = G are used for natural numbers (two's
+;  complement representation).
+
+;  bit  code  display   relation types
+;----------------------------------------------
+; bit 0   G      G        nat >
+; bit 1   g      >        int >
+; bit 2   E      =        nat,int =
+; bit 3   l      <        int <
+; bit 4   L      L        nat <
+; bit 5   v      v        int overflow
+; bit 6   C      C        bin carry out, carry in (addc)
+
+      cmp     R0,R0     ; =
+      cmp     R0,R1     ; > L
+      cmp     R0,R2     ; > L
+      cmp     R0,R3     ; < L
+      cmp     R0,R4     ; < L
+
+      cmp     R1,R0     ; < G
+      cmp     R1,R1     ; =
+      cmp     R1,R2     ; < L
+      cmp     R1,R3     ; < G
+      cmp     R1,R4     ; < G
+
+      cmp     R2,R0     ; < G
+      cmp     R2,R1     ; > G
+      cmp     R2,R2     ; =
+      cmp     R2,R3     ; < G
+      cmp     R2,R4     ; < G
+
+      cmp     R3,R0     ; > G
+      cmp     R3,R1     ; > L
+      cmp     R3,R2     ; > L
+      cmp     R3,R3     ; =
+      cmp     R3,R4     ; < L
+
+      cmp     R4,R0     ; > G
+      cmp     R4,R1     ; > L
+      cmp     R4,R2     ; > L
+      cmp     R4,R3     ; > G
+      cmp     R4,R4     ; =
+
+;      Jump pseudoinstructions
+
+; jumplt jumps
+      cmp    R1,R2      ; <
+      jumplt lt1[R0]    ; should jump
+      add    R9,R9,R7   ; increment error count
+      jump   lt2[R0]
+lt1   add    R8,R8,R7   ; increment good count
+lt2
+; jumplt doesn't jump
+      cmp    R2,R1      ; >
+      jumplt lt3[R0]    ; should not jump
+      add    R8,R8,R7   ; increment good count
+      jump   lt4[R0]
+lt3   add    R9,R9,R7   ; increment error count
+lt4
+
+
+; jumpz
+      lea    R1,5[R0]
+      jumpz  R1,z1[R0]  ; should not jump
+      add    R8,R8,R7   ; increment good count
+      jump   z2[R0]
+z1    add    R9,R9,R7   ; increment error count
+z2    jumpz  R0,z3[R0]  ; should jump      
+      add    R9,R9,R7   ; increment error count
+      jump   z4[R0]
+z3    add    R8,R8,R7   ; increment good count
+z4
+      store  R9,errs[R0]  ; save count of errors
+
+; jumpnz
+      lea    R1,5[R0]
+      jumpnz R1,nz1[R0]  ; should jump
+      add    R9,R9,R7    ; increment error count
+      jump   nz2[R0]
+nz1   add    R9,R9,R7    ; increment good count
+nz2   jumpnz R0,nz3[R0]  ; should not jump      
+      add    R8,R8,R7    ; increment good count
+      jump   nz4[R0]
+nz3   add    R9,R9,R7    ; increment error count
+nz4
+
+done
+      store  R8,good[R0]   ; save count of errors
+      store  R9,errs[R0]   ; save count of errors
+      trap   R0,R0,R0      ; terminate
+
+good  data  0             ; count of successful tests
+errs  data  0             ; count of unsuccessful tests
+

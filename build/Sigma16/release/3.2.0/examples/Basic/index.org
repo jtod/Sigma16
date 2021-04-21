@@ -1,0 +1,21 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
+#+TITLE: Basic examples
+
+These programs are relatively small and mostly use the core instructions.
+
+- [[./Simple/index.org][Small and simple programs]] These examples
+  are a good starting point.
+
+- [[./Arithmetic/index.org][Arithmetic]] Demonstrate the arithmetic
+  operations.
+
+- [[./Arrays/index.org][Arrays]] Programs that define arrays, index
+  elements, and traverse arrays.
+
+- [[./IO/index.org][Input/Output]] Use trap instructions to read
+  input and write output.
+
+- [[./Sorting/index.org][Sorting]] Sorting the elements of an array.
+
+- [[./Subroutines/index.org][Subroutines]] Basic procedures and
+  functions with simple calling conventions.

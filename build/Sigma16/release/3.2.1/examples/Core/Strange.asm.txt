@@ -1,0 +1,11 @@
+; Strange: A Sigma16 program that is a bit strange    
+        load   R1,y[R0]
+        load   R2,x[R0]
+        add    R2,R2,R1
+        store  R2,x[R0]
+        lea    R3,3[R0]
+        lea    R4,4[R0]
+x       add    R5,R3,R3
+        add    R0,R0,R7
+        trap   R0,R0,R0
+y       data   0

@@ -1,0 +1,8 @@
+; Program to illustrate simple subroutine call and return
+
+      lea   R1,3[R0]
+      jal   R14,subr[R0]
+      jal   R14,subr[R0]
+      trap  R0,R0,R0
+subr  add  R1,R1,R1
+      jump 0[R14]

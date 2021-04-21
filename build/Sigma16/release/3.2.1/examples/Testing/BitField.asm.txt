@@ -1,0 +1,49 @@
+; BitField: test instructions that operate on bit fields
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+
+; Extracting bit fields
+
+      lea      R1,$1234[R0]     ; 1234
+      add      R2,R0,R0         ; 0000
+      extract  R2,0,4,R1,8      ; 3000
+      extract  R2,8,4,R1,4      ; 3020
+
+;      extract  R4,R1,8,11    ; 0003
+;      extract  R5,R1,12,15   ; 0004
+;      extract  R6,R1,0,7     ; 0012
+;      extract  R7,R1,8,15    ; 0034
+;      extract  R8,R1,4,11    ; 0023
+;      extract  R9,R1,1,0     ; 0000
+;      extract  R10,R1,0,15   ; 1234
+
+;      extracti R2,R1,0,3     ; 000e
+;      extracti R3,R1,4,7     ; 000d
+;      extracti R4,R1,8,11    ; 000c
+;      extracti R5,R1,12,15   ; 000b
+;      extracti R6,R1,0,7     ; 00ed
+;      extracti R7,R1,8,15    ; 00cb
+;      extracti R8,R1,4,11    ; 00dc
+;      extracti R9,R1,1,0     ; 0000
+;      extracti R10,R1,0,15   ; edcb
+
+
+; Shift test data
+      lea     R1,$0040[R0]  ; 0000 0000 0100 0000
+
+; shiftr instruction
+      shiftr  R2,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 0010 0000 = 0020
+      shiftr  R2,R2,1       ; 0000 0000 0010 0000 -> 0000 0000 0001 0000 = 0010
+      shiftr  R2,R2,1       ; 0000 0000 0001 0000 -> 0000 0000 0000 1000 = 0008
+      shiftr  R3,R1,5       ; 0000 0000 0100 0000 -> 0000 0000 0000 0010 = 0002
+
+; shiftl instruction
+      shiftl  R4,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 1000 0000 = 0080
+      shiftl  R5,R1,7       ; 0000 0000 0100 0000 -> 0010 0000 0000 0000 = 2000
+
+; shift instruction
+      lea     R1,$0040[R0]  ; 0040
+      lea     R6,3[R0]      ; 0003   R6 := 3
+      shift   R7,R1,R6      ; 0200   R7 := shift R1 left 3 bits
+      lea     R8,-3[R0]     ; fffd   R8 := -3
+      shift   R9,R1,R8      ; 0008   R9 := shift R1 right 3 bits
+

@@ -1,0 +1,7 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
+#+TITLE: Core concepts
+
+- [[./Strange.asm.txt][Strange.asm.txt]] This program is rather
+  strange and not a model for good programming style, but it
+  illustrates an extremely important concept.  It's discussed in the
+  User Guide tutorial /A strange program/.

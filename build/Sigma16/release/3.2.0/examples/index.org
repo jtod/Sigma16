@@ -1,0 +1,12 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docs/docstyle.css" />
+#+TITLE: Sigma16 example programs
+
+- [[./Basic/index.org][Basic examples.]] Simple programs, using basic
+  programming techniques and mostly using the core architecture.
+
+- [[./Intermediate/index.org][Intermediate examples]] These programs
+  illustrate intermediate programming techniques, such as records,
+  pointers, bit fields, linked data structures, recursion, and case
+  dispatch.
+
+- [[./Testing/index.html][Testing]] Programs for testing the system.

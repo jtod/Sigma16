@@ -147,8 +147,8 @@ class Options {
         this.supportLocalStorage = !!window.localStorage
         this.supportWorker = !!window.Worker
         this.supportSharedMem = !!window.SharedArrayBuffer
-        this.crossOriginIsolated = !!window.crossOriginIsolated
-        this.crossOriginIsolated = true // temp test ????????????
+//        this.crossOriginIsolationOk = !!window.crossOriginIsolationOk
+        this.crossOriginIsolationOk = true // temp test ????????????
 
         // Memory settings
         this.memoryIsAllocated = false
@@ -217,6 +217,7 @@ function isSetBufferLocalOk (warn) {
 
 function isSetBufferSharedOk (warn) {
     const opt = gst.options
+    return true // TESTING
     let ok = true
     if (opt.memoryIsAllocated) {
         ok = false
@@ -224,7 +225,7 @@ function isSetBufferSharedOk (warn) {
     } else if (! (opt.supportWorker && opt.supportSharedMem)) {
         ok = false
         maybeWarn (warn, warningRequireSupportWorkerShared)
-    } else if (!opt.crossOriginIsolated) {
+    } else if (!opt.crossOriginIsolationOk) {
         ok = false
         maybeWarn (warn, warningRequireCrossOriginIsolation)
     }
@@ -236,6 +237,7 @@ function isSetBufferSharedOk (warn) {
 
 function isSetThreadWorkerOk (warn) {
     const opt = gst.options
+    return true // TESTING ???
     let ok = true
     if (opt.bufferType === ArrayBufferLocal) {
         ok = false
@@ -260,7 +262,8 @@ function setArrayBufferLocal (warn) {
 function setArrayBufferShared (warn) {
     const opt = gst.options
     console.log ('setArrayBufferShared')
-    if (isSetBufferSharedOk (warn)) {
+    //    if (isSetBufferSharedOk (warn)) {
+    if (true) {
         console.log ('Setting array buffer shared')
         opt.bufferType = ArrayBufferShared
         document.getElementById('ArrayBufferShared').checked = true
@@ -280,7 +283,8 @@ function setThreadMain (warn) {
 function setThreadWorker (warn) {
     console.log ('setThreadWorker')
     const opt = gst.options
-    if (isSetThreadWorkerOk (warn)) {
+    //    if (isSetThreadWorkerOk (warn)) {
+    if (true) { // testing
         opt.currentThreadSelection = com.ES_worker_thread
         document.getElementById('RTworker').checked = true
         refreshOptionsDisplay ()
@@ -373,8 +377,7 @@ function refreshOptionsDisplay () {
     setHtml ("SupportLocalStorage", opt.supportLocalStorage)
     setHtml ("SupportWorker", opt.supportWorker)
     setHtml ("SupportSharedMem", opt.supportSharedMem)
-    setHtml ("CrossOriginIsolated", opt.crossOriginIsolated)
-    setHtml ('CrossOriginIsolated', opt.crossOriginIsolated)
+    setHtml ('CrossOriginIsolated', opt.crossOriginIsolationOk)
     setHtml ('MemoryIsAllocated', opt.memoryIsAllocated)
     setHtml ('OptBufferType', opt.bufferType.description)
     setHtml ('MemorySize', opt.memorySize)
@@ -1291,8 +1294,9 @@ function initializeProcessor () {
     refreshOptionsDisplay ()
     if (gst.options.bufferType === ArrayBufferShared) {
         console.log ('initializeProcessor: shared array buffer, starting emwt')
-        //        gst.emwThread = new Worker("../base/emwt.mjs", {type:"module"});
-        gst.emwThread = new Worker("base/emwt.mjs", {type:"module"});
+// gst.emwThread = new Worker("../base/emwt.mjs", {type:"module"});
+        gst.emwThread = new Worker ("foo/bar/Sigma16/src/base/emwt.mjs",
+                                    {type:"module"});
         initializeEmwtProtocol (gst.es)
         emwtInit (gst.es)
         com.mode.devlog ("gui.mjs has started emwt")
@@ -3572,8 +3576,8 @@ export function checkSharedMemSupport () {
     return !!window.SharedArrayBuffer
 }
 export function check_cross_origin_isolation () {
-    const b = window.crossOriginIsolated
-    console.log (`crossOriginIsolated = ${b}`)
+    const b = window.crossOriginIsolationOk
+    console.log (`crossOriginIsolationOk = ${b}`)
     return b
 }
 window.check_cross_origin_isolation = check_cross_origin_isolation
@@ -3652,7 +3656,7 @@ function optRunCapability (gst) {
     const op = gst.options
     const es = gst.es
     opt.workerThreadOK = opt.supportWorker && opt.supportSharedMem
-           && opt.crossOriginIsolated
+           && opt.crossOriginIsolationOk
 
     es.emRunCapability = workerShmOK ? com.ES_worker_thread : com.ES_gui_thread
     es.emRunThread = com.ES_gui_thread // override for robust case
@@ -3666,7 +3670,7 @@ function optRunCapability (gst) {
         console.log ('*** checkRequirements')
         // Set array buffer type
         if (this.SupportWorker && this.supportSharedMem
-            && this.crossOriginIsolated) {
+            && this.crossOriginIsolationOk) {
             setArrayBufferShared ()
         } else {
             setArrayBufferLocal ()
