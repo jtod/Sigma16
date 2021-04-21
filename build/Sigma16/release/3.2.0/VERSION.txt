@@ -1,1 +1,0 @@
-Version 3.2.0, January 2021.  Copyright (c) 2021 John T. O'Donnell.  

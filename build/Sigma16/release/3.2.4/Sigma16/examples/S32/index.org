@@ -1,9 +1,0 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: S32
-#+OPTIONS: html-postamble:nil
-
-An extension of the architecture that supports 32-bit words
-
-
-
-
