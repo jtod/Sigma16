@@ -4,7 +4,7 @@ build
 protected
 node_modules
 *.html
-!src/gui/Sigma16.html
+!Sigma16.html
 *.lst.txt
 *.obj.txt
 *.omd.txt
