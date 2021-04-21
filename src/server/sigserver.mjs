@@ -39,7 +39,7 @@
 // official release, and DEV_VERSION is the version number of the
 // current development folder.
 
-const DEV_VERSION = '3.2.4'     // version to be served by main launch link
+const DEV_VERSION = '3.3.0'     // version to be served by main launch link
 const LATEST_RELEASE = "3.2.2"  // report this when queried for status/latest
 const LOCALPORT = 3000          // default port to use on local machine
 

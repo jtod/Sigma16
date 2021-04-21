@@ -134,6 +134,44 @@ showparams:
 # make webbuild -- prepare the release in build directory
 #-------------------------------------------------------------------------------
 
+VERSIONPATH=build/Sigma16/release/$(VERSION)/Sigma16
+
+# Do `make set-version' before `make build-release'
+
+# make clear-release -- Remove all the files in the current release
+# build.  This is only necessary if a reorganization of the sources
+# means that some redundant files would be left over; normally
+# build-release will overwrite the files that have changed and leave
+# the others unchanged.
+
+.PHONY: clear-release
+clear-release:
+	/bin/rm -rf $(VERSIONPATH)/*
+
+.PHONY: build-release
+build-release:
+	echo VERSIONPATH=$(VERSIONPATH)
+	mkdir -p $(VERSIONPATH)
+	cp -up README.org $(VERSIONPATH)
+	cp -up LICENSE.txt $(VERSIONPATH)
+	cp -up VERSION.txt $(VERSIONPATH)
+	cp -up LATESTVERSION.txt $(VERSIONPATH)
+	cp -up Sigma16.html $(VERSIONPATH)
+	mkdir -p $(VERSIONPATH)/src/gui
+	mkdir -p $(VERSIONPATH)/src/base
+	cp -upr src/gui/*.mjs $(VERSIONPATH)/src/gui
+	cp -upr src/gui/*.css $(VERSIONPATH)/src/gui
+	cp -upr src/base/*.mjs $(VERSIONPATH)/src/base
+	mkdir -p $(VERSIONPATH)/docs/welcome
+	mkdir -p $(VERSIONPATH)/docs/help
+	mkdir -p $(VERSIONPATH)/docs/UserGuide
+	cp -up docs/docstyle.css $(VERSIONPATH)/docs
+	cp -up docs/welcome/*.html $(VERSIONPATH)/docs/welcome
+	cp -up docs/help/*.html $(VERSIONPATH)/docs/help
+	cp -upr docs/UserGuide/*.html $(VERSIONPATH)/docs/UserGuide
+	cp -upr examples $(VERSIONPATH)
+	echo build-release finished
+
 .PHONY: webbuild
 webbuild:
 	make set-version
@@ -185,8 +223,10 @@ all :
 # Build the development version and copy to homepage repository
 .PHONY : build
 build :
-	make webbuild
-	make copybuild
+	make build-release
+
+#	make copybuild
+#	make webbuild
 
 # Build the homepage and copy to homepage repository
 homepage :
