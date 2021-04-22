@@ -114,10 +114,13 @@ Moved from releases to obsolete; links to them are hidden
 The following links are intended for development and testing of the
 software, and are not recommended for general use.
 
-- [[./releases/3.2.4/src/gui/Sigma16.html][Run the latest development
-  snapshot.]] This is a test snapshot intended for development and
-  testing of the software.  It may contain new features not yet in the
-  latest release, but may be unstable.
+- [[https://sigma16.herokuapp.com/Sigma16/Sigma16.html][Run the latest
+  development snapshot.]] This is a test snapshot intended for
+  development and testing of the software.  It may contain new
+  features not yet in the latest release, but may be unstable.
+
+- [[./releases/3.2.4/src/gui/Sigma16.html][3.2.4 development
+  snapshot.]] This is a test snapshot.
 
 - [[./testing/compatibility/Worker.html][compatibility test: web worker]]
 

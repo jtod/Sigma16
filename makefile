@@ -162,11 +162,11 @@ build-release:
 	cp -upr src/gui/*.mjs $(VERSIONPATH)/src/gui
 	cp -upr src/gui/*.css $(VERSIONPATH)/src/gui
 	cp -upr src/base/*.mjs $(VERSIONPATH)/src/base
-	mkdir -p $(VERSIONPATH)/docs/welcome
+	mkdir -p $(VERSIONPATH)/docs/Welcome
 	mkdir -p $(VERSIONPATH)/docs/help
 	mkdir -p $(VERSIONPATH)/docs/UserGuide
 	cp -up docs/docstyle.css $(VERSIONPATH)/docs
-	cp -up docs/welcome/*.html $(VERSIONPATH)/docs/welcome
+	cp -up docs/Welcome/*.html $(VERSIONPATH)/docs/Welcome
 	cp -up docs/help/*.html $(VERSIONPATH)/docs/help
 	cp -upr docs/UserGuide/*.html $(VERSIONPATH)/docs/UserGuide
 	cp -upr examples $(VERSIONPATH)
