@@ -39,7 +39,7 @@
 // official release, and DEV_VERSION is the version number of the
 // current development folder.
 
-const DEV_VERSION = '3.3.0'     // version to be served by main launch link
+const DEV_VERSION = '3.3.1'     // version to be served by main launch link
 const LATEST_RELEASE = "3.2.2"  // report this when queried for status/latest
 const LOCALPORT = 3000          // default port to use on local machine
 
@@ -65,11 +65,23 @@ const CurrentReleaseDir = path.join (
     S16home,
     `build/Sigma16/release/${DEV_VERSION}`)
 
+// There is no command line argument when running on Heroku;
+// src/cli/Sigma16.mjs provides an argument 'local'
+
+const CmdArg = process.argv[1]
+
 console.log (`Starting sigserver on port ${PORT}`)
 console.log (`S16home = ${S16home}`)
 console.log (`CurrentReleaseDir = ${CurrentReleaseDir}`)
 console.log (`LATEST_RELEASE = ${LATEST_RELEASE}`)
 console.log (`DEV_VERSION = ${DEV_VERSION}`)
+
+if (CmdArg) {
+    console.log (`command argument = ${CmdArg}`)
+} else {
+    console.log ('There is no command argument')
+}
+
 
 //-----------------------------------------------------------------------------
 // Packages

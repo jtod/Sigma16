@@ -346,6 +346,11 @@ export function wordToHex4 (x) {
     return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
 }
 
+export function wordToHex8 (x) {
+    let [p,q,r,s] = splitWord (x);
+    return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
+}
+
 function showBit (b) {
     return b==0 ? '0' : 1
 }

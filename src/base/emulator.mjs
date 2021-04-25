@@ -26,6 +26,8 @@ import * as st from './state.mjs';
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
 
+console.log ('******************** LOADING EMULATOR')
+
 //-----------------------------------------------------------------------------
 // Interface to emulator
 //-----------------------------------------------------------------------------
@@ -271,6 +273,7 @@ function testReg2 () {
 
 export class genregister {
     constructor (es, regName, eltName, showFcn) {
+        console.log (`TEMP GENREGISTER ${regName}`)
         this.es = es
         this.regStIndex = es.nRegisters
         this.regNumber = es.nRegisters
@@ -460,7 +463,7 @@ export function initializeMachineState (es) {
 
     // Instruction control registers
 //    es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
-    es.pc   = new genregister (es, 'pc', 'pcElt', arith.wordToHex8); ????? S32
+    es.pc   = new genregister (es, 'pc', 'pcElt', arith.wordToHex8); // ????? S32
 // ???????????????? S32
     es.ir   = new genregister (es, 'ir',   'irElt',    arith.wordToHex4);
     es.adr  = new genregister (es, 'adr',  'adrElt',   arith.wordToHex4);
