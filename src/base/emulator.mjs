@@ -113,7 +113,8 @@ export class EmulatorState {
     constructor (thread_host, f, g, h) {
         this.thread_host = thread_host // which thread runs this instance
         console.log (`%cCreating ES thread_host = ${this.thread_host}`, 'color:red')
-
+        this.arch = arch.S16
+        
         // Display functions provided by user interface
         this.clearProcessorDisplay = null
         
@@ -458,7 +459,9 @@ export function initializeMachineState (es) {
     }
 
     // Instruction control registers
-    es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
+//    es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
+    es.pc   = new genregister (es, 'pc', 'pcElt', arith.wordToHex8); ????? S32
+// ???????????????? S32
     es.ir   = new genregister (es, 'ir',   'irElt',    arith.wordToHex4);
     es.adr  = new genregister (es, 'adr',  'adrElt',   arith.wordToHex4);
     es.dat  = new genregister (es, 'dat',  'datElt',   arith.wordToHex4);

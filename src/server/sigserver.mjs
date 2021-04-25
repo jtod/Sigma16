@@ -68,6 +68,7 @@ const CurrentReleaseDir = path.join (
 console.log (`Starting sigserver on port ${PORT}`)
 console.log (`S16home = ${S16home}`)
 console.log (`CurrentReleaseDir = ${CurrentReleaseDir}`)
+console.log (`LATEST_RELEASE = ${LATEST_RELEASE}`)
 console.log (`DEV_VERSION = ${DEV_VERSION}`)
 
 //-----------------------------------------------------------------------------
@@ -143,6 +144,7 @@ app.get ('/status/latest/*', (req,res) => {
     const xs = JSON.stringify (reqInfo)
     console.log (`Sigma16 request ${xs}`)
     res.type ('text/plain')
+    res.set ('Access-Control-Allow-Origin', '*')
     const reply = LATEST_RELEASE
     res.send (reply)
 })
@@ -154,7 +156,7 @@ app.get ('/status/latest/*', (req,res) => {
 
 app.get('/Sigma16/*.html', (req, res) => {
     let loc = path.join (CurrentReleaseDir, req.path)
-    console.log (`get top html ${req.path}`)
+//    console.log (`get top html ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
@@ -162,7 +164,7 @@ app.get('/Sigma16/*.html', (req, res) => {
 
 app.get('/Sigma16/*.txt', (req, res) => {
     let loc = path.join (CurrentReleaseDir, req.path)
-    console.log (`get top txt ${req.path}`)
+//    console.log (`get top txt ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
@@ -170,7 +172,7 @@ app.get('/Sigma16/*.txt', (req, res) => {
 
 app.get('/Sigma16/src/*', (req, res) => {
     let loc = path.join (CurrentReleaseDir, req.path)
-    console.log (`get src ${req.path}`)
+//    console.log (`get src ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
@@ -179,7 +181,7 @@ app.get('/Sigma16/src/*', (req, res) => {
 
 app.get('/Sigma16/docs/docstyle.css', (req, res) => {
     let loc = path.join (CurrentReleaseDir, req.path)
-    console.log (`get docstyle ${req.path}`)
+//    console.log (`get docstyle ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
@@ -188,8 +190,8 @@ app.get('/Sigma16/docs/docstyle.css', (req, res) => {
 app.get('/Sigma16/*.mjs', (req, res) => {
     let basename = path.basename (req.path)
     let loc = path.join (CurrentReleaseDir, 'Sigma16/src/base', basename)
-    console.log (`get mjs path=${req.path}`)
-    console.log (`get mjs loc=${loc}`)
+//    console.log (`get mjs path=${req.path}`)
+//    console.log (`get mjs loc=${loc}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)

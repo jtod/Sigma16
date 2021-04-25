@@ -62,7 +62,8 @@ programs, before delving into the details.  For a quick start, begin
 with the tutorials, which show you how to enter and run a program and
 how to use the programming environment.
 
-* Tutorial
+* Core
+** Core tutorial
 :PROPERTIES:
 :CUSTOM_ID: sec-tutorial
 :END:
@@ -72,7 +73,7 @@ appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the exercises in the main
 panel.
 
-** Hello, world!
+*** Hello, world!
 
 To launch the program, visit the Sigma16 Home Page and click on the
 link to run it.  No download or installation is necessary.
@@ -194,7 +195,7 @@ To exit the app, just close the browser window or tab.  This may
 put up a dialogue box warning that any unsaved data may be lost and
 asking you to confirm.
 
-** Registers, constants, and arithmetic
+*** Registers, constants, and arithmetic
 
 The architecture has a **register file** which is an array of 16
 registers, named R0, R1, R2, ..., R15.  The Register File is displayed
@@ -456,7 +457,7 @@ Summary.
 | a  | first operand register                      |
 | b  | second operand register                     |
 
-** Keeping variables in memory
+*** Keeping variables in memory
 
 So far we have used registers in the register file to hold variables.
 However, there are only 16 of these, and two have special purposes (R0
@@ -786,7 +787,7 @@ typewriters But software does not handle tab consistently.  If you use
 tabs, your can look good in one application and like a mess in
 another.  It's easy to indent with spaces, and it works everywhere!
 
-** Files and modules
+*** Files and modules
 
 Whatever method you use to edit your programs, be sure to **save your
 work to a file** from time to time.  If you don't do that, sooner or
@@ -885,7 +886,7 @@ Common workflows:
   Download the editor buffer because your up-to-date text will be in
   the external editor (but of course you have to save the file there).
 
-** Jumps and conditionals
+*** Jumps and conditionals
 
 Conditionals allow a program to decide which statements to execute
 based on Boolean expressions.  One example is the if-then statement,
@@ -1069,7 +1070,7 @@ L1: S2
 L2: S3
 #+END_EXAMPLE
 
-** Loops
+*** Loops
 
 Loops are implemented using compilation patterns based on comparisons
 and jumps.  The fundamental form is the *while loop*.
@@ -1171,7 +1172,7 @@ matter how deeply nested they are.  If you violate the block
 structure, you will find the program extremely difficult to get to
 work.
 
-** Machine language
+*** Machine language
 
 The actual bits representing an instruction (written in hex) (e.g
 0d69) are *machine language*.  The actual hardware runs the machine
@@ -1343,8 +1344,7 @@ secondary code in the b field.
 | load     |       1 |
 | store    |       2 |
 
-
-** A strange program
+*** A strange program
 
 Consider ``Program Strange'' below.  This program doesn't compute
 anything particularly useful.  It's rather strange and not a model for
@@ -1507,8 +1507,8 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
-
-** Breakpoints
+*** Testing and debugging
+*** Breakpoints
 
 Quick summary, explanation follows.  There are two ways to set a
 breakpoint:
@@ -1554,7 +1554,7 @@ to modify the program or reassemble it, or if you realise that you
 want a breakpoint after execution has already started, then an
 external break is better.
 
-*** Trap break
+**** Trap break
 
 You can use a trap instruction to break execution when it executes.
 The first operand of the instruction is a register that must contain
@@ -1596,7 +1596,7 @@ to resume full speed execution.
 For an example of a long running program with a trap break, see
 Examples / Testing / Looper.
 
-*** External break
+**** External break
 
 You can also tell the user interface to perform a breakpoint without
 modifying the program.  You need to know the address of the
@@ -1621,12 +1621,24 @@ As long as the breakpoint is enabled, execution will stop every time
 that location is encountered.  To prevent this, open the breakpoint
 popup again and click Disable.
 
-* Architecture
+** Core architecture
+** Core instruction set
+** Core assembly language
+** Core programming
+* Standard architecture
+** Standard tutorial
+** Standard architecture
+** Standard instruction set
+** Standard assembly language
+** Standard programming
+* S16 architecture
+** S16 tutorial
+** S16 architecture
 :PROPERTIES:
 :CUSTOM_ID: sec-architecture
 :END:
 
-** Overview of the subsystems
+*** Overview of the subsystems
 
 The system contains several main subsystems.  The most important of
 these are *registers*, *memory*, and *logic and arithmetic*, and
@@ -1647,7 +1659,7 @@ brief synopsis:
 
 - The Input/Output system can transfer data between the computer and
   the outside world.
-** Data representation and notation
+*** Data representation and notation
 
 Sigma16 is a 16-bit architecture, and every data value is a 16-bit
 word.  Integers are represented in 16-bit two's complement notation.
@@ -1678,7 +1690,7 @@ A *field* is a consecutiave sequence of bits within a word.  For
 example, we will later define a field named *op* which consists of
 bits 0-3 of a word; this means the leftmost four bits of the word.
 
-** Register file
+*** Register file
 
 The **register file** is a set of 16 general registers that hold a 16
 bit word.  A register is referenced by a 4-bit binary number.  In
@@ -1709,7 +1721,7 @@ order to use the standard software libraries in your program.  See the
 section on Programming for a discussion of these standard usage
 conventions.
 
-*** R0 contains the constant 0
+**** R0 contains the constant 0
 
  One of the registers, R0, has a special property: it always contains
  the constant 0.  It is legal to perform an instruction that attempts
@@ -1717,7 +1729,7 @@ conventions.
  0 after executing such an instruction.  Such an instruction will
  simply have no lasting effect.
 
-*** R15 is the condition code register
+**** R15 is the condition code register
 
 Several instructions produce status information: the result of a
 comparison, whether there was an overflow, etc.  This information is
@@ -1820,7 +1832,7 @@ Table: Condition code flags: Bits 0-3
 |---------+------------+-----------+----------+-------|
 
 
-** Memory
+*** Memory
 
 The memory is a hardware array of words that are accessed by address.
 A memory address is 16 bits wide, and there is one memory location
@@ -1847,9 +1859,9 @@ digital circuit processor, yet it allows the implementation of local
 variables, records, arrays, pointers and linked data structures, jump
 tables, and more.  These techniques are described later.
 
-** Control registers
+*** Control registers
 
-*** Instruction control registers
+**** Instruction control registers
 There are several instruction control registers that enable the
 processor to keep track of the state of the running program.  These
 registers are rarely used directly by the machine language program,
@@ -1866,7 +1878,7 @@ program, and some instructions use them directly.
  
  - status -- collection of control flags
 
-*** System control registers
+**** System control registers
 
 |---+---------|
 | 0 | status  |
@@ -1881,12 +1893,12 @@ program, and some instructions use them directly.
 | 9 | dsegEnd |
 |---+---------|
 
-*** Status register flags
+**** Status register flags
 
 The processor can be executing in several modes, which are determined
 by the **system control registers**.
 
-*** req and mask registers
+**** req and mask registers
 
 Interrupt request and mask bits (req and mask registers)
 
@@ -1925,7 +1937,7 @@ Table: Processor status flags
   </tr>
 </table>
 
-*** Interrupts and exceptions
+**** Interrupts and exceptions
 
  - mask
  
@@ -1937,7 +1949,7 @@ Table: Processor status flags
  
  - vect
 
-**** Mask and request flags
+***** Mask and request flags
 
   <table>
     <tr>
@@ -1997,7 +2009,7 @@ Table: Processor status flags
     </tr>
   </table>
 
-** Instruction representation
+*** Instruction representation
 
 Instructions are represented in the memory of the computer using
 words, just like all other kinds of data.  From the programmer's
@@ -2032,7 +2044,7 @@ additional instructions) and *experimental* (because it allows for
 experimentation with the design and implementation of new
 instructions).
 
-*** Instruction fields
+**** Instruction fields
 
 An instruction may consist of one word or two words, depending on the
 instruction format.  These words are subdivided into 4-bit *fields*,
@@ -2134,7 +2146,7 @@ formats are described later.
 
 The core architecture has only two instruction formats: RRR and RX.
 
-*** RRR format
+**** RRR format
 
 RRR instructions perform operations on data in registers,
 but not referring to memory.  The representation is one word.
@@ -2185,7 +2197,7 @@ RRR instruction is add R4,R9,R2, which adds the contenst of registers
 R9 and R2, and loads the result into R4.  It's equivalent to R4 :=
 R9 + R2.
 
-*** RX format
+**** RX format
 
 RX instructions that specify a memory location as well as a
 register operand.  The representation is two words.
@@ -2252,7 +2264,7 @@ displacement, which is the entire second word of the instruction.
 - disp (displacement) is the second word of the instruction
 - ea (effective address) = displacement + r[a]
 
-*** EXP format
+**** EXP format
 
 An EXP instruction contains 14 (hex e) in the op field, and the a and
 b fields are combined into a single 8-bit number that contains a
@@ -2295,7 +2307,7 @@ operand.
 ---------------------
 #+END_EXAMPLE
 
-*** Summary of instruction formats
+**** Summary of instruction formats
 
 The following table summarises the instruction formats.  The core of
 the architecture needs only the first two (RRR and RX).  The more
@@ -2311,7 +2323,7 @@ Table: **Machine language instruction formats**
 | EXP1   |    1 | op,ab  | d         |           | resume            |
 | EXP2   |    2 | op,ab  | d         | e,f,g,h   | save Rd,Re,gh[Rf] |
 
-*** Assembly language statement formats
+**** Assembly language statement formats
 
 Assembly language statements generally correspond to the instruction
 formats, but there is not an exact correspondence for several reasons:
@@ -2457,7 +2469,7 @@ more important, so these groups are useful in finding the right
 instruction to use.  (From the perspective of designing a digital
 circuit to impleemnt the architecture, the format is essential.)
 
-*** Instruction formats
+**** Instruction formats
 
 RRR instructions are represented in one word comprising four 4-bit
 fields.
@@ -2484,12 +2496,70 @@ EXP instructions are represented in two words
 
 The a and b fields form an 8-bit value called ab.
 
-* Instruction set
+
+** S16 instruction set
+** S16 assembly language
+** S16 programming
+* S32 architecture
+** S32 tutorial
+** S32 architecture
+- Instruction formats
+  - RRR, RX, EXP same as for S16
+  - RX32: 3 words.  First word same as for RX except op=d (escape to
+    RX32).  The following two words give the 32 bit displacement
+  - EXPL: 3 words.  First word same as for RX except op=c (escape to
+    EXP32).
+- Same registers as S16, but they are all 32 bits wide
+- All S16 instructions do the same as before; they operate on the
+  rightmost 16 bits of a register, and set the upper half
+  appropriately.
+- The architecture should be strictly backward compatible: any S16
+  program should run the same on S32
+- Some of the extension to 32 bits is straightforward, but there are
+  some interesting complications
+  - If an S16 arithmetic instruction produces a  negative result,
+    should the 32 bit result get sign extension?  Yes
+  - RX instructions need a 32 bit displacement for S32, so a new RX32
+    format is needed.  This contains three words; the first word is
+    the same format as for RX, and the following two words give the
+    displacement.
+  - jumpc0 and jumpc1 use the 4-bit d field to index the condition
+    code bit.  If all condition code bits for S32 can be kept in the
+    lsw (least significant word) the RX32 format could be used for
+    jumpc0l and jumpc1l.  If, however, a condition in the msw is
+    needed, then the rx format would be insufficient and  
+  - The cc in R15 does need extension to 32 bits because it's used by
+    mul for upper half of product and by div for the remainder.
+  - shiftl and shiftr use 4-bit fields for distance to shift; these
+    need to be 5 bits for S32
+  - extract and extracti use three 4-bit fields, for start positions
+    in source and destination, and for field size.  All three of these
+    need to be 5 bits for S32.
+  - Would the architecture be cleaner using little-endian bit
+    indexing?  Consider indexing the condition code bits, and the
+    shift and extract instructions.
+  - Instructions that have 4-bit fields in S16 than need to expand to
+    5 bits in S32:
+    - jumpc0, jumpc1
+    - shiftl, shiftr
+    - logicb
+    - extractl, extractil
+      - opcode = escape, 8-bit opcode
+      - source and destination registers, 2 * 4
+      - source start, dest start, length 3 * 5
+      - total 4 + 8 + 2*4 + 3*5 = 35, so 3 words are needed
+      - first word: op, secop (4 bits unused)
+      - second word: source and destination registers 2 * 4 (8 bits unused)
+      - third word, 3 5-bit fields and 1-bit field
+  - Would it be better to change to little-endian notation? The main
+    issue seems to be the condition codes.
+
+** S32 instruction set
 :PROPERTIES:
 :CUSTOM_ID: sec-instruction-set
 :END:
 
-** Arithmetic
+*** Arithmetic
 
 The add instruction can be used for both binary addition (on natural
 numbers) and for two's complement addition (on signed integers).
@@ -2512,7 +2582,7 @@ numbers) and for two's complement addition (on signed integers).
   and the overflow flag is 1 in the mask register, then an interrupt
   will occur immediatelhy after the add instruction executes.
 
-*** add
+**** add
 
 Example: add R1,R2,R3 ; R1 := R2 + R3
 
@@ -2544,7 +2614,7 @@ req register.
  R15.CCc    carry output
 ---------  ---------------------
 
-*** sub
+**** sub
 
 Example: sub R1,R2,R3 ; R1 := R2 - R3
 
@@ -2578,7 +2648,7 @@ req register.
  R15.CCc    carry output
 ---------  ---------------------
 
-*** mul
+**** mul
 
 Example: mul R1,R2,R3 ; R1 := R2 * R3
 
@@ -2602,7 +2672,7 @@ into Rd.
  R15.CCc    carry output
 ---------  ---------------------
 
-*** div
+**** div
 
 Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
 
@@ -2637,7 +2707,7 @@ division by 0.
   division by 0.  See the section on Interrupts.  This approach does
   not require a compare or jump instruction for each division.
 
-*** addc
+**** addc
 
 The addc instruction performs a binary addition with carry
 propagation.  It adds the two operand registers and the carry bit in
@@ -2646,7 +2716,7 @@ destination register Rd and the carry output is written back into the
 carry bit, overwriting its previous value.  Overflow is not possible
 with this instruction.
 
-*** muln
+**** muln
 
 #+BEGIN_EXAMPLE
      muln   Rd,Ra,Rb
@@ -2658,7 +2728,7 @@ significant part) is loaded into R15, and the rightmost 16 bits (the
 least significant part) is loaded into Rd.  If Rd is R15, the most
 significant part is discarded.
 
-*** divn
+**** divn
 
 #+BEGIN_EXAMPLE
      divn   Rd,Ra,Rb
@@ -2676,7 +2746,7 @@ All the numbers -- numerator, denominator, quotient, remainder -- are
 natural numbers represented in binary.
 
 
-** Memory
+*** Memory
 
 A memory address is a 16-bit binary number.  Instructions don't
 specify addresses directly; they specify an address with two
@@ -2696,14 +2766,14 @@ If you just want to specify an address *a* in an instruction, this can
 be written as "a[R0]".  Since R0 contains the constant 0, the
 effective address is just *a*.
 
-*** lea
+**** lea
 
 The **load effective address** instruction *lea Rd,disp[Rx]* calculates
 the effective address of the operand disp[Rx] and places the result in
 the destination register Rd.  The effective address is the binary sum
 disp+Rx.
 
-*** load
+**** load
 
 The **load** instruction *load Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and copies the word in memory at the
@@ -2724,7 +2794,7 @@ Examples
    load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
 #+END_EXAMPLE
 
-*** store
+**** store
 
 The **store** instruction *store Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and the value of the destination
@@ -2760,7 +2830,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_EXAMPLE
 
-*** Stack representation
+**** Stack representation
 
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -2798,7 +2868,7 @@ A stack can be created and initialized by allocating a region of
 memory, setting /stack base/ to the first word and /stack limit/ to
 the last word, and setting /stack top/ to /stack base/ - 1.
 
-*** push
+**** push
 
 The push instruction pushes an element onto a stack.  It is RRR
 format, and its general form is:
@@ -2840,7 +2910,7 @@ will occur after the push instruction completes.  There will be no
 interrupt if interrupts are disabled, or the stack fault bit is not
 set in the mask register.
 
-*** pop
+**** pop
 
 The push instruction removes an element onto a stack and returns it.
 The instruction is RRR format, and its general form is:
@@ -2870,7 +2940,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** top
+**** top
 
 The top instruction returns the top element on a stack but does not
 remove it.  The instruction is RRR format, and its general form is:
@@ -2899,7 +2969,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** save
+**** save
 
 The *save* instruction stores a sequence of adjacent registers into a
 block of contiguous memory locations.  The sequence of registers is
@@ -2979,7 +3049,7 @@ is equivalent to
    store   R3,11[R5]
 #+END_EXAMPLE
 
-*** restore
+**** restore
 
 Restore Rd,disp[Ra] loads R1, ..., Rd from consecutive memory
 locations starting from the effective address.
@@ -3037,7 +3107,7 @@ The effect is equivalent to
    load  R10,11[R14]
 #+END_EXAMPLE
 
-** Logic and bits
+*** Logic and bits
 
 The instructions in this section treat a word as a sequence of bits,
 not as a number.  There are instructions that perform logic operations
@@ -3069,7 +3139,7 @@ for several reasons:
 - These instructions can be implemented efficiently in a digital
   circuit and this implementation is an interesting design problem.
 
-*** cmp
+**** cmp
 
 The compare instruction =cmp Ra,Rb= compares the values in the operand
 registers =Ra= and =Rb=, and then sets flags in the condition code
@@ -3098,7 +3168,7 @@ by a jump pseudoinstruction, for example:
     jumpgt  abc]R0]    ; if R4 > R9 then goto abc
 #+END_EXAMPLE
 
-*** logicw
+**** logicw
 
 The logicw instruction performs a bitwise logic operation on two
 operands: each bit of the result is obtained by performing the logic
@@ -3170,7 +3240,7 @@ Re and Rf, and the result is loaded into the destination register Rd.
 | inv x    | 1100 |   12 |
 | inv y    |      |      |
 
-*** logicb
+**** logicb
 
 The /logicb/ instruction performs an arbitrary Boolean logic function
 on two operand bits, producing a result bit.  All three bits must be
@@ -3218,7 +3288,7 @@ The instruction format is EXP2, with the following fields:
 - g is the index of the second argument bit
 - h is the logic function
   
-*** shiftl
+**** shiftl
 
 The instruction shiftl Rd,Ra,k shifts the value in the operand
 register Ra by k bits to the left, and the result is placed in the
@@ -3233,7 +3303,7 @@ rightmost k bits become 0.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-*** shiftr
+**** shiftr
 
 Shift to the right.
 
@@ -3254,7 +3324,7 @@ changed.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-*** extract
+**** extract
 
 The extract instruction copies an arbitrary field of bits from a
 source register and inserts those bits into an arbitrary position in a
@@ -3359,7 +3429,7 @@ form the instruction fields are given in the operand fields:
 | h  | s_index | start position in source      |
 |----+---------+-------------------------------|
 
-*** extracti
+**** extracti
 
 The extracti instruction is similar to extract, but extracti inverts
 the bits that are inserted into the destination.
@@ -3367,14 +3437,14 @@ the bits that are inserted into the destination.
 The secondary opcode is 8.
 
 
-** Jumping
+*** Jumping
 
-*** jump
+**** jump
 
 The **jump** instruction *jump disp[Ra]* transfers control to the
 instruction in memory at the effective address *disp+Ra*.
 
-*** jal
+**** jal
 
 The **jump and link** instruction *jal Rd,disp[Ra]* loads the address
 of the following instruction into the destination register Rd, and
@@ -3387,7 +3457,7 @@ procedures or functions: the effective address is the location of the
 procedure, and the return address is in Rd.  The procedure can then
 return by jumping to the return address, e.g. with *jump 0[Rd]*.
 
-*** jumpc0
+**** jumpc0
 
 The **jump if condition code bit is 0** instruction *jumpc0
 k,disp[Ra]* checks the value of bit k in R15, which is the condition
@@ -3409,7 +3479,7 @@ However:
   why jumpc0 and jumpc1 don't allow you to specify which register
   contains the Boolean
 
-*** jumpc1
+**** jumpc1
 
 The **jump if condition code bit is 1** instruction *jumpc1
 k,disp[Ra]* checks the value of bit k in R15, which is the condition
@@ -3417,7 +3487,7 @@ code register.  If this bit is *1*, then the instruction transfers
 control to the instruction in memory at the effective address
 *disp+Ra*; otherwise the instruction does nothing.
 
-*** jumpz
+**** jumpz
 
 #+BEGIN_EXAMPLE
      jumpz  Rd,disp[Ra]
@@ -3427,9 +3497,9 @@ The jumpz instruction jumps to the effective address if Rd contains 0;
 otherwise the instruction does nothing and execution goes on to the
 following instruction.
 
-*** jumpn
-*** jumpz
-*** jumpnz
+**** jumpn
+**** jumpz
+**** jumpnz
 
 #+BEGIN_EXAMPLE
      jumpnz Rd,disp[Ra]
@@ -3439,11 +3509,11 @@ The jumpnz instruction jumps to the effective address if Rd contains
 any value other than 0; otherwise the instruction does nothing and
 execution goes on to the following instruction.
 
-*** jumpp
+**** jumpp
 
 
-** System
-*** resume
+*** System
+**** resume
 
 The resume instruction performs the following operations atomically:
 
@@ -3465,9 +3535,9 @@ resume.
 
 This instruction is privileged.  Since the instruction changes the
 status register, it can be used to perform a context switch.
-*** getctl
-*** putctl
-*** trap
+**** getctl
+**** putctl
+**** trap
 
 The trap instruction requests a service from the virtual operating system.
 It takes three register operands.  The first
@@ -3488,7 +3558,7 @@ contents of the registers, not which register you happen to use.  A
 trap instruction has the form trap Rd,Ra,Rb where Rd contains the trap
 code.
 
-**** Halt
+***** Halt
 
 Terminate execution of the program.  The operands Ra and Rb are
 ignored.
@@ -3500,13 +3570,13 @@ Since the trap code is 0, and R0 always contains 0, and the other
 operands are ignored, the canonical way to terminate the program is
 /trap R0,R0,R0/
 
-**** Nonblocking read
+***** Nonblocking read
 
-**** Nonblocking Write
+***** Nonblocking Write
 
-**** Blocking read
+***** Blocking read
 
-**** Break
+***** Break
 
 Pause execution of the program.  The operands Ra and Rb are ignored.
 
@@ -3515,7 +3585,7 @@ Step or Run.  A breakpoint allows you to run at full speed until a
 particular location in the program, and then single step through a
 section of interest.
 
-*** testset
+**** testset
 
 The testset instruction fetches a Boolean from a word in memory,
 places it in the destination register, and also sets the word in
@@ -3539,7 +3609,7 @@ multiple processors.  This point, its significance, and programming
 techniques using testset are discussed in the section /Critical
 regions/ in the /Programming techniques/ chapter.
 
-** Pseudoinstructions
+*** Pseudoinstructions
 
 A pseudoinstruction is assembly language syntax that generates a real
 machine language instruction, using a simpler notation than would be
@@ -3548,7 +3618,7 @@ Pseudoinstructions do not exist in machine language; they are purely a
 notational convenience.  There are pseudoinstructions for conditional
 jumping and for logic functions.
 
-*** Conditional jumping pseudoinstructions
+**** Conditional jumping pseudoinstructions
 
 Several pseudoinstructions jump if a given condition holds; for
 example, jumplt jumps if the condition code indicates "less than".
@@ -3584,7 +3654,7 @@ based on comparison of two integers (two's complement):
 
 
 
-*** logic pseudoinstructions
+**** logic pseudoinstructions
 - invw
 
 The invw instruction inverts the bits in a word.  Inverting a bit
@@ -3673,9 +3743,9 @@ Example:
 The xor pseudoinstruction generates a logicw instruction with the
 function operand set to perform an xor.
 
-*** invb, andb, orb, xorb
+**** invb, andb, orb, xorb
 
-** List of instructions
+*** List of instructions
 
 The following notations and abbreviations are used to specify
 precisely and concisely the effects of the instructions:
@@ -3705,69 +3775,555 @@ precisely and concisely the effects of the instructions:
 - Code: operation code; primary,secondary opcode
 - Effect: brief synopsis of what the instruction does
 
-|----------+---+------+-------+------+---------------------------------------|
-| Mnemonic | P | Fmt  | Args  | Code | Effect                                |
-|----------+---+------+-------+------+---------------------------------------|
-| add      |   | RRR  | RRR   | 0    | Rd := Ra + Rb                         |
-| sub      |   | RRR  | RRR   | 1    | Rd := Ra - Rb                         |
-| mul      |   | RRR  | RRR   | 2    | Rd := Ra * Rb                         |
-| div      |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra remainder Rb |
-| addc     |   | RRR  | RRR   | 4    | Rd := Ra + Rb + R15.carry             |
-| muln     |   | RRR  | RRR   | 5    | R15++Rd := Ra :*: Rb                  |
-| divn     |   | RRR  | RRR   | 6    | R15++Rd := R15++Ra :/: Rb             |
-| cmp      |   | RRR  | RR    | 7    | R15 := Ra cmp Rb                      |
-| push     |   | RRR  | RRR   | 8    | M[ea] := Rd, Rb++                     |
-| pop      |   | RRR  | RRR   | 9    | Rb--, Rd := M[ea]                     |
-| top      |   | RRR  | RRR   | a    | Rd := M[ea]                           |
-| ---      |   | RRR  |       | b    | reserved                              |
-| trap     |   | RRR  | RRR   | c    | interrupt                             |
-|          |   |      |       | d    | escape to EXP format                  |
-|          |   |      |       | e    | escape to LW format                   |
-|          |   |      |       | f    | escape to RX format                   |
-|----------+---+------+-------+------+---------------------------------------|
-| lea      |   | RX   | RX    | f,0  | Rd := ea                              |
-| load     |   | RX   | RX    | f,1  | Rd := M[ea]                           |
-| store    |   | RX   | RX    | f,2  | M[ea] := Rd                           |
-| jump     |   | RX   | RX    | f,3  | pc := ea                              |
-| jal      |   | RX   | RX    | f,4  | Rd := pc, pc := ea                    |
-| jumpc0   |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea              |
-| jumpc1   |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea              |
-| jumpn    |   | RX   | RX    | f,7  | if Rd < 0 then pc := ea               |
-| jumpz    |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea               |
-| jumpnz   |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea              |
-| jumpp    |   | RX   | RX    | f,a  | if Rd > 0 then pc := ea               |
-| testset  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1               |
-|          |   | RX   |       | f,c  | -- reserved --                        |
-|          |   | RX   |       | f,d  | -- reserved --                        |
-|          |   | RX   |       | f,e  | -- reserved --                        |
-|          |   | RX   |       | f,f  | -- reserved --                        |
-|----------+---+------+-------+------+---------------------------------------|
-| resume   | P | EXP1 | R     | e,00 | pc := ipc, status := istatus          |
-|----------+---+------+-------+------+---------------------------------------|
-| save     |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd     |
-| restore  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1]     |
-| shiftl   |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                        |
-| shiftr   |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                        |
-| logicw   |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf                   |
-| logicb   |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g             |
-| extract  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si        |
-| extracti |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si       |
-| getctl   | P | EXP2 | RC    | e,09 | Rd := Sc                              |
-| putctl   | P | EXP2 | RC    | e,0a | Sc := Rd                              |
-|          |   | EXP2 |       | e,0b | -- reserved --                        |
-|          |   | EXP2 |       | ...  | -- reserved --                        |
-|          |   | EXP2 |       | e,ff | -- reserved --                        |
-|----------+---+------+-------+------+---------------------------------------|
-|          |   |      |       |      | <37>                                  |
-|----------+---+------+-------+------+---------------------------------------|
+- Levels of architecture
+  - Core: minimal set of instructions, good starting point for beginners
+  - Standard: additional instructions for more flexible programming
+  - S16: full 16-bit instruction set
+  - S32: extension to 32-bit architecture.
+- There is a subsetting relationship:
+  - Core SUBSET Basic SUBSET S16 SUBSET S32
+
+|----------+------+---+------+-------+------+-----------------------------------|
+| Mnemonic | ISA  | P | Fmt  | Args  | Code | Effect                            |
+|----------+------+---+------+-------+------+-----------------------------------|
+| add      | Core |   | RRR  | RRR   | 0    | Rd := Ra + Rb                     |
+| sub      | Core |   | RRR  | RRR   | 1    | Rd := Ra - Rb                     |
+| mul      | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
+| div      | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmp      | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
+| addl     | S32  |   | RRR  | RRR   | 5    | Rd := Ra + Rb                     |
+| subl     | S32  |   | RRR  | RRR   | 6    | Rd := Ra - Rb                     |
+| mull     | S32  |   | RRR  | RRR   | 7    | Rd := Ra * Rb                     |
+| divl     | S32  |   | RRR  | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| trap     | Core |   | RRR  | RRR   | 9    | user interrupt                    |
+|          |      |   |      |       | a    | -- reserved --                    |
+|          |      |   |      |       | b    | -- reserved --                    |
+|          |      |   |      |       | c    | escape to EXP32 format            |
+|          |      |   |      |       | d    | escape to RX32 format             |
+|          |      |   |      |       | e    | escape to EXP format              |
+|          |      |   |      |       | f    | escape to RX format               |
+|----------+------+---+------+-------+------+-----------------------------------|
+| lea      | Core |   | RX   | RX    | f,0  | Rd := ea                          |
+| load     | Core |   | RX   | RX    | f,1  | Rd := M[ea]                       |
+| store    | Core |   | RX   | RX    | f,2  | M[ea] := Rd                       |
+| jump     | Core |   | RX   | RX    | f,3  | pc := ea                          |
+| jumpc0   | Core |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea          |
+| jumpc1   | Core |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea          |
+| jumpz    | Std  |   | RX   | RX    | f,7  | if Rd = 0 then pc := ea           |
+| jumpnz   | Std  |   | RX   | RX    | f,8  | if Rd != 0 then pc := ea          |
+| jal      | Core |   | RX   | RX    | f,4  | Rd := pc, pc := ea                |
+| testset  | S16  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
+|          |      |   | RX   |       | f,a  | -- reserved --                    |
+|          |      |   | RX   |       | f,b  | -- reserved --                    |
+|          |      |   | RX   |       | f,c  | -- reserved --                    |
+|          |      |   | RX   |       | f,d  | -- reserved --                    |
+|          |      |   | RX   |       | f,e  | -- reserved --                    |
+|          |      |   | RX   |       | f,f  | -- reserved --                    |
+|----------+------+---+------+-------+------+-----------------------------------|
+| leal     | S32  |   | RX32 | RX    | f,0  | Rd := ea                          |
+| loadl    | S32  |   | RX32 | RX    | f,1  | Rd := M[ea]                       |
+| storel   | S32  |   | RX32 | RX    | f,2  | M[ea] := Rd                       |
+| jumpl    | S32  |   | RX32 | RX    | f,3  | pc := ea                          |
+| jumpc0l  | S32  |   | RX32 | kX    | f,5  | if R15.k=0 then pc := ea          |
+| jumpc1l  | S32  |   | RX32 | kX    | f,6  | if R15.k=1 then pc := ea          |
+| jumpzl   | S32  |   | RX32 | RX    | f,7  | if Rd = 0 then pc := ea           |
+| jumpnzl  | S32  |   | RX32 | RX    | f,8  | if Rd != 0 then pc := ea          |
+| jall     | S32  |   | RX32 | RX    | f,4  | Rd := pc, pc := ea                |
+| testsetl | S32  |   | RX32 | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
+|          |      |   | RX32 |       | f,a  | -- reserved --                    |
+|          |      |   | RX32 |       | f,b  | -- reserved --                    |
+|          |      |   | RX32 |       | f,c  | -- reserved --                    |
+|          |      |   | RX32 |       | f,d  | -- reserved --                    |
+|          |      |   | RX32 |       | f,e  | -- reserved --                    |
+|          |      |   | RX32 |       | f,f  | -- reserved --                    |
+|----------+------+---+------+-------+------+-----------------------------------|
+| resume   | S16  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
+|----------+------+---+------+-------+------+-----------------------------------|
+| addc     | Std  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb + R15.carry         |
+| muln     | Std  |   | EXP2 | RRR   | 6    | R15++Rd := Ra :*: Rb              |
+| divn     | Std  |   | EXP2 | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
+| push     | Std  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
+| pop      | Std  |   | EXP2 | RRR   | 9    | Rb--, Rd := M[ea]                 |
+| top      | Std  |   | EXP2 | RRR   | a    | Rd := M[ea]                       |
+| save     | Std  |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
+| restore  | Std  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
+| shiftl   | Std  |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                    |
+| shiftr   | Std  |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                    |
+| logicw   | Std  |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf               |
+| logicb   | Std  |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
+| extract  | Std  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
+| extracti | Std  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
+| getctl   | S16  | P | EXP2 | RC    | e,09 | Rd := Sc                          |
+| putctl   | S16  | P | EXP2 | RC    | e,0a | Sc := Rd                          |
+| addf     | S32  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb                     |
+| subf     | S32  |   | EXP2 | RRR   | 6    | Rd := Ra - Rb                     |
+| mulf     | S32  |   | EXP2 | RRR   | 7    | Rd := Ra * Rb                     |
+| divf     | S32  |   | EXP2 | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpf     | S32  |   | EXP2 | RR    | 9    | R15 := Ra cmp Rb                  |
+|          |      |   | EXP2 |       | e,0b | -- reserved --                    |
+|          |      |   | EXP2 |       | ...  | -- reserved --                    |
+|          |      |   | EXP2 |       | e,ff | -- reserved --                    |
+|----------+------+---+------+-------+------+-----------------------------------|
+|          |      |   |      |       |      | <33>                              |
+|----------+------+---+------+-------+------+-----------------------------------|
 
 
-*** Pseudoinstructions
+**** Pseudoinstructions
 
  save  
  save     |       RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd  M[Rb+ofs+(f-e+1)] := Rf |
  restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1] |
 
+** S32 assembly language
+:PROPERTIES:
+:CUSTOM_ID: sec-assembly-language
+:END:
+
+A computer is a digital circuit that executes programs in machine
+language, which is hard for humans to read because it consists
+entirely of numbers.  Assembly language provides a readable notation
+for writing machine language programs.  It uses names for instructions
+and variables, as well as other notations to make the code easier to
+understand.
+
+An instruction in machine language is just one or more words (often
+written in hexadecimal notation), while the corresponding instruction
+in assembly language uses mnemonic names so the programmer doesn't
+have to memorise all the operation codes, addresses of variables, and
+so on. For example, the assembly language statement mul R12,R3,R8 is
+more readable than the corresponding machine language instruction
+2c38.  However, the assembly language still gives the programmer
+complete control over every bit a program.
+
+  
+A programmer writes a machine-level program in assembly language.  A
+software application called the *assembler* reads it in and translates
+it to machine language.  When it sees an instruction mnemonic like add
+or div, it replaces it with the operation code (0, 3, or whatever).
+The assembler helps with variable names --- the machine language needs
+addresses (numbers) and the assembler calculates them
+  
+- You can use names (add, div) rather than numeric codes (0, 3)
+- You can use variable names (x, y, sum) rather than memory addresses
+  (02c3, 18d2)
+- You write a program in assemply language
+- The assembler translates it into machine language
+
+Compilers and assemblers are similar in some ways: both of them
+translate a program from one language to another.  The main difference
+is that compilers translate between languages that are very different,
+while assemblers translate between very similar languages.
+
+Example: a sequence of RRR instructions
+
+Assembly language
+#+BEGIN_EXAMPLE
+    add    R3,R5,R1
+    sub    R4,R2,R3
+    mul    R1,R9,R10   
+#+END_EXAMPLE
+
+Machine language
+#+BEGIN_EXAMPLE
+    0351
+    1423
+    219a
+#+END_EXAMPLE
+
+*** Programs, modules, and files
+
+The assembler inputs a program in assembly language.  Its primary
+output is an *object module* which contains the machine language code.
+The assembler also produces an *assembly listing*, which presents the
+program in a form useful for the programmer, and a *metadata module*
+which enables the emulator to track the source statement corresponding
+to each instruction.
+
+Each module has an associated object code, which may be empty. The
+object code can be produced by a successful assembly (i.e. an assembly
+with no errors) or it can be obtained from the Editor.  This allows
+object code to be read from a file or entered directly by the user.
+
+
+There is a standard convention for file names.  If, for example, you
+have a program named MyProgram, then the files associated with it
+should be as follows:
+
+    -----------------  -----------
+    module name        MyProgram
+    source file        MyProgram.asm.txt
+    object file        MyProgram.obj.txt
+    assembly listing   MyProgram.lst.txt
+    -----------------  -----------
+
+*** Values
+
+A value is a 16-bit word.  An assembly language program uses
+expressions to denote values, but the actual underlying quantity is a
+value.  A value consists of a word and several attributes:
+
+- word is a natural number in the range from 0 to 2^{16}-1.
+- origin
+  - if origin=Local, the value is defined within the module
+  - if origin=External, the value is imported from another module
+- movability
+  - If movability=Relocatable, the value must be adjusted by the
+    relocation constant when the module is relocated
+  - If movability=Fixed, the value is not affected during relocation
+
+**** Expressions
+
+An expression is syntax that denotes a value. 
+
+A *name* must begin with a letter (a-z or A-Z), and may contain
+letters, digits, or underscore characters.
+
+Constants can be written in decimal, hexadecimal, or binary:
+
+- *Decimal constants* consist of a sequence of digits, with an
+  optional leading - sign.  Examples: 42 55039 -1
+
+- *Hexadecimal constants* are written with a dollar sign $ followed by
+  four hex digits (0 1 2 3 4 5 6 7 8 9 a b c d e f).  Examples: $0249
+  $c78a
+
+- *Binary constants* are written with a hash sign # followed by any
+  number of 0 or 1 characters.  You can write fewer than 16 bits; they
+  will be padded on the left with zeros.  Examples: #1101
+  #000100000001101
+
+Expressions may contain arithmetic operators + - * /.
+
+|-------------+----------+-------------+-------------|
+| operand     | operator | operator    | result      |
+|-------------+----------+-------------+-------------|
+| fixed       | +        | fixed       | fixed       |
+| fixed       | +        | relocatable | relocatable |
+| relocatable | +        | fixed       | relocatable |
+| relocatable | +        | relocatable | error       |
+|-------------+----------+-------------+-------------|
+| fixed       | -        | fixed       | fixed       |
+| fixed       | -        | relocatable | relocatable |
+| relocatable | -        | fixed       | relocatable |
+| relocatable | -        | relocatable | fixed       |
+|-------------+----------+-------------+-------------|
+| fixed       | *        | fixed       | fixed       |
+| fixed       | *        | relocatable | error       |
+| relocatable | *        | fixed       | error       |
+| relocatable | *        | relocatable | error       |
+|-------------+----------+-------------+-------------|
+| fixed       | /        | fixed       | fixed       |
+| fixed       | /        | relocatable | error       |
+| relocatable | /        | fixed       | error       |
+| relocatable | /        | relocatable | error       |
+|-------------+----------+-------------+-------------|
+
+
+relocatable 
+
+
+An expression can do arithmetic on a local label, but not on an
+imported name.  The reason is that arithmetic requires that the value
+of the name is known.  That's why an expression like a equ rcd+5 can
+be used only after the label rcd is defined: it enables the value of
+each name to be calculated during pass 1.  But the values of imported
+names are not known at all during assembly; they become defined only
+during linking.  Such a value can affect the values of words in the
+object code, but not their locations.
+
+An expression is assembly language syntax that, when evaluated,
+denotes a value (i.e. a 16-bit word).  Evaluation takes place entirely
+at assembly time.  Expressions may be labels, constants, or
+may be calculated.
+
+**** Location counter
+The assembler maintains a variable called the location counter, which
+is the address where the next word of object code will be loaded.  The
+location counter is a local value.  It is initialized to 0000
+Relocatable.
+
+When an instruction word or data word is generated, its address is set
+to the current value of the location counter, which is then
+incremented.
+
+The org directive specifies a new value of the location counter.
+First the operand of the org statement is evaluated.  This value must
+be local (it is an error if the value is external).  The location
+counter and its movability are set to the value and movability of the
+operand.
+
+**** Attributes
+
+A machine language program consists of words stored in memory at
+particular addresses.  A word is just a collection of 16 bits; it has
+no type.
+
+An assembly language program specifies all the words that comprise a
+program.  In principle you could just write out all the words as
+numbers, but this is difficult and prone to errors.  Thw whole point
+of assembly language is to provide notations that make it easier to
+specify these numbers, while retaining total control---every single
+bit in the object code is determined by the assembly language.
+
+A *value* is a word of 16 bits.  Values do not have types; their type
+depends entirely on usage.  Values may be used in generating object
+code, either as the displacment field of an RX instruction or as the
+operand of a data statement.
+
+Every value is either *fixed* or *relocatable*.  If a module is
+linked, then its relocatable values may be translated, but the fixed
+values remain unchanged.
+
+*** Code statements
+Each line of source code is an assembly language statement.  Unlike
+higher level languages, assembly language statements are not nested.
+There are three kinds of assembly language statement:
+
+- /Comments/ (blank lines, or lines beginning with ;)
+- /Code/ statements define instructions or constant data
+- /Directives provide metadata but don't generate any code
+
+An assembly language statement contains one or more fields.  A field
+consists of non-space characters (with one exception: a space may
+appear in a string literal).  Fields are separated from each other by
+one or more white space characters.
+
+- Label.  The label field is optional.  If present, the label must be
+  a name and it must begin in the first character of the line.  If the
+  first character is a space, then that line has no label.
+	
+- Operation.  The operation field is an identifier that specifies an
+  instruction or assembler directive.  It must be preceded by one or
+  more white space characters.  Every statement (apart from a full
+  line comment) must have an operation field.
+
+- Operands.  The operands field specifies operands for an instruction
+  or arguments for assembly directives.  There may be several
+  operands, which must be separated by commas.  Each type of statement
+  (determined by the operation field) requires a specific syntax for
+  the operands.  Most instructions and assembler directives require
+  operands, but some do not.
+	
+- Comment.  All text that either (1) follows white space after the
+  operands field, or (2) follows a semicolon (;), is a comment, and is
+  ignored by the assembler.  If one or more of the other fields
+  (label, operation, operands) is missing, the comment must be
+  preceded by a semicolon to prevent it from being interpreted as
+  operands.  The rule is: all text after a semicolon is a comment, and
+  all text after white space following operands is a comment.  A
+  statement where the first non-space character is a semicolon is a
+  full line comment.  If the statement has no operands, then all text
+  after the operation field is a comment.  It is good practice always
+  to begin a comment with a semicolon.
+
+**** Instructions
+
+ | Label   | Statement | Operands | Purpose                    |
+ |---------+-----------+----------+----------------------------|
+ | optname | data      | exprs    | generate word for each exp |
+ |         | RRRop     | r,r,r    |                            |
+ |         | RXop      | r,exp[r] |                            |
+ |         | RRop      | r,r      |                            |
+ |         | Rop       | r        |                            |
+ |         | RRKKop    | r,r,k,k  |                            |
+
+
+**** data
+
+The data statement specifies a sequence of constants to be placed in
+consecutive memory locations starting at the location counter, subject
+to relocation.  Its argument is a list of one or more 4-digit hex
+constants separated by commas.
+
+A long block of data can be broken up into several data statements.
+Suppose x1, x2, etc are 4-digit hex constants.  Then
+
+#+BEGIN_EXAMPLE
+data  x1,x2,x3,x4,x5,x6
+#+END_EXAMPLE
+
+is equivalent to
+
+#+BEGIN_EXAMPLE
+data x1,x2,x3
+data x4,x5,x6
+#+END_EXAMPLE
+
+Suppose
+
+- The module's relocation constant is r
+- The location counter has been set to c
+- The i'th constant (counting from 0) in a data statement is x.
+
+Then the linker will set mem[r+c+i] := x.
+
+One point to watch out for is that an assembly language data statement
+uses $ to indicate that a number is a hex constant (e.g. $03b7) but
+the object language data statement requires all numbers to be 4-digit
+hex constants, and does not require (or allow) a preceding $ character
+
+
+*** Directives
+
+A directive is an assembly language statement that gives further
+information about how to translate the program to object code and how
+to link the code with other modules.  Directirves specify metadata but
+they don't generate an instruction or constant data.
+
+**** module
+
+A program may be organized as a collection of modules, where each
+module appears in a separate file.  When several modules are present,
+each one needs a unique name.  The /module/ statement declares the
+name of the module, which is specified in the label field.  There are
+no operands.  The following statement says that this is the object
+code for module named /abc/:
+
+#+BEGIN_EXAMPLE
+abc   module 
+#+END_EXAMPLE
+
+A /module/ statement is optional.  If none is present in a file, the
+module is anonymous.  If a file does contain a /module/ statement, it
+must be the first statement in the file, although it may be preceded
+by comments and blank lines.  It is illegal for a file to contain more
+than one /module/ statement.
+
+An anonymous module can import other modules, but other modules cannot
+import anything exported from an anonymous module.  This means, in
+effect, that an anonymous module is useful only as a main program.
+
+It is good practice for the main program to have a module statement;
+in effect, this is the name of the program as well as the name of the
+module.
+
+An assembly language file should have a name of the form
+basename.asm.txt.  If there is a module statement /modname module/,
+then basename should be /modname/.  For example, the file
+Heapsort.asm.txt might contain the statement /Heapsort module/.  If
+there is no module statement, basename is arbitrary.
+
+**** equ
+
+#+BEGIN_EXAMPLE
+codeWrite  equ  2
+codeRead   equ  1
+#+END_EXAMPLE
+
+The expression in an equ can calculate the size of an object:
+
+#+BEGIN_EXAMPLE
+astart     data 5
+           data 9
+           data 78
+aend
+asize      equ  aend-astart
+#+END_EXAMPLE
+
+**** block
+
+#+BEGIN_EXAMPLE
+asize   equ    100
+n       data   asize
+arr     block  asize
+#+END_EXAMPLE
+
+**** org
+
+The org statement sets the location counter to a specified address.
+Subsequent instructions and data will be placed in memory at
+contiguous locations starting from that address.
+
+There is one argument, which is an expression denoting the new value
+of the location counter.  The location counter has an associated
+attribute that specifies either Relocatable or Fixed.  The org
+statement sets this attribute, as well as the numeric value of the
+location counter, to the value of the operand.
+
+Examples:
+
+    org   35     ; subsequent code starts from 0023 (Fixed)
+    org   @+50   ; skip 50 words (Relocatable)
+
+The assembler initializes the location counter to 0 before it begins
+translating an assembly language module.  This means that every module
+begins implicitly with org 0.
+
+**** import
+
+The import statement states that the value of an identifier is defined
+in another module.  During the assembly of the module containing the
+import, the identifier is given a provisional value of 0, but this
+will be replaced by the actual value by the linker.  For example,
+
+#+BEGIN_EXAMPLE
+x   import  Mod1,x
+y   import  Mod1,abc
+#+END_EXAMPLE
+
+says that x is a name that can be used in this module, but it is
+defined in Mod1; y can be used in this module but it is defined in
+Mod1 under the name abc.
+
+**** export
+
+An export statement says that the module is making the value of a
+symbol available for use in other modules, which may import it.  The
+statement takes two operands: the name being exported and the value,
+which must be a 4-digit hex constant.  It makes no difference whether
+the name is relocatable, as the linker performs any relocation before
+writing the exported value into other modules that import it.
+Examples:
+
+#+BEGIN_EXAMPLE
+export  haltcode,0
+export  fcn,002c
+#+END_EXAMPLE
+
+The export statement states that the value of an identifier should be
+made available for other modules to import.  For example, this module
+defines a function and exports it so other modules can import and call
+it:
+
+#+BEGIN_EXAMPLE
+Mod1     module
+         export fcn
+
+fcn      add    R1,R1,R1
+         jump   0[R12]
+#+END_EXAMPLE
+
+ ** Assembly listing
+
+The first section of the assembly listing shows each line of the
+source program.  The line number appears first, followed by the memory
+address that the instruction on this line will be placed in.  The
+address is given as a 4 digit hexadecimal number, and it is binary
+(not two's complement).  Next comes the machine language code
+generated by the line of source code.  If the line contains a two-word
+instruction, there will be two 4-digit hexadecimal values; for a
+one-word instruction there will be one hex number, and if the line
+doesn't produce any code these fields will be blank.  After the code,
+the original source statement appears.
+
+The second section of the assembly listing is the *Symbol Table*.
+This shows each identifier (or "symbol") that appears in the program,
+the address allocated for the symbol, the source code line where it
+was defined, and the source code lines where it was used.
+
+*** Summary of assembly language statements
+
+| Statement  | Label  | Operands              | Purpose                    |
+|------------+--------+-----------------------+----------------------------|
+| identifier | module |                       | Define name of module      |
+|            | org    | expression            | Set location counter       |
+| identifier | equ    | expression            | Define value               |
+| identifier | import | identifier,identifier | Import  value  from module |
+|            | export | identifier            | Export values              |
+
+
+
+** S32 programming
 * User interface
 *** Files and modules
 - In Modules tab, click Choose Files
@@ -3853,455 +4409,6 @@ last saved.  If so, a dialogue asks whether the file should be saved.
 
 Select is for switching among the existing modules, while New and Open
 are for introducing a new module.
-
-
-* Assembly language
-:PROPERTIES:
-:CUSTOM_ID: sec-assembly-language
-:END:
-
-A computer is a digital circuit that executes programs in machine
-language, which is hard for humans to read because it consists
-entirely of numbers.  Assembly language provides a readable notation
-for writing machine language programs.  It uses names for instructions
-and variables, as well as other notations to make the code easier to
-understand.
-
-An instruction in machine language is just one or more words (often
-written in hexadecimal notation), while the corresponding instruction
-in assembly language uses mnemonic names so the programmer doesn't
-have to memorise all the operation codes, addresses of variables, and
-so on. For example, the assembly language statement mul R12,R3,R8 is
-more readable than the corresponding machine language instruction
-2c38.  However, the assembly language still gives the programmer
-complete control over every bit a program.
-
-  
-A programmer writes a machine-level program in assembly language.  A
-software application called the *assembler* reads it in and translates
-it to machine language.  When it sees an instruction mnemonic like add
-or div, it replaces it with the operation code (0, 3, or whatever).
-The assembler helps with variable names --- the machine language needs
-addresses (numbers) and the assembler calculates them
-  
-- You can use names (add, div) rather than numeric codes (0, 3)
-- You can use variable names (x, y, sum) rather than memory addresses
-  (02c3, 18d2)
-- You write a program in assemply language
-- The assembler translates it into machine language
-
-Compilers and assemblers are similar in some ways: both of them
-translate a program from one language to another.  The main difference
-is that compilers translate between languages that are very different,
-while assemblers translate between very similar languages.
-
-Example: a sequence of RRR instructions
-
-Assembly language
-#+BEGIN_EXAMPLE
-    add    R3,R5,R1
-    sub    R4,R2,R3
-    mul    R1,R9,R10   
-#+END_EXAMPLE
-
-Machine language
-#+BEGIN_EXAMPLE
-    0351
-    1423
-    219a
-#+END_EXAMPLE
-
-** Programs, modules, and files
-
-The assembler inputs a program in assembly language.  Its primary
-output is an *object module* which contains the machine language code.
-The assembler also produces an *assembly listing*, which presents the
-program in a form useful for the programmer, and a *metadata module*
-which enables the emulator to track the source statement corresponding
-to each instruction.
-
-Each module has an associated object code, which may be empty. The
-object code can be produced by a successful assembly (i.e. an assembly
-with no errors) or it can be obtained from the Editor.  This allows
-object code to be read from a file or entered directly by the user.
-
-
-There is a standard convention for file names.  If, for example, you
-have a program named MyProgram, then the files associated with it
-should be as follows:
-
-    -----------------  -----------
-    module name        MyProgram
-    source file        MyProgram.asm.txt
-    object file        MyProgram.obj.txt
-    assembly listing   MyProgram.lst.txt
-    -----------------  -----------
-
-** Values
-
-A value is a 16-bit word.  An assembly language program uses
-expressions to denote values, but the actual underlying quantity is a
-value.  A value consists of a word and several attributes:
-
-- word is a natural number in the range from 0 to 2^{16}-1.
-- origin
-  - if origin=Local, the value is defined within the module
-  - if origin=External, the value is imported from another module
-- movability
-  - If movability=Relocatable, the value must be adjusted by the
-    relocation constant when the module is relocated
-  - If movability=Fixed, the value is not affected during relocation
-
-*** Expressions
-
-An expression is syntax that denotes a value. 
-
-A *name* must begin with a letter (a-z or A-Z), and may contain
-letters, digits, or underscore characters.
-
-Constants can be written in decimal, hexadecimal, or binary:
-
-- *Decimal constants* consist of a sequence of digits, with an
-  optional leading - sign.  Examples: 42 55039 -1
-
-- *Hexadecimal constants* are written with a dollar sign $ followed by
-  four hex digits (0 1 2 3 4 5 6 7 8 9 a b c d e f).  Examples: $0249
-  $c78a
-
-- *Binary constants* are written with a hash sign # followed by any
-  number of 0 or 1 characters.  You can write fewer than 16 bits; they
-  will be padded on the left with zeros.  Examples: #1101
-  #000100000001101
-
-Expressions may contain arithmetic operators + - * /.
-
-|-------------+----------+-------------+-------------|
-| operand     | operator | operator    | result      |
-|-------------+----------+-------------+-------------|
-| fixed       | +        | fixed       | fixed       |
-| fixed       | +        | relocatable | relocatable |
-| relocatable | +        | fixed       | relocatable |
-| relocatable | +        | relocatable | error       |
-|-------------+----------+-------------+-------------|
-| fixed       | -        | fixed       | fixed       |
-| fixed       | -        | relocatable | relocatable |
-| relocatable | -        | fixed       | relocatable |
-| relocatable | -        | relocatable | fixed       |
-|-------------+----------+-------------+-------------|
-| fixed       | *        | fixed       | fixed       |
-| fixed       | *        | relocatable | error       |
-| relocatable | *        | fixed       | error       |
-| relocatable | *        | relocatable | error       |
-|-------------+----------+-------------+-------------|
-| fixed       | /        | fixed       | fixed       |
-| fixed       | /        | relocatable | error       |
-| relocatable | /        | fixed       | error       |
-| relocatable | /        | relocatable | error       |
-|-------------+----------+-------------+-------------|
-
-
-relocatable 
-
-
-An expression can do arithmetic on a local label, but not on an
-imported name.  The reason is that arithmetic requires that the value
-of the name is known.  That's why an expression like a equ rcd+5 can
-be used only after the label rcd is defined: it enables the value of
-each name to be calculated during pass 1.  But the values of imported
-names are not known at all during assembly; they become defined only
-during linking.  Such a value can affect the values of words in the
-object code, but not their locations.
-
-An expression is assembly language syntax that, when evaluated,
-denotes a value (i.e. a 16-bit word).  Evaluation takes place entirely
-at assembly time.  Expressions may be labels, constants, or
-may be calculated.
-
-*** Location counter
-The assembler maintains a variable called the location counter, which
-is the address where the next word of object code will be loaded.  The
-location counter is a local value.  It is initialized to 0000
-Relocatable.
-
-When an instruction word or data word is generated, its address is set
-to the current value of the location counter, which is then
-incremented.
-
-The org directive specifies a new value of the location counter.
-First the operand of the org statement is evaluated.  This value must
-be local (it is an error if the value is external).  The location
-counter and its movability are set to the value and movability of the
-operand.
-
-*** Attributes
-
-A machine language program consists of words stored in memory at
-particular addresses.  A word is just a collection of 16 bits; it has
-no type.
-
-An assembly language program specifies all the words that comprise a
-program.  In principle you could just write out all the words as
-numbers, but this is difficult and prone to errors.  Thw whole point
-of assembly language is to provide notations that make it easier to
-specify these numbers, while retaining total control---every single
-bit in the object code is determined by the assembly language.
-
-A *value* is a word of 16 bits.  Values do not have types; their type
-depends entirely on usage.  Values may be used in generating object
-code, either as the displacment field of an RX instruction or as the
-operand of a data statement.
-
-Every value is either *fixed* or *relocatable*.  If a module is
-linked, then its relocatable values may be translated, but the fixed
-values remain unchanged.
-
-** Code statements
-Each line of source code is an assembly language statement.  Unlike
-higher level languages, assembly language statements are not nested.
-There are three kinds of assembly language statement:
-
-- /Comments/ (blank lines, or lines beginning with ;)
-- /Code/ statements define instructions or constant data
-- /Directives provide metadata but don't generate any code
-
-An assembly language statement contains one or more fields.  A field
-consists of non-space characters (with one exception: a space may
-appear in a string literal).  Fields are separated from each other by
-one or more white space characters.
-
-- Label.  The label field is optional.  If present, the label must be
-  a name and it must begin in the first character of the line.  If the
-  first character is a space, then that line has no label.
-	
-- Operation.  The operation field is an identifier that specifies an
-  instruction or assembler directive.  It must be preceded by one or
-  more white space characters.  Every statement (apart from a full
-  line comment) must have an operation field.
-
-- Operands.  The operands field specifies operands for an instruction
-  or arguments for assembly directives.  There may be several
-  operands, which must be separated by commas.  Each type of statement
-  (determined by the operation field) requires a specific syntax for
-  the operands.  Most instructions and assembler directives require
-  operands, but some do not.
-	
-- Comment.  All text that either (1) follows white space after the
-  operands field, or (2) follows a semicolon (;), is a comment, and is
-  ignored by the assembler.  If one or more of the other fields
-  (label, operation, operands) is missing, the comment must be
-  preceded by a semicolon to prevent it from being interpreted as
-  operands.  The rule is: all text after a semicolon is a comment, and
-  all text after white space following operands is a comment.  A
-  statement where the first non-space character is a semicolon is a
-  full line comment.  If the statement has no operands, then all text
-  after the operation field is a comment.  It is good practice always
-  to begin a comment with a semicolon.
-
-*** Instructions
-
- | Label   | Statement | Operands | Purpose                    |
- |---------+-----------+----------+----------------------------|
- | optname | data      | exprs    | generate word for each exp |
- |         | RRRop     | r,r,r    |                            |
- |         | RXop      | r,exp[r] |                            |
- |         | RRop      | r,r      |                            |
- |         | Rop       | r        |                            |
- |         | RRKKop    | r,r,k,k  |                            |
-
-
-*** data
-
-The data statement specifies a sequence of constants to be placed in
-consecutive memory locations starting at the location counter, subject
-to relocation.  Its argument is a list of one or more 4-digit hex
-constants separated by commas.
-
-A long block of data can be broken up into several data statements.
-Suppose x1, x2, etc are 4-digit hex constants.  Then
-
-#+BEGIN_EXAMPLE
-data  x1,x2,x3,x4,x5,x6
-#+END_EXAMPLE
-
-is equivalent to
-
-#+BEGIN_EXAMPLE
-data x1,x2,x3
-data x4,x5,x6
-#+END_EXAMPLE
-
-Suppose
-
-- The module's relocation constant is r
-- The location counter has been set to c
-- The i'th constant (counting from 0) in a data statement is x.
-
-Then the linker will set mem[r+c+i] := x.
-
-One point to watch out for is that an assembly language data statement
-uses $ to indicate that a number is a hex constant (e.g. $03b7) but
-the object language data statement requires all numbers to be 4-digit
-hex constants, and does not require (or allow) a preceding $ character
-
-
-** Directives
-
-A directive is an assembly language statement that gives further
-information about how to translate the program to object code and how
-to link the code with other modules.  Directirves specify metadata but
-they don't generate an instruction or constant data.
-
-*** module
-
-A program may be organized as a collection of modules, where each
-module appears in a separate file.  When several modules are present,
-each one needs a unique name.  The /module/ statement declares the
-name of the module, which is specified in the label field.  There are
-no operands.  The following statement says that this is the object
-code for module named /abc/:
-
-#+BEGIN_EXAMPLE
-abc   module 
-#+END_EXAMPLE
-
-A /module/ statement is optional.  If none is present in a file, the
-module is anonymous.  If a file does contain a /module/ statement, it
-must be the first statement in the file, although it may be preceded
-by comments and blank lines.  It is illegal for a file to contain more
-than one /module/ statement.
-
-An anonymous module can import other modules, but other modules cannot
-import anything exported from an anonymous module.  This means, in
-effect, that an anonymous module is useful only as a main program.
-
-It is good practice for the main program to have a module statement;
-in effect, this is the name of the program as well as the name of the
-module.
-
-An assembly language file should have a name of the form
-basename.asm.txt.  If there is a module statement /modname module/,
-then basename should be /modname/.  For example, the file
-Heapsort.asm.txt might contain the statement /Heapsort module/.  If
-there is no module statement, basename is arbitrary.
-
-*** equ
-
-#+BEGIN_EXAMPLE
-codeWrite  equ  2
-codeRead   equ  1
-#+END_EXAMPLE
-
-The expression in an equ can calculate the size of an object:
-
-#+BEGIN_EXAMPLE
-astart     data 5
-           data 9
-           data 78
-aend
-asize      equ  aend-astart
-#+END_EXAMPLE
-
-*** block
-
-#+BEGIN_EXAMPLE
-asize   equ    100
-n       data   asize
-arr     block  asize
-#+END_EXAMPLE
-
-*** org
-
-The org statement sets the location counter to a specified address.
-Subsequent instructions and data will be placed in memory at
-contiguous locations starting from that address.
-
-There is one argument, which is an expression denoting the new value
-of the location counter.  The location counter has an associated
-attribute that specifies either Relocatable or Fixed.  The org
-statement sets this attribute, as well as the numeric value of the
-location counter, to the value of the operand.
-
-Examples:
-
-    org   35     ; subsequent code starts from 0023 (Fixed)
-    org   @+50   ; skip 50 words (Relocatable)
-
-The assembler initializes the location counter to 0 before it begins
-translating an assembly language module.  This means that every module
-begins implicitly with org 0.
-
-*** import
-
-The import statement states that the value of an identifier is defined
-in another module.  During the assembly of the module containing the
-import, the identifier is given a provisional value of 0, but this
-will be replaced by the actual value by the linker.  For example,
-
-#+BEGIN_EXAMPLE
-x   import  Mod1,x
-y   import  Mod1,abc
-#+END_EXAMPLE
-
-says that x is a name that can be used in this module, but it is
-defined in Mod1; y can be used in this module but it is defined in
-Mod1 under the name abc.
-
-*** export
-
-An export statement says that the module is making the value of a
-symbol available for use in other modules, which may import it.  The
-statement takes two operands: the name being exported and the value,
-which must be a 4-digit hex constant.  It makes no difference whether
-the name is relocatable, as the linker performs any relocation before
-writing the exported value into other modules that import it.
-Examples:
-
-#+BEGIN_EXAMPLE
-export  haltcode,0
-export  fcn,002c
-#+END_EXAMPLE
-
-The export statement states that the value of an identifier should be
-made available for other modules to import.  For example, this module
-defines a function and exports it so other modules can import and call
-it:
-
-#+BEGIN_EXAMPLE
-Mod1     module
-         export fcn
-
-fcn      add    R1,R1,R1
-         jump   0[R12]
-#+END_EXAMPLE
-
- ** Assembly listing
-
-The first section of the assembly listing shows each line of the
-source program.  The line number appears first, followed by the memory
-address that the instruction on this line will be placed in.  The
-address is given as a 4 digit hexadecimal number, and it is binary
-(not two's complement).  Next comes the machine language code
-generated by the line of source code.  If the line contains a two-word
-instruction, there will be two 4-digit hexadecimal values; for a
-one-word instruction there will be one hex number, and if the line
-doesn't produce any code these fields will be blank.  After the code,
-the original source statement appears.
-
-The second section of the assembly listing is the *Symbol Table*.
-This shows each identifier (or "symbol") that appears in the program,
-the address allocated for the symbol, the source code line where it
-was defined, and the source code lines where it was used.
-
-** Summary of assembly language statements
-
-| Statement  | Label  | Operands              | Purpose                    |
-|------------+--------+-----------------------+----------------------------|
-| identifier | module |                       | Define name of module      |
-|            | org    | expression            | Set location counter       |
-| identifier | equ    | expression            | Define value               |
-| identifier | import | identifier,identifier | Import  value  from module |
-|            | export | identifier            | Export values              |
-
 
 * Linker
 :PROPERTIES:
@@ -4520,7 +4627,6 @@ source 32
   reads in the currently selected module and checks to see whether it is
   a valid executable module.  If so, it loads the code into the memory.
   If not, it indicates that the program cannot be booted.
-
 
 * Programming
 :PROPERTIES:
@@ -4886,7 +4992,6 @@ similar to this:
 #+END_EXAMPLE
 
 
-
 * Installation
 
 ** The easy way: running in browser with no installation
@@ -5102,7 +5207,6 @@ npm install electron-builder --save-dev   in src/app
 npm run mkdist
 #+END_EXAMPLE
 
-
 * About Sigma16
 :PROPERTIES:
 :CUSTOM_ID: sec-about-sigma16
@@ -5156,14 +5260,7 @@ provide as much as possible of the following information.
 
 
 ** Release notes
-
-*** Version 3.2.3, April 2021
-
-- A change to browsers planned for May 2021 will cause 3.2.2 and
-  earlier versions to cease working.  This release provides a
-  temporary workaround which is secure but will cause Sigma16 to run
-  somewhat slower.
-
+*** Version 3.2.3, development from April 2021
 *** Version 3.2.2, March 2021
 
 - A bug in breakpoints is fixed
