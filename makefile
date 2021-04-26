@@ -59,6 +59,7 @@
 # SIGMASYSTEM is the path to parent of the directory containing this makefile
 
 SIGMASYSTEM:=./..
+SIGSERVER=SIGMASYSTEM/SigServer
 
 # S16HOMEPAGE is the local source repository for the Sigma16 Home
 # Page.  This can be pushed to github.
@@ -147,6 +148,11 @@ VERSIONPATH=build/Sigma16/release/$(VERSION)/Sigma16
 .PHONY: clear-release
 clear-release:
 	/bin/rm -rf $(VERSIONPATH)/*
+
+.PHONY: copyserver
+copyserver:
+	echo copyserver
+	cd $(SIGSERVER); ls
 
 .PHONY: build-release
 build-release:

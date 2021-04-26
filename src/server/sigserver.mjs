@@ -34,18 +34,11 @@
 // Configuration
 //-----------------------------------------------------------------------------
 
-// These parameters need to be edited manually when a new release is
-// published.  LATEST_RELEASE is the version number of the latest
-// official release, and DEV_VERSION is the version number of the
-// current development folder.
-
-const DEV_VERSION = '3.3.1'     // version to be served by main launch link
-const LATEST_RELEASE = "3.2.2"  // report this when queried for status/latest
-const LOCALPORT = 3000          // default port to use on local machine
-
-// The http port should be between 1024 and 49151.  The default is
-// LOCALPORT, which can be changed to avoid clash with any other
-// application.
+// Parameters are in .env.  S16_LATEST_RELEASE is the version number of
+// the latest official release, and S16_DEV_VERSION is the version number
+// of the current development folder.  The http port should be between
+// 1024 and 49151.  The default is LOCAL_PORT, which can be changed to
+// avoid clash with any other application.
 
 //-----------------------------------------------------------------------------
 // Calculated parameters
@@ -53,35 +46,23 @@ const LOCALPORT = 3000          // default port to use on local machine
 
 // These parameters are calculated and don't need to be edited
 // manually.  If the environment defines a port (e.g. on the Heroku
-// server) that is used; otherwise the LOCALPORT is used.  From the
+// server) that is used; otherwise the LOCAL_PORT is used.  From the
 // Sigma16 directory, the path to the server is
 // src/server/sigserver.mjs.  The server finds the home directory as
 // serverpath/../.. and names it S16home.
 
-const PORT = process.env.PORT || LOCALPORT
+// Define the constants that are set in environment variables
+const LOCAL_PORT = process.env.LOCAL_PORT
+const S16_DEV_VERSION = process.env.S16_DEV_VERSION
+const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
+const S16_RUN_ENV = process.env.S16_RUN_ENV
+
+const PORT = process.env.PORT || LOCAL_PORT
 const ServerHome = path.dirname (fileURLToPath (import.meta.url));
 const S16home = path.join (ServerHome, '../..')
 const CurrentReleaseDir = path.join (
     S16home,
-    `build/Sigma16/release/${DEV_VERSION}`)
-
-// There is no command line argument when running on Heroku;
-// src/cli/Sigma16.mjs provides an argument 'local'
-
-const CmdArg = process.argv[1]
-
-console.log (`Starting sigserver on port ${PORT}`)
-console.log (`S16home = ${S16home}`)
-console.log (`CurrentReleaseDir = ${CurrentReleaseDir}`)
-console.log (`LATEST_RELEASE = ${LATEST_RELEASE}`)
-console.log (`DEV_VERSION = ${DEV_VERSION}`)
-
-if (CmdArg) {
-    console.log (`command argument = ${CmdArg}`)
-} else {
-    console.log ('There is no command argument')
-}
-
+    `build/Sigma16/release/${S16_DEV_VERSION}`)
 
 //-----------------------------------------------------------------------------
 // Packages
@@ -157,7 +138,7 @@ app.get ('/status/latest/*', (req,res) => {
     console.log (`Sigma16 request ${xs}`)
     res.type ('text/plain')
     res.set ('Access-Control-Allow-Origin', '*')
-    const reply = LATEST_RELEASE
+    const reply = S16_LATEST_RELEASE
     res.send (reply)
 })
 
@@ -256,5 +237,13 @@ app.get ('/world.html', (req,res) => {
 // Main program
 //----------------------------------------------------------------------------
 
-console.log ('SigServer main')
+console.log ('Starting sigserver')
+console.log (`env: S16_RUN_ENV = ${S16_RUN_ENV}`)
+console.log (`env: LOCAL_PORT = ${LOCAL_PORT}`)
+console.log (`env: S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
+console.log (`env: S16_DEV_VERSION = ${S16_DEV_VERSION}`)
+console.log (`Using port ${PORT}`)
+console.log (`S16home = ${S16home}`)
+console.log (`CurrentReleaseDir = ${CurrentReleaseDir}`)
+
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
