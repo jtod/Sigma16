@@ -49,6 +49,7 @@
 
 // Run a specific release, e.g. 3.3.1
 //    https://sigma16.herokuapp.com/Sigma16/release/3.3.1
+//    http://localhost:3000/Sigma16/release/3.3.1
 
 //-----------------------------------------------------------------------------
 // Configuration
@@ -94,8 +95,7 @@ const PORT = process.env.PORT || S16_LOCAL_PORT
 const ServerHome = path.dirname (fileURLToPath (import.meta.url));
 const S16home = path.join (ServerHome, '../..')
 const LatestReleaseDir = path.join (
-    S16home,
-    `build/Sigma16/release/${S16_DEV_VERSION}`)
+    S16home, 'build', 'release', S16_DEV_VERSION)
 
 //-----------------------------------------------------------------------------
 // Packages
@@ -184,47 +184,118 @@ app.get ('/status/latest/:callerversion', (req,res) => {
 //----------------------------------------------------------------------------
 
 app.get('/Sigma16', (req, res) => {
-    let loc = path.join (LatestReleaseDir)
-    console.log (`Run latest release`)
+    const loc = path.join (LatestReleaseDir, 'Sigma16', 'Sigma16.html')
+    console.log (`Run latest (main-html) path ${req.path}`)
+    console.log (`Run latest (main-html) loc =  ${loc}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
 })
 
-app.get('/Sigma16/*.txt', (req, res) => {
-    let loc = path.join (LatestReleaseDir, req.path)
-//    console.log (`get top txt ${req.path}`)
+app.get('/Sigma16/src/gui/*.mjs', (req, res) => {
+    const basename = path.basename (req.path)
+    const loc = path.join (LatestReleaseDir, 'Sigma16', 'src', 'gui',
+                           basename)
+    console.log (`Run latest (src/gui/*.mjs) path ${req.path}`)
+    console.log (`Run latest (src/gui/*.mjs)) loc =  ${loc}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
 })
 
-app.get('/Sigma16/src/*', (req, res) => {
-    let loc = path.join (LatestReleaseDir, req.path)
-//    console.log (`get src ${req.path}`)
+app.get('/Sigma16/src/base/*.mjs', (req, res) => {
+    const basename = path.basename (req.path)
+    const loc = path.join (LatestReleaseDir, 'Sigma16', 'src', 'base',
+                           basename)
+    console.log (`Run latest (src/base/*.mjs) path ${req.path}`)
+    console.log (`Run latest (src/base/*.mjs)) loc =  ${loc}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
 })
 
+app.get('/Sigma16/*', (req, res) => {
+    const basename = path.basename (req.path)
+    const loc = path.join (LatestReleaseDir, 'Sigma16', basename)
+    console.log (`Run latest (*) path ${req.path}`)
+    console.log (`Run latest (*) loc =  ${loc}`)
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+})
+
+app.get('/Sigma16/*.html', (req, res) => {
+    let loc = path.join (CurrentReleaseDir, req.path)
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+})
 
 app.get('/Sigma16/docs/docstyle.css', (req, res) => {
-    let loc = path.join (LatestReleaseDir, req.path)
+    let loc = path.join (CurrentReleaseDir, req.path)
 //    console.log (`get docstyle ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
 })
 
-app.get('/Sigma16/*.mjs', (req, res) => {
-    let basename = path.basename (req.path)
-    let loc = path.join (LatestReleaseDir, 'Sigma16/src/base', basename)
-//    console.log (`get mjs path=${req.path}`)
-//    console.log (`get mjs loc=${loc}`)
+app.get('/Sigma16/*', (req, res) => {
+    const loc = path.join (LatestReleaseDir)
+    console.log (`Run latest (*) path ${req.path}`)
+    console.log (`Run latest (*) loc =  ${loc}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
 })
+
+/*
+app.get('/Sigma16/release/:releasenumber', (req, res) => {
+    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
+                           'Sigma16', 'Sigma16.html')
+    console.log (`Run release ${req.params.releasenumber}`)
+    console.log (`Run release loc =  ${loc}`)
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+})
+
+app.get('/Sigma16/release/:releasenumber/Sigma16/src/:srcfile', (req, res) => {
+    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
+                           'Sigma16', 'src', req.params.srcfile)
+    console.log (`Run release src path =  ${req.path}`)
+    console.log (`Run release src loc =  ${loc}`)
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+})
+
+app.get('/Sigma16/release/:releasenumber/*.txt', (req, res) => {
+    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
+                           'Sigma16')
+    console.log (`Run release txt loc =  ${loc}`)
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+})
+
+app.get('/Sigma16/release/:releasenumber/src/*', (req, res) => {
+    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
+                           'Sigma16', 'src')
+    console.log (`Run release src loc =  ${loc}`)
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+})
+
+app.get('/Sigma16/release/:releasenumber/Sigma16/docs/docstyle.css', (req, res) => {
+    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
+                           'Sigma16', 'docs', 'docstyle.css')
+    console.log (`Run release docstyle loc =  ${loc}`)
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+})
+*/
 
 //----------------------------------------------------------------------------
 // Notes: cross origin isolation
