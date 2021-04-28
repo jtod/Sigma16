@@ -31,6 +31,26 @@
 //   http://latest/status/this/is/logged
 
 //-----------------------------------------------------------------------------
+// URLs
+//-----------------------------------------------------------------------------
+
+// Index page with general information
+//    https://sigma16.herokuapp.com/
+
+// Run the latest release (main run link points here)
+//    https://sigma16.herokuapp.com/Sigma16
+
+// Run current development version
+//    https://sigma16.herokuapp.com/Sigma16/development
+
+// Request latest release number (from running version 1/2/3)
+//    https://sigma16.herokuapp.com/status/latest/1/2/3
+//    http://localhost:3000/status/latest/3.4.5
+
+// Run a specific release, e.g. 3.3.1
+//    https://sigma16.herokuapp.com/Sigma16/release/3.3.1
+
+//-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
 
@@ -41,26 +61,39 @@
 // avoid clash with any other application.
 
 //-----------------------------------------------------------------------------
-// Calculated parameters
+// Environment variables
 //-----------------------------------------------------------------------------
 
-// These parameters are calculated and don't need to be edited
-// manually.  If the environment defines a port (e.g. on the Heroku
-// server) that is used; otherwise the LOCAL_PORT is used.  From the
-// Sigma16 directory, the path to the server is
-// src/server/sigserver.mjs.  The server finds the home directory as
-// serverpath/../.. and names it S16home.
+// On the local server, the environment variables are set in .bashrc.
+// On Heroku, they are set using heroku config
 
-// Define the constants that are set in environment variables
-const LOCAL_PORT = process.env.LOCAL_PORT
-const S16_DEV_VERSION = process.env.S16_DEV_VERSION
+// If the environment defines a port (e.g. on the Heroku server) that
+// is used; otherwise the LOCAL_PORT is used.  From the Sigma16
+// directory, the path to the server is src/server/sigserver.mjs.
+
+// The server finds the home directory as serverpath/../.. and names
+// it S16home.
+
+// Environment parameters.  On local server, these are set in .bashrc.
+// On Heroku server, they are set using heroku config.
+
 const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
+const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 const S16_RUN_ENV = process.env.S16_RUN_ENV
+const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
 
-const PORT = process.env.PORT || LOCAL_PORT
+// S16_LATEST_RELEASE is the version number of the latest official
+// release.  This is the version that users should be running.  The
+// status/latest request returns this value and it's displayed on the
+// Options page; that enables the user to see whether they are running
+// the latest release.
+
+// Calculated parameters
+
+const PORT = process.env.PORT || S16_LOCAL_PORT
 const ServerHome = path.dirname (fileURLToPath (import.meta.url));
 const S16home = path.join (ServerHome, '../..')
-const CurrentReleaseDir = path.join (
+const LatestReleaseDir = path.join (
     S16home,
     `build/Sigma16/release/${S16_DEV_VERSION}`)
 
@@ -127,12 +160,15 @@ express.static.mime.define({'text/html': ['html']});
 // The server logs the request and responds with a string giving the
 // latest release.
 
-app.get ('/status/latest/*', (req,res) => {
-    console.log ('status/latest has fired')
+// app.get ('/status/latest/*', (req,res) => {
+app.get ('/status/latest/:callerversion', (req,res) => {
+    console.log ('status/latest')
+    console.log (req.params.callerversion)
     const reqInfo = {
         date: new Date (),
         ip: req.ip,
-        path: req.path
+        path: req.path,
+        callerversion: req.params.callerversion
     }
     const xs = JSON.stringify (reqInfo)
     console.log (`Sigma16 request ${xs}`)
@@ -147,16 +183,16 @@ app.get ('/status/latest/*', (req,res) => {
 // URL path: Sigma16/Sigma16.html
 //----------------------------------------------------------------------------
 
-app.get('/Sigma16/*.html', (req, res) => {
-    let loc = path.join (CurrentReleaseDir, req.path)
-//    console.log (`get top html ${req.path}`)
+app.get('/Sigma16', (req, res) => {
+    let loc = path.join (LatestReleaseDir)
+    console.log (`Run latest release`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
 })
 
 app.get('/Sigma16/*.txt', (req, res) => {
-    let loc = path.join (CurrentReleaseDir, req.path)
+    let loc = path.join (LatestReleaseDir, req.path)
 //    console.log (`get top txt ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
@@ -164,7 +200,7 @@ app.get('/Sigma16/*.txt', (req, res) => {
 })
 
 app.get('/Sigma16/src/*', (req, res) => {
-    let loc = path.join (CurrentReleaseDir, req.path)
+    let loc = path.join (LatestReleaseDir, req.path)
 //    console.log (`get src ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
@@ -173,7 +209,7 @@ app.get('/Sigma16/src/*', (req, res) => {
 
 
 app.get('/Sigma16/docs/docstyle.css', (req, res) => {
-    let loc = path.join (CurrentReleaseDir, req.path)
+    let loc = path.join (LatestReleaseDir, req.path)
 //    console.log (`get docstyle ${req.path}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
@@ -182,7 +218,7 @@ app.get('/Sigma16/docs/docstyle.css', (req, res) => {
 
 app.get('/Sigma16/*.mjs', (req, res) => {
     let basename = path.basename (req.path)
-    let loc = path.join (CurrentReleaseDir, 'Sigma16/src/base', basename)
+    let loc = path.join (LatestReleaseDir, 'Sigma16/src/base', basename)
 //    console.log (`get mjs path=${req.path}`)
 //    console.log (`get mjs loc=${loc}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
@@ -238,12 +274,19 @@ app.get ('/world.html', (req,res) => {
 //----------------------------------------------------------------------------
 
 console.log ('Starting sigserver')
-console.log (`env: S16_RUN_ENV = ${S16_RUN_ENV}`)
-console.log (`env: LOCAL_PORT = ${LOCAL_PORT}`)
-console.log (`env: S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
-console.log (`env: S16_DEV_VERSION = ${S16_DEV_VERSION}`)
+console.log ('Environment:')
+console.log (`  S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
+console.log (`  S16_DEV_VERSION = ${S16_DEV_VERSION}`)
+console.log (`  S16_RUN_ENV = ${S16_RUN_ENV}`)
+console.log (`  S16_LOCAL_PORT = ${S16_LOCAL_PORT}`)
 console.log (`Using port ${PORT}`)
 console.log (`S16home = ${S16home}`)
-console.log (`CurrentReleaseDir = ${CurrentReleaseDir}`)
+console.log (`LatestReleaseDir = ${LatestReleaseDir}`)
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
+//----------------------------------------------------------------------------
+// Notes
+//----------------------------------------------------------------------------
+
+// General advice on URLs: https://www.w3.org/Provider/Style/URI.html
