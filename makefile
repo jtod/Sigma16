@@ -37,9 +37,13 @@
 # Usage
 #-------------------------------------------------------------------------------
 
-# Build system in ${SIGMASYSTEM}/Sigma16
-#   Build html files from org using emacs export
-#   make webbuild      build a web release in the ./build directory
+# Preparing the folder to run locally:
+#    make set-version
+#    After set-version, build html files from org using emacs export
+
+# Additional preporation to run on Heroku:
+#    make clear-build
+#    make copy-build
 
 # Copy files to homepage repository
 #   make copybuild     copy the web release to the github homepage repository
@@ -52,6 +56,10 @@
 # Build and copy development version
 #  make all
 
+# Deprecated:
+# Build system in ${SIGMASYSTEM}/Sigma16
+#   make webbuild      build a web release in the ./build directory
+
 #-------------------------------------------------------------------------------
 # Define parameters
 #-------------------------------------------------------------------------------
@@ -59,7 +67,7 @@
 # SIGMASYSTEM is the path to parent of the directory containing this makefile
 
 SIGMASYSTEM:=./..
-SIGSERVER=SIGMASYSTEM/SigServer
+ySIGSERVER=SIGMASYSTEM/SigServer
 
 # S16HOMEPAGE is the local source repository for the Sigma16 Home
 # Page.  This can be pushed to github.
@@ -90,6 +98,9 @@ YEARMONTHDAY=$(shell date +"%F")
 .PHONY: showparams
 showparams:
 	echo SIGMASYSTEM = $(SIGMASYSTEM)
+	ls $(SIGMASYSTEM)
+	echo SIGSERVER = $(SIGSERVER)
+	ls $(SIGSERVER)
 	echo S16HOMEPAGE = $(S16HOMEPAGE)
 	echo WEBBUILD = $(WEBBUILD)
 	echo VERSION = $(VERSION)
@@ -135,27 +146,45 @@ showparams:
 # make webbuild -- prepare the release in build directory
 #-------------------------------------------------------------------------------
 
+# Don't need this...
 VERSIONPATH=build/Sigma16/release/$(VERSION)/Sigma16
 
 # Do `make set-version' before `make build-release'
 
-# make clear-release -- Remove all the files in the current release
-# build.  This is only necessary if a reorganization of the sources
+# Copy the web server to Heroku source directory
+
+.PHONY: copy-server
+copy-server:
+	cp -up src/server/sigserver.mjs ../SigServer/src/server 
+
+# make clear-build -- Remove all the files in the server/build
+# directory. This is only necessary if a reorganization of the sources
 # means that some redundant files would be left over; normally
 # build-release will overwrite the files that have changed and leave
 # the others unchanged.
 
-.PHONY: clear-release
-clear-release:
-	/bin/rm -rf $(VERSIONPATH)/*
+.PHONY: clear-build
+clear-build:
+	/bin/rm -rf ../SigServer/build/Sigma16
 
-.PHONY: copyserver
-copyserver:
-	echo copyserver
-	cd $(SIGSERVER); ls
+# Copy the The main Sigma16 directory contains some source files that aren't
+# needed by the server, but they don't take too much space so for
+# simplicity they are copied over anyway.
 
-.PHONY: build-release
-build-release:
+.PHONY: copy-build
+copy-build:
+	mkdir -p ../SigServer/build/Sigma16/src/gui
+	mkdir -p ../SigServer/build/Sigma16/src/base
+	cp -up *.html ../SigServer/build/Sigma16/
+	cp -up *.txt ../SigServer/build/Sigma16/
+	cp -upr src/gui ../SigServer/build/Sigma16/src
+	cp -upr src/base ../SigServer/build/Sigma16/src
+	cp -upr docs ../SigServer/build/Sigma16/
+	cp -upr examples ../SigServer/build/Sigma16/
+
+# Don't need this
+.PHONY: build-release-DEPRECATED
+build-release-DEPRECATED:
 	echo VERSIONPATH=$(VERSIONPATH)
 	mkdir -p $(VERSIONPATH)
 	cp -up README.org $(VERSIONPATH)

@@ -38,18 +38,11 @@
 //    https://sigma16.herokuapp.com/
 
 // Run the latest release (main run link points here)
-//    https://sigma16.herokuapp.com/Sigma16
+//    https://sigma16.herokuapp.com/sigma16
 
 // Run current development version
-//    https://sigma16.herokuapp.com/Sigma16/development
+//    https://sigma16.herokuapp.com/sigma16/development
 
-// Request latest release number (from running version 1/2/3)
-//    https://sigma16.herokuapp.com/status/latest/1/2/3
-//    http://localhost:3000/status/latest/3.4.5
-
-// Run a specific release, e.g. 3.3.1
-//    https://sigma16.herokuapp.com/Sigma16/release/3.3.1
-//    http://localhost:3000/Sigma16/release/3.3.1
 
 //-----------------------------------------------------------------------------
 // Configuration
@@ -79,6 +72,7 @@
 // On Heroku server, they are set using heroku config.
 
 const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
+const S16_TEST_VERSION = process.env.S16_TEST_VERSION
 const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 const S16_RUN_ENV = process.env.S16_RUN_ENV
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
@@ -94,8 +88,8 @@ const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
 const PORT = process.env.PORT || S16_LOCAL_PORT
 const ServerHome = path.dirname (fileURLToPath (import.meta.url));
 const S16home = path.join (ServerHome, '../..')
-const LatestReleaseDir = path.join (
-    S16home, 'build', 'release', S16_DEV_VERSION)
+const LatestReleaseDir = path.join (S16home, 'build', 'release', S16_DEV_VERSION)
+const DevDir = path.join (S16home)
 
 //-----------------------------------------------------------------------------
 // Packages
@@ -160,7 +154,8 @@ express.static.mime.define({'text/html': ['html']});
 // The server logs the request and responds with a string giving the
 // latest release.
 
-// app.get ('/status/latest/*', (req,res) => {
+// app.get ('/status/latest/7.8.9', (req,res) => {
+
 app.get ('/status/latest/:callerversion', (req,res) => {
     console.log ('status/latest')
     console.log (req.params.callerversion)
@@ -180,122 +175,87 @@ app.get ('/status/latest/:callerversion', (req,res) => {
 
 //----------------------------------------------------------------------------
 // Respond to request to launch Sigma16
-// URL path: Sigma16/Sigma16.html
+// URL path: /
+// http://localhost:3000/
 //----------------------------------------------------------------------------
 
-app.get('/Sigma16', (req, res) => {
-    const loc = path.join (LatestReleaseDir, 'Sigma16', 'Sigma16.html')
-    console.log (`Run latest (main-html) path ${req.path}`)
-    console.log (`Run latest (main-html) loc =  ${loc}`)
+// Can't seem to make /dev/ work, the /dev prefix isn't passed to the
+// files imported by /dev/Sigma16.html
+
+function finish (req, res, loc) {
+    console.log (`finish: loc = ${loc}`)
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     res.sendFile (loc)
+}
+
+app.get('/', (req, res) => {
+    let loc = path.join (S16home, 'Sigma16.html')
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/src/gui/*.mjs', (req, res) => {
-    const basename = path.basename (req.path)
-    const loc = path.join (LatestReleaseDir, 'Sigma16', 'src', 'gui',
-                           basename)
-    console.log (`Run latest (src/gui/*.mjs) path ${req.path}`)
-    console.log (`Run latest (src/gui/*.mjs)) loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/src/:srcsection/*', (req, res) => {
+    let loc = path.join (S16home, 'src', req.params.srcsection,
+                         path.basename (req.path))
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/src/base/*.mjs', (req, res) => {
-    const basename = path.basename (req.path)
-    const loc = path.join (LatestReleaseDir, 'Sigma16', 'src', 'base',
-                           basename)
-    console.log (`Run latest (src/base/*.mjs) path ${req.path}`)
-    console.log (`Run latest (src/base/*.mjs)) loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+// The base emulator files are loaded by emwt when the processor is
+// entered.  When that happens, they are accessed by URLs of the form
+// /emwt.mjs, /emulator.mjs etc.  These URLs must be checked only
+// after trying src/base+gui/*.mjs
+
+app.get('/*.mjs', (req, res) => {
+    let loc = path.join (S16home, 'src', 'base', path.basename (req.path))
+    console.log (`get *.mjs fired, loc = ${loc}`)
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/*', (req, res) => {
-    const basename = path.basename (req.path)
-    const loc = path.join (LatestReleaseDir, 'Sigma16', basename)
-    console.log (`Run latest (*) path ${req.path}`)
-    console.log (`Run latest (*) loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/docs/*.css', (req, res) => {
+    let loc = path.join (S16home, 'docs', path.basename (req.path))
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/*.html', (req, res) => {
-    let loc = path.join (CurrentReleaseDir, req.path)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/examples/index.html', (req, res) => {
+    let loc = path.join (S16home, 'examples', 'index.html')
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/docs/docstyle.css', (req, res) => {
-    let loc = path.join (CurrentReleaseDir, req.path)
-//    console.log (`get docstyle ${req.path}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/examples/Core/*.html', (req, res) => {
+    const loc = path.join (S16home, 'examples', 'Core', path.basename (req.path))
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/*', (req, res) => {
-    const loc = path.join (LatestReleaseDir)
-    console.log (`Run latest (*) path ${req.path}`)
-    console.log (`Run latest (*) loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/examples/Standard/*.html', (req, res) => {
+    const loc = path.join (S16home, 'examples', 'Standard',
+                           path.basename (req.path))
+    finish (req, res, loc)
 })
 
-/*
-app.get('/Sigma16/release/:releasenumber', (req, res) => {
-    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
-                           'Sigma16', 'Sigma16.html')
-    console.log (`Run release ${req.params.releasenumber}`)
-    console.log (`Run release loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/examples/S16/*.html', (req, res) => {
+    const loc = path.join (S16home, 'examples', 'S16', path.basename (req.path))
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/release/:releasenumber/Sigma16/src/:srcfile', (req, res) => {
-    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
-                           'Sigma16', 'src', req.params.srcfile)
-    console.log (`Run release src path =  ${req.path}`)
-    console.log (`Run release src loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/examples/S32/*.html', (req, res) => {
+    const loc = path.join (S16home, 'examples', 'S32', path.basename (req.path))
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/release/:releasenumber/*.txt', (req, res) => {
-    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
-                           'Sigma16')
-    console.log (`Run release txt loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/docs/welcome/*', (req, res) => {
+    let loc = path.join (S16home, 'docs', 'Welcome', path.basename (req.path))
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/release/:releasenumber/src/*', (req, res) => {
-    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
-                           'Sigma16', 'src')
-    console.log (`Run release src loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/docs/help/*.html', (req, res) => {
+    let loc = path.join (S16home, 'docs', 'help', path.basename (req.path))
+    finish (req, res, loc)
 })
 
-app.get('/Sigma16/release/:releasenumber/Sigma16/docs/docstyle.css', (req, res) => {
-    const loc = path.join (S16home, 'build', 'release', req.params.releasenumber,
-                           'Sigma16', 'docs', 'docstyle.css')
-    console.log (`Run release docstyle loc =  ${loc}`)
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
+app.get('/docs/UserGuide/*', (req, res) => {
+    let loc = path.join (S16home, 'docs', 'UserGuide', path.basename (req.path))
+    finish (req, res, loc)
 })
-*/
 
 //----------------------------------------------------------------------------
 // Notes: cross origin isolation
@@ -353,6 +313,7 @@ console.log (`  S16_LOCAL_PORT = ${S16_LOCAL_PORT}`)
 console.log (`Using port ${PORT}`)
 console.log (`S16home = ${S16home}`)
 console.log (`LatestReleaseDir = ${LatestReleaseDir}`)
+console.log (`DevDir = ${DevDir}`)
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
