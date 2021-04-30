@@ -67,7 +67,7 @@
 # SIGMASYSTEM is the path to parent of the directory containing this makefile
 
 SIGMASYSTEM:=./..
-ySIGSERVER=SIGMASYSTEM/SigServer
+SIGSERVER=SIGMASYSTEM/SigServer
 
 # S16HOMEPAGE is the local source repository for the Sigma16 Home
 # Page.  This can be pushed to github.
