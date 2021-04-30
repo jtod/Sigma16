@@ -3,7 +3,7 @@
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
-// sigserver.mjs is a web server for Sigma16 using node.js and express
+// server.mjs is a web server for Sigma16 using node.js and express
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -15,6 +15,18 @@
 // General Public License for more details.  You should have received
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
+
+//-----------------------------------------------------------------------------
+// Packages
+//-----------------------------------------------------------------------------
+
+import express from 'express';
+import * as http from 'http'
+import * as path from 'path'
+import * as cors from 'cors'
+import * as ejs from 'ejs'
+import * as fs from "fs";
+import { fileURLToPath } from 'url';
 
 //-----------------------------------------------------------------------------
 // Usage
@@ -42,7 +54,6 @@
 
 // Run current development version
 //    https://sigma16.herokuapp.com/sigma16/development
-
 
 //-----------------------------------------------------------------------------
 // Configuration
@@ -73,32 +84,26 @@ const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
 const S16_TEST_VERSION = process.env.S16_TEST_VERSION
 const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 
-// Files
-const S16_BUILD_DIR = process.env.S16_BUILD_DIR
-const S16_DEV = process.env.S16_DEV
-
 // Server configuration
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
 const PORT = process.env.PORT || S16_LOCAL_PORT
 const S16_RUN_ENV = process.env.S16_RUN_ENV
 
-// S16_LATEST_RELEASE is the version number of the latest official
-// release.  This is the version that users should be running.  The
-// status/latest request returns this value and it's displayed on the
-// Options page; that enables the user to see whether they are running
-// the latest release.
-
-//-----------------------------------------------------------------------------
-// Packages
-//-----------------------------------------------------------------------------
-
-import express from 'express';
-import * as http from 'http'
-import * as path from 'path'
-import * as cors from 'cors'
-import * as ejs from 'ejs'
-import * as fs from "fs";
-import { fileURLToPath } from 'url';
+// Files
+let S16_BUILD_DIR
+if (S16_RUN_ENV === 'Heroku') {
+    console.log ('Running on Heroku')
+    // Find the directory this program is running in and use that to
+    // find the build directory
+    const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
+    S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..', 'build')
+} else if (S16_RUN_ENV === 'Local') {
+    console.log ('Running on local machine')
+    S16_BUILD_DIR = process.env.S16_LOCAL_BUILD_DIR
+} else {
+    console.log (`Server error: cannot find build directory for ${S16_RUN_ENV}`)
+}
+const S16_DEV_DIR = path.join (S16_BUILD_DIR, S16_DEV_VERSION, 'Sigma16')
 
 //-----------------------------------------------------------------------------
 // Directory structure
@@ -150,6 +155,12 @@ express.static.mime.define({'text/html': ['html']});
 // /status/latest/i.j.k, where i.j.k identifies the running version.
 // The server logs the request and responds with a string giving the
 // latest release.
+
+// S16_LATEST_RELEASE is the version number of the latest official
+// release.  This is the version that users should be running.  The
+// status/latest request returns this value and it's displayed on the
+// Options page; that enables the user to see whether they are running
+// the latest release.
 
 // app.get ('/status/latest/7.8.9', (req,res) => {
 
@@ -410,17 +421,15 @@ app.get ('/world.html', (req,res) => {
 // Main program
 //----------------------------------------------------------------------------
 
-console.log ('Starting sigserver')
+console.log (`Starting sigserver`)
 console.log ('Environment:')
 console.log (`  S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
 console.log (`  S16_TEST_VERSION = ${S16_TEST_VERSION}`)
 console.log (`  S16_DEV_VERSION = ${S16_DEV_VERSION}`)
 console.log (`  S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-console.log (`  S16_DEV = ${S16_DEV}`)
+console.log (`  S16_DEV_DIR = ${S16_DEV_DIR}`)
 console.log (`  S16_LOCAL_PORT = ${S16_LOCAL_PORT}`)
 console.log (`  S16_RUN_ENV = ${S16_RUN_ENV}`)
 console.log (`Using port ${PORT}`)
-
-console.log ('This is server in Dev version')
 
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
