@@ -74,7 +74,7 @@ YEARMONTHDAY=$(shell date +"%F")
 # MONTHYEARDAY=$(shell date +"%F")
 # YEARMONTHDAY=$(shell date -I")
 
-S16_CURRENT_BUILD_DIR="$(S16_LOCAL_BUILD_DIR)/$(S16_DEV_VERSION)/Sigma16"
+S16_CURRENT_BUILD_DIR="$(S16_LOCAL_BUILD_DIR)/$(S16_DEV_VERSION)"
 # make showconfig - print out the configuration paramaters
 
 .PHONY: showconfig
@@ -116,6 +116,11 @@ src/base/version.mjs : src/package.json
 # Build
 #-------------------------------------------------------------------------------
 
+.PHONY: set-version
+set-version:
+	make VERSION.txt
+	make src/base/version.mjs
+
 # Remove all the files in build/(version). This is only necessary if a
 # reorganization of the sources means that some redundant files would
 # be left over; normally build-release will overwrite the files that
@@ -123,7 +128,7 @@ src/base/version.mjs : src/package.json
 
 .PHONY: clear-build
 clear-build:
-	/bin/rm -rf $(S16_CURRENT_BUILD_DIR)
+	/bin/rm -rf $(S16_CURRENT_BUILD_DIR)/Sigma16
 
 # Copy the files needed to run the program from build/dev to
 # build/(version). 
@@ -132,14 +137,14 @@ clear-build:
 build:
 	make VERSION.txt
 	make src/base/version.mjs
-	mkdir -p $(S16_CURRENT_BUILD_DIR)
-	cp -u *.html $(S16_CURRENT_BUILD_DIR)
-	cp -u *.txt  $(S16_CURRENT_BUILD_DIR)
-	cp -ur docs $(S16_CURRENT_BUILD_DIR)
-	cp -ur examples $(S16_CURRENT_BUILD_DIR)
-	mkdir $(S16_CURRENT_BUILD_DIR)/src
-	cp -ur src/gui $(S16_CURRENT_BUILD_DIR)/src
-	cp -ur src/base $(S16_CURRENT_BUILD_DIR)/src
+	mkdir -p $(S16_CURRENT_BUILD_DIR)/Sigma16
+	cp -u *.html $(S16_CURRENT_BUILD_DIR)/Sigma16
+	cp -u *.txt  $(S16_CURRENT_BUILD_DIR)/Sigma16
+	cp -ur docs $(S16_CURRENT_BUILD_DIR)/Sigma16
+	cp -ur examples $(S16_CURRENT_BUILD_DIR)/Sigma16
+	mkdir $(S16_CURRENT_BUILD_DIR)/Sigma16/src
+	cp -ur src/gui $(S16_CURRENT_BUILD_DIR)/Sigma16/src
+	cp -ur src/base $(S16_CURRENT_BUILD_DIR)/Sigma16/src
 
 #-------------------------------------------------------------------------------
 # Install server
@@ -149,7 +154,11 @@ build:
 
 .PHONY: install-server
 install-server:
-	cp -up src/server/sigserver.mjs .$(SIGSERVER)/src/server 
+	cp -up src/server/sigserver.mjs $(SIGSERVER)/src/server 
+
+.PHONY: install-build
+install-build:
+	cp -upr $(S16_CURRENT_BUILD_DIR) $(SIGSERVER)/build
 
 #-------------------------------------------------------------------------------
 # Install home page
