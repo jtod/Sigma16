@@ -28,7 +28,6 @@
 # them where to go to to upgrade.
 
 #+INCLUDE: "../../VERSION.txt" export html
-#+INCLUDE: "../../LATESTVERSION.txt" export html
 
 # The version messages should come after the title but before the
 # table of contents, so the version is clearly visible but not too
