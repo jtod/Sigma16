@@ -239,33 +239,29 @@ app.get('/build/:version/Sigma16/examples/index.html', (req, res) => {
     finish (req, res, loc)
 })
 
-app.get('/build/:version/Sigma16/examples/Core/*.html', (req, res) => {
+app.get('/build/:version/Sigma16/examples/*/docstyle.css', (req, res) => {
     const v = req.params.version
-    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
-                           'examples', 'Core', path.basename (req.path))
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'docs', 'docstyle.css')
     finish (req, res, loc)
 })
 
-app.get('/build/:version/Sigma16/examples/Standard/*.html', (req, res) => {
+
+app.get('/build/:version/Sigma16/examples/:x/:y/*', (req, res) => {
     const v = req.params.version
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
-                           'examples', 'Standard', path.basename (req.path))
+                           'examples', req.params.x, req.params.y,
+                           path.basename (req.path))
     finish (req, res, loc)
 })
 
-app.get('/build/:version/Sigma16/examples/S16/*.html', (req, res) => {
+app.get('/build/:version/Sigma16/examples/:x/*', (req, res) => {
     const v = req.params.version
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
-                           'examples', 'S16', path.basename (req.path))
+                           'examples', req.params.x,
+                           path.basename (req.path))
     finish (req, res, loc)
 })
 
-app.get('/build/:version/Sigma16/examples/S32/*.html', (req, res) => {
-    const v = req.params.version
-    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
-                           'examples', 'S32', path.basename (req.path))
-    finish (req, res, loc)
-})
 
 app.get('/build/:version/Sigma16/docs/welcome/*', (req, res) => {
     const v = req.params.version
@@ -433,3 +429,36 @@ console.log (`  S16_RUN_ENV = ${S16_RUN_ENV}`)
 console.log (`Using port ${PORT}`)
 
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
+
+
+// Deprecated
+/*
+app.get('/build/:version/Sigma16/examples/Core/*.html', (req, res) => {
+    const v = req.params.version
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           'examples', 'Core', path.basename (req.path))
+    finish (req, res, loc)
+})
+
+app.get('/build/:version/Sigma16/examples/Standard/*.html', (req, res) => {
+    const v = req.params.version
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           'examples', 'Standard', path.basename (req.path))
+    finish (req, res, loc)
+})
+
+app.get('/build/:version/Sigma16/examples/S16/*.html', (req, res) => {
+    const v = req.params.version
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           'examples', 'S16', path.basename (req.path))
+    finish (req, res, loc)
+})
+
+app.get('/build/:version/Sigma16/examples/S32/*.html', (req, res) => {
+    const v = req.params.version
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           'examples', 'S32', path.basename (req.path))
+    finish (req, res, loc)
+})
+*/
+

@@ -45,41 +45,22 @@
 #    make clear-build
 #    make copy-build
 
-# Copy files to homepage repository
+# Copy files to Sigma16 homepage repository (on jtod.github.io)
 #   make copybuild     copy the web release to the github homepage repository
 #   make copyS16homepage
 
 # Maintainance
-#   make showparams    print the version, file locations, date, etc
+#   make showconfig    print the configuration parameters
 #   make clean         remove temporary files
 
-# Build and copy development version
-#  make all
-
-# Deprecated:
-# Build system in ${SIGMASYSTEM}/Sigma16
-#   make webbuild      build a web release in the ./build directory
-
 #-------------------------------------------------------------------------------
-# Define parameters
+# Configuration
 #-------------------------------------------------------------------------------
 
-# SIGMASYSTEM is the path to parent of the directory containing this makefile
+# Most of the configuration paramaters are environment variables
+# defined in .bashrc
 
-SIGMASYSTEM:=./..
-SIGSERVER=SIGMASYSTEM/SigServer
-
-# S16HOMEPAGE is the local source repository for the Sigma16 Home
-# Page.  This can be pushed to github.
-
-S16HOMEPAGE:=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
-
-# The executable web version is created in WEBBUILD and later uploaded to
-# github in the releases directory
-
-WEBBUILD=./build
-
-# VERSION is the current version number.  It's extracted from the
+# VERSION, the current version number, is extracted from the
 # package.json file, on the line consisting of "version: : "1.2.3".
 # VERSION is used for building the top level index and the user guide.
 
@@ -93,94 +74,85 @@ YEARMONTHDAY=$(shell date +"%F")
 # MONTHYEARDAY=$(shell date +"%F")
 # YEARMONTHDAY=$(shell date -I")
 
-# make showparams - print out the defined values
+# make showconfig - print out the configuration paramaters
 
-.PHONY: showparams
-showparams:
-	echo SIGMASYSTEM = $(SIGMASYSTEM)
-	ls $(SIGMASYSTEM)
-	echo SIGSERVER = $(SIGSERVER)
-	ls $(SIGSERVER)
-	echo S16HOMEPAGE = $(S16HOMEPAGE)
-	echo WEBBUILD = $(WEBBUILD)
-	echo VERSION = $(VERSION)
-	echo MONTHYEAR = $(MONTHYEAR)
-	echo YEARMONTHDAY = $(YEARMONTHDAY)
-	echo YEAR = $(YEAR)
-
-#-------------------------------------------------------------------------------
-# For users: build the command line tools
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# For developer: build a web release for the Sigma16 Home Page
-#-------------------------------------------------------------------------------
-
-# Although JavaScript can be executed directly in a browser, there are
-# some files that need to be built before uploading to the Sigma16
-# home page.  These include parsing the current version number (from
-# package.json) and generating the user html pages from org source.
-
-# Once the files are built, the system can be given a release number
-# (as a tag) and uploaded to the Sigma16 project page for download.
-# The release itself is then copied to the
-# jtod.github.io/Sigma16/releases page for running the app directly
-# from the web, without downloading anything.
-
-# Update "version" in src/package.json
-# Build html files from org source using emacs
-#    src/datafiles/welcome.org
-#     docs/S16homepage/index.html
-#     example-indices
-#     docs/src/S16homepage/index.org
-# make webbuild -- prepare the release in build/
-# commit and push
-# git tag -a v3.0.26 -m 'version v3.0.26'
-
-# Prepare the SigmaSystem homepage in local directory
-#     make copybuild -- copy the release from build to the homepage repository
-#     Edit ... /jtod.github.io/home/Sigma16/README to point to the new release
-#     git push
+.PHONY: showconfig
+showconfig:
+	@echo Environment variables
+	@echo "  S16_LATEST_RELEASE = $(S16_LATEST_RELEASE)"
+	@echo "  S16_TEST_VERSION = $(S16_TEST_VERSION)"
+	@echo "  S16_DEV_VERSION = $(S16_DEV_VERSION)"
+	@echo "  SIGMASYSTEM = $(SIGMASYSTEM)"
+	@echo "  S16_LOCAL_BUILD_DIR = $(S16_LOCAL_BUILD_DIR)"
+	@echo "  S16_DEV = $(S16_DEV)"
+	@echo "  S16_LOCAL_PORT = $(S16_LOCAL_PORT)"
+	@echo "  S16_RUN_ENV = $(S16_RUN_ENV)"
+	@echo "  SIGSERVER = $(SIGSERVER)"
+	@echo VERSION = $(VERSION)
+	@echo MONTHYEAR = $(MONTHYEAR)
+	@echo YEARMONTHDAY = $(YEARMONTHDAY)
 
 #-------------------------------------------------------------------------------
-# make webbuild -- prepare the release in build directory
+# make set-version -- find version and define Version files
 #-------------------------------------------------------------------------------
 
-# Don't need this...
-VERSIONPATH=build/Sigma16/release/$(VERSION)/Sigma16
+# make set-version --- The version number is defined in
+# src/gui/package.json; this makefile finds the number there and
+# defines a make variable $(VERSION).  This is used in several places,
+# including writing a VERSION file in the top directory (used in the
+# Welcome page and the User Guide) and src/gui/version.js (which makes
+# the version number available to the JavaScript program).
 
-# Do `make set-version' before `make build-release'
+.PHONY : set-version
+set-version :
+	echo "Version $(VERSION), $(MONTHYEAR).\
+	  Copyright (c) $(YEAR) John T. O'Donnell.  " \
+	  > VERSION.txt
+	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
 
-# Copy the web server to Heroku source directory
+#-------------------------------------------------------------------------------
+# Build dev version on local machine
+#-------------------------------------------------------------------------------
+
+# Use 'make set-version' to ensure the version files are consistent
+# with src/package.json
+
+# Remove all the files in build/(version). This is only necessary if a
+# reorganization of the sources means that some redundant files would
+# be left over; normally build-release will overwrite the files that
+# have changed and leave the others unchanged.
+
+.PHONY: clear-dev
+clear-build:
+	echo /bin/rm -rf $(S16_DEV)/*
+
+# Copy the files needed to run the program from build/dev to
+# build/(version). 
+
+.PHONY: copy-dev
+copy-build:
+	mkdir -p $(S16_DEV)/src/gui
+	mkdir -p $(S16_DEV)/src/base
+	cp -up *.html $(S16_DEV)
+	cp -up *.txt  $(S16_DEV)
+	cp -upr src/gui/*.mjs  ../SigServer/build/Sigma16/src/gui
+	cp -upr src/base/*.mjs ../SigServer/build/Sigma16/src/base
+	mkdir $(S16_DEV)/docs/welcome
+	mkdir $(S16_DEV)/docs/help
+	mkdir $(S16_DEV)/docs/UserGuide
+	cp -upr docs ../SigServer/build/Sigma16/
+	cp -upr examples ../SigServer/build/Sigma16/
+
+#-------------------------------------------------------------------------------
+# Copy server
+#-------------------------------------------------------------------------------
+
+# Copy server to Heroku source directory
 
 .PHONY: copy-server
 copy-server:
-	cp -up src/server/sigserver.mjs ../SigServer/src/server 
+	cp -up src/server/sigserver.mjs .$(SIGSERVER)/src/server 
 
-# make clear-build -- Remove all the files in the server/build
-# directory. This is only necessary if a reorganization of the sources
-# means that some redundant files would be left over; normally
-# build-release will overwrite the files that have changed and leave
-# the others unchanged.
-
-.PHONY: clear-build
-clear-build:
-	/bin/rm -rf ../SigServer/build/Sigma16
-
-# Copy the The main Sigma16 directory contains some source files that aren't
-# needed by the server, but they don't take too much space so for
-# simplicity they are copied over anyway.
-
-.PHONY: copy-build
-copy-build:
-	mkdir -p ../SigServer/build/Sigma16/src/gui
-	mkdir -p ../SigServer/build/Sigma16/src/base
-	cp -up *.html ../SigServer/build/Sigma16/
-	cp -up *.txt ../SigServer/build/Sigma16/
-	cp -upr src/gui ../SigServer/build/Sigma16/src
-	cp -upr src/base ../SigServer/build/Sigma16/src
-	cp -upr docs ../SigServer/build/Sigma16/
-	cp -upr examples ../SigServer/build/Sigma16/
 
 # Don't need this
 .PHONY: build-release-DEPRECATED
@@ -298,24 +270,6 @@ copytesting :
 	cp -r src/compatibility/*.mjs $(S16HOMEPAGE)/testing/compatibility
 
 #-------------------------------------------------------------------------------
-# make set-version -- find version and define Version files
-#-------------------------------------------------------------------------------
-
-# make set-version --- The version number is defined in
-# src/gui/package.json; this makefile finds the number there and
-# defines a make variable $(VERSION).  This is used in several places,
-# including writing a VERSION file in the top directory (used in the
-# Welcome page and the User Guide) and src/gui/version.js (which makes
-# the version number available to the JavaScript program).
-
-.PHONY : set-version
-set-version :
-	echo "Version $(VERSION), $(MONTHYEAR).\
-	  Copyright (c) $(YEAR) John T. O'Donnell.  " \
-	  > VERSION.txt
-	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
-
-#-------------------------------------------------------------------------------
 # make clean -- remove backup and temp files
 #-------------------------------------------------------------------------------
 
@@ -358,3 +312,33 @@ log :
 # quote characters, and if a better name is specified using
 # artifactName it fails to expand the variables.  So in building the
 # release, the executable files should be renamed as they are moved.
+
+#-------------------------------------------------------------------------------
+# Deprecated
+#-------------------------------------------------------------------------------
+
+# Build and copy development version
+#  make all
+# Build system in ${SIGMASYSTEM}/Sigma16
+#   make webbuild      build a web release in the ./build directory
+
+# SIGMASYSTEM is the path to parent of the directory containing this makefile
+# SIGMASYSTEM:=./..
+#	ls $(SIGMASYSTEM)
+#	ls $(SIGSERVER)
+
+# The executable web version is created in WEBBUILD and later uploaded to
+# github in the releases directory
+# WEBBUILD=./build
+#	echo WEBBUILD = $(WEBBUILD)
+#	echo VERSION = $(VERSION)
+
+# S16HOMEPAGE is the local source repository for the Sigma16 Home
+# Page.  This can be pushed to github.
+# S16HOMEPAGE:=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
+#	@echo S16HOMEPAGE = $(S16HOMEPAGE)
+
+# SIGSERVER=SIGMASYSTEM/SigServer
+#	cp -up src/server/sigserver.mjs ../SigServer/src/server 
+# Don't need this...
+# VERSIONPATH=build/Sigma16/release/$(VERSION)/Sigma16

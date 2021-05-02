@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
 #+TITLE: S16 systems programming
 #+OPTIONS: html-postamble:nil
 

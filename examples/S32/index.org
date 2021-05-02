@@ -1,8 +1,9 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
 #+TITLE: S32
 #+OPTIONS: html-postamble:nil
 
-An extension of the architecture that supports 32-bit words
+Sigma32 is a 32-bit architecture.  Sigma16 is a subset of Sigma32.
+
 
 
 

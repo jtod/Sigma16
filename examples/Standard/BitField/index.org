@@ -1,0 +1,6 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Bit fields
+#+OPTIONS: html-postamble:nil
+
+- [[./Shift.asm.txt][Shift.asm.txt]] Illustrate the shifting
+  instructions
