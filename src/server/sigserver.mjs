@@ -270,6 +270,14 @@ app.get('/build/:version/Sigma16/docs/welcome/*', (req, res) => {
     finish (req, res, loc)
 })
 
+app.get('/build/:version/Sigma16/docs/:x/*', (req, res) => {
+    const v = req.params.version
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           'docs', req.params.x, path.basename (req.path))
+    finish (req, res, loc)
+})
+
+/*
 app.get('/build/:version/Sigma16/docs/help/*.html', (req, res) => {
     const v = req.params.version
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
@@ -279,14 +287,13 @@ app.get('/build/:version/Sigma16/docs/help/*.html', (req, res) => {
 //    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
     finish (req, res, loc)
 })
-
-app.get('/build/:version/Sigma16/docs/UserGuide/*', (req, res) => {
+app.get('/build/:version/Sigma16/docs/user-guide/*', (req, res) => {
     const v = req.params.version
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
-                           'docs', 'UserGuide', path.basename (req.path))
+                           'docs', 'user-guide', path.basename (req.path))
     finish (req, res, loc)
 })
-
+*/
 
 /*
 // Can't seem to make /dev/ work, the /dev prefix isn't passed to the
