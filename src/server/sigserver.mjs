@@ -80,16 +80,22 @@ import { fileURLToPath } from 'url';
 // On Heroku server, they are set using heroku config.
 
 // Versions
+// S16_LATEST_RELEASE   is the response to a status/latest request
+// S16_RELEASE_VERSION  is the version number of build used for default launch
+// S16_TEST_VERSION     is version number of a release candidate for testing
+// S16_DEV_VERSION      is version number of development
+
 const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
+const S16_RELEASE_VERSION = process.env.S16_RELEASE_VERSION
 const S16_TEST_VERSION = process.env.S16_TEST_VERSION
 const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 
 // Server configuration
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
-const PORT = process.env.PORT || S16_LOCAL_PORT
 const S16_RUN_ENV = process.env.S16_RUN_ENV
+const PORT = process.env.PORT || S16_LOCAL_PORT
 
-// Files
+// S16_BUILD_DIR contains all the versions
 let S16_BUILD_DIR
 if (S16_RUN_ENV === 'Heroku') {
     console.log ('Running on Heroku')
@@ -98,11 +104,15 @@ if (S16_RUN_ENV === 'Heroku') {
     const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
     S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..', 'build')
 } else if (S16_RUN_ENV === 'Local') {
-    console.log ('Running on local machine')
+    console.log ('Running on local development machine')
     S16_BUILD_DIR = process.env.S16_LOCAL_BUILD_DIR
 } else {
     console.log (`Server error: cannot find build directory for ${S16_RUN_ENV}`)
 }
+
+// Build directories
+const S16_RELEASE_DIR = path.join (S16_BUILD_DIR, S16_RELEASE_VERSION, 'Sigma16')
+const S16_TEST_DIR = path.join (S16_BUILD_DIR, S16_TEST_VERSION, 'Sigma16')
 const S16_DEV_DIR = path.join (S16_BUILD_DIR, S16_DEV_VERSION, 'Sigma16')
 
 //-----------------------------------------------------------------------------
@@ -195,6 +205,21 @@ function finish (req, res, loc) {
 }
 
 // http://localhost:3000/build/3.3.2/Sigma16/Sigma16.html
+
+// Run the latest release; bookmarkable link Name the directories in
+// build with version number, except for special ones: release, test,
+// and dev
+
+
+app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
+    const v = req.params.version
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
+    console.log (`get build, version = ${v}`)
+    console.log (`get build, loc = ${loc}`)
+    finish (req, res, loc)
+})
+
+// Run a specific build
 
 app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
     const v = req.params.version
@@ -427,6 +452,9 @@ app.get ('/world.html', (req,res) => {
 console.log (`Starting sigserver`)
 console.log ('Environment:')
 console.log (`  S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
+console.log (`  S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
+console.log (`  S16_RELEASE_DIR = ${S16_LATEST_RELEASE}`)
+console.log (`  S16_TEST_VERSION = ${S16_TEST_VERSION}`)
 console.log (`  S16_TEST_VERSION = ${S16_TEST_VERSION}`)
 console.log (`  S16_DEV_VERSION = ${S16_DEV_VERSION}`)
 console.log (`  S16_BUILD_DIR = ${S16_BUILD_DIR}`)
@@ -467,5 +495,14 @@ app.get('/build/:version/Sigma16/examples/S32/*.html', (req, res) => {
                            'examples', 'S32', path.basename (req.path))
     finish (req, res, loc)
 })
+
+app.get('/build/release/Sigma16/Sigma16.html', (req, res) => {
+    const v = req.params.version
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
+    console.log (`get build release`)
+    console.log (`get build, loc = ${loc}`)
+    finish (req, res, loc)
+})
+
 */
 
