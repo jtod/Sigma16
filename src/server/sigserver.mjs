@@ -127,6 +127,7 @@ app.get ('/status/latest/:callerversion', (req,res) => {
         callerversion: req.params.callerversion
     }
     const xs = JSON.stringify (reqInfo)
+    console.log (`responding-status-latest ${xs}`)
     res.type ('text/plain')
     res.set ('Access-Control-Allow-Origin', '*')
     const reply = S16_LATEST_RELEASE
