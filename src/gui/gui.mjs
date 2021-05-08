@@ -859,6 +859,8 @@ function prepareButton (bid,fcn) {
 // Pane buttons; initialization must occur after emulator state is defined
 
 function initializeButtons () {
+    prepareButton ('Arch16', setArch16)
+    prepareButton ('Arch32', setArch32)
     prepareButton ('Welcome_Pane_Button',   () => showPane (gst) (WelcomePane));
     prepareButton ('Examples_Pane_Button',  () => showPane (gst) (ExamplesPane));
     prepareButton ('Modules_Pane_Button',   () => showPane (gst) (ModulesPane));
@@ -2952,6 +2954,98 @@ function initializeSystem () {
     //    procRefresh (gst)
 //    findVersion (gst)              // Determine running and latest version
 //        configureOptions (gst)
+
+//-----------------------------------------------------------------------------
+// Instruction set architecture selection
+//-----------------------------------------------------------------------------
+
+// The register value width rule is always at index 0 in the list of
+// css rules for the gui stylesheet.  initWL puts the initial width
+// rule for S16 into the list
+
+function initRegValWidth () {
+    const styleSheet = document.styleSheets[0]
+    const rule = '.RegisterValue {width: 2.75em;}'
+    styleSheet.insertRule (rule, 0)
+}
+
+// Delete the old rule for register value width and replace it with
+// the rule for arch (either S16 or S32)
+
+function setRegValWidth (isa) {
+    const styleSheet = document.styleSheets[0]
+    let rule
+    switch (isa) {
+    case arch.S16:
+        rule = '.RegisterValue {width: 3.5em;}'
+        break
+    case arch.S32:
+        rule = '.RegisterValue {width: 5.5em;}'
+        break
+    default:
+        console.log (`error: setRegValWidth bad arch`)
+    }
+    styleSheet.deleteRule (0)
+    styleSheet.insertRule (rule, 0)
+}
+
+// Set the emulator and gui to use arch, which must be either S16 or S32
+
+function setArch (gst, isa) {
+    console.log(`setArch ${isa.description}`)
+    let regvalshow
+    switch (isa) {
+    case arch.S16:
+        regvalshow = arith.wordToHex4
+        break
+    case arch.S32:
+        regvalshow = arith.wordToHex8
+        break
+    default:
+        console.log (`error setArch: invalid arch`)
+        break
+    }
+//    setRegValWidth (isa)
+//    for (let i = 0; i < gst.es.nRegisters; i++) {
+//        gst.es.register[i].show = regvalshow
+//    }
+    //    em.resetRegisters (es)
+    procReset (gst)
+}
+
+function setArch16 () {
+    console.log ('Setting mode to S16')
+    //    gst.es.pc.display ('zxcf')
+    gst.es.pc.show = arith.wordToHex4
+    document.documentElement.style
+        .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
+    //    setArch (gst, arch.S16)
+//    setRegValWidth (arch.S16)
+}
+function setArch32 () {
+    console.log ('Setting mode to S32')
+    gst.es.pc.show = arith.wordToHex8
+    document.documentElement.style 
+        .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
+//    setArch (gst, arch.S32)
+//    setRegValWidth (arch.S32)
+}
+//    gst.es.pc.display ('abcd qwer')
+
+window.set16 = setArch16
+window.set32 = setArch32
+
+window.S16 = arch.S16
+window.S32 = arch.S32
+window.initRegValWidth = initRegValWidth
+window.setRegValWidth = setRegValWidth
+window.setArch = setArch
+window.setisa = (isa) => {setArch (gst, isa)}
+
+// Enter in console:
+// window.S16.description
+// window.setRegValWidth (window.S16)
+// window.setRegValWidth (window.S32)
 
 //-----------------------------------------------------------------------------
 // Run initializers

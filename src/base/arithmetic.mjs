@@ -348,7 +348,7 @@ export function wordToHex4 (x) {
 
 export function wordToHex8 (x) {
     let [p,q,r,s] = splitWord (x);
-    return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
+    return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s] + ' qwer';
 }
 
 function showBit (b) {

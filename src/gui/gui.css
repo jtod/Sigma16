@@ -42,6 +42,10 @@ pane height
  */
 
 :root {
+/* Register value width changes for S16 and S32 */    
+    --RegValWidth16: 3em;
+    --RegValWidth32: 7em;
+    --RegValWidth: var(--RegValWidth16);
 /* Aliases for some colors */
     --light-blue: #e6ffff;
     --dark-blue: blue;
@@ -200,7 +204,13 @@ scroll from working */
 .RegisterValue {
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
+    id: "RegisterValueStyle"; /* from S32 experiment */
 }
+/*
+Set the register value width to allow full word values
+    width: 5.5em;
+*/
+
 
 .FullFrame {
     position: fixed;
@@ -632,7 +642,8 @@ iframe {
     grid-template-columns: [RegVlineStart] min-content
 					   [RegVlineRNameEnd]
 					   var(--reg-name-val-sep)
-					   [RegVlineRValStart] min-content
+/*					   [RegVlineRValStart] min-content */
+					   [RegVlineRValStart] var(--RegValWidth)
 					   [RegVlineEnd];
 }
 
@@ -988,4 +999,14 @@ don't include fonts as these are specified by HighlightedTextAsHtml
 .PaneButton {
     background-color: #f8f8f8;
     border: none;
+}
+
+.ArchButtons {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+.ArchButton {
+    background: light-blue;
+    width: 3em;
 }

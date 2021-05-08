@@ -292,6 +292,10 @@ export class genregister {
         let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
         return x
     }
+    display (xs) {
+        let i = st.EmRegBlockOffset + this.regStIndex
+        this.es.shm[i] = xs
+    }
     put (x) {
         this.es.copyable.regStored.push (this.regNumber)
         let i = st.EmRegBlockOffset + this.regStIndex
@@ -462,8 +466,8 @@ export function initializeMachineState (es) {
     }
 
     // Instruction control registers
-//    es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
-    es.pc   = new genregister (es, 'pc', 'pcElt', arith.wordToHex8); // ????? S32
+    es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
+//    es.pc   = new genregister (es, 'pc', 'pcElt', arith.wordToHex8); // ????? S32
 // ???????????????? S32
     es.ir   = new genregister (es, 'ir',   'irElt',    arith.wordToHex4);
     es.adr  = new genregister (es, 'adr',  'adrElt',   arith.wordToHex4);
