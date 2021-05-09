@@ -43,8 +43,8 @@ pane height
 
 :root {
 /* Register value width changes for S16 and S32 */    
-    --RegValWidth16: 3em;
-    --RegValWidth32: 7em;
+    --RegValWidth16: 2.5em;
+    --RegValWidth32: 5.5em;
     --RegValWidth: var(--RegValWidth16);
 /* Aliases for some colors */
     --light-blue: #e6ffff;
@@ -201,12 +201,27 @@ scroll from working */
     font-weight: bold;
 }
 
+/*
+.Bold {
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+*/
+
+.HeaderText {
+    text-align: center;
+    font-family: sans-serif;
+    font-size: var(--main-font-size);
+    font-weight: bold;
+}
+
 .RegisterValue {
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
-    id: "RegisterValueStyle"; /* from S32 experiment */
 }
 /*
+    id: "RegisterValueStyle"; /* from S32 experiment */
 Set the register value width to allow full word values
     width: 5.5em;
 */
@@ -724,6 +739,8 @@ iframe {
     grid-column-end: DecodeVlineEnd;
 }
 
+/* Emultor control section is a grid.  The rows have different kinds
+   of information, so ; each row is formatted separately */
 
 #Emulator {
     grid-column-start: ProcStateVlineSegStart;
@@ -731,6 +748,73 @@ iframe {
     grid-row-start: ProcStateHlineDecodeStart;
     grid-row-end: ProcStateHlineEnd;
 }
+
+.ProcEmulatorSection {
+    display: grid;
+    grid-gap: 2px;
+    background: ivory;
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+}
+
+.ProcEm1 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 1;
+    grid-row-end: 2;
+}
+
+.ProcEm2 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+.ProcEm3 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 3;
+    grid-row-end: 4;
+}
+
+.ProcEm4 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 4;
+    grid-row-end: 5;
+}
+
+.ProcEm5 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 5;
+    grid-row-end: 6;
+}
+
+.ProcEm6 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 6;
+    grid-row-end: 7;
+}
+
+.ProcEm7 {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 7;
+    grid-row-end: 8;
+}
+.ArchButtons {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+.ArchButton {
+    border-radius: 5px;
+}
+
+/* end of emulator control section */
 
 .NewRegSecName {
     grid-column-start: RegVlineStart;
@@ -1001,12 +1085,3 @@ don't include fonts as these are specified by HighlightedTextAsHtml
     border: none;
 }
 
-.ArchButtons {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-}
-.ArchButton {
-    background: light-blue;
-    width: 3em;
-}

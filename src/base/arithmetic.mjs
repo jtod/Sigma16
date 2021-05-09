@@ -346,9 +346,27 @@ export function wordToHex4 (x) {
     return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
 }
 
-export function wordToHex8 (x) {
-    let [p,q,r,s] = splitWord (x);
-    return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s] + ' qwer';
+export function wordToHex8 (x) { 
+    // a,b,c,d, e,f,g,h
+    let y = x  // validateWord32 (x);
+    let h = y & 0x000f;
+    y = y >>> 4;
+    let g = y & 0x000f;
+    y = y >>> 4;
+    let f = y & 0x000f;
+    y = y >>> 4;
+    let e = y & 0x000f;
+    y = y >>> 4;
+    let d = y & 0x000f;
+    y = y >>> 4;
+    let c = y & 0x000f;
+    y = y >>> 4;
+    let b = y & 0x000f;
+    y = y >>> 4;
+    let a = y & 0x000f;
+    return hexDigit[a] + hexDigit[b] + hexDigit[c] + hexDigit[d]
+        + ' '
+        +  hexDigit[e] + hexDigit[f] + hexDigit[g] + hexDigit[h]
 }
 
 function showBit (b) {

@@ -391,68 +391,41 @@ visiting this file in a browser.
 		      <div class="DecodeValue" id="InstrEffect2"></div>
 		    </div>
 		  </div>
+
 		  <div class="ProcStateSection" id="Emulator">
-		    <div class="Registers">
-		      <div class="NewRegSecName">Emulator</div>
-                      <br>
-<!--
-                      <input type="radio" name='SelectArch'
-                             id='SelArch16'
-                             value='SelArch16' checked>
-                      <label for='SelArch16'> S16 </label>
-                      <input type="radio" name='SelectArch'
-                             id='SelArch32'
-                             value='SelArch32'>
-                      <label for='SelArch32'> S32 </label>
--->
-                      <br>
-                      <div class='ArchButtons'>
-                        <button class='ArchButton' id='Arch16'>S16</button>
-                        <button class='ArchButton' id='Arch32'>S32</button>
+		    <div class="ProcEmulatorSection">
+                      <div class="ProcEm1 HeaderText">
+                        Emulator
                       </div>
-                      <br>
-                      
-		      <div class="RegisterValue" id="procStatus">Initial</div>
-		      <div class="RegisterValue"
-		           id="nInstrExecuted">0 instr</div>
-		      <div class="RegisterValue" id="PP_time"> 0 </div>
-		      <input id="PP_Timer_Interrupt" class="EmCtlLine"
-			     type="button"
-			     value="Timer interrupt">
-
+		      <div class='ProcEm2' id='procStatus'>
+                        Initial
+                      </div>
+		      <div class="ProcEm3" id="nInstrExecuted">
+                        0 instr
+                      </div>
+		      <div class="ProcEm4" id="PP_time">
+                        0 sec
+                      </div>
+                      <div class='ProcEm5'>
+		        <input id="PP_Timer_Interrupt" class="EmCtlLine"
+			       type="button"
+			       value="Timer interrupt">
 		      </input>
-<!--
-		      <div class="RegisterValue">hello </div>
-		      <input id="PP_Toggle_Display" class="EmCtlLine"
-		             type="button">
-		      </input>
--->                  
-
+                      </div>
+                      <div class='ProcEm6' id='ShowEm'>
+                        default
+                      </div>
+                      <div class="ProcEm7">
+                        <button class='ArchButton' id='Arch16button'>
+                          S16
+                        </button>
+                        <button class='ArchButton' id='Arch32button'>
+                          S32
+                        </button>
+                      </div>
 		    </div>
 		  </div>
-<!--                  
-		  <div class="ProcStateSection" id="Emulator">
-		    <div class="Registers">
-		      <div class="NewRegSecName">Emulator</div>
-		      <div class="RegisterName"> state </div>
-		      <div class="RegisterValue" id="procStatus"></div>
-		      <div class="RegisterName"> count </div>
-		      <div class="RegisterValue" id="nInstrExecuted"></div>
-		      <div class="RegisterName"> m </div>
-		      <div class="RegisterValue"> </div>
-		      <div class="RegisterName"> Time </div>
-		      <div class="RegisterValue" id="PP_time"> 0 </div>
-		      <input id="PP_Timer_Interrupt" class="EmCtlLine"
-			     type="button"
-			     value="Timer interrupt">
 
-		      </input>
-		      <input id="PP_Toggle_Display" class="EmCtlLine"
-		             type="button">
-		      </input>
-		    </div>
-		  </div>
--->
 		  <div class="ProcStateSection" id="MemSection">
 		    <div class="MemSecName">Memory</div>
 		    <div class="MemDisplay" id="MemDisplay1"></div>
