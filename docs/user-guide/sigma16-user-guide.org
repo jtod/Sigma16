@@ -63,7 +63,9 @@ with the tutorials, which show you how to enter and run a program and
 how to use the programming environment.
 
 * Core architecture
-** Core tutorial
+** Core tutorials
+** Core subset tutorial
+*** Core tutorial
 :PROPERTIES:
 :CUSTOM_ID: sec-tutorial
 :END:
@@ -73,7 +75,7 @@ appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the exercises in the main
 panel.
 
-*** Hello, world!
+**** Hello, world!
 
 To launch the program, visit the Sigma16 Home Page and click on the
 link to run it.  No download or installation is necessary.
@@ -195,7 +197,7 @@ To exit the app, just close the browser window or tab.  This may
 put up a dialogue box warning that any unsaved data may be lost and
 asking you to confirm.
 
-*** Registers, constants, and arithmetic
+**** Registers, constants, and arithmetic
 
 The architecture has a **register file** which is an array of 16
 registers, named R0, R1, R2, ..., R15.  The Register File is displayed
@@ -457,7 +459,7 @@ Summary.
 | a  | first operand register                      |
 | b  | second operand register                     |
 
-*** Keeping variables in memory
+**** Keeping variables in memory
 
 So far we have used registers in the register file to hold variables.
 However, there are only 16 of these, and two have special purposes (R0
@@ -787,7 +789,7 @@ typewriters But software does not handle tab consistently.  If you use
 tabs, your can look good in one application and like a mess in
 another.  It's easy to indent with spaces, and it works everywhere!
 
-*** Files and modules
+**** Files and modules
 
 Whatever method you use to edit your programs, be sure to **save your
 work to a file** from time to time.  If you don't do that, sooner or
@@ -886,7 +888,7 @@ Common workflows:
   Download the editor buffer because your up-to-date text will be in
   the external editor (but of course you have to save the file there).
 
-*** Jumps and conditionals
+**** Jumps and conditionals
 
 Conditionals allow a program to decide which statements to execute
 based on Boolean expressions.  One example is the if-then statement,
@@ -1070,7 +1072,7 @@ L1: S2
 L2: S3
 #+END_EXAMPLE
 
-*** Loops
+**** Loops
 
 Loops are implemented using compilation patterns based on comparisons
 and jumps.  The fundamental form is the *while loop*.
@@ -1172,7 +1174,7 @@ matter how deeply nested they are.  If you violate the block
 structure, you will find the program extremely difficult to get to
 work.
 
-*** Machine language
+**** Machine language
 
 The actual bits representing an instruction (written in hex) (e.g
 0d69) are *machine language*.  The actual hardware runs the machine
@@ -1344,7 +1346,7 @@ secondary code in the b field.
 | load     |       1 |
 | store    |       2 |
 
-*** A strange program
+**** A strange program
 
 Consider ``Program Strange'' below.  This program doesn't compute
 anything particularly useful.  It's rather strange and not a model for
@@ -1507,8 +1509,8 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
-*** Testing and debugging
-*** Breakpoints
+**** Testing and debugging
+**** Breakpoints
 
 Quick summary, explanation follows.  There are two ways to set a
 breakpoint:
@@ -1554,7 +1556,7 @@ to modify the program or reassemble it, or if you realise that you
 want a breakpoint after execution has already started, then an
 external break is better.
 
-**** Trap break
+***** Trap break
 
 You can use a trap instruction to break execution when it executes.
 The first operand of the instruction is a register that must contain
@@ -1596,7 +1598,7 @@ to resume full speed execution.
 For an example of a long running program with a trap break, see
 Examples / Testing / Looper.
 
-**** External break
+***** External break
 
 You can also tell the user interface to perform a breakpoint without
 modifying the program.  You need to know the address of the
@@ -1622,43 +1624,6 @@ that location is encountered.  To prevent this, open the breakpoint
 popup again and click Disable.
 
 ** Core architecture
-** Core instruction set
-** Core assembly language
-** Core programming
-* Standard architecture
-** Standard tutorial
-** Standard architecture
-** Standard instruction set
-** Standard assembly language
-** Standard programming
-* S16 architecture
-** S16 tutorial
-** S16 architecture
-:PROPERTIES:
-:CUSTOM_ID: sec-architecture
-:END:
-
-*** Overview of the subsystems
-
-The system contains several main subsystems.  The most important of
-these are *registers*, *memory*, and *logic and arithmetic*, and
-*Input/Output*.  These are described in detail later, but here is a
-brief synopsis:
-
-- A register is a digital circuit that can retain one word of data.  A
-  new value can be loaded into a register, and the current contents
-  may be read out.  There are a number of special registers as well as
-  a *register file* that contains 16 registers.
-
-- The memory can hold a large number of words.  It's similar to the
-  register file, but significantly slower and much larger.
-
-- The ALU (arithmetic and logic unit) is a circuit that can do
-  arithmetic, such as addition, subtraction, comparison, and some
-  other operations
-
-- The Input/Output system can transfer data between the computer and
-  the outside world.
 *** Data representation and notation
 
 Sigma16 is a 16-bit architecture, and every data value is a 16-bit
@@ -1831,6 +1796,44 @@ Table: Condition code flags: Bits 0-3
 | name    |            |           |          |       |
 |---------+------------+-----------+----------+-------|
 
+
+*** Overview of the subsystems
+
+The system contains several main subsystems.  The most important of
+these are *registers*, *memory*, and *logic and arithmetic*, and
+*Input/Output*.  These are described in detail later, but here is a
+brief synopsis:
+
+- A register is a digital circuit that can retain one word of data.  A
+  new value can be loaded into a register, and the current contents
+  may be read out.  There are a number of special registers as well as
+  a *register file* that contains 16 registers.
+
+- The memory can hold a large number of words.  It's similar to the
+  register file, but significantly slower and much larger.
+
+- The ALU (arithmetic and logic unit) is a circuit that can do
+  arithmetic, such as addition, subtraction, comparison, and some
+  other operations
+
+- The Input/Output system can transfer data between the computer and
+  the outside world.
+*** Core instruction set
+*** Core assembly language
+*** Core programming
+* Standard architecture
+** Standard tutorial
+** Standard architecture
+** Standard instruction set
+** Standard assembly language
+** Standard programming
+* Systems architecture
+* S16 architecture
+
+** S16 architecture
+:PROPERTIES:
+:CUSTOM_ID: sec-architecture
+:END:
 
 *** Memory
 
@@ -3002,15 +3005,14 @@ was defined, and the source code lines where it was used.
 |            | export | identifier            | Export values              |
 
 
-
 ** S32 programming
 * Full architecture reference
-* S32 instruction set
+** Full instruction set
 :PROPERTIES:
 :CUSTOM_ID: sec-instruction-set
 :END:
 
-** Arithmetic
+*** Arithmetic
 
 The add instruction can be used for both binary addition (on natural
 numbers) and for two's complement addition (on signed integers).
@@ -3033,7 +3035,7 @@ numbers) and for two's complement addition (on signed integers).
   and the overflow flag is 1 in the mask register, then an interrupt
   will occur immediatelhy after the add instruction executes.
 
-*** add
+**** add
 
 Example: add R1,R2,R3 ; R1 := R2 + R3
 
@@ -3065,7 +3067,7 @@ req register.
  R15.CCc    carry output
 ---------  ---------------------
 
-*** sub
+**** sub
 
 Example: sub R1,R2,R3 ; R1 := R2 - R3
 
@@ -3099,7 +3101,7 @@ req register.
  R15.CCc    carry output
 ---------  ---------------------
 
-*** mul
+**** mul
 
 Example: mul R1,R2,R3 ; R1 := R2 * R3
 
@@ -3123,7 +3125,7 @@ into Rd.
  R15.CCc    carry output
 ---------  ---------------------
 
-*** div
+**** div
 
 Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
 
@@ -3158,7 +3160,7 @@ division by 0.
   division by 0.  See the section on Interrupts.  This approach does
   not require a compare or jump instruction for each division.
 
-*** addc
+**** addc
 
 The addc instruction performs a binary addition with carry
 propagation.  It adds the two operand registers and the carry bit in
@@ -3167,7 +3169,7 @@ destination register Rd and the carry output is written back into the
 carry bit, overwriting its previous value.  Overflow is not possible
 with this instruction.
 
-*** muln
+**** muln
 
 #+BEGIN_EXAMPLE
      muln   Rd,Ra,Rb
@@ -3179,7 +3181,7 @@ significant part) is loaded into R15, and the rightmost 16 bits (the
 least significant part) is loaded into Rd.  If Rd is R15, the most
 significant part is discarded.
 
-*** divn
+**** divn
 
 #+BEGIN_EXAMPLE
      divn   Rd,Ra,Rb
@@ -3197,7 +3199,7 @@ All the numbers -- numerator, denominator, quotient, remainder -- are
 natural numbers represented in binary.
 
 
-** Memory
+*** Memory
 
 A memory address is a 16-bit binary number.  Instructions don't
 specify addresses directly; they specify an address with two
@@ -3217,14 +3219,14 @@ If you just want to specify an address *a* in an instruction, this can
 be written as "a[R0]".  Since R0 contains the constant 0, the
 effective address is just *a*.
 
-*** lea
+**** lea
 
 The **load effective address** instruction *lea Rd,disp[Rx]* calculates
 the effective address of the operand disp[Rx] and places the result in
 the destination register Rd.  The effective address is the binary sum
 disp+Rx.
 
-*** load
+**** load
 
 The **load** instruction *load Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and copies the word in memory at the
@@ -3245,7 +3247,7 @@ Examples
    load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
 #+END_EXAMPLE
 
-*** store
+**** store
 
 The **store** instruction *store Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and the value of the destination
@@ -3281,7 +3283,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_EXAMPLE
 
-*** Stack representation
+**** Stack representation
 
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -3319,7 +3321,7 @@ A stack can be created and initialized by allocating a region of
 memory, setting /stack base/ to the first word and /stack limit/ to
 the last word, and setting /stack top/ to /stack base/ - 1.
 
-*** push
+**** push
 
 The push instruction pushes an element onto a stack.  It is RRR
 format, and its general form is:
@@ -3361,7 +3363,7 @@ will occur after the push instruction completes.  There will be no
 interrupt if interrupts are disabled, or the stack fault bit is not
 set in the mask register.
 
-*** pop
+**** pop
 
 The push instruction removes an element onto a stack and returns it.
 The instruction is RRR format, and its general form is:
@@ -3391,7 +3393,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** top
+**** top
 
 The top instruction returns the top element on a stack but does not
 remove it.  The instruction is RRR format, and its general form is:
@@ -3420,7 +3422,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** save
+**** save
 
 The *save* instruction stores a sequence of adjacent registers into a
 block of contiguous memory locations.  The sequence of registers is
@@ -3500,7 +3502,7 @@ is equivalent to
    store   R3,11[R5]
 #+END_EXAMPLE
 
-*** restore
+**** restore
 
 Restore Rd,disp[Ra] loads R1, ..., Rd from consecutive memory
 locations starting from the effective address.
@@ -3558,7 +3560,7 @@ The effect is equivalent to
    load  R10,11[R14]
 #+END_EXAMPLE
 
-** Logic and bits
+*** Logic and bits
 
 The instructions in this section treat a word as a sequence of bits,
 not as a number.  There are instructions that perform logic operations
@@ -3590,7 +3592,7 @@ for several reasons:
 - These instructions can be implemented efficiently in a digital
   circuit and this implementation is an interesting design problem.
 
-*** cmp
+**** cmp
 
 The compare instruction =cmp Ra,Rb= compares the values in the operand
 registers =Ra= and =Rb=, and then sets flags in the condition code
@@ -3619,7 +3621,7 @@ by a jump pseudoinstruction, for example:
     jumpgt  abc]R0]    ; if R4 > R9 then goto abc
 #+END_EXAMPLE
 
-*** logicw
+**** logicw
 
 The logicw instruction performs a bitwise logic operation on two
 operands: each bit of the result is obtained by performing the logic
@@ -3691,7 +3693,7 @@ Re and Rf, and the result is loaded into the destination register Rd.
 | inv x    | 1100 |   12 |
 | inv y    |      |      |
 
-*** logicb
+**** logicb
 
 The /logicb/ instruction performs an arbitrary Boolean logic function
 on two operand bits, producing a result bit.  All three bits must be
@@ -3739,7 +3741,7 @@ The instruction format is EXP2, with the following fields:
 - g is the index of the second argument bit
 - h is the logic function
   
-*** shiftl
+**** shiftl
 
 The instruction shiftl Rd,Ra,k shifts the value in the operand
 register Ra by k bits to the left, and the result is placed in the
@@ -3754,7 +3756,7 @@ rightmost k bits become 0.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-*** shiftr
+**** shiftr
 
 Shift to the right.
 
@@ -3775,7 +3777,7 @@ changed.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-*** extract
+**** extract
 
 The extract instruction copies an arbitrary field of bits from a
 source register and inserts those bits into an arbitrary position in a
@@ -3880,7 +3882,7 @@ form the instruction fields are given in the operand fields:
 | h  | s_index | start position in source      |
 |----+---------+-------------------------------|
 
-*** extracti
+**** extracti
 
 The extracti instruction is similar to extract, but extracti inverts
 the bits that are inserted into the destination.
@@ -3888,14 +3890,14 @@ the bits that are inserted into the destination.
 The secondary opcode is 8.
 
 
-** Jumping
+*** Jumping
 
-*** jump
+**** jump
 
 The **jump** instruction *jump disp[Ra]* transfers control to the
 instruction in memory at the effective address *disp+Ra*.
 
-*** jal
+**** jal
 
 The **jump and link** instruction *jal Rd,disp[Ra]* loads the address
 of the following instruction into the destination register Rd, and
@@ -3908,7 +3910,7 @@ procedures or functions: the effective address is the location of the
 procedure, and the return address is in Rd.  The procedure can then
 return by jumping to the return address, e.g. with *jump 0[Rd]*.
 
-*** jumpc0
+**** jumpc0
 
 The **jump if condition code bit is 0** instruction *jumpc0
 k,disp[Ra]* checks the value of bit k in R15, which is the condition
@@ -3930,7 +3932,7 @@ However:
   why jumpc0 and jumpc1 don't allow you to specify which register
   contains the Boolean
 
-*** jumpc1
+**** jumpc1
 
 The **jump if condition code bit is 1** instruction *jumpc1
 k,disp[Ra]* checks the value of bit k in R15, which is the condition
@@ -3938,7 +3940,7 @@ code register.  If this bit is *1*, then the instruction transfers
 control to the instruction in memory at the effective address
 *disp+Ra*; otherwise the instruction does nothing.
 
-*** jumpz
+**** jumpz
 
 #+BEGIN_EXAMPLE
      jumpz  Rd,disp[Ra]
@@ -3948,9 +3950,9 @@ The jumpz instruction jumps to the effective address if Rd contains 0;
 otherwise the instruction does nothing and execution goes on to the
 following instruction.
 
-*** jumpn
-*** jumpz
-*** jumpnz
+**** jumpn
+**** jumpz
+**** jumpnz
 
 #+BEGIN_EXAMPLE
      jumpnz Rd,disp[Ra]
@@ -3960,11 +3962,11 @@ The jumpnz instruction jumps to the effective address if Rd contains
 any value other than 0; otherwise the instruction does nothing and
 execution goes on to the following instruction.
 
-*** jumpp
+**** jumpp
 
 
-** System
-*** resume
+*** System
+**** resume
 
 The resume instruction performs the following operations atomically:
 
@@ -3986,9 +3988,9 @@ resume.
 
 This instruction is privileged.  Since the instruction changes the
 status register, it can be used to perform a context switch.
-*** getctl
-*** putctl
-*** trap
+**** getctl
+**** putctl
+**** trap
 
 The trap instruction requests a service from the virtual operating system.
 It takes three register operands.  The first
@@ -4009,7 +4011,7 @@ contents of the registers, not which register you happen to use.  A
 trap instruction has the form trap Rd,Ra,Rb where Rd contains the trap
 code.
 
-**** Halt
+***** Halt
 
 Terminate execution of the program.  The operands Ra and Rb are
 ignored.
@@ -4021,13 +4023,13 @@ Since the trap code is 0, and R0 always contains 0, and the other
 operands are ignored, the canonical way to terminate the program is
 /trap R0,R0,R0/
 
-**** Nonblocking read
+***** Nonblocking read
 
-**** Nonblocking Write
+***** Nonblocking Write
 
-**** Blocking read
+***** Blocking read
 
-**** Break
+***** Break
 
 Pause execution of the program.  The operands Ra and Rb are ignored.
 
@@ -4036,7 +4038,7 @@ Step or Run.  A breakpoint allows you to run at full speed until a
 particular location in the program, and then single step through a
 section of interest.
 
-*** testset
+**** testset
 
 The testset instruction fetches a Boolean from a word in memory,
 places it in the destination register, and also sets the word in
@@ -4060,7 +4062,7 @@ multiple processors.  This point, its significance, and programming
 techniques using testset are discussed in the section /Critical
 regions/ in the /Programming techniques/ chapter.
 
-** Pseudoinstructions
+*** Pseudoinstructions
 
 A pseudoinstruction is assembly language syntax that generates a real
 machine language instruction, using a simpler notation than would be
@@ -4069,7 +4071,7 @@ Pseudoinstructions do not exist in machine language; they are purely a
 notational convenience.  There are pseudoinstructions for conditional
 jumping and for logic functions.
 
-*** Conditional jumping pseudoinstructions
+**** Conditional jumping pseudoinstructions
 
 Several pseudoinstructions jump if a given condition holds; for
 example, jumplt jumps if the condition code indicates "less than".
@@ -4105,7 +4107,7 @@ based on comparison of two integers (two's complement):
 
 
 
-*** logic pseudoinstructions
+**** logic pseudoinstructions
 - invw
 
 The invw instruction inverts the bits in a word.  Inverting a bit
@@ -4194,9 +4196,9 @@ Example:
 The xor pseudoinstruction generates a logicw instruction with the
 function operand set to perform an xor.
 
-*** invb, andb, orb, xorb
+**** invb, andb, orb, xorb
 
-** List of instructions
+*** List of instructions
 
 The following notations and abbreviations are used to specify
 precisely and concisely the effects of the instructions:
@@ -4234,7 +4236,7 @@ precisely and concisely the effects of the instructions:
 - There is a subsetting relationship:
   - Core SUBSET Basic SUBSET S16 SUBSET S32
 
-* Table of instructions
+** Table of instructions
 
 |----------+------+---+------+-------+------+-----------------------------------|
 | Mnemonic | ISA  | P | Fmt  | Args  | Code | Effect                            |
@@ -4243,14 +4245,12 @@ precisely and concisely the effects of the instructions:
 | sub      | Core |   | RRR  | RRR   | 1    | Rd := Ra - Rb                     |
 | mul      | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
 | div      | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmp      | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
-| addl     | S32  |   | RRR  | RRR   | 5    | Rd := Ra + Rb                     |
-| subl     | S32  |   | RRR  | RRR   | 6    | Rd := Ra - Rb                     |
-| mull     | S32  |   | RRR  | RRR   | 7    | Rd := Ra * Rb                     |
-| divl     | S32  |   | RRR  | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| trap     | Core |   | RRR  | RRR   | 9    | user interrupt                    |
-|          |      |   |      |       | a    | -- reserved --                    |
-|          |      |   |      |       | b    | -- reserved --                    |
+| cmp      | Core |   | RRR  | RR    | 5    | R15 := Ra cmp Rb                  |
+| addl     | S32  |   | RRR  | RRR   | 6    | Rd := Ra + Rb                     |
+| subl     | S32  |   | RRR  | RRR   | 7    | Rd := Ra - Rb                     |
+| mull     | S32  |   | RRR  | RRR   | 8    | Rd := Ra * Rb                     |
+| divl     | S32  |   | RRR  | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| trap     | Core |   | RRR  | RRR   | b    | user interrupt                    |
 |          |      |   |      |       | c    | escape to EXP32 format            |
 |          |      |   |      |       | d    | escape to RX32 format             |
 |          |      |   |      |       | e    | escape to EXP format              |
@@ -4265,7 +4265,7 @@ precisely and concisely the effects of the instructions:
 | jumpz    | Std  |   | RX   | RX    | f,7  | if Rd = 0 then pc := ea           |
 | jumpnz   | Std  |   | RX   | RX    | f,8  | if Rd != 0 then pc := ea          |
 | jal      | Core |   | RX   | RX    | f,4  | Rd := pc, pc := ea                |
-| testset  | S16  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
+| testset  | Sys  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
 |          |      |   | RX   |       | f,a  | -- reserved --                    |
 |          |      |   | RX   |       | f,b  | -- reserved --                    |
 |          |      |   | RX   |       | f,c  | -- reserved --                    |
@@ -4290,9 +4290,9 @@ precisely and concisely the effects of the instructions:
 |          |      |   | RX32 |       | f,e  | -- reserved --                    |
 |          |      |   | RX32 |       | f,f  | -- reserved --                    |
 |----------+------+---+------+-------+------+-----------------------------------|
-| resume   | S16  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
+| resume   | Sys  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
 |----------+------+---+------+-------+------+-----------------------------------|
-| addc     | Std  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb + R15.carry         |
+| addc     | Std  |   | EXP2 | RRR   | 4    | Rd := Ra + Rb + R15.carry         |
 | muln     | Std  |   | EXP2 | RRR   | 6    | R15++Rd := Ra :*: Rb              |
 | divn     | Std  |   | EXP2 | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
 | push     | Std  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
@@ -4306,8 +4306,9 @@ precisely and concisely the effects of the instructions:
 | logicb   | Std  |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
 | extract  | Std  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
 | extracti | Std  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
-| getctl   | S16  | P | EXP2 | RC    | e,09 | Rd := Sc                          |
-| putctl   | S16  | P | EXP2 | RC    | e,0a | Sc := Rd                          |
+| getctl   | Sys  | P | EXP2 | RC    | e,09 | Rd := Sc                          |
+| putctl   | Sys  | P | EXP2 | RC    | e,0a | Sc := Rd                          |
+| addcl    | Std  |   | EXP2 | RRR   | a    | Rd := Ra + Rb + R15.carry         |
 | addf     | S32  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb                     |
 | subf     | S32  |   | EXP2 | RRR   | 6    | Rd := Ra - Rb                     |
 | mulf     | S32  |   | EXP2 | RRR   | 7    | Rd := Ra * Rb                     |
@@ -4321,7 +4322,7 @@ precisely and concisely the effects of the instructions:
 |----------+------+---+------+-------+------+-----------------------------------|
 
 
-*** Pseudoinstructions
+**** Pseudoinstructions
 
  save  
  save     |       RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd  M[Rb+ofs+(f-e+1)] := Rf |
