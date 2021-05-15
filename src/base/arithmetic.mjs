@@ -25,88 +25,51 @@ import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 
-
 //------------------------------------------------------------------------------
-// Bit manipulation - big endian
+// Bit indexing
 //------------------------------------------------------------------------------
 
-// Bits are numbered from left to right, where the most significant
-// (leftmost) bit has index 0 and the least significant (rightmost)
-// bit has index 15.
+// There are two conventions for indexing bits in a word that contains
+// k bits. Then
+//   - Little end (LE): the most significant (leftmost) bit has index k,
+//     and the least significant (rightmost bit) has index 0.
+//   - Big end (BE): the most significant (leftmost) bit has index 0,
+//     and the least significant (rightmost bit) has index k.
 
-// Return bit i in word w
-export function getBitInWordBE (w,i) { return (w >>> (15-i)) & 0x0001 }
+// Functions are defined for accessing bits in a word using either
+// Little End (LE) or Big End (BE) notation.  For k-bit words:
+//   Bit i BE = bit (k-i) LE
+//   Bit i LE = bit (k-i) BE
 
-// Return bit i in nibble (4-bit word) w
-function getBitInNibbleBE (w,i) { return (w >>> (3-i)) & 0x0001 }
+// Earlier versions of Sigma16 (prior to 3.4) used Big End bit
+// indexing.  Version 3.4 switches to Little End bit indexing because
+// this alows a more elegant extension to 32-bit architecture.
 
-// Return bit i in register r
-export function getBitInRegBE (r,i) { return (r.get() >>> (15-i)) & 0x0001 }
-
-// Generate mask to clear/set bit i in a word
-export function maskToClearBitBE (i) { return ~(1<<(15-i)) & 0xffff }
-export function maskToSetBitBE (i) { return (1 << (15-i)) & 0xffff }
-
-// Clear/set bit i in register r
-export function clearBitInRegBE (r,i) { r.put (r.get() & maskToClearBitBE(i)) }
-export function setBitInRegBE   (r,i) { r.put (r.get() | maskToSetBitBE(i)) }
+// Get bit i from k-bit word w
+export function getBitInWordLE (k,w,i) { return (w >>> i)     & 0x0001 }
+export function getBitInWordBE (k,w,i) { return (w >>> (k-i)) & 0x0001 }
 
 // Put bit b into word x in bit position i
-export function putBitInWord (x,i,b) {
-    return b==0 ? x & maskToClearBitBE(i) : x | maskToSetBitBE(i)
+export function putBitInWordLE (k,x,i,b) {
+    return b==0 ? x & maskToClearBitLE(k,i) : x | maskToSetBitLE(k,i)
 }
-
-// Return a word where bit i is 1
-function setBitBE(i) { return 1 << 15-i }
-// old little endian version
-//function setBit(i) { return 1 << i }
-
-// return bit i in word x, where the leftmost bit has index 0
-export function extractBitBE (x,i) {
-    return (x >>> 15-i) & 0x00000001
+export function putBitInWordBE (k,x,i,b) {
+    return b==0 ? x & maskToClearBitBE(k,i) : x | maskToSetBitBE(k,i)
 }
-
-// return bit i in word x, where the rightmost bit has index 0
-export function extractBitLE (x,i) {
-    return (x >>> i) & 0x00000001
-}
-
-// return Boolean from bit i in word x, where the rightmost bit has index 0
-export function extractBool (x,i) {
-    return extractBitBE (x,i) === 1;
-}
-
-// Check where this is used ??????????????
-
-let intToBit = function (x) {
-    if (x < 0 || x > 1)
-    {com.mode.devlog('intToBit invalid int: ' + x);
-     return('#');
-    }
-    return x===0 ? '0' : '1';
-}
-
-//------------------------------------------------------------------------------
-// Bit manipulation - little endian
-//------------------------------------------------------------------------------
-
-// Bits are numbered from right to left, where the least significant
-// bit has index 0 and the most significant (leftmost) bit has index
-// 15.
-
-// Return bit i in word w
-function getBitInWordLE (w,i) { return (w >>> i) & 0x0001 }
-
-// Return bit i in register r
-function getBitInRegLE (r,i) { return (r.get() >>> i) & 0x0001 }
 
 // Generate mask to clear/set bit i in a word
-function maskToClearBitLE (i) { return ~(1<<i) & 0xffff }
-function maskToSetBitLE (i) { return (1 << i) & 0xffff }
+export function maskToClearBitLE (i) { return ~(1<<i)       & 0xffff }
+export function maskToSetBitLE   (i) { return (1 << i)      & 0xffff }
+export function maskToClearBitBE (i) { return ~(1<<(15-i))  & 0xffff }
+export function maskToSetBitBE   (i) { return (1 << (15-i)) & 0xffff }
 
-// Clear/set bit i in register r
-function clearBitInRegLE (r,i) { r.put (r.get() & maskToClearBitLE(i)) }
-function setBitInRegLE   (r,i) { r.put (r.get() | maskToSetBitLE(i)) }
+// Access bit i in register r with k-bit words
+export function getBitInRegLE (r,i) { return (r.get() >>> i) & 0x0001 }
+export function clearBitInRegLE (k,r,i) { r.put (r.get() & maskToClearBitLE(i)) }
+export function setBitInRegLE   (k,r,i) { r.put (r.get() | maskToSetBitLE(i)) }
+export function getBitInRegBE   (k,r,i) { return (r.get() >>> (15-i)) & 0x0001 }
+export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(i)) }
+export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(i)) }
 
 //------------------------------------------------------------------------------
 // Logic
@@ -763,6 +726,8 @@ function test_add () {
     test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
 }
 
+// Deprecated
+
 /*
     let msb = extractBitBE (sum, 15);
     let carryOut = extractBitBE (sum,16);
@@ -795,4 +760,30 @@ function test_sub () {
         | (carryOut ? ccC : 0);
     com.mode.devlog (`************ op_addc co=${carryOut}`)
     return [primary, secondary];
+
+
+// Check where this is used ??????????????
+
+let intToBit = function (x) {
+    if (x < 0 || x > 1)
+    {com.mode.devlog('intToBit invalid int: ' + x);
+     return('#');
+    }
+    return x===0 ? '0' : '1';
+}
+
+// Use k=4
+// Return bit i in nibble (4-bit word) w
+function getBitInNibbleBE (w,i) { return (w >>> (3-i)) & 0x0001 }
+
+// return Boolean from bit i in word x, where the rightmost bit has index 0
+export function extractBool (x,i) {
+    return extractBitBE (x,i) === 1;
+}
+
+// Return a word where bit i is 1
+function setBitBE(i) { return 1 << 15-i }
+// old little endian version
+//function setBit(i) { return 1 << i }
+
 */

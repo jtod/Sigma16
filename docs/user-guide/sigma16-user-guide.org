@@ -4245,50 +4245,35 @@ precisely and concisely the effects of the instructions:
 | sub      | Core |   | RRR  | RRR   | 1    | Rd := Ra - Rb                     |
 | mul      | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
 | div      | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmp      | Core |   | RRR  | RR    | 5    | R15 := Ra cmp Rb                  |
-| addl     | S32  |   | RRR  | RRR   | 6    | Rd := Ra + Rb                     |
-| subl     | S32  |   | RRR  | RRR   | 7    | Rd := Ra - Rb                     |
-| mull     | S32  |   | RRR  | RRR   | 8    | Rd := Ra * Rb                     |
-| divl     | S32  |   | RRR  | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| trap     | Core |   | RRR  | RRR   | b    | user interrupt                    |
-|          |      |   |      |       | c    | escape to EXP32 format            |
-|          |      |   |      |       | d    | escape to RX32 format             |
-|          |      |   |      |       | e    | escape to EXP format              |
+| cmp      | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
+| addl     | S32  |   | RRR  | RRR   | 5    | Rd := Ra + Rb                     |
+| subl     | S32  |   | RRR  | RRR   | 6    | Rd := Ra - Rb                     |
+| mull     | S32  |   | RRR  | RRR   | 7    | Rd := Ra * Rb                     |
+| divl     | S32  |   | RRR  | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpl     | S32  |   | RRR  | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| trap     | Core |   | RRR  | RRR   | a    | user interrupt                    |
+|          |      |   |      |       | b    | -- reserved --                    |
+|          |      |   |      |       | c    | -- reserved --                    |
+|          |      |   |      |       | d    | escape to EXP3 format             |
+|          |      |   |      |       | e    | escape to EXP2 format             |
 |          |      |   |      |       | f    | escape to RX format               |
 |----------+------+---+------+-------+------+-----------------------------------|
 | lea      | Core |   | RX   | RX    | f,0  | Rd := ea                          |
 | load     | Core |   | RX   | RX    | f,1  | Rd := M[ea]                       |
 | store    | Core |   | RX   | RX    | f,2  | M[ea] := Rd                       |
 | jump     | Core |   | RX   | RX    | f,3  | pc := ea                          |
-| jumpc0   | Core |   | RX   | kX    | f,5  | if R15.k=0 then pc := ea          |
-| jumpc1   | Core |   | RX   | kX    | f,6  | if R15.k=1 then pc := ea          |
-| jumpz    | Std  |   | RX   | RX    | f,7  | if Rd = 0 then pc := ea           |
-| jumpnz   | Std  |   | RX   | RX    | f,8  | if Rd != 0 then pc := ea          |
-| jal      | Core |   | RX   | RX    | f,4  | Rd := pc, pc := ea                |
-| testset  | Sys  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
-|          |      |   | RX   |       | f,a  | -- reserved --                    |
-|          |      |   | RX   |       | f,b  | -- reserved --                    |
-|          |      |   | RX   |       | f,c  | -- reserved --                    |
-|          |      |   | RX   |       | f,d  | -- reserved --                    |
-|          |      |   | RX   |       | f,e  | -- reserved --                    |
+| jumpc0   | Core |   | RX   | kX    | f,4  | if R15.k=0 then pc := ea          |
+| jumpc1   | Core |   | RX   | kX    | f,5  | if R15.k=1 then pc := ea          |
+| brc0     | Std  |   | RX   | RX    | f,6  | Rd := M[ea], M[ea] := 1           |
+| brc1     | Std  |   | RX   | RX    | f,7  | Rd := M[ea], M[ea] := 1           |
+| jumpz    | Std  |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea           |
+| jumpnz   | Std  |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea          |
+| jal      | Core |   | RX   | RX    | f,a  | Rd := pc, pc := ea                |
+| testset  | Sys  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
+| leal     | S32  |   | RX   | RX    | f,c  | Rd := ea                          |
+| loadl    | S32  |   | RX   | RX    | f,d  | Rd := M[ea]                       |
+| storel   | S32  |   | RX   | RX    | f,e  | M[ea] := Rd                       |
 |          |      |   | RX   |       | f,f  | -- reserved --                    |
-|----------+------+---+------+-------+------+-----------------------------------|
-| leal     | S32  |   | RX32 | RX    | f,0  | Rd := ea                          |
-| loadl    | S32  |   | RX32 | RX    | f,1  | Rd := M[ea]                       |
-| storel   | S32  |   | RX32 | RX    | f,2  | M[ea] := Rd                       |
-| jumpl    | S32  |   | RX32 | RX    | f,3  | pc := ea                          |
-| jumpc0l  | S32  |   | RX32 | kX    | f,5  | if R15.k=0 then pc := ea          |
-| jumpc1l  | S32  |   | RX32 | kX    | f,6  | if R15.k=1 then pc := ea          |
-| jumpzl   | S32  |   | RX32 | RX    | f,7  | if Rd = 0 then pc := ea           |
-| jumpnzl  | S32  |   | RX32 | RX    | f,8  | if Rd != 0 then pc := ea          |
-| jall     | S32  |   | RX32 | RX    | f,4  | Rd := pc, pc := ea                |
-| testsetl | S32  |   | RX32 | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
-|          |      |   | RX32 |       | f,a  | -- reserved --                    |
-|          |      |   | RX32 |       | f,b  | -- reserved --                    |
-|          |      |   | RX32 |       | f,c  | -- reserved --                    |
-|          |      |   | RX32 |       | f,d  | -- reserved --                    |
-|          |      |   | RX32 |       | f,e  | -- reserved --                    |
-|          |      |   | RX32 |       | f,f  | -- reserved --                    |
 |----------+------+---+------+-------+------+-----------------------------------|
 | resume   | Sys  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
 |----------+------+---+------+-------+------+-----------------------------------|
@@ -5265,6 +5250,21 @@ provide as much as possible of the following information.
 
 
 ** Release notes
+*** Version 3.4.0
+- Bit indexing is changed to "little end" style.  The least
+  significant bit has index 0, and the most significant bit has
+  index 15.
+- The architecture is organized into precisely defined subsets
+- A new 32 bit extension allows computations with a much larger
+  memory, while retainign full backward compatibility.  Programs using
+  the 16-bit architecture run without modification on the extended
+  32-bit architecture.
+*** Version 3.3.2, April 2021
+- There is no change in the architecture
+- The software is modified to enable it to continue working when a
+  planned change to web browsers occurs in May 2021.  The program runs
+  on a hosted web server that enables it to work fully with cross
+  origin isolation.
 *** Version 3.2.3, development from April 2021
 *** Version 3.2.2, March 2021
 
@@ -5354,6 +5354,7 @@ There are some new instructions and features, as well as some
 instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
+
 
 ** Text of GPL3 License
 

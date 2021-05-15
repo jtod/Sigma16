@@ -697,7 +697,7 @@ export function executeInstruction (es) {
         com.mode.devlog (`execute instruction: interrupt`)
         com.mode.devlog (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
-	while (i<16 && arith.getBitInWordBE(mr,i)==0) { i++ }
+	while (i<16 && arith.getBitInWordLE(es.k, mr,i)==0) { i++ }
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
 	es.rpc.put(es.pc.get())           // save the pc
 	es.rstat.put(es.statusreg.get())   // save the status register
@@ -1365,11 +1365,11 @@ function exp2_logicb (es) {
     com.mode.devlog (`>>>>>>>>>>>>>>>>>>>>>>>> exp2_logicb`);
     com.mode.devlog (`exp2_logicb`);
     const x = es.regfile[es.ir_d].get();
-    const f = arith.getBitInWordBE (x, es.field_f);
-    const g = arith.getBitInWordBE (x, es.field_g);
+    const f = arith.getBitInWordLE (16, x, es.field_f);
+    const g = arith.getBitInWordLE (16, x, es.field_g);
     const fcn = es.field_h;  // logic function
     const bresult = arith.applyLogicFcnBit (fcn, f, g); // bit result
-    const y = arith.putBitInWord (x, es.field_e, bresult); // word result
+    const y = arith.putBitInWordLE (16, x, es.field_e, bresult); // word result
     com.mode.devlog (`logicb x=${arith.wordToHex4(x)} f=${f} g=${g} `
                  + `fcn=${fcn} b=${bresult} result=${arith.wordToHex4(y)}`);;
     es.regfile[es.ir_d].put(y);

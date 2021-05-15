@@ -144,14 +144,17 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // the least significant bit has index 0, and the most significant bit
 // has index 15.
 
+
+   <L=G>
 // These definitions give the bit index
-export const bit_ccL = 0   //  < natural (binary)
-export const bit_ccl = 1   //  < integer (two's complement)
+export const bit_ccg = 0   //  > integer (two's complement)
+export const bit_ccG = 1   //  > natural (binary)
 export const bit_ccE = 2   //  = all types
-export const bit_ccG = 3   //  > natural (binary)
-export const bit_ccg = 4   //  > integer (two's complement)
-export const bit_ccV = 5   //  overflow natural (binary)
-export const bit_ccv = 6   //  overflow integer (two's complement)
+export const bit_ccL = 3   //  < natural (binary)
+export const bit_ccl = 4   //  < integer (two's complement)
+
+export const bit_ccv = 5   //  overflow integer (two's complement)
+export const bit_ccV = 6   //  overflow natural (binary)
 export const bit_ccC = 7   //  carry propagation natural (binary)
 export const bit_ccS = 8;  //  stack overflow
 export const bit_ccs = 9;  //  stack underflow
