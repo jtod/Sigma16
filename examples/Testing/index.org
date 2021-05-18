@@ -8,34 +8,34 @@ instruction set.
 
 - [[./Arithmetic.asm.txt][Arithmetic]] Test arithmetic operations
 
-- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Test error messages
-  with invalid statements
+- [[./Memory.asm.txt][Memory]] Loads, stores, stack operations, saving
+  and restoring registers.
 
-- [[./AsmStatements.asm.txt][AsmStatements]] Test code generation and
-  directives
+- [[./LargeAddr.asm.txt][LargeAddr]]
 
-- [[./BitField.asm.txt][BitField]] Bit and bit field manipulation
-
-- [[./Break.asm.txt][Break]] Breakpoint performed by a trap
-
-- [[./Exception.asm.txt][Exception]] Bit and bit field manipulation
+- [[./CondCode.asm.txt][CondCode]] Test the condition codes
 
 - [[./Jumping.asm.txt][Jumping]] Test the comparisons, jumps, and
   conditional jumps.
 
-- [[./LargeAddr.asm.txt][LargeAddr]]
-
-- [[./Linker/index.html][Linker]]
-
 - [[./Logic.asm.txt][Logic]] Test the operations on Booleans and logic
   functions
 
-- [[./Looper.asm.txt][Looper]] Long running program with no I/O
+- [[./Exception.asm.txt][Exception]] Bit and bit field manipulation
+- [[./BitField.asm.txt][BitField]] Bit and bit field manipulation
 
-- [[./Memory.asm.txt][Memory]] Loads, stores, stack operations, saving
-  and restoring registers.
+- [[./Break.asm.txt][Break]] Breakpoint performed by a trap
 
 - [[./System.asm.txt][System]] System control registers
+
+- [[./AsmStatements.asm.txt][AsmStatements]] Test code generation and
+  directives
+
+- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Test error messages
+  with invalid statements
+
+- [[./Linker/index.html][Linker]]
+- [[./Looper.asm.txt][Looper]] Long running program with no I/O
 
 - [[./TimerInterrupt.asm.txt][TimerInterrupt]] Run a loop while
   responding to interrupt requests

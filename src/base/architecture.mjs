@@ -144,20 +144,25 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // the least significant bit has index 0, and the most significant bit
 // has index 15.
 
+// Each flag has a symbolic name used in the implementation, and a
+// display name used in the "instruction decode" panel on the emulator
+// GUI.  The usual relations < = > are used for integers (binary
+// representation) , while L = G are used for natural numbers (two's
+// complement representation).  The comment shows the character used
+// to indicate the condition code bit in the instruction decode
+// display.  The code display characters are sSCVv <L=G>
 
-   <L=G>
-// These definitions give the bit index
-export const bit_ccg = 0   //  > integer (two's complement)
-export const bit_ccG = 1   //  > natural (binary)
-export const bit_ccE = 2   //  = all types
-export const bit_ccL = 3   //  < natural (binary)
-export const bit_ccl = 4   //  < integer (two's complement)
+export const bit_ccg = 0   //  >  greater than integer (two's complement)
+export const bit_ccG = 1   //  G  greater than natural (binary)
+export const bit_ccE = 2   //  =  equal all types
+export const bit_ccL = 3   //  L  less than natural (binary)
+export const bit_ccl = 4   //  <  less than integer (two's complement)
 
-export const bit_ccv = 5   //  overflow integer (two's complement)
-export const bit_ccV = 6   //  overflow natural (binary)
-export const bit_ccC = 7   //  carry propagation natural (binary)
-export const bit_ccS = 8;  //  stack overflow
-export const bit_ccs = 9;  //  stack underflow
+export const bit_ccv = 5   //  v  overflow integer (two's complement)
+export const bit_ccV = 6   //  V  overflow natural (binary)
+export const bit_ccC = 7   //  C  carry propagation natural (binary)
+export const bit_ccS = 8;  //  S  stack overflow
+export const bit_ccs = 9;  //  s  stack underflow
 
 // export const bit_ccStackOverflow  = 8;   // stack overflow
 // export const bit_ccStackUnderflow = 9;   // stack underflow

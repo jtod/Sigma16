@@ -1,5 +1,6 @@
 ; Jumping: test the instructions for transfer of control
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16; README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021
 
 ; Data for comparisons
       lea     R7,1[R0]    ; increment
@@ -7,14 +8,19 @@
       add     R9,R0,R0    ; error count
 
 ; Comparisons
-      lea   R1,3[R0]
-      lea   R2,5[R0]
+      lea   R1,3[R0]    ; R1 := 3
+      lea   R2,5[R0]    ; R2 := 5
+      lea   R3,-1[R0]   ; R3 := -1
+      lea   R4,-5[R0]   ; R4 := -5
 
-      cmp    R1,R2      ; < signed, > unsigned   (lG)    3,0     0008
-      cmp    R2,R1      ; > signed, < unsigned   (Lg)    4,1     0012
-
+; Compare two positives
+      cmp    R1,R2      ; 0018 <L   lt signed, lt unsigned
+      cmp    R2,R1      ; 0003 >G   gt signed, gt unsigned
       cmp    R2,R3      ; < signed, < unsigned   (Ll)    4,3     0018
       cmp    R3,R2      ; > signed, > unsigned   (gG)    1,0     0003
+
+; Compare two negatives
+; Compare positive and negative
 
 
       lea     R1,-30000[R0]    ; R1 = I: -30000   N: 8ad0

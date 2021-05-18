@@ -538,17 +538,6 @@ function memInitialize (es) {
     }
 }
 
-//-----------------------------------------------------------------------------
-// Interrupts
-//-----------------------------------------------------------------------------
-
-/* move to gui
-export function timerInterrupt (es) {
-    com.mode.devlog ("Timer Interrupt clicked");
-    arith.setBitInRegBE (es.req, arch.timerBit);
-    es.req.refresh();
-}
-*/
 
 //------------------------------------------------------------------------------
 // Decode instruction
@@ -693,20 +682,20 @@ export function executeInstruction (es) {
     let mr = es.mask.get() & es.req.get() // ???
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
     st.writeSCB (es, st.SCB_cur_instr_addr, es.pc.get())
-    if (arith.getBitInRegBE (es.statusreg, arch.intEnableBit) && mr) {
+    if (arith.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
         com.mode.devlog (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
-	while (i<16 && arith.getBitInWordLE(es.k, mr,i)==0) { i++ }
+	while (i<16 && arith.getBitInWordLE(mr,i) === 0) { i++ }
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
 	es.rpc.put(es.pc.get())           // save the pc
 	es.rstat.put(es.statusreg.get())   // save the status register
-	arith.clearBitInRegBE (es.req,i)  // clear the interrupt that was taken
+	arith.clearBitInRegLE (es.req,i)  // clear the interrupt that was taken
 	es.pc.put (es.vect.get() + 2*i)  // jump to handler
         // Disable interrupts and enter system state
 	es.statusreg.put (es.statusreg.get()
-		       & arith.maskToClearBitBE(arch.intEnableBit)
-		       & arith.maskToClearBitBE(arch.userStateBit))
+		       & arith.maskToClearBitLE(arch.intEnableBit)
+		       & arith.maskToClearBitLE(arch.userStateBit))
 	return
     }
 
@@ -992,7 +981,7 @@ const op_push  = (es) => {
         memStore (es, a+1, d);
     } else {
         com.mode.devlog (`push: stack overflow`);
-        arith.setBitInRegBE (req, arch.stackOverflowBit);
+        arith.setBitInRegLE (req, arch.stackOverflowBit);
     }
 }
 
@@ -1006,7 +995,7 @@ const op_pop  = (es) => {
         es.regfile[es.ir_a].put(a-1);
     } else {
         com.mode.devlog (`pop: stack underflow`);
-        arith.setBitInRegBE (req, arch.stackUnderflowBit);
+        arith.setBitInRegLE (req, arch.stackUnderflowBit);
     }
 }
 
@@ -1017,7 +1006,7 @@ const op_top  = (es) => {
         es.regfile[es.ir_d].put(memFetchData(es,a));
     } else {
         com.mode.devlog (`pop: stack underflow`);
-        arith.setBitInRegBE (req, arch.stackUnderflowBit);
+        arith.setBitInRegLE (req, arch.stackUnderflowBit);
     }
 }
 
@@ -1365,11 +1354,11 @@ function exp2_logicb (es) {
     com.mode.devlog (`>>>>>>>>>>>>>>>>>>>>>>>> exp2_logicb`);
     com.mode.devlog (`exp2_logicb`);
     const x = es.regfile[es.ir_d].get();
-    const f = arith.getBitInWordLE (16, x, es.field_f);
-    const g = arith.getBitInWordLE (16, x, es.field_g);
+    const f = arith.getBitInWordLE (x, es.field_f);
+    const g = arith.getBitInWordLE (x, es.field_g);
     const fcn = es.field_h;  // logic function
     const bresult = arith.applyLogicFcnBit (fcn, f, g); // bit result
-    const y = arith.putBitInWordLE (16, x, es.field_e, bresult); // word result
+    const y = arith.putBitInWordLE (x, es.field_e, bresult); // word result
     com.mode.devlog (`logicb x=${arith.wordToHex4(x)} f=${f} g=${g} `
                  + `fcn=${fcn} b=${bresult} result=${arith.wordToHex4(y)}`);;
     es.regfile[es.ir_d].put(y);
@@ -1489,4 +1478,15 @@ export function startRunMainThread (es) {
         com.mode.devlog (`procRunMainThread skipping: SCB_status=${q}`)
     }
 }
+//-----------------------------------------------------------------------------
+// Interrupts
+//-----------------------------------------------------------------------------
+
+// move to gui
+export function timerInterrupt (es) {
+    com.mode.devlog ("Timer Interrupt clicked");
+    arith.setBitInRegBE (es.req, arch.timerBit);
+    es.req.refresh();
+}
+
 */

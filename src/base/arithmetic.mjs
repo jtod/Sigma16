@@ -43,33 +43,38 @@ import * as arch from './architecture.mjs';
 
 // Earlier versions of Sigma16 (prior to 3.4) used Big End bit
 // indexing.  Version 3.4 switches to Little End bit indexing because
-// this alows a more elegant extension to 32-bit architecture.
+// this alows a more elegant extension to 32-bit architecture.  In
+// particular, a function to access bit i needs to know the wordsize k
+// if Big End indexing is used, but not with Little End indexing.
 
 // Get bit i from k-bit word w
-export function getBitInWordLE (k,w,i) { return (w >>> i)     & 0x0001 }
+export function getBitInWordLE (w,i)   { return (w >>> i)     & 0x0001 }
 export function getBitInWordBE (k,w,i) { return (w >>> (k-i)) & 0x0001 }
 
 // Put bit b into word x in bit position i
 export function putBitInWordLE (k,x,i,b) {
-    return b==0 ? x & maskToClearBitLE(k,i) : x | maskToSetBitLE(k,i)
+    return b==0 ? x & maskToClearBitLE(i)   : x | maskToSetBitLE(i)
 }
 export function putBitInWordBE (k,x,i,b) {
     return b==0 ? x & maskToClearBitBE(k,i) : x | maskToSetBitBE(k,i)
 }
 
-// Generate mask to clear/set bit i in a word
-export function maskToClearBitLE (i) { return ~(1<<i)       & 0xffff }
-export function maskToSetBitLE   (i) { return (1 << i)      & 0xffff }
-export function maskToClearBitBE (i) { return ~(1<<(15-i))  & 0xffff }
-export function maskToSetBitBE   (i) { return (1 << (15-i)) & 0xffff }
+// Generate mask to clear/set bit i in a k-bit word
+export function maskToClearBitLE (i)   { return ~(1<<i)      & 0xffff }
+export function maskToSetBitLE   (i)   { return (1 << i)     & 0xffff }
+export function maskToClearBitBE (k,i) { return ~(1<<(k-i))  & 0xffff }
+export function maskToSetBitBE   (k,i) { return (1 << (k-i)) & 0xffff }
 
 // Access bit i in register r with k-bit words
-export function getBitInRegLE (r,i) { return (r.get() >>> i) & 0x0001 }
-export function clearBitInRegLE (k,r,i) { r.put (r.get() & maskToClearBitLE(i)) }
-export function setBitInRegLE   (k,r,i) { r.put (r.get() | maskToSetBitLE(i)) }
-export function getBitInRegBE   (k,r,i) { return (r.get() >>> (15-i)) & 0x0001 }
-export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(i)) }
-export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(i)) }
+export function getBitInRegLE   (r,i)   { return (r.get() >>> i) & 0x0001 }
+export function clearBitInRegLE (r,i)   { r.put (r.get() & maskToClearBitLE(i)) }
+export function setBitInRegLE   (r,i)   { r.put (r.get() | maskToSetBitLE(i)) }
+export function getBitInRegBE   (k,r,i) { return (r.get() >>> (k-i)) & 0x0001 }
+export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(k,i)) }
+export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) }
+
+// Return Boolean from bit i in word x
+export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
 
 //------------------------------------------------------------------------------
 // Logic
@@ -93,6 +98,7 @@ xor = 0110 =  6
 
 // Given the mnemonic for a logic function, return the truth table
 // encoding needed for the general logic box circuit
+
 export function logicFunction(mnemonic) {
     return mnemonic=="andnew" ? 1
         : mnemonic=="and"     ? 1
@@ -109,8 +115,8 @@ export function logicFunction(mnemonic) {
 
 export function applyLogicFcnBit (fcn, x, y) {
     let result = x==0
-        ? (y==0 ? getBitInNibbleBE (fcn,0) : getBitInNibbleBE (fcn,1))
-        : (y==0 ? getBitInNibbleBE (fcn,2) : getBitInNibbleBE (fcn,3))
+        ? (y==0 ? getBitInWordLE (fcn,0) : getBitInWordLE (fcn,1))
+        : (y==0 ? getBitInWordLE (fcn,2) : getBitInWordLE (fcn,3))
     com.mode.devlog (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
     return result
 }
@@ -121,14 +127,14 @@ function lut (p,q,r,s,x,y) {
 
 export function applyLogicFcnWord (fcn, x, y) {
     com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
-    let p = getBitInNibbleBE (fcn,0);
-    let q = getBitInNibbleBE (fcn,1);
-    let r = getBitInNibbleBE (fcn,2);
-    let s = getBitInNibbleBE (fcn,3);
+    let p = getBitInWordLE (fcn,0);
+    let q = getBitInWordLE (fcn,1);
+    let r = getBitInWordLE (fcn,2);
+    let s = getBitInWordLE (fcn,3);
     let result = 0;
     for (let i=0; i<16; i++) {
-        let z = lut (p,q,r,s, getBitInWordBE(x,i), getBitInWordBE(y,i));
-        if (z==1) { result = result | maskToSetBitBE(i) }
+        let z = lut (p,q,r,s, getBitInWordLE(x,i), getBitInWordLE(y,i));
+        if (z==1) { result = result | maskToSetBitLE(i) }
     }
     com.mode.devlog (`applyLogicFcnWord result=${wordToHex4(result)}`);
     return result
@@ -463,10 +469,10 @@ export function shiftR (x,k) {
 // significant bit of the result, and the carry output.
 
 export function additionCC (a,b,primary,sum) {
-    const msba = extractBitLE (a, 15)
-    const msbb = extractBitLE (b, 15)
-    const msbsum = extractBitLE (sum, 15)
-    const carryOut = extractBitLE (sum,16)
+    const msba = getBitInWordLE (a, 15)
+    const msbb = getBitInWordLE (b, 15)
+    const msbsum = getBitInWordLE (sum, 15)
+    const carryOut = getBitInWordLE (sum,16)
     const binOverflow = carryOut === 1
     const tcOverflow = (msba===0 && msbb===0 && msbsum===1 )
           || (msba===1 && msbb===1 && msbsum===0)
@@ -507,7 +513,7 @@ export function op_add (a,b) {
 }
 
 export function op_addc (c,a,b) {
-    let sum = a + b + extractBitBE(c,arch.bit_ccC);
+    let sum = a + b + getBitInWordLE(c,arch.bit_ccC);
     let primary = sum & 0x0000ffff;
     const secondary = additionCC (a,b,primary,sum)
     return [primary, secondary]
@@ -646,28 +652,30 @@ export function op_xor (a,b) {
 //------------------------------------------------------------------------------
 
 // These definitions give a mask with 1 in specified bit position
-const ccG = setBitBE(arch.bit_ccG);
-const ccg = setBitBE(arch.bit_ccg);
-const ccE = setBitBE(arch.bit_ccE);
-const ccL = setBitBE(arch.bit_ccL);
-const ccl = setBitBE(arch.bit_ccl);
-const ccV = setBitBE(arch.bit_ccV);
-const ccv = setBitBE(arch.bit_ccv);
-const ccC = setBitBE(arch.bit_ccC);
+const ccG = maskToSetBitLE(arch.bit_ccG);
+const ccg = maskToSetBitLE(arch.bit_ccg);
+const ccE = maskToSetBitLE(arch.bit_ccE);
+const ccL = maskToSetBitLE(arch.bit_ccL);
+const ccl = maskToSetBitLE(arch.bit_ccl);
+const ccV = maskToSetBitLE(arch.bit_ccV);
+const ccv = maskToSetBitLE(arch.bit_ccv);
+const ccC = maskToSetBitLE(arch.bit_ccC);
 
-const ccSO = setBitBE (arch.bit_ccStackOverflow);
-const ccSU = setBitBE (arch.bit_ccStackUnderflow);
+const ccSO = maskToSetBitLE (arch.bit_ccStackOverflow);
+const ccSU = maskToSetBitLE (arch.bit_ccStackUnderflow);
 
 export function showCC (c) {
     com.mode.devlog (`showCC ${c}`);
-    return (extractBool (c,arch.bit_ccC) ? 'c' : '')
-	+ (extractBool (c,arch.bit_ccv) ? 'v' : '')
-	+ (extractBool (c,arch.bit_ccV) ? 'V' : '')
-	+ (extractBool (c,arch.bit_ccL) ? 'L' : '')
-	+ (extractBool (c,arch.bit_ccl) ? '&lt;' : '')
-	+ (extractBool (c,arch.bit_ccE) ? '=' : '')
-	+ (extractBool (c,arch.bit_ccg) ? '>' : '')
-	+ (extractBool (c,arch.bit_ccG) ? 'G' : '') ;
+    return (extractBoolLE (c,arch.bit_ccs) ? 's' : '')
+	+ (extractBoolLE (c,arch.bit_ccS) ? 'S' : '')
+	+ (extractBoolLE (c,arch.bit_ccC) ? 'C' : '')
+	+ (extractBoolLE (c,arch.bit_ccV) ? 'V' : '')
+	+ (extractBoolLE (c,arch.bit_ccv) ? 'v' : '')
+	+ (extractBoolLE (c,arch.bit_ccl) ? '&lt;' : '')
+	+ (extractBoolLE (c,arch.bit_ccL) ? 'L' : '')
+	+ (extractBoolLE (c,arch.bit_ccE) ? '=' : '')
+	+ (extractBoolLE (c,arch.bit_ccG) ? 'G' : '')
+	+ (extractBoolLE (c,arch.bit_ccg) ? '>' : '')
 }
 
 // These constants provide a faster way to set or clear the flags
@@ -776,10 +784,6 @@ let intToBit = function (x) {
 // Return bit i in nibble (4-bit word) w
 function getBitInNibbleBE (w,i) { return (w >>> (3-i)) & 0x0001 }
 
-// return Boolean from bit i in word x, where the rightmost bit has index 0
-export function extractBool (x,i) {
-    return extractBitBE (x,i) === 1;
-}
 
 // Return a word where bit i is 1
 function setBitBE(i) { return 1 << 15-i }
