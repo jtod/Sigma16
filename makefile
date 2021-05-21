@@ -37,28 +37,29 @@
 # Usage
 #-------------------------------------------------------------------------------
 
-# Preparing the folder to run locally:
-#    make set-version
-#    After set-version, build html files from org using emacs export
-
-# Additional preporation to run on Heroku:
-#    make clear-build
-#    make copy-build
-
-# Copy files to Sigma16 homepage repository (on jtod.github.io)
-#   make copybuild     copy the web release to the github homepage repository
-#   make copyS16homepage
-
-# Maintainance
-#   make showconfig    print the configuration parameters
-#   make clean         remove temporary files
+# make showconfig       display the configuration parameters
+# make setVersion      update VERSION.txt and src/base/version.mjs
+# emacs export org      build html files from org source after make setVersion
+# make build            copy executable from dev source to build/i.j.k
+# make installServer    copy server program to server repository
+# make installBuild     copy dev build to server repository
+# make installHomepage  copy homepage files to homepage repository
 
 #-------------------------------------------------------------------------------
 # Configuration
 #-------------------------------------------------------------------------------
 
-# Most of the configuration paramaters are environment variables
-# defined in .bashrc
+# Environment variables defined on Heroko
+#  PAPERTRAIL_API_TOKEN
+
+# Environment variables defined on both Heroko and local build machine:
+#   S16_RUN_ENV           Heroku or Local
+#   S16_LATEST_RELEASE    version number of latest official release
+#   S16_RELEASE_VERSION   version number to use on request for 'release'
+
+# Environment variables defined on local build machine:
+#   S16_LOCAL_PORT      port for local server
+#   SIGMASYSTEM         path to sources
 
 # VERSION, the current version number, is extracted from the
 # package.json file, on the line consisting of "version: : "1.2.3".
@@ -74,30 +75,39 @@ YEARMONTHDAY=$(shell date +"%F")
 # MONTHYEARDAY=$(shell date +"%F")
 # YEARMONTHDAY=$(shell date -I")
 
-S16_CURRENT_BUILD_DIR="$(S16_LOCAL_BUILD_DIR)/$(S16_DEV_VERSION)"
-# make showconfig - print out the configuration paramaters
+# Define the directories for sources, builds, and repositories
+
+S16_BUILDS_DIR=$(SIGMASYSTEM)/Sigma16-builds/build
+S16_DEV_SRC_DIR=$(S16_BUILDS_DIR)/dev/Sigma16
+S16_DEV_VERSION_DIR=$(S16_BUILDS_DIR)/$(VERSION)
+S16_DEV_BUILD_DIR=$(S16_DEV_VERSION_DIR)/Sigma16
+S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
+SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/SigServer
 
 .PHONY: showconfig
 showconfig:
-	@echo Environment variables
-	@echo "  S16_LATEST_RELEASE = $(S16_LATEST_RELEASE)"
-	@echo "  SIGMASYSTEM = $(SIGMASYSTEM)"
-	@echo "  S16_LOCAL_BUILD_DIR = $(S16_LOCAL_BUILD_DIR)"
-	@echo "  S16_DEV_VERSION = $(S16_DEV_VERSION)"
-	@echo "  S16_DEV = $(S16_DEV)"
-	@echo "  S16_CURRENT_BUILD_DIR = $(S16_CURRENT_BUILD_DIR)"
-	@echo "  S16_LOCAL_PORT = $(S16_LOCAL_PORT)"
+	@echo "Environment variables"
 	@echo "  S16_RUN_ENV = $(S16_RUN_ENV)"
-	@echo "  SIGSERVER = $(SIGSERVER)"
-	@echo VERSION = $(VERSION)
-	@echo MONTHYEAR = $(MONTHYEAR)
-	@echo YEARMONTHDAY = $(YEARMONTHDAY)
+	@echo "  S16_LATEST_RELEASE = $(S16_LATEST_RELEASE)"
+	@echo "  S16_RELEASE_VERSION = $(S16_RELEASE_VERSION)"
+	@echo "  S16_LOCAL_PORT = $(S16_LOCAL_PORT)"
+	@echo "  SIGMASYSTEM = $(SIGMASYSTEM)"
+	@echo "Calculated variables"
+	@echo "  VERSION = $(VERSION)"
+	@echo "  MONTHYEAR = $(MONTHYEAR)"
+	@echo "  YEARMONTHDAY = $(YEARMONTHDAY)"
+	@echo "  S16_BUILDS_DIR = $(S16_BUILDS_DIR)"
+	@echo "  S16_DEV_SRC_DIR = $(S16_DEV_SRC_DIR)"
+	@echo "  S16_DEV_VERSION_DIR = $(S16_DEV_VERSION_DIR)"
+	@echo "  S16_DEV_BUILD_DIR = $(S16_DEV_BUILD_DIR)"
+	@echo "  S16_HOMEPAGE_REPOSITORY = $(S16_HOMEPAGE_REPOSITORY)"
+	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
 
 #-------------------------------------------------------------------------------
-# make set-version -- find version and define Version files
+# make setVersion -- find version and define Version files
 #-------------------------------------------------------------------------------
 
-# make set-version --- The version number is defined in
+# make setVersion --- The version number is defined in
 # src/gui/package.json; this makefile finds the number there and
 # defines a make variable $(VERSION).  This is used in several places,
 # including writing a VERSION file in the top directory (used in the
@@ -112,63 +122,79 @@ VERSION.txt : src/package.json
 src/base/version.mjs : src/package.json
 	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
 
-#-------------------------------------------------------------------------------
-# Build
-#-------------------------------------------------------------------------------
-
-.PHONY: set-version
-set-version:
+.PHONY: setVersion
+setVersion:
 	make VERSION.txt
 	make src/base/version.mjs
 
-# Remove all the files in build/(version). This is only necessary if a
-# reorganization of the sources means that some redundant files would
-# be left over; normally build-release will overwrite the files that
-# have changed and leave the others unchanged.
-
-.PHONY: clear-build
-clear-build:
-	/bin/rm -rf $(S16_CURRENT_BUILD_DIR)/Sigma16
-
-# Copy the files needed to run the program from build/dev to
-# build/(version). 
+#-------------------------------------------------------------------------------
+# make build - Copy files needed to run program from build/dev to build/i.j.k
+#-------------------------------------------------------------------------------
 
 .PHONY: build
 build:
 	make VERSION.txt
 	make src/base/version.mjs
-	mkdir -p $(S16_CURRENT_BUILD_DIR)/Sigma16
-	cp -u *.html $(S16_CURRENT_BUILD_DIR)/Sigma16
-	cp -u *.txt  $(S16_CURRENT_BUILD_DIR)/Sigma16
-	cp -ur docs $(S16_CURRENT_BUILD_DIR)/Sigma16
-	cp -ur examples $(S16_CURRENT_BUILD_DIR)/Sigma16
-	mkdir $(S16_CURRENT_BUILD_DIR)/Sigma16/src
-	cp -ur src/gui $(S16_CURRENT_BUILD_DIR)/Sigma16/src
-	cp -ur src/base $(S16_CURRENT_BUILD_DIR)/Sigma16/src
+
+	mkdir -p $(S16_DEV_BUILD_DIR)
+	cp -u *.html $(S16_DEV_BUILD_DIR)
+	cp -u *.txt  $(S16_DEV_BUILD_DIR)
+
+	mkdir -p $(S16_DEV_BUILD_DIR)/src/gui
+	cp -u src/gui/*.mjs $(S16_DEV_BUILD_DIR)/src/gui
+	cp -u src/gui/*.css $(S16_DEV_BUILD_DIR)/src/gui
+
+	mkdir -p $(S16_DEV_BUILD_DIR)/src/base
+	cp -u src/base/*.mjs $(S16_DEV_BUILD_DIR)/src/base
+
+	mkdir -p $(S16_DEV_BUILD_DIR)/docs
+	cp -u docs/*.css $(S16_DEV_BUILD_DIR)/docs
+	mkdir -p $(S16_DEV_BUILD_DIR)/docs/welcome
+	cp -u docs/welcome/*.html $(S16_DEV_BUILD_DIR)/docs/welcome
+	mkdir -p $(S16_DEV_BUILD_DIR)/docs/help
+	cp -u docs/help/*.html $(S16_DEV_BUILD_DIR)/docs/help
+	mkdir -p $(S16_DEV_BUILD_DIR)/docs/UserGuide
+	cp -u docs/UserGuide/*.html $(S16_DEV_BUILD_DIR)/docs/UserGuide
+
+	mkdir -p $(S16_DEV_BUILD_DIR)/examples
+	cp -ur examples/* $(S16_DEV_BUILD_DIR)/examples
+
+# If and when there are figure files, those will need to be copied too
+#	mkdir -p $(S16_DEV_BUILD_DIR)/docs/UserGuide/png
+#	cp -u docs/UserGuide/png/*.png $(S16_DEV_BUILD_DIR)/docs/UserGuide/png
+#	mkdir -p $(S16_DEV_BUILD_DIR)/docs/UserGuide/svg
+#	cp -u docs/UserGuide/svg/*.svg $(S16_DEV_BUILD_DIR)/docs/UserGuide/svg
 
 #-------------------------------------------------------------------------------
 # Install server
 #-------------------------------------------------------------------------------
 
-# Copy server to Heroku source directory
+# Copy server to Heroku github source directory
 
-.PHONY: install-server
-install-server:
-	cp -up src/server/sigserver.mjs $(SIGSERVER)/src/server 
+.PHONY: installServer
+installServer:
+	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server 
 
-.PHONY: install-build
-install-build:
-	cp -upr $(S16_CURRENT_BUILD_DIR) $(SIGSERVER)/build
+#-------------------------------------------------------------------------------
+# Install build
+#-------------------------------------------------------------------------------
+
+# Copy the dev build to the server repository
+
+.PHONY: installBuild
+installBuild:
+	cp -upr $(S16_DEV_VERSION_DIR) $(SIGSERVER_REPOSITORY)/build
 
 #-------------------------------------------------------------------------------
 # Install home page
 #-------------------------------------------------------------------------------
 
-# Copy the home page index and style to the Sigma16 home page
+# Copy the home page index and style from dev source to the Sigma16
+# home page repository.  From there it can be pushed to github.
 
-.PHONY : install-home-page
-install-home-page :
-	mkdir -p $(S16HOMEPAGE)/admin
-	cp -up protected/SIGSERVERURL.txt $(S16HOMEPAGE)/admin
-	cp -up docs/S16homepage/index.html $(S16HOMEPAGE)
-	cp -up docs/docstyle.css  $(S16HOMEPAGE)
+.PHONY : installHomepage
+installHomepage :
+	mkdir -p $(S16_HOMEPAGE_REPOSITORY)/admin
+	cp -u protected/SIGSERVERURL.txt $(S16_HOMEPAGE_REPOSITORY)/admin
+	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
+	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)

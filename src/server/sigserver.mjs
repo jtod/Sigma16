@@ -15,15 +15,25 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-----------------------------------------------------------------------------
-// Usage
+// SigServer
 //-----------------------------------------------------------------------------
 
-// This program is a web server for Sigma16.  It can run on a local
-// computer for offline testing, or on an Internet server for
-// production use.  To run it locally, execute `node
-// src/server/sigserver.mjs'.  The bash cli alias sigma16 also issues
-// that command.  SigmaSystem/SigServer pushes the program to Heroku
-// to run on the Internet.
+// Sigma16 normally runs in a browser, although it can also run as a
+// standalone program without Internet access using either a command
+// line interface or a GUI provided by electron.
+
+// To run in a browser, Sigma16 needs to be served via https.  A
+// static server (such as github.io) is insufficient, because Sigma16
+// uses concurrent process with shared memory, and(from May 2021)
+// browsers require cross origin isolation in order to use shared
+// memory. This program is a web server that enforces cross origin
+// isolation, so it works for Sigma16.
+
+// This server can run on a local computer for offline testing, or on
+// an Internet server for production use.  To run it locally, execute
+// `node src/server/sigserver.mjs'.  The bash cli alias sigma16 also
+// issues that command.  SigmaSystem/SigServer pushes the program to
+// Heroku to run on the Internet.
 
 // To use a local server, launch sigserver.mjs and enter this URL:
 //    http://localhost:3000/...Sigma16 path...
@@ -61,11 +71,18 @@ import { fileURLToPath } from 'url';
 // On the local server, the environment variables are set in .bashrc.
 // On Heroku, they are set using heroku config
 
-
 // Versions
+
+// S16_LATEST_RELEASE is reported as response to status/latest query
+// S16_RELEASE_VERSION is substituted for 'release' in http path
+// These are typically the same in production but different for testing
+// S16_DEV_VERSION is substituted for 'dev' in http path
 const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
+const S16_RELEASE_VERSION = process.env.S16_RELEASE_VERSION
+const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 
 // Server configuration
+
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
 const S16_RUN_ENV = process.env.S16_RUN_ENV
 const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
@@ -139,43 +156,70 @@ app.get ('/status/latest/:callerversion', (req,res) => {
 // URL path: build/:version/Sigma16/Sigma16.html
 //----------------------------------------------------------------------------
 
+// Calculate actual version number.  The http request may ask for a
+// specific version (1.2.3) or a symbolically named version (release,
+// dev).  A symbolically named version is substituted with the
+// corresponding version number which is used to find the files.
+
+function substituteVersion (v) {
+    return v === 'release' ? S16_RELEASE_VERSION
+        : v === 'dev' ? S16_DEV_VERSION
+        : v
+}
+
+// Provide response headers and send the file
+
+function finish (req, res, loc) {
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.sendFile (loc)
+}
+
 app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
-    const v = req.params.version
+    const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
-//    console.log (`get build, version = ${v}`)
-//    console.log (`get build, loc = ${loc}`)
+    console.log (`get build top: path=${req.path}`)
+    console.log (`get build top: v=${v}`)
+    console.log (`get build top: loc = ${loc}`)
     finish (req, res, loc)
 })
+//    const raw_v = req.params.version
+//    const actual_v = raw_v === 'release' ? S16_RELEASE_VERSION : raw_v
+    //    const loc = path.join (S16_BUILD_DIR, actual_v, 'Sigma16', 'Sigma16.html')
 
 app.get('/build/:version/Sigma16/:a/:b/:c/*', (req, res) => {
-    console.log (`ABC ${req.path}`)
-    const v = req.params.version
-    const loc = path.join (S16_BUILD_DIR, req.params.version, 'Sigma16',
+    const v = substituteVersion (req.params.version)
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
                            req.params.b,
                            req.params.c,
                            path.basename (req.path))
     finish (req, res, loc)
 })
+//    console.log (`ABC ${req.path}`)
+//    const raw_v = req.params.version
+//    const actual_v = raw_v === 'release' ? release_version : raw_v
 
 app.get('/build/:version/Sigma16/:a/:b/*', (req, res) => {
-    console.log (`AB ${req.path}`)
-    const v = req.params.version
-    const loc = path.join (S16_BUILD_DIR, req.params.version, 'Sigma16',
+    const v = substituteVersion (req.params.version)
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
                            req.params.b,
                            path.basename (req.path))
     finish (req, res, loc)
 })
+//    console.log (`AB ${req.path}`)
+//    const v = req.params.version
 
 app.get('/build/:version/Sigma16/:a/*', (req, res) => {
-    console.log (`A ${req.path}`)
-    const v = req.params.version
-    const loc = path.join (S16_BUILD_DIR, req.params.version, 'Sigma16',
+    const v = substituteVersion (req.params.version)
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
                            path.basename (req.path))
     finish (req, res, loc)
 })
+//    const v = req.params.version
+//    console.log (`A ${req.path}`)
 
 // There are no mjs files in the Sigma16 directory.  However, the base
 // emulator files are loaded by emwt when the processor is entered,
@@ -185,19 +229,13 @@ app.get('/build/:version/Sigma16/:a/*', (req, res) => {
 
 app.get('/build/:version/Sigma16/*.mjs', (req, res) => {
     console.log (`EMWT ${req.path}`)
-    const v = req.params.version
+    const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            'src', 'base', path.basename (req.path))
     finish (req, res, loc)
 })
+//    const v = req.params.version
 
-// Provide response headers and send the file
-
-function finish (req, res, loc) {
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    res.sendFile (loc)
-}
 
 //----------------------------------------------------------------------------
 // Cross origin isolation
@@ -248,6 +286,8 @@ app.get ('/world.html', (req,res) => {
 console.log (`Starting sigserver`)
 console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
 console.log (`S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
+console.log (`S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
+console.log (`S16_DEV_VERSION = ${S16_DEV_VERSION}`)
 console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
 console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
