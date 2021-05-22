@@ -1,82 +1,32 @@
-; Jumping: test the instructions for transfer of control
-; This file is part of Sigma16; README and https://jtod.github.io/home/Sigma16/
+; Jumping: test conditional and unconditional transfer of control
+; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
 ; John O'Donnell, 2021
 
-; Data for comparisons
-      lea     R7,1[R0]    ; increment
-      add     R8,R0,R0    ; good count
-      add     R9,R0,R0    ; error count
-
-; Comparisons
-      lea   R1,3[R0]    ; R1 := 3
-      lea   R2,5[R0]    ; R2 := 5
-      lea   R3,-1[R0]   ; R3 := -1
-      lea   R4,-5[R0]   ; R4 := -5
-
-; Compare two positives
-      cmp    R1,R2      ; 0018 <L   lt signed, lt unsigned
-      cmp    R2,R1      ; 0003 >G   gt signed, gt unsigned
-      cmp    R2,R3      ; < signed, < unsigned   (Ll)    4,3     0018
-      cmp    R3,R2      ; > signed, > unsigned   (gG)    1,0     0003
-
-; Compare two negatives
-; Compare positive and negative
-
-
-      lea     R1,-30000[R0]    ; R1 = I: -30000   N: 8ad0
-      lea     R2,-2[R0]        ; R2 = I:     -2   N: fffe
-      lea     R3,13[R0]        ; R3 = I:     13   N: 000d
-      lea     R4,28749[R0]     ; R4 = I:  28749   N: 704d
-
-; Condition code flags
+; Condition code flags are defined in architecture.mjs
 
 ; Each flag has a symbolic name used in the implementation, and a
-;  display name used in the "instruction decode" panel on the emulator
-;  GUI.  The usual relations < = > are used for integers (binary
-;  representation) , while L = G are used for natural numbers (two's
-;  complement representation).
+; display name used in the "instruction decode" panel on the emulator
+; GUI.  The usual relations < = > are used for integers (binary
+; representation) , while L = G are used for natural numbers (two's
+; complement representation).
 
-;  bit  code  display   relation types
+; index code  display   type and relation
 ;----------------------------------------------
-; bit 0   G      G        nat >
-; bit 1   g      >        int >
+; bit 0   g      >        int >
+; bit 1   G      G        nat >
 ; bit 2   E      =        nat,int =
-; bit 3   l      <        int <
-; bit 4   L      L        nat <
+; bit 3   L      L        nat <
+; bit 4   l      <        int <
 ; bit 5   v      v        int overflow
-; bit 6   C      C        bin carry out, carry in (addc)
+; bit 6   V      V        int overflow
+; bit 7   C      C        bin carry out, carry in (addc)
+; bit 8   S      S        bin carry out, carry in (addc)
+; bit 9   s      s        bin carry out, carry in (addc)
 
-      cmp     R0,R0     ; =
-      cmp     R0,R1     ; > L
-      cmp     R0,R2     ; > L
-      cmp     R0,R3     ; < L
-      cmp     R0,R4     ; < L
+; Jump pseudoinstructions
 
-      cmp     R1,R0     ; < G
-      cmp     R1,R1     ; =
-      cmp     R1,R2     ; < L
-      cmp     R1,R3     ; < G
-      cmp     R1,R4     ; < G
-
-      cmp     R2,R0     ; < G
-      cmp     R2,R1     ; > G
-      cmp     R2,R2     ; =
-      cmp     R2,R3     ; < G
-      cmp     R2,R4     ; < G
-
-      cmp     R3,R0     ; > G
-      cmp     R3,R1     ; > L
-      cmp     R3,R2     ; > L
-      cmp     R3,R3     ; =
-      cmp     R3,R4     ; < L
-
-      cmp     R4,R0     ; > G
-      cmp     R4,R1     ; > L
-      cmp     R4,R2     ; > L
-      cmp     R4,R3     ; > G
-      cmp     R4,R4     ; =
-
-;      Jump pseudoinstructions
+      lea    R1,4
+      lea    R2,5
 
 ; jumplt jumps
       cmp    R1,R2      ; <

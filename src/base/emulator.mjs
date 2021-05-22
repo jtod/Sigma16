@@ -1123,7 +1123,7 @@ function rx_jump (es) {
 function rx_jumpc0 (es) {
     com.mode.devlog('rx_jumpc0');
     let cc = es.regfile[15].get();
-    if (arith.extractBitBE (cc,es.ir_d)===0) {
+    if (arith.getBitInWordLE (cc,es.ir_d)===0) {
 	es.nextInstrAddr = es.ea;
 	es.pc.put(es.nextInstrAddr);
     }
@@ -1132,7 +1132,7 @@ function rx_jumpc0 (es) {
 function rx_jumpc1 (es) {
     com.mode.devlog('rx_jumpc1');
     let cc = es.regfile[15].get();
-    if (arith.extractBitBE (cc,es.ir_d)===1) {
+    if (arith.getBitInWordLE (cc,es.ir_d)===1) {
 	es.nextInstrAddr = es.ea;
 	es.pc.put(es.nextInstrAddr);
     }

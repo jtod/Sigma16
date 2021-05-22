@@ -176,16 +176,17 @@ function finish (req, res, loc) {
 }
 
 app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
-    const v = substituteVersion (req.params.version)
+    const raw_v = req.params.version
+    const v = substituteVersion (raw_v)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
-    console.log (`get build top: path=${req.path}`)
-    console.log (`get build top: v=${v}`)
-    console.log (`get build top: loc = ${loc}`)
+    console.log (`launching ${raw_v}->${v}`)
     finish (req, res, loc)
 })
+//    console.log (`get build top: path=${req.path}`)
+//    console.log (`get build top: loc = ${loc}`)
 //    const raw_v = req.params.version
 //    const actual_v = raw_v === 'release' ? S16_RELEASE_VERSION : raw_v
-    //    const loc = path.join (S16_BUILD_DIR, actual_v, 'Sigma16', 'Sigma16.html')
+//    const loc = path.join (S16_BUILD_DIR, actual_v, 'Sigma16', 'Sigma16.html')
 
 app.get('/build/:version/Sigma16/:a/:b/:c/*', (req, res) => {
     const v = substituteVersion (req.params.version)
@@ -228,12 +229,12 @@ app.get('/build/:version/Sigma16/:a/*', (req, res) => {
 // src/gui/* and src/base/*
 
 app.get('/build/:version/Sigma16/*.mjs', (req, res) => {
-    console.log (`EMWT ${req.path}`)
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            'src', 'base', path.basename (req.path))
     finish (req, res, loc)
 })
+//    console.log (`EMWT ${req.path}`)
 //    const v = req.params.version
 
 

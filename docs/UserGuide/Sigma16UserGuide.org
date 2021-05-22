@@ -4981,6 +4981,22 @@ similar to this:
 :set -i/c/Users/a/b/c/Hydra/src/haskell/
 #+END_EXAMPLE
 
+* Typesetting
+
+From org documentation: The HTML export back-end transforms ‘<’ and
+‘>’ to ‘&lt;’ and ‘&gt;’. To include raw HTML code in the Org file so
+the HTML export back-end can insert that HTML code in the output, use
+this inline syntax: ‘@@html:...@@’. For example: Here are some html
+math symbols
+
+- @@html: &sum; @@
+- @@html: &sum;<sub>n = 0</sub><sup>&inf;</sup> @@
+- @@html: &sum; <sub>i=0</sub> <sup>n-1</sup> @@
+- @@html: &sum; <sub>0&le;i&lt;n</sub> (x<sub>i</sub> * 2 <sup>i</sup>) @@
+- @@html: 2 &le; 3 @@
+- @@html: 4 &ge; 5 @@
+- @@html: <MATH>&int;_a_^b^{f(x)<over>1+x} dx</MATH> @@
+
 
 * Installation
 
