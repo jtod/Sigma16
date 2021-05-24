@@ -276,3 +276,22 @@ div.HelpPage {
     height: 100em;
     background: red;
 }
+
+.AsideNote {
+    border-style: solid;
+    border-color: blue;
+    background: ivory;
+    padding: 1em;
+}
+
+div.AsideNote > p {
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+
+div.AsideNote > asidepar {
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0em;
+}
+
