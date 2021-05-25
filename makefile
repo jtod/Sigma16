@@ -174,6 +174,8 @@ build:
 .PHONY: installServer
 installServer:
 	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server 
+	cp -u src/server/*.html $(SIGSERVER_REPOSITORY)/build
+	cp -u docs/docstyle.css $(SIGSERVER_REPOSITORY)/build
 
 #-------------------------------------------------------------------------------
 # Install build

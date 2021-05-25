@@ -77,6 +77,7 @@ import { fileURLToPath } from 'url';
 // S16_RELEASE_VERSION is substituted for 'release' in http path
 // These are typically the same in production but different for testing
 // S16_DEV_VERSION is substituted for 'dev' in http path
+
 const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
 const S16_RELEASE_VERSION = process.env.S16_RELEASE_VERSION
 const S16_DEV_VERSION = process.env.S16_DEV_VERSION
@@ -123,6 +124,15 @@ app.set ('view engine', 'ejs')
 express.static.mime.define({'application/javascript': ['js']});
 express.static.mime.define({'text/css': ['css']});
 express.static.mime.define({'text/html': ['html']});
+
+//----------------------------------------------------------------------------
+// Top index
+//----------------------------------------------------------------------------
+
+app.get ('/', (req,res) => {
+    console.log (`responding to get /`)
+    res.sendFile (path.join (S16_BUILD_DIR, 'index.html'))
+})
 
 //----------------------------------------------------------------------------
 // Provide latest version on request
@@ -180,13 +190,9 @@ app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
     const v = substituteVersion (raw_v)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
     console.log (`launching ${raw_v}->${v}`)
+    console.log (`launching at loc ${loc}`)
     finish (req, res, loc)
 })
-//    console.log (`get build top: path=${req.path}`)
-//    console.log (`get build top: loc = ${loc}`)
-//    const raw_v = req.params.version
-//    const actual_v = raw_v === 'release' ? S16_RELEASE_VERSION : raw_v
-//    const loc = path.join (S16_BUILD_DIR, actual_v, 'Sigma16', 'Sigma16.html')
 
 app.get('/build/:version/Sigma16/:a/:b/:c/*', (req, res) => {
     const v = substituteVersion (req.params.version)
@@ -197,9 +203,6 @@ app.get('/build/:version/Sigma16/:a/:b/:c/*', (req, res) => {
                            path.basename (req.path))
     finish (req, res, loc)
 })
-//    console.log (`ABC ${req.path}`)
-//    const raw_v = req.params.version
-//    const actual_v = raw_v === 'release' ? release_version : raw_v
 
 app.get('/build/:version/Sigma16/:a/:b/*', (req, res) => {
     const v = substituteVersion (req.params.version)
@@ -209,8 +212,6 @@ app.get('/build/:version/Sigma16/:a/:b/*', (req, res) => {
                            path.basename (req.path))
     finish (req, res, loc)
 })
-//    console.log (`AB ${req.path}`)
-//    const v = req.params.version
 
 app.get('/build/:version/Sigma16/:a/*', (req, res) => {
     const v = substituteVersion (req.params.version)
@@ -219,8 +220,6 @@ app.get('/build/:version/Sigma16/:a/*', (req, res) => {
                            path.basename (req.path))
     finish (req, res, loc)
 })
-//    const v = req.params.version
-//    console.log (`A ${req.path}`)
 
 // There are no mjs files in the Sigma16 directory.  However, the base
 // emulator files are loaded by emwt when the processor is entered,
@@ -234,9 +233,6 @@ app.get('/build/:version/Sigma16/*.mjs', (req, res) => {
                            'src', 'base', path.basename (req.path))
     finish (req, res, loc)
 })
-//    console.log (`EMWT ${req.path}`)
-//    const v = req.params.version
-
 
 //----------------------------------------------------------------------------
 // Cross origin isolation
@@ -246,7 +242,7 @@ app.get('/build/:version/Sigma16/*.mjs', (req, res) => {
 // app.use (cors ())
 // app.use (express.static ('public'))
 
-// Without the res.set statements for Cross-Origin, Chrome gives the
+// Without the res.set statements for Cross-Origin, Chrome gives a
 // deprecation warning (April 2021) because shared memory requires
 // cross origin isolation.  It is expected that Chrome 91 (May 2021)
 // will simply refuse to create the shared array.
