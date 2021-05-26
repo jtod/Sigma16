@@ -1089,18 +1089,26 @@ const dispatch_RX =
       rx (rx_jal),       // 4
       rx (rx_jumpc0),    // 5
       rx (rx_jumpc1),    // 6
-      rx (rx_jumpz),     // 7 should be jumpn ?????????
-      rx (rx_jumpz),     // 8
-      rx (rx_jumpnz),    // 9
-      rx (rx_jumpz),     // a should be jumpp ?????????
-      rx (rx_testset),   // b
-      rx (rx_nop),       // c
+      rx (rx_jumpz),     // 7
+      rx (rx_jumpnz),    // 8
+      rx (rx_testset),   // 9
+      rx (rx_lead),      // a
+      rx (rx_loadd),     // b
+      rx (rx_stored),    // c
       rx (rx_nop),       // d
       rx (rx_nop),       // e
       rx (rx_nop) ];     // f
 
+//      rx (rx_jumpz),     // 7 should be jumpn ?????????
+//      rx (rx_jumpz),     // a should be jumpp ?????????
+
 function rx_lea (es) {
     com.mode.devlog('rx_lea');
+    es.regfile[es.ir_d].put(es.ea);
+}
+
+function rx_lead (es) {
+    com.mode.devlog('rx_lead');
     es.regfile[es.ir_d].put(es.ea);
 }
 
@@ -1109,9 +1117,19 @@ function rx_load (es) {
     es.regfile[es.ir_d].put(memFetchData(es,es.ea));
 }
 
+function rx_loadd (es) {
+    com.mode.devlog('rx_loadd');
+    es.regfile[es.ir_d].put(memFetchData(es,es.ea)); // need to make 32 bit
+}
+
 function rx_store (es) {
     com.mode.devlog('rx_store');
     memStore (es, es.ea, es.regfile[es.ir_d].get());
+}
+
+function rx_stored (es) {
+    com.mode.devlog('rx_store')
+    memStore (es, es.ea, es.regfile[es.ir_d].get())  // need to make 32 bit
 }
 
 function rx_jump (es) {

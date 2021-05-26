@@ -1676,6 +1676,8 @@ instruction with an illegal opcode.
 
 The processor has buttons to select whether it is emulating S16 or
 S32.  When you first enter the processor page, it is in S16 mode.
+Clicking the S16 or S32 button will set the mode and clear the
+registers and memory.
 
 ** Words
 
@@ -1694,17 +1696,20 @@ leftmost (most significant) bit has index 15.  For a double word, the
 leftmost bit has index 31.
 
 #+HTML: <div class='AsideNote'>
-*Word terminology.* A byte is almost universally agreed to be 8 bits, but
-the terminology for words is not standard.  Computers have been
-designed with many different word sizes, including 4 bits (Intel
-4004), 7 bits (IBM 1401), 8 bits (Intel 8080), 12 bits (PDP-8), 16
-bits (IBM 1130), 18 bits (PDP-15), 24 bits (CDC 924), 32 bits (IBM
-360), 36 bits (IBM 7094), 60 bits (CDC 6600), and 64 bits (Cray 1).
+*Word terminology.* A byte is almost universally agreed to be 8 bits,
+but the terminology for words is not standard.  Computers have been
+built with many different word sizes, including 4 bits (Intel 4004), 7
+bits (IBM 1401), 8 bits (Intel 8080), 12 bits (PDP-8), 15 bits (Apollo
+Guidance Computer), 16 bits (IBM 1130), 18 bits (PDP-15), 24 bits (CDC
+924), 32 bits (IBM 360), 36 bits (IBM 7094), 48 bits (Burroughs 5000),
+60 bits (CDC 6600), and 64 bits (Cray 1).  (Some of these computers
+have an additional parity bit, which is invisible to software and not
+included in the figures.)
 #+HTML: <asidepar>
-Many of these computers have shorter and longer words as well as the
-standard size.  For example, IBM 360 and its desendants have a 32-bit
-full word, a 16-bit half word, and a 64-bit double word.  For Sigma16,
-a word is 16 bits and a double word is 32 bits.
+Many computers have shorter and longer words as well as their standard
+size.  For example, IBM 360 and its descendants have a 32-bit full
+word, a 16-bit half word, and a 64-bit double word.  For Sigma16, a
+word is 16 bits and a double word is 32 bits.
 #+HTML: </div>
 
 Every data type must be represented as one or more words.  By itself,
@@ -1750,67 +1755,14 @@ of a word.  If a numeric value is out of range it is truncated.
 
 ** Bits and fields  
 
-Some machine operations act on individual bits in a word.  We will use
-the notation word.n to indicate bit n in the word, where the bits are
-numbered from 0 at the left (most significant) position up to 15 at
-the rightmost (least significant) position.  For example the fourth bit
-of R15 can be written as R15.3.
+Some machine operations act on individual bits in a word.  If x is a
+word, the notation x.n denotes the bit in x with index n.  The bits in
+an n-bit word are numbered from 0 at the rightmost (least significant)
+position up to n-1 at the leftmost (most significant) position.
 
 A *field* is a consecutiave sequence of bits within a word.  For
 example, we will later define a field named *op* which consists of
 bits 0-3 of a word; this means the leftmost four bits of the word.
-
-** Handling both 16 and 32 bit data
-- Instruction formats
-  - RRR, RX, EXP same as for S16
-  - RX32: 3 words.  First word same as for RX except op=d (escape to
-    RX32).  The following two words give the 32 bit displacement
-  - EXPL: 3 words.  First word same as for RX except op=c (escape to
-    EXP32).
-- Same registers as S16, but they are all 32 bits wide
-- All S16 instructions do the same as before; they operate on the
-  rightmost 16 bits of a register, and set the upper half
-  appropriately.
-- The architecture should be strictly backward compatible: any S16
-  program should run the same on S32
-- Some of the extension to 32 bits is straightforward, but there are
-  some interesting complications
-  - If an S16 arithmetic instruction produces a  negative result,
-    should the 32 bit result get sign extension?  Yes
-  - RX instructions need a 32 bit displacement for S32, so a new RX32
-    format is needed.  This contains three words; the first word is
-    the same format as for RX, and the following two words give the
-    displacement.
-  - jumpc0 and jumpc1 use the 4-bit d field to index the condition
-    code bit.  If all condition code bits for S32 can be kept in the
-    lsw (least significant word) the RX32 format could be used for
-    jumpc0l and jumpc1l.  If, however, a condition in the msw is
-    needed, then the rx format would be insufficient and  
-  - The cc in R15 does need extension to 32 bits because it's used by
-    mul for upper half of product and by div for the remainder.
-  - shiftl and shiftr use 4-bit fields for distance to shift; these
-    need to be 5 bits for S32
-  - extract and extracti use three 4-bit fields, for start positions
-    in source and destination, and for field size.  All three of these
-    need to be 5 bits for S32.
-  - Would the architecture be cleaner using little-endian bit
-    indexing?  Consider indexing the condition code bits, and the
-    shift and extract instructions.
-  - Instructions that have 4-bit fields in S16 than need to expand to
-    5 bits in S32:
-    - jumpc0, jumpc1
-    - shiftl, shiftr
-    - logicb
-    - extractl, extractil
-      - opcode = escape, 8-bit opcode
-      - source and destination registers, 2 * 4
-      - source start, dest start, length 3 * 5
-      - total 4 + 8 + 2*4 + 3*5 = 35, so 3 words are needed
-      - first word: op, secop (4 bits unused)
-      - second word: source and destination registers 2 * 4 (8 bits unused)
-      - third word, 3 5-bit fields and 1-bit field
-  - Would it be better to change to little-endian notation? The main
-    issue seems to be the condition codes.
 
 ** Memory
 
@@ -3662,73 +3614,84 @@ precisely and concisely the effects of the instructions:
 
 ** Table of instructions
 
-|----------+------+---+------+-------+------+-----------------------------------|
-| Mnemonic | ISA  | P | Fmt  | Args  | Code | Effect                            |
-|----------+------+---+------+-------+------+-----------------------------------|
-| add      | Core |   | RRR  | RRR   | 0    | Rd := Ra + Rb                     |
-| sub      | Core |   | RRR  | RRR   | 1    | Rd := Ra - Rb                     |
-| mul      | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
-| div      | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmp      | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
-| addl     | S32  |   | RRR  | RRR   | 5    | Rd := Ra + Rb                     |
-| subl     | S32  |   | RRR  | RRR   | 6    | Rd := Ra - Rb                     |
-| mull     | S32  |   | RRR  | RRR   | 7    | Rd := Ra * Rb                     |
-| divl     | S32  |   | RRR  | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmpl     | S32  |   | RRR  | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| trap     | Core |   | RRR  | RRR   | a    | user interrupt                    |
-|          |      |   |      |       | b    | -- reserved --                    |
-|          |      |   |      |       | c    | -- reserved --                    |
-|          |      |   |      |       | d    | escape to EXP3 format             |
-|          |      |   |      |       | e    | escape to EXP2 format             |
-|          |      |   |      |       | f    | escape to RX format               |
-|----------+------+---+------+-------+------+-----------------------------------|
-| lea      | Core |   | RX   | RX    | f,0  | Rd := ea                          |
-| load     | Core |   | RX   | RX    | f,1  | Rd := M[ea]                       |
-| store    | Core |   | RX   | RX    | f,2  | M[ea] := Rd                       |
-| jump     | Core |   | RX   | RX    | f,3  | pc := ea                          |
-| jumpc0   | Core |   | RX   | kX    | f,4  | if R15.k=0 then pc := ea          |
-| jumpc1   | Core |   | RX   | kX    | f,5  | if R15.k=1 then pc := ea          |
-| brc0     | Std  |   | RX   | RX    | f,6  | Rd := M[ea], M[ea] := 1           |
-| brc1     | Std  |   | RX   | RX    | f,7  | Rd := M[ea], M[ea] := 1           |
-| jumpz    | Std  |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea           |
-| jumpnz   | Std  |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea          |
-| jal      | Core |   | RX   | RX    | f,a  | Rd := pc, pc := ea                |
-| testset  | Sys  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
-| leal     | S32  |   | RX   | RX    | f,c  | Rd := ea                          |
-| loadl    | S32  |   | RX   | RX    | f,d  | Rd := M[ea]                       |
-| storel   | S32  |   | RX   | RX    | f,e  | M[ea] := Rd                       |
-|          |      |   | RX   |       | f,f  | -- reserved --                    |
-|----------+------+---+------+-------+------+-----------------------------------|
-| resume   | Sys  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
-|----------+------+---+------+-------+------+-----------------------------------|
-| addc     | Std  |   | EXP2 | RRR   | 4    | Rd := Ra + Rb + R15.carry         |
-| muln     | Std  |   | EXP2 | RRR   | 6    | R15++Rd := Ra :*: Rb              |
-| divn     | Std  |   | EXP2 | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
-| push     | Std  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
-| pop      | Std  |   | EXP2 | RRR   | 9    | Rb--, Rd := M[ea]                 |
-| top      | Std  |   | EXP2 | RRR   | a    | Rd := M[ea]                       |
-| save     | Std  |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
-| restore  | Std  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
-| shiftl   | Std  |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                    |
-| shiftr   | Std  |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                    |
-| logicw   | Std  |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf               |
-| logicb   | Std  |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
-| extract  | Std  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
-| extracti | Std  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
-| getctl   | Sys  | P | EXP2 | RC    | e,09 | Rd := Sc                          |
-| putctl   | Sys  | P | EXP2 | RC    | e,0a | Sc := Rd                          |
-| addcl    | Std  |   | EXP2 | RRR   | a    | Rd := Ra + Rb + R15.carry         |
-| addf     | S32  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb                     |
-| subf     | S32  |   | EXP2 | RRR   | 6    | Rd := Ra - Rb                     |
-| mulf     | S32  |   | EXP2 | RRR   | 7    | Rd := Ra * Rb                     |
-| divf     | S32  |   | EXP2 | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmpf     | S32  |   | EXP2 | RR    | 9    | R15 := Ra cmp Rb                  |
-|          |      |   | EXP2 |       | e,0b | -- reserved --                    |
-|          |      |   | EXP2 |       | ...  | -- reserved --                    |
-|          |      |   | EXP2 |       | e,ff | -- reserved --                    |
-|----------+------+---+------+-------+------+-----------------------------------|
-|          |      |   |      |       |      | <33>                              |
-|----------+------+---+------+-------+------+-----------------------------------|
+|-----------+------+---+------+-------+------+-----------------------------------|
+| Mnemonic  | ISA  | P | Fmt  | Args  | Code | Effect                            |
+|-----------+------+---+------+-------+------+-----------------------------------|
+| add       | Core |   | RRR  | RRR   | 0    | Rd := Ra + Rb                     |
+| sub       | Core |   | RRR  | RRR   | 1    | Rd := Ra - Rb                     |
+| mul       | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
+| div       | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmp       | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
+| addd      | S32  |   | RRR  | RRR   | 5    | Rd := Ra + Rb                     |
+| subd      | S32  |   | RRR  | RRR   | 6    | Rd := Ra - Rb                     |
+| muld      | S32  |   | RRR  | RRR   | 7    | Rd := Ra * Rb                     |
+| divd      | S32  |   | RRR  | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpd      | S32  |   | RRR  | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| trap      | Core |   | RRR  | RRR   | a    | user interrupt                    |
+|           |      |   |      |       | b    | -- reserved --                    |
+|           |      |   |      |       | c    | -- reserved --                    |
+|           |      |   |      |       | d    | escape to EXP3 format             |
+|           |      |   |      |       | e    | escape to EXP2 format             |
+|           |      |   |      |       | f    | escape to RX format               |
+|-----------+------+---+------+-------+------+-----------------------------------|
+| lea       | Core |   | RX   | RX    | f,0  | Rd := ea                          |
+| load      | Core |   | RX   | RX    | f,1  | Rd := M[ea]                       |
+| store     | Core |   | RX   | RX    | f,2  | M[ea] := Rd                       |
+| jump      | Core |   | RX   | RX    | f,3  | pc := ea                          |
+| jumpc0    | Core |   | RX   | kX    | f,4  | if R15.k=0 then pc := ea          |
+| jumpc1    | Core |   | RX   | kX    | f,5  | if R15.k=1 then pc := ea          |
+| brc0      | Std  |   | RX   | RX    | f,6  | Rd := M[ea], M[ea] := 1           |
+| brc1      | Std  |   | RX   | RX    | f,7  | Rd := M[ea], M[ea] := 1           |
+| jumpz     | Std  |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea           |
+| jumpnz    | Std  |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea          |
+| jal       | Core |   | RX   | RX    | f,a  | Rd := pc, pc := ea                |
+| testset   | Sys  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
+| lead      | S32  |   | RX   | RX    | f,c  | Rd := ea                          |
+| loadd     | S32  |   | RX   | RX    | f,d  | Rd := M[ea]                       |
+| stored    | S32  |   | RX   | RX    | f,e  | M[ea] := Rd                       |
+|           |      |   | RX   |       | f,f  | -- reserved --                    |
+|-----------+------+---+------+-------+------+-----------------------------------|
+| resume    | Sys  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
+|-----------+------+---+------+-------+------+-----------------------------------|
+| addc      | Std  |   | EXP2 | RRR   | 4    | Rd := Ra + Rb + R15.carry         |
+| muln      | Std  |   | EXP2 | RRR   | 6    | R15++Rd := Ra :*: Rb              |
+| divn      | Std  |   | EXP2 | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
+| push      | Std  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
+| pop       | Std  |   | EXP2 | RRR   | 9    | Rb--, Rd := M[ea]                 |
+| top       | Std  |   | EXP2 | RRR   | a    | Rd := M[ea]                       |
+| save      | Std  |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
+| restore   | Std  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
+| shiftl    | Std  |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                    |
+| shiftr    | Std  |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                    |
+| logicw    | Std  |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf               |
+| logicb    | Std  |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
+| extract   | Std  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
+| extracti  | Std  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
+| getctl    | Sys  | P | EXP2 | RC    | e,09 | Rd := Sc                          |
+| putctl    | Sys  | P | EXP2 | RC    | e,0a | Sc := Rd                          |
+| addcd     | Std  |   | EXP2 | RRR   | a    | Rd := Ra + Rb + R15.carry         |
+| addf      | S32  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb                     |
+| subf      | S32  |   | EXP2 | RRR   | 6    | Rd := Ra - Rb                     |
+| mulf      | S32  |   | EXP2 | RRR   | 7    | Rd := Ra * Rb                     |
+| divf      | S32  |   | EXP2 | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpf      | S32  |   | EXP2 | RR    | 9    | R15 := Ra cmp Rb                  |
+| pushd     | S32  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
+| popd      | S32  |   | EXP2 | RRR   | 9    | Rb--, Rd := M[ea]                 |
+| topd      | S32  |   | EXP2 | RRR   | a    | Rd := M[ea]                       |
+| saved     | S32  |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
+| restored  | S32  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
+| shiftld   | S32  |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                    |
+| shiftrd   | S32  |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                    |
+| logicwd   | S32  |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf               |
+| logicbd   | S32  |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
+| extractd  | S32  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
+| extractid | S32  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
+|           |      |   | EXP2 |       | e,0b | -- reserved --                    |
+|           |      |   | EXP2 |       | ...  | -- reserved --                    |
+|           |      |   | EXP2 |       | e,ff | -- reserved --                    |
+|-----------+------+---+------+-------+------+-----------------------------------|
+|           |      |   |      |       |      | <33>                              |
+|-----------+------+---+------+-------+------+-----------------------------------|
 
 
 **** Pseudoinstructions
@@ -5268,6 +5231,28 @@ provide as much as possible of the following information.
   and it's also visible at the top of the User Guide).
 
 ** Typesetting notes
+*** svg
+
+/Embedding as an image./ Here is an external svg figure.  From
+Eisenberg, J. David; Bellamy-Royds, Amelia. SVG Essentials: Producing
+Scalable Vector Graphics with XML (p. 21). O'Reilly Media. Kindle
+Edition.
+
+#+HTML: <img src='svg/simplefig.svg'/>
+
+That was an external svg figure
+
+/Embedding as an object./  Here is the same file but embedded as an
+object rather than an image.
+
+#+BEGIN_EXPORT html
+<object data="svg/simplefig.svg" type="image/svg+xml"
+title="simplefig">
+</object>
+#+END_EXPORT
+
+That is the end of the figure embedded as an object.
+
 *** Asides
 
 Here is an example of an AsideNote.

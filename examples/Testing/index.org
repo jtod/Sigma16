@@ -28,14 +28,17 @@ instruction set.
 
 - [[./System.asm.txt][System]] System control registers
 
+- [[./S32.asm.txt][S32]] 32-bit instructions
+
+- [[./Linker/index.html][Linker]]
+
+- [[./Looper.asm.txt][Looper]] Long running program with no I/O
+
+- [[./TimerInterrupt.asm.txt][TimerInterrupt]] Run a loop while
+  responding to interrupt requests
+
 - [[./AsmStatements.asm.txt][AsmStatements]] Test code generation and
   directives
 
 - [[./AsmErrMessages.asm.txt][AsmErrMessages]] Test error messages
   with invalid statements
-
-- [[./Linker/index.html][Linker]]
-- [[./Looper.asm.txt][Looper]] Long running program with no I/O
-
-- [[./TimerInterrupt.asm.txt][TimerInterrupt]] Run a loop while
-  responding to interrupt requests

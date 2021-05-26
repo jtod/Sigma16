@@ -1,0 +1,11 @@
+; S32: test 32-bit instructions
+; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021
+
+
+     lead    R2,50[R0]
+     stored  R2,a[R0]
+
+a    data    1
+b    data    2
+
