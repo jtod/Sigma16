@@ -1698,13 +1698,16 @@ leftmost bit has index 31.
 #+HTML: <div class='AsideNote'>
 *Word terminology.* A byte is almost universally agreed to be 8 bits,
 but the terminology for words is not standard.  Computers have been
-built with many different word sizes, including 4 bits (Intel 4004), 7
-bits (IBM 1401), 8 bits (Intel 8080), 12 bits (PDP-8), 15 bits (Apollo
-Guidance Computer), 16 bits (IBM 1130), 18 bits (PDP-15), 24 bits (CDC
-924), 32 bits (IBM 360), 36 bits (IBM 7094), 48 bits (Burroughs 5000),
-60 bits (CDC 6600), and 64 bits (Cray 1).  (Some of these computers
-have an additional parity bit, which is invisible to software and not
-included in the figures.)
+built with many different word sizes, including 1 bit (Goodyear
+Aerospace MPP), 4 bits (Intel 4004), 7 bits (IBM 1401), 8 bits (Intel
+8080), 12 bits (PDP-8), 15 bits (Apollo Guidance Computer), 16 bits
+(IBM 1130), 17 bits (EDSAC), 18 bits (PDP-15), 24 bits (CDC 924), 32
+bits (IBM 360), 36 bits (IBM 7094), 40 bits (IAS), 44 bits (M-EDVAC),
+48 bits (Burroughs 5000), 60 bits (CDC 6600), and 64 bits (Cray 1).
+Much of the variation appears in early computers; most current
+machines have a word size which is a power of 2.  (Some of these
+computers have an additional parity bit, which is invisible to
+software and not included in the figures.)
 #+HTML: <asidepar>
 Many computers have shorter and longer words as well as their standard
 size.  For example, IBM 360 and its descendants have a 32-bit full

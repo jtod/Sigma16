@@ -137,6 +137,7 @@ export class EmulatorState {
 	this.breakEnabled     = false
 	this.doInterrupt      = 0
         this.ioLogBuffer      = ""
+        this.addressMask      = arith.word16mask
         this.pc               = null
         this.ir               = null
         this.adr              = null
@@ -706,7 +707,8 @@ export function executeInstruction (es) {
     es.instrCode = memFetchInstr (es, es.curInstrAddr);
     com.mode.devlog (`ExInstr ir=${arith.wordToHex4(es.instrCode)}`)
     es.ir.put (es.instrCode);
-    es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
+    //    es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
+    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
     es.pc.put (es.nextInstrAddr);
     st.writeSCB (es, st.SCB_next_instr_addr, es.nextInstrAddr)
 
@@ -1069,11 +1071,13 @@ const rx = (f) => (es) => {
     es.instrOpStr = arch.mnemonicRX[es.ir_b];
     es.instrDisp = memFetchInstr (es, es.pc.get());
     es.adr.put (es.instrDisp);
-    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
+//    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
+    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
     es.pc.put (es.nextInstrAddr);
     st.writeSCB (es, st.SCB_next_instr_addr, es.nextInstrAddr)
     //    es.ea = arith.binAdd (regFile[es.ir_a].get(), adr.get());
-    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
+//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
+    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, es.instrDisp)
     es.instrEA = es.ea;
     com.mode.devlog (`rx ea, disp=${arith.wordToHex4(es.instrDisp)}`);
     com.mode.devlog (`rx ea, idx=${arith.wordToHex4(es.regfile[es.ir_a].get())}`);
@@ -1117,14 +1121,23 @@ function rx_load (es) {
     es.regfile[es.ir_d].put(memFetchData(es,es.ea));
 }
 
+// consider whether to require alignment ???
 function rx_loadd (es) {
     com.mode.devlog('rx_loadd');
-    es.regfile[es.ir_d].put(memFetchData(es,es.ea)); // need to make 32 bit
+    const a = memFetchData (es, es.ea)
+    const b = memFetchData (es, arith.incrAddress (es, es.ea, 1))
+    const x = a << 16 | b
+    es.regfile[es.ir_d].put(x)
 }
 
+// consider whether to require alignment ???
 function rx_store (es) {
     com.mode.devlog('rx_store');
-    memStore (es, es.ea, es.regfile[es.ir_d].get());
+    const x = es.regFile[es.ir_d].get()
+    const a = x >>> 16
+    const b = x & arith.word16mask
+    memStore (es, es.ea, a)
+    memStore (es, arith.incrAddress (es, es.ea, 1), b)
 }
 
 function rx_stored (es) {
@@ -1400,7 +1413,8 @@ const exp2 = (f) => (es) => {
     es.instrOpStr = `EXP2 mnemonic code=${expCode}`;  // ????????????
     es.instrDisp = memFetchInstr (es, es.pc.get());
     es.adr.put (es.instrDisp);
-    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
+//    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
+    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
     es.pc.put (es.nextInstrAddr);
     let tempinstr = es.instrDisp;
     es.field_gh = tempinstr & 0x00ff;

@@ -25,6 +25,9 @@ import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 
+export const word16mask = 0x0000ffff
+export const word32mask = 0xffffffff
+
 //------------------------------------------------------------------------------
 // Bit indexing
 //------------------------------------------------------------------------------
@@ -196,6 +199,18 @@ export function wordToBool (x) {
 // message and treat the number as 0.
 
 function validateWord (x) {
+    const y = x & 0c0000ffff
+    if (! (x===y) {
+        console.log (`Internal error: ${x} is not a valid word`)
+    }
+    return y
+}
+
+/* old version
+// Determine whether a JavaScript number is a valid Sigma16 word
+// (which is represented using binary).  If not, print an error
+// message and treat the number as 0.
+function validateWord (x) {
     if (x < minBin || x > maxBin) {
 	com.mode.devlog (`validateWord: ${x} is not a valid word (out of range)`);
 	return 0;
@@ -203,7 +218,7 @@ function validateWord (x) {
 	return x;
     }
 }
-
+*/
 // Restrict word to the 16 bit integer part; no error if there are extra 1 bits
 
 export function truncateWord (x) {
@@ -434,9 +449,17 @@ const g_crr = (op,c,a,b) => op (c,a,b);
 // example, binAdd (65535, 7) returns 6.  This is used to calculate
 // effective addresses and to increment the pc register.
 
+/*
+// Replace binadd with incrAddress, which uses different mask for 16/32 bit
 export function binAdd (x, y) {
     let r = validateWord (x) + validateWord (y);
     return r & 0x0000ffff;
+}
+*/
+
+export function incrAddress (es, x, i) {
+    const r = (x + i) & es.addressMask
+    return r
 }
 
 //------------------------------------------------------------------------------

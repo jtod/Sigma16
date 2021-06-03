@@ -2751,6 +2751,9 @@ function initializeSystem () {
 
 function setArch16 () {
     console.log ('Setting mode to S16')
+    const es = gst.es
+    es.addressMask = arith.word16mask
+    console.log (`addressMask (S16) = ${es.addressMask}`)
     setRegisterSize (16)
     highlightArchButton('Arch16button')
     unhighlightArchButton('Arch32button')
@@ -2761,6 +2764,9 @@ function setArch16 () {
 
 function setArch32 () {
     console.log ('Setting mode to S32')
+    const es = gst.es
+    es.addressMask = arith.word32mask
+    console.log (`addressMask (S32) = ${es.addressMask}`)
     setRegisterSize (32)
     highlightArchButton('Arch32button')
     unhighlightArchButton('Arch16button')

@@ -84,6 +84,8 @@ S16_DEV_BUILD_DIR=$(S16_DEV_VERSION_DIR)/Sigma16
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
 SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/SigServer
 
+ICLOUD=/cygdrive/C/Users/johnt/iCloudDrive
+
 .PHONY: showconfig
 showconfig:
 	@echo "Environment variables"
@@ -200,3 +202,9 @@ installHomepage :
 	cp -u protected/SIGSERVERURL.txt $(S16_HOMEPAGE_REPOSITORY)/admin
 	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
+
+.PHONY : icloud
+icloud :
+	mkdir -p $(ICLOUD)/writing-drafts/Sigma16
+	cp docs/docstyle.css $(ICLOUD)/writing-drafts/Sigma16/
+	cp -r docs/UserGuide $(ICLOUD)/writing-drafts/Sigma16/docs
