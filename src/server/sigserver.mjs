@@ -102,7 +102,11 @@ if (S16_RUN_ENV === 'Heroku') {
     S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..', 'build')
 } else if (S16_RUN_ENV === 'Local') {
     console.log ('Running on local development machine')
-    S16_BUILD_DIR = process.env.S16_LOCAL_BUILD_DIR
+    S16_BUILD_DIR = path.join (process.env.S16PART1,
+                               process.env.S16PART2,
+                               process.env.S16PART3,
+                               'Sigma16-builds', 'build')
+    console.log (`bd = ${S16_BUILD_DIR}`)
 } else {
     console.log (`Server error: cannot find build directory for ${S16_RUN_ENV}`)
 }

@@ -1664,6 +1664,8 @@ brief synopsis:
 :CUSTOM_ID: sec-architecture
 :END:
 
+Testing...
+
 Sigma16 consists of a 16-bit architecture (S16) and a 32 bit extended
 architecture (S32).
 

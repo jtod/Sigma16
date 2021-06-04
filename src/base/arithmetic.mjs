@@ -199,8 +199,8 @@ export function wordToBool (x) {
 // message and treat the number as 0.
 
 function validateWord (x) {
-    const y = x & 0c0000ffff
-    if (! (x===y) {
+    const y = x & 0x0000ffff
+    if (x!==y) {
         console.log (`Internal error: ${x} is not a valid word`)
     }
     return y
