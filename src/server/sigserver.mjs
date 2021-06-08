@@ -189,12 +189,26 @@ function finish (req, res, loc) {
     res.sendFile (loc)
 }
 
+// start page
 app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
     const raw_v = req.params.version
     const v = substituteVersion (raw_v)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
     console.log (`launching ${raw_v}->${v}`)
     console.log (`launching at loc ${loc}`)
+    finish (req, res, loc)
+})
+
+// emulator core
+app.get('/build/:version/Sigma16/emcore.wasm', (req, res) => {
+    console.log ('Reqest for emcore.wasm')
+    const raw_v = req.params.version
+    const v = substituteVersion (raw_v)
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           'src', 'base', 'emcore.wasm')
+    console.log (`emcore: launching ${raw_v}->${v}`)
+    console.log (`emcore: launching at loc ${loc}`)
+    res.set ('Access-Control-Allow-Origin', '*')
     finish (req, res, loc)
 })
 

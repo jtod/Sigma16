@@ -5,6 +5,7 @@ build
 protected
 node_modules
 *.html
+*.wasm
 !Sigma16.html
 *.lst.txt
 *.obj.txt

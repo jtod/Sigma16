@@ -129,6 +129,14 @@ setVersion:
 	make VERSION.txt
 	make src/base/version.mjs
 
+
+#-------------------------------------------------------------------------------
+# make assemble
+#-------------------------------------------------------------------------------
+
+src/base/emcore.wasm: src/base/emcore.wat
+	cd src/base; wat2wasm emcore.wat
+
 #-------------------------------------------------------------------------------
 # make build - Copy files needed to run program from build/dev to build/i.j.k
 #-------------------------------------------------------------------------------
@@ -137,6 +145,7 @@ setVersion:
 build:
 	make VERSION.txt
 	make src/base/version.mjs
+	make src/base/emcore.wasm
 
 	mkdir -p $(S16_DEV_BUILD_DIR)
 	cp -u *.html $(S16_DEV_BUILD_DIR)

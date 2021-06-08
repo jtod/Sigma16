@@ -30,7 +30,6 @@ import * as ed    from './editor.mjs';
 import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
-
 //-----------------------------------------------------------------------------
 // Constant parameters
 //-----------------------------------------------------------------------------
@@ -2793,6 +2792,37 @@ function unhighlightArchButton (a) {
     s.background = 'beige'
     s.border = '2px solid gray'
 }
+
+const importObj = {
+    imports: {
+        imported_func: function(arg) {
+            console.log(arg)
+        }
+    }
+}
+
+
+const emcorePath = '/build/dev/Sigma16/emcore.wasm'
+const emcoreURL = 'localhost:3000' + emcorePath
+
+function initEmCore () {
+    console.log ('initEmCore')
+    console.log (`emcoreURL = ${emcoreURL}`)
+    WebAssembly.instantiateStreaming (fetch(emcorePath), importObj)
+        .then(obj => obj.instance.exports.exported_func());     
+}
+
+window.initEmCore = initEmCore
+
+/*    const run = async () => {
+        const coreBuffer = readFileSync ('./emcore.wasm')
+        const wamod = await WebAssembly.compile (coreBuffer)
+        const instance = await WebAssembly.instantiate (wamod)
+        console.log (instance.exports.helloWorld ())
+    }
+    run ()
+*/
+
 
 //-----------------------------------------------------------------------------
 // Run initializers

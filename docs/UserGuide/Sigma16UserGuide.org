@@ -4996,6 +4996,14 @@ tools that run in a command line.  These tools don't use a GUI
 (graphical user environment).  They include a fast emulator and
 circuit simulator.
 
+#+BEGIN_EXAMPLE
+$ npm install -g wat2wasm
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+wat2wasm emcore.wat
+#+END_EXAMPLE
+
 *** Required software
 
 To use the full set of command line tools, you need the following:

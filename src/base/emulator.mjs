@@ -26,7 +26,7 @@ import * as st from './state.mjs';
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
 
-console.log ('******************** LOADING EMULATOR')
+
 
 //-----------------------------------------------------------------------------
 // Interface to emulator
