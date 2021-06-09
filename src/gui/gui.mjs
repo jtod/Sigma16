@@ -2741,6 +2741,7 @@ function initializeSystem () {
     initializeGuiLayout (gst)      // Initialize gui layout
     initializeButtons (gst)
     refreshOptionsDisplay ()
+    initEmCore ()
     findLatestRelease (gst)
 }
 
@@ -2793,36 +2794,82 @@ function unhighlightArchButton (a) {
     s.border = '2px solid gray'
 }
 
-const importObj = {
-    imports: {
-        imported_func: function(arg) {
-            console.log(arg)
-        }
-    }
+//-----------------------------------------------------------------------------
+// Functions called by EmCore
+//-----------------------------------------------------------------------------
+
+function testprint (x) {
+    console.log (`testprint: ${x}`)
 }
 
+function fooprint (x) {
+    console.log (`fooprint: ${x}`)
+}
 
-const emcorePath = '/build/dev/Sigma16/emcore.wasm'
-const emcoreURL = 'localhost:3000' + emcorePath
+function barprint (x) {
+    console.log (`barprint: ${x}`)
+}
+
+//-----------------------------------------------------------------------------
+// EmCore
+//-----------------------------------------------------------------------------
+
+// Most of the source modules can be loaded by the main html file,
+// using ./ to find the file location.  However, the actual URL of the
+// wasm file is needed, and Sigma16.html doesn't know its own URL.
+// The following definitions work out EmCoreURL which is used by
+// initEmCore to fetch the web assembly binary code.  This allows both
+// for reading a local file from build/dev for running locally, as
+// well as fetching a release over the Internet.
+
+const URL_protocol = window.location.protocol
+const URL_host = window.location.host
+// If running on local build machine, use dev; otherwise use version number
+const BUILDVERSION = URL_host === 'localhost:3000' ? 'dev' : ver.s16version
+const EmCorePath = `build/${BUILDVERSION}/Sigma16/emcore.wasm`
+const EmCoreURL = `${URL_protocol}//${URL_host}/${EmCorePath}`
+
+function showEmcURL () {
+    console.log (`URL_protocol = ${URL_protocol}`)
+    console.log (`URL_host = ${URL_host}`)
+    console.log (`BUILDVERSION = ${BUILDVERSION}`)
+    console.log (`EmCorePath = ${EmCorePath}`)
+    console.log (`EmCoreURL = ${EmCoreURL}`)
+}
+
+// emcImports is an object containing JavaScript functions that are
+// imported into the Web Assembly code.
+
+const emcImports = {
+    imports: { testprint, fooprint, barprint }
+}
+
+// emc is an object containing functions exported by emulator core.
+// The functions are defined by initEmCore; after that you can call,
+// for example, emc.f1 (123).  The functions f1, f1 etc are for
+// testing an ddevelopment.
+
+const emc = {
+    f1 : (x) => { console.log (`emc.f1 uninitialized`) },
+    f2 : (x) => { console.log (`emc.f2 uninitialized`) }
+}
+
+// Make emc accessible to the console for testing the web assembly
+// functions.  E.g. enter emc.f1 (3)
+window.emc = emc
+
+// Read the web assembly code and make its functions accessible to the
+// main JavaScript program
 
 function initEmCore () {
     console.log ('initEmCore')
-    console.log (`emcoreURL = ${emcoreURL}`)
-    WebAssembly.instantiateStreaming (fetch(emcorePath), importObj)
-        .then(obj => obj.instance.exports.exported_func());     
+    showEmcURL ()
+    WebAssembly.instantiateStreaming (fetch (EmCoreURL), emcImports)
+        .then (emcExports => {
+            emc.f1 = emcExports.instance.exports.exported_func
+            emc.f2 = emcExports.instance.exports.exported_func
+        })
 }
-
-window.initEmCore = initEmCore
-
-/*    const run = async () => {
-        const coreBuffer = readFileSync ('./emcore.wasm')
-        const wamod = await WebAssembly.compile (coreBuffer)
-        const instance = await WebAssembly.instantiate (wamod)
-        console.log (instance.exports.helloWorld ())
-    }
-    run ()
-*/
-
 
 //-----------------------------------------------------------------------------
 // Run initializers

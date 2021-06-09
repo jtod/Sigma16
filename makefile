@@ -134,6 +134,10 @@ setVersion:
 # make assemble
 #-------------------------------------------------------------------------------
 
+.PHONY: assemble
+assemble:
+	make src/base/emcore.wasm
+
 src/base/emcore.wasm: src/base/emcore.wat
 	cd src/base; wat2wasm emcore.wat
 

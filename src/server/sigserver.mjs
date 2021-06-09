@@ -96,7 +96,7 @@ const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
 
 let S16_BUILD_DIR
 if (S16_RUN_ENV === 'Heroku') {
-    console.log ('Running on Heroku')
+    console.log ('Running on Internet server')
     // Find the directory this program is running in and use that to
     // find the build directory
     S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..', 'build')
