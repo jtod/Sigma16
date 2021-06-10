@@ -208,7 +208,7 @@ function isSetBufferLocalOk (warn) {
         ok = false
         maybeWarn (warn, warningChangeAfterAllocation)
     }
-    console.log (`isSetBufferLocalOk = ${ok}`)
+//    console.log (`isSetBufferLocalOk = ${ok}`)
     return ok
 }
 
@@ -227,7 +227,7 @@ function isSetBufferSharedOk (warn) {
         ok = false
         maybeWarn (warn, warningRequireCrossOriginIsolation)
     }
-    console.log (`isSetBufferSharedOk = ${ok}`)
+//    console.log (`isSetBufferSharedOk = ${ok}`)
     return ok
 }
 
@@ -240,16 +240,16 @@ function isSetThreadWorkerOk (warn) {
         ok = false
         maybeWarn (warn, warningRequireSharedMemory)
     }
-    console.log (`isSetThreadWorkerOk = ${ok}`)
+//    console.log (`isSetThreadWorkerOk = ${ok}`)
     return ok
 }
 
 function setArrayBufferLocal (warn) {
-    console.log ('setArrayBufferLocal')
+//    console.log ('setArrayBufferLocal')
     const opt = gst.options
-    console.log ('set array buffer local')
+//    console.log ('set array buffer local')
     if (isSetBufferLocalOk (warn)) {
-        console.log ('Setting array buffer local')
+//        console.log ('Setting array buffer local')
         gst.options.bufferType = ArrayBufferLocal
         document.getElementById('ArrayBufferLocal').checked = true
         setThreadMain (gst)
@@ -258,9 +258,9 @@ function setArrayBufferLocal (warn) {
 
 function setArrayBufferShared (warn) {
     const opt = gst.options
-    console.log ('setArrayBufferShared')
+//    console.log ('setArrayBufferShared')
     if (isSetBufferSharedOk (warn)) {
-        console.log ('Setting array buffer shared')
+//        console.log ('Setting array buffer shared')
         opt.bufferType = ArrayBufferShared
         document.getElementById('ArrayBufferShared').checked = true
         refreshOptionsDisplay ()
@@ -269,7 +269,7 @@ function setArrayBufferShared (warn) {
 
 
 function setThreadMain (warn) {
-    console.log ('setThreadMain')
+//    console.log ('setThreadMain')
     const opt = gst.options
     opt.currentThreadSelection = com.ES_gui_thread
     document.getElementById('RTmain').checked = true
@@ -277,7 +277,7 @@ function setThreadMain (warn) {
 }
 
 function setThreadWorker (warn) {
-    console.log ('setThreadWorker')
+//    console.log ('setThreadWorker')
     const opt = gst.options
     if (isSetThreadWorkerOk (warn)) {
         opt.currentThreadSelection = com.ES_worker_thread
@@ -309,13 +309,13 @@ const setMDfull = (gst) => (e) => {
 // User can update numerical parameters in options page
 
 function updateMemSize () {
-    console.log ('updateMemSize')
+//    console.log ('updateMemSize')
     const opt = gst.options
     if (opt.memoryIsAllocated) {
         maybeWarn (true, warningChangeAfterAllocation)
     } else {
         let xs = document.getElementById('EnterMemSize').value
-        console.log (`updateMemSize ${xs}`)
+//        console.log (`updateMemSize ${xs}`)
         let x = parseInt (xs)
         if (!isNaN (x)) {
             opt.memorySize = x
@@ -337,7 +337,7 @@ function updateMDslidingSize () {
 }
 
 function updateMainSliceSize () {
-    console.log ("updateMainSliceSize")
+//    console.log ("updateMainSliceSize")
 //    e.stopPropagation ()
     let xs = document.getElementById("EnterMainSliceSize").value
     let x = parseInt (xs)
@@ -349,7 +349,7 @@ function updateMainSliceSize () {
 }
 
 function updateWorkerRefreshInterval () {
-    console.log ("updateWorkerRefreshInterval")
+//    console.log ("updateWorkerRefreshInterval")
 //    e.stopPropagation ()
     let xs = document.getElementById("EnterWorkerRefreshInterval").value
     let x = parseInt (xs)
@@ -363,9 +363,9 @@ function updateWorkerRefreshInterval () {
 // Display current options in gui
 
 function refreshOptionsDisplay () {
-    console.log ('displayOptions')
+//    console.log ('displayOptions')
     const opt = gst.options
-    console.log (`LR = ${opt.latestRelease}`)
+//    console.log (`LR = ${opt.latestRelease}`)
     setHtml ('ThisVersion', opt.thisVersion)
     setHtml ('LatestRelease', opt.latestRelease)
     setHtml ("SupportLocalStorage", opt.supportLocalStorage)
@@ -2209,6 +2209,9 @@ function logShmStatus (es) {
 // to do: change es.shm to es.vec16 in emulator and elsewhere if needed
 // temporary fix: disable shared array buffer, force use of ArrayBuffer
 
+let foobarmemory
+let foobarbuf
+
 function allocateStateVector () {
     console.log ("allocateStateVector")
     gst.es = new em.EmulatorState (
@@ -2222,8 +2225,30 @@ function allocateStateVector () {
         gst.options.bufferType === ArrayBufferShared
         ? new SharedArrayBuffer (st.EmStateSizeByte)
         : new ArrayBuffer (st.EmStateSizeByte)
+    if (foobarmemory) {
+        console.log ('foobarmemory is truthy')
+    } else {
+        console.log ('foobarmemory is falsy')
+    }
+    foobarmemory = new WebAssembly.Memory ({
+        initial: 10,
+        maximum: 100,
+        shared: true
+    })
+    foobarbuf = foobarmemory.buffer
+    gst.es.vecbuf = foobarmemory.buffer
+    if (foobarmemory) {
+        console.log ('foobarmemory is truthy')
+    } else {
+        console.log ('foobarmemory is falsy')
+    }
+    if (foobarbuf) {
+        console.log ('foobarbuf is truthy')
+    } else {
+        console.log ('foobarbuf is falsy')
+    }
     gst.options.memoryIsAllocated = true
-    // Complete initialization using the state vector
+    // Define word views into the state vector
     gst.es.vec16 = new Uint16Array (gst.es.vecbuf)
     gst.es.vec32 = new Uint32Array (gst.es.vecbuf)
     gst.es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
@@ -2237,6 +2262,7 @@ function allocateStateVector () {
 
 
 function testSysStateVec (es) {
+    com.mode.trace = true;
     com.mode.devlog ('%ctestSysStateVec starting...', 'color:blue')
     com.mode.devlog (`Testing emulator memory: ${es.thread_host}`)
     com.mode.devlog (`Testing emulator memory: ${es.thread_host}`)
@@ -2247,6 +2273,7 @@ function testSysStateVec (es) {
     for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
     com.mode.devlog (`thread host ${es.thread_host}: ${xs} finished`)
     com.mode.devlog ('%c...testSysStateVec finished', 'color:blue')
+    com.mode.trace = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -2843,6 +2870,7 @@ function showEmcURL () {
 const emcImports = {
     imports: { testprint, fooprint, barprint }
 }
+console.log ('just defined emcImports')
 
 // emc is an object containing functions exported by emulator core.
 // The functions are defined by initEmCore; after that you can call,
@@ -2881,6 +2909,7 @@ function initEmCore () {
 
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
+    com.mode.trace = false;
     initializeSystem ()
     com.mode.devlog ('System is now running')
 }
