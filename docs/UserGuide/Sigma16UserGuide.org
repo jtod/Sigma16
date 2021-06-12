@@ -5251,6 +5251,14 @@ Eisenberg, J. David; Bellamy-Royds, Amelia. SVG Essentials: Producing
 Scalable Vector Graphics with XML (p. 21). O'Reilly Media. Kindle
 Edition.
 
+The svg specifies xmlns but this external reference is a problem
+
+#+BEGIN_EXAMPLE
+  xmlns="http://www.w3.org/2000/svg">
+#+END_EXAMPLE
+
+Here is the figure
+
 #+HTML: <img src='svg/simplefig.svg'/>
 
 That was an external svg figure
@@ -5258,11 +5266,24 @@ That was an external svg figure
 /Embedding as an object./  Here is the same file but embedded as an
 object rather than an image.
 
-#+BEGIN_EXPORT html
+The following generates an error when the app is loaded:
+
+#+BEGIN_EXAMPLE
+Error in event handler: TypeError: Cannot read property 'querySelectorAll' of null
+    at d.resetClassificationForFrames (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:1:46879)
+    at d.resetAllClassifications (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:1:46056)
+    at j._classifyHandler (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:83684)
+    at t.MessageHandler._onSendMessageListener (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:152024)
+    at chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:151660
+#+END_EXAMPLE
+
+The problem is with importing the svg figure as an object.
+
+xxx #+BEGIN_EXPORT html
 <object data="svg/simplefig.svg" type="image/svg+xml"
 title="simplefig">
 </object>
-#+END_EXPORT
+xxx #+END_EXPORT
 
 That is the end of the figure embedded as an object.
 
@@ -5297,11 +5318,12 @@ math symbols
 
 *** Math mode
 
+The following is not what triggered mathjax...
+
 - $x_i$
 - $x \leq y$
 - $x_i < y_i$
 - $\sum_{i=0}^{n-1} {x_{i} \times 2^{i}} $
-
 
 ** Release notes
 *** Version 3.4.0

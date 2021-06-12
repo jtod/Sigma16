@@ -22,11 +22,10 @@ import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
+import * as ab from './arrbuf.mjs';
 import * as st from './state.mjs';
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
-
-
 
 //-----------------------------------------------------------------------------
 // Interface to emulator
@@ -123,10 +122,11 @@ export class EmulatorState {
         this.initRunDisplay   = f
         this.duringRunDisplay = g
         this.endRunDisplay    = h
+        this.wasmMemory       = null
         this.shm              = null // set by allocateStateVec
         this.vecbuf           = null
-        this.vec32            = null
         this.vec16            = null
+        this.vec32            = null
         this.emRunCapability  = com.ES_gui_thread // default: run in main thread
         this.emRunThread      = com.ES_gui_thread // default: run in main thread
         this.startTime        = null
@@ -289,17 +289,17 @@ export class genregister {
     }
     get () {
         this.es.copyable.regFetched.push (this.regNumber)
-        let i = st.EmRegBlockOffset + this.regStIndex
+        let i = ab.EmRegBlockOffset + this.regStIndex
         let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
         return x
     }
     display (xs) {
-        let i = st.EmRegBlockOffset + this.regStIndex
+        let i = ab.EmRegBlockOffset + this.regStIndex
         this.es.shm[i] = xs
     }
     put (x) {
         this.es.copyable.regStored.push (this.regNumber)
-        let i = st.EmRegBlockOffset + this.regStIndex
+        let i = ab.EmRegBlockOffset + this.regStIndex
         this.es.shm[i] = x
         if (this.regIdx < 16) { // register file
             instrEffect.push (["R", this.regNumber, x, this.regName]);
@@ -310,7 +310,7 @@ export class genregister {
     highlight (key) {
 //        com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
         if (this.es.thread_host === com.ES_gui_thread) {
-            let i = st.EmRegBlockOffset + this.regStIndex
+            let i = ab.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = com.highlightText (this.show(x), key)
             this.elt.innerHTML = xs
@@ -319,7 +319,7 @@ export class genregister {
     }
     refresh () {
         if (this.es.thread_host === com.ES_gui_thread) {
-            let i = st.EmRegBlockOffset + this.regStIndex
+            let i = ab.EmRegBlockOffset + this.regStIndex
             let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
             let xs = this.show (x)
             this.elt.innerHTML = xs
@@ -411,17 +411,17 @@ export function memClear (es) {
 
 export function memFetchInstr (es, a) {
     es.copyable.memFetchInstrLog.push(a);
-    let i = st.EmMemOffset + a
+    let i = ab.EmMemOffset + a
     let x =  es.shm[i]
-//    let x = st.sysStateVec [st.EmMemOffset + a]
+//    let x = ab.sysStateVec [ab.EmMemOffset + a]
     com.mode.devlog (`memFetchInstr a=${arith.wordToHex4(a)}`
-                 + ` offset=${st.EmMemOffset} i=${i} x=${arith.wordToHex4(x)}`)
+                 + ` offset=${ab.EmMemOffset} i=${i} x=${arith.wordToHex4(x)}`)
     return x
 }
 
 export function memFetchData (es, a) {
     es.copyable.memFetchDataLog.push(a);
-    let x = es.shm[st.EmMemOffset + a]
+    let x = es.shm[ab.EmMemOffset + a]
     return x
 }
 
@@ -431,7 +431,7 @@ export function memFetchData (es, a) {
 export function memStore (es, a,x) {
     es.copyable.memStoreLog.push(a);
     es.instrEffect.push(["M", a, x]);
-    es.shm[st.EmMemOffset + a] = x
+    es.shm[ab.EmMemOffset + a] = x
 }
 
 //------------------------------------------------------------------------------
@@ -443,7 +443,7 @@ export function procReset (es) {
     console.log ('em.procReset start')
     com.mode.devlog ("em reset");
     com.mode.devlog ("reset the processor");
-    st.resetSCB (es)
+    ab.resetSCB (es)
     resetRegisters (es);
     memClear (es);
     console.log ('em.procReset finished')
@@ -577,12 +577,12 @@ export function mainThreadLooper (es) {
     while (continueRunning) {
         executeInstruction (es)
         i++
-        status = st.readSCB (es, st.SCB_status)
+        status = ab.readSCB (es, ab.SCB_status)
         switch (status) {
-        case st.SCB_halted:
-        case st.SCB_paused:
-        case st.SCB_break:
-        case st.SCB_relinquish:
+        case ab.SCB_halted:
+        case ab.SCB_paused:
+        case ab.SCB_break:
+        case ab.SCB_relinquish:
             finished = true
             break
         default:
@@ -596,16 +596,16 @@ export function mainThreadLooper (es) {
                      + ` bPC=${es.copyable.breakPCvalue}`
                      + ` eb=${externalBreak}`)
 
-        pauseReq = st.readSCB (es, st.SCB_pause_request) != 0
+        pauseReq = ab.readSCB (es, ab.SCB_pause_request) != 0
         continueRunning = !finished  && !pauseReq && i < es.emInstrSliceSize
     }
-        if (pauseReq && status != st.SCB_halted) {
+        if (pauseReq && status != ab.SCB_halted) {
             com.mode.devlog ("main looper pausing")
-            st.writeSCB (es, st.SCB_status, st.SCB_paused)
-            st.writeSCB (es, st.SCB_pause_request, 0)
+            ab.writeSCB (es, ab.SCB_status, ab.SCB_paused)
+            ab.writeSCB (es, ab.SCB_pause_request, 0)
         } else if (externalBreak) {
             console.log (`external breakpoint`)
-            st.writeSCB (es, st.SCB_status, st.SCB_break)
+            ab.writeSCB (es, ab.SCB_status, ab.SCB_break)
         }
     if (finished) {
         es.endRunDisplay (es)
@@ -682,7 +682,7 @@ export function executeInstruction (es) {
     // Check for interrupt
     let mr = es.mask.get() & es.req.get() // ???
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
-    st.writeSCB (es, st.SCB_cur_instr_addr, es.pc.get())
+    ab.writeSCB (es, ab.SCB_cur_instr_addr, es.pc.get())
     if (arith.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
         com.mode.devlog (`execute instruction: interrupt`)
@@ -703,6 +703,7 @@ export function executeInstruction (es) {
     // No interrupt, so proceed with next instruction
     com.mode.devlog (`no interrupt, proceeding...`)
     es.curInstrAddr = es.pc.get();
+    com.mode.trace = true
     com.mode.devlog (`ExInstr pc=${arith.wordToHex4(es.curInstrAddr)}`)
     es.instrCode = memFetchInstr (es, es.curInstrAddr);
     com.mode.devlog (`ExInstr ir=${arith.wordToHex4(es.instrCode)}`)
@@ -710,7 +711,7 @@ export function executeInstruction (es) {
     //    es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
     es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
     es.pc.put (es.nextInstrAddr);
-    st.writeSCB (es, st.SCB_next_instr_addr, es.nextInstrAddr)
+    ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
 
     com.mode.devlog (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
     
@@ -730,7 +731,7 @@ export function executeInstruction (es) {
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
     dispatch_primary_opcode [es.ir_op] (es);
-    st.incrInstrCount (es)
+    ab.incrInstrCount (es)
 //    console.log (`Finished executeInstruction: ${showEsInfo(es)}`)
 }
 
@@ -859,7 +860,7 @@ const op_trap = (es) => {
         if (code===0) { // Halt
 	    console.log ("Trap: halt");
 	    com.mode.devlog ("Trap: halt");
-            st.writeSCB (es, st.SCB_status, st.SCB_halted)
+            ab.writeSCB (es, ab.SCB_status, ab.SCB_halted)
         } else if (code==1) { // nonblocking read
             console.log ('trap: nonblocking read')
             trapRead(es);
@@ -870,7 +871,7 @@ const op_trap = (es) => {
             console.log ('trap: blocking read (not implemented)')
         } else if (code==4) { // break
             console.log ('trap: break')
-            st.writeSCB (es, st.SCB_status, st.SCB_break)
+            ab.writeSCB (es, ab.SCB_status, ab.SCB_break)
         } else { // Undefined trap is nop
             com.mode.devlog (`trap with unbound code = ${code}`)
         }
@@ -878,9 +879,9 @@ const op_trap = (es) => {
     case com.ES_worker_thread:
         console.log (`**** handle trap in worker thread`)
         console.log (`emworker: relinquish control on a trap`)
-        st.writeSCB (es, st.SCB_status, st.SCB_relinquish)
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_relinquish)
         console.log (`trap relinquish before fixup, pc = ${es.pc.get()}`)
-        es.pc.put (st.readSCB (es, st.SCB_cur_instr_addr))
+        es.pc.put (ab.readSCB (es, ab.SCB_cur_instr_addr))
         console.log (`trap relinquish after fixup, pc = ${es.pc.get()}`)
         break
     default:
@@ -1074,7 +1075,7 @@ const rx = (f) => (es) => {
 //    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
     es.pc.put (es.nextInstrAddr);
-    st.writeSCB (es, st.SCB_next_instr_addr, es.nextInstrAddr)
+    ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
     //    es.ea = arith.binAdd (regFile[es.ir_a].get(), adr.get());
 //    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
     es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, es.instrDisp)
@@ -1495,11 +1496,11 @@ const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 
 /*
 export function startRunMainThread (es) {
-    let q = st.readSCB (es, st.SCB_status)
+    let q = st.readSCB (es, ab.SCB_status)
     switch (q) {
-    case st.SCB_ready:
-    case st.SCB_paused:
-    case st.SCB_blocked:
+    case ab.SCB_ready:
+    case ab.SCB_paused:
+    case ab.SCB_blocked:
         console.log ("procRunMainThread: start looper");
         es.initRunDisplay (es)
         mainInstructionLooper (es)

@@ -25,6 +25,7 @@ import * as com   from '../base/common.mjs';
 import * as smod  from '../base/s16module.mjs';
 import * as arch  from '../base/architecture.mjs';
 import * as arith from '../base/arithmetic.mjs';
+import * as ab    from '../base/arrbuf.mjs';
 import * as st    from '../base/state.mjs';
 import * as ed    from './editor.mjs';
 import * as asm   from '../base/assembler.mjs';
@@ -245,11 +246,9 @@ function isSetThreadWorkerOk (warn) {
 }
 
 function setArrayBufferLocal (warn) {
-//    console.log ('setArrayBufferLocal')
+    com.mode.devlog.log ('setArrayBufferLocal')
     const opt = gst.options
-//    console.log ('set array buffer local')
     if (isSetBufferLocalOk (warn)) {
-//        console.log ('Setting array buffer local')
         gst.options.bufferType = ArrayBufferLocal
         document.getElementById('ArrayBufferLocal').checked = true
         setThreadMain (gst)
@@ -257,16 +256,27 @@ function setArrayBufferLocal (warn) {
     }}
 
 function setArrayBufferShared (warn) {
+// Revert to WebAssembly memory; not clear whether availability of
+// shared memory implies availability of WebAssembly memory
+    com.mode.devlog ('setArrayBufferShared')
+    setArrayBufferWebAssembly (warn)
+//    const opt = gst.options
+//    if (isSetBufferSharedOk (warn)) {
+//        opt.bufferType = ArrayBufferShared
+//        document.getElementById('ArrayBufferShared').checked = true
+//        refreshOptionsDisplay ()
+//    }
+}
+
+function setArrayBufferWebAssembly (warn) {
+    com.mode.devlog ('setArrayBufferWebAssembly')
     const opt = gst.options
-//    console.log ('setArrayBufferShared')
     if (isSetBufferSharedOk (warn)) {
-//        console.log ('Setting array buffer shared')
-        opt.bufferType = ArrayBufferShared
+        opt.bufferType = ArrayBufferWebAssembly
         document.getElementById('ArrayBufferShared').checked = true
         refreshOptionsDisplay ()
     }
 }
-
 
 function setThreadMain (warn) {
 //    console.log ('setThreadMain')
@@ -384,8 +394,10 @@ function refreshOptionsDisplay () {
 
 // Memory options
 
-const ArrayBufferShared = Symbol ('Shared')
-const ArrayBufferLocal = Symbol ('Local')
+const ArrayBufferWebAssembly = Symbol ('Buffer WebAssembly')
+const ArrayBufferShared = Symbol ('Buffer Shared')
+const ArrayBufferLocal = Symbol ('Buffer Local')
+
 const ModeMemDisplayHBA = Symbol ("MD HBA")          // 0 to highest booted address
 const ModeMemDisplaySliding = Symbol ("MD sliding")  // sliding window
 const ModeMemDisplayFull = Symbol ("MD full")         // full memory
@@ -1197,6 +1209,7 @@ function enterProcessor () {
 
 function initializeProcessor () {
     console.log ('Initializing processor')
+    mkMainEmulatorState ()
     allocateStateVector ()
     refreshOptionsDisplay ()
     if (gst.options.bufferType === ArrayBufferShared) {
@@ -1286,7 +1299,7 @@ export function execInstrPostDisplay (gst) {
     highlightListingAfterInstr (gst)
     updateInstrDecode (gst)
     guiDisplayNinstr (gst)
-    document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
+    document.getElementById("procStatus").innerHTML = ab.showSCBstatus (es)
 }
 
 function procRefresh (gst) {
@@ -1358,7 +1371,7 @@ function displayProcAsmListing (gst) {
 //   procBreakpoint()  -- not implemented yet
 
 export function refreshProcStatusDisplay (gst) {
-    let xs = st.showSCBstatus (gst.es)
+    let xs = ab.showSCBstatus (gst.es)
     document.getElementById("procStatus").innerHTML = xs
 }
 
@@ -1569,7 +1582,7 @@ function getMemRange (gst, t) {
 // Convert memory location to hex string
 
 function setMemString (gst, a) {
-    let x = gst.es.shm[st.EmMemOffset + a] // contents of mem[a]
+    let x = gst.es.shm[ab.EmMemOffset + a] // contents of mem[a]
     gst.memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
 }
 
@@ -1785,7 +1798,7 @@ export function procBoot (gst) {
     const es = gst.es
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
-    st.resetSCB (es)
+    ab.resetSCB (es)
     let m = st.env.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
@@ -1802,11 +1815,11 @@ export function procBoot (gst) {
     let isExecutable = true; // will set to false if module isn't bootable
     let location = 0; // address where next word will be stored
     document.getElementById('ProcAsmListing').innerHTML = "";
-    st.clearInstrCount
+    ab.clearInstrCount
     es.ioLogBuffer = "";
     em.refreshIOlogBuffer (es);
     // reset
-    st.resetSCB (es)
+    ab.resetSCB (es)
     em.resetRegisters (es);
     em.memClear(es)
     em.clearMemLogging (es)
@@ -1863,14 +1876,14 @@ export function procBoot (gst) {
         gst.asmListingCurrent = []
         gst.metadata.listingDec.forEach ((x,i) => gst.asmListingCurrent[i] = x);
         initListing (gst);
-        st.writeSCB (es, st.SCB_status, st.SCB_ready)
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_ready)
         es.curInstrAddr = 0;
         es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
         es.nextInstrAddr = 0;
         es.nextInstrLineNo = gst.metadata.getSrcIdx (es.nextInstrAddr)
             + listingLineInitialOffset;
             highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
-        st.writeSCB (es, st.SCB_status, st.SCB_ready)
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_ready)
         getListingDims(gst);
         es.pc.put (0) // shouldn't be needed?
         //        refreshRegisters (gst)
@@ -1882,7 +1895,7 @@ export function procBoot (gst) {
             + "</pre>";
         com.mode.devlog ("boot was successful")
     } else {
-        st.writeSCB (es, st.SCB_status, st.SCB_reset)
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_reset)
         let xs =  "<pre class='HighlightedTextAsHtml'>"
             + "<span class='ExecutableStatus'>"
             + "Boot failed: module is not executable"
@@ -1893,7 +1906,7 @@ export function procBoot (gst) {
         alert ("boot failed");
     }
     if (es.thread_host === com.ES_gui_thread) {
-        document.getElementById("procStatus").innerHTML = st.showSCBstatus (es)
+        document.getElementById("procStatus").innerHTML = ab.showSCBstatus (es)
     }
     com.mode.devlog ("boot returning");
 }
@@ -1917,10 +1930,10 @@ function timerInterrupt (gst) {
 // export function procPause(es) {
 export function procPause (gst) {
     com.mode.devlog ("procPause");
-    com.mode.devlog (`procPause st=${st.readSCB (gst.es,st.SCB_status)}`)
-    com.mode.devlog (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
-    st.writeSCB (gst.es, st.SCB_pause_request, 1)
-    com.mode.devlog (`procPause preq=${st.readSCB (gst.es,st.SCB_pause_request)}`)
+    com.mode.devlog (`procPause st=${ab.readSCB (gst.es,ab.SCB_status)}`)
+    com.mode.devlog (`procPause preq=${ab.readSCB (gst.es,ab.SCB_pause_request)}`)
+    ab.writeSCB (gst.es, ab.SCB_pause_request, 1)
+    com.mode.devlog (`procPause preq=${ab.readSCB (gst.es,ab.SCB_pause_request)}`)
     com.mode.devlog ("em wrote procPause request")
 }
 
@@ -1976,7 +1989,7 @@ const duringRunRefresher = (gst) => () => {
 export function refreshRFdisplay (gst) {
     const es = gst.es
     for (let i = 0; i < es.nRegisters; i++) {
-        let j = st.EmRegBlockOffset + i
+        let j = ab.EmRegBlockOffset + i
         let x = i === 0 ? 0 : es.shm[j]
         let e = es.register[i].elt
         e.innerHTML = arith.wordToHex4 (x)
@@ -2002,27 +2015,27 @@ export function procStep (gst) {
         com.mode.devlog (`procStep: host=${gst.es.thread_host}, skipping`)
         return
     }
-    st.writeSCB (es, st.SCB_pause_request, 0)
-    let q = st.readSCB (es, st.SCB_status)
+    ab.writeSCB (es, ab.SCB_pause_request, 0)
+    let q = ab.readSCB (es, ab.SCB_status)
     switch (q) {
-    case st.SCB_ready:
-    case st.SCB_paused:
-    case st.SCB_break:
-    case st.SCB_relinquish:
+    case ab.SCB_ready:
+    case ab.SCB_paused:
+    case ab.SCB_break:
+    case ab.SCB_relinquish:
         com.mode.devlog ("procStep: main thread executing instruction...")
         em.clearMemLogging (gst.es)
         em.clearRegLogging (gst.es)
         em.executeInstruction (es)
-        let qnew = st.readSCB (es, st.SCB_status)
-        if (qnew != st.SCB_halted) st.writeSCB (es, st.SCB_status, st.SCB_ready)
+        let qnew = ab.readSCB (es, ab.SCB_status)
+        if (qnew != ab.SCB_halted) ab.writeSCB (es, ab.SCB_status, ab.SCB_ready)
         execInstrPostDisplay (gst)
 //        updateRegisters (gst)
         break
-    case st.SCB_reset:
-    case st.SCB_running_gui:
-    case st.SCB_running_emwt:
-    case st.SCB_halted:
-    case st.SCB_blocked:
+    case ab.SCB_reset:
+    case ab.SCB_running_gui:
+    case ab.SCB_running_emwt:
+    case ab.SCB_halted:
+    case ab.SCB_blocked:
         com.mode.devlog ("procStep skipping instruction...")
         break
     default: com.mode.devlog (`error: procStep unknown SCB_status= ${q}`)
@@ -2069,25 +2082,25 @@ function finishRun (gst) {
 function procRun () {
     const es = gst.es
     gst.es.emRunThread = gst.options.currentThreadSelection
-    const q = st.readSCB (es, st.SCB_status)
+    const q = ab.readSCB (es, ab.SCB_status)
     console.log (`procRun, status=${q} thread=${es.emRunThread}`)
     es.copyable = em.initEsCopyable // does this clear data from main?????
     switch (q) {
-    case st.SCB_ready:
-    case st.SCB_paused:
-    case st.SCB_blocked:
-    case st.SCB_break:
+    case ab.SCB_ready:
+    case ab.SCB_paused:
+    case ab.SCB_blocked:
+    case ab.SCB_break:
         switch (gst.options.currentThreadSelection) {
         case com.ES_gui_thread:
             console.log ("procRun starting in main gui thread")
-            st.writeSCB (es, st.SCB_status, st.SCB_running_gui)
+            ab.writeSCB (es, ab.SCB_status, ab.SCB_running_gui)
             
             es.initRunDisplay (es)
             em.mainThreadLooper (es)
             break
         case com.ES_worker_thread:
             console.log ("procRun starting in worker thread")
-            st.writeSCB (es, st.SCB_status, st.SCB_running_emwt)
+            ab.writeSCB (es, ab.SCB_status, ab.SCB_running_emwt)
             es.initRunDisplay (es)
             emwtRun (es)
             break
@@ -2177,13 +2190,13 @@ function breakClose (gst) {
 //-----------------------------------------------------------------------------
 
 function logShmStatus (es) {
-    let status = st.showSCBstatus (es)
-    let n = st.readSCB (es, st.SCB_nInstrExecuted)
-    let cur = st.readSCB (es, st.SCB_cur_instr_addr)
-    let next = st.readSCB (es, st.SCB_next_instr_addr)
-    let mode = st.readSCB (es, st.SCB_emwt_run_mode)
-    let trap =  st.readSCB (es, st.SCB_emwt_trap)
-    let pause = st.readSCB (es, st.SCB_pause_request)
+    let status = ab.showSCBstatus (es)
+    let n = ab.readSCB (es, ab.SCB_nInstrExecuted)
+    let cur = ab.readSCB (es, ab.SCB_cur_instr_addr)
+    let next = ab.readSCB (es, ab.SCB_next_instr_addr)
+    let mode = ab.readSCB (es, ab.SCB_emwt_run_mode)
+    let trap =  ab.readSCB (es, ab.SCB_emwt_trap)
+    let pause = ab.readSCB (es, ab.SCB_pause_request)
     let xs = `Shm flags:\n`
         + ` status = ${status}\n`
         + ` n = ${n}\n`
@@ -2196,56 +2209,45 @@ function logShmStatus (es) {
 }
 
 //-----------------------------------------------------------------------------
-// System state vector
+// Emulator state
 //-----------------------------------------------------------------------------
 
-// export let sysStateBuf = null
-// export let sysStateVec = null
-// let emwThread = null
+// Create emulator state for the main thread and save in global state
 
-// Memory is allocated in the main thread and sent to the worker
-// thread, if there is a worker
-
-// to do: change es.shm to es.vec16 in emulator and elsewhere if needed
-// temporary fix: disable shared array buffer, force use of ArrayBuffer
-
-let foobarmemory
-let foobarbuf
-
-function allocateStateVector () {
-    console.log ("allocateStateVector")
+function mkMainEmulatorState () {
+    console.log ("mkMainEmulatorState")
     gst.es = new em.EmulatorState (
         com.ES_gui_thread,
         () => initRun (gst),
         () => updateWhileRunning (gst),
         () => finishRun (gst) )
+}
+
+//-----------------------------------------------------------------------------
+// System state vector
+//-----------------------------------------------------------------------------
+
+// Memory is allocated in the main thread and made available to the
+// emulator in the main thread by saving it in gst.es.vecbuf.  If
+// there is a worker thread, vecbuf must be a shared array buffer, and
+// it's also sent to the worker.
+
+// to do: change es.shm to es.vec16 in emulator
+
+function allocateStateVector () {
     console.log (`allocateStateVector:`
-                 + ` bufferType=${gst.options.bufferType.description}`)
-    gst.es.vecbuf =
-        gst.options.bufferType === ArrayBufferShared
-        ? new SharedArrayBuffer (st.EmStateSizeByte)
-        : new ArrayBuffer (st.EmStateSizeByte)
-    if (foobarmemory) {
-        console.log ('foobarmemory is truthy')
-    } else {
-        console.log ('foobarmemory is falsy')
-    }
-    foobarmemory = new WebAssembly.Memory ({
-        initial: 10,
-        maximum: 100,
-        shared: true
-    })
-    foobarbuf = foobarmemory.buffer
-    gst.es.vecbuf = foobarmemory.buffer
-    if (foobarmemory) {
-        console.log ('foobarmemory is truthy')
-    } else {
-        console.log ('foobarmemory is falsy')
-    }
-    if (foobarbuf) {
-        console.log ('foobarbuf is truthy')
-    } else {
-        console.log ('foobarbuf is falsy')
+                 + ` bufferType = ${gst.options.bufferType.description}`)
+    if (gst.options.bufferType === ArrayBufferShared) {
+        gst.es.vecbuf = new SharedArrayBuffer (ab.EmStateSizeByte)
+    } else if (gst.options.bufferType === ArrayBufferWebAssembly) {
+        console.log ('Allocating web assembly memory')
+        gst.es.wasmMemory = new WebAssembly.Memory ({
+            initial: 10,
+            maximum: 100,
+            shared: true })
+        gst.es.vecbuf = gst.es.wasmMemory.buffer
+    } else { // Local
+        gst.es.vecbuf = new ArrayBuffer (ab.EmStateSizeByte)
     }
     gst.options.memoryIsAllocated = true
     // Define word views into the state vector
@@ -2260,18 +2262,28 @@ function allocateStateVector () {
     testSysStateVec (gst.es)  // testing
 }
 
-
 function testSysStateVec (es) {
     com.mode.trace = true;
     com.mode.devlog ('%ctestSysStateVec starting...', 'color:blue')
-    com.mode.devlog (`Testing emulator memory: ${es.thread_host}`)
-    com.mode.devlog (`Testing emulator memory: ${es.thread_host}`)
+    com.mode.devlog (`testSysStateVec running in thread host ${es.thread_host}`)
+
     let xs = ""
     let n = 3
     for (let i = 0; i < n; i++) es.shm[i] = i
     for (let i = 0; i < n; i++) es.shm[i] += 100
     for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
     com.mode.devlog (`thread host ${es.thread_host}: ${xs} finished`)
+
+    com.mode.devlog (`gst.es.vec16[25] = ${gst.es.vec16[25]}`)
+    gst.es.vec16[25] = 25
+    gst.es.vec16[25] = gst.es.vec16[25] * 2
+    com.mode.devlog (`gst.es.vec16[25] (expect 50) = ${gst.es.vec16[25]}`)
+
+    com.mode.devlog (`gst.es.vec32[45] = ${gst.es.vec32[45]}`)
+    gst.es.vec32[45] = 85
+    gst.es.vec32[45] = gst.es.vec32[45] * 2
+    com.mode.devlog (`gst.es.vec32[45] (expect 170) = ${gst.es.vec32[45]}`)
+
     com.mode.devlog ('%c...testSysStateVec finished', 'color:blue')
     com.mode.trace = false;
 }
@@ -2350,9 +2362,9 @@ function handleEmwtStepResponse (p) {
     com.mode.devlog (`gui at emwt step response 1: ${em.showEsInfo (gst.es)}`)
     finishRun (gst)
     com.mode.devlog (`gui at emwt step response 2: ${em.showEsInfo (gst.es)}`)
-    let newstatus = st.readSCB (gst.es, st.SCB_status)
+    let newstatus = ab.readSCB (gst.es, ab.SCB_status)
     com.mode.devlog (`main handle emwt step response: status=${newstatus}`)
-    if (newstatus === st.SCB_relinquish) {
+    if (newstatus === ab.SCB_relinquish) {
         com.mode.devlog (`***** main gui: handle worker step relinquish`)
     }
 }
@@ -2379,59 +2391,59 @@ function emwtRun (es) {
 
 function handleEmwtRunResponse (p) { // run when emwt sends 202
     console.log (`handleEmwtRunResponse`)
-    let status = st.readSCB (gst.es, st.SCB_status)
+    let status = ab.readSCB (gst.es, ab.SCB_status)
     gst.es.copyable = p
     em.showCopyable (gst.es.copyable)
     let  msg = {code: 0, payload: 0}
     com.mode.devlog (`main: handle emwt run response: p=${p} status=${status}`)
     switch (status) {
-    case st.SCB_halted:
+    case ab.SCB_halted:
         com.mode.devlog (`*** main: handle emwt halt`)
         finishRun (gst)
         break
-    case st.SCB_paused:
+    case ab.SCB_paused:
         com.mode.devlog (`*** main: handle emwt pause`)
-        st.showSCBstatus (gst.es)
-        st.writeSCB (gst.es, st.SCB_pause_request, 0)
-        st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
+        ab.showSCBstatus (gst.es)
+        ab.writeSCB (gst.es, ab.SCB_pause_request, 0)
+        ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_ready)
         finishRun (gst)
         com.mode.devlog (`*** main: finished handle emwt pause`)
         break
-    case st.SCB_break:
+    case ab.SCB_break:
         com.mode.devlog (`*** main: handle emwt break`)
         console.log (`*** main: handle emwt break`)
-        st.writeSCB (gst.es, st.SCB_status, st.SCB_ready)
+        ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_ready)
         finishRun (gst)
         com.mode.devlog (`*** main: finished handle emwt break`)
         break
-    case st.SCB_blocked:
+    case ab.SCB_blocked:
         com.mode.devlog (`*** main: handle emwt blocked`)
         break
-    case st.SCB_relinquish: // emwt halt signals halt, not relinquish
+    case ab.SCB_relinquish: // emwt halt signals halt, not relinquish
         com.mode.devlog (`*** main: handle emwt relinquish`)
-        st.showSCBstatus (gst.es)
-        st.writeSCB (gst.es, st.SCB_status, st.SCB_running_gui)
+        ab.showSCBstatus (gst.es)
+        ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_running_gui)
         em.executeInstruction (gst.es)
-        st.decrInstrCount (gst.es) // instruction was counted twice
-        if (st.readSCB (gst.es, st.SCB_status) === st.SCB_halted) {
+        ab.decrInstrCount (gst.es) // instruction was counted twice
+        if (ab.readSCB (gst.es, ab.SCB_status) === ab.SCB_halted) {
             console.log ("main: handle emwt relinquish: halted")
             finishRun (gst)
-        } else if (st.readSCB (gst.es, st.SCB_status) === st.SCB_break) {
+        } else if (ab.readSCB (gst.es, ab.SCB_status) === ab.SCB_break) {
             console.log ("main: handle emwt relinquish: trap break")
             finishRun (gst)
         } else {
             console.log (`main: handle emwt relinquish: resuming`)
-            st.writeSCB (gst.es, st.SCB_status, st.SCB_running_emwt)
+            ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_running_emwt)
 //            msg = {code: 102, payload: 0}
             msg = {code: 102, payload: gst.es.copyable}
             gst.emwThread.postMessage (msg)
         }
         com.mode.devlog (`*** main: finished handle emwt relinquish`)
         break
-    case st.SCB_reset:
-    case st.SCB_ready:
-    case st.SCB_running_gui:
-    case st.SCB_running_emwt:
+    case ab.SCB_reset:
+    case ab.SCB_ready:
+    case ab.SCB_running_gui:
+    case ab.SCB_running_emwt:
     default:
         com.mode.devlog (`main:handleEmwtRunResponse unknown status = ${status}`)
     }
@@ -2729,7 +2741,6 @@ function testpane3 () {
 
 function initializeMainEmulator () {
     console.log ("allocate state vector")
-    console.log ("allocate state vector done in gst")
     em.initializeMachineState (gst.es)
     initializeSubsystems ();
     clearClock (gst)
