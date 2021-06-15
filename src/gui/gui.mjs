@@ -256,26 +256,24 @@ function setArrayBufferLocal (warn) {
     }}
 
 function setArrayBufferShared (warn) {
-// Revert to WebAssembly memory; not clear whether availability of
-// shared memory implies availability of WebAssembly memory
     com.mode.devlog ('setArrayBufferShared')
-    setArrayBufferWebAssembly (warn)
-//    const opt = gst.options
-//    if (isSetBufferSharedOk (warn)) {
-//        opt.bufferType = ArrayBufferShared
-//        document.getElementById('ArrayBufferShared').checked = true
-//        refreshOptionsDisplay ()
-//    }
-}
-
-function setArrayBufferWebAssembly (warn) {
-    com.mode.devlog ('setArrayBufferWebAssembly')
     const opt = gst.options
     if (isSetBufferSharedOk (warn)) {
-        opt.bufferType = ArrayBufferWebAssembly
+        opt.bufferType = ArrayBufferShared
         document.getElementById('ArrayBufferShared').checked = true
         refreshOptionsDisplay ()
     }
+}
+
+function setArrayBufferWebAssembly (warn) {
+    com.mode.devlog ('setArrayBufferWebAssembly - revert to shared')
+    setArrayBufferShared (warn)
+//    const opt = gst.options
+//    if (isSetBufferSharedOk (warn)) {
+//        opt.bufferType = ArrayBufferWebAssembly
+//        document.getElementById('ArrayBufferShared').checked = true
+//        refreshOptionsDisplay ()
+//    }
 }
 
 function setThreadMain (warn) {
@@ -896,6 +894,8 @@ function initializeButtons () {
     prepareButton ('PP_Breakpoint', () => procBreakpoint (gst))
     prepareButton ('PP_Refresh',    () => procRefresh (gst))
     prepareButton ('PP_Reset',      () => procReset (gst))
+    prepareButton ('PP_T1',         () => test_t1 ())
+    prepareButton ('PP_T2',         () => test_t2 ())
     prepareButton ('PP_Timer_Interrupt', () => timerInterrupt (gst));
 //    prepareButton ('PP_RunMain',    () => runMain (gst))
 //    prepareButton ('PP_RunWorker',  () => runWorker (gst))
@@ -2242,10 +2242,12 @@ function allocateStateVector () {
     } else if (gst.options.bufferType === ArrayBufferWebAssembly) {
         console.log ('Allocating web assembly memory')
         gst.es.wasmMemory = new WebAssembly.Memory ({
-            initial: 10,
+            initial: 1,
             maximum: 100,
             shared: true })
+//        emcImports.wam = gst.es.wasmMemory
         gst.es.vecbuf = gst.es.wasmMemory.buffer
+        initEmCore ()
     } else { // Local
         gst.es.vecbuf = new ArrayBuffer (ab.EmStateSizeByte)
     }
@@ -2560,7 +2562,8 @@ window.test_op_add = (x,y) => {
 // specified in their html element: the css for .Hidden specifies
 // visibility: "hidden".
 
-const DevElts = [ "DevTools_Pane_Button", "PP_RunGui", "PP_Test1", "PP_Test2"]
+const DevElts = [ "DevTools_Pane_Button" ]
+//  ,  "PP_RunGui",  "PP_Test1", "PP_Test2"]
 
 // Define functions that show/hide the DevElts and attach the
 // functions to the window to put them into scope at the top level
@@ -2580,6 +2583,8 @@ function hideElement (eltName) {
 
 function devTools100 () {
     console.log ("DevTools100 clicked");
+    testEmCore ()
+    
 }
 
 
@@ -2779,7 +2784,6 @@ function initializeSystem () {
     initializeGuiLayout (gst)      // Initialize gui layout
     initializeButtons (gst)
     refreshOptionsDisplay ()
-    initEmCore ()
     findLatestRelease (gst)
 }
 
@@ -2836,8 +2840,8 @@ function unhighlightArchButton (a) {
 // Functions called by EmCore
 //-----------------------------------------------------------------------------
 
-function testprint (x) {
-    console.log (`testprint: ${x}`)
+function printnum (x) {
+    console.log (`printnum: ${x}`)
 }
 
 function fooprint (x) {
@@ -2875,40 +2879,72 @@ function showEmcURL () {
     console.log (`EmCoreURL = ${EmCoreURL}`)
 }
 
-// emcImports is an object containing JavaScript functions that are
-// imported into the Web Assembly code.
+// From JS to WASM:  emcImports is an object containing JavaScript
+// functions that are imported into the Web Assembly code.
 
-const emcImports = {
-    imports: { testprint, fooprint, barprint }
-}
-console.log ('just defined emcImports')
+// const emcImports = {
+//     imports: { wam: null, // web assembly memory set by allocateStateVector
+//                printnum, fooprint, barprint }
+// }
 
-// emc is an object containing functions exported by emulator core.
-// The functions are defined by initEmCore; after that you can call,
-// for example, emc.f1 (123).  The functions f1, f1 etc are for
-// testing an ddevelopment.
+// From WASM to JS:  emc is an object containing functions exported by
+// emulator core.  The functions are defined by initEmCore; after that
+// you can call, for example, emc.f1 (123).  The functions f1, f1 etc
+// are for testing an ddevelopment.  Make emc accessible to the
+// console for testing the web assembly functions.  E.g. enter emc.f1
+// (3)
 
 const emc = {
-    f1 : (x) => { console.log (`emc.f1 uninitialized`) },
-    f2 : (x) => { console.log (`emc.f2 uninitialized`) }
+    addplus1 : (x,y) => { console.log (`emc.addplus1 uninitialized`) },
+    print42 : (x) => { console.log (`emc.print42 uninitialized`) }
 }
-
-// Make emc accessible to the console for testing the web assembly
-// functions.  E.g. enter emc.f1 (3)
 window.emc = emc
 
+const wam = new WebAssembly.Memory ({
+    initial: 3,
+    maximum: 100,
+    shared: true
+})
+
+
+const emcImports = {
+    imports: { wam,
+               printnum, fooprint, barprint }
+    }
+
 // Read the web assembly code and make its functions accessible to the
-// main JavaScript program
+// main JavaScript program.  WebAssembly memory must be initialized by
+// calling allocateStateVector before calling initEmCore.
 
 function initEmCore () {
     console.log ('initEmCore')
     showEmcURL ()
     WebAssembly.instantiateStreaming (fetch (EmCoreURL), emcImports)
         .then (emcExports => {
-            emc.f1 = emcExports.instance.exports.exported_func
-            emc.f2 = emcExports.instance.exports.exported_func
+            emc.addplus1 = emcExports.instance.exports.addplus1
+            emc.print42 = emcExports.instance.exports.print42
         })
 }
+
+function test_t1 () {
+    console.log ('processor test t1')
+    testEmCore ()
+}
+
+function test_t2 () {
+    console.log ('processor test t2')
+}
+
+function testEmCore () {
+    console.log ('testEmCore')
+    console.log ('call: emc.print42 ()')
+    emc.print42 ()
+    console.log ('let a = emc.addplus1 (12, 35)')
+    let a = emc.addplus1 (12, 35)
+    console.log (`a = ${a}`)
+    console.log ('testEmCore returning')
+}
+window.testEmCore = testEmCore
 
 //-----------------------------------------------------------------------------
 // Run initializers
@@ -2923,4 +2959,6 @@ window.onload = function () {
     com.mode.trace = false;
     initializeSystem ()
     com.mode.devlog ('System is now running')
+    initEmCore ()
+    enableDevTools ()
 }

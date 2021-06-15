@@ -139,7 +139,7 @@ assemble:
 	make src/base/emcore.wasm
 
 src/base/emcore.wasm: src/base/emcore.wat
-	cd src/base; wat2wasm emcore.wat
+	cd src/base; wat2wasm emcore.wat --enable-threads
 
 #-------------------------------------------------------------------------------
 # make build - Copy files needed to run program from build/dev to build/i.j.k
