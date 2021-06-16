@@ -4997,10 +4997,13 @@ tools that run in a command line.  These tools don't use a GUI
 circuit simulator.
 
 #+BEGIN_EXAMPLE
-$ npm install -g wat2wasm
+$ npm install -g wabt
+$ wat2wasm emcore.wat --enable-threads
 #+END_EXAMPLE
 
+This doesn't work:
 #+BEGIN_EXAMPLE
+$ npm install -g wat2wasm   doesn't work
 wat2wasm emcore.wat
 #+END_EXAMPLE
 

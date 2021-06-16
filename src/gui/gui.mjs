@@ -256,7 +256,10 @@ function setArrayBufferLocal (warn) {
     }}
 
 function setArrayBufferShared (warn) {
-    com.mode.devlog ('setArrayBufferShared')
+    com.mode.devlog ('setArrayBufferShared - revert to wasm mem')
+    setArrayBufferWebAssembly (warn)
+}
+/*
     const opt = gst.options
     if (isSetBufferSharedOk (warn)) {
         opt.bufferType = ArrayBufferShared
@@ -264,16 +267,16 @@ function setArrayBufferShared (warn) {
         refreshOptionsDisplay ()
     }
 }
+*/
 
 function setArrayBufferWebAssembly (warn) {
-    com.mode.devlog ('setArrayBufferWebAssembly - revert to shared')
-    setArrayBufferShared (warn)
-//    const opt = gst.options
-//    if (isSetBufferSharedOk (warn)) {
-//        opt.bufferType = ArrayBufferWebAssembly
-//        document.getElementById('ArrayBufferShared').checked = true
-//        refreshOptionsDisplay ()
-//    }
+    com.mode.devlog ('setArrayBufferWebAssembly')
+    const opt = gst.options
+    if (isSetBufferSharedOk (warn)) {
+        opt.bufferType = ArrayBufferWebAssembly
+        document.getElementById('ArrayBufferShared').checked = true
+        refreshOptionsDisplay ()
+    }
 }
 
 function setThreadMain (warn) {
@@ -1204,7 +1207,7 @@ function enterProcessor () {
     console.log ('enterProcessor')
     if (gst.options.processorIsUninitialized) {
         initializeProcessor ()
-    }
+1    }
 }
 
 function initializeProcessor () {
@@ -1212,9 +1215,9 @@ function initializeProcessor () {
     mkMainEmulatorState ()
     allocateStateVector ()
     refreshOptionsDisplay ()
-    if (gst.options.bufferType === ArrayBufferShared) {
+    if (gst.options.bufferType === ArrayBufferShared
+       || gst.options.bufferType === ArrayBufferWebAssembly) {
         console.log ('initializeProcessor: shared array buffer, starting emwt')
-        //        gst.emwThread = new Worker("src/base/emwt.mjs", {type:"module"});
         gst.emwThread = new Worker("emwt.mjs", {type:"module"});
         initializeEmwtProtocol (gst.es)
         emwtInit (gst.es)
@@ -2241,12 +2244,11 @@ function allocateStateVector () {
         gst.es.vecbuf = new SharedArrayBuffer (ab.EmStateSizeByte)
     } else if (gst.options.bufferType === ArrayBufferWebAssembly) {
         console.log ('Allocating web assembly memory')
-        gst.es.wasmMemory = new WebAssembly.Memory ({
-            initial: 1,
-            maximum: 100,
-            shared: true })
-//        emcImports.wam = gst.es.wasmMemory
-        gst.es.vecbuf = gst.es.wasmMemory.buffer
+        emcImports.imports.wam = new WebAssembly.Memory (
+            { initial: 3, maximum: 40, shared: true })
+//        gst.es.vecbuf = gst.es.wasmMemory.buffer
+        gst.es.vecbuf = emcImports.imports.wam.buffer
+        
         initEmCore ()
     } else { // Local
         gst.es.vecbuf = new ArrayBuffer (ab.EmStateSizeByte)
@@ -2879,42 +2881,40 @@ function showEmcURL () {
     console.log (`EmCoreURL = ${EmCoreURL}`)
 }
 
-// From JS to WASM:  emcImports is an object containing JavaScript
-// functions that are imported into the Web Assembly code.
+// Configure the web assembly memory
 
-// const emcImports = {
-//     imports: { wam: null, // web assembly memory set by allocateStateVector
-//                printnum, fooprint, barprint }
-// }
+// const wam = new WebAssembly.Memory ({
+//     initial: 3,
+//     maximum: 40,
+//     shared: true
+// })
 
-// From WASM to JS:  emc is an object containing functions exported by
-// emulator core.  The functions are defined by initEmCore; after that
-// you can call, for example, emc.f1 (123).  The functions f1, f1 etc
-// are for testing an ddevelopment.  Make emc accessible to the
-// console for testing the web assembly functions.  E.g. enter emc.f1
-// (3)
-
-const emc = {
-    addplus1 : (x,y) => { console.log (`emc.addplus1 uninitialized`) },
-    print42 : (x) => { console.log (`emc.print42 uninitialized`) }
-}
-window.emc = emc
-
-const wam = new WebAssembly.Memory ({
-    initial: 3,
-    maximum: 100,
-    shared: true
-})
-
+// Imports into Wasm from JS
 
 const emcImports = {
-    imports: { wam,
+    imports: { wam: null, // set by allocateStateVector
                printnum, fooprint, barprint }
     }
 
-// Read the web assembly code and make its functions accessible to the
-// main JavaScript program.  WebAssembly memory must be initialized by
-// calling allocateStateVector before calling initEmCore.
+// Exports from Wasm to JS
+
+// emc is an object containing functions exported by emulator core.
+// The functions are defined by initEmCore; after that you can call,
+// for example, emc.f1 (123).  The functions f1, f1 etc are for
+// testing an ddevelopment.  Make emc accessible to the console for
+// testing the web assembly functions.  E.g. enter emc.f1 (3)
+
+const emc = {
+    addplus1 : (x,y) => { console.log (`emc.addplus1 uninitialized`) },
+    print42 : (x) => { console.log (`emc.print42 uninitialized`) },
+    store16 : (x) => { console.log (`emc.emcstore32 uninitialized`) }
+}
+window.emc = emc
+
+// Initialize the core emulator.  Read the web assembly code and make
+// its functions accessible to the main JavaScript program.
+// WebAssembly memory must be initialized by calling
+// allocateStateVector before calling initEmCore.
 
 function initEmCore () {
     console.log ('initEmCore')
@@ -2922,8 +2922,17 @@ function initEmCore () {
     WebAssembly.instantiateStreaming (fetch (EmCoreURL), emcImports)
         .then (emcExports => {
             emc.addplus1 = emcExports.instance.exports.addplus1
-            emc.print42 = emcExports.instance.exports.print42
+            emc.print42  = emcExports.instance.exports.print42
+            emc.store16  = emcExports.instance.exports.store16
         })
+}
+
+function showVec16 (a,b) {
+    console.log (`showVec16 a=${a} b=${b}`)
+    for (let i = a; i<b; i++) {
+        console.log (`  i = ${i} vec16[${i}] = ${gst.es.vec16[i]}`)
+    }
+
 }
 
 function test_t1 () {
@@ -2942,6 +2951,17 @@ function testEmCore () {
     console.log ('let a = emc.addplus1 (12, 35)')
     let a = emc.addplus1 (12, 35)
     console.log (`a = ${a}`)
+    for (let i = 0; i<8; i++) { gst.es.vec16[i] = 0 }
+    console.log ('Initial memory')
+    showVec16 (0, 8)
+    gst.es.vec16[2] = 3
+    showVec16 (0, 8)
+    console.log ('calling store16 (6,42)')
+    emc.store16 (6, 42)
+    console.log ('After store32 (6,42)')
+    showVec16 (0, 8)
+    console.log (`gst.es.vec16[3] = ${gst.es.vec16[3]}`)
+    console.log ('index=3 in js, index=6 in wam')
     console.log ('testEmCore returning')
 }
 window.testEmCore = testEmCore
@@ -2959,6 +2979,6 @@ window.onload = function () {
     com.mode.trace = false;
     initializeSystem ()
     com.mode.devlog ('System is now running')
-    initEmCore ()
+//    initEmCore ()
     enableDevTools ()
 }
