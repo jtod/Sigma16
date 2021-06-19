@@ -2905,9 +2905,17 @@ const emcImports = {
 // testing the web assembly functions.  E.g. enter emc.f1 (3)
 
 const emc = {
-    addplus1 : (x,y) => { console.log (`emc.addplus1 uninitialized`) },
-    print42 : (x) => { console.log (`emc.print42 uninitialized`) },
-    store16 : (x) => { console.log (`emc.emcstore32 uninitialized`) }
+    addplus1 : null,
+    print42 : null,
+    store16 : null,
+    readReg16 : null,
+    readReg32 : null,
+    writeReg16 : null,
+    writeReg32 : null,
+    readMem16 : null,
+    readMem32 : null,
+    writeMem16 : null,
+    writeMem32 : null,
 }
 window.emc = emc
 

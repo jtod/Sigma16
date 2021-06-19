@@ -34,8 +34,8 @@
        i32.const 42
        call $i)
 
- ;; store16 (a,x).  mem[a] := x
- (func (export "store16") (param $a i32) (param $x i32)
+ ;; readReg16 (r).  reg[r] := x
+ (func (export "readReg16") (param $r i32)
        local.get $a
        local.get $x
        i32.store16)
