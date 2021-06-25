@@ -28,6 +28,91 @@ import * as arch from './architecture.mjs';
 export const word16mask = 0x0000ffff
 export const word32mask = 0xffffffff
 
+//-------------------------------------------------------------------------------
+// Ensuring and asserting validity of words
+//-------------------------------------------------------------------------------
+
+// All operations that produce a word should produce a valid word,
+// which is represented as a nonnegative integer.  For a k-bit word,
+// the value x must satisfy 0 <= x < 2^k.  The assert functions check
+// a value and output an error message to the console if it is not
+// valid.
+
+
+export function assert16 (x) {
+    if (0 <= x && x < 2^16) {
+        return x
+    } else {
+        com.indicateError (`assert16 fail: ${x}`)
+        return x & 0x0000ffff
+    }
+}
+
+export function assert32 (x) {
+    if (0 <= x && x < 2^32) {
+        return x
+    } else {
+        com.indicateError (`assert32 fail: ${x}`)
+        return x & 0x0000ffffffff
+    }
+}
+
+// Only integers representable exactly in 53 bits are representable
+// exactly, so assert64 doesn't really do anything.  Consider bigint.
+
+export function assert64 (x) {
+        return x
+}
+
+// Determine whether a JavaScript number is a valid Sigma16 word
+// (which is represented using binary).  If not, print an error
+// message and treat the number as 0.
+
+// deprecated, use assert16 instead ?????
+function xxvalidateWord (x) {
+    return x // ??? consider limit16 or limit32
+    const y = x & 0x0000ffff
+    if (x!==y) {
+        console.log (`Internal error: ${x} is not a valid word`)
+    }
+    return y
+}
+
+/* old version
+// Determine whether a JavaScript number is a valid Sigma16 word
+// (which is represented using binary).  If not, print an error
+// message and treat the number as 0.
+function validateWord (x) {
+    if (x < minBin || x > maxBin) {
+	com.mode.devlog (`validateWord: ${x} is not a valid word (out of range)`);
+	return 0;
+    } else {
+	return x;
+    }
+}
+*/
+// Restrict word to the 16 bit integer part; no error if there are extra 1 bits
+
+export function truncateWord (x) {
+    const r = (x < 0) ? 0 : (x & 0xffff);
+    com.mode.devlog (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
+    return r;
+}
+
+// Determine whether a JavaScript number is a valid Sigma16 integer
+// (which is represented using two's complement).  If not, print an
+// error message and treat the number as 0.
+
+function validateInt (x) {
+    //    if (x < minTC || x > maxTC) {
+    if (x < minTC || x > maxBin) {
+	com.mode.devlog (`validateInt: ${x} is not a valid int (out of range)`);
+	return 0;
+    } else {
+	return x;
+    }
+}
+
 //------------------------------------------------------------------------------
 // Bit indexing
 //------------------------------------------------------------------------------
@@ -194,52 +279,6 @@ export function wordToBool (x) {
 //    return bar===0 ? 0 : 1;
 //}
 
-// Determine whether a JavaScript number is a valid Sigma16 word
-// (which is represented using binary).  If not, print an error
-// message and treat the number as 0.
-
-function validateWord (x) {
-    const y = x & 0x0000ffff
-    if (x!==y) {
-        console.log (`Internal error: ${x} is not a valid word`)
-    }
-    return y
-}
-
-/* old version
-// Determine whether a JavaScript number is a valid Sigma16 word
-// (which is represented using binary).  If not, print an error
-// message and treat the number as 0.
-function validateWord (x) {
-    if (x < minBin || x > maxBin) {
-	com.mode.devlog (`validateWord: ${x} is not a valid word (out of range)`);
-	return 0;
-    } else {
-	return x;
-    }
-}
-*/
-// Restrict word to the 16 bit integer part; no error if there are extra 1 bits
-
-export function truncateWord (x) {
-    const r = (x < 0) ? 0 : (x & 0xffff);
-    com.mode.devlog (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
-    return r;
-}
-
-// Determine whether a JavaScript number is a valid Sigma16 integer
-// (which is represented using two's complement).  If not, print an
-// error message and treat the number as 0.
-
-function validateInt (x) {
-    //    if (x < minTC || x > maxTC) {
-    if (x < minTC || x > maxBin) {
-	com.mode.devlog (`validateInt: ${x} is not a valid int (out of range)`);
-	return 0;
-    } else {
-	return x;
-    }
-}
 
 //------------------------------------------------------------------------------
 // Converting between binary words and two's complement integers
@@ -256,7 +295,7 @@ function validateInt (x) {
 //   wordToInt (intToWord (x)) = x
 
 export function wordToInt (w) {
-    let x = validateWord (w);
+    let x = assert16 (w);
     return x < const8000 ? x : x - const10000;
 }
 
@@ -287,7 +326,7 @@ function showWord (w) {
 // Return the 4-bit fields of a word
 
 export function splitWord (x) {
-    let y = validateWord (x);
+    let y = assert16 (x);
     let s = y & 0x000f;
     y = y >>> 4;
     let r = y & 0x000f;
@@ -332,7 +371,7 @@ export function wordToHex4 (x) {
 
 export function wordToHex8 (x) { 
     // a,b,c,d, e,f,g,h
-    let y = x  // validateWord32 (x);
+    let y = assert32 (x);
     let h = y & 0x000f;
     y = y >>> 4;
     let g = y & 0x000f;

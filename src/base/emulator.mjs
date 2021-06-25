@@ -127,6 +127,7 @@ export class EmulatorState {
         this.vecbuf           = null
         this.vec16            = null
         this.vec32            = null
+        this.vec64            = null
         this.emRunCapability  = com.ES_gui_thread // default: run in main thread
         this.emRunThread      = com.ES_gui_thread // default: run in main thread
         this.startTime        = null
@@ -189,17 +190,6 @@ export class EmulatorState {
         this.copyable = initEsCopyable
     }
 }
-//        this.regFetchedOld = []
-//        this.regStoredOld = []
-//        this.regFetched = []
-//        this.regStored = []
-//        this.memFetchInstrLog = []
-//        this.memFetchInstrLogOld = []
-//        this.memFetchDataLog = []
-//        this.memFetchDataLogOld = []
-//        this.memStoreLog = []
-//        this.memStoreLogOld = []
-
 
 // The system control registers are specified in the instruction by an
 // index starting from i=0..., but the actual emulator data structures
@@ -211,10 +201,6 @@ export class EmulatorState {
 export const ctlRegIndexOffset = 20;  // add to ctl reg no. to get register[] index
 export let sysCtlRegIdx = 0;          // index of first system control reg
 export let registerIndex = 0;         // unique index for each reg
-// export let regFetched = [];
-// export let regFetchedOld = [];
-// export let regStored = [];
-// export let regStoredOld = [];
 
 // Instructions refer to the system control registers by a 4-bit
 // index, but the system control register that has instruction index 0
@@ -274,7 +260,7 @@ function testReg2 () {
 
 export class genregister {
     constructor (es, regName, eltName, showFcn) {
-        console.log (`TEMP GENREGISTER ${regName}`)
+//        console.log (`TEMP GENREGISTER ${regName}`)
         this.es = es
         this.regStIndex = es.nRegisters
         this.regNumber = es.nRegisters
@@ -289,21 +275,25 @@ export class genregister {
     }
     get () {
         this.es.copyable.regFetched.push (this.regNumber)
-        let i = ab.EmRegBlockOffset + this.regStIndex
-        let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+//        let i = ab.EmRegBlockOffset + this.regStIndex
+        //        let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+        let x = ab.readReg16 (this.es, this.regStIndex)
         return x
     }
     display (xs) {
-        let i = ab.EmRegBlockOffset + this.regStIndex
-        this.es.shm[i] = xs
+//        let i = ab.EmRegBlockOffset + this.regStIndex
+        //        this.es.shm[i] = xs
+        com.IndicateError ('reg display...')
     }
     put (x) {
+        console.log (`register put ${this.regStIndex} ${x}`)
         this.es.copyable.regStored.push (this.regNumber)
-        let i = ab.EmRegBlockOffset + this.regStIndex
-        this.es.shm[i] = x
+        ab.writeReg16 (this.es, this.regNumber, x)
         if (this.regIdx < 16) { // register file
             instrEffect.push (["R", this.regNumber, x, this.regName]);
         }
+//        let i = ab.EmRegBlockOffset + this.regStIndex
+//        this.es.shm[i] = x
 //        com.mode.devlog (`--- reg put ${this.regName} :=`
 //                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
     }
@@ -330,11 +320,11 @@ export class genregister {
 // Reset every register to 0
 
 export function resetRegisters (es) {
-    com.mode.devlog('Resetting registers');
+    com.mode.devlog (`Resetting registers ${es.thread_host} ${es.nRegisters}`)
     for (let i = 0; i < es.nRegisters; i++) {
         es.register[i].put (0)
-//        es.register[i].refresh ()
     }
+    console.log ('resetting registers finished')
 }
 
 //----------------------------------------------------------------------
@@ -392,13 +382,17 @@ let memory = [];  // the memory contents, indexed by address
 // gui to scroll the two displays to show the instruction access in
 // disply 1 and the data access in display 2.
 
-// Set all memory locations to 0
+// Set all memory locations to 0.  These memory stores are not logged,
+// so writeMem16 is used instead of memStore.
 
 export function memClear (es) {
+    console.log ('memClear')
     for (let a = 0; a < arch.memSize; a++) {
-        memStore (es, a, 0)
+        ab.writeMem16 (es, a, 0)
     }
+    console.log ('memClear finished')
 }
+        //        memStore (es, a, 0)
 //    clearLoggingData (es)
 //    es.copyable.memFetchInstrLog = [];
 //    es.copyable.memFetchDataLog = [];
@@ -411,8 +405,9 @@ export function memClear (es) {
 
 export function memFetchInstr (es, a) {
     es.copyable.memFetchInstrLog.push(a);
-    let i = ab.EmMemOffset + a
-    let x =  es.shm[i]
+    let x = ab.readMem16 (es, a)
+//    let i = ab.EmMemOffset + a
+//    let x =  es.shm[i]
 //    let x = ab.sysStateVec [ab.EmMemOffset + a]
     com.mode.devlog (`memFetchInstr a=${arith.wordToHex4(a)}`
                  + ` offset=${ab.EmMemOffset} i=${i} x=${arith.wordToHex4(x)}`)
@@ -421,17 +416,21 @@ export function memFetchInstr (es, a) {
 
 export function memFetchData (es, a) {
     es.copyable.memFetchDataLog.push(a);
-    let x = es.shm[ab.EmMemOffset + a]
+    let x = ab.readMem16 (es, a)
+//    let x = es.shm[ab.EmMemOffset + a]
     return x
 }
 
 // Store a word x into memory at address a, and record the address so
 // the display can show this access.
 
-export function memStore (es, a,x) {
-    es.copyable.memStoreLog.push(a);
-    es.instrEffect.push(["M", a, x]);
-    es.shm[ab.EmMemOffset + a] = x
+export function memStore (es, a, x) {
+    console.log (`memStore a=${a} x=${x}`)
+    es.copyable.memStoreLog.push(a)
+    es.instrEffect.push(["M", a, x])
+    console.log (`memStore a=${a} x=${x}`)
+    ab.writeMem16 (es, a, x)
+//    es.shm[ab.EmMemOffset + a] = x
 }
 
 //------------------------------------------------------------------------------
@@ -440,8 +439,7 @@ export function memStore (es, a,x) {
 
 // Separate clearing state from refreshing display
 export function procReset (es) {
-    console.log ('em.procReset start')
-    com.mode.devlog ("em reset");
+    console.log (`em.procReset start ${es.thread_host}`)
     com.mode.devlog ("reset the processor");
     ab.resetSCB (es)
     resetRegisters (es);
@@ -452,8 +450,10 @@ export function procReset (es) {
 }
 
 export function initializeMachineState (es) {
-    com.mode.devlog ("emulator: initializeMachineState");
-    com.mode.devlog (`em.initializeMachineState: current emulator mode = ${es.mode}`)
+    com.mode.devlog (`%cem.initializeMachineState thread=${es.thread_host}`,
+                    'color:red')
+
+//  mode=${es.mode}`)
 //    initializeProcessorElements (es);  // so far, it's just instr decode
 //    clearInstrDecode (emulatorState);
 //    clearInstrDecode (es);

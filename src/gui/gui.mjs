@@ -31,6 +31,7 @@ import * as ed    from './editor.mjs';
 import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
+
 //-----------------------------------------------------------------------------
 // Constant parameters
 //-----------------------------------------------------------------------------
@@ -51,6 +52,104 @@ const InitialMDslidingSize = 4096
 const MemDispMinSize = 20 // always display at least this many locations
 const InitialMemorySizeStr = '64KW'
 const InitialMemorySize = 65536
+
+//-------------------------------------------------------------------------------
+// Initialization
+//-------------------------------------------------------------------------------
+
+// The program runs in a main thread and optionally a worker thread.
+// The program starts in the main thread; a worker thread is created
+// if and only if this is requested by teh options settings.  If the
+// platform doesn't support shared memory, a worker thread is not
+// created and the emulator runs only in the main thread.
+
+// Each thread has its own private instance of class EmulatorState
+// which contains variables that are visible only in that thread.
+
+// The system starts up by initializing the state and optional worker
+// thread.  The emulator state is not created until the user enters
+// the processor pane; this gives the user a chance to change the
+// settings in the options page.
+
+// The user can examine and change settings in the Options page.  The
+// defaults settings are not fixed; they are calculated based on the
+// platform's capabilities in order to give a good environment.  This
+// means users don't need to understand the internal workings of the
+// program in order to use it.
+
+// When the user clicks on the Processor tab, initializeProcessor is
+// called, which performs the following actions:
+
+// 1. When the window.onload event fires, it calls initializeSystem
+//    which performs the following actions:
+
+//    1.a initializeSystem creates a new GuiState object and saves it
+//        in the global variable gst.  This is (or should be) the only
+//        global variable.  The GuiState contains the overall system
+//        state, including the state of the gui layout (e.g. the
+//        window sizing)
+
+//    1.b initializeSystem calls functions that set up the gui layout
+//        and the event listeners.
+
+//    1.c initialize system calls refreshOptionsDisplay, which queries
+//        the platform and sets the initial options according to the
+//        platform's capabilities.  The user can change the settings,
+//        as long as they are compatible with the capabilities.
+
+//    1.d initializeSystem calls findLatestRelease, which makes an
+//        http request to query the SigServer (running on heroku) for
+//        the number of the latest release.  Later, when (and if) the
+//        response to this query is received, the display on the
+//        Options page is updated to show the latest release number.
+
+// 2. When the user selects the Processor tab, the main thread calls
+//    enterProcessor.  The first time this is invoked it calls
+//    initializeProcessor.  This is where the emulator state is
+//    created and initialized, as follows:
+
+//    2.a initializeProcessor calls mkMainEmulatorState to an instance
+//        of the EmulatorState class for the main thread, an object
+//        that contains information required by the emulator.  This is
+//        accessible only in the main thread.  The emulator state
+//        contains a field for the system state vector, as well as
+//        several typed arrays which are views onto the system state
+//        buffer.  Those fields are all initialized to be null.
+
+//    2.b initializeProcessor calls allocateStateVector, which creates
+//        either a typed array buffer, a shared array buffer, or a Web
+//        Assemly memory, depending on the options settings.
+
+//    2.c If the options specify using a worker thread,
+//        initializeProcessor performs the following steps:
+
+//        2.c.1 initializeProcessor creates a new worker thread and
+//              stores it in gst.emwThread
+
+//        2.c.2 It then calls initializeEmwtProtocol (gst.es), which
+//              defines an event listener for messages from the
+//              worker.
+
+//        2.c.2 initiizeProcessor calls emwtInit (gst.es), which posts
+//              a message to the worker thread.  The emulator worker
+//              thread (emwt) responds to the message as follows:
+
+//              2.c.2.a A new EmulatorState object is created and
+//                      saved in emwt.es.
+
+//              2.c.2.b The payload of the initialization message
+//                      contains a reference to the system state
+//                      vector, which is stored in emwt.es.vecbuf.
+//                      This must be a shared array buffer and is
+//                      created by the main thread.  Typed array views
+//                      onto the buffer are defined and saved in
+//                      emwt.es.
+
+//              2.c.2.c emwt calls initializeMachineState (emwt.es),
+//                      which creates the register objects.  The
+//                      actual register values are kept in the shared
+//                      array buffer, making them accessible to both
+//                      the main thread and the worker thread.
 
 //-------------------------------------------------------------------------------
 // Global state variable
@@ -1214,6 +1313,7 @@ function initializeProcessor () {
     console.log ('Initializing processor')
     mkMainEmulatorState ()
     allocateStateVector ()
+    
     refreshOptionsDisplay ()
     if (gst.options.bufferType === ArrayBufferShared
        || gst.options.bufferType === ArrayBufferWebAssembly) {
@@ -1585,7 +1685,8 @@ function getMemRange (gst, t) {
 // Convert memory location to hex string
 
 function setMemString (gst, a) {
-    let x = gst.es.shm[ab.EmMemOffset + a] // contents of mem[a]
+    //    let x = gst.es.shm[ab.EmMemOffset + a] // contents of mem[a]
+    let x = ab.readMem16 (gst.es, a)
     gst.memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
 }
 
@@ -2215,7 +2316,6 @@ function logShmStatus (es) {
 // Emulator state
 //-----------------------------------------------------------------------------
 
-// Create emulator state for the main thread and save in global state
 
 function mkMainEmulatorState () {
     console.log ("mkMainEmulatorState")
@@ -2246,9 +2346,7 @@ function allocateStateVector () {
         console.log ('Allocating web assembly memory')
         emcImports.imports.wam = new WebAssembly.Memory (
             { initial: 3, maximum: 40, shared: true })
-//        gst.es.vecbuf = gst.es.wasmMemory.buffer
         gst.es.vecbuf = emcImports.imports.wam.buffer
-        
         initEmCore ()
     } else { // Local
         gst.es.vecbuf = new ArrayBuffer (ab.EmStateSizeByte)
@@ -2257,40 +2355,20 @@ function allocateStateVector () {
     // Define word views into the state vector
     gst.es.vec16 = new Uint16Array (gst.es.vecbuf)
     gst.es.vec32 = new Uint32Array (gst.es.vecbuf)
+//    gst.es.vec64 = new Uint64Array (gst.es.vecbuf)
     gst.es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
     gst.es.emRunThread = gst.options.currentThreadSelection
+
+    //    ab.testSysStateVec (gst.es)  // testing
+    ab.testSysStateVec (gst.es)  // testing
+//    console.log ('stopping after testSysStateVec') // testing only  ?????
+//    return // testing only - skip the following ?????
     initializeMainEmulator ()   // Create emulator state
     setArch16 ()
     memDisplay (gst)
     procReset (gst)
-    testSysStateVec (gst.es)  // testing
 }
 
-function testSysStateVec (es) {
-    com.mode.trace = true;
-    com.mode.devlog ('%ctestSysStateVec starting...', 'color:blue')
-    com.mode.devlog (`testSysStateVec running in thread host ${es.thread_host}`)
-
-    let xs = ""
-    let n = 3
-    for (let i = 0; i < n; i++) es.shm[i] = i
-    for (let i = 0; i < n; i++) es.shm[i] += 100
-    for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
-    com.mode.devlog (`thread host ${es.thread_host}: ${xs} finished`)
-
-    com.mode.devlog (`gst.es.vec16[25] = ${gst.es.vec16[25]}`)
-    gst.es.vec16[25] = 25
-    gst.es.vec16[25] = gst.es.vec16[25] * 2
-    com.mode.devlog (`gst.es.vec16[25] (expect 50) = ${gst.es.vec16[25]}`)
-
-    com.mode.devlog (`gst.es.vec32[45] = ${gst.es.vec32[45]}`)
-    gst.es.vec32[45] = 85
-    gst.es.vec32[45] = gst.es.vec32[45] * 2
-    com.mode.devlog (`gst.es.vec32[45] (expect 170) = ${gst.es.vec32[45]}`)
-
-    com.mode.devlog ('%c...testSysStateVec finished', 'color:blue')
-    com.mode.trace = false;
-}
 
 //-----------------------------------------------------------------------------
 // EMWT communications protocol

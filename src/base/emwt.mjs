@@ -160,6 +160,7 @@ class genregister {
         return x
     }
     put (x) {
+        console.log (`reg put in emwt `)
 //        regStored.push (this)
         let i = shm.EmRegBlockOffset + this.regStIndex
         sysStateVec [i] = x
@@ -185,86 +186,12 @@ class genregister {
 //        this.elt.innerHTML = xs
     }
 }
-
-function initializeMachineState () {
-     console.log ("emulator: initializeMachineState");
-//     initializeProcessorElements ();  // so far, it's just instr decode
-//     clearInstrDecode (emulatorState);
-
-    // Build the register file; sysStateVec index = reg number
-    for (let i = 0; i < 16; i++) {
-        let regname = 'R' + i; // also the id for element name
-        regFile[i] = new genregister (i, regname, regname, arith.wordToHex4)
-        register[i] = regFile[i]
-    }
-
-    // Instruction control registers
-    pc   = new genregister (0,  'pc',   'pcElt',    arith.wordToHex4);
-    ir   = new genregister (0,  'ir',   'irElt',    arith.wordToHex4);
-    adr  = new genregister (0,  'adr',  'adrElt',   arith.wordToHex4);
-    dat  = new genregister (0,  'dat',  'datElt',   arith.wordToHex4);
-    
-// Interrupt control registers
-    statusreg  = new genregister (0, 'statusreg', 'statusElt',  arith.wordToHex4);
-    // bit 0 (lsb) :  0 = User state, 1 = System state
-    // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
-    // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
-
-    mask  = new genregister (0, 'mask', 'maskElt',  arith.wordToHex4);
-    req   = new genregister (0, 'req',  'reqElt',   arith.wordToHex4);
-    // mask and request use the same bit positions for flags
-    // bit 0 (lsb)  overflow
-    // bit 1        divide by 0
-    // bit 2        trap 3
-    // bit 3        
-
-    istat    = new genregister (0, 'istat',  'istatElt',  arith.wordToHex4);
-    ipc      = new genregister (0, 'ipc',    'ipcElt',    arith.wordToHex4);
-    vect     = new genregister (0, 'vect',   'vectElt',   arith.wordToHex4);
-
-// Segment control registers
-    bpseg = new genregister (0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
-    epseg = new genregister (0, 'epseg',  'epsegElt',  arith.wordToHex4);
-    bdseg = new genregister (0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
-    edseg = new genregister (0, 'edseg',  'edsegElt',  arith.wordToHex4);
-
-// Record the control registers    
-    controlRegisters =
-	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
-	 // the following can be used for getctl/getctl, indexing from 0
-	 statusreg, mask, req, istat, ipc, vect,
-         bpseg, epseg, bdseg, edseg
-	]
-
-//    memInitialize();
-//    resetRegisters();
-}
-
-
-
  
 //-----------------------------------------------------------------------------
 // Memory
 //-----------------------------------------------------------------------------
 
-function memFetchInstr (a) {
-//    memFetchInstrLog.push(a);
-    let x = sysStateVec [shm.EmMemOffset + a]
-    return x
-}
-
-function memFetchData (a) {
-//    memFetchDataLog.push(a);
-    let x = sysStateVec [shm.EmMemOffset + a]
-    return x
-}
-
-function memStore (a,x) {
-//    memStoreLog.push(a);
-//    instrEffect.push(["M", a, x]);
-    sysStateVec [shm.EmMemOffset + a] = x
-}
-
+// use em.memFetchInstr etc
 
 //-----------------------------------------------------------------------------
 // Test
@@ -404,3 +331,83 @@ function doRun () {
 }
 
 console.log ("emwthread has been read")
+
+
+// Deprecated
+
+/*
+Use the same code imported from emulator...
+function initializeMachineState () {
+     console.log ("emulator: initializeMachineState");
+//     initializeProcessorElements ();  // so far, it's just instr decode
+//     clearInstrDecode (emulatorState);
+
+    // Build the register file; sysStateVec index = reg number
+    for (let i = 0; i < 16; i++) {
+        let regname = 'R' + i; // also the id for element name
+        regFile[i] = new genregister (i, regname, regname, arith.wordToHex4)
+        register[i] = regFile[i]
+    }
+
+    // Instruction control registers
+    pc   = new genregister (0,  'pc',   'pcElt',    arith.wordToHex4);
+    ir   = new genregister (0,  'ir',   'irElt',    arith.wordToHex4);
+    adr  = new genregister (0,  'adr',  'adrElt',   arith.wordToHex4);
+    dat  = new genregister (0,  'dat',  'datElt',   arith.wordToHex4);
+    
+// Interrupt control registers
+    statusreg  = new genregister (0, 'statusreg', 'statusElt',  arith.wordToHex4);
+    // bit 0 (lsb) :  0 = User state, 1 = System state
+    // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
+    // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
+
+    mask  = new genregister (0, 'mask', 'maskElt',  arith.wordToHex4);
+    req   = new genregister (0, 'req',  'reqElt',   arith.wordToHex4);
+    // mask and request use the same bit positions for flags
+    // bit 0 (lsb)  overflow
+    // bit 1        divide by 0
+    // bit 2        trap 3
+    // bit 3        
+
+    istat    = new genregister (0, 'istat',  'istatElt',  arith.wordToHex4);
+    ipc      = new genregister (0, 'ipc',    'ipcElt',    arith.wordToHex4);
+    vect     = new genregister (0, 'vect',   'vectElt',   arith.wordToHex4);
+
+// Segment control registers
+    bpseg = new genregister (0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
+    epseg = new genregister (0, 'epseg',  'epsegElt',  arith.wordToHex4);
+    bdseg = new genregister (0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
+    edseg = new genregister (0, 'edseg',  'edsegElt',  arith.wordToHex4);
+
+// Record the control registers    
+    controlRegisters =
+	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
+	 // the following can be used for getctl/getctl, indexing from 0
+	 statusreg, mask, req, istat, ipc, vect,
+         bpseg, epseg, bdseg, edseg
+	]
+
+//    memInitialize();
+//    resetRegisters();
+}
+*/
+
+/* old version
+function memFetchInstr (a) {
+//    memFetchInstrLog.push(a);
+    let x = sysStateVec [shm.EmMemOffset + a]
+    return x
+}
+
+function memFetchData (a) {
+//    memFetchDataLog.push(a);
+    let x = sysStateVec [shm.EmMemOffset + a]
+    return x
+}
+
+function memStore (a,x) {
+//    memStoreLog.push(a);
+//    instrEffect.push(["M", a, x]);
+    sysStateVec [shm.EmMemOffset + a] = x
+}
+*/
