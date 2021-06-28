@@ -18,14 +18,18 @@
 // emulator.mjs defines the machine language semantics
 //-----------------------------------------------------------------------------
 
+console.log ("%cStart reading emulator", 'color:red')
+
 import * as com from './common.mjs';
-import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as ab from './arrbuf.mjs';
 import * as st from './state.mjs';
+
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
+
+import * as smod from './s16module.mjs';
 
 //-----------------------------------------------------------------------------
 // Interface to emulator
@@ -286,7 +290,7 @@ export class genregister {
         com.IndicateError ('reg display...')
     }
     put (x) {
-        console.log (`register put ${this.regStIndex} ${x}`)
+        console.log (`register put ${this.regName} ${x}`)
         this.es.copyable.regStored.push (this.regNumber)
         ab.writeReg16 (this.es, this.regNumber, x)
         if (this.regIdx < 16) { // register file
@@ -300,8 +304,9 @@ export class genregister {
     highlight (key) {
 //        com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
         if (this.es.thread_host === com.ES_gui_thread) {
-            let i = ab.EmRegBlockOffset + this.regStIndex
-            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+//            let i = ab.EmRegBlockOffset + this.regStIndex
+//            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+            let x = ab.readReg16 (this.es, this.regStIndex)
             let xs = com.highlightText (this.show(x), key)
             this.elt.innerHTML = xs
         } else {
@@ -309,8 +314,9 @@ export class genregister {
     }
     refresh () {
         if (this.es.thread_host === com.ES_gui_thread) {
-            let i = ab.EmRegBlockOffset + this.regStIndex
-            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+//            let i = ab.EmRegBlockOffset + this.regStIndex
+//            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+            let x = ab.readReg16 (this.es, this.regStIndex)
             let xs = this.show (x)
             this.elt.innerHTML = xs
         }
@@ -410,7 +416,7 @@ export function memFetchInstr (es, a) {
 //    let x =  es.shm[i]
 //    let x = ab.sysStateVec [ab.EmMemOffset + a]
     com.mode.devlog (`memFetchInstr a=${arith.wordToHex4(a)}`
-                 + ` offset=${ab.EmMemOffset} i=${i} x=${arith.wordToHex4(x)}`)
+                 + ` x=${arith.wordToHex4(x)}`)
     return x
 }
 
@@ -674,12 +680,13 @@ export function clearInstrDecode (es) {
 // of thread is determined by es.
 
 export function executeInstruction (es) {
-    com.mode.devlog (`em.executeInstruction starting`)
-    //    clearRegLoggingData (es)
+    com.mode.trace = true
+    com.mode.devlog (`%cem.executeInstruction starting`, 'color:blue')
     clearRegLogging (es)
     clearMemLogging (es)
     clearInstrDecode (es)
     // Check for interrupt
+    /*
     let mr = es.mask.get() & es.req.get() // ???
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
     ab.writeSCB (es, ab.SCB_cur_instr_addr, es.pc.get())
@@ -699,7 +706,7 @@ export function executeInstruction (es) {
 		       & arith.maskToClearBitLE(arch.userStateBit))
 	return
     }
-
+*/
     // No interrupt, so proceed with next instruction
     com.mode.devlog (`no interrupt, proceeding...`)
     es.curInstrAddr = es.pc.get();
@@ -726,13 +733,25 @@ export function executeInstruction (es) {
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
 //    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
-    com.mode.devlog(`ExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+    com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
+
+    console.log(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`,
+               'color:red')
+
+
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
+    console.log (`about to dispatch prim - es.ir_a=${es.ir_a}`)
+    console.log (`about to dispatch prim - es.reg[es.ir_a]=${es.regfile[es.ir_a]}`)
+
+    com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
+
+    console.log (`exInstr R1=${es.regfile[1].get()}`)
     dispatch_primary_opcode [es.ir_op] (es);
     ab.incrInstrCount (es)
 //    console.log (`Finished executeInstruction: ${showEsInfo(es)}`)
+    com.mode.trace = false
 }
 
 // RRR instruction pattern functions
@@ -781,6 +800,7 @@ export function executeInstruction (es) {
 // R15.  The instruction semantics is defined by f.
 
 const ab_dc = (f) => (es) => {
+    com.mode.devlog(`%cab_dc ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
     let a = es.regfile[es.ir_a].get();
     let b = es.regfile[es.ir_b].get();
     let [primary, secondary] = f (a,b);
@@ -955,7 +975,8 @@ export function refreshIOlogBuffer (es) {
 
 
 const handle_rx = (es) => {
-    com.mode.devlog ('handle rx' + es.ir_b);
+    console.log(`%chandle_rx ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
+    com.mode.trace = true
     com.mode.devlog (`handle rx secondary=${es.ir_b}`);
     es.instrFmtStr = "RX";
     dispatch_RX [es.ir_b] (es);
@@ -1067,19 +1088,22 @@ const dispatch_primary_opcode =
 // with state bits, but ensure that its readout produces 0.
 
 const rx = (f) => (es) => {
-        
+    com.mode.trace = true
     com.mode.devlog('rx');
+    console.log (`rx - es.ir_a=${es.ir_a}`)
+    console.log (`rx - es.reg[ir_a]=${es.regfile[es.ir_a]}`)
     es.instrOpStr = arch.mnemonicRX[es.ir_b];
     es.instrDisp = memFetchInstr (es, es.pc.get());
-    es.adr.put (es.instrDisp);
-//    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
-    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
+    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.pc.put (es.nextInstrAddr);
     ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
-    //    es.ea = arith.binAdd (regFile[es.ir_a].get(), adr.get());
-//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
-    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, es.instrDisp)
+    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp)
     es.instrEA = es.ea;
+    es.adr.put (es.instrEA);
+//    es.nextInstrAddr = arith.binAdd (es, es.curInstrAddr, es.instrDisp)
+//    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
+//    es.adr.put (es.instrDisp);
+//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
     com.mode.devlog (`rx ea, disp=${arith.wordToHex4(es.instrDisp)}`);
     com.mode.devlog (`rx ea, idx=${arith.wordToHex4(es.regfile[es.ir_a].get())}`);
     com.mode.devlog('rx ea = ' + arith.wordToHex4(es.ea));
@@ -1108,7 +1132,7 @@ const dispatch_RX =
 //      rx (rx_jumpz),     // a should be jumpp ?????????
 
 function rx_lea (es) {
-    com.mode.devlog('rx_lea');
+    com.mode.devlog(`%clea ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');    com.mode.devlog('rx_lea');
     es.regfile[es.ir_d].put(es.ea);
 }
 
@@ -1134,7 +1158,7 @@ function rx_loadd (es) {
 // consider whether to require alignment ???
 function rx_store (es) {
     com.mode.devlog('rx_store');
-    const x = es.regFile[es.ir_d].get()
+    const x = es.regfile[es.ir_d].get()
     const a = x >>> 16
     const b = x & arith.word16mask
     memStore (es, es.ea, a)
@@ -1446,6 +1470,9 @@ const dispatch_EXP =
     ]
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
+
+console.log (`%cread emulator ccL=${arch.bit_ccL} expect 3`, 'color:red')
+console.log ("%cFinished reading emulator", 'color:red')
 
 // **********************************************************************
 // Deprecated

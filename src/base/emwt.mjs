@@ -330,7 +330,8 @@ function doRun () {
     return count
 }
 
-console.log ("emwthread has been read")
+console.log (`%cread emwt ccL=${arch.bit_ccL} expect 3`, 'color:red')
+console.log ("%cemwthread has been read", 'color:red')
 
 
 // Deprecated

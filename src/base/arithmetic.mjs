@@ -21,9 +21,12 @@
 // arithmetic as required by the instruction set architecture.
 //------------------------------------------------------------------------------
 
+console.log ("%cStart reading arithmetic", 'color:red')
+
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
+
 
 export const word16mask = 0x0000ffff
 export const word32mask = 0xffffffff
@@ -69,7 +72,7 @@ export function assert64 (x) {
 // message and treat the number as 0.
 
 // deprecated, use assert16 instead ?????
-function xxvalidateWord (x) {
+function validateWord (x) {
     return x // ??? consider limit16 or limit32
     const y = x & 0x0000ffff
     if (x!==y) {
@@ -113,56 +116,6 @@ function validateInt (x) {
     }
 }
 
-//------------------------------------------------------------------------------
-// Bit indexing
-//------------------------------------------------------------------------------
-
-// There are two conventions for indexing bits in a word that contains
-// k bits. Then
-//   - Little end (LE): the most significant (leftmost) bit has index k,
-//     and the least significant (rightmost bit) has index 0.
-//   - Big end (BE): the most significant (leftmost) bit has index 0,
-//     and the least significant (rightmost bit) has index k.
-
-// Functions are defined for accessing bits in a word using either
-// Little End (LE) or Big End (BE) notation.  For k-bit words:
-//   Bit i BE = bit (k-i) LE
-//   Bit i LE = bit (k-i) BE
-
-// Earlier versions of Sigma16 (prior to 3.4) used Big End bit
-// indexing.  Version 3.4 switches to Little End bit indexing because
-// this alows a more elegant extension to 32-bit architecture.  In
-// particular, a function to access bit i needs to know the wordsize k
-// if Big End indexing is used, but not with Little End indexing.
-
-// Get bit i from k-bit word w
-export function getBitInWordLE (w,i)   { return (w >>> i)     & 0x0001 }
-export function getBitInWordBE (k,w,i) { return (w >>> (k-i)) & 0x0001 }
-
-// Put bit b into word x in bit position i
-export function putBitInWordLE (k,x,i,b) {
-    return b==0 ? x & maskToClearBitLE(i)   : x | maskToSetBitLE(i)
-}
-export function putBitInWordBE (k,x,i,b) {
-    return b==0 ? x & maskToClearBitBE(k,i) : x | maskToSetBitBE(k,i)
-}
-
-// Generate mask to clear/set bit i in a k-bit word
-export function maskToClearBitLE (i)   { return ~(1<<i)      & 0xffff }
-export function maskToSetBitLE   (i)   { return (1 << i)     & 0xffff }
-export function maskToClearBitBE (k,i) { return ~(1<<(k-i))  & 0xffff }
-export function maskToSetBitBE   (k,i) { return (1 << (k-i)) & 0xffff }
-
-// Access bit i in register r with k-bit words
-export function getBitInRegLE   (r,i)   { return (r.get() >>> i) & 0x0001 }
-export function clearBitInRegLE (r,i)   { r.put (r.get() & maskToClearBitLE(i)) }
-export function setBitInRegLE   (r,i)   { r.put (r.get() | maskToSetBitLE(i)) }
-export function getBitInRegBE   (k,r,i) { return (r.get() >>> (k-i)) & 0x0001 }
-export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(k,i)) }
-export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) }
-
-// Return Boolean from bit i in word x
-export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
 
 //------------------------------------------------------------------------------
 // Logic
@@ -203,8 +156,8 @@ export function logicFunction(mnemonic) {
 
 export function applyLogicFcnBit (fcn, x, y) {
     let result = x==0
-        ? (y==0 ? getBitInWordLE (fcn,0) : getBitInWordLE (fcn,1))
-        : (y==0 ? getBitInWordLE (fcn,2) : getBitInWordLE (fcn,3))
+        ? (y==0 ? arch.getBitInWordLE (fcn,0) : arch.getBitInWordLE (fcn,1))
+        : (y==0 ? arch.getBitInWordLE (fcn,2) : arch.getBitInWordLE (fcn,3))
     com.mode.devlog (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
     return result
 }
@@ -215,14 +168,14 @@ function lut (p,q,r,s,x,y) {
 
 export function applyLogicFcnWord (fcn, x, y) {
     com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
-    let p = getBitInWordLE (fcn,0);
-    let q = getBitInWordLE (fcn,1);
-    let r = getBitInWordLE (fcn,2);
-    let s = getBitInWordLE (fcn,3);
+    let p = arch.getBitInWordLE (fcn,0);
+    let q = arch.getBitInWordLE (fcn,1);
+    let r = arch.getBitInWordLE (fcn,2);
+    let s = arch.getBitInWordLE (fcn,3);
     let result = 0;
     for (let i=0; i<16; i++) {
-        let z = lut (p,q,r,s, getBitInWordLE(x,i), getBitInWordLE(y,i));
-        if (z==1) { result = result | maskToSetBitLE(i) }
+        let z = lut (p,q,r,s, arch.getBitInWordLE(x,i), arch.getBitInWordLE(y,i));
+        if (z==1) { result = result | arch.maskToSetBitLE(i) }
     }
     com.mode.devlog (`applyLogicFcnWord result=${wordToHex4(result)}`);
     return result
@@ -488,13 +441,13 @@ const g_crr = (op,c,a,b) => op (c,a,b);
 // example, binAdd (65535, 7) returns 6.  This is used to calculate
 // effective addresses and to increment the pc register.
 
-/*
+
 // Replace binadd with incrAddress, which uses different mask for 16/32 bit
 export function binAdd (x, y) {
     let r = validateWord (x) + validateWord (y);
     return r & 0x0000ffff;
 }
-*/
+
 
 export function incrAddress (es, x, i) {
     const r = (x + i) & es.addressMask
@@ -531,10 +484,10 @@ export function shiftR (x,k) {
 // significant bit of the result, and the carry output.
 
 export function additionCC (a,b,primary,sum) {
-    const msba = getBitInWordLE (a, 15)
-    const msbb = getBitInWordLE (b, 15)
-    const msbsum = getBitInWordLE (sum, 15)
-    const carryOut = getBitInWordLE (sum,16)
+    const msba = arch.getBitInWordLE (a, 15)
+    const msbb = arch.getBitInWordLE (b, 15)
+    const msbsum = arch.getBitInWordLE (sum, 15)
+    const carryOut = arch.getBitInWordLE (sum,16)
     const binOverflow = carryOut === 1
     const tcOverflow = (msba===0 && msbb===0 && msbsum===1 )
           || (msba===1 && msbb===1 && msbsum===0)
@@ -575,7 +528,7 @@ export function op_add (a,b) {
 }
 
 export function op_addc (c,a,b) {
-    let sum = a + b + getBitInWordLE(c,arch.bit_ccC);
+    let sum = a + b + arch.getBitInWordLE(c,arch.bit_ccC);
     let primary = sum & 0x0000ffff;
     const secondary = additionCC (a,b,primary,sum)
     return [primary, secondary]
@@ -709,41 +662,9 @@ export function op_xor (a,b) {
     return primary;
 }
 
-//------------------------------------------------------------------------------
-// Accessing condition codes
-//------------------------------------------------------------------------------
-
-// These definitions give a mask with 1 in specified bit position
-const ccG = maskToSetBitLE(arch.bit_ccG);
-const ccg = maskToSetBitLE(arch.bit_ccg);
-const ccE = maskToSetBitLE(arch.bit_ccE);
-const ccL = maskToSetBitLE(arch.bit_ccL);
-const ccl = maskToSetBitLE(arch.bit_ccl);
-const ccV = maskToSetBitLE(arch.bit_ccV);
-const ccv = maskToSetBitLE(arch.bit_ccv);
-const ccC = maskToSetBitLE(arch.bit_ccC);
-
-const ccSO = maskToSetBitLE (arch.bit_ccStackOverflow);
-const ccSU = maskToSetBitLE (arch.bit_ccStackUnderflow);
-
-export function showCC (c) {
-    com.mode.devlog (`showCC ${c}`);
-    return (extractBoolLE (c,arch.bit_ccs) ? 's' : '')
-	+ (extractBoolLE (c,arch.bit_ccS) ? 'S' : '')
-	+ (extractBoolLE (c,arch.bit_ccC) ? 'C' : '')
-	+ (extractBoolLE (c,arch.bit_ccV) ? 'V' : '')
-	+ (extractBoolLE (c,arch.bit_ccv) ? 'v' : '')
-	+ (extractBoolLE (c,arch.bit_ccl) ? '&lt;' : '')
-	+ (extractBoolLE (c,arch.bit_ccL) ? 'L' : '')
-	+ (extractBoolLE (c,arch.bit_ccE) ? '=' : '')
-	+ (extractBoolLE (c,arch.bit_ccG) ? 'G' : '')
-	+ (extractBoolLE (c,arch.bit_ccg) ? '>' : '')
-}
 
 // These constants provide a faster way to set or clear the flags
 
-const clearIntEnable = maskToClearBitBE (arch.intEnableBit);
-const setSystemState = maskToClearBitBE (arch.userStateBit);
 
 export function calculateExtract (wsize, fsize, x, xi, y, yi) {
     // p = source field (surrounded by 0) shifted to destination position
@@ -795,6 +716,10 @@ function test_add () {
     test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
     test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
 }
+
+// console.log (`%cReading arithmetic arch.ccL=${arch.bit_ccL}`, 'color:red')
+
+console.log ("%cFinished reading arithmetic", 'color:red')
 
 // Deprecated
 

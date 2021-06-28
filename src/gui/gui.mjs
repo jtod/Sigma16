@@ -1394,7 +1394,7 @@ export function guiDisplayMem (gst, elt, xs) {
 // After this, either updateRegisters or refreshRegisters
 
 export function execInstrPostDisplay (gst) {
-//    com.mode.devlog (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
+    console.log (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
     const es = gst.es
     com.mode.devlog ("main: execInstrPostDisplay, proceeding")
     newUpdateRegisters (gst)
@@ -1509,7 +1509,7 @@ export function updateInstrDecode (gst) {
     gst.instrOpElt.innerHTML      = es.instrOpStr;
     gst.instrArgsElt.innerHTML    = showArgs(es); // instrArgsStr;
     gst.instrEAElt.innerHTML      = es.instrEAStr;
-    gst.instrCCElt.innerHTML      = arith.showCC(ccval);
+    gst.instrCCElt.innerHTML      = arch.showCC(ccval);
     gst.instrEffect1Elt.innerHTML =  showEffect(es,0);
     gst.instrEffect2Elt.innerHTML =  showEffect(es,1);
 }
@@ -1572,7 +1572,7 @@ function setModeHighlight (x) {
 
 function newUpdateRegisters (gst) {
     const es = gst.es
-    com.mode.devlog (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
+    console.log (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
     for (let i = 0; i < gst.es.nRegisters; i++) {
 	gst.es.register[i].refresh();
     }

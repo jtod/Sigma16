@@ -19,6 +19,8 @@
 // formats, opcodes, mnemonics, and flag bits
 // -----------------------------------------------------------------------------
 
+console.log ("%cStart reading architecture", 'color:red')
+
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 
@@ -151,6 +153,7 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // complement representation).  The comment shows the character used
 // to indicate the condition code bit in the instruction decode
 // display.  The code display characters are sSCVv <L=G>
+
 
 export const bit_ccg = 0   //  >  greater than integer (two's complement)
 export const bit_ccG = 1   //  G  greater than natural (binary)
@@ -370,3 +373,103 @@ statementSpec.set("xorb",    {ifmt:iEXP2, afmt:aRkkk, opcode:[14,6,6],
 statementSpec.set("field",   {ifmt:iEXP2, afmt:aRkk,  opcode:[14,8], pseudo:true});
 
 
+//------------------------------------------------------------------------------
+// Bit indexing
+//------------------------------------------------------------------------------
+
+// There are two conventions for indexing bits in a word that contains
+// k bits. Then
+//   - Little end (LE): the most significant (leftmost) bit has index k,
+//     and the least significant (rightmost bit) has index 0.
+//   - Big end (BE): the most significant (leftmost) bit has index 0,
+//     and the least significant (rightmost bit) has index k.
+
+// Functions are defined for accessing bits in a word using either
+// Little End (LE) or Big End (BE) notation.  For k-bit words:
+//   Bit i BE = bit (k-i) LE
+//   Bit i LE = bit (k-i) BE
+
+// Earlier versions of Sigma16 (prior to 3.4) used Big End bit
+// indexing.  Version 3.4 switches to Little End bit indexing because
+// this alows a more elegant extension to 32-bit architecture.  In
+// particular, a function to access bit i needs to know the wordsize k
+// if Big End indexing is used, but not with Little End indexing.
+
+// Get bit i from k-bit word w
+export function getBitInWordLE (w,i)   { return (w >>> i)     & 0x0001 }
+export function getBitInWordBE (k,w,i) { return (w >>> (k-i)) & 0x0001 }
+
+// Put bit b into word x in bit position i
+export function putBitInWordLE (k,x,i,b) {
+    return b==0 ? x & maskToClearBitLE(i)   : x | maskToSetBitLE(i)
+}
+export function putBitInWordBE (k,x,i,b) {
+    return b==0 ? x & maskToClearBitBE(k,i) : x | maskToSetBitBE(k,i)
+}
+
+// Generate mask to clear/set bit i in a k-bit word
+export function maskToClearBitLE (i)   { return ~(1<<i)      & 0xffff }
+export function maskToSetBitLE   (i)   { return (1 << i)     & 0xffff }
+export function maskToClearBitBE (k,i) { return ~(1<<(k-i))  & 0xffff }
+export function maskToSetBitBE   (k,i) { return (1 << (k-i)) & 0xffff }
+
+// Access bit i in register r with k-bit words
+export function getBitInRegLE   (r,i)   { return (r.get() >>> i) & 0x0001 }
+export function clearBitInRegLE (r,i)   { r.put (r.get() & maskToClearBitLE(i)) }
+export function setBitInRegLE   (r,i)   { r.put (r.get() | maskToSetBitLE(i)) }
+export function getBitInRegBE   (k,r,i) { return (r.get() >>> (k-i)) & 0x0001 }
+export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(k,i)) }
+export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) }
+
+// Return Boolean from bit i in word x
+export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
+
+//------------------------------------------------------------------------------
+// Accessing condition codes
+//------------------------------------------------------------------------------
+
+// These definitions give a mask with 1 in specified bit position
+
+let xyz = bit_ccE
+let myccE =  maskToSetBitLE (xyz)
+console.log (`ccE ${xyz} ${myccE}`)
+
+export const ccE = maskToSetBitLE (bit_ccE)
+
+export const ccg = maskToSetBitLE (bit_ccg)
+export const ccG = maskToSetBitLE (bit_ccG)
+export const ccL = maskToSetBitLE (bit_ccL)
+export const ccl = maskToSetBitLE (bit_ccl)
+export const ccV = maskToSetBitLE (bit_ccV)
+export const ccv = maskToSetBitLE (bit_ccv)
+export const ccC = maskToSetBitLE (bit_ccC)
+
+// export const ccSO = maskToSetBitLE (bit_ccStackOverflow)
+// export const ccSU = maskToSetBitLE (bit_ccStackUnderflow)
+
+/*
+console.log (`%cARITH ccL=${bit_ccL} expect 3`, 'color:red')
+console.log (`%cmask 3 ${maskToSetBitLE (3)}`, 'color:red')
+console.log (`%cmask 9${maskToSetBitLE (9)}`, 'color:red')
+console.log (`%cBit ccl ${arch.bit_ccl} ${ccl}`, 'color:red')
+console.log (`%cBit ccL ${arch.bit_ccL} ${ccL}`, 'color:red')
+*/
+
+export function showCC (c) {
+    com.mode.devlog (`showCC ${c}`);
+    return (extractBoolLE (c,bit_ccs) ? 's' : '')
+	+ (extractBoolLE (c,bit_ccS) ? 'S' : '')
+	+ (extractBoolLE (c,bit_ccC) ? 'C' : '')
+	+ (extractBoolLE (c,bit_ccV) ? 'V' : '')
+	+ (extractBoolLE (c,bit_ccv) ? 'v' : '')
+	+ (extractBoolLE (c,bit_ccl) ? '&lt;' : '')
+	+ (extractBoolLE (c,bit_ccL) ? 'L' : '')
+	+ (extractBoolLE (c,bit_ccE) ? '=' : '')
+	+ (extractBoolLE (c,bit_ccG) ? 'G' : '')
+	+ (extractBoolLE (c,bit_ccg) ? '>' : '')
+}
+
+export const clearIntEnable = maskToClearBitBE (intEnableBit);
+export const setSystemState = maskToClearBitBE (userStateBit);
+
+console.log ("%cFinished reading architecture", 'color:red')
