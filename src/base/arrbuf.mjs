@@ -89,6 +89,7 @@ export const MemOffset16  = 2 * MemOffset32
 // General access functions
 //-------------------------------------------------------------------------------
 
+
 // Each section consists of elemens of a specific word size, except
 // the SCB which contains some 64-bit elements but is mostly 32-bit
 // elements.  To access an element of size k bits in JavaScript, the
@@ -104,10 +105,10 @@ export const MemOffset16  = 2 * MemOffset32
 // contains mostly 32-bit elements, but the count of instructions
 // executed is 64 bits.
 
-export function read16  (es, a, k)    { return arith.assert16 (es.vec16 [a + k]) }
-export function write16 (es, a, k, x) { es.vec16 [a+k] = arith.assert16(x) }
-export function read32  (es, a, k)    { return arith.assert32 (es.vec32 [a + k]) }
-export function write32 (es, a, k, x) { es.vec32 [a+k] = arith.assert32(x) }
+export function read16  (es, a, k)    { return arith.limit16 (es.vec16 [a + k]) }
+export function write16 (es, a, k, x) { es.vec16 [a+k] = arith.limit16(x) }
+export function read32  (es, a, k)    { return arith.limit32 (es.vec32 [a + k]) }
+export function write32 (es, a, k, x) { es.vec32 [a+k] = arith.limit32(x) }
 export function read64  (es, a, k)    { return es.vec64 [a + k] }
 export function write64 (es, a, k, x) { es.vec64 [a+k] = x }
 
@@ -274,7 +275,7 @@ export function readMem32 (es, a) {
     console.log (`...readMem32 b=${b}`
                  + ` x = ${x} (${arith.wordToHex4(x)})`
                  + ` y = $(y} (${arith.wordToHex4(y)})`
-                 + ` result = ${result} (${arith.wordToHex4(result)})`)
+                 + ` result = ${result} (${arith.wordToHex8(result)})`)
     return result
 }
 
@@ -295,8 +296,8 @@ export function writeMem32 (es, a, x) {
 //-------------------------------------------------------------------------------
 
 export function testSysStateVec (es) {
-    console.log (`%ctestSysStateVec starting in thread ${es.thread_host}`,
-                 'color:blue')
+    console.log (`%cTESTING: testSysStateVec starting in thread ${es.thread_host}`,
+                 'color:red')
     let xs = ""
     let n = 3
     let x, y, z // testing results
@@ -426,5 +427,6 @@ export function testSysStateVec (es) {
         console.log (`mem[${i}] = ${x} ${arith.wordToHex4(x)} `)
     }
     
-    console.log ('%c...testSysStateVec finished', 'color:blue')
+    console.log (`%cTESTING: testSysStateVec finished`, 'color:red')
 }
+

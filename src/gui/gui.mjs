@@ -1324,6 +1324,7 @@ function initializeProcessor () {
         com.mode.devlog ("gui.mjs has started emwt")
     }
     gst.options.processorIsUninitialized = false
+
 }
 
 function procReset (gst) {
@@ -2359,10 +2360,6 @@ function allocateStateVector () {
     gst.es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
     gst.es.emRunThread = gst.options.currentThreadSelection
 
-    //    ab.testSysStateVec (gst.es)  // testing
-    ab.testSysStateVec (gst.es)  // testing
-//    console.log ('stopping after testSysStateVec') // testing only  ?????
-//    return // testing only - skip the following ?????
     initializeMainEmulator ()   // Create emulator state
     setArch16 ()
     memDisplay (gst)
@@ -3023,8 +3020,15 @@ function showVec16 (a,b) {
 
 function test_t1 () {
     console.log ('processor test t1')
-    testEmCore ()
+    //    testEmCore ()
+    console.log ('start testSysStateVec...')
+    ab.testSysStateVec (gst.es)
+    console.log ('...testSysStateVec finished')
 }
+//    ab.testSysStateVec (gst.es)  // testing
+//    ab.testSysStateVec (gst.es)  // testing
+//    console.log ('stopping after testSysStateVec') // testing only  ?????
+//    return // testing only - skip the following ?????
 
 function test_t2 () {
     console.log ('processor test t2')

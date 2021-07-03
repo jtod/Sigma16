@@ -35,6 +35,9 @@ import * as smod from './s16module.mjs';
 // Interface to emulator
 //-----------------------------------------------------------------------------
 
+// See also arith.limit16 and arith.limit32
+export function limitAddress (es, x) { return x & es.addressMask }
+
 // initializeMachineState (es)     - create registers and memory
 // procReset (es)                  - set registers and memory to 0
 // boot (es)                       - load executable into memory
@@ -337,6 +340,7 @@ export function resetRegisters (es) {
 //  Memory representation and access
 //----------------------------------------------------------------------
 
+
 // Usage
 //   General operations
 //     memInitialize              get html elements, clear refresh, display
@@ -573,7 +577,7 @@ export function showInstrDecode (es) {
 
 
 export function mainThreadLooper (es) {
-    com.mode.devlog ("mainInstructionLooper starting")
+    console.log ("mainInstructionLooper starting")
     let i = 0
     let status = 0
     let pauseReq = false
@@ -581,9 +585,12 @@ export function mainThreadLooper (es) {
     let finished = false
     let externalBreak = false
     while (continueRunning) {
+        console.log ('em main looper about to exinstr')
         executeInstruction (es)
+        console.log ('em main looper back from exinstr')
         i++
         status = ab.readSCB (es, ab.SCB_status)
+        console.log (`em.mainThreadLooper status=${status}`)
         switch (status) {
         case ab.SCB_halted:
         case ab.SCB_paused:
@@ -605,6 +612,11 @@ export function mainThreadLooper (es) {
         pauseReq = ab.readSCB (es, ab.SCB_pause_request) != 0
         continueRunning = !finished  && !pauseReq && i < es.emInstrSliceSize
     }
+    console.log (`%c em dropped out of continueRunning`, 'color: red')
+//        if (i > 2) {console.log (`%cem ${es.thread_host} quitting igt2`,
+//                                 'color:red'); return }
+
+
         if (pauseReq && status != ab.SCB_halted) {
             com.mode.devlog ("main looper pausing")
             ab.writeSCB (es, ab.SCB_status, ab.SCB_paused)
@@ -699,7 +711,7 @@ export function executeInstruction (es) {
 	es.rpc.put(es.pc.get())           // save the pc
 	es.rstat.put(es.statusreg.get())   // save the status register
 	arith.clearBitInRegLE (es.req,i)  // clear the interrupt that was taken
-	es.pc.put (es.vect.get() + 2*i)  // jump to handler
+	es.pc.put (limitAddress (es, es.vect.get() + 2*i))  // jump to handler
         // Disable interrupts and enter system state
 	es.statusreg.put (es.statusreg.get()
 		       & arith.maskToClearBitLE(arch.intEnableBit)
@@ -717,7 +729,7 @@ export function executeInstruction (es) {
     es.ir.put (es.instrCode);
     //    es.nextInstrAddr = arith.binAdd (es.curInstrAddr, 1);
     es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
-    es.pc.put (es.nextInstrAddr);
+    es.pc.put (limitAddress (es, es.nextInstrAddr))
     ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
 
     com.mode.devlog (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
@@ -870,7 +882,7 @@ const cab_dc = (f) => (es) => {
 }
 
 const op_trap = (es) => {
-    console.log (`*** op_trap es.thread_host=${es.thread_host}`)
+    console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
     switch (es.thread_host) {
     case com.ES_gui_thread:
         com.mode.devlog (`handle trap in main thread`)
@@ -878,7 +890,7 @@ const op_trap = (es) => {
         let code = es.regfile[es.ir_d].get();
         com.mode.devlog (`trap code=${code}`);
         if (code===0) { // Halt
-	    console.log ("Trap: halt");
+	    console.log ("%cTrap: halt", 'color: red');
 	    com.mode.devlog ("Trap: halt");
             ab.writeSCB (es, ab.SCB_status, ab.SCB_halted)
         } else if (code==1) { // nonblocking read
@@ -901,7 +913,7 @@ const op_trap = (es) => {
         console.log (`emworker: relinquish control on a trap`)
         ab.writeSCB (es, ab.SCB_status, ab.SCB_relinquish)
         console.log (`trap relinquish before fixup, pc = ${es.pc.get()}`)
-        es.pc.put (ab.readSCB (es, ab.SCB_cur_instr_addr))
+        es.pc.put (limitAddress (es, ab.readSCB (es, ab.SCB_cur_instr_addr)))
         console.log (`trap relinquish after fixup, pc = ${es.pc.get()}`)
         break
     default:
@@ -1061,18 +1073,25 @@ const dispatch_primary_opcode =
         ab_dc (arith.op_sub),     // 1
         ab_dc (arith.op_mul),     // 2
         ab_dc (arith.op_div),     // 3
-        cab_dc (arith.op_addc),   // 4
-        cab_dc (arith.op_muln),   // 5
-        cab_dc (arith.op_divn),   // 6
-        ab_c  (arith.op_cmp),     // 7
-        op_push,                  // 8
-        op_pop,                   // 9
-        op_top,                   // a
+        ab_c  (arith.op_cmp),     // 4
+        ab_dc (arith.op_addd),    // 5
+        ab_dc (arith.op_subd),    // 6
+        ab_dc (arith.op_muld),    // 7
+        ab_dc (arith.op_divd),    // 8
+        ab_c  (arith.op_cmpd),    // 9
+        op_trap,                  // a  trap
         ab_dc (arith.op_nop),     // b  reserved, currently nop
-        op_trap,                  // c  trap=13
-        ab_dc (arith.op_nop),     // d  reserved for expanding opcode
-        handle_EXP,               // e  escape to EXP
+        ab_dc (arith.op_nop),     // c  reserved, currently nop
+        ab_dc (arith.op_nop),     // d  escape to EXP3
+        handle_EXP,               // e  escape to EXP2
         handle_rx ]               // f  escape to RX
+
+//        cab_dc (arith.op_addc),   // 4
+//        cab_dc (arith.op_muln),   // 5
+//        cab_dc (arith.op_divn),   // 6
+//        op_push,                  // 8
+//        op_pop,                   // 9
+//        op_top,                   // a
 
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
@@ -1095,7 +1114,7 @@ const rx = (f) => (es) => {
     es.instrOpStr = arch.mnemonicRX[es.ir_b];
     es.instrDisp = memFetchInstr (es, es.pc.get());
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
-    es.pc.put (es.nextInstrAddr);
+    es.pc.put (limitAddress (es, es.nextInstrAddr))
     ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
     es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp)
     es.instrEA = es.ea;
@@ -1115,21 +1134,18 @@ const dispatch_RX =
       rx (rx_load),      // 1
       rx (rx_store),     // 2
       rx (rx_jump),      // 3
-      rx (rx_jal),       // 4
-      rx (rx_jumpc0),    // 5
-      rx (rx_jumpc1),    // 6
-      rx (rx_jumpz),     // 7
-      rx (rx_jumpnz),    // 8
-      rx (rx_testset),   // 9
-      rx (rx_lead),      // a
-      rx (rx_loadd),     // b
-      rx (rx_stored),    // c
+      rx (rx_jumpc0),    // 4
+      rx (rx_jumpc1),    // 5
+      rx (rx_jumpz),     // 6
+      rx (rx_jumpnz),    // 7
+      rx (rx_jal),       // 8
+      rx (rx_lead),      // 9
+      rx (rx_loadd),     // a
+      rx (rx_stored),    // b
+      rx (rx_testset),   // c
       rx (rx_nop),       // d
       rx (rx_nop),       // e
       rx (rx_nop) ];     // f
-
-//      rx (rx_jumpz),     // 7 should be jumpn ?????????
-//      rx (rx_jumpz),     // a should be jumpp ?????????
 
 function rx_lea (es) {
     com.mode.devlog(`%clea ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');    com.mode.devlog('rx_lea');
@@ -1143,37 +1159,43 @@ function rx_lead (es) {
 
 function rx_load (es) {
     com.mode.devlog('rx_load');
-    es.regfile[es.ir_d].put(memFetchData(es,es.ea));
+    es.regfile[es.ir_d].put (arith.limit16 (memFetchData(es,es.ea)))
 }
 
-// consider whether to require alignment ???
 function rx_loadd (es) {
     com.mode.devlog('rx_loadd');
-    const a = memFetchData (es, es.ea)
-    const b = memFetchData (es, arith.incrAddress (es, es.ea, 1))
-    const x = a << 16 | b
-    es.regfile[es.ir_d].put(x)
+    const a = es.ea & 0xfffffffe // ignore lsb of 32-bit address
+    const x = memFetchData (es, a)
+    const y = memFetchData (es, limit32 (a+1))
+    const z = x << 16 | y
+    es.regfile[es.ir_d].put (limit32 (z))
 }
 
-// consider whether to require alignment ???
 function rx_store (es) {
     com.mode.devlog('rx_store');
     const x = es.regfile[es.ir_d].get()
-    const a = x >>> 16
-    const b = x & arith.word16mask
-    memStore (es, es.ea, a)
-    memStore (es, arith.incrAddress (es, es.ea, 1), b)
+    memStore (es, es.ea, arith.limit16 (x))
 }
 
+// The register being stored contains 32 bits, which must be split
+// into two 16-bit words and stored separately.  This ensures that the
+// data is stored according to Sigma16 big-end semantics, not the
+// endian property of the host architecture the emulator is running
+// on.
+
 function rx_stored (es) {
-    com.mode.devlog('rx_store')
-    memStore (es, es.ea, es.regfile[es.ir_d].get())  // need to make 32 bit
+    com.mode.devlog('rx_stored');
+    const x = es.regfile[es.ir_d].get()
+    const a = es.ea & 0xfffffffe // ignore lsb of 32-bit address
+    const y = x >>> 16
+    memStore (es, es.ea, arith.limit16 (y))
+    memStore (es, arith.incrAddress (es, es.ea, 1), arith.limit16 (z))
 }
 
 function rx_jump (es) {
     com.mode.devlog('rx_jump');
     es.nextInstrAddr = es.ea;
-    es.pc.put(es.nextInstrAddr);
+    es.pc.put (limitAddress (es, es.nextInstrAddr))
 }
 
 function rx_jumpc0 (es) {
@@ -1181,7 +1203,7 @@ function rx_jumpc0 (es) {
     let cc = es.regfile[15].get();
     if (arith.getBitInWordLE (cc,es.ir_d)===0) {
 	es.nextInstrAddr = es.ea;
-	es.pc.put(es.nextInstrAddr);
+	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
 }
 
@@ -1190,7 +1212,7 @@ function rx_jumpc1 (es) {
     let cc = es.regfile[15].get();
     if (arith.getBitInWordLE (cc,es.ir_d)===1) {
 	es.nextInstrAddr = es.ea;
-	es.pc.put(es.nextInstrAddr);
+	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
 }
 
@@ -1198,7 +1220,7 @@ function rx_jumpz (es) {
     com.mode.devlog('rx_jumpz');
     if (! arith.wordToBool (es.regfile[es.ir_d].get())) {
 	es.nextInstrAddr = es.ea;
-	es.pc.put (es.nextInstrAddr);
+	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
 }
 
@@ -1206,7 +1228,7 @@ function rx_jumpnz (es) {
     com.mode.devlog('rx_jumpnz');
     if (arith.wordToBool (es.regfile[es.ir_d].get())) {
 	es.nextInstrAddr = es.ea;
-	es.pc.put (es.nextInstrAddr);
+	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
 }
 
@@ -1220,7 +1242,7 @@ function rx_jal (es) {
     com.mode.devlog('rx_jal');
     es.regfile[es.ir_d].put (es.pc.get());
     es.nextInstrAddr = es.ea;
-    es.pc.put (es.nextInstrAddr);
+    es.pc.put (limitAddress (es, es.nextInstrAddr))
 }
 
 function rx_nop (es) {
@@ -1236,7 +1258,7 @@ function exp1_nop (es) {
 function exp1_resume (es) {
     com.mode.devlog ('exp1_resume');
     es.statusreg.put (es.rstat.get());
-    es.pc.put (es.rpc.get());
+    es.pc.put (limitAddress (es, es.rpc.get()))
 }
 
 function exp2_save (es) {
@@ -1440,7 +1462,7 @@ const exp2 = (f) => (es) => {
     es.adr.put (es.instrDisp);
 //    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
-    es.pc.put (es.nextInstrAddr);
+    es.pc.put (limitAddress (es, es.nextInstrAddr))
     let tempinstr = es.instrDisp;
     es.field_gh = tempinstr & 0x00ff;
     es.field_h = tempinstr & 0x000f;

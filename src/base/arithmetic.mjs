@@ -42,6 +42,14 @@ export const word32mask = 0xffffffff
 // valid.
 
 
+// Addresses are limited to either 16 bits for S16 or 32 bits for S32.
+// If an address exceeds this range it wraps around.  This is
+// implemented by anding its value with addressMask.
+
+export function limit16 (x) { return x & word16mask }
+export function limit32 (x) { return x & word32mask }
+// See also em.limitAddress
+
 export function assert16 (x) {
     if (0 <= x && x < 2^16) {
         return x
@@ -318,13 +326,13 @@ const hexDigit =
 // Return a string giving the hex representation of a word
 
 export function wordToHex4 (x) {
-    let [p,q,r,s] = splitWord (x);
-    return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s];
+    let [p,q,r,s] = splitWord (limit16 (x))
+    return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s]
 }
 
 export function wordToHex8 (x) { 
     // a,b,c,d, e,f,g,h
-    let y = assert32 (x);
+    let y = limit32 (x);
     let h = y & 0x000f;
     y = y >>> 4;
     let g = y & 0x000f;

@@ -295,10 +295,12 @@ function doRun () {
     let externalBreak = false
     while (continueRunning) {
 //        em.clearRegLogging (emwt.es) executeInstruction does this now
-//        em.clearMemLogging (emwt.es)
+        //        em.clearMemLogging (emwt.es)
+        console.log ('%cemwt about to execute instruction', 'color: red')
         em.executeInstruction (emwt.es)
         //        emwt.es.vec32[0] = emwt.es.vec32[0] + 1
         status = st.readSCB (emwt.es, st.SCB_status)
+        console.log (`emwt looper status=${status}`)
         switch (status) {
         case st.SCB_halted:
         case st.SCB_paused:
@@ -308,6 +310,7 @@ function doRun () {
             break
         default:
         }
+        console.log ('emwt checking externalBreak')
         externalBreak = emwt.es.pc.get() === emwt.es.copyable.breakPCvalue
         if (externalBreak) finished = true
 
@@ -319,6 +322,7 @@ function doRun () {
         pauseReq = st.readSCB (emwt.es, st.SCB_pause_request) != 0
         continueRunning = !finished  && !pauseReq
     }
+    console.log ('emwt exited main looper'
     if (pauseReq && status != st.SCB_halted) {
         st.writeSCB (emwt.es, st.SCB_status, st.SCB_paused)
         st.writeSCB (emwt.es, st.SCB_pause_request, 0)

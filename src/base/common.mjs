@@ -33,6 +33,11 @@ export function showThread (x) {
         : "?"
 }
 
+
+export function stacktrace () { console.trace () }
+
+
+
 /*
 export function showThread (x) {
     return x==0 ? ES_gui_thread_sym
@@ -68,6 +73,7 @@ export let mode = {
 
 export function indicateError (xs) {
     console.log (`%c${xs}`, 'color:red; font-weight:bold')
+    console.trace ()
 }
 
 //------------------------------------------------------------------------------
