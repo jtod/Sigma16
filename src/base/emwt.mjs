@@ -19,6 +19,7 @@
 import * as com from './common.mjs';
 import * as arch from './architecture.mjs'
 import * as arith from './arithmetic.mjs';
+import * as ab from './arrbuf.mjs';
 import * as st  from './state.mjs';
 import * as em from "./emulator.mjs"
 
@@ -287,7 +288,7 @@ function doRun () {
     em.initRegHighlighting (emwt.es)
     em.clearRegLogging (emwt.es)
     em.clearMemLogging (emwt.es)
-    let count = 0
+    let icount = 0
     let status = 0
     let pauseReq = false
     let continueRunning = true
@@ -299,13 +300,13 @@ function doRun () {
         console.log ('%cemwt about to execute instruction', 'color: red')
         em.executeInstruction (emwt.es)
         //        emwt.es.vec32[0] = emwt.es.vec32[0] + 1
-        status = st.readSCB (emwt.es, st.SCB_status)
+        status = ab.readSCB (emwt.es, ab.SCB_status)
         console.log (`emwt looper status=${status}`)
         switch (status) {
-        case st.SCB_halted:
-        case st.SCB_paused:
-        case st.SCB_break:
-        case st.SCB_relinquish:
+        case ab.SCB_halted:
+        case ab.SCB_paused:
+        case ab.SCB_break:
+        case ab.SCB_relinquish:
             finished = true
             break
         default:
@@ -319,21 +320,21 @@ function doRun () {
 //                     + ` bPC=${es.copyable.breakPCvalue}`
 //                     + ` eb=${externalBreak}`)
 
-        pauseReq = st.readSCB (emwt.es, st.SCB_pause_request) != 0
+        pauseReq = ab.readSCB (emwt.es, ab.SCB_pause_request) != 0
         continueRunning = !finished  && !pauseReq
     }
-    console.log ('emwt exited main looper'
-    if (pauseReq && status != st.SCB_halted) {
-        st.writeSCB (emwt.es, st.SCB_status, st.SCB_paused)
-        st.writeSCB (emwt.es, st.SCB_pause_request, 0)
+    console.log ('emwt exited main looper')
+    if (pauseReq && status != ab.SCB_halted) {
+        ab.writeSCB (emwt.es, ab.SCB_status, ab.SCB_paused)
+        ab.writeSCB (emwt.es, ab.SCB_pause_request, 0)
     } else if (externalBreak) {
         console.log (`external breakpoint`)
-        st.writeSCB (emwt.es, st.SCB_status, st.SCB_break)
+        ab.writeSCB (emwt.es, ab.SCB_status, ab.SCB_break)
     }
-
-    return count
+    
+    return icount
 }
-
+        
 console.log (`%cread emwt ccL=${arch.bit_ccL} expect 3`, 'color:red')
 console.log ("%cemwthread has been read", 'color:red')
 

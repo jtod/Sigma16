@@ -577,8 +577,8 @@ export function showInstrDecode (es) {
 
 
 export function mainThreadLooper (es) {
-    console.log ("mainInstructionLooper starting")
-    let i = 0
+    console.log ("em.mainThreadLooper starting")
+    let icount = 0
     let status = 0
     let pauseReq = false
     let continueRunning = true
@@ -588,7 +588,7 @@ export function mainThreadLooper (es) {
         console.log ('em main looper about to exinstr')
         executeInstruction (es)
         console.log ('em main looper back from exinstr')
-        i++
+        icount++
         status = ab.readSCB (es, ab.SCB_status)
         console.log (`em.mainThreadLooper status=${status}`)
         switch (status) {
@@ -610,21 +610,17 @@ export function mainThreadLooper (es) {
                      + ` eb=${externalBreak}`)
 
         pauseReq = ab.readSCB (es, ab.SCB_pause_request) != 0
-        continueRunning = !finished  && !pauseReq && i < es.emInstrSliceSize
+        continueRunning = !finished  && !pauseReq && icount < es.emInstrSliceSize
     }
     console.log (`%c em dropped out of continueRunning`, 'color: red')
-//        if (i > 2) {console.log (`%cem ${es.thread_host} quitting igt2`,
-//                                 'color:red'); return }
-
-
-        if (pauseReq && status != ab.SCB_halted) {
-            com.mode.devlog ("main looper pausing")
-            ab.writeSCB (es, ab.SCB_status, ab.SCB_paused)
-            ab.writeSCB (es, ab.SCB_pause_request, 0)
-        } else if (externalBreak) {
-            console.log (`external breakpoint`)
-            ab.writeSCB (es, ab.SCB_status, ab.SCB_break)
-        }
+    if (pauseReq && status != ab.SCB_halted) {
+        com.mode.devlog ("main looper pausing")
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_paused)
+        ab.writeSCB (es, ab.SCB_pause_request, 0)
+    } else if (externalBreak) {
+        console.log (`external breakpoint`)
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_break)
+    }
     if (finished) {
         es.endRunDisplay (es)
     } else {
