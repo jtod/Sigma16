@@ -266,17 +266,17 @@ statementSpec.set("store",   {ifmt:iRX,  afmt:aRX,    opcode:[15,2]})
 statementSpec.set("jump",    {ifmt:iRX,  afmt:aX,     opcode:[15,3]})
 statementSpec.set("jumpc0",  {ifmt:iRX,  afmt:akX,    opcode:[15,4]})
 statementSpec.set("jumpc1",  {ifmt:iRX,  afmt:akX,    opcode:[15,5]})
-statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,6]})
-statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,7]})
-statementSpec.set("jal",     {ifmt:iRX,  afmt:aRX,    opcode:[15,8]})
-statementSpec.set("lead",    {ifmt:iRX,  afmt:aRX,    opcode:[15,9]})
-statementSpec.set("loadd",   {ifmt:iRX,  afmt:aRX,    opcode:[15,10]})
-statementSpec.set("stored",  {ifmt:iRX,  afmt:aRX,    opcode:[15,11]})
-statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,12]})
-
-// Considering these, not implemented currently...
 // statementSpec.set("brc0",    {ifmt:iRX,  afmt:akX,    opcode:[15,6]})
 // statementSpec.set("brc1",    {ifmt:iRX,  afmt:akX,    opcode:[15,7]})
+statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,8]})
+statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,9]})
+statementSpec.set("jal",     {ifmt:iRX,  afmt:aRX,    opcode:[15,10]})
+statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,14]})
+statementSpec.set("lead",    {ifmt:iRX,  afmt:aRX,    opcode:[15,11]})
+statementSpec.set("loadd",   {ifmt:iRX,  afmt:aRX,    opcode:[15,12]})
+statementSpec.set("stored",  {ifmt:iRX,  afmt:aRX,    opcode:[15,13]})
+
+// Considering these, not implemented currently...
 
 // EXP2 instructions have primary opcode e and 8-bit secondary opcode
 // in ab field

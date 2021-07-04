@@ -2,5 +2,7 @@
 #+TITLE: Bit fields
 #+OPTIONS: html-postamble:nil
 
+- [[./Bool.asm.txt][Bool.asm.txt]] Save result of a comparison as a Boolean
+
 - [[./Shift.asm.txt][Shift.asm.txt]] Illustrate the shifting
   instructions

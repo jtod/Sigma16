@@ -1648,6 +1648,47 @@ brief synopsis:
 *** Core instruction set
 *** Core assembly language
 *** Core programming
+** List of Core instructions
+
+The following table summarises the instructions in the Core subset of
+Sigma16.  This is an extract from the table for the full architecture
+which appears below, in the Architecture section.
+
+|----------+----------+---+-----+------+------+-----------------------------------|
+| Mnemonic | ISA      | P | Fmt | Args | Code | Effect                            |
+|----------+----------+---+-----+------+------+-----------------------------------|
+| add      | Core     |   | RRR | RRR  | 0    | Rd := Ra + Rb                     |
+| sub      | Core     |   | RRR | RRR  | 1    | Rd := Ra - Rb                     |
+| mul      | Core     |   | RRR | RRR  | 2    | Rd := Ra * Rb                     |
+| div      | Core     |   | RRR | RRR  | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmp      | Core     |   | RRR | RR   | 4    | R15 := Ra cmp Rb                  |
+| trap     | Core     |   | RRR | RRR  | a    | user interrupt                    |
+|          |          |   |     |      | f    | escape to RX format               |
+|----------+----------+---+-----+------+------+-----------------------------------|
+| lea      | Core     |   | RX  | RX   | f,0  | Rd := ea                          |
+| load     | Core     |   | RX  | RX   | f,1  | Rd := M[ea]                       |
+| store    | Core     |   | RX  | RX   | f,2  | M[ea] := Rd                       |
+| jump     | Core     |   | RX  | RX   | f,3  | pc := ea                          |
+| jumpc0   | Core     |   | RX  | kX   | f,4  | if R15.k=0 then pc := ea          |
+| jumpc1   | Core     |   | RX  | kX   | f,5  | if R15.k=1 then pc := ea          |
+| jal      | Core     |   | RX  | RX   | f,a  | Rd := pc, pc := ea                |
+|----------+----------+---+-----+------+------+-----------------------------------|
+| jumplt   | pseudo   |   |     |      |      |                                   |
+| jumple   | pseudo   |   |     |      |      |                                   |
+| jumpeqe  | pseudo   |   |     |      |      |                                   |
+| jumpne   | pseudo   |   |     |      |      |                                   |
+| jumpge   | pseudo   |   |     |      |      |                                   |
+| jumpgt   | pseudo   |   |     |      |      |                                   |
+| jumpcy0  | pseudo   |   |     |      |      |                                   |
+| jumpcy1  | pseudo   |   |     |      |      |                                   |
+|----------+----------+---+-----+------+------+-----------------------------------|
+| data     | constant |   |     |      |      |                                   |
+|----------+----------+---+-----+------+------+-----------------------------------|
+|          |          |   |     |      |      | <33>                              |
+|----------+----------+---+-----+------+------+-----------------------------------|
+
+
+
 * Standard architecture
 ** Standard tutorial
 ** Standard architecture
@@ -1908,38 +1949,24 @@ represent division by 0.  You can test explicity for division by 0 by
 using jumpz specifying the register containing the divisor /before/
 execuing the div instruction.
 
-Table: Condition code flags: Bits 0-3
+Bits are indexed from the right, starting from bit 0.  This bit with
+index 0 is the least significant, the bit with index 15 is the most
+significant bit.
 
-|---------+------------+-----------+----------+-------|
-| index   | 0          | 1         | 2        | 3     |
-|---------+------------+-----------+----------+-------|
-| meaning | < nat      | < int     | =        | > nat |
-| symbol  | L          | <         | =        | G     |
-| name    | L          | l         | E        | G     |
-|---------+------------+-----------+----------+-------|
-|---------+------------+-----------+----------+-------|
-| index   | 4          | 5         | 6        | 7     |
-|---------+------------+-----------+----------+-------|
-| meaning | > int      | ovfl nat  | ovfl int | carry |
-| symbol  | >          | V         | v        | C     |
-| name    | g          | V         | v        | C     |
-|---------+------------+-----------+----------+-------|
-|---------+------------+-----------+----------+-------|
-| index   | 8          | 9         | 10       | 11    |
-|---------+------------+-----------+----------+-------|
-| meaning | stack ovfl | stack ufl |          |       |
-| symbol  | S          | s         |          |       |
-| name    | S          | s         |          |       |
-|---------+------------+-----------+----------+-------|
-|---------+------------+-----------+----------+-------|
-| index   | 12         | 13        | 14       | 15    |
-|---------+------------+-----------+----------+-------|
-| meaning |            |           |          |       |
-| symbol  |            |           |          |       |
-| name    |            |           |          |       |
-|---------+------------+-----------+----------+-------|
+Table: Condition code flags
 
-
+| bit index | Relation        | Symbol |
+|-----------+-----------------+--------|
+|         0 | > Int           | g      |
+|         1 | > Nat           | G      |
+|         2 | =               | =      |
+|         3 | < Nat           | L      |
+|         4 | < Int           | <      |
+|         5 | Int overflow    | v      |
+|         6 | Nat overflow    | V      |
+|         7 | Carry           | C      |
+|         8 | Stack overflow  | S      |
+|         9 | Stack underflow | s      |
 
 *** Instruction control registers
 There are several instruction control registers that enable the
@@ -3650,7 +3677,7 @@ precisely and concisely the effects of the instructions:
 | jumpz     | Std  |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea           |
 | jumpnz    | Std  |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea          |
 | jal       | Core |   | RX   | RX    | f,a  | Rd := pc, pc := ea                |
-| testset   | Sys  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
+| testset   | Std  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
 | lead      | S32  |   | RX   | RX    | f,c  | Rd := ea                          |
 | loadd     | S32  |   | RX   | RX    | f,d  | Rd := M[ea]                       |
 | stored    | S32  |   | RX   | RX    | f,e  | M[ea] := Rd                       |

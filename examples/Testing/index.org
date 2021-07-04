@@ -6,23 +6,38 @@ These files are for testing the implementation of Sigma16.  They also
 provide examples of all the assembly language statements and the
 instruction set.
 
-- [[./Arithmetic.asm.txt][Arithmetic]] Test arithmetic operations
 
-- [[./Memory.asm.txt][Memory]] Loads, stores, stack operations, saving
-  and restoring registers.
+- [[./AsmCore.asm.txt][AsmCore]] Test assembly of Core instructions
+
+- [[./AsmStd.asm.txt][AsmStd]] Test assembly of Std instructions
+
+- [[./AsmSys.asm.txt][AsmSys]] Test assembly of Sys instructions
+
+- [[./AsmS32.asm.txt][AsmS32]] Test assembly of S32 instructions
+
+- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Test error messages
+  with invalid statements
+
+- [[./TestCoreArithmetic.asm.txt][TestCoreArithmetic]] Test arithmetic operations
+
+- [[./TestCoreMemory.asm.txt][TestCoreMemory]] Loads, stores, stack
+  operations, saving and restoring registers.
 
 - [[./LargeAddr.asm.txt][LargeAddr]]
 
-- [[./CondCode.asm.txt][CondCode]] Test the condition codes
+- [[./TestCoreCondCode.asm.txt][TestCoreCondCode]] Test the condition
+  codes
 
-- [[./Jumping.asm.txt][Jumping]] Test the comparisons, jumps, and
-  conditional jumps.
+- [[./TestCoreJumping.asm.txt][TestCoreJumping]] Test the comparisons,
+  jumps, and conditional jumps.
 
-- [[./Logic.asm.txt][Logic]] Test the operations on Booleans and logic
-  functions
+- [[./TestCoreLogic.asm.txt][TestCoreLogic]] Test the operations on
+  Booleans and logic functions
 
-- [[./Exception.asm.txt][Exception]] Bit and bit field manipulation
-- [[./BitField.asm.txt][BitField]] Bit and bit field manipulation
+- [[./TestSysException.asm.txt][TestSysException]] Exceptions
+
+- [[./TestStdBitField.asm.txt][TestStdBitField]] Bit and bit field
+  manipulation
 
 - [[./Break.asm.txt][Break]] Breakpoint performed by a trap
 
@@ -36,9 +51,3 @@ instruction set.
 
 - [[./TimerInterrupt.asm.txt][TimerInterrupt]] Run a loop while
   responding to interrupt requests
-
-- [[./AsmStatements.asm.txt][AsmStatements]] Test code generation and
-  directives
-
-- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Test error messages
-  with invalid statements
