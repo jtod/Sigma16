@@ -27,7 +27,6 @@ import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 
-
 export const word16mask = 0x0000ffff
 export const word32mask = 0xffffffff
 
@@ -40,7 +39,6 @@ export const word32mask = 0xffffffff
 // the value x must satisfy 0 <= x < 2^k.  The assert functions check
 // a value and output an error message to the console if it is not
 // valid.
-
 
 // Addresses are limited to either 16 bits for S16 or 32 bits for S32.
 // If an address exceeds this range it wraps around.  This is
@@ -503,14 +501,14 @@ export function additionCC (a,b,primary,sum) {
     const binPos = sum != 0
     const tcPos = !tcOverflow && msbsum === 0
     const tcNeg = !tcOverflow && msbsum === 1
-    const secondary = (binOverflow ? ccV : 0)
- 	  | (binOverflow ? ccV : 0)
-          | (binOverflow ? ccC : 0)
- 	  | (tcOverflow ? ccv : 0)
-          | (is0 ? ccE : 0)
-          | (binPos ? ccG : 0)
-          | (tcNeg ? ccl : 0)
-          | (tcPos ? ccg : 0)
+    const secondary = (binOverflow ? arch.ccV : 0)
+ 	  | (binOverflow ? arch.ccV : 0)
+          | (binOverflow ? arch.ccC : 0)
+ 	  | (tcOverflow ? arch.ccv : 0)
+          | (is0 ? arch.ccE : 0)
+          | (binPos ? arch.ccG : 0)
+          | (tcNeg ? arch.ccl : 0)
+          | (tcPos ? arch.ccg : 0)
     return secondary
     //     if (tcOverflow) { setBitInRegBE (req,overflowBit) } ??????????????? req
 /*
@@ -560,7 +558,7 @@ export function op_mul (a,b) {
     let p = a * b;
     let primary = p & 0x0000ffff;
     let tcOverflow = ! (minTC <= p && p <= maxTC)
-    let secondary = (tcOverflow ? ccv : 0);
+    let secondary = (tcOverflow ? arch.ccv : 0);
 //    if (tcOverflow) { setBitInRegBE (req,overflowBit) } req ???????????????
     return [primary, secondary];
 }
@@ -618,11 +616,11 @@ export function op_cmp (a,b) {
     let eq    = a===b;
     let ltTc  = aint < bint;
     let gtTc  = aint > bint;
-    let cc = ( a > b ? ccG : 0)
- 	| (aint > bint ? ccg : 0)
- 	| (a === b ? ccE : 0)
- 	| (aint < bint ? ccl : 0)
-        | ( a < b ? ccL : 0) ;
+    let cc = ( a > b ? arch.ccg : 0)
+ 	| (aint > bint ? arch.ccG : 0)
+ 	| (a === b ? arch.ccE : 0)
+ 	| (aint < bint ? arch.ccl : 0)
+        | ( a < b ? arch.ccL : 0) ;
     com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`);
     com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`);
     com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`);
@@ -738,7 +736,7 @@ console.log ("%cFinished reading arithmetic", 'color:red')
     let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
     let secondary = (binOverflow ? ccV : 0)
  	| (tcOverflow ? ccv : 0)
-        | (carryOut ? ccC : 0);
+        | (carryOut ? arch.ccC : 0);
     return [primary, secondary];
 */
 

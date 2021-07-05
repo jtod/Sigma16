@@ -154,7 +154,6 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // to indicate the condition code bit in the instruction decode
 // display.  The code display characters are sSCVv <L=G>
 
-
 export const bit_ccg = 0   //  >  greater than integer (two's complement)
 export const bit_ccG = 1   //  G  greater than natural (binary)
 export const bit_ccE = 2   //  =  equal all types
@@ -166,9 +165,6 @@ export const bit_ccV = 6   //  V  overflow natural (binary)
 export const bit_ccC = 7   //  C  carry propagation natural (binary)
 export const bit_ccS = 8;  //  S  stack overflow
 export const bit_ccs = 9;  //  s  stack underflow
-
-// export const bit_ccStackOverflow  = 8;   // stack overflow
-// export const bit_ccStackUnderflow = 9;   // stack underflow
 
 //-----------------------------------------------------------------------------
 // Status register bits

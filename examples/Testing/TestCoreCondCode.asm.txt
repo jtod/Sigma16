@@ -1,6 +1,5 @@
-; CondCode: test instructions that set the condition code
+; TestCoreCondCode: test instructions that set the condition code
 ; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
-; John O'Donnell, 2021
 
 ; Condition code flags are defined in architecture.mjs
 
