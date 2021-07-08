@@ -1663,7 +1663,7 @@ which appears below, in the Architecture section.
 | mul      | Core     |   | RRR | RRR  | 2    | Rd := Ra * Rb                     |
 | div      | Core     |   | RRR | RRR  | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
 | cmp      | Core     |   | RRR | RR   | 4    | R15 := Ra cmp Rb                  |
-| trap     | Core     |   | RRR | RRR  | a    | user interrupt                    |
+| trap     | Core     |   | RRR | RRR  | 5    | user interrupt                    |
 |          |          |   |     |      | f    | escape to RX format               |
 |----------+----------+---+-----+------+------+-----------------------------------|
 | lea      | Core     |   | RX  | RX   | f,0  | Rd := ea                          |
@@ -2267,6 +2267,7 @@ comprising four 4-bit fields.
 | 4 bits | 4 bits | 4 bits | 4 bits |
 |--------+--------+--------+--------|
 
+
 Each field contains 4 bits, which represent a value between 0 and 15:
 
 - op (bits 15 to 12) Operation code; determines which instruction this
@@ -2364,6 +2365,7 @@ displacement, which is the entire second word of the instruction.
 
 
 RX instructions are represented in two words
+
 
 *** EXP format
 
@@ -3645,6 +3647,73 @@ precisely and concisely the effects of the instructions:
 - There is a subsetting relationship:
   - Core SUBSET Basic SUBSET S16 SUBSET S32
 
+
+
+
+
+** Machine language instruction formats
+
+| ifmt | operand general form | example      | notes |
+|------+----------------------+--------------+-------|
+| RRR  | Rd,Ra,Rb             | add R1,R2,R3 |       |
+| RX   | Rd,disp[Ra]          |              |       |
+| EXP1 |                      |              |       |
+| EXP2 | Rd,e,f,g,h           |              |       |
+| EXP3 |                      |              |       |
+
+The following are without  the ATTR_HTML
+
+|----+---+---+---|
+| op | d | a | b |
+|----+---+---+---|
+
+
+
+|----+---+---+---|
+| op | d | a | b |
+|----+---+---+---|
+
+
+|----+---+---+---|
+| op | d | a | b |
+|----+---+---+---|
+| e  | f | g | h |
+|----+---+---+---|
+
+
+The following are with the ATTR_HTML
+
+
+foobar sharp +ATTR_HTML: :border 2 :rules all :frame border
+
+op d a b
+e f g h
+disp
+
+
+
+Combined fields:
+- ab = a,b
+- disp = e,f,g,h
+
+
+
+
+** Assembly language instruction formats with examples
+
+| afmt  | operand general form | example           | notes         |
+|-------+----------------------+-------------------+---------------|
+| RRR   | Rd,Ra,Rb             | add R1,R2,R3      |               |
+| RR    | Ra,Rb                | cmp R1,R2         |               |
+| RX    | Rd,disp[Ra]          | load R1,xyz[R2]   |               |
+| kX    | k,disp[Ra]           | jumpc0 6,loop[R2] | 0 <= k <= 15  |
+| RRRk  | Rd,Ra,Rb,K[Re]       | save R1,R5,3[R14] | 0 <= K <= 255 |
+| RRk   | Ra,Rb,k              | shiftl R1,R2,5    | 0 <= k <= 15  |
+| Rkkkk | Rd,e,f,g,h           | logicb R1,        |               |
+| RkkRk | Ra,j,n,Rb,k          | extract           |               |
+| RC    | Rc,Rd                | putctl vect,R4    |               |
+|       |                      |                   |               |
+
 ** Table of instructions
 
 |-----------+------+---+------+-------+------+-----------------------------------|
@@ -3655,13 +3724,13 @@ precisely and concisely the effects of the instructions:
 | mul       | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
 | div       | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
 | cmp       | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
-| addd      | S32  |   | RRR  | RRR   | 5    | Rd := Ra + Rb                     |
-| subd      | S32  |   | RRR  | RRR   | 6    | Rd := Ra - Rb                     |
-| muld      | S32  |   | RRR  | RRR   | 7    | Rd := Ra * Rb                     |
-| divd      | S32  |   | RRR  | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmpd      | S32  |   | RRR  | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| trap      | Core |   | RRR  | RRR   | a    | user interrupt                    |
-|           |      |   |      |       | b    | -- reserved --                    |
+| trap      | Core |   | RRR  | RRR   | 5    | user interrupt                    |
+| addc      | Std  |   | RRR  | RRR   | 6    | Rd := Ra + Rb + R15.carry         |
+| muln      | Std  |   | RRR  | RRR   | 7    | R15++Rd := Ra :*: Rb              |
+| divn      | Std  |   | RRR  | RRR   | 8    | R15++Rd := R15++Ra :/: Rb         |
+| push      | Std  |   | RRR  | RRR   | 9    | M[ea] := Rd, Rb++                 |
+| pop       | Std  |   | RRR  | RRR   | a    | Rb--, Rd := M[ea]                 |
+| top       | Std  |   | RRR  | RRR   | b    | Rd := M[ea]                       |
 |           |      |   |      |       | c    | -- reserved --                    |
 |           |      |   |      |       | d    | escape to EXP3 format             |
 |           |      |   |      |       | e    | escape to EXP2 format             |
@@ -3673,11 +3742,11 @@ precisely and concisely the effects of the instructions:
 | jump      | Core |   | RX   | RX    | f,3  | pc := ea                          |
 | jumpc0    | Core |   | RX   | kX    | f,4  | if R15.k=0 then pc := ea          |
 | jumpc1    | Core |   | RX   | kX    | f,5  | if R15.k=1 then pc := ea          |
-| brc0      | Std  |   | RX   | RX    | f,6  | Rd := M[ea], M[ea] := 1           |
-| brc1      | Std  |   | RX   | RX    | f,7  | Rd := M[ea], M[ea] := 1           |
-| jumpz     | Std  |   | RX   | RX    | f,8  | if Rd = 0 then pc := ea           |
-| jumpnz    | Std  |   | RX   | RX    | f,9  | if Rd != 0 then pc := ea          |
-| jal       | Core |   | RX   | RX    | f,a  | Rd := pc, pc := ea                |
+| jal       | Core |   | RX   | RX    | f,6  | Rd := pc, pc := ea                |
+| jumpz     | Std  |   | RX   | RX    | f,7  | if Rd = 0 then pc := ea           |
+| jumpnz    | Std  |   | RX   | RX    | f,8  | if Rd != 0 then pc := ea          |
+| brc0      | Std  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
+| brc1      | Std  |   | RX   | RX    | f,a  | Rd := M[ea], M[ea] := 1           |
 | testset   | Std  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
 | lead      | S32  |   | RX   | RX    | f,c  | Rd := ea                          |
 | loadd     | S32  |   | RX   | RX    | f,d  | Rd := M[ea]                       |
@@ -3686,12 +3755,6 @@ precisely and concisely the effects of the instructions:
 |-----------+------+---+------+-------+------+-----------------------------------|
 | resume    | Sys  | P | EXP1 | R     | e,00 | pc := ipc, status := istatus      |
 |-----------+------+---+------+-------+------+-----------------------------------|
-| addc      | Std  |   | EXP2 | RRR   | 4    | Rd := Ra + Rb + R15.carry         |
-| muln      | Std  |   | EXP2 | RRR   | 6    | R15++Rd := Ra :*: Rb              |
-| divn      | Std  |   | EXP2 | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
-| push      | Std  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
-| pop       | Std  |   | EXP2 | RRR   | 9    | Rb--, Rd := M[ea]                 |
-| top       | Std  |   | EXP2 | RRR   | a    | Rd := M[ea]                       |
 | save      | Std  |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
 | restore   | Std  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
 | shiftl    | Std  |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                    |
@@ -3702,26 +3765,35 @@ precisely and concisely the effects of the instructions:
 | extracti  | Std  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
 | getctl    | Sys  | P | EXP2 | RC    | e,09 | Rd := Sc                          |
 | putctl    | Sys  | P | EXP2 | RC    | e,0a | Sc := Rd                          |
-| addcd     | Std  |   | EXP2 | RRR   | a    | Rd := Ra + Rb + R15.carry         |
-| addf      | S32  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb                     |
-| subf      | S32  |   | EXP2 | RRR   | 6    | Rd := Ra - Rb                     |
-| mulf      | S32  |   | EXP2 | RRR   | 7    | Rd := Ra * Rb                     |
-| divf      | S32  |   | EXP2 | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmpf      | S32  |   | EXP2 | RR    | 9    | R15 := Ra cmp Rb                  |
+| addd      | S32  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb                     |
+| subd      | S32  |   | EXP2 | RRR   | 6    | Rd := Ra - Rb                     |
+| muld      | S32  |   | EXP2 | RRR   | 7    | Rd := Ra * Rb                     |
+| divd      | S32  |   | EXP2 | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpd      | S32  |   | EXP2 | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| addcd     | S32  |   | EXP2 | RRR   | a    | Rd := Ra + Rb + R15.carry         |
 | pushd     | S32  |   | EXP2 | RRR   | 8    | M[ea] := Rd, Rb++                 |
 | popd      | S32  |   | EXP2 | RRR   | 9    | Rb--, Rd := M[ea]                 |
 | topd      | S32  |   | EXP2 | RRR   | a    | Rd := M[ea]                       |
 | saved     | S32  |   | EXP2 | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
 | restored  | S32  |   | EXP2 | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
-| shiftld   | S32  |   | EXP2 | RRk   | e,03 | Rd := Ra shl b                    |
-| shiftrd   | S32  |   | EXP2 | RRk   | e,04 | Rd := Ra shr b                    |
-| logicwd   | S32  |   | EXP2 | RRRk  | e,05 | Rd := Re (lut g) Rf               |
-| logicbd   | S32  |   | EXP2 | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
-| extractd  | S32  |   | EXP2 | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
-| extractid | S32  |   | EXP2 | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
-|           |      |   | EXP2 |       | e,0b | -- reserved --                    |
+| addf      | S32  |   | EXP2 | RRR   | 5    | Rd := Ra + Rb                     |
+| subf      | S32  |   | EXP2 | RRR   | 6    | Rd := Ra - Rb                     |
+| mulf      | S32  |   | EXP2 | RRR   | 7    | Rd := Ra * Rb                     |
+| divf      | S32  |   | EXP2 | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpf      | S32  |   | EXP2 | RR    | 9    | R15 := Ra cmp Rb                  |
+|           |      |   | EXP2 |       | d,0b | -- reserved --                    |
 |           |      |   | EXP2 |       | ...  | -- reserved --                    |
-|           |      |   | EXP2 |       | e,ff | -- reserved --                    |
+|           |      |   | EXP2 |       | d,ff | -- reserved --                    |
+|-----------+------+---+------+-------+------+-----------------------------------|
+| shiftld   | S32  |   | EXP3 | RRk   | d,03 | Rd := Ra shl b                    |
+| shiftrd   | S32  |   | EXP3 | RRk   | d,04 | Rd := Ra shr b                    |
+| logicwd   | S32  |   | EXP3 | RRRk  | d,05 | Rd := Re (lut g) Rf               |
+| logicbd   | S32  |   | EXP3 | Rkkkk | d,06 | Rd.e := Rd.f (lut h) Rd.g         |
+| extractd  | S32  |   | EXP3 | RkkRk | d,07 | Rd := extract Rd di size Rs si    |
+| extractid | S32  |   | EXP3 | RkkRk | d,08 | Rd := extracti Rd di size Rs si   |
+|           |      |   | EXP3 |       | d,0b | -- reserved --                    |
+|           |      |   | EXP3 |       | ...  | -- reserved --                    |
+|           |      |   | EXP3 |       | d,ff | -- reserved --                    |
 |-----------+------+---+------+-------+------+-----------------------------------|
 |           |      |   |      |       |      | <33>                              |
 |-----------+------+---+------+-------+------+-----------------------------------|
@@ -5684,6 +5756,3 @@ The hypothetical commands `show w' and `show c' should show the appropriate part
 You should also get your employer (if you work as a programmer) or school, if any, to sign a “copyright disclaimer” for the program, if necessary. For more information on this, and how to apply and follow the GNU GPL, see <https://www.gnu.org/licenses/>.
 
 The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
-
-
-

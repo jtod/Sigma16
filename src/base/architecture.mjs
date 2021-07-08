@@ -25,10 +25,59 @@ import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 
 export const memSize = 65536; // number of memory locations = 2^16
-
 export const S16 = Symbol ('S16')
 export const S32 = Symbol ('S32')
 
+//------------------------------------------------------------------------------
+// Bit indexing
+//------------------------------------------------------------------------------
+
+// There are two conventions for indexing bits in a word that contains
+// k bits. Then
+//   - Little end (LE): the most significant (leftmost) bit has index k,
+//     and the least significant (rightmost bit) has index 0.
+//   - Big end (BE): the most significant (leftmost) bit has index 0,
+//     and the least significant (rightmost bit) has index k.
+
+// Functions are defined for accessing bits in a word using either
+// Little End (LE) or Big End (BE) notation.  For k-bit words:
+//   Bit i BE = bit (k-i) LE
+//   Bit i LE = bit (k-i) BE
+
+// Earlier versions of Sigma16 (prior to 3.4) used Big End bit
+// indexing.  Version 3.4 switches to Little End bit indexing because
+// this alows a more elegant extension to 32-bit architecture.  In
+// particular, a function to access bit i needs to know the wordsize k
+// if Big End indexing is used, but not with Little End indexing.
+
+// Get bit i from k-bit word w
+export function getBitInWordLE (w,i)   { return (w >>> i)     & 0x0001 }
+export function getBitInWordBE (k,w,i) { return (w >>> (k-i)) & 0x0001 }
+
+// Put bit b into word x in bit position i
+export function putBitInWordLE (k,x,i,b) {
+    return b==0 ? x & maskToClearBitLE(i)   : x | maskToSetBitLE(i)
+}
+export function putBitInWordBE (k,x,i,b) {
+    return b==0 ? x & maskToClearBitBE(k,i) : x | maskToSetBitBE(k,i)
+}
+
+// Generate mask to clear/set bit i in a k-bit word
+export function maskToClearBitLE (i)   { return ~(1<<i)      & 0xffff }
+export function maskToSetBitLE   (i)   { return (1 << i)     & 0xffff }
+export function maskToClearBitBE (k,i) { return ~(1<<(k-i))  & 0xffff }
+export function maskToSetBitBE   (k,i) { return (1 << (k-i)) & 0xffff }
+
+// Access bit i in register r with k-bit words
+export function getBitInRegLE   (r,i)   { return (r.get() >>> i) & 0x0001 }
+export function clearBitInRegLE (r,i)   { r.put (r.get() & maskToClearBitLE(i)) }
+export function setBitInRegLE   (r,i)   { r.put (r.get() | maskToSetBitLE(i)) }
+export function getBitInRegBE   (k,r,i) { return (r.get() >>> (k-i)) & 0x0001 }
+export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(k,i)) }
+export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) }
+
+// Return Boolean from bit i in word x
+export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
 
 //-----------------------------------------------------------------------------
 // Instruction formats
@@ -94,25 +143,29 @@ export const aRkk     = Symbol ("Rkk");  // field    R1,3,12  ?? should be RRkk
 // These arrays can be indexed by opcode to give corresponding mnemonic
 
 export const mnemonicRRR =
-  ["add",      "sub",      "mul",      "div",       // 0-3
-   "addc",     "cmp",      "nop",      "nop",       // 4-7
-   "nop",      "nop",      "nop",      "nop",       // 8-b
-   "nop",      "trap",     "EXP",      "RX"];       // c-f
+  ["add",      "sub",      "mul",       "div",       // 0-3
+   "cmp",      "addd",     "subd",      "muld",      // 4-7
+   "divd",     "cmpd",     "trap",      "nop",       // 8-b
+   "nop",      "EXP3",     "EXP2",      "RX"];       // c-f
 
 export const mnemonicRX =
   ["lea",      "load",     "store",    "jump",      // 0-3
-   "jal",      "jumpc0",   "jumpc1",   "jumpz",     // 4-7
-   "jumpnz",   "testset",  "nop",      "nop",       // 8-b
-   "nop",      "nop",      "nop",      "nop"];      // c-f
+   "jumpc0",   "jumpc1",   "brc0",     "brc1",      // 4-7
+   "jumpz",    "jumpnz",   "jal",      "testset",   // 8-b
+   "lead",     "loadd",    "stored",   "nop"];      // c-f
 
-export const mnemonicEXP1 = ["rfi"];
+export const mnemonicEXP1 = ["resume"];
 
 export const mnemonicEXP2 =
-  ["exp1",     "getctl",   "putctl",   "shiftl",    // 00-03
-   "shiftr",   "logicb",   "logicw",   "extract",   // 04-07
-   "extracti", "inject",   "injecti",  "push",      // 08-0b
-   "pop",      "top",      "save",     "restore",   // 0c-0f
-   "execute",  "dispatch", "nop",      "nop"];      // 10-13
+    ["addc",     "muln",     "divn",     "push",       // 00-03
+     "pop",      "top",      "save",     "restore",    // 04-07
+     "shiftl",   "shiftr",   "logicw",  "logicb",     // 08-0b
+     "extract",  "extracti", "getctl",   "putctl",     // 0c-0f
+     "addcd",    "adde",      "sube",      "mule",       // 10-13
+     "dive",     "cmpe",     "pushd",    "popd",
+     "topd",     "saved",    "restored", "shiftld",
+     "shiftrd",  "logicwd",  "logicbd",  "extractd",
+     "extractid", "execute", "dispatch"]
 
 //-------------------------------------
 // Mnemonics for control registers
@@ -137,8 +190,13 @@ ctlReg.set ("dsegBeg",  {ctlRegIndex:8});
 ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 
 //------------------------------------------------------------------------------
-// Condition codes
+// Condition code
 //------------------------------------------------------------------------------
+
+// The condition code is a word of individual Boolean flags giving the
+// results of comparisons and other conditions.  R15 contains the
+// condition code, except that R15 is used for an additional result
+// for multiply and divide instructions.
 
 // A word is defined for each condition code flag.  An instruction may
 // 'or' several of these words together to produce the final condition
@@ -146,25 +204,69 @@ ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 // the least significant bit has index 0, and the most significant bit
 // has index 15.
 
-// Each flag has a symbolic name used in the implementation, and a
-// display name used in the "instruction decode" panel on the emulator
-// GUI.  The usual relations < = > are used for integers (binary
-// representation) , while L = G are used for natural numbers (two's
-// complement representation).  The comment shows the character used
-// to indicate the condition code bit in the instruction decode
-// display.  The code display characters are sSCVv <L=G>
+// Each flag in the condition code has a symbolic name used in the
+// implementation, and a display name used in the "instruction decode"
+// panel on the emulator GUI.  The usual relations < = > are used for
+// integers (binary representation) , while L = G are used for natural
+// numbers (two's complement representation).  The code display
+// characters are sSCVv<L=G>
 
-export const bit_ccg = 0   //  >  greater than integer (two's complement)
-export const bit_ccG = 1   //  G  greater than natural (binary)
-export const bit_ccE = 2   //  =  equal all types
-export const bit_ccL = 3   //  L  less than natural (binary)
-export const bit_ccl = 4   //  <  less than integer (two's complement)
+// index  val  code  display   type and relation
+// ----------------------------------------------
+// bit 0  0001  g      >        int >
+// bit 1  0002  G      G        nat >
+// bit 2  0004  E      =        nat,int =
+// bit 3  0008  L      L        nat <
+// bit 4  0010  l      <        int <
+// bit 5  0020  v      v        int overflow
+// bit 6  0040  V      V        int overflow
+// bit 7  0080  C      C        bin carry out, carry in (addc)
+// bit 8  0100  S      S        bin carry out, carry in (addc)
+// bit 9  0200  s      s        bin carry out, carry in (addc)
 
-export const bit_ccv = 5   //  v  overflow integer (two's complement)
-export const bit_ccV = 6   //  V  overflow natural (binary)
-export const bit_ccC = 7   //  C  carry propagation natural (binary)
-export const bit_ccS = 8;  //  S  stack overflow
-export const bit_ccs = 9;  //  s  stack underflow
+export const bit_ccg = 0   // 0001 > greater than integer (two's complement)
+export const bit_ccG = 1   // 0002 G greater than natural (binary)
+export const bit_ccE = 2   // 0004 = equal all types
+export const bit_ccL = 3   // 0008 L less than natural (binary)
+
+export const bit_ccl = 4   // 0010 < less than integer (two's complement)
+export const bit_ccv = 5   // 0020 v overflow integer (two's complement)
+export const bit_ccV = 6   // 0040 V overflow natural (binary)
+export const bit_ccC = 7   // 0080 C carry propagation natural (binary)
+
+export const bit_ccS = 8   // 0100 S stack overflow
+export const bit_ccs = 9   // 0200 s stack underflow
+
+// Define a mask with 1 in specified bit position
+export const ccg = maskToSetBitLE (bit_ccg)
+export const ccG = maskToSetBitLE (bit_ccG)
+export const ccE = maskToSetBitLE (bit_ccE)
+export const ccL = maskToSetBitLE (bit_ccL)
+export const ccl = maskToSetBitLE (bit_ccl)
+export const ccv = maskToSetBitLE (bit_ccv)
+export const ccV = maskToSetBitLE (bit_ccV)
+export const ccC = maskToSetBitLE (bit_ccC)
+export const ccS = maskToSetBitLE (bit_ccS)
+export const ccs = maskToSetBitLE (bit_ccs)
+
+// Return a string giving symbolic representation of the condition
+// code; this is used in the instruction display
+
+export function showCC (c) {
+    com.mode.devlog (`showCC ${c}`);
+    return (extractBoolLE (c,bit_ccs) ? 's' : '')
+	+ (extractBoolLE (c,bit_ccS) ? 'S' : '')
+	+ (extractBoolLE (c,bit_ccC) ? 'C' : '')
+	+ (extractBoolLE (c,bit_ccV) ? 'V' : '')
+	+ (extractBoolLE (c,bit_ccv) ? 'v' : '')
+	+ (extractBoolLE (c,bit_ccl) ? '&lt;' : '')
+	+ (extractBoolLE (c,bit_ccL) ? 'L' : '')
+	+ (extractBoolLE (c,bit_ccE) ? '=' : '')
+	+ (extractBoolLE (c,bit_ccG) ? 'G' : '')
+	+ (extractBoolLE (c,bit_ccg) ? '>' : '')
+}
+
+
 
 //-----------------------------------------------------------------------------
 // Status register bits
@@ -225,68 +327,63 @@ export const zDivBit             = 6;   // division by 0
 //-----------------------------------------------------------------------------
 
 // The instruction set is defined by a map from mnemonic to statement
-// specification.  Each entry specifies the instruction format, the
-// assembly language statement format, and the opcode (represented as
-// a list of expanding opcodes).
-
-export const emptyOperation = {ifmt:iEmpty, afmt:a0, opcode:[]}
+// specification. The assembler uses the map to generate the machine
+// language for an assembly language statement. Each entry specifies
+// the instruction format, the assembly language statement format, and
+// the opcode, which isrepresented as a list of expanding opcodes.
 
 export let statementSpec = new Map();
 
-// Primary opcodes (in the op field) of 0-13 denote RRR instructions.
-// If op=14, escape to EXP1/EXP2 format, and if op=15 escape to RX.
+// Primary opcodes (in the op field) of 0-11 denote RRR instructions.
 
-statementSpec.set("add",      {ifmt:iRRR,  afmt:aRRR,    opcode:[0]})
-statementSpec.set("sub",      {ifmt:iRRR,  afmt:aRRR,    opcode:[1]})
-statementSpec.set("mul",      {ifmt:iRRR,  afmt:aRRR,    opcode:[2]})
-statementSpec.set("div",      {ifmt:iRRR,  afmt:aRRR,    opcode:[3]})
-statementSpec.set("cmp",      {ifmt:iRRR,  afmt:aRR,     opcode:[4]})
-statementSpec.set("addd",     {ifmt:iRRR,  afmt:aRRR,    opcode:[5]})
-statementSpec.set("subd",     {ifmt:iRRR,  afmt:aRRR,    opcode:[6]})
-statementSpec.set("muld",     {ifmt:iRRR,  afmt:aRRR,    opcode:[7]})
-statementSpec.set("divd",     {ifmt:iRRR,  afmt:aRRR,    opcode:[8]})
-statementSpec.set("cmpd",     {ifmt:iRRR,  afmt:aRR,     opcode:[9]})
-statementSpec.set("trap",     {ifmt:iRRR,  afmt:aRRR,    opcode:[10]})
+statementSpec.set("add",   {ifmt:iRRR, afmt:aRRR, opcode:[0]})
+statementSpec.set("sub",   {ifmt:iRRR, afmt:aRRR, opcode:[1]})
+statementSpec.set("mul",   {ifmt:iRRR, afmt:aRRR, opcode:[2]})
+statementSpec.set("div",   {ifmt:iRRR, afmt:aRRR, opcode:[3]})
+statementSpec.set("cmp",   {ifmt:iRRR, afmt:aRR,  opcode:[4]})
+statementSpec.set("trap",  {ifmt:iRRR, afmt:aRRR, opcode:[5]})
+statementSpec.set("addc",  {ifmt:iRRR, afmt:aRRR, opcode:[6]})
+statementSpec.set("muln",  {ifmt:iRRR, afmt:aRRR, opcode:[7]})
+statementSpec.set("divn",  {ifmt:iRRR, afmt:aRRR, opcode:[8]})
+statementSpec.set("push",  {ifmt:iRRR, afmt:aRRR, opcode:[9]})
+statementSpec.set("pop",   {ifmt:iRRR, afmt:aRRR, opcode:[10]})
+statementSpec.set("top",   {ifmt:iRRR, afmt:aRRR, opcode:[11]})
 
-// These used to be RRR...
-// primary opcode 11: reserved
-// primary opcode 12: reserved
-// primary opcode 13: escape to EXP3
-// primary opcode 14: escape to EXP2
-// primary opcode 15: escape to RX
+// The following primary opcodes do not indicate RRR instructions:
+//   12: reserved
+//   13: escape to EXP3
+//   14: escape to EXP2
+//   15: escape to RX
 
 // RX instructions have primary opcode f and secondary opcode in b field
-statementSpec.set("lea",     {ifmt:iRX,  afmt:aRX,    opcode:[15,0]})
-statementSpec.set("load",    {ifmt:iRX,  afmt:aRX,    opcode:[15,1]})
-statementSpec.set("store",   {ifmt:iRX,  afmt:aRX,    opcode:[15,2]})
-statementSpec.set("jump",    {ifmt:iRX,  afmt:aX,     opcode:[15,3]})
-statementSpec.set("jumpc0",  {ifmt:iRX,  afmt:akX,    opcode:[15,4]})
-statementSpec.set("jumpc1",  {ifmt:iRX,  afmt:akX,    opcode:[15,5]})
-// statementSpec.set("brc0",    {ifmt:iRX,  afmt:akX,    opcode:[15,6]})
-// statementSpec.set("brc1",    {ifmt:iRX,  afmt:akX,    opcode:[15,7]})
-statementSpec.set("jumpz",   {ifmt:iRX,  afmt:aRX,    opcode:[15,8]})
-statementSpec.set("jumpnz",  {ifmt:iRX,  afmt:aRX,    opcode:[15,9]})
-statementSpec.set("jal",     {ifmt:iRX,  afmt:aRX,    opcode:[15,10]})
-statementSpec.set("testset", {ifmt:iRX,  afmt:aRX,    opcode:[15,14]})
-statementSpec.set("lead",    {ifmt:iRX,  afmt:aRX,    opcode:[15,11]})
-statementSpec.set("loadd",   {ifmt:iRX,  afmt:aRX,    opcode:[15,12]})
-statementSpec.set("stored",  {ifmt:iRX,  afmt:aRX,    opcode:[15,13]})
 
-// Considering these, not implemented currently...
+statementSpec.set("lea",     {ifmt:iRX, afmt:aRX, opcode:[15,0]})
+statementSpec.set("load",    {ifmt:iRX, afmt:aRX, opcode:[15,1]})
+statementSpec.set("store",   {ifmt:iRX, afmt:aRX, opcode:[15,2]})
+statementSpec.set("jump",    {ifmt:iRX, afmt:aX,  opcode:[15,3]})
+statementSpec.set("jumpc0",  {ifmt:iRX, afmt:akX, opcode:[15,4]})
+statementSpec.set("jumpc1",  {ifmt:iRX, afmt:akX, opcode:[15,5]})
+statementSpec.set("jal",     {ifmt:iRX, afmt:aRX, opcode:[15,6]})
+statementSpec.set("jumpz",   {ifmt:iRX, afmt:aRX, opcode:[15,7]})
+statementSpec.set("jumpnz",  {ifmt:iRX, afmt:aRX, opcode:[15,8]})
+statementSpec.set("brc0",    {ifmt:iRX, afmt:akX, opcode:[15,9]})
+statementSpec.set("brc1",    {ifmt:iRX, afmt:akX, opcode:[15,10]})
+statementSpec.set("testset", {ifmt:iRX, afmt:aRX, opcode:[15,11]})
+statementSpec.set("lead",    {ifmt:iRX, afmt:aRX, opcode:[15,12]})
+statementSpec.set("loadd",   {ifmt:iRX, afmt:aRX, opcode:[15,13]})
+statementSpec.set("stored",  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
 
-// EXP2 instructions have primary opcode e and 8-bit secondary opcode
-// in ab field
-
-// EXP1 - instruction is 1 word
+// EXP1 instructions are represented in 1 word, with primary opcode e
+// and an 8-bit secondary opcode in the ab field.  The secondary
+// opcode ab is between 0 and 7.  (If 8 <= ab then the instruction is
+// EXP2 format.)
+   
 statementSpec.set("resume",   {ifmt:iEXP1, afmt:a0,   opcode:[14,0]});
 
-// EXP2 - instruction is 2 words
-statementSpec.set("addc",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,1]})
-statementSpec.set("muln",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,2]})
-statementSpec.set("divn",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,3]})
-statementSpec.set("push",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,4]})
-statementSpec.set("pop",      {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,5]})
-statementSpec.set("top",      {ifmt:iEXP2, afmt:aRRR,   opcode:[14,6]})
+// EXP2 instructions are represented in 2 words, with primary opcode e
+// and an 8-bit secondary opcode in the ab field, where ab >= 8.  (If
+// 0 <= ab <8 then the instruction is EXP1 format.)
+
 statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,   opcode:[14,7]})
 statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,   opcode:[14,8]})
 statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,9]})
@@ -297,8 +394,20 @@ statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,13]})
 statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,14]})
 statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,15]})
 statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,16]})
+statementSpec.set("addd",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,17]})
+statementSpec.set("subd",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,18]})
+statementSpec.set("muld",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,19]})
+statementSpec.set("divd",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,20]})
+statementSpec.set("cmpd",     {ifmt:iEXP2,  afmt:aRR,  h opcode:[14,21]})
 
 // statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,  opcode:[14,12]});
+
+// EXP3 instructions are represented in 3 words, with primary opcode d
+// and an 8-bit secondary opcode in the ab field.
+
+statementSpec.set("shiftld", {ifmt:iEXP3, afmt:aRRk, opcode:[13,0]})
+statementSpec.set("shiftrd", {ifmt:iEXP3, afmt:aRRk, opcode:[13,1]})
+
 
 // Assembler directives
 
@@ -372,78 +481,16 @@ statementSpec.set("xorb",    {ifmt:iEXP2, afmt:aRkkk, opcode:[14,6,6],
 
 statementSpec.set("field",   {ifmt:iEXP2, afmt:aRkk,  opcode:[14,8], pseudo:true});
 
+export const clearIntEnable = maskToClearBitBE (intEnableBit);
+export const setSystemState = maskToClearBitBE (userStateBit);
 
-//------------------------------------------------------------------------------
-// Bit indexing
-//------------------------------------------------------------------------------
 
-// There are two conventions for indexing bits in a word that contains
-// k bits. Then
-//   - Little end (LE): the most significant (leftmost) bit has index k,
-//     and the least significant (rightmost bit) has index 0.
-//   - Big end (BE): the most significant (leftmost) bit has index 0,
-//     and the least significant (rightmost bit) has index k.
+console.log ("%cFinished reading architecture", 'color:red')
 
-// Functions are defined for accessing bits in a word using either
-// Little End (LE) or Big End (BE) notation.  For k-bit words:
-//   Bit i BE = bit (k-i) LE
-//   Bit i LE = bit (k-i) BE
-
-// Earlier versions of Sigma16 (prior to 3.4) used Big End bit
-// indexing.  Version 3.4 switches to Little End bit indexing because
-// this alows a more elegant extension to 32-bit architecture.  In
-// particular, a function to access bit i needs to know the wordsize k
-// if Big End indexing is used, but not with Little End indexing.
-
-// Get bit i from k-bit word w
-export function getBitInWordLE (w,i)   { return (w >>> i)     & 0x0001 }
-export function getBitInWordBE (k,w,i) { return (w >>> (k-i)) & 0x0001 }
-
-// Put bit b into word x in bit position i
-export function putBitInWordLE (k,x,i,b) {
-    return b==0 ? x & maskToClearBitLE(i)   : x | maskToSetBitLE(i)
-}
-export function putBitInWordBE (k,x,i,b) {
-    return b==0 ? x & maskToClearBitBE(k,i) : x | maskToSetBitBE(k,i)
-}
-
-// Generate mask to clear/set bit i in a k-bit word
-export function maskToClearBitLE (i)   { return ~(1<<i)      & 0xffff }
-export function maskToSetBitLE   (i)   { return (1 << i)     & 0xffff }
-export function maskToClearBitBE (k,i) { return ~(1<<(k-i))  & 0xffff }
-export function maskToSetBitBE   (k,i) { return (1 << (k-i)) & 0xffff }
-
-// Access bit i in register r with k-bit words
-export function getBitInRegLE   (r,i)   { return (r.get() >>> i) & 0x0001 }
-export function clearBitInRegLE (r,i)   { r.put (r.get() & maskToClearBitLE(i)) }
-export function setBitInRegLE   (r,i)   { r.put (r.get() | maskToSetBitLE(i)) }
-export function getBitInRegBE   (k,r,i) { return (r.get() >>> (k-i)) & 0x0001 }
-export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(k,i)) }
-export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) }
-
-// Return Boolean from bit i in word x
-export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
-
-//------------------------------------------------------------------------------
-// Accessing condition codes
-//------------------------------------------------------------------------------
-
-// These definitions give a mask with 1 in specified bit position
-
-let xyz = bit_ccE
-let myccE =  maskToSetBitLE (xyz)
-console.log (`ccE ${xyz} ${myccE}`)
-
-export const ccE = maskToSetBitLE (bit_ccE)
-
-export const ccg = maskToSetBitLE (bit_ccg)
-export const ccG = maskToSetBitLE (bit_ccG)
-export const ccL = maskToSetBitLE (bit_ccL)
-export const ccl = maskToSetBitLE (bit_ccl)
-export const ccV = maskToSetBitLE (bit_ccV)
-export const ccv = maskToSetBitLE (bit_ccv)
-export const ccC = maskToSetBitLE (bit_ccC)
-
+// deprecated
+// let xyz = bit_ccE
+// let myccE =  maskToSetBitLE (xyz)
+// console.log (`ccE ${xyz} ${myccE}`)
 // export const ccSO = maskToSetBitLE (bit_ccStackOverflow)
 // export const ccSU = maskToSetBitLE (bit_ccStackUnderflow)
 
@@ -455,21 +502,5 @@ console.log (`%cBit ccl ${arch.bit_ccl} ${ccl}`, 'color:red')
 console.log (`%cBit ccL ${arch.bit_ccL} ${ccL}`, 'color:red')
 */
 
-export function showCC (c) {
-    com.mode.devlog (`showCC ${c}`);
-    return (extractBoolLE (c,bit_ccs) ? 's' : '')
-	+ (extractBoolLE (c,bit_ccS) ? 'S' : '')
-	+ (extractBoolLE (c,bit_ccC) ? 'C' : '')
-	+ (extractBoolLE (c,bit_ccV) ? 'V' : '')
-	+ (extractBoolLE (c,bit_ccv) ? 'v' : '')
-	+ (extractBoolLE (c,bit_ccl) ? '&lt;' : '')
-	+ (extractBoolLE (c,bit_ccL) ? 'L' : '')
-	+ (extractBoolLE (c,bit_ccE) ? '=' : '')
-	+ (extractBoolLE (c,bit_ccG) ? 'G' : '')
-	+ (extractBoolLE (c,bit_ccg) ? '>' : '')
-}
+// export const emptyOperation = {ifmt:iEmpty, afmt:a0, opcode:[]}
 
-export const clearIntEnable = maskToClearBitBE (intEnableBit);
-export const setSystemState = maskToClearBitBE (userStateBit);
-
-console.log ("%cFinished reading architecture", 'color:red')

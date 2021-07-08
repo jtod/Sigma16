@@ -3064,6 +3064,10 @@ window.testEmCore = testEmCore
 // functions to be defined, so they are performed after all the
 // modules have been loaded.
 
+function foo (x,y) {
+    console.log (`foo ${x} ${arith.wordToHex4(y)}`)
+}
+
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
     com.mode.trace = false;
@@ -3071,4 +3075,15 @@ window.onload = function () {
     com.mode.devlog ('System is now running')
 //    initEmCore ()
     enableDevTools ()
+
+    foo ('ccg', arch.ccg)
+    foo ('ccG', arch.ccG)
+    foo ('ccE', arch.ccE)
+    foo ('ccL', arch.ccL)
+    foo ('ccl', arch.ccl)
+    foo ('ccv', arch.ccv)
+    foo ('ccV', arch.ccV)
+    foo ('ccC', arch.ccC)
+    foo ('ccS', arch.ccS)
+    foo ('ccs', arch.ccs)
 }

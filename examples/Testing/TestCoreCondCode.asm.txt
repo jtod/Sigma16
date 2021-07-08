@@ -1,147 +1,85 @@
 ; TestCoreCondCode: test instructions that set the condition code
 ; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
 
-; Condition code flags are defined in architecture.mjs
+; Condition code flags are defined in architecture.mjs.  Each flag has
+; a symbolic name used in the implementation, and a display name used
+; in the "instruction decode" panel on the emulator GUI.  The usual
+; relations < = > are used for integers (binary representation) ,
+; while L = G are used for natural numbers (two's complement
+; representation).  The code display characters are sSCVv<L=G>
 
-; Each flag has a symbolic name used in the implementation, and a
-; display name used in the "instruction decode" panel on the emulator
-; GUI.  The usual relations < = > are used for integers (binary
-; representation) , while L = G are used for natural numbers (two's
-; complement representation).
-
-; index code  display   type and relation
+; index  val  code  display   type and relation
 ;----------------------------------------------
-; bit 0   g      >        int >
-; bit 1   G      G        nat >
-; bit 2   E      =        nat,int =
-; bit 3   L      L        nat <
-; bit 4   l      <        int <
-; bit 5   v      v        int overflow
-; bit 6   V      V        int overflow
-; bit 7   C      C        bin carry out, carry in (addc)
-; bit 8   S      S        bin carry out, carry in (addc)
-; bit 9   s      s        bin carry out, carry in (addc)
-
-; The code display characters are sSCVv <L=G>
-; CC bit index definitions:
-; export const bit_ccg = 0   //  >  greater than integer (two's complement)
-; export const bit_ccG = 1   //  G  greater than natural (binary)
-; export const bit_ccE = 2   //  =  equal all types
-; export const bit_ccL = 3   //  L  less than natural (binary)
-; export const bit_ccl = 4   //  <  less than integer (two's complement)
-
-; export const bit_ccv = 5   //  v  overflow integer (two's complement)
-; export const bit_ccV = 6   //  V  overflow natural (binary)
-; export const bit_ccC = 7   //  C  carry propagation natural (binary)
-; export const bit_ccS = 8;  //  S  stack overflow
-; export const bit_ccs = 9;  //  s  stack underflow
+; bit 0  0001  g      >        int >
+; bit 1  0002  G      G        nat >
+; bit 2  0004  E      =        nat,int =
+; bit 3  0008  L      L        nat <
+; bit 4  0010  l      <        int <
+; bit 5  0020  v      v        int overflow
+; bit 6  0040  V      V        int overflow
+; bit 7  0080  C      C        bin carry out, carry in (addc)
+; bit 8  0100  S      S        bin carry out, carry in (addc)
+; bit 9  0200  s      s        bin carry out, carry in (addc)
 
 ; Test data
       lea   R1,3[R0]    ; 0003  R1 := 3
       lea   R2,5[R0]    ; 0005  R2 := 5
-      lea   R3,-3[R0]   ; fffd  R3 := -2
+      lea   R3,-3[R0]   ; fffd  R3 := -3
       lea   R4,-7[R0]   ; fff9  R4 := -7
 
 ; Compare two positives
-      cmp    R1,R2      ; 0018  <L  lt signed, lt unsigned
-      cmp    R2,R1      ; 0003  G>  gt signed, gt unsigned
+      cmp    R1,R2      ; R15 = 0018 <L
+      cmp    R2,R1      ; R15 = 0003 >G
+      cmp    R2,R3      ; R15 = 0009 >L actually 000a LG ???????????
+      cmp    R3,R2      ; R15 = 0012 <G actually 0011 <>
 
 ; Compare positive and negative
-      cmp    R2,R3      ; 0009  L>  gt signed, lt unsigned
-      cmp    R3,R2      ; 0012  <G  lt signed, gt unsigned
+      cmp    R2,R3      ; R15 = 0009 L> actually 000a LG
+      cmp    R3,R2      ; R15 = 0012 <G actually 0012 <>
 
 ; Compare two negatives
-      cmp    R3,R4      ; 0003  G>  gt signed, gt unsigned
-      cmp    R4,R3      ; 0018  <L  lt signed, lt unsigned
+      cmp    R3,R4      ; R15 = 0003 G>
+      cmp    R4,R3      ; R15 = 0018 <L
 
 ; Addition
-      add    R5,R1,R2   ; 0001  >   8 is positive
-      add    R5,R2,R4   ; 0010  <   -2 is negative
-      add    R5,R1,R3   ; 0002  -   0 is zero
+      add    R5,R1,R2   ; R15 = 0001 >   8 is positive
+      add    R5,R2,R4   ; R15 = 0010 <   -2 is negative
+      add    R5,R1,R3   ; R15 = 0002 -   0 is zero
+
+; More test data
 
       lea     R1,-30000[R0]    ; R1 = I: -30000   N: 8ad0
       lea     R2,-2[R0]        ; R2 = I:     -2   N: fffe
       lea     R3,13[R0]        ; R3 = I:     13   N: 000d
       lea     R4,28749[R0]     ; R4 = I:  28749   N: 704d
 
-      cmp     R0,R0     ; =
-      cmp     R0,R1     ; > L
-      cmp     R0,R2     ; > L
-      cmp     R0,R3     ; < L
-      cmp     R0,R4     ; < L
+      cmp     R0,R0     ; R15 = 0004  =
+      cmp     R0,R1     ; R15 = 0009  > L
+      cmp     R0,R2     ; R15 = 0009  > L
+      cmp     R0,R3     ; R15 = 0018  < L
+      cmp     R0,R4     ; R15 = 0018  < L
 
-      cmp     R1,R0     ; < G
-      cmp     R1,R1     ; =
-      cmp     R1,R2     ; < L
-      cmp     R1,R3     ; < G
-      cmp     R1,R4     ; < G
-      cmp     R2,R0     ; < G
-      cmp     R2,R1     ; > G
-      cmp     R2,R2     ; =
-      cmp     R2,R3     ; < G
-      cmp     R2,R4     ; < G
+      cmp     R1,R0     ; R15 = 0012  < G
+      cmp     R1,R1     ; R15 = 0004  =
+      cmp     R1,R2     ; R15 = 0018  < L
+      cmp     R1,R3     ; R15 = 0012  < G
+      cmp     R1,R4     ; R15 = 0012  < G
+      cmp     R2,R0     ; R15 = 0012  < G
+      cmp     R2,R1     ; R15 = 0003  > G
+      cmp     R2,R2     ; R15 = 0004  =
+      cmp     R2,R3     ; R15 = 0012  < G
+      cmp     R2,R4     ; R15 = 0012  < G
 
-      cmp     R3,R0     ; > G
-      cmp     R3,R1     ; > L
-      cmp     R3,R2     ; > L
-      cmp     R3,R3     ; =
-      cmp     R3,R4     ; < L
+      cmp     R3,R0     ; R15 = 0003  > G
+      cmp     R3,R1     ; R15 = 0009  > L
+      cmp     R3,R2     ; R15 = 0009  > L
+      cmp     R3,R3     ; R15 = 0004  =
+      cmp     R3,R4     ; R15 = 0018  < L
 
-      cmp     R4,R0     ; > G
-      cmp     R4,R1     ; > L
-      cmp     R4,R2     ; > L
-      cmp     R4,R3     ; > G
-      cmp     R4,R4     ; =
-
-; Test data
-      lea   R1,3[R0]    ; R1 := 3
-      lea   R2,5[R0]    ; R2 := 5
-
-; Compare two positives
-      cmp    R1,R2      ; 0018 <L   lt signed, lt unsigned
-      cmp    R2,R1      ; 0003 >G   gt signed, gt unsigned
-      cmp    R2,R3      ; < signed, < unsigned   (Ll)    4,3     0018
-      cmp    R3,R2      ; > signed, > unsigned   (gG)    1,0     0003
-
-; Compare two negatives
-; Compare positive and negative
-
-
-      lea     R1,-30000[R0]    ; R1 = I: -30000   N: 8ad0
-      lea     R2,-2[R0]        ; R2 = I:     -2   N: fffe
-      lea     R3,13[R0]        ; R3 = I:     13   N: 000d
-      lea     R4,28749[R0]     ; R4 = I:  28749   N: 704d
-
-
-      cmp     R0,R0     ; =
-      cmp     R0,R1     ; > L
-      cmp     R0,R2     ; > L
-      cmp     R0,R3     ; < L
-      cmp     R0,R4     ; < L
-
-      cmp     R1,R0     ; < G
-      cmp     R1,R1     ; =
-      cmp     R1,R2     ; < L
-      cmp     R1,R3     ; < G
-      cmp     R1,R4     ; < G
-
-      cmp     R2,R0     ; < G
-      cmp     R2,R1     ; > G
-      cmp     R2,R2     ; =
-      cmp     R2,R3     ; < G
-      cmp     R2,R4     ; < G
-
-      cmp     R3,R0     ; > G
-      cmp     R3,R1     ; > L
-      cmp     R3,R2     ; > L
-      cmp     R3,R3     ; =
-      cmp     R3,R4     ; < L
-
-      cmp     R4,R0     ; > G
-      cmp     R4,R1     ; > L
-      cmp     R4,R2     ; > L
-      cmp     R4,R3     ; > G
-      cmp     R4,R4     ; =
-
+      cmp     R4,R0     ; R15 = 0003  > G
+      cmp     R4,R1     ; R15 = 0009  > L
+      cmp     R4,R2     ; R15 = 0009  > L
+      cmp     R4,R3     ; R15 = 0003  > G
+      cmp     R4,R4     ; R15 = 0004  =
 
       trap    R0,R0,R0
