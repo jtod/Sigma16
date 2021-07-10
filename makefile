@@ -114,21 +114,16 @@ showconfig:
 # defines a make variable $(VERSION).  This is used in several places,
 # including writing a VERSION file in the top directory (used in the
 # Welcome page and the User Guide) and src/gui/version.js (which makes
-# the version number available to the JavaScript program).
-
-VERSION.txt : src/package.json
-	echo "Version $(VERSION), $(MONTHYEAR).\
-	  Copyright (c) $(YEAR) John T. O'Donnell.  " \
-	  > VERSION.txt
-
-src/base/version.mjs : src/package.json
-	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
+# the version number available to the JavaScript program).  make
+# setVersion should be invoked when the version or the Month/Year
+# changes.
 
 .PHONY: setVersion
 setVersion:
-	make VERSION.txt
-	make src/base/version.mjs
+	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
+	echo "Version $(VERSION), $(MONTHYEAR)." > VERSION.txt
 
+#	  Copyright (c) $(YEAR) John T. O'Donnell.  " \
 
 #-------------------------------------------------------------------------------
 # make assemble

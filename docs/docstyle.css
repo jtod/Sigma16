@@ -295,3 +295,6 @@ div.AsideNote > asidepar {
     margin-bottom: 0em;
 }
 
+table.wordlayout {
+    border: 1px solid black;
+}

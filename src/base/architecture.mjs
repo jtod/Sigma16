@@ -19,14 +19,10 @@
 // formats, opcodes, mnemonics, and flag bits
 // -----------------------------------------------------------------------------
 
-console.log ("%cStart reading architecture", 'color:red')
-
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 
-export const memSize = 65536; // number of memory locations = 2^16
-export const S16 = Symbol ('S16')
-export const S32 = Symbol ('S32')
+
 
 //------------------------------------------------------------------------------
 // Bit indexing
@@ -51,10 +47,12 @@ export const S32 = Symbol ('S32')
 // if Big End indexing is used, but not with Little End indexing.
 
 // Get bit i from k-bit word w
+
 export function getBitInWordLE (w,i)   { return (w >>> i)     & 0x0001 }
 export function getBitInWordBE (k,w,i) { return (w >>> (k-i)) & 0x0001 }
 
 // Put bit b into word x in bit position i
+
 export function putBitInWordLE (k,x,i,b) {
     return b==0 ? x & maskToClearBitLE(i)   : x | maskToSetBitLE(i)
 }
@@ -63,12 +61,14 @@ export function putBitInWordBE (k,x,i,b) {
 }
 
 // Generate mask to clear/set bit i in a k-bit word
+
 export function maskToClearBitLE (i)   { return ~(1<<i)      & 0xffff }
 export function maskToSetBitLE   (i)   { return (1 << i)     & 0xffff }
 export function maskToClearBitBE (k,i) { return ~(1<<(k-i))  & 0xffff }
 export function maskToSetBitBE   (k,i) { return (1 << (k-i)) & 0xffff }
 
 // Access bit i in register r with k-bit words
+
 export function getBitInRegLE   (r,i)   { return (r.get() >>> i) & 0x0001 }
 export function clearBitInRegLE (r,i)   { r.put (r.get() & maskToClearBitLE(i)) }
 export function setBitInRegLE   (r,i)   { r.put (r.get() | maskToSetBitLE(i)) }
@@ -77,30 +77,41 @@ export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(k,i)
 export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) }
 
 // Return Boolean from bit i in word x
+
 export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
 
 //-----------------------------------------------------------------------------
-// Instruction formats
+// Architecture constants
 //-----------------------------------------------------------------------------
+
+// Should make memSize adjustable in settings, with default = 65536
+
+export const memSize = 65536; // number of memory locations = 2^16
+
+// Sigma16 has a standard 16-bit architecture S16, and an extended
+// architecture S32 that has 32-bit registers and addresses
+
+export const S16 = Symbol ('S16')
+export const S32 = Symbol ('S32')
+
+// Instruction formats
 
 export const iRRR     = Symbol ("RRR");
 export const iRX      = Symbol ("RX");
-export const iEXP1    = Symbol ("EXP1");
 export const iEXP2    = Symbol ("EXP2");
+export const iEXP3    = Symbol ("EXP3");
 
-export const iData    = Symbol ("data");
-export const iDir     = Symbol ("iDir");
-export const iEmpty   = Symbol ("iEmpty");
+// Return the size of an instruction given its format
 
-// Return the size of instruction in given format
 export function formatSize (ifmt) {
-    return (ifmt==iRRR || ifmt==iEXP1) ? 1
+    return ifmt==iRRR  ? 1
         : (ifmt==iRX || ifmt==iEXP2) ? 2
+        : ifmt==iEXP3 ? 3
         : 0
 }
 
 //-----------------------------------------------------------------------------
-// Assembly language statement formats
+// Assembly language statements
 //-----------------------------------------------------------------------------
 
 // Statement formats include directives as well as syntax for
@@ -108,6 +119,10 @@ export function formatSize (ifmt) {
 // register, X is an index-isplacement address, k is a constant.  The
 // statement formats allow "don't care" fields to be omitted, and
 // fields to be used for either register numbers or constants.
+
+export const iData    = Symbol ("data");
+export const iDir     = Symbol ("iDir");
+export const iEmpty   = Symbol ("iEmpty");
 
 export const a0       = Symbol ("");         // resume
 export const aRR      = Symbol ("RR");       // cmp      R1,R2
@@ -117,6 +132,7 @@ export const aX       = Symbol ("JX");       // jump     loop[R0]
 export const aRX      = Symbol ("RX");       // load     R1,xyz[R2]
 export const akX      = Symbol ("KX");       // jumpc0   3,next[R0]
 export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
+export const aRkk     = Symbol ("Rkk");  // field    R1,3,12  ?? should be RRkk
 export const aRkkkk   = Symbol ("Rkkkk");    // logicb   R1,3,8,2,xor
 export const aRkkk    = Symbol ("Rkkk");     // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");     // logicw   R1,R2,R3,xor
@@ -131,41 +147,38 @@ export const aOrg     = Symbol ("org");      // org      arr+5
 export const aEqu     = Symbol ("equ");      // equ      rcd+4
 export const aBlock   = Symbol ("block");    // block    100
 
-// ??
-export const aRkk     = Symbol ("Rkk");  // field    R1,3,12  ?? should be RRkk
-
-// export const aEmpty   = Symbol ("aEmpty");
-
 //-----------------------------------------------------------------------------
 // Instruction mnemonics
 //-----------------------------------------------------------------------------
 
-// These arrays can be indexed by opcode to give corresponding mnemonic
+// These arrays are indexed by an opcode to give the corresponding
+// mnemonic
 
 export const mnemonicRRR =
   ["add",      "sub",      "mul",       "div",       // 0-3
-   "cmp",      "addd",     "subd",      "muld",      // 4-7
-   "divd",     "cmpd",     "trap",      "nop",       // 8-b
-   "nop",      "EXP3",     "EXP2",      "RX"];       // c-f
+   "cmp",      "trap",     "addc,       "muln",      // 4-7
+   "divn",     "push",     "pop,        "top",       // 8-11
+   "noprrr",   "EXP3",     "EXP2,       "RX",        // 12-15
 
 export const mnemonicRX =
-  ["lea",      "load",     "store",    "jump",      // 0-3
-   "jumpc0",   "jumpc1",   "brc0",     "brc1",      // 4-7
-   "jumpz",    "jumpnz",   "jal",      "testset",   // 8-b
-   "lead",     "loadd",    "stored",   "nop"];      // c-f
-
-export const mnemonicEXP1 = ["resume"];
+  ["lea",      "load",     "store",     "jump",      // 0-3
+   "jumpc0",   "jumpc1",   "jal",       "jumpz",
+   "jumpnz",   "brc0",     "brc1"       "testset",   // 8-b
+   "leal",     "loadl",    "storel",    "noprx"];      // c-f
 
 export const mnemonicEXP2 =
     ["addc",     "muln",     "divn",     "push",       // 00-03
      "pop",      "top",      "save",     "restore",    // 04-07
      "shiftl",   "shiftr",   "logicw",  "logicb",     // 08-0b
      "extract",  "extracti", "getctl",   "putctl",     // 0c-0f
-     "addcd",    "adde",      "sube",      "mule",       // 10-13
-     "dive",     "cmpe",     "pushd",    "popd",
-     "topd",     "saved",    "restored", "shiftld",
-     "shiftrd",  "logicwd",  "logicbd",  "extractd",
-     "extractid", "execute", "dispatch"]
+     "addcl",    "adde",      "sube",      "mule",       // 10-13
+     "dive",     "cmpe",     "pushl",    "popl",
+     "topl",     "savel",    "restorel", "shiftll",
+     "shiftrl",  "logicwl",  "logicbl",  "extractl",
+     "extractil", "execute", "dispatch",  "resume"]
+
+export const mnemonicEXP3 =
+  ["shiftll", "shiftrl"]
 
 //-------------------------------------
 // Mnemonics for control registers
@@ -369,9 +382,9 @@ statementSpec.set("jumpnz",  {ifmt:iRX, afmt:aRX, opcode:[15,8]})
 statementSpec.set("brc0",    {ifmt:iRX, afmt:akX, opcode:[15,9]})
 statementSpec.set("brc1",    {ifmt:iRX, afmt:akX, opcode:[15,10]})
 statementSpec.set("testset", {ifmt:iRX, afmt:aRX, opcode:[15,11]})
-statementSpec.set("lead",    {ifmt:iRX, afmt:aRX, opcode:[15,12]})
-statementSpec.set("loadd",   {ifmt:iRX, afmt:aRX, opcode:[15,13]})
-statementSpec.set("stored",  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
+statementSpec.set("leal",    {ifmt:iRX, afmt:aRX, opcode:[15,12]})
+statementSpec.set("loadl",   {ifmt:iRX, afmt:aRX, opcode:[15,13]})
+statementSpec.set("storel",  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
 
 // EXP1 instructions are represented in 1 word, with primary opcode e
 // and an 8-bit secondary opcode in the ab field.  The secondary
@@ -394,20 +407,17 @@ statementSpec.set("extract",  {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,13]})
 statementSpec.set("extracti", {ifmt:iEXP2, afmt:aRkkRk, opcode:[14,14]})
 statementSpec.set("getctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,15]})
 statementSpec.set("putctl",   {ifmt:iEXP2, afmt:aRC,    opcode:[14,16]})
-statementSpec.set("addd",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,17]})
-statementSpec.set("subd",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,18]})
-statementSpec.set("muld",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,19]})
-statementSpec.set("divd",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,20]})
-statementSpec.set("cmpd",     {ifmt:iEXP2,  afmt:aRR,  h opcode:[14,21]})
-
-// statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,  opcode:[14,12]});
+statementSpec.set("addl",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,17]})
+statementSpec.set("subl",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,18]})
+statementSpec.set("mull",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,19]})
+statementSpec.set("divl",     {ifmt:iEXP2,  afmt:aRRR,  opcode:[14,20]})
+statementSpec.set("cmpl",     {ifmt:iEXP2,  afmt:aRR,   opcode:[14,21]})
 
 // EXP3 instructions are represented in 3 words, with primary opcode d
 // and an 8-bit secondary opcode in the ab field.
 
-statementSpec.set("shiftld", {ifmt:iEXP3, afmt:aRRk, opcode:[13,0]})
-statementSpec.set("shiftrd", {ifmt:iEXP3, afmt:aRRk, opcode:[13,1]})
-
+statementSpec.set("shiftll", {ifmt:iEXP3, afmt:aRRk, opcode:[13,0]})
+statementSpec.set("shiftrl", {ifmt:iEXP3, afmt:aRRk, opcode:[13,1]})
 
 // Assembler directives
 
@@ -419,6 +429,9 @@ statementSpec.set("org",      {ifmt:iDir,  afmt:aOrg,    opcode:[]})
 statementSpec.set("equ",      {ifmt:iDir,  afmt:aEqu,    opcode:[]})
 statementSpec.set("block",    {ifmt:iDir,  afmt:aBlock,  opcode:[]})
 
+// Possible additional instructions...
+// statementSpec.set("execute",  {ifmt:iEXP2, afmt:aRR,  opcode:[14,12]});
+
 // -------------------------------------
 // Pseudoinstructions
 // -------------------------------------
@@ -429,12 +442,12 @@ statementSpec.set("block",    {ifmt:iDir,  afmt:aBlock,  opcode:[]})
 // doesn't require d field in assembly language, but the machine
 // language uses d=R0.
 
-// Mnemonics for jumpc0 based on signed comparisons, overflow, carry
+// Pseudoinstructions that generate jumpc0
 
-statementSpec.set("jumple",  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccg],         
-                              pseudo:true});
-statementSpec.set("jumpne",  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccE],
-                              pseudo:true});
+statementSpec.set("jumple",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccg],   pseudo:true})
+statementSpec.set("jumpne",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccE],   pseudo:true});
 statementSpec.set("jumpge",  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccl],
                               pseudo:true});
 statementSpec.set("jumpnv",  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccv],
@@ -442,7 +455,7 @@ statementSpec.set("jumpnv",  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccv],
 statementSpec.set("jumpnco", {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccC],
                               pseudo:true});
 
-// Mnemonics for jumpc1 based on signed comparisons
+// Pseudoinstructions that generate jumpc1
 
 statementSpec.set("jumplt",  {ifmt:iRX,  afmt:aX,  opcode:[15,6,bit_ccl],
                               pseudo:true});

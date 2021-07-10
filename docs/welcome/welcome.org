@@ -7,7 +7,6 @@
 #+END_EXPORT
 
 #+INCLUDE: "../../VERSION.txt" export html
-#+INCLUDE: "../../LATESTVERSION.txt" export html
 
 ** Overview
 
