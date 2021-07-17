@@ -787,6 +787,7 @@ function parseLabel (ma,s) {
 function parseOperation (ma,s) {
     let op = s.fieldOperation;
     com.mode.devlog (`parseOperation line ${s.lineNumber} op=${op}`);
+    console.log (`parseOperation line ${s.lineNumber} op=${op}`);
     if (op !== '') {
 	let x = arch.statementSpec.get(op);
 	if (x) {
@@ -1513,8 +1514,12 @@ function emitExports (ma) {
 }
 
 function showOperation (op) {
+    if (op) {
     return `ifmt=${op.ifmt.description} afmt=${op.afmt.description}`
-    + `opcode=${op.opcode} pseudo=${op.pseudo}`;
+            + `opcode=${op.opcode} pseudo=${op.pseudo}`;
+    } else {
+        return "unknown op"
+    }
 }
 
 // ----------------------------------------------------------------------

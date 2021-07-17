@@ -155,16 +155,16 @@ export const aBlock   = Symbol ("block");    // block    100
 // mnemonic
 
 export const mnemonicRRR =
-  ["add",      "sub",      "mul",       "div",       // 0-3
-   "cmp",      "trap",     "addc,       "muln",      // 4-7
-   "divn",     "push",     "pop,        "top",       // 8-11
-   "noprrr",   "EXP3",     "EXP2,       "RX",        // 12-15
+  ["add",      "sub",      "mul",       "div",        // 0-3
+   "cmp",      "trap",     "addc",      "muln",       // 4-7
+   "divn",     "push",     "pop",       "top",        // 8-11
+   "noprrr",   "EXP3",     "EXP2",      "RX"]         // 12-15
 
 export const mnemonicRX =
-  ["lea",      "load",     "store",     "jump",      // 0-3
+  ["lea",      "load",     "store",     "jump",       // 0-3
    "jumpc0",   "jumpc1",   "jal",       "jumpz",
-   "jumpnz",   "brc0",     "brc1"       "testset",   // 8-b
-   "leal",     "loadl",    "storel",    "noprx"];      // c-f
+   "jumpnz",   "brc0",     "brc1",      "testset",    // 8-b
+   "leal",     "loadl",    "storel",    "noprx"]      // c-f
 
 export const mnemonicEXP2 =
     ["addc",     "muln",     "divn",     "push",       // 00-03
@@ -389,14 +389,14 @@ statementSpec.set("storel",  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
 // EXP1 instructions are represented in 1 word, with primary opcode e
 // and an 8-bit secondary opcode in the ab field.  The secondary
 // opcode ab is between 0 and 7.  (If 8 <= ab then the instruction is
-// EXP2 format.)
+// EXP2 format.)  [Considering abandoning EXP1; no harm in wasting a
+// word by using EXP2 for the resume instruction.]
    
-statementSpec.set("resume",   {ifmt:iEXP1, afmt:a0,   opcode:[14,0]});
-
 // EXP2 instructions are represented in 2 words, with primary opcode e
 // and an 8-bit secondary opcode in the ab field, where ab >= 8.  (If
 // 0 <= ab <8 then the instruction is EXP1 format.)
 
+statementSpec.set("resume",   {ifmt:iEXP2, afmt:a0,     opcode:[14,0]});
 statementSpec.set("save",     {ifmt:iEXP2, afmt:aRRX,   opcode:[14,7]})
 statementSpec.set("restore",  {ifmt:iEXP2, afmt:aRRX,   opcode:[14,8]})
 statementSpec.set("shiftl",   {ifmt:iEXP2, afmt:aRRk,   opcode:[14,9]})
