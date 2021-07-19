@@ -316,9 +316,7 @@ function evaluate (ma, s, a, x) {
         result = Zero.copy(); // new Value (0, Local, Fixed);
     }
 //    com.mode.devlog (`evaluate received expression ${x}`)
-    com.mode.trace = true;
     com.mode.devlog (`evaluate ${x} returning (${result.toString()})`)
-    com.mode.trace = false;
     return result;
 }
 
@@ -744,13 +742,13 @@ function parseAsmLine (ma,i) {
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
     s.fieldOperation = p[3];
+    console.log (`parseAsmLine fieldOperation=${s.fieldOperation}`)
     s.fieldSpacesAfterOperation = p[4];
     s.fieldOperands = p[5];
     s.fieldComment = p[6];
     parseLabel (ma,s);
     parseOperation (ma,s);
     s.operands = s.fieldOperands.split(',');
-    com.mode.trace = true;
     com.mode.devlog (`ParseAsmLine ${s.lineNumber}`);
     com.mode.devlog (`  fieldLabel = ${s.hasLabel} /${s.fieldLabel}/`);
     com.mode.devlog (`  fieldOperation = /${s.fieldOperation}/`);
@@ -758,7 +756,6 @@ function parseAsmLine (ma,i) {
     com.mode.devlog (`  fieldOperands = /${s.fieldOperands}/`);
     com.mode.devlog (`  operands = ${s.operands}`);
     com.mode.devlog (`  fieldComment = /${s.fieldComment}/`);
-    com.mode.trace = false;
 }
 
 // Set hasLabel to true iff there is a syntactically valid label.  If
@@ -786,8 +783,7 @@ function parseLabel (ma,s) {
 
 function parseOperation (ma,s) {
     let op = s.fieldOperation;
-    com.mode.devlog (`parseOperation line ${s.lineNumber} op=${op}`);
-    console.log (`parseOperation line ${s.lineNumber} op=${op}`);
+    com.mode.devlog (`parseOperation line ${s.lineNumber} op=<${op}>`);
     if (op !== '') {
 	let x = arch.statementSpec.get(op);
 	if (x) {
@@ -847,7 +843,6 @@ function asmPass1 (ma) {
             mkErrMsg (ma,s, "(Word processors often insert invalid characters)");
         }
         parseAsmLine (ma,i);
-        com.mode.trace = true;
         com.mode.devlog (`Pass 1 ${i} /${s.srcLine}/`
                          + ` address=${s.address} codeSize=${s.codeSize}`);
         handleLabel (ma,s);
@@ -859,7 +854,6 @@ function asmPass1 (ma) {
 
 function handleLabel (ma,s) {
     if (s.hasLabel) {
-        com.mode.trace = true;
         com.mode.devlog (`ParseAsmLine label ${s.lineNumber} /${s.fieldLabel}/`);
 	if (ma.symbolTable.has(s.fieldLabel)) {
             mkErrMsg (ma, s, s.fieldLabel + ' has already been defined');
@@ -911,7 +905,6 @@ function updateLocationCounter (ma,s,i) {
             ma.locationCounter = addVal (ma, s, ma.locationCounter, s.codeSize);
             com.mode.devlog (`code ${i} ${ma.locationCounter.toString()}`);
         }
-        com.mode.trace = false;
     }
 
 function printAsmStmts (ma) {
@@ -1339,7 +1332,6 @@ function asmPass2 (ma) {
 
 // Data-Data            
         } else if (op.ifmt==arch.iData && op.afmt==arch.aData) {
-            com.mode.trace = true;
             com.mode.devlog (`Pass2 ${s.lineNumber} data`);
             let v = evaluate(ma,s,s.address,s.fieldOperands);
             com.mode.devlog (`data v = ${v.toString()}`);
@@ -1351,7 +1343,6 @@ function asmPass2 (ma) {
                 com.mode.devlog (`relocatable data`);
                 generateRelocation (ma, s, s.address.word);
             }
-            com.mode.trace = false;
 
 // Dir-Export            
         } else if (op.ifmt==arch.iDir && op.afmt==arch.aExport) {
@@ -1413,7 +1404,6 @@ function asmPass2 (ma) {
 // handleVal: Generate relocation or import if necessary
 
 function handleVal (ma, s, a, vsrc, v, field) {
-    com.mode.trace = true;
     com.mode.devlog (`handleVal ${a} /${vsrc}/ ${field.description}`);
     if (v.origin==Local && v.movability==Relocatable) {
         generateRelocation (ma, s, a);
@@ -1432,7 +1422,6 @@ function handleVal (ma, s, a, vsrc, v, field) {
             com.mode.devlog (`external symbol ${vsrc} undefined - impossible`);
         }
     }
-    com.mode.trace = false;
 }
 
 function fixHtmlSymbols (str) {
@@ -1493,7 +1482,6 @@ function emitImports (ma) {
 
 function emitExports (ma) {
     let x, y, sym, w, r;
-    com.mode.trace = true;
     com.mode.devlog ('emitExports' + ma.exports);
     while (ma.exports.length > 0) {
         x = ma.exports.splice(0,1);
@@ -1510,7 +1498,6 @@ function emitExports (ma) {
             mkErrMsg (ma, s, `export identifier ${y} is undefined`);
         }
     }
-    com.mode.trace = false;
 }
 
 function showOperation (op) {

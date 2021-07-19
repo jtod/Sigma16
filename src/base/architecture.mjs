@@ -120,9 +120,9 @@ export function formatSize (ifmt) {
 // statement formats allow "don't care" fields to be omitted, and
 // fields to be used for either register numbers or constants.
 
-export const iData    = Symbol ("data");
-export const iDir     = Symbol ("iDir");
-export const iEmpty   = Symbol ("iEmpty");
+export const iData    = Symbol ("data")
+export const iDir     = Symbol ("iDir")
+export const iEmpty   = Symbol ("iEmpty")
 
 export const a0       = Symbol ("");         // resume
 export const aRR      = Symbol ("RR");       // cmp      R1,R2
@@ -345,7 +345,8 @@ export const zDivBit             = 6;   // division by 0
 // the instruction format, the assembly language statement format, and
 // the opcode, which isrepresented as a list of expanding opcodes.
 
-export let statementSpec = new Map();
+export let statementSpec = new Map()
+export const emptyOperation = {ifmt:iEmpty, afmt:a0, opcode:[]}
 
 // Primary opcodes (in the op field) of 0-11 denote RRR instructions.
 
@@ -515,5 +516,4 @@ console.log (`%cBit ccl ${arch.bit_ccl} ${ccl}`, 'color:red')
 console.log (`%cBit ccL ${arch.bit_ccL} ${ccL}`, 'color:red')
 */
 
-// export const emptyOperation = {ifmt:iEmpty, afmt:a0, opcode:[]}
 
