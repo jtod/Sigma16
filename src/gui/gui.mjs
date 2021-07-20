@@ -2201,7 +2201,8 @@ function procRun () {
             ab.writeSCB (es, ab.SCB_status, ab.SCB_running_gui)
             
             es.initRunDisplay (es)
-            em.mainThreadLooper (es)
+ //            em.mainThreadLooper (es)
+            em.mainRun (es)
             break
         case com.ES_worker_thread:
             console.log ("procRun starting in worker thread")

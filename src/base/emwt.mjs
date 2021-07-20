@@ -73,14 +73,10 @@ self.addEventListener ("message", e => {
         case 102: // emwt run
             console.log (`emwt: received request run`)
             emwt.es.copyable = e.data.payload
-            console.log (`emwt about to run...`)
-            console.log (`emwt about to show copyable...`)
             em.showCopyable (emwt.es.copyable)
-            console.log (`emwt finished show copyable`)
-            result = doRun ()
-            //            msg = {code: 202, payload: result}
+            doRun ()
             msg = {code: 202, payload: emwt.es.copyable}
-            console.log (`emwt about to return from run...`)
+            console.log (`emwt returning from run...`)
             em.showCopyable (emwt.es.copyable)
             self.postMessage (msg)
             break
@@ -187,12 +183,6 @@ class genregister {
 //        this.elt.innerHTML = xs
     }
 }
- 
-//-----------------------------------------------------------------------------
-// Memory
-//-----------------------------------------------------------------------------
-
-// use em.memFetchInstr etc
 
 //-----------------------------------------------------------------------------
 // Test
@@ -283,25 +273,28 @@ function doStep () {
 }
 
 function doRun () {
-    console.log ("emwt doRun")
     const es = emwt.es
-    em.initRegHighlighting (emwt.es)
-    em.clearRegLogging (emwt.es)
-    em.clearMemLogging (emwt.es)
+    em.initRegHighlighting (es)
+    em.clearRegLogging (es)
+    em.clearMemLogging (es)
+    es.sliceUnlimited = true
+    emwtLooper (es)
+}
+
+function emwtLooper (es) {
+    console.log ("instruction looper starting")
     let icount = 0
+    let countOK = true
     let status = 0
     let pauseReq = false
     let continueRunning = true
     let finished = false
     let externalBreak = false
     while (continueRunning) {
-//        em.clearRegLogging (emwt.es) executeInstruction does this now
-        //        em.clearMemLogging (emwt.es)
-        console.log ('%cemwt about to execute instruction', 'color: red')
-        em.executeInstruction (emwt.es)
-        //        emwt.es.vec32[0] = emwt.es.vec32[0] + 1
-        status = ab.readSCB (emwt.es, ab.SCB_status)
-        console.log (`emwt looper status=${status}`)
+        em.executeInstruction (es)
+        icount++
+        status = ab.readSCB (es, ab.SCB_status)
+        com.mode.devlog (`looper after instruction, status=${status}`)
         switch (status) {
         case ab.SCB_halted:
         case ab.SCB_paused:
@@ -311,109 +304,22 @@ function doRun () {
             break
         default:
         }
-        console.log ('emwt checking externalBreak')
-        externalBreak = emwt.es.pc.get() === emwt.es.copyable.breakPCvalue
+        externalBreak = es.copyable.breakEnabled
+            && (es.pc.get() === es.copyable.breakPCvalue)
         if (externalBreak) finished = true
-
-//        console.log (`emwt after exec checkbreak: pc=${es.pc.get()}`
-//                     + ` bEN=${es.copyable.breakEnabled}`
-//                     + ` bPC=${es.copyable.breakPCvalue}`
-//                     + ` eb=${externalBreak}`)
-
-        pauseReq = ab.readSCB (emwt.es, ab.SCB_pause_request) != 0
-        continueRunning = !finished  && !pauseReq
+        pauseReq = ab.readSCB (es, ab.SCB_pause_request) != 0
+        countOK = es.sliceUnlimited || icount < es.emInstrSliceSize
+        continueRunning = !finished  && !pauseReq && countOK
     }
-    console.log ('emwt exited main looper')
+    com.mode.devlog ('discontinue instruction looper')
     if (pauseReq && status != ab.SCB_halted) {
-        ab.writeSCB (emwt.es, ab.SCB_status, ab.SCB_paused)
-        ab.writeSCB (emwt.es, ab.SCB_pause_request, 0)
+        com.mode.devlog ("pausing execution")
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_paused)
+        ab.writeSCB (es, ab.SCB_pause_request, 0)
     } else if (externalBreak) {
-        console.log (`external breakpoint`)
-        ab.writeSCB (emwt.es, ab.SCB_status, ab.SCB_break)
+        console.log ("Stopping at breakpoint")
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_break)
     }
-    
-    return icount
 }
-        
-console.log (`%cread emwt ccL=${arch.bit_ccL} expect 3`, 'color:red')
+
 console.log ("%cemwthread has been read", 'color:red')
-
-
-// Deprecated
-
-/*
-Use the same code imported from emulator...
-function initializeMachineState () {
-     console.log ("emulator: initializeMachineState");
-//     initializeProcessorElements ();  // so far, it's just instr decode
-//     clearInstrDecode (emulatorState);
-
-    // Build the register file; sysStateVec index = reg number
-    for (let i = 0; i < 16; i++) {
-        let regname = 'R' + i; // also the id for element name
-        regFile[i] = new genregister (i, regname, regname, arith.wordToHex4)
-        register[i] = regFile[i]
-    }
-
-    // Instruction control registers
-    pc   = new genregister (0,  'pc',   'pcElt',    arith.wordToHex4);
-    ir   = new genregister (0,  'ir',   'irElt',    arith.wordToHex4);
-    adr  = new genregister (0,  'adr',  'adrElt',   arith.wordToHex4);
-    dat  = new genregister (0,  'dat',  'datElt',   arith.wordToHex4);
-    
-// Interrupt control registers
-    statusreg  = new genregister (0, 'statusreg', 'statusElt',  arith.wordToHex4);
-    // bit 0 (lsb) :  0 = User state, 1 = System state
-    // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
-    // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
-
-    mask  = new genregister (0, 'mask', 'maskElt',  arith.wordToHex4);
-    req   = new genregister (0, 'req',  'reqElt',   arith.wordToHex4);
-    // mask and request use the same bit positions for flags
-    // bit 0 (lsb)  overflow
-    // bit 1        divide by 0
-    // bit 2        trap 3
-    // bit 3        
-
-    istat    = new genregister (0, 'istat',  'istatElt',  arith.wordToHex4);
-    ipc      = new genregister (0, 'ipc',    'ipcElt',    arith.wordToHex4);
-    vect     = new genregister (0, 'vect',   'vectElt',   arith.wordToHex4);
-
-// Segment control registers
-    bpseg = new genregister (0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
-    epseg = new genregister (0, 'epseg',  'epsegElt',  arith.wordToHex4);
-    bdseg = new genregister (0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
-    edseg = new genregister (0, 'edseg',  'edsegElt',  arith.wordToHex4);
-
-// Record the control registers    
-    controlRegisters =
-	[pc, ir, adr, dat,   // not accessible to getctl/putctl instructions
-	 // the following can be used for getctl/getctl, indexing from 0
-	 statusreg, mask, req, istat, ipc, vect,
-         bpseg, epseg, bdseg, edseg
-	]
-
-//    memInitialize();
-//    resetRegisters();
-}
-*/
-
-/* old version
-function memFetchInstr (a) {
-//    memFetchInstrLog.push(a);
-    let x = sysStateVec [shm.EmMemOffset + a]
-    return x
-}
-
-function memFetchData (a) {
-//    memFetchDataLog.push(a);
-    let x = sysStateVec [shm.EmMemOffset + a]
-    return x
-}
-
-function memStore (a,x) {
-//    memStoreLog.push(a);
-//    instrEffect.push(["M", a, x]);
-    sysStateVec [shm.EmMemOffset + a] = x
-}
-*/

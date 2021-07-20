@@ -140,6 +140,7 @@ export class EmulatorState {
         this.startTime        = null
         this.eventTimer       = null  // returned by setInterval
         this.emInstrSliceSize = 500 // n instructions before looper yields
+        this.sliceUnlimited   = true // if false, looper enforces emInstrSliceSize
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false
@@ -575,22 +576,25 @@ export function showInstrDecode (es) {
 // system status before calling the looper; it's assumed that it is ok
 // to execute an instruction in the gui thread.
 
+export function mainRun (es) {
+    es.sliceUnlimited = false
+    instructionLooper (es)
+}
 
-export function mainThreadLooper (es) {
-    console.log ("em.mainThreadLooper starting")
+export function instructionLooper (es) {
+    console.log ("instruction looper starting")
     let icount = 0
+    let countOK = true
     let status = 0
     let pauseReq = false
     let continueRunning = true
     let finished = false
     let externalBreak = false
     while (continueRunning) {
-        console.log ('em main looper about to exinstr')
         executeInstruction (es)
-        console.log ('em main looper back from exinstr')
         icount++
         status = ab.readSCB (es, ab.SCB_status)
-        console.log (`em.mainThreadLooper status=${status}`)
+        com.mode.devlog (`looper after instruction, status=${status}`)
         switch (status) {
         case ab.SCB_halted:
         case ab.SCB_paused:
@@ -603,29 +607,24 @@ export function mainThreadLooper (es) {
         externalBreak = es.copyable.breakEnabled
             && (es.pc.get() === es.copyable.breakPCvalue)
         if (externalBreak) finished = true
-
-        com.mode.devlog (`em after exec checkbreak: pc=${es.pc.get()}`
-                     + ` bEN=${es.copyable.breakEnabled}`
-                     + ` bPC=${es.copyable.breakPCvalue}`
-                     + ` eb=${externalBreak}`)
-
         pauseReq = ab.readSCB (es, ab.SCB_pause_request) != 0
-        continueRunning = !finished  && !pauseReq && icount < es.emInstrSliceSize
+        countOK = es.sliceUnlimited || icount < es.emInstrSliceSize
+        continueRunning = !finished  && !pauseReq && countOK
     }
-    console.log (`%c em dropped out of continueRunning`, 'color: red')
+    com.mode.devlog ('discontinue instruction looper')
     if (pauseReq && status != ab.SCB_halted) {
-        com.mode.devlog ("main looper pausing")
+        com.mode.devlog ("pausing execution")
         ab.writeSCB (es, ab.SCB_status, ab.SCB_paused)
         ab.writeSCB (es, ab.SCB_pause_request, 0)
     } else if (externalBreak) {
-        console.log (`external breakpoint`)
+        console.log ("Stopping at breakpoint")
         ab.writeSCB (es, ab.SCB_status, ab.SCB_break)
     }
     if (finished) {
         es.endRunDisplay (es)
     } else {
         es.duringRunDisplay (es)
-	setTimeout (function () {mainThreadLooper (es)})
+	setTimeout (function () {instructionLooper (es)})
     }
 }
 
@@ -693,11 +692,11 @@ export function executeInstruction (es) {
     clearRegLogging (es)
     clearMemLogging (es)
     clearInstrDecode (es)
+    ab.writeSCB (es, ab.SCB_cur_instr_addr, es.pc.get())
     // Check for interrupt
     /*
     let mr = es.mask.get() & es.req.get() // ???
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
-    ab.writeSCB (es, ab.SCB_cur_instr_addr, es.pc.get())
     if (arith.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
         com.mode.devlog (`execute instruction: interrupt`)
@@ -1070,24 +1069,23 @@ const dispatch_primary_opcode =
         ab_dc (arith.op_mul),     // 2
         ab_dc (arith.op_div),     // 3
         ab_c  (arith.op_cmp),     // 4
-        ab_dc (arith.op_addd),    // 5
-        ab_dc (arith.op_subd),    // 6
-        ab_dc (arith.op_muld),    // 7
-        ab_dc (arith.op_divd),    // 8
-        ab_c  (arith.op_cmpd),    // 9
-        op_trap,                  // a  trap
-        ab_dc (arith.op_nop),     // b  reserved, currently nop
-        ab_dc (arith.op_nop),     // c  reserved, currently nop
-        ab_dc (arith.op_nop),     // d  escape to EXP3
-        handle_EXP,               // e  escape to EXP2
-        handle_rx ]               // f  escape to RX
+        op_trap,                  // 5
+        cab_dc (arith.op_addc),   // 6
+        cab_dc (arith.op_muln),   // 7
+        cab_dc (arith.op_divn),   // 8
+        op_push,                  // 9
+        op_pop,                   // a
+        op_top,                   // b
+        ab_dc (arith.op_nop),     // c reserved: nop
+        ab_dc (arith.op_nop),     // d escape to EXP3
+        handle_EXP,               // e escape to EXP2
+        handle_rx ]               // f escape to RX
 
-//        cab_dc (arith.op_addc),   // 4
-//        cab_dc (arith.op_muln),   // 5
-//        cab_dc (arith.op_divn),   // 6
-//        op_push,                  // 8
-//        op_pop,                   // 9
-//        op_top,                   // a
+//        ab_dc (arith.op_addd),    // 5
+//        ab_dc (arith.op_subd),    // 6
+//        ab_dc (arith.op_muld),    // 7
+//        ab_dc (arith.op_divd),    // 8
+//        ab_c  (arith.op_cmpd),    // 9
 
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
