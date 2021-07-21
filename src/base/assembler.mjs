@@ -477,6 +477,9 @@ export function setMetadata () {
 export function assembler (baseName, srcText) {
     const ai = new AsmInfo ();
     ai.text = srcText;
+    console.log ("assembler")
+    console.log ("assembler, srcText=...")
+    console.log (ai.text)
     let src2 = removeCR (srcText);
 //    let badlocs = validateChars (src2);
     ai.asmSrcLines = src2.split("\n");

@@ -30,15 +30,8 @@ Usage: node Sigma16.mjs <command> <argument> ... <argument>
   link ExeName ModName...   link the modules and produce executable
   parameters                display the parameters and file paths
 
-** linker: node Sigma16.mjs link <exe> <mod1> <mod2> ...
-  Reads object from <mod1>.obj.txt, ...     (required)
-  Reads metadata from <mod1>.md.txt, ...    (ok if they don't exist)
-  Writes executable to <exe>.obj.txt
-  Writes metadata to <exe>.md.txt
-  Writes linker listing to <exe>.lst.txt
-
-Assume "sigma16" is an alias for "node /path/to/Sigma16.mjs" (see
- Installation below)
+It's convenient to define "sigma16" as an alias for "node
+/path/to/Sigma16.mjs" (see Installation below)
 
   sigma16                   same as "sigma16 gui"
   sigma16 gui               launch gui, visit http://localhost:3000/
@@ -46,6 +39,13 @@ Assume "sigma16" is an alias for "node /path/to/Sigma16.mjs" (see
   sigma16 link foo m1 m2... read m1.obj.txt ..., write foo.obj.txt
   sigma16 parameters        display parameters and exit
   sigma16 test              for development only
+
+** linker: node Sigma16.mjs link <exe> <mod1> <mod2> ...
+  Reads object from <mod1>.obj.txt, ...     (required)
+  Reads metadata from <mod1>.md.txt, ...    (ok if they don't exist)
+  Writes executable to <exe>.obj.txt
+  Writes metadata to <exe>.md.txt
+  Writes linker listing to <exe>.lst.txt
 */
 
 //-----------------------------------------------------------------------------
@@ -119,8 +119,10 @@ function showParameters () {
 
 // Decide what operation is being requested, and do it
 function main  () {
+    console.log (`main: argv.length = ${process.argv.length}`)
     if (process.argv.length < 3 || command === "gui") {
-//        serv.main ()
+        console.log ("calling StartServer")
+        serv.StartServer ()
     } else if (command === "assemble") {
         assembleCLI (commandArg);
     } else if (command === "link") {
@@ -136,7 +138,6 @@ function main  () {
     }
 }
 
-
 //-----------------------------------------------------------------------------
 // Assembler
 //-----------------------------------------------------------------------------
@@ -148,28 +149,34 @@ function main  () {
 //   Writes listing to prog.lst.txt
 
 function assembleCLI () {
+    console.log ("assembleCLI")
     const baseName = process.argv[3]; // first command argument
-    const srcFileName = `${baseName}.asm.txt`;
-    const maybeSrc = readFile (srcFileName);
-    const mod = st.env.mkSelectModule (baseName);
-    const ma = new asm.AsmInfo (mod);
-    mod.asmInfo = ma;
-    ma.text = maybeSrc;
-    asm.assembler (ma);
-    if (ma.nAsmErrors === 0) {
-        let obj = ma.objectCode;
-        let lst = ma.asmListingText;
-        let md = ma.metadata;
-        writeFile (`${baseName}.obj.txt`, obj.join("\n"));
-        writeFile (`${baseName}.lst.txt`, lst.join("\n"));
-        writeFile (`${baseName}.md.txt`,  md.join("\n"));
+    const srcFileName = `${baseName}.asm.txt`
+    const maybeSrc = readFile (srcFileName)
+    const srcText = maybeSrc
+    const mod = st.env.mkSelectModule (baseName)
+    console.log (`filename = ${srcFileName}`)
+    console.log (srcText.text)
+    console.log ("calling asm.assembler")
+    const ai = asm.assembler (baseName, srcText)
+    if (ai.nAsmErrors === 0) {
+        let obj = ai.objectText
+        let lst = ai.asmListingText
+        let md = ai.metadata.toText ()
+        writeFile (`${baseName}.obj.txt`, obj)
+//        writeFile (`${baseName}.lst.txt`, lst.join("\n"))
+        writeFile (`${baseName}.md.txt`,  md)
     } else {
-        console.log (`There were ${ma.nAsmErrors} assembly errors`);
-        let lst = ma.asmListingText;
-        writeFile (`${baseName}.lst.txt`, lst.join("\n"));
-        process.exitCode = 1;
+        console.log (`There were ${ai.nAsmErrors} assembly errors`)
+        let lst = ai.asmListingText
+        writeFile (`${baseName}.lst.txt`, lst.join("\n"))
+        process.exitCode = 1
     }
 }
+//    const ma = new asm.AsmInfo (mod);
+//    mod.asmInfo = ma;
+//    ma.text = maybeSrc;
+//    asm.assembler (ma);
 
 //-----------------------------------------------------------------------------
 // Command line interface to linker
@@ -321,6 +328,3 @@ function runtest () {
 //-----------------------------------------------------------------------------
 
 main ();
-
-// Deprecated
-//        serv.launchGUI ();

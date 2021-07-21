@@ -95,21 +95,7 @@ const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
 // development machine or the Heroku Internet server.
 
 let S16_BUILD_DIR
-if (S16_RUN_ENV === 'Heroku') {
-    console.log ('Running on Internet server')
-    // Find the directory this program is running in and use that to
-    // find the build directory
-    S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..', 'build')
-} else if (S16_RUN_ENV === 'Local') {
-    console.log ('Running on local development machine')
-    S16_BUILD_DIR = path.join (process.env.S16PART1,
-                               process.env.S16PART2,
-                               process.env.S16PART3,
-                               'Sigma16-builds', 'build')
-    console.log (`bd = ${S16_BUILD_DIR}`)
-} else {
-    console.log (`Server error: cannot find build directory for ${S16_RUN_ENV}`)
-}
+
 
 // If the environment defines an http port (e.g. on the Heroku server)
 // that is used; otherwise the default LOCAL_PORT is used.  The http
@@ -298,11 +284,34 @@ app.get ('/world.html', (req,res) => {
 // Main program
 //----------------------------------------------------------------------------
 
-console.log (`Starting sigserver`)
-console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
-console.log (`S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
-console.log (`S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
-console.log (`S16_DEV_VERSION = ${S16_DEV_VERSION}`)
-console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
-console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
+export function StartServer () {
+    console.log ("sigserver: StartServer")
+    let ok = true
+    if (S16_RUN_ENV === 'Heroku') {
+        console.log ('Running on Internet server')
+        // Find the directory this program is running in and use that to
+        // find the build directory
+        S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..', 'build')
+    } else if (S16_RUN_ENV === 'Local') {
+        console.log ('Running on local development machine')
+        S16_BUILD_DIR = path.join (process.env.S16PART1,
+                                   process.env.S16PART2,
+                                   process.env.S16PART3,
+                                   'Sigma16-builds', 'build')
+        console.log (`bd = ${S16_BUILD_DIR}`)
+    } else {
+        console.log (`Server error: cannot find build directory for ${S16_RUN_ENV}`)
+        ok = false
+    }
+    if (ok) {
+        console.log (`Starting sigserver`)
+        console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
+        console.log (`S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
+        console.log (`S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
+        console.log (`S16_DEV_VERSION = ${S16_DEV_VERSION}`)
+        console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
+        console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
+        app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
+    }
+}
+
