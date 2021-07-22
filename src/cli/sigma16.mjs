@@ -119,7 +119,6 @@ function showParameters () {
 
 // Decide what operation is being requested, and do it
 function main  () {
-    console.log (`main: argv.length = ${process.argv.length}`)
     if (process.argv.length < 3 || command === "gui") {
         console.log ("calling StartServer")
         serv.StartServer ()
@@ -142,30 +141,24 @@ function main  () {
 // Assembler
 //-----------------------------------------------------------------------------
 
-// Usage: node Sigma16.mjs assemble <prog>
-//   Reads source from prog.asm.txt
-//   Writes object code to prog.obj.txt
-//   Writes metadata to prog.md.txt
-//   Writes listing to prog.lst.txt
+// Usage: node Sigma16.mjs assemble Foo
+//   Reads source from Foo.asm.txt
+//   Writes object code to Foo.obj.txt
+//   Writes metadata to Foo.md.txt
+//   Writes listing to Foo.lst.txt
 
 function assembleCLI () {
-    console.log ("assembleCLI")
     const baseName = process.argv[3]; // first command argument
     const srcFileName = `${baseName}.asm.txt`
-    const maybeSrc = readFile (srcFileName)
-    const srcText = maybeSrc
-    const mod = st.env.mkSelectModule (baseName)
-    console.log (`filename = ${srcFileName}`)
-    console.log (srcText.text)
-    console.log ("calling asm.assembler")
+    const srcText = readFile (srcFileName)
     const ai = asm.assembler (baseName, srcText)
     if (ai.nAsmErrors === 0) {
         let obj = ai.objectText
-        let lst = ai.asmListingText
         let md = ai.metadata.toText ()
+        let lst = ai.metadata.listingPlain.join("\n")
         writeFile (`${baseName}.obj.txt`, obj)
-//        writeFile (`${baseName}.lst.txt`, lst.join("\n"))
         writeFile (`${baseName}.md.txt`,  md)
+        writeFile (`${baseName}.lst.txt`, lst)
     } else {
         console.log (`There were ${ai.nAsmErrors} assembly errors`)
         let lst = ai.asmListingText
@@ -173,10 +166,6 @@ function assembleCLI () {
         process.exitCode = 1
     }
 }
-//    const ma = new asm.AsmInfo (mod);
-//    mod.asmInfo = ma;
-//    ma.text = maybeSrc;
-//    asm.assembler (ma);
 
 //-----------------------------------------------------------------------------
 // Command line interface to linker

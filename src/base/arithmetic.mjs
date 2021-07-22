@@ -21,8 +21,6 @@
 // arithmetic as required by the instruction set architecture.
 //------------------------------------------------------------------------------
 
-console.log ("%cStart reading arithmetic", 'color:red')
-
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
@@ -722,65 +720,3 @@ function test_add () {
     test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
     test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
 }
-
-// console.log (`%cReading arithmetic arch.ccL=${arch.bit_ccL}`, 'color:red')
-
-console.log ("%cFinished reading arithmetic", 'color:red')
-
-// Deprecated
-
-/*
-    let msb = extractBitBE (sum, 15);
-    let carryOut = extractBitBE (sum,16);
-    let binOverflow = carryOut === 1;
-    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
-    let secondary = (binOverflow ? ccV : 0)
- 	| (tcOverflow ? ccv : 0)
-        | (carryOut ? arch.ccC : 0);
-    return [primary, secondary];
-*/
-
-/*
-function test_sub () {
-    test_rr ("sub", op_sub, 24, 7, "17 []");
-    test_rr ("sub", op_sub, 2, 3, "-1 []");
-    test_rr ("sub", op_sub, 49, intToWord(-7), "56 []");
-    test_rr ("sub", op_sub, intToWord(-3), intToWord(-10), "7 []");
-    test_rr ("sub", op_sub, 20000, 30000, "tc -10000 [v]");
-}
-
-*/
-/* addc    
-    let msb = extractBitBE (sum, 15);
-    //    let carryOut = extractBitBE (sum,16);
-    let carryOut = sum > 65535
-    let binOverflow = carryOut
-    let tcOverflow = ! (extractBitBE(sum,14) === extractBitBE(sum,15));
-    let secondary = (binOverflow ? ccV : 0)
- 	| (tcOverflow ? ccv : 0)
-        | (carryOut ? ccC : 0);
-    com.mode.devlog (`************ op_addc co=${carryOut}`)
-    return [primary, secondary];
-
-
-// Check where this is used ??????????????
-
-let intToBit = function (x) {
-    if (x < 0 || x > 1)
-    {com.mode.devlog('intToBit invalid int: ' + x);
-     return('#');
-    }
-    return x===0 ? '0' : '1';
-}
-
-// Use k=4
-// Return bit i in nibble (4-bit word) w
-function getBitInNibbleBE (w,i) { return (w >>> (3-i)) & 0x0001 }
-
-
-// Return a word where bit i is 1
-function setBitBE(i) { return 1 << 15-i }
-// old little endian version
-//function setBit(i) { return 1 << i }
-
-*/

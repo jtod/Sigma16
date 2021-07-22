@@ -156,8 +156,8 @@ export const aBlock   = Symbol ("block");    // block    100
 
 export const mnemonicRRR =
   ["add",      "sub",      "mul",       "div",        // 0-3
-   "cmp",      "trap",     "addc",      "muln",       // 4-7
-   "divn",     "push",     "pop",       "top",        // 8-11
+   "cmp",      "addc",     "muln",      "divn",       // 4-7
+   "push",     "pop",       "top",      "trap",       // 8-11
    "noprrr",   "EXP3",     "EXP2",      "RX"]         // 12-15
 
 export const mnemonicRX =
@@ -355,13 +355,14 @@ statementSpec.set("sub",   {ifmt:iRRR, afmt:aRRR, opcode:[1]})
 statementSpec.set("mul",   {ifmt:iRRR, afmt:aRRR, opcode:[2]})
 statementSpec.set("div",   {ifmt:iRRR, afmt:aRRR, opcode:[3]})
 statementSpec.set("cmp",   {ifmt:iRRR, afmt:aRR,  opcode:[4]})
-statementSpec.set("trap",  {ifmt:iRRR, afmt:aRRR, opcode:[5]})
-statementSpec.set("addc",  {ifmt:iRRR, afmt:aRRR, opcode:[6]})
-statementSpec.set("muln",  {ifmt:iRRR, afmt:aRRR, opcode:[7]})
-statementSpec.set("divn",  {ifmt:iRRR, afmt:aRRR, opcode:[8]})
-statementSpec.set("push",  {ifmt:iRRR, afmt:aRRR, opcode:[9]})
-statementSpec.set("pop",   {ifmt:iRRR, afmt:aRRR, opcode:[10]})
-statementSpec.set("top",   {ifmt:iRRR, afmt:aRRR, opcode:[11]})
+statementSpec.set("addc",  {ifmt:iRRR, afmt:aRRR, opcode:[5]})
+statementSpec.set("muln",  {ifmt:iRRR, afmt:aRRR, opcode:[6]})
+statementSpec.set("divn",  {ifmt:iRRR, afmt:aRRR, opcode:[7]})
+statementSpec.set("push",  {ifmt:iRRR, afmt:aRRR, opcode:[8]})
+statementSpec.set("pop",   {ifmt:iRRR, afmt:aRRR, opcode:[9]})
+statementSpec.set("top",   {ifmt:iRRR, afmt:aRRR, opcode:[10]})
+statementSpec.set("trap",  {ifmt:iRRR, afmt:aRRR, opcode:[11]})
+statementSpec.set("nop",   {ifmt:iRRR, afmt:aRRR, opcode:[12]})
 
 // The following primary opcodes do not indicate RRR instructions:
 //   12: reserved
@@ -497,23 +498,3 @@ statementSpec.set("field",   {ifmt:iEXP2, afmt:aRkk,  opcode:[14,8], pseudo:true
 
 export const clearIntEnable = maskToClearBitBE (intEnableBit);
 export const setSystemState = maskToClearBitBE (userStateBit);
-
-
-console.log ("%cFinished reading architecture", 'color:red')
-
-// deprecated
-// let xyz = bit_ccE
-// let myccE =  maskToSetBitLE (xyz)
-// console.log (`ccE ${xyz} ${myccE}`)
-// export const ccSO = maskToSetBitLE (bit_ccStackOverflow)
-// export const ccSU = maskToSetBitLE (bit_ccStackUnderflow)
-
-/*
-console.log (`%cARITH ccL=${bit_ccL} expect 3`, 'color:red')
-console.log (`%cmask 3 ${maskToSetBitLE (3)}`, 'color:red')
-console.log (`%cmask 9${maskToSetBitLE (9)}`, 'color:red')
-console.log (`%cBit ccl ${arch.bit_ccl} ${ccl}`, 'color:red')
-console.log (`%cBit ccL ${arch.bit_ccL} ${ccL}`, 'color:red')
-*/
-
-

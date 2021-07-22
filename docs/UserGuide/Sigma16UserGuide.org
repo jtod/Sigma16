@@ -3598,13 +3598,13 @@ precisely and concisely the effects of the instructions:
 | mul       | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
 | div       | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
 | cmp       | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
-| trap      | Core |   | RRR  | RRR   | 5    | user interrupt                    |
-| addc      | Std  |   | RRR  | RRR   | 6    | Rd := Ra + Rb + R15.carry         |
-| muln      | Std  |   | RRR  | RRR   | 7    | R15++Rd := Ra :*: Rb              |
-| divn      | Std  |   | RRR  | RRR   | 8    | R15++Rd := R15++Ra :/: Rb         |
-| push      | Std  |   | RRR  | RRR   | 9    | M[ea] := Rd, Rb++                 |
-| pop       | Std  |   | RRR  | RRR   | a    | Rb--, Rd := M[ea]                 |
-| top       | Std  |   | RRR  | RRR   | b    | Rd := M[ea]                       |
+| addc      | Std  |   | RRR  | RRR   | 5    | Rd := Ra + Rb + R15.carry         |
+| muln      | Std  |   | RRR  | RRR   | 6    | R15++Rd := Ra :*: Rb              |
+| divn      | Std  |   | RRR  | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
+| push      | Std  |   | RRR  | RRR   | 8    | M[ea] := Rd, Rb++                 |
+| pop       | Std  |   | RRR  | RRR   | 9    | Rb--, Rd := M[ea]                 |
+| top       | Std  |   | RRR  | RRR   | a    | Rd := M[ea]                       |
+| trap      | Core |   | RRR  | RRR   | b    | user interrupt                    |
 |           |      |   |      |       | c    | -- reserved --                    |
 |           |      |   |      |       | d    | escape to EXP3 format             |
 |           |      |   |      |       | e    | escape to EXP2 format             |

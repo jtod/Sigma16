@@ -18,8 +18,6 @@
 // emulator.mjs defines the machine language semantics
 //-----------------------------------------------------------------------------
 
-console.log ("%cStart reading emulator", 'color:red')
-
 import * as com from './common.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
@@ -1069,13 +1067,13 @@ const dispatch_primary_opcode =
         ab_dc (arith.op_mul),     // 2
         ab_dc (arith.op_div),     // 3
         ab_c  (arith.op_cmp),     // 4
-        op_trap,                  // 5
-        cab_dc (arith.op_addc),   // 6
-        cab_dc (arith.op_muln),   // 7
-        cab_dc (arith.op_divn),   // 8
-        op_push,                  // 9
-        op_pop,                   // a
-        op_top,                   // b
+        cab_dc (arith.op_addc),   // 5
+        cab_dc (arith.op_muln),   // 6
+        cab_dc (arith.op_divn),   // 7
+        op_push,                  // 8
+        op_pop,                   // 9
+        op_top,                   // a
+        op_trap,                  // b
         ab_dc (arith.op_nop),     // c reserved: nop
         ab_dc (arith.op_nop),     // d escape to EXP3
         handle_EXP,               // e escape to EXP2
@@ -1486,83 +1484,3 @@ const dispatch_EXP =
     ]
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
-
-console.log (`%cread emulator ccL=${arch.bit_ccL} expect 3`, 'color:red')
-console.log ("%cFinished reading emulator", 'color:red')
-
-// **********************************************************************
-// Deprecated
-// **********************************************************************
-
-// Processor execution status - deprecated, use fields in es
-// Global variables for instruction decode; used in emulator
-// let displayInstrDecode = true;
-// let instrCode, instrDisp, instrCodeStr; // record the values
-// let instrFmtStr = "";
-// let instrOpStr = "";
-// let instrArgsStr = "";
-// let instrEA, instrEAStr;
-// let instrEffect = [];
-// Fields of the current instruction
-// let instr = 0;
-// let ir_op = 0, ir_d = 0, ir_a = 0, ir_b = 0;  // instruction fields
-// The value of the effective addresss pecified by an RX instruction
-// let ea = 0;  // effective address
-
-
-//----------------------------------------------------------------------
-//  Registers - old version
-//----------------------------------------------------------------------
-
-// for tracing: highlight reg/mem that is accessed
-
-// The registers are defined as global variables.  These variables are
-// declared here but their values are set only when window has been
-// loaded (the onload event in gui.js), because the gui elements will
-// exist at that time.
-
-// Declare the registers - window.onload sets their values
-// export let regFile = [];                       // register file R0,..., R15
-//export let pc, ir, adr, dat;                    // instruction control registers
-// export let statusreg, mask, req, rstat, rpc, vect; // interrupt control registers
-// export let bpseg, epseg, bdseg, edseg;             // segment control registers
-
-// Generating and accessing registers
-// export let controlRegisters;   // array of the control registers
-// export let register = [];      // array of all the registers: regfile and control
-
-// trap main thread, halted...
-//            displayFullState (es)
-//            updateRegisters (es)  update display in ui
-//            updateMemory (es)
-//            memRefresh(es);
-
-/*
-export function startRunMainThread (es) {
-    let q = st.readSCB (es, ab.SCB_status)
-    switch (q) {
-    case ab.SCB_ready:
-    case ab.SCB_paused:
-    case ab.SCB_blocked:
-        console.log ("procRunMainThread: start looper");
-        es.initRunDisplay (es)
-        mainInstructionLooper (es)
-        console.log ("procRunMainThread: looper finished");
-//        execInstrPostDisplay (es) no, 
-        break
-    default:
-        com.mode.devlog (`procRunMainThread skipping: SCB_status=${q}`)
-    }
-}
-//-----------------------------------------------------------------------------
-// Interrupts
-//-----------------------------------------------------------------------------
-
-// move to gui
-export function timerInterrupt (es) {
-    com.mode.devlog ("Timer Interrupt clicked");
-    arith.setBitInRegBE (es.req, arch.timerBit);
-    es.req.refresh();
-}
-
-*/

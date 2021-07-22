@@ -745,7 +745,7 @@ function parseAsmLine (ma,i) {
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
     s.fieldOperation = p[3];
-    console.log (`parseAsmLine fieldOperation=${s.fieldOperation}`)
+//    console.log (`parseAsmLine fieldOperation=${s.fieldOperation}`)
     s.fieldSpacesAfterOperation = p[4];
     s.fieldOperands = p[5];
     s.fieldComment = p[6];

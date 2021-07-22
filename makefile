@@ -37,13 +37,13 @@
 # Usage
 #-------------------------------------------------------------------------------
 
-# make showconfig       display the configuration parameters
-# make setVersion      update VERSION.txt and src/base/version.mjs
-# emacs export org      build html files from org source after make setVersion
-# make build            copy executable from dev source to build/i.j.k
-# make installServer    copy server program to server repository
-# make installBuild     copy dev build to server repository
-# make installHomepage  copy homepage files to homepage repository
+# emacs org C-c C-E h h   build html files from org source after make setVersion
+# make showconfig         display the configuration parameters
+# make setVersion         update VERSION.txt, COPYRIGHT.txt, src/base/version.mjs
+# make build              copy executable from dev source to build/i.j.k
+# make installServer      copy server program to server repository
+# make installBuild       copy dev build to server repository
+# make installHomepage    copy homepage files to homepage repository
 
 #-------------------------------------------------------------------------------
 # Configuration
@@ -84,8 +84,6 @@ S16_DEV_BUILD_DIR=$(S16_DEV_VERSION_DIR)/Sigma16
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
 SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/SigServer
 
-ICLOUD=/cygdrive/C/Users/johnt/iCloudDrive
-
 .PHONY: showconfig
 showconfig:
 	@echo "Environment variables"
@@ -122,8 +120,7 @@ showconfig:
 setVersion:
 	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
 	echo "Version $(VERSION), $(MONTHYEAR)." > VERSION.txt
-
-#	  Copyright (c) $(YEAR) John T. O'Donnell.  " \
+	echo "Copyright (c) $(YEAR) John T. O'Donnell" > COPYRIGHT.txt
 
 #-------------------------------------------------------------------------------
 # make assemble
@@ -183,6 +180,7 @@ build:
 
 .PHONY: installServer
 installServer:
+	cp -u src/server/runserver.mjs $(SIGSERVER_REPOSITORY)/src/server 
 	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server 
 	cp -u src/server/*.html $(SIGSERVER_REPOSITORY)/build
 	cp -u docs/docstyle.css $(SIGSERVER_REPOSITORY)/build
@@ -210,9 +208,3 @@ installHomepage :
 	cp -u protected/SIGSERVERURL.txt $(S16_HOMEPAGE_REPOSITORY)/admin
 	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
-
-.PHONY : icloud
-icloud :
-	mkdir -p $(ICLOUD)/writing-drafts/Sigma16
-	cp docs/docstyle.css $(ICLOUD)/writing-drafts/Sigma16/
-	cp -r docs/UserGuide $(ICLOUD)/writing-drafts/Sigma16/docs
