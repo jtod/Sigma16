@@ -18,39 +18,52 @@
 // SigServer
 //-----------------------------------------------------------------------------
 
-// Sigma16 normally runs in a browser, although it can also run as a
-// standalone program without Internet access using either a command
-// line interface or a GUI provided by electron.
+// Sigma16 can run either in a browser which provides a graphical user
+// interface (GUI), or in a shell which provides a text interface.
 
-// To run in a browser, Sigma16 needs to be served via https.  A
-// static server (such as github.io) is insufficient, because Sigma16
-// uses concurrent process with shared memory, and(from May 2021)
-// browsers require cross origin isolation in order to use shared
-// memory. This program is a web server that enforces cross origin
-// isolation, so it works for Sigma16.
+// Sigma16 provides a command line interface to some of its
+// components. In this case the interaction uses text commands in a
+// shell; there is no GUI, a browser is not required, and this server
+// program is not required.
 
-// This server can run on a local computer for offline testing, or on
-// an Internet server for production use.  To run it locally, execute
-// `node src/server/sigserver.mjs'.  The bash cli alias sigma16 also
-// issues that command.  SigmaSystem/SigServer pushes the program to
-// Heroku to run on the Internet.
+// The GUI runs in a browser, which requires Sigma16 to fetch its
+// files from a server via https.  The server can run either on an
+// Internet host (Heroku) or on a local machine.  This program is the
+// server for Sigma16, and it uses environment variables to adapt to
+// either Heroku or a local machine.
 
-// To use a local server, launch sigserver.mjs and enter this URL:
-//    http://localhost:3000/...Sigma16 path...
-// To use the Internet server, enter this:
-//    https://sigma16.herokuapp.com/...Sigma16 path...
+// Sigma16 won't run on github pages, because github.io provides only
+// a static server.  Sigma16 uses concurrent processes with shared
+// memory, and (from May 2021) browsers require cross origin isolation
+// in order to use shared memory.  Since github.io does not serve
+// pages with the required headers, it doesn't support Sigma16.  In
+// contrast, this program is a web server that enforces cross origin
+// isolation, so it works for Sigma16.  It can run on a local computer
+// for offline testing, or on an Internet server for production use.
 
-// The server supports the following URL paths:
+// To use a local server:
+//    - execute `node src/server/runserver.mjs
+//    - visit http://localhost:3000/...Sigma16 path...
+// To use the Internet server:
+//    - visit https://sigma16.herokuapp.com/...Sigma16 path...
+
+// The server supports the following Sigma16 URLs, where ... is either
+//    - https://sigma16.herokuapp.com/
+//    - http://localhost:3000/
 //    Return version number of the latest release:
-//       .../status/latest
+//       .../status/latest/i.j.k
+//       where i.j.k is the version number of the build making the request
 //    Launch the latest release:
 //       .../build/release/Sigma16/Sigma16.html
 //    Launch the development version:
 //       .../build/dev/Sigma16/Sigma16.html
-//    Launch specific version, e.g. 3.3.1:
-//       .../build/3.3.1/Sigma16/Sigma16.html
+//    Launch specific version, e.g. 3.4.0
+//       .../build/3.4.0/Sigma16/Sigma16.html
 //    Index page with general information
 //       .../
+//    Testing the server
+//      ../hello.html
+//      ../world.html
 
 //-----------------------------------------------------------------------------
 // Packages
@@ -89,19 +102,18 @@ const S16_RUN_ENV = process.env.S16_RUN_ENV
 const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
 
 // The build directory contains a directory for each version.  The
-// directory name may be a version number 3.3.1 or release or dev.
-// All versions are launched relative to the build directory.  This
-// location depends on whether the server is running on a local
-// development machine or the Heroku Internet server.
+// directory name may be a version number 3.3.1 or dev.  All versions
+// are launched relative to the build directory.  This location
+// depends on whether the server is running on a local development
+// machine or the Heroku Internet server.
 
 let S16_BUILD_DIR
 
-
 // If the environment defines an http port (e.g. on the Heroku server)
-// that is used; otherwise the default LOCAL_PORT is used.  The http
-// port should be between 1024 and 49151.  LOCAL_PORT is defined in an
-// environment variable, and can be changed to avoid clash with any
-// other application.
+// that is used; otherwise the default S16_LOCAL_PORT is used.  The
+// http port should be between 1024 and 49151.  S16_LOCAL_PORT is
+// defined in an environment variable, and can be changed to avoid
+// clash with any other application.
 
 const PORT = process.env.PORT || S16_LOCAL_PORT
 
@@ -120,7 +132,7 @@ express.static.mime.define({'text/html': ['html']});
 //----------------------------------------------------------------------------
 
 app.get ('/', (req,res) => {
-    console.log (`responding to get /`)
+    console.log (`responding-/`)
     res.sendFile (path.join (S16_BUILD_DIR, 'index.html'))
 })
 
@@ -176,24 +188,24 @@ function finish (req, res, loc) {
 }
 
 // start page
+
 app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
     const raw_v = req.params.version
     const v = substituteVersion (raw_v)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
-    console.log (`launching ${raw_v}->${v}`)
-    console.log (`launching at loc ${loc}`)
+    console.log (`launching ${raw_v}->${v} at location ${loc}`)
     finish (req, res, loc)
 })
 
 // emulator core
+
 app.get('/build/:version/Sigma16/emcore.wasm', (req, res) => {
-    console.log ('Reqest for emcore.wasm')
+    console.log ('responding-emcore.wasm')
     const raw_v = req.params.version
     const v = substituteVersion (raw_v)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            'src', 'base', 'emcore.wasm')
-    console.log (`emcore: launching ${raw_v}->${v}`)
-    console.log (`emcore: launching at loc ${loc}`)
+    console.log (`launching-emcore ${raw_v}->${v} at location ${loc}`)
     res.set ('Access-Control-Allow-Origin', '*')
     finish (req, res, loc)
 })
@@ -228,8 +240,8 @@ app.get('/build/:version/Sigma16/:a/*', (req, res) => {
 // There are no mjs files in the Sigma16 directory.  However, the base
 // emulator files are loaded by emwt when the processor is entered,
 // and they are accessed by URL paths in the Sigma16 directory (not in
-// Sigma16/src/base).  This rule must come after the rules that match
-// src/gui/* and src/base/*
+// Sigma16/src/base).  They are provided by this rule, which must come
+// after the rules that match src/gui/* and src/base/*
 
 app.get('/build/:version/Sigma16/*.mjs', (req, res) => {
     const v = substituteVersion (req.params.version)
@@ -242,14 +254,13 @@ app.get('/build/:version/Sigma16/*.mjs', (req, res) => {
 // Cross origin isolation
 //----------------------------------------------------------------------------
 
-// Miscellaneous
 // app.use (cors ())
 // app.use (express.static ('public'))
 
 // Without the res.set statements for Cross-Origin, Chrome gives a
 // deprecation warning (April 2021) because shared memory requires
 // cross origin isolation.  It is expected that Chrome 91 (May 2021)
-// will simply refuse to create the shared array.
+// will refuse to create the shared array.
 
 // https://developer.chrome.com/blog/enabling-shared-array-buffer/
 
@@ -267,7 +278,7 @@ app.get('/build/:version/Sigma16/*.mjs', (req, res) => {
 // (Access-Control-Allow-* and so forth).
 
 //----------------------------------------------------------------------------
-// Testing
+// Testing the server
 // URL path: hello.html
 // URL path: world.html
 //----------------------------------------------------------------------------
@@ -281,11 +292,18 @@ app.get ('/world.html', (req,res) => {
 })
 
 //----------------------------------------------------------------------------
-// Main program
+// Launch the server
 //----------------------------------------------------------------------------
 
+// The build directory contains a set of subdirectories, one for each
+// build that can be launched.  The subdirectories are named with the
+// version number.  The server recognises two virtual versions:
+// release and dev.  If either of these is launched, the server uses
+// the specific version as defined in the environment variables
+// S16_RELEASE_VERSION and S16_DEV_VERSION.  A comment at the
+// beginning of this file gives the URLs needed to launch any version.
+
 export function StartServer () {
-    console.log ("sigserver: StartServer")
     let ok = true
     if (S16_RUN_ENV === 'Heroku') {
         console.log ('Running on Internet server')
@@ -298,13 +316,13 @@ export function StartServer () {
                                    process.env.S16PART2,
                                    process.env.S16PART3,
                                    'Sigma16-builds', 'build')
-        console.log (`bd = ${S16_BUILD_DIR}`)
+        console.log (`Local build directory = ${S16_BUILD_DIR}`)
     } else {
         console.log (`Server error: cannot find build directory for ${S16_RUN_ENV}`)
         ok = false
     }
     if (ok) {
-        console.log (`Starting sigserver`)
+        console.log ("Starting Sigma16 server")
         console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
         console.log (`S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
         console.log (`S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
@@ -314,4 +332,3 @@ export function StartServer () {
         app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
     }
 }
-

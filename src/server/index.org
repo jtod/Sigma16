@@ -13,7 +13,7 @@
 # copy of the GNU General Public License along with Sigma16.  If not,
 # see <https://www.gnu.org/licenses/>.
 
-#+TITLE: Sigma16 home page
+#+TITLE: Sigma16 server
 #+AUTHOR: John T. O'Donnell
 
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="docstyle.css" />
@@ -23,11 +23,11 @@
 * Sigma16
 
 Sigma16 is a computer architecture designed for research and teaching
-in computer systems.  This is the server index, which hosts the
-executable code that runs in a browser.
-
-- For full information about the system, see
-  [[https://jtod.github.io/home/Sigma16][the Sigma16 home page]]
+in computer systems.  This page is the index for the Sigma16 web
+server.
 
 - [[https://sigma16.herokuapp.com/build/release/Sigma16/Sigma16.html][Launch
   Sigma16 in your browser]]
+
+- For more information about the system, see
+  [[https://jtod.github.io/home/Sigma16][the Sigma16 home page]]

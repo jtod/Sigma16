@@ -14,48 +14,9 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
-// SigServer
-//-----------------------------------------------------------------------------
+// When this file is loaded it launches the server, which is defined
+// in a separate file.
 
-// Sigma16 normally runs in a browser, although it can also run as a
-// standalone program without Internet access using either a command
-// line interface or a GUI provided by electron.
-
-// To run in a browser, Sigma16 needs to be served via https.  A
-// static server (such as github.io) is insufficient, because Sigma16
-// uses concurrent process with shared memory, and(from May 2021)
-// browsers require cross origin isolation in order to use shared
-// memory. This program is a web server that enforces cross origin
-// isolation, so it works for Sigma16.
-
-// This server can run on a local computer for offline testing, or on
-// an Internet server for production use.  To run it locally, execute
-// `node src/server/sigserver.mjs'.  The bash cli alias sigma16 also
-// issues that command.  SigmaSystem/SigServer pushes the program to
-// Heroku to run on the Internet.
-
-// To use a local server, launch sigserver.mjs and enter this URL:
-//    http://localhost:3000/...Sigma16 path...
-// To use the Internet server, enter this:
-//    https://sigma16.herokuapp.com/...Sigma16 path...
-
-// The server supports the following URL paths:
-//    Return version number of the latest release:
-//       .../status/latest
-//    Launch the latest release:
-//       .../build/release/Sigma16/Sigma16.html
-//    Launch the development version:
-//       .../build/dev/Sigma16/Sigma16.html
-//    Launch specific version, e.g. 3.3.1:
-//       .../build/3.3.1/Sigma16/Sigma16.html
-//    Index page with general information
-//       .../
-
-//-----------------------------------------------------------------------------
-// Packages
-//-----------------------------------------------------------------------------
-
-import * as serv from 'sigserver.mjs'
-
+import * as serv from './sigserver.mjs'
+console.log ('runserver: call StartServer')
 serv.StartServer ()

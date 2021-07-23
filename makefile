@@ -176,12 +176,13 @@ build:
 # Install server
 #-------------------------------------------------------------------------------
 
-# Copy server to Heroku github source directory
+# Copy server to Heroku github source directory.  Using quotes around
+# $(SIGSERVER_REPOSITORY) in case it contains spaces
 
 .PHONY: installServer
 installServer:
-	cp -u src/server/runserver.mjs $(SIGSERVER_REPOSITORY)/src/server 
-	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server 
+	cp -u src/server/runserver.mjs $(SIGSERVER_REPOSITORY)/src/server
+	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server
 	cp -u src/server/*.html $(SIGSERVER_REPOSITORY)/build
 	cp -u docs/docstyle.css $(SIGSERVER_REPOSITORY)/build
 
