@@ -3072,7 +3072,40 @@ window.onload = function () {
     initializeSystem ()
     com.mode.devlog ('System is now running')
     enableDevTools ()
+    runtests ()
 
+}
+
+
+function runtests () {
+    console.log ("runtests starting")
+    let x
+    let i
+    x = 1
+    i = 0
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+    i = 1
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+    i = 2
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+
+    x = 2
+    i = 0
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+    i = 1
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+    i = 2
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+
+    x = 4
+    i = 0
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+    i = 1
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+    i = 2
+    console.log (`x=${x} i=${i} b=${arch.getBitInWordLE(x,i)}`)
+
+    console.log ("runtests finished")
 }
 
 function foo (x,y) {

@@ -695,11 +695,11 @@ export function executeInstruction (es) {
     /*
     let mr = es.mask.get() & es.req.get() // ???
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
-    if (arith.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
+    if (arch.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
         com.mode.devlog (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
-	while (i<16 && arith.getBitInWordLE(mr,i) === 0) { i++ }
+	while (i<16 && arch.getBitInWordLE(mr,i) === 0) { i++ }
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
 	es.rpc.put(es.pc.get())           // save the pc
 	es.rstat.put(es.statusreg.get())   // save the status register
@@ -1193,7 +1193,9 @@ function rx_jump (es) {
 function rx_jumpc0 (es) {
     com.mode.devlog('rx_jumpc0');
     let cc = es.regfile[15].get();
-    if (arith.getBitInWordLE (cc,es.ir_d)===0) {
+    let bit = arch.getBitInWordLE (cc, es.ir_d)
+    console.log (`rx_jumpc0 d=${es.ir_d} cc=${cc} bit=${bit}`)
+    if (arch.getBitInWordLE (cc,es.ir_d)===0) {
 	es.nextInstrAddr = es.ea;
 	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
@@ -1202,7 +1204,7 @@ function rx_jumpc0 (es) {
 function rx_jumpc1 (es) {
     com.mode.devlog('rx_jumpc1');
     let cc = es.regfile[15].get();
-    if (arith.getBitInWordLE (cc,es.ir_d)===1) {
+    if (arch.getBitInWordLE (cc,es.ir_d)===1) {
 	es.nextInstrAddr = es.ea;
 	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
@@ -1424,8 +1426,8 @@ function exp2_logicb (es) {
     com.mode.devlog (`>>>>>>>>>>>>>>>>>>>>>>>> exp2_logicb`);
     com.mode.devlog (`exp2_logicb`);
     const x = es.regfile[es.ir_d].get();
-    const f = arith.getBitInWordLE (x, es.field_f);
-    const g = arith.getBitInWordLE (x, es.field_g);
+    const f = arch.getBitInWordLE (x, es.field_f);
+    const g = arch.getBitInWordLE (x, es.field_g);
     const fcn = es.field_h;  // logic function
     const bresult = arith.applyLogicFcnBit (fcn, f, g); // bit result
     const y = arith.putBitInWordLE (x, es.field_e, bresult); // word result

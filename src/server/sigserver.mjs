@@ -205,7 +205,7 @@ app.get('/build/:version/Sigma16/emcore.wasm', (req, res) => {
     const v = substituteVersion (raw_v)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            'src', 'base', 'emcore.wasm')
-    console.log (`launching-emcore ${raw_v}->${v} at location ${loc}`)
+    console.log (`responding-emcore ${raw_v}->${v} at location ${loc}`)
     res.set ('Access-Control-Allow-Origin', '*')
     finish (req, res, loc)
 })
