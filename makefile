@@ -194,7 +194,7 @@ installServer:
 
 .PHONY: installBuild
 installBuild:
-	cp -upr $(S16_DEV_VERSION_DIR) $(SIGSERVER_REPOSITORY)/build
+	cp -upr $(S16_DEV_SRC_DIR) $(SIGSERVER_REPOSITORY)/build/$(VERSION)
 
 #-------------------------------------------------------------------------------
 # Install home page
