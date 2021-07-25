@@ -16,6 +16,8 @@
 
 // Emulator worker thread
 
+console.log ("%cemwt starting to load", 'color:red')
+
 import * as com from './common.mjs';
 import * as arch from './architecture.mjs'
 import * as arith from './arithmetic.mjs';
@@ -144,28 +146,28 @@ class genregister {
         this.show = showFcn
 //        this.elt = document.getElementById (eltName)
 //	this.elt.innerHTML = this.regStIndex
-        console.log (`--- Generate reg regNum=${this.regNumber}`
+//        console.log (`--- Generate reg regNum=${this.regNumber}`
                      + ` name=${this.regName} idx=${this.regStIndex}`)
     }
     get () {
 //        regFetched.push (this)
         let i = shm.EmRegBlockOffset + this.regStIndex
-        console.log (`----- get  ${this.regName} erbo=${shm.EmRegBlockOffset} rsi=${this.regStIndex} `)
+//  console.log (`----- get  ${this.regName} erbo=${shm.EmRegBlockOffset} rsi=${this.regStIndex} `)
         let x = this.regStIndex === 0 ? 0 : sysStateVec [i]
-        console.log (`--- reg get ${this.regName} =`
-                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
+//        console.log (`--- reg get ${this.regName} =`
+//                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
         return x
     }
     put (x) {
-        console.log (`reg put in emwt `)
+//        console.log (`reg put in emwt `)
 //        regStored.push (this)
         let i = shm.EmRegBlockOffset + this.regStIndex
         sysStateVec [i] = x
 //        if (this.regIdx < 16) { // register file
 //            instrEffect.push (["R", this.regNumber, x, this.regName]);
 //        }
-        console.log (`--- reg put ${this.regName} :=`
-                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
+//        console.log (`--- reg put ${this.regName} :=`
+//                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
     }
     highlight (key) {
 //        let i = st.EmRegBlockOffset + this.regStIndex
@@ -273,6 +275,7 @@ function doStep () {
 }
 
 function doRun () {
+    console.log ("emwt doRun")
     const es = emwt.es
     em.initRegHighlighting (es)
     em.clearRegLogging (es)
@@ -282,7 +285,7 @@ function doRun () {
 }
 
 function emwtLooper (es) {
-    console.log ("instruction looper starting")
+    console.log ("emwt instruction looper starting")
     let icount = 0
     let countOK = true
     let status = 0
@@ -317,7 +320,7 @@ function emwtLooper (es) {
         ab.writeSCB (es, ab.SCB_status, ab.SCB_paused)
         ab.writeSCB (es, ab.SCB_pause_request, 0)
     } else if (externalBreak) {
-        console.log ("Stopping at breakpoint")
+        console.log ("emwt stopping at breakpoint")
         ab.writeSCB (es, ab.SCB_status, ab.SCB_break)
     }
 }

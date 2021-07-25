@@ -355,10 +355,6 @@ function setArrayBufferLocal (warn) {
     }}
 
 function setArrayBufferShared (warn) {
-    com.mode.devlog ('setArrayBufferShared - revert to wasm mem')
-    setArrayBufferWebAssembly (warn)
-}
-/*
     const opt = gst.options
     if (isSetBufferSharedOk (warn)) {
         opt.bufferType = ArrayBufferShared
@@ -366,17 +362,21 @@ function setArrayBufferShared (warn) {
         refreshOptionsDisplay ()
     }
 }
-*/
+//    com.mode.devlog ('setArrayBufferShared - revert to wasm mem')
+//    setArrayBufferWebAssembly (warn)
 
 function setArrayBufferWebAssembly (warn) {
-    com.mode.devlog ('setArrayBufferWebAssembly')
+    setArrayBufferShared (warn)
+}
+/*
+com.mode.devlog ('setArrayBufferWebAssembly')
     const opt = gst.options
     if (isSetBufferSharedOk (warn)) {
         opt.bufferType = ArrayBufferWebAssembly
         document.getElementById('ArrayBufferShared').checked = true
         refreshOptionsDisplay ()
     }
-}
+*/
 
 function setThreadMain (warn) {
 //    console.log ('setThreadMain')
@@ -1313,12 +1313,13 @@ function initializeProcessor () {
     console.log ('Initializing processor')
     mkMainEmulatorState ()
     allocateStateVector ()
-    
     refreshOptionsDisplay ()
     if (gst.options.bufferType === ArrayBufferShared
        || gst.options.bufferType === ArrayBufferWebAssembly) {
-        console.log ('initializeProcessor: shared array buffer, starting emwt')
-        gst.emwThread = new Worker("emwt.mjs", {type:"module"});
+        console.log ('initializeProcessor: worker for emwt')
+        gst.emwThread = new Worker("emwt.mjs", {type: "module"});
+        console.log (`gst.emwThread = ${gst.emwThread}`)
+        console.log ("call initializeEmwtProtocol")
         initializeEmwtProtocol (gst.es)
         emwtInit (gst.es)
         com.mode.devlog ("gui.mjs has started emwt")
@@ -1395,7 +1396,7 @@ export function guiDisplayMem (gst, elt, xs) {
 // After this, either updateRegisters or refreshRegisters
 
 export function execInstrPostDisplay (gst) {
-    console.log (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
+//    console.log (`execInstrPostDisplay: ${em.showEsInfo (gst.es)}`)
     const es = gst.es
     com.mode.devlog ("main: execInstrPostDisplay, proceeding")
     newUpdateRegisters (gst)
@@ -1573,7 +1574,7 @@ function setModeHighlight (x) {
 
 function newUpdateRegisters (gst) {
     const es = gst.es
-    console.log (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
+//    console.log (`newUpdateRegisters, es: ${em.showEsInfo(es)}`)
     for (let i = 0; i < gst.es.nRegisters; i++) {
 	gst.es.register[i].refresh();
     }
@@ -1775,7 +1776,7 @@ function highlightListingAfterInstr (gst) {
     displayProcAsmListing (gst)
     com.mode.devlog ("Returning from highlightlistingAfterInstr")
 //    showListingParameters (gst)
-    com.mode.trace = false;
+//    com.mode.trace = false;
 }
 
 export function highlightListingLine (gst, i, highlight) {
@@ -2055,7 +2056,7 @@ export function clearClock (gst) {
 
 // Note the current starting time and start the interval timer
 export function startClock (gst) {
-    console.log ("startClock")
+//    console.log ("startClock")
     clearClock (gst)
     const now = new Date ()
     gst.startTime = now.getTime ()
@@ -2063,7 +2064,7 @@ export function startClock (gst) {
 }
 
 export function stopClock (gst) {
-    console.log ("stopClock")
+//    console.log ("stopClock")
     clearInterval (gst.eventTimer)
     gst.eventTimer = null
     com.mode.devlog ("stopClock")
@@ -2188,7 +2189,7 @@ function procRun () {
     const es = gst.es
     gst.es.emRunThread = gst.options.currentThreadSelection
     const q = ab.readSCB (es, ab.SCB_status)
-    console.log (`procRun, status=${q} thread=${es.emRunThread}`)
+//    console.log (`procRun, status=${q} thread=${es.emRunThread}`)
     es.copyable = em.initEsCopyable // does this clear data from main?????
     switch (q) {
     case ab.SCB_ready:
@@ -2201,7 +2202,8 @@ function procRun () {
             ab.writeSCB (es, ab.SCB_status, ab.SCB_running_gui)
             
             es.initRunDisplay (es)
- //            em.mainThreadLooper (es)
+            //            em.mainThreadLooper (es)
+            com.mode.trace = false
             em.mainRun (es)
             break
         case com.ES_worker_thread:
@@ -2343,6 +2345,7 @@ function allocateStateVector () {
     console.log (`allocateStateVector:`
                  + ` bufferType = ${gst.options.bufferType.description}`)
     if (gst.options.bufferType === ArrayBufferShared) {
+        console.log ("Allocating shared array buffer")
         gst.es.vecbuf = new SharedArrayBuffer (ab.EmStateSizeByte)
     } else if (gst.options.bufferType === ArrayBufferWebAssembly) {
         console.log ('Allocating web assembly memory')
@@ -2351,6 +2354,7 @@ function allocateStateVector () {
         gst.es.vecbuf = emcImports.imports.wam.buffer
         initEmCore ()
     } else { // Local
+        console.log ('Allocating unshared array buffer')
         gst.es.vecbuf = new ArrayBuffer (ab.EmStateSizeByte)
     }
     gst.options.memoryIsAllocated = true
@@ -2410,14 +2414,16 @@ function allocateStateVector () {
 
 
 function emwtInit (es) { // called by onload initializer, request 100
-    com.mode.devlog ("main gui: emwtInit")
+    //    com.mode.devlog ("main gui: emwtInit")
+    console.log ("main thread: emwtInit")
     //    let msg = {code: 100, payload: es.shm}
     //    let msg = {code: 100, payload: sysStateBuf}
     //    let msg = {code: 100, payload: es.vecbuf}
     //    let msg = {code: 100, payload: es.vecbuf}
     let msg = {code: 100, payload: es.vecbuf} // provide the es to emwt
     gst.emwThread.postMessage (msg)
-    com.mode.devlog ("main gui: posted init message 100 to emwt")
+    //    com.mode.devlog ("main gui: posted init message 100 to emwt")
+    console.log ("main gui: posted init message 100 to emwt")
 }
     //    let msg = {code: 100, payload: st.sysStateVec}
     //    let msg = {code: 100, payload: guiEmulatorState.shm}
@@ -2459,14 +2465,12 @@ function handleEmwtStepResponse (p) {
 // relinquish control to the main thread on a trap.
 
 function emwtRun (es) {
-    com.mode.devlog ("main: emwt run");
+    console.log ("main thread initiating emwt run");
     let instrLimit = 0 // disabled; stop after this many instructions
-    console.log ('***** emwtRun here is es.copyable...')
     em.showCopyable (es.copyable)
-    console.log ('emwtRun that was es.copyable...')
     let msg = {code: 102, payload: es.copyable}
     gst.emwThread.postMessage (msg)
-    com.mode.devlog ("main: emwt run posted start message");
+    com.mode.devlog ("main thread posted start message run to emwt");
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 202
@@ -2578,6 +2582,7 @@ function handleEmwtTest2Response (p) { //
 //----------------------------------------
 
 function initializeEmwtProtocol (es) {
+    console.log ("main initializeEmwtProtocol")
     gst.emwThread.addEventListener ("message", e => {
         com.mode.devlog ("main has received a message")
         if (e.data) {
@@ -3068,12 +3073,12 @@ window.testEmCore = testEmCore
 
 window.onload = function () {
     com.mode.devlog("window.onload activated: starting initializers");
-    com.mode.trace = false;
+//    com.mode.trace = false;
     initializeSystem ()
     com.mode.devlog ('System is now running')
     enableDevTools ()
     runtests ()
-
+    com.mode.trace = false
 }
 
 

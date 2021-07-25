@@ -607,24 +607,24 @@ function test_div () {
 }
 
 export function op_cmp (a,b) {
-    let aint = wordToInt (a);
-    let bint = wordToInt (b);
-    let ltBin = a < b;
-    let gtBin = a > b;
-    let eq    = a===b;
-    let ltTc  = aint < bint;
-    let gtTc  = aint > bint;
-    let cc = ( a > b ? arch.ccg : 0)
- 	| (aint > bint ? arch.ccG : 0)
- 	| (a === b ? arch.ccE : 0)
- 	| (aint < bint ? arch.ccl : 0)
-        | ( a < b ? arch.ccL : 0) ;
-    com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`);
-    com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`);
-    com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`);
-    com.mode.devlog (`op_cmp eq=${eq}`);
-    com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`);
-    return cc;
+    const aint = wordToInt (a)
+    const bint = wordToInt (b)
+    const ltTc  = aint < bint
+    const ltBin = a < b
+    const eq    = a === b
+    const gtTc  = aint > bint
+    const gtBin = a > b
+    const cc = (eq ? arch.ccE : 0)
+          | (gtBin ? arch.ccG : 0)
+ 	  | (gtTc ? arch.ccg : 0)
+ 	  | (ltTc ? arch.ccl : 0)
+          | (ltBin ? arch.ccL : 0)
+    com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`)
+    com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
+    com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
+    com.mode.devlog (`op_cmp eq=${eq}`)
+    com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`)
+    return cc
 }
 
 export function op_cmplt (a,b) {

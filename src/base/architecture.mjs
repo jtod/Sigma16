@@ -444,31 +444,31 @@ statementSpec.set("block",    {ifmt:iDir,  afmt:aBlock,  opcode:[]})
 // doesn't require d field in assembly language, but the machine
 // language uses d=R0.
 
-// Pseudoinstructions that generate jumpc0
+// Pseudoinstructions that generate jumpc0 (secondary opcode = 4)
 
 statementSpec.set("jumple",
-                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccg],   pseudo:true})
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,4,bit_ccg],   pseudo:true})
 statementSpec.set("jumpne",
-                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccE],   pseudo:true});
-statementSpec.set("jumpge",  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccl],
-                              pseudo:true});
-statementSpec.set("jumpnv",  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccv],
-                              pseudo:true});
-statementSpec.set("jumpnco", {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccC],
-                              pseudo:true});
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,4,bit_ccE],   pseudo:true})
+statementSpec.set("jumpge",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,4,bit_ccl],   pseudo:true})
+statementSpec.set("jumpnv",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,4,bit_ccv],   pseudo:true})
+statementSpec.set("jumpnco",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,4,bit_ccC],   pseudo:true})
 
-// Pseudoinstructions that generate jumpc1
+// Pseudoinstructions that generate jumpc1 (secondary opcode = 5)
 
-statementSpec.set("jumplt",  {ifmt:iRX,  afmt:aX,  opcode:[15,6,bit_ccl],
-                              pseudo:true});
-statementSpec.set("jumpeq",  {ifmt:iRX,  afmt:aX,  opcode:[15,6,bit_ccE],
-                              pseudo:true});
-statementSpec.set("jumpgt",  {ifmt:iRX,  afmt:aX,  opcode:[15,6,bit_ccg],
-                              pseudo:true});
-statementSpec.set("jumpv",   {ifmt:iRX,  afmt:aX,  opcode:[15,6,bit_ccv],
-                              pseudo:true});
-statementSpec.set("jumpco",  {ifmt:iRX,  afmt:aX,  opcode:[15,6,bit_ccC],
-                              pseudo:true});
+statementSpec.set("jumplt",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccl],   pseudo:true})
+statementSpec.set("jumpeq",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccE],   pseudo:true})
+statementSpec.set("jumpgt",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccg],   pseudo:true})
+statementSpec.set("jumpv",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccv],   pseudo:true})
+statementSpec.set("jumpco",
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccC],   pseudo:true})
 
 // Mnemonics for logic instructions
 

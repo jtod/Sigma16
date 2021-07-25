@@ -30,12 +30,12 @@
 ; Compare two positives
       cmp    R1,R2      ; R15 = 0018 <L
       cmp    R2,R1      ; R15 = 0003 >G
-      cmp    R2,R3      ; R15 = 0009 >L actually 000a LG ???????????
-      cmp    R3,R2      ; R15 = 0012 <G actually 0011 <>
+      cmp    R2,R3      ; R15 = 0009 >L
+      cmp    R3,R2      ; R15 = 0012 <G
 
 ; Compare positive and negative
-      cmp    R2,R3      ; R15 = 0009 L> actually 000a LG
-      cmp    R3,R2      ; R15 = 0012 <G actually 0012 <>
+      cmp    R2,R3      ; R15 = 0009 L>
+      cmp    R3,R2      ; R15 = 0012 <G
 
 ; Compare two negatives
       cmp    R3,R4      ; R15 = 0003 G>

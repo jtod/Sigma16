@@ -70,7 +70,7 @@ export function showEsInfo (es) {
 export let modeHighlightAccess = true;
 
 export function initRegHighlighting (es) {
-    console.log ('initRegHighlighting')
+//    console.log ('initRegHighlighting')
     es.regFetchedOld = []
     es.regStoredOld = []
     es.regFetched = []
@@ -292,7 +292,7 @@ export class genregister {
         com.IndicateError ('reg display...')
     }
     put (x) {
-        console.log (`register put ${this.regName} ${x}`)
+//        console.log (`register put ${this.regName} ${x}`)
         this.es.copyable.regStored.push (this.regNumber)
         ab.writeReg16 (this.es, this.regNumber, x)
         if (this.regIdx < 16) { // register file
@@ -332,7 +332,7 @@ export function resetRegisters (es) {
     for (let i = 0; i < es.nRegisters; i++) {
         es.register[i].put (0)
     }
-    console.log ('resetting registers finished')
+//    console.log ('resetting registers finished')
 }
 
 //----------------------------------------------------------------------
@@ -395,11 +395,11 @@ let memory = [];  // the memory contents, indexed by address
 // so writeMem16 is used instead of memStore.
 
 export function memClear (es) {
-    console.log ('memClear')
+//    console.log ('memClear')
     for (let a = 0; a < arch.memSize; a++) {
         ab.writeMem16 (es, a, 0)
     }
-    console.log ('memClear finished')
+//    console.log ('memClear finished')
 }
         //        memStore (es, a, 0)
 //    clearLoggingData (es)
@@ -434,10 +434,10 @@ export function memFetchData (es, a) {
 // the display can show this access.
 
 export function memStore (es, a, x) {
-    console.log (`memStore a=${a} x=${x}`)
+//    console.log (`memStore a=${a} x=${x}`)
     es.copyable.memStoreLog.push(a)
     es.instrEffect.push(["M", a, x])
-    console.log (`memStore a=${a} x=${x}`)
+//    console.log (`memStore a=${a} x=${x}`)
     ab.writeMem16 (es, a, x)
 //    es.shm[ab.EmMemOffset + a] = x
 }
@@ -448,12 +448,12 @@ export function memStore (es, a, x) {
 
 // Separate clearing state from refreshing display
 export function procReset (es) {
-    console.log (`em.procReset start ${es.thread_host}`)
+//    console.log (`em.procReset start ${es.thread_host}`)
     com.mode.devlog ("reset the processor");
     ab.resetSCB (es)
     resetRegisters (es);
     memClear (es);
-    console.log ('em.procReset finished')
+//    console.log ('em.procReset finished')
 //    clearClock (es)
 //    refreshDisplay (es)
 }
@@ -580,7 +580,7 @@ export function mainRun (es) {
 }
 
 export function instructionLooper (es) {
-    console.log ("instruction looper starting")
+//    console.log ("instruction looper starting")
     let icount = 0
     let countOK = true
     let status = 0
@@ -685,7 +685,6 @@ export function clearInstrDecode (es) {
 // of thread is determined by es.
 
 export function executeInstruction (es) {
-    com.mode.trace = true
     com.mode.devlog (`%cem.executeInstruction starting`, 'color:blue')
     clearRegLogging (es)
     clearMemLogging (es)
@@ -715,7 +714,6 @@ export function executeInstruction (es) {
     // No interrupt, so proceed with next instruction
     com.mode.devlog (`no interrupt, proceeding...`)
     es.curInstrAddr = es.pc.get();
-    com.mode.trace = true
     com.mode.devlog (`ExInstr pc=${arith.wordToHex4(es.curInstrAddr)}`)
     es.instrCode = memFetchInstr (es, es.curInstrAddr);
     com.mode.devlog (`ExInstr ir=${arith.wordToHex4(es.instrCode)}`)
@@ -740,23 +738,23 @@ export function executeInstruction (es) {
 //    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
     com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
 
-    console.log(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`,
-               'color:red')
+// console.log(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`,
+//               'color:red')
 
 
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
-    console.log (`about to dispatch prim - es.ir_a=${es.ir_a}`)
-    console.log (`about to dispatch prim - es.reg[es.ir_a]=${es.regfile[es.ir_a]}`)
+//    console.log (`about to dispatch prim - es.ir_a=${es.ir_a}`)
+//  console.log (`about to dispatch prim - es.reg[es.ir_a]=${es.regfile[es.ir_a]}`)
 
     com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
 
-    console.log (`exInstr R1=${es.regfile[1].get()}`)
+//    console.log (`exInstr R1=${es.regfile[1].get()}`)
     dispatch_primary_opcode [es.ir_op] (es);
     ab.incrInstrCount (es)
 //    console.log (`Finished executeInstruction: ${showEsInfo(es)}`)
-    com.mode.trace = false
+//    com.mode.trace = false
 }
 
 // RRR instruction pattern functions
@@ -875,11 +873,10 @@ const cab_dc = (f) => (es) => {
 }
 
 const op_trap = (es) => {
-    console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
+//  console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
     switch (es.thread_host) {
     case com.ES_gui_thread:
         com.mode.devlog (`handle trap in main thread`)
-        console.log (`**** handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
         com.mode.devlog (`trap code=${code}`);
         if (code===0) { // Halt
@@ -970,7 +967,7 @@ function trapWrite (es) {
 
 // Should make more abstract; shouldn't refer to DOM
 export function refreshIOlogBuffer (es) {
-    console.log (`refreshIOlogBugfer ${es.ioLogBuffer}`);
+//    console.log (`refreshIOlogBugfer ${es.ioLogBuffer}`);
     com.mode.devlog (`refreshIOlogBugfer ${es.ioLogBuffer}`);
 
     let elt = document.getElementById("IOlog");
@@ -980,8 +977,8 @@ export function refreshIOlogBuffer (es) {
 
 
 const handle_rx = (es) => {
-    console.log(`%chandle_rx ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
-    com.mode.trace = true
+// console.log(`%chandle_rx ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
+//    com.mode.trace = true
     com.mode.devlog (`handle rx secondary=${es.ir_b}`);
     es.instrFmtStr = "RX";
     dispatch_RX [es.ir_b] (es);
@@ -1099,10 +1096,10 @@ const dispatch_primary_opcode =
 // with state bits, but ensure that its readout produces 0.
 
 const rx = (f) => (es) => {
-    com.mode.trace = true
+//    com.mode.trace = true
     com.mode.devlog('rx');
-    console.log (`rx - es.ir_a=${es.ir_a}`)
-    console.log (`rx - es.reg[ir_a]=${es.regfile[es.ir_a]}`)
+//    console.log (`rx - es.ir_a=${es.ir_a}`)
+//    console.log (`rx - es.reg[ir_a]=${es.regfile[es.ir_a]}`)
     es.instrOpStr = arch.mnemonicRX[es.ir_b];
     es.instrDisp = memFetchInstr (es, es.pc.get());
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
@@ -1194,7 +1191,7 @@ function rx_jumpc0 (es) {
     com.mode.devlog('rx_jumpc0');
     let cc = es.regfile[15].get();
     let bit = arch.getBitInWordLE (cc, es.ir_d)
-    console.log (`rx_jumpc0 d=${es.ir_d} cc=${cc} bit=${bit}`)
+//    console.log (`rx_jumpc0 d=${es.ir_d} cc=${cc} bit=${bit}`)
     if (arch.getBitInWordLE (cc,es.ir_d)===0) {
 	es.nextInstrAddr = es.ea;
 	es.pc.put (limitAddress (es, es.nextInstrAddr))
