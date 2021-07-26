@@ -137,6 +137,39 @@ app.get ('/', (req,res) => {
 })
 
 //----------------------------------------------------------------------------
+// Test programs
+//----------------------------------------------------------------------------
+
+console.log ("setting up test programs")
+
+app.get ('/test.html', (req,res) => {
+    const loc = path.join (S16_BUILD_DIR, 'dev', 'Sigma16',
+                           'src', 'test', 'test.html')
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    console.log ("get testgui.mjs loc=${loc}")
+    res.sendFile (loc)
+})
+
+app.get ('/testgui.mjs', (req,res) => {
+    const loc = path.join (S16_BUILD_DIR, 'dev', 'Sigma16',
+                           'src', 'test', 'testgui.mjs')
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    console.log ("get testgui.mjs loc=${loc}")
+    res.sendFile (loc)
+})
+
+app.get ('/testworker.mjs', (req,res) => {
+    const loc = path.join (S16_BUILD_DIR, 'dev', 'Sigma16',
+                           'src', 'test', 'testworker.mjs')
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    console.log ("get testworker.mjs loc=${loc}")
+    res.sendFile (loc)
+})
+
+//----------------------------------------------------------------------------
 // Provide latest version on request
 // URL path: status/latest/i.j.k
 //----------------------------------------------------------------------------
@@ -147,6 +180,7 @@ app.get ('/', (req,res) => {
 // latest release; the value of the string is S16_LATEST_RELEASE.
 // That value is displayed on the Options page, enabling the user to
 // see whether they are running the latest release.
+
 
 app.get ('/status/latest/:callerversion', (req,res) => {
     const reqInfo = {
