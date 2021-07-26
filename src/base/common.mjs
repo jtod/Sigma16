@@ -33,10 +33,7 @@ export function showThread (x) {
         : "?"
 }
 
-
 export function stacktrace () { console.trace () }
-
-
 
 /*
 export function showThread (x) {

@@ -345,7 +345,7 @@ function isSetThreadWorkerOk (warn) {
 }
 
 function setArrayBufferLocal (warn) {
-    com.mode.devlog.log ('setArrayBufferLocal')
+    console.log ('setArrayBufferLocal')
     const opt = gst.options
     if (isSetBufferLocalOk (warn)) {
         gst.options.bufferType = ArrayBufferLocal
@@ -355,6 +355,7 @@ function setArrayBufferLocal (warn) {
     }}
 
 function setArrayBufferShared (warn) {
+    console.log ('setArrayBufferShared')
     const opt = gst.options
     if (isSetBufferSharedOk (warn)) {
         opt.bufferType = ArrayBufferShared
@@ -366,6 +367,7 @@ function setArrayBufferShared (warn) {
 //    setArrayBufferWebAssembly (warn)
 
 function setArrayBufferWebAssembly (warn) {
+    console.log ('setArrayBufferWebAssembly')
     setArrayBufferShared (warn)
 }
 /*
@@ -1317,7 +1319,7 @@ function initializeProcessor () {
     if (gst.options.bufferType === ArrayBufferShared
        || gst.options.bufferType === ArrayBufferWebAssembly) {
         console.log ('initializeProcessor: worker for emwt')
-        gst.emwThread = new Worker("emwt.mjs", {type: "module"});
+        gst.emwThread = new Worker ("./emwt.mjs", {type: "module"});
         console.log (`gst.emwThread = ${gst.emwThread}`)
         console.log ("call initializeEmwtProtocol")
         initializeEmwtProtocol (gst.es)
@@ -1325,8 +1327,8 @@ function initializeProcessor () {
         com.mode.devlog ("gui.mjs has started emwt")
     }
     gst.options.processorIsUninitialized = false
-
 }
+//        gst.emwThread = new Worker ("./dummyworker.mjs", {type: "module"});
 
 function procReset (gst) {
     com.mode.devlog ('gui.procReset')
@@ -1982,14 +1984,12 @@ export function procBoot (gst) {
         gst.asmListingCurrent = []
         gst.metadata.listingDec.forEach ((x,i) => gst.asmListingCurrent[i] = x);
         initListing (gst);
-        ab.writeSCB (es, ab.SCB_status, ab.SCB_ready)
         es.curInstrAddr = 0;
         es.curInstrLineNo = -1;  // -1 indicates no line has been highlighted
         es.nextInstrAddr = 0;
         es.nextInstrLineNo = gst.metadata.getSrcIdx (es.nextInstrAddr)
             + listingLineInitialOffset;
             highlightListingLine (gst, gst.nextInstrLineNo, "NEXT");
-        ab.writeSCB (es, ab.SCB_status, ab.SCB_ready)
         getListingDims(gst);
         es.pc.put (0) // shouldn't be needed?
         //        refreshRegisters (gst)
@@ -1999,6 +1999,9 @@ export function procBoot (gst) {
             + "Boot was successful"
             + "</span><br>"
             + "</pre>";
+        console.log (`booting: SCB status = ${ab.showSCBstatus(es)}`)
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_ready)
+        console.log (`booted: SCB status = ${ab.showSCBstatus(es)}`)
         com.mode.devlog ("boot was successful")
     } else {
         ab.writeSCB (es, ab.SCB_status, ab.SCB_reset)
@@ -2123,6 +2126,7 @@ export function procStep (gst) {
     }
     ab.writeSCB (es, ab.SCB_pause_request, 0)
     let q = ab.readSCB (es, ab.SCB_status)
+    console.log (`procStep SCB status = ${q} ${ab.showSCBstatus(es)}`)
     switch (q) {
     case ab.SCB_ready:
     case ab.SCB_paused:
@@ -2342,35 +2346,39 @@ function mkMainEmulatorState () {
 // to do: change es.shm to es.vec16 in emulator
 
 function allocateStateVector () {
+    const es = gst.es
+    es.vecbuf = null
     console.log (`allocateStateVector:`
                  + ` bufferType = ${gst.options.bufferType.description}`)
     if (gst.options.bufferType === ArrayBufferShared) {
         console.log ("Allocating shared array buffer")
-        gst.es.vecbuf = new SharedArrayBuffer (ab.EmStateSizeByte)
+        es.vecbuf = new SharedArrayBuffer (ab.StateVecSizeBytes)
     } else if (gst.options.bufferType === ArrayBufferWebAssembly) {
         console.log ('Allocating web assembly memory')
+        const initialSize = 3 // should calculate from StateVecSizeBytes
+        const maxSize = 40    // calculate from options
         emcImports.imports.wam = new WebAssembly.Memory (
-            { initial: 3, maximum: 40, shared: true })
-        gst.es.vecbuf = emcImports.imports.wam.buffer
+            { initial: initialSize, maximum: maxSize, shared: true })
+        es.vecbuf = emcImports.imports.wam.buffer
         initEmCore ()
     } else { // Local
         console.log ('Allocating unshared array buffer')
-        gst.es.vecbuf = new ArrayBuffer (ab.EmStateSizeByte)
+        console.log (`size = ${ab.StateVecSizeBytes}`)
+        es.vecbuf = new ArrayBuffer (ab.StateVecSizeBytes)
     }
     gst.options.memoryIsAllocated = true
     // Define word views into the state vector
-    gst.es.vec16 = new Uint16Array (gst.es.vecbuf)
-    gst.es.vec32 = new Uint32Array (gst.es.vecbuf)
-//    gst.es.vec64 = new Uint64Array (gst.es.vecbuf)
-    gst.es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
-    gst.es.emRunThread = gst.options.currentThreadSelection
-
+    es.vec16 = new Uint16Array (es.vecbuf)
+    es.vec32 = new Uint32Array (es.vecbuf)
+ //   es.vec64 = new Uint64Array (gst.es.vecbuf) Uint64 array doesn't exist, use num
+    es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
+    es.emRunThread = gst.options.currentThreadSelection
     initializeMainEmulator ()   // Create emulator state
     setArch16 ()
     memDisplay (gst)
     procReset (gst)
+//    ab.testSysStateVec (es)  // keep this: important testing tool
 }
-
 
 //-----------------------------------------------------------------------------
 // EMWT communications protocol
@@ -2828,9 +2836,8 @@ function testpane3 () {
 //-----------------------------------------------------------------------------
 
 function initializeMainEmulator () {
-    console.log ("allocate state vector")
     em.initializeMachineState (gst.es)
-    initializeSubsystems ();
+    initializeSubsystems ()
     clearClock (gst)
     gst.es.emRunThread = com.ES_gui_thread // default run mode
     em.procReset (gst.es)
@@ -2878,7 +2885,7 @@ function setArch16 () {
     console.log ('Setting mode to S16')
     const es = gst.es
     es.addressMask = arith.word16mask
-    console.log (`addressMask (S16) = ${es.addressMask}`)
+//    console.log (`addressMask (S16) = ${es.addressMask}`)
     setRegisterSize (16)
     highlightArchButton('Arch16button')
     unhighlightArchButton('Arch32button')
@@ -3077,7 +3084,7 @@ window.onload = function () {
     initializeSystem ()
     com.mode.devlog ('System is now running')
     enableDevTools ()
-    runtests ()
+//    runtests ()
     com.mode.trace = false
 }
 
@@ -3128,3 +3135,17 @@ function showCChex () {
     foo ('ccS', arch.ccS)
     foo ('ccs', arch.ccs)
 }
+
+// deprecated
+/*
+    es.vecbuf[4] = 123
+    console.log (`alloctest ${es.vecbuf[4]}`)
+    es.vecbuf[4] += 1
+    console.log (`alloctest ${es.vecbuf[4]}`)
+    let xs = ""
+    let n = 4
+    for (let i = 0; i < n; i++) es.vecbuf[i] = i
+    for (let i = 0; i < n; i++) es.vecbuf[i] += 100
+    for (let i = 0;  i < n; i++) xs += ` ${i}->${es.vecbuf[i]}`
+    console.log (`thread host ${es.thread_host}: ${xs} finished`)
+*/

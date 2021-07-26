@@ -67,6 +67,10 @@ export const SCBsize   =   512 / 2   // emulator variables
 export const BPsize    =   512 / 2   // abstract syntax tree
 export const RegSize   =    32 / 2   // 16 general and 16 system registers
 export const MemSize   = 65536 / 4   // each location is 16 bits
+export const Mem32Size = MemSize * 4 // make this a changeable option >= MemSize
+
+// The array buffers are allocated with a specified size in bytes
+export const StateVecSizeBytes = 8 * (SCBsize + BPsize + RegSize + Mem32Size)
 
 // Offsets of state vector sections
 
@@ -298,6 +302,8 @@ export function writeMem32 (es, a, x) {
 export function testSysStateVec (es) {
     console.log (`%cTESTING: testSysStateVec starting in thread ${es.thread_host}`,
                  'color:red')
+    console.log (`es.arch = ${es.arch.description}`)
+    console.log (`es.emRunThread = ${es.emRunThread}`)
     let xs = ""
     let n = 3
     let x, y, z // testing results
@@ -306,9 +312,9 @@ export function testSysStateVec (es) {
     console.log (`MemOffset32=${MemOffset32}`)
     console.log (`MemOffset64=${MemOffset64}`)
 
-    for (let i = 0; i < n; i++) es.shm[i] = i
-    for (let i = 0; i < n; i++) es.shm[i] += 100
-    for (let i = 0;  i < n; i++) xs += ` ${i}->${es.shm[i]}`
+    for (let i = 0; i < n; i++) es.vec16[i] = i
+    for (let i = 0; i < n; i++) es.vec16[i] += 100
+    for (let i = 0;  i < n; i++) xs += ` ${i}->${es.vec16[i]}`
     console.log (`thread host ${es.thread_host}: ${xs} finished`)
 
     console.log (`es.vec16[25] = ${es.vec16[25]}`)

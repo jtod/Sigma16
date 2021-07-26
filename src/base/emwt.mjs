@@ -16,14 +16,16 @@
 
 // Emulator worker thread
 
-console.log ("%cemwt starting to load", 'color:red')
+// console.log ("%cloading emwt.mjs", 'color:red')
+console.log ("worker loading emwt.mjs"}
 
 import * as com from './common.mjs';
-import * as arch from './architecture.mjs'
-import * as arith from './arithmetic.mjs';
 import * as ab from './arrbuf.mjs';
-import * as st  from './state.mjs';
 import * as em from "./emulator.mjs"
+
+// import * as arch from './architecture.mjs'
+// import * as arith from './arithmetic.mjs';
+// import * as st  from './state.mjs';
 
 //-----------------------------------------------------------------------------
 // Emulator state
@@ -325,4 +327,5 @@ function emwtLooper (es) {
     }
 }
 
-console.log ("%cemwthread has been read", 'color:red')
+console.log ("%cfinished loading emwt.mjs", 'color:red')
+

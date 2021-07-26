@@ -105,7 +105,7 @@ function handleClose (bn) {
 // Create and select an initial module
 
 export function initModules () {
-    com.mode.trace = true;
+//    com.mode.trace = true;
     com.mode.devlog ("initModules");
     st.env.clearModules ();
     refreshModulesList();
@@ -213,9 +213,9 @@ export function handleSelectedFiles (flist) {
 }
 
 function mkFileReader (fileRecord) {
-    com.mode.trace = true;
+//    com.mode.trace = true;
     const fr = new FileReader();
-    com.mode.trace = true;
+//    com.mode.trace = true;
     fr.onload = function (e) {
 	com.mode.devlog (`File reader ${fileRecord.fileName} onload`);
 	console.log (`File reader ${fileRecord.fileName} onload`);

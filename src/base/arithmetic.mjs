@@ -43,7 +43,9 @@ export const word32mask = 0xffffffff
 // implemented by anding its value with addressMask.
 
 export function limit16 (x) { return x & word16mask }
-export function limit32 (x) { return x & word32mask }
+// export function limit32 (x) { return x & word32mask }
+export function limit32 (x) { return x } // ????? temp
+
 // See also em.limitAddress
 
 export function assert16 (x) {
