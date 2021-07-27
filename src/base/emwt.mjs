@@ -1,4 +1,4 @@
-// Sigma16: emthread.mjs
+// Sigma16: emwt.mjs
 // Copyright (C) 2021 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -16,8 +16,7 @@
 
 // Emulator worker thread
 
-console.log ("reading emwt.mjs")
-console.log ('TEST VERSION OF EMWT')
+console.log ("loading emwt.mjs")
 
 import * as com from './common.mjs';
 import * as ab from './arrbuf.mjs';
@@ -29,8 +28,6 @@ import * as em from "./emulator.mjs"
 
 let emwt = {
     shm: null, // shared system state vector
-//    vec16 : null,
-//    vec32 : null,
     es: null // emulator state
     }
 
@@ -168,4 +165,4 @@ function emwtLooper (es) {
     }
 }
 
-console.log ("finished reading emwt.mjs")
+console.log ("finished loading emwt.mjs")

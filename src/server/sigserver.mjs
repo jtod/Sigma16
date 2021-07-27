@@ -137,39 +137,6 @@ app.get ('/', (req,res) => {
 })
 
 //----------------------------------------------------------------------------
-// Test programs
-//----------------------------------------------------------------------------
-
-console.log ("setting up test programs")
-
-app.get ('/test.html', (req,res) => {
-    const loc = path.join (S16_BUILD_DIR, 'dev', 'Sigma16',
-                           'src', 'test', 'test.html')
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    console.log ("get testgui.mjs loc=${loc}")
-    res.sendFile (loc)
-})
-
-app.get ('/testgui.mjs', (req,res) => {
-    const loc = path.join (S16_BUILD_DIR, 'dev', 'Sigma16',
-                           'src', 'test', 'testgui.mjs')
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    console.log ("get testgui.mjs loc=${loc}")
-    res.sendFile (loc)
-})
-
-app.get ('/testworker.mjs', (req,res) => {
-    const loc = path.join (S16_BUILD_DIR, 'dev', 'Sigma16',
-                           'src', 'test', 'testworker.mjs')
-    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
-    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-    console.log ("get testworker.mjs loc=${loc}")
-    res.sendFile (loc)
-})
-
-//----------------------------------------------------------------------------
 // Provide latest version on request
 // URL path: status/latest/i.j.k
 //----------------------------------------------------------------------------
@@ -255,6 +222,8 @@ app.get('/build/:version/Sigma16/emcore.wasm', (req, res) => {
     res.set ('Access-Control-Allow-Origin', '*')
     finish (req, res, loc)
 })
+
+// generic file paths
 
 app.get('/build/:version/Sigma16/:a/:b/:c/*', (req, res) => {
     const v = substituteVersion (req.params.version)
