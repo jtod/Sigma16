@@ -16,12 +16,16 @@
 
 // Emulator worker thread
 
-console.log ("reading emwt.mjs")
-console.log ('TEST VERSION OF EMWT')
+// console.log ("%cloading emwt.mjs", 'color:red')
+console.log ("worker loading emwt.mjs"}
 
 import * as com from './common.mjs';
 import * as ab from './arrbuf.mjs';
 import * as em from "./emulator.mjs"
+
+// import * as arch from './architecture.mjs'
+// import * as arith from './arithmetic.mjs';
+// import * as st  from './state.mjs';
 
 //-----------------------------------------------------------------------------
 // Emulator state
@@ -105,6 +109,83 @@ self.addEventListener ("message", e => {
     }
 })
 
+
+//-----------------------------------------------------------------------------
+// Test
+//-----------------------------------------------------------------------------
+
+function show () {
+    showRegs ()
+    showMem (20)
+}
+
+function showRegs () {
+    console.log (`emwt showRegs`)
+    for (let i = 0; i < shm.EmRegBlockSize; i++) {
+        let j = shm.EmRegBlockOffset + i
+        let x = sysStateVec [j]
+        //        console.log (`emwt reg[${i}] = ${x} (j=${j})`)
+        console.log (`emwt reg[${i}] = ${x}`)
+    }
+}
+
+function showMem (limit) {
+    console.log (`emwt showMem up to ${limit}`)
+    for (let a = 0; a <= limit; a++) {
+        let j = shm.EmMemOffset + a
+        let x = sysStateVec [j]
+        console.log (`emwt m[${a}] = ${x}`)
+    }
+}
+
+function runTest1 () {
+    console.log ("emwt long computation, here goes...")
+    let sum = 0
+    const lim1 = 1000
+    const lim2 = 1000
+    const lim3 = 1000
+    for (let i = 0; i < lim1; i++) {
+        for (let j = 0; j < lim2; j++) {
+            for (let k = 0; k < lim2; k++) {
+                sum += k
+            }
+        }
+    }
+    console.log ("emwt long computation finished!")
+    return sum
+}
+
+
+
+function longComputation () {
+    console.log ("emwt long computation, here goes...")
+    let sum = 0
+    const lim1 = 1000
+    const lim2 = 1000
+    const lim3 = 1000
+    for (let i = 0; i < lim1; i++) {
+        for (let j = 0; j < lim2; j++) {
+            for (let k = 0; k < lim2; k++) {
+                sum += k
+            }
+        }
+    }
+    console.log ("emwt long computation finished!")
+    return sum
+}
+
+function regMemTest () {
+    let a = pc.get ()
+    console.log (`emwt rmtest a = ${a}`)
+    let b = ir.get ()
+    console.log (`emwt rmtest b = ${b}`)
+    pc.put (a + 10)
+    let c = pc.get ()
+    console.log (`emwt rmtest c = ${c}`)
+    return c
+    return x
+}
+
 //-----------------------------------------------------------------------------
 // Interface to emulator
 //-----------------------------------------------------------------------------
@@ -168,4 +249,5 @@ function emwtLooper (es) {
     }
 }
 
-console.log ("finished reading emwt.mjs")
+console.log ("%cfinished loading emwt.mjs", 'color:red')
+

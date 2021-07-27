@@ -232,6 +232,17 @@ app.get('/build/:version/Sigma16/Sigma16.html', (req, res) => {
     finish (req, res, loc)
 })
 
+// emwt
+
+app.get('/build/:version/Sigma16/emwt.mjs', (req, res) => {
+    const raw_v = req.params.version
+    const v = substituteVersion (raw_v)
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           'src', 'base', 'emwt.mjs')
+    console.log (`reading emwt ${raw_v}->${v} at location ${loc}`)
+    finish (req, res, loc)
+})
+
 // emulator core
 
 app.get('/build/:version/Sigma16/emcore.wasm', (req, res) => {
