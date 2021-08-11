@@ -47,7 +47,7 @@ export function setEditorBufferText (xs) {
 // leaving the editor a module to hold it will be created and selected
 
 export function enterEditor () {
-    com.mode.trace = true;
+//    com.mode.trace = true;
     com.mode.devlog ("ed.enterEditor");
     let m = st.env.getSelectedModule (); // module to be edited
     if (m) {

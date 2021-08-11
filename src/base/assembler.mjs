@@ -393,6 +393,9 @@ function printAsmStmt (ma,x) {
 
 function mkErrMsg (ma,s,err) {
     com.mode.devlog (err);
+    if (!s) {
+        s = ma.asmStmt[ma.asmStmt.length-1]
+    }
     s.errors.push(err);
     ma.nAsmErrors++;
 }
@@ -1498,7 +1501,8 @@ function emitExports (ma) {
             com.mode.devlog (`emit exports y=${y} r=${r} w=${w}`);
             ma.objectCode.push (`export   ${y},${w},${r}`);
         } else {
-            mkErrMsg (ma, s, `export identifier ${y} is undefined`);
+//    mkErrMsg (ma, null, `export identifier ${y} is undefined`);
+            console.log (`export identifier ${y} is undefined`)  // use mkErrMsg
         }
     }
 }

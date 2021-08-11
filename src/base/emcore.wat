@@ -34,12 +34,16 @@
        i32.const 42
        call $i)
 
- ;; readReg16 (r).  reg[r] := x
- (func (export "readReg16") (param $r i32)
-       local.get $a
-       local.get $x
-       i32.store16)
- )
+)
+
+;; ------------------------------------------------------------------------
+
+;; readReg16 (r).  reg[r] := x
+;;  (func (export "readReg16") (param $r i32)
+;;        local.get $r
+;;        local.get $x
+;;        i32.store16)
+;;  )
 
 ;;       call $i
 ;;       call $i

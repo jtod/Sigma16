@@ -1,0 +1,60 @@
+0,7,1,7
+2,8,3,8
+4,9,5,9
+6,10,7,11
+8,12
+source
+Line Addr Code Code Source
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+<span class='ListingHeader'>Line Addr Code Code Source</span>
+   1 0000           ; ConstArith: illustrate lea and arithmetic instructions
+   1 0000           ; ConstArith: illustrate lea and arithmetic instructions
+   1 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; ConstArith: illustrate lea and arithmetic instructions</span>
+   2 0000           ; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+   2 0000           ; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+   2 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/</span>
+   3 0000           
+   3 0000           
+   3 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+   4 0000           ; Calculate 3 + 4 * 4 and put the result into R10
+   4 0000           ; Calculate 3 + 4 * 4 and put the result into R10
+   4 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; Calculate 3 + 4 * 4 and put the result into R10</span>
+   5 0000           ; Use lea to put a constant into a register
+   5 0000           ; Use lea to put a constant into a register
+   5 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; Use lea to put a constant into a register</span>
+   6 0000           ; Use mul and add to do arithmetic
+   6 0000           ; Use mul and add to do arithmetic
+   6 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'>; Use mul and add to do arithmetic</span>
+   7 0000           
+   7 0000           
+   7 0000           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+   8 0000 f100 0003     lea  R1,3[R0]    ; R1 := 3
+   8 0000 f100 0003     lea  R1,3[R0]    ; R1 := 3
+   8 0000 f100 0003 <span class='FIELDLABEL'></span>    <span class='FIELDOPERATION'>lea</span>  <span class='FIELDOPERAND'>R1,3[R0]</span><span class='FIELDCOMMENT'>    ; R1 := 3</span>
+   9 0002 f200 0004     lea  R2,4[R0]    ; R2 := 4
+   9 0002 f200 0004     lea  R2,4[R0]    ; R2 := 4
+   9 0002 f200 0004 <span class='FIELDLABEL'></span>    <span class='FIELDOPERATION'>lea</span>  <span class='FIELDOPERAND'>R2,4[R0]</span><span class='FIELDCOMMENT'>    ; R2 := 4</span>
+  10 0004 f300 0005     lea  R3,5[R0]    ; R3 := 5
+  10 0004 f300 0005     lea  R3,5[R0]    ; R3 := 5
+  10 0004 f300 0005 <span class='FIELDLABEL'></span>    <span class='FIELDOPERATION'>lea</span>  <span class='FIELDOPERAND'>R3,5[R0]</span><span class='FIELDCOMMENT'>    ; R3 := 5</span>
+  11 0006 2223          mul  R2,R2,R3    ; R2 := R2*R3  = 4*5
+  11 0006 2223          mul  R2,R2,R3    ; R2 := R2*R3  = 4*5
+  11 0006 2223      <span class='FIELDLABEL'></span>    <span class='FIELDOPERATION'>mul</span>  <span class='FIELDOPERAND'>R2,R2,R3</span><span class='FIELDCOMMENT'>    ; R2 := R2*R3  = 4*5</span>
+  12 0007 0a12          add  R10,R1,R2   ; R10 := R1 + R2 = 3 + 4*5 = 23
+  12 0007 0a12          add  R10,R1,R2   ; R10 := R1 + R2 = 3 + 4*5 = 23
+  12 0007 0a12      <span class='FIELDLABEL'></span>    <span class='FIELDOPERATION'>add</span>  <span class='FIELDOPERAND'>R10,R1,R2</span><span class='FIELDCOMMENT'>   ; R10 := R1 + R2 = 3 + 4*5 = 23</span>
+  13 0008 b000          trap  R0,R0,R0   ; halt
+  13 0008 b000          trap  R0,R0,R0   ; halt
+  13 0008 b000      <span class='FIELDLABEL'></span>    <span class='FIELDOPERATION'>trap</span>  <span class='FIELDOPERAND'>R0,R0,R0</span><span class='FIELDCOMMENT'>   ; halt</span>
+  14 0009           
+  14 0009           
+  14 0009           <span class='FIELDLABEL'></span><span class='FIELDOPERATION'></span><span class='FIELDOPERAND'></span><span class='FIELDCOMMENT'></span>
+
+
+
+Symbol table
+<span class='ListingHeader'>Symbol table</span>
+<span class='ListingHeader'>Symbol table</span>
+Name        Val Org Mov  Def Used
+<span class='ListingHeader'>Name        Val Org Mov  Def Used</span>
+<span class='ListingHeader'>Name        Val Org Mov  Def Used</span>

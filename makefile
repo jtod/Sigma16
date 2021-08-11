@@ -40,6 +40,7 @@
 # emacs org C-c C-E h h   build html files from org source after make setVersion
 # make showconfig         display the configuration parameters
 # make setVersion         update VERSION.txt, COPYRIGHT.txt, src/base/version.mjs
+# make assemble           assemble wat code
 # make build              copy executable from dev source to build/i.j.k
 # make installServer      copy server program to server repository
 # make installBuild       copy dev build to server repository
@@ -209,3 +210,8 @@ installHomepage :
 	cp -u protected/SIGSERVERURL.txt $(S16_HOMEPAGE_REPOSITORY)/admin
 	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
+
+# Circuits documentation
+
+circdoc :
+	cd src/circuits; haddock --html --hyperlinked-source --odir=doc HDL/Hydra/Circuits/* HDL/Hydra/Core/* M1/Circuit/*.hs M1/Tools/*.hs

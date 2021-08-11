@@ -236,7 +236,7 @@ class GuiState {
 
 class Options {
     constructor () {
-        console.log ('Creating options record')
+        com.mode.devlog ('Creating options record')
 
         // Version
         this.thisVersion = ver.s16version
@@ -265,7 +265,7 @@ class Options {
 }
 
 function adjustInitialOptions () {
-    console.log ('new Options, adjusting initial settings')
+    com.mode.devlog ('new Options, adjusting initial settings')
     const opt = gst.options
     if (isSetBufferSharedOk (false)) {
         setArrayBufferShared (false)
@@ -345,7 +345,7 @@ function isSetThreadWorkerOk (warn) {
 }
 
 function setArrayBufferLocal (warn) {
-    console.log ('setArrayBufferLocal')
+    com.mode.devlog ('setArrayBufferLocal')
     const opt = gst.options
     if (isSetBufferLocalOk (warn)) {
         gst.options.bufferType = ArrayBufferLocal
@@ -355,7 +355,7 @@ function setArrayBufferLocal (warn) {
     }}
 
 function setArrayBufferShared (warn) {
-    console.log ('setArrayBufferShared')
+    com.mode.devlog ('setArrayBufferShared')
     const opt = gst.options
     if (isSetBufferSharedOk (warn)) {
         opt.bufferType = ArrayBufferShared
@@ -367,7 +367,7 @@ function setArrayBufferShared (warn) {
 //    setArrayBufferWebAssembly (warn)
 
 function setArrayBufferWebAssembly (warn) {
-    console.log ('setArrayBufferWebAssembly')
+    com.mode.devlog ('setArrayBufferWebAssembly')
     setArrayBufferShared (warn)
 }
 /*
@@ -381,7 +381,7 @@ com.mode.devlog ('setArrayBufferWebAssembly')
 */
 
 function setThreadMain (warn) {
-//    console.log ('setThreadMain')
+//    com.mode.devlog ('setThreadMain')
     const opt = gst.options
     opt.currentThreadSelection = com.ES_gui_thread
     document.getElementById('RTmain').checked = true
@@ -389,7 +389,7 @@ function setThreadMain (warn) {
 }
 
 function setThreadWorker (warn) {
-//    console.log ('setThreadWorker')
+//    com.mode.devlog ('setThreadWorker')
     const opt = gst.options
     if (isSetThreadWorkerOk (warn)) {
         opt.currentThreadSelection = com.ES_worker_thread
@@ -421,13 +421,13 @@ const setMDfull = (gst) => (e) => {
 // User can update numerical parameters in options page
 
 function updateMemSize () {
-//    console.log ('updateMemSize')
+//    com.mode.devlog ('updateMemSize')
     const opt = gst.options
     if (opt.memoryIsAllocated) {
         maybeWarn (true, warningChangeAfterAllocation)
     } else {
         let xs = document.getElementById('EnterMemSize').value
-//        console.log (`updateMemSize ${xs}`)
+//        com.mode.devlog (`updateMemSize ${xs}`)
         let x = parseInt (xs)
         if (!isNaN (x)) {
             opt.memorySize = x
@@ -449,7 +449,7 @@ function updateMDslidingSize () {
 }
 
 function updateMainSliceSize () {
-//    console.log ("updateMainSliceSize")
+//    com.mode.devlog ("updateMainSliceSize")
 //    e.stopPropagation ()
     let xs = document.getElementById("EnterMainSliceSize").value
     let x = parseInt (xs)
@@ -461,7 +461,7 @@ function updateMainSliceSize () {
 }
 
 function updateWorkerRefreshInterval () {
-//    console.log ("updateWorkerRefreshInterval")
+//    com.mode.devlog ("updateWorkerRefreshInterval")
 //    e.stopPropagation ()
     let xs = document.getElementById("EnterWorkerRefreshInterval").value
     let x = parseInt (xs)
@@ -475,9 +475,9 @@ function updateWorkerRefreshInterval () {
 // Display current options in gui
 
 function refreshOptionsDisplay () {
-//    console.log ('displayOptions')
+//    com.mode.devlog ('displayOptions')
     const opt = gst.options
-//    console.log (`LR = ${opt.latestRelease}`)
+//    com.mode.devlog (`LR = ${opt.latestRelease}`)
     setHtml ('ThisVersion', opt.thisVersion)
     setHtml ('LatestRelease', opt.latestRelease)
     setHtml ("SupportLocalStorage", opt.supportLocalStorage)
@@ -928,6 +928,20 @@ function initializeButtons () {
     prepareButton ('UG_Resize_Left_Large_Button',
                    () => user_guide_resize(-UGRLARGE));
 
+    // Help boxes
+    prepareButton ('EXP_Help',             () => toggleExamplesHelp ());
+    prepareButton ('ExamplesHelpClose',    () => toggleExamplesHelp ());
+    prepareButton ('MP_Help',              () => toggleModulesHelp ());
+    prepareButton ('ModulesHelpClose',     () => toggleModulesHelp ());
+    prepareButton ('EDP_Help',             () => toggleEditorHelp ());
+    prepareButton ('EditorHelpClose',      () => toggleEditorHelp ());
+    prepareButton ('AP_Help',              () => toggleAssemblerHelp ());
+    prepareButton ('AssemblerHelpClose',   () => toggleAssemblerHelp ());
+    prepareButton ('LP_Help',              () => toggleLinkerHelp ());
+    prepareButton ('LinkerHelpClose',      () => toggleLinkerHelp ());
+    prepareButton ('PP_Help',              () => toggleProcHelp ())
+    prepareButton ('ProcHelpClose',        () => toggleProcHelp ())
+    
     // Welcome pane (WP)
     // prepareButton ('WP_Guide_Top', jumpToGuideTop);
     prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
@@ -940,15 +954,11 @@ function initializeButtons () {
     prepareButton ('WP_Programming', () => showGuideSection('sec-programming'));
 
     // Examples pane (EXP)
-    prepareButton ('EXP_Help',       () => toggleExamplesHelp ());
-    prepareButton ('ExamplesHelpClose',       () => toggleExamplesHelp ());
     prepareButton ('EXP_Examples_Home',    examplesHome);
     prepareButton ('EXP_Back',    examplesBack);
 
     // Modules pane (MP)
     // prepareButton ('MP_New',    smod.newModule)
-    prepareButton ('MP_Help',       () => toggleModulesHelp ());
-    prepareButton ('ModulesHelpClose',  () => toggleModulesHelp ());
     prepareButton ('MP_Refresh',    smod.refreshModulesList)
     prepareButton ('MP_New',        smod.newMod)
     prepareButton ('MP_Hello_world', () => insert_example(example_hello_world))
@@ -957,8 +967,6 @@ function initializeButtons () {
     prepareButton ('MP_Test3',        smod.test3)
 
     // Editor pane (EDP)
-    prepareButton ('EDP_Help',       () => toggleEditorHelp ());
-    prepareButton ('EditorHelpClose',       () => toggleEditorHelp ());
     prepareButton ('EDP_Selected',    ed.edSelectedButton);
     prepareButton ('EDP_Clear',       ed.edClear);
     prepareButton ('EDP_Revert',      ed.edRevert);
@@ -971,8 +979,6 @@ function initializeButtons () {
     // prepareButton ('EDP_Link',        ed.edLink);
 
     // Assembler pane (AP)
-    prepareButton ('AP_Help',       () => toggleAssemblerHelp ());
-    prepareButton ('AssemblerHelpClose',       () => toggleAssemblerHelp ());
     prepareButton ('AP_Assemble',        asm.assemblerGUI);
     prepareButton ('AP_Show_Source',     asm.displayAsmSource);
     prepareButton ('AP_Show_Object',     asm.setObjectListing);
@@ -980,16 +986,12 @@ function initializeButtons () {
     prepareButton ('AP_Show_Metadata',   asm.setMetadata);
     
     // Linker pane (LP)
-    prepareButton ('LP_Help',       () => toggleLinkerHelp ());
-    prepareButton ('LinkerHelpClose',       () => toggleLinkerHelp ());
     prepareButton ('LP_Link',            link.linkerGUI);
     prepareButton ('LP_Read_Object',     link.getLinkerModules);
     prepareButton ('LP_Show_Executable', link.linkShowExecutable);
     prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
 
     // Processor pane (PP)
-    prepareButton ('PP_Help',       () => toggleProcHelp ())
-    prepareButton ('ProcHelpClose', () => toggleProcHelp ())
     prepareButton ('PP_Boot',       () => procBoot (gst))
     prepareButton ('PP_Step',       () => procStep (gst))
     prepareButton ('PP_Run',        () => runGeneric (gst))
@@ -1105,6 +1107,12 @@ const procKeyMap = new Map ([
     ["KeyI",  () => procInterrupt (gst)],
 ])
 
+//-----------------------------------------------------------------------------
+// Help popups
+//-----------------------------------------------------------------------------
+
+// You can open or close a help box by pressing h
+
 let defaultHelpDialogueVisible = false
 export function toggleDefaultHelp () {
     document.getElementById("DefaultHelpDialogue").style.display
@@ -1172,16 +1180,18 @@ function handleKeyDown (e) {
     }
 }
 
-// Enable keyboard shortcuts
-document.addEventListener ("keydown", handleKeyDown)
+// Enable keyboard shortcuts, requires gst to be defined
 
-// Disable keyboard shortcuts for text entry buffers
-document.getElementById("IOinputBuffer")
-    .addEventListener ("keydown", handleTextBufferKeyDown)
-document.getElementById("BreakTextArea")
-    .addEventListener ("keydown", handleTextBufferKeyDown)
-document.getElementById("EditorTextArea")
-    .addEventListener ("keydown", handleTextBufferKeyDown)
+function enableKeyboardShortcuts () {
+    document.addEventListener ("keydown", handleKeyDown)
+    // Disable keyboard shortcuts for text entry buffers
+    document.getElementById("IOinputBuffer")
+        .addEventListener ("keydown", handleTextBufferKeyDown)
+    document.getElementById("BreakTextArea")
+        .addEventListener ("keydown", handleTextBufferKeyDown)
+    document.getElementById("EditorTextArea")
+        .addEventListener ("keydown", handleTextBufferKeyDown)
+}
 
 // Stop key down event propagation in text entry areas
 
@@ -2207,7 +2217,7 @@ function procRun () {
             
             es.initRunDisplay (es)
             //            em.mainThreadLooper (es)
-            com.mode.trace = false
+//            com.mode.trace = false
             em.mainRun (es)
             break
         case com.ES_worker_thread:
@@ -3069,25 +3079,9 @@ function testEmCore () {
 }
 window.testEmCore = testEmCore
 
-//-----------------------------------------------------------------------------
-// Run initializers
-//-----------------------------------------------------------------------------
-
-// The initializers require the DOM elements to exist and the
-// functions to be defined, so they are performed after all the
-// modules have been loaded.
-
-
-window.onload = function () {
-    com.mode.devlog("window.onload activated: starting initializers");
-//    com.mode.trace = false;
-    initializeSystem ()
-    com.mode.devlog ('System is now running')
-    enableDevTools ()
-//    runtests ()
-    com.mode.trace = false
-}
-
+//-------------------------------------------------------------------------------
+// Testing
+//-------------------------------------------------------------------------------
 
 function runtests () {
     console.log ("runtests starting")
@@ -3120,6 +3114,8 @@ function runtests () {
     console.log ("runtests finished")
 }
 
+window.runtests = runtests
+
 function foo (x,y) {
     console.log (`foo ${x} ${arith.wordToHex4(y)}`)
 }
@@ -3136,16 +3132,19 @@ function showCChex () {
     foo ('ccs', arch.ccs)
 }
 
-// deprecated
-/*
-    es.vecbuf[4] = 123
-    console.log (`alloctest ${es.vecbuf[4]}`)
-    es.vecbuf[4] += 1
-    console.log (`alloctest ${es.vecbuf[4]}`)
-    let xs = ""
-    let n = 4
-    for (let i = 0; i < n; i++) es.vecbuf[i] = i
-    for (let i = 0; i < n; i++) es.vecbuf[i] += 100
-    for (let i = 0;  i < n; i++) xs += ` ${i}->${es.vecbuf[i]}`
-    console.log (`thread host ${es.thread_host}: ${xs} finished`)
-*/
+//-----------------------------------------------------------------------------
+// Run initializers after program has been loaded
+//-----------------------------------------------------------------------------
+
+// The initializers require the DOM elements to exist and the
+// functions to be defined, so they are performed after all the
+// modules have been loaded.
+
+window.onload = function () {
+    console.log("starting initializers")
+    com.mode.trace = false
+    initializeSystem ()
+    enableDevTools ()
+    enableKeyboardShortcuts ()
+    console.log ('system is now running')
+}
