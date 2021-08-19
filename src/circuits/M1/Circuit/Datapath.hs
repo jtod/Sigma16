@@ -38,15 +38,38 @@ interconnections.  It has two inputs: a set of control signals
 provided by the control unit, and a data word from the either the
 memory system or the DMA input controller. -}
 
-datapath ctlsigs memdat = (ma,md,cond,a,b,ir,pc,ad,ovfl,r,x,y,p)
+datapath
+  :: CBit a
+  => CtlSig a
+  -> [a]
+  -> (([a],[a],a),  -- alu outputs (r, ccnew, condcc)
+      [a],   -- ma
+      [a],   -- md
+      [a],   -- a
+      [a],   -- b
+      [a],   -- cc
+      [a],   -- ir
+      ([a],[a],[a],[a]),  -- irFields
+      [a],   -- pc
+      [a],   -- ad
+      [a],   -- x
+      [a],   -- y
+      [a],   -- p
+      [a]   -- q
+     )
+  
+-- datapath ctlsigs memdat = (aluOutputs,ma,md,a,b,cc,ir,irFields,
+--                              pc,ad,r,x,y,p,condcc,q)
+
+datapath ctlsigs memdat = (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q)
   where
 
 -- Size parameters
       n = 16    -- word size
-      k =  4    -- the register file contains 2^k registers 
+--    k =  4    -- the register file contains 2^k registers 
 
 -- Registers
-      (a,b,cc) = regFileSpec n (ctl_rf_ld ctlsigs) (ctl_rf_ldcc ctlsigs))
+      (a,b,cc) = regFileSpec n (ctl_rf_ld ctlsigs) (ctl_rf_ldcc ctlsigs)
                     ir_d rf_sa rf_sb
                     p ccnew
       ir = reg n (ctl_ir_ld ctlsigs) memdat
@@ -54,13 +77,10 @@ datapath ctlsigs memdat = (ma,md,cond,a,b,ir,pc,ad,ovfl,r,x,y,p)
       ad = reg n (ctl_ad_ld ctlsigs) (mux1w (ctl_ad_alu ctlsigs) memdat r)
 
 -- The ALU
-      (r,ccnew,condcc) = alu n (ctl_alu_a ctlsigs, ctl_alu_b ctlsigs,
-                                ctl_alu_c ctlsigs, ctl_alu_d ctlsigs)
-                                x y cc ir_d
-
+      aluOutputs = alu n (ctl_alu_a ctlsigs, ctl_alu_b ctlsigs) x y cc ir_d
+      (r,ccnew,condcc) = aluOutputs
+      
 -- Internal processor signals
-      ctl_rf_ldcc = one -- make it a control signal ??????
-      ccnew = wzero n
       x = mux1w (ctl_x_pc ctlsigs) a pc             -- alu input 1
       y = mux1w (ctl_y_ad ctlsigs) b ad             -- alu input 2
       rf_sa = mux1w (ctl_rf_sd ctlsigs) ir_sa ir_d  -- a = reg[rf_sa]
@@ -70,17 +90,11 @@ datapath ctlsigs memdat = (ma,md,cond,a,b,ir,pc,ad,ovfl,r,x,y,p)
              pc
       q = mux1w (ctl_pc_ad ctlsigs) r ad        -- input to pc
       ma = mux1w (ctl_ma_pc ctlsigs) ad pc      -- memory address
-      md = a                                    -- memory data
-      condnz = orw a                              -- boolean for conditionals
-
-      w15zero = fanout 15 zero
-      dummy0 = mux1w zero w15zero q
-
-      w16one = boolword 16 one
-      dummy1 = mux1w zero w16one q
+      md = ad                                    -- memory data
 
 -- Instruction fields
       ir_op = field ir  0 4           -- instruction opcode
       ir_d  = field ir  4 4           -- instruction destination register
       ir_sa = field ir  8 4           -- instruction source a register
       ir_sb = field ir 12 4           -- instruction source b register
+      irFields = (ir_op,ir_d,ir_sa,ir_sb)

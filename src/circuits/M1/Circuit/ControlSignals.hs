@@ -1,5 +1,5 @@
 -- Sigma16: ControlSignals.hs
--- Copyright (C) 2020 John T. O'Donnell
+-- Copyright (C) 2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
 -- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
@@ -35,14 +35,13 @@ data CtlSig a = CtlSig
 -- Controls for ALU
    ctl_alu_a,   -- 4-bit alu operation code (see section on the ALU)
    ctl_alu_b,   --   "
-   ctl_alu_c,   --   "
-   ctl_alu_d,   --   "
    ctl_x_pc,    -- Transmit pc on x (if 0, transmit reg[sa])
    ctl_y_ad,    -- Transmit ad on y (if 0, transmit reg[sb])
 
 -- Controls for register file
-   ctl_rf_ld,   --  Load  register file (if 0, remain unchanged)
-   ctl_rf_pc,   --   Input to register file is pc (if 0, check ctl_rf_alu)
+   ctl_rf_ld,   -- Load  register file (if 0, remain unchanged)
+   ctl_rf_ldcc, -- Load  R15 (if 0, remain unchanged; ld takes priority)
+   ctl_rf_pc,   -- Input to register file is pc (if 0, check ctl_rf_alu)
    ctl_rf_alu,  -- Input to register file is ALU output r (if 0, use m)
    ctl_rf_sd,   -- Use ir_d as source a address (if 0, use ir_sa)
 
@@ -66,16 +65,15 @@ data CtlState a = CtlState
    st_add,
    st_sub,
    st_mul0,
-   st_cmplt,
-   st_cmpeq,
-   st_cmpgt,
+   st_div0,
+   st_cmp,
    st_trap0,
    st_lea0, st_lea1,
    st_load0, st_load1, st_load2,
    st_store0, st_store1, st_store2,
    st_jump0, st_jump1,
-   st_jumpf0, st_jumpf1,
-   st_jumpt0, st_jumpt1,
+   st_jumpc00, st_jumpc01,
+   st_jumpc10, st_jumpc11,
    st_jal0, st_jal1
    :: a         -- all control states are bit signals
   }

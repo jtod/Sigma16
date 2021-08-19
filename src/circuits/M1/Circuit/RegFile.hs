@@ -1,5 +1,6 @@
 module M1.Circuit.RegFile where
 
+import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import HDL.Hydra.Circuits.Register
 
@@ -62,9 +63,9 @@ tailType RFtail   = RFtail
 -- leading to 16 registers, where the special cases are R0 (the head,
 -- i.e. lowest address) and R15 (the tail, i.e. highest address)
 
-regfileSpec1
-  :: CBit a =>
-  -> RFspan
+regFileSpec1
+  :: CBit a
+  => RFspan
   -> a           -- ld: if ld then reg[d] := x
   -> a           -- ldcc: if ldcc then reg[15] := xcc (but ld R15 takes precedence)
   -> [a]         -- d: destination address
@@ -82,36 +83,36 @@ regfileSpec1
 
 -- Base cases
 
-regFileSpec1 RFinside ld ldcc [] [] [] x xcc = (r,r)
+regFileSpec1 RFinside ld ldcc [] [] [] x xcc = (r,r,zero)
   where r = reg1 ld x
-regFileSpec1 RFhead ld ldcc [] [] [] x xcc = (zero, zero)
-regFileSpec1 RFtail ld ldcc [] [] [] x xcc = (r,r)
+regFileSpec1 RFhead ld ldcc [] [] [] x xcc = (zero,zero,zero)
+regFileSpec1 RFtail ld ldcc [] [] [] x xcc = (r,r,r)
   where r = reg1 (or2 ld ldcc) (mux1 ld xcc x)
 
 -- Recursion case
 
-regFileSpec1 rft ld ldcc x xcc (d:ds) (sa:sas) (sb:sbs) = (a,b,cc)
-  where (a0,b0,cc0) = regFileSpec1 (headType rft) ld0 ldcc x xcc ds sas sbs
-        (a1,b1,cc1) = regFileSpec1 (tailType rft) ld1 ldcc x xcc ds sas sbs
-        (ld0,ld1) = demux2 d ld
+regFileSpec1 rft ld ldcc (d:ds) (sa:sas) (sb:sbs) x xcc = (a,b,cc)
+  where (a0,b0,cc0) = regFileSpec1 (headType rft) ld0 ldcc ds sas sbs x xcc
+        (a1,b1,cc1) = regFileSpec1 (tailType rft) ld1 ldcc ds sas sbs x xcc
+        (ld0,ld1) = demux1 d ld
         a = mux1 sa a0 a1
         b = mux1 sb b0 b1
         cc = cc1
 
 -- n-bit register file with special cases for R0 and R15
 
-regfileSpec
-  :: CBit a =>
-  -> Int         -- word size
-  -> a           -- ld: if ld then reg[d] := x
-  -> a           -- ldcc: if ldcc then reg[15] := xcc (but ld R15 takes precedence)
-  -> [a]         -- d: destination address
-  -> [a]         -- sa: source a address
-  -> [a]         -- sb: source b address
-  -> a           -- x = data input for reg[d]
-  -> a           -- xcc = data input for condition code R15
-  -> (a,a,a)     -- (reg[sa], reg[sb], reg[15])
+regFileSpec
+  :: CBit a
+  => Int             -- word size
+  -> a               -- ld: if ld then reg[d] := x
+  -> a               -- ldcc: load R15
+  -> [a]             -- d: destination address
+  -> [a]             -- sa: source a address
+  -> [a]             -- sb: source b address
+  -> [a]             -- x = data input for reg[d]
+  -> [a]             -- xcc = data input for condition code R15
+  -> ([a],[a],[a])  -- (reg[sa], reg[sb], reg[15])
 
 regFileSpec n ld ldcc d sa sb x xcc =
-  unbitslice2 [regFileSpec1 RFfull ld ldcc d sa sb (x!!i) (xcc!i)
-                 | i <- [0 .. length d - 1]]
+  unbitslice3 [regFileSpec1 RFfull ld ldcc d sa sb (x!!i) (xcc!!i)
+                 | i <- [0 .. n - 1]]

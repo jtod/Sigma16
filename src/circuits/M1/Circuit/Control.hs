@@ -59,6 +59,9 @@ repeat forever
         -- unimplemented
 
     4 -> -- cmp
+        st_cmp:
+          reg[15] := alu_cmp reg[ir_sa] reg[ir_sb]
+             assert [ctl_alu_abcd=0000, ctl_rf_ldcc]
 
     11 -> -- trap instruction
         st_trap0:
@@ -131,29 +134,29 @@ repeat forever
                 assert [ctl_y_ad, ctl_alu=alu_add, ctl_ad_ld,
                         ctl_ad_alu, ctl_pc_ld]
 
-        4 -> --  jumpf instruction
-            st_jumpf0:
+        4 -> --  jumpc0 instruction
+            st_jumpc00:
               ad := mem[pc], pc++;
                 assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
                         ctl_alu_abcd=1100, ctl_pc_ld, ctl_rf_sd]
-              case reg[ir_sa] = 0 of
-                False: -- nothing to do
-                True:
-                  st_jumpf1:
+              case condcc of
+                True: -- nothing to do
+                False:
+                  st_jumpc01:
                     pc := reg[ir_sa] + ad
                       assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_pc_ld]
 
-        5 -> -- jumpt instruction
-            st_jumpt0:
+        5 -> -- jumpc1 instruction
+            st_jumpc10:
               ad := mem[pc], pc++;
                 assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
                         ctl_alu_abcd=1100, ctl_pc_ld, ctl_rf_sd]
-              case reg[ir_sa] = 0 of
-                False:
-                  st_jumpt1:
+              case condcc of
+                False: -- nothing to do
+                True:
+                  st_jumpc11:
                     pc := reg[ir_sa] + ad
                       assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_pc_ld]
-                True: -- nothing to do
 
         6 -> -- jumpc0 instruction
 
@@ -191,7 +194,7 @@ control
   => a -> [a] -> a
   -> (CtlState a, a, CtlSig a)
 
-control reset ir cond = (ctlstate,start,ctlsigs)
+control reset ir condcc = (ctlstate,start,ctlsigs)
   where
 
       ir_op = field ir  0 4       -- instruction opcode
@@ -201,9 +204,9 @@ control reset ir cond = (ctlstate,start,ctlsigs)
 
       start = orw
         [reset,st_load2,st_lea1,st_add,st_sub,
-         st_mul0,st_store2,st_cmpeq,st_cmplt,st_cmpgt,
-         st_jumpt1, and2 st_jumpt0 (inv cond),
-         st_jumpf1, and2 st_jumpf0 cond,
+         st_mul0,st_store2,st_cmp,
+         st_jumpc01, and2 st_jumpc00 condcc,
+         st_jumpc11, and2 st_jumpc10 (inv condcc),
          st_jump1, st_jal1, st_trap0]
 
       st_instr_fet = dff start
@@ -227,11 +230,11 @@ control reset ir cond = (ctlstate,start,ctlsigs)
       st_jump0  = dff (pRX!!3)
       st_jump1  = dff st_jump0
 
-      st_jumpf0 = dff (pRX!!4)
-      st_jumpf1 = dff (and2 st_jumpf0 (inv cond))
+      st_jumpc00 = dff (pRX!!4)
+      st_jumpc01 = dff (and2 st_jumpc00 (inv condcc))
 
-      st_jumpt0 = dff (pRX!!5)
-      st_jumpt1 = dff (and2 st_jumpt0 cond)
+      st_jumpc10 = dff (pRX!!5)
+      st_jumpc11 = dff (and2 st_jumpc10 condcc)
 
       st_jal0   = dff (pRX!!6)
       st_jal1   = dff st_jal0
@@ -240,44 +243,41 @@ control reset ir cond = (ctlstate,start,ctlsigs)
       st_sub    = dff (pRRR!!1)
       st_mul0   = dff (pRRR!!2)
       st_div0   = dff (pRRR!!3)
-      st_cmplt  = dff (pRRR!!4)
-      st_cmpeq  = dff (pRRR!!5)
-      st_cmpgt  = dff (pRRR!!6)
+      st_cmp    = dff (pRRR!!4)
       st_trap0  = dff (pRRR!!11)
 
       ctl_rf_ld   = orw [st_load2,st_lea1,st_add,st_sub,
-                           st_cmpeq,st_cmplt,st_cmpgt,st_jal1]
+                           st_jal1]
+      ctl_rf_ldcc = orw [st_cmp]
+
       ctl_rf_pc   = orw [st_jal1]
-      ctl_rf_alu  = orw [st_lea1,st_add,st_sub,st_cmpeq,
-                           st_cmplt,st_cmpgt]
-      ctl_rf_sd   = orw [st_store2,st_jumpf0]
+      ctl_rf_alu  = orw [st_lea1,st_add,st_sub]
+      ctl_rf_sd   = orw [st_store2,st_jumpc00]
       ctl_alu_a   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
-                         st_cmpeq,st_cmplt,st_cmpgt,st_jumpf0,st_jal0]
+                         st_jumpc00,st_jal0]
       ctl_alu_b   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
-                         st_sub,st_cmpeq,
-                         st_cmplt,st_cmpgt,st_jumpf0,st_jal0]
-      ctl_alu_c   = orw [st_cmpeq,st_cmpgt]
-      ctl_alu_d   = orw [st_cmpeq,st_cmplt,st_cmpgt]  -- ????? not cmpeq
+                         st_sub,st_jumpc00,st_jal0]
       ctl_ir_ld   = orw [st_instr_fet]
       ctl_pc_ld   = orw [st_instr_fet,st_load0,st_lea0,st_store0,
-                           st_jumpt0,st_jumpt1,st_jumpf0,st_jumpf1,
+                           st_jumpc10,st_jumpc11,st_jumpc00,st_jumpc01,
                            st_jump0,st_jump1,st_jal0,st_jal1]
       ctl_pc_ad   = orw [st_jal1]
       ctl_ad_ld   = orw [st_load0,st_load1,st_lea0,st_store0,
-                         st_store1,st_jumpt0,st_jumpf0,st_jump0,st_jump1,
+                         st_store1,st_jumpc10,st_jumpc00,st_jump0,st_jump1,
                          st_jal0,st_jal1]
       ctl_ad_alu  = orw [st_load1,st_store1,st_jump1,st_jal1]
       ctl_ma_pc   = orw [st_instr_fet,st_load0,st_lea0,st_store0,
-                           st_jumpt0,st_jumpf0,st_jump0,st_jal0]
+                           st_jumpc10,st_jumpc00,st_jump0,st_jal0]
       ctl_x_pc    = orw [st_instr_fet,st_load0,st_lea0,st_store0,
-                           st_jumpt0,st_jumpf0,st_jump0,st_jal0]
-      ctl_y_ad    = orw [st_load1,st_store1,st_lea1,st_jumpt1,
-                         st_jumpf1,st_jump1,st_jal1]
+                           st_jumpc10,st_jumpc00,st_jump0,st_jal0]
+      ctl_y_ad    = orw [st_load1,st_store1,st_lea1,st_jumpc11,
+                         st_jumpc01,st_jump1,st_jal1]
       ctl_sto     = orw [st_store2]
 
       ctlsigs = CtlSig
-        {ctl_alu_a,  ctl_alu_b,  ctl_alu_c,  ctl_alu_d,
-         ctl_x_pc,   ctl_y_ad,   ctl_rf_ld,  ctl_rf_pc,
+        {ctl_alu_a,  ctl_alu_b,
+         ctl_x_pc,   ctl_y_ad,   ctl_rf_ld,  ctl_rf_ldcc,
+         ctl_rf_pc,
          ctl_rf_alu, ctl_rf_sd,  ctl_ir_ld,  ctl_pc_ld,
          ctl_pc_ad,  ctl_ad_ld,  ctl_ad_alu, ctl_ma_pc,
          ctl_sto}
@@ -288,15 +288,14 @@ control reset ir cond = (ctlstate,start,ctlsigs)
          st_add,
          st_sub,
          st_mul0,
-         st_cmpeq,
-         st_cmplt,
-         st_cmpgt,
+         st_div0,
+         st_cmp,
          st_trap0,
          st_lea0, st_lea1,
          st_load0, st_load1, st_load2,
          st_store0, st_store1, st_store2,
          st_jump0, st_jump1,
-         st_jumpf0, st_jumpf1,
-         st_jumpt0, st_jumpt1,
+         st_jumpc00, st_jumpc01,
+         st_jumpc10, st_jumpc11,
          st_jal0, st_jal1}
 

@@ -14,7 +14,7 @@ module HDL.Hydra.Core.Pattern
 -- * Wiring patterns
    fanout2, fanout3, fanout4, fanout,
    fanoutbuf2, fanoutbuf3, fanoutbuf4,
-   bitslice2, unbitslice2,
+   bitslice2, unbitslice2, unbitslice3,
 
 -- * Linear patterns
 
@@ -58,6 +58,12 @@ unbitslice2 [] = ([],[])
 unbitslice2 ((x,y):zs) =
   let (xs,ys) = unbitslice2 zs
   in (x:xs, y:ys)
+
+unbitslice3 :: [(a,b,c)] -> ([a],[b],[c])
+unbitslice3 [] = ([],[],[])
+unbitslice3 ((x,y,z):qs) =
+  let (xs,ys,zs) = unbitslice3 qs
+  in (x:xs, y:ys, z:zs)
 
 zipn :: Int -> [a] -> [b] -> [(a,b)]
 zipn n x y =

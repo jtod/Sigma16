@@ -4,9 +4,28 @@ The Sigma16 circuits
 Quick start
 ~~~~~~~~~~~
 
-In your shell, cd to Sigma16/src/circuits and enter
+See the Installation section in the User Guide.  Check that the
+software is installed and working:
 
-   sigma16 assemble M1/Programs/Add
+$ node --version
+v16.5.0
+$ ghc --version
+The Glorious Glasgow Haskell Compilation System, version 9.0.1
+$ alias sigma16
+alias sigma16='node PATH/TO/YOUR/INSTALLATION/Sigma16/src/cli/sigma16.mjs'
+$
+
+It's convenient to define an alias to the directory where you have the
+example programs.  For example, in .bashrc:
+
+   export COREPROGS="../../examples/Core"
+
+Open a shell and cd to directory Sigma16/src/circuits:
+
+   $ sigma16 assemble $COREPROGS/Simple/Add
+   $ runghc M1/Tools/Run $COREPROGS/Simple/Add.obj.txt
+
+Alternative:
    runghc M1/Tools/Run M1/Programs/Add.obj.txt
 
 Introduction

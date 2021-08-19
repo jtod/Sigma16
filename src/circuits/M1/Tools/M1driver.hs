@@ -30,7 +30,7 @@ module M1.Tools.M1driver where
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import M1.Circuit.ControlSignals
-import M1.Circuit.M1
+import M1.Circuit.System
 
 ----------------------------------------------------------------------
 -- Simulation model
@@ -58,11 +58,13 @@ run_Sigma16_program prog n =
 
 -- prog is a list of ints giving object code
 run_Sigma16_executable :: [Int] -> Int -> IO ()
-run_Sigma16_executable prog n =
+run_Sigma16_executable prog n = do
+  let f i x = [0, 1, i, x]
   let inps = zipWith f [0..] prog ++ [[1,0,0,0]] ++ repeat [0,0,0,0]
-      f i x = [0, 1, i, x]
-      m = n + length prog
-  in  sim_m1 (take m inps)
+  let m = n + length prog
+  putStrLn ("run executable limit = " ++ show m)
+  putStrLn ("input = " ++ show (take m inps))
+  sim_m1 (take m inps)
 
 ----------------------------------------------------------------------
 -- Simulation driver for the M1 system
@@ -203,7 +205,9 @@ sim_m1 input =
 
 -- Define names for the outputs from the datapath.
 
-      (ma,md,cond,a,b,ir,pc,ad,ovfl,r,x,y,p) = datapath_outputs
+      (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q) = datapath_outputs
+      (r,ccnew,condcc) = aluOutputs
+      (ir_op,ir_d,ir_a,ir_b) = irFields
 
 -- Format the output, inserting string labels for the signals, and
 -- converting them to readable form.
@@ -227,9 +231,7 @@ sim_m1 input =
          string "       st_sub = ", bit (st_sub ctlstate),
          string "\n  ",
          string "      st_mul0 = ", bit (st_mul0 ctlstate),
-         string "     st_cmplt = ", bit (st_cmplt ctlstate),
-         string "     st_cmpeq = ", bit (st_cmpeq ctlstate),
-         string "     st_cmpgt = ", bit (st_cmpgt ctlstate),
+         string "      st_cmp = ",  bit (st_cmp ctlstate),
          string "\n  ",
          string "     st_trap0 = ", bit (st_trap0 ctlstate),
          string "      st_lea0 = ", bit (st_lea0 ctlstate),
@@ -244,11 +246,7 @@ sim_m1 input =
          string "    st_store2 = ", bit (st_store2 ctlstate),
          string "     st_jump0 = ", bit (st_jump0 ctlstate),
          string "     st_jump1 = ", bit (st_jump1 ctlstate),
-         string "    st_jumpf0 = ", bit (st_jumpf0 ctlstate),
          string "\n  ",
-         string "    st_jumpf1 = ", bit (st_jumpf1 ctlstate),
-         string "    st_jumpt0 = ", bit (st_jumpt0 ctlstate),
-         string "    st_jumpt1 = ", bit (st_jumpt1 ctlstate),
          string "      st_jal0 = ", bit (st_jal0 ctlstate),
          string "\n  ",
          string "      st_jal1 = ", bit (st_jal1 ctlstate),
@@ -256,8 +254,6 @@ sim_m1 input =
          string "\n\nControl signals\n  ",
            string "  ctl_alu_a   = ", bit (ctl_alu_a ctlsigs),
            string "  ctl_alu_b   = ", bit (ctl_alu_b ctlsigs),
-           string "  ctl_alu_c   = ", bit (ctl_alu_c ctlsigs),
-           string "  ctl_alu_d   = ", bit (ctl_alu_d ctlsigs),
            string "\n  ",
            string "  ctl_x_pc    = ", bit (ctl_x_pc ctlsigs),
            string "  ctl_y_ad    = ", bit (ctl_y_ad ctlsigs),
@@ -287,7 +283,7 @@ sim_m1 input =
            string "   p = ", binhex p,
            string "  ma = ", binhex ma,
            string "  md = ", binhex md,
-           string " cnd = ", bit cond,
+           string " cnd = ", bit condcc,
 
 -- Memory interface
 
@@ -298,7 +294,34 @@ sim_m1 input =
            string "   m_addr = ", binhex m_addr,
            string "  m_real_addr = ", binhex m_real_addr,
            string "  m_data = ", binhex m_data,
-           string "  m_out =", binhex m_out,
+           string "  m_data = ", bits m_data,
+--           string "  m_out =", binhex m_out,
+           string "  m_out =", bits m_out,
+           string "  m_real_addr = ", binhex m_real_addr,
+           string "\n",
+           string "  reset = ", bit reset,
+           string "  dma = ", bit dma,
+           string "  dma_a = ", bits dma_a,
+           string "  dma_d = ", bits dma_d,
+           string "\n",
+           string "  md = ", bits md,
+           string "  dma_d = ", bits dma_d,
+           string "\n",
+           string "  m_sto = ", bit m_sto,
+           string "  m_real_addr = ", bits m_real_addr,
+           string "  m_data = ", bits m_data,
+           string "  m_out = ", bits m_out,
+           string "  q = ", bits q,
+           string "\n",
+           string "ALU inputs: ",
+           string "  x = ", bits x,
+           string "  cc = ", bits cc,
+           string "  ir_d = ", bits ir_d,
+           string "\n",
+           string "ALU outputs: ",
+           string "  r = ", bits r,
+           string "  ccnew = ", bits ccnew,
+           string "  condcc = ", bit condcc,
          string "\n\n",
 
 -- ...................................................................
@@ -332,7 +355,7 @@ sim_m1 input =
 -- it in the simulation driver state
 
          fmtIf (orw [st_lea1 ctlstate, st_load1 ctlstate, st_store1 ctlstate,
-                     st_jump1 ctlstate, st_jumpt1 ctlstate, st_jumpf1 ctlstate,
+                     st_jump1 ctlstate, st_jumpc01 ctlstate, st_jumpc11 ctlstate,
                      st_jal1 ctlstate])
            [setStateWs setDisplacement [ad],
             string "Fetched displacement = ",
@@ -344,30 +367,20 @@ sim_m1 input =
 -- output of the ALU, and usually will be loaded into the ad register.
 
          fmtIf (orw [st_lea1 ctlstate, st_load1 ctlstate, st_store1 ctlstate,
-                     st_jump1 ctlstate, st_jumpf1 ctlstate, st_jumpt1 ctlstate,
+                     st_jump1 ctlstate, st_jumpc01 ctlstate, st_jumpc11 ctlstate,
                      st_jal1 ctlstate])
            [setStateWs setEffAddr [r]]
            [],
 
 -- Say whether a conditional jump was performed
 
-         fmtIf (and2 (st_jumpt0 ctlstate) (inv cond))
-           [string "jumpt instruction did not perform jump",
+         fmtIf (and2 (st_jumpc00 ctlstate)  (inv condcc))
+           [string "jumpc0 instruction did not perform jump",
             setStateWs setJump [[zero], ad]]
            [],
 
-         fmtIf (st_jumpt1 ctlstate)
-           [string "jumpt instruction jumped",
-            setStateWs setJump [[one], ad]]
-           [],
-
-         fmtIf (and2 (st_jumpf0 ctlstate)  cond)
-           [string "jumpf instruction did not perform jump",
-            setStateWs setJump [[zero], ad]]
-           [],
-
-         fmtIf (st_jumpf1 ctlstate)
-           [string "jumpf instruction jumped",
+         fmtIf (and2 (st_jumpc10 ctlstate)  condcc)
+           [string "jumpc1 instruction jumped",
             setStateWs setJump [[one], r]]
            [],
 
@@ -407,8 +420,8 @@ sim_m1 input =
             string "Executed instruction:  ",
             fmtWordsGeneral findMnemonic [field ir 0 4, field ir 12 4],
             string " ",
-            fmtIf (orw [st_add ctlstate, st_sub ctlstate, st_cmpeq ctlstate,
-                        st_cmplt ctlstate, st_cmpgt ctlstate])
+            fmtIf (orw [st_add ctlstate, st_sub ctlstate, st_cmp ctlstate])
+
               [string " R", bindec 1 (field ir 4 4),    -- RRR format
                string ",R", bindec 1 (field ir 8 4),
                string ",R", bindec 1 (field ir 12 4)]
@@ -454,14 +467,14 @@ findMnemonic [opfield, bfield] =
       b = intsInt bfield
       mnemonics_RRR =
         ["add", "sub", "mul", "div",
-         "cmplt", "cmpeq", "cmpgt", "inv",
-         "and", "or", "xor", "shiftl",
-         "shiftr", "trap", "expandXX", "expandRX"]
+         "cmp", "nop", "nop", "nop",
+         "nop", "nop", "nop", "trap",
+         "nop", "nop", "expandExp", "expandRX"]
       mnemonics_RX =
-        ["lea", "load", "store", "jump",
-         "jumpf", "jumpt", "jal", "nop",
-         "nop", "nop", "nop", "nop",
-         "nop", "nop", "nop", "nop"]
+        ["lea",    "load",   "store", "jump",
+         "jumpc0", "jumpc1", "jal",   "nop",
+         "nop",    "nop",    "nop",   "nop",
+         "nop",    "nop",    "nop",   "nop"]
   in if op==15
        then mnemonics_RX !! b
        else mnemonics_RRR !! op
