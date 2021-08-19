@@ -9,6 +9,6 @@ node_modules
 !Sigma16.html
 *.lst.txt
 *.obj.txt
-*.omd.txt
+*.md.txt
 *.exe.txt
 *.xmd.txt
