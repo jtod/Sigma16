@@ -95,7 +95,6 @@ future (Cycle x xs) = xs
 forever :: a -> Stream a
 forever x = Cycle x (forever x)
 
-
 ---------------------------------------------------------------------
 -- Operations on streams
 

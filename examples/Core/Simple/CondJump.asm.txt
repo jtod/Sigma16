@@ -1,0 +1,10 @@
+; CondJump
+       lea     R1,1[R0]
+       lea     R2,2[R0]
+       cmp     R1,R2      ; 0018    < Nat (bit 3), < Int (bit 4)
+       jumplt  goodlt[R0] 
+       lea     R9,6[R0]  ; bad - should skip this
+       jump    done[R0]
+goodlt lea     R9,7[R0]  ; good - should execute
+done   add     R8,R6,R7
+       trap    R0,R0,R0

@@ -12,3 +12,7 @@ node_modules
 *.md.txt
 *.exe.txt
 *.xmd.txt
+deprecated*
+*.hi
+*.o
+*.exe

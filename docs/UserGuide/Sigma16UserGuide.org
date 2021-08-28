@@ -2204,7 +2204,7 @@ formats are described later.
 RRR instructions are represented in one word comprising four 4-bit
 fields:
 
-#+INCLUDE: "./svg/RRRformat.svg" export html
+[[file:./svg/RRRformat.svg]]
 
 Each field contains 4 bits representing a binary number between 0
 and 15.
@@ -5998,13 +5998,43 @@ similar to this:
 
 * Installation
 
-** Circuit tools
-*** Installation
+** The processor circuit
 
-All of the software required for Hydra is free and open source, and
-all of it runs on Windows, Macintosh, and Gnu/Linux.
+** Installation
 
-*** Install ghc
+You can run most of Sigma16 in a web browser -- there's nothing to
+download, nothing to install.  Just click the link in the Sigma16 Home
+Page and it's running.
+
+*** The easy way: running in browser with no installation
+
+To run the main app (the Integrated Development Environment, or IDE)
+visit the [Sigma16 home page](https://jtod.github.io/home/Sigma16/) in
+your browser and click on the link to launch the app.  It will run in
+your browser; you don't have to install anything.
+
+The Home page also contains links to the source code, related
+documents, and further information about the project.  Its a good idea
+to bookmark the Home Page, rather than a specific release: that way
+you'll always get the latest version.
+
+The IDE runs in a web browser.  The browser needs to be up to date;
+the app won't work in very old versions of browsers.  Just keep your
+browser updated (you need to do that anyway) and it should work.
+
+*** Features that require software installation
+
+Sigma16 also contains some advanced features that use the command line
+in a shell.  These features include text commands for assembling and
+linking programs, and for running the circuit simulator.  These
+features require some software installation.  In addition, building
+Sigma16 from soure requires some additional software that must be
+installe.  All of the software required for Hydra is free and open
+source, and all of it runs on Windows, Macintosh, and Gnu/Linux.
+
+*** node: JavaScript
+*** npm: JavaScript packages
+*** ghc: Haskell
 
 Install the ghc Haskell compiler, which you can download from the
 Haskell web page [[https://www.haskell.org/]].  A standard
@@ -6019,160 +6049,22 @@ cabal-install version 3.4.0.0
 compiled using version 3.4.0.0 of the Cabal library
 #+END_EXAMPLE
 
-*** Install Hydra
 
-Download Hydra from [[https://github.com/jtod/Hydra]].  Click Releases
-and download the most recent version.  The installation file is
-Hydra-i.j.k.zip (or .tgz), where i.j.k is the version number.  Put the
-file somewhere in your user workspace and uppack it.  On Linux, enter
-=tar -xzf Hydra-i.j.k.tgz= and on Windows use 7zip or similar.
+*** cabal: Haskell packages
 
-Enter the Hydra directory and compile it with the following commands:
-
-#+BEGIN_SRC shell
-cd /path/to/Hydra
+#+BEGIN_EXAMPLE
 cabal update
-cabal v1-install
-#+END_SRC
-
-The installation command will compile Hydra and generate a
-documentation file:
-
-#+BEGIN_EXAMPLE
-$ cabal v1-install
-Warning: Hydra.cabal:31:1: Ignoring trailing fields after sections:
-"extra-doc-files"
-Resolving dependencies...
-Starting     Hydra-2.5.0
-Building     Hydra-2.5.0
-Completed    Hydra-2.5.0
-Updating documentation index
-C:\Users\USERNAME\AppData\Roaming\cabal\doc\x86_64-windows-ghc-9.0.1\index.html
-$
+cabal install --lib ansi-terminal
 #+END_EXAMPLE
 
-This User Guide is the primary documentation for Hydra, but the
-command =cabal haddock= also generates some html documentation.  The
-location of this file is given when you enter the =cabal v1-install=
-command.
+*** Configuring the shell
 
-#+BEGIN_EXAMPLE
-file:///C:/Users/MYUSERNAME/AppData/Roaming/...
-cabal/doc/x86_64-windows-ghc-9.0.1/...
-Hydra-2.5.0/html/index.html
-#+END_EXAMPLE
+It's convenient to define an alias to the directory where you have the
+example programs.  For example, in .bashrc:
 
-Test the installation.  Enter the directory =examples/HelloWorld=, which
-contains a minimal example.  There are two files:
-- =HelloWorld.hs= defines a simple circuit =hello= which is actually
-  just an =and2= logic gate
-- =HelloWorldRun.hs= is an executable program that runs the =hello=
-  circuit with some test data
-
-Run the simulation with the command =ghc -e main HelloWorldRun= which
-should produce this output:
-
-#+BEGIN_EXAMPLE
-$ ghc -e main HelloWorldRun
-  x=0  y=0  output z=0
-  x=0  y=1  output z=0
-  x=1  y=0  output z=0
-  x=1  y=1  output z=1
-$
-#+END_EXAMPLE
-
-Install Hydra: download Hydra, enter the directory, and
-
-Enter the directory Sigma16/circuits.  Run all the commands in that
-directory, don't cd to any of the subdirectories.
-
-The M1 directory contains the Machine 1 circuit which implements the
-core Sigma16 architecture, as well as simulation tools and example
-programs.
-
-*** Circuit simulation
-*** Running without compilation
-
-You can run circuit simulations without first compiling the circuit
-files.  For example, to run the M1 processor on the Add example
-program use this command:
-
-#+BEGIN_EXAMPLE
-runghc M1/Tools/Run M1/Programs/Add.obj.txt
-#+END_EXAMPLE
-
-*** Compiling and running the circuit
-
-Compile the tools:
-
-#+BEGIN_EXAMPLE
-ghc --make M1/Tools/Run
-#+END_EXAMPLE
-
-Now run a machine language program on the circuit.  The executable
-program you need is M1/Tools/Run and you need to give it the name of
-an object code file, e.g. M1/Programs/Add.obj.txt:
-
-$ M1/Tools/Run M1/Programs/Add.obj.txt
-M1 Run starting
-... simulation output follows...
-
-
-** The easy way: running in browser with no installation
-
-To run the main app (the Integrated Development Environment, or IDE)
-visit the [Sigma16 home page](https://jtod.github.io/home/Sigma16/) in
-your browser and click on the link to launch the app.  It will run in
-your browser; you don't have to install anything.
-
-The Home page also contains links to the source code, related
-documents, and further information about the project.  Its a good idea
-to bookmark the Home Page, rather than a specific release: that way
-you'll always get the latest version.
-
-The IDE runs in a web browser.  The browser needs to be up to date;
-the app won't work in very old versions of browsers.  It should work
-with any browser that is compliant with the current ECMAScript
-standard.  Just keep your browser updated (you need to do that anyway)
-and it should work.
-
-** Command line tools
-
-In addition to the graphical user interface, there are a number of
-tools that run in a command line.  These tools don't use a GUI
-(graphical user environment).  They include a fast emulator and
-circuit simulator.
-
-#+BEGIN_EXAMPLE
-$ npm install -g wabt
-$ wat2wasm emcore.wat --enable-threads
-#+END_EXAMPLE
-
-This doesn't work:
-#+BEGIN_EXAMPLE
-$ npm install -g wat2wasm   doesn't work
-wat2wasm emcore.wat
-#+END_EXAMPLE
-
-*** Required software
-
-To use the full set of command line tools, you need the following:
-
-- Console running a shell.  The most common choice is bash, which runs
-  on all platforms.
-
-- node.js and npm.  These are part of the standard JavaScript tools
-  which can be downloaded from
-  [https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm).
-
-- C. Many systems come with a C compiler already installed.  The gcc
-  compiler is available at
-  [https://gcc.gnu.org/install/](https://gcc.gnu.org/install/)
-
-- ghc.  The circuit tools requires the Haskell compiler; download from
-  [https://www.haskell.org/downloads/](https://www.haskell.org/downloads/)
-
-*** Setting up your environment
+   export COREPROGS="../../examples/Core"
+   alias runcirc="runghc M1/Tools/Run"
+   
 
 Shell running bash
 
@@ -6186,160 +6078,75 @@ export SIGMA16
 alias helloworld="node ${SIGMA16}/app/helloworld.js"
 #+END_EXAMPLE
 
-*** Websockets
+src/circuits contains a file .ghci that contains several commands
+which are automatically executed with ghci is launched.  If .ghci is
+missing, you can also enter those commands manually.  Here is the text
+of .ghci:
 
 #+BEGIN_EXAMPLE
-$ git clone https://libwebsockets.org/repo/libwebsockets
+:set -package mtl
+:set -package parsec
+:load M1/Tools/Run
 #+END_EXAMPLE
 
-*** Running IDE locally
+*** Testing the installation
 
-*** Run with npm
-
-See app/makefile for notes on how to run the software as a standalone
-program, without using a browser.  The following software needs to be
-installed in order to build the executable using electron
-
-    node.js
-    npm
-
-*** Compile using npm
-
-Clone this repository
 #+BEGIN_EXAMPLE
-git clone https://github.com/electron/electron-quick-start
+$ node --version
+v16.5.0
+$ ghc --version
+The Glorious Glasgow Haskell Compilation System, version 9.0.1
+$ alias sigma16
+alias sigma16='node PATH/TO/YOUR/INSTALLATION/Sigma16/src/cli/sigma16.mjs'
+$ cd Sigma16/src/circuit
+$ sigma16 assemble $COREPROGS/Simple/Add
+$ ghci
+:main SimpleAdd
+:q
+#+END_EXAMPLE
+
+*** Running the circuit simulator
+
+-- Installation
+
+-- Usage
+--   cd to src/circuits  -- must be in this directory
+--   ghci                -- start ghci and initialize using .ghci
+--   :main Simple/Add    -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--   :r                  -- reload, after you have changed a circuit source file
+--   :q                  -- quit ghci, return to shell
+
+When ghci is launched it automatically executes the commands in .ghci:
+
+#+BEGIN_EXAMPLE
+:set -package mtl
+:set -package parsec
+:load M1/Tools/Run
+#+END_EXAMPLE
+
+*** Documentation
+
+-  src/circuits/README.txt  -- how to run it
+-  Sigma16 User Guide       -- the architecture and circuits
+-  Hydra User Guide         -- the hardware description language.
+- ghc documentation:  https://downloads.haskell.org/ghc/latest/docs/html/users_guide/index.html
+
+*** Building Sigma16
+
+The Web version of Sigma16 contains several files that need to be
+built from source.  Of course, if you launch the app from the Sigma16
+Home Page you don't need to worry about that: you get a fully-built
+version.
+
+Use emacs to build *.html from source *.org
+
+#+BEGIN_EXAMPLE
+^C ^E h h
 #+END_EXAMPLE
 
 #+BEGIN_EXAMPLE
-cd electron-quick-start  # Go to the repository
-npm install              # Install dependencies
-npm start                # Run the app
-#+END_EXAMPLE
-
-Now you can launch the app from the command line:
-
-#+BEGIN_EXAMPLE
-npm start                # Run the app
-#+END_EXAMPLE
-
-*** Download and open file in browser
-
-If you don't always have Internet access, you can download the files
-and ope the app in your browser.  This is easy to do and allows you to
-run Sigma16 even when you don't have access to the Internet.  However,
-it is a little more awkward to run the example programs.
-
-You can also download the software onto your computer and run it
-locally.  This exactly like the first method, except the web pages are
-coming from your computer's files rather than the Internet.
-
-Visit the [Sigma16 home
-page](https://jtod.github.io/Sigma16/index.html) and download the zip
-file for the latest release.  Unzip and click on index.html in the
-folder and follow the directions.
-
-You might also be able to launch it by [clicking this
-link](../../Sigma16.html) although that might not work; it depends on
-whether all the necessary files are accessible.
-
-*** Run locally with npm and electron
-
-The previous methods run the app in a browser.  There are some
-security restrictions on what a browser can do, and these make it
-slightly awkward for the program to read and write files.  You can
-perform a local installation which will run Sigma16 as a standalone
-app on your computer, rather than in a browser, and this makes it a
-little more convenient to use.
-
-If you don't want to bother with downloading some software tools and
-running an installation script, you can skip to the next method, which
-is to download a precompiled executable for your platform.  But it's
-straightforward to build Sigma16 on your computer:
-
-  - You need a shell such as bash or Windows PowerShell.  Every
-    computer will have one.
-	
-  - Install the npm package manager for JavaScript, available at
-    [https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm).
-    Download the installer and follow the instructions.
-
-  - Install the *electron- package.  In your shell, enter *npm install
-    electron --save-dev*.  (Why is it called "electron"?  Originally,
-    there was a text editor named *Atom* written in JavaScript, and it
-    needed a shell.  So it's the electron shell for atom...
-	
-  - Download the source for Sigma16.  Unzip it, and cd into the app
-    directory.  Enter *make all*.
-	
-  - To launch Sigma16, enter *npm run start*.  Now you'll have
-    enhanced file access, as well as a few other minor enhancements,
-    and you don't need Internet access.
-
-*** Compiling IDE for local execution
-
-First install npm, which also gives you Node.js.  Use npm to install
-electron.
-
-    cd src
-    npm install
-    npm start
-
-Clone this repository, then enter the repository, install
-dependencies, and run the program:
-	
-    git clone https://github.com/electron/electron-quick-start
-    cd electron-quick-start
-    npm install
-    npm start
-
-
-To build standalone version using Node.hs and electron.  In the
-src/app directory, use the following commands.  They create a file
-package-lock.json and a directory node_modules, both in src/app.
-
-    npm install
-    npm start
-
-The pkg program can generate a native executable which doesn't require
-the user to have npm installed.
-	
-    npm install -g pkg 
-	pkg --help
-	pkg main.js
-	
-Maybe the bin entry in package.json would allow the command to be just
-pkg . ?  In src directory tried this:
-
-    $ pkg  -t win-x64 app
-	
-	
-Lots of warnings:
-
-    > Warning Cannot include directory %1 into executable.
-      The directory must be distributed with executable as %2.
-      app\node_modules\electron\dist
-      path-to-executable/electron/dist
-    > Warning Cannot include file %1 into executable.
-      The file must be distributed with executable as %2.
-      app\node_modules\sliced\index.js
-      path-to-executable/node_modules/sliced/index.js
-    > Warning Cannot include file %1 into executable.
-      The file must be distributed with executable as %2.
-      app\node_modules\deep-defaults\lib\index.js
-      path-to-executable/node_modules/deep-defaults/index.js
-
-Turns out that to build an app with electron one of the following
-specific tools is needed:
-
-    electron-forge
-    electron-builder
-    electron-packager
-
-Trying electron-builder
-
-#+BEGIN_EXAMPLE
-npm install electron-builder --save-dev   in src/app
-npm run mkdist
+$ npm install -g wabt
+$ wat2wasm emcore.wat --enable-threads
 #+END_EXAMPLE
 
 * About Sigma16

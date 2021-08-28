@@ -1,4 +1,4 @@
--- Sigma16: ControlSignals.hs
+-- Sigma16: Interface.hs
 -- Copyright (C) 2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
@@ -15,11 +15,13 @@
 -- a copy of the GNU General Public License along with Sigma16.  If
 -- not, see <https://www.gnu.org/licenses/>.
 
+{-# LANGUAGE NamedFieldPuns #-}
+
 ------------------------------------------------------------------------
 -- Control signals
 ------------------------------------------------------------------------
 
-module M1.Circuit.ControlSignals where
+module M1.Circuit.Interface where
 import HDL.Hydra.Core.Lib
 
 {- The behaviour of the datapath is determined by the values of the
@@ -71,9 +73,32 @@ data CtlState a = CtlState
    st_lea0, st_lea1,
    st_load0, st_load1, st_load2,
    st_store0, st_store1, st_store2,
-   st_jump0, st_jump1,
-   st_jumpc00, st_jumpc01,
-   st_jumpc10, st_jumpc11,
+   st_jump0, st_jump1, st_jump2,
+   st_jumpc00, st_jumpc01, st_jumpc02,
+   st_jumpc10, st_jumpc11, st_jumpc12,
    st_jal0, st_jal1
    :: a         -- all control states are bit signals
   }
+
+data DPoutputs a = DPoutputs
+     { aluOutputs :: ([a], [a], a)
+     , r :: [a]        -- alu output
+     , ccnew :: [a]     -- alu output
+     , condcc :: a     -- alu output
+     , ma :: [a]
+     , md :: [a]
+     , a :: [a]
+     , b :: [a]
+     , cc :: [a]
+     , ir :: [a]
+     , ir_op :: [a]
+     , ir_d :: [a]
+     , ir_sa :: [a]
+     , ir_sb :: [a]
+     , pc :: [a]
+     , ad :: [a]
+     , x :: [a]
+     , y :: [a]
+     , p :: [a]
+     , q :: [a]
+     }

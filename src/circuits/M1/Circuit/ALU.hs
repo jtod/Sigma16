@@ -89,8 +89,17 @@ alu n (alua,alub) x y cc d = (sum, ccnew, cond)
               carry, natovfl, intovfl, lt_tc,  -- bit  7  6  5  4
               lt,    eq,      gt,      gt_tc   -- bit  3  2  1  0
             ]
-    cond = muxw d cc
+    cond = indexbit d cc
 
+-- indexbitcs xs: select element at index cs from xs, where index 0 is
+-- least significant position; require that length xs = 2 ^ length cs
+
+indexbit :: Bit a => [a] -> [a] -> a
+indexbit [] [x] = x
+indexbit (c:cs) xs =
+  mux1 c (indexbit cs (drop i xs))
+         (indexbit cs (take i xs))
+  where i = 2 ^ length cs
 
 -- mux4 cs xs: select element at index cs from xs; require that length
 -- xs = 2 ^ length cs

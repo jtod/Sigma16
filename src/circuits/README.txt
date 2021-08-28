@@ -1,42 +1,24 @@
-The Sigma16 circuits
-~~~~~~~~~~~~~~~~~~~~
+Sigma16/src/circuits/README.txt:  Simulating the Sigma16 processor circuit
+This file is part of Sigma16 . See Sigma16/README.md and Sigma16/LICENSE.txt
 
-Quick start
-~~~~~~~~~~~
+QUICK START (See Installation section in Sigma16 User Guide)
 
-See the Installation section in the User Guide.  Check that the
-software is installed and working:
+$ is the bash shell prompt and : is the ghci prompt
 
-$ node --version
-v16.5.0
-$ ghc --version
-The Glorious Glasgow Haskell Compilation System, version 9.0.1
-$ alias sigma16
-alias sigma16='node PATH/TO/YOUR/INSTALLATION/Sigma16/src/cli/sigma16.mjs'
-$
+  $ cd Sigma16/src/circuits
+  $ sigma16 assemble $COREPROGS/Simple/Add   translate assembly to machine language
+  $ ghci                                     start Haskell and load Hydra
+  :main Simple/Add                           boot Add.obj.txt and run
+  :r                                         reload after editing any of the code
+  :q                                         exit ghci, go back to shell
 
-It's convenient to define an alias to the directory where you have the
-example programs.  For example, in .bashrc:
+OVERVIEW
 
-   export COREPROGS="../../examples/Core"
-
-Open a shell and cd to directory Sigma16/src/circuits:
-
-   $ sigma16 assemble $COREPROGS/Simple/Add
-   $ runghc M1/Tools/Run $COREPROGS/Simple/Add.obj.txt
-
-Alternative:
-   runghc M1/Tools/Run M1/Programs/Add.obj.txt
-
-Introduction
-~~~~~~~~~~~~
-
-This directory contains some machines defined as digital circuits
-(M1), and software tools that run machine language programs directly
-on the circuits (Sigma16, HDL).  The software tools use a command line
-interface in a shell.  You need to have node.js and ghc installed, and
-the sigma16 alias defined.  See the Installation section of the User
-Guide.
+This directory contains a digital circuits which is a full processor
+for the Core subset of the Sigma16 architecture.  It also contains a
+circuit simulator that will run the circuit.  You can make the circuit
+boot a machine language program; as the circuit runs it will execute
+the program.
 
 -- M1 is a circuit "Machine 1" that implements the Core subset of
    Sigma16
@@ -44,43 +26,52 @@ Guide.
 -- HDL/Hydra is a functional computer hardware description language
    (HDL).  This is a text language that allows you to decribe digital
    circuits very precisely, and it also has the ability to simulate
-   the circuits.  All the circuits in M1 are specified using Hydra.
+   the circuits.  All the circuits in M1 are specified using Hydra.  A
+   copy of Hydra in included in Sigma16/src/circuits.  This means you
+   don't need to download and install Hydra, and it ensures that the
+   version of Hydra is compatible with the other software toolss.
 
 -- Sigma16 is a folder containing sofware tools that can read and
    parse object files produced by the Sigma16 assembler.  This data is
-   used to provide inputs to the machines.
+   used to provide inputs to the circuits
 
 The commands should be executed from within the circuits directory;
-this enables ghc to find the source files.  You can run the examples
-directly in Sigma16/src/circuits, but if you're experimenting with
-modifications to the circuits, it's a good idea to copy the entire
-"circuits" folder to somewhere in your workspace.
+this enables ghc to find the source files.
 
+The assembler reads in a source file (e.g. Add.asmltxt).  It writes
+out several files: the machine language code (Add.obj.txt), the
+assembly listing file (Add.lst.txt), and a metadata file (Add.md.txt).
+You can ignore the metadata file, but it's worth looking at the obj
+and lst files.  The object code file Add.obj.txt contains the actual
+machine language program which the circuit can execute.
 
-How to assemble a program
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Naturally, if you modify the Sigma16 assembly language program, you
+need to assemble it again before running the machine language on the
+circuit.
 
-The following command will read Add.asm.txt and write the object file
-Add.obj.txt.  You just specify the file basename "Add", and the
-assembler will automatically append ".asm.txt".  The assembler will
-write out the object file Add.obj.txt, a listing file Add.lst.txt, and
-a metadata file Add.md.txt.  You can ignore the metadata file, but
-it's worth looking at the obj and lst files.  The object code file
-Add.obj.txt contains the actual machine language program which the
-circuit can execute.
+When you run a program in ghci with :main Simple/Add, the program is
+not being emulated.  The M1 circuit is a digital circuit consisting of
+logic gates and flip flops, and nothing else.  This circuit is
+relatively large and complex, and it is actually a full CPU for the
+Sigma16 Core instruction set architecture.  The simulation tools read
+in the machine language (from Add.obj.txt) and store it into the
+memory, and the circuit then executes the program.
 
-   sigma16 assemble M1/Programs/Add
+In the commands, you just specify the file basename "Add".  The
+assembler will automatically append ".asm.txt", and the interface to
+the circuit simulator will automatically append ".obj.txt".
 
+FURTHER INFORMATION
 
-How to run an object program on the circuit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Sigma16 User Guide
+     file: Sigma16/docs/UserGuide/Sigma16UserGuide.html
 
-This command will run the Add machine language program on the M1
-circuit:
+  Sigma16 Home Page
+     Latest version
+     https://jtod.github.io/home/Sigma16/
+  
+  Hydra Home Page
+     https://github.com/jtod/Hydra
 
-   runghc M1/Tools/Run M1/Programs/Add.obj.txt
-
--- M1/Tools/Run is a program that reads in an object code file and
-   uses it to prepare input to the simulation driver
--- M1/Programs/Add.obj.txt is a text file giving the object code for
-   the Add.asm.txt program.
+  GHC User Guide
+     https://downloads.haskell.org/ghc/latest/docs/html/users_guide/index.html

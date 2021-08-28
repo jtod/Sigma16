@@ -1,0 +1,19 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Core Testing
+#+OPTIONS: html-postamble:nil
+
+- [[./AsmCore.asm.txt][AsmCore.asm.txt]]
+
+- [[./AsmErrMessages.asm.txt][AsmErrMessages.asm.txt]]
+
+- [[./LargeAddr.asm.txt][LargeAddr.asm.txt]]
+
+- [[./Looper.asm.txt][Looper.asm.txt]]
+
+- [[./TestCoreArithmetic.asm.txt][TestCoreArithmetic.asm.txt]]
+
+- [[./TestCoreCondCode.asm.txt][TestCoreCondCode.asm.txt]]
+
+- [[./TestCoreJumping.asm.txt][TestCoreJumping.asm.txt]]
+
+- [[./TestCoreMemory.asm.txt][TestCoreMemory.asm.txt]]

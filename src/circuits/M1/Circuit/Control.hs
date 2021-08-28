@@ -1,5 +1,5 @@
 -- Sigma16: ALU.hs
--- Copyright (C) 2020 John T. O'Donnell
+-- Copyright (C) 2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
 -- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
@@ -20,13 +20,12 @@
 ----------------------------------------------------------------------
 
 {-# LANGUAGE NamedFieldPuns #-}
--- allows concise definition of record of control signals
 
 module M1.Circuit.Control where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
-import M1.Circuit.ControlSignals
+import M1.Circuit.Interface
 
 {- This is the high level control algorithm, written using assignment
 statements to describe the effect that will take place at the end of a
@@ -105,8 +104,7 @@ repeat forever
                         ctl_alu_abcd=1100, ctl_pc_ld]
             st_load1:
               ad := reg[ir_sa] + ad
-                assert [set ctl_y_ad, ctl_alu_abcd=0000,
-                        set ctl_ad_ld, ctl_ad_alu]
+                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
             st_load2:
               reg[ir_d] := mem[ad]
                 assert [ctl_rf_ld]
@@ -118,8 +116,7 @@ repeat forever
                         ctl_alu_abcd=1100, ctl_pc_ld]
             st_store1:
               ad := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu_abcd=0000,
-                        set ctl_ad_ld, ctl_ad_alu]
+                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
             st_store2:
               mem[addr] := reg[ir_d]
                 assert [ctl_rf_sd, ctl_sto]
@@ -127,40 +124,40 @@ repeat forever
         3 -> --  jump instruction
             st_jump0:
               ad := mem[pc], pc++;
-                assert [ctl_ma_opc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu=alu_inc, ctl_pc_ld]
+                assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
+                        ctl_alu_abcd=1100, ctl_pc_ld]
             st_jump1:
-              ad := reg[ir_sa] + ad, pc := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu=alu_add, ctl_ad_ld,
-                        ctl_ad_alu, ctl_pc_ld]
+              ad := reg[ir_sa] + ad
+                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_jump2:
+              pc := ad
+                assert [ctl_pc_ad, ctl_pc_ld]
 
         4 -> --  jumpc0 instruction
             st_jumpc00:
               ad := mem[pc], pc++;
                 assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld, ctl_rf_sd]
-              case condcc of
-                True: -- nothing to do
-                False:
-                  st_jumpc01:
-                    pc := reg[ir_sa] + ad
-                      assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_pc_ld]
+                        ctl_alu_abcd=1100, ctl_pc_ld]
+            st_jumpc01:
+              ad := reg[ir_sa] + ad
+                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_jumpc02:
+              if inv condcc then pc := ad
+                assert [ctl_pc_ad],
+                if inv condcc then assert [ctl_pc_ld]
 
         5 -> -- jumpc1 instruction
             st_jumpc10:
               ad := mem[pc], pc++;
                 assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld, ctl_rf_sd]
-              case condcc of
-                False: -- nothing to do
-                True:
-                  st_jumpc11:
-                    pc := reg[ir_sa] + ad
-                      assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_pc_ld]
-
-        6 -> -- jumpc0 instruction
-
-        7 -> -- jumpc1 instruction
+                        ctl_alu_abcd=1100, ctl_pc_ld]
+            st_jumpc11:
+              ad := reg[ir_sa] + ad
+                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_jumpc12:
+              if condcc then pc := ad
+                assert [ctl_pc_ad],
+                if condcc then assert [ctl_pc_ld]
 
 *** CHANGED *** ???
         8 -> -- jal instruction
@@ -229,12 +226,15 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
 
       st_jump0  = dff (pRX!!3)
       st_jump1  = dff st_jump0
+      st_jump2  = dff st_jump1
 
       st_jumpc00 = dff (pRX!!4)
-      st_jumpc01 = dff (and2 st_jumpc00 (inv condcc))
+      st_jumpc01 = dff st_jumpc00
+      st_jumpc02 = dff st_jumpc01
 
       st_jumpc10 = dff (pRX!!5)
-      st_jumpc11 = dff (and2 st_jumpc10 condcc)
+      st_jumpc11 = dff st_jumpc10
+      st_jumpc12 = dff st_jumpc11
 
       st_jal0   = dff (pRX!!6)
       st_jal1   = dff st_jal0
@@ -260,12 +260,16 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
       ctl_ir_ld   = orw [st_instr_fet]
       ctl_pc_ld   = orw [st_instr_fet,st_load0,st_lea0,st_store0,
                            st_jumpc10,st_jumpc11,st_jumpc00,st_jumpc01,
-                           st_jump0,st_jump1,st_jal0,st_jal1]
-      ctl_pc_ad   = orw [st_jal1]
+                           st_jump0, st_jump2,
+                           st_jumpc00, and2 st_jumpc02 (inv condcc),
+                           st_jumpc10, and2 st_jumpc12 condcc,
+                           st_jal0,st_jal1]
+      ctl_pc_ad   = orw [st_jal1, st_jump2, st_jumpc02, st_jumpc12]
       ctl_ad_ld   = orw [st_load0,st_load1,st_lea0,st_store0,
-                         st_store1,st_jumpc10,st_jumpc00,st_jump0,st_jump1,
+                         st_store1,st_jumpc00,st_jumpc01,
+                         st_jumpc10,st_jumpc11,st_jump0,st_jump1,
                          st_jal0,st_jal1]
-      ctl_ad_alu  = orw [st_load1,st_store1,st_jump1,st_jal1]
+      ctl_ad_alu  = orw [st_load1,st_store1,st_jump1,st_jumpc01,st_jumpc11,st_jal1]
       ctl_ma_pc   = orw [st_instr_fet,st_load0,st_lea0,st_store0,
                            st_jumpc10,st_jumpc00,st_jump0,st_jal0]
       ctl_x_pc    = orw [st_instr_fet,st_load0,st_lea0,st_store0,
@@ -294,8 +298,8 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
          st_lea0, st_lea1,
          st_load0, st_load1, st_load2,
          st_store0, st_store1, st_store2,
-         st_jump0, st_jump1,
-         st_jumpc00, st_jumpc01,
-         st_jumpc10, st_jumpc11,
+         st_jump0, st_jump1, st_jump2,
+         st_jumpc00, st_jumpc01, st_jumpc02,
+         st_jumpc10, st_jumpc11, st_jumpc12,
          st_jal0, st_jal1}
 

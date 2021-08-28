@@ -21,7 +21,7 @@ import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import HDL.Hydra.Circuits.Register
 
-import M1.Circuit.ControlSignals
+import M1.Circuit.Interface
 import M1.Circuit.ALU
 import M1.Circuit.Datapath
 import M1.Circuit.Control
@@ -74,7 +74,8 @@ ________________________________________________________________________
 m1 reset dma dma_a dma_d =                     -- inputs: reset and dma
 
   (ctl_state, ctl_start, ctlsigs,              -- output control info
-   datapath_outputs,                           -- output datapath info
+   dp,
+   --   datapath_outputs,                           -- output datapath info
    m_sto, m_addr, m_real_addr, m_data, m_out)  -- output memory info
 
   where
@@ -86,18 +87,19 @@ m1 reset dma dma_a dma_d =                     -- inputs: reset and dma
       -- if msize<n the simulation may be faster but prog has less memory
 
 -- Datapath
-    datapath_outputs = datapath ctlsigs m_out
-    (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q) = datapath_outputs
-    (r,ccnew,condcc) = aluOutputs
+--    datapath_outputs = datapath ctlsigs m_out
+--    (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q) = datapath_outputs
+    dp = datapath ctlsigs m_out
+    (r,ccnew,condcc) = aluOutputs dp
 
 -- Control
-    (ctl_state, ctl_start, ctlsigs) = control reset ir condcc
+    (ctl_state, ctl_start, ctlsigs) = control reset (ir dp) condcc
 
 -- Memory
     m_real_addr = field m_addr (n-msize) msize
     m_out = memw n msize m_sto m_real_addr m_data
 
 -- Input/Output using DMA
-    m_data = mux1w dma md dma_d
+    m_data = mux1w dma (md dp) dma_d
     m_sto = or2 dma (ctl_sto ctlsigs)
-    m_addr = mux1w dma ma dma_a
+    m_addr = mux1w dma (ma dp) dma_a

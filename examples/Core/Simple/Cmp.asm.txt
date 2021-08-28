@@ -1,0 +1,14 @@
+; Cmp
+; Test cmp instruction
+
+     lea   R1,3[R0]
+     lea   R2,6[R0]
+     cmp   R1,R2       ; 0018  < Int (bit 4), < Nat (bit 3)
+     lea   R3,13[R0]
+     cmp   R3,R2       ; 0003  > Int (bit 0), > Nat (bit 1)
+     cmp   R2,R2       ; 0004  = (bit 2)
+     lea   R4,-2[R0]   ; fffe
+     cmp   R2,R4       ; 0009  > Int (bit 0),  < Nat (bit 3)  also  carry/ovfl 
+     cmp   R4,R2       ; 0012  < Int (bit 4),  > Nat (bit 1)  also  carry/ovfl 
+     trap  R0,R0,R0
+     

@@ -1,5 +1,5 @@
 -- Sigma16: M1driver.hs
--- Copyright (C) 2020 John T. O'Donnell
+-- Copyright (C) 2020,2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
 -- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
@@ -29,7 +29,7 @@ module M1.Tools.M1driver where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
-import M1.Circuit.ControlSignals
+import M1.Circuit.Interface
 import M1.Circuit.System
 
 ----------------------------------------------------------------------
@@ -199,15 +199,14 @@ sim_m1 input =
 -- Apply the circuit m1_system to the system inputs, and obtain its
 -- outputs.
 
-      (ctlstate, ctl_start, ctlsigs, datapath_outputs,
+      (ctlstate, ctl_start, ctlsigs, dp,
        m_sto, m_addr, m_real_addr, m_data, m_out)
          = m1 reset dma dma_a dma_d
-
+      
 -- Define names for the outputs from the datapath.
 
-      (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q) = datapath_outputs
-      (r,ccnew,condcc) = aluOutputs
-      (ir_op,ir_d,ir_a,ir_b) = irFields
+--      (r,ccnew,condcc) = aluOutputs dp
+--    (ir_op,ir_d,ir_a,ir_b) = irFields
 
 -- Format the output, inserting string labels for the signals, and
 -- converting them to readable form.
@@ -246,6 +245,16 @@ sim_m1 input =
          string "    st_store2 = ", bit (st_store2 ctlstate),
          string "     st_jump0 = ", bit (st_jump0 ctlstate),
          string "     st_jump1 = ", bit (st_jump1 ctlstate),
+         string "     st_jump2 = ", bit (st_jump2 ctlstate),
+         string "\n  ",
+         string "     st_jumpc00 = ", bit (st_jumpc00 ctlstate),
+         string "     st_jumpc01 = ", bit (st_jumpc01 ctlstate),
+         string "     st_jumpc02 = ", bit (st_jumpc02 ctlstate),
+
+         string "     st_jumpc10 = ", bit (st_jumpc10 ctlstate),
+         string "     st_jumpc11 = ", bit (st_jumpc11 ctlstate),
+         string "     st_jumpc12 = ", bit (st_jumpc12 ctlstate),
+
          string "\n  ",
          string "      st_jal0 = ", bit (st_jal0 ctlstate),
          string "\n  ",
@@ -271,19 +280,19 @@ sim_m1 input =
            string "  ctl_sto     = ", bit (ctl_sto ctlsigs),
 
          string "\n\nDatapath\n  ",
-           string "  ir = ", binhex ir,
-           string "  pc = ", binhex pc,
-           string "  ad = ", binhex ad,
-           string "   a = ", binhex a,
-           string "   b = ", binhex b,
-           string "   r = ", binhex r,
+           string "  ir = ", binhex (ir dp),
+           string "  pc = ", binhex (pc dp),
+           string "  ad = ", binhex (ad dp),
+           string "   a = ", binhex (a dp),
+           string "   b = ", binhex (b dp),
+           string "   r = ", binhex (r dp),
            string "\n  ",
-           string "   x = ", binhex x,
-           string "   y = ", binhex y,
-           string "   p = ", binhex p,
-           string "  ma = ", binhex ma,
-           string "  md = ", binhex md,
-           string " cnd = ", bit condcc,
+           string "   x = ", binhex (x dp),
+           string "   y = ", binhex (y dp),
+           string "   p = ", binhex (p dp),
+           string "  ma = ", binhex (ma dp),
+           string "  md = ", binhex (md dp),
+           string " cnd = ", bit (condcc dp),
 
 -- Memory interface
 
@@ -304,25 +313,25 @@ sim_m1 input =
            string "  dma_a = ", bits dma_a,
            string "  dma_d = ", bits dma_d,
            string "\n",
-           string "  md = ", bits md,
+           string "  md = ", bits (md dp),
            string "  dma_d = ", bits dma_d,
            string "\n",
            string "  m_sto = ", bit m_sto,
            string "  m_real_addr = ", bits m_real_addr,
            string "  m_data = ", bits m_data,
            string "  m_out = ", bits m_out,
-           string "  q = ", bits q,
+           string "  q = ", bits (q dp),
            string "\n",
            string "ALU inputs: ",
-           string "  x = ", bits x,
-           string "  cc = ", bits cc,
-           string "  ir_d = ", bits ir_d,
+           string "  x = ", bits (x dp),
+           string "  cc = ", bits (cc dp),
+           string "  ir_d = ", bits (ir_d dp),
            string "\n",
            string "ALU outputs: ",
-           string "  r = ", bits r,
-           string "  ccnew = ", bits ccnew,
-           string "  condcc = ", bit condcc,
-         string "\n\n",
+           string "  r = ", bits (r dp),
+           string "  ccnew = ", bits (ccnew dp),
+           string "  condcc = ", bit (condcc dp),
+           string "\n\n",
 
 -- ...................................................................
 -- Higher level analysis of what happened on this cycle.  The
@@ -357,7 +366,7 @@ sim_m1 input =
          fmtIf (orw [st_lea1 ctlstate, st_load1 ctlstate, st_store1 ctlstate,
                      st_jump1 ctlstate, st_jumpc01 ctlstate, st_jumpc11 ctlstate,
                      st_jal1 ctlstate])
-           [setStateWs setDisplacement [ad],
+           [setStateWs setDisplacement [(ad dp)],
             string "Fetched displacement = ",
             simstate showDisplacement,
             string "\n"]
@@ -369,33 +378,33 @@ sim_m1 input =
          fmtIf (orw [st_lea1 ctlstate, st_load1 ctlstate, st_store1 ctlstate,
                      st_jump1 ctlstate, st_jumpc01 ctlstate, st_jumpc11 ctlstate,
                      st_jal1 ctlstate])
-           [setStateWs setEffAddr [r]]
+           [setStateWs setEffAddr [r dp]]
            [],
 
 -- Say whether a conditional jump was performed
 
-         fmtIf (and2 (st_jumpc00 ctlstate)  (inv condcc))
+         fmtIf (and2 (st_jumpc00 ctlstate)  (inv (condcc dp)))
            [string "jumpc0 instruction did not perform jump",
-            setStateWs setJump [[zero], ad]]
+            setStateWs setJump [[zero], ad dp]]
            [],
 
-         fmtIf (and2 (st_jumpc10 ctlstate)  condcc)
+         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc dp))
            [string "jumpc1 instruction jumped",
-            setStateWs setJump [[one], r]]
+            setStateWs setJump [[one], r dp]]
            [],
 
          fmtIf (or2 (st_jump1 ctlstate) (st_jal1 ctlstate))
            [
-            setStateWs setJump [[one], r]]
+            setStateWs setJump [[one], r dp]]
            [],
-
+         
 -- Process a load to the register file
          fmtIf (ctl_rf_ld ctlsigs)
            [string "Register file update: ",
             string "R",
-            bindec 1 (field ir 4 4),
-            string " := ", hex p,
-            setStateWs setRfLoad [field ir 4 4, p],
+            bindec 1 (field (ir dp) 4 4),
+            string " := ", hex (p dp),
+            setStateWs setRfLoad [field (ir dp) 4 4, (p dp)],
             string "\n"
             ]
            [],
@@ -418,17 +427,17 @@ sim_m1 input =
          fmtIf (and2 ctl_start (inv reset))
            [string ("\n" ++ take 72 (repeat '*') ++ "\n"),
             string "Executed instruction:  ",
-            fmtWordsGeneral findMnemonic [field ir 0 4, field ir 12 4],
+            fmtWordsGeneral findMnemonic [field (ir dp) 0 4, field (ir dp) 12 4],
             string " ",
             fmtIf (orw [st_add ctlstate, st_sub ctlstate, st_cmp ctlstate])
 
-              [string " R", bindec 1 (field ir 4 4),    -- RRR format
-               string ",R", bindec 1 (field ir 8 4),
-               string ",R", bindec 1 (field ir 12 4)]
-              [string " R", bindec 1 (field ir 4 4),    -- RX format
+              [string " R", bindec 1 (field (ir dp) 4 4),    -- RRR format
+               string ",R", bindec 1 (field (ir dp) 8 4),
+               string ",R", bindec 1 (field (ir dp) 12 4)]
+              [string " R", bindec 1 (field (ir dp) 4 4),    -- RX format
                string ",",
                simstate showDisplacement,
-               string "[R", bindec 1 (field ir 8 4), string "]",
+               string "[R", bindec 1 (field (ir dp) 8 4), string "]",
                string "   effective address = ",
                simstate showEffAddr],
             string "\n",
@@ -439,17 +448,18 @@ sim_m1 input =
             simstate showJumps,
             setStateWs clearJumps [],
             string "Processor state:  ",
-            string "  pc = ", binhex pc,
-            string "  ir = ", binhex ir,
-            string "  ad = ", binhex ad,
+            string "  pc = ", binhex (pc dp),
+            string "  ir = ", binhex (ir dp),
+            string "  ad = ", binhex (ad dp),
+
             string ("\n" ++ take 72 (repeat '*') ++ "\n")]
 --            simstate show  -- show the simulation driver state
-           []
+           [],
+         
+           string "\ndone\n\n"
         ]
-
   in do putStrLn "\nSigma16_M1 simulation"
         runUntil initDriverState mytermpred input simoutput
-
 
 ----------------------------------------------------------------------
 -- Decoding instructions
