@@ -42,122 +42,52 @@ import Sigma16.ReadObj
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import HDL.Hydra.Circuits.Register
-
 import M1.Tools.M1driver
+
+--------------------------------------------------------------------------------
+-- Main program
+--------------------------------------------------------------------------------
 
 main :: IO ()
 main = do
   putStrLn "Main starting"
   args <- getArgs
   putStrLn ("args = " ++ show args)
+  testTextColors
 
-  setSGR [SetColor Foreground Vivid Red]
---  setSGR [SetColor Background Vivid Blue]
-  putStrLn "This text is red"
-  setSGR [Reset]  -- Reset to default colour scheme
-  putStrLn "This text appears in the default colors"
-  setSGR [SetColor Foreground Vivid Blue]
-  putStrLn "This text is blue"
-  setSGR [Reset]  -- Reset to default colour scheme
-  putStrLn "Back to the default colors"
-
-  init <- mkInitState args
-
-{-
-  putStrLn (repeat 70 '-')
-  putStrLn "\bRunning CLI with input list"
-  execStateT cliWithInputList init
--}
-
-  putStrLn (take 70 (repeat '-'))
   putStrLn "\bRunning CLI reading input"
-  execStateT cliReadInput init
+  let init = mkInitState args
+  execStateT commandLoop init
+
   return ()
 
--- The main command line interface
-
-
---------------------------------------------------------------------------------
--- System state
---------------------------------------------------------------------------------
-
--- Using specific signal type CB = Stream Bool
-
-
-data SysState = SysState
-  { dffInit :: Bool
-  , args :: [String]
-  , cycleCount :: Int
-  , running :: Bool
-  , ldInpBuffer, xInpBuffer :: IORef Bool
-  , ldFetchers, xFetchers :: [IO Bool]
-  , lds, xs :: Stream Bool
-  , inputs :: CircInputs
-  , outputs :: CircOutputs
-  }
---  , ldInpBuffer, xInpBuffer :: IORef Bool
---  , ldFetchers, xFetchers :: [IO Bool]
-
-mkInitState :: [String] -> IO SysState
-mkInitState args = do
-  ldInpBuffer <- newIORef False
-  xInpBuffer <- newIORef False
-  let ldFetchers = repeat (readIORef ldInpBuffer)
-  let xFetchers = repeat (readIORef xInpBuffer)
-  let lds = listeffects ldFetchers
-  let xs = listeffects  xFetchers
-  let inputs = CircInputs { in_ld = lds, in_x = xs }
-  let outputs = myCirc inputs
-  let s =  SysState
-             { dffInit = False
-             , args
-             , cycleCount = 0
-             , running = True
-             , ldInpBuffer
-             , xInpBuffer
-             , ldFetchers
-             , xFetchers
-             , lds
-             , xs
-             , inputs
-             , outputs
-             }
-  return s
-
---  ldInpBuffer <- newIORef False
---  xInpBuffer <- newIORef False
-
--- Take a list of actions, perform them on demand, and return the result
-
-listeffects :: [IO a] -> Stream a
-listeffects = mapListStream unsafePerformIO
-
-mapListStream :: (a->b) -> [a] -> Stream b
-mapListStream f x
-  = Cycle (f (head x))
-          (mapListStream f (tail x))
-
-{-
-effects :: [IO a] -> Stream a
-effects = map unsafePerformIO
--}
+commandLoop :: StateT SysState IO ()
+commandLoop = do
+  liftIO $ putStrLn "commandLoop starting"
+  initializeCircuit
+  doNtimes 10 cliReadClockCycle
+  liftIO $ putStrLn "CLI finishing"
+  return ()
 
 --------------------------------------------------------------------------------
 -- Circuit
 --------------------------------------------------------------------------------
 
--- We will use a fixed "clocked bit" type CB
-
-type CB = Stream Bool
-
--- The circuit types could use CB, but we normally use a more general
--- type variable a for a signal, and constrain a to be in the CBit
--- class.
+-- The circut definition is written in pure functional style, just the
+-- same as it always has been.  This definition is named myreg1 to
+-- avoid confusion with the reg1 circuit defined in the Hydra
+-- libraries.  Normally reg1 would only output r, as q is just an
+-- internal signal.  However, it is enlightening for a student to
+-- experiment interactively with the circuit, and to do that it's
+-- helpful to see the value of q.
 
 myreg1 :: CBit a => a -> a -> (a,a)
 myreg1 ld x = (r, q)
   where r = dff q
         q = or2 (and2 (inv ld) r) (and2 ld x)
+
+-- An interface is defined to connect the circuit definition with the
+-- simulation driver.
 
 -- The top level circuit interface uses a record with named fields.
 -- We could use a tuple instead, but the named fields work better for
@@ -168,205 +98,156 @@ myreg1 ld x = (r, q)
 -- level entities named x.  So we use the input name "in_x" to avoid
 -- any possibility of confusion.
 
-data CircInputs = CircInputs
-  { in_ld ::  CB   -- load control signal
-  , in_x ::  CB    -- data input
+data CircuitInputs = CircuitInputs
+  { in_ld :: Inport   -- load control
+  , in_x  :: Inport   -- data input
   }
 
-data CircOutputs = CircOutputs
+data CircuitOutputs = CircuitOutputs
   { out_r ::  CB   -- current state of the register
-  , out_q ::  CB   -- input to the dff; will become state after next clock tick
+  , out_q ::  CB   -- internal signal: input to the dff
   }
 
-myCirc :: CircInputs -> CircOutputs
-myCirc inp = CircOutputs {out_r, out_q}
-  where (out_r, out_q) = myreg1 (in_ld inp) (in_x inp)
+initializeCircuit :: StateT SysState IO ()
+initializeCircuit = do
+  in_ld <- liftIO $ mkInportBit "ld"
+  in_x <- liftIO $ mkInportBit "x"
+  let inputs = CircuitInputs {in_ld, in_x}
+  let (out_r, out_q) = myreg1 (sigval in_ld) (sigval in_x)
+  let outputs = CircuitOutputs {out_r, out_q}
+  let cst = CircuitState {cycleCount = 0, inputs, outputs}
+  s <- get
+  put $ s { circstate = Just cst }
+
+--------------------------------------------------------------------------------
+-- Circuit state
+--------------------------------------------------------------------------------
+
+-- The simulation driver uses a fixed "clocked bit" type CB, while
+-- circuits are normally defined using a more general type variable a
+-- for a signal, and constrain a to be in the CBit class.
+
+type CB = Stream Bool
+
+data CircuitState = CircuitState
+  { cycleCount :: Int
+  , inputs :: CircuitInputs
+  , outputs :: CircuitOutputs
+  }
+
+-- An Inport is a record containing several pieces of information,
+-- including the signal value, but an Outport is just a signal value.
+
+data Inport
+  = InportBit
+      { portname :: String
+      , inbuf :: IORef Bool
+      , fetcher :: [IO Bool]
+      , sigval :: Stream Bool
+      }
+  | InportWord
+      { portname :: String
+      , wordsize :: Int
+      , inbufs :: [IORef Bool]
+      , fetchers :: [[IO Bool]]
+      , sigvals :: [Stream Bool]
+      }
+
+mkInportBit :: String -> IO (Inport)
+mkInportBit portname = do
+  inbuf <- newIORef False
+  let fetcher = repeat (readIORef inbuf)
+  let sigval = listeffects fetcher
+  return $ InportBit { portname, inbuf, fetcher, sigval }
+
+{-  need to build words...
+mkInportWord :: String -> Int -> IO (Inport)
+mkInportBit portname wordsize = do
+  inbufs <- newIORef False
+  let fetcher = repeat (readIORef inbuf)
+  let xs = listeffects fetcher
+  return $ InportBit { portname, wordsize, inbuf, fetcher, sigval }
+-}
+
+  
+data SysState = SysState
+  { args :: [String]
+  , circstate :: Maybe CircuitState
+  }
+
+mkInitState :: [String] -> SysState
+mkInitState args =
+  SysState
+    { args
+    , circstate = Nothing
+    }
+
 
 --------------------------------------------------------------------------------
 -- Command interpreter using IORef to allow establishing input dynamically
 --------------------------------------------------------------------------------
 
-doNtimes :: Int -> StateT SysState IO () -> StateT SysState IO ()
-doNtimes i f
-  | i == 0   = return ()
-  | otherwise = do
-      liftIO $ putStrLn ("repeating " ++ show i ++ " more times")
-      f
-      doNtimes (i-1) f
-        
-cliReadInput :: StateT SysState IO ()
-cliReadInput = do
-  liftIO $ putStrLn "cliReadInput starting"
-  doNtimes 10 cliReadStep
-  liftIO $ putStrLn "CLI finishing"
-  return ()
-
-cliReadStep :: StateT SysState IO ()
-cliReadStep = do
-  liftIO $ putStrLn "cliReadStep starting"
+cliReadClockCycle :: StateT SysState IO ()
+cliReadClockCycle = do
+  liftIO $ putStrLn "cliReadClockCycle starting"
   s <- get
-  let i = cycleCount s
-  liftIO $ putStrLn ("Cycle " ++ show i)
-  
-  ld_readval <- liftIO $ readSigBool "  enter ld"
-  liftIO $ writeIORef (ldInpBuffer s) ld_readval
+  case circstate s of
+    Nothing -> do
+      liftIO $ putStrLn "Circuit state not initialized"
+    Just circst -> do
+      let i = cycleCount circst
+      liftIO $ putStrLn ("Cycle " ++ show i)
+      let inp = inputs circst
 
-  x_readval <- liftIO $ readSigBool "  enter x"
-  liftIO $ writeIORef (xInpBuffer s) x_readval
-  
-  let inp = inputs s
+-- Read values of input ports for current clock cycle  
+      let ldPort = in_ld inp
+      ld_readval <- liftIO $ readSigBool "  enter ld"
+      liftIO $ writeIORef (inbuf ldPort) ld_readval
+      let xPort = in_x inp
+      x_readval <- liftIO $ readSigBool "  enter x"
+      liftIO $ writeIORef (inbuf xPort) x_readval
 
-  let lds = in_ld inp
-  let ldval = current lds
-  let ldsContinue = future lds
+-- Calculate signals
+      let ldval = current (sigval ldPort)
+      let ldContinue = future (sigval ldPort)
+      let xval = current (sigval xPort)
+      let xContinue = future (sigval xPort)
 
-  let xs = in_x inp
-  let xval = current xs
-  let xContinue = future xs
+-- Calculate input continuation
+      let inpNext = CircuitInputs {in_ld = ldPort {sigval = ldContinue},
+                                   in_x = xPort {sigval = xContinue}}
 
-  let inpNext = CircInputs {in_ld = ldsContinue, in_x = xContinue}
-  
-  let outp = outputs s
+-- Extract outputs  
+      let outp = outputs circst
 
-  let rs = out_r outp
-  let rval = current rs
-  let rContinue = future rs
+      let rs = out_r outp
+      let rval = current rs
+      let rContinue = future rs
 
-  let qs = out_q outp
-  let qval = current qs
-  let qContinue = future qs
+      let qs = out_q outp
+      let qval = current qs
+      let qContinue = future qs
 
-  let outpNext = CircOutputs {out_r = rContinue, out_q = qContinue}
+-- Calculate output continuation
+      let outpNext = CircuitOutputs {out_r = rContinue, out_q = qContinue}
 
-  liftIO $ putStrLn ("Cycle " ++ show i)
-  liftIO $ putStrLn ("   Inputs   ld = " ++ show ldval ++ "   x = " ++ show xval)
-  liftIO $ putStrLn ("   Outputs  r = " ++ show rval ++ "    q = " ++ show qval)
+-- Print signals for this clock cycle
+      liftIO $ putStrLn ("Cycle " ++ show i)
+      liftIO $ putStrLn ("   Inputs   ld = " ++ show ldval
+                         ++ "   x = " ++ show xval)
+      liftIO $ putStrLn ("   Outputs  r = " ++ show rval ++ "    q = " ++ show qval)
 
-  put s { inputs = inpNext, outputs = outpNext, cycleCount = i+1 }
-  liftIO $ putStrLn "cliReadStep finished"
+-- Update state
+      let newcircst = circst {inputs = inpNext,
+                              outputs = outpNext, cycleCount = i+1 }
+      let s' = s {circstate = Just newcircst}
+      put s'
+      liftIO $ putStrLn "cliReadClockCycle finished"
+
 
 --------------------------------------------------------------------------------
--- Command interpreter using fixed input list: ok for batch but not interactive
+-- Boot
 --------------------------------------------------------------------------------
-
-{-
-cliWithInputList :: StateT SysState IO ()
-cliWithInputList = do
-  liftIO $ putStrLn "cliWithInputList starting"
-  size <- liftIO $ getTerminalSize
-  case size of
-    Nothing -> liftIO $ putStrLn ("Cannot determine terminal size")
-    Just (x,y) -> liftIO $ putStrLn ("terminal size: " ++ show x ++ ", " ++ show y)
-
-  let input_data =
-        [ [0, 0]  -- 0
-        , [1, 1]  -- 1
-        , [0, 0]  -- 2
-        , [0, 0]  -- 3
-        , [1, 0]  -- 4
-        , [0, 0]  -- 5
-        , [0, 0]  -- 6
-        , [1, 1]  -- 7
-        , [0, 0]  -- 8
-        , [0, 0]  -- 9
-        , [1, 1]  -- 10
-        , [0, 0]  -- 11
-        , [0, 0]  -- 12
-        , [1, 0]  -- 13
-        , [0, 0]  -- 14
-        , [0, 0]  -- 15
-        , [0, 0]  -- 16
-        ]
---  let ld_inputs = listStream . map ((==1) . (!! 0)) input_data
---  let x_inputs  = listStream . map ((==1) . (!! 1)) input_data
-
-  let ld_data = map (==1) (map (!! 0) input_data)
-  let ld_inputs = listStream ld_data
-  liftIO $ putStrLn ("ld_inputs data = " ++ show ld_data)
-
-  let x_data =  map (==1) (map (!! 1) input_data)
-  let x_inputs = listStream x_data
-  liftIO $ putStrLn ("x_inputs data = " ++ show x_data)
-  
---  let ld_inputs = listStream  (map (==1) (map (!! 0) input_data))
---  let x_inputs = listStream   (map (==1) (map (!! 1) input_data))
-
-  let cinp = CircInputs { in_ld = ld_inputs, in_x = x_inputs }
-  let coutp = myCirc cinp
-
---  modify (\s -> s {inputs = cinp, outputs = coutp})
-
-  s <- get
-  let s2 = s {inputs = cinp, outputs = coutp}
-  put s2
-
-  liftIO $ putStrLn "CLI stepping"
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  cliStep
-  liftIO $ putStrLn "CLI finishing"
-  return ()
-
-
-cliStep :: StateT SysState IO ()
-cliStep = do
-  liftIO $ putStrLn "cliStep starting"
-  s <- get
-  let inp = inputs s
-  let lds = in_ld inp
-  let ldval = current lds
-  let ldsContinue = future lds
-  let xs = in_x inp
-  let xval = current xs
-  let xContinue = future xs
-  let inpNext = CircInputs {in_ld = ldsContinue, in_x = xContinue}
-  
-  let outp = outputs s
-  let rs = out_r outp
-  let rval = current rs
-  let rContinue = future rs
-  let qs = out_q outp
-  let qval = current qs
-  let qContinue = future qs
-  let outpNext = CircOutputs {out_r = rContinue, out_q = qContinue}
-
-  let i = cycleCount s
-
-  liftIO $ putStrLn ("Cycle " ++ show i)
-  liftIO $ putStrLn ("   Inputs   ld = " ++ show ldval ++ "   x = " ++ show xval)
-  liftIO $ putStrLn ("   Outputs  r = " ++ show rval ++ "    q = " ++ show qval)
-
-  put s { inputs = inpNext, outputs = outpNext, cycleCount = i+1 }
-  liftIO $ putStrLn "cliStep finished"
-  
--}
-
-
-{-
-stepper :: StateT (SysState Bool) IO ()
-stepper = do
-  s <- get
-  let i = cycleCount s
-  if i < 3
-    then do step
-            stepper
-    else return ()
--}
 
 boot :: StateT SysState IO [Int]
 boot = do
@@ -385,21 +266,19 @@ boot = do
   code <- liftIO $ readObject objpath
   return code
 
-{-
-step :: StateT (SysState Bool) IO ()
-step = do
-  s <- get
-  let i = cycleCount s
-  liftIO $ putStrLn ("stepper " ++ show i)
-  liftIO $ writeIORef (xInpBuffer s) True
-  liftIO $ writeIORef (yInpBuffer s) False
-  let xxs = xs s
-  let yys = ys s
-  liftIO $ putStrLn ("x = " ++ show (head xxs))
-  liftIO $ putStrLn ("y = " ++ show (head yys))
-  put (s {cycleCount = i+1, xs = tail xxs, ys = tail yys})
-  return ()
--}
+oldmain :: IO ()
+oldmain = do
+  putStrLn "M1 Run starting"
+  let limit = 200
+  args <- getArgs
+  putStrLn ("args = " ++ show args)
+
+  let fname = head args
+  putStrLn ("fname = " ++ fname)
+  code <- readObject fname
+  putStrLn ("Object code = " ++ show code)
+  run_Sigma16_executable code limit
+  putStrLn "M1 Run finished"
 
 --------------------------------------------------------------------------------
 -- Formatting simulation output
@@ -410,14 +289,6 @@ data Fmt a
   | FmtBit a
   | FmtBits [a]
 
-{-
-driver = foo
-  where
-    inp = [[0,1,0],
-           [1,0,0],
-           [0,0,0]]
-    f = [FmtString "hello"
--}
 
 --------------------------------------------------------------------------------
 -- Commands
@@ -473,14 +344,8 @@ readIfReady = do
       xs <- hGetLine stdin
       return (Just xs)
 
--- For using text colors in terminal output...
---  setSGR [SetColor Foreground Vivid Red]
---  setSGR [SetColor Background Vivid Blue]
---  putStrLn "Red-On-Blue"
---  setSGR [Reset]  -- Reset to default colour scheme
---  putStrLn "Default colors."
-
-{-
+testTextColors :: IO ()
+testTextColors = do
   setSGR [SetColor Foreground Vivid Red]
 --  setSGR [SetColor Background Vivid Blue]
   putStrLn "This text is red"
@@ -490,128 +355,25 @@ readIfReady = do
   putStrLn "This text is blue"
   setSGR [Reset]  -- Reset to default colour scheme
   putStrLn "Back to the default colors"
--}
 
 --------------------------------------------------------------------------------
--- Testing
+-- Utilities
 --------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
--- Effects experiment
---------------------------------------------------------------------------------
+-- Take a list of actions, perform them on demand, and return the result
 
--- Simple test case test1: create IORefs to hold input values, use
--- effects to perform the read actions, and print out elements of the
--- resulting lists.
+listeffects :: [IO a] -> Stream a
+listeffects = mapListStream unsafePerformIO
 
-{-
-test1 :: IO ()
-test1 = do
-  xval <- newIORef 0
-  yval <- newIORef 0
-  let xs = repeat (readIORef xval)
-  let ys = repeat (readIORef yval)
-  let xvals = effects xs
-  let yvals = effects ys
+mapListStream :: (a->b) -> [a] -> Stream b
+mapListStream f x
+  = Cycle (f (head x))
+          (mapListStream f (tail x))
 
-  writeIORef xval 2
-  writeIORef yval 3
-  putStrLn (show (xvals !! 0))
-  putStrLn (show (yvals !! 0))
-
-  writeIORef xval 7
-  writeIORef yval 8
-  putStrLn (show (xvals !! 1))
-  putStrLn (show (yvals !! 1))
-
-  writeIORef xval 34
-  writeIORef yval 35
-  putStrLn (show (xvals !! 2))
-  putStrLn (show (yvals !! 2))
-  
-  putStrLn "test1 done"
-
-
--- more tests that can run in CLI...
--}
-
-{-
-  code <- boot
-  liftIO $ putStrLn ("Object code = " ++ show code)
-  let limit = 200
-  liftIO $ run_Sigma16_executable code limit
-  liftIO $ putStrLn "M1 Run finished"
--}
-
-{-
-  aa <- liftIO $ readSigBool "aa"
-  bb <- liftIO $ readSigBool "bb"
-  cc <- liftIO $ readSigBool "cc"
-  liftIO $ putStrLn ("aa=" ++ show aa ++ "  bb=" ++ show bb ++ "   cc=" ++ show cc)
--}
-
-{-
-  liftIO $ putStrLn "running test1"
-  liftIO test1
--}
-
-oldmain :: IO ()
-oldmain = do
-  putStrLn "M1 Run starting"
-  let limit = 200
-  args <- getArgs
-  putStrLn ("args = " ++ show args)
-  let fname = head args
-  putStrLn ("fname = " ++ fname)
-  code <- readObject fname
-  putStrLn ("Object code = " ++ show code)
-  run_Sigma16_executable code limit
-  putStrLn "M1 Run finished"
-
---------------------------------------------------------------------------------
--- test program
---------------------------------------------------------------------------------
-
-looper :: Int -> IO ()
-looper i
-  | i > 10000 = do
-      return ()
+doNtimes :: Int -> StateT SysState IO () -> StateT SysState IO ()
+doNtimes i f
+  | i == 0   = return ()
   | otherwise = do
-      x <- readIfReady
-      case x of
-        Nothing -> do
-          threadDelay 1000  -- do some computing
-          looper (i+1)
-        Just xs -> do
-          putStrLn ("got xs = " ++ xs)
-          looper (i+1)
-
---------------------------------------------------------------------------------
-{- deprecated
-buffer mode; just using line buffering seems most reliable and portable...
-  bufmode0 <- hGetBuffering stdin
-  putStrLn ("Original buffer mode is " ++ show bufmode0)
-  hSetBuffering stdin NoBuffering
-  bufmode1 <- hGetBuffering stdin
-  putStrLn ("Set buffer mode to " ++ show bufmode1)
-
-
--- Can also do...
---   ghci -package mtl -package parsec
---     :set -package mtl
---     :set -package parsec
---     :load M1/Tools/Run
--- Problems with the following, awkward or can't get them to work...
---   ghc -package parsec -package mtl --make M1/Tools/Run
---   M1/Tools/Run $COREPROGS/Simple/Add.obj.txt
-
---   $ ghc -e main -package mtl M1/Tools/StreamIO.hs
---   $ ghc -package mtl -package parsec -e main M1/Tools/Run $COREPROGS/Simple/Add.obj.txt
--- $ ghc -package mtl -package parsec -e main M1/Tools/Run Add.obj.txt
--- it ignores the user command option, the file...
-
--- effects original version:
--- effects [] = []
--- effects (x:xs) = unsafePerformIO x : effects xs
-
--}
+      liftIO $ putStrLn ("repeating " ++ show i ++ " more times")
+      f
+      doNtimes (i-1) f
