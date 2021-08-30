@@ -54,23 +54,18 @@ main = do
   args <- getArgs
   putStrLn ("args = " ++ show args)
   testTextColors
-
-  putStrLn "\bRunning CLI reading input"
-  let init = mkInitState args
-  execStateT commandLoop init
-
+  execStateT commandLoop (mkInitState args)
   return ()
 
 commandLoop :: StateT SysState IO ()
 commandLoop = do
-  liftIO $ putStrLn "commandLoop starting"
+  liftIO $ putStrLn "Command loop starting"
   initializeCircuit
   doNtimes 10 cliReadClockCycle
-  liftIO $ putStrLn "CLI finishing"
-  return ()
+  liftIO $ putStrLn "Command loop finishing"
 
 --------------------------------------------------------------------------------
--- Circuit
+-- Circuit definition
 --------------------------------------------------------------------------------
 
 -- The circut definition is written in pure functional style, just the
@@ -86,6 +81,10 @@ myreg1 ld x = (r, q)
   where r = dff q
         q = or2 (and2 (inv ld) r) (and2 ld x)
 
+--------------------------------------------------------------------------------
+-- Define interface to the circuit
+--------------------------------------------------------------------------------
+
 -- An interface is defined to connect the circuit definition with the
 -- simulation driver.
 
@@ -98,23 +97,32 @@ myreg1 ld x = (r, q)
 -- level entities named x.  So we use the input name "in_x" to avoid
 -- any possibility of confusion.
 
+-- The user needs to define CircuitInputs, CircuitOutputs,
+-- initializeCircuit
+
 data CircuitInputs = CircuitInputs
   { in_ld :: Inport   -- load control
   , in_x  :: Inport   -- data input
+  , inputlist :: [Inport]
   }
 
 data CircuitOutputs = CircuitOutputs
   { out_r ::  CB   -- current state of the register
   , out_q ::  CB   -- internal signal: input to the dff
+  , outputlist :: [CB]
   }
 
 initializeCircuit :: StateT SysState IO ()
 initializeCircuit = do
   in_ld <- liftIO $ mkInportBit "ld"
   in_x <- liftIO $ mkInportBit "x"
-  let inputs = CircuitInputs {in_ld, in_x}
+  let inputs = CircuitInputs
+        {in_ld, in_x,                -- access by name
+         inputlist=[in_ld,in_x]}     -- for iteration
   let (out_r, out_q) = myreg1 (sigval in_ld) (sigval in_x)
-  let outputs = CircuitOutputs {out_r, out_q}
+  let outputs = CircuitOutputs
+        {out_r, out_q,              -- access by name
+         outputlist=[out_r, out_q]}  -- for iteration
   let cst = CircuitState {cycleCount = 0, inputs, outputs}
   s <- get
   put $ s { circstate = Just cst }
@@ -187,6 +195,24 @@ mkInitState args =
 -- Command interpreter using IORef to allow establishing input dynamically
 --------------------------------------------------------------------------------
 
+readAllInputs :: CircuitInputs -> StateT SysState IO ()
+readAllInputs inputs = do
+  mapM_ (readInput inputs) (inputlist inputs)
+  return ()
+  
+readInput :: CircuitInputs -> Inport -> StateT SysState IO ()
+readInput inputs inport = do
+  readval <- liftIO $ readSigBool ("  enter " ++ portname inport)
+  liftIO $ writeIORef (inbuf inport) readval
+
+calculate ::
+  CircuitInputs -> (CircuitInputs -> Inport) -> StateT SysState IO ()
+calculate inputs f = do
+  let inport = f inputs
+  let val = current (sigval inport)
+  let continue = future (sigval inport)
+  return ()
+  
 cliReadClockCycle :: StateT SysState IO ()
 cliReadClockCycle = do
   liftIO $ putStrLn "cliReadClockCycle starting"
@@ -198,44 +224,32 @@ cliReadClockCycle = do
       let i = cycleCount circst
       liftIO $ putStrLn ("Cycle " ++ show i)
       let inp = inputs circst
-
--- Read values of input ports for current clock cycle  
-      let ldPort = in_ld inp
-      ld_readval <- liftIO $ readSigBool "  enter ld"
-      liftIO $ writeIORef (inbuf ldPort) ld_readval
-      let xPort = in_x inp
-      x_readval <- liftIO $ readSigBool "  enter x"
-      liftIO $ writeIORef (inbuf xPort) x_readval
-
--- Calculate signals
-      let ldval = current (sigval ldPort)
-      let ldContinue = future (sigval ldPort)
-      let xval = current (sigval xPort)
-      let xContinue = future (sigval xPort)
-
--- Calculate input continuation
-      let inpNext = CircuitInputs {in_ld = ldPort {sigval = ldContinue},
-                                   in_x = xPort {sigval = xContinue}}
-
--- Extract outputs  
       let outp = outputs circst
 
+-- Establish values of input ports for current clock cycle
+      readAllInputs inp
+
+-- Use signal values during the current cycle, e.g. current (sigval (in_ld inp))
+      let ldval = current (sigval (in_ld inp))
+      let xval = current (sigval (in_x inp) )
       let rs = out_r outp
       let rval = current rs
-      let rContinue = future rs
-
       let qs = out_q outp
       let qval = current qs
-      let qContinue = future qs
 
--- Calculate output continuation
-      let outpNext = CircuitOutputs {out_r = rContinue, out_q = qContinue}
-
--- Print signals for this clock cycle
       liftIO $ putStrLn ("Cycle " ++ show i)
       liftIO $ putStrLn ("   Inputs   ld = " ++ show ldval
                          ++ "   x = " ++ show xval)
       liftIO $ putStrLn ("   Outputs  r = " ++ show rval ++ "    q = " ++ show qval)
+
+-- Define continuation
+      let ldContinue = future (sigval (in_ld inp))
+      let xContinue = future (sigval (in_x inp) )
+      let inpNext = inp {in_ld = (in_ld inp) {sigval = ldContinue},
+                         in_x = (in_x inp)  {sigval = xContinue}}
+      let rContinue = future rs
+      let qContinue = future qs
+      let outpNext = outp {out_r = rContinue, out_q = qContinue}
 
 -- Update state
       let newcircst = circst {inputs = inpNext,
@@ -243,7 +257,6 @@ cliReadClockCycle = do
       let s' = s {circstate = Just newcircst}
       put s'
       liftIO $ putStrLn "cliReadClockCycle finished"
-
 
 --------------------------------------------------------------------------------
 -- Boot
@@ -377,3 +390,13 @@ doNtimes i f
       liftIO $ putStrLn ("repeating " ++ show i ++ " more times")
       f
       doNtimes (i-1) f
+
+-- replaced by readAllInputs...      
+--      establishInput (in_ld inp)
+--      establishINput (in_x inp)
+--      let ldPort = in_ld inp
+--      ld_readval <- liftIO $ readSigBool "  enter ld"
+--      liftIO $ writeIORef (inbuf (in_ld inp)) ld_readval
+--      let xPort = in_x inp
+--      x_readval <- liftIO $ readSigBool "  enter x"
+--      liftIO $ writeIORef (inbuf (in_x inp) ) x_readval
