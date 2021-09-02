@@ -60,9 +60,9 @@ main = do
 commandLoop :: StateT SysState IO ()
 commandLoop = do
   liftIO $ putStrLn "Command loop starting"
---  initializeCircuit
+  initializeCircuit
 
---  doNtimes 10 cliReadClockCycle
+  doNtimes 10 cliReadClockCycle
   liftIO $ putStrLn "Command loop finishing"
 
 --------------------------------------------------------------------------------
@@ -88,64 +88,6 @@ myreg1 ld x = (r, q)
 -- Define interface to the circuit
 --------------------------------------------------------------------------------
 
-data SysState = SysState
-  { args :: [String]
-  , circstate :: Maybe CircuitState
-  }
-
-mkInitState :: [String] -> SysState
-mkInitState args =
-  SysState
-    { args
-    , circstate = Nothing
-    }
-
-data CircuitState = CircuitState
-  { clockCycle :: Int
-  }
-  
-type CB = Stream Bool
-
-data Port
-  = InportBit
-      { portname :: String
-      , bsig  :: Stream Bool
-      , inbuf :: IORef Bool
-      , fetcher :: [IO Bool]
-      }
-  | InportWord
-      { portname :: String
-      , wsig  :: [CB]
-      }
-  | OutportBit
-      { portname :: String
-      , bsig  :: CB
-      }
-  | OutportWord
-      { portname :: String
-      , wsig  :: [CB]
-      }
-  
-mkInportBit :: String -> IO Port
-mkInportBit portname = do
-  inbuf <- newIORef False
-  let fetcher = repeat (readIORef inbuf)
-  let inSig = listeffects fetcher
-  return $ InportBit { portname, bsig, inbuf, fetcher }
-
-initialize :: StateT SysState IO ()
-initialize = do
-  in_ld <- mkInportBit "ld"
-  in_x <- mkInportBit "x"
-  let (r,q) = myreg1 (bsig in_ld) (bsig in_x)
-  out_r <- mkOutportBit "r" r
-  out_q <- mkOutportBit "q" q
-  let cst = CircuitState { cycle, inports, outports }
-  sys <- get
-  put (sys {circuitState = cst}
-  putStrLn "initialization finished"
-
-{-
 -- An interface is defined to connect the circuit definition with the
 -- simulation driver.
 
@@ -291,6 +233,17 @@ mkInportBit portname wordsize = do
 -}
 
   
+data SysState = SysState
+  { args :: [String]
+  , circstate :: Maybe CircuitState
+  }
+
+mkInitState :: [String] -> SysState
+mkInitState args =
+  SysState
+    { args
+    , circstate = Nothing
+    }
 
 
 --------------------------------------------------------------------------------
@@ -436,13 +389,10 @@ mkInBitContinue inp f = (f inp) {inSig = future (inSig (f inp))}
 mkOutBitContinue :: CircuitOutputs -> (CircuitOutputs -> Outport) -> Outport
 mkOutBitContinue outp f = (f outp) {outSig = future (outSig (f outp))}
 
--}
-  
 --------------------------------------------------------------------------------
 -- Boot
 --------------------------------------------------------------------------------
 
-{-
 boot :: StateT SysState IO [Int]
 boot = do
 -- Read the command arguments
@@ -459,7 +409,6 @@ boot = do
   liftIO $ putStrLn ("objpath = " ++ objpath)
   code <- liftIO $ readObject objpath
   return code
--}
 
 --------------------------------------------------------------------------------
 -- Formatting simulation output

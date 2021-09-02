@@ -60,9 +60,9 @@ main = do
 commandLoop :: StateT SysState IO ()
 commandLoop = do
   liftIO $ putStrLn "Command loop starting"
---  initializeCircuit
+  initializeCircuit
 
---  doNtimes 10 cliReadClockCycle
+  doNtimes 10 cliReadClockCycle
   liftIO $ putStrLn "Command loop finishing"
 
 --------------------------------------------------------------------------------
@@ -82,70 +82,10 @@ myreg1 ld x = (r, q)
   where r = dff q
         q = or2 (and2 (inv ld) r) (and2 ld x)
 
-
-
 --------------------------------------------------------------------------------
 -- Define interface to the circuit
 --------------------------------------------------------------------------------
 
-data SysState = SysState
-  { args :: [String]
-  , circstate :: Maybe CircuitState
-  }
-
-mkInitState :: [String] -> SysState
-mkInitState args =
-  SysState
-    { args
-    , circstate = Nothing
-    }
-
-data CircuitState = CircuitState
-  { clockCycle :: Int
-  }
-  
-type CB = Stream Bool
-
-data Port
-  = InportBit
-      { portname :: String
-      , bsig  :: Stream Bool
-      , inbuf :: IORef Bool
-      , fetcher :: [IO Bool]
-      }
-  | InportWord
-      { portname :: String
-      , wsig  :: [CB]
-      }
-  | OutportBit
-      { portname :: String
-      , bsig  :: CB
-      }
-  | OutportWord
-      { portname :: String
-      , wsig  :: [CB]
-      }
-  
-mkInportBit :: String -> IO Port
-mkInportBit portname = do
-  inbuf <- newIORef False
-  let fetcher = repeat (readIORef inbuf)
-  let inSig = listeffects fetcher
-  return $ InportBit { portname, bsig, inbuf, fetcher }
-
-initialize :: StateT SysState IO ()
-initialize = do
-  in_ld <- mkInportBit "ld"
-  in_x <- mkInportBit "x"
-  let (r,q) = myreg1 (bsig in_ld) (bsig in_x)
-  out_r <- mkOutportBit "r" r
-  out_q <- mkOutportBit "q" q
-  let cst = CircuitState { cycle, inports, outports }
-  sys <- get
-  put (sys {circuitState = cst}
-  putStrLn "initialization finished"
-
-{-
 -- An interface is defined to connect the circuit definition with the
 -- simulation driver.
 
@@ -158,52 +98,41 @@ initialize = do
 -- level entities named x.  So we use the input name "in_x" to avoid
 -- any possibility of confusion.
 
--- The user needs to define CircuitInputs, getinports, CircuitOutputs,
--- getoutports, and initializeCircuit
+-- The user needs to define CircuitInputs, CircuitOutputs,
+-- initializeCircuit
 
--- CircuitInputs provides selector functions to access the ports
 data CircuitInputs = CircuitInputs
   { in_ld :: Inport   -- load control
   , in_x  :: Inport   -- data input
+  , inputlist :: [Inport]
   }
-
--- getinports provides a list of ports used for iteration across all ports
-getinports :: CircuitInputs -> [Inport]
-getinports ci = [in_ld ci, in_x ci]
-
-advanceInports :: CircuitInputs -> CircuitInputs
-advanceInports inp = inp
-  { in_ld = mkInBitContinue inp in_ld
-  , in_x =  mkInBitContinue inp in_x
-  }
-
-mapInports :: CircuitInputs -> [CircuitInput -> Inport] -> 
 
 data CircuitOutputs = CircuitOutputs
   { out_r ::  Outport   -- current state of the register
   , out_q ::  Outport   -- internal signal: input to the dff
+  , outputlist :: [Outport]
   }
 
-getoutports :: CircuitOutputs -> [Outport]
-getoutports co = [out_r co, out_q co]
+advanceInputs :: CircuitInputs -> CircuitInputs
+advanceInputs inp = inp
+  { in_ld = mkInBitContinue inp in_ld
+  , in_x =  mkInBitContinue inp in_x
+  }
 
-advanceOutports :: CircuitOutputs -> CircuitOutputs
-advanceOutports outp = outp
+advanceOutputs :: CircuitOutputs -> CircuitOutputs
+advanceOutputs outp = outp
   { out_r = mkOutBitContinue outp out_r
   , out_q =  mkOutBitContinue outp out_q
   }
-
-
-newinit :: [(CB,String)] -> [(CB,String)] -> StateT SysState IO ()
-newinit inputs outputs = do
-  ins <- mapM_ mkInput inputs
-
+  
 initializeCircuit :: StateT SysState IO ()
 initializeCircuit = do
 -- Inputs
   in_ld <- liftIO $ mkInportBit "ld"
   in_x <- liftIO $ mkInportBit "x"
-  let inputs = CircuitInputs {in_ld, in_x}
+  let inputs = CircuitInputs
+        {in_ld, in_x,                -- access by name
+         inputlist = [in_ld, in_x]}     -- for iteration
 
 -- Circuit  
   let (r, q) = myreg1 (inSig in_ld) (inSig in_x)
@@ -211,14 +140,12 @@ initializeCircuit = do
 -- Outputs  
   let out_r = mkOutportBit r "r"
   let out_q = mkOutportBit q "q"
-  let outputs = CircuitOutputs {out_r, out_q}
-
+  let outputs = CircuitOutputs
+        {out_r, out_q,              -- access by name
+         outputlist=[out_r, out_q]}  -- for iteration
 -- Circuit state
   s <- get
-  put $ s { circstate = Just $ CircuitState
-            {cycleCount = 0, inputs, outputs}}
-
---  let inportlist =  [in_ld, in_x]       -- for iteration
+  put $ s { circstate = Just $ CircuitState {cycleCount = 0, inputs, outputs}}
 
 --------------------------------------------------------------------------------
 -- Circuit state
@@ -233,9 +160,7 @@ type CB = Stream Bool
 data CircuitState = CircuitState
   { cycleCount :: Int
   , inputs :: CircuitInputs
---  , inportlist :: [Inport]
   , outputs :: CircuitOutputs
---  , outportlist :: [Outport]
   }
 
 -- The user defines a specific CircuitInputs record an CircuitOutputs
@@ -291,6 +216,17 @@ mkInportBit portname wordsize = do
 -}
 
   
+data SysState = SysState
+  { args :: [String]
+  , circstate :: Maybe CircuitState
+  }
+
+mkInitState :: [String] -> SysState
+mkInitState args =
+  SysState
+    { args
+    , circstate = Nothing
+    }
 
 
 --------------------------------------------------------------------------------
@@ -314,8 +250,6 @@ cliReadClockCycle = do
       readAllInputs inp
 
 -- Print signal values during the current cycle
-
--- The non-abstract way works...
       let ldval = current (inSig (in_ld inp))
       let xval = current (inSig (in_x inp) )
       let rval = current (outSig (out_r outp))
@@ -325,68 +259,40 @@ cliReadClockCycle = do
                          ++ "   x = " ++ show xval)
       liftIO $ putStrLn ("   Outputs  r = " ++ show rval ++ "    q = " ++ show qval)
 
--- The preferred way to do it is with printInports and printOutpurts
-      liftIO $ putStrLn "Using printInports/printOutports with explicit list"
-      let myfs =  [in_ld inp, in_x inp] :: [Inport] -- type ok, right answer
-      printInports i inp myfs
+      printInports i inp [in_ld inp, in_x inp]
+--      printInports i inp [f inp | f <- inputlist inp]
+      printInports i inp (inputlist inp)
       printOutports i outp [out_r outp, out_q outp]
-
-      liftIO $ putStrLn "using getinports function"
-      printInports i inp (getinports inp)
-
+      liftIO $ putStrLn "individual printInport"
+      printInport inp (in_ld inp)
+      printInport inp (in_x inp)
+      printOutport outp (out_r outp)
+      printOutport outp (out_q outp)
+      
+      let ldval = current (inSig (in_ld inp))
+      let xval = current (inSig (in_x inp) )
+      let rval = current (outSig (out_r outp))
+      let qval = current (outSig (out_q outp))
+      liftIO $ putStrLn ("Cycle " ++ show i)
+      liftIO $ putStrLn ("   Inputs   ld = " ++ show ldval
+                         ++ "   x = " ++ show xval)
+      liftIO $ putStrLn ("   Outputs  r = " ++ show rval ++ "    q = " ++ show qval)
       let outpNext = outp {out_r = mkOutBitContinue outp out_r,
                            out_q = mkOutBitContinue outp out_r}
 
 -- Clock tick
       let newst =
-            circst { inputs = advanceInports inp
-                   , outputs = advanceOutports outp
+            circst { inputs = advanceInputs inp
+                   , outputs = advanceOutputs outp
                    , cycleCount = i+1
                    }
       put (s {circstate = Just newst})
-
--- Notes: the following are incorrect:      
---      let myhs =  inputlist inp :: [Inport] -- type ok, but wrong answer
---      let mygs =  [in_ld inp, in_x inp] :: [CircuitInputs -> Inport] Type ERROR
---      let myis =  inputlist inp :: [CircuitInputs -> Inport] Type ERROR
---      liftIO $ putStrLn "using myhs"
---      printInports i inp myhs
-
     
 --      put $ s {circstate = Just $ circst
---        { inputs = advanceInports inp
---        , outputs = advanceOutports outp
+--        { inputs = advanceInputs inp
+--        , outputs = advanceOutputs outp
 --        , outputs = outpNext
 --        , cycleCount = i+1 } }
-
--- Would prefer to print them all automatically but they can be done individually
---      liftIO $ putStrLn "individual printInport"
---      printInport inp (in_ld inp)
---      printInport inp (in_x inp)
---      printOutport outp (out_r outp)
---      printOutport outp (out_q outp)
-
---      liftIO $ putStrLn "using myfs"
--- The following are incorrect:      
---      let myhs =  inputlist inp :: [Inport] -- type ok, but wrong answer
---      let mygs =  [in_ld inp, in_x inp] :: [CircuitInputs -> Inport] Type ERROR
---      let myis =  inputlist inp :: [CircuitInputs -> Inport] Type ERROR
---      liftIO $ putStrLn "using myhs"
---      printInports i inp myhs
---      liftIO $ putStrLn "older tests same as myfs"
---      printInports i inp [in_ld inp, in_x inp] -- same as myfs
---      printInports i inp [f inp | f <- inputlist inp]
---      liftIO $ putStrLn "same as myhs"
---      printInports i inp (inputlist inp)
--- Try the non-abstract way again just to check that it still works...
---      let ldval = current (inSig (in_ld inp))
---      let xval = current (inSig (in_x inp) )
---      let rval = current (outSig (out_r outp))
---      let qval = current (outSig (out_q outp))
---      liftIO $ putStrLn ("Cycle " ++ show i)
---      liftIO $ putStrLn ("   Inputs   ld = " ++ show ldval
---                         ++ "   x = " ++ show xval)
---    liftIO $ putStrLn ("   Outputs  r = " ++ show rval ++ "    q = " ++ show qval)
 
 showBSig :: Bool -> String
 showBSig False  = "0"
@@ -421,8 +327,7 @@ printOutport outp p = do
 
 readAllInputs :: CircuitInputs -> StateT SysState IO ()
 readAllInputs inputs = do
---  mapM_ (readInput inputs) (inputlist inputs)
-  mapM_ (readInput inputs) (getinports inputs)
+  mapM_ (readInput inputs) (inputlist inputs)
   return ()
   
 readInput :: CircuitInputs -> Inport -> StateT SysState IO ()
@@ -436,13 +341,10 @@ mkInBitContinue inp f = (f inp) {inSig = future (inSig (f inp))}
 mkOutBitContinue :: CircuitOutputs -> (CircuitOutputs -> Outport) -> Outport
 mkOutBitContinue outp f = (f outp) {outSig = future (outSig (f outp))}
 
--}
-  
 --------------------------------------------------------------------------------
 -- Boot
 --------------------------------------------------------------------------------
 
-{-
 boot :: StateT SysState IO [Int]
 boot = do
 -- Read the command arguments
@@ -459,7 +361,6 @@ boot = do
   liftIO $ putStrLn ("objpath = " ++ objpath)
   code <- liftIO $ readObject objpath
   return code
--}
 
 --------------------------------------------------------------------------------
 -- Formatting simulation output
@@ -619,11 +520,11 @@ oldmain = do
 
 --      let outpNext = outp {out_r = mkOutBitContinue outp out_r,
 --                           out_q = mkOutBitContinue outp out_r}
---      let outpNext = advanceOutports outp
+--      let outpNext = advanceOutputs outp
 
 
---      let newcircst = circst {inputs = advanceInports inp,
---                              outputs = advanceOutports outp
+--      let newcircst = circst {inputs = advanceInputs inp,
+--                              outputs = advanceOutputs outp
 --                              cycleCount = i+1 }
 --      put $ s {circstate = Just newcircst}
 
