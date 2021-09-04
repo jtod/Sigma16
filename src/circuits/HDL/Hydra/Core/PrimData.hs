@@ -38,6 +38,13 @@ intbin k x = loop k x []
 -- binint bs gives the integer represented by bs, assuming binary
 -- tcint bs gives integer represented by bs, assuming two's complement
 
+boolInt :: Bool -> Int
+boolInt False = 0
+boolInt True = 1
+
+showBin :: [Bool] -> String
+showBin xs = show (binint (map boolInt xs))
+
 binint :: [Int] -> Int
 binint bs = sum [b * 2^i | (i,b) <- zip [k-1, k-2 .. 0] bs]
   where
@@ -368,8 +375,11 @@ hex16 x =
 
 -- CLEANUP older versions of hex32
 
-showw :: Int -> String
-showw x =
+-- change showw to showHex4
+-- showw :: Int -> String
+-- showw x =
+showHex4 :: Int -> String
+showHex4 x =
   let byted = x `mod` 16
       x1 = x `div` 16
       bytec = x1 `mod` 16

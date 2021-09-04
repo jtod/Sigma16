@@ -14,7 +14,7 @@ relocate 0001,0003,0006
 import Data.List
 import Control.Monad.State
 import Text.ParserCombinators.Parsec
-import HDL.Hydra.Core.Lib
+-- import HDL.Hydra.Core.Lib
 
 data ObjStmt
   = ObjModule String

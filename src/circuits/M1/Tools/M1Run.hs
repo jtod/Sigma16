@@ -1,4 +1,4 @@
--- Sigma16: M1driver.hs
+-- Sigma16: M1run.hs
 -- Copyright (C) 2020,2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
@@ -19,18 +19,153 @@
 -- M1driver: Simulation driver for M1 implementation of Sigma16 ISA
 ----------------------------------------------------------------------
 
+
+--------------------------------------------------------------------------------
+-- See Installation section of the Sigma16 User Guide, and
+-- Sigma16/src/circuits/README.txt
+
+-- Usage
+--   cd to src/circuits  -- must be in this directory
+--   ghci                -- start ghci and initialize using .ghci
+--   :main Simple/Add    -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--   ^C                  -- stop and return to ghci prompt
+--   :r                  -- reload, after you have changed a circuit source file
+--   uparrow             -- repeat previous command
+--   :q                  -- quit ghci, return to shell
+
+
+--   :main batch Simple/Add
+--   :main cli
+--   :main cli inputdata.txt
+
+
+
 {- This module defines simulation drivers that run the M1 circuit for
 the Sigma16 instruction set architecture. A separate main program
 should be defined that imports this module, and that defines the
 machine language program.  It uses run_M1_program, defined below, to
 execute the program. -}
 
-module M1.Tools.M1driver where
+--------------------------------------------------------------------------------
+{-# LANGUAGE NamedFieldPuns #-}
+
+module M1.Tools.M1Run where
+import System.Environment
+import System.FilePath
+
+import Control.Monad.State
+
+import Sigma16.ReadObj
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import M1.Circuit.Interface
 import M1.Circuit.System
+
+import Sigma16.ReadObj
+
+--------------------------------------------------------------------------------
+-- Main program
+--------------------------------------------------------------------------------
+
+main :: IO ()
+main = do
+  (op, operand) <- getCmd
+  putStrLn ("operation = " ++ show op)
+  case op of
+    CmdOpBatch -> runM1 operand
+    CmdOpCLI -> runDriver operand
+    CmdOpEmpty -> return ()
+  
+
+runDriver :: String -> IO ()
+runDriver xs = do
+  putStrLn ("running simulationDriver " ++ xs)
+--  execStateT simulationDriver initState
+  return ()
+
+--------------------------------------------------------------------------------
+-- Simulation driver
+--------------------------------------------------------------------------------
+
+{-
+simulationDriver :: StateT SysState IO ()
+simulationDriver = do
+  liftIO $ putStrLn "simulationDriver starting"
+-- Input ports
+  in_ld <- inPortBit "ld"
+  in_x <- inPortBit "x"
+
+-- Input signals  
+  let ld = inbsig in_ld
+  let x = inbsig in_x
+  
+-- Circuit defines output signals
+  let (r,q) = myreg1 ld x
+
+-- Output ports  
+  out_r <- outPortBit "r" r
+  out_q <- outPortBit "q" q
+
+-- Run simulation
+
+
+liftIO $ putStrLn "Enter command after prompt, h for help"
+  commandLoop
+  liftIO $ putStrLn "Simulation terminated"
+
+-}
+
+
+--------------------------------------------------------------------------------
+-- old main run executable
+--------------------------------------------------------------------------------
+
+-- ghci
+-- :main Simple/Add
+
+runM1 :: String -> IO ()
+runM1 fname = do
+  putStrLn "M1 Run starting"
+  let limit = 200
+  liftIO $ putStrLn ("fname = " ++ show fname)
+  let fnameExt = splitPath (fname ++ ".obj.txt")
+  liftIO $ putStrLn ("fnameExt = " ++ show fnameExt)
+  let corePath = ["..", "..", "examples", "Core"]
+  let objParts = corePath ++ fnameExt
+  liftIO $ putStrLn ("objParts = " ++ show objParts)
+  let objpath = joinPath objParts
+  liftIO $ putStrLn ("objpath = " ++ objpath)
+  code <- readObject objpath
+  putStrLn ("Object code = " ++ show code)
+  run_Sigma16_executable code limit
+  putStrLn "M1 Run finished"
+
+--  code <- readObject fname
+--  code <- liftIO $ readObject objpath
+
+--------------------------------------------------------------------------------
+-- Boot
+--------------------------------------------------------------------------------
+
+{-
+boot :: StateT SysState IO [Int]
+boot = do
+-- Read the command arguments
+  liftIO $ putStrLn "booting..."
+  s <- get
+  let xs = args s
+  let fname = splitPath (head xs ++ ".obj.txt")
+  liftIO $ putStrLn ("fname = " ++ show fname)
+  let corePath = ["..", "..", "examples", "Core"]
+  let objParts = corePath ++ fname
+  liftIO $ putStrLn ("objParts = " ++ show objParts)
+  let objpath = joinPath objParts
+  liftIO $ putStrLn ("fname = " ++ show fname)
+  liftIO $ putStrLn ("objpath = " ++ objpath)
+  code <- liftIO $ readObject objpath
+  return code
+-}
 
 ----------------------------------------------------------------------
 -- Simulation model
