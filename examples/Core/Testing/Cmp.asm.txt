@@ -1,4 +1,4 @@
-; TestCoreCondCode: test instructions that set the condition code
+; Cmp: test the cmp instruction
 ; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
 
 ; Condition code flags are defined in architecture.mjs.  Each flag has
@@ -29,17 +29,25 @@
 
 ; Compare two positives
       cmp    R1,R2      ; R15 = 0018 <L
+      add    R9,R15,R0  ; R9 := 0018
       cmp    R2,R1      ; R15 = 0003 >G
+      add    R9,R15,R0  ; R9 := 0003
       cmp    R2,R3      ; R15 = 0009 >L
+      add    R9,R15,R0  ; R9 := 0009
       cmp    R3,R2      ; R15 = 0012 <G
+      add    R9,R15,R0  ; R9 := 0012
 
 ; Compare positive and negative
       cmp    R2,R3      ; R15 = 0009 L>
+      add    R9,R15,R0  ; R9 := 0009
       cmp    R3,R2      ; R15 = 0012 <G
+      add    R9,R15,R0  ; R9 := 0012
 
 ; Compare two negatives
       cmp    R3,R4      ; R15 = 0003 G>
+      add    R9,R15,R0  ; R9 := 0003
       cmp    R4,R3      ; R15 = 0018 <L
+      add    R9,R15,R0  ; R9 := 0018
 
 ; Addition
       add    R5,R1,R2   ; R15 = 0001 >   8 is positive

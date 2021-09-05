@@ -1,35 +1,38 @@
-Sigma16/src/circuits/README.txt
-Running circuit simulations
+Sigma16/src/circuits/README.txt -- how to run circuit simulations in a shell
 This file is part of Sigma16.  See Sigma16/README and Sigma16/LICENSE
 
-QUICK START (See Installation section in Sigma16 User Guide)
+QUICK START
+~~~~~~~~~~~
 
+See Installation section in Sigma16 User Guide
 $ cd Sigma16/src/circuits   (you need to be in this directory)
-$ is the bash shell prompt and : is the ghci prompt
+$ is the bash shell prompt, and : is the ghci prompt
 
-The Circuits directory contains a collection of examples
-  $ ghci
-  :load Circuits/Reg1Run      load the reg1 circuit and its driver
-  :main cli                   run interactive simulation
+The Circuits directory contains a collection of small to medium examples
+
+   $ ghci
+   :load Circuits/Reg1Run          load the reg1 circuit and its driver
+   :main cli                       run interactive simulation, entter h for help
 
 Large example: the M1 circuit is a complete CPU circuit for Sigma16 Core
 
-Translate assembly to machine language:
-  $ sigma16 assemble $COREPROGS/Simple/Add
+  1. Translate assembly to machine language:
+        $ sigma16 assemble $COREPROGS/Arrays/ArrayMax
 
-Simulate the circuit as it executes the machine language program:
-  $ ghci                   start Haskell and load Hydra
-  :load M1/Tools/M1run     load M1 and its driver
-  :main batch Simple/Add   boot Add.obj.txt and run noninteractively
+  2. Simulate the circuit as it executes the machine language program:
+        $ ghci                       start Haskell and load Hydra
+        :load M1.Run                 load M1 and its driver
+        :main batch Arrays/ArrayMax  boot ArrayMax.obj.txt and run noninteractively
 
 Useful ghci commands (see ghc User Guide for full documentationO
-  :r        reload after editing any of the code
-  :q        exit ghci, go back to shell
-  ^C        stop and return to ghci prompt
-  uparrow   repeat previous command
+   :r         reload after editing any of the code
+   :q         exit ghci, go back to shell
+   ^C         stop and return to ghci prompt
+   uparrow    repeat previous command
 
 
 OVERVIEW
+~~~~~~~~
 
 This directory contains a digital circuits which is a full processor
 for the Core subset of the Sigma16 architecture.  It also contains a

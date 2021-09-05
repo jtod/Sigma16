@@ -76,7 +76,7 @@ data CtlState a = CtlState
    st_jump0, st_jump1, st_jump2,
    st_jumpc00, st_jumpc01, st_jumpc02,
    st_jumpc10, st_jumpc11, st_jumpc12,
-   st_jal0, st_jal1
+   st_jal0, st_jal1, st_jal2
    :: a         -- all control states are bit signals
   }
 

@@ -1,4 +1,4 @@
--- Sigma16: M1run.hs
+-- Sigma16: M1/Run.hs
 -- Copyright (C) 2020,2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
@@ -49,7 +49,7 @@ execute the program. -}
 --------------------------------------------------------------------------------
 {-# LANGUAGE NamedFieldPuns #-}
 
-module M1.Tools.M1Run where
+module M1.Run where
 import System.Environment
 import System.FilePath
 
@@ -394,6 +394,7 @@ sim_m1 input =
          string "      st_jal0 = ", bit (st_jal0 ctlstate),
          string "\n  ",
          string "      st_jal1 = ", bit (st_jal1 ctlstate),
+         string "      st_jal2 = ", bit (st_jal2 ctlstate),
 
          string "\n\nControl signals\n  ",
            string "  ctl_alu_a   = ", bit (ctl_alu_a ctlsigs),
@@ -401,8 +402,14 @@ sim_m1 input =
            string "\n  ",
            string "  ctl_x_pc    = ", bit (ctl_x_pc ctlsigs),
            string "  ctl_y_ad    = ", bit (ctl_y_ad ctlsigs),
+           string "\n  ",
            string "  ctl_rf_ld   = ", bit (ctl_rf_ld ctlsigs),
+           string "  ctl_rf_ldcc = ", bit (ctl_rf_ldcc ctlsigs),
            string "  ctl_rf_pc   = ", bit (ctl_rf_pc ctlsigs),
+           string "\n  ",
+           string "  ctl_pc_ld   = ", bit (ctl_pc_ad ctlsigs),
+           string "  ctl_pc_ad   = ", bit (ctl_pc_ad ctlsigs),
+           
            string "\n  ",
            string "  ctl_rf_alu  = ", bit (ctl_rf_alu ctlsigs),
            string "  ctl_rf_sd   = ", bit (ctl_rf_sd ctlsigs),
@@ -427,7 +434,9 @@ sim_m1 input =
            string "   p = ", binhex (p dp),
            string "  ma = ", binhex (ma dp),
            string "  md = ", binhex (md dp),
-           string " cnd = ", bit (condcc dp),
+           string "\n  ",
+           string "  cc = ", binhex (cc dp),
+           string " condcc = ", bit (condcc dp),
 
 -- Memory interface
 
@@ -528,7 +537,7 @@ sim_m1 input =
             setStateWs setJump [[one], r dp]]
            [],
 
-         fmtIf (or2 (st_jump1 ctlstate) (st_jal1 ctlstate))
+         fmtIf (or2 (st_jump2 ctlstate) (st_jal2 ctlstate))
            [
             setStateWs setJump [[one], r dp]]
            [],

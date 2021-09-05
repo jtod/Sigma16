@@ -42,14 +42,12 @@ repeat forever
   case ir_op of
 
     0 -> -- add instruction
-        st_add:
-          reg[ir_d] := reg[ir_sa] + reg[ir_sb]
-             assert [ctl_alu_abcd=0000, ctl_rf_alu, ctl_rf_ld]
+        st_add:  reg[ir_d] := reg[ir_sa] + reg[ir_sb]
+          assert [ctl_alu_abcd=0000, ctl_rf_alu, ctl_rf_ld]
 
     1 -> -- sub instruction
-        st_sub:
-          reg[ir_d] := reg[ir_sa] - reg[ir_sb]
-             assert [ctl_alu_abcd=0100, ctl_rf_alu, ctl_rf_ld]
+        st_sub:  reg[ir_d] := reg[ir_sa] - reg[ir_sb]
+          assert [ctl_alu_abcd=0100, ctl_rf_alu, ctl_rf_ld]
 
     2 -> -- mul instruction
         -- unimplemented
@@ -57,12 +55,11 @@ repeat forever
     3 -> -- div instruction
         -- unimplemented
 
-    4 -> -- cmp
-        st_cmp:
-          reg[15] := alu_cmp reg[ir_sa] reg[ir_sb]
-             assert [ctl_alu_abcd=0000, ctl_rf_ldcc]
+    4 -> -- cmp instruction
+        st_cmp:  reg[15] := alu_cmp (reg[ir_sa], reg[ir_sb])
+           assert [ctl_alu_abcd=0000, ctl_rf_ldcc]
 
-    11 -> -- trap instruction
+    12 -> -- trap instruction
         st_trap0:
           -- The trap instruction is not implemented, but the
           -- simulation driver can detect that a trap has been
@@ -72,14 +69,8 @@ repeat forever
 
     14 -> -- expand to XX format
         -- This code allows expansion to a two-word format with
-        -- further instructions using registers
-
-      case ir_sb of
-        xxx -> -- shiftl instruction
-         -- unimplemented
-
-        xxx -> -- shiftr instruction
-        -- unimplemented
+        -- further instructions using registers.  Not used in the
+        -- Core architecture; treated as a nop
 
     15 -> -- expand to RX format
         -- This code allows expansion to a two-word format with
@@ -87,91 +78,72 @@ repeat forever
         -- secondary opcode in the b field of the ir
 
       case ir_sb of
+
         0 -> -- lea instruction
-            st_lea0:
-              ad := mem[pc], pc++;
-              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                      ctl_alu_abcd=1100, ctl_pc_ld]
-            st_lea1:
-              reg[ir_d] := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu=alu_add, ctl_rf_alu,
-                        ctl_rf_ld]
+            st_lea0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abcd=1100, ctl_pc_ld]
+            st_lea1:  reg[ir_d] := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu=alu_add, ctl_rf_alu, ctl_rf_ld]
 
         1 -> -- load instruction
-            st_load0:
-              ad := mem[pc], pc++;
-                assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld]
-            st_load1:
-              ad := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
-            st_load2:
-              reg[ir_d] := mem[ad]
+            st_load0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abcd=1100, ctl_pc_ld]
+            st_load1:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_load2:  reg[ir_d] := mem[ad]
                 assert [ctl_rf_ld]
 
         2 -> -- store instruction
-            st_store0:
-              ad := mem[pc], pc++;
-                assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld]
-            st_store1:
-              ad := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_store0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abcd=1100, ctl_pc_ld]
+            st_store1:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
             st_store2:
               mem[addr] := reg[ir_d]
                 assert [ctl_rf_sd, ctl_sto]
 
         3 -> --  jump instruction
-            st_jump0:
-              ad := mem[pc], pc++;
-                assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld]
-            st_jump1:
-              ad := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
-            st_jump2:
-              pc := ad
-                assert [ctl_pc_ad, ctl_pc_ld]
+            st_jump0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abcd=1100, ctl_pc_ld]
+            st_jump1:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_jump2:  pc := ad
+              assert [ctl_pc_ad, ctl_pc_ld]
 
-        4 -> --  jumpc0 instruction
-            st_jumpc00:
-              ad := mem[pc], pc++;
-                assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld]
-            st_jumpc01:
-              ad := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
-            st_jumpc02:
-              if inv condcc then pc := ad
-                assert [ctl_pc_ad],
-                if inv condcc then assert [ctl_pc_ld]
+        4 -> -- jumpc0 instruction
+            st_jumpc00:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abcd=1100, ctl_pc_ld]
+            st_jumpc01:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_jumpc02:  if inv condcc then pc := ad
+              assert [ctl_pc_ad, if inv condcc then ctl_pc_ld]
 
         5 -> -- jumpc1 instruction
-            st_jumpc10:
-              ad := mem[pc], pc++;
-                assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld]
-            st_jumpc11:
-              ad := reg[ir_sa] + ad
-                assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
-            st_jumpc12:
-              if condcc then pc := ad
-                assert [ctl_pc_ad],
-                if condcc then assert [ctl_pc_ld]
+            st_jumpc10:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abcd=1100, ctl_pc_ld]
+            st_jumpc11:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+            st_jumpc12: if condcc then pc := ad
+              assert [ctl_pc_ad, if condcc then ctl_pc_ld]
 
-*** CHANGED *** ???
-        8 -> -- jal instruction
-            st_jal0:
-              ad := mem[pc], pc++;
-                assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc,
-                        ctl_alu_abcd=1100, ctl_pc_ld]
-            st_jal1:
-              reg[ir_d] := pc, ad := reg[ir_sa] + ad,
-              pc := reg[ir_sa] + ad
+        6 -> -- jal instruction
+            st_jal0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abcd=1100, ctl_pc_ld]
+            st_jal1:  ad := reg[ir_sa] + ad, reg[ir_d] := pc
+              assert [ctl_y_ad, ctl_alu_abcd=0000, ctl_ad_ld, ctl_ad_alu]
+              assert [ctl_rf_ld, ctl_rf_pc, ctl_y_ad,
+                      ctl_alu_abcd=0000,
+                      ctl_ad_ld, ctl_ad_alu, ctl_pc_ld, ctl_pc_ad]
+            st_jal2:  pc := reg[ir_sa] + ad
               assert [ctl_rf_ld, ctl_rf_pc, ctl_y_ad,
                       ctl_alu_abcd=0000,
                       ctl_ad_ld, ctl_ad_alu, ctl_pc_ld, ctl_pc_ad]
 
+-- The remaining opcodes are used in the full Sigma16 architecture,
+-- but in the Core they are unimplemented and treated as nop
+
+        7 -> -- nop
+        8 -> -- nop
         9 -> -- nop
         10 -> -- nop
         11 -> -- nop
@@ -200,11 +172,10 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
       ir_sb = field ir 12 4       -- instruction source b register
 
       start = orw
-        [reset,st_load2,st_lea1,st_add,st_sub,
-         st_mul0,st_store2,st_cmp,
-         st_jumpc01, and2 st_jumpc00 condcc,
-         st_jumpc11, and2 st_jumpc10 (inv condcc),
-         st_jump1, st_jal1, st_trap0]
+        [reset,
+         st_add, st_sub, st_mul0, st_cmp, st_trap0,
+         st_lea1, st_load2, st_store2, st_jump2,
+         st_jumpc02, st_jumpc12, st_jal2]
 
       st_instr_fet = dff start
       st_dispatch  = dff st_instr_fet
@@ -238,6 +209,7 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
 
       st_jal0   = dff (pRX!!6)
       st_jal1   = dff st_jal0
+      st_jal2   = dff st_jal1
 
       st_add    = dff (pRRR!!0)
       st_sub    = dff (pRRR!!1)
@@ -247,24 +219,24 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
       st_trap0  = dff (pRRR!!11)
 
       ctl_rf_ld   = orw [st_load2,st_lea1,st_add,st_sub,
-                           st_jal1]
+                           st_jal2]
       ctl_rf_ldcc = orw [st_cmp]
 
-      ctl_rf_pc   = orw [st_jal1]
+      ctl_rf_pc   = orw [st_jal2]
       ctl_rf_alu  = orw [st_lea1,st_add,st_sub]
       ctl_rf_sd   = orw [st_store2,st_jumpc00]
       ctl_alu_a   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
-                         st_jumpc00,st_jal0]
+                         st_jump0, st_jumpc00, st_jumpc10, st_jal0]
       ctl_alu_b   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
+                         st_jump0, st_jumpc00, st_jumpc10,
                          st_sub,st_jumpc00,st_jal0]
       ctl_ir_ld   = orw [st_instr_fet]
-      ctl_pc_ld   = orw [st_instr_fet,st_load0,st_lea0,st_store0,
-                           st_jumpc10,st_jumpc11,st_jumpc00,st_jumpc01,
+      ctl_pc_ld   = orw [st_instr_fet, st_lea0, st_load0, st_store0,
                            st_jump0, st_jump2,
-                           st_jumpc00, and2 st_jumpc02 (inv condcc),
-                           st_jumpc10, and2 st_jumpc12 condcc,
-                           st_jal0,st_jal1]
-      ctl_pc_ad   = orw [st_jal1, st_jump2, st_jumpc02, st_jumpc12]
+                           st_jumpc00, and2 (inv condcc) st_jumpc02,
+                           st_jumpc10, and2 condcc st_jumpc12,
+                           st_jal0, st_jal2]
+      ctl_pc_ad   = orw [st_jump2, st_jumpc02, st_jumpc12, st_jal1]
       ctl_ad_ld   = orw [st_load0,st_load1,st_lea0,st_store0,
                          st_store1,st_jumpc00,st_jumpc01,
                          st_jumpc10,st_jumpc11,st_jump0,st_jump1,
@@ -301,5 +273,5 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
          st_jump0, st_jump1, st_jump2,
          st_jumpc00, st_jumpc01, st_jumpc02,
          st_jumpc10, st_jumpc11, st_jumpc12,
-         st_jal0, st_jal1}
+         st_jal0, st_jal1, st_jal2}
 

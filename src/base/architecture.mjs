@@ -156,7 +156,7 @@ export const mnemonicRRR =
   ["add",      "sub",      "mul",       "div",        // 0-3
    "cmp",      "addc",     "muln",      "divn",       // 4-7
    "push",     "pop",       "top",      "trap",       // 8-11
-   "noprrr",   "EXP3",     "EXP",      "RX"]         // 12-15
+   "nop",     "EXP3",     "EXP",      "RX"]         // 12-15
 
 export const mnemonicRX =
   ["lea",      "load",     "store",     "jump",       // 0-3
@@ -364,7 +364,6 @@ statementSpec.set("trap",  {ifmt:iRRR, afmt:aRRR, opcode:[11]})
 statementSpec.set("nop",   {ifmt:iRRR, afmt:aRRR, opcode:[12]})
 
 // The following primary opcodes do not indicate RRR instructions:
-//   12: reserved
 //   13: escape to EXP3
 //   14: escape to EXP
 //   15: escape to RX
