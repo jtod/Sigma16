@@ -1,0 +1,23 @@
+; Logic: test the logic instructions
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+
+; Bitwise logic instructions
+
+     lea   R1,$0f96[R0]     ; 0000 1111 1001 0110
+     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
+     andw  R3,R1,R2         ; 0000 0011 0000 0010   expected
+
+     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
+     orw   R3,R1,R2         ; 0011 1111 1011 0110   expected
+
+     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
+     xorw  R3,R1,R2         ; 0011 1100 1011 0100   expected
+
+     lea    R1,6[R0]
+     logicb R1,15,1,0,1     ; R1.15 := R1.1 AND R1.0
+     lea    R1,6[R0]
+     logicb R1,14,1,0,6     ; R1.15 := R1.1 XOR R1.0
+     lea    R1,6[R0]
+     logicb R1,13,1,0,7     ; R1.15 := R1.1 OR R1.0
+
+     trap  R0,R0,R0

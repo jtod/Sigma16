@@ -2794,6 +2794,8 @@ an EXP format instruction:
       save Rd,Re,gh[Rf]
 #+END_EXAMPLE  
 
+asm format RRx  (x is short displacement and index register)
+
 The purpose of save is to copy the state of a block of
 registers into memory during a procedure call or a context switch.
 The registers can be reloaded by the restore instruction.
@@ -3032,6 +3034,7 @@ This logicb instruction performs R1.3 := R1.9 xor R1.2:
 
 #+BEGIN_EXAMPLE
       logicb  R1,3,9,2,6
+      logicb  d,e,f,g,h
 #+END_EXAMPLE
 
 This instruction performs logic on bits within R1.  The logic function
@@ -3078,10 +3081,16 @@ rightmost k bits become 0.
 
 #+BEGIN_EXAMPLE
    shiftl  R2,R3,5
+   op = e (EXP format)
+   d = 2 (destination register)
+   ab = secondary opcode
+   e = 3 (register operand)
+   f = 0 (unused, don't care)
+   gh = 5 (constant)
 #+END_EXAMPLE
 
 The instruction format is EXP, and the assembly language statement format
-is RRKEXP
+is RRKEXP.
 
 **** shiftr
 
@@ -3607,7 +3616,7 @@ precisely and concisely the effects of the instructions:
 | trap      | Core |   | RRR  | RRR   | b    | user interrupt                    |
 |           |      |   |      |       | c    | -- reserved --                    |
 |           |      |   |      |       | d    | escape to EXP3 format             |
-|           |      |   |      |       | e    | escape to EXP format             |
+|           |      |   |      |       | e    | escape to EXP format              |
 |           |      |   |      |       | f    | escape to RX format               |
 |-----------+------+---+------+-------+------+-----------------------------------|
 | lea       | Core |   | RX   | RX    | f,0  | Rd := ea                          |
@@ -3627,44 +3636,44 @@ precisely and concisely the effects of the instructions:
 | storel    | S32  |   | RX   | RX    | f,e  | M[ea] := Rd                       |
 |           |      |   | RX   |       | f,f  | -- reserved --                    |
 |-----------+------+---+------+-------+------+-----------------------------------|
-| save      | Std  |   | EXP | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
-| restore   | Std  |   | EXP | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
-| shiftl    | Std  |   | EXP | RRk   | e,03 | Rd := Ra shl b                    |
-| shiftr    | Std  |   | EXP | RRk   | e,04 | Rd := Ra shr b                    |
-| logicw    | Std  |   | EXP | RRRk  | e,05 | Rd := Re (lut g) Rf               |
-| logicb    | Std  |   | EXP | Rkkkk | e,06 | Rd.e := Rd.f (lut h) Rd.g         |
-| extract   | Std  |   | EXP | RkkRk | e,07 | Rd := extract Rd di size Rs si    |
-| extracti  | Std  |   | EXP | RkkRk | e,08 | Rd := extracti Rd di size Rs si   |
-| getctl    | Sys  | P | EXP | RC    | e,09 | Rd := Sc                          |
-| putctl    | Sys  | P | EXP | RC    | e,0a | Sc := Rd                          |
-| resume    | Sys  | P | EXP | R     | e,00 | pc := ipc, status := istatus      |
-| addl      | S32  |   | EXP | RRR   | 5    | Rd := Ra + Rb                     |
-| subl      | S32  |   | EXP | RRR   | 6    | Rd := Ra - Rb                     |
-| mull      | S32  |   | EXP | RRR   | 7    | Rd := Ra * Rb                     |
-| divl      | S32  |   | EXP | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmpl      | S32  |   | EXP | RRR   | 9    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| addcl     | S32  |   | EXP | RRR   | a    | Rd := Ra + Rb + R15.carry         |
-| pushl     | S32  |   | EXP | RRR   | 8    | M[ea] := Rd, Rb++                 |
-| popl      | S32  |   | EXP | RRR   | 9    | Rb--, Rd := M[ea]                 |
-| topl      | S32  |   | EXP | RRR   | a    | Rd := M[ea]                       |
-| savel     | S32  |   | EXP | RRRk  | e,01 | M[ea] := R1, ..., M[ea+d-1] := Rd |
-| restorel  | S32  |   | EXP | RRRk  | e,02 | R1 := M[ea], ..., Rd := M[ea+d-1] |
-| addf      | S32  |   | EXP | RRR   | 5    | Rd := Ra + Rb                     |
-| subf      | S32  |   | EXP | RRR   | 6    | Rd := Ra - Rb                     |
-| mulf      | S32  |   | EXP | RRR   | 7    | Rd := Ra * Rb                     |
-| divf      | S32  |   | EXP | RRR   | 8    | Rd := Ra / Rb, R15 := Ra rem Rb   |
-| cmpf      | S32  |   | EXP | RR    | 9    | R15 := Ra cmp Rb                  |
-|           |      |   | EXP |       | d,0b | -- reserved --                    |
-|           |      |   | EXP |       | ...  | -- reserved --                    |
-|           |      |   | EXP |       | d,ff | -- reserved --                    |
+| save      | Std  |   | EXP  | RRx   | e,00 | M[ea] := R1, ..., M[ea+d-1] := Rd |
+| restore   | Std  |   | EXP  | RRx   | e,01 | R1 := M[ea], ..., Rd := M[ea+d-1] |
+| shiftl    | Std  |   | EXP  | RRk   | e,02 | Rd := Ra shl b                    |
+| shiftr    | Std  |   | EXP  | RRk   | e,03 | Rd := Ra shr b                    |
+| logicw    | Std  |   | EXP  | RRRk  | e,04 | Rd := Re (lut g) Rf               |
+| logicb    | Std  |   | EXP  | Rkkkk | e,05 | Rd.e := Rd.f (lut h) Rd.g         |
+| extract   | Std  |   | EXP  | RkkRk | e,06 | Rd := extract Rd di size Rs si    |
+| extracti  | Std  |   | EXP  | RkkRk | e,07 | Rd := extracti Rd di size Rs si   |
+| getctl    | Sys  | P | EXP  | RC    | e,08 | Rd := Sc                          |
+| putctl    | Sys  | P | EXP  | RC    | e,09 | Sc := Rd                          |
+| resume    | Sys  | P | EXP  | R     | e,0a | pc := ipc, status := istatus      |
+| addl      | S32  |   | EXP  | RRR   | e,0b | Rd := Ra + Rb                     |
+| subl      | S32  |   | EXP  | RRR   | e,0c | Rd := Ra - Rb                     |
+| mull      | S32  |   | EXP  | RRR   | e,0d | Rd := Ra * Rb                     |
+| divl      | S32  |   | EXP  | RRR   | e,0e | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpl      | S32  |   | EXP  | RRR   | e,0f | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| addcl     | S32  |   | EXP  | RRR   | e,10 | Rd := Ra + Rb + R15.carry         |
+| pushl     | S32  |   | EXP  | RRR   | e,11 | M[ea] := Rd, Rb++                 |
+| popl      | S32  |   | EXP  | RRR   | e,12 | Rb--, Rd := M[ea]                 |
+| topl      | S32  |   | EXP  | RRR   | e,13 | Rd := M[ea]                       |
+| savel     | S32  |   | EXP  | RRRk  | e,14 | M[ea] := R1, ..., M[ea+d-1] := Rd |
+| restorel  | S32  |   | EXP  | RRRk  | e,15 | R1 := M[ea], ..., Rd := M[ea+d-1] |
+| addf      | S32  |   | EXP  | RRR   | e,16 | Rd := Ra + Rb                     |
+| subf      | S32  |   | EXP  | RRR   | e,17 | Rd := Ra - Rb                     |
+| mulf      | S32  |   | EXP  | RRR   | e,18 | Rd := Ra * Rb                     |
+| divf      | S32  |   | EXP  | RRR   | e,19 | Rd := Ra / Rb, R15 := Ra rem Rb   |
+| cmpf      | S32  |   | EXP  | RR    | e,1a | R15 := Ra cmp Rb                  |
+|           |      |   | EXP  |       | e,1b | -- reserved --                    |
+|           |      |   | EXP  |       | ...  | -- reserved --                    |
+|           |      |   | EXP  |       | e,ff | -- reserved --                    |
 |-----------+------+---+------+-------+------+-----------------------------------|
-| shiftll   | S32  |   | EXP3 | RRk   | d,03 | Rd := Ra shl b                    |
-| shiftrl   | S32  |   | EXP3 | RRk   | d,04 | Rd := Ra shr b                    |
-| logicwl   | S32  |   | EXP3 | RRRk  | d,05 | Rd := Re (lut g) Rf               |
-| logicbl   | S32  |   | EXP3 | Rkkkk | d,06 | Rd.e := Rd.f (lut h) Rd.g         |
-| extractl  | S32  |   | EXP3 | RkkRk | d,07 | Rd := extract Rd di size Rs si    |
-| extractil | S32  |   | EXP3 | RkkRk | d,08 | Rd := extracti Rd di size Rs si   |
-|           |      |   | EXP3 |       | d,0b | -- reserved --                    |
+| shiftll   | S32  |   | EXP3 | RRk   | d,00 | Rd := Ra shl b                    |
+| shiftrl   | S32  |   | EXP3 | RRk   | d,01 | Rd := Ra shr b                    |
+| logicwl   | S32  |   | EXP3 | RRRk  | d,02 | Rd := Re (lut g) Rf               |
+| logicbl   | S32  |   | EXP3 | Rkkkk | d,03 | Rd.e := Rd.f (lut h) Rd.g         |
+| extractl  | S32  |   | EXP3 | RkkRk | d,04 | Rd := extract Rd di size Rs si    |
+| extractil | S32  |   | EXP3 | RkkRk | d,05 | Rd := extracti Rd di size Rs si   |
+|           |      |   | EXP3 |       | d,06 | -- reserved --                    |
 |           |      |   | EXP3 |       | ...  | -- reserved --                    |
 |           |      |   | EXP3 |       | d,ff | -- reserved --                    |
 |-----------+------+---+------+-------+------+-----------------------------------|

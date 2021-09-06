@@ -156,7 +156,7 @@ export const mnemonicRRR =
   ["add",      "sub",      "mul",       "div",        // 0-3
    "cmp",      "addc",     "muln",      "divn",       // 4-7
    "push",     "pop",       "top",      "trap",       // 8-11
-   "nop",     "EXP3",     "EXP",      "RX"]         // 12-15
+   "nop",      "EXP3",     "EXP",      "RX"]         // 12-15
 
 export const mnemonicRX =
   ["lea",      "load",     "store",     "jump",       // 0-3
@@ -396,17 +396,21 @@ statementSpec.set("storel",  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
 // and an 8-bit secondary opcode in the ab field, where ab >= 8.  (If
 // 0 <= ab <8 then the instruction is EXP1 format.)
 
-statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,0]});
-statementSpec.set("save",     {ifmt:iEXP, afmt:aRRX,   opcode:[14,7]})
-statementSpec.set("restore",  {ifmt:iEXP, afmt:aRRX,   opcode:[14,8]})
-statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,9]})
-statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,10]})
-statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,11]})
-statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,12]})
-statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,13]})
-statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,14]})
-statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,15]})
-statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,16]})
+statementSpec.set("save",     {ifmt:iEXP, afmt:aRRX,   opcode:[14,0]})
+statementSpec.set("restore",  {ifmt:iEXP, afmt:aRRX,   opcode:[14,1]})
+statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,2]})
+statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
+statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,4]})
+statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,5]})
+statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,6]})
+statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,7]})
+statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,8]})
+statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,9]})
+statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,10]})
+
+// The following instructions are in the S32 extended architecture,
+// and are not currently implemented
+
 statementSpec.set("addl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,17]})
 statementSpec.set("subl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,18]})
 statementSpec.set("mull",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,19]})
@@ -470,22 +474,22 @@ statementSpec.set("jumpco",
 
 // Mnemonics for logic instructions
 
-statementSpec.set("invw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,5,12],
+statementSpec.set("invw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,4,12],
                               pseudo:true});
-statementSpec.set("andw",    {ifmt:iEXP, afmt:aRRR,    opcode:[14,5,1],
+statementSpec.set("andw",    {ifmt:iEXP, afmt:aRRR,    opcode:[14,4,1],
                               pseudo:true});
-statementSpec.set("orw",     {ifmt:iEXP, afmt:aRRR,    opcode:[14,5,7],
+statementSpec.set("orw",     {ifmt:iEXP, afmt:aRRR,    opcode:[14,4,7],
                               pseudo:true});
-statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRRR, opcode:[14,5,6],
+statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRRR, opcode:[14,4,6],
                               pseudo:true});
 
 // Mnemonics for logicb instructions
 
-statementSpec.set("invb",    {ifmt:iEXP, afmt:aRkk, opcode:[14,6,12],
+statementSpec.set("invb",    {ifmt:iEXP, afmt:aRkk, opcode:[14,5,12],
                               pseudo:true});
-statementSpec.set("andb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,6,1],
+statementSpec.set("andb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,5,1],
                               pseudo:true});
-statementSpec.set("orb",     {ifmt:iEXP, afmt:aRkkk, opcode:[14,6,7],
+statementSpec.set("orb",     {ifmt:iEXP, afmt:aRkkk, opcode:[14,5,7],
                               pseudo:true});
 statementSpec.set("xorb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,6,6],
                               pseudo:true});

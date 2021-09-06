@@ -625,7 +625,7 @@ const parseSplitFields = new RegExp(regexpSplitFields);
 
 
 function requireX (ma, s, field) {
-    com.mode.devlog (`requireX <${field}>`)
+    console.log (`requireX <${field}>`)
     const xrParser = /^([^\[]+)\[(.*)\]$/
     let disp = "0"
     let index = 0
@@ -633,12 +633,11 @@ function requireX (ma, s, field) {
     if (xr) { // disp[reg]
         disp = xr[1]
         const regsrc = xr[2]
-        index = requireReg (ma, s, regsrc)
-    } else { // disp
-        disp = field
+        index = requireReg (ma, s, regsrc)  // disp = field
+        console.log (`requireX parse failed`)
     }
     const result = {disp, index}
-    com.mode.devlog (`requireX disp=<${disp}> index=${index}`)
+    console.log (`requireX field=${field} disp=<${disp}> index=${index}`)
     return result
 }
 /*
@@ -844,7 +843,7 @@ function asmPass1 (ma) {
         com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
 
         if (badCharLocs.length > 0) {
-            mkErrMsg (ma,s,`Invalid character at position ${badCharLocs}`);
+            mkErrMsg (ma,s,`Invalid ch at position ${badCharLocs}`);
             mkErrMsg (ma,s, "See User Guide for list of valid characters");
             mkErrMsg (ma,s, "(Word processors often insert invalid characters)");
         }
@@ -982,9 +981,8 @@ function asmPass2 (ma) {
             emitObjectWords (ma);
             let stmt = `org      ${ahex}`
             ma.objectCode.push (stmt);
-        } else if (op.ifmt==arch.iRRR && op.afmt==arch.aRRR) {
-            
 // RRR-RRR
+        } else if (op.ifmt==arch.iRRR && op.afmt==arch.aRRR) {
             com.mode.devlog (`pass2 iRRR/aRRR`);
             requireNoperands (ma, s, 3)
             const d = requireReg(ma,s,s.operands[0]);
@@ -993,9 +991,8 @@ function asmPass2 (ma) {
             com.mode.devlog (`RRR noperands = ${s.operands.length}`)
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	} else if (op.ifmt==arch.iRRR && op.afmt==arch.aRR) {
-
 // RRR-RR            
+	} else if (op.ifmt==arch.iRRR && op.afmt==arch.aRR) {
 	    com.mode.devlog (`Pass2 iRRR/aRR`);
             requireNoperands (ma, s, 2)
             const d = 0;
@@ -1003,7 +1000,6 @@ function asmPass2 (ma) {
             const b = requireReg(ma,s,s.operands[1]);
 	    s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
-
 // RX-RX
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aRX) {
 	    com.mode.devlog (`Pass2 RX/RX`);
@@ -1023,7 +1019,6 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
-
 // RX-X pseudo
         } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
 	    com.mode.devlog (`Pass2 RX/X pseudo`);
@@ -1040,8 +1035,6 @@ function asmPass2 (ma) {
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-
-          
 // RX-X --- jump L1[R0]
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !op.pseudo) {
             com.mode.devlog (`Pass2 RX/X)`);
@@ -1060,7 +1053,6 @@ function asmPass2 (ma) {
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-
 // RX-kX
         } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 RX/kX`);
@@ -1077,8 +1069,6 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             handleVal (ma, s, s.address.word, s.operands[0], k, Field_d);
             handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
-
-
 // EXP1-null -- resume
 	} else if (op.ifmt==arch.iEXP1 && op.afmt==arch.a0) {
 	    com.mode.devlog (`Pass2 iEXP1/no-operand`);
@@ -1088,11 +1078,69 @@ function asmPass2 (ma) {
             } else {
                 mkErrMsg (ma, s, `this instruction requires no operands`);
             }
-
-// EXP2-RkkRk extract            
-        } else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRkkRk ) {
-            com.mode.devlog (`Pass2 iEXP2/aRkRRk`);
-            com.mode.devlog (`Pass2 EXP2-RkRRk`);
+// EXP-RRk -- shiftl R1,R2,5
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRk) {
+            com.mode.devlog ("*********EXP-RRk **********")
+	    com.mode.devlog (`pass2 aRRk`)
+            requireNoperands (ma, s, 3)
+            const ab = op.opcode[1]
+            const d = requireReg (ma, s, s.operands[0])
+            const e = requireReg (ma, s, s.operands[1])
+            const kv = evaluate (ma, s, s.address.word, s.operands[2])
+            const f = 0
+            const gh = kv.word
+            com.mode.devlog (`Pass 2 RRk d=${d} ab=${ab} e=${e} f=${f}`)
+            s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
+            s.codeWord2 = mkWord448 (e,f,gh)
+            generateObjectWord (ma, s, s.address.word, s.codeWord1)
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+// EXP-RRRk -- logicw R1,R2,R3,6
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRRk) {
+            com.mode.devlog (`pass2 aRRRk`);
+            requireNoperands (ma, s, 4)
+            const ab = op.opcode[1]
+            const d = requireReg (ma, s, s.operands[0])
+            const e = requireReg (ma, s, s.operands[1])
+            const f = requireReg (ma, s, s.operands[2])
+            const g = 0
+            const h = s.operands[3]
+            s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
+            s.codeWord2 = mkWord448 (e,f,g,h)
+            generateObjectWord (ma, s, s.address.word, s.codeWord1)
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+// EXP-Rkkkk -- logicb R1,2,3,4,6  --  Rd.e := Rd.f FCN_h Rd.g
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkkk) {
+            com.mode.devlog ('Pass2 EXP/Rkkkk (logicb)')
+            requireNoperands (ma, s, 5)
+            const ab = op.opcode[1]
+            const d = requireReg(ma,s,s.operands[0])
+            const e = requireK4 (ma, s, Field_e, s.operands[1])
+            const f = requireK4 (ma, s, Field_f, s.operands[2])
+            const g = requireK4 (ma, s, Field_g, s.operands[3])
+            const h = requireK4 (ma, s, Field_h, s.operands[4])
+	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
+            s.codeWord2 = mkWord (e, f, g, h)
+            generateObjectWord (ma, s, s.address.word, s.codeWord1)
+            generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+// EXP-RRX -- save R1,R6,40[R13]  the displacement 8-bit constant in gh field
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRX) {
+            console.log ("Pass 2 EXP/RRX")
+            requireNoperands (ma, s, 3)
+            const ab = op.opcode[1]
+            const d = requireReg (ma, s, s.operands[0])
+            const e = requireReg (ma, s, s.operands[1])
+            const {disp,index} = requireX (ma, s, s.operands[2])
+            const f = index
+            const gh = disp
+            console.log (`sav/rest gh=${gh} f=${f}`)
+	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
+            s.codeWord2 = mkWord448 (e, f, gh)
+            generateObjectWord (ma, s, s.address.word, s.codeWord1)
+            generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+// EXP-RkkRk extract            
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkRk ) {
+            com.mode.devlog (`Pass2 iEXP/aRkRRk`);
+            com.mode.devlog (`Pass2 EXP-RkRRk`);
             requireNoperands (ma, s, 5)
             com.mode.devlog (`kkkk 0=${s.operands[0]}`)
             com.mode.devlog (`kkkk 1=${s.operands[1]}`)
@@ -1110,9 +1158,9 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-RR
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRR) {
-	    com.mode.devlog (`pass2 iEXP2/aRR`);
+// EXP-RR
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRR) {
+	    com.mode.devlog (`pass2 iEXP/aRR`);
             requireNoperands (ma, s, 2)
             const x = rrParser.exec (s.fieldOperands);
             if (x) {
@@ -1128,9 +1176,9 @@ function asmPass2 (ma) {
                 mkErrMsg (ma, s, `ERROR operation requires RR operands`);
             }
 
-// EXP2-RRR  andw R1,R2,R3
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRR && op.pseudo) {
-            com.mode.devlog ('Pass2 EXP2/RRR pseudo');
+// EXP-RRR  andw R1,R2,R3
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRR && op.pseudo) {
+            com.mode.devlog ('Pass2 EXP/RRR pseudo');
             requireNoperands (ma, s, 3)
             const addr = s.address.word;
             const d = requireReg (ma, s, s.operands[0]);
@@ -1143,30 +1191,10 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-Rkkkk
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRkkkk) {
-            com.mode.devlog ('Pass2 EXP2/Rkkkk (logicb)');
-            const addr = s.address.word;
-            requireNoperands (ma, s, 5)
-            const d = requireReg(ma,s,s.operands[0]);
-            com.mode.devlog (`EXP2-Rkkkk op1=...`)
-            com.mode.devlog (`EXP2-Rkkkk op1=${s.operands[1]}`)
-//            const e = requireK4 (ma, s, addr, Field_e, s.operands[1]);
-//            const f = requireK4 (ma, s, addr, Field_f, s.operands[2]);
-//            const g = requireK4 (ma, s, addr, Field_g, s.operands[3]);
-//            const h = requireK4 (ma, s, addr, Field_h, s.operands[4]);
-            const e = requireK4 (ma, s, Field_e, s.operands[1]);
-            const f = requireK4 (ma, s, Field_f, s.operands[2]);
-            const g = requireK4 (ma, s, Field_g, s.operands[3]);
-            const h = requireK4 (ma, s, Field_h, s.operands[4]);
-	    s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-            s.codeWord2 = mkWord (e, f, g, h);
-            generateObjectWord (ma, s, s.address.word, s.codeWord1);
-            generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-Rkkk  andb R1,3,8,4
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRkkk & op.pseudo) {
-            com.mode.devlog ('Pass2 EXP2/Rkkkk (logicb)');
+// EXP-Rkkk  andb R1,3,8,4
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkk & op.pseudo) {
+            com.mode.devlog ('Pass2 EXP/Rkkkk (logicb)');
             requireNoperands (ma, s, 4)
             const addr = s.address.word;
             const d = requireReg (ma, s, s.operands[0]);
@@ -1179,9 +1207,9 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-Rkk  field Rd,3,8    extract Rd,dindex,size
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRkk & op.pseudo) {
-            com.mode.devlog ('Pass2 EXP2/Rkk pseudo');
+// EXP-Rkk  field Rd,3,8    extract Rd,dindex,size
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkk & op.pseudo) {
+            com.mode.devlog ('Pass2 EXP/Rkk pseudo');
             requireNoperands (ma, s, 3)
             const addr = s.address.word;
             let d = 0
@@ -1208,8 +1236,8 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             
-// EXP2-RC            
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRC) {
+// EXP-RC            
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRC) {
 	    com.mode.devlog ("pass2 aRC");
             requireNoperands (ma, s, 2) // ???????????
             let x = rcParser.exec  (s.fieldOperands);
@@ -1224,26 +1252,10 @@ function asmPass2 (ma) {
                 mkErrMsg (ma, s, `ERROR operation requires RC operands`);
             }
 
-// EXP2-RRk
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRk) {
-            com.mode.devlog ("*********EXP2-RRk **********");
-	    com.mode.devlog (`pass2 aRRk`);
-            requireNoperands (ma, s, 3)
-            const ab = op.opcode[1];
-            const d = requireReg (ma, s, s.operands[0]);
-            const e = requireReg (ma, s, s.operands[1]);
-            const kv = evaluate (ma, s, s.address.word, s.operands[2]);
-            const f = kv.word;
-            com.mode.devlog (`Pass 2 RRk d=${d} ab=${ab} e=${e} f=${f}`);
-            s.codeWord1 = mkWord448 (op.opcode[0], d, ab);
-            s.codeWord2 = mkWord (e, f, 0, 0);
-            generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-            // Check proper number of args...
 
-// EXP2-RRkk            
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRkk) {
-	    com.mode.devlog (`pass2 iEXP2/aRRkk`);
+// EXP-RRkk            
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRkk) {
+	    com.mode.devlog (`pass2 iEXP/aRRkk`);
             requireNoperands (ma, s, 2)
             const x = rrkkParser.exec (s.fieldOperands);
             if (x) {
@@ -1257,7 +1269,7 @@ function asmPass2 (ma) {
                 mkErrMsg (ma, s, `ERROR operation requires RRkk operands`);
             }
 
-        } else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRRk) {
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRRk) {
             com.mode.devlog (`pass2 aRRRk`);
             requireNoperands (ma, s, 4)
             const d = requireReg(ma,s,s.operands[0]);
@@ -1271,26 +1283,12 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-RRRkk            
-        } else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRRkk) {
-            com.mode.devlog (`pass2 aRRRkk`);
-            requireNoperands (ma, s, 5)
-            const x = rrrkkParser.exec (s.fieldOperands);
-            if (x) {
-                const {1:d, 2:e, 3:f, 4:g, 5:h} = x;
-                s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-                s.codeWord2 = mkWord (e, f, g, h);
-	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-            } else {
-                mkErrMsg (ma, s, `ERROR operation requires RRRkk operands`);
-            }
 
 
-// EXP2-RRX save, restore
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.aRRX) {
-	    com.mode.devlog (`pass2 EXP2/RRX`);
-	    com.mode.devlog (`pass2 EXP2-RRX`);
+// EXP-RRX save, restore
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRX) {
+	    com.mode.devlog (`pass2 EXP/RRX`);
+	    com.mode.devlog (`pass2 EXP-RRX`);
             requireNoperands (ma, s, 3)
             const x = rrxParser.exec (s.fieldOperands);
             const d = requireReg(ma,s,s.operands[0]);
@@ -1303,9 +1301,9 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 
-// EXP2-kX            
-	} else if (op.ifmt==arch.iEXP2 && op.afmt==arch.akX) {
-	    com.mode.devlog (`pass2 EXP2/kX`);
+// EXP-kX            
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.akX) {
+	    com.mode.devlog (`pass2 EXP/kX`);
             requireNoperands (ma, s, 2)
             let x = kxParser.exec (s.fieldOperands);
             if (x) {

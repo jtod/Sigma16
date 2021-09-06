@@ -162,8 +162,8 @@ export function logicFunction(mnemonic) {
 
 export function applyLogicFcnBit (fcn, x, y) {
     let result = x==0
-        ? (y==0 ? arch.getBitInWordLE (fcn,0) : arch.getBitInWordLE (fcn,1))
-        : (y==0 ? arch.getBitInWordLE (fcn,2) : arch.getBitInWordLE (fcn,3))
+        ? (y==0 ? arch.getBitInWordLE (fcn,3) : arch.getBitInWordLE (fcn,2))
+        : (y==0 ? arch.getBitInWordLE (fcn,1) : arch.getBitInWordLE (fcn,0))
     com.mode.devlog (`applyLogicFcn fcn=${fcn} x=${x} y=${y} result=${result}`);
     return result
 }
@@ -174,10 +174,10 @@ function lut (p,q,r,s,x,y) {
 
 export function applyLogicFcnWord (fcn, x, y) {
     com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
-    let p = arch.getBitInWordLE (fcn,0);
-    let q = arch.getBitInWordLE (fcn,1);
-    let r = arch.getBitInWordLE (fcn,2);
-    let s = arch.getBitInWordLE (fcn,3);
+    let p = arch.getBitInWordLE (fcn,3);
+    let q = arch.getBitInWordLE (fcn,2);
+    let r = arch.getBitInWordLE (fcn,1);
+    let s = arch.getBitInWordLE (fcn,0);
     let result = 0;
     for (let i=0; i<16; i++) {
         let z = lut (p,q,r,s, arch.getBitInWordLE(x,i), arch.getBitInWordLE(y,i));
