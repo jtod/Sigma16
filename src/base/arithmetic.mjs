@@ -563,28 +563,32 @@ export function op_mul (a,b) {
     return [primary, secondary];
 }
 
+// Multiply Ra * Rb and place 32-bit result into R15++Rd.
+
 export function op_muln (c,a,b) {
     const k16 = 2**16
-    const x = c * 2**16 + a;
-    const product = x * b;
-    const primary  = product % k16;
-    const secondary = Math.floor (product / k16);
-    com.mode.devlog (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
-    return [primary, secondary];
+    const product = a * b
+    const primary  = product % k16
+    const secondary = Math.floor (product / k16)
+    com.mode.devlog (`op_muln c=${c} a=${a} b=${b}`
+                     + ` prim=${primary} sec=${secondary}`)
+    return [primary, secondary]
 }
 
 
-export function op_divn (a,b) {
+export function op_divn (c,a,b) {
     const k16 = 2**16
-    const x = c * 2**16 + a;
-    const q = Math.floor (x/b);
-    const r = x % b;
-
-    const primary  = product % k16;
-    const secondary = Math.floor (product / k16);
-    com.mode.devlog (`op_muln c=${c} a=${a} b=${b} prim=${primary} sec=${secondary}`);
-    return [primary, secondary];
-
+    const dividend = k16 * c + a
+    const quotient = Math.floor (dividend / b)
+    const remainder = dividend % b
+    const qhigh = Math.floor (quotient / k16)
+    const qlow = quotient % k16
+    const primary = qlow
+    const secondary = qhigh
+    const tertiary = remainder
+    console.log (`op_divn c=${c} a=${a} b=${b}`
+                     + `prim=${primary} sec=${secondary} ter=${tertiary}`)
+    return [primary, secondary, tertiary]
 }
 
 function test_mul () {
@@ -668,25 +672,57 @@ export function op_xor (a,b) {
     return primary;
 }
 
-
 // These constants provide a faster way to set or clear the flags
 
-
-export function calculateExtract (wsize, fsize, x, xi, y, yi) {
-    // p = source field (surrounded by 0) shifted to destination position
-    const p = (((x << xi) & 0xffff) >>> (wsize-fsize)) << (wsize-yi-fsize);
-    // destination mask has 1 bits where field will be inserted
-    const dmask = (0xffff >>> (wsize-fsize)) << (wsize-yi-fsize);
-    const dmaski = (~dmask) & 0xffff;
-    const z = (y & dmaski) | p;
-    com.mode.devlog (`calculateExtract wsize=${wsize} fsize=${fsize}`
-                     +  ` xi=${xi} yi=${yi}`
-                     + `  x=${wordToHex4(x)}`
-                     + `  dmask=${wordToHex4(dmask)}`
-                     + `  p=${wordToHex4(p)}`
-                     + `  z=${wordToHex4(z)}`);
-    return z;
+export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
+// dmask contains 1 bits in the destination field
+// dclear is dest with 0s in destination field    
+    const dmask = fieldMask (wsize, wmask, desti, fsize)
+    const dmaski = (~dmask) & wmask
+    const dclear = dest & dmaski
+// smask contains 1 bits in the source field    
+// sclear is src with 0s in source field
+    const smask = fieldMask (wsize, wmask, srci, fsize)
+    const sclear = src & smask
+// p is src field shifted to righthand position
+    const p = sclear >>> (srci - fsize + 1)
+// q is src field shifted to destination position
+    const q = p << (desti - fsize + 1)
+    const r = dclear | q
+    console.log (`calculateExtract wsize=${wsize} wmask=${wordToHex4(wmask)}`
+                 + ` dest=${wordToHex4(dest)}`
+                 + ` src=${wordToHex4(src)}`
+                 + ` desti=${desti}`
+                 + ` srci=${srci}`
+                 + ` fsize=${fsize}`
+                 + ` dmask=${wordToHex4(dmask)}`
+                 + ` dclear=${wordToHex4(dclear)}`
+                 + ` smask=${wordToHex4(smask)}`
+                 + ` sclear=${wordToHex4(sclear)}`
+                 + ` p=${wordToHex4(p)}`
+                 + ` q=${wordToHex4(q)}`
+                 + ` r=${wordToHex4(q)}`)
+    return r
 }
+    // p = source field (surrounded by 0) shifted to destination position
+    // destination mask has 1 bits where field will be inserted
+
+function fieldMask (wsize, wmask, i, fsize) {
+// shift right to the right number of 1s  at the right of the word
+    const p = wmask >>> (wsize - fsize)
+// shift left to put field of 1s at specified poosition
+    const q = p << (i- fsize + 1)
+    console.log (`fieldMask `
+                 + ` wsize = ${wsize}`
+                 + ` wmask = ${wordToHex4(wmask)}`
+                 + ` i = ${i}`
+                 + ` fsize = ${fsize}`
+                 + ` p = ${wordToHex4(p)}`
+                 + ` q = ${wordToHex4(q)}`)
+    return q
+}
+// window.fm = fieldMask
+// window.ce = calculateExtract
 
 export function calculateExtracti (wsize, fsize, x, xi, y, yi) {
     // p = source field (surrounded by 0) shifted to destination position

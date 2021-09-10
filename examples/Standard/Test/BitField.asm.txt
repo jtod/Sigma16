@@ -1,0 +1,73 @@
+; BitField: test instructions that operate on bit fields
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+
+; Extracting bit fields.  Bit positions are numbered from right to
+; left: least significant bit has index 0, and most significant bit
+; has index 15.  The vertical bars show the groups of 4 bits: they
+; have no effect on the instructions, but are just to help figure out
+; the expected results in hex notation.
+
+; |----------------|---------------|---------------|---------------|
+; |   .   .   .   .|  .   .   .   .|  .   .   .   .|  .   .   .   .|
+; |  15  14  13  12| 11  10   9   8|  7   6   5   4|  3   2   1   0|
+; |----------------|---------------|---------------|---------------|
+
+; Assembly language format RRkkk
+;   extract  Rd,Rs,d_index,s_index,size
+
+;   - Rd is the destination register
+;   - d_index (0..15) is the starting bit index in the destination register
+;   - size (0..15) is the number of bits in the field
+;   - Rs is the source register (field is obtained from this register)
+;   - s_index (0..15) is the starting bit index in the source register
+
+; Machine language format EXP
+
+;   op  = e (escape to EXP)
+;   d   = Rd (destination register)
+;   ab  = secondary opcode for extract
+;   e   = Rs
+;   f   = d_index
+;   g   = s_index
+;   h   = size
+
+;   +----+----+----+----+
+;   | op |  d |  a |  b |
+;   +----+----+----+----+
+;   |  e |  f | g  |  h |
+;   +----+----+----+----+
+  
+      lea      R1,$ffff[R0]     ; ffff
+      add      R2,R0,R0         ; 0000
+      extract  R2,R1,11,3,4     ; 0f00  R2.11-8 := R1.3-0
+
+      add      R3,R0,R0
+      extract  R3,R1,13,5,1     ; 2000
+      lea      R4,$ffff[R0]
+      extract  R4,R0,13,5,1     ; dfff
+
+      add      R5,R0,R0
+      extracti R5,R0,7,12,4
+
+
+      trap     R0,R0,R0
+
+;       extract  R2,8,4,R1,4      ; 3020
+;      extract  R4,R1,8,11    ; 0003
+;      extract  R5,R1,12,15   ; 0004
+;      extract  R6,R1,0,7     ; 0012
+;      extract  R7,R1,8,15    ; 0034
+;      extract  R8,R1,4,11    ; 0023
+;      extract  R9,R1,1,0     ; 0000
+;      extract  R10,R1,0,15   ; 1234
+
+;      extracti R2,R1,0,3     ; 000e
+;      extracti R3,R1,4,7     ; 000d
+;      extracti R4,R1,8,11    ; 000c
+;      extracti R5,R1,12,15   ; 000b
+;      extracti R6,R1,0,7     ; 00ed
+;      extracti R7,R1,8,15    ; 00cb
+;      extracti R8,R1,4,11    ; 00dc
+;      extracti R9,R1,1,0     ; 0000
+;      extracti R10,R1,0,15   ; edcb
+

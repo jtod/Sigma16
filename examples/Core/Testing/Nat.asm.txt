@@ -1,0 +1,25 @@
+; Nat.asm.txt - test muln and divn instructions
+; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
+
+; Multiply two large natural (unsigned) numbers
+    lea    R1,40000[R0]
+    lea    R2,50000[R0]
+    muln   R3,R1,R2
+
+; This is multiplying 4*10^4 * 5*10^4 = 20*10^8 = 2* 10^9
+; The exected result is 40000 * 50000 = 2,000,000,000
+; Actual result = R15 ++ R3 = $7735 ++ $9400 = $77359400 = 2,000,000,000
+
+    lea    R4,3[R0]
+    divn   R5,R3,R4   ; 2,000,000,000 / 3
+
+; Dividend is R15 ++ R3 = 2,000,000,000
+; Divisor is 3
+; Expected result is
+;   Quotient = 666,666,666
+;   Remainder = 2
+; Actual result is
+;   Quotient = R15 ++ R5 = $27bc ++ $86aa = 27bc86aa = 666,666,666
+;   Remainder = R3 = 2
+
+    trap   R0,R0,R0

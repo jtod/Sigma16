@@ -690,8 +690,7 @@ export function executeInstruction (es) {
     clearMemLogging (es)
     clearInstrDecode (es)
     ab.writeSCB (es, ab.SCB_cur_instr_addr, es.pc.get())
-    // Check for interrupt
-    /*
+// Check for interrupt
     let mr = es.mask.get() & es.req.get() // ???
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
     if (arch.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
@@ -702,15 +701,15 @@ export function executeInstruction (es) {
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
 	es.rpc.put(es.pc.get())           // save the pc
 	es.rstat.put(es.statusreg.get())   // save the status register
-	arith.clearBitInRegLE (es.req,i)  // clear the interrupt that was taken
+	arch.clearBitInRegLE (es.req,i)  // clear the interrupt that was taken
 	es.pc.put (limitAddress (es, es.vect.get() + 2*i))  // jump to handler
         // Disable interrupts and enter system state
 	es.statusreg.put (es.statusreg.get()
-		       & arith.maskToClearBitLE(arch.intEnableBit)
-		       & arith.maskToClearBitLE(arch.userStateBit))
+		       & arch.maskToClearBitLE(arch.intEnableBit)
+		       & arch.maskToClearBitLE(arch.userStateBit))
 	return
     }
-*/
+
     // No interrupt, so proceed with next instruction
     com.mode.devlog (`no interrupt, proceeding...`)
     es.curInstrAddr = es.pc.get();
@@ -722,7 +721,7 @@ export function executeInstruction (es) {
     es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
     es.pc.put (limitAddress (es, es.nextInstrAddr))
     ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
-
+arith
     com.mode.devlog (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
     
 // com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) + ' ir = ' + arith.wordToHex4(instr));
@@ -851,12 +850,19 @@ const rrd = (f) => (es) => {
 // condition code.  The instruction semantics is defined by f.
 
 const ab_c = (f) => (es) => {
-    let a = es.regfile[es.ir_a].get();
-    let b = es.regfile[es.ir_b].get();
-    let cc = f (a,b);
-    com.mode.devlog (`ab_c cc=${cc}`);
-    com.mode.devlog (`CMP/AB_C ab_c cc=${cc}`);
-    es.regfile[15].put(cc);
+    let a = es.regfile[es.ir_a].get()
+    let b = es.regfile[es.ir_b].get()
+    let cc = f (a,b)
+    com.mode.devlog (`ab_c cc=${cc}`)
+    com.mode.devlog (`CMP/AB_C ab_c cc=${cc}`)
+    es.regfile[15].put(cc)
+}
+
+// Let the instruction function do its own accesses to registers.
+// This is used for push and pop
+
+const dab = (f) => (es) => {
+    f (es)
 }
 
 // cab_dc -- arguments are in c, a, and b.  The primary result is
@@ -871,6 +877,26 @@ const cab_dc = (f) => (es) => {
     es.regfile[es.ir_d].put(primary);
     if (es.ir_d<15) { es.regfile[15].put(secondary) }
 }
+
+// cab_dca -- arguments are in c, a, and b.  The primary result is
+// loaded into d, the secondary is loaded into c, and the tertiary
+// result is loaded into Ra.  The instruction semantics is defined by
+// f.  This is used for the divn instruction, which produces a 2-word
+// quotient result as well as a 1-word remainder results.
+
+const cab_dca = (f) => (es) => {
+    let c = es.regfile[15].get()
+    let a = es.regfile[es.ir_a].get()
+    let b = es.regfile[es.ir_b].get()
+    let [primary, secondary, tertiary] = f (c,a,b)
+    es.regfile[es.ir_d].put(primary)
+    if (es.ir_d<15) { es.regfile[15].put(secondary) }
+    es.regfile[es.ir_a].put(tertiary)
+}
+
+
+
+
 
 const op_trap = (es) => {
 //  console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
@@ -997,45 +1023,46 @@ const handle_EXP = (es) => {
     }
 }
 
+// push: Rd = src data x, Ra = top, Rb = limit
+
 const op_push  = (es) => {
-    const d = es.regfile[es.ir_d].get();
-    const ra = es.ir_a;
-    const a = es.regfile[ra].get();
-    const b = es.regfile[es.ir_b].get();
-    com.mode.devlog (`push d=${d} ra=${ra} a=${a} b=${b}`)
-    if (a < b) {
-        es.regfile[ra].put(a+1);
-        memStore (es, a+1, d);
+    const x = es.regfile[es.ir_d].get()
+    const ra = es.ir_a
+    let top = es.regfile[ra].get()
+    const limit = es.regfile[es.ir_b].get()
+    com.mode.devlog (`push x=${x} ra=${ra} top=${top} limit=${limit}`)
+    if (top < limit) {
+        top = top + 1
+        es.regfile[ra].put(top)
+        memStore (es, top, x)
     } else {
-        com.mode.devlog (`push: stack overflow`);
-        arith.setBitInRegLE (req, arch.stackOverflowBit);
+// Indicate stack overflow in codition code and interrupt request
+        console.log (`push: stack overflow`);
+        es.regfile[15].put(0)
+        arch.setBitInRegLE (es.regfile[15], arch.bit_ccS)
+        arch.setBitInRegLE (es.req, arch.stackOverflowBit)
     }
 }
 
-// pop: Rd = data, Ra = top, Rb = base
+// pop: Rd = destination data x, Ra = top, Rb = base
 
 const op_pop  = (es) => {
-    const a = es.regfile[es.ir_a].get();
-    const b = es.regfile[es.ir_b].get();
-    if (a >= b) {
-        es.regfile[es.ir_d].put(memFetchData(es,a));
-        es.regfile[es.ir_a].put(a-1);
+    const ra = es.ir_a
+    let top = es.regfile[ra].get()
+    const base = es.regfile[es.ir_b].get()
+    if (top >= base) {
+        es.regfile[es.ir_d].put(memFetchData(es,top))
+        top = top - 1
+        es.regfile[es.ir_a].put(top)
     } else {
-        com.mode.devlog (`pop: stack underflow`);
-        arith.setBitInRegLE (req, arch.stackUnderflowBit);
+// Indicate stack underflow in codition code and interrupt request
+        console.log (`pop: stack underflow`);
+        es.regfile[15].put(0)
+        arch.setBitInRegLE (es.regfile[15], arch.bit_ccs)
+        arch.setBitInRegLE (es.req, arch.stackUnderflowBit)
     }
 }
 
-const op_top  = (es) => {
-    const a = es.regfile[es.ir_a].get();
-    const b = es.regfile[es.ir_b].get();
-    if (a >= b) {
-        es.regfile[es.ir_d].put(memFetchData(es,a));
-    } else {
-        com.mode.devlog (`pop: stack underflow`);
-        arith.setBitInRegLE (req, arch.stackUnderflowBit);
-    }
-}
 
 // Use the opcode to dispatch to the corresponding instruction.  If
 // the opcode is 14/15 the instruction representation escapes to
@@ -1067,21 +1094,15 @@ const dispatch_primary_opcode =
         ab_c  (arith.op_cmp),     // 4
         cab_dc (arith.op_addc),   // 5
         cab_dc (arith.op_muln),   // 6
-        cab_dc (arith.op_divn),   // 7
-        op_push,                  // 8
-        op_pop,                   // 9
-        op_top,                   // a
+        cab_dca (arith.op_divn),   // 7
+        dab (op_push),            // 8
+        dab (op_pop),             // 9
+        ab_dc (arith.op_nop),     // a reserved: nop
         op_trap,                  // b
         ab_dc (arith.op_nop),     // c reserved: nop
-        ab_dc (arith.op_nop),     // d escape to EXP3
+        ab_dc (arith.op_nop),     // d escape to EXP3  x
         handle_EXP,               // e escape to EXP
         handle_rx ]               // f escape to RX
-
-//        ab_dc (arith.op_addd),    // 5
-//        ab_dc (arith.op_subd),    // 6
-//        ab_dc (arith.op_muld),    // 7
-//        ab_dc (arith.op_divd),    // 8
-//        ab_c  (arith.op_cmpd),    // 9
 
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
@@ -1125,16 +1146,16 @@ const dispatch_RX =
       rx (rx_jump),      // 3
       rx (rx_jumpc0),    // 4
       rx (rx_jumpc1),    // 5
-      rx (rx_jumpz),     // 6
-      rx (rx_jumpnz),    // 7
-      rx (rx_jal),       // 8
-      rx (rx_lead),      // 9
-      rx (rx_loadd),     // a
-      rx (rx_stored),    // b
-      rx (rx_testset),   // c
-      rx (rx_nop),       // d
-      rx (rx_nop),       // e
-      rx (rx_nop) ];     // f
+      rx (rx_jal),       // 6
+      rx (rx_jumpz),     // 7
+      rx (rx_jumpnz),    // 8
+      rx (rx_brc0),      // 9   x
+      rx (rx_brc1),      // a   x
+      rx (rx_testset),   // b   x
+      rx (rx_leal),      // c   x
+      rx (rx_loadl),     // d   x
+      rx (rx_storel),    // e   x
+      rx (rx_nop) ];     // f   x
 
 function rx_lea (es) {
     com.mode.devlog(`%clea ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');    com.mode.devlog('rx_lea');
@@ -1209,7 +1230,7 @@ function rx_jumpc1 (es) {
 
 function rx_jumpz (es) {
     com.mode.devlog('rx_jumpz');
-    if (! arith.wordToBool (es.regfile[es.ir_d].get())) {
+    if (es.regfile[es.ir_d].get() === 0) {
 	es.nextInstrAddr = es.ea;
 	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
@@ -1217,10 +1238,27 @@ function rx_jumpz (es) {
 
 function rx_jumpnz (es) {
     com.mode.devlog('rx_jumpnz');
-    if (arith.wordToBool (es.regfile[es.ir_d].get())) {
+    if (es.regfile[es.ir_d].get() !== 0) {
 	es.nextInstrAddr = es.ea;
 	es.pc.put (limitAddress (es, es.nextInstrAddr))
     }
+}
+
+function rx_brc0 (es) {
+    console.log ("brc0 is not implemented")
+}
+
+function rx_brc1 (es) {
+    console.log ("brc1 is not implemented")
+}
+function rx_leal (es) {
+    console.log ("leal is not implemented")
+}
+function rx_loadl (es) {
+    console.log ("loadl is not implemented")
+}
+function rx_storel (es) {
+    console.log ("storel is not implemented")
 }
 
 function rx_testset (es) {
@@ -1247,8 +1285,8 @@ function exp_nop (es) {
 }
 
 function exp_resume (es) {
-    com.mode.devlog ('exp_resume');
-    es.statusreg.put (es.rstat.get());
+    console.log ('exp_resume')
+    es.statusreg.put (es.rstat.get())
     es.pc.put (limitAddress (es, es.rpc.get()))
 }
 
@@ -1311,45 +1349,6 @@ function exp_execute (es) {
     com.mode.devlog ("exp_execute");
 }
 
-function exp_push (es) {
-    com.mode.devlog ('exp_push');
- //   com.mode.devlog (`e=${es.field_e} f=${es.field_f} g=${es.field_g} h=${es.field_h} `);
-    let top = es.regfile[es.field_f].get();
-    let last = es.regfile[es.field_g].get();
-//    com.mode.devlog (`push: top=${top} last=${last}`);
-    if (top < last) {
-        top += 1;
-        memStore (es, top, es.regfile[es.field_e].get());
-        es.regfile[es.field_f].put(top);
-    } else {
-        com.mode.devlog ("push: stack overflow")
-    }
-}
-
-function exp_pop (es) {
-    com.mode.devlog ('exp_pop');
-    let top = es.regfile[es.field_f].get();
-    let first = es.regfile[es.field_g].get();
-    if (top >= first) {
-        es.regfile[es.field_e].put(memFetchData(es,top));
-        top -= 1;
-        es.regfile[es.field_f].put(top);
-    } else {
-        com.mode.devlog ("pop: stack underflow")
-    }
-}
-
-function exp_top (es) {
-    com.mode.devlog ('exp_top');
-    let top = es.regfile[es.field_f].get();
-    let first = es.regfile[es.field_g].get();
-    if (top >= first) {
-        es.regfile[es.field_e].put(memFetchData(es,top));
-        es.regfile[es.field_f].put(top);
-    } else {
-        com.mode.devlog ("top: stack underflow")
-    }
-}
 
 function exp_shiftl (es) {
     com.mode.devlog (`shiftl d=${arith.wordToHex4(es.field_d)}`
@@ -1378,32 +1377,39 @@ function exp_shiftr (es) {
 // extract
 
 function exp_extract (es) {
-    com.mode.devlog ('exp_extract');
-    com.mode.devlog ('exp_extract');
-    const src = es.regfile[es.field_g].get();
-    const srci = es.field_h;
-    const yold = es.regfile[es.ir_d].get();
-    const yi = es.field_e;
-    const size = es.field_f;
-    const ynew = arith.calculateExtract (16, size, src, srci, yold, yi);
-    com.mode.devlog (`extract src=${arith.wordToHex4(src)} srci=${srci} `
-                 + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
-                 + ` ynew=${arith.wordToHex4(ynew)}`);
-    es.regfile[es.ir_d].put(ynew);
+    console.log ('exp_extract')
+    const d_old = es.regfile[es.ir_d].get()
+    const src = es.regfile[es.field_e].get()
+    const d_i = es.field_f
+    const s_i = es.field_g
+    const size = es.field_h
+    const d_new = arith.calculateExtract (16, 0xffff, d_old, src, d_i, s_i, size)
+    console.log (`extract `
+                     + ` d_old = ${arith.wordToHex4(d_old)}`
+                     + ` src = ${arith.wordToHex4(src)}`
+                     + ` d_i = ${d_i}`
+                     + ` s_i = ${s_i}`
+                     + ` size = ${size}`
+                     + ` d_new = ${arith.wordToHex4(d_new)}`)
+    es.regfile[es.ir_d].put(d_new);
 }
 
 function exp_extracti (es) {
-    com.mode.devlog ('exp_extracti');
-    const src = es.regfile[es.field_g].get();
-    const srci = es.field_h;
-    const yold = es.regfile[es.ir_d].get();
-    const yi = es.field_e;
-    const size = es.field_f;
-    const ynew = arith.calculateExtracti (16,size,src,srci,yi);
-    com.mode.devlog (`extract src=${arith.wordToHex4(src)} srci=${srci} `
-                 + `yold=${arith.wordToHex4(yold)} yi=${yi} size=${size} `
-                 + ` ynew=${arith.wordToHex4(ynew)}`);
-    es.regfile[es.ir_d].put(ynew);
+    console.log ('exp_extracti')
+    const d_old = es.regfile[es.ir_d].get()
+    const src = (~ es.regfile[es.field_e].get()) & 0xffff
+    const d_i = es.field_f
+    const s_i = es.field_g
+    const size = es.field_h
+    const d_new = arith.calculateExtract (16, 0xffff, d_old, src, d_i, s_i, size)
+    console.log (`extract `
+                     + ` d_old = ${arith.wordToHex4(d_old)}`
+                     + ` src = ${arith.wordToHex4(src)}`
+                     + ` d_i = ${d_i}`
+                     + ` s_i = ${s_i}`
+                     + ` size = ${size}`
+                     + ` d_new = ${arith.wordToHex4(d_new)}`)
+    es.regfile[es.ir_d].put(d_new);
 }
 
 function exp_logicw (es) {
@@ -1473,3 +1479,62 @@ const dispatch_EXP =
     ]
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
+
+/*
+Deprecated
+const op_top  = (es) => {
+    const a = es.regfile[es.ir_a].get();
+    const b = es.regfile[es.ir_b].get();
+    if (a >= b) {
+        es.regfile[es.ir_d].put(memFetchData(es,a));
+    } else {
+        com.mode.devlog (`pop: stack underflow`);
+        arith.setBitInRegLE (req, arch.stackUnderflowBit);
+    }
+}
+
+ function exp_push (es) {
+    com.mode.devlog ('exp_push');
+    let top = es.regfile[es.field_a].get();
+    let last = es.regfile[es.field_b].get();
+    if (top < last) {
+        top += 1;
+        memStore (es, top, es.regfile[es.field_d].get());
+        es.regfile[es.field_f].put(top);
+    } else {
+        console.log ("push: stack overflow")
+    }
+}
+
+function exp_pop (es) {
+    com.mode.devlog ('exp_pop');
+    let top = es.regfile[es.field_f].get();
+    let first = es.regfile[es.field_g].get();
+    if (top >= first) {
+        es.regfile[es.field_e].put(memFetchData(es,top));
+        top -= 1;
+        es.regfile[es.field_f].put(top);
+    } else {
+        com.mode.devlog ("pop: stack underflow")
+    }
+}
+
+function exp_top (es) {
+    com.mode.devlog ('exp_top');
+    let top = es.regfile[es.field_f].get();
+    let first = es.regfile[es.field_g].get();
+    if (top >= first) {
+        es.regfile[es.field_e].put(memFetchData(es,top));
+        es.regfile[es.field_f].put(top);
+    } else {
+        com.mode.devlog ("top: stack underflow")
+    }
+}
+
+*/
+//      op_top,                   // a   removing this?
+//        ab_dc (arith.op_addd),    // 5
+//        ab_dc (arith.op_subd),    // 6
+//        ab_dc (arith.op_muld),    // 7
+//        ab_dc (arith.op_divd),    // 8
+//        ab_c  (arith.op_cmpd),    // 9

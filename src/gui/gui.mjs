@@ -2040,7 +2040,8 @@ function procInterrupt (gst) {
 
 function timerInterrupt (gst) {
     com.mode.devlog ("Timer Interrupt clicked")
-    arith.setBitInRegBE (gst.es.req, arch.timerBit)
+    //    arith.setBitInRegBE (gst.es.req, arch.timerBit)
+    arch.setBitInRegLE (gst.es.req, arch.timerBit)
     gst.es.req.refresh()
 }
 

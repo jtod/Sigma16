@@ -1,0 +1,18 @@
+; Test jumpz and jumpnz
+
+; Test jumping when register is 0
+
+     jumpnz  R0,a[R0]      ; should not jump
+     jumpz   R0,b[R0]      ; should jump to b
+     lea     R9,999[R0]    ; should not execute
+
+; Test jumping when register is not 0
+
+b    lea     R1,1[R0]      ; R1 := 1
+     jumpz   R1,c[R0]      ; should not jump
+     jumpnz  R1,d[R0]      ; should jump
+     lea     R9,998[R0]    ; should not execute
+a    lea     R9,997[R0]    ; should not execute
+c    lea     R9,996[R0]    ; should not execute
+
+d    trap    R0,R0,R0
