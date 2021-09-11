@@ -10,16 +10,16 @@
 ; The exected result is 40000 * 50000 = 2,000,000,000
 ; Actual result = R15 ++ R3 = $7735 ++ $9400 = $77359400 = 2,000,000,000
 
-    lea    R4,3[R0]
+    lea    R4,67[R0]
     divn   R5,R3,R4   ; 2,000,000,000 / 3
 
 ; Dividend is R15 ++ R3 = 2,000,000,000
-; Divisor is 3
+; Divisor is 67
 ; Expected result is
-;   Quotient = 666,666,666
-;   Remainder = 2
+;   Quotient = 29,850,746
+;   Remainder = 18
 ; Actual result is
-;   Quotient = R15 ++ R5 = $27bc ++ $86aa = 27bc86aa = 666,666,666
-;   Remainder = R3 = 2
+;   Quotient = R15 ++ R5 = $01c7 ++ $7c7a = $01c77c7a = 29,850,746
+;   Remainder = R3 = $0012 = 18
 
     trap   R0,R0,R0
