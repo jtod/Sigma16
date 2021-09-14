@@ -15,6 +15,9 @@ import Data.List
 import Control.Monad.State
 import Text.ParserCombinators.Parsec
 -- import HDL.Hydra.Core.Lib
+import System.Environment
+import System.FilePath
+import HDL.Hydra.Core.Lib
 
 data ObjStmt
   = ObjModule String
@@ -37,7 +40,32 @@ getData (ObjData xs : ys) = xs ++ getData ys
 getData (ObjRelocate _ : ys) = getData ys
 getData (ObjErr _ : ys) = getData ys
         
-        
+
+-- Interface to simulation driver
+
+readObjectFile :: IO [Int]
+readObjectFile = do
+  f <- getCmdOperand
+  case f of
+    Nothing -> return []
+    Just objFile -> do
+      code <- getObject objFile
+      return code
+
+getObject :: String -> IO [Int]
+getObject fname = do
+  liftIO $ putStrLn ("fname = " ++ show fname)
+  let fnameExt = splitPath (fname ++ ".obj.txt")
+  liftIO $ putStrLn ("fnameExt = " ++ show fnameExt)
+  let corePath = ["..", "..", "examples", "Core"]
+  let objParts = corePath ++ fnameExt
+  liftIO $ putStrLn ("objParts = " ++ show objParts)
+  let objpath = joinPath objParts
+  liftIO $ putStrLn ("objpath = " ++ objpath)
+  code <- readObject objpath
+  putStrLn ("Object code = " ++ show code)
+  return code
+
 --------------------------------------------------------------------------------
 -- Main program
 --------------------------------------------------------------------------------

@@ -15,7 +15,7 @@
 -- a copy of the GNU General Public License along with Sigma16.  If
 -- not, see <https://www.gnu.org/licenses/>.
 
-module M1.Circuit.System where
+module M1.Circuit.System (m1, module M1.Circuit.Interface) where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational

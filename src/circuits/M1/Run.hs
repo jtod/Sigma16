@@ -1,324 +1,55 @@
--- Sigma16: M1/Run.hs
--- Copyright (C) 2020,2021 John T. O'Donnell
--- email: john.t.odonnell9@gmail.com
--- License: GNU GPL Version 3 or later
--- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+-- Sigma16: M1.Run
+-- Copyright (C) 2021 John T. O'Donnell.  This file is part of Sigma16.
+-- See Sigma16/README and https://jtod.github.io/home/Sigma16/
 
--- This file is part of Sigma16.  Sigma16 is free software: you can
--- redistribute it and/or modify it under the terms of the GNU General
--- Public License as published by the Free Software Foundation, either
--- version 3 of the License, or (at your option) any later version.
--- Sigma16 is distributed in the hope that it will be useful, but
--- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--- General Public License for more details.  You should have received
--- a copy of the GNU General Public License along with Sigma16.  If
--- not, see <https://www.gnu.org/licenses/>.
-
-----------------------------------------------------------------------
--- M1driver: Simulation driver for M1 implementation of Sigma16 ISA
-----------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
--- See Installation section of the Sigma16 User Guide, and
--- Sigma16/src/circuits/README.txt
-
--- Usage
---   cd to src/circuits  -- must be in this directory
---   ghci                -- start ghci and initialize using .ghci
---   :main Simple/Add    -- run M1 circuit on examples/Core/Simple/Add.obj.txt
---   ^C                  -- stop and return to ghci prompt
---   :r                  -- reload, after you have changed a circuit source file
---   uparrow             -- repeat previous command
---   :q                  -- quit ghci, return to shell
-
-
---   :main batch Simple/Add
---   :main cli
---   :main cli inputdata.txt
-
-
-
-{- This module defines simulation drivers that run the M1 circuit for
-the Sigma16 instruction set architecture. A separate main program
-should be defined that imports this module, and that defines the
-machine language program.  It uses run_M1_program, defined below, to
-execute the program. -}
-
---------------------------------------------------------------------------------
-{-# LANGUAGE NamedFieldPuns #-}
+-- Simulation driver for M1 implementation of Sigma16 ISA
+--   cd to src/circuits    -- must be in this directory
+--   ghci                  -- start ghci and initialize using .ghci
+--     :load M1/Run        -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--     :main Simple/Add    -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--     ^C                  -- stop and return to ghci prompt
+--     :r                  -- reload, after you have changed a circuit source file
+--     uparrow             -- repeat previous command
+--     :q                  -- quit ghci, return to shell
 
 module M1.Run where
-import System.Environment
-import System.FilePath
-
-import Control.Monad.State
-
-import Sigma16.ReadObj
 
 import HDL.Hydra.Core.Lib
-import HDL.Hydra.Circuits.Combinational
-import M1.Circuit.Interface
+import Sigma16.ReadObj
 import M1.Circuit.System
 
-import Sigma16.ReadObj
+main :: Driver a
+main = driver $ do
+  printLine "M1 Run starting"
+  bootData <- liftIO bootInputs
+  let inps = bootData ++ [resetData] ++ repeat stepData
+  let instrlimit = 200
+  let m = instrlimit + length bootData
+  printLine ("run executable limit = " ++ show m)
+  printLine ("input = " ++ show (take m inps))
+  liftIO $ sim_m1 (take m inps)
+  printLine "M1 Run finished"
 
 --------------------------------------------------------------------------------
--- Main program
+-- Input signals for key stages of execution
 --------------------------------------------------------------------------------
 
-main :: IO ()
-main = do
-  (op, operand) <- getCmd
-  putStrLn ("operation = " ++ show op)
-  case op of
-    CmdOpBatch -> runM1 operand
-    CmdOpCLI -> runDriver operand
-    CmdOpEmpty -> return ()
-  
+bootInputs :: IO [[Int]]
+bootInputs = do
+  code <- readObjectFile
+  let f i x = [0, 1, i, x]
+  let inps = zipWith f [0..] code
+  return inps
 
-runDriver :: String -> IO ()
-runDriver xs = do
-  putStrLn ("running simulationDriver " ++ xs)
---  execStateT simulationDriver initState
-  return ()
+resetData :: [Int]
+resetData =  [1,0,0,0]
+
+stepData :: [Int]
+stepData =  [0,0,0,0]
 
 --------------------------------------------------------------------------------
 -- Simulation driver
 --------------------------------------------------------------------------------
-
-{-
-simulationDriver :: StateT SysState IO ()
-simulationDriver = do
-  liftIO $ putStrLn "simulationDriver starting"
--- Input ports
-  in_ld <- inPortBit "ld"
-  in_x <- inPortBit "x"
-
--- Input signals  
-  let ld = inbsig in_ld
-  let x = inbsig in_x
-  
--- Circuit defines output signals
-  let (r,q) = myreg1 ld x
-
--- Output ports  
-  out_r <- outPortBit "r" r
-  out_q <- outPortBit "q" q
-
--- Run simulation
-
-
-liftIO $ putStrLn "Enter command after prompt, h for help"
-  commandLoop
-  liftIO $ putStrLn "Simulation terminated"
-
--}
-
-
---------------------------------------------------------------------------------
--- old main run executable
---------------------------------------------------------------------------------
-
--- ghci
--- :main Simple/Add
-
-runM1 :: String -> IO ()
-runM1 fname = do
-  putStrLn "M1 Run starting"
-  let limit = 200
-  liftIO $ putStrLn ("fname = " ++ show fname)
-  let fnameExt = splitPath (fname ++ ".obj.txt")
-  liftIO $ putStrLn ("fnameExt = " ++ show fnameExt)
-  let corePath = ["..", "..", "examples", "Core"]
-  let objParts = corePath ++ fnameExt
-  liftIO $ putStrLn ("objParts = " ++ show objParts)
-  let objpath = joinPath objParts
-  liftIO $ putStrLn ("objpath = " ++ objpath)
-  code <- readObject objpath
-  putStrLn ("Object code = " ++ show code)
-  run_Sigma16_executable code limit
-  putStrLn "M1 Run finished"
-
---  code <- readObject fname
---  code <- liftIO $ readObject objpath
-
---------------------------------------------------------------------------------
--- Boot
---------------------------------------------------------------------------------
-
-{-
-boot :: StateT SysState IO [Int]
-boot = do
--- Read the command arguments
-  liftIO $ putStrLn "booting..."
-  s <- get
-  let xs = args s
-  let fname = splitPath (head xs ++ ".obj.txt")
-  liftIO $ putStrLn ("fname = " ++ show fname)
-  let corePath = ["..", "..", "examples", "Core"]
-  let objParts = corePath ++ fname
-  liftIO $ putStrLn ("objParts = " ++ show objParts)
-  let objpath = joinPath objParts
-  liftIO $ putStrLn ("fname = " ++ show fname)
-  liftIO $ putStrLn ("objpath = " ++ objpath)
-  code <- liftIO $ readObject objpath
-  return code
--}
-
-----------------------------------------------------------------------
--- Simulation model
-----------------------------------------------------------------------
-
-{- The simulations are carried out using the Stream Bool model.  The
-types Bit and Word are defined for clarity; a Bit is represented as a
-Stream of Bools for the simulations. -}
-
-----------------------------------------------------------------------
--- Running a machine language program
-----------------------------------------------------------------------
-
-{- The run_M1_program function takes a program (in the form of a list
-of strings), loads it into the machine, and executes it, using the
-sim_m1 simulation driver. -}
-
--- prog is a list of hex strings giving object code
-run_Sigma16_program :: [String] -> Int -> IO ()
-run_Sigma16_program prog n =
-  let inps = zipWith f [0..] prog ++ [[1,0,0,0]] ++ repeat [0,0,0,0]
-      f i x = [0, 1, i, hexbin 16 x]
-      m = n + length prog
-  in  sim_m1 (take m inps)
-
--- prog is a list of ints giving object code
-run_Sigma16_executable :: [Int] -> Int -> IO ()
-run_Sigma16_executable prog n = do
-  let f i x = [0, 1, i, x]
-  let inps = zipWith f [0..] prog ++ [[1,0,0,0]] ++ repeat [0,0,0,0]
-  let m = n + length prog
-  putStrLn ("run executable limit = " ++ show m)
-  putStrLn ("input = " ++ show (take m inps))
-  sim_m1 (take m inps)
-
-----------------------------------------------------------------------
--- Simulation driver for the M1 system
-----------------------------------------------------------------------
-
--- The simulation driver maintains its own state, consisting of a pair
--- (c,s) where c :: Int is the clock cycle number, and s ::
--- DriverState contains information the driver saves for its own use
--- later on.
-
-data DriverState = DriverState
-  {displacement :: (Int,[Int]),      -- (cycle, displacement)
-   effAddr :: [Int],                 -- effective address
-   rfloads :: [(Int,[Int],[Int])],   -- [(cycle,reg,value)]
-   memStores :: [(Int,[Int],[Int])], -- [(cycle,addr,value)]
-   jumps :: [(Int,Int,[Int])],       -- [(cycle,jumped,pcvalue)]
-   trap :: Bool}                     -- has a trap just been executed?
-  deriving Show
-
-initDriverState :: DriverState
-initDriverState =
-  DriverState
-    {displacement = (0, take 16 (repeat 0)),
-     effAddr = take 16 (repeat 0),
-     rfloads = [],
-     memStores = [],
-     jumps = [],
-     trap = False}
-
--- Record and display the effective address
-
-setEffAddr :: (Signal a, Static a) =>
-   (Int,DriverState) -> [[a]] -> DriverState
-setEffAddr (c,s) [x] =
-  s {effAddr = map sigInt x}
-
-showEffAddr :: (Int,DriverState) -> String
-showEffAddr (c,s) = ints16hex4 (effAddr s)
-
--- Record and display loads to the register file
-
-setRfLoad :: (Signal a, Static a) =>
-   (Int,DriverState) -> [[a]] -> DriverState
-setRfLoad (c,s) [r,x] =
-  s {rfloads = (c, map sigInt r, map sigInt x) : rfloads s}
-
-clearRfLoads :: (Signal a, Static a) =>
-  (Int,DriverState) -> [[a]] -> DriverState
-clearRfLoads (c,s) _ = s {rfloads = []}
-
-showRfLoads :: (Int,DriverState) -> String
-showRfLoads (c,s) = concat (map f (reverse (rfloads s)))
-  where f (c,r,x) =
-          "R" ++ show (intsInt r) ++ " := " ++  ints16hex4 x
-            ++ " was loaded in cycle " ++ show c ++ "\n"
-
--- Record and display stores to the memory
-
-setMemStore :: (Signal a, Static a) =>
-   (Int,DriverState) -> [[a]] -> DriverState
-setMemStore (c,s) [a,x] =
-  s {memStores = (c, map sigInt a, map sigInt x) : memStores s}
-
-clearMemStores :: (Signal a, Static a) =>
-  (Int,DriverState) -> [[a]] -> DriverState
-clearMemStores (c,s) _ = s {memStores = []}
-
-showMemStores :: (Int,DriverState) -> String
-showMemStores (c,s) = concat (map f (reverse (memStores s)))
-  where f (c,a,x) =
-          "mem[" ++ ints16hex4 a ++ "] := " ++  ints16hex4 x
-            ++ " was stored in cycle " ++ show c ++ "\n"
-
--- Record and display jumps
-
-setJump :: (Signal a, Static a) =>
-   (Int,DriverState) -> [[a]] -> DriverState
-setJump (c,s) [[b],x] =
-  s {jumps = (c, sigInt b, map sigInt x) : jumps s}
-
-clearJumps :: (Signal a, Static a) =>
-  (Int,DriverState) -> [[a]] -> DriverState
-clearJumps (c,s) _ = s {jumps = []}
-
-showJumps :: (Int,DriverState) -> String
-showJumps (c,s) = concat (map f (reverse (jumps s)))
-  where
-    f (c,b,x) =
-      (if b==1
-        then "jumped to " ++ ints16hex4 x
-        else "did not jump")
-        ++ " in cycle " ++ show c ++ "\n"
-
--- When the driver discovers that a trap has executed, it uses setTrap
--- to record this in the driver state.  The termination predicate uses
--- this value to decide when to stop the simulation.
-
-setTrap :: (Int,DriverState) -> [a] -> DriverState
-setTrap (c,s) _ = s {trap = True}
-
-setDisplacement :: (Signal a, Static a) =>
-   (Int,DriverState) -> [[a]] -> DriverState
-setDisplacement (c,s) [w] =
-  s {displacement = (c, map sigInt w)}
-
-showDisplacement :: (Int,DriverState) -> String
-showDisplacement (c,s) =
-  let (c,d) = displacement s
---  in "displacement " ++ ints16hex4 d
---       ++ " loaded in cycle " ++ show c ++ "\n"
-  in ints16hex4 d
-
--- The termination predicate, termpred, stops the simulation when a
--- trap instruction is executed, or after 1000 cycles.
-
-mytermpred :: (Int,DriverState) -> Bool
-mytermpred (c,s) = trap s || c > 1000
-
--- The simulation driver is sim_m1.
 
 sim_m1 :: [[Int]] -> IO ()
 sim_m1 input =
@@ -326,10 +57,15 @@ sim_m1 input =
 
 -- Get the system inputs from the "input" argument.
 
-      reset = getbit    input 0  -- :: Bit
-      dma   = getbit    input 1  -- :: Bit
-      dma_a = getbin 16 input 2  -- :: Word
-      dma_d = getbin 16 input 3  -- :: Word
+      reset <- inPortBit  "reset"
+      dma   <- inPortBit  "dma"
+      dma_a <- inPortWord "dma_a" 16
+      dma_d <- inPortWord "dma_d" 16
+
+--      reset = getbit    input 0  -- :: Bit
+--      dma   = getbit    input 1  -- :: Bit
+--      dma_a = getbin 16 input 2  -- :: Word
+--      dma_d = getbin 16 input 3  -- :: Word
 
 -- Apply the circuit m1_system to the system inputs, and obtain its
 -- outputs.
@@ -346,8 +82,8 @@ sim_m1 input =
 -- Format the output, inserting string labels for the signals, and
 -- converting them to readable form.
 
-      simoutput :: [Format Bool DriverState]
-      simoutput =
+--      simoutput :: [Format Bool DriverState]
+      simoutput <- format
         [
          clockcycle (\c -> take 72 (repeat '.') ++
                       "\nClock cycle " ++ show c ++ "\n"),
@@ -606,6 +342,123 @@ sim_m1 input =
         runUntil initDriverState mytermpred input simoutput
 
 ----------------------------------------------------------------------
+-- Driver state
+----------------------------------------------------------------------
+
+-- The simulation driver maintains its own state, consisting of a pair
+-- (c,s) where c :: Int is the clock cycle number, and s ::
+-- DriverState contains information the driver saves for its own use
+-- later on.
+
+data DriverState = DriverState
+  {displacement :: (Int,[Int]),      -- (cycle, displacement)
+   effAddr :: [Int],                 -- effective address
+   rfloads :: [(Int,[Int],[Int])],   -- [(cycle,reg,value)]
+   memStores :: [(Int,[Int],[Int])], -- [(cycle,addr,value)]
+   jumps :: [(Int,Int,[Int])],       -- [(cycle,jumped,pcvalue)]
+   trap :: Bool}                     -- has a trap just been executed?
+  deriving Show
+
+initDriverState :: DriverState
+initDriverState =
+  DriverState
+    {displacement = (0, take 16 (repeat 0)),
+     effAddr = take 16 (repeat 0),
+     rfloads = [],
+     memStores = [],
+     jumps = [],
+     trap = False}
+
+-- Record and display the effective address
+
+setEffAddr :: (Signal a, Static a) =>
+   (Int,DriverState) -> [[a]] -> DriverState
+setEffAddr (c,s) [x] =
+  s {effAddr = map sigInt x}
+
+showEffAddr :: (Int,DriverState) -> String
+showEffAddr (c,s) = ints16hex4 (effAddr s)
+
+-- Record and display loads to the register file
+
+setRfLoad :: (Signal a, Static a) =>
+   (Int,DriverState) -> [[a]] -> DriverState
+setRfLoad (c,s) [r,x] =
+  s {rfloads = (c, map sigInt r, map sigInt x) : rfloads s}
+
+clearRfLoads :: (Signal a, Static a) =>
+  (Int,DriverState) -> [[a]] -> DriverState
+clearRfLoads (c,s) _ = s {rfloads = []}
+
+showRfLoads :: (Int,DriverState) -> String
+showRfLoads (c,s) = concat (map f (reverse (rfloads s)))
+  where f (c,r,x) =
+          "R" ++ show (intsInt r) ++ " := " ++  ints16hex4 x
+            ++ " was loaded in cycle " ++ show c ++ "\n"
+
+-- Record and display stores to the memory
+
+setMemStore :: (Signal a, Static a) =>
+   (Int,DriverState) -> [[a]] -> DriverState
+setMemStore (c,s) [a,x] =
+  s {memStores = (c, map sigInt a, map sigInt x) : memStores s}
+
+clearMemStores :: (Signal a, Static a) =>
+  (Int,DriverState) -> [[a]] -> DriverState
+clearMemStores (c,s) _ = s {memStores = []}
+
+showMemStores :: (Int,DriverState) -> String
+showMemStores (c,s) = concat (map f (reverse (memStores s)))
+  where f (c,a,x) =
+          "mem[" ++ ints16hex4 a ++ "] := " ++  ints16hex4 x
+            ++ " was stored in cycle " ++ show c ++ "\n"
+
+-- Record and display jumps
+
+setJump :: (Signal a, Static a) =>
+   (Int,DriverState) -> [[a]] -> DriverState
+setJump (c,s) [[b],x] =
+  s {jumps = (c, sigInt b, map sigInt x) : jumps s}
+
+clearJumps :: (Signal a, Static a) =>
+  (Int,DriverState) -> [[a]] -> DriverState
+clearJumps (c,s) _ = s {jumps = []}
+
+showJumps :: (Int,DriverState) -> String
+showJumps (c,s) = concat (map f (reverse (jumps s)))
+  where
+    f (c,b,x) =
+      (if b==1
+        then "jumped to " ++ ints16hex4 x
+        else "did not jump")
+        ++ " in cycle " ++ show c ++ "\n"
+
+-- When the driver discovers that a trap has executed, it uses setTrap
+-- to record this in the driver state.  The termination predicate uses
+-- this value to decide when to stop the simulation.
+
+setTrap :: (Int,DriverState) -> [a] -> DriverState
+setTrap (c,s) _ = s {trap = True}
+
+setDisplacement :: (Signal a, Static a) =>
+   (Int,DriverState) -> [[a]] -> DriverState
+setDisplacement (c,s) [w] =
+  s {displacement = (c, map sigInt w)}
+
+showDisplacement :: (Int,DriverState) -> String
+showDisplacement (c,s) =
+  let (c,d) = displacement s
+--  in "displacement " ++ ints16hex4 d
+--       ++ " loaded in cycle " ++ show c ++ "\n"
+  in ints16hex4 d
+
+-- The termination predicate, termpred, stops the simulation when a
+-- trap instruction is executed, or after 1000 cycles.
+
+mytermpred :: (Int,DriverState) -> Bool
+mytermpred (c,s) = trap s || c > 1000
+
+----------------------------------------------------------------------
 -- Decoding instructions
 
 -- When an instruction is decoded, findMnemonic returns the assembly
@@ -632,3 +485,127 @@ findMnemonic [opfield, bfield] =
   in if op==15
        then mnemonics_RX !! b
        else mnemonics_RRR !! op
+
+-- Deprecated...
+
+{- This module defines simulation drivers that run the M1 circuit for
+the Sigma16 instruction set architecture. A separate main program
+should be defined that imports this module, and that defines the
+machine language program.  It uses run_M1_program, defined below, to
+execute the program. -}
+
+-- import System.Environment
+-- import System.FilePath
+-- import Control.Monad.State
+-- {-# LANGUAGE NamedFieldPuns #-}
+
+--  code <- readObject fname
+--  code <- liftIO $ readObject objpath
+
+{-
+runDriver :: String -> IO ()
+runDriver xs = do
+  putStrLn ("running simulationDriver " ++ xs)
+  execStateT simulationDriver initState
+  return ()
+-}
+-- runM1 :: String -> IO ()
+-- runM1 fname = do
+--      runM1 objFile
+
+
+
+{-
+simulationDriver :: StateT SysState IO ()
+simulationDriver = do
+  liftIO $ putStrLn "simulationDriver starting"
+-- Input ports
+  in_ld <- inPortBit "ld"
+  in_x <- inPortBit "x"
+
+-- Input signals  
+  let ld = inbsig in_ld
+  let x = inbsig in_x
+  
+-- Circuit defines output signals
+  let (r,q) = myreg1 ld x
+
+-- Output ports  
+  out_r <- outPortBit "r" r
+  out_q <- outPortBit "q" q
+
+-- Run simulation
+
+liftIO $ putStrLn "Enter command after prompt, h for help"
+  commandLoop
+  liftIO $ putStrLn "Simulation terminated"
+
+-}
+
+--------------------------------------------------------------------------------
+-- old main run executable
+--------------------------------------------------------------------------------
+
+-- ghci
+-- :main Simple/Add
+
+
+----------------------------------------------------------------------
+-- Simulation model
+----------------------------------------------------------------------
+
+{- The simulations are carried out using the Stream Bool model.  The
+types Bit and Word are defined for clarity; a Bit is represented as a
+Stream of Bools for the simulations. -}
+
+{- The run_M1_program function takes a program (in the form of a list
+of strings), loads it into the machine, and executes it, using the
+sim_m1 simulation driver. -}
+
+{-
+-- prog is a list of hex strings giving object code
+run_Sigma16_program :: [String] -> Int -> IO ()
+run_Sigma16_program prog n =
+  let inps = zipWith f [0..] prog ++ [[1,0,0,0]] ++ repeat [0,0,0,0]
+      f i x = [0, 1, i, hexbin 16 x]
+      m = n + length prog
+  in  sim_m1 (take m inps)
+-}
+--      liftIO $ run_Sigma16_executable code limit
+{-
+-- prog is a list of ints giving object code
+run_Sigma16_executable :: [Int] -> Int -> IO ()
+run_Sigma16_executable prog n = do
+  let f i x = [0, 1, i, x]
+  let inps = zipWith f [0..] prog ++ [[1,0,0,0]] ++ repeat [0,0,0,0]
+  let m = n + length prog
+  putStrLn ("run executable limit = " ++ show m)
+  putStrLn ("input = " ++ show (take m inps))
+  sim_m1 (take m inps)
+-}
+-- main :: IO ()
+-- main = do
+
+
+--  operand <- liftIO getCmdOperand
+--  printLine ("operation = " ++ show operand)
+--  case operand of
+--    Nothing -> return ()
+--    Just objFile -> do
+--      code <- liftIO $ getObject objFile
+  
+
+--  code <- liftIO $ readObject objpath
+--  code <- readObjectFile
+--   s <- get
+--   let xs = args s
+--   let fname = splitPath (head xs ++ ".obj.txt")
+--   liftIO $ putStrLn ("fname = " ++ show fname)
+--   let corePath = ["..", "..", "examples", "Core"]
+--   let objParts = corePath ++ fname
+--   liftIO $ putStrLn ("objParts = " ++ show objParts)
+--   let objpath = joinPath objParts
+--  liftIO $ putStrLn ("fname = " ++ show fname)
+--   liftIO $ putStrLn ("objpath = " ++ objpath)
+
+
