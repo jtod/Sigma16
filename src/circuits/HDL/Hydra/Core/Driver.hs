@@ -74,6 +74,8 @@ import HDL.Hydra.Core.Signal
 import HDL.Hydra.Core.SigStream
 import HDL.Hydra.Core.SigBool
 
+import qualified Data.Map as Map
+
 -- the following from StepDriver...
 import Control.Monad.State
 import Control.Concurrent
@@ -89,13 +91,78 @@ import System.Console.ANSI
 -- import Control.Monad.Trans.Class
 
 ------------------------------------------------------------------------
--- Interface to driver
+-- Top level driver
 ------------------------------------------------------------------------
 
 type Driver a = IO (SysState a)
 
 driver ::  (StateT (SysState a) IO ()) ->IO (SysState a)
 driver f = execStateT f initState
+
+------------------------------------------------------------------------
+-- Interface to driver
+------------------------------------------------------------------------
+
+
+{-
+Functions that can be used in driver
+  storePreparedInputData i data
+  selectPreparedInputData i
+  selectInteractiveInputData
+  useInputData              convert strings to numbers for input data
+  generateInputData         arbitrary function from string to list of inputs
+  selectInputInteractive
+  establishInputs
+  currentFormat i  - do current actions for format i
+  currentInPorts
+  currentOutPorts
+  advance
+  clockCycle i
+
+Interactive user  commands
+  > step  (also just enter with blank line)    -- do one clock cycle
+  empty/blank line                            -- same as > step
+  > step i                                     -- do i clock cycles
+  > run                                        -- repeat step until halt or ^C
+  > while predicate                            -- repeat step while pred is True
+  > until predicate                            -- repeat step while pred is False
+  > quit                                       -- terminate simulation
+  > foobar  command defined in the driver
+-}
+
+--------------------------------------------------------------------------------
+-- Input lists
+--------------------------------------------------------------------------------
+
+-- An input list is a list of strings; each string can be parsed to
+-- obtain the values of input signals for a clock cycle.  There may be
+-- several input lists; this enables a driver to provide operations
+-- that require several clock cycles, for example dumping a register
+-- file.  The input lists are maintained in a finite map, with a
+-- string as the key, and the value is a list of strings.
+
+-- https://www.haskell.org/haddock/libraries/Data.FiniteMap.html
+
+type InputLists = Map.Map String (Int, [String])
+
+storeInputList :: String -> [String] -> StateT (SysState a) IO ()
+storeInputList key xs = do
+  s <- get
+  let fm = inputLists s
+  let fm' = Map.insert key (0,xs) fm
+  put $ s {inputLists = fm'}
+
+takeFromInputList :: StateT (SysState a) IO (Maybe String)
+takeFromInputList = do
+  s <- get
+  let fm = inputLists s
+  let key = selectedKey s
+  case Map.lookup key fm of
+    Just (i,xs) -> do
+      let fm' = Map.insert key (i+1,xs) fm
+      put (s {inputLists = fm'})
+      return $ if i < length xs then Just (xs!!i) else Nothing
+    Nothing -> return Nothing
 
 --------------------------------------------------------------------------------
 -- State
@@ -110,6 +177,8 @@ data SysState a = SysState
   , nInPorts :: Int
   , outPortList :: [OutPort]
   , formatList :: [[Format Bool a]]
+  , inputLists :: InputLists
+  , selectedKey :: String
   , userState :: Maybe a
   }
 
@@ -121,12 +190,18 @@ initState = SysState
   , nInPorts = 0
   , outPortList = []
   , formatList = []
+  , inputLists = Map.empty
+  , selectedKey = ""
   , userState = Nothing
   }
 
 --------------------------------------------------------------------------------
 -- Ports
 --------------------------------------------------------------------------------
+
+-- An input port must be defined for each input, because it holds the
+-- buffer in which the input data is placed.  The system maintains a
+-- list of all InPorts in the state.
 
 data InPort
   = InPortBit
@@ -160,6 +235,8 @@ data OutPort
       , showw :: [Bool] -> String
       }
 
+-- make a new inport bit
+
 inPortBit :: String -> StateT (SysState a) IO InPort
 inPortBit inPortName = do
   inbuf <- liftIO $ newIORef False
@@ -173,6 +250,8 @@ inPortBit inPortName = do
   put $ s {inPortList = inPortList s ++ [port], nInPorts = inPortIndex + 1}
   printLine "here 2"
   return port
+
+-- make a new inport word
 
 inPortWord :: String -> Int -> StateT (SysState a) IO InPort
 inPortWord inPortName inwsize = do
@@ -196,6 +275,8 @@ mkInBufWord n
                 xs <- mkInBufWord (n-1)
                 return (x:xs)
 
+-- make a new outport bit
+
 outPortBit :: String -> CB -> StateT (SysState a) IO OutPort
 outPortBit outPortName outbsig = do
   s <- get
@@ -203,6 +284,8 @@ outPortBit outPortName outbsig = do
   s <- get
   put $ s {outPortList = outPortList s ++ [port]}
   return port
+
+-- make a new outport word
 
 outPortWord :: String -> [CB] -> ([Bool]->String) -> StateT (SysState a) IO OutPort
 outPortWord outPortName outwsig showw = do
@@ -224,7 +307,7 @@ clockCycle = do
   let outp = outPortList s
   liftIO $ putStrLn (take 70 (repeat '-'))
   liftIO $ putStrLn ("Cycle " ++ show i)
-  readAllInputs
+  establishInputs
   printInPorts
   printOutPorts
   advanceInPorts
@@ -236,15 +319,52 @@ clockCycle = do
 -- Establish inputs
 --------------------------------------------------------------------------------
 
+-- decide whether the input data for the current clock cycle should be
+-- taken from an input data list or from a user interaction.
+-- Provisional approach: if there is input datta in the state, use it;
+-- otherwise ask the user to provide it
+
+establishInputs :: StateT (SysState a) IO ()
+establishInputs = do
+  s <- get
+  let d = undefined -- inDataList s ??????????????????????/
+  case d of
+    [] -> do
+      printLine "establishInputs reading input from user"
+      readAllInputs
+    (x:xs) -> do
+      printLine ("establishInputs using stored data: " ++ x)
+      takeInputsFromList x
+--      put (s {inDataList = xs}) -- ???????????????????????????????????????????
+
+takeInputsFromList :: String -> StateT (SysState a) IO ()
+takeInputsFromList line = do
+  s <- get
+  let ports = inPortList s
+  let xs = words line
+  mapM_ takeInput (zip ports xs)
+  return ()
+
+-- for now, the input must be a number
+takeInput :: (InPort, String) -> StateT (SysState a) IO ()
+takeInput (p,x) = do
+  s <- get
+  case p of
+    InPortBit {..} -> do
+      let y = read x :: Int
+      let b = y==1
+      liftIO $ writeIORef inbuf b
+    InPortWord {..} -> do
+      let y = read x :: Int
+      let bs = undefined -- intToWord inwsize x ?????????????????
+      liftIO $ writeBufs inwbufs bs
+
 readAllInputs :: StateT (SysState a) IO ()
 readAllInputs = do
   s <- get
   let ports = inPortList s
   mapM_ readInput ports
   return ()
-
-writeBufs :: [IORef Bool] -> [Bool] -> IO ()
-writeBufs rs bs = mapM_ (\(r,b) -> writeIORef r b ) (zip rs bs)
 
 readInput :: InPort -> StateT (SysState a) IO ()
 readInput (InPortBit {..}) = do
@@ -258,6 +378,10 @@ readInput (InPortWord {..}) = do
   liftIO $ writeBufs inwbufs xs
   return ()
 --  readval <- liftIO $ readSigString ("  enter " ++ inPortName)
+
+writeBufs :: [IORef Bool] -> [Bool] -> IO ()
+writeBufs rs bs = mapM_ (\(r,b) -> writeIORef r b ) (zip rs bs)
+
 
 --------------------------------------------------------------------------------
 -- Operations during cycle
