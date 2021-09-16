@@ -17,6 +17,8 @@ module HDL.Hydra.Core.Driver
    StateT (..), execStateT, liftIO,
 
 -- * New from step driver
+   InputLists, selectInputList, storeInputList, getInputList,  testInputLists,
+   initialize,
    printLine,
    readBit, readBits,
    getCmdOperand,
@@ -117,8 +119,41 @@ Functions that can be used in driver
   currentInPorts
   currentOutPorts
   advance
-  clockCycle i
 
+  clockCycle
+
+  testInputLists
+-}
+
+------------------------------------------------------------------------
+-- Interactive commands
+------------------------------------------------------------------------
+
+type Command a = [String] -> StateT (SysState a) IO ()
+type Commands a = Map.Map String (Command a)
+
+defineCommand :: String -> (Command a) -> StateT (SysState a) IO ()
+defineCommand name cmd = do
+  s <- get
+  let cmds' = Map.insert name cmd (commands s)
+  put (s {commands = cmds'})
+
+lookupCommand :: String -> StateT (SysState a) IO (Maybe (Command a))
+lookupCommand key = do
+  s <- get
+  return $ Map.lookup key (commands s)
+
+-- Default commands.  The simulation driver can define additional
+-- commands, or override these default ones.
+
+initialize :: StateT (SysState a) IO ()
+initialize = do
+  defineCommand "step" clockCycle
+  defineCommand "s"    clockCycle
+  defineCommand "quit" quit
+  defineCommand "q"    quit
+
+{-
 Interactive user  commands
   > step  (also just enter with blank line)    -- do one clock cycle
   empty/blank line                            -- same as > step
@@ -141,9 +176,14 @@ Interactive user  commands
 -- file.  The input lists are maintained in a finite map, with a
 -- string as the key, and the value is a list of strings.
 
--- https://www.haskell.org/haddock/libraries/Data.FiniteMap.html
+-- https://hackage.haskell.org/package/containers-0.4.0.0/docs/Data-Map.html
 
 type InputLists = Map.Map String (Int, [String])
+
+selectInputList :: String ->  StateT (SysState a) IO ()
+selectInputList selectedKey = do
+  s <- get
+  put $ s {selectedKey}
 
 storeInputList :: String -> [String] -> StateT (SysState a) IO ()
 storeInputList key xs = do
@@ -152,8 +192,8 @@ storeInputList key xs = do
   let fm' = Map.insert key (0,xs) fm
   put $ s {inputLists = fm'}
 
-takeFromInputList :: StateT (SysState a) IO (Maybe String)
-takeFromInputList = do
+getInputList :: StateT (SysState a) IO (Maybe String)
+getInputList = do
   s <- get
   let fm = inputLists s
   let key = selectedKey s
@@ -164,6 +204,30 @@ takeFromInputList = do
       return $ if i < length xs then Just (xs!!i) else Nothing
     Nothing -> return Nothing
 
+testInputLists :: StateT (SysState a) IO ()
+testInputLists = do
+  storeInputList "abc" ["cats", "and", "dogs"]
+  storeInputList "def" ["hot", "cold"]
+  storeInputList "ghi" ["blue", "red", "green"]
+  selectInputList "def"
+  a <- getInputList
+  b <- getInputList
+  selectInputList "abc"
+  c <- getInputList
+  selectInputList "ghi"
+  d <- getInputList
+  selectInputList "abc"
+  e <- getInputList
+  f <- getInputList
+  g <- getInputList
+  printLine ("a = " ++ show a)
+  printLine ("b = " ++ show b)
+  printLine ("c = " ++ show c)
+  printLine ("d = " ++ show d)
+  printLine ("e = " ++ show e)
+  printLine ("f = " ++ show f)
+  printLine ("g = " ++ show g)
+  
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
@@ -172,6 +236,7 @@ type CB = Stream Bool
       
 data SysState a = SysState
   { running :: Bool
+  , commands :: Commands a
   , cycleCount :: Int
   , inPortList :: [InPort]
   , nInPorts :: Int
@@ -185,6 +250,7 @@ data SysState a = SysState
 initState :: SysState a
 initState = SysState
   { running = True
+  , commands = Map.empty
   , cycleCount = 0
   , inPortList = []
   , nInPorts = 0
@@ -244,11 +310,9 @@ inPortBit inPortName = do
   let inbsig = listeffects fetcher
   s <- get
   let inPortIndex = nInPorts s
-  printLine ("inPortBit " ++ inPortName ++ " " ++ show inPortIndex)
+--printLine ("inPortBit " ++ inPortName ++ " " ++ show inPortIndex)
   let port = InPortBit { inPortName, inbsig, inbuf, fetcher, inPortIndex }
-  printLine "here 1"
   put $ s {inPortList = inPortList s ++ [port], nInPorts = inPortIndex + 1}
-  printLine "here 2"
   return port
 
 -- make a new inport word
@@ -299,8 +363,13 @@ outPortWord outPortName outwsig showw = do
 -- Clock cycle
 --------------------------------------------------------------------------------
 
-clockCycle :: StateT (SysState a) IO ()
-clockCycle = do
+quit :: Command a
+quit args = do
+  printLine "this is the quit command..."
+
+clockCycle :: Command a
+clockCycle args = do
+  printLine "clockCycle..."
   s <- get
   let i = cycleCount s
   let inp = inPortList s
@@ -326,16 +395,14 @@ clockCycle = do
 
 establishInputs :: StateT (SysState a) IO ()
 establishInputs = do
-  s <- get
-  let d = undefined -- inDataList s ??????????????????????/
+  d <- getInputList
   case d of
-    [] -> do
-      printLine "establishInputs reading input from user"
+    Just xs -> do
+      printLine ("Taking inputs from stored data: " ++ xs)
+      takeInputsFromList xs
+    Nothing -> do
+      printLine "Reading inputs from user:"
       readAllInputs
-    (x:xs) -> do
-      printLine ("establishInputs using stored data: " ++ x)
-      takeInputsFromList x
---      put (s {inDataList = xs}) -- ???????????????????????????????????????????
 
 takeInputsFromList :: String -> StateT (SysState a) IO ()
 takeInputsFromList line = do
@@ -381,7 +448,6 @@ readInput (InPortWord {..}) = do
 
 writeBufs :: [IORef Bool] -> [Bool] -> IO ()
 writeBufs rs bs = mapM_ (\(r,b) -> writeIORef r b ) (zip rs bs)
-
 
 --------------------------------------------------------------------------------
 -- Operations during cycle
@@ -1073,17 +1139,41 @@ runSimulation = do
       doCommand
       runSimulation
 
-helpMessage :: String
-helpMessage =
-  "Type command character, then Enter\n"
-  ++ "Enter, with other character, is same as c (step cycle)\n"
-  ++ "q -- quit, return to ghci prompt\n"
-  ++ "h -- help, display this message\n"
-  ++ "c -- simulate one clock cycle"
+
 
 doCommand :: StateT (SysState a) IO ()
 doCommand = do
-  liftIO $ putStr "M1 circuit $ "
+  liftIO $ putStr "$ "
+  xs <- liftIO $ hGetLine stdin
+  let ws = words xs
+  printLine ("doCommand: ws = " ++ show ws)
+  case ws of
+    [] -> do
+      clockCycle []
+    (c:_) -> do
+      printLine ("doCommand c = " ++ c)
+      mcmd <- lookupCommand c
+      case mcmd of
+        Nothing -> do
+          printLine ("invalid command: " ++ c)
+          doCommand
+        Just cmd -> do
+          printLine "executing command..."
+          cmd ws
+          printLine "command done..."
+
+helpMessage :: String
+helpMessage =
+  "Type command character, then Enter\n"
+  ++ "help  h     help, display this message\n"
+  ++ "step  s     perform one clock cycle"
+  ++ "quit  q     return to ghci prompt\n"
+  ++ "Enter, with other character, is same as step\n"
+
+{-
+doCommand :: StateT (SysState a) IO ()
+doCommand = do
+  liftIO $ putStr "$ "
   xs <- liftIO $ hGetLine stdin
   let c = parseCmd xs
   case c of
@@ -1095,9 +1185,10 @@ doCommand = do
     NoCmd -> return ()
     Help -> do liftIO $ putStrLn helpMessage
     StepCycle -> do
-      clockCycle
+      clockCycle []
       return ()
     _ -> return ()
+-}
 
 --------------------------------------------------------------------------------
 -- Terminal I/O

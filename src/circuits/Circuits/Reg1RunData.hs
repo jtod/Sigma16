@@ -16,15 +16,20 @@ import HDL.Hydra.Core.Lib   -- the hardware description language
 import Circuits.Reg1        -- definition of the circuit to be simulated
 import Control.Monad.State
 
-inputs :: [String]
-inputs =
-  [ "1 1", "0 0", "0 0", "1 0", "0 0", "0 1", "1 1", "0 1", "0,0"]
+inputs, alwaysLoad1, alwaysLoad0, idle :: [String]
+inputs = [ "1 1", "0 0", "0 0", "1 0", "0 0", "0 1", "1 1", "0 1", "0 0"]
+alwaysLoad1 = ["1 1", "1 1", "1 1", "1 1", "1 1", "1 1"]
+alwaysLoad0 = ["1 0", "1 0","1 0","1 0","1 0","1 0","1 0"]
+idle = ["0 0", "0 0", "0 0", "0 0", "0 0", "0 0"]
 
 main :: Driver a
 main = driver $ do
 
-  -- store pre-specified input data in simulation state
-
+  initialize
+  testInputLists
+  storeInputList "data" inputs
+  selectInputList "data"
+  
   -- Input ports
   in_ld <- inPortBit "ld"
   in_x  <- inPortBit "x"
@@ -40,5 +45,7 @@ main = driver $ do
   out_r <- outPortBit "r" r
   out_q <- outPortBit "q" q
 
+  
   -- Run interactive simulation 
   runSimulation
+  
