@@ -4,7 +4,7 @@
 {-|
 Module       : HDL.Hydra.Circuits.SimDriver
 Description  : Tools for writing simulation drivers
-Copyright    : (c) John O'Donnell 2016
+Copyright    : (c) John O'Donnell 2021
 License      : GPL-3
 Maintainer   : john.t.odonnell9@gmail.com
 Stability    : experimental
@@ -13,14 +13,17 @@ Tools for writing simulation drivers -}
 
 module HDL.Hydra.Core.Driver
  (
--- * re-export  so user doesn't hvae to import Control.Monad.State
+-- * re-export so user doesn't hvae to import Control.Monad.State
    StateT (..), execStateT, liftIO,
 
 -- * New from step driver
+   runFormat, getUserState, printError, setHalted,
+   takeInputsFromList, observeSignals, advanceSignals,
    InputLists, selectInputList, storeInputList, getInputList,  testInputLists,
+   Command, defineCommand, Operation,
    initialize,
    printLine,
-   readBit, readBits,
+   parseBit, parseBits,
    getCmdOperand,
    Driver,  driver,  --  DriverMain,
    CmdOp (..), SysState (..), InPort (..), OutPort (..),
@@ -49,7 +52,7 @@ module HDL.Hydra.Core.Driver
   getbit, getbit2, getbin, biti, gettc,
 
 -- * Constructing output format
-  Format, fmtWordsGeneral,
+  Format, format, fmtWordsGeneral,
   clockcycle,
   run, runUntil, runAllInput,
 
@@ -64,6 +67,7 @@ module HDL.Hydra.Core.Driver
   string, bit, binhex, bindec, tcdec, hex, hexbin, bitstc, bits
 
  )
+
 where
 
 -- This module supplies a wide variety of data formatting services,
@@ -71,40 +75,32 @@ where
 -- strings into internal signal representations, and converting
 -- signals to readable strings for output.
 
-import HDL.Hydra.Core.PrimData
 import HDL.Hydra.Core.Signal
 import HDL.Hydra.Core.SigStream
 import HDL.Hydra.Core.SigBool
+import HDL.Hydra.Core.PrimData
+
+
 
 import qualified Data.Map as Map
-
--- the following from StepDriver...
 import Control.Monad.State
 import Control.Concurrent
 import Data.IORef
+import Data.Maybe
 import System.Environment
 import System.FilePath
 import System.IO
 import System.IO.Unsafe
 import System.Console.ANSI
 
--- These used in old Driver, drop them?  Now using Control.Monad.State
--- import Control.Monad.Trans.State
--- import Control.Monad.Trans.Class
-
 ------------------------------------------------------------------------
--- Top level driver
+-- Interface to driver
 ------------------------------------------------------------------------
 
 type Driver a = IO (SysState a)
 
 driver ::  (StateT (SysState a) IO ()) ->IO (SysState a)
 driver f = execStateT f initState
-
-------------------------------------------------------------------------
--- Interface to driver
-------------------------------------------------------------------------
-
 
 {-
 Functions that can be used in driver
@@ -114,7 +110,7 @@ Functions that can be used in driver
   useInputData              convert strings to numbers for input data
   generateInputData         arbitrary function from string to list of inputs
   selectInputInteractive
-  establishInputs
+  inputsFromListOrInteractive
   currentFormat i  - do current actions for format i
   currentInPorts
   currentOutPorts
@@ -129,9 +125,20 @@ Functions that can be used in driver
 -- Interactive commands
 ------------------------------------------------------------------------
 
-type Command a = [String] -> StateT (SysState a) IO ()
-type Commands a = Map.Map String (Command a)
+-- A commannd takes a list of arguments and then runs in the StateT
+-- monad.  Many commands don't use the arguments.  In general, the
+-- first element of the argument list should be the name of the
+-- command, and subsequent elements provide options or data to the
+-- command.
 
+-- Command is establishInputs -> args -> operation
+
+-- Operation with user state type a and returning type b
+type Operation a = StateT (SysState a) IO ()
+
+type Command a = [String] -> Operation a
+type Commands a = Map.Map String (Command a)
+                
 defineCommand :: String -> (Command a) -> StateT (SysState a) IO ()
 defineCommand name cmd = do
   s <- get
@@ -148,10 +155,17 @@ lookupCommand key = do
 
 initialize :: StateT (SysState a) IO ()
 initialize = do
-  defineCommand "step" clockCycle
-  defineCommand "s"    clockCycle
-  defineCommand "quit" quit
-  defineCommand "q"    quit
+  defineCommand "step"     clockCycle
+  defineCommand "s"        clockCycle
+  defineCommand "quit"     quit
+  defineCommand "q"        quit
+  defineCommand "select"   selectInputListCmd
+  defineCommand "inputs"   displayInputListsCmd
+
+quit :: Command a
+quit args = do
+  printLine "this is the quit command..."
+  return ()
 
 {-
 Interactive user  commands
@@ -166,82 +180,24 @@ Interactive user  commands
 -}
 
 --------------------------------------------------------------------------------
--- Input lists
---------------------------------------------------------------------------------
-
--- An input list is a list of strings; each string can be parsed to
--- obtain the values of input signals for a clock cycle.  There may be
--- several input lists; this enables a driver to provide operations
--- that require several clock cycles, for example dumping a register
--- file.  The input lists are maintained in a finite map, with a
--- string as the key, and the value is a list of strings.
-
--- https://hackage.haskell.org/package/containers-0.4.0.0/docs/Data-Map.html
-
-type InputLists = Map.Map String (Int, [String])
-
-selectInputList :: String ->  StateT (SysState a) IO ()
-selectInputList selectedKey = do
-  s <- get
-  put $ s {selectedKey}
-
-storeInputList :: String -> [String] -> StateT (SysState a) IO ()
-storeInputList key xs = do
-  s <- get
-  let fm = inputLists s
-  let fm' = Map.insert key (0,xs) fm
-  put $ s {inputLists = fm'}
-
-getInputList :: StateT (SysState a) IO (Maybe String)
-getInputList = do
-  s <- get
-  let fm = inputLists s
-  let key = selectedKey s
-  case Map.lookup key fm of
-    Just (i,xs) -> do
-      let fm' = Map.insert key (i+1,xs) fm
-      put (s {inputLists = fm'})
-      return $ if i < length xs then Just (xs!!i) else Nothing
-    Nothing -> return Nothing
-
-testInputLists :: StateT (SysState a) IO ()
-testInputLists = do
-  storeInputList "abc" ["cats", "and", "dogs"]
-  storeInputList "def" ["hot", "cold"]
-  storeInputList "ghi" ["blue", "red", "green"]
-  selectInputList "def"
-  a <- getInputList
-  b <- getInputList
-  selectInputList "abc"
-  c <- getInputList
-  selectInputList "ghi"
-  d <- getInputList
-  selectInputList "abc"
-  e <- getInputList
-  f <- getInputList
-  g <- getInputList
-  printLine ("a = " ++ show a)
-  printLine ("b = " ++ show b)
-  printLine ("c = " ++ show c)
-  printLine ("d = " ++ show d)
-  printLine ("e = " ++ show e)
-  printLine ("f = " ++ show f)
-  printLine ("g = " ++ show g)
-  
---------------------------------------------------------------------------------
--- State
+-- System state
 --------------------------------------------------------------------------------
 
 type CB = Stream Bool
-      
+
+-- The user state has type Maybe a; anything that can refer to the
+-- user state incorporates a
+
 data SysState a = SysState
   { running :: Bool
+  , halted :: Bool
   , commands :: Commands a
   , cycleCount :: Int
+  , currentInputString :: String
   , inPortList :: [InPort]
   , nInPorts :: Int
   , outPortList :: [OutPort]
-  , formatList :: [[Format Bool a]]
+  , formatSpec :: Maybe [Format Bool a]
   , inputLists :: InputLists
   , selectedKey :: String
   , userState :: Maybe a
@@ -250,16 +206,63 @@ data SysState a = SysState
 initState :: SysState a
 initState = SysState
   { running = True
+  , halted = False
   , commands = Map.empty
   , cycleCount = 0
+  , currentInputString = ""
   , inPortList = []
   , nInPorts = 0
   , outPortList = []
-  , formatList = []
+  , formatSpec = Nothing
   , inputLists = Map.empty
   , selectedKey = ""
   , userState = Nothing
   }
+
+setHalted :: Format Bool a
+setHalted = FmtSetHalted
+
+
+----------------------------------------------------------------------
+-- Driver state
+----------------------------------------------------------------------
+
+-- The simulation driver maintains its own state, consisting of a pair
+-- (c,s) where c :: Int is the clock cycle number, and s ::
+-- DriverState contains information the driver saves for its own use
+-- later on.
+
+getUserState :: StateT (SysState a) IO (Maybe a)
+getUserState = do
+  s <- get
+  return (userState s)
+
+putUserState :: a -> StateT (SysState a) IO ()
+putUserState x = do
+  s <- get
+  put (s {userState = Just x})
+  return ()
+
+--  let ms = userState s
+--  case ms of
+--    Just us -> return us
+--    Nothing -> do
+--      printError "getUserState: userState undefined, using default"
+--      return x
+
+printError :: String -> StateT (SysState a) IO ()
+printError msg = do
+  liftIO $ putStrLn ("System error: " ++ msg)
+  return ()
+  
+--   let y = fromJust x
+--   return y
+--  case userState s of
+--    Nothing -> do
+--      printLine "Error: userState not defined"
+--      return default
+--    Just ds -> return ds
+
 
 --------------------------------------------------------------------------------
 -- Ports
@@ -285,8 +288,6 @@ data InPort
       , wfetchers :: [[IO Bool]]
       , inwsize :: Int
       , inPortIndex :: Int
---      , inWordRead :: String -> Int -> Maybe [Bool]
---      , readw :: (String -> Int -> IO [Bool])
       }
 
 data OutPort      
@@ -339,6 +340,9 @@ mkInBufWord n
                 xs <- mkInBufWord (n-1)
                 return (x:xs)
 
+writeBufs :: [IORef Bool] -> [Bool] -> IO ()
+writeBufs rs bs = mapM_ (\(r,b) -> writeIORef r b ) (zip rs bs)
+
 -- make a new outport bit
 
 outPortBit :: String -> CB -> StateT (SysState a) IO OutPort
@@ -363,9 +367,11 @@ outPortWord outPortName outwsig showw = do
 -- Clock cycle
 --------------------------------------------------------------------------------
 
-quit :: Command a
-quit args = do
-  printLine "this is the quit command..."
+-- A clock cycle proceeds in a sequence of phases:
+
+-- Phase 1: Establish inputs
+-- Phase 2: Observe signals
+-- Phase 3: Advance signals
 
 clockCycle :: Command a
 clockCycle args = do
@@ -376,25 +382,54 @@ clockCycle args = do
   let outp = outPortList s
   liftIO $ putStrLn (take 70 (repeat '-'))
   liftIO $ putStrLn ("Cycle " ++ show i)
-  establishInputs
-  printInPorts
-  printOutPorts
-  advanceInPorts
-  advanceOutPorts
+  inputsFromListOrInteractive
+  observeSignals
+  advanceSignals
   s <- get
   put (s {cycleCount = i+1})
 
 --------------------------------------------------------------------------------
--- Establish inputs
+-- Phase 1: Establish inputs
 --------------------------------------------------------------------------------
 
--- decide whether the input data for the current clock cycle should be
--- taken from an input data list or from a user interaction.
--- Provisional approach: if there is input datta in the state, use it;
--- otherwise ask the user to provide it
+-- Decide what the input signal values should be for this clock cycle
+-- and store them into the inport buffers.  There are three ways to do
+-- this: interactive input, using stored input data, or generating the
+-- inputs.   Different simulation drivers will take different
+-- approaches to this.  A set of functions is defined here, and the
+-- simulation driver can use any of them.
 
-establishInputs :: StateT (SysState a) IO ()
-establishInputs = do
+-- Interactive input
+
+-- Usage: driver simply executes readInputsInteractively
+
+-- readInputsInteractively: Automatically prompt user for each input
+--   port, read the value entered, and store into port buffer.  The
+--   prompts use the labels provided when the input port is created.
+--   The input port must be either a bit signal or a word of bits
+--   signal.  A generic function is used to convert the string
+--   provided by the user into the Bool or [Bool] signal required.
+
+-- Usage: driver 
+
+-- Using input lists.
+
+--   takeInputsFromString
+--   readInputList  -- copies the input string into currentInputString
+
+-- inputsFromListOrInteractive uses data from selected input list, if any, and
+-- otherwise asks the user to enter it interactively
+
+-- Generating the input
+
+-- setCurrentInputString -- Store an arbitrary string into
+--   currentInputString.  This is useful for generators.  For example,
+--   a boot function can read an object code file and parse it, then
+--   produce a string giving the input signals needed for the object
+--   code, and save it using currentInputString.
+
+inputsFromListOrInteractive :: StateT (SysState a) IO ()
+inputsFromListOrInteractive = do
   d <- getInputList
   case d of
     Just xs -> do
@@ -404,27 +439,11 @@ establishInputs = do
       printLine "Reading inputs from user:"
       readAllInputs
 
-takeInputsFromList :: String -> StateT (SysState a) IO ()
-takeInputsFromList line = do
-  s <- get
-  let ports = inPortList s
-  let xs = words line
-  mapM_ takeInput (zip ports xs)
-  return ()
+--------------------------------------------------
+-- Interactive input
+--------------------------------------------------
 
--- for now, the input must be a number
-takeInput :: (InPort, String) -> StateT (SysState a) IO ()
-takeInput (p,x) = do
-  s <- get
-  case p of
-    InPortBit {..} -> do
-      let y = read x :: Int
-      let b = y==1
-      liftIO $ writeIORef inbuf b
-    InPortWord {..} -> do
-      let y = read x :: Int
-      let bs = undefined -- intToWord inwsize x ?????????????????
-      liftIO $ writeBufs inwbufs bs
+-- aim is just to get a line of text
 
 readAllInputs :: StateT (SysState a) IO ()
 readAllInputs = do
@@ -446,12 +465,215 @@ readInput (InPortWord {..}) = do
   return ()
 --  readval <- liftIO $ readSigString ("  enter " ++ inPortName)
 
-writeBufs :: [IORef Bool] -> [Bool] -> IO ()
-writeBufs rs bs = mapM_ (\(r,b) -> writeIORef r b ) (zip rs bs)
+-- Given a port name, prompt the user to enter a string of bits
+-- (e.g. 100101), confert to [Bool] and return
+
+-- Should drop whitespace and validate input
+interactiveReadBit :: String -> IO Bool
+interactiveReadBit portname = do
+  putStrLn "interactiveReadBit"
+  putStrLn ("Enter value of " ++ portname ++ " (0 or 1, then enter)")
+  ys <- getLine
+  return (if head ys == '1' then True else False)
+
+readSigBool :: String -> IO Bool
+readSigBool xs = do
+  putStrLn ("Enter value of " ++ xs ++ " (either 0 or 1, then enter)")
+  putStrLn xs
+  ys <- getLine
+  return (if head ys == '1' then True else False)
+
+
+interactiveReadWord :: String -> Int -> IO [Bool]
+interactiveReadWord portname n = do
+  putStrLn "interactiveReadWord"
+  putStrLn ("   Enter " ++ portname ++ " (" ++ show n ++ " bits)")
+  xs <-getLine
+  case parseBits xs n of
+    Just r -> return r
+    Nothing -> interactiveReadWord portname n
+
+-- Quick version of a function to read a signal value.  Requires first
+-- char to be either '1' or '0'.  Later, should parse the input
+-- properly
+
+readSigString :: String -> IO String
+readSigString xs = do
+  putStrLn xs
+  ys <- getLine
+  putStrLn ("readSigString = <" ++ ys ++ ">")
+  return ys
+
+--------------------------------------------------
+-- Obtain input data from stored input list
+--------------------------------------------------
+
+-- An input list is a list of strings; each string can be parsed to
+-- obtain the values of input signals for a clock cycle.  There may be
+-- several input lists; this enables a driver to provide operations
+-- that require several clock cycles, for example dumping a register
+-- file.  The input lists are maintained in a finite map, with a
+-- string as the key, and the value is a list of strings.
+
+-- https://hackage.haskell.org/package/containers-0.4.0.0/docs/Data-Map.html
+
+type InputLists = Map.Map String (Int, [String])
+
+selectInputListCmd :: [String] -> Operation a
+selectInputListCmd xs =
+  if length xs >= 2 then selectInputList (xs!!1) else return ()
+
+{-
+-- (i,xs) i is index of next
+-- isInputListEmpty :: Operation Bool
+isInputListEmpty = do
+  s <- get
+  let fm = inputLists s
+  let key = selectedKey s
+  return $ case Map.lookup key fm of
+             Just (i,xs) -> i >= length xs
+             Nothing -> True
+-}
+
+selectInputList :: String -> Operation a
+selectInputList selectedKey = do
+  s <- get
+  put $ s {selectedKey}
+--  let selectedKey = if length args >= 2 then args !! 1 else ""
+--  printLine ("selectInputList key=<" ++ selectedKey ++ ">")
+
+-- Get next item from selected input list
+
+getInputList :: StateT (SysState a) IO (Maybe String)
+getInputList = do
+  s <- get
+  let fm = inputLists s
+  let key = selectedKey s
+  case Map.lookup key fm of
+    Just (i,xs) -> do
+      if i < length xs
+        then do let fm' = Map.insert key (i+1,xs) fm
+                printLine ("getInputList THEN key=" ++ key ++ " i=" ++ show i)
+                put (s {inputLists = fm'})
+                printLine ("THEN " ++ show (Map.lookup key fm'))
+                return $ Just (xs!!i)
+        else do let fm' = Map.insert key (0,xs) fm
+                printLine ("getInputList ELSE key=" ++ key ++ " i=" ++ show i)
+                put (s {inputLists = fm'})
+                return Nothing
+    Nothing -> return Nothing
+
+
+displayInputListsCmd :: [String] -> Operation a
+displayInputListsCmd _ = displayInputLists
+
+displayInputLists :: Operation a
+displayInputLists = do
+  s <- get
+  let fm = inputLists s
+  let ks = Map.keys fm
+  printLine ("Input keys = " ++ show ks)
+  mapM_ displayInputList ks
+
+displayInputList :: String -> Operation a
+displayInputList k = do
+  s <- get
+  let fm = inputLists s
+  case Map.lookup k fm of
+    Just (i,xs) ->
+      printLine ("Key " ++ k ++ "(" ++ show i ++ ") => " ++ show xs)
+    Nothing -> return ()
+
+storeInputList :: String -> [String] -> StateT (SysState a) IO ()
+storeInputList key xs = do
+  s <- get
+  let fm = inputLists s
+  let fm' = Map.insert key (0,xs) fm
+  put $ s {inputLists = fm'}
+
+resetInputList :: String -> StateT (SysState a) IO ()
+resetInputList key = do
+  s <- get
+  let fm = inputLists s
+  case Map.lookup key fm of
+    Just (i,xs) -> do
+      let fm' = Map.insert key (0,xs) fm
+      put $ s {inputLists = fm'}
+    Nothing -> return ()
+
+
+testInputLists :: Operation a
+testInputLists = do
+  storeInputList "abc" ["cats", "and", "dogs"]
+  storeInputList "def" ["hot", "cold"]
+  storeInputList "ghi" ["blue", "red", "green"]
+  selectInputList "def"
+  a <- getInputList
+  b <- getInputList
+  selectInputList "abc"
+  c <- getInputList
+  selectInputList "ghi"
+  d <- getInputList
+  selectInputList "abc"
+  e <- getInputList
+  f <- getInputList
+  g <- getInputList
+  h <- getInputList
+  i <- getInputList
+  j <- getInputList
+  printLine ("a = " ++ show a)
+  printLine ("b = " ++ show b)
+  printLine ("c = " ++ show c)
+  printLine ("d = " ++ show d)
+  printLine ("e = " ++ show e)
+  printLine ("f = " ++ show f)
+  printLine ("g = " ++ show g)
+  printLine ("h = " ++ show h)
+  printLine ("i = " ++ show i)
+  printLine ("j = " ++ show j)
+
+--------------------------------------------------  
+-- Obtain inputs from list
+--------------------------------------------------  
+
+-- The inputs are parsed from SysState.currentInputString and stored
+-- into the signal buffers.  It is essential to ensure that all input
+-- signals have been set.  After this is completed, all signal values
+-- are fixed for the duration of the clock cycle.
+
+takeInputsFromList :: String -> StateT (SysState a) IO ()
+takeInputsFromList line = do
+  s <- get
+  let ports = inPortList s
+  let xs = words line
+  mapM_ takeInput (zip ports xs)
+  return ()
+
+-- for now, the input must be a number
+takeInput :: (InPort, String) -> StateT (SysState a) IO ()
+takeInput (p,x) = do
+  s <- get
+  case p of
+    InPortBit {..} -> do
+      let y = read x :: Int
+      let b = y==1
+      liftIO $ writeIORef inbuf b
+    InPortWord {..} -> do
+      let y = read x :: Int
+      let bs = intToBits y inwsize
+      liftIO $ writeBufs inwbufs bs
+
+
 
 --------------------------------------------------------------------------------
--- Operations during cycle
+-- Phase 3: Observe signals
 --------------------------------------------------------------------------------
+
+observeSignals :: StateT (SysState a) IO ()
+observeSignals = do
+  printInPorts
+  printOutPorts
+
 
 -- Int -> Int -> [Int] ... intbin k x
 -- [Int] -> Int...  binint tcint
@@ -500,15 +722,22 @@ opCurrentPorts = do
   printInPorts
   printOutPorts
 
+{-
 opCurrentFormat :: Int -> StateT (SysState a) IO ()
 opCurrentFormat i = do
   s <- get
   let fmt = formatList s !! i
   return ()
-  
+-}
+
 --------------------------------------------------------------------------------
--- Clock tick: advance the streams
+-- Phase 4: Advance signals
 --------------------------------------------------------------------------------
+
+advanceSignals :: StateT (SysState a) IO ()
+advanceSignals = do
+  advanceInPorts
+  advanceOutPorts
 
 advance :: StateT (SysState a) IO ()
 advance = do
@@ -545,64 +774,6 @@ advanceOutPort (OutPortWord {..}) = do
   let xs = map future outwsig
   return $ OutPortWord {outPortName, outwsig=xs, outwsize, showw}
 
-------------------------------------------------------------------------
--- Reading bits and words
-------------------------------------------------------------------------
-
--- Given a port name, prompt the user to enter a string of bits
--- (e.g. 100101), confert to [Bool] and return
-
--- Should drop whitespace and validate input
-
-readBit :: String -> Maybe Bool
-readBit x =
-  if head x == '1'
-  then Just True
-  else if head x == '0'
-       then Just False
-       else Nothing
-
-interactiveReadBit :: String -> IO Bool
-interactiveReadBit portname = do
-  putStrLn "interactiveReadBit"
-  putStrLn ("Enter value of " ++ portname ++ " (0 or 1, then enter)")
-  ys <- getLine
-  return (if head ys == '1' then True else False)
-
-readSigBool :: String -> IO Bool
-readSigBool xs = do
-  putStrLn ("Enter value of " ++ xs ++ " (either 0 or 1, then enter)")
-  putStrLn xs
-  ys <- getLine
-  return (if head ys == '1' then True else False)
-
--- Should drop whitespace and validate input
-
-readBits :: String -> Int -> Maybe [Bool]
-readBits xs n =
-  if length xs == n
-    then Just (map (== '1') xs)
-    else Nothing
-
-interactiveReadWord :: String -> Int -> IO [Bool]
-interactiveReadWord portname n = do
-  putStrLn "interactiveReadWord"
-  putStrLn ("   Enter " ++ portname ++ " (" ++ show n ++ " bits)")
-  xs <-getLine
-  case readBits xs n of
-    Just r -> return r
-    Nothing -> interactiveReadWord portname n
-
--- Quick version of a function to read a signal value.  Requires first
--- char to be either '1' or '0'.  Later, should parse the input
--- properly
-
-readSigString :: String -> IO String
-readSigString xs = do
-  putStrLn xs
-  ys <- getLine
-  putStrLn ("readSigString = <" ++ ys ++ ">")
-  return ys
 
 ---------------------------------------------------------------------------
 --		       Simulation Driver Input
@@ -675,13 +846,18 @@ biti k i x = boolSig (odd (x `div` (2^(k-(i+1)))))
 format :: [Format Bool b] -> StateT (SysState b) IO ()
 format xs = do
   s <- get
-  let fs = formatList s
-  put (s {formatList = fs ++ [xs]})
+  put (s {formatSpec = Just xs})
 
 runFormat :: StateT (SysState a) IO ()
 runFormat = do
   printLine "runFormat starting"
-  printLine "runFormat finished"
+  s <- get
+  let mfmt = formatSpec s
+  case mfmt of
+    Nothing -> return ()
+    Just fs -> do fs' <- mdofmts fs
+                  s <- get
+                  put $ s {formatSpec = Just fs'}
 
 ------------------------------------------------
 -- Representation of output format specification
@@ -695,8 +871,11 @@ runFormat = do
 data Format a b
   = FmtCycle (Int -> String)
   | FmtString String
-  | FmtState ((Int,b) -> String)
-  | FmtSetStateWords ((Int,b)->[[a]]->b) [[Stream a]]
+--  | FmtState ((Int,b) -> String)
+  | FmtState (b -> String)
+  | FmtSetHalted
+--  | FmtSetStateWords ((Int,b)->[[a]]->b) [[Stream a]]
+  | FmtSetStateWords (b->[[a]]->b) [[Stream a]]
   | FmtBit (String -> Stream a -> (String, Stream a))
       String (Stream a)
   | FmtWord
@@ -710,6 +889,7 @@ data Format a b
 --------------------------------------------------------
 -- User functions for constructing format specifications
 --------------------------------------------------------
+
 
 bit x = FmtBit fmtBit [] x
 bits x = FmtWord fmtWord [] n n x
@@ -795,6 +975,7 @@ fmtHex k x =
 
 fmtIf x fs1 fs0 = FmtIf x fs1 fs0
 
+
 --------------------------------
 -- Produce output cycle by cycle
 --------------------------------
@@ -854,6 +1035,8 @@ mrunUntil p xs =
 
 mstep :: (Signal a, StaticBit a) =>
   Int -> [Format a b] -> StateT (Int,b) IO [Format a b]
+mstep = undefined
+{-
 mstep i xs =
   do -- lift $ putStr (setlength 4 (show i))
      -- lift $ putStr ".  "
@@ -862,18 +1045,22 @@ mstep i xs =
      (cycle,s) <- get
      put (cycle+1,s)
      return ys
+-}
 
 -- run mdofmt on each format in a list of formats, printing the
 -- results as we go, and returning a new list of formats that will
 -- contain the futures of all the streams
 
+  
 mdofmts :: (Signal a, StaticBit a) =>
-  [Format a b] -> StateT (Int,b) IO [Format a b]
+  [Format a b] -> StateT (SysState b) IO [Format a b]
 mdofmts [] = return []
 mdofmts (x:xs) =
   do x' <- mdofmt x
      xs' <- mdofmts xs
      return (x':xs')
+
+--  [Format a b] -> StateT (Int,b) IO [Format a b]
 
 ------------------------------------------------------------------------
 -- Process one fmt item
@@ -887,42 +1074,71 @@ mdofmts (x:xs) =
 -- this is the key operation in the old-style driver.  It processes
 -- the current value and returns the future value
 
+-- mdofmt :: (Signal a, StaticBit a)
+--   => Format a b -> StateT (Int,b) IO (Format a b)
+
 mdofmt :: (Signal a, StaticBit a)
-  => Format a b -> StateT (Int,b) IO (Format a b)
+  => Format a b -> StateT (SysState b) IO (Format a b)
 
-mdofmt (FmtCycle f) =
-  do (cycle,_) <- get
-     lift $ putStr (f cycle)
-     return (FmtCycle f)
+mdofmt FmtSetHalted = do
+  s <- get
+  put (s {halted = True})
+  return FmtSetHalted
 
-mdofmt (FmtState f) =
-  do s <- get
-     lift $ putStr (f s)
-     return (FmtState f)
+--  do mds <- getUserState
+--     case mds of
+--       Just ds -> do
+--         let ds' = ds {Halted = True}
+--         putUserState ds'
+--         return FmtSetHalted
+--       Nothing -> return FmtSetHalted
 
-mdofmt (FmtSetStateWords f xs) =
-  do (c,s) <- get
-     let ws = map (map current) xs
-     let s' = f (c,s) ws
-     put (c,s')
-     return (FmtSetStateWords f (map (map future) xs))
+mdofmt (FmtString s) =
+  do lift $ putStr s
+     return (FmtString s)
 
 mdofmt (FmtBit f lbl x) =
   do let (s,x') = f lbl x
      lift $ putStr s
      return (FmtBit f lbl x')
-mdofmt (FmtWord f lbl w k x) =
-  do let (s,x') = f lbl w k x
-     lift $ putStr s
-     return (FmtWord f lbl w k x')
+
 mdofmt (FmtHex f k x) =
   do let (s,x') = f k x
      lift $ putStr s
      return (FmtHex f k x')
 
-mdofmt (FmtString s) =
-  do lift $ putStr s
-     return (FmtString s)
+mdofmt (FmtWord f lbl w k x) =
+  do let (s,x') = f lbl w k x
+     lift $ putStr s
+     return (FmtWord f lbl w k x')
+
+mdofmt (FmtState f) =
+  do mds <- getUserState  -- user's driver state
+     case mds of
+       Just ds -> do lift $ putStr (f ds)
+                     return (FmtState f)
+       Nothing -> return (FmtState f)
+
+mdofmt (FmtSetStateWords f xs) =
+  do mds <- getUserState
+     case mds of
+       Just ds -> do
+         let ws = map (map current) xs
+         let ds' = f ds ws
+         putUserState ds'
+         return (FmtSetStateWords f xs)
+       Nothing -> return (FmtSetStateWords f xs)
+
+mdofmt (FmtWordsGeneral f xs) =
+  do mds <- getUserState
+     case mds of
+       Just ds -> do
+         let ys = map (map (sigInt . current)) xs
+         let zs = map (map future) xs
+         let s = f ys
+         lift $ putStr s
+         return (FmtWordsGeneral f zs)
+       Nothing -> return  (FmtWordsGeneral f xs)
 
 mdofmt (FmtIf x fs_then fs_else) =
   do let b = is1 (current x)
@@ -930,25 +1146,29 @@ mdofmt (FmtIf x fs_then fs_else) =
      fs_else' <- (if b then mskipfmts else mdofmts) fs_else
      return (FmtIf (future x) fs_then' fs_else')
 
-mdofmt (FmtWordsGeneral f xs) =
-  do let ys = map (map (sigInt . current)) xs
-     let zs = map (map future) xs
-     let s = f ys
-     lift $ putStr s
-     return (FmtWordsGeneral f zs)
+{- 
+mdofmt (FmtCycle f) =
+--  do (cycle,_) <- get
+  do 
+     lift $ putStr (f cycle)
+     return (FmtCycle f)
+-}
 
 -- Skip current cycle infor for a list of formats, return futures
 
 mskipfmts :: (Signal a, Static a) =>
-  [Format a b] -> StateT (Int,b) IO [Format a b]
+  [Format a b] -> StateT (SysState b) IO [Format a b]
 mskipfmts [] = return []
 mskipfmts (x:xs) =
   do x' <- mskipfmt x
      xs' <- mskipfmts xs
      return (x':xs')
 
-mskipfmt :: (Signal a, Static a) => Format a b -> StateT (Int,b) IO (Format a b)
+mskipfmt
+  :: (Signal a, Static a)
+  => Format a b -> StateT (SysState b) IO (Format a b)
 
+mskipfmt FmtSetHalted = return FmtSetHalted
 mskipfmt (FmtCycle f) = return (FmtCycle f)
 mskipfmt (FmtString s) = return (FmtString s)
 mskipfmt (FmtState f) = return (FmtState f)
@@ -970,6 +1190,22 @@ mskipfmt (FmtWordsGeneral f xs) =
 ---------------------------------------------------------------------------
 --		      Number System Conversions
 ---------------------------------------------------------------------------
+
+parseBit :: String -> Maybe Bool
+parseBit x =
+  if head x == '1'
+  then Just True
+  else if head x == '0'
+       then Just False
+       else Nothing
+
+-- Should drop whitespace and validate input
+
+parseBits :: String -> Int -> Maybe [Bool]
+parseBits xs n =
+  if length xs == n
+    then Just (map (== '1') xs)
+    else Nothing
 
 intToBits :: Int -> Int -> [Bool]
 intToBits x n = reverse (intToBitsf x n)
@@ -1274,6 +1510,7 @@ printLine xs = liftIO (putStrLn xs)
 ------------------------------------------------------------------------
 -- Deprecated or deleted
 ------------------------------------------------------------------------
+
 -- From old Driver.hs...
 --------------------------------
 
@@ -1363,3 +1600,19 @@ data NewFmt a
   | NewFmtBit a
   | NewFmtBits [a]
 -}
+-- These used in old Driver, drop them?  Now using Control.Monad.State
+-- import Control.Monad.Trans.State
+-- import Control.Monad.Trans.Class
+--      , inWordRead :: String -> Int -> Maybe [Bool]
+--      , readw :: (String -> Int -> IO [Bool])
+-- FmtSetStateWords...
+--  do (c,s) <- get
+--     let ws = map (map current) xs
+--     let s' = f (c,s) ws
+--     put (c,s')
+--     return (FmtSetStateWords f (map (map future) xs))
+--  do let ys = map (map (sigInt . current)) xs
+--     let zs = map (map future) xs
+--     let s = f ys
+--     lift $ putStr s
+--     return (FmtWordsGeneral f zs)

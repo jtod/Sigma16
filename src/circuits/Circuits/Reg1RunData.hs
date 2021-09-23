@@ -44,7 +44,6 @@ main = driver $ do
   -- The output ports are interfaces to the output signals
   out_r <- outPortBit "r" r
   out_q <- outPortBit "q" q
-
   
   -- Run interactive simulation 
   runSimulation
