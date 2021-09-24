@@ -82,8 +82,7 @@ ________________________________________________________________________
 
 
 {-
-Cycle stealing and dma
-
+I/O control inputs
 dma           1 bit    indicates stolen clock cycle
 dma_store     1 bit    mem[dma_a] := dma_d
 dma_fetch     1 bit    m_out = mem[dma_a]
@@ -113,7 +112,7 @@ m1 reset (SysIO {..}) =
     (r,ccnew,condcc) = aluOutputs dp
 
 -- Control
-    (ctl_state, ctl_start, ctlsigs) = control reset (ir dp) condcc
+    (ctl_state, ctl_start, ctlsigs) = control reset (ir dp) condcc (SysIO {..})
 
 -- Memory
     m_real_addr = field m_addr (n-msize) msize

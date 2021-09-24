@@ -36,11 +36,10 @@ import M1.Circuit.Interface
 import M1.Circuit.ALU
 import M1.Circuit.RegFile
 
-{- The datapath contains the registers, computational systems, and
-interconnections.  It has two inputs: a set of control signals
-provided by the control unit, and a data word from the either the
-memory system or the DMA input controller. -}
-
+-- The datapath contains the registers, computational systems, and
+-- interconnections.  It has two inputs: a set of control signals
+-- provided by the control unit, and a data word from the either the
+-- memory system or the DMA input controller.
 
 datapath
   :: CBit a
@@ -52,6 +51,7 @@ datapath
 -- datapath ctlsigs io memdat = dp
 datapath (CtlSig {..}) (SysIO {..}) memdat = dp
   where
+
 -- Interface    
     dp = DPoutputs {aluOutputs, r, ccnew, condcc,
                     ma, md, a, b, cc, ir, ir_op, ir_d, ir_sa, ir_sb,
@@ -76,7 +76,10 @@ datapath (CtlSig {..}) (SysIO {..}) memdat = dp
     x = mux1w ctl_x_pc a pc             -- alu input 1
     y = mux1w ctl_y_ad b ad             -- alu input 2
     rf_sa = mux1w ctl_rf_sd ir_sa ir_d  -- a = reg[rf_sa]
-    rf_sb = ir_sb                                 -- b = reg[rf_sb]
+--    rf_sb = ir_sb                                 -- b = reg[rf_sb]
+    rf_sb = mux1w (and2 io_DMA io_regFetch)
+              ir_sb
+              (field io_address 12 4)
     p  = mux1w ctl_rf_pc                -- regfile data input
            (mux1w ctl_rf_alu memdat r)
            pc
@@ -91,30 +94,3 @@ datapath (CtlSig {..}) (SysIO {..}) memdat = dp
     ir_sb = field ir 12 4           -- instruction source b register
 
 --    irFields = (ir_op,ir_d,ir_sa,ir_sb)
-
-
-{-
-datapath
-  :: CBit a
-  => CtlSig a
-  -> [a]
-  -> (([a],[a],a),  -- alu outputs (r, ccnew, condcc)
-      [a],   -- ma
-      [a],   -- md
-      [a],   -- a
-      [a],   -- b
-      [a],   -- cc
-      [a],   -- ir
-      ([a],[a],[a],[a]),  -- irFields
-      [a],   -- pc
-      [a],   -- ad
-      [a],   -- x
-      [a],   -- y
-      [a],   -- p
-      [a]   -- q
-     )
--}
--- datapath ctlsigs memdat = (aluOutputs,ma,md,a,b,cc,ir,irFields,
---                              pc,ad,r,x,y,p,condcc,q)
--- datapath ctlsigs memdat = (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q)
---    k =  4    -- the register file contains 2^k registers 

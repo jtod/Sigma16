@@ -17,7 +17,8 @@ module HDL.Hydra.Core.Driver
    StateT (..), execStateT, liftIO,
 
 -- * New from step driver
-   runFormat, getUserState, printError, setHalted,
+   bitsHex,
+   runFormat, getUserState, printError, setHalted, setPeek, advancePeeks,
    takeInputsFromList, observeSignals, advanceSignals,
    InputLists, selectInputList, storeInputList, getInputList,  testInputLists,
    Command, defineCommand, Operation,
@@ -198,6 +199,7 @@ data SysState a = SysState
   , nInPorts :: Int
   , outPortList :: [OutPort]
   , formatSpec :: Maybe [Format Bool a]
+  , peekList :: [[Stream Bool]]
   , inputLists :: InputLists
   , selectedKey :: String
   , userState :: Maybe a
@@ -214,6 +216,7 @@ initState = SysState
   , nInPorts = 0
   , outPortList = []
   , formatSpec = Nothing
+  , peekList = []
   , inputLists = Map.empty
   , selectedKey = ""
   , userState = Nothing
@@ -748,6 +751,16 @@ advance = do
 --  advanceFormats
 
 
+advancePeeks :: StateT (SysState a) IO ()
+advancePeeks = do
+  s <- get
+  let ps = peekList s
+  let ps' = map advancePeek ps
+  put $ s {peekList = ps'}
+
+advancePeek :: [Stream Bool] -> [Stream Bool]
+advancePeek xs = map future xs
+
 advanceInPorts :: StateT (SysState a) IO ()
 advanceInPorts = do
   s <- get
@@ -844,6 +857,12 @@ biti k i x = boolSig (odd (x `div` (2^(k-(i+1)))))
 ---------------------------------------------------------------------------
 --		       Simulation Driver Output
 ---------------------------------------------------------------------------
+
+setPeek :: [Stream Bool] -> StateT (SysState a) IO ()
+setPeek xs = do
+  s <- get
+  let ps = peekList s
+  put $ s {peekList = ps ++ [xs]}
 
 format :: [Format Bool b] -> StateT (SysState b) IO ()
 format xs = do
@@ -1192,6 +1211,15 @@ mskipfmt (FmtWordsGeneral f xs) =
 ---------------------------------------------------------------------------
 --		      Number System Conversions
 ---------------------------------------------------------------------------
+
+bitsBin :: [Bool] -> Int
+bitsBin bs = binint (map boolInt bs)
+
+-- inthexok w i gives w-char hex for i
+-- use inthexok 4 x
+
+bitsHex :: Int -> [Bool] -> String
+bitsHex w bs = inthexok w (bitsBin bs)
 
 parseBit :: String -> Maybe Bool
 parseBit x =

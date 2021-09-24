@@ -161,10 +161,13 @@ repeat forever
 
 control
   :: CBit a
-  => a -> [a] -> a
+  => a         -- reset
+  -> [a]       -- ir
+  -> a         -- condcc
+  -> SysIO a   -- I/O
   -> (CtlState a, a, CtlSig a)
 
-control reset ir condcc = (ctlstate,start,ctlsigs)
+control reset ir condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
   where
 
       ir_op = field ir  0 4       -- instruction opcode
@@ -172,53 +175,89 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
       ir_sa = field ir  8 4       -- instruction source a register
       ir_sb = field ir 12 4       -- instruction source b register
 
+      cpu = inv io_DMA
+      
       start = orw
         [reset,
          st_add, st_sub, st_mul0, st_cmp, st_trap0,
          st_lea1, st_load2, st_store2, st_jump2,
          st_jumpc02, st_jumpc12, st_jal2]
 
-      st_instr_fet = dff start
-      st_dispatch  = dff st_instr_fet
+      dff_instr_fet = dff start
+      st_instr_fet  = and2 cpu dff_instr_fet
 
+      dff_dispatch = dff st_instr_fet
+      st_dispatch  = and2 cpu dff_dispatch
       pRRR = demux4w ir_op st_dispatch
       pXX  = demux4w ir_sb (pRRR!!14)
       pRX  = demux4w ir_sb (pRRR!!15)
 
-      st_lea0 = dff (pRX!!0)
-      st_lea1 = dff st_lea0
+      dff_lea0 = dff (pRX!!0)
+      st_lea0  = and2 cpu dff_lea0
+      dff_lea1 = dff st_lea0
+      st_lea1  = and2 cpu st_lea0
 
-      st_load0  = dff (pRX!!1)
-      st_load1  = dff st_load0
-      st_load2  = dff st_load1
+      dff_load0 = dff (pRX!!1)
+      st_load0  = and2 cpu dff_load0
+      dff_load1 = st_load0
+      st_load1  = and2 cpu st_load0
+      dff_load2 = dff st_load1
+      st_load2  = and2 cpu st_load1
 
-      st_store0 = dff (pRX!!2)
-      st_store1 = dff st_store0
-      st_store2 = dff st_store1
+      dff_store0 = dff (pRX!!2)
+      st_store0  = and2 cpu dff_store0
+      dff_store1 = dff st_store0
+      st_store1  = and2 cpu st_store0
+      dff_store2 = dff st_store1
+      st_store2  = and2 cpu st_store1
 
-      st_jump0  = dff (pRX!!3)
-      st_jump1  = dff st_jump0
-      st_jump2  = dff st_jump1
+      dff_jump0 = dff (pRX!!3)
+      st_jump0  = and2 cpu dff_jump0
+      dff_jump1 = dff st_jump0
+      st_jump1  = and2 cpu st_jump0
+      dff_jump2 = dff st_jump1
+      st_jump2  = and2 cpu st_jump1
 
-      st_jumpc00 = dff (pRX!!4)
-      st_jumpc01 = dff st_jumpc00
-      st_jumpc02 = dff st_jumpc01
+      dff_jumpc00 = dff (pRX!!4)
+      st_jumpc00  = and2 cpu dff_jumpc00
+      dff_jumpc01 = dff st_jumpc00
+      st_jumpc01  = and2 cpu st_jumpc00
+      dff_jumpc02 = dff st_jumpc01
+      st_jumpc02  = and2 cpu st_jumpc01
 
-      st_jumpc10 = dff (pRX!!5)
-      st_jumpc11 = dff st_jumpc10
-      st_jumpc12 = dff st_jumpc11
+      dff_jumpc10 = dff (pRX!!5)
+      st_jumpc10  = and2 cpu dff_jumpc10
+      dff_jumpc11 = dff st_jumpc10
+      st_jumpc11  = and2 cpu st_jumpc10
+      dff_jumpc12 = dff st_jumpc11
+      st_jumpc12  = and2 cpu st_jumpc11
 
-      st_jal0   = dff (pRX!!6)
-      st_jal1   = dff st_jal0
-      st_jal2   = dff st_jal1
+      dff_jal0 = dff (pRX!!6)
+      st_jal0  = and2 cpu dff_jal0
+      dff_jal1 = dff st_jal0
+      st_jal1  = and2 cpu st_jal0
+      dff_jal2 = dff st_jal1
+      st_jal2  = and2 cpu st_jal1
 
-      st_add    = dff (pRRR!!0)
-      st_sub    = dff (pRRR!!1)
-      st_mul0   = dff (pRRR!!2)
-      st_div0   = dff (pRRR!!3)
-      st_cmp    = dff (pRRR!!4)
-      st_trap0  = dff (pRRR!!11)
+      dff_add   = dff (pRRR!!0)
+      st_add    = and2 cpu dff_add
+      
+      dff_sub   = dff (pRRR!!1)
+      st_sub    = and2 cpu dff_sub
 
+      dff_mul0  = dff (pRRR!!2)
+      st_mul0   = and2 cpu dff_mul0
+
+      dff_div0  = dff (pRRR!!3)
+      st_div0   = and2 cpu dff_div0
+
+      dff_cmp   = dff (pRRR!!4)
+      st_cmp    = and2 cpu dff_cmp
+
+      dff_trap0 = dff (pRRR!!11)
+      st_trap0  = and2 cpu dff_trap0
+
+-- Generate control signals
       ctl_rf_ld   = orw [st_load2,st_lea1,st_add,st_sub,
                            st_jal2]
       ctl_rf_ldcc = orw [st_cmp]
@@ -251,6 +290,10 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
                          st_jumpc01,st_jump1,st_jal1]
       ctl_sto     = orw [st_store2]
 
+      ctlsigs = CtlSig {..}
+      ctlstate = CtlState {..}
+      
+{-
       ctlsigs = CtlSig
         {ctl_alu_a,  ctl_alu_b,
          ctl_x_pc,   ctl_y_ad,   ctl_rf_ld,  ctl_rf_ldcc,
@@ -275,4 +318,4 @@ control reset ir condcc = (ctlstate,start,ctlsigs)
          st_jumpc00, st_jumpc01, st_jumpc02,
          st_jumpc10, st_jumpc11, st_jumpc12,
          st_jal0, st_jal1, st_jal2}
-
+-}

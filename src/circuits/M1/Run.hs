@@ -66,6 +66,9 @@ main = driver $ do
         m_sto, m_addr, m_real_addr, m_data, m_out)
          = m1 reset io
 
+  setPeek m_out
+  setPeek (b dp)
+  
 --  out_st_instr_fet <- outPortBit "st_instr_fet" (st_instr_fet ctlstate)
   
 --  out_m_real_addr <- outPortWord "m_real_addr" m_real_addr showBin
@@ -370,6 +373,60 @@ main = driver $ do
 -- Top level M1 control
 --------------------------------------------------------------------------------
 
+peekMem :: Int -> StateT (SysState DriverState) IO ()
+peekMem addr = do
+  s <- get
+  let i = cycleCount s
+  let inp = inPortList s
+  let outp = outPortList s
+--  liftIO $ putStrLn (take 80 (repeat '-'))
+  liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
+--  liftIO $ putStrLn (" ***** Peek at memory address " ++ show addr)
+  let inps = "0 1 0 1 0 " ++ show addr ++ " 0"
+  takeInputsFromList inps
+--  printInPorts
+--  printOutPorts
+--  runFormat
+  s <- get
+  let ps = peekList s
+  let a = ps!!0  -- m_out
+  let bs = map current a
+  liftIO $ putStrLn ("***** Peek Mem[" ++ show addr ++ "] = " ++ bitsHex 4 bs)
+  advanceInPorts
+  advanceOutPorts
+  advancePeeks
+  s <- get
+  let i = cycleCount s
+  put (s {cycleCount = i + 1})
+
+peekReg :: Int -> StateT (SysState DriverState) IO ()
+peekReg regnum = do
+  s <- get
+  let i = cycleCount s
+  let inp = inPortList s
+  let outp = outPortList s
+--  liftIO $ putStrLn (take 80 (repeat '-'))
+  liftIO $ putStr ("Cycle " ++ show i)
+--  liftIO $ putStrLn (" ***** Peek at register R" ++ show regnum)
+  let inps = "0 1 0 0 1 " ++ show regnum ++ " 0"
+--  liftIO $ putStrLn ("inps = " ++ inps)
+  takeInputsFromList inps
+--  printInPorts
+--  printOutPorts
+--  runFormat
+  s <- get
+  let ps = peekList s
+  let b = ps!!1  --  output b from regfile
+  let bs = map current b
+--  liftIO $ putStrLn ("Register value = " ++ show bs)
+  liftIO $ putStrLn ("***** Peek R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
+  advanceInPorts
+  advanceOutPorts
+  advancePeeks
+  s <- get
+  let i = cycleCount s
+  put (s {cycleCount = i + 1})
+
 data ProcessorMode
   = Idle
   | Booting
@@ -397,6 +454,10 @@ commandLoop = do
     then runM1simulation
   else if ws!!0 == "cycle"
     then m1ClockCycle
+  else if ws!!0 == "mem"
+    then dumpMem 0 15
+  else if ws!!0 == "regs"
+    then dumpRegFile
   else if ws!!0 == "quit"
     then do
       s <- get
@@ -406,6 +467,39 @@ commandLoop = do
   case running s of
     True -> commandLoop
     False -> return ()
+
+-- Dump memory from start to end address
+
+dumpMem :: Int -> Int -> StateT (SysState DriverState) IO ()
+dumpMem start end = do
+  case start <= end of
+    True -> do
+      peekMem start
+      dumpMem (start+1) end
+    False -> return ()
+
+dumpRegFile :: StateT (SysState DriverState) IO ()
+dumpRegFile = do
+  let f i =
+        case i <= 15 of
+          True -> do
+            peekReg i
+            f (i+1)
+          False -> return ()
+  f 0
+
+{-
+peekRegFile = do
+  liftIO $ putStrLn "peekRegFile"
+  peekReg 0
+  peekReg 1
+  peekReg 2
+  peekReg 3
+  peekReg 4
+  peekReg 5
+  peekReg 6
+  peekReg 7
+-}
 
 printHelp :: IO ()
 printHelp = do
@@ -480,9 +574,11 @@ m1ClockCycle = do
   runFormat
   advanceInPorts
   advanceOutPorts
+  advancePeeks
   s <- get
   let i = cycleCount s
   put (s {cycleCount = i + 1})
+
 
 establishM1inputs :: StateT (SysState DriverState) IO ()
 establishM1inputs = do
@@ -637,6 +733,16 @@ m1Step args = do
 --------------------------------------------------------------------------------
 -- Input signals for key stages of execution
 --------------------------------------------------------------------------------
+
+{-
+I/O control inputs, copied from System
+dma           1 bit    indicates stolen clock cycle
+dma_store     1 bit    mem[dma_a] := dma_d
+dma_fetch     1 bit    m_out = mem[dma_a]
+dma_reg       1 bit    x = reg[dma_a]  (least significant 4 bits
+dma_a         16 bits  address
+dma_d         16 bits  data
+-}
 
 bootInputs :: IO [String]
 bootInputs = do
