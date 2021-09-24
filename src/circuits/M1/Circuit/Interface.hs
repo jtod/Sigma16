@@ -17,12 +17,26 @@
 
 {-# LANGUAGE NamedFieldPuns #-}
 
-------------------------------------------------------------------------
--- Control signals
-------------------------------------------------------------------------
 
 module M1.Circuit.Interface where
 import HDL.Hydra.Core.Lib
+
+------------------------------------------------------------------------
+-- Input/Output
+------------------------------------------------------------------------
+
+data SysIO a = SysIO
+  { io_DMA        :: a
+  , io_memStore   :: a
+  , io_memFetch   :: a
+  , io_regFetch   :: a
+  , io_address    :: [a]
+  , io_data       :: [a]
+  }
+
+------------------------------------------------------------------------
+-- Control signals
+------------------------------------------------------------------------
 
 {- The behaviour of the datapath is determined by the values of the
 control signals.  A naming convention is used for these signals.  Each

@@ -12,6 +12,9 @@
 --   uparrow             -- repeat previous command
 --   :q                  -- quit ghci, return to shell
 
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module M1.Run where
 
 import HDL.Hydra.Core.Lib
@@ -40,23 +43,30 @@ main = driver $ do
   selectInputList "Booting"
 
   -- Input ports
-  in_reset <- inPortBit  "reset"
-  in_dma   <- inPortBit  "dma"
-  in_dma_a <- inPortWord "dma_a" 16
-  in_dma_d <- inPortWord "dma_d" 16
+  in_reset        <- inPortBit  "reset"
+  in_io_DMA       <- inPortBit  "io_DMA"
+  in_io_memStore  <- inPortBit  "io_memStore"
+  in_io_memFetch  <- inPortBit  "io_memFetch"
+  in_io_regFetch  <- inPortBit  "io_regFetch"
+  in_io_address   <- inPortWord "io_address" 16
+  in_io_data      <- inPortWord "io_data" 16
 
   -- Input signals
-  let reset = inbsig in_reset
-  let dma   = inbsig in_dma
-  let dma_a = inwsig in_dma_a
-  let dma_d = inwsig in_dma_d
+  let reset         = inbsig in_reset
+  let io_DMA        = inbsig in_io_DMA
+  let io_memStore   = inbsig in_io_memStore
+  let io_memFetch   = inbsig in_io_memFetch
+  let io_regFetch   = inbsig in_io_regFetch
+  let io_address    = inwsig in_io_address
+  let io_data       = inwsig in_io_data
+  let io = SysIO {..}
 
--- The circuit
+-- The M1 circuit
   let  (ctlstate, ctl_start, ctlsigs, dp,
         m_sto, m_addr, m_real_addr, m_data, m_out)
-         = m1 reset dma dma_a dma_d
+         = m1 reset io
 
-  out_st_instr_fet <- outPortBit "st_instr_fet" (st_instr_fet ctlstate)
+--  out_st_instr_fet <- outPortBit "st_instr_fet" (st_instr_fet ctlstate)
   
 --  out_m_real_addr <- outPortWord "m_real_addr" m_real_addr showBin
 --  out_m_out       <- outPortWord "m_out" m_out showBin
@@ -68,13 +78,20 @@ main = driver $ do
 -- Format the output
 
   format
-    [ string "hello"
-    , string " condcc=", bit condcc
-    , string " st_instr_fet = ", bit (st_instr_fet ctlstate)
+    [
+--      string "hello"
+--    , string " condcc=", bit condcc
+--    , string " st_instr_fet = ", bit (st_instr_fet ctlstate)
+--    , string "\n"
+     string "Computer system inputs\n"
+    , string "  reset = ", bit reset
+    , string "    io_DMA = ", bit io_DMA
+    , string "    io_memStore = ", bit io_memStore
+    , string "    io_memFetch = ", bit io_memFetch
+    , string "    io_regFetch = ", bit io_regFetch
+    , string "    io_address=", binhex io_address
+    , string "    io_data=", binhex io_data
     , string "\n"
-    , string "Computer system inputs\n        "
-    , string " reset=", bit reset, string " dma=", bit dma
-    , string " dma_a=", binhex dma_a, string " dma_d=", binhex dma_d
     , string "\nctl_start = ", bit ctl_start, string "\n"
     , string "\nControl state\n  ",
      string " st_instr_fet = ", bit (st_instr_fet ctlstate),
@@ -161,28 +178,28 @@ main = driver $ do
 
      string "\n\nMemory\n  ",
      string " ctl_sto = ", bit (ctl_sto ctlsigs),
-     string "      m_sto = ", bit m_sto,
+     string "  m_sto = ", bit m_sto,
      string "\n  ",
-     string "   m_addr = ", binhex m_addr,
+     string "  m_addr = ", binhex m_addr,
      string "  m_real_addr = ", binhex m_real_addr,
+--     string "  m_real_addr = ", bits m_real_addr,
      string "  m_data = ", binhex m_data,
-     string "  m_data = ", bits m_data,
---           string "  m_out =", binhex m_out,
-     string "  m_out =", bits m_out,
-     string "  m_real_addr = ", binhex m_real_addr,
-     string "\n",
+--     string "  m_data = ", bits m_data,
+--     string "  m_data = ", bits m_data,
+     string "  m_out =", binhex m_out,
+--     string "  m_out =", bits m_out,
+     string "\n\nInput/Output\n  ",
      string "  reset = ", bit reset,
-     string "  dma = ", bit dma,
-     string "  dma_a = ", bits dma_a,
-     string "  dma_d = ", bits dma_d,
+     string "  io_DMA = ", bit io_DMA,
+     string "  io_memStore = ", bit io_DMA,
+     string "  io_memFetch = ", bit io_DMA,
+     string "  io_regFetch = ", bit io_DMA,
+     string "  io_address = ", binhex io_address,
+     string "  io_data = ", binhex io_data,
      string "\n",
      string "  md = ", bits (md dp),
-     string "  dma_d = ", bits dma_d,
+     string "  dma_d = ", bits io_data,
      string "\n",
-     string "  m_sto = ", bit m_sto,
-     string "  m_real_addr = ", bits m_real_addr,
-     string "  m_data = ", bits m_data,
-     string "  m_out = ", bits m_out,
      string "  q = ", bits (q dp),
      string "\n",
 
@@ -198,10 +215,7 @@ main = driver $ do
       string "  ccnew = ", bits (ccnew),
 --     string "  condcc = ", bit (condcc dp),
       string "  condcc = ", bit (condcc),
-     string "\n\n",
-      
-      string "dummy"
-     , string "\n" ,
+      string "\n" ,
 
 -- ...................................................................
 -- Higher level analysis of what happened on this cycle.  The
@@ -348,7 +362,8 @@ main = driver $ do
   -- now
   
   printLine "\nSigma16_M1 simulation"
-  runM1simulation
+--  runM1simulation
+  startup
   printLine "M1 Run finished"
 
 --------------------------------------------------------------------------------
@@ -362,12 +377,48 @@ data ProcessorMode
   | Running
   deriving (Eq, Read, Show)
 
-runM1simulation :: StateT (SysState DriverState) IO ()
-runM1simulation = do
-  printLine "runM1simulation starting"
+startup :: StateT (SysState DriverState) IO ()
+startup = do
   s <- get
   put (s {userState = Just initDriverState})
   setMode Booting
+  commandLoop
+
+commandLoop :: StateT (SysState DriverState) IO ()
+commandLoop = do
+  liftIO $ putStr "Sigma16.M1> "
+  xs <- liftIO getLine
+  let ws = words xs
+  if length ws == 0
+    then m1ClockCycle
+  else if ws!!0 == "help"
+    then liftIO printHelp
+  else if ws!!0 == "run"
+    then runM1simulation
+  else if ws!!0 == "cycle"
+    then m1ClockCycle
+  else if ws!!0 == "quit"
+    then do
+      s <- get
+      put (s {running = False})
+  else liftIO $ putStrLn "Invalid command, enter help for list of commands"
+  s <- get
+  case running s of
+    True -> commandLoop
+    False -> return ()
+
+printHelp :: IO ()
+printHelp = do
+  putStrLn "Commands for the M1 driver"
+  putStrLn "  cycle        -- perform one clock cycle"
+  putStrLn "  (empty line) -- same as cycle"
+  putStrLn "  run          -- perform clock cycles repeatedly until halt"
+  putStrLn "  quit         -- return to ghci or shell prompt"
+  putStrLn "  help         -- list the commands"
+  
+runM1simulation :: StateT (SysState DriverState) IO ()
+runM1simulation = do
+  printLine "runM1simulation starting"
   simulationLooper
   printLine "runM1simulation terminated"
 
@@ -435,9 +486,9 @@ m1ClockCycle = do
 
 establishM1inputs :: StateT (SysState DriverState) IO ()
 establishM1inputs = do
-  printLine "establishM1inputs"
+--  printLine "establishM1inputs"
   mx <- getInputList
-  printLine ("establish mx = " ++ show mx)
+--  printLine ("establish mx = " ++ show mx)
   case mx of
     Just x -> do -- use the data x to fill buffers
       printLine ("establishM1inputs using " ++ x)
@@ -445,7 +496,7 @@ establishM1inputs = do
       return ()
     Nothing -> do -- look at mode to decide what to do
       oldmode <- getProcessorMode
-      printLine ("establishM1inputs current processor mode = " ++ show oldmode)
+--      printLine ("establishM1inputs current processor mode = " ++ show oldmode)
       mds <- getUserState
       case mds of
         Just ds -> do
@@ -590,26 +641,25 @@ m1Step args = do
 bootInputs :: IO [String]
 bootInputs = do
   code <- readObjectFile
-  let f i x = "0 1 " ++ show i ++ " " ++ show x     -- show [0, 1, i, x]
+  let f i x = "0 1 1 0 0 " ++ show i ++ " " ++ show x
   let inps = zipWith f [0..] code
   return inps
 
 resetData :: [String]
-resetData =  ["1 0 0 0"]
+resetData =  ["1 0 0 0 0 0 0"]
 
 runData :: [String]
-runData =  ["0 0 0 0"]
-
+runData =  ["0 0 0 0 0 0 0"]
 
 getProcessorMode :: StateT (SysState DriverState) IO ProcessorMode
 getProcessorMode = do
 --  s <- get
 --  let Just ds = userState s
-  printLine "getProcessorMode about to get user state"
+--  printLine "getProcessorMode about to get user state"
   mds <- getUserState
   case mds of
     Just ds -> do
-      printLine "getProcessorMode back from get user state"
+--      printLine "getProcessorMode back from get user state"
       printLine (show (processorMode ds))
       return (processorMode ds)
     Nothing -> do

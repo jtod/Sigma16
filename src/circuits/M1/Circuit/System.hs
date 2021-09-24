@@ -15,6 +15,9 @@
 -- a copy of the GNU General Public License along with Sigma16.  If
 -- not, see <https://www.gnu.org/licenses/>.
 
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module M1.Circuit.System
   ( m1
   , module M1.Circuit.Interface
@@ -78,12 +81,22 @@ ________________________________________________________________________
 
 
 
-m1 reset dma dma_a dma_d =                     -- inputs: reset and dma
+{-
+Cycle stealing and dma
 
-  (ctl_state, ctl_start, ctlsigs,              -- output control info
-   dp,
-   --   datapath_outputs,                           -- output datapath info
-   m_sto, m_addr, m_real_addr, m_data, m_out)  -- output memory info
+dma           1 bit    indicates stolen clock cycle
+dma_store     1 bit    mem[dma_a] := dma_d
+dma_fetch     1 bit    m_out = mem[dma_a]
+dma_reg       1 bit    x = reg[dma_a]  (least significant 4 bits
+dma_a         16 bits  address
+dma_d         16 bits  data
+-}
+
+-- m1 reset dma dma_store dma_fetch dma_reg dma_a dma_d =
+m1 reset (SysIO {..}) =
+  (ctl_state, ctl_start, ctlsigs,              -- control
+   dp,                                         -- datapath
+   m_sto, m_addr, m_real_addr, m_data, m_out)  -- memory
 
   where
 
@@ -96,7 +109,7 @@ m1 reset dma dma_a dma_d =                     -- inputs: reset and dma
 -- Datapath
 --    datapath_outputs = datapath ctlsigs m_out
 --    (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q) = datapath_outputs
-    dp = datapath ctlsigs m_out
+    dp = datapath ctlsigs (SysIO {..}) m_out
     (r,ccnew,condcc) = aluOutputs dp
 
 -- Control
@@ -107,6 +120,14 @@ m1 reset dma dma_a dma_d =                     -- inputs: reset and dma
     m_out = memw n msize m_sto m_real_addr m_data
 
 -- Input/Output using DMA
-    m_data = mux1w dma (md dp) dma_d
-    m_sto = or2 dma (ctl_sto ctlsigs)
-    m_addr = mux1w dma (ma dp) dma_a
+    m_sto = or2 (and2 io_DMA io_memStore)              -- I/O store
+                (and2 (inv io_DMA) (ctl_sto ctlsigs))  -- CPU store
+    m_data = mux1w io_DMA (md dp) io_data
+    m_addr = mux1w io_DMA (ma dp) io_address
+
+{-
+    m_sto = or2 (and2 (io_DMA io) (io_memStore io))
+                (and2 (inv (io_DMA io)) (ctl_sto ctlsigs))
+    m_data = mux1w (io_DMA io) (md dp) (io_data io)
+    m_addr = mux1w (io_DMA io) (ma dp) (io_address io)
+-}

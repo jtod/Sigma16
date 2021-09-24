@@ -20,6 +20,7 @@
 ------------------------------------------------------------------------
 
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module M1.Circuit.Datapath where
 
@@ -44,10 +45,12 @@ memory system or the DMA input controller. -}
 datapath
   :: CBit a
   => CtlSig a
+  -> SysIO a
   -> [a]
   -> DPoutputs a
 
-datapath ctlsigs memdat = dp
+-- datapath ctlsigs io memdat = dp
+datapath (CtlSig {..}) (SysIO {..}) memdat = dp
   where
 -- Interface    
     dp = DPoutputs {aluOutputs, r, ccnew, condcc,
@@ -58,27 +61,27 @@ datapath ctlsigs memdat = dp
     n = 16    -- word size
 
 -- Registers
-    (a,b,cc) = regFileSpec n (ctl_rf_ld ctlsigs) (ctl_rf_ldcc ctlsigs)
+    (a,b,cc) = regFileSpec n ctl_rf_ld ctl_rf_ldcc
                   ir_d rf_sa rf_sb
                   p ccnew
-    ir = reg n (ctl_ir_ld ctlsigs) memdat
-    pc = reg n (ctl_pc_ld ctlsigs) q
-    ad = reg n (ctl_ad_ld ctlsigs) (mux1w (ctl_ad_alu ctlsigs) memdat r)
+    ir = reg n ctl_ir_ld memdat
+    pc = reg n ctl_pc_ld q
+    ad = reg n ctl_ad_ld (mux1w ctl_ad_alu memdat r)
 
 -- ALU
-    aluOutputs = alu n (ctl_alu_a ctlsigs, ctl_alu_b ctlsigs) x y cc ir_d
+    aluOutputs = alu n (ctl_alu_a, ctl_alu_b) x y cc ir_d
     (r,ccnew,condcc) = aluOutputs
       
 -- Internal processor signals
-    x = mux1w (ctl_x_pc ctlsigs) a pc             -- alu input 1
-    y = mux1w (ctl_y_ad ctlsigs) b ad             -- alu input 2
-    rf_sa = mux1w (ctl_rf_sd ctlsigs) ir_sa ir_d  -- a = reg[rf_sa]
+    x = mux1w ctl_x_pc a pc             -- alu input 1
+    y = mux1w ctl_y_ad b ad             -- alu input 2
+    rf_sa = mux1w ctl_rf_sd ir_sa ir_d  -- a = reg[rf_sa]
     rf_sb = ir_sb                                 -- b = reg[rf_sb]
-    p  = mux1w (ctl_rf_pc ctlsigs)                -- regfile data input
-           (mux1w (ctl_rf_alu ctlsigs) memdat r)
+    p  = mux1w ctl_rf_pc                -- regfile data input
+           (mux1w ctl_rf_alu memdat r)
            pc
-    q = mux1w (ctl_pc_ad ctlsigs) r ad        -- input to pc
-    ma = mux1w (ctl_ma_pc ctlsigs) ad pc      -- memory address
+    q = mux1w ctl_pc_ad r ad        -- input to pc
+    ma = mux1w ctl_ma_pc ad pc      -- memory address
     md = a                                    -- memory data
 
 -- Instruction fields

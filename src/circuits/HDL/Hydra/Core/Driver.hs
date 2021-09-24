@@ -553,12 +553,12 @@ getInputList = do
     Just (i,xs) -> do
       if i < length xs
         then do let fm' = Map.insert key (i+1,xs) fm
-                printLine ("getInputList THEN key=" ++ key ++ " i=" ++ show i)
+--                printLine ("getInputList THEN key=" ++ key ++ " i=" ++ show i)
                 put (s {inputLists = fm'})
-                printLine ("THEN " ++ show (Map.lookup key fm'))
+--                printLine ("THEN " ++ show (Map.lookup key fm'))
                 return $ Just (xs!!i)
         else do let fm' = Map.insert key (0,xs) fm
-                printLine ("getInputList ELSE key=" ++ key ++ " i=" ++ show i)
+--                printLine ("getInputList ELSE key=" ++ key ++ " i=" ++ show i)
                 put (s {inputLists = fm'})
                 return Nothing
     Nothing -> return Nothing
@@ -704,7 +704,9 @@ printOutPorts = do
   s <- get
   let ports = outPortList s
   let i = cycleCount s
-  liftIO $ putStrLn ("Output signals during cycle " ++ show i)
+  if length ports > 0
+    then liftIO $ putStrLn ("Output signals during cycle " ++ show i)
+    else return ()
   mapM_ printOutPort ports
 
 printOutPort :: OutPort -> StateT (SysState a) IO ()
@@ -850,7 +852,7 @@ format xs = do
 
 runFormat :: StateT (SysState a) IO ()
 runFormat = do
-  printLine "runFormat starting"
+--  printLine "runFormat starting"
   s <- get
   let mfmt = formatSpec s
   case mfmt of

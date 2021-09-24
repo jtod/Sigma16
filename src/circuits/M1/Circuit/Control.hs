@@ -20,6 +20,7 @@
 ----------------------------------------------------------------------
 
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module M1.Circuit.Control where
 
