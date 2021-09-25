@@ -62,17 +62,13 @@ main = driver $ do
   let io = SysIO {..}
 
 -- The M1 circuit
-  let  (ctlstate, ctl_start, ctlsigs, dp,
+  let  (CtlState {..}, ctl_start, (CtlSig {..}), dp,
         m_sto, m_addr, m_real_addr, m_data, m_out)
          = m1 reset io
 
   setPeek m_out
   setPeek (b dp)
   
---  out_st_instr_fet <- outPortBit "st_instr_fet" (st_instr_fet ctlstate)
-  
---  out_m_real_addr <- outPortWord "m_real_addr" m_real_addr showBin
---  out_m_out       <- outPortWord "m_out" m_out showBin
   
 -- Define names for subsystem outputs
   let (r,ccnew,condcc) = aluOutputs dp
@@ -81,144 +77,120 @@ main = driver $ do
 -- Format the output
 
   format
-    [
---      string "hello"
---    , string " condcc=", bit condcc
---    , string " st_instr_fet = ", bit (st_instr_fet ctlstate)
---    , string "\n"
-     string "Computer system inputs\n"
+    [ string "\nSystem control\n"
     , string "  reset = ", bit reset
-    , string "    io_DMA = ", bit io_DMA
-    , string "    io_memStore = ", bit io_memStore
-    , string "    io_memFetch = ", bit io_memFetch
-    , string "    io_regFetch = ", bit io_regFetch
-    , string "    io_address=", binhex io_address
-    , string "    io_data=", binhex io_data
+--    , string "  cpu = ", bit (cpu ctlsigs)
+    , string "  cpu = ", bit cpu
+    , string "  ctl_start = ", bit ctl_start
     , string "\n"
-    , string "\nctl_start = ", bit ctl_start, string "\n"
-    , string "\nControl state\n  ",
-     string " st_instr_fet = ", bit (st_instr_fet ctlstate),
-     string "  st_dispatch = ", bit (st_dispatch ctlstate),
-     string "       st_add = ", bit (st_add ctlstate),
-     string "       st_sub = ", bit (st_sub ctlstate),
-     string "\n  ",
-     string "      st_mul0 = ", bit (st_mul0 ctlstate),
-     string "      st_cmp = ",  bit (st_cmp ctlstate),
-     string "\n  ",
-     string "     st_trap0 = ", bit (st_trap0 ctlstate),
-     string "      st_lea0 = ", bit (st_lea0 ctlstate),
-     string "      st_lea1 = ", bit (st_lea1 ctlstate),
-     string "     st_load0 = ", bit (st_load0 ctlstate),
-     string "\n  ",
-     string "     st_load1 = ", bit (st_load1 ctlstate),
-     string "     st_load2 = ", bit (st_load2 ctlstate),
-     string "    st_store0 = ", bit (st_store0 ctlstate),
-     string "    st_store1 = ", bit (st_store1 ctlstate),
-     string "\n  ",
-     string "    st_store2 = ", bit (st_store2 ctlstate),
-     string "     st_jump0 = ", bit (st_jump0 ctlstate),
-     string "     st_jump1 = ", bit (st_jump1 ctlstate),
-     string "     st_jump2 = ", bit (st_jump2 ctlstate),
-     string "\n  ",
-     string "     st_jumpc00 = ", bit (st_jumpc00 ctlstate),
-     string "     st_jumpc01 = ", bit (st_jumpc01 ctlstate),
-     string "     st_jumpc02 = ", bit (st_jumpc02 ctlstate),
+    , string "\nInput/Output\n"
+    , string "  io_DMA = ", bit io_DMA
+    , string "  io_memStore = ", bit io_memStore
+    , string "  io_memFetch = ", bit io_memFetch
+    , string "  io_regFetch = ", bit io_regFetch
+    , string "\n"
+    , string "  io_address = ", binhex io_address
+    , string "  io_data = ", binhex io_data
+--    , string "  md = ", bits (md dp)
+    , string "\n"
+    , string "\nControl state\n  "
+    , string " st_instr_fet = ", bit dff_instr_fet, bit st_instr_fet
+    , string "  st_dispatch = ", bit dff_dispatch, bit st_dispatch
+    , string "       st_add = ", bit dff_add, bit st_add
+    , string "       st_sub = ", bit dff_sub, bit st_sub
+    , string "\n  "
+    , string "      st_mul0 = ", bit dff_mul0, bit st_mul0
+    , string "      st_div0 = ", bit dff_div0, bit st_div0
+    , string "       st_cmp = ", bit dff_cmp, bit st_cmp
+    , string "     st_trap0 = ", bit dff_trap0, bit st_trap0
+    , string "\n  "
+    , string "      st_lea0 = ", bit dff_lea0, bit st_lea0
+    , string "      st_lea1 = ", bit dff_lea1, bit st_lea1
+    , string "      st_lea2 = ", bit dff_lea2, bit st_lea2
+    , string "     st_load0 = ", bit dff_load0, bit st_load0
+    , string "\n  "
+    , string "     st_load1 = ", bit dff_load1, bit st_load1
+    , string "     st_load2 = ", bit dff_load2, bit st_load2
+    , string "    st_store0 = ", bit dff_store0, bit st_store0
+    , string "    st_store1 = ", bit dff_store1, bit st_store1
+    , string "\n  "
+    , string "    st_store2 = ", bit dff_store2, bit st_store2
+    , string "     st_jump0 = ", bit dff_jump0, bit st_jump0
+    , string "     st_jump1 = ", bit dff_jump1, bit st_jump1
+    , string "     st_jump2 = ", bit dff_jump2, bit st_jump2
+    , string "\n  "
+    , string "   st_jumpc00 = ", bit dff_jumpc00, bit st_jumpc00
+    , string "   st_jumpc01 = ", bit dff_jumpc01, bit st_jumpc01
+    , string "   st_jumpc02 = ", bit dff_jumpc02, bit st_jumpc02
+    , string "   st_jumpc10 = ", bit dff_jumpc10, bit st_jumpc10
+    , string "\n  "
+    , string "   st_jumpc11 = ", bit dff_jumpc11, bit st_jumpc11
+    , string "   st_jumpc12 = ", bit dff_jumpc12, bit st_jumpc12
+    , string "      st_jal0 = ", bit dff_jal0, bit st_jal0
+    , string "      st_jal1 = ", bit dff_jal1, bit st_jal1
+    , string "\n  "
+    , string "      st_jal2 = ", bit dff_jal2, bit st_jal2
 
-     string "     st_jumpc10 = ", bit (st_jumpc10 ctlstate),
-     string "     st_jumpc11 = ", bit (st_jumpc11 ctlstate),
-     string "     st_jumpc12 = ", bit (st_jumpc12 ctlstate),
-     string "\n  ",
-     string "      st_jal0 = ", bit (st_jal0 ctlstate),
-     string "\n  ",
-     string "      st_jal1 = ", bit (st_jal1 ctlstate),
-     string "      st_jal2 = ", bit (st_jal2 ctlstate),
+    , string "\n\nControl signals\n  "
+    , string "    ctl_alu_a = ", bit ctl_alu_a
+    , string "    ctl_alu_b = ", bit ctl_alu_b
+    , string "     ctl_x_pc = ", bit ctl_x_pc
+    , string "     ctl_y_ad = ", bit ctl_y_ad
+    , string "\n  "
+    , string "    ctl_rf_ld = ", bit ctl_rf_ld
+    , string "  ctl_rf_ldcc = ", bit ctl_rf_ldcc
+    , string "    ctl_rf_pc = ", bit ctl_rf_pc
+    , string "    ctl_pc_ld = ", bit ctl_pc_ad
+    , string "\n  "
+    , string "    ctl_pc_ad = ", bit ctl_pc_ad
+    , string "   ctl_rf_alu = ", bit ctl_rf_alu
+    , string "    ctl_rf_sd = ", bit ctl_rf_sd
+    , string "    ctl_ir_ld = ", bit ctl_ir_ld
+    , string "\n  "
+    , string "    ctl_pc_ld = ", bit ctl_pc_ld
+    , string "    ctl_ad_ld = ", bit ctl_ad_ld
+    , string "   ctl_ad_alu = ", bit ctl_ad_alu
+    , string "    ctl_ma_pc = ", bit ctl_ma_pc
+    , string "\n  "
+    , string "      ctl_sto = ", bit ctl_sto
 
-     string "\n\nControl signals\n  ",
-     string "  ctl_alu_a   = ", bit (ctl_alu_a ctlsigs),
-     string "  ctl_alu_b   = ", bit (ctl_alu_b ctlsigs),
-     string "\n  ",
-     string "  ctl_x_pc    = ", bit (ctl_x_pc ctlsigs),
-     string "  ctl_y_ad    = ", bit (ctl_y_ad ctlsigs),
-     string "\n  ",
-     string "  ctl_rf_ld   = ", bit (ctl_rf_ld ctlsigs),
-     string "  ctl_rf_ldcc = ", bit (ctl_rf_ldcc ctlsigs),
-     string "  ctl_rf_pc   = ", bit (ctl_rf_pc ctlsigs),
-     string "\n  ",
-     string "  ctl_pc_ld   = ", bit (ctl_pc_ad ctlsigs),
-     string "  ctl_pc_ad   = ", bit (ctl_pc_ad ctlsigs),
-           
-     string "\n  ",
-     string "  ctl_rf_alu  = ", bit (ctl_rf_alu ctlsigs),
-     string "  ctl_rf_sd   = ", bit (ctl_rf_sd ctlsigs),
-     string "  ctl_ir_ld   = ", bit (ctl_ir_ld ctlsigs),
-     string "  ctl_pc_ld   = ", bit (ctl_pc_ld ctlsigs),
-     string "\n  ",
-     string "  ctl_ad_ld   = ", bit (ctl_ad_ld ctlsigs),
-     string "  ctl_ad_alu  = ", bit (ctl_ad_alu ctlsigs),
-     string "  ctl_ma_pc   = ", bit (ctl_ma_pc ctlsigs),
-     string "  ctl_sto     = ", bit (ctl_sto ctlsigs),
-
-     string "\n\nDatapath\n  ",
-     string "  ir = ", binhex (ir dp),
-     string "  pc = ", binhex (pc dp),
-     string "  ad = ", binhex (ad dp),
-     string "   a = ", binhex (a dp),
-     string "   b = ", binhex (b dp),
---     string "   r = ", binhex (r dp),
-      string "   r = ", binhex (r),
-     string "\n  ",
-     string "   x = ", binhex (x dp),
-     string "   y = ", binhex (y dp),
-     string "   p = ", binhex (p dp),
-     string "  ma = ", binhex (ma dp),
-     string "  md = ", binhex (md dp),
-     string "\n  ",
-     string "  cc = ", binhex (cc dp),
---     string " condcc = ", bit (condcc dp),
-      string " condcc = ", bit (condcc),
+     , string "\n\nALU\n"
+     , string "  ALU inputs: "
+     , string "  x = ", binhex (x dp)
+     , string "  y = ", binhex (y dp)
+     , string "  cc = ", binhex (cc dp)
+     , string "  ir_d = ", binhex (ir_d dp)
+     , string "\n  ALU outputs: "
+     , string "  r = ", binhex r
+     , string "  ccnew = ", binhex ccnew
+     , string "  condcc = ", bit condcc
+     
+     , string "\n\nDatapath\n  "
+     , string "    ir = ", binhex (ir dp)
+     , string "    pc = ", binhex (pc dp)
+     , string "    ad = ", binhex (ad dp)
+     , string "    cc = ", binhex (cc dp)
+     , string "\n  "
+     , string "     a = ", binhex (a dp)
+     , string "     b = ", binhex (b dp)
+     , string "     x = ", binhex (x dp)
+     , string "     y = ", binhex (y dp)
+     , string "\n  "
+     , string "     p = ", binhex (p dp)
+     , string "     q = ", binhex (q dp)
+     , string "     r = ", binhex (r)
+     , string "\n  "
+     , string "    ma = ", binhex (ma dp)
+     , string "    md = ", binhex (md dp)
 
 -- Memory interface
-
-     string "\n\nMemory\n  ",
-     string " ctl_sto = ", bit (ctl_sto ctlsigs),
-     string "  m_sto = ", bit m_sto,
-     string "\n  ",
-     string "  m_addr = ", binhex m_addr,
-     string "  m_real_addr = ", binhex m_real_addr,
---     string "  m_real_addr = ", bits m_real_addr,
-     string "  m_data = ", binhex m_data,
---     string "  m_data = ", bits m_data,
---     string "  m_data = ", bits m_data,
-     string "  m_out =", binhex m_out,
---     string "  m_out =", bits m_out,
-     string "\n\nInput/Output\n  ",
-     string "  reset = ", bit reset,
-     string "  io_DMA = ", bit io_DMA,
-     string "  io_memStore = ", bit io_DMA,
-     string "  io_memFetch = ", bit io_DMA,
-     string "  io_regFetch = ", bit io_DMA,
-     string "  io_address = ", binhex io_address,
-     string "  io_data = ", binhex io_data,
-     string "\n",
-     string "  md = ", bits (md dp),
-     string "  dma_d = ", bits io_data,
-     string "\n",
-     string "  q = ", bits (q dp),
-     string "\n",
-
-     string "ALU inputs: ",
-     string "  x = ", bits (x dp),
-     string "  cc = ", bits (cc dp),
-     string "  ir_d = ", bits (ir_d dp),
-     string "\n",
-     string "ALU outputs: ",
---     string "  r = ", bits (r dp),
-      string "  r = ", bits (r),
---     string "  ccnew = ", bits (ccnew dp),
-      string "  ccnew = ", bits (ccnew),
---     string "  condcc = ", bit (condcc dp),
-      string "  condcc = ", bit (condcc),
-      string "\n" ,
+     , string "\n\nMemory\n  "
+     , string "  m_sto = ", bit m_sto
+     , string "  m_addr = ", binhex m_addr
+     , string "  m_real_addr = ", binhex m_real_addr
+     , string "  m_data = ", binhex m_data
+     , string "  m_out =", binhex m_out
+     , string "\n\n"
 
 -- ...................................................................
 -- Higher level analysis of what happened on this cycle.  The
@@ -227,22 +199,19 @@ main = driver $ do
 -- description.
 -- ...................................................................
 
-
 -- Print a message when the system is reset
 
-         fmtIf reset
+     ,  fmtIf reset
            [string ("\n" ++ take 72 (repeat '*') ++ "\n"),
             string "Reset: control algorithm starting",
             string ("\n" ++ take 72 (repeat '*'))]
            [],
 
-
 -- When the displacement for an RX instruction is fetched, save
 -- it in the simulation driver state
 
-         fmtIf (orw [st_lea1 ctlstate, st_load1 ctlstate, st_store1 ctlstate,
-                     st_jump1 ctlstate, st_jumpc01 ctlstate, st_jumpc11 ctlstate,
-                     st_jal1 ctlstate])
+         fmtIf (orw [st_lea1, st_load1, st_store1, st_jump1, st_jumpc01,
+                     st_jumpc11, st_jal1])
            [setStateWs setDisplacement [(ad dp)],
             string "Fetched displacement = ",
             simstate showDisplacement,
@@ -252,36 +221,34 @@ main = driver $ do
 -- Record the effective address when it is calculated.  This is the r
 -- output of the ALU, and usually will be loaded into the ad register.
 
-         fmtIf (orw [st_lea1 ctlstate, st_load1 ctlstate, st_store1 ctlstate,
-                     st_jump1 ctlstate, st_jumpc01 ctlstate, st_jumpc11 ctlstate,
-                     st_jal1 ctlstate])
---           [setStateWs setEffAddr [r dp]]
+         fmtIf (orw [st_lea1, st_load1, st_store1, st_jump1,
+                     st_jumpc01, st_jumpc11, st_jal1])
          [setStateWs setEffAddr [r]]
            [],
 
 -- Say whether a conditional jump was performed
 
 --         fmtIf (and2 (st_jumpc00 ctlstate)  (inv (condcc dp)))
-         fmtIf (and2 (st_jumpc00 ctlstate)  (inv (condcc)))
+         fmtIf (and2 st_jumpc00  (inv condcc))
            [string "jumpc0 instruction did not perform jump",
             setStateWs setJump [[zero], ad dp]]
            [],
 
 --         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc dp))
-         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc))
+         fmtIf (and2 st_jumpc10 condcc)
            [string "jumpc1 instruction jumped",
 --            setStateWs setJump [[one], r dp]]
              setStateWs setJump [[one], r]]
            [],
 
-         fmtIf (or2 (st_jump2 ctlstate) (st_jal2 ctlstate))
+         fmtIf (or2 st_jump2 st_jal2)
            [
 --            setStateWs setJump [[one], r dp]]
              setStateWs setJump [[one], r]]
            [],
          
 -- Process a load to the register file
-         fmtIf (ctl_rf_ld ctlsigs)
+         fmtIf ctl_rf_ld
            [string "Register file update: ",
             string "R",
             bindec 1 (field (ir dp) 4 4),
@@ -292,7 +259,7 @@ main = driver $ do
            [],
 
 -- Process a store to memory
-         fmtIf (ctl_sto ctlsigs)
+         fmtIf ctl_sto
            [string "Memory store:  ",
             string "mem[",
             binhex m_addr,
@@ -311,7 +278,7 @@ main = driver $ do
             string "Executed instruction:  ",
             fmtWordsGeneral findMnemonic [field (ir dp) 0 4, field (ir dp) 12 4],
             string " ",
-            fmtIf (orw [st_add ctlstate, st_sub ctlstate, st_cmp ctlstate])
+            fmtIf (orw [st_add, st_sub, st_cmp])
 
               [string " R", bindec 1 (field (ir dp) 4 4),    -- RRR format
                string ",R", bindec 1 (field (ir dp) 8 4),
@@ -341,7 +308,7 @@ main = driver $ do
 -- If a trap is being executed, indicate this in the simulation driver
 -- state, so the driver can terminate the simulation
 
-         fmtIf (st_trap0 ctlstate)
+         fmtIf st_trap0
            [setStateWs setTrap [],
             setHalted,
             string ("\n" ++ take 72 (repeat '*') ++ "\n"),
@@ -350,7 +317,6 @@ main = driver $ do
             string (take 72 (repeat '*') ++ "\n")
            ]
            [],
-
       string "\n"
     ]
 
@@ -455,7 +421,10 @@ commandLoop = do
   else if ws!!0 == "cycle"
     then m1ClockCycle
   else if ws!!0 == "mem"
-    then dumpMem 0 15
+    then do
+      let start = safeReadEltInt ws 1
+      let end = safeReadEltInt ws 2
+      dumpMem start end
   else if ws!!0 == "regs"
     then dumpRegFile
   else if ws!!0 == "quit"
@@ -468,6 +437,12 @@ commandLoop = do
     True -> commandLoop
     False -> return ()
 
+safeReadEltInt :: [String] -> Int -> Int
+safeReadEltInt ws i =
+  if length ws > i && i >= 0
+    then read (ws!!i)
+    else 0
+         
 -- Dump memory from start to end address
 
 dumpMem :: Int -> Int -> StateT (SysState DriverState) IO ()
@@ -504,9 +479,11 @@ peekRegFile = do
 printHelp :: IO ()
 printHelp = do
   putStrLn "Commands for the M1 driver"
+  putStrLn "  (empty line) -- perform one clock cycle"
   putStrLn "  cycle        -- perform one clock cycle"
-  putStrLn "  (empty line) -- same as cycle"
   putStrLn "  run          -- perform clock cycles repeatedly until halt"
+  putStrLn "  regs         -- display contents of the register file"
+  putStrLn "  mem a b      -- display memory from address a to b"
   putStrLn "  quit         -- return to ghci or shell prompt"
   putStrLn "  help         -- list the commands"
   
@@ -1056,3 +1033,22 @@ run_Sigma16_executable prog n = do
 --  printLine ("run executable limit = " ++ show m)
 --  printLine ("input = " ++ show (take m inps))
 --  liftIO $ sim_m1 (take m inps)
+--      string "hello"
+--    , string " condcc=", bit condcc
+--    , string " st_instr_fet = ", bit (st_instr_fet ctlstate)
+--    , string "\n"
+--     , string "  x = ", bits (x dp)
+--     , string "  cc = ", bits (cc dp)
+--     , string "  ir_d = ", bits (ir_d dp)
+--     , string "  r = ", bits (r)
+--     , string "  ccnew = ", bits (ccnew)
+--     , string "  condcc = ", bit (condcc)
+--     string "  m_real_addr = ", bits m_real_addr,
+--     string "  m_data = ", bits m_data,
+--     string "  m_data = ", bits m_data,
+--     string "  m_out =", bits m_out,
+--  let  (ctlstate, ctl_start, ctlsigs, dp,
+--  let  (CtlState {..}, ctl_start, ctlsigs, dp,
+--  out_st_instr_fet <- outPortBit "st_instr_fet" (st_instr_fet ctlstate)
+--  out_m_real_addr <- outPortWord "m_real_addr" m_real_addr showBin
+--  out_m_out       <- outPortWord "m_out" m_out showBin

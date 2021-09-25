@@ -1167,13 +1167,11 @@ mdofmt (FmtIf x fs_then fs_else) =
      fs_else' <- (if b then mskipfmts else mdofmts) fs_else
      return (FmtIf (future x) fs_then' fs_else')
 
-{- 
 mdofmt (FmtCycle f) =
---  do (cycle,_) <- get
-  do 
+  do s <- get
+     let cycle = cycleCount s
      lift $ putStr (f cycle)
      return (FmtCycle f)
--}
 
 -- Skip current cycle infor for a list of formats, return futures
 

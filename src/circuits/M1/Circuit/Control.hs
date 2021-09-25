@@ -195,49 +195,51 @@ control reset ir condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
       dff_lea0 = dff (pRX!!0)
       st_lea0  = and2 cpu dff_lea0
       dff_lea1 = dff st_lea0
-      st_lea1  = and2 cpu st_lea0
+      st_lea1  = and2 cpu dff_lea1
+      dff_lea2 = dff st_lea1
+      st_lea2  = and2 cpu dff_lea2
 
       dff_load0 = dff (pRX!!1)
       st_load0  = and2 cpu dff_load0
-      dff_load1 = st_load0
-      st_load1  = and2 cpu st_load0
+      dff_load1 = dff st_load0
+      st_load1  = and2 cpu dff_load1
       dff_load2 = dff st_load1
-      st_load2  = and2 cpu st_load1
+      st_load2  = and2 cpu dff_load2
 
       dff_store0 = dff (pRX!!2)
       st_store0  = and2 cpu dff_store0
       dff_store1 = dff st_store0
-      st_store1  = and2 cpu st_store0
+      st_store1  = and2 cpu dff_store1
       dff_store2 = dff st_store1
-      st_store2  = and2 cpu st_store1
+      st_store2  = and2 cpu dff_store2
 
       dff_jump0 = dff (pRX!!3)
       st_jump0  = and2 cpu dff_jump0
       dff_jump1 = dff st_jump0
-      st_jump1  = and2 cpu st_jump0
+      st_jump1  = and2 cpu dff_jump1
       dff_jump2 = dff st_jump1
-      st_jump2  = and2 cpu st_jump1
+      st_jump2  = and2 cpu dff_jump2
 
       dff_jumpc00 = dff (pRX!!4)
       st_jumpc00  = and2 cpu dff_jumpc00
       dff_jumpc01 = dff st_jumpc00
-      st_jumpc01  = and2 cpu st_jumpc00
+      st_jumpc01  = and2 cpu dff_jumpc01
       dff_jumpc02 = dff st_jumpc01
-      st_jumpc02  = and2 cpu st_jumpc01
+      st_jumpc02  = and2 cpu dff_jumpc02
 
       dff_jumpc10 = dff (pRX!!5)
       st_jumpc10  = and2 cpu dff_jumpc10
       dff_jumpc11 = dff st_jumpc10
-      st_jumpc11  = and2 cpu st_jumpc10
+      st_jumpc11  = and2 cpu dff_jumpc11
       dff_jumpc12 = dff st_jumpc11
-      st_jumpc12  = and2 cpu st_jumpc11
+      st_jumpc12  = and2 cpu dff_jumpc12
 
       dff_jal0 = dff (pRX!!6)
       st_jal0  = and2 cpu dff_jal0
       dff_jal1 = dff st_jal0
-      st_jal1  = and2 cpu st_jal0
+      st_jal1  = and2 cpu dff_jal1
       dff_jal2 = dff st_jal1
-      st_jal2  = and2 cpu st_jal1
+      st_jal2  = and2 cpu dff_jal2
 
       dff_add   = dff (pRRR!!0)
       st_add    = and2 cpu dff_add

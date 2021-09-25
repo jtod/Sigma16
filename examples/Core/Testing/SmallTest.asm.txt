@@ -1,0 +1,52 @@
+; SmallTest
+; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
+
+; Condition code flags are defined in architecture.mjs.  Each flag has
+; a symbolic name used in the implementation, and a display name used
+; in the "instruction decode" panel on the emulator GUI.  The usual
+; relations < = > are used for integers (binary representation) ,
+; while L = G are used for natural numbers (two's complement
+; representation).  The code display characters are sSCVv<L=G>
+
+; index  val  code  display   type and relation
+;----------------------------------------------
+; bit 0  0001  g      >        int >
+; bit 1  0002  G      G        nat >
+; bit 2  0004  E      =        nat,int =
+; bit 3  0008  L      L        nat <
+; bit 4  0010  l      <        int <
+; bit 5  0020  v      v        int overflow
+; bit 6  0040  V      V        int overflow
+; bit 7  0080  C      C        bin carry out, carry in (addc)
+; bit 8  0100  S      S        bin carry out, carry in (addc)
+; bit 9  0200  s      s        bin carry out, carry in (addc)
+
+; Test data
+      lea   R1,3[R0]    ; 0003  R1 := 3
+      lea   R2,5[R0]    ; 0005  R2 := 5
+      lea   R3,-3[R0]   ; fffd  R3 := -3
+      lea   R4,-7[R0]   ; fff9  R4 := -7
+
+; Compare two positives
+      cmp    R1,R2      ; R15 = 0018 <L
+      add    R9,R15,R0  ; R9 := 0018
+      cmp    R2,R1      ; R15 = 0003 >G
+      add    R9,R15,R0  ; R9 := 0003
+      cmp    R2,R3      ; R15 = 0009 >L
+      add    R9,R15,R0  ; R9 := 0009
+      cmp    R3,R2      ; R15 = 0012 <G
+      add    R9,R15,R0  ; R9 := 0012
+
+; Compare positive and negative
+      cmp    R2,R3      ; R15 = 0009 L>
+      add    R9,R15,R0  ; R9 := 0009
+      cmp    R3,R2      ; R15 = 0012 <G
+      add    R9,R15,R0  ; R9 := 0012
+
+; Compare two negatives
+      cmp    R3,R4      ; R15 = 0003 G>
+      add    R9,R15,R0  ; R9 := 0003
+      cmp    R4,R3      ; R15 = 0018 <L
+      add    R9,R15,R0  ; R9 := 0018
+
+      trap   R0,R0,R0
