@@ -6,7 +6,11 @@ protected
 protect*
 node_modules
 *.wasm
+*.html
 !Sigma16.html
+!Sigma16UserGuide.html
+!HydraUserGuide.html
+!
 *.lst.txt
 *.obj.txt
 *.md.txt
