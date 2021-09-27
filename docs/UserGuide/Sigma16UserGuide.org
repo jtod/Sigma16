@@ -61,6 +61,54 @@ programs, before delving into the details.  For a quick start, begin
 with the tutorials, which show you how to enter and run a program and
 how to use the programming environment.
 
+This directory contains a digital circuits which is a full processor
+for the Core subset of the Sigma16 architecture.  It also contains a
+circuit simulator that will run the circuit.  You can make the circuit
+boot a machine language program; as the circuit runs it will execute
+the program.
+
+-- M1 is a circuit "Machine 1" that implements the Core subset of
+   Sigma16
+
+-- HDL/Hydra is a functional computer hardware description language
+   (HDL).  This is a text language that allows you to decribe digital
+   circuits very precisely, and it also has the ability to simulate
+   the circuits.  All the circuits in M1 are specified using Hydra.  A
+   copy of Hydra in included in Sigma16/src/circuits.  This means you
+   don't need to download and install Hydra, and it ensures that the
+   version of Hydra is compatible with the other software toolss.
+
+-- Sigma16 is a folder containing sofware tools that can read and
+   parse object files produced by the Sigma16 assembler.  This data is
+   used to provide inputs to the circuits
+
+The commands should be executed from within the circuits directory;
+this enables ghc to find the source files.
+
+The assembler reads in a source file (e.g. Add.asmltxt).  It writes
+out several files: the machine language code (Add.obj.txt), the
+assembly listing file (Add.lst.txt), and a metadata file (Add.md.txt).
+You can ignore the metadata file, but it's worth looking at the obj
+and lst files.  The object code file Add.obj.txt contains the actual
+machine language program which the circuit can execute.
+
+Naturally, if you modify the Sigma16 assembly language program, you
+need to assemble it again before running the machine language on the
+circuit.
+
+When you run a program in ghci with :main Simple/Add, the program is
+not being emulated.  The M1 circuit is a digital circuit consisting of
+logic gates and flip flops, and nothing else.  This circuit is
+relatively large and complex, and it is actually a full CPU for the
+Sigma16 Core instruction set architecture.  The simulation tools read
+in the machine language (from Add.obj.txt) and store it into the
+memory, and the circuit then executes the program.
+
+In the commands, you just specify the file basename "Add".  The
+assembler will automatically append ".asm.txt", and the interface to
+the circuit simulator will automatically append ".obj.txt".
+
+
 * Tutorials
 
 The following short tutorials introduce the system; full details
@@ -5151,107 +5199,9 @@ Sigma16/circuits/M1
 Sigma16/circuits/M1/programs
 #+END_EXAMPLE
 
-* Running the circuit
 
-** From README.txt
+* M1: a Sigma16 CPU circuit
 
-
-
--- Sigma16: circuit/M1/README
--- Copyright (C) 2020 John T. O'Donnell
--- email: john.t.odonnell9@gmail.com
--- License: GNU GPL Version 3 or later
--- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
-
--- This file is part of Sigma16.  Sigma16 is free software: you can
--- redistribute it and/or modify it under the terms of the GNU General
--- Public License as published by the Free Software Foundation, either
--- version 3 of the License, or (at your option) any later version.
--- Sigma16 is distributed in the hope that it will be useful, but
--- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--- General Public License for more details.  You should have received
--- a copy of the GNU General Public License along with Sigma16.  If
--- not, see <https://www.gnu.org/licenses/>.
-
----------------------------------------------------------------------------
-Notes on M1 circuit for Sigma16 architecture
-John O'Donnell, 2015-2020
----------------------------------------------------------------------------
-
-This is a quick summary and reference for the M1 circuit, which
-implements the Sigma16 architecture.
-
-Author
-  Dr John O'Donnell
-  School of Computing Science
-  University of Glasgow
-  Glasgow G12 8QQ
-  United Kingdom
-  Email: john.t.odonnell9@gmail.com, john.odonnell@glasgow.ac.uk
-  Web: www.dcs.gla.ac.uk/~jtod/
-
-Quick start
-Introduction
-Building block circuits
-   reg: n-bit register component
-   mux1w: multiplexer with 1-bit control
-   register file
-Instruction set architecture of Sigma16
-The M1 circuit
-   ir register (instruction register)
-   pc register (program counter)
-   ad register (address register)
-   memory
-   list of control signals
-Running machine language on the circuit
-   Interpreting the simulation output
-
----------------------------------------------------------------------------
-			     Quick start
----------------------------------------------------------------------------
-
-The following command runs the Sigma16 machine language program
-ArrayMax on the M1 circuit, using the Hydra hardware description
-language and simulator.  The simulation output is saved in the file
-simulation.txt.
-
-   $ ghc -e main ArrayMax >simulation.txt
-
-There is a section below on running machine language programs on the
-circuit.
-
-To get started quickly
-~~~~~~~~~~~~~~~~~~~~~~
-
-  1. Change to this directory.
-  2. Launch ghci, with a search path including the Hydra source.
-  3. Load a machine language program.
-  4. Run a simulation.
-
-For example:
-
-  ghci
-  :load ProgArrayMax
-  main
-
-
-Files
-~~~~~
-
-ALU.hs           -- specifies the M1 alu
-ALU_Run.hs       -- simulation driver and test data for the ALU
-Control.hs       -- specifies the M1 control
-Control_Run.hs   -- simulation driver and test data for the control
-CPU.hs           -- specifies the full M1 system
-CPU_Run.hs       -- simulation driver for the full system
-
-ProgArrayMax.hs  -- A machine language program to test the CPU
-                 -- This is the main program
-
----------------------------------------------------------------------------
-			     Introduction
----------------------------------------------------------------------------
 
 Sigma16 is a 16-bit instruction set architecture, and M1 is a digital
 circuit that implements it.  M1 is designed for simplicity rather than
@@ -5272,10 +5222,451 @@ hexadecimal.  It produces formatted output giving the value, for each
 clock cycle, of the most important internal signals in the circuit.
 Hydra, and has a simulator that can run machine language programs.
 
+** Installation
 
-------------------------------------------------------------------------
+*** Download Sigma16
+
+
+*** Install ghc
+
+Install the ghc Haskell compiler, which you can download from the
+Haskell web page [[https://www.haskell.org/]].  A standard
+installation will also install the packaging tool =cabal=.  Check that
+the installation succeeded with =ghc --version= and =cabal --version=.
+
+#+BEGIN_EXAMPLE
+$ ghc --version
+The Glorious Glasgow Haskell Compilation System, version 9.0.1
+$ cabal --version
+cabal-install version 3.4.0.0
+compiled using version 3.4.0.0 of the Cabal library
+#+END_EXAMPLE
+
+The following commands will download and install a few packages that
+are needed.  You only need to do this once:
+
+#+BEGIN_EXAMPLE
+cabal update
+cabal install --lib parsec
+cabal install --lib mtl
+cabal install --lib ansi-terminal
+#+END_EXAMPLE
+
+*** (Optional) Install node.js and configure shell commands
+
+This entire step is optional.  To run machine language programs on the
+circuit, you need to use the assembler to translate assembly language
+source to machine language.  You can use the Sigma16 GUI app to do
+that; just assemble a program, copy the object code text into a text
+editor, and save it as a file.
+
+If you do the installation described in this section, you can simply
+issue a command in the shell.  For example, this command will
+translate MyProg.asm.txt and create the file MyProg.obj.txt:
+
+#+BEGIN_EXAMPLE
+sigma16 assemble MyProg
+#+END_EXAMPLE
+
+Visit https://nodejs.org/en/download/
+and download node.js for your platform
+
+It's convenient to define an alias to the directory where you have the
+example programs.  For example, in .bashrc:
+
+#+BEGIN_EXAMPLE
+   export COREPROGS="../../examples/Core"
+#+END_EXAMPLE
+
+Add the following to your .bashrc
+file, but replace /Users//yourlogin/Documents/path/to/ with your own file
+location.
+
+#+BEGIN_EXAMPLE
+SIGMA16=/Users/yourlogin/Documents/path/to/Sigma16
+export SIGMA16
+#+END_EXAMPLE
+
+Sigma16/src/circuits contains a file .ghci that contains several
+commands which are automatically executed with ghci is launched.  If
+.ghci is missing, you can also enter those commands manually.  Here is
+the text of .ghci:
+
+#+BEGIN_EXAMPLE
+:set -package mtl
+:set -package parsec
+:load M1/Tools/Run
+#+END_EXAMPLE
+
+
+
+** Quick start
+
+The Sigma16 download contains all the files you need, with the correct
+directory structure.  Change to this directory, which contains Hydra,
+the M1 circuit, and some additional tools:
+
+#+BEGIN_EXAMPLE
+$ cd Sigma16/src/circuits   (you need to be in this directory)
+#+END_EXAMPLE
+
+Within Sigma16/src/circuits, there are several subdirectories:
+
+- Circuits contains a collection of small to medium examples.
+- M1 contains the M1 circuit, which is a CPU that implements the Core
+  Sigma16 instruction set
+- HDL/Hydra contains the Hydra hardware description language.  You
+  won't need to read or change anything in this directory, but it
+  needs to be there.
+- Sigm16 contains a function that reads in an object code file, parses
+  it, and generates the control signals needed to boot the program
+  into the circuit.  Again, you won't need to read or change anything
+  in this directory.
+
+*** Simulating a small circuit
+
+Here is a simple circuit specification file, Circuits/Reg1.hs:
+
+#+BEGIN_EXAMPLE
+module Circuits.Reg1 where
+
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+-- import HDL.Hydra.Circuits.Register
+
+--  This example is named myreg1 to avoid confusion with the reg1
+-- circuit defined in the Hydra libraries.
+
+-- Normally reg1 would only output r, as q is just an internal signal.
+-- However, it is enlightening for a student to experiment
+-- interactively with the circuit, and to do that it's helpful to see
+-- the value of q.
+
+myreg1 :: CBit a => a -> a -> (a,a)
+myreg1 ld x = (r, q)
+  where r = dff q
+        q = or2 (and2 (inv ld) r) (and2 ld x)
+#+END_EXAMPLE
+
+To simulate the circuit, we need a simulation driver, a separate file
+that describes how to obtain the inputs and how to format the outputs.
+
+#+BEGIN_EXAMPLE
+-- Reg1Run: simulate a 1-bit register circuit
+-- Copyright (C) 2021 John T. O'Donnell.  This file is part of Sigma16.
+-- See Sigma16/README and https://jtod.github.io/home/Sigma16/
+
+-- This is an example of how to simulate a small circuit
+-- interactively.  The circuit (myreg1) uses individual bits.  For an
+-- example that also uses words, see RegRun.  See the User Guide and
+-- Sigma16/src/circuits/README.
+
+-- cd Sigma16/src/circuits   -- must be in this directory
+-- ghci                      -- start ghci and initialize using .ghci
+-- :load Circuits/Reg1Run    -- load the simulation driver
+-- :main                     -- run it: launch the main program
+
+module Main where
+import HDL.Hydra.Core.Lib   -- the hardware description language
+import Circuits.Reg1        -- definition of the circuit to be simulated
+
+main :: Driver a
+main = driver $ do
+
+  -- Input ports
+  in_ld <- inPortBit "ld"
+  in_x  <- inPortBit "x"
+
+  -- Input signals
+  let ld = inbsig in_ld
+  let x  = inbsig in_x
+  
+  -- The circuit myreg1 receives input signals and defines output signals
+  let (r,q) = myreg1 ld x
+
+  -- The output ports are interfaces to the output signals
+  out_r <- outPortBit "r" r
+  out_q <- outPortBit "q" q
+
+  -- Run interactive simulation 
+  runSimulation
+#+END_EXAMPLE
+
+Much of this is boilerplate.  The file imports the Hydra language, and
+it also imports the Reg1 circuit.  The most important parts of the
+file are:
+- Input ports.  An input port is an object with some metadata along
+  with the actual input signal, and you generate a port with a line
+  like in_ld <- inPortBit "ld".  This says that in_ld is in input
+  port, and the name is "ld".  (See RegRun.hs for an example that has
+  some ports that are words.)
+- Input signals.  A signal is essentially a wire, and we need to
+  define the signal for each input port.  The following line says that
+  ld is a signal form the port in_ld:
+#+BEGIN_EXAMPLE
+  let ld = inbsig in_ld
+#+END_EXAMPLE
+- Circuit definition.  This is a let statement that says (r,q) are the
+  outputs from the myreg1 circuit which is connected to input signals
+  ld and x:
+#+BEGIN_EXAMPLE
+  let (r,q) = myreg1 ld x
+#+END_EXAMPLE
+- We define and output port for the output signals: thus out_r is an
+  output port that ontains the signal r:
+
+#+BEGIN_EXAMPLE
+  out_r <- outPortBit "r" r
+#+END_EXAMPLE
+
+- Finally, the last statement says to simulate the circuit:
+
+#+BEGIN_EXAMPLE
+  runSimulation
+#+END_EXAMPLE
+
+To run a simulation of the circuit, enter these commands (you need to
+be in the Sigma16/src/circuits directory).  $ is the bash shell
+prompt, and : is the ghci prompt.
+
+#+BEGIN_EXAMPLE
+   $ ghci                              start Haskell and load Hydra
+   ghci> :load Circuits/Reg1Run        load the reg1 circuit and its driver
+   ghci> :main                         run interactive simulation, entter h for help
+#+END_EXAMPLE
+
+This will start an interactive session.  When the system prompts for a
+command, just press Enter, which tells it to run for one clock cycle.
+It will them prompt for the value of each input port, and will print
+out the values of the signals.
+
+#+BEGIN_EXAMPLE
+clockCycle...
+----------------------------------------------------------------------
+Cycle 0
+Reading inputs from user:
+Enter value of ld (0 or 1, then enter)
+0
+Enter value of x (0 or 1, then enter)
+1
+Input signals during cycle 0
+    ld = 0
+    x = 1
+Output signals during cycle 0
+    r = 0
+    q = 0
+Enter command after prompt
+$
+doCommand: ws = []
+clockCycle...
+----------------------------------------------------------------------
+Cycle 1
+Reading inputs from user:
+Enter value of ld (0 or 1, then enter)
+0
+Enter value of x (0 or 1, then enter)
+0
+Input signals during cycle 1
+    ld = 0
+    x = 0
+Output signals during cycle 1
+    r = 0
+    q = 0
+Enter command after prompt
+#+END_EXAMPLE
+
+*** Words as well as bits
+
+A signal may be either a bit or a word.  See RegRun for an example.
+The second line says that in_x is an input port for a word of 4 bits.
+The last line says that x is a word signal from the in_x port.  To
+extact a signal from a port, use inbsig for bit signals, and use
+inwsig for word signals.
+
+#+BEGIN_EXAMPLE
+  in_ld <- inPortBit "ld"
+  in_x <- inPortWord "x" 4
+
+  -- Input signals  
+  let ld = inbsig in_ld
+  let x = inwsig in_x
+#+END_EXAMPLE
+
+*** Incorporating test data in the driver
+
+If you want to run many simulations with the same input data (or with
+only small changes to the data), it's easier to define the data in the
+driver file rather than entering it interactively
+Circuits/Reg1RunData gives an example of this.
+
+The file begins by several input data test cases.  Each data set is a
+list of strings, and each string gives the values for the inputs
+during a clock cycle.  The i'th number in the string gives the value
+of the i'th input port.  SInce the input ports are in_ld and then
+in_x, a string "1 0" means that ld=1 and x=0 for a clock cycle.
+
+#+BEGIN_EXAMPLE
+randominputs = [ "1 1", "0 0", "0 0", "1 0", "0 0", "0 1", "1 1", "0 1", "0 0"]
+alwaysLoad1 = ["1 1", "1 1", "1 1", "1 1", "1 1", "1 1"]
+alwaysLoad0 = ["1 0", "1 0","1 0","1 0","1 0","1 0","1 0"]
+idle = ["0 0", "0 0", "0 0", "0 0", "0 0", "0 0"]
+#+END_EXAMPLE
+
+The beginning of the driver has two statements connected to the input
+data.  The storeInputList command tells the driver to store
+randominputs in its internal state, under the key "data".  You can
+store many input lists in the state.  The next statement selects the
+particular input data, by its key.
+
+#+BEGIN_EXAMPLE
+main :: Driver a
+main = driver $ do
+
+  initialize
+  storeInputList "data" randominputs
+  selectInputList "data"
+#+END_EXAMPLE
+
+Now when you execute the simulation, the driver will automatically
+take the input data from the stored input list.  Each time you press
+Enter it will give the signal values for a clock cycle.  If you keep
+going after it runs out of data from the selexcted input list, the
+driver will start prompting you for the input values.
+
+*** Running a machine language program on the M1 CPU
+
+The M1 circuit is a complete CPU circuit for Sigma16 Core.  Its driver
+is M1/Run.hs, and the circuit itself is in M1/Circuits.
+
+To run a program on the circuit, we first need to translate it from
+assembly language to machine language.  If you have installed node.js
+and defined the shell alias, you can do this with the command:
+
+#+BEGIN_EXAMPLE
+  $ sigma16 assemble $COREPROGS/Simple/Add
+#+END_EXAMPLE
+
+In order to make it easy to run the collection of Sigma16 example
+programs on the circuit, the driver looks for files in the directory
+Sigma16/examples/Core.  A subdirectory there is Simple, and that
+contains a small test program named Add.asm.txt.
+
+The source program is Simple/Add.asm.txt, and the object code file
+must be named Simple/Add.obj.txt.  The following commands will run it:
+
+#+BEGIN_EXAMPLE
+  $ ghci                start Haskell and load Hydra
+  ghci> :load M1/Run    load M1 and its driver
+ :main Simple/Add       run M1 circuit on examples/Core/Simple/Add.obj.txt
+#+END_EXAMPLE
+
+When you write your own circuits and drivers, it's a good idea to
+place them in a directory Sigma16/examples/Core/MYPROGS, and then you
+would run it with :main MYPROGS/prog1
+
+The command :main Simple/Add tells the simulation driver to read the
+file, parse it (i.e. translate the hex strings to numbers), and to
+generate the input signals required to make the CPU copy the machine
+language into memory, starting at location 0.  This processis called
+"booting".
+
+The driver is interactive: it reads a command, executes it, and reads
+another command.  You can get a list of commands by entering help:
+
+#+BEGIN_EXAMPLE
+Sigma16_M1 simulation
+Sigma16.M1> help
+Commands for the M1 driver
+  (blank)     -- perform one clock cycle
+  cycle       -- perform one clock cycle
+  run         -- perform clock cycles repeatedly until halt or break
+  regs        -- display contents of the register file
+  mem a b     -- display memory from address a to b
+  break FLAG  -- run will stop when FLAG signal is 1 (see list below)
+  quit        -- return to ghci or shell prompt
+  help        -- list the commands
+The following signals can be used as break FLAG:
+ st_instr_fet st_dispatch st_add st_sub st_mul0 st_div0 st_cmp st_trap0 st_lea0 st_load0 st_store0 st_jump0 st_jumpc00 st_jumpc10 st_jal0
+Sigma16.M1>
+#+END_EXAMPLE
+
+Try pressing Enter several times.  This will simulate one clock cycle
+at a time, and print out full information about the signals during
+that cycle.  The Add program contains about a dozen words of machine
+code, so the Boot process will take the same number of Enter presses.
+Eventually the driver will output "Reset: control algorithm starting".
+
+The next clock cycle will show the control state to have st_instr_fet
+= 11.  Usually, every control state will be either 11 (the machine is
+doing this state) or 00 (the machine is not doing it).  If I/O is
+taking place, you will see a state of 10, but ignore that for now.
+
+At any time, you can enter the command run.  This will execute clock
+cycles repeatedly until the machine executes a trap halt instruction
+(trap R0,R0,R0).
+
+There are two commands that are very useful for debugging: you can
+print out the register file with **regs**, and you can print all the
+memory locations from address a to be with **mem a b**.
+
+The system is not "cheating" when you dump the registers or memory:
+there isn't some outside software that "looks inside" to get the data
+and print it.  Instead, the driver sets the circuit input signals
+telling it to perform an output operation (using DMA, direct memory
+access), and the driver collects and outputs the results.
+
+Another useful debugging technique is to set a breakpoint.  You may
+have a situation where you want to look in detail at how an
+instruction executes, but this could come after thousands of clock
+cycles, and you don't want to press Enter so may times.
+
+If you enter the command **break st_load0**, and then press run, the
+driver will simulate clock cycles repeatedly until the signal st_load0
+becomes 1; then it will stop and display the state of the system.
+
+*** Using ghci
+
+Useful ghci commands (see ghc User Guide for full documentationO
+#+BEGIN_EXAMPLE
+   :r         reload after editing any of the code
+   :q         exit ghci, go back to shell
+   ^C         stop and return to ghci prompt
+   uparrow    repeat previous command
+#+END_EXAMPLE
+
+When ghci is launched it automatically executes the commands in .ghci:
+
+#+BEGIN_EXAMPLE
+:set -package mtl
+:set -package parsec
+:load M1/Tools/Run
+#+END_EXAMPLE
+
+
+
+
+
+
+** The hardware description language Hydra
+Quick start
+Introduction
+Building block circuits
+   reg: n-bit register component
+   mux1w: multiplexer with 1-bit control
+   register file
+Instruction set architecture of Sigma16
+The M1 circuit
+   ir register (instruction register)
+   pc register (program counter)
+   ad register (address register)
+   memory
+   list of control signals
+Running machine language on the circuit
+   Interpreting the simulation output
+
+
 		   reg :  n-bit register component
-------------------------------------------------------------------------
+
 
 Use it to hold an n-bit number, and load a new value when you want
 
@@ -5386,17 +5777,30 @@ ma = if ctl_ma_pc = 0
 ctl_ma_pc = 1 means "use pc as the memory address"
 
 
----------------------------------------------------------------------------
-	       Instruction set architecture of Sigma16
----------------------------------------------------------------------------
+** The M1 circuit
 
-The M1 circuit does not fully implement Sigma16.  It doesn't handle
-overflow, interrupts, or I/O apart from the bootstrap loader, and the
-following instructions are not implemented: mul, div, the logic and
-shift instructions.
+This is a quick summary and reference for the M1 circuit, which
+implements the Sigma16 architecture.
 
-RRR instructions
-~~~~~~~~~~~~~~~~
+*** Files
+
+ALU.hs           -- specifies the M1 alu
+ALU_Run.hs       -- simulation driver and test data for the ALU
+Control.hs       -- specifies the M1 control
+Control_Run.hs   -- simulation driver and test data for the control
+CPU.hs           -- specifies the full M1 system
+CPU_Run.hs       -- simulation driver for the full system
+
+ProgArrayMax.hs  -- A machine language program to test the CPU
+                 -- This is the main program
+
+*** Core instructions implemented by M1
+
+
+The M1 circuit implements the Core subset of Sigma16 (apart from the
+mul and div instructions, which are nop).
+
+**** RRR instructions
 
  op   format  mnemonic   operands   action
 ---- -------- ---------- ---------- ------------------------------------
@@ -5404,21 +5808,10 @@ RRR instructions
  1     RRR    sub        R1,R2,R3   R1 := R2-R3
  2     RRR    mul        R1,R2,R3   R1 := R2*R3, R15 := high word
  3     RRR    div        R1,R2,R3   R1 := R2/R3, R15 := R2 mod R3
- 4     RRR    cmplt      R1,R2,R3   R1 := R2<R3
- 5     RRR    cmpeq      R1,R2,R3   R1 := R2=R3
- 6     RRR    cmpgt      R1,R2,R3   R1 := R2>R3
- 7     RRR    inv        R1,R2,R3   R1 := bwinv R2
- 8     RRR    and        R1,R2,R3   R1 := R2 bwand R3
- 9     RRR    or         R1,R2,R3   R1 := R2 bwor R3
- a     RRR    xor        R1,R2,R3   R1 := R2 bwxor R3
- b     RRR    shiftl     R1,R2,R3   R1 := R2 shiftl R3 bits
- c     RRR    shiftr     R1,R2,R3   R1 := R2 shiftr R3 bits
- d     RRR    trap       R1,R2,R3   trap interrupt
- e     XX                           (expand to XX format)
- f     RX                           (expand to RX format)
+ 4     RRR    cmp        R2,R3      R15 := comparison flags
+ b     RRR    trap       R1,R2,R3   trap interrupt
 
-RX instructions
-~~~~~~~~~~~~~~~
+**** RX instructions
 
  op   b   format  mnemonic   operands   action
 ---- --- -------- ---------- ---------- ---------------------------------
@@ -5426,25 +5819,19 @@ RX instructions
  f    1     RX    load       Rd,x[Ra]   Rd := mem[x+Ra]
  f    2     RX    store      Rd,x[Ra]   mem[x+Ra] := Rd
  f    3     RX    jump       x[Ra]      pc := x+Ra
- f    4     RX    jumpf      Rd,x[Ra]   if Rd==0 then pc := x+Ra
- f    5     RX    jumpt      Rd,x[Ra]   if Rd/=0 then pc := x+Ra
+ f    4     RX    jumpc0     Rd,x[Ra]   if R15.d=0 then pc := x+Ra
+ f    5     RX    jumpc1     Rd,x[Ra]   if R15.d=1 then pc := x+Ra
  f    6     RX    jal        Rd,x[Ra]   Rd := pc, pc := x+Ra
 
+**** Organization of M1
 
----------------------------------------------------------------------------
-			    The M1 circuit
----------------------------------------------------------------------------
-
----------------------------------------------------------------------------
-Sigma16 M1 processor circuit
----------------------------------------------------------------------------
-
-M1 implements a subset of the Sigma16 architecture.  It is designed
-for simplicity, and not optimized for speed.  It assumes that the
-memory runs at cache speed, and there is no separate cache.  There is
-a rudimentary I/O system that uses DMA to boot up the system by
-inputting a block of data and then jumps to location 0 to begin
-execution.  There is no instruction level parallelism.
+M1 is a CPU that implements the Core subset of the Sigma16
+architecture.  It is designed for simplicity, and not optimized for
+speed.  It assumes that the memory runs at cache speed, and there is
+no separate cache.  There is a rudimentary I/O system that uses DMA to
+boot up the system by inputting a block of data and then jumps to
+location 0 to begin execution.  There is no instruction level
+parallelism.
 
 Some of the features of Sigma16 are not implemented in M1.  That means
 that some programs will give different results in the Sigma16 emulator
@@ -5457,10 +5844,7 @@ of these is defined in a separate module, and there are separate
 simulation drivers for the alu, datapath, and control.  The m1 circuit
 connects the subsystems together and handles bootstrapping.
 
-
----------------------------------------------------------------------------
-		    ALU (arithmetic & logic unit)
----------------------------------------------------------------------------
+**** ALU (arithmetic & logic unit)
 
 Inputs to ALU are x and y
 
@@ -5507,39 +5891,22 @@ y = if ctl_y_ad = 0
 ctl_y_ad = 1 means "make y = value in ad register"
 
 
+**** Datapath
+**** Instruction control registers
 
-------------------------------------------------------------------------
-		 ir register (instruction register)
-------------------------------------------------------------------------  
+- ir register (instruction register) holds the instruction currently
+  being executed.  At clock tick if ctl_ir_ld = 1 then ir := memdat
 
-  holds the instruction currently being executed
-At clock tick
-  if ctl_ir_ld = 1
-    then ir := memdat
+-  pc register (program counter) holds the address of the next
+  instruction word to be fetched At clock tick if ctl_pc_ld = 1 then
+  pc := q
 
+- q is the data input to the pc register. q is a choice from among {r,
+  ad} q = if ctl_pc_ad = 0 then r else ad
 
-------------------------------------------------------------------------
-		    pc register (program counter)
-------------------------------------------------------------------------
-
-  holds the address of the next instruction word to be fetched
-At clock tick
-  if ctl_pc_ld = 1
-    then pc := q
-
-q is the data input to the pc register
-q is a choice from among {r, ad}
-q = if ctl_pc_ad = 0
-      then r
-      else ad
-
-
-------------------------------------------------------------------------
-		    ad register (address register)
-------------------------------------------------------------------------
-
-(sometimes called adr, just a spelling inconsistency.
- ad and adr are the same register)
+- ad register (address register). This register holds the second word
+  of an RX instruction, and is also used for calculating the effective
+  address (when this is calculated by the ALU, we need adr := r)
 
 At clock tick
   if ctl_adr_ld = 1
@@ -5547,16 +5914,8 @@ At clock tick
                   then memdat
                   else r)
 
-This register holds the second word of an RX instruction
-  (when this is fetched, we need adr := memdat)
-
-It is also is used for calculating the effective address
-  (when this is calculated by the ALU, we need adr := r)
-
-
-------------------------------------------------------------------------
-		       List of control signals
-------------------------------------------------------------------------
+**** Control
+****  Control signals
 
    ctl_rf_alu,  -- Input to register file is ALU output r (if 0, use m)
    ctl_rf_sd,   -- Use ir_d as source a address (if 0, use ir_sa)
@@ -5575,36 +5934,6 @@ It is also is used for calculating the effective address
    ctl_sto      -- Memory store (if 0, fetch)
 
 
----------------------------------------------------------------------------
-	       Running machine language on the circuit
----------------------------------------------------------------------------
-
-Create a directory containing the following files:
-
-  ALU.hs                ALU circuit
-  ALUrun.hs             simulate the ALU by itself
-  ControlSignals.hs     defines the set of control signals
-  Datapath.hs           specifies the datapath circuit
-  DatapathRun.hs        simulate the datapath by itself
-  Control.hs            control algorithm and control circuit
-  ControlRun.hs         simulation driver for control
-  Memory.hs             specifies the memory circuit
-  M1.hs                 specifies the full system circuit
-  M1run.hs              simulation driver for full system
-
-  ArrayMax.asm.txt      Sigma16 source program in assembly language
-  ArrayMax.hs           Sigma16 program in machine language
-
-The program ArrayMax traverses an array of numbers to find the maximum
-element.  The program is written by hand in assembly language, in
-ArrayMax.asm.txt.  It was translated to machine language by the
-Sigma16 application.  This machine language is copied into
-ArrayMax.hs, in the form of a list of strings containing hex words.
-
-ArrayMax.hs executes the program by invoking the circuit simulator on
-M1.  This loads the machine language code into the memory of the M1
-circuit and simulates the circuit at the level of logic gates and flip
-flops.
 
 The simulation driver produces voluminous output that lets you see
 what is happening inside the circuit.  You can run the simulation two
@@ -5623,33 +5952,8 @@ these commands ($ is the shell prompt, : is the ghci prompt).
    main
    :q
 
-Batch execution
-~~~~~~~~~~~~~~~
 
-For long simulations it is easiest to use ghc.  This runs the
-simulations faster, and it can save the simulation output in a text
-file.  That's helpful because you can use a text editor to search the
-simulation output for significant events (this is described later).
-At the shell prompt $, enter this command.  It runs the machine
-language program in ArrayMax by simulating the M1 circuit, and saves
-the simulation output in the file simulation.txt.
-
-   $ ghc -e main ArrayMax >simulation.txt
-
-The Sigma16 application
-~~~~~~~~~~~~~~~~~~~~~~~
-
-There is also a separate application called Sigma16 that provides a
-graphical user interface, an integrated development environment (IDE),
-an assembler, linker, and emulator.  The emulator executes machine
-language programs by software interpretation.  The emulator provides a
-reference semantics for Sigma16, and you can use it to check whether
-M1 is working correctly.
-
-
----------------------------------------------------------------------------
-	      Interpreting the simulation output
----------------------------------------------------------------------------
+**** Interpreting the simulation output
 
 The M1 system contains a lot of components and signals, and its
 simulation produces a large amount of output.  This section explains
@@ -5671,12 +5975,11 @@ would be unreadable if all this data were represented with 1s and 0s.
 Using hex notation helps, but massive hex data is still hard to read.
 Therefore a simulation driver is used, which
 
-* converts the inputs (the machine language code written as hex string
+- converts the inputs (the machine language code written as hex string
   constants) into input bit signals,
+- invokes the circuit simulator, and
 
-* invokes the circuit simulator, and
-
-* converts the output bit signals produced by the circuit into
+- converts the output bit signals produced by the circuit into
   readable formatted strings.
 
 We will use the program ArrayMax as a running example.  There is an
@@ -6201,45 +6504,6 @@ reg n ld x                 n-bit register with load control ld, data input x
 regfile n k ld d sa sb x   register file with 2^k registers, each n-bits wide,
                            load control ld, destination address d,
                            reads out registers sa and sb, data input x
-
-** previous documentation
-
-Create a file named .ghci containing the following
-The simplest way to run the simulations is as follows.
-
-#+BEGIN_EXAMPLE
-:set -i../:C:/Users/me/a/b/c/Hydra/src/haskell
-#+END_EXAMPLE
-
-When you launch ghci, it will read this file, which defines the search
-path.  The first component of the search path is ../ which is the
-parent directory of Sigma16-M1-programs (i.e. the M1 directory
-itself).  The second component is the location of the Hydra library.
-
-Now enter the
-
-- Download Hydra and save it in your workspace.  Suppose its location
-  is /c/Users/me/a/b/c/Hydra.
-
-- Open a shell and enter circuit/M1.  Run a test program,
-  e.g. ArrayMax.hs, with the following command, which will execute the
-  ArrayMax program on the digital circuit.  The simulation will
-  produce detailed simulation output showing the values in key
-  registers, flip flops, and signals during every clock cycle.
-
-#+BEGIN_EXAMPLE
-ghci -i/c/Users/me/a/b/c/Hydra/src/haskell/ ArrayMaxRun
-#+END_EXAMPLE
-
-The command can be simplified by defining a .ghci file, which will be
-loaded automatically when you invoke ghci.  You can put the .ghci file
-in your $HOME directory.  See the GHC User Guide for more details
-about configuring ghci.  The .ghci file could contain a definition
-similar to this:
-
-#+BEGIN_EXAMPLE
-:set -i/c/Users/a/b/c/Hydra/src/haskell/
-#+END_EXAMPLE
 
 * Installation
 

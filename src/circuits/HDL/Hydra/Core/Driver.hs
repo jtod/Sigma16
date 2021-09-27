@@ -17,7 +17,7 @@ module HDL.Hydra.Core.Driver
    StateT (..), execStateT, liftIO,
 
 -- * New from step driver
-   bitsHex,
+   bitsHex, setFlagTable, checkFlag, advanceFlagTable, getClockCycle,
    runFormat, getUserState, printError, setHalted, setPeek, advancePeeks,
    takeInputsFromList, observeSignals, advanceSignals,
    InputLists, selectInputList, storeInputList, getInputList,  testInputLists,
@@ -88,6 +88,7 @@ import Control.Monad.State
 import Control.Concurrent
 import Data.IORef
 import Data.Maybe
+import Data.List
 import System.Environment
 import System.FilePath
 import System.IO
@@ -200,6 +201,8 @@ data SysState a = SysState
   , outPortList :: [OutPort]
   , formatSpec :: Maybe [Format Bool a]
   , peekList :: [[Stream Bool]]
+  , flagTable :: [(String, Stream Bool)]
+  , breakpointKey :: String
   , inputLists :: InputLists
   , selectedKey :: String
   , userState :: Maybe a
@@ -217,13 +220,48 @@ initState = SysState
   , outPortList = []
   , formatSpec = Nothing
   , peekList = []
+  , flagTable = []
+  , breakpointKey = ""
   , inputLists = Map.empty
   , selectedKey = ""
   , userState = Nothing
   }
 
+
+getClockCycle :: StateT (SysState a) IO Int
+getClockCycle = do
+  s <- get
+  return (cycleCount s)
+  
 setHalted :: Format Bool a
 setHalted = FmtSetHalted
+
+
+--------------------------------------------------------------------------------
+-- Breakpoint
+--------------------------------------------------------------------------------
+
+setFlagTable :: [(String, Stream Bool)] -> StateT (SysState a) IO ()
+setFlagTable flagTable = do
+  s <- get
+  put $ s {flagTable}
+
+checkFlag :: [(String, Stream Bool)] -> String -> Bool
+checkFlag table key =
+  let elt = find (\(a,b) -> a == key) table
+  in case elt of
+       Nothing -> False
+       Just (_, x) -> is1 (current x)
+
+advanceFlagTable :: StateT (SysState a) IO ()
+advanceFlagTable = do
+  s <- get
+  let t = flagTable s
+  let t' = map advanceFlag t
+  put $ s {flagTable = t'}
+
+advanceFlag :: (String, Stream Bool) -> (String, Stream Bool)
+advanceFlag (key, x) = (key, future x)
 
 
 ----------------------------------------------------------------------
@@ -387,7 +425,11 @@ clockCycle args = do
   liftIO $ putStrLn ("Cycle " ++ show i)
   inputsFromListOrInteractive
   observeSignals
-  advanceSignals
+  runFormat
+--  advanceSignals
+  advanceInPorts
+  advanceOutPorts
+  advancePeeks
   s <- get
   put (s {cycleCount = i+1})
 
@@ -474,7 +516,7 @@ readInput (InPortWord {..}) = do
 -- Should drop whitespace and validate input
 interactiveReadBit :: String -> IO Bool
 interactiveReadBit portname = do
-  putStrLn "interactiveReadBit"
+--  putStrLn "interactiveReadBit"
   putStrLn ("Enter value of " ++ portname ++ " (0 or 1, then enter)")
   ys <- getLine
   return (if head ys == '1' then True else False)
@@ -489,7 +531,7 @@ readSigBool xs = do
 
 interactiveReadWord :: String -> Int -> IO [Bool]
 interactiveReadWord portname n = do
-  putStrLn "interactiveReadWord"
+--  putStrLn "interactiveReadWord"
   putStrLn ("   Enter " ++ portname ++ " (" ++ show n ++ " bits)")
   xs <-getLine
   case parseBits xs n of
@@ -748,6 +790,8 @@ advance :: StateT (SysState a) IO ()
 advance = do
   advanceInPorts
   advanceOutPorts
+  advancePeeks
+  advanceFlagTable
 --  advanceFormats
 
 
@@ -1402,8 +1446,6 @@ runSimulation = do
     True -> do
       doCommand
       runSimulation
-
-
 
 doCommand :: StateT (SysState a) IO ()
 doCommand = do

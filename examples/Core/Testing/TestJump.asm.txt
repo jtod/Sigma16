@@ -1,6 +1,14 @@
-; TestJump: test conditional and unconditional transfer of control
+; TestJump: test Sigma16 Core transfer of control instructions 
 ; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
 ; John O'Donnell, 2021
+
+; Full test: step through the program.  Quick test: run the program to
+; completion and then check the counts at the end.
+
+;   R8 is GoodCount: number of key desinations reached correctly
+;   R9 is ErrorCount: number of key destinations reached incorrectly
+;   R1, R2 contain test data, where R1 < R2
+;   R7 = 1
 
 ; Condition code flags are defined in architecture.mjs
 
@@ -24,69 +32,60 @@
 ; bit 9   s      s        bin carry out, carry in (addc)
 
 ; Unconditional jump
-     lea   R9,2[R4]   ; R9  := 0002
-     lea   R4,20[R0]
-     jump  loop[R0]
-     lea   R4,7[R0]   ; R4  := 0007
-     load  R2,xy[R0]  ; R2  := 002a  42
-loop store R4,xy[R9] ; mem change 002c to 0007
 
-; Jump pseudoinstructions
+     lea   R7,1[R0]    ; for incrementing counts
+     add   R8,R0,R0    ; GoodCount := 0
+     add   R9,R0,R0    ; ErrorCount := 0
+     lea   R1,7[R0]    ; R1 := 7 test data
+     lea   R2,9[R0]    ; R2 := 9 test data
+     jump  loop[R0]    ; should go there
+     add   R9,R9,R7    ; ERROR! increment ErrorCcount
+     jump  done1[R0]   ; skip
+loop add   R8,R8,R7   ; GOOD!  increment GoodCount
+done1
 
-      lea    R1,4
-      lea    R2,5
+; Test the jumplt pseudoinstructions using jumpc1 (jump if CC.4 = 1)
 
 ; jumplt jumps
       cmp    R1,R2      ; <
-      jumplt lt1[R0]    ; should jump
+      jumplt lt1[R0]    ; jumpc1 should jump
       add    R9,R9,R7   ; increment error count
       jump   lt2[R0]
 lt1   add    R8,R8,R7   ; increment good count
 lt2
+
 ; jumplt doesn't jump
       cmp    R2,R1      ; >
-      jumplt lt3[R0]    ; should not jump
+      jumplt lt3[R0]    ; jumpc1 should not jump
       add    R8,R8,R7   ; increment good count
       jump   lt4[R0]
 lt3   add    R9,R9,R7   ; increment error count
 lt4
 
 
-; jumpz
-      lea    R1,5[R0]
-      jumpz  R1,z1[R0]  ; should not jump
-      add    R8,R8,R7   ; increment good count
-      jump   z2[R0]
-z1    add    R9,R9,R7   ; increment error count
-z2    jumpz  R0,z3[R0]  ; should jump      
-      add    R9,R9,R7   ; increment error count
-      jump   z4[R0]
-z3    add    R8,R8,R7   ; increment good count
-z4
-      store  R9,errs[R0]  ; save count of errors
+; Test the jumpge pseudoinstructions using jumpc0 (jump if CC.4 = 0)
 
-; jumpnz
-      lea    R1,5[R0]
-      jumpnz R1,nz1[R0]  ; should jump
-      add    R9,R9,R7    ; increment error count
-      jump   nz2[R0]
-nz1   add    R9,R9,R7    ; increment good count
-nz2   jumpnz R0,nz3[R0]  ; should not jump      
-      add    R8,R8,R7    ; increment good count
-      jump   nz4[R0]
-nz3   add    R9,R9,R7    ; increment error count
-nz4
+; jumpge jumps
+      cmp    R2,R1      ; >
+      jumpge ge1[R0]    ; jumpc0 should jump
+      add    R9,R9,R7   ; increment error count
+      jump   ge2[R0]
+ge1   add    R8,R8,R7   ; increment good count
+ge2
+
+; jumpge doesn't jump
+      cmp    R1,R2      ; <
+      jumpge ge3[R0]    ; jumpc0 should not jump
+      add    R8,R8,R7   ; increment good count
+      jump   ge4[R0]
+ge3   add    R9,R9,R7   ; increment error count
+ge4
 
 done
-      store  R8,good[R0]   ; save count of errors
-      store  R9,errs[R0]   ; save count of errors
-      trap   R0,R0,R0      ; terminate
+      store  R8,GoodCount[R0]    ; save count of correct results
+      store  R9,ErrorCount[R0]   ; save count of errors
+      trap   R0,R0,R0            ; terminate
 
-xy    data  42
-      data  43
-      data  44
-      data  45
-
-good  data  0             ; count of successful tests
-errs  data  0             ; count of unsuccessful tests
+GoodCount   data  0              ; count of successful tests
+ErrorCount  data  0              ; count of unsuccessful tests
 

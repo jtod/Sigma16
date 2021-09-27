@@ -16,8 +16,8 @@ import HDL.Hydra.Core.Lib   -- the hardware description language
 import Circuits.Reg1        -- definition of the circuit to be simulated
 import Control.Monad.State
 
-inputs, alwaysLoad1, alwaysLoad0, idle :: [String]
-inputs = [ "1 1", "0 0", "0 0", "1 0", "0 0", "0 1", "1 1", "0 1", "0 0"]
+randominputs, alwaysLoad1, alwaysLoad0, idle :: [String]
+randominputs = [ "1 1", "0 0", "0 0", "1 0", "0 0", "0 1", "1 1", "0 1", "0 0"]
 alwaysLoad1 = ["1 1", "1 1", "1 1", "1 1", "1 1", "1 1"]
 alwaysLoad0 = ["1 0", "1 0","1 0","1 0","1 0","1 0","1 0"]
 idle = ["0 0", "0 0", "0 0", "0 0", "0 0", "0 0"]
@@ -26,8 +26,7 @@ main :: Driver a
 main = driver $ do
 
   initialize
-  testInputLists
-  storeInputList "data" inputs
+  storeInputList "data" randominputs
   selectInputList "data"
   
   -- Input ports

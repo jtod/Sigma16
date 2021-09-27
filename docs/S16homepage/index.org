@@ -15,9 +15,13 @@ You don't need to download or install anything.
 
 #+BEGIN_EXPORT html
 <div class="quickstartbox">
-  <a href="./releases/3.2.2/src/gui/Sigma16.html"> Click to run Sigma16 </a>
+<a href="https://sigma16.herokuapp.com/build/3.4.0/Sigma16/Sigma16.html">
+  Click to run Sigma16 </a>
 </div>
 #+END_EXPORT
+
+# [[https://sigma16.herokuapp.com/build/3.4.0/Sigma16/Sigma16.html][dev]]
+# <a href="./releases/3.2.2/src/gui/Sigma16.html"> Click to run Sigma16 </a>
 
 When the app runs in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed

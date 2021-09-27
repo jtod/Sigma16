@@ -69,7 +69,26 @@ main = driver $ do
   setPeek m_out
   setPeek (b dp)
   
-  
+  let ctlStateLookupTable =
+        [ ("st_instr_fet",  st_instr_fet)
+        , ("st_dispatch",   st_dispatch)
+        , ("st_add",        st_add)
+        , ("st_sub",        st_sub)
+        , ("st_mul0",       st_mul0)
+        , ("st_div0",       st_div0)
+        , ("st_cmp",        st_cmp)
+        , ("st_trap0",      st_trap0)
+        , ("st_lea0",       st_lea0)
+        , ("st_load0",      st_load0)
+        , ("st_store0",     st_store0)
+        , ("st_jump0",      st_jump0)
+        , ("st_jumpc00",    st_jumpc00)
+        , ("st_jumpc10",    st_jumpc10)
+        , ("st_jal0",       st_jal0)
+        ]
+  let flags = ctlStateLookupTable
+  setFlagTable flags
+
 -- Define names for subsystem outputs
   let (r,ccnew,condcc) = aluOutputs dp
 --    (ir_op,ir_d,ir_a,ir_b) = irFields
@@ -190,7 +209,7 @@ main = driver $ do
      , string "  m_real_addr = ", binhex m_real_addr
      , string "  m_data = ", binhex m_data
      , string "  m_out =", binhex m_out
-     , string "\n\n"
+     , string "\n"
 
 -- ...................................................................
 -- Higher level analysis of what happened on this cycle.  The
@@ -286,9 +305,9 @@ main = driver $ do
               [string " R", bindec 1 (field (ir dp) 4 4),    -- RX format
                string ",",
                simstate showDisplacement,
-               string "[R", bindec 1 (field (ir dp) 8 4), string "]",
-               string "   effective address = ",
-               simstate showEffAddr],
+               string "[R", bindec 1 (field (ir dp) 8 4), string "]" ], -- ,
+--               string "   effective address = ",
+--               simstate showEffAddr],
             string "\n",
             simstate showRfLoads,
             setStateWs clearRfLoads [],
@@ -335,17 +354,28 @@ main = driver $ do
   startup
   printLine "M1 Run finished"
 
+
 --------------------------------------------------------------------------------
 -- Top level M1 control
 --------------------------------------------------------------------------------
 
+conditional :: Bool -> StateT (SysState a) IO ()
+  -> StateT (SysState a) IO ()
+conditional b op =
+  case b of
+    True -> do op
+               return ()
+    False -> return ()
+    
 peekMem :: Int -> StateT (SysState DriverState) IO ()
 peekMem addr = do
   s <- get
+  let displayFullSignals = False
   let i = cycleCount s
   let inp = inPortList s
   let outp = outPortList s
---  liftIO $ putStrLn (take 80 (repeat '-'))
+  conditional displayFullSignals $
+    liftIO $ putStrLn (take 80 (repeat '-'))
   liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
 --  liftIO $ putStrLn (" ***** Peek at memory address " ++ show addr)
   let inps = "0 1 0 1 0 " ++ show addr ++ " 0"
@@ -368,18 +398,22 @@ peekMem addr = do
 peekReg :: Int -> StateT (SysState DriverState) IO ()
 peekReg regnum = do
   s <- get
+  let displayFullSignals = False
   let i = cycleCount s
   let inp = inPortList s
   let outp = outPortList s
---  liftIO $ putStrLn (take 80 (repeat '-'))
-  liftIO $ putStr ("Cycle " ++ show i)
---  liftIO $ putStrLn (" ***** Peek at register R" ++ show regnum)
+  conditional displayFullSignals $ do
+    liftIO $ putStrLn (take 80 (repeat '-'))
+    liftIO $ putStr ("Cycle " ++ show i)
+    liftIO $ putStrLn (" ***** Peek at register R" ++ show regnum)
   let inps = "0 1 0 0 1 " ++ show regnum ++ " 0"
---  liftIO $ putStrLn ("inps = " ++ inps)
+  conditional displayFullSignals $ do
+    liftIO $ putStrLn ("inps = " ++ inps)
   takeInputsFromList inps
---  printInPorts
---  printOutPorts
---  runFormat
+  conditional displayFullSignals $ do
+    printInPorts
+    printOutPorts
+    runFormat
   s <- get
   let ps = peekList s
   let b = ps!!1  --  output b from regfile
@@ -415,7 +449,7 @@ commandLoop = do
   if length ws == 0
     then m1ClockCycle
   else if ws!!0 == "help"
-    then liftIO printHelp
+    then printHelp
   else if ws!!0 == "run"
     then runM1simulation
   else if ws!!0 == "cycle"
@@ -427,6 +461,10 @@ commandLoop = do
       dumpMem start end
   else if ws!!0 == "regs"
     then dumpRegFile
+  else if ws!!0 == "break"
+    then do
+      let key = safeReadEltString ws 1
+      setBreakpoint key
   else if ws!!0 == "quit"
     then do
       s <- get
@@ -442,7 +480,18 @@ safeReadEltInt ws i =
   if length ws > i && i >= 0
     then read (ws!!i)
     else 0
-         
+
+safeReadEltString :: [String] -> Int -> String
+safeReadEltString ws i =
+  if length ws > i && i >= 0
+    then ws!!i
+    else ""
+
+setBreakpoint :: String -> StateT (SysState a) IO ()
+setBreakpoint key = do
+  s <- get
+  put $ s {breakpointKey = key}
+  
 -- Dump memory from start to end address
 
 dumpMem :: Int -> Int -> StateT (SysState DriverState) IO ()
@@ -476,29 +525,39 @@ peekRegFile = do
   peekReg 7
 -}
 
-printHelp :: IO ()
+printHelp :: StateT (SysState a) IO ()
 printHelp = do
-  putStrLn "Commands for the M1 driver"
-  putStrLn "  (empty line) -- perform one clock cycle"
-  putStrLn "  cycle        -- perform one clock cycle"
-  putStrLn "  run          -- perform clock cycles repeatedly until halt"
-  putStrLn "  regs         -- display contents of the register file"
-  putStrLn "  mem a b      -- display memory from address a to b"
-  putStrLn "  quit         -- return to ghci or shell prompt"
-  putStrLn "  help         -- list the commands"
+  printLine "Commands for the M1 driver"
+  printLine "  (blank)     -- perform one clock cycle"
+  printLine "  cycle       -- perform one clock cycle"
+  printLine "  run         -- perform clock cycles repeatedly until halt or break"
+  printLine "  regs        -- display contents of the register file"
+  printLine "  mem a b     -- display memory from address a to b"
+  printLine "  break FLAG  -- run will stop when FLAG signal is 1 (see list below)"
+  printLine "  quit        -- return to ghci or shell prompt"
+  printLine "  help        -- list the commands"
+  printLine "The following signals can be used as break FLAG:"
+  s <- get
+  printLine (concat (map ((' ':) . fst) (flagTable s)))
   
 runM1simulation :: StateT (SysState DriverState) IO ()
 runM1simulation = do
   printLine "runM1simulation starting"
   simulationLooper
-  printLine "runM1simulation terminated"
+--  printLine "runM1simulation terminated"
 
 simulationLooper :: StateT (SysState DriverState) IO ()
 simulationLooper = do
   s <- get
-  let i = cycleCount s
-  if i >= 10000
-    then return ()
+  if checkFlag (flagTable s) (breakpointKey s) || cycleCount s >= 1000
+    then do
+      cycle <- getClockCycle
+      m1ClockCycle -- display the cycle where the breakpoint is satisfied
+      liftIO $ putStrLn (take 72 (repeat '-'))
+      liftIO $ putStrLn ("*** Breakpoint " ++ breakpointKey s
+                         ++ " in cycle " ++ show cycle ++ " ***")
+      liftIO $ putStrLn (take 72 (repeat '-'))
+      return ()
     else do m1ClockCycle
             s <- get
             case halted s of
@@ -531,6 +590,32 @@ simulationLooper = do
 cmdM1ClockCycle :: Command DriverState
 cmdM1ClockCycle _ = m1ClockCycle
 
+getProcessorMode :: StateT (SysState DriverState) IO ProcessorMode
+getProcessorMode = do
+  s <- get
+  let mds = userState s
+  case mds of
+    Nothing -> do printLine "DriverState not defined"
+                  return Idle
+    Just ds -> return (processorMode ds)
+
+{-
+getProcessorMode :: StateT (SysState DriverState) IO ProcessorMode
+getProcessorMode = do
+--  s <- get
+--  let Just ds = userState s
+--  printLine "getProcessorMode about to get user state"
+  mds <- getUserState
+  case mds of
+    Just ds -> do
+--      printLine "getProcessorMode back from get user state"
+      printLine (show (processorMode ds))
+      return (processorMode ds)
+    Nothing -> do
+      printError "getProcessorMode, getUserState returned Nothing, default Running"
+      return Running
+-}
+
 m1ClockCycle :: Operation DriverState
 m1ClockCycle = do
   s <- get
@@ -538,20 +623,18 @@ m1ClockCycle = do
   let inp = inPortList s
   let outp = outPortList s
   liftIO $ putStrLn (take 80 (repeat '-'))
-  liftIO $ putStr ("Cycle " ++ show i)
-  let mds = userState s
-  case mds of
-    Nothing -> printLine "DriverState not defined"
-    Just ds -> do
-      liftIO $ putStr (".  " ++ show (processorMode ds))
-  liftIO $ putStrLn (if halted s then "  Halted" else "")
+  liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
   establishM1inputs
-  printInPorts
-  printOutPorts
+  pm <- getProcessorMode
+  liftIO $ putStr (show pm)
+  liftIO $ putStrLn (if halted s then "  Halted" else "")
+--  printInPorts
+--  printOutPorts
   runFormat
   advanceInPorts
   advanceOutPorts
   advancePeeks
+  advanceFlagTable
   s <- get
   let i = cycleCount s
   put (s {cycleCount = i + 1})
@@ -564,7 +647,7 @@ establishM1inputs = do
 --  printLine ("establish mx = " ++ show mx)
   case mx of
     Just x -> do -- use the data x to fill buffers
-      printLine ("establishM1inputs using " ++ x)
+--      printLine ("establishM1inputs using " ++ x)
       takeInputsFromList x
       return ()
     Nothing -> do -- look at mode to decide what to do
@@ -580,7 +663,7 @@ establishM1inputs = do
             Running   -> setMode Running
           newMode <- getProcessorMode
           selectInputList (show newMode)
-          printLine ("establishM1inputs new processor mode = " ++ show newMode)
+--          printLine ("establishM1inputs new processor mode = " ++ show newMode)
           establishM1inputs
         Nothing -> do
           printError "esablishM1inputs, getUserState returned Nothing"
@@ -592,7 +675,7 @@ establishM1inputs = do
 
 setMode :: ProcessorMode -> StateT (SysState DriverState) IO ()
 setMode m = do
-  printLine ("Setting mode to " ++ show m)
+--  printLine ("Setting mode to " ++ show m)
   mds <- getUserState
   case mds of
     Just ds -> do
@@ -734,20 +817,6 @@ resetData =  ["1 0 0 0 0 0 0"]
 runData :: [String]
 runData =  ["0 0 0 0 0 0 0"]
 
-getProcessorMode :: StateT (SysState DriverState) IO ProcessorMode
-getProcessorMode = do
---  s <- get
---  let Just ds = userState s
---  printLine "getProcessorMode about to get user state"
-  mds <- getUserState
-  case mds of
-    Just ds -> do
---      printLine "getProcessorMode back from get user state"
-      printLine (show (processorMode ds))
-      return (processorMode ds)
-    Nothing -> do
-      printError "getProcessorMode, getUserState returned Nothing, default Running"
-      return Running
   
 data DriverState = DriverState
   {
@@ -799,7 +868,8 @@ showRfLoads :: DriverState -> String
 showRfLoads s = concat (map f (reverse (rfloads s)))
   where f (c,r,x) =
           "R" ++ show (intsInt r) ++ " := " ++  ints16hex4 x
-            ++ " was loaded in cycle " ++ show c ++ "\n"
+            ++ " was loaded\n"
+--            ++ " was loaded in cycle " ++ show c ++ "\n"
 
 -- Record and display stores to the memory
 
@@ -1052,3 +1122,12 @@ run_Sigma16_executable prog n = do
 --  out_st_instr_fet <- outPortBit "st_instr_fet" (st_instr_fet ctlstate)
 --  out_m_real_addr <- outPortWord "m_real_addr" m_real_addr showBin
 --  out_m_out       <- outPortWord "m_out" m_out showBin
+--  let ft = flagTable s
+--  let key = breakpointKey s
+--  let check = checkFlag (flagTable s) (breakpointKey s)
+--  printLine ("********** Looper key = " ++ key ++ " check=" ++ show check)
+--  let mds = userState s
+--  case mds of
+--    Nothing -> printLine "DriverState not defined"
+--    Just ds -> do
+--      liftIO $ putStr (".  " ++ show (processorMode ds))

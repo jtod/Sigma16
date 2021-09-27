@@ -3,8 +3,8 @@
 build
 *temp*
 protected
+protect*
 node_modules
-*.html
 *.wasm
 !Sigma16.html
 *.lst.txt

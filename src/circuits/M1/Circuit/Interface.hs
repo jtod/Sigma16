@@ -78,6 +78,42 @@ data CtlSig a = CtlSig
    :: a         -- all controls are bit signals
   }
 
+
+{-
+ctlLookupTable :: [(String, Stream Bool)]
+ctlLookupTable =
+  [
+-- Controls for system
+  , ("cpu", cpu)
+
+-- Controls for ALU
+  , ( "ctl_alu_a,ctl_alu_a,
+   ctl_alu_b,   --   "
+   ctl_x_pc,    -- Transmit pc on x (if 0, transmit reg[sa])
+   ctl_y_ad,    -- Transmit ad on y (if 0, transmit reg[sb])
+
+-- Controls for register file
+   ctl_rf_ld,   -- Load  register file (if 0, remain unchanged)
+   ctl_rf_ldcc, -- Load  R15 (if 0, remain unchanged; ld takes priority)
+   ctl_rf_pc,   -- Input to register file is pc (if 0, check ctl_rf_alu)
+   ctl_rf_alu,  -- Input to register file is ALU output r (if 0, use m)
+   ctl_rf_sd,   -- Use ir_d as source a address (if 0, use ir_sa)
+
+-- Controls for system registers
+   ctl_ir_ld,   -- Load ir register (if 0, remain unchanged)
+   ctl_pc_ld,   -- Load pc register (if 0, remain unchanged)
+   ctl_pc_ad,   -- Input to pc is ad (if 0, r)
+   ctl_ad_ld,   -- Load ad register (if 0, remain unchanged)
+   ctl_ad_alu,  -- Obtain ad input from alu (if 0, from memory data input)
+
+-- Controls for memory
+   ctl_ma_pc,   -- Transmit pc on memory address bus (if 0, transmit addr)
+   ctl_sto      -- Memory store (if 0, fetch)
+    ]
+-}
+
+
+
 data CtlState a = CtlState
   {dff_instr_fet, st_instr_fet,
    dff_dispatch, st_dispatch,
@@ -97,6 +133,57 @@ data CtlState a = CtlState
    :: a         -- all control states are bit signals
   }
 
+
+{-   
+    ("dff_instr_fet", dff_instr_fet)
+       dff_dispatch,
+   dff_add,
+   dff_sub,
+   dff_mul0,
+   dff_div0,
+   dff_cmp,
+   dff_trap0,
+   dff_lea0,
+   dff_lea0,
+   st_lea1,
+   st_lea2,
+   dff_lea1,
+   dff_lea2,
+   dff_load0,
+   st_load1,
+   st_load2,
+   dff_load1,
+   dff_load2,
+   dff_store0,
+   dff_store1,
+   dff_store2,
+   st_store1,
+   st_store2,
+   dff_jump0,
+   dff_jump1,
+   st_jump1,
+   dff_jump2,
+   st_jump2,
+   dff_jumpc00,
+   dff_jumpc01,
+   st_jumpc01,
+   dff_jumpc02,
+   st_jumpc02,
+   dff_jumpc10,
+   dff_jumpc12,
+   st_jumpc12,
+   dff_jal0,
+   dff_jal1,
+   st_jal1,
+   dff_jal2,
+   st_jal2
+   dff_jumpc11,
+   st_jumpc11,
+-}
+
+
+
+  
 data DPoutputs a = DPoutputs
      { aluOutputs :: ([a], [a], a)
      , r :: [a]        -- alu output
