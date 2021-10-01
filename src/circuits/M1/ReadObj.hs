@@ -1,4 +1,4 @@
-module Sigma16.ReadObj where
+module M1.ReadObj where
 
 {- Example of object code; this is the result of assembling Add.obj.txt.
 For an executable program, where linking isn't needed, the module and
@@ -42,36 +42,40 @@ getData (ObjErr _ : ys) = getData ys
         
 
 -- Interface to simulation driver
-
-readObjectFile :: IO [Int]
-readObjectFile = do
-  f <- getCmdOperand
-  case f of
-    Nothing -> return []
-    Just objFile -> do
+{-
+readObjectFile :: String -> IO [Int]
+readObjectFile fname = do
       code <- getObject objFile
       return code
-
+--   f <- getCmdOperand  ?????
+--  let f = Just "Simple/Add"
+--  case f of
+--    Nothing -> return []
+--    Just objFile -> do
+-}
+{-
 getObject :: String -> IO [Int]
 getObject fname = do
   liftIO $ putStrLn ("fname = " ++ show fname)
-  let fnameExt = splitPath (fname ++ ".obj.txt")
-  liftIO $ putStrLn ("fnameExt = " ++ show fnameExt)
-  let corePath = ["..", "..", "examples", "Core"]
-  let objParts = corePath ++ fnameExt
-  liftIO $ putStrLn ("objParts = " ++ show objParts)
-  let objpath = joinPath objParts
-  liftIO $ putStrLn ("objpath = " ++ objpath)
-  code <- readObject objpath
+--  let fnameExt = splitPath (fname ++ ".obj.txt")
+--  liftIO $ putStrLn ("fnameExt = " ++ show fnameExt)
+--  let corePath = ["..", "..", "examples", "Core"]
+--  let objParts = corePath ++ fnameExt
+--  liftIO $ putStrLn ("objParts = " ++ show objParts)
+--  let objpath = joinPath objParts
+--  liftIO $ putStrLn ("objpath = " ++ objpath)
+--  code <- readObject objpath
+  code <- readObject fname
   putStrLn ("Object code = " ++ show code)
   return code
+-}
 
 --------------------------------------------------------------------------------
 -- Main program
 --------------------------------------------------------------------------------
 
-readObject :: String -> IO [Int]
-readObject fname = do
+readObjectCode :: String -> IO [Int]
+readObjectCode fname = do
   obj <- liftIO $ readFile fname
 --  liftIO $ putStrLn obj
   let objLines = lines obj
@@ -81,11 +85,12 @@ readObject fname = do
   putStrLn ("code = " ++ show code)
   return code
   
-
+{-
 readObjecCode :: StateT St IO ()
 readObjecCode = do
   liftIO $ putStrLn "ReadObjecCode is running"
   return ()
+-}
 
 --------------------------------------------------------------------------------
 -- Object code parser

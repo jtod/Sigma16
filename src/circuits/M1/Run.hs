@@ -18,9 +18,11 @@
 module M1.Run where
 
 import HDL.Hydra.Core.Lib
-import Sigma16.ReadObj
+import M1.ReadObj
 import M1.Circuit.System
 
+import System.Environment
+import System.IO
 import Control.Monad.State
 import qualified Data.Map as Map
 
@@ -28,19 +30,54 @@ import qualified Data.Map as Map
 -- Main program
 --------------------------------------------------------------------------------
 
-main :: Driver DriverState
+
+getObject :: IO [Int]
+getObject = do
+  args <- getArgs
+  putStrLn (show args)
+  case args of
+    [] -> do
+      putStrLn "Usage: :main path/to/objectfile"
+      return []
+    (a:_) -> do
+      let fname = a ++ ".obj.txt"
+      putStrLn ("Reading object file " ++ fname)
+      code <- liftIO $ readObjectCode fname
+      putStrLn ("Object coode is " ++ show code)
+      return code
+  
+-- Generate control signals to boot object code
+bootInputs :: [Int] -> [String]
+bootInputs code =
+--  code <- readObjectFile
+  let f i x = "0 1 1 0 0 " ++ show i ++ " " ++ show x
+      inps = zipWith f [0..] code
+  in inps
+
+putStoredInput :: [String] -> StateT (SysState a) IO ()
+putStoredInput storedInput = do
+  s <- get
+  put $ s {storedInput}
+  
+main :: IO ()
 main = driver $ do
   printLine "M1 computer circuit starting"
-  initialize
-  defineCommand "boot" cmdBoot
-  defineCommand "reset" cmdReset
-  defineCommand "step" cmdM1ClockCycle
-  bootData <- liftIO bootInputs
+--  initialize
+--  defineCommand "boot" cmdBoot
+--  defineCommand "reset" cmdReset
+--  defineCommand "step" cmdM1ClockCycle
+  objectCode <- liftIO getObject
+  liftIO $ putStrLn ("Object = " ++ show objectCode)
+  let bootData = bootInputs objectCode
+  putStoredInput bootData
+  liftIO $ putStrLn ("Boot input data = " ++ show bootData)
+--  return ()
+--  bootData <- liftIO bootInputs
   printLine ("Boot system inputs = " ++ show bootData)
-  storeInputList "Booting" bootData
-  storeInputList "Resetting" resetData
-  storeInputList "Running" runData
-  selectInputList "Booting"
+--  storeInputList "Booting" bootData
+--  storeInputList "Resetting" resetData
+--  storeInputList "Running" runData
+--  selectInputList "Booting"
 
   -- Input ports
   in_reset        <- inPortBit  "reset"
@@ -367,33 +404,6 @@ conditional b op =
                return ()
     False -> return ()
     
-peekMem :: Int -> StateT (SysState DriverState) IO ()
-peekMem addr = do
-  s <- get
-  let displayFullSignals = False
-  let i = cycleCount s
-  let inp = inPortList s
-  let outp = outPortList s
-  conditional displayFullSignals $
-    liftIO $ putStrLn (take 80 (repeat '-'))
-  liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
---  liftIO $ putStrLn (" ***** Peek at memory address " ++ show addr)
-  let inps = "0 1 0 1 0 " ++ show addr ++ " 0"
-  takeInputsFromList inps
---  printInPorts
---  printOutPorts
---  runFormat
-  s <- get
-  let ps = peekList s
-  let a = ps!!0  -- m_out
-  let bs = map current a
-  liftIO $ putStrLn ("***** Peek Mem[" ++ show addr ++ "] = " ++ bitsHex 4 bs)
-  advanceInPorts
-  advanceOutPorts
-  advancePeeks
-  s <- get
-  let i = cycleCount s
-  put (s {cycleCount = i + 1})
 
 peekReg :: Int -> StateT (SysState DriverState) IO ()
 peekReg regnum = do
@@ -444,6 +454,7 @@ startup = do
 commandLoop :: StateT (SysState DriverState) IO ()
 commandLoop = do
   liftIO $ putStr "Sigma16.M1> "
+  liftIO $ hFlush stdout
   xs <- liftIO getLine
   let ws = words xs
   if length ws == 0
@@ -501,6 +512,35 @@ dumpMem start end = do
       peekMem start
       dumpMem (start+1) end
     False -> return ()
+
+peekMem :: Int -> StateT (SysState DriverState) IO ()
+peekMem addr = do
+  s <- get
+  let displayFullSignals = False
+  let i = cycleCount s
+  let inp = inPortList s
+  let outp = outPortList s
+  conditional displayFullSignals $
+    liftIO $ putStrLn (take 80 (repeat '-'))
+  liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
+--  liftIO $ putStrLn (" ***** Peek at memory address " ++ show addr)
+  let inps = "0 1 0 1 0 " ++ show addr ++ " 0"
+  takeInputsFromList inps
+--  printInPorts
+--  printOutPorts
+--  runFormat
+  s <- get
+  let ps = peekList s
+  let a = ps!!0  -- m_out
+  let bs = map current a
+  liftIO $ putStrLn ("***** Peek Mem[" ++ show addr ++ "] = " ++ bitsHex 4 bs)
+  advanceInPorts
+  advanceOutPorts
+  advancePeeks
+  -- advanceFormat ????? need to do this silently
+  s <- get
+  let i = cycleCount s
+  put (s {cycleCount = i + 1})
 
 dumpRegFile :: StateT (SysState DriverState) IO ()
 dumpRegFile = do
@@ -618,6 +658,7 @@ getProcessorMode = do
 
 m1ClockCycle :: Operation DriverState
 m1ClockCycle = do
+  liftIO $ putStrLn ("m1ClockCycle starting")
   s <- get
   let i = cycleCount s
   let inp = inPortList s
@@ -638,14 +679,49 @@ m1ClockCycle = do
   s <- get
   let i = cycleCount s
   put (s {cycleCount = i + 1})
+  liftIO $ putStrLn ("m1ClockCycle finished")
 
+
+getCurrentInputs :: StateT (SysState DriverState) IO (Maybe String)
+getCurrentInputs = do
+  return $ Just "0 0 0 0 0 0 0"
 
 establishM1inputs :: StateT (SysState DriverState) IO ()
 establishM1inputs = do
---  printLine "establishM1inputs"
-  mx <- getInputList
+  mds <- getUserState
+  case mds of
+    Nothing -> do
+      printError "establishM1inputs: empty driver state"
+      return ()
+    Just ds ->
+      case processorMode ds of
+        Booting  -> do
+          inp <- getStoredInput
+          case inp of
+            Just x -> takeInputsFromList x
+            Nothing -> do
+              setMode Resetting
+              establishM1inputs
+        Resetting -> do
+          takeInputsFromList resettingInputs
+          setMode Running
+        Running -> takeInputsFromList runningInputs
+
+resettingInputs = "1 0 0 0 0 0 0"
+runningInputs   = "0 0 0 0 0 0 0"
+  
+{-
+establishM1inputs :: StateT (SysState DriverState) IO ()
+establishM1inputs = do
+  printLine "establishM1inputs"
+--  mx <- getInputList
 --  printLine ("establish mx = " ++ show mx)
-  case mx of
+--  case mx of
+  s <- get
+  inp <- getStoredInput
+--  inps <- getCurrentInputs
+  liftIO $ putStrLn ("establish - " ++ show inp)
+  case inp of
     Just x -> do -- use the data x to fill buffers
 --      printLine ("establishM1inputs using " ++ x)
       takeInputsFromList x
@@ -661,17 +737,31 @@ establishM1inputs = do
             Booting   -> setMode Resetting
             Resetting -> setMode Running
             Running   -> setMode Running
-          newMode <- getProcessorMode
-          selectInputList (show newMode)
+--          newMode <- getProcessorMode
+--          selectInputList (show newMode)
 --          printLine ("establishM1inputs new processor mode = " ++ show newMode)
           establishM1inputs
         Nothing -> do
           printError "esablishM1inputs, getUserState returned Nothing"
           return ()
-
+-}
 -- Each operation that requires DMA is carried out by a function that
 -- supplies the required inputs, but does not use any of the input
 -- lists.
+
+-- in Driver but should be added to export list (edit Driver)
+-- Don't set running to false on end of input
+getStoredInput :: StateT (SysState a) IO (Maybe String)
+getStoredInput = do
+  s <- get
+  case storedInput s of
+    [] -> do
+--      put $ s {running = False}  fix this
+      return Nothing
+    (x:xs) -> do
+      put $ s {storedInput = xs}
+      liftIO $ putStrLn ("getStoredInput " ++ x)
+      return (Just x)
 
 setMode :: ProcessorMode -> StateT (SysState DriverState) IO ()
 setMode m = do
@@ -745,7 +835,7 @@ cmdBoot _ = doBoot
 doBoot :: Operation a
 doBoot = do
   printLine "Booting..."
-  selectInputList "boot"
+--  selectInputList "boot"
 
 cmdReset :: Command DriverState
 cmdReset _ = doReset
@@ -753,7 +843,7 @@ cmdReset _ = doReset
 doReset :: Operation a
 doReset = do
   printLine "Resetting"
-  selectInputList  "reset"
+--  selectInputList  "reset"
 
 
 -- At start of cycle, before establishing inputs, check to see if the
@@ -804,12 +894,6 @@ dma_a         16 bits  address
 dma_d         16 bits  data
 -}
 
-bootInputs :: IO [String]
-bootInputs = do
-  code <- readObjectFile
-  let f i x = "0 1 1 0 0 " ++ show i ++ " " ++ show x
-  let inps = zipWith f [0..] code
-  return inps
 
 resetData :: [String]
 resetData =  ["1 0 0 0 0 0 0"]
