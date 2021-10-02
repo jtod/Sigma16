@@ -80,9 +80,9 @@ readObjectCode fname = do
 --  liftIO $ putStrLn obj
   let objLines = lines obj
   ys <- mapM parseLine objLines
-  putStrLn ("ys = " ++ show ys)
+--  putStrLn ("ys = " ++ show ys)
   let code = getData ys
-  putStrLn ("code = " ++ show code)
+--  putStrLn ("code = " ++ show code)
   return code
   
 {-
@@ -98,13 +98,14 @@ readObjecCode = do
 
 parseLine :: String -> IO ObjStmt
 parseLine xs =
-  do putStrLn ("parseLine: " ++ xs)
+  do
+--    putStrLn ("parseLine: " ++ xs)
      case (parse objStmt "" xs) of
        Left err -> do putStr "error "
                       print err
                       return (ObjErr (show err))
-       Right x -> do putStr "  success: "
-                     print x
+       Right x -> do -- putStr "  success: "
+--                     print x
                      return x
 
 skipWhiteSpace :: Parser ()

@@ -24,26 +24,84 @@ import M1.Circuit.System
 import System.Environment
 import System.IO
 import Control.Monad.State
+import Control.Exception
 import qualified Data.Map as Map
 
 --------------------------------------------------------------------------------
 -- Main program
 --------------------------------------------------------------------------------
 
+tryRead :: String -> IO (Either IOError String)
+tryRead path = do
+  x <- try (readFile path)
+  return x
+
+maybeRead :: String -> IO (Maybe String)
+maybeRead path = do
+  r <- tryRead path
+  case r of
+    Left e -> return Nothing
+    Right x -> return (Just x)
+
+mkFullPath :: String -> String -> String
+mkFullPath prefix path =
+  prefix ++ path ++ ".obj.txt"
+  
+{-
+
+ignoreIOError :: IOError -> Maybe String
+ignoreIOError e = Nothing
+
+tryReadFile :: FilePath -> IO (Maybe String)
+tryReadFile filePath = do
+  x <- tryJust ignoreIOError (readFile filePath)  
+  case x of
+    Left  er   -> return Nothing
+    Right file -> return (Just file)
+
+--  x <- tryJust handleReadFile (readFile filePath)
+--  where
+--    handleReadFile :: IOError -> Maybe String
+--    handleReadFile er = Nothing
+--      | isDoesNotExistError er = Just "readFile: does not exist"
+--      | isPermissionError   er = Just "readFile: permission denied"
+--      | otherwise              = Nothing
+-}
+
+{-
+tryJustReadFile :: FilePath -> IO ()
+tryJustReadFile filePath = do
+  eitherExceptionFile <- tryJust handleReadFile (readFile filePath)
+  case eitherExceptionFile of
+   Left  er   -> putStrLn er
+   Right file -> putStrLn file
+  where
+    handleReadFile :: IOError -> Maybe String
+    handleReadFile er = Nothing
+--      | isDoesNotExistError er = Just "readFile: does not exist"
+--      | isPermissionError   er = Just "readFile: permission denied"
+--      | otherwise              = Nothing
+-}
 
 getObject :: IO [Int]
 getObject = do
   args <- getArgs
-  putStrLn (show args)
+--  putStrLn (show args)
   case args of
     [] -> do
       putStrLn "Usage: :main path/to/objectfile"
       return []
     (a:_) -> do
-      let fname = a ++ ".obj.txt"
-      putStrLn ("Reading object file " ++ fname)
-      code <- liftIO $ readObjectCode fname
-      putStrLn ("Object coode is " ++ show code)
+      prefixFile <- maybeRead "fileprefix.txt"
+--      putStrLn ("file prefix = " ++ show prefixFile)
+      let basePath =
+            case prefixFile of
+              Nothing -> a
+              Just p -> lines p !! 0 ++ a
+      let fullPath = basePath ++ ".obj.txt"
+      putStrLn ("Reading object file " ++ fullPath)
+      code <- liftIO $ readObjectCode fullPath
+      putStrLn ("Object code is " ++ show code)
       return code
   
 -- Generate control signals to boot object code
@@ -61,16 +119,16 @@ putStoredInput storedInput = do
   
 main :: IO ()
 main = driver $ do
-  printLine "M1 computer circuit starting"
+  printLine "Sigma16 M1 system starting"
 --  initialize
 --  defineCommand "boot" cmdBoot
 --  defineCommand "reset" cmdReset
 --  defineCommand "step" cmdM1ClockCycle
   objectCode <- liftIO getObject
-  liftIO $ putStrLn ("Object = " ++ show objectCode)
+--  liftIO $ putStrLn ("Object = " ++ show objectCode)
   let bootData = bootInputs objectCode
   putStoredInput bootData
-  liftIO $ putStrLn ("Boot input data = " ++ show bootData)
+--  liftIO $ putStrLn ("Boot input data = " ++ show bootData)
 --  return ()
 --  bootData <- liftIO bootInputs
   printLine ("Boot system inputs = " ++ show bootData)
@@ -107,7 +165,8 @@ main = driver $ do
   setPeek (b dp)
   
   let ctlStateLookupTable =
-        [ ("st_instr_fet",  st_instr_fet)
+        [ ("reset", reset)
+        , ("st_instr_fet",  st_instr_fet)
         , ("st_dispatch",   st_dispatch)
         , ("st_add",        st_add)
         , ("st_sub",        st_sub)
@@ -269,9 +328,10 @@ main = driver $ do
          fmtIf (orw [st_lea1, st_load1, st_store1, st_jump1, st_jumpc01,
                      st_jumpc11, st_jal1])
            [setStateWs setDisplacement [(ad dp)],
-            string "Fetched displacement = ",
-            simstate showDisplacement,
-            string "\n"]
+            string "*** Fetched displacement = ",
+            simstate showDisplacement
+--           , string "\n"
+           ]
            [],
 
 -- Record the effective address when it is calculated.  This is the r
@@ -357,7 +417,8 @@ main = driver $ do
             string "  ir = ", binhex (ir dp),
             string "  ad = ", binhex (ad dp),
 
-            string ("\n" ++ take 72 (repeat '*') ++ "\n")]
+--            string ("\n" ++ take 72 (repeat '*') ++ "\n")]
+             string ("\n" ++ take 72 (repeat '*'))]
 --            simstate show  -- show the simulation driver state
            [],
          
@@ -368,7 +429,7 @@ main = driver $ do
            [setStateWs setTrap [],
             setHalted,
             string ("\n" ++ take 72 (repeat '*') ++ "\n"),
-            string "Trap Halt instruction executed\n",
+            string "System trap request:  Halt\n",
             string "Processor has halted\n",
             string (take 72 (repeat '*') ++ "\n")
            ]
@@ -386,7 +447,7 @@ main = driver $ do
   -- This ends definitions of the tools; the driver algorithms starts
   -- now
   
-  printLine "\nSigma16_M1 simulation"
+--  printLine "\nSigma16_M1 simulation"
 --  runM1simulation
   startup
   printLine "M1 Run finished"
@@ -415,7 +476,7 @@ peekReg regnum = do
   conditional displayFullSignals $ do
     liftIO $ putStrLn (take 80 (repeat '-'))
     liftIO $ putStr ("Cycle " ++ show i)
-    liftIO $ putStrLn (" ***** Peek at register R" ++ show regnum)
+--    liftIO $ putStrLn (" ***** Peek at register R" ++ show regnum)
   let inps = "0 1 0 0 1 " ++ show regnum ++ " 0"
   conditional displayFullSignals $ do
     liftIO $ putStrLn ("inps = " ++ inps)
@@ -423,13 +484,16 @@ peekReg regnum = do
   conditional displayFullSignals $ do
     printInPorts
     printOutPorts
-    runFormat
   s <- get
   let ps = peekList s
   let b = ps!!1  --  output b from regfile
   let bs = map current b
 --  liftIO $ putStrLn ("Register value = " ++ show bs)
-  liftIO $ putStrLn ("***** Peek R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
+--  liftIO $ putStrLn ("***** Peek R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
+  liftIO $ putStrLn ("***** I/O fetch R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
+  case displayFullSignals of
+    False ->  advanceFormat
+    True -> runFormat
   advanceInPorts
   advanceOutPorts
   advancePeeks
@@ -453,7 +517,7 @@ startup = do
 
 commandLoop :: StateT (SysState DriverState) IO ()
 commandLoop = do
-  liftIO $ putStr "Sigma16.M1> "
+  liftIO $ putStr "M1> "
   liftIO $ hFlush stdout
   xs <- liftIO getLine
   let ws = words xs
@@ -515,29 +579,34 @@ dumpMem start end = do
 
 peekMem :: Int -> StateT (SysState DriverState) IO ()
 peekMem addr = do
-  s <- get
   let displayFullSignals = False
+  s <- get
   let i = cycleCount s
   let inp = inPortList s
   let outp = outPortList s
-  conditional displayFullSignals $
+  conditional displayFullSignals $ do
     liftIO $ putStrLn (take 80 (repeat '-'))
-  liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
+    liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
 --  liftIO $ putStrLn (" ***** Peek at memory address " ++ show addr)
   let inps = "0 1 0 1 0 " ++ show addr ++ " 0"
+  conditional displayFullSignals $ do
+    liftIO $ putStrLn ("inps = " ++ inps)
   takeInputsFromList inps
---  printInPorts
---  printOutPorts
---  runFormat
+  conditional displayFullSignals $ do
+    printInPorts
+    printOutPorts
   s <- get
   let ps = peekList s
   let a = ps!!0  -- m_out
   let bs = map current a
-  liftIO $ putStrLn ("***** Peek Mem[" ++ show addr ++ "] = " ++ bitsHex 4 bs)
+  liftIO $ putStrLn ("***** I/O fetch Mem[" ++ show addr ++ "] = " ++ bitsHex 4 bs)
+  case displayFullSignals of
+    False -> advanceFormat
+    True -> runFormat
   advanceInPorts
   advanceOutPorts
+--  advanceFormat
   advancePeeks
-  -- advanceFormat ????? need to do this silently
   s <- get
   let i = cycleCount s
   put (s {cycleCount = i + 1})
@@ -579,7 +648,12 @@ printHelp = do
   printLine "The following signals can be used as break FLAG:"
   s <- get
   printLine (concat (map ((' ':) . fst) (flagTable s)))
-  
+
+------------------------------------------------------------------------
+-- New format
+
+------------------------------------------------------------------------
+
 runM1simulation :: StateT (SysState DriverState) IO ()
 runM1simulation = do
   printLine "runM1simulation starting"
@@ -658,7 +732,7 @@ getProcessorMode = do
 
 m1ClockCycle :: Operation DriverState
 m1ClockCycle = do
-  liftIO $ putStrLn ("m1ClockCycle starting")
+--  liftIO $ putStrLn ("m1ClockCycle starting")
   s <- get
   let i = cycleCount s
   let inp = inPortList s
@@ -679,7 +753,7 @@ m1ClockCycle = do
   s <- get
   let i = cycleCount s
   put (s {cycleCount = i + 1})
-  liftIO $ putStrLn ("m1ClockCycle finished")
+--  liftIO $ putStrLn ("m1ClockCycle finished")
 
 
 getCurrentInputs :: StateT (SysState DriverState) IO (Maybe String)
@@ -1044,174 +1118,3 @@ findMnemonic [opfield, bfield] =
   in if op==15
        then mnemonics_RX !! b
        else mnemonics_RRR !! op
-
--- Deprecated...
-
-{- This module defines simulation drivers that run the M1 circuit for
-the Sigma16 instruction set architecture. A separate main program
-should be defined that imports this module, and that defines the
-machine language program.  It uses run_M1_program, defined below, to
-execute the program. -}
-
--- import System.Environment
--- import System.FilePath
--- import Control.Monad.State
--- {-# LANGUAGE NamedFieldPuns #-}
-
---  code <- readObject fname
---  code <- liftIO $ readObject objpath
-
-{-
-runDriver :: String -> IO ()
-runDriver xs = do
-  putStrLn ("running simulationDriver " ++ xs)
-  execStateT simulationDriver initState
-  return ()
--}
--- runM1 :: String -> IO ()
--- runM1 fname = do
---      runM1 objFile
-
-
-
-{-
-simulationDriver :: StateT SysState IO ()
-simulationDriver = do
-  liftIO $ putStrLn "simulationDriver starting"
--- Input ports
-  in_ld <- inPortBit "ld"
-  in_x <- inPortBit "x"
-
--- Input signals  
-  let ld = inbsig in_ld
-  let x = inbsig in_x
-  
--- Circuit defines output signals
-  let (r,q) = myreg1 ld x
-
--- Output ports  
-  out_r <- outPortBit "r" r
-  out_q <- outPortBit "q" q
-
--- Run simulation
-
-liftIO $ putStrLn "Enter command after prompt, h for help"
-  commandLoop
-  liftIO $ putStrLn "Simulation terminated"
-
--}
-
---------------------------------------------------------------------------------
--- old main run executable
---------------------------------------------------------------------------------
-
--- ghci
--- :main Simple/Add
-
-
-----------------------------------------------------------------------
--- Simulation model
-----------------------------------------------------------------------
-
-{- The simulations are carried out using the Stream Bool model.  The
-types Bit and Word are defined for clarity; a Bit is represented as a
-Stream of Bools for the simulations. -}
-
-{- The run_M1_program function takes a program (in the form of a list
-of strings), loads it into the machine, and executes it, using the
-sim_m1 simulation driver. -}
-
-{-
--- prog is a list of hex strings giving object code
-run_Sigma16_program :: [String] -> Int -> IO ()
-run_Sigma16_program prog n =
-  let inps = zipWith f [0..] prog ++ [[1,0,0,0]] ++ repeat [0,0,0,0]
-      f i x = [0, 1, i, hexbin 16 x]
-      m = n + length prog
-  in  sim_m1 (take m inps)
--}
---      liftIO $ run_Sigma16_executable code limit
-{-
--- prog is a list of ints giving object code
-run_Sigma16_executable :: [Int] -> Int -> IO ()
-run_Sigma16_executable prog n = do
-  let f i x = [0, 1, i, x]
-  let inps = zipWith f [0..] prog ++ [[1,0,0,0]] ++ repeat [0,0,0,0]
-  let m = n + length prog
-  putStrLn ("run executable limit = " ++ show m)
-  putStrLn ("input = " ++ show (take m inps))
-  sim_m1 (take m inps)
--}
--- main :: IO ()
--- main = do
-
-
---  operand <- liftIO getCmdOperand
---  printLine ("operation = " ++ show operand)
---  case operand of
---    Nothing -> return ()
---    Just objFile -> do
---      code <- liftIO $ getObject objFile
-  
-
---  code <- liftIO $ readObject objpath
---  code <- readObjectFile
---   s <- get
---   let xs = args s
---   let fname = splitPath (head xs ++ ".obj.txt")
---   liftIO $ putStrLn ("fname = " ++ show fname)
---   let corePath = ["..", "..", "examples", "Core"]
---   let objParts = corePath ++ fname
---   liftIO $ putStrLn ("objParts = " ++ show objParts)
---   let objpath = joinPath objParts
---  liftIO $ putStrLn ("fname = " ++ show fname)
---   liftIO $ putStrLn ("objpath = " ++ objpath)
-
-
---      reset = getbit    input 0  -- :: Bit
---      dma   = getbit    input 1  -- :: Bit
---      dma_a = getbin 16 input 2  -- :: Word
---      dma_d = getbin 16 input 3  -- :: Word
--- sim_m1 :: [[Int]] -> StateT (SysState a) IO ()
--- sim_m1 input = do
-
---------------------------------------------------------------------------------
--- Simulation driver
---------------------------------------------------------------------------------
-
--- sim_m1 :: StateT (SysState a) IO ()
--- sim_m1 = do
-  
---   let instrlimit = 200
---  let m = instrlimit + length bootData
---  printLine ("run executable limit = " ++ show m)
---  printLine ("input = " ++ show (take m inps))
---  liftIO $ sim_m1 (take m inps)
---      string "hello"
---    , string " condcc=", bit condcc
---    , string " st_instr_fet = ", bit (st_instr_fet ctlstate)
---    , string "\n"
---     , string "  x = ", bits (x dp)
---     , string "  cc = ", bits (cc dp)
---     , string "  ir_d = ", bits (ir_d dp)
---     , string "  r = ", bits (r)
---     , string "  ccnew = ", bits (ccnew)
---     , string "  condcc = ", bit (condcc)
---     string "  m_real_addr = ", bits m_real_addr,
---     string "  m_data = ", bits m_data,
---     string "  m_data = ", bits m_data,
---     string "  m_out =", bits m_out,
---  let  (ctlstate, ctl_start, ctlsigs, dp,
---  let  (CtlState {..}, ctl_start, ctlsigs, dp,
---  out_st_instr_fet <- outPortBit "st_instr_fet" (st_instr_fet ctlstate)
---  out_m_real_addr <- outPortWord "m_real_addr" m_real_addr showBin
---  out_m_out       <- outPortWord "m_out" m_out showBin
---  let ft = flagTable s
---  let key = breakpointKey s
---  let check = checkFlag (flagTable s) (breakpointKey s)
---  printLine ("********** Looper key = " ++ key ++ " check=" ++ show check)
---  let mds = userState s
---  case mds of
---    Nothing -> printLine "DriverState not defined"
---    Just ds -> do
---      liftIO $ putStr (".  " ++ show (processorMode ds))
