@@ -1,5 +1,6 @@
 *~
 .env
+fileprefix.txt
 build
 *temp*
 protected
