@@ -52,8 +52,9 @@ data CtlSig a = CtlSig
     cpu,        -- indicates dff for state generates state controls
 
 -- Controls for ALU
-   ctl_alu_a,   -- 4-bit alu operation code (see section on the ALU)
+   ctl_alu_a,   -- 3-bit alu operation code
    ctl_alu_b,   --   "
+   ctl_alu_c,   --   "
    ctl_x_pc,    -- Transmit pc on x (if 0, transmit reg[sa])
    ctl_y_ad,    -- Transmit ad on y (if 0, transmit reg[sb])
 

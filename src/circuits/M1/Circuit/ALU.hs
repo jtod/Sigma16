@@ -52,13 +52,14 @@ Data outputs:
 The data output r is the result of an arithmetic operation which
 is determinted by the control inputs:
 
-|    r     |  alua,alub  |
-|----------+-------------|
-|   x+y    |     0 0     |
-|   x-y    |     0 1     |
-|    -x    |     1 0     |
-|   x+1    |     1 1     |
-
+| op = (alua,alub,aluc)
+| a b c |    r     | ccnew |
+|-------+------------
+| 0 0 0 |   x+y    | 
+| 0 0 1 |   x-y    | 
+| 0 1 0 |    -x    | 
+| 0 1 1 |   x+1    | 
+| 1 0 0 |   cmp    |
 
 The control algorithm defines all control signals, regardless of what
 operation is being performed.  The signal values for the ALU are:
@@ -69,26 +70,37 @@ operation is being performed.  The signal values for the ALU are:
   alu_inc = 11
 -}
 
-alu n (alua,alub) x y cc d = (sum, ccnew, cond)
+alu n (alua,alub,aluc) x y cc d = (sum, ccnew, cond)
   where
+    negating = and2 (inv alua) (xor2 alub aluc)  -- alu abc = 001 or 010
+    arith = inv alua  -- doing arithmetic operation, alu abc one of 000 001 010 100
+    comparing = and3 alua (inv alub) (inv aluc)  -- doing comparison, alu abc = 100
     wzero = fanout n zero
     wone = boolword n one
-    negating = xor2 alua alub
-    x' = mux2w (alua,alub) x x wzero x
-    y' = mux2w (alua,alub) y (invw y) (invw x) wone
+-- prepare inputs to adder    
+    x' = mux2w (alub,aluc) x x wzero x
+    y' = mux2w (alub,aluc) y (invw y) (invw x) wone
     xy = bitslice2 x' y'
     (carry,sum) = rippleAdd negating xy
+-- binary comparison    
     (lt,eq,gt) = rippleCmp xy
+-- two's complement comparison    
     lt_tc = mux2 (xy!!0) lt zero one lt
     eq_tc = eq
     gt_tc = mux2 (xy!!0) gt one zero gt
+-- carry and overflow
     natovfl = carry
     intovfl = zero -- ????
-    ccnew = [ zero,  zero,    zero,    zero,   -- bit 15 14 13 12
-              zero,  zero,    zero,    zero,   -- bit 11 10  9  8
-              carry, natovfl, intovfl, lt_tc,  -- bit  7  6  5  4
-              lt,    eq,      gt,      gt_tc   -- bit  3  2  1  0
+-- condition code flags
+    fcarry = and2 carry (inv comparing)
+    fnatovfl = and2 natovfl (inv comparing)
+    fintovfl = and2 intovfl (inv comparing)
+    ccnew = [ zero,   zero,     zero,     zero,   -- bit 15 14 13 12
+              zero,   zero,     zero,     zero,   -- bit 11 10  9  8
+              fcarry, fnatovfl, fintovfl, lt_tc,  -- bit  7  6  5  4
+              lt,     eq,       gt,       gt_tc   -- bit  3  2  1  0
             ]
+-- conditional bit controls conditional jumps            
     cond = indexbit d cc
 
 -- indexbitcs xs: select element at index cs from xs, where index 0 is

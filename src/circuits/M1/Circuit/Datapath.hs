@@ -69,7 +69,7 @@ datapath (CtlSig {..}) (SysIO {..}) memdat = dp
     ad = reg n ctl_ad_ld (mux1w ctl_ad_alu memdat r)
 
 -- ALU
-    aluOutputs = alu n (ctl_alu_a, ctl_alu_b) x y cc ir_d
+    aluOutputs = alu n (ctl_alu_a, ctl_alu_b, ctl_alu_c) x y cc ir_d
     (r,ccnew,condcc) = aluOutputs
       
 -- Internal processor signals

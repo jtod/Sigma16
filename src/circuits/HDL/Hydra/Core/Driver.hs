@@ -17,7 +17,6 @@ module HDL.Hydra.Core.Driver
    StateT (..), execStateT, liftIO,
 
 -- * New from step driver
-   advanceFormat,
    testfcn,
    bitsHex, setFlagTable, checkFlag, advanceFlagTable, getClockCycle,
    runFormat, getUserState, printError, setHalted, setPeek, advancePeeks,
@@ -180,30 +179,30 @@ quitCmd args = do
 
 type CB = Stream Bool
 
--- The user state has type Maybe a; anything that can refer to the
+-- The user state has type Maybe b; anything that can refer to the
 -- user state incorporates a
 
 data Mode = Batch | Interactive deriving (Eq, Read, Show)
 -- If the driver does useData the mode will be changed to Batch; otherwise
 -- remains the default Interactive
 
-data SysState a = SysState
+data SysState b = SysState
   { running :: Bool
   , mode :: Mode
   , halted :: Bool
-  , commands :: Commands a
+  , commands :: Commands b
   , cycleCount :: Int
   , currentInputString :: String
   , inPortList :: [InPort]
   , nInPorts :: Int
   , outPortList :: [OutPort]
-  , formatSpec :: Maybe [Format Bool a]
+  , formatSpec :: Maybe [Format Bool b]
   , peekList :: [[Stream Bool]]
   , flagTable :: [(String, Stream Bool)]
   , breakpointKey :: String
   , storedInput :: [String]
   , selectedKey :: String
-  , userState :: Maybe a
+  , userState :: Maybe b
   }
 
 initState :: SysState a
@@ -419,7 +418,7 @@ cycleCmd args = do
           printOutPorts
         Just fs -> do
     --      printLine ("cycleCmd mfmt = fs, running format")
-          runFormat
+          runFormat True True
       advanceInPorts
       advanceOutPorts
       advancePeeks
@@ -777,19 +776,26 @@ format xs = do
   s <- get
   put (s {formatSpec = Just xs})
 
-runFormat :: StateT (SysState a) IO ()
-runFormat = do
+-- if a then carry out action.  if p then produce output.  In any
+-- case, advance the format
+
+runFormat :: Bool -> Bool -> StateT (SysState a) IO ()
+runFormat a p = do
   s <- get
   let mfmt = formatSpec s
   case mfmt of
     Nothing -> return ()
     Just fs -> do
-      fs' <- mdofmts fs
+      fs' <- mdofmts a p fs
       s <- get
       put $ s {formatSpec = Just fs'}
       liftIO $ putStrLn ""
 
+-- Just advance the format but don't produce output
 advanceFormat ::  StateT (SysState b) IO ()
+advanceFormat = runFormat True False
+
+{-
 advanceFormat = do
   s <- get
   case formatSpec s of
@@ -798,6 +804,7 @@ advanceFormat = do
       fs' <- mskipfmts fs
       s <- get
       put (s {formatSpec = Just fs'})
+-}
 
 ------------------------------------------------
 -- Representation of output format specification
@@ -810,6 +817,7 @@ advanceFormat = do
 
 data Format a b
   = FmtCycle (Int -> String)
+  | FmtCase [Stream a] [(Int, Format a b)]
   | FmtString String
 --  | FmtState ((Int,b) -> String)
   | FmtState (b -> String)
@@ -987,17 +995,22 @@ mstep i xs =
      return ys
 -}
 
+------------------------------------------------------------------------
+-- Traversing a format
+
 -- run mdofmt on each format in a list of formats, printing the
 -- results as we go, and returning a new list of formats that will
 -- contain the futures of all the streams
 
-  
+-- if p then print outputs, otherwise no output.  In either case, the
+-- result of advancing the format is returned
+
 mdofmts :: (Signal a, StaticBit a) =>
-  [Format a b] -> StateT (SysState b) IO [Format a b]
-mdofmts [] = return []
-mdofmts (x:xs) =
-  do x' <- mdofmt x
-     xs' <- mdofmts xs
+  Bool -> Bool -> [Format a b] -> StateT (SysState b) IO [Format a b]
+mdofmts a p [] = return []
+mdofmts a p (x:xs) =
+  do x' <- mdofmt a p x
+     xs' <- mdofmts a p xs
      return (x':xs')
 
 --  [Format a b] -> StateT (Int,b) IO [Format a b]
@@ -1017,12 +1030,22 @@ mdofmts (x:xs) =
 -- mdofmt :: (Signal a, StaticBit a)
 --   => Format a b -> StateT (Int,b) IO (Format a b)
 
-mdofmt :: (Signal a, StaticBit a)
-  => Format a b -> StateT (SysState b) IO (Format a b)
+condp :: Bool -> StateT (SysState a) IO () -> StateT (SysState a) IO ()
+condp p action =
+  case p of
+    True -> action
+    False -> return ()
 
-mdofmt FmtSetHalted = do
-  s <- get
-  put (s {halted = True})
+mdofmt :: (Signal a, StaticBit a)
+  => Bool -> Bool -> Format a b -> StateT (SysState b) IO (Format a b)
+
+-- It will set halted regardless of p
+mdofmt a p FmtSetHalted = do
+  case a of
+    False -> return ()
+    True -> do
+      s <- get
+      put (s {halted = True})
   return FmtSetHalted
 
 --  do mds <- getUserState
@@ -1033,63 +1056,68 @@ mdofmt FmtSetHalted = do
 --         return FmtSetHalted
 --       Nothing -> return FmtSetHalted
 
-mdofmt (FmtString s) =
-  do lift $ putStr s
+mdofmt a p (FmtString s) =
+  do condp p $ lift $ putStr s
      return (FmtString s)
 
-mdofmt (FmtBit f lbl x) =
+mdofmt a p (FmtBit f lbl x) =
   do let (s,x') = f lbl x
-     lift $ putStr s
+     condp p $ lift $ putStr s
      return (FmtBit f lbl x')
 
-mdofmt (FmtHex f k x) =
+mdofmt a p (FmtHex f k x) =
   do let (s,x') = f k x
-     lift $ putStr s
+     condp p $ lift $ putStr s
      return (FmtHex f k x')
 
-mdofmt (FmtWord f lbl w k x) =
+mdofmt a p (FmtWord f lbl w k x) =
   do let (s,x') = f lbl w k x
-     lift $ putStr s
+     condp p $ lift $ putStr s
      return (FmtWord f lbl w k x')
 
-mdofmt (FmtState f) =
+mdofmt a p (FmtState f) =
   do mds <- getUserState  -- user's driver state
      case mds of
-       Just ds -> do lift $ putStr (f ds)
+       Just ds -> do condp p $ lift $ putStr (f ds)
                      return (FmtState f)
        Nothing -> return (FmtState f)
 
-mdofmt (FmtSetStateWords f xs) =
+mdofmt a p (FmtSetStateWords f xs) =
   do mds <- getUserState
      case mds of
        Just ds -> do
-         let ws = map (map current) xs
-         let ds' = f ds ws
-         putUserState ds'
-         return (FmtSetStateWords f xs)
-       Nothing -> return (FmtSetStateWords f xs)
+         case a of
+           True -> do
+             let ws = map (map current) xs
+             let ds' = f ds ws
+             putUserState ds'
+           False -> return ()
+       Nothing -> return ()
+     return (FmtSetStateWords f (map (map future) xs))
 
-mdofmt (FmtWordsGeneral f xs) =
+mdofmt a p (FmtWordsGeneral f xs) =
   do mds <- getUserState
      case mds of
        Just ds -> do
          let ys = map (map (sigInt . current)) xs
-         let zs = map (map future) xs
          let s = f ys
-         lift $ putStr s
-         return (FmtWordsGeneral f zs)
-       Nothing -> return  (FmtWordsGeneral f xs)
+         condp p $ lift $ putStr s
+       Nothing -> return ()
+     return (FmtWordsGeneral f (map (map future) xs))
 
-mdofmt (FmtIf x fs_then fs_else) =
+mdofmt a p (FmtIf x fs_then fs_else) =
   do let b = is1 (current x)
-     fs_then' <- (if b then mdofmts else mskipfmts) fs_then
-     fs_else' <- (if b then mskipfmts else mdofmts) fs_else
+     fs_then' <- mdofmts (a && b) (p && b) fs_then
+     fs_else' <- mdofmts (a && not b) (p && not b) fs_else
      return (FmtIf (future x) fs_then' fs_else')
+--     fs_then' <- (if b then mdofmts else mskipfmts) fs_then
+--     fs_else' <- (if b then mskipfmts else mdofmts) fs_else
+--     return (FmtIf (future x) fs_then' fs_else')
 
-mdofmt (FmtCycle f) =
+mdofmt a p (FmtCycle f) =
   do s <- get
      let cycle = cycleCount s
-     lift $ putStr (f cycle)
+     condp p $ lift $ putStr (f cycle)
      return (FmtCycle f)
 
 -- Skip current cycle infor for a list of formats, return futures

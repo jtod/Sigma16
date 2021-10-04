@@ -249,28 +249,30 @@ main = driver $ do
     , string "\n\nControl signals\n  "
     , string "    ctl_alu_a = ", bit ctl_alu_a
     , string "    ctl_alu_b = ", bit ctl_alu_b
+    , string "    ctl_alu_c = ", bit ctl_alu_c
     , string "     ctl_x_pc = ", bit ctl_x_pc
-    , string "     ctl_y_ad = ", bit ctl_y_ad
     , string "\n  "
+    , string "     ctl_y_ad = ", bit ctl_y_ad
     , string "    ctl_rf_ld = ", bit ctl_rf_ld
     , string "  ctl_rf_ldcc = ", bit ctl_rf_ldcc
     , string "    ctl_rf_pc = ", bit ctl_rf_pc
-    , string "    ctl_pc_ld = ", bit ctl_pc_ad
     , string "\n  "
+    , string "    ctl_pc_ld = ", bit ctl_pc_ad
     , string "    ctl_pc_ad = ", bit ctl_pc_ad
     , string "   ctl_rf_alu = ", bit ctl_rf_alu
     , string "    ctl_rf_sd = ", bit ctl_rf_sd
-    , string "    ctl_ir_ld = ", bit ctl_ir_ld
     , string "\n  "
+    , string "    ctl_ir_ld = ", bit ctl_ir_ld
     , string "    ctl_pc_ld = ", bit ctl_pc_ld
     , string "    ctl_ad_ld = ", bit ctl_ad_ld
     , string "   ctl_ad_alu = ", bit ctl_ad_alu
-    , string "    ctl_ma_pc = ", bit ctl_ma_pc
     , string "\n  "
+    , string "    ctl_ma_pc = ", bit ctl_ma_pc
     , string "      ctl_sto = ", bit ctl_sto
 
      , string "\n\nALU\n"
      , string "  ALU inputs: "
+     , string "  operation = ", bit ctl_alu_a, bit ctl_alu_b, bit ctl_alu_c
      , string "  x = ", binhex (x dp)
      , string "  y = ", binhex (y dp)
      , string "  cc = ", binhex (cc dp)
@@ -491,12 +493,14 @@ peekReg regnum = do
 --  liftIO $ putStrLn ("Register value = " ++ show bs)
 --  liftIO $ putStrLn ("***** Peek R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
   liftIO $ putStrLn ("***** I/O fetch R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
-  case displayFullSignals of
-    False ->  advanceFormat
-    True -> runFormat
+  runFormat True displayFullSignals
+--  case displayFullSignals of
+--    False ->  advanceFormat
+--    True -> runFormat True
   advanceInPorts
   advanceOutPorts
   advancePeeks
+  advanceFlagTable
   s <- get
   let i = cycleCount s
   put (s {cycleCount = i + 1})
@@ -577,7 +581,7 @@ dumpMem start end = do
       dumpMem (start+1) end
     False -> return ()
 
-peekMem :: Int -> StateT (SysState DriverState) IO ()
+peekMem :: Int -> StateT (SysState DriverState) IO [Bool]
 peekMem addr = do
   let displayFullSignals = False
   s <- get
@@ -600,16 +604,19 @@ peekMem addr = do
   let a = ps!!0  -- m_out
   let bs = map current a
   liftIO $ putStrLn ("***** I/O fetch Mem[" ++ show addr ++ "] = " ++ bitsHex 4 bs)
-  case displayFullSignals of
-    False -> advanceFormat
-    True -> runFormat
+  runFormat True displayFullSignals
+--  case displayFullSignals of
+--    False -> advanceFormat
+--    True -> runFormat
   advanceInPorts
   advanceOutPorts
 --  advanceFormat
   advancePeeks
+  advanceFlagTable
   s <- get
   let i = cycleCount s
   put (s {cycleCount = i + 1})
+  return bs
 
 dumpRegFile :: StateT (SysState DriverState) IO ()
 dumpRegFile = do
@@ -663,7 +670,7 @@ runM1simulation = do
 simulationLooper :: StateT (SysState DriverState) IO ()
 simulationLooper = do
   s <- get
-  if checkFlag (flagTable s) (breakpointKey s) || cycleCount s >= 1000
+  if checkFlag (flagTable s) (breakpointKey s) || cycleCount s >= 10000
     then do
       cycle <- getClockCycle
       m1ClockCycle -- display the cycle where the breakpoint is satisfied
@@ -745,7 +752,7 @@ m1ClockCycle = do
   liftIO $ putStrLn (if halted s then "  Halted" else "")
 --  printInPorts
 --  printOutPorts
-  runFormat
+  runFormat True True
   advanceInPorts
   advanceOutPorts
   advancePeeks

@@ -1,0 +1,5 @@
+  lea   R4,2[R0]
+  lea   R5,3[R0]
+  cmp   R4,R5
+  trap  R0,R0,R0
+  

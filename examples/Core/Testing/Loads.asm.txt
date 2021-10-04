@@ -1,0 +1,10 @@
+   load   R1,a[R0]
+   load   R2,b[R0]
+   load   R3,c[R0]
+   load   R4,d[R0]
+   trap   R0,R0,R0
+
+a  data   1
+b  data   2
+c  data   3
+d  data   4

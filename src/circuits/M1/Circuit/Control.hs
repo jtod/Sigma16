@@ -44,7 +44,7 @@ repeat forever
 
     0 -> -- add instruction
         st_add:  reg[ir_d] := reg[ir_sa] + reg[ir_sb]
-          assert [ctl_alu_abcd=0000, ctl_rf_alu, ctl_rf_ld]
+          assert [ctl_alu_bbcd=0000, ctl_rf_alu, ctl_rf_ld]
 
     1 -> -- sub instruction
         st_sub:  reg[ir_d] := reg[ir_sa] - reg[ir_sb]
@@ -58,7 +58,7 @@ repeat forever
 
     4 -> -- cmp instruction
         st_cmp:  reg[15] := alu_cmp (reg[ir_sa], reg[ir_sb])
-           assert [ctl_alu_abcd=0000, ctl_rf_ldcc]
+           assert [ctl_alu_abc=100, ctl_rf_ldcc]
 
     12 -> -- trap instruction
         st_trap0:
@@ -270,9 +270,10 @@ control reset ir condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
       ctl_rf_pc   = orw [st_jal2]
       ctl_rf_alu  = orw [st_lea1,st_add,st_sub]
       ctl_rf_sd   = orw [st_store2,st_jumpc00]
-      ctl_alu_a   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
-                         st_jump0, st_jumpc00, st_jumpc10, st_jal0]
+      ctl_alu_a   = orw [st_cmp]
       ctl_alu_b   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
+                         st_jump0, st_jumpc00, st_jumpc10, st_jal0]
+      ctl_alu_c   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
                          st_jump0, st_jumpc00, st_jumpc10,
                          st_sub,st_jumpc00,st_jal0]
       ctl_ir_ld   = orw [st_instr_fet]
@@ -300,7 +301,7 @@ control reset ir condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
       
 {-
       ctlsigs = CtlSig
-        {ctl_alu_a,  ctl_alu_b,
+        {ctl_alu_b,  ctl_alu_c,
          ctl_x_pc,   ctl_y_ad,   ctl_rf_ld,  ctl_rf_ldcc,
          ctl_rf_pc,
          ctl_rf_alu, ctl_rf_sd,  ctl_ir_ld,  ctl_pc_ld,
