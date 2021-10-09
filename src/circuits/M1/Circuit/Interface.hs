@@ -18,7 +18,8 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
 
-module M1.Circuit.Interface where
+-- module M1.Circuit.Interface where
+module Circuit.Interface where
 import HDL.Hydra.Core.Lib
 
 ------------------------------------------------------------------------

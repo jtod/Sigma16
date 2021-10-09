@@ -1,0 +1,30 @@
+; Overflow - test the overflow condition code flag
+
+; Condition code is R15
+; | bit index | Relation        | Symbol |
+; |-----------+-----------------+--------|
+; |         0 | > Int           | g      |
+; |         1 | > Nat           | G      |
+; |         2 | =               | =      |
+; |         3 | < Nat           | L      |
+; |         4 | < Int           | <      |
+; |         5 | Int overflow    | v      |
+; |         6 | Nat overflow    | V      |
+; |         7 | Carry           | C      |
+; |         8 | Stack overflow  | S      |
+; |         9 | Stack underflow | s      |
+
+
+     lea    R1,1[R0]          ; 1
+     lea    R2,15000[R0]      ; 15,000 ok for 16 bit int
+     lea    R3,20000[R0]      ; 20,000 ok for 16 bit int
+     add    R4,R1,R2          ; 115,001 -- no overflow
+     jumpc1 5,Overflow[R0]    ; should not jump
+     add    R5,R2,R3          ; 35,000 too large for int, ok for nat
+     jumpc1 5,Overflow[R0]    ; should jump
+     trap   R0,R0,R0
+
+Overflow
+     lea    R10,1[R0]        ; do someething detectable
+     trap   R0,R0,R0
+

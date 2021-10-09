@@ -19,7 +19,8 @@
 -- Memory
 -----------------------------------------------------------------------
 
-module M1.Circuit.Memory where
+-- module M1.Circuit.Memory where
+module Circuit.Memory where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational

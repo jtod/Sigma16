@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.7.13)  3 OCT 2021 13:41
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.7.13)  7 OCT 2021 19:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**M1
-(./M1.tex
+**M1_System_Circuit
+(./M1_System_Circuit.tex
 LaTeX2e <2021-06-01> patch level 1
 L3 programming layer <2021-06-18>
 (c:/texlive/2021/texmf-dist/tex/latex/base/article.cls
@@ -27,10 +27,7 @@ File: size11.clo 2021/02/12 v1.4n Standard LaTeX file (size option)
 Package: inputenc 2021/02/14 v1.3d Input encoding file
 \inpenc@prehook=\toks16
 \inpenc@posthook=\toks17
-
-(c:/texlive/2021/texmf-dist/tex/latex/base/latin1.def
-File: latin1.def 2021/02/14 v1.3d Input encoding file
-))
+)
 (c:/texlive/2021/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
 )
@@ -329,28 +326,30 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 File: l3backend-pdftex.def 2021-05-07 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count286
 \l__pdf_internal_box=\box62
-) (./M1.aux)
-\openout1 = `M1.aux'.
+)
+(./M1_System_Circuit.aux)
+\openout1 = `M1_System_Circuit.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
- (c:/texlive/2021/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+
+(c:/texlive/2021/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count287
 \scratchdimen=\dimen160
@@ -372,7 +371,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring OFF on input line 26.
+Package hyperref Info: Link coloring OFF on input line 27.
 
 (c:/texlive/2021/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
@@ -385,53 +384,188 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
 \c@section@level=\count293
 )
-LaTeX Info: Redefining \ref on input line 26.
-LaTeX Info: Redefining \pageref on input line 26.
-LaTeX Info: Redefining \nameref on input line 26.
+LaTeX Info: Redefining \ref on input line 27.
+LaTeX Info: Redefining \pageref on input line 27.
+LaTeX Info: Redefining \nameref on input line 27.
 
-(./M1.out) (./M1.out)
+(./M1_System_Circuit.out) (./M1_System_Circuit.out)
 \@outlinefile=\write3
-\openout3 = `M1.out'.
+\openout3 = `M1_System_Circuit.out'.
 
- (./M1.toc)
+LaTeX Font Info:    Trying to load font information for U+msa on input line 30.
+
+
+(c:/texlive/2021/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 30.
+
+
+(c:/texlive/2021/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+(./M1_System_Circuit.toc)
 \tf@toc=\write4
-\openout4 = `M1.toc'.
+\openout4 = `M1_System_Circuit.toc'.
 
-<./figures/smartdraw-test.pdf, id=4, 306.18391pt x 350.26859pt>
-File: ./figures/smartdraw-test.pdf Graphic file (type pdf)
-<use ./figures/smartdraw-test.pdf>
-Package pdftex.def Info: ./figures/smartdraw-test.pdf  used on input line 40.
-(pdftex.def)             Requested size: 142.26378pt x 162.75027pt.
- [1
+LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 3
+6.
+ (c:/texlive/2021/texmf-dist/tex/latex/base/t1cmtt.fd
+File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
+) [1
 
-{c:/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./figures/smart
-draw-test.pdf
+{c:/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
+Overfull \hbox (50.63504pt too wide) in paragraph at lines 106--109
+\T1/cmr/m/n/10.95 guage pro-gram and run-ning it on the cir-cuit. This is \T1/c
+mtt/m/n/10.95 circuits/programs/Add.asm.txt\T1/cmr/m/n/10.95 : 
+ []
 
-pdfTeX warning: pdflatex.exe (file ./figures/smartdraw-test.pdf): PDF inclusion
-: invalid other resource which is no dict (key 'ProcSets', type <array>); ignor
-ed.
->] (./M1.aux)
+
+Overfull \hbox (109.64479pt too wide) in paragraph at lines 130--130
+[]\T1/cmtt/m/n/10.95 ; This file is part of Sigma16; see README and https://jto
+d.github.io/home/Sigma16/[] 
+ []
+
+
+Overfull \hbox (30.4276pt too wide) in paragraph at lines 130--130
+[]\T1/cmtt/m/n/10.95 ; Execution starts at location 0, where the first instruct
+ion will be[] 
+ []
+
+[3] [4] [5] [6]
+Overfull \hbox (47.40271pt too wide) in paragraph at lines 347--347
+[]    \T1/cmtt/m/n/10.95 negating = and2 (inv alua) (xor2 alub aluc)  -- alu ab
+c = 001 or 010[] 
+ []
+
+
+Overfull \hbox (109.64479pt too wide) in paragraph at lines 347--347
+[]    \T1/cmtt/m/n/10.95 arith = inv alua  -- doing arithmetic operation, alu a
+bc one of 000 001 010 100[] 
+ []
+
+
+Overfull \hbox (109.64479pt too wide) in paragraph at lines 347--347
+[]    \T1/cmtt/m/n/10.95 comparing = and3 alua (inv alub) (inv aluc)  -- doing 
+comparison, alu abc = 100[] 
+ []
+
+[7]
+Overfull \hbox (24.76923pt too wide) in paragraph at lines 347--347
+[]    \T1/cmtt/m/n/10.95 ccnew = [ zero,   zero,     zero,     zero,   -- bit 1
+5 14 13 12[] 
+ []
+
+
+Overfull \hbox (24.76923pt too wide) in paragraph at lines 347--347
+[]              \T1/cmtt/m/n/10.95 zero,   zero,     zero,     zero,   -- bit 1
+1 10  9  8[] 
+ []
+
+
+Overfull \hbox (24.76923pt too wide) in paragraph at lines 347--347
+[]              \T1/cmtt/m/n/10.95 fcarry, fnatovfl, fintovfl, lt_tc,  -- bit  
+7  6  5  4[] 
+ []
+
+
+Overfull \hbox (24.76923pt too wide) in paragraph at lines 347--347
+[]              \T1/cmtt/m/n/10.95 lt,     eq,       gt,       gt_tc   -- bit  
+3  2  1  0[] 
+ []
+
+
+Overfull \hbox (24.76923pt too wide) in paragraph at lines 395--395
+[]  \T1/cmtt/m/n/10.95 => Int      -- k is number of reg address bits, with 2^k
+ registers[] 
+ []
+
+
+Overfull \hbox (2.13574pt too wide) in paragraph at lines 395--395
+[]  \T1/cmtt/m/n/10.95 -> [a]      -- sb is source address b, second operand to
+ fetch[] 
+ []
+
+[8]
+Overfull \hbox (24.76923pt too wide) in paragraph at lines 395--395
+[]  \T1/cmtt/m/n/10.95 -> (a,a)    -- (reg[sa], reg[sb]) is the readouts of two
+ registers[] 
+ []
+
+[9] [10] [11]
+Overfull \hbox (109.64479pt too wide) in paragraph at lines 562--562
+[]  \T1/cmtt/m/n/10.95 -> a           -- ldcc: if ldcc then reg[15] := xcc (but
+ ld R15 takes precedence)[] 
+ []
+
+
+Overfull \hbox (13.45248pt too wide) in paragraph at lines 590--590
+[]\T1/cmtt/m/n/10.95 regFileSpec1 rft ld ldcc (d:ds) (sa:sas) (sb:sbs) x xcc = 
+(a,b,cc)[] 
+ []
+
+
+Overfull \hbox (64.37782pt too wide) in paragraph at lines 590--590
+[]  \T1/cmtt/m/n/10.95 where (a0,b0,cc0) = regFileSpec1 (headType rft) ld0 ldcc
+ ds sas sbs x xcc[] 
+ []
+
+
+Overfull \hbox (64.37782pt too wide) in paragraph at lines 590--590
+[]        \T1/cmtt/m/n/10.95 (a1,b1,cc1) = regFileSpec1 (tailType rft) ld1 ldcc
+ ds sas sbs x xcc[] 
+ []
+
+[12]
+Overfull \hbox (13.45248pt too wide) in paragraph at lines 612--612
+[]  \T1/cmtt/m/n/10.95 unbitslice3 [regFileSpec1 RFfull ld ldcc d sa sb (x!!i) 
+(xcc!!i)[] 
+ []
+
+[13] [14] [15]
+Overfull \hbox (5.7223pt too wide) in paragraph at lines 752--759
+[]\T1/cmr/m/n/10.95 This To sup-port cy-cle steal-ing, there is a dff for each 
+state (e.g. \T1/cmtt/m/n/10.95 dff_load0\T1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (12.08444pt too wide) in paragraph at lines 792--801
+\T1/cmr/m/n/10.95 dur-ing this cy-cle. This is be-cause \T1/cmtt/m/n/10.95 st_l
+oad1 = and2 cpu dff_load1
+ []
+
+[16] [17] (./M1_System_Circuit.aux)
 
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
-Package rerunfilecheck Info: File `M1.out' has not changed.
-(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+Package rerunfilecheck Info: File `M1_System_Circuit.out' has not changed.
+(rerunfilecheck)             Checksum: D57C14E94585DB37D831DB4BCFE90C8E;3478.
  ) 
 Here is how much of TeX's memory you used:
- 9543 strings out of 478517
- 136107 string characters out of 5853901
- 439041 words of memory out of 5000000
- 27372 multiletter control sequences out of 15000+600000
- 406148 words of font info for 32 fonts, out of 8000000 for 9000
+ 9714 strings out of 478517
+ 138851 string characters out of 5853901
+ 451616 words of memory out of 5000000
+ 27481 multiletter control sequences out of 15000+600000
+ 417240 words of font info for 63 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 60i,5n,66p,215b,324s stack positions out of 5000i,500n,10000p,200000b,80000s
-{c:/texlive/2021/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}<c:/texl
-ive/2021/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb><c:/texlive/2021/t
-exmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
-Output written on M1.pdf (1 page, 40628 bytes).
+ 60i,6n,66p,382b,472s stack positions out of 5000i,500n,10000p,200000b,80000s
+{c:/texlive/2021/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}{c:/texl
+ive/2021/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}<c:/texlive/2021/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2021/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmmi8.pfb><c:/texlive/2021/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmr10.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public
+/cm-super/sfbx1095.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/cm-super/
+sfbx1200.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/cm-super/sfbx1440.p
+fb><c:/texlive/2021/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb><c:/tex
+live/2021/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb><c:/texlive/2021/
+texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb><c:/texlive/2021/texmf-dist
+/fonts/type1/public/cm-super/sfrm1728.pfb><c:/texlive/2021/texmf-dist/fonts/typ
+e1/public/cm-super/sfti1095.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/
+cm-super/sftt1095.pfb>
+Output written on M1_System_Circuit.pdf (17 pages, 257006 bytes).
 PDF statistics:
- 34 PDF objects out of 1000 (max. 8388607)
- 22 compressed objects within 1 object stream
- 4 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 263 PDF objects out of 1000 (max. 8388607)
+ 216 compressed objects within 3 object streams
+ 40 named destinations out of 1000 (max. 500000)
+ 169 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -17,7 +17,9 @@ module HDL.Hydra.Core.Driver
    StateT (..), execStateT, liftIO,
 
 -- * New from step driver
+   setStateWsIO,
    testfcn,
+   incrementCycleCount, clearCycleCount,
    bitsHex, setFlagTable, checkFlag, advanceFlagTable, getClockCycle,
    runFormat, getUserState, printError, setHalted, setPeek, advancePeeks,
    takeInputsFromList, observeSignals, advanceSignals,
@@ -192,6 +194,7 @@ data SysState b = SysState
   , halted :: Bool
   , commands :: Commands b
   , cycleCount :: Int
+  , cycleCountSinceClear :: Int
   , currentInputString :: String
   , inPortList :: [InPort]
   , nInPorts :: Int
@@ -212,6 +215,7 @@ initState = SysState
   , halted = False
   , commands = Map.empty
   , cycleCount = 0
+  , cycleCountSinceClear = 0
   , currentInputString = ""
   , inPortList = []
   , nInPorts = 0
@@ -229,6 +233,19 @@ getClockCycle :: StateT (SysState a) IO Int
 getClockCycle = do
   s <- get
   return (cycleCount s)
+
+incrementCycleCount :: StateT (SysState a) IO ()
+incrementCycleCount = do
+  s <- get
+  let i = cycleCount s
+  let j = cycleCountSinceClear s
+  put $ s {cycleCount = i+1, cycleCountSinceClear  = j+1}
+
+clearCycleCount :: StateT (SysState a) IO ()
+clearCycleCount = do
+  s <- get
+  put $ s {cycleCountSinceClear = 0}
+
   
 setHalted :: Format Bool a
 setHalted = FmtSetHalted
@@ -789,7 +806,7 @@ runFormat a p = do
       fs' <- mdofmts a p fs
       s <- get
       put $ s {formatSpec = Just fs'}
-      liftIO $ putStrLn ""
+--      liftIO $ putStrLn ""
 
 -- Just advance the format but don't produce output
 advanceFormat ::  StateT (SysState b) IO ()
@@ -824,6 +841,7 @@ data Format a b
   | FmtSetHalted
 --  | FmtSetStateWords ((Int,b)->[[a]]->b) [[Stream a]]
   | FmtSetStateWords (b->[[a]]->b) [[Stream a]]
+  | FmtSetStateWordsIO ([[a]] -> StateT (SysState b) IO ()) [[Stream a]]
   | FmtBit (String -> Stream a -> (String, Stream a))
       String (Stream a)
   | FmtWord
@@ -854,6 +872,7 @@ simstate f = FmtState f
 
 clockcycle f = FmtCycle f
 setStateWs f xs = FmtSetStateWords f xs
+setStateWsIO f xs = FmtSetStateWordsIO f xs
 
 bindec w x = FmtWord fmtBin [] w (length x) x
 
@@ -1094,6 +1113,20 @@ mdofmt a p (FmtSetStateWords f xs) =
            False -> return ()
        Nothing -> return ()
      return (FmtSetStateWords f (map (map future) xs))
+
+mdofmt a p (FmtSetStateWordsIO f xs) =
+  do mds <- getUserState
+     case mds of
+       Just ds -> do
+         case a of
+           True -> do
+             let ws = map (map current) xs
+             f ws
+--             let ds' = f ds ws
+--             putUserState ds'
+           False -> return ()
+       Nothing -> return ()
+     return (FmtSetStateWordsIO f (map (map future) xs))
 
 mdofmt a p (FmtWordsGeneral f xs) =
   do mds <- getUserState

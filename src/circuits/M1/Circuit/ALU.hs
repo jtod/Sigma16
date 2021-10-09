@@ -19,7 +19,8 @@
 --			Arithmetic/Logic Unit
 ------------------------------------------------------------------------
 
-module M1.Circuit.ALU where
+-- module M1.Circuit.ALU where
+module Circuit.ALU where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
@@ -53,54 +54,78 @@ The data output r is the result of an arithmetic operation which
 is determinted by the control inputs:
 
 | op = (alua,alub,aluc)
-| a b c |    r     | ccnew |
-|-------+------------
+| a b c |    r     |
+|-------+-----------
 | 0 0 0 |   x+y    | 
 | 0 0 1 |   x-y    | 
 | 0 1 0 |    -x    | 
 | 0 1 1 |   x+1    | 
 | 1 0 0 |   cmp    |
 
-The control algorithm defines all control signals, regardless of what
-operation is being performed.  The signal values for the ALU are:
+The condition code flags are:
 
-  alu_add = 00
-  alu_sub = 01
-  alu_neg = 10
-  alu_inc = 11
--}
+| bit index | Relation        | Symbol |
+|-----------+-----------------+--------|
+|         0 | > Int           | g      |
+|         1 | > Nat           | G      |
+|         2 | =               | =      |
+|         3 | < Nat           | L      |
+|         4 | < Int           | <      |
+|         5 | Int overflow    | v      |
+|         6 | Nat overflow    | V      |
+|         7 | Carry           | C      |
+|         8 | Stack overflow  | S      |
+|         9 | Stack underflow | s      |
+-}          
 
 alu n (alua,alub,aluc) x y cc d = (sum, ccnew, cond)
   where
-    negating = and2 (inv alua) (xor2 alub aluc)  -- alu abc = 001 or 010
-    arith = inv alua  -- doing arithmetic operation, alu abc one of 000 001 010 100
-    comparing = and3 alua (inv alub) (inv aluc)  -- doing comparison, alu abc = 100
+-- Constant words    
     wzero = fanout n zero
     wone = boolword n one
--- prepare inputs to adder    
+-- Determine type of function being evaluated
+    arith = inv alua  -- doing arithmetic operation, alu abc one of 000 001 010 100
+    negating = and2 (inv alua) (xor2 alub aluc)  -- alu abc = 001 or 010
+    comparing = and3 alua (inv alub) (inv aluc)  -- doing comparison, alu abc = 100
+-- Prepare inputs to adder    
     x' = mux2w (alub,aluc) x x wzero x
     y' = mux2w (alub,aluc) y (invw y) (invw x) wone
+-- The adder    
     xy = bitslice2 x' y'
     (carry,sum) = rippleAdd negating xy
--- binary comparison    
+    msb = sum!!0 --- most significant bit of sum
+-- Binary comparison    
     (lt,eq,gt) = rippleCmp xy
--- two's complement comparison    
+-- Two's complement comparison    
     lt_tc = mux2 (xy!!0) lt zero one lt
     eq_tc = eq
     gt_tc = mux2 (xy!!0) gt one zero gt
--- carry and overflow
-    natovfl = carry
-    intovfl = zero -- ????
--- condition code flags
-    fcarry = and2 carry (inv comparing)
-    fnatovfl = and2 natovfl (inv comparing)
-    fintovfl = and2 intovfl (inv comparing)
-    ccnew = [ zero,   zero,     zero,     zero,   -- bit 15 14 13 12
-              zero,   zero,     zero,     zero,   -- bit 11 10  9  8
-              fcarry, fnatovfl, fintovfl, lt_tc,  -- bit  7  6  5  4
-              lt,     eq,       gt,       gt_tc   -- bit  3  2  1  0
+-- Carry and overflow
+    natovfl = carry           -- natural (binary) overflow if carry = 1
+    intovfl = xor2 carry msb  -- integer (2's comp) overflow if carry != msb
+    noOvfl  = inv intovfl   -- no integer overflow, integer result is ok
+-- Relation of integer result to 0
+    any1 = orw sum         -- 1 if any bit in sum is 1
+    neg  = and3 noOvfl any1 msb        -- ok, result < 0
+    z    = and2 noOvfl (inv any1)      -- ok, result is 0
+    pos  = and3 noOvfl any1 (inv msb)  -- ok, result > 0
+-- Overflow flags:  don't indicate overflow for a comparison operation
+    fcarry   = and2 arith carry
+    fnatovfl = and2 arith natovfl
+    fintovfl = and2 arith intovfl
+-- Comparison flags: for arithmetic, indicate comparison with 0
+    flt      = mux1 arith lt    zero
+    flt_tc   = mux1 arith lt_tc neg
+    feq      = mux1 arith eq    z
+    fgt      = mux1 arith gt    pos
+    fgt_tc   = mux1 arith gt_tc pos
+-- Generate the condition code
+    ccnew = [ zero,   zero,     zero,     zero,    -- bit 15 14 13 12
+              zero,   zero,     zero,     zero,    -- bit 11 10  9  8
+              fcarry, fnatovfl, fintovfl, flt_tc,  -- bit  7  6  5  4
+              flt,    feq,      fgt,      fgt_tc   -- bit  3  2  1  0
             ]
--- conditional bit controls conditional jumps            
+-- Conditional bit controls conditional jumps            
     cond = indexbit d cc
 
 -- indexbitcs xs: select element at index cs from xs, where index 0 is
@@ -123,21 +148,6 @@ muxw (c:cs) xs =
          (muxw cs (drop i xs))
   where i = 2 ^ length cs
 
-
-{-
-| bit index | Relation        | Symbol |
-|-----------+-----------------+--------|
-|         0 | > Int           | g      |
-|         1 | > Nat           | G      |
-|         2 | =               | =      |
-|         3 | < Nat           | L      |
-|         4 | < Int           | <      |
-|         5 | Int overflow    | v      |
-|         6 | Nat overflow    | V      |
-|         7 | Carry           | C      |
-|         8 | Stack overflow  | S      |
-|         9 | Stack underflow | s      |
--}          
 
 --    comparing = and3 a b (or2 c d)
 --    comp_bool = mux2 (c,d) zero lt_tc eq_tc gt_tc

@@ -1,4 +1,4 @@
-; Test the jal instruction
+; Jal.asm.txt -- test the jal instruction
 
      jal   R13,sub1[R0]
      jal   R13,sub2[R0]

@@ -3,14 +3,11 @@
 -- See Sigma16/README and https://jtod.github.io/home/Sigma16/
 
 -- Usage:
---   cd to src/circuits  -- must be in this directory
---   ghci                -- start ghci and initialize using .ghci
---   :load M1/Run        -- run M1 circuit on examples/Core/Simple/Add.obj.txt
---   :main Simple/Add    -- run M1 circuit on examples/Core/Simple/Add.obj.txt
---   ^C                  -- stop and return to ghci prompt
---   :r                  -- reload, after you have changed a circuit source file
---   uparrow             -- repeat previous command
---   :q                  -- quit ghci, return to shell
+--   ghci                 -- start ghci and initialize using .ghci
+--   :load Run            -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--   :main programs/Add   -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--   run                  -- run the Add program on the circuit
+--   quit                 -- quit ghci, return to shell
 
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -18,8 +15,8 @@
 module M1.Run where
 
 import HDL.Hydra.Core.Lib
-import M1.ReadObj
-import M1.Circuit.System
+import ReadObj
+import Circuit.System
 
 import System.Environment
 import System.IO
@@ -47,42 +44,6 @@ mkFullPath :: String -> String -> String
 mkFullPath prefix path =
   prefix ++ path ++ ".obj.txt"
   
-{-
-
-ignoreIOError :: IOError -> Maybe String
-ignoreIOError e = Nothing
-
-tryReadFile :: FilePath -> IO (Maybe String)
-tryReadFile filePath = do
-  x <- tryJust ignoreIOError (readFile filePath)  
-  case x of
-    Left  er   -> return Nothing
-    Right file -> return (Just file)
-
---  x <- tryJust handleReadFile (readFile filePath)
---  where
---    handleReadFile :: IOError -> Maybe String
---    handleReadFile er = Nothing
---      | isDoesNotExistError er = Just "readFile: does not exist"
---      | isPermissionError   er = Just "readFile: permission denied"
---      | otherwise              = Nothing
--}
-
-{-
-tryJustReadFile :: FilePath -> IO ()
-tryJustReadFile filePath = do
-  eitherExceptionFile <- tryJust handleReadFile (readFile filePath)
-  case eitherExceptionFile of
-   Left  er   -> putStrLn er
-   Right file -> putStrLn file
-  where
-    handleReadFile :: IOError -> Maybe String
-    handleReadFile er = Nothing
---      | isDoesNotExistError er = Just "readFile: does not exist"
---      | isPermissionError   er = Just "readFile: permission denied"
---      | otherwise              = Nothing
--}
-
 getObject :: IO [Int]
 getObject = do
   args <- getArgs
@@ -346,32 +307,40 @@ main = driver $ do
 
 -- Say whether a conditional jump was performed
 
+{-
 --         fmtIf (and2 (st_jumpc00 ctlstate)  (inv (condcc dp)))
-         fmtIf (and2 st_jumpc00  (inv condcc))
-           [string "jumpc0 instruction did not perform jump",
-            setStateWs setJump [[zero], ad dp]]
+         fmtIf (and2 st_jumpc02  (inv condcc))
+           [string "jumpc0 instruction will  not jump"
+--            setStateWsIO setJump [[zero], ad dp]]
+--             setStateWsIO setJump [[inv condcc], ad dp]]
+     ]
            [],
 
---         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc dp))
          fmtIf (and2 st_jumpc10 condcc)
-           [string "jumpc1 instruction jumped",
+           [string "jumpc1 instruction is jumping"
 --            setStateWs setJump [[one], r dp]]
-             setStateWs setJump [[one], r]]
+--             setStateWs setJump [[one], r]]
+--             setStateWsIO setJump [[condcc], ad dp]
+           ]
            [],
 
-         fmtIf (or2 st_jump2 st_jal2)
-           [
+--         fmtIf (or2 st_jump2 st_jal2)
+--           [
 --            setStateWs setJump [[one], r dp]]
-             setStateWs setJump [[one], r]]
-           [],
-         
+--             setStateWsIO setJump [[one], r]]
+--           [],
+
+       --         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc dp))         
+-}
+
 -- Process a load to the register file
          fmtIf ctl_rf_ld
            [string "Register file update: ",
             string "R",
             bindec 1 (field (ir dp) 4 4),
             string " := ", hex (p dp),
-            setStateWs setRfLoad [field (ir dp) 4 4, (p dp)],
+--            setStateWs setRfLoad [field (ir dp) 4 4, (p dp)],
+            setStateWsIO setRfLoad [field (ir dp) 4 4, (p dp)],
             string "\n"
             ]
            [],
@@ -382,7 +351,7 @@ main = driver $ do
             string "mem[",
             binhex m_addr,
             string "] := ", hex m_data,
-            setStateWs setMemStore [m_addr, m_data]
+            setStateWsIO setMemStore [m_addr, m_data]
            ]
            [],
 
@@ -412,17 +381,42 @@ main = driver $ do
             setStateWs clearRfLoads [],
             simstate showMemStores,
             setStateWs clearMemStores [],
-            simstate showJumps,
-            setStateWs clearJumps [],
+
+
+ --- Describe effect of jumps
+            fmtIf st_jumpc02            
+              [fmtIf condcc
+                 [string "jumpc0 instruction will not jump\n"]
+                 [string "jumpc0 instruction is jumping to ",
+                  binhex (ad dp), string "\n"]]
+              [],
+
+            fmtIf st_jumpc12
+               [fmtIf condcc
+                 [string "jumpc1 instruction is jumping to ",
+                  binhex (ad dp), string "\n"]
+                 [string "jumpc1 instruction will not jump\n"]]
+               [],
+
+            fmtIf st_jump2
+              [string "jump instruction is jumping to ",
+               binhex (ad dp), string "\n"]
+              [],
+            fmtIf st_jal2
+              [string "jal instruction is jumping to ",
+               binhex (ad dp), string "\n"]
+              [],
+            
+-- Display instruction control registers
             string "Processor state:  ",
             string "  pc = ", binhex (pc dp),
             string "  ir = ", binhex (ir dp),
             string "  ad = ", binhex (ad dp),
-
---            string ("\n" ++ take 72 (repeat '*') ++ "\n")]
-             string ("\n" ++ take 72 (repeat '*'))]
---            simstate show  -- show the simulation driver state
+            string ("\n" ++ take 72 (repeat '*'))
+              ]
            [],
+--            simstate show  -- show the simulation driver state
+--            string ("\n" ++ take 72 (repeat '*') ++ "\n")]
          
 -- If a trap is being executed, indicate this in the simulation driver
 -- state, so the driver can terminate the simulation
@@ -435,25 +429,13 @@ main = driver $ do
             string "Processor has halted\n",
             string (take 72 (repeat '*') ++ "\n")
            ]
-           [],
-      string "\n"
+           []
     ]
 
-{-
---  simoutput <- format "CPUstep"
-    [
-     clockcycle (\c -> take 72 (repeat '.') ++
-                  "\nClock cycle " ++ show c ++ "\n"),
--}
-
-  -- This ends definitions of the tools; the driver algorithms starts
-  -- now
-  
---  printLine "\nSigma16_M1 simulation"
---  runM1simulation
+-- This ends definitions of the tools; the driver algorithms starts
+-- now
   startup
   printLine "M1 Run finished"
-
 
 --------------------------------------------------------------------------------
 -- Top level M1 control
@@ -501,9 +483,10 @@ peekReg regnum = do
   advanceOutPorts
   advancePeeks
   advanceFlagTable
-  s <- get
-  let i = cycleCount s
-  put (s {cycleCount = i + 1})
+  incrementCycleCount
+--  s <- get
+--  let i = cycleCount s
+--  put (s {cycleCount = i + 1})
 
 data ProcessorMode
   = Idle
@@ -613,9 +596,10 @@ peekMem addr = do
 --  advanceFormat
   advancePeeks
   advanceFlagTable
-  s <- get
-  let i = cycleCount s
-  put (s {cycleCount = i + 1})
+  incrementCycleCount
+--  s <- get
+--  let i = cycleCount s
+--  put (s {cycleCount = i + 1})
   return bs
 
 dumpRegFile :: StateT (SysState DriverState) IO ()
@@ -670,8 +654,10 @@ runM1simulation = do
 simulationLooper :: StateT (SysState DriverState) IO ()
 simulationLooper = do
   s <- get
-  if checkFlag (flagTable s) (breakpointKey s) || cycleCount s >= 10000
+  if checkFlag (flagTable s) (breakpointKey s)
+      || cycleCountSinceClear s >= 1000
     then do
+      clearCycleCount
       cycle <- getClockCycle
       m1ClockCycle -- display the cycle where the breakpoint is satisfied
       liftIO $ putStrLn (take 72 (repeat '-'))
@@ -757,9 +743,10 @@ m1ClockCycle = do
   advanceOutPorts
   advancePeeks
   advanceFlagTable
-  s <- get
-  let i = cycleCount s
-  put (s {cycleCount = i + 1})
+  incrementCycleCount
+--  s <- get
+--  let i = cycleCount s
+--  put (s {cycleCount = i + 1})
 --  liftIO $ putStrLn ("m1ClockCycle finished")
 
 
@@ -989,7 +976,7 @@ data DriverState = DriverState
   , effAddr :: [Int]                 -- effective address
   , rfloads :: [(Int,[Int],[Int])]   -- [(cycle,reg,value)]
   , memStores :: [(Int,[Int],[Int])] -- [(cycle,addr,value)]
-  , jumps :: [(Int,Int,[Int])]       -- [(cycle,jumped,pcvalue)]
+  , jumps :: [(Int,[Int],[Int])]       -- [(cycle,jumped,pcvalue)]
   , trap :: Bool
   , processorMode :: ProcessorMode
   }                     -- has a trap just been executed?
@@ -1020,10 +1007,25 @@ showEffAddr s = ints16hex4 (effAddr s)
 
 -- Record and display loads to the register file
 
+-- setRfLoad :: (Signal a, Static a) =>
+--    [[a]] -> StateT (SysState DriverState) IO ()
+setRfLoad :: (Signal a, Static a) => [[a]] -> StateT (SysState DriverState) IO ()
+setRfLoad [r,x] = do
+  c  <- getClockCycle
+  s  <- get
+  case userState s of
+    Nothing -> return ()
+    Just ds -> do
+      let xs = rfloads ds
+      let ds' = ds {rfloads = (c, map sigInt r, map sigInt x) : xs}
+      put $ s {userState = Just ds'}
+
+{-
 setRfLoad :: (Signal a, Static a) =>
    DriverState -> [[a]] -> DriverState
 setRfLoad s [r,x] =
   s {rfloads = (0, map sigInt r, map sigInt x) : rfloads s} -- ????????? c
+-}
 
 clearRfLoads :: (Signal a, Static a) =>
   DriverState -> [[a]] -> DriverState
@@ -1033,15 +1035,28 @@ showRfLoads :: DriverState -> String
 showRfLoads s = concat (map f (reverse (rfloads s)))
   where f (c,r,x) =
           "R" ++ show (intsInt r) ++ " := " ++  ints16hex4 x
-            ++ " was loaded\n"
---            ++ " was loaded in cycle " ++ show c ++ "\n"
+            ++ " was loaded in cycle " ++ show c ++ "\n"
+--            ++ " was loaded\n"
 
 -- Record and display stores to the memory
 
+setMemStore :: (Signal a, Static a) => [[a]] -> StateT (SysState DriverState) IO ()
+setMemStore [a,x] = do
+  c <- getClockCycle
+  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = memStores ds
+      let ds' = ds {memStores = (c, map sigInt a, map sigInt x) : xs}
+      put $ s {userState = Just ds'}
+{-
 setMemStore :: (Signal a, Static a) =>
    DriverState -> [[a]] -> DriverState
 setMemStore s [a,x] =
   s {memStores = (0, map sigInt a, map sigInt x) : memStores s} -- ???????? c
+-}
+
 
 clearMemStores :: (Signal a, Static a) =>
   DriverState -> [[a]] -> DriverState
@@ -1054,25 +1069,52 @@ showMemStores s = concat (map f (reverse (memStores s)))
             ++ " was stored in cycle " ++ show c ++ "\n"
 
 -- Record and display jumps
+-- setJump [[b],x] = do
 
+-- b indicates whether the jump occurs
+
+{-
+setJump :: [[a]] -> StateT (SysState DriverState) IO ()
+setJump [b,x] = do
+  c <- getClockCycle
+  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = jumps ds
+      let ds' = ds {jumps = (c, map sigInt b, map sigInt x) : xs}
+      put $ s {userState = Just ds'}
+-}
+{-  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = jumps ds
+      let ds' = ds {jumps = (c, map sigInt bs, map sigInt x) : xs}
+    put $ s {userState = Just ds'}
+-}
+
+{-
 setJump :: (Signal a, Static a) =>
    DriverState -> [[a]] -> DriverState
 setJump s [[b],x] =
   s {jumps = (0, sigInt b, map sigInt x) : jumps s}   -- ????????? c
+-}
 
 clearJumps :: (Signal a, Static a) =>
   DriverState -> [[a]] -> DriverState
 clearJumps s _ = s {jumps = []}
 
+{-
 showJumps :: DriverState -> String
 showJumps s = concat (map f (reverse (jumps s)))
   where
     f (c,b,x) =
       (if b==1
-        then "jumped to " ++ ints16hex4 x
-        else "did not jump")
+        then "jumping to " ++ ints16hex4 x
+        else "is not jumping")
         ++ " in cycle " ++ show c ++ "\n"
-
+-}
 -- When the driver discovers that a trap has executed, it uses setTrap
 -- to record this in the driver state.  The termination predicate uses
 -- this value to decide when to stop the simulation.
@@ -1125,3 +1167,52 @@ findMnemonic [opfield, bfield] =
   in if op==15
        then mnemonics_RX !! b
        else mnemonics_RRR !! op
+
+{-
+
+ignoreIOError :: IOError -> Maybe String
+ignoreIOError e = Nothing
+
+tryReadFile :: FilePath -> IO (Maybe String)
+tryReadFile filePath = do
+  x <- tryJust ignoreIOError (readFile filePath)  
+  case x of
+    Left  er   -> return Nothing
+    Right file -> return (Just file)
+
+--  x <- tryJust handleReadFile (readFile filePath)
+--  where
+--    handleReadFile :: IOError -> Maybe String
+--    handleReadFile er = Nothing
+--      | isDoesNotExistError er = Just "readFile: does not exist"
+--      | isPermissionError   er = Just "readFile: permission denied"
+--      | otherwise              = Nothing
+-}
+
+{-
+tryJustReadFile :: FilePath -> IO ()
+tryJustReadFile filePath = do
+  eitherExceptionFile <- tryJust handleReadFile (readFile filePath)
+  case eitherExceptionFile of
+   Left  er   -> putStrLn er
+   Right file -> putStrLn file
+  where
+    handleReadFile :: IOError -> Maybe String
+    handleReadFile er = Nothing
+--      | isDoesNotExistError er = Just "readFile: does not exist"
+--      | isPermissionError   er = Just "readFile: permission denied"
+--      | otherwise              = Nothing
+-}
+
+{-
+--      string "\n"
+--  printLine "\nSigma16_M1 simulation"
+--  runM1simulation
+--  simoutput <- format "CPUstep"
+    [
+     clockcycle (\c -> take 72 (repeat '.') ++
+                  "\nClock cycle " ++ show c ++ "\n"),
+-}
+--  simstate showJumps,
+--  setStateWs clearJumps [],
+

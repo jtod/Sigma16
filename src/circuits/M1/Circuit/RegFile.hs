@@ -1,4 +1,5 @@
-module M1.Circuit.RegFile where
+-- module M1.Circuit.RegFile where
+module Circuit.RegFile where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational

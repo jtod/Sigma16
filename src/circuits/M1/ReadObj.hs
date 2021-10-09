@@ -1,4 +1,5 @@
-module M1.ReadObj where
+-- module M1.ReadObj where
+module ReadObj where
 
 {- Example of object code; this is the result of assembling Add.obj.txt.
 For an executable program, where linking isn't needed, the module and

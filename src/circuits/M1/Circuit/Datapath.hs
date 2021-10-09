@@ -22,7 +22,8 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module M1.Circuit.Datapath where
+-- module M1.Circuit.Datapath where
+module Circuit.Datapath where
 
 {- This module defines a basic datapath that supports a subset of the
 Sigma16 architecture.  The datapath contains a ripple carry adder
@@ -32,9 +33,14 @@ import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import HDL.Hydra.Circuits.Register
 
+import Circuit.Interface
+import Circuit.ALU
+import Circuit.RegFile
+{-
 import M1.Circuit.Interface
 import M1.Circuit.ALU
 import M1.Circuit.RegFile
+-}
 
 -- The datapath contains the registers, computational systems, and
 -- interconnections.  It has two inputs: a set of control signals

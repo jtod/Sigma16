@@ -18,24 +18,41 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module M1.Circuit.System
+-- module M1.Circuit.System
+module Circuit.System
   ( m1
+  , module Circuit.Interface
+  , module Circuit.ALU
+  , module Circuit.Datapath
+  , module Circuit.Control
+  , module Circuit.Memory
+
+{-  
   , module M1.Circuit.Interface
   , module M1.Circuit.ALU
   , module M1.Circuit.Datapath
   , module M1.Circuit.Control
   , module M1.Circuit.Memory
+-}
   ) where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import HDL.Hydra.Circuits.Register
 
+import Circuit.Interface
+import Circuit.ALU
+import Circuit.Datapath
+import Circuit.Control
+import Circuit.Memory
+
+{-
 import M1.Circuit.Interface
 import M1.Circuit.ALU
 import M1.Circuit.Datapath
 import M1.Circuit.Control
 import M1.Circuit.Memory
+-}
 
 {- This module M1, a digital circuit that implements a subset of the
 Sigma16 instruction set architecture. To run the circuit, use the
