@@ -1,4 +1,4 @@
--- Sigma16 M1.Run, Simulation driver for M1 circuit implementation of Sigma16 ISA
+-- Sigma16 M1.Run, Simulation driver for M1 circuit implementation of Sigma16
 -- Copyright (C) 2021 John T. O'Donnell.  This file is part of Sigma16.
 -- See Sigma16/README and https://jtod.github.io/home/Sigma16/
 
@@ -7,6 +7,7 @@
 --   :load Run            -- run M1 circuit on examples/Core/Simple/Add.obj.txt
 --   :main programs/Add   -- run M1 circuit on examples/Core/Simple/Add.obj.txt
 --   run                  -- run the Add program on the circuit
+--   help                 -- list the M1 simulation driver commands
 --   quit                 -- quit ghci, return to shell
 
 {-# LANGUAGE NamedFieldPuns #-}
@@ -14,9 +15,9 @@
 
 module M1.Run where
 
-import HDL.Hydra.Core.Lib
-import ReadObj
-import Circuit.System
+import HDL.Hydra.Core.Lib   -- Hydra hardware description language
+import ReadObj              -- read object code file
+import Circuit.System       -- the M1 circuit
 
 import System.Environment
 import System.IO
@@ -25,78 +26,16 @@ import Control.Exception
 import qualified Data.Map as Map
 
 --------------------------------------------------------------------------------
--- Main program
+-- M1 simulation driver
 --------------------------------------------------------------------------------
-
-tryRead :: String -> IO (Either IOError String)
-tryRead path = do
-  x <- try (readFile path)
-  return x
-
-maybeRead :: String -> IO (Maybe String)
-maybeRead path = do
-  r <- tryRead path
-  case r of
-    Left e -> return Nothing
-    Right x -> return (Just x)
-
-mkFullPath :: String -> String -> String
-mkFullPath prefix path =
-  prefix ++ path ++ ".obj.txt"
-  
-getObject :: IO [Int]
-getObject = do
-  args <- getArgs
---  putStrLn (show args)
-  case args of
-    [] -> do
-      putStrLn "Usage: :main path/to/objectfile"
-      return []
-    (a:_) -> do
-      prefixFile <- maybeRead "fileprefix.txt"
---      putStrLn ("file prefix = " ++ show prefixFile)
-      let basePath =
-            case prefixFile of
-              Nothing -> a
-              Just p -> lines p !! 0 ++ a
-      let fullPath = basePath ++ ".obj.txt"
-      putStrLn ("Reading object file " ++ fullPath)
-      code <- liftIO $ readObjectCode fullPath
-      putStrLn ("Object code is " ++ show code)
-      return code
-  
--- Generate control signals to boot object code
-bootInputs :: [Int] -> [String]
-bootInputs code =
---  code <- readObjectFile
-  let f i x = "0 1 1 0 0 " ++ show i ++ " " ++ show x
-      inps = zipWith f [0..] code
-  in inps
-
-putStoredInput :: [String] -> StateT (SysState a) IO ()
-putStoredInput storedInput = do
-  s <- get
-  put $ s {storedInput}
   
 main :: IO ()
 main = driver $ do
   printLine "Sigma16 M1 system starting"
---  initialize
---  defineCommand "boot" cmdBoot
---  defineCommand "reset" cmdReset
---  defineCommand "step" cmdM1ClockCycle
   objectCode <- liftIO getObject
---  liftIO $ putStrLn ("Object = " ++ show objectCode)
   let bootData = bootInputs objectCode
   putStoredInput bootData
---  liftIO $ putStrLn ("Boot input data = " ++ show bootData)
---  return ()
---  bootData <- liftIO bootInputs
   printLine ("Boot system inputs = " ++ show bootData)
---  storeInputList "Booting" bootData
---  storeInputList "Resetting" resetData
---  storeInputList "Running" runData
---  selectInputList "Booting"
 
   -- Input ports
   in_reset        <- inPortBit  "reset"
@@ -122,9 +61,11 @@ main = driver $ do
         m_sto, m_addr, m_real_addr, m_data, m_out)
          = m1 reset io
 
+-- Prepare for memory and register dump  
   setPeek m_out
   setPeek (b dp)
   
+-- Prepare for breakpoints  
   let ctlStateLookupTable =
         [ ("reset", reset)
         , ("st_instr_fet",  st_instr_fet)
@@ -147,15 +88,12 @@ main = driver $ do
   setFlagTable flags
 
 -- Define names for subsystem outputs
-  let (r,ccnew,condcc) = aluOutputs dp
---    (ir_op,ir_d,ir_a,ir_b) = irFields
+  let (r,ccnew) = aluOutputs dp
 
 -- Format the output
-
   format
     [ string "\nSystem control\n"
     , string "  reset = ", bit reset
---    , string "  cpu = ", bit (cpu ctlsigs)
     , string "  cpu = ", bit cpu
     , string "  ctl_start = ", bit ctl_start
     , string "\n"
@@ -167,7 +105,6 @@ main = driver $ do
     , string "\n"
     , string "  io_address = ", binhex io_address
     , string "  io_data = ", binhex io_data
---    , string "  md = ", bits (md dp)
     , string "\n"
     , string "\nControl state\n  "
     , string " st_instr_fet = ", bit dff_instr_fet, bit st_instr_fet
@@ -231,44 +168,44 @@ main = driver $ do
     , string "    ctl_ma_pc = ", bit ctl_ma_pc
     , string "      ctl_sto = ", bit ctl_sto
 
-     , string "\n\nALU\n"
-     , string "  ALU inputs: "
-     , string "  operation = ", bit ctl_alu_a, bit ctl_alu_b, bit ctl_alu_c
-     , string "  x = ", binhex (x dp)
-     , string "  y = ", binhex (y dp)
-     , string "  cc = ", binhex (cc dp)
-     , string "  ir_d = ", binhex (ir_d dp)
-     , string "\n  ALU outputs: "
-     , string "  r = ", binhex r
-     , string "  ccnew = ", binhex ccnew
-     , string "  condcc = ", bit condcc
+    , string "\n\nALU\n"
+    , string "  ALU inputs: "
+    , string "  operation = ", bit ctl_alu_a, bit ctl_alu_b, bit ctl_alu_c
+    , string "  x = ", binhex (x dp)
+    , string "  y = ", binhex (y dp)
+    , string "  cc = ", binhex (cc dp)
+    , string "  ir_d = ", binhex (ir_d dp)
+    , string "\n  ALU outputs: "
+    , string "  r = ", binhex r
+    , string "  ccnew = ", binhex ccnew
+    , string "  condcc = ", bit condcc
      
-     , string "\n\nDatapath\n  "
-     , string "    ir = ", binhex (ir dp)
-     , string "    pc = ", binhex (pc dp)
-     , string "    ad = ", binhex (ad dp)
-     , string "    cc = ", binhex (cc dp)
-     , string "\n  "
-     , string "     a = ", binhex (a dp)
-     , string "     b = ", binhex (b dp)
-     , string "     x = ", binhex (x dp)
-     , string "     y = ", binhex (y dp)
-     , string "\n  "
-     , string "     p = ", binhex (p dp)
-     , string "     q = ", binhex (q dp)
-     , string "     r = ", binhex (r)
-     , string "\n  "
-     , string "    ma = ", binhex (ma dp)
-     , string "    md = ", binhex (md dp)
+    , string "\n\nDatapath\n  "
+    , string "    ir = ", binhex (ir dp)
+    , string "    pc = ", binhex (pc dp)
+    , string "    ad = ", binhex (ad dp)
+    , string "    cc = ", binhex (cc dp)
+    , string "\n  "
+    , string "     a = ", binhex (a dp)
+    , string "     b = ", binhex (b dp)
+    , string "     x = ", binhex (x dp)
+    , string "     y = ", binhex (y dp)
+    , string "\n  "
+    , string "     p = ", binhex (p dp)
+    , string "     q = ", binhex (q dp)
+    , string "     r = ", binhex (r)
+    , string "\n  "
+    , string "    ma = ", binhex (ma dp)
+    , string "    md = ", binhex (md dp)
 
 -- Memory interface
-     , string "\n\nMemory\n  "
-     , string "  m_sto = ", bit m_sto
-     , string "  m_addr = ", binhex m_addr
-     , string "  m_real_addr = ", binhex m_real_addr
-     , string "  m_data = ", binhex m_data
-     , string "  m_out =", binhex m_out
-     , string "\n"
+    , string "\n\nMemory\n  "
+    , string "  m_sto = ", bit m_sto
+    , string "  m_addr = ", binhex m_addr
+    , string "  m_real_addr = ", binhex m_real_addr
+    , string "  m_data = ", binhex m_data
+    , string "  m_out =", binhex m_out
+    , string "\n"
 
 -- ...................................................................
 -- Higher level analysis of what happened on this cycle.  The
@@ -279,7 +216,7 @@ main = driver $ do
 
 -- Print a message when the system is reset
 
-     ,  fmtIf reset
+    ,  fmtIf reset
            [string ("\n" ++ take 72 (repeat '*') ++ "\n"),
             string "Reset: control algorithm starting",
             string ("\n" ++ take 72 (repeat '*'))]
@@ -293,7 +230,6 @@ main = driver $ do
            [setStateWs setDisplacement [(ad dp)],
             string "*** Fetched displacement = ",
             simstate showDisplacement
---           , string "\n"
            ]
            [],
 
@@ -304,34 +240,6 @@ main = driver $ do
                      st_jumpc01, st_jumpc11, st_jal1])
          [setStateWs setEffAddr [r]]
            [],
-
--- Say whether a conditional jump was performed
-
-{-
---         fmtIf (and2 (st_jumpc00 ctlstate)  (inv (condcc dp)))
-         fmtIf (and2 st_jumpc02  (inv condcc))
-           [string "jumpc0 instruction will  not jump"
---            setStateWsIO setJump [[zero], ad dp]]
---             setStateWsIO setJump [[inv condcc], ad dp]]
-     ]
-           [],
-
-         fmtIf (and2 st_jumpc10 condcc)
-           [string "jumpc1 instruction is jumping"
---            setStateWs setJump [[one], r dp]]
---             setStateWs setJump [[one], r]]
---             setStateWsIO setJump [[condcc], ad dp]
-           ]
-           [],
-
---         fmtIf (or2 st_jump2 st_jal2)
---           [
---            setStateWs setJump [[one], r dp]]
---             setStateWsIO setJump [[one], r]]
---           [],
-
-       --         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc dp))         
--}
 
 -- Process a load to the register file
          fmtIf ctl_rf_ld
@@ -382,7 +290,6 @@ main = driver $ do
             simstate showMemStores,
             setStateWs clearMemStores [],
 
-
  --- Describe effect of jumps
             fmtIf st_jumpc02            
               [fmtIf condcc
@@ -415,8 +322,6 @@ main = driver $ do
             string ("\n" ++ take 72 (repeat '*'))
               ]
            [],
---            simstate show  -- show the simulation driver state
---            string ("\n" ++ take 72 (repeat '*') ++ "\n")]
          
 -- If a trap is being executed, indicate this in the simulation driver
 -- state, so the driver can terminate the simulation
@@ -438,6 +343,44 @@ main = driver $ do
   printLine "M1 Run finished"
 
 --------------------------------------------------------------------------------
+-- Booter
+--------------------------------------------------------------------------------
+
+getObject :: IO [Int]
+getObject = do
+  args <- getArgs
+--  putStrLn (show args)
+  case args of
+    [] -> do
+      putStrLn "Usage: :main path/to/objectfile"
+      return []
+    (a:_) -> do
+      prefixFile <- maybeRead "fileprefix.txt"
+--      putStrLn ("file prefix = " ++ show prefixFile)
+      let basePath =
+            case prefixFile of
+              Nothing -> a
+              Just p -> lines p !! 0 ++ a
+      let fullPath = basePath ++ ".obj.txt"
+      putStrLn ("Reading object file " ++ fullPath)
+      code <- liftIO $ readObjectCode fullPath
+      putStrLn ("Object code is " ++ show code)
+      return code
+  
+-- Generate control signals to boot object code
+bootInputs :: [Int] -> [String]
+bootInputs code =
+--  code <- readObjectFile
+  let f i x = "0 1 1 0 0 " ++ show i ++ " " ++ show x
+      inps = zipWith f [0..] code
+  in inps
+
+putStoredInput :: [String] -> StateT (SysState a) IO ()
+putStoredInput storedInput = do
+  s <- get
+  put $ s {storedInput}
+
+--------------------------------------------------------------------------------
 -- Top level M1 control
 --------------------------------------------------------------------------------
 
@@ -448,7 +391,6 @@ conditional b op =
     True -> do op
                return ()
     False -> return ()
-    
 
 peekReg :: Int -> StateT (SysState DriverState) IO ()
 peekReg regnum = do
@@ -612,19 +554,6 @@ dumpRegFile = do
           False -> return ()
   f 0
 
-{-
-peekRegFile = do
-  liftIO $ putStrLn "peekRegFile"
-  peekReg 0
-  peekReg 1
-  peekReg 2
-  peekReg 3
-  peekReg 4
-  peekReg 5
-  peekReg 6
-  peekReg 7
--}
-
 printHelp :: StateT (SysState a) IO ()
 printHelp = do
   printLine "Commands for the M1 driver"
@@ -642,7 +571,6 @@ printHelp = do
 
 ------------------------------------------------------------------------
 -- New format
-
 ------------------------------------------------------------------------
 
 runM1simulation :: StateT (SysState DriverState) IO ()
@@ -778,41 +706,6 @@ establishM1inputs = do
 resettingInputs = "1 0 0 0 0 0 0"
 runningInputs   = "0 0 0 0 0 0 0"
   
-{-
-establishM1inputs :: StateT (SysState DriverState) IO ()
-establishM1inputs = do
-  printLine "establishM1inputs"
---  mx <- getInputList
---  printLine ("establish mx = " ++ show mx)
---  case mx of
-  s <- get
-  inp <- getStoredInput
---  inps <- getCurrentInputs
-  liftIO $ putStrLn ("establish - " ++ show inp)
-  case inp of
-    Just x -> do -- use the data x to fill buffers
---      printLine ("establishM1inputs using " ++ x)
-      takeInputsFromList x
-      return ()
-    Nothing -> do -- look at mode to decide what to do
-      oldmode <- getProcessorMode
---      printLine ("establishM1inputs current processor mode = " ++ show oldmode)
-      mds <- getUserState
-      case mds of
-        Just ds -> do
-          case processorMode ds of
-            Idle      -> setMode Booting
-            Booting   -> setMode Resetting
-            Resetting -> setMode Running
-            Running   -> setMode Running
---          newMode <- getProcessorMode
---          selectInputList (show newMode)
---          printLine ("establishM1inputs new processor mode = " ++ show newMode)
-          establishM1inputs
-        Nothing -> do
-          printError "esablishM1inputs, getUserState returned Nothing"
-          return ()
--}
 -- Each operation that requires DMA is carried out by a function that
 -- supplies the required inputs, but does not use any of the input
 -- lists.
@@ -845,20 +738,6 @@ setMode m = do
       printError "setMode, getUserState returned Nothing"
       return ()
 
-        
---  s <- get
---  let mds = userState s
---  case mds of
---    Just ds -> do
---      let ds' = ds { processorMode  = m }
---      put (s {userState = Just ds'})
---      return ()
---    Nothing -> do
---      giveError "userState not defined"
---      return ()
-
--- giveError :: String -> StateT (SysState a) IO ()
--- giveError msg = printLine ("ERROR: " ++ msg)
 
 --------------------------------------------------------------------------------
 -- M1 clock cycle
@@ -1068,53 +947,7 @@ showMemStores s = concat (map f (reverse (memStores s)))
           "mem[" ++ ints16hex4 a ++ "] := " ++  ints16hex4 x
             ++ " was stored in cycle " ++ show c ++ "\n"
 
--- Record and display jumps
--- setJump [[b],x] = do
 
--- b indicates whether the jump occurs
-
-{-
-setJump :: [[a]] -> StateT (SysState DriverState) IO ()
-setJump [b,x] = do
-  c <- getClockCycle
-  s <- get
-  case userState s of
-    Nothing -> return ()
-    Just  ds -> do
-      let xs = jumps ds
-      let ds' = ds {jumps = (c, map sigInt b, map sigInt x) : xs}
-      put $ s {userState = Just ds'}
--}
-{-  s <- get
-  case userState s of
-    Nothing -> return ()
-    Just  ds -> do
-      let xs = jumps ds
-      let ds' = ds {jumps = (c, map sigInt bs, map sigInt x) : xs}
-    put $ s {userState = Just ds'}
--}
-
-{-
-setJump :: (Signal a, Static a) =>
-   DriverState -> [[a]] -> DriverState
-setJump s [[b],x] =
-  s {jumps = (0, sigInt b, map sigInt x) : jumps s}   -- ????????? c
--}
-
-clearJumps :: (Signal a, Static a) =>
-  DriverState -> [[a]] -> DriverState
-clearJumps s _ = s {jumps = []}
-
-{-
-showJumps :: DriverState -> String
-showJumps s = concat (map f (reverse (jumps s)))
-  where
-    f (c,b,x) =
-      (if b==1
-        then "jumping to " ++ ints16hex4 x
-        else "is not jumping")
-        ++ " in cycle " ++ show c ++ "\n"
--}
 -- When the driver discovers that a trap has executed, it uses setTrap
 -- to record this in the driver state.  The termination predicate uses
 -- this value to decide when to stop the simulation.
@@ -1168,7 +1001,29 @@ findMnemonic [opfield, bfield] =
        then mnemonics_RX !! b
        else mnemonics_RRR !! op
 
-{-
+--------------------------------------------------------------------------------
+-- Utilities
+--------------------------------------------------------------------------------
+
+tryRead :: String -> IO (Either IOError String)
+tryRead path = do
+  x <- try (readFile path)
+  return x
+
+maybeRead :: String -> IO (Maybe String)
+maybeRead path = do
+  r <- tryRead path
+  case r of
+    Left e -> return Nothing
+    Right x -> return (Just x)
+
+mkFullPath :: String -> String -> String
+mkFullPath prefix path =
+  prefix ++ path ++ ".obj.txt"
+  
+
+
+{- Deprecated...
 
 ignoreIOError :: IOError -> Maybe String
 ignoreIOError e = Nothing
@@ -1216,3 +1071,154 @@ tryJustReadFile filePath = do
 --  simstate showJumps,
 --  setStateWs clearJumps [],
 
+{-
+peekRegFile = do
+  liftIO $ putStrLn "peekRegFile"
+  peekReg 0
+  peekReg 1
+  peekReg 2
+  peekReg 3
+  peekReg 4
+  peekReg 5
+  peekReg 6
+  peekReg 7
+-}
+--  initialize
+--  defineCommand "boot" cmdBoot
+--  defineCommand "reset" cmdReset
+--  defineCommand "step" cmdM1ClockCycle
+--  liftIO $ putStrLn ("Object = " ++ show objectCode)
+--  liftIO $ putStrLn ("Boot input data = " ++ show bootData)
+--  return ()
+--  bootData <- liftIO bootInputs
+--  storeInputList "Booting" bootData
+--  storeInputList "Resetting" resetData
+--  storeInputList "Running" runData
+--  selectInputList "Booting"
+-- Say whether a conditional jump was performed
+
+{-
+--         fmtIf (and2 (st_jumpc00 ctlstate)  (inv (condcc dp)))
+         fmtIf (and2 st_jumpc02  (inv condcc))
+           [string "jumpc0 instruction will  not jump"
+--            setStateWsIO setJump [[zero], ad dp]]
+--             setStateWsIO setJump [[inv condcc], ad dp]]
+     ]
+           [],
+
+         fmtIf (and2 st_jumpc10 condcc)
+           [string "jumpc1 instruction is jumping"
+--            setStateWs setJump [[one], r dp]]
+--             setStateWs setJump [[one], r]]
+--             setStateWsIO setJump [[condcc], ad dp]
+           ]
+           [],
+
+--         fmtIf (or2 st_jump2 st_jal2)
+--           [
+--            setStateWs setJump [[one], r dp]]
+--             setStateWsIO setJump [[one], r]]
+--           [],
+
+       --         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc dp))         
+-}
+--            simstate show  -- show the simulation driver state
+--            string ("\n" ++ take 72 (repeat '*') ++ "\n")]
+{-
+establishM1inputs :: StateT (SysState DriverState) IO ()
+establishM1inputs = do
+  printLine "establishM1inputs"
+--  mx <- getInputList
+--  printLine ("establish mx = " ++ show mx)
+--  case mx of
+  s <- get
+  inp <- getStoredInput
+--  inps <- getCurrentInputs
+  liftIO $ putStrLn ("establish - " ++ show inp)
+  case inp of
+    Just x -> do -- use the data x to fill buffers
+--      printLine ("establishM1inputs using " ++ x)
+      takeInputsFromList x
+      return ()
+    Nothing -> do -- look at mode to decide what to do
+      oldmode <- getProcessorMode
+--      printLine ("establishM1inputs current processor mode = " ++ show oldmode)
+      mds <- getUserState
+      case mds of
+        Just ds -> do
+          case processorMode ds of
+            Idle      -> setMode Booting
+            Booting   -> setMode Resetting
+            Resetting -> setMode Running
+            Running   -> setMode Running
+--          newMode <- getProcessorMode
+--          selectInputList (show newMode)
+--          printLine ("establishM1inputs new processor mode = " ++ show newMode)
+          establishM1inputs
+        Nothing -> do
+          printError "esablishM1inputs, getUserState returned Nothing"
+          return ()
+-}
+        
+--  s <- get
+--  let mds = userState s
+--  case mds of
+--    Just ds -> do
+--      let ds' = ds { processorMode  = m }
+--      put (s {userState = Just ds'})
+--      return ()
+--    Nothing -> do
+--      giveError "userState not defined"
+--      return ()
+
+-- giveError :: String -> StateT (SysState a) IO ()
+-- giveError msg = printLine ("ERROR: " ++ msg)
+
+-- Record and display jumps
+-- setJump [[b],x] = do
+
+-- b indicates whether the jump occurs
+
+{-
+setJump :: [[a]] -> StateT (SysState DriverState) IO ()
+setJump [b,x] = do
+  c <- getClockCycle
+  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = jumps ds
+      let ds' = ds {jumps = (c, map sigInt b, map sigInt x) : xs}
+      put $ s {userState = Just ds'}
+-}
+{-  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = jumps ds
+      let ds' = ds {jumps = (c, map sigInt bs, map sigInt x) : xs}
+    put $ s {userState = Just ds'}
+-}
+
+{-
+setJump :: (Signal a, Static a) =>
+   DriverState -> [[a]] -> DriverState
+setJump s [[b],x] =
+  s {jumps = (0, sigInt b, map sigInt x) : jumps s}   -- ????????? c
+-}
+
+{-
+showJumps :: DriverState -> String
+showJumps s = concat (map f (reverse (jumps s)))
+  where
+    f (c,b,x) =
+      (if b==1
+        then "jumping to " ++ ints16hex4 x
+        else "is not jumping")
+        ++ " in cycle " ++ show c ++ "\n"
+-}
+{-
+clearJumps :: (Signal a, Static a) =>
+  DriverState -> [[a]] -> DriverState
+clearJumps s _ = s {jumps = []}
+-}

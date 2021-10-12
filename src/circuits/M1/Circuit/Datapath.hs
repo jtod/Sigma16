@@ -1,5 +1,5 @@
 -- Sigma16: Datapath.hs
--- Copyright (C) 2020 John T. O'Donnell
+-- Copyright (C) 2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
 -- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
@@ -22,12 +22,11 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
--- module M1.Circuit.Datapath where
 module Circuit.Datapath where
 
-{- This module defines a basic datapath that supports a subset of the
-Sigma16 architecture.  The datapath contains a ripple carry adder
-instead of a full ALU.  It can be simulated using RunDatapath1. -}
+-- This module defines a basic datapath that supports a subset of the
+-- Sigma16 architecture.  The datapath contains a ripple carry adder
+-- instead of a full ALU.  It can be simulated using RunDatapath1.
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
@@ -36,11 +35,6 @@ import HDL.Hydra.Circuits.Register
 import Circuit.Interface
 import Circuit.ALU
 import Circuit.RegFile
-{-
-import M1.Circuit.Interface
-import M1.Circuit.ALU
-import M1.Circuit.RegFile
--}
 
 -- The datapath contains the registers, computational systems, and
 -- interconnections.  It has two inputs: a set of control signals
@@ -54,15 +48,12 @@ datapath
   -> [a]
   -> DPoutputs a
 
--- datapath ctlsigs io memdat = dp
 datapath (CtlSig {..}) (SysIO {..}) memdat = dp
   where
 
--- Interface    
-    dp = DPoutputs {aluOutputs, r, ccnew, condcc,
-                    ma, md, a, b, cc, ir, ir_op, ir_d, ir_sa, ir_sb,
-                    pc, ad, x, y, p, q}
-
+-- Interface
+    dp = DPoutputs {..}
+    
 -- Size parameters
     n = 16    -- word size
 
@@ -75,14 +66,13 @@ datapath (CtlSig {..}) (SysIO {..}) memdat = dp
     ad = reg n ctl_ad_ld (mux1w ctl_ad_alu memdat r)
 
 -- ALU
-    aluOutputs = alu n (ctl_alu_a, ctl_alu_b, ctl_alu_c) x y cc ir_d
-    (r,ccnew,condcc) = aluOutputs
+    aluOutputs = alu n (ctl_alu_a, ctl_alu_b, ctl_alu_c) x y cc
+    (r,ccnew) = aluOutputs
       
 -- Internal processor signals
     x = mux1w ctl_x_pc a pc             -- alu input 1
     y = mux1w ctl_y_ad b ad             -- alu input 2
     rf_sa = mux1w ctl_rf_sd ir_sa ir_d  -- a = reg[rf_sa]
---    rf_sb = ir_sb                                 -- b = reg[rf_sb]
     rf_sb = mux1w (and2 io_DMA io_regFetch)
               ir_sb
               (field io_address 12 4)
@@ -98,5 +88,3 @@ datapath (CtlSig {..}) (SysIO {..}) memdat = dp
     ir_d  = field ir  4 4           -- instruction destination register
     ir_sa = field ir  8 4           -- instruction source a register
     ir_sb = field ir 12 4           -- instruction source b register
-
---    irFields = (ir_op,ir_d,ir_sa,ir_sb)

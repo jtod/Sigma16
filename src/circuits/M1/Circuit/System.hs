@@ -1,5 +1,5 @@
 -- Sigma16: M1.hs
--- Copyright (C) 2020 John T. O'Donnell
+-- Copyright (C) 2021 John T. O'Donnell
 -- email: john.t.odonnell9@gmail.com
 -- License: GNU GPL Version 3 or later
 -- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
@@ -18,7 +18,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
--- module M1.Circuit.System
 module Circuit.System
   ( m1
   , module Circuit.Interface
@@ -27,13 +26,6 @@ module Circuit.System
   , module Circuit.Control
   , module Circuit.Memory
 
-{-  
-  , module M1.Circuit.Interface
-  , module M1.Circuit.ALU
-  , module M1.Circuit.Datapath
-  , module M1.Circuit.Control
-  , module M1.Circuit.Memory
--}
   ) where
 
 import HDL.Hydra.Core.Lib
@@ -46,18 +38,9 @@ import Circuit.Datapath
 import Circuit.Control
 import Circuit.Memory
 
-{-
-import M1.Circuit.Interface
-import M1.Circuit.ALU
-import M1.Circuit.Datapath
-import M1.Circuit.Control
-import M1.Circuit.Memory
--}
-
-{- This module M1, a digital circuit that implements a subset of the
-Sigma16 instruction set architecture. To run the circuit, use the
-RunM1 simulation driver along with a main module that defines a
-machine language program.  See ArrayMax.hs for an example. -}
+-- M1 is a digital circuit that implements the Core subset of the
+-- Sigma16 instruction set architecture, apart from mul and div, which
+-- are unimplemented.
 
 ------------------------------------------------------------------------
 {- Instruction set architecture of Sigma16
@@ -108,7 +91,6 @@ dma_a         16 bits  address
 dma_d         16 bits  data
 -}
 
--- m1 reset dma dma_store dma_fetch dma_reg dma_a dma_d =
 m1 reset (SysIO {..}) =
   (ctl_state, ctl_start, ctlsigs,              -- control
    dp,                                         -- datapath
@@ -123,13 +105,14 @@ m1 reset (SysIO {..}) =
       -- if msize<n the simulation may be faster but prog has less memory
 
 -- Datapath
---    datapath_outputs = datapath ctlsigs m_out
---    (aluOutputs,ma,md,a,b,cc,ir,irFields,pc,ad,x,y,p,q) = datapath_outputs
     dp = datapath ctlsigs (SysIO {..}) m_out
-    (r,ccnew,condcc) = aluOutputs dp
+--    (r,ccnew,condcc) = aluOutputs dp
+    (r,ccnew) = aluOutputs dp
 
 -- Control
-    (ctl_state, ctl_start, ctlsigs) = control reset (ir dp) condcc (SysIO {..})
+    (ctl_state, ctl_start, ctlsigs) =
+--       control reset (ir dp) (cc dp) condcc (SysIO {..})
+             control reset (ir dp) (cc dp) (SysIO {..})
 
 -- Memory
     m_real_addr = field m_addr (n-msize) msize
@@ -140,10 +123,3 @@ m1 reset (SysIO {..}) =
                 (and2 (inv io_DMA) (ctl_sto ctlsigs))  -- CPU store
     m_data = mux1w io_DMA (md dp) io_data
     m_addr = mux1w io_DMA (ma dp) io_address
-
-{-
-    m_sto = or2 (and2 (io_DMA io) (io_memStore io))
-                (and2 (inv (io_DMA io)) (ctl_sto ctlsigs))
-    m_data = mux1w (io_DMA io) (md dp) (io_data io)
-    m_addr = mux1w (io_DMA io) (ma dp) (io_address io)
--}

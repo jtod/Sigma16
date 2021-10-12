@@ -21,3 +21,11 @@ deprecated*
 *.hi
 *.o
 *.exe
+*.aux
+*.log
+*.tex
+*.out
+*.toc
+*.el
+*.zip
+auto

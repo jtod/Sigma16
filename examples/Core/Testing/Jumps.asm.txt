@@ -1,4 +1,4 @@
-; TestJump: test Sigma16 Core transfer of control instructions 
+; Jumps: test Sigma16 Core jumping instructions 
 ; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
 ; John O'Donnell, 2021
 

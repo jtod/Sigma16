@@ -22,12 +22,10 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
--- module M1.Circuit.Control where
 module Circuit.Control where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
--- import M1.Circuit.Interface
 import Circuit.Interface
 
 {- This is the high level control algorithm, written using assignment
@@ -150,7 +148,6 @@ repeat forever
         15 -> -- nop
 -}
 
-
 ----------------------------------------------------------------------
 --			   Control circuit
 ----------------------------------------------------------------------
@@ -159,22 +156,24 @@ control
   :: CBit a
   => a         -- reset
   -> [a]       -- ir
-  -> a         -- condcc
+  -> [a]       -- cc
   -> SysIO a   -- I/O
   -> (CtlState a, a, CtlSig a)
 
-control reset ir condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
+-- control reset ir cc condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
+control reset ir cc  (SysIO {..}) = (ctlstate,start,ctlsigs)
   where
 
       ir_op = field ir  0 4       -- instruction opcode
       ir_d  = field ir  4 4       -- instruction destination register
       ir_sa = field ir  8 4       -- instruction source a register
       ir_sb = field ir 12 4       -- instruction source b register
-
+      condcc = indexbit ir_d cc
+      
 -- Control mode is either io_DMA or cpu
       cpu = inv io_DMA
 
--- Control statess
+-- Control states
       start = orw
         [reset,
          st_add, st_sub, st_mul0, st_cmp, st_trap0,
@@ -294,3 +293,11 @@ control reset ir condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
 
       ctlsigs = CtlSig {..}
       ctlstate = CtlState {..}
+
+
+indexbit :: Bit a => [a] -> [a] -> a
+indexbit [] [x] = x
+indexbit (c:cs) xs =
+  mux1 c (indexbit cs (drop i xs))
+         (indexbit cs (take i xs))
+  where i = 2 ^ length cs
