@@ -15,11 +15,14 @@ body {
 pre {
     border: 1px dotted gray;
     color: black;  
+    font-size: 130%;
     padding: 1em;
 }
 
 code {
     font-family: monospace;
+    font-size: 130%;
+    color: blue;
     }
 
 .quickstartbox {

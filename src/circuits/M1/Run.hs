@@ -583,7 +583,7 @@ simulationLooper :: StateT (SysState DriverState) IO ()
 simulationLooper = do
   s <- get
   if checkFlag (flagTable s) (breakpointKey s)
-      || cycleCountSinceClear s >= 1000
+      || cycleCountSinceClear s >= 10000
     then do
       clearCycleCount
       cycle <- getClockCycle
@@ -971,7 +971,7 @@ showDisplacement s =
 -- trap instruction is executed, or after 1000 cycles.
 
 mytermpred :: DriverState -> Bool
-mytermpred s = trap s  -- || c > 1000
+mytermpred s = trap s  -- || c > 10000
 
 ----------------------------------------------------------------------
 -- Decoding instructions

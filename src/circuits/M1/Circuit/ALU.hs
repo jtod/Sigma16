@@ -1,17 +1,6 @@
 -- Sigma16 M1 circuit: ALU.hs
 -- John T. O'Donnell, 2021. Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
 
--- This file is part of Sigma16.  Sigma16 is free software: you can
--- redistribute it and/or modify it under the terms of the GNU General
--- Public License as published by the Free Software Foundation, either
--- version 3 of the License, or (at your option) any later version.
--- Sigma16 is distributed in the hope that it will be useful, but
--- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--- General Public License for more details.  You should have received
--- a copy of the GNU General Public License along with Sigma16.  If
--- not, see <https://www.gnu.org/licenses/>.
-
 ------------------------------------------------------------------------
 --			Arithmetic/Logic Unit
 ------------------------------------------------------------------------
@@ -78,9 +67,9 @@ operator indexes bits from the left.)
 |         7 | Carry           | C      |
 |         8 | Stack overflow  | S      |
 |         9 | Stack underflow | s      |
--}          
+-}
 
-alu n (alua,alub,aluc) x y cc = (sum, ccnew)
+alu n (alua,alub,aluc) x y cc = (result, ccnew)
   where
 
 -- Constant words    
@@ -90,7 +79,6 @@ alu n (alua,alub,aluc) x y cc = (sum, ccnew)
 -- Determine type of function being evaluated
     arith = inv alua  -- doing arithmetic operation, alu abc one of 000 001 010 100
     negating = and2 (inv alua) (xor2 alub aluc)  -- alu abc = 001 or 010
-    comparing = and3 alua (inv alub) (inv aluc)  -- doing comparison, alu abc = 100
 
 -- Prepare inputs to adder    
     x' = mux2w (alub,aluc) x x wzero x
@@ -98,8 +86,8 @@ alu n (alua,alub,aluc) x y cc = (sum, ccnew)
 
 -- The adder    
     xy = bitslice2 x' y'
-    (carry,sum) = rippleAdd negating xy
-    msb = sum!!0 --- most significant bit of sum
+    (carry,result) = rippleAdd negating xy
+    msb = result!!0 --- most significant bit of result
 
 -- Binary comparison    
     (lt,eq,gt) = rippleCmp xy
@@ -115,7 +103,7 @@ alu n (alua,alub,aluc) x y cc = (sum, ccnew)
     noOvfl  = inv intovfl     -- no integer overflow, integer result is ok
 
 -- Relation of integer result to 0
-    any1 = orw sum                     -- 1 if any bit in sum is 1
+    any1 = orw result                  -- 1 if any bit in result is 1
     neg  = and3 noOvfl any1 msb        -- ok, result < 0
     z    = and2 noOvfl (inv any1)      -- ok, result is 0
     pos  = and3 noOvfl any1 (inv msb)  -- ok, result > 0

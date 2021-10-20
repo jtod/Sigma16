@@ -1,35 +1,22 @@
 #+TITLE: The M1 Processor Circuit for Sigma16
 #+AUTHOR: John T. O'Donnell
-# Copyright (C) 2021 John T. O'Donnell.
+# Copyright (C) 2021 John T. O'Donnell
 
-# #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./docstyle.css" />
-# #+OPTIONS: toc:nil
-# #+OPTIONS: num:nil
+# html
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./docstyle.css" />
+#+INCLUDE: "../../../../VERSION.txt" export html
+#+INCLUDE: "../../../../COPYRIGHT.txt" export html
 
-# #+BEGIN_EXPORT html
-# <h1>The Sigma16 M1 System Circuit</h1>
-# #+END_EXPORT
-
-# The following lines include a message giving the current version
-# number (VERSION.txt) and a message giving a pointer to the github
-# page where the latest version can be found (LATESTVERSION).  That
-# way, if a user is running an older version, the user guide will tell
-# them where to go to to upgrade.
-
-# The following version messages should come after the title but
-# before the table of contents, so the version is clearly visible but
-# not too long and obtrusive.
-
-# #+INCLUDE: "../../../VERSION.txt" export html
-# #+INCLUDE: "../../../COPYRIGHT.txt" export html
-# #+TOC: headlines:3
-
+# latex
+#+LATEX: \vspace{2em}\noindent
+#+INCLUDE: "../../../../VERSION.txt" export latex
+#+INCLUDE: "../../../../COPYRIGHT.txt" export latex
 
 * Introduction
 
-Sigma16 is a computer architecture designed for research and teaching
-in computer systems.  M1 is a CPU: it is a digital circuit that
-executes the Core subset of Sigma16.
+Sigma16 is a computer architecture designed for research and
+teaching in computer systems.  M1 is a CPU: it is a digital circuit
+that executes the Core subset of Sigma16.
 
 M1 is a synchronous circuit designed at the level of logic gates and
 flip flops.  It is specified using the Hydra hardware description
@@ -37,12 +24,57 @@ language, which describes precisely the components and how they are
 connected, and which can simulate the circuit.
 
 The Circuit directory contains the M1 circuit, which is organized as
-several subsystems.  The Run module defines a simulation driver; this
-is a command line text interface that provides human readable inputs
-and outputs.  The ReadObj module is used to boot the system: it reads
-an object code file produced by the Sigma16 assembler and
+several subsystems.  The Run module defines a simulation driver;
+this is a command line text interface that provides human readable
+inputs and outputs.  The ReadObj module is used to boot the system:
+it reads an object code file produced by the Sigma16 assembler and
 automatically generates the inputs required to make the circuit boot
 the program.
+
+* Sigma16 Core
+
+First instruction word (RRR and RX)
+
+|----+---+---+---|
+| op | d | a | b |
+|----+---+---+---|
+
+The fields are:
+
+| field | bit index | size   | description                  |
+| op    |    15--12 | 4 bits | operation code               |
+| d     |     11--8 | 4 bits | destination register address |
+| a     |      7--4 | 4 bits | source register address a    |
+| b     |      3--0 | 4 bits | source register address b    |
+
+Second instruction word (RX only)
+
+| field | bit index | size    | description  |
+| disp  |     15--0 | 16 bits | displacement |
+
+There is only one field, the displacement (sometimes abbreviated to
+disp)
+
+
+|----------+------+---+-----+------+------+---------------------------------|
+| Mnemonic | ISA  | P | Fmt | Args | Code | Effect                          |
+|----------+------+---+-----+------+------+---------------------------------|
+| add      | Core |   | RRR | RRR  | 0    | Rd := Ra + Rb                   |
+| sub      | Core |   | RRR | RRR  | 1    | Rd := Ra - Rb                   |
+| mul      | Core |   | RRR | RRR  | 2    | Rd := Ra * Rb                   |
+| div      | Core |   | RRR | RRR  | 3    | Rd := Ra / Rb, R15 := Ra rem Rb |
+| cmp      | Core |   | RRR | RR   | 4    | R15 := Ra cmp Rb                |
+| trap     | Core |   | RRR | RRR  | b    | user interrupt                  |
+|----------+------+---+-----+------+------+---------------------------------|
+| lea      | Core |   | RX  | RX   | f,0  | Rd := ea                        |
+| load     | Core |   | RX  | RX   | f,1  | Rd := M[ea]                     |
+| store    | Core |   | RX  | RX   | f,2  | M[ea] := Rd                     |
+| jump     | Core |   | RX  | RX   | f,3  | pc := ea                        |
+| jumpc0   | Core |   | RX  | kX   | f,4  | if R15.k=0 then pc := ea        |
+| jumpc1   | Core |   | RX  | kX   | f,5  | if R15.k=1 then pc := ea        |
+| jal      | Core |   | RX  | RX   | f,6  | Rd := pc, pc := ea              |
+|----------+------+---+-----+------+------+---------------------------------|
+
 
 * Running the system
 
@@ -54,8 +86,8 @@ the program.
 
 ** Quick start
 
-The following commands will start M1, boot an example program, and run
-it to completion.
+The following commands will start M1, boot an example program, and
+run it to completion.
 
 #+BEGIN_EXAMPLE
 $ cd M1
@@ -117,7 +149,7 @@ language program and running it on the circuit.  This is
 
 #+BEGIN_EXAMPLE
 ; Add: a minimal program that adds two integer variables
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; This file is part of Sigma16.   https://jtod.github.io/home/Sigma16
 
 ; Execution starts at location 0, where the first instruction will be
 ; placed when the program is executed.
@@ -271,6 +303,134 @@ uparrow    repeat previous command
 
 Simulation driver commands: enter help for a list.
 
+* Interface
+
+#+BEGIN_SRC haskell :tangle ../Circuit/Interface.hs
+-- Sigma16: Interface.hs
+-- Copyright (C) 2021 John T. O'Donnell
+-- email: john.t.odonnell9@gmail.com
+-- License: GNU GPL Version 3 or later
+-- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+
+-- This file is part of Sigma16.  Sigma16 is free software: you can
+-- redistribute it and/or modify it under the terms of the GNU General
+-- Public License as published by the Free Software Foundation, either
+-- version 3 of the License, or (at your option) any later version.
+-- Sigma16 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.  You should have received
+-- a copy of the GNU General Public License along with Sigma16.  If
+-- not, see <https://www.gnu.org/licenses/>.
+
+{-# LANGUAGE NamedFieldPuns #-}
+
+module Circuit.Interface where
+import HDL.Hydra.Core.Lib
+
+------------------------------------------------------------------------
+-- Input/Output
+------------------------------------------------------------------------
+
+data SysIO a = SysIO
+  { io_DMA        :: a
+  , io_memStore   :: a
+  , io_memFetch   :: a
+  , io_regFetch   :: a
+  , io_address    :: [a]
+  , io_data       :: [a]
+  }
+
+------------------------------------------------------------------------
+-- Control signals
+------------------------------------------------------------------------
+
+{- The behaviour of the datapath is determined by the values of the
+control signals.  A naming convention is used for these signals.  Each
+control signal has a name with three parts, separated by _.  The first
+part is ctl (to indicate that it's a control signal).  The second part
+is the name of the subsystem in the datapath which is being
+controlled, and the third part is the specific operation being
+commanded by the signal. -}
+
+data CtlSig a = CtlSig
+  {
+-- Controls for system
+    cpu,        -- indicates dff for state generates state controls
+    condcc,
+
+-- Controls for ALU
+   ctl_alu_a,   -- 3-bit alu operation code
+   ctl_alu_b,   --   "
+   ctl_alu_c,   --   "
+   ctl_x_pc,    -- Transmit pc on x (if 0, transmit reg[sa])
+   ctl_y_ad,    -- Transmit ad on y (if 0, transmit reg[sb])
+
+-- Controls for register file
+   ctl_rf_ld,   -- Load  register file (if 0, remain unchanged)
+   ctl_rf_ldcc, -- Load  R15 (if 0, remain unchanged; ld takes priority)
+   ctl_rf_pc,   -- Input to register file is pc (if 0, check ctl_rf_alu)
+   ctl_rf_alu,  -- Input to register file is ALU output r (if 0, use m)
+   ctl_rf_sd,   -- Use ir_d as source a address (if 0, use ir_sa)
+
+-- Controls for system registers
+   ctl_ir_ld,   -- Load ir register (if 0, remain unchanged)
+   ctl_pc_ld,   -- Load pc register (if 0, remain unchanged)
+   ctl_pc_ad,   -- Input to pc is ad (if 0, r)
+   ctl_ad_ld,   -- Load ad register (if 0, remain unchanged)
+   ctl_ad_alu,  -- Obtain ad input from alu (if 0, from memory data input)
+
+-- Controls for memory
+   ctl_ma_pc,   -- Transmit pc on memory address bus (if 0, transmit addr)
+   ctl_sto      -- Memory store (if 0, fetch)
+   :: a         -- all controls are bit signals
+  }
+
+
+data CtlState a = CtlState
+  {dff_instr_fet, st_instr_fet,
+   dff_dispatch, st_dispatch,
+   dff_add, st_add,
+   dff_sub, st_sub,
+   dff_mul0, st_mul0,
+   dff_div0, st_div0,
+   dff_cmp, st_cmp,
+   dff_trap0, st_trap0,
+   dff_lea0, st_lea0, dff_lea1, st_lea1, dff_lea2, st_lea2,
+   dff_load0, st_load0, dff_load1, st_load1, dff_load2, st_load2,
+   dff_store0, st_store0, dff_store1, st_store1, dff_store2, st_store2,
+   dff_jump0, st_jump0, dff_jump1, st_jump1, dff_jump2, st_jump2,
+   dff_jumpc00, st_jumpc00, dff_jumpc01, st_jumpc01, dff_jumpc02, st_jumpc02,
+   dff_jumpc10, st_jumpc10, dff_jumpc11, st_jumpc11, dff_jumpc12, st_jumpc12,
+   dff_jal0, st_jal0, dff_jal1, st_jal1, dff_jal2, st_jal2
+   :: a         -- all control states are bit signals
+  }
+  
+data DPoutputs a = DPoutputs
+--     { aluOutputs :: ([a], [a], a)
+     { aluOutputs :: ([a], [a])
+     , r :: [a]        -- alu output
+     , ccnew :: [a]     -- alu output
+     , ma :: [a]
+     , md :: [a]
+     , a :: [a]
+     , b :: [a]
+     , cc :: [a]
+     , ir :: [a]
+     , ir_op :: [a]
+     , ir_d :: [a]
+     , ir_sa :: [a]
+     , ir_sb :: [a]
+     , pc :: [a]
+     , ad :: [a]
+     , x :: [a]
+     , y :: [a]
+     , p :: [a]
+     , q :: [a]
+     }
+
+#+END_SRC
+
 * Datapath
 
 The datapath of a processor contains the registers, the circuits that
@@ -288,6 +448,81 @@ and the like.  However, more complex operations, such as
 multiplication, division, and all floating point operations, require
 more than one clock cycle, as well as some additional state
 (registers), and are typically performed in functional units.
+
+
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Sigma16 M1 circuit: ALU.hs
+-- John T. O'Donnell, 2021. Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+
+------------------------------------------------------------------------
+--			Arithmetic/Logic Unit
+------------------------------------------------------------------------
+
+module Circuit.ALU where
+
+-- Arithmetic and logic unit for the M1 processor circuit, which implements
+-- the core subset of Sigma16.
+
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+
+{- The ALU calculates a function of word inputs x and y (which are
+usually the contents of two registers) and the condition code cc (the
+contents of R15).
+
+(The Core architecture doesn't need the cc as an input to the ALU, but
+the more advanced instructions do, and cc is provided as an input to
+simplify future zetension of M1.)
+
+The ALU produces a word output r, which is a
+numeric result (typically loaded into the destination register), and a
+comparison result ccnew which is the new value to be loaded into the
+condition code register.  The ALU performs addition, subtraction,
+negation, increment, and comparision.  The function is determined by
+control signals (alua, alub, aluc).
+
+Control inputs:
+   alua, alub, aluc
+Data inputs:
+   x
+   y
+   cc
+Data outputs:
+   r      = function (a,b,c) x y cc
+   ccnew  = compare x y cc
+
+The data output r is the result of an arithmetic operation which is
+determinted by the control inputs:
+
+| op = (alua,alub,aluc)
+| a b c |    r     |
+|-------+-----------
+| 0 0 0 |   x+y    | 
+| 0 0 1 |   x-y    | 
+| 0 1 0 |    -x    | 
+| 0 1 1 |   x+1    | 
+| 1 0 0 |   cmp    |
+
+The condition code flags are as follows.  Sigma16 indexes bits
+starting from 0 in the rightmost (least significant) position, so the
+flags cluster toward the right end of a word.  (Note: The Hydra !!
+operator indexes bits from the left.)
+
+| bit index | Relation        | Symbol |
+|-----------+-----------------+--------|
+|         0 | > Int           | >      |
+|         1 | > Nat           | G      |
+|         2 | =               | =      |
+|         3 | < Nat           | L      |
+|         4 | < Int           | <      |
+|         5 | Int overflow    | v      |
+|         6 | Nat overflow    | V      |
+|         7 | Carry           | C      |
+|         8 | Stack overflow  | S      |
+|         9 | Stack underflow | s      |
+-}          
+#+END_SRC
+
 
 *** Interface to ALU
 
@@ -429,7 +664,7 @@ The ALU is a combinational circuit: it contains no flip flops, and it
 performs every calculation in one clock cycle.
 
 The circuit is essentially a ripple carry binary adder, along with a
-ripple carry binary comparitor.  The ripple circuits have a gate delay
+ripple carry binary comparator.  The ripple circuits have a gate delay
 of $O(n)$ for $n$-bit words.  There are more advanced circuits that
 produce the same results with a gate delay of only $O(\log n$).
 
@@ -441,7 +676,7 @@ circuits.
 
 The approach is to make the binary adder perform subtractions as well
 as additions, by pre-processing` the $x$ and $y$ inputs.  Similarly,
-the results of the binary comparitor are post-processed to derive
+the results of the binary comparator are post-processed to derive
 integer (two's complement) comparison results.
 
 There are some important points to understand about the circuit.
@@ -474,16 +709,27 @@ There are some important points to understand about the circuit.
 
 /Defining equation for ALU./  The inputs are the operation code of
 three bits, the words x and y, and the current value of the condition
-code cc (which won't actually be used).  The outputs are the sum and
+code cc (which won't actually be used).  The outputs are the result and
 ccnew, the new value of the condition code.
 
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+alu n (alua,alub,aluc) x y cc = (result, ccnew)
+  where
+#+END_SRC
+
 #+BEGIN_EXAMPLE
-alu n (alua,alub,aluc) x y cc = (sum, ccnew)
+alu n (alua,alub,aluc) x y cc = (result, ccnew)
   where
 #+END_EXAMPLE
 
 /Constant words./ The circuit needs a word =wzero= with all bits 0,
 and another word =wone= with the rightmost bit 1 and all other bits 0.
+
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Constant words    
+    wzero = fanout n zero
+    wone = boolword n one
+#+END_SRC
 
 #+BEGIN_EXAMPLE
     wzero = fanout n zero
@@ -493,9 +739,9 @@ and another word =wone= with the rightmost bit 1 and all other bits 0.
 /Determine type of function being evaluated./  If all the functions
 calculated by the ALU were unrelated to each other, we would just use
 a demux to decode the 3-bit operation code.  However, the circuit uses
-just two key calculation circuits (adder and comparitor) and it uses
+just two key calculation circuits (adder and comparator) and it uses
 preprocessing of the inputs to the adder post processing of the output
-from the comparitor.  These operations are closely related.  So our
+from the comparator.  These operations are closely related.  So our
 approach to decoding the operation code is to define three key signals
 that determine what is going on:
 - =arith= is 1 if the circuit is doing an arithmetic operation, such
@@ -504,10 +750,16 @@ that determine what is going on:
 - =comparing= is 1 if the circuit is doing a comparison but not an
   arithmetic operation.
 
+
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Determine type of function being evaluated
+    arith = inv alua  -- doing arithmetic operation, alu abc one of 000 001 010 100
+    negating = and2 (inv alua) (xor2 alub aluc)  -- alu abc = 001 or 010
+#+END_SRC
+
 #+BEGIN_EXAMPLE
     arith = inv alua  -- doing arithmetic operation, alu abc one of 000 001 010 100
     negating = and2 (inv alua) (xor2 alub aluc)  -- alu abc = 001 or 010
-    comparing = and3 alua (inv alub) (inv aluc)  -- doing comparison, alu abc = 100
 #+END_EXAMPLE
 
 /Prepare inputs to adder./ Although the ALU receives inputs x and y,
@@ -527,6 +779,13 @@ operation.  This is accomplished by calculating new values =x'= and
   to 0.  (An alternative approach would be to set $y' = 0$ and set the
   carry input to 1; it makes little difference.)
 
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Prepare inputs to adder    
+    x' = mux2w (alub,aluc) x x wzero x
+    y' = mux2w (alub,aluc) y (invw y) (invw x) wone
+#+END_SRC
+
+
 #+BEGIN_EXAMPLE
     x' = mux2w (alub,aluc) x x wzero x
     y' = mux2w (alub,aluc) y (invw y) (invw x) wone
@@ -535,18 +794,30 @@ operation.  This is accomplished by calculating new values =x'= and
 /The adder./ The word inputs to the adder are $x'$ and $y'$, the
 results of the preprocessing described above.  The carry input is
 =negating= because a subtraction requires that 1 is added to the sum.
-We also define =msb= to be the most significant bit of the sum; this
+We also define =msb= to be the most significant bit of the result; this
 will give the sign.
 
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- The adder    
     xy = bitslice2 x' y'
-    (carry,sum) = rippleAdd negating xy
-    msb = sum!!0 --- most significant bit of sum
+    (carry,result) = rippleAdd negating xy
+    msb = result!!0 --- most significant bit of result
+#+END_SRC
+
+#+BEGIN_EXAMPLE
+      xy = bitslice2 x' y'
+      (carry,result) = rippleAdd negating xy
+      msb = result!!0 --- most significant bit of result
 #+END_EXAMPLE
 
-/Binary comparison./ The ripple comparitor gives three bits indicating
-whether $x<y$, $x=y$, or $x>y$.  These are binary (natural)
-comparisons.
+  /Binary comparison./ The ripple comparator gives three bits indicating
+  whether $x<y$, $x=y$, or $x>y$.  These are binary (natural)
+  comparisons.
+
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+  -- Binary comparison    
+      (lt,eq,gt) = rippleCmp xy
+#+END_SRC
 
 #+BEGIN_EXAMPLE
     (lt,eq,gt) = rippleCmp xy
@@ -554,19 +825,26 @@ comparisons.
 
 /Two's complement comparison./ The ALU also needs to work out the
 comparison relation for integers.  These are derived from the
-comparison for naturals, which is output by the ripple comparitor.
+comparison for naturals, which is output by the ripple comparator.
 There are four cases, depending on the leftmost (most significant)
 bits of the operands $x$ and $y$.  Those two bits are obtained by
 taking the leftmost pair of bits from $xy$.  In all cases, equality is
 the same for integers and natural numbers, so we define =eq_tc = eq=.
 
-- 00.  Both $x$ and $y$ are nonnegative, so $x<y$ as integers if and
-  only if $x<y$ as natural numbers, and similar for $x>y$.
+- 00.  Both $x$ and $y$ are nonnegative, so $x < y$ as integers if and
+  only if $x < y$ as natural numbers, and similar for $x > y$.
 - 01. $x$ is nonnegative but $y$ is negative, so $x>y$ as integers.
 - 10. $x$ is negative but $y$ is nonnegative, so $x<y$ as integers.
-- 11. Both $x$ and $y$ are negative, so $x<y$ as integers if and only
-  if $x<y$ as natural numbers, and similar for $x>y$.
+- 11. Both $x$ and $y$ are negative, so $x < y$ as integers if and only
+  if $x < y$ as natural numbers, and similar for $x > y$.
 
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Two's complement comparison    
+    lt_tc = mux2 (xy!!0) lt zero one lt
+    eq_tc = eq
+    gt_tc = mux2 (xy!!0) gt one zero gt
+#+END_SRC
+  
 #+BEGIN_EXAMPLE
     lt_tc = mux2 (xy!!0) lt zero one lt
     eq_tc = eq
@@ -576,6 +854,13 @@ the same for integers and natural numbers, so we define =eq_tc = eq=.
 /Carry and overflow./  For natural numbers, there is an overflow if
 the carry output is 1.  For integers, there is an overflow if the most
 significant bit differs from the carry output.
+
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Carry and overflow
+    natovfl = carry           -- natural (binary) overflow if carry = 1
+    intovfl = xor2 carry msb  -- integer (2's comp) overflow if carry != msb
+    noOvfl  = inv intovfl     -- no integer overflow, integer result is ok
+#+END_SRC
 
 #+BEGIN_EXAMPLE
     natovfl = carry           -- natural (binary) overflow if carry = 1
@@ -588,8 +873,16 @@ that arithmetic operations set the condition code to indicate the
 relation between the result and 0.  Thus if the result of calculating
 $x+y$ is negative, then the $<$ condition is set.
 
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Relation of integer result to 0
+    any1 = orw result                  -- 1 if any bit in result is 1
+    neg  = and3 noOvfl any1 msb        -- ok, result < 0
+    z    = and2 noOvfl (inv any1)      -- ok, result is 0
+    pos  = and3 noOvfl any1 (inv msb)  -- ok, result > 0
+#+END_SRC
+
 #+BEGIN_EXAMPLE
-    any1 = orw sum         -- 1 if any bit in sum is 1
+    any1 = orw result            -- 1 if any bit in result is 1
     neg  = and3 noOvfl any1 msb        -- ok, result < 0
     z    = and2 noOvfl (inv any1)      -- ok, result is 0
     pos  = and3 noOvfl any1 (inv msb)  -- ok, result > 0
@@ -598,6 +891,13 @@ $x+y$ is negative, then the $<$ condition is set.
 /Overflow flags: don't indicate overflow for a comparison operation./
 The overflow conditions should not be set in the condition code if a
 comparison operation is being performed.
+
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Overflow flags:  don't indicate overflow for a comparison operation
+    fcarry   = and2 arith carry
+    fnatovfl = and2 arith natovfl
+    fintovfl = and2 arith intovfl
+#+END_SRC
 
 #+BEGIN_EXAMPLE
     fcarry   = and2 arith carry
@@ -608,6 +908,15 @@ comparison operation is being performed.
 /Comparison flags: for arithmetic, indicate comparison with 0./  The
 flags for the conditions are defined, depending on whether the ALU is
 performing an arithmetic operation or a comparison.
+
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Comparison flags: for arithmetic, indicate comparison with 0
+    flt      = mux1 arith lt    zero
+    flt_tc   = mux1 arith lt_tc neg
+    feq      = mux1 arith eq    z
+    fgt      = mux1 arith gt    pos
+    fgt_tc   = mux1 arith gt_tc pos
+#+END_SRC
 
 #+BEGIN_EXAMPLE
     flt      = mux1 arith lt    zero
@@ -620,6 +929,15 @@ performing an arithmetic operation or a comparison.
 /Generate the condition code./ The =ccnew= result is a word consisting
 of the condition flags, with the other bits set to zero.
 
+#+BEGIN_SRC haskell :tangle ../Circuit/ALU.hs
+-- Generate the condition code
+    ccnew = [ zero,   zero,     zero,     zero,    -- bit 15 14 13 12
+              zero,   zero,     zero,     zero,    -- bit 11 10  9  8
+              fcarry, fnatovfl, fintovfl, flt_tc,  -- bit  7  6  5  4
+              flt,    feq,      fgt,      fgt_tc   -- bit  3  2  1  0
+            ]
+
+#+END_SRC
 #+BEGIN_EXAMPLE
     ccnew = [ zero,   zero,     zero,     zero,    -- bit 15 14 13 12
               zero,   zero,     zero,     zero,    -- bit 11 10  9  8
@@ -628,50 +946,239 @@ of the condition flags, with the other bits set to zero.
             ]
 #+END_EXAMPLE
 
+*** Simulation driver: ALUrun
 
-** Basic register file
+#+BEGIN_SRC haskell :tangle ../Circuit/ALUrun.hs
+-- Sigma16: ALUrun.hs
+-- John T. O'Donnell, 2021. Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
 
-#+BEGIN_EXAMPLE
-regfile1
-  :: CBit a   -- sequential circuit with signal type a
-  => Int      -- k is number of reg address bits, with 2^k registers
-  -> a        -- ld.  if ld then reg[d] := x
-  -> [a]      -- d is destination address, register to load
-  -> [a]      -- sa is source address a, first operand to fetch
-  -> [a]      -- sb is source address b, second operand to fetch
-  -> a        -- x is data to load into reg[d] if ld=1
-  -> (a,a)    -- (reg[sa], reg[sb]) is the readouts of two registers
-#+END_EXAMPLE
+-- This file is part of Sigma16.  Sigma16 is free software: you can
+-- redistribute it and/or modify it under the terms of the GNU General
+-- Public License as published by the Free Software Foundation, either
+-- version 3 of the License, or (at your option) any later version.
+-- Sigma16 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.  You should have received
+-- a copy of the GNU General Public License along with Sigma16.  If
+-- not, see <https://www.gnu.org/licenses/>.
 
-#+BEGIN_EXAMPLE
-regfile1 k ld d sa sb x
-  | k==0 = (r,r)
-  | k>0  = (a,b)
-  where
-    r = reg1 ld x
-    (a0,b0) = regfile1 (k-1) ld0 ds sas sbs x
-    (a1,b1) = regfile1 (k-1) ld1 ds sas sbs x
-    (ld0,ld1) = demux1 d1 ld
-    a = mux1 sa1 a0 a1
-    b = mux1 sb1 b0 b1
-    (d1:ds) = d
-    (sa1:sas) = sa
-    (sb1:sbs) = sb
-#+END_EXAMPLE
+---------------------------------------------------------------------------
+-- Simulation driver and test data for ALU
+---------------------------------------------------------------------------
+
+-- Usage: cd to the M1 directory and enter ghc -e main Circuit/ALUrun
+
+module Main where
+import HDL.Hydra.Core.Lib
+import Circuit.ALU
+
+{-
+
+Result function
+
+| a b c |    r     |
+|-------+-----------
+| 0 0 0 |   x+y    | 
+| 0 0 1 |   x-y    | 
+| 0 1 0 |    -x    | 
+| 0 1 1 |   x+1    | 
+| 1 0 0 |   cmp    |
+
+Condition code
+
+| bit index | Relation        | Symbol |
+|-----------+-----------------+--------|
+|         0 | > Int           | g      |
+|         1 | > Nat           | G      |
+|         2 | =               | =      |
+|         3 | < Nat           | L      |
+|         4 | < Int           | <      |
+|         5 | Int overflow    | v      |
+|         6 | Nat overflow    | V      |
+|         7 | Carry           | C      |
+|         8 | Stack overflow  | S      |
+|         9 | Stack underflow | s      |
+-}
+
+alu_input1 =
+--   a  b  c     x      y   cc     Operation  Result
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  [ "0  0  0     14     15   0"    --   x+y       29
+  , "0  0  0    125    590   0"    --   x+y      715
+  , "0  0  0     49     15   0"    --   x+y       64
+  , "0  0  0     21    -19   0"    --   x+y        2
+  , "0  0  0     21    -35   0"    --   x+y      -14
+  , "0  0  0   -350     75   0"    --   x+y     -275
+  , "0  0  0   -420    -90   0"    --   x+y     -510
+
+  , "0  0  1     49     15   0"    --   x-y       34
+  , "0  0  1     15     49   0"    --   x-y      -34
+
+  , "0  1  0     39      0   0"    --   -x       -39
+  , "0  1  0     25     70   0"    --   -x       -25
+
+  , "0  1  1     17      0   0"    --   x+1       18
+  , "0  1  1    193     52   0"    --   x+1      194
+
+  , "1  0  0      5      5   0"    --  cmp     cc = 0004  =
+  , "1  0  0      5      7   0"    --  cmp     cc = 0018  <L
+  , "1  0  0      7      5   0"    --  cmp     cc = 0003  >G
+  , "1  0  0      5     -1   0"    --  cmp     cc = 0009  >L
+  , "1  0  0     -1      5   0"    --  cmp     cc = 0012  <G
+
+   ]
+
+
+---------------------------------------------------------------------------
+-- Simulation driver for ALU
+---------------------------------------------------------------------------
+
+main = driver  $ do
+
+-- Word size
+  let n =  16
+
+-- Input data
+  useData alu_input1
+
+  in_a <- inPortBit "a"
+  in_b <- inPortBit "b"
+  in_c <- inPortBit "c"
+  in_x <- inPortWord "x" n
+  in_y <- inPortWord "y" n
+  in_cc <- inPortWord "cc" n
+
+  let a = inbsig in_a
+  let b = inbsig in_b
+  let c = inbsig in_c
+  let x = inwsig in_x
+  let y = inwsig in_y
+  let cc = inwsig in_cc
+
+-- Circuit  
+  let (r,ccnew) = alu n (a,b,c) x y cc
+
+  format
+      [string "Inputs:  ",
+       string " abc = ", bit a, bit b, bit c,
+       string "\n         x = ", bits x, string " $", binhex x,
+       string " (bin:", bindec 5 x, string ")",
+       string " (tc: ", bitstc 6 x, string ")",
+       string "\n         y = ", bits y, string " $", binhex y,
+       string " (bin:", bindec 5 y, string ")",
+       string " (tc: ", bitstc 6 y, string ")",
+       string "\n       Outputs:  ",
+       string "\n         r = ", bits r, tcdec 5 r, string "  $", binhex r,
+       string "\n         ccnew = ", bits ccnew, string " $", binhex ccnew,
+       string "\n"]
+
+  runSimulation
+  
+
+#+END_SRC
+
+** Register file
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+module Circuit.RegFile where
+
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+import HDL.Hydra.Circuits.Register
+#+END_SRC
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+-- Register files
+#+END_SRC
+
+*** Basic register file
+
+The register file is a circuit that contains 16 registers, and each
+register holds a 16 bit word.  It has the ability to read out two
+registers simultaneously, and to prepare to load one of the registers
+at the next clock tick.  This makes it possible to read two operands,
+run them through the ALU, and prepare to load the result, all during
+one clock cycle.  That enables M1 to execute the SIgma16 =add=
+instruction in just one cycle, after the instruction has been fetched
+and decoded.
+
+To achive all this, the register file needs control inputs that tell
+it which registers to read out, whether to load a register, and if so
+which register to load and what value to put into it.
+
+We will start with =regfile1=, which contains registers of 1 bit.  The
+full register file will consist of 16 copies of =regfile1=.  The
+interface provides all of required inputs, and the circuit outputs two
+registers.
+
+
+
+
+
+
+The size of the register file is specified by $k$, which is the number
+of address bits.  There are three register addresses, =sa=, =sb=, and
+=d=, so each is a $k$ bit word.  The number of registers is $2^{k}$.
+The register file is generated by a recursion over $k$.
+- The base case is $k = 0$, so there is only $2^{0} = 1$ register.
+  That register is $r$.  Since there are two readouts, the output is
+  $(r,r)$.  That may look strange, but this will happen if both source
+  addresses are the same, which occurs in an instruction like =add
+  R1,R2,R2=.
+- The recursion case is $k > 0$.  The circuit is generated by defining
+  two half-size register files, each of size $k - 1$.  The most
+  significant bit of each address selects one of those two subsystems,
+  and the remainder of the address bits are sent to both subsystems.
+
 
 The regfile1 circuit has $2^{k}$ words, each consisting of 1 bit.  A
-full register file with $n$-bit words simply consists of $n$ copies of
-the regfile1 circuit.
+full register file with $n$ bit words consists of $n$ copies of the
+regfile1 circuit.
 
-#+BEGIN_EXAMPLE
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+regfile1
+  :: CBit a  -- a is signal type for synchronous circuit
+  => a       -- ld control
+  -> [a]     -- d:ds = destination address
+  -> [a]     -- sa:sas = source address a
+  -> [a]     -- sb:sbs = source address b
+  -> a       -- x
+  -> (a,a)   -- readout (a = reg[sa], b = reg[sb])
+#+END_SRC
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+regfile1 ld [] [] [] x = (r,r)
+  where r = reg1 ld x
+#+END_SRC
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+regfile1 ld (d:ds) (sa:sas) (sb:sbs) x = (a,b)
+  where
+    (a0,b0) = regfile1 ld0 ds sas sbs x
+    (a1,b1) = regfile1 ld1 ds sas sbs x
+    (ld0,ld1) = demux1 d ld
+    a = mux1 sa a0 a1
+    b = mux1 sb b0 b1
+
+--    (d1:ds) = d
+--    (sa1:sas) = sa
+--    (sb1:sbs) = sb
+#+END_SRC
+
+
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
 regfile :: CBit a => Int -> Int
   -> a -> [a] -> [a] -> [a] -> [a] -> ([a],[a])
+
 regfile n k ld d sa sb x =
-   unbitslice2 [regfile1 k ld d sa sb (x!!i)  | i <- [0..n-1]]
-#+END_EXAMPLE
+   unbitslice2 [regfile1 ld d sa sb (x!!i)  | i <- [0..n-1]]
+#+END_SRC
 
 
-** Handling R0 and R15
+*** Handling R0 and R15
 
 The basic register file treats all registers the same.  However,
 Sigma16 treats R0 and R15 as special cases:
@@ -679,30 +1186,62 @@ Sigma16 treats R0 and R15 as special cases:
 - R0 is always 0.  It is legal to load another value into it, but any
   readout of R0 will yield 0.
 
-- R15 is the condition code.  It holds the result of the cmp
-  instruction.  Furthermore, arithmetic instructions (which place
-  their result in the register specified by =Reg[ir_d]=) also set some
+- R15 is the condition code.  It holds the result of the =cmp=
+  instruction.  Furthermore, arithmetic instructions, which place
+  their result in the register specified by =Reg[ir_d]=, also set some
   flags in the condition code indicating overflow and other
   conditions.  The conditional jump instructions automatically fetch
-  bits from R15.
+  a bit from R15 in order to decide whether to jump.
 
-There are several ways the circuit could handle R0.  M1 uses the best
-approach: R0 does not actully have any flip flops.  A load into R0 is
-simply discarded, and the combinational logic for fetching a register
-produces the value 0 when R0 is fetched.  This approach is  relatively
-simple to implement, and the resulting circuit consumes less power and
-requires less chip area than alternatives that use flip flops to  hold
-the irrelevant state of R0.
+It would be straightforward but inefficient to implement these
+requirements by using several clock cycles.  For example, an =add=
+instruction could use one cycle to load the result into the
+destination register, and a second cycle to load the condition code
+into R15.  But this would severely slow down the machine.  Although
+M1 is not pipelined, we would like to be able to use pipelining in a
+more complex machine to achieve and effective rate of one cycle per
+instruction for the RRR instructions.  Using a separate cycle to
+load the condition code would produce a 100% slowdown.  Therfore we
+will design a more sophisticated register file that can handle the
+exceptional cases --- R0 and R15 --- without slowdown.
 
-R15, which holds the condition code, is more complex.  There are two
+There are several ways the circuit could handle R0:
+- Treat R0 just like all the other registers in the register file
+  circuit, and use additional logic in the datapath to replace its
+  value by 0 whenever R0 is fetched.
+- Use additional logic in the datapath to replace any value loaded
+  into R0 by 0.
+- Design a new register file circuit that doesn't use flip flops to
+  hold the contents of R0, but instead arrange the readout logic to
+  give 0 when R0 is fetched.
+
+The last of those approaches is best, and M1 uses it.  Thus R0 does
+not actully have any flip flops.  A load into R0 is simply discarded,
+and the combinational logic for fetching a register produces the value
+0 when R0 is fetched.  This is relatively simple to implement, and the
+resulting circuit consumes less power and requires less chip area than
+alternatives that use flip flops to hold the irrelevant state of R0.
+
+R15, which holds the condition code, is more complex, for several
 reasons:
-- The machine may need to read out both R15 and some other register at
-  the same time.
+- The machine may need to read out R15 as well as two source
+  registers at the same time, so there need to be three word outputs
+  from the circuit.
 - The machine may need to load a new value into both R15 and some
-  other register at the same time.
+  other destination register at the same time.  Therefore there need
+  to be two data word inputs, one for the destination register and
+  one for R15.
 
-Both of these requirements cannot be satisfied with the basic register
-file circuit.  Instead, it would be necessary to use two clock cycles.
+Another complication is that the machine language program could
+specify R15 as the destination in an instruction that also sets the
+condition code.  For example, =add= sets the condition code to
+indicate whether overflow occurred.  The Sigma16 archiecture
+specifies that if the destination register is R15, then the result
+is loaded into R15 and the condition code is discarded.
+- =add R14,R1,R2= places the sum in R14 and the condition code in
+  R15
+- =add R15,R1,R2= places the sum in R15 and the condition code is
+  discarded.
 
 It would be possible to handle the condition code by using two clock
 cycles for arithmetic instructionss, one to put the result into the
@@ -712,30 +1251,121 @@ an unacceptable slowdown.  (The M1 circuit is designed to be as simple
 as possible, but more advanced circuits should be possible with the
 architecture.)
 
-It is critically important to be able
+*** Interface to register file with special R0 and R15
 
-Register file with special treatment of R0 and R15
+=regFileSpec= is a register file circuit that is similar to
+=regFile= except that it provides for the special cases of R0 and
+R15.
 
-- reg[0] always outputs 0
-- reg[15] is always output, and can be loaded independently from other registers
+The control inputs to the register file need to tell it what to do.
+There are four possibilities, so two control signals are required to
+specify one of these four cases: =ld= and =ldcc=.
 
-Effect on state (from programmer's perspective)
--  if ld                   then reg[d] := x
--  if ~(ld & d=15) & ldcc  then reg[15] := xcc
+- =ld= = 0, =ldcc= = 0 :: /Don't load anything into any register in
+  the register file./ This happens during instruction fetch, during
+  the initial cycles of RX instructions like =load=, and in many
+  other cases.
+- =ld= = 0, =ldcc= = 1 :: /Load a value into the condition code,
+  R15./ For example, =cmp R2,R3= puts the result of the comparison
+  into R15, which is not one of the operands of the instruction.
+  Although the assembly language notation for the =cmp= instruction
+  specifies only the two registers to compare, the instruction is
+  RRR format, and the destination register is ignored.  The
+  assembler uses 0 for the destination register, but that is an
+  arbitrary choice and the machine ignores it.
+- =ld= = 1, =ldcc= = 0 :: /Load a value into the destination
+  register, leave R15 unchanged./ For example, =load R2,x[R0]= must
+  load a word into R2 but R15 remains unchanged.
+- =ld= = 1, =ldcc= = 1 :: /Load a value into both the destination
+  register and R15./ For example, =add R3,R4,R5= loads the sum into
+  R3 and the condition code into R15.  The condition code for =add=
+  indicates overflow, carry, and the sign of the result.
 
-State update (from perspective of circuit)
-- reg[0] there is no state
-- reg[d] for 0 < d < 15:  reg[d] := if ld then x else reg[d]
-- reg[15] :=
+Notation: R3 means register with index 3 in the register file.  Rd
+means the register whose index is the current value of the 4-bit
+word d, and similar for Ra and Rb.
+
+- R0 always outputs 0
+- R15 is always output, and can be loaded independently from other registers
+
+The circuit produces three output words, =a=, =b=, and =cc=:
+- a = Ra.  The =a= output is produced by a multiplexer tree that
+  uses the =sa= input to select which register to read.
+- b = Rb.  Similar to =a= but using a separate multiplexer tree to
+  read the register at address =sb=.
+- cc = R15.  There is a direct connection from R15 to the =cc=
+  output.
+
+The actions to be performed are controlled by =ld=, =ldcc=, and =d=,
+and the input data values are =x= and =ccnew=:
+- *if* =ld= *then* =reg[d]= := =x=  (In case $d=0$, there is no effect.)
+- *if* $ldcc \wedge \neg (ld \wedge d=15)$ *then* =reg[15]= := =cc=
+If both of these conditions are true, so both =reg[d]= and =reg[15]= are
+loaded, then $d \neq 15$.
+
+
+
+*** The interface
+Inputs
+-  ld   :: 1 bit, load control.  This determines whether the
+  destination register will perform a load: *if* =ld= *then* =reg[d]
+  := x=
+-  ldcc :: 1 bit, load into R15
+-  x    :: 16 bits, data input
+-  xcc  :: 16 bits, R15 data input
+-  d    :: 4 bits, destination address
+-  sa   :: 4 bits, source a address
+-  sb   :: 4 bits, source b address
+
+
+
 
 #+BEGIN_EXAMPLE
-  if ld & d=15 then x
-  else if ldcc then xcc
-  else reg[15]
+Inputs
+  ld     load control
+  ldcc   load into R15
+  x      data input
+  xcc    R15 data input
+  d      destination address
+  sa     source a address
+  sb     source b address
+
 #+END_EXAMPLE
 
-               
-#+BEGIN_EXAMPLE
+*** Implementing the register file with special cases
+
+To design the circuit, we need to work out the new value of each
+register:
+- R0 has no state
+- For $0 < d < 15$, Rd := if ld then x else Rd
+- For $d = 15$, =Rd= := *if* =ld= *then* =x= *else if* =ldcc= *then*
+  =xcc= *else* =R15=
+
+Recursion is controlled by the addresses; if their lengths vary there
+will be a pattern match error
+
+RFspan determines how to generate the circuit for the base cases
+
+
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+
+{- Register file with special treatment of R0 and R15
+
+reg[0] always outputs 0
+reg[15] is always output, and can be loaded independently from other registers
+
+Effect on state (from programmer's perspective)
+  if ld                   then reg[d] := x
+  if ~(ld & d=15) & ldcc  then reg[15] := xcc
+
+State update (from perspective of circuit)
+  reg[0] there is no state
+  reg[d] for 0 < d < 15:  reg[d] := if ld then x else reg[d]
+  reg[15] := if ld & d=15 then x
+               else if ldcc then xcc
+               else reg[15]
+
 Inputs
   ld     load control
   ldcc   load into R15
@@ -749,24 +1379,22 @@ Outputs
   a = reg[sa]
   b = reg[sb]
   cc = reg[15]
-#+END_EXAMPLE
-
-** Implementing the register file with special cases
 
 Recursion is controlled by the addresses; if their lengths vary there
 will be a pattern match error
 
-RFspan determines how to generate the circuit for the base cases
+-}
+#+END_SRC
 
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+-- RFspan determines how to generate the circuit for the base cases
+
 data RFspan
   = RFfull      -- contains R0
   | RFhead       -- contains R15
   | RFtail       -- contains R15
   | RFinside     -- contains neither R0 nor R15
-#+END_EXAMPLE
 
-#+BEGIN_EXAMPLE
 headType, tailType :: RFspan -> RFspan
 headType RFfull   = RFhead
 headType RFinside = RFinside
@@ -777,14 +1405,14 @@ tailType RFfull   = RFtail
 tailType RFinside = RFinside
 tailType RFhead   = RFinside
 tailType RFtail   = RFtail
-#+END_EXAMPLE
+#+END_SRC
 
--- 1-bit Register file with special cases for lowest and highest
--- indices (R0, cc).  Sigma16 uses 4-bit addresses for d, sa, sb,
--- leading to 16 registers, where the special cases are R0 (the head,
--- i.e. lowest address) and R15 (the tail, i.e. highest address)
+1-bit Register file with special cases for lowest and highest
+indices (R0, cc).  Sigma16 uses 4-bit addresses for d, sa, sb,
+leading to 16 registers, where the special cases are R0 (the head,
+i.e. lowest address) and R15 (the tail, i.e. highest address)
 
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
 regFileSpec1
   :: CBit a
   => RFspan
@@ -796,27 +1424,40 @@ regFileSpec1
   -> a           -- x = data input for reg[d]
   -> a           -- xcc = data input for condition code R15
   -> (a,a,a)     -- (reg[sa], reg[sb], reg[15])
-#+END_EXAMPLE
+#+END_SRC
 
+
+Recursion is based on the address words.  There will be a pattern
+match error if the addresses (d, sa, sb) don't all have the same
+number of bits.  There will also be a pattern match error if the
+base case has RFtype = RFfull, as a singleton register cannot be
+both R0 and R15.
+
+-- Base cases
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
 -- Recursion is based on the address words.  There will be a pattern
 -- match error if the addresses (d, sa, sb) don't all have the same
 -- number of bits.  There will also be a pattern match error if the
 -- base case has RFtype = RFfull, as a singleton register cannot be
 -- both R0 and R15.
+#+END_SRC
 
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
 -- Base cases
 
-#+BEGIN_EXAMPLE
 regFileSpec1 RFinside ld ldcc [] [] [] x xcc = (r,r,zero)
   where r = reg1 ld x
 regFileSpec1 RFhead ld ldcc [] [] [] x xcc = (zero,zero,zero)
 regFileSpec1 RFtail ld ldcc [] [] [] x xcc = (r,r,r)
   where r = reg1 (or2 ld ldcc) (mux1 ld xcc x)
-#+END_EXAMPLE
+#+END_SRC
+
 
 -- Recursion case
 
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
+-- Recursion case
+
 regFileSpec1 rft ld ldcc (d:ds) (sa:sas) (sb:sbs) x xcc = (a,b,cc)
   where (a0,b0,cc0) = regFileSpec1 (headType rft) ld0 ldcc ds sas sbs x xcc
         (a1,b1,cc1) = regFileSpec1 (tailType rft) ld1 ldcc ds sas sbs x xcc
@@ -824,11 +1465,14 @@ regFileSpec1 rft ld ldcc (d:ds) (sa:sas) (sb:sbs) x xcc = (a,b,cc)
         a = mux1 sa a0 a1
         b = mux1 sb b0 b1
         cc = cc1
-#+END_EXAMPLE
+#+END_SRC
 
+
+n-bit register file with special cases for R0 and R15
+
+#+BEGIN_SRC haskell :tangle ../Circuit/RegFile.hs
 -- n-bit register file with special cases for R0 and R15
 
-#+BEGIN_EXAMPLE
 regFileSpec
   :: CBit a
   => Int             -- word size
@@ -840,16 +1484,557 @@ regFileSpec
   -> [a]             -- x = data input for reg[d]
   -> [a]             -- xcc = data input for condition code R15
   -> ([a],[a],[a])  -- (reg[sa], reg[sb], reg[15])
-#+END_EXAMPLE
 
-#+BEGIN_EXAMPLE
 regFileSpec n ld ldcc d sa sb x xcc =
   unbitslice3 [regFileSpec1 RFfull ld ldcc d sa sb (x!!i) (xcc!!i)
                  | i <- [0 .. n - 1]]
-#+END_EXAMPLE
+#+END_SRC
 
+** Main datapath
+
+#+BEGIN_SRC haskell :tangle ../Circuit/Datapath.hs
+-- Sigma16: Datapath.hs
+-- Copyright (C) 2021 John T. O'Donnell
+-- email: john.t.odonnell9@gmail.com
+-- License: GNU GPL Version 3 or later
+-- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+
+-- This file is part of Sigma16.  Sigma16 is free software: you can
+-- redistribute it and/or modify it under the terms of the GNU General
+-- Public License as published by the Free Software Foundation, either
+-- version 3 of the License, or (at your option) any later version.
+-- Sigma16 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.  You should have received
+-- a copy of the GNU General Public License along with Sigma16.  If
+-- not, see <https://www.gnu.org/licenses/>.
+
+------------------------------------------------------------------------
+--			       Datapath
+------------------------------------------------------------------------
+
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+
+module Circuit.Datapath where
+
+-- This module defines a basic datapath that supports a subset of the
+-- Sigma16 architecture.  The datapath contains a ripple carry adder
+-- instead of a full ALU.  It can be simulated using RunDatapath1.
+
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+import HDL.Hydra.Circuits.Register
+
+import Circuit.Interface
+import Circuit.ALU
+import Circuit.RegFile
+
+-- The datapath contains the registers, computational systems, and
+-- interconnections.  It has two inputs: a set of control signals
+-- provided by the control unit, and a data word from the either the
+-- memory system or the DMA input controller.
+
+datapath
+  :: CBit a
+  => CtlSig a
+  -> SysIO a
+  -> [a]
+  -> DPoutputs a
+
+datapath (CtlSig {..}) (SysIO {..}) memdat = dp
+  where
+
+-- Interface
+    dp = DPoutputs {..}
+    
+-- Size parameters
+    n = 16    -- word size
+
+-- Registers
+    (a,b,cc) = regFileSpec n ctl_rf_ld ctl_rf_ldcc
+                  ir_d rf_sa rf_sb
+                  p ccnew
+    ir = reg n ctl_ir_ld memdat
+    pc = reg n ctl_pc_ld q
+    ad = reg n ctl_ad_ld (mux1w ctl_ad_alu memdat r)
+
+-- ALU
+    aluOutputs = alu n (ctl_alu_a, ctl_alu_b, ctl_alu_c) x y cc
+    (r,ccnew) = aluOutputs
+      
+-- Internal processor signals
+    x = mux1w ctl_x_pc a pc             -- alu input 1
+    y = mux1w ctl_y_ad b ad             -- alu input 2
+    rf_sa = mux1w ctl_rf_sd ir_sa ir_d  -- a = reg[rf_sa]
+    rf_sb = mux1w (and2 io_DMA io_regFetch)
+              ir_sb
+              (field io_address 12 4)
+    p  = mux1w ctl_rf_pc                -- regfile data input
+           (mux1w ctl_rf_alu memdat r)
+           pc
+    q = mux1w ctl_pc_ad r ad        -- input to pc
+    ma = mux1w ctl_ma_pc ad pc      -- memory address
+    md = a                                    -- memory data
+
+-- Instruction fields
+    ir_op = field ir  0 4           -- instruction opcode
+    ir_d  = field ir  4 4           -- instruction destination register
+    ir_sa = field ir  8 4           -- instruction source a register
+    ir_sb = field ir 12 4           -- instruction source b register
+
+#+END_SRC
+
+** Multiplier functional unit
+
+#+BEGIN_SRC haskell :tangle ../Circuit/Multiply.hs
+-- Multiply: circuit that multiplies two binary natural numbers
+-- This file is part of Hydra, see Hydra/README.md for copyright and license
+
+----------------------------------------------------------------------
+-- Binary multiplier circuit
+----------------------------------------------------------------------
+
+module Circuit.Multiply where
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+import HDL.Hydra.Circuits.Register
+
+-- Definition of a circuit that multiples two binary integers.  The
+-- circuit is a functional unit, which uses a start control signal to
+-- initiate a multiplication and produces a ready output signal to
+-- indicate completion.
+
+-- The multiplier circuit uses the sequential shift-and-add algorithm
+-- to multiply two k-bit binary numbers, producing a 2k-bit product.
+-- The specification is general, taking a size parameter k::Int.  The
+-- start control signal tells the multiplier to begin computing the
+-- product x*y, and any other multiplication in progress (if any) is
+-- aborted.  In order to make the simulation output more interesting,
+-- the multiplier outputs its internal register and sum values as well
+-- as the ready signal and the product.
+
+multiply
+  :: CBit a               -- synchronous circuit
+  => Int                  -- k = input word size; output is 2*k
+  -> a                    -- start = control input
+  -> [a]                  -- x = k-bit word
+  -> [a]                  -- y = k-bit word
+  -> (a,[a],[a],[a],[a])  -- (ready, product, ...internalsignals...)
+
+multiply k start x y = (ready,prod,rx,ry,s)
+  where
+    rx = latch k (mux1w start (shr rx) x)
+    ry = latch (2*k)
+             (mux1w start
+                (shl ry)
+                (fanout k zero ++ y))
+    prod = latch (2*k)
+             (mux1w start
+                (mux1w (lsb rx) prod s)
+                (fanout (2*k) zero))
+    (c,s) = rippleAdd zero (bitslice2 ry prod)
+    ready = or2 (inv (orw rx)) (inv (orw ry))
+
+#+END_SRC
+
+*** Simulation driver: MultiplyRun
+
+#+BEGIN_SRC haskell :tangle ../Circuit/MultiplyRun.hs
+-- MultiplyRun: simulation driver for multiply circuit
+-- John O'Donnell, 2021
+
+-- To run the multiplier:
+--   $ ghci
+--   ghci> :load MultiplyRun
+--   ghci> :main
+--   hydra> run
+
+module Main where
+import HDL.Hydra.Core.Lib
+import Circuit.Multiply
+
+mult_test_data_1 :: [String]
+mult_test_data_1 =
+--     start  x    y
+--     ~~~~~~~~~~~~~~
+       ["1    50   75",  -- start=1 to multiply 50 * 75, expect 3750
+        "0    0     0",  -- start=0 to give circuit time
+        "0    0     0",  -- a number of clock cycles are needed
+        "0    0     0",  -- give it another cycle
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "1  100   100",  -- start=1 to multiply 100*100, expect 10000
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "1  100   100",  -- start=1 to multiply 100*100, expect 10000
+        "0    0     0",  -- working on 100*100
+        "0    0     0",  -- working on 100*100
+        "1    2     3",  -- abort and start multiplying 2*3
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0",
+        "0    0     0"]
+
+-- main :: Driver a
+main :: IO ()
+main = driver $ do
+
+-- Input data  
+  useData mult_test_data_1
+
+-- Size parameter
+  let k = 8
+
+-- Input ports
+  in_start <- inPortBit "start"
+  in_x     <- inPortWord "x" k
+  in_y     <- inPortWord "y" k
+
+-- Input signals
+  let start = inbsig in_start
+  let x     = inwsig in_x
+  let y     = inwsig in_y
+
+-- Circuit
+  let (rdy,prod,rx,ry,s) = multiply k start x y
+
+-- Format the signals
+  format
+    [string "Input: ",
+     bit start, bindec 4 x, bindec 4 y,
+     string "  Output: ",
+     bit rdy, bindec 6 prod, bindec 4 rx, bindec 6 ry,
+     bindec 6 s,
+     string "\n"]
+
+  runSimulation
+
+#+END_SRC
 
 * Control
+
+#+BEGIN_SRC haskell :tangle ../Circuit/Control.hs
+-- Sigma16: ALU.hs
+-- Copyright (C) 2021 John T. O'Donnell
+-- email: john.t.odonnell9@gmail.com
+-- License: GNU GPL Version 3 or later
+-- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+
+-- This file is part of Sigma16.  Sigma16 is free software: you can
+-- redistribute it and/or modify it under the terms of the GNU General
+-- Public License as published by the Free Software Foundation, either
+-- version 3 of the License, or (at your option) any later version.
+-- Sigma16 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.  You should have received
+-- a copy of the GNU General Public License along with Sigma16.  If
+-- not, see <https://www.gnu.org/licenses/>.
+
+----------------------------------------------------------------------
+--			  Control Algorithm
+----------------------------------------------------------------------
+
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+
+module Circuit.Control where
+
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+import Circuit.Interface
+
+{- This is the high level control algorithm, written using assignment
+statements to describe the effect that will take place at the end of a
+clock cycle.  Each statement is decorated with the list of control
+signals that must be asserted during the clock cycle to make the
+datapath perform the operation.  Some of the Sigma16 instructions are
+unimplemented, but the key ones are all defined.
+
+repeat forever
+  st_instr_fet:
+    ir := mem[pc], pc++;
+       {ctl_ma_pc, ctl_ir_ld, ctl_x_pc, ctl_alu=alu_inc, ctl_pc_ld}
+  st_dispatch:
+  case ir_op of
+
+    0 -> -- add instruction
+        st_add:  reg[ir_d] := reg[ir_sa] + reg[ir_sb]
+          assert [ctl_alu_abc=000, ctl_rf_alu, ctl_rf_ld, ctl_rf_ldcc]
+
+    1 -> -- sub instruction
+        st_sub:  reg[ir_d] := reg[ir_sa] - reg[ir_sb]
+          assert [ctl_alu_abc=001, ctl_rf_alu, ctl_rf_ld, ctl_rf_ldcc]
+
+    2 -> -- mul instruction
+        -- unimplemented, does nothing
+
+    3 -> -- div instruction
+        -- unimplemented, does nothing
+
+    4 -> -- cmp instruction
+        st_cmp:  reg[15] := alu_cmp (reg[ir_sa], reg[ir_sb])
+           assert [ctl_alu_abc=100, ctl_rf_ldcc]
+
+    12 -> -- trap instruction
+        st_trap0:
+          -- The simulation driver detects that a trap has been
+          -- executed by observing when the control algorithm
+          -- enters this state, and it performs the system action
+          -- requested by the trap operand in Rd.
+
+    14 -> -- expand to EXP format
+        -- This code allows expansion to a two-word format with
+        -- further instructions using registers.  Not used in the
+        -- Core architecture; treated as a nop
+
+    15 -> -- expand to RX format
+        -- This code allows expansion to a two-word format with
+        -- an address operand.  The instruction is determined by a
+        -- secondary opcode in the b field of the ir
+
+      case ir_sb of
+
+        0 -> -- lea instruction
+            st_lea0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abc=011, ctl_pc_ld]
+            st_lea1:  reg[ir_d] := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu=alu_add, ctl_rf_alu, ctl_rf_ld]
+
+        1 -> -- load instruction
+            st_load0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abc=011, ctl_pc_ld]
+            st_load1:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abc=000, ctl_ad_ld, ctl_ad_alu]
+            st_load2:  reg[ir_d] := mem[ad]
+                assert [ctl_rf_ld]
+
+        2 -> -- store instruction
+            st_store0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abc=011, ctl_pc_ld]
+            st_store1:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abc=000, ctl_ad_ld, ctl_ad_alu]
+            st_store2:
+              mem[addr] := reg[ir_d]
+                assert [ctl_rf_sd, ctl_sto]
+
+        3 -> --  jump instruction
+            st_jump0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abc=011, ctl_pc_ld]
+            st_jump1:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abc=000, ctl_ad_ld, ctl_ad_alu]
+            st_jump2:  pc := ad
+              assert [ctl_pc_ad, ctl_pc_ld]
+
+        4 -> -- jumpc0 instruction
+            st_jumpc00:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abc=011, ctl_pc_ld]
+            st_jumpc01:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abc=000, ctl_ad_ld, ctl_ad_alu]
+            st_jumpc02:  if inv condcc then pc := ad
+              assert [ctl_pc_ad, if inv condcc then ctl_pc_ld]
+
+        5 -> -- jumpc1 instruction
+            st_jumpc10:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abc=011, ctl_pc_ld]
+            st_jumpc11:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abc=000, ctl_ad_ld, ctl_ad_alu]
+            st_jumpc12: if condcc then pc := ad
+              assert [ctl_pc_ad, if condcc then ctl_pc_ld]
+
+        6 -> -- jal instruction
+            st_jal0:  ad := mem[pc], pc++
+              assert [ctl_ma_pc, ctl_ad_ld, ctl_x_pc, ctl_alu_abc=011, ctl_pc_ld]
+            st_jal1:  ad := reg[ir_sa] + ad
+              assert [ctl_y_ad, ctl_alu_abc=000, ctl_ad_ld, ctl_ad_alu]
+            st_jal2: reg[ir_d] := pc, pc := ad,
+              assert [ctl_rf_ld, ctl_rf_pc, ctl_pc_ld, ctl_pc_ad]
+
+-- The remaining opcodes are used in the full Sigma16 architecture,
+-- but in the Core they are unimplemented and treated as nop
+
+        7 -> -- nop
+        8 -> -- nop
+        9 -> -- nop
+        10 -> -- nop
+        11 -> -- nop
+        12 -> -- nop
+        13 -> -- nop
+        14 -> -- nop
+        15 -> -- nop
+-}
+
+----------------------------------------------------------------------
+--			   Control circuit
+----------------------------------------------------------------------
+
+control
+  :: CBit a
+  => a         -- reset
+  -> [a]       -- ir
+  -> [a]       -- cc
+  -> SysIO a   -- I/O
+  -> (CtlState a, a, CtlSig a)
+
+-- control reset ir cc condcc (SysIO {..}) = (ctlstate,start,ctlsigs)
+control reset ir cc  (SysIO {..}) = (ctlstate,start,ctlsigs)
+  where
+
+      ir_op = field ir  0 4       -- instruction opcode
+      ir_d  = field ir  4 4       -- instruction destination register
+      ir_sa = field ir  8 4       -- instruction source a register
+      ir_sb = field ir 12 4       -- instruction source b register
+      condcc = indexbit ir_d cc
+      
+-- Control mode is either io_DMA or cpu
+      cpu = inv io_DMA
+
+-- Control states
+      start = orw
+        [reset,
+         st_add, st_sub, st_mul0, st_cmp, st_trap0,
+         st_lea1,  st_load2, st_store2, st_jump2,
+         st_jumpc02, st_jumpc12, st_jal2]
+      st_start = and2 start cpu
+
+      dff_instr_fet = dff (or2 st_start (and2 dff_instr_fet io_DMA))
+      st_instr_fet  = and2 dff_instr_fet cpu
+
+      dff_dispatch = dff (or2 st_instr_fet (and2 dff_dispatch io_DMA))
+      st_dispatch  = and2 dff_dispatch cpu
+      pRRR = demux4w ir_op st_dispatch
+      pXX  = demux4w ir_sb (pRRR!!14)
+      pRX  = demux4w ir_sb (pRRR!!15)
+
+      dff_lea0 = dff (or2 (pRX!!0) (and2 dff_lea0 io_DMA))
+      st_lea0  = and2 dff_lea0 cpu
+      dff_lea1 = dff (or2 st_lea0 (and2 dff_lea1 io_DMA))
+      st_lea1  = and2 cpu dff_lea1
+      dff_lea2 = dff (or2 st_lea1 (and2 dff_lea2 io_DMA))
+      st_lea2  = and2 dff_lea2 cpu
+
+      dff_load0 = dff (or2 (pRX!!1) (and2 dff_load0 io_DMA))
+      st_load0  = and2 dff_load0 cpu
+      dff_load1 = dff (or2 st_load0 (and2 dff_load1 io_DMA))
+      st_load1  = and2 cpu dff_load1
+      dff_load2 = dff (or2 st_load1 (and2 dff_load2 io_DMA))
+      st_load2  = and2 cpu dff_load2
+
+      dff_store0 = dff (or2 (pRX!!2) (and2 dff_store0 io_DMA))
+      st_store0  = and2 cpu dff_store0
+      dff_store1 = dff (or2 st_store0 (and2 dff_store1 io_DMA))
+      st_store1  = and2 dff_store1 cpu
+      dff_store2 = dff (or2 st_store1 (and2 dff_store2 io_DMA))
+      st_store2  = and2 dff_store2 cpu
+
+      dff_jump0 = dff (or2 (pRX!!3) (and2 dff_jump0 io_DMA))
+      st_jump0  = and2 dff_jump0 cpu
+      dff_jump1 = dff (or2 st_jump0 (and2 dff_jump1 io_DMA))
+      st_jump1  = and2 dff_jump1 cpu
+      dff_jump2 = dff (or2 st_jump1 (and2 dff_jump2 io_DMA))
+      st_jump2  = and2 cpu dff_jump2
+
+      dff_jumpc00 = dff (or2 (pRX!!4) (and2 dff_jumpc00 io_DMA))
+      st_jumpc00  = and2 dff_jumpc00 cpu
+      dff_jumpc01 = dff (or2 st_jumpc00 (and2 dff_jumpc01 io_DMA))
+      st_jumpc01  = and2 dff_jumpc01 cpu
+      dff_jumpc02 = dff (or2 st_jumpc01 (and2 dff_jumpc02 io_DMA))
+      st_jumpc02  = and2 dff_jumpc02 cpu
+
+      dff_jumpc10 = dff (or2 (pRX!!5) (and2 dff_jumpc10 io_DMA))
+      st_jumpc10  = and2 dff_jumpc10 cpu
+      dff_jumpc11 = dff (or2 st_jumpc10 (and2 dff_jumpc11 io_DMA))
+      st_jumpc11  = and2 dff_jumpc11 cpu
+      dff_jumpc12 = dff (or2 st_jumpc11 (and2 dff_jumpc12 io_DMA))
+      st_jumpc12  = and2 dff_jumpc12 cpu
+
+      dff_jal0 = dff (or2 (pRX!!6) (and2 dff_jal0 io_DMA))
+      st_jal0  = and2 dff_jal0 cpu
+      dff_jal1 = dff (or2 st_jal0 (and2 dff_jal1 io_DMA))
+      st_jal1  = and2 dff_jal1 cpu
+      dff_jal2 = dff (or2 st_jal1 (and2 dff_jal2 io_DMA))
+      st_jal2  = and2 dff_jal2 cpu
+
+      dff_add   = dff (or2 (pRRR!!0) (and2 dff_add io_DMA))
+      st_add    = and2 dff_add cpu
+      
+      dff_sub   = dff (or2 (pRRR!!1) (and2 dff_sub io_DMA))
+      st_sub    = and2 dff_sub cpu
+
+      dff_mul0  = dff (or2 (pRRR!!2) (and2 dff_mul0 io_DMA))
+      st_mul0   = and2 dff_mul0 cpu
+
+      dff_div0  = dff (or2 (pRRR!!3) (and2 dff_div0 io_DMA))
+      st_div0   = and2 dff_div0 cpu
+
+      dff_cmp   = dff (or2 (pRRR!!4) (and2 dff_cmp io_DMA))
+      st_cmp    = and2 dff_cmp cpu
+
+      dff_trap0 = dff (or2 (pRRR!!11) (and2 dff_trap0 io_DMA))
+      st_trap0  = and2 dff_trap0 cpu
+
+-- Generate control signals
+      ctl_rf_ld   = orw [st_load2,st_lea1,st_add,st_sub,
+                           st_jal2]
+      ctl_rf_ldcc = orw [st_cmp, st_add, st_sub]
+
+      ctl_rf_pc   = orw [st_jal2]
+      ctl_rf_alu  = orw [st_lea1,st_add,st_sub]
+      ctl_rf_sd   = orw [st_store2,st_jumpc00]
+      ctl_alu_a   = orw [st_cmp]
+      ctl_alu_b   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
+                         st_jump0, st_jumpc00, st_jumpc10, st_jal0]
+      ctl_alu_c   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
+                         st_jump0, st_jumpc00, st_jumpc10,
+                         st_sub,st_jumpc00,st_jal0]
+      ctl_ir_ld   = orw [st_instr_fet]
+      ctl_pc_ld   = orw [st_instr_fet, st_lea0, st_load0, st_store0,
+                           st_jump0, st_jump2,
+                           st_jumpc00, and2 (inv condcc) st_jumpc02,
+                           st_jumpc10, and2 condcc st_jumpc12,
+                           st_jal0, st_jal2]
+      ctl_pc_ad   = orw [st_jump2, st_jumpc02, st_jumpc12, st_jal2]
+      ctl_ad_ld   = orw [st_load0,st_load1,st_lea0,st_store0,
+                         st_store1,st_jumpc00,st_jumpc01,
+                         st_jumpc10,st_jumpc11,st_jump0,st_jump1,
+                         st_jal0,st_jal1]
+      ctl_ad_alu  = orw [st_load1,st_store1,st_jump1,st_jumpc01,st_jumpc11,st_jal1]
+      ctl_ma_pc   = orw [st_instr_fet,st_load0,st_lea0,st_store0,
+                           st_jumpc10,st_jumpc00,st_jump0,st_jal0]
+      ctl_x_pc    = orw [st_instr_fet,st_load0,st_lea0,st_store0,
+                           st_jumpc10,st_jumpc00,st_jump0,st_jal0]
+      ctl_y_ad    = orw [st_load1,st_store1,st_lea1,st_jumpc11,
+                         st_jumpc01,st_jump1,st_jal1]
+      ctl_sto     = orw [st_store2]
+
+      ctlsigs = CtlSig {..}
+      ctlstate = CtlState {..}
+
+
+indexbit :: Bit a => [a] -> [a] -> a
+indexbit [] [x] = x
+indexbit (c:cs) xs =
+  mux1 c (indexbit cs (drop i xs))
+         (indexbit cs (take i xs))
+  where i = 2 ^ length cs
+
+#+END_SRC
+
 ** Control state: basic delay elements
 
 #+BEGIN_EXAMPLE
@@ -1028,12 +2213,1518 @@ a sequence of clock cycles.
     place and the processor does nothing: its cycle has been stolen.
 - 
 
+* Memory
+
+#+BEGIN_SRC haskell :tangle ../Circuit/Memory.hs
+-- Sigma16: Memory.hs
+-- Copyright (C) 2020 John T. O'Donnell
+-- email: john.t.odonnell9@gmail.com
+-- License: GNU GPL Version 3 or later
+-- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+
+-- This file is part of Sigma16.  Sigma16 is free software: you can
+-- redistribute it and/or modify it under the terms of the GNU General
+-- Public License as published by the Free Software Foundation, either
+-- version 3 of the License, or (at your option) any later version.
+-- Sigma16 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.  You should have received
+-- a copy of the GNU General Public License along with Sigma16.  If
+-- not, see <https://www.gnu.org/licenses/>.
+
+-----------------------------------------------------------------------
+-- Memory
+-----------------------------------------------------------------------
+
+-- module M1.Circuit.Memory where
+module Circuit.Memory where
+
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+import HDL.Hydra.Circuits.Register
+
+-- Defines memory circuits using flip flops and logic gates
+
+-- memw generates a memory circuit with 2^k n-bit words, using the two
+-- size parameters n and k.
+
+memw
+  :: CBit a
+  => Int    -- n = wordsize
+  -> Int    -- k = real address size: 2^k words in memory
+  -> a      -- sto control
+  -> [a]    -- p = address
+  -> [a]    -- x = data to store. if sto then mem[p]:=x
+  -> [a]    -- y = data fetched = mem[p]
+
+memw n k sto p x = mapn (mem1 k sto p) n x
+
+
+-- mem1 generates a memory circuit with 2^k bits, using the size
+-- parameter n.
+
+mem1
+  :: CBit a
+  => Int    -- k = real address size: 2^k words in memory
+  -> a      -- sto control
+  -> [a]    -- p = address
+  -> a      -- x = data to store. if sto then mem[p]:=x
+  -> a      -- y = data fetched = mem[p]
+
+mem1 k sto p x
+  | k==0  =  reg1 sto x
+  | k>0   =  mux1 q m0 m1
+  where
+    (q:qs) = p
+    (sto0,sto1) = demux1 q sto
+    m0 = mem1 (k-1) sto0 qs x
+    m1 = mem1 (k-1) sto1 qs x
+
+#+END_SRC
+
 * System
 
-# * Notes
+I/O control inputs
 
-# https://www.circuit-diagram.org/
-# example from org doc -- #+ATTR_LATEX: :width 5cm :options angle=90
-# #+ATTR_LATEX: :width 5cm :options
-#   [[./figures/smartdraw-test.pdf]]
-# That was a figure
+| dma         | 1 bit   | indicates stolen clock cycle              |         |
+| =dma_store= | 1 bit   | mem[dma_a] := dma_d                       |         |
+| =dma_fetch= | 1 bit   | m_out = mem[dma_a]                        |         |
+| dma_reg     | 1 bit   | x = reg[dma_a]  (least significant 4 bits |         |
+| dma_a       | 16 bits | address                                   |         |
+| dma_d       | 16 bits | data                                      |         |
+| ~=a_b=~     | =a_b=   | ~a_b~                                     | =~a_b~= |
+|             |         |                                           |         |
+
+#+BEGIN_SRC haskell :tangle ../Circuit/System.hs
+-- Sigma16: M1.hs
+-- Copyright (C) 2021 John T. O'Donnell
+-- email: john.t.odonnell9@gmail.com
+-- License: GNU GPL Version 3 or later
+-- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+
+-- This file is part of Sigma16.  Sigma16 is free software: you can
+-- redistribute it and/or modify it under the terms of the GNU General
+-- Public License as published by the Free Software Foundation, either
+-- version 3 of the License, or (at your option) any later version.
+-- Sigma16 is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.  You should have received
+-- a copy of the GNU General Public License along with Sigma16.  If
+-- not, see <https://www.gnu.org/licenses/>.
+
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+
+module Circuit.System
+  ( m1
+  , module Circuit.Interface
+  , module Circuit.ALU
+  , module Circuit.Datapath
+  , module Circuit.Control
+  , module Circuit.Memory
+
+  ) where
+
+import HDL.Hydra.Core.Lib
+import HDL.Hydra.Circuits.Combinational
+import HDL.Hydra.Circuits.Register
+
+import Circuit.Interface
+import Circuit.ALU
+import Circuit.Datapath
+import Circuit.Control
+import Circuit.Memory
+
+-- M1 is a digital circuit that implements the Core subset of the
+-- Sigma16 instruction set architecture, apart from mul and div, which
+-- are unimplemented.
+
+------------------------------------------------------------------------
+{- Instruction set architecture of Sigma16
+
+RRR instructions
+________________________________________________________________________
+
+ op   format  mnemonic   operands   action
+---- -------- ---------- ---------- ------------------------------------
+ 0     RRR    add        R1,R2,R3   R1 := R2+R3
+ 1     RRR    sub        R1,R2,R3   R1 := R2-R3
+ 2     RRR    mul        R1,R2,R3   R1 := R2*R3, R15 := high word
+ 3     RRR    div        R1,R2,R3   R1 := R2/R3, R15 := R2 mod R3
+ 4     RRR    cmp        R2,R3      R15 := R2 cmp R3
+ b     RRR    trap       R1,R2,R3   trap interrupt
+ e     EXP                          (expand to EXP format)
+ f     RX                           (expand to RX format)
+
+Table: **Instructions represented in RRR format**
+________________________________________________________________________
+
+RX instructions
+________________________________________________________________________
+
+ op   b   format  mnemonic   operands   action
+---- --- -------- ---------- ---------- ---------------------------------
+ f    0     RX    lea        Rd,x[Ra]   Rd := x+Ra
+ f    1     RX    load       Rd,x[Ra]   Rd := mem[x+Ra]
+ f    2     RX    store      Rd,x[Ra]   mem[x+Ra] := Rd
+ f    3     RX    jump       x[Ra]      pc := x+Ra
+ f    4     RX    jumpc0     Rd,x[Ra]   if Rd==0 then pc := x+Ra
+ f    5     RX    jumpc1     Rd,x[Ra]   if Rd/=0 then pc := x+Ra
+ f    6     RX    jal        Rd,x[Ra]   Rd := pc, pc := x+Ra
+
+Table: **Instructions represented by RX and X formats**
+________________________________________________________________________
+-}
+
+
+
+{-
+I/O control inputs
+dma           1 bit    indicates stolen clock cycle
+dma_store     1 bit    mem[dma_a] := dma_d
+dma_fetch     1 bit    m_out = mem[dma_a]
+dma_reg       1 bit    x = reg[dma_a]  (least significant 4 bits
+dma_a         16 bits  address
+dma_d         16 bits  data
+-}
+
+m1 reset (SysIO {..}) =
+  (ctl_state, ctl_start, ctlsigs,              -- control
+   dp,                                         -- datapath
+   m_sto, m_addr, m_real_addr, m_data, m_out)  -- memory
+
+  where
+
+-- Size parameters
+    n = 16        -- word size is n, and address space is 2^n words
+    msize = 16    -- installed memory contains 2^msize words
+      -- if msize=n then full memory is available
+      -- if msize<n the simulation may be faster but prog has less memory
+
+-- Datapath
+    dp = datapath ctlsigs (SysIO {..}) m_out
+--    (r,ccnew,condcc) = aluOutputs dp
+    (r,ccnew) = aluOutputs dp
+
+-- Control
+    (ctl_state, ctl_start, ctlsigs) =
+--       control reset (ir dp) (cc dp) condcc (SysIO {..})
+             control reset (ir dp) (cc dp) (SysIO {..})
+
+-- Memory
+    m_real_addr = field m_addr (n-msize) msize
+    m_out = memw n msize m_sto m_real_addr m_data
+
+-- Input/Output using DMA
+    m_sto = or2 (and2 io_DMA io_memStore)              -- I/O store
+                (and2 (inv io_DMA) (ctl_sto ctlsigs))  -- CPU store
+    m_data = mux1w io_DMA (md dp) io_data
+    m_addr = mux1w io_DMA (ma dp) io_address
+
+#+END_SRC
+
+equals =abc_def=
+
+tildes ~abc_def~
+
+#+BEGIN_EXAMPLE
+m1 reset (SysIO {..}) =
+  (ctl_state, ctl_start, ctlsigs,              -- control
+   dp,                                         -- datapath
+   m_sto, m_addr, m_real_addr, m_data, m_out)  -- memory
+
+  where
+
+-- Size parameters
+    n = 16        -- word size is n, and address space is 2^n words
+    msize = 16    -- installed memory contains 2^msize words
+      -- if msize=n then full memory is available
+      -- if msize<n the simulation may be faster but prog has less memory
+
+-- Datapath
+    dp = datapath ctlsigs (SysIO {..}) m_out
+--    (r,ccnew,condcc) = aluOutputs dp
+    (r,ccnew) = aluOutputs dp
+
+-- Control
+    (ctl_state, ctl_start, ctlsigs) =
+--       control reset (ir dp) (cc dp) condcc (SysIO {..})
+             control reset (ir dp) (cc dp) (SysIO {..})
+
+-- Memory
+    m_real_addr = field m_addr (n-msize) msize
+    m_out = memw n msize m_sto m_real_addr m_data
+
+-- Input/Output using DMA
+    m_sto = or2 (and2 io_DMA io_memStore)              -- I/O store
+                (and2 (inv io_DMA) (ctl_sto ctlsigs))  -- CPU store
+    m_data = mux1w io_DMA (md dp) io_data
+    m_addr = mux1w io_DMA (ma dp) io_address
+#+END_EXAMPLE
+
+
+* Reading the simulation output
+
+
+
+** Starting a simulation
+
+The =:main= command starts the simulation driver.  Its operand is
+the object file that will be executed.  Just give the base name of
+the file (=Add=), not the full name (=Add.obj.txt=).
+
+The driver reads the object code file and siaplays the object code,
+which is a list of numbers.  Then it generates the inputs to the
+circuit that will be required to boot the program.  This is a list
+of strings; each string gives the input signal values for one clock
+cycle.  These signals tell the circuit to perform an I/O operation
+and that the operation is an external read into memory.
+Furthermore, the memory address to use and the data value are
+specified.  For example, the first element of the list gives the
+inputs for clock cycle 0, and the last two numbers mean that the
+input will store into address 0 and the value to store is 61697.
+
+#+BEGIN_EXAMPLE
+ghci> :main programs/Add
+Sigma16 M1 system starting
+Reading object file programs/Add.obj.txt
+Object code is [61697,8,61953,9,786,62210,10,45056,23,14,0]
+Boot system inputs = ["0 1 1 0 0 0 61697","0 1 1 0 0 1 8",
+"0 1 1 0 0 2 61953","0 1 1 0 0 3 9","0 1 1 0 0 4 786",
+"0 1 1 0 0 5 62210","0 1 1 0 0 6 10","0 1 1 0 0 7 45056",
+"0 1 1 0 0 8 23","0 1 1 0 0 9 14","0 1 1 0 0 10 0"]
+M1>
+#+END_EXAMPLE
+
+
+* M1 simulation driver: Run
+
+#+BEGIN_SRC haskell :tangle ../Run.hs
+-- Sigma16 M1.Run, Simulation driver for M1 circuit implementation of Sigma16
+-- Copyright (C) 2021 John T. O'Donnell.  This file is part of Sigma16.
+-- See Sigma16/README and https://jtod.github.io/home/Sigma16/
+
+-- Usage:
+--   ghci                 -- start ghci and initialize using .ghci
+--   :load Run            -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--   :main programs/Add   -- run M1 circuit on examples/Core/Simple/Add.obj.txt
+--   run                  -- run the Add program on the circuit
+--   help                 -- list the M1 simulation driver commands
+--   quit                 -- quit ghci, return to shell
+
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+
+module M1.Run where
+
+import HDL.Hydra.Core.Lib   -- Hydra hardware description language
+import ReadObj              -- read object code file
+import Circuit.System       -- the M1 circuit
+
+import System.Environment
+import System.IO
+import Control.Monad.State
+import Control.Exception
+import qualified Data.Map as Map
+
+--------------------------------------------------------------------------------
+-- M1 simulation driver
+--------------------------------------------------------------------------------
+  
+main :: IO ()
+main = driver $ do
+  printLine "Sigma16 M1 system starting"
+  objectCode <- liftIO getObject
+  let bootData = bootInputs objectCode
+  putStoredInput bootData
+  printLine ("Boot system inputs = " ++ show bootData)
+
+  -- Input ports
+  in_reset        <- inPortBit  "reset"
+  in_io_DMA       <- inPortBit  "io_DMA"
+  in_io_memStore  <- inPortBit  "io_memStore"
+  in_io_memFetch  <- inPortBit  "io_memFetch"
+  in_io_regFetch  <- inPortBit  "io_regFetch"
+  in_io_address   <- inPortWord "io_address" 16
+  in_io_data      <- inPortWord "io_data" 16
+
+  -- Input signals
+  let reset         = inbsig in_reset
+  let io_DMA        = inbsig in_io_DMA
+  let io_memStore   = inbsig in_io_memStore
+  let io_memFetch   = inbsig in_io_memFetch
+  let io_regFetch   = inbsig in_io_regFetch
+  let io_address    = inwsig in_io_address
+  let io_data       = inwsig in_io_data
+  let io = SysIO {..}
+
+-- The M1 circuit
+  let  (CtlState {..}, ctl_start, (CtlSig {..}), dp,
+        m_sto, m_addr, m_real_addr, m_data, m_out)
+         = m1 reset io
+
+-- Prepare for memory and register dump  
+  setPeek m_out
+  setPeek (b dp)
+  
+-- Prepare for breakpoints  
+  let ctlStateLookupTable =
+        [ ("reset", reset)
+        , ("st_instr_fet",  st_instr_fet)
+        , ("st_dispatch",   st_dispatch)
+        , ("st_add",        st_add)
+        , ("st_sub",        st_sub)
+        , ("st_mul0",       st_mul0)
+        , ("st_div0",       st_div0)
+        , ("st_cmp",        st_cmp)
+        , ("st_trap0",      st_trap0)
+        , ("st_lea0",       st_lea0)
+        , ("st_load0",      st_load0)
+        , ("st_store0",     st_store0)
+        , ("st_jump0",      st_jump0)
+        , ("st_jumpc00",    st_jumpc00)
+        , ("st_jumpc10",    st_jumpc10)
+        , ("st_jal0",       st_jal0)
+        ]
+  let flags = ctlStateLookupTable
+  setFlagTable flags
+
+-- Define names for subsystem outputs
+  let (r,ccnew) = aluOutputs dp
+
+-- Format the output
+  format
+    [ string "\nSystem control\n"
+    , string "  reset = ", bit reset
+    , string "  cpu = ", bit cpu
+    , string "  ctl_start = ", bit ctl_start
+    , string "\n"
+    , string "\nInput/Output\n"
+    , string "  io_DMA = ", bit io_DMA
+    , string "  io_memStore = ", bit io_memStore
+    , string "  io_memFetch = ", bit io_memFetch
+    , string "  io_regFetch = ", bit io_regFetch
+    , string "\n"
+    , string "  io_address = ", binhex io_address
+    , string "  io_data = ", binhex io_data
+    , string "\n"
+    , string "\nControl state\n  "
+    , string " st_instr_fet = ", bit dff_instr_fet, bit st_instr_fet
+    , string "  st_dispatch = ", bit dff_dispatch, bit st_dispatch
+    , string "       st_add = ", bit dff_add, bit st_add
+    , string "       st_sub = ", bit dff_sub, bit st_sub
+    , string "\n  "
+    , string "      st_mul0 = ", bit dff_mul0, bit st_mul0
+    , string "      st_div0 = ", bit dff_div0, bit st_div0
+    , string "       st_cmp = ", bit dff_cmp, bit st_cmp
+    , string "     st_trap0 = ", bit dff_trap0, bit st_trap0
+    , string "\n  "
+    , string "      st_lea0 = ", bit dff_lea0, bit st_lea0
+    , string "      st_lea1 = ", bit dff_lea1, bit st_lea1
+    , string "      st_lea2 = ", bit dff_lea2, bit st_lea2
+    , string "     st_load0 = ", bit dff_load0, bit st_load0
+    , string "\n  "
+    , string "     st_load1 = ", bit dff_load1, bit st_load1
+    , string "     st_load2 = ", bit dff_load2, bit st_load2
+    , string "    st_store0 = ", bit dff_store0, bit st_store0
+    , string "    st_store1 = ", bit dff_store1, bit st_store1
+    , string "\n  "
+    , string "    st_store2 = ", bit dff_store2, bit st_store2
+    , string "     st_jump0 = ", bit dff_jump0, bit st_jump0
+    , string "     st_jump1 = ", bit dff_jump1, bit st_jump1
+    , string "     st_jump2 = ", bit dff_jump2, bit st_jump2
+    , string "\n  "
+    , string "   st_jumpc00 = ", bit dff_jumpc00, bit st_jumpc00
+    , string "   st_jumpc01 = ", bit dff_jumpc01, bit st_jumpc01
+    , string "   st_jumpc02 = ", bit dff_jumpc02, bit st_jumpc02
+    , string "   st_jumpc10 = ", bit dff_jumpc10, bit st_jumpc10
+    , string "\n  "
+    , string "   st_jumpc11 = ", bit dff_jumpc11, bit st_jumpc11
+    , string "   st_jumpc12 = ", bit dff_jumpc12, bit st_jumpc12
+    , string "      st_jal0 = ", bit dff_jal0, bit st_jal0
+    , string "      st_jal1 = ", bit dff_jal1, bit st_jal1
+    , string "\n  "
+    , string "      st_jal2 = ", bit dff_jal2, bit st_jal2
+
+    , string "\n\nControl signals\n  "
+    , string "    ctl_alu_a = ", bit ctl_alu_a
+    , string "    ctl_alu_b = ", bit ctl_alu_b
+    , string "    ctl_alu_c = ", bit ctl_alu_c
+    , string "     ctl_x_pc = ", bit ctl_x_pc
+    , string "\n  "
+    , string "     ctl_y_ad = ", bit ctl_y_ad
+    , string "    ctl_rf_ld = ", bit ctl_rf_ld
+    , string "  ctl_rf_ldcc = ", bit ctl_rf_ldcc
+    , string "    ctl_rf_pc = ", bit ctl_rf_pc
+    , string "\n  "
+    , string "    ctl_pc_ld = ", bit ctl_pc_ad
+    , string "    ctl_pc_ad = ", bit ctl_pc_ad
+    , string "   ctl_rf_alu = ", bit ctl_rf_alu
+    , string "    ctl_rf_sd = ", bit ctl_rf_sd
+    , string "\n  "
+    , string "    ctl_ir_ld = ", bit ctl_ir_ld
+    , string "    ctl_pc_ld = ", bit ctl_pc_ld
+    , string "    ctl_ad_ld = ", bit ctl_ad_ld
+    , string "   ctl_ad_alu = ", bit ctl_ad_alu
+    , string "\n  "
+    , string "    ctl_ma_pc = ", bit ctl_ma_pc
+    , string "      ctl_sto = ", bit ctl_sto
+
+    , string "\n\nALU\n"
+    , string "  ALU inputs: "
+    , string "  operation = ", bit ctl_alu_a, bit ctl_alu_b, bit ctl_alu_c
+    , string "  x = ", binhex (x dp)
+    , string "  y = ", binhex (y dp)
+    , string "  cc = ", binhex (cc dp)
+    , string "  ir_d = ", binhex (ir_d dp)
+    , string "\n  ALU outputs: "
+    , string "  r = ", binhex r
+    , string "  ccnew = ", binhex ccnew
+    , string "  condcc = ", bit condcc
+     
+    , string "\n\nDatapath\n  "
+    , string "    ir = ", binhex (ir dp)
+    , string "    pc = ", binhex (pc dp)
+    , string "    ad = ", binhex (ad dp)
+    , string "    cc = ", binhex (cc dp)
+    , string "\n  "
+    , string "     a = ", binhex (a dp)
+    , string "     b = ", binhex (b dp)
+    , string "     x = ", binhex (x dp)
+    , string "     y = ", binhex (y dp)
+    , string "\n  "
+    , string "     p = ", binhex (p dp)
+    , string "     q = ", binhex (q dp)
+    , string "     r = ", binhex (r)
+    , string "\n  "
+    , string "    ma = ", binhex (ma dp)
+    , string "    md = ", binhex (md dp)
+
+-- Memory interface
+    , string "\n\nMemory\n  "
+    , string "  m_sto = ", bit m_sto
+    , string "  m_addr = ", binhex m_addr
+    , string "  m_real_addr = ", binhex m_real_addr
+    , string "  m_data = ", binhex m_data
+    , string "  m_out =", binhex m_out
+    , string "\n"
+
+-- ...................................................................
+-- Higher level analysis of what happened on this cycle.  The
+-- following actions examine various signals in order to detect what
+-- is happening in the machine, and they print higher level
+-- description.
+-- ...................................................................
+
+-- Print a message when the system is reset
+
+    ,  fmtIf reset
+           [string ("\n" ++ take 72 (repeat '*') ++ "\n"),
+            string "Reset: control algorithm starting",
+            string ("\n" ++ take 72 (repeat '*'))]
+           [],
+
+-- When the displacement for an RX instruction is fetched, save
+-- it in the simulation driver state
+
+         fmtIf (orw [st_lea1, st_load1, st_store1, st_jump1, st_jumpc01,
+                     st_jumpc11, st_jal1])
+           [setStateWs setDisplacement [(ad dp)],
+            string "*** Fetched displacement = ",
+            simstate showDisplacement
+           ]
+           [],
+
+-- Record the effective address when it is calculated.  This is the r
+-- output of the ALU, and usually will be loaded into the ad register.
+
+         fmtIf (orw [st_lea1, st_load1, st_store1, st_jump1,
+                     st_jumpc01, st_jumpc11, st_jal1])
+         [setStateWs setEffAddr [r]]
+           [],
+
+-- Process a load to the register file
+         fmtIf ctl_rf_ld
+           [string "Register file update: ",
+            string "R",
+            bindec 1 (field (ir dp) 4 4),
+            string " := ", hex (p dp),
+--            setStateWs setRfLoad [field (ir dp) 4 4, (p dp)],
+            setStateWsIO setRfLoad [field (ir dp) 4 4, (p dp)],
+            string "\n"
+            ]
+           [],
+
+-- Process a store to memory
+         fmtIf ctl_sto
+           [string "Memory store:  ",
+            string "mem[",
+            binhex m_addr,
+            string "] := ", hex m_data,
+            setStateWsIO setMemStore [m_addr, m_data]
+           ]
+           [],
+
+-- If an instruction was completed during this clock cycle, fetch it,
+-- decode it, and print it.  The first word of the instruction is in
+-- ir, the second word (if it is an RX instruction) is in the
+-- displacement field of the simulation driver state.
+
+         fmtIf (and2 ctl_start (inv reset))
+           [string ("\n" ++ take 72 (repeat '*') ++ "\n"),
+            string "Executed instruction:  ",
+            fmtWordsGeneral findMnemonic [field (ir dp) 0 4, field (ir dp) 12 4],
+            string " ",
+            fmtIf (orw [st_add, st_sub, st_cmp])
+
+              [string " R", bindec 1 (field (ir dp) 4 4),    -- RRR format
+               string ",R", bindec 1 (field (ir dp) 8 4),
+               string ",R", bindec 1 (field (ir dp) 12 4)]
+              [string " R", bindec 1 (field (ir dp) 4 4),    -- RX format
+               string ",",
+               simstate showDisplacement,
+               string "[R", bindec 1 (field (ir dp) 8 4), string "]" ], -- ,
+--               string "   effective address = ",
+--               simstate showEffAddr],
+            string "\n",
+            simstate showRfLoads,
+            setStateWs clearRfLoads [],
+            simstate showMemStores,
+            setStateWs clearMemStores [],
+
+ --- Describe effect of jumps
+            fmtIf st_jumpc02            
+              [fmtIf condcc
+                 [string "jumpc0 instruction will not jump\n"]
+                 [string "jumpc0 instruction is jumping to ",
+                  binhex (ad dp), string "\n"]]
+              [],
+
+            fmtIf st_jumpc12
+               [fmtIf condcc
+                 [string "jumpc1 instruction is jumping to ",
+                  binhex (ad dp), string "\n"]
+                 [string "jumpc1 instruction will not jump\n"]]
+               [],
+
+            fmtIf st_jump2
+              [string "jump instruction is jumping to ",
+               binhex (ad dp), string "\n"]
+              [],
+            fmtIf st_jal2
+              [string "jal instruction is jumping to ",
+               binhex (ad dp), string "\n"]
+              [],
+            
+-- Display instruction control registers
+            string "Processor state:  ",
+            string "  pc = ", binhex (pc dp),
+            string "  ir = ", binhex (ir dp),
+            string "  ad = ", binhex (ad dp),
+            string ("\n" ++ take 72 (repeat '*'))
+              ]
+           [],
+         
+-- If a trap is being executed, indicate this in the simulation driver
+-- state, so the driver can terminate the simulation
+
+         fmtIf st_trap0
+           [setStateWs setTrap [],
+            setHalted,
+            string ("\n" ++ take 72 (repeat '*') ++ "\n"),
+            string "System trap request:  Halt\n",
+            string "Processor has halted\n",
+            string (take 72 (repeat '*') ++ "\n")
+           ]
+           []
+    ]
+
+-- This ends definitions of the tools; the driver algorithms starts
+-- now
+  startup
+  printLine "M1 Run finished"
+
+--------------------------------------------------------------------------------
+-- Booter
+--------------------------------------------------------------------------------
+
+getObject :: IO [Int]
+getObject = do
+  args <- getArgs
+--  putStrLn (show args)
+  case args of
+    [] -> do
+      putStrLn "Usage: :main path/to/objectfile"
+      return []
+    (a:_) -> do
+      prefixFile <- maybeRead "fileprefix.txt"
+--      putStrLn ("file prefix = " ++ show prefixFile)
+      let basePath =
+            case prefixFile of
+              Nothing -> a
+              Just p -> lines p !! 0 ++ a
+      let fullPath = basePath ++ ".obj.txt"
+      putStrLn ("Reading object file " ++ fullPath)
+      code <- liftIO $ readObjectCode fullPath
+      putStrLn ("Object code is " ++ show code)
+      return code
+  
+-- Generate control signals to boot object code
+bootInputs :: [Int] -> [String]
+bootInputs code =
+--  code <- readObjectFile
+  let f i x = "0 1 1 0 0 " ++ show i ++ " " ++ show x
+      inps = zipWith f [0..] code
+  in inps
+
+putStoredInput :: [String] -> StateT (SysState a) IO ()
+putStoredInput storedInput = do
+  s <- get
+  put $ s {storedInput}
+
+--------------------------------------------------------------------------------
+-- Top level M1 control
+--------------------------------------------------------------------------------
+
+conditional :: Bool -> StateT (SysState a) IO ()
+  -> StateT (SysState a) IO ()
+conditional b op =
+  case b of
+    True -> do op
+               return ()
+    False -> return ()
+
+peekReg :: Int -> StateT (SysState DriverState) IO ()
+peekReg regnum = do
+  s <- get
+  let displayFullSignals = False
+  let i = cycleCount s
+  let inp = inPortList s
+  let outp = outPortList s
+  conditional displayFullSignals $ do
+    liftIO $ putStrLn (take 80 (repeat '-'))
+    liftIO $ putStr ("Cycle " ++ show i)
+--    liftIO $ putStrLn (" ***** Peek at register R" ++ show regnum)
+  let inps = "0 1 0 0 1 " ++ show regnum ++ " 0"
+  conditional displayFullSignals $ do
+    liftIO $ putStrLn ("inps = " ++ inps)
+  takeInputsFromList inps
+  conditional displayFullSignals $ do
+    printInPorts
+    printOutPorts
+  s <- get
+  let ps = peekList s
+  let b = ps!!1  --  output b from regfile
+  let bs = map current b
+--  liftIO $ putStrLn ("Register value = " ++ show bs)
+--  liftIO $ putStrLn ("***** Peek R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
+  liftIO $ putStrLn ("***** I/O fetch R" ++ show regnum ++ " = " ++ bitsHex 4 bs)
+  runFormat True displayFullSignals
+--  case displayFullSignals of
+--    False ->  advanceFormat
+--    True -> runFormat True
+  advanceInPorts
+  advanceOutPorts
+  advancePeeks
+  advanceFlagTable
+  incrementCycleCount
+--  s <- get
+--  let i = cycleCount s
+--  put (s {cycleCount = i + 1})
+
+data ProcessorMode
+  = Idle
+  | Booting
+  | Resetting
+  | Running
+  deriving (Eq, Read, Show)
+
+startup :: StateT (SysState DriverState) IO ()
+startup = do
+  s <- get
+  put (s {userState = Just initDriverState})
+  setMode Booting
+  commandLoop
+
+commandLoop :: StateT (SysState DriverState) IO ()
+commandLoop = do
+  liftIO $ putStr "M1> "
+  liftIO $ hFlush stdout
+  xs <- liftIO getLine
+  let ws = words xs
+  if length ws == 0
+    then m1ClockCycle
+  else if ws!!0 == "help"
+    then printHelp
+  else if ws!!0 == "run"
+    then runM1simulation
+  else if ws!!0 == "cycle"
+    then m1ClockCycle
+  else if ws!!0 == "mem"
+    then do
+      let start = safeReadEltInt ws 1
+      let end = safeReadEltInt ws 2
+      dumpMem start end
+  else if ws!!0 == "regs"
+    then dumpRegFile
+  else if ws!!0 == "break"
+    then do
+      let key = safeReadEltString ws 1
+      setBreakpoint key
+  else if ws!!0 == "quit"
+    then do
+      s <- get
+      put (s {running = False})
+  else liftIO $ putStrLn "Invalid command, enter help for list of commands"
+  s <- get
+  case running s of
+    True -> commandLoop
+    False -> return ()
+
+safeReadEltInt :: [String] -> Int -> Int
+safeReadEltInt ws i =
+  if length ws > i && i >= 0
+    then read (ws!!i)
+    else 0
+
+safeReadEltString :: [String] -> Int -> String
+safeReadEltString ws i =
+  if length ws > i && i >= 0
+    then ws!!i
+    else ""
+
+setBreakpoint :: String -> StateT (SysState a) IO ()
+setBreakpoint key = do
+  s <- get
+  put $ s {breakpointKey = key}
+  
+-- Dump memory from start to end address
+
+dumpMem :: Int -> Int -> StateT (SysState DriverState) IO ()
+dumpMem start end = do
+  case start <= end of
+    True -> do
+      peekMem start
+      dumpMem (start+1) end
+    False -> return ()
+
+peekMem :: Int -> StateT (SysState DriverState) IO [Bool]
+peekMem addr = do
+  let displayFullSignals = False
+  s <- get
+  let i = cycleCount s
+  let inp = inPortList s
+  let outp = outPortList s
+  conditional displayFullSignals $ do
+    liftIO $ putStrLn (take 80 (repeat '-'))
+    liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
+--  liftIO $ putStrLn (" ***** Peek at memory address " ++ show addr)
+  let inps = "0 1 0 1 0 " ++ show addr ++ " 0"
+  conditional displayFullSignals $ do
+    liftIO $ putStrLn ("inps = " ++ inps)
+  takeInputsFromList inps
+  conditional displayFullSignals $ do
+    printInPorts
+    printOutPorts
+  s <- get
+  let ps = peekList s
+  let a = ps!!0  -- m_out
+  let bs = map current a
+  liftIO $ putStrLn ("***** I/O fetch Mem[" ++ show addr ++ "] = " ++ bitsHex 4 bs)
+  runFormat True displayFullSignals
+--  case displayFullSignals of
+--    False -> advanceFormat
+--    True -> runFormat
+  advanceInPorts
+  advanceOutPorts
+--  advanceFormat
+  advancePeeks
+  advanceFlagTable
+  incrementCycleCount
+--  s <- get
+--  let i = cycleCount s
+--  put (s {cycleCount = i + 1})
+  return bs
+
+dumpRegFile :: StateT (SysState DriverState) IO ()
+dumpRegFile = do
+  let f i =
+        case i <= 15 of
+          True -> do
+            peekReg i
+            f (i+1)
+          False -> return ()
+  f 0
+
+printHelp :: StateT (SysState a) IO ()
+printHelp = do
+  printLine "Commands for the M1 driver"
+  printLine "  (blank)     -- perform one clock cycle"
+  printLine "  cycle       -- perform one clock cycle"
+  printLine "  run         -- perform clock cycles repeatedly until halt or break"
+  printLine "  regs        -- display contents of the register file"
+  printLine "  mem a b     -- display memory from address a to b"
+  printLine "  break FLAG  -- run will stop when FLAG signal is 1 (see list below)"
+  printLine "  quit        -- return to ghci or shell prompt"
+  printLine "  help        -- list the commands"
+  printLine "The following signals can be used as break FLAG:"
+  s <- get
+  printLine (concat (map ((' ':) . fst) (flagTable s)))
+
+------------------------------------------------------------------------
+-- New format
+------------------------------------------------------------------------
+
+runM1simulation :: StateT (SysState DriverState) IO ()
+runM1simulation = do
+  printLine "runM1simulation starting"
+  simulationLooper
+--  printLine "runM1simulation terminated"
+
+simulationLooper :: StateT (SysState DriverState) IO ()
+simulationLooper = do
+  s <- get
+  if checkFlag (flagTable s) (breakpointKey s)
+      || cycleCountSinceClear s >= 10000
+    then do
+      clearCycleCount
+      cycle <- getClockCycle
+      m1ClockCycle -- display the cycle where the breakpoint is satisfied
+      liftIO $ putStrLn (take 72 (repeat '-'))
+      liftIO $ putStrLn ("*** Breakpoint " ++ breakpointKey s
+                         ++ " in cycle " ++ show cycle ++ " ***")
+      liftIO $ putStrLn (take 72 (repeat '-'))
+      return ()
+    else do m1ClockCycle
+            s <- get
+            case halted s of
+              True -> do
+                printLine "Processor has halted"
+                return ()
+              False -> simulationLooper
+            
+--  doStep []
+--  runSimulation
+--  runUntil initDriverState mytermpred input simoutput
+
+-- An interactive command could request something unusual (such as a
+-- register dump).  However, usually the user will wish to establishM1inputs to
+-- the next cycle using the normal inputs.  This is performed by
+-- establishM1inputs: perform the next action if the current input list is not
+-- exhausted; otherwise go to the next mode
+
+-- If an input list is being consumed, establishM1inputs continues as long as
+-- there is data.  When the input list is exhaused, it goes to the
+-- next normal mode.
+
+-- DMA is a special case.  A DMA operation may take a number of clock
+-- cycles, and it interrupts normal execution of the processor.  After
+-- the DMA is finished, the previous mode is resumed.  When a DMA
+-- begins, the processor mode is saved in stolenMode.  A DMA operation
+-- will always run to completion; it cannot be interrupted by yet
+-- another DMA.
+
+cmdM1ClockCycle :: Command DriverState
+cmdM1ClockCycle _ = m1ClockCycle
+
+getProcessorMode :: StateT (SysState DriverState) IO ProcessorMode
+getProcessorMode = do
+  s <- get
+  let mds = userState s
+  case mds of
+    Nothing -> do printLine "DriverState not defined"
+                  return Idle
+    Just ds -> return (processorMode ds)
+
+{-
+getProcessorMode :: StateT (SysState DriverState) IO ProcessorMode
+getProcessorMode = do
+--  s <- get
+--  let Just ds = userState s
+--  printLine "getProcessorMode about to get user state"
+  mds <- getUserState
+  case mds of
+    Just ds -> do
+--      printLine "getProcessorMode back from get user state"
+      printLine (show (processorMode ds))
+      return (processorMode ds)
+    Nothing -> do
+      printError "getProcessorMode, getUserState returned Nothing, default Running"
+      return Running
+-}
+
+m1ClockCycle :: Operation DriverState
+m1ClockCycle = do
+--  liftIO $ putStrLn ("m1ClockCycle starting")
+  s <- get
+  let i = cycleCount s
+  let inp = inPortList s
+  let outp = outPortList s
+  liftIO $ putStrLn (take 80 (repeat '-'))
+  liftIO $ putStr ("Cycle " ++ show i ++ ".  ")
+  establishM1inputs
+  pm <- getProcessorMode
+  liftIO $ putStr (show pm)
+  liftIO $ putStrLn (if halted s then "  Halted" else "")
+--  printInPorts
+--  printOutPorts
+  runFormat True True
+  advanceInPorts
+  advanceOutPorts
+  advancePeeks
+  advanceFlagTable
+  incrementCycleCount
+--  s <- get
+--  let i = cycleCount s
+--  put (s {cycleCount = i + 1})
+--  liftIO $ putStrLn ("m1ClockCycle finished")
+
+
+getCurrentInputs :: StateT (SysState DriverState) IO (Maybe String)
+getCurrentInputs = do
+  return $ Just "0 0 0 0 0 0 0"
+
+establishM1inputs :: StateT (SysState DriverState) IO ()
+establishM1inputs = do
+  mds <- getUserState
+  case mds of
+    Nothing -> do
+      printError "establishM1inputs: empty driver state"
+      return ()
+    Just ds ->
+      case processorMode ds of
+        Booting  -> do
+          inp <- getStoredInput
+          case inp of
+            Just x -> takeInputsFromList x
+            Nothing -> do
+              setMode Resetting
+              establishM1inputs
+        Resetting -> do
+          takeInputsFromList resettingInputs
+          setMode Running
+        Running -> takeInputsFromList runningInputs
+
+resettingInputs = "1 0 0 0 0 0 0"
+runningInputs   = "0 0 0 0 0 0 0"
+  
+-- Each operation that requires DMA is carried out by a function that
+-- supplies the required inputs, but does not use any of the input
+-- lists.
+
+-- in Driver but should be added to export list (edit Driver)
+-- Don't set running to false on end of input
+getStoredInput :: StateT (SysState a) IO (Maybe String)
+getStoredInput = do
+  s <- get
+  case storedInput s of
+    [] -> do
+--      put $ s {running = False}  fix this
+      return Nothing
+    (x:xs) -> do
+      put $ s {storedInput = xs}
+      liftIO $ putStrLn ("getStoredInput " ++ x)
+      return (Just x)
+
+setMode :: ProcessorMode -> StateT (SysState DriverState) IO ()
+setMode m = do
+--  printLine ("Setting mode to " ++ show m)
+  mds <- getUserState
+  case mds of
+    Just ds -> do
+      let ds' = ds { processorMode  = m }
+      s <- get
+      put (s {userState = Just ds'})
+      return ()
+    Nothing -> do
+      printError "setMode, getUserState returned Nothing"
+      return ()
+
+
+--------------------------------------------------------------------------------
+-- M1 clock cycle
+--------------------------------------------------------------------------------
+
+{-
+
+Every clock cycle consists of a sequence of phases:
+
+- *choose* -- place inputs for current cycle into (currentInputString
+  field of SysState).  Decide what inputs to use during the upcoming
+  cycle, before it starts, and save the inputs as a string in a
+  canonical format; it is placed in the currentInputString field of
+  SysState.  The choice may depend on the driver state, annd/or it may
+  depend on some input provided interactively by the user.  Once the
+  inputs are chosen, all the signal values are fixed for the cycle
+  (although what is actually output can be chosen later)
+
+  - establish inputs - th
+  - read the signals during the cycle
+  - advance
+
+The only thing that affects what happens during the cycle is the
+inputs; controlling the cycle is done by establish inputs.  The middle
+section just determines what is output, but not any signal values.
+The advance has no choices to make; this is purely mechanical.
+
+-}
+
+-- selectModeInputs :: StateT (SysState DriverState) IO ()
+-- selectModeInputs = do
+--   s <- get
+--   let ds = userState s
+--   return ()  
+-- Similar to Driver.clockCycle but specialized for M1 driver
+
+        
+
+cmdBoot :: Command DriverState
+cmdBoot _ = doBoot
+
+doBoot :: Operation a
+doBoot = do
+  printLine "Booting..."
+--  selectInputList "boot"
+
+cmdReset :: Command DriverState
+cmdReset _ = doReset
+
+doReset :: Operation a
+doReset = do
+  printLine "Resetting"
+--  selectInputList  "reset"
+
+
+-- At start of cycle, before establishing inputs, check to see if the
+-- current input data list has been exhausted, and if so, enter the
+-- appropriate mode
+
+{-      
+
+m1CheckInputsExhausted :: Command a
+m1Step args = do
+  s <- get
+  ds <- driverState s
+  printLine ("m1Step mode=" ++ show (processorMode ds))
+  case processorMode ds of
+    Idle -> do
+      return ()
+    Booting -> do
+      return ()
+    Running -> do
+      return ()
+    Output -> do
+      return ()
+    DumpRegs -> do
+      return ()
+    DumpMem -> do
+      return ()
+    Halted -> do
+      return ()
+
+  --selectInputList ["", "step"]
+-}
+
+--------------------------------------------------------------------------------
+-- Clock cycle for M1
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Input signals for key stages of execution
+--------------------------------------------------------------------------------
+
+{-
+I/O control inputs, copied from System
+dma           1 bit    indicates stolen clock cycle
+dma_store     1 bit    mem[dma_a] := dma_d
+dma_fetch     1 bit    m_out = mem[dma_a]
+dma_reg       1 bit    x = reg[dma_a]  (least significant 4 bits
+dma_a         16 bits  address
+dma_d         16 bits  data
+-}
+
+
+resetData :: [String]
+resetData =  ["1 0 0 0 0 0 0"]
+
+runData :: [String]
+runData =  ["0 0 0 0 0 0 0"]
+
+  
+data DriverState = DriverState
+  {
+    displacement :: (Int,[Int])      -- (cycle, displacement)
+  , effAddr :: [Int]                 -- effective address
+  , rfloads :: [(Int,[Int],[Int])]   -- [(cycle,reg,value)]
+  , memStores :: [(Int,[Int],[Int])] -- [(cycle,addr,value)]
+  , jumps :: [(Int,[Int],[Int])]       -- [(cycle,jumped,pcvalue)]
+  , trap :: Bool
+  , processorMode :: ProcessorMode
+  }                     -- has a trap just been executed?
+  deriving Show
+
+initDriverState :: DriverState
+initDriverState =
+  DriverState
+    {
+      displacement = (0, take 16 (repeat 0))
+    , effAddr = take 16 (repeat 0)
+    , rfloads = []
+    , memStores = []
+    , jumps = []
+    , trap = False
+    , processorMode = Idle
+    }
+
+-- Record and display the effective address
+
+setEffAddr :: (Signal a, Static a) =>
+   DriverState -> [[a]] -> DriverState
+setEffAddr s [x] =
+  s {effAddr = map sigInt x}
+
+showEffAddr :: DriverState -> String
+showEffAddr s = ints16hex4 (effAddr s)
+
+-- Record and display loads to the register file
+
+-- setRfLoad :: (Signal a, Static a) =>
+--    [[a]] -> StateT (SysState DriverState) IO ()
+setRfLoad :: (Signal a, Static a) => [[a]] -> StateT (SysState DriverState) IO ()
+setRfLoad [r,x] = do
+  c  <- getClockCycle
+  s  <- get
+  case userState s of
+    Nothing -> return ()
+    Just ds -> do
+      let xs = rfloads ds
+      let ds' = ds {rfloads = (c, map sigInt r, map sigInt x) : xs}
+      put $ s {userState = Just ds'}
+
+{-
+setRfLoad :: (Signal a, Static a) =>
+   DriverState -> [[a]] -> DriverState
+setRfLoad s [r,x] =
+  s {rfloads = (0, map sigInt r, map sigInt x) : rfloads s} -- ????????? c
+-}
+
+clearRfLoads :: (Signal a, Static a) =>
+  DriverState -> [[a]] -> DriverState
+clearRfLoads s _ = s {rfloads = []}
+
+showRfLoads :: DriverState -> String
+showRfLoads s = concat (map f (reverse (rfloads s)))
+  where f (c,r,x) =
+          "R" ++ show (intsInt r) ++ " := " ++  ints16hex4 x
+            ++ " was loaded in cycle " ++ show c ++ "\n"
+--            ++ " was loaded\n"
+
+-- Record and display stores to the memory
+
+setMemStore :: (Signal a, Static a) => [[a]] -> StateT (SysState DriverState) IO ()
+setMemStore [a,x] = do
+  c <- getClockCycle
+  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = memStores ds
+      let ds' = ds {memStores = (c, map sigInt a, map sigInt x) : xs}
+      put $ s {userState = Just ds'}
+{-
+setMemStore :: (Signal a, Static a) =>
+   DriverState -> [[a]] -> DriverState
+setMemStore s [a,x] =
+  s {memStores = (0, map sigInt a, map sigInt x) : memStores s} -- ???????? c
+-}
+
+
+clearMemStores :: (Signal a, Static a) =>
+  DriverState -> [[a]] -> DriverState
+clearMemStores s _ = s {memStores = []}
+
+showMemStores :: DriverState -> String
+showMemStores s = concat (map f (reverse (memStores s)))
+  where f (c,a,x) =
+          "mem[" ++ ints16hex4 a ++ "] := " ++  ints16hex4 x
+            ++ " was stored in cycle " ++ show c ++ "\n"
+
+
+-- When the driver discovers that a trap has executed, it uses setTrap
+-- to record this in the driver state.  The termination predicate uses
+-- this value to decide when to stop the simulation.
+
+setTrap :: DriverState -> [a] -> DriverState
+setTrap s _ = s {trap = True}
+
+setDisplacement :: (Signal a, Static a) =>
+   DriverState -> [[a]] -> DriverState
+setDisplacement s [w] =
+  s {displacement = (0, map sigInt w)}
+
+showDisplacement :: DriverState -> String
+showDisplacement s =
+  let (c,d) = displacement s
+--  in "displacement " ++ ints16hex4 d
+--       ++ " loaded in cycle " ++ show c ++ "\n"
+  in ints16hex4 d
+
+-- The termination predicate, termpred, stops the simulation when a
+-- trap instruction is executed, or after 1000 cycles.
+
+mytermpred :: DriverState -> Bool
+mytermpred s = trap s  -- || c > 10000
+
+----------------------------------------------------------------------
+-- Decoding instructions
+
+-- When an instruction is decoded, findMnemonic returns the assembly
+-- language mnemonic for the instruction, given the opcode.  The
+-- opcode consists of the op field of the instruction, as well as the
+-- sb field.  For RRR instructions, the op field determines the
+-- instruction.  For RX instructions, the op is 15, which indicates an
+-- escape to the sb field.
+
+findMnemonic :: [[Int]] -> String
+findMnemonic [opfield, bfield] =
+  let op = intsInt opfield
+      b = intsInt bfield
+      mnemonics_RRR =
+        ["add", "sub", "mul", "div",
+         "cmp", "nop", "nop", "nop",
+         "nop", "nop", "nop", "trap",
+         "nop", "nop", "expandExp", "expandRX"]
+      mnemonics_RX =
+        ["lea",    "load",   "store", "jump",
+         "jumpc0", "jumpc1", "jal",   "nop",
+         "nop",    "nop",    "nop",   "nop",
+         "nop",    "nop",    "nop",   "nop"]
+  in if op==15
+       then mnemonics_RX !! b
+       else mnemonics_RRR !! op
+
+--------------------------------------------------------------------------------
+-- Utilities
+--------------------------------------------------------------------------------
+
+tryRead :: String -> IO (Either IOError String)
+tryRead path = do
+  x <- try (readFile path)
+  return x
+
+maybeRead :: String -> IO (Maybe String)
+maybeRead path = do
+  r <- tryRead path
+  case r of
+    Left e -> return Nothing
+    Right x -> return (Just x)
+
+mkFullPath :: String -> String -> String
+mkFullPath prefix path =
+  prefix ++ path ++ ".obj.txt"
+  
+
+
+{- Deprecated...
+
+ignoreIOError :: IOError -> Maybe String
+ignoreIOError e = Nothing
+
+tryReadFile :: FilePath -> IO (Maybe String)
+tryReadFile filePath = do
+  x <- tryJust ignoreIOError (readFile filePath)  
+  case x of
+    Left  er   -> return Nothing
+    Right file -> return (Just file)
+
+--  x <- tryJust handleReadFile (readFile filePath)
+--  where
+--    handleReadFile :: IOError -> Maybe String
+--    handleReadFile er = Nothing
+--      | isDoesNotExistError er = Just "readFile: does not exist"
+--      | isPermissionError   er = Just "readFile: permission denied"
+--      | otherwise              = Nothing
+-}
+
+{-
+tryJustReadFile :: FilePath -> IO ()
+tryJustReadFile filePath = do
+  eitherExceptionFile <- tryJust handleReadFile (readFile filePath)
+  case eitherExceptionFile of
+   Left  er   -> putStrLn er
+   Right file -> putStrLn file
+  where
+    handleReadFile :: IOError -> Maybe String
+    handleReadFile er = Nothing
+--      | isDoesNotExistError er = Just "readFile: does not exist"
+--      | isPermissionError   er = Just "readFile: permission denied"
+--      | otherwise              = Nothing
+-}
+
+{-
+--      string "\n"
+--  printLine "\nSigma16_M1 simulation"
+--  runM1simulation
+--  simoutput <- format "CPUstep"
+    [
+     clockcycle (\c -> take 72 (repeat '.') ++
+                  "\nClock cycle " ++ show c ++ "\n"),
+-}
+--  simstate showJumps,
+--  setStateWs clearJumps [],
+
+{-
+peekRegFile = do
+  liftIO $ putStrLn "peekRegFile"
+  peekReg 0
+  peekReg 1
+  peekReg 2
+  peekReg 3
+  peekReg 4
+  peekReg 5
+  peekReg 6
+  peekReg 7
+-}
+--  initialize
+--  defineCommand "boot" cmdBoot
+--  defineCommand "reset" cmdReset
+--  defineCommand "step" cmdM1ClockCycle
+--  liftIO $ putStrLn ("Object = " ++ show objectCode)
+--  liftIO $ putStrLn ("Boot input data = " ++ show bootData)
+--  return ()
+--  bootData <- liftIO bootInputs
+--  storeInputList "Booting" bootData
+--  storeInputList "Resetting" resetData
+--  storeInputList "Running" runData
+--  selectInputList "Booting"
+-- Say whether a conditional jump was performed
+
+{-
+--         fmtIf (and2 (st_jumpc00 ctlstate)  (inv (condcc dp)))
+         fmtIf (and2 st_jumpc02  (inv condcc))
+           [string "jumpc0 instruction will  not jump"
+--            setStateWsIO setJump [[zero], ad dp]]
+--             setStateWsIO setJump [[inv condcc], ad dp]]
+     ]
+           [],
+
+         fmtIf (and2 st_jumpc10 condcc)
+           [string "jumpc1 instruction is jumping"
+--            setStateWs setJump [[one], r dp]]
+--             setStateWs setJump [[one], r]]
+--             setStateWsIO setJump [[condcc], ad dp]
+           ]
+           [],
+
+--         fmtIf (or2 st_jump2 st_jal2)
+--           [
+--            setStateWs setJump [[one], r dp]]
+--             setStateWsIO setJump [[one], r]]
+--           [],
+
+       --         fmtIf (and2 (st_jumpc10 ctlstate)  (condcc dp))         
+-}
+--            simstate show  -- show the simulation driver state
+--            string ("\n" ++ take 72 (repeat '*') ++ "\n")]
+{-
+establishM1inputs :: StateT (SysState DriverState) IO ()
+establishM1inputs = do
+  printLine "establishM1inputs"
+--  mx <- getInputList
+--  printLine ("establish mx = " ++ show mx)
+--  case mx of
+  s <- get
+  inp <- getStoredInput
+--  inps <- getCurrentInputs
+  liftIO $ putStrLn ("establish - " ++ show inp)
+  case inp of
+    Just x -> do -- use the data x to fill buffers
+--      printLine ("establishM1inputs using " ++ x)
+      takeInputsFromList x
+      return ()
+    Nothing -> do -- look at mode to decide what to do
+      oldmode <- getProcessorMode
+--      printLine ("establishM1inputs current processor mode = " ++ show oldmode)
+      mds <- getUserState
+      case mds of
+        Just ds -> do
+          case processorMode ds of
+            Idle      -> setMode Booting
+            Booting   -> setMode Resetting
+            Resetting -> setMode Running
+            Running   -> setMode Running
+--          newMode <- getProcessorMode
+--          selectInputList (show newMode)
+--          printLine ("establishM1inputs new processor mode = " ++ show newMode)
+          establishM1inputs
+        Nothing -> do
+          printError "esablishM1inputs, getUserState returned Nothing"
+          return ()
+-}
+        
+--  s <- get
+--  let mds = userState s
+--  case mds of
+--    Just ds -> do
+--      let ds' = ds { processorMode  = m }
+--      put (s {userState = Just ds'})
+--      return ()
+--    Nothing -> do
+--      giveError "userState not defined"
+--      return ()
+
+-- giveError :: String -> StateT (SysState a) IO ()
+-- giveError msg = printLine ("ERROR: " ++ msg)
+
+-- Record and display jumps
+-- setJump [[b],x] = do
+
+-- b indicates whether the jump occurs
+
+{-
+setJump :: [[a]] -> StateT (SysState DriverState) IO ()
+setJump [b,x] = do
+  c <- getClockCycle
+  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = jumps ds
+      let ds' = ds {jumps = (c, map sigInt b, map sigInt x) : xs}
+      put $ s {userState = Just ds'}
+-}
+{-  s <- get
+  case userState s of
+    Nothing -> return ()
+    Just  ds -> do
+      let xs = jumps ds
+      let ds' = ds {jumps = (c, map sigInt bs, map sigInt x) : xs}
+    put $ s {userState = Just ds'}
+-}
+
+{-
+setJump :: (Signal a, Static a) =>
+   DriverState -> [[a]] -> DriverState
+setJump s [[b],x] =
+  s {jumps = (0, sigInt b, map sigInt x) : jumps s}   -- ????????? c
+-}
+
+{-
+showJumps :: DriverState -> String
+showJumps s = concat (map f (reverse (jumps s)))
+  where
+    f (c,b,x) =
+      (if b==1
+        then "jumping to " ++ ints16hex4 x
+        else "is not jumping")
+        ++ " in cycle " ++ show c ++ "\n"
+-}
+{-
+clearJumps :: (Signal a, Static a) =>
+  DriverState -> [[a]] -> DriverState
+clearJumps s _ = s {jumps = []}
+-}
+
+#+END_SRC

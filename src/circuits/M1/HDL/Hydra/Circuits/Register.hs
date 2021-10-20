@@ -17,8 +17,7 @@ module HDL.Hydra.Circuits.Register
 -- * Registers
    reg1, reg,
 
--- * Register files
-   regfile1, regfile
+
   ) where
 
 import HDL.Hydra.Core.Signal
@@ -72,27 +71,3 @@ reg
 reg k ld x = mapn (reg1 ld) k x
 
 
-------------------------------------------------------------------------
--- Register files
-
-regfile1 :: CBit a => Int -> a -> [a] -> [a] -> [a] -> a -> (a,a)
-
-regfile1 k ld d sa sb x
-  | k==0 = (r,r)
-  | k>0  = (a,b)
-  where
-    r = reg1 ld x
-    (a0,b0) = regfile1 (k-1) ld0 ds sas sbs x
-    (a1,b1) = regfile1 (k-1) ld1 ds sas sbs x
-    (ld0,ld1) = demux1 d1 ld
-    a = mux1 sa1 a0 a1
-    b = mux1 sb1 b0 b1
-    (d1:ds) = d
-    (sa1:sas) = sa
-    (sb1:sbs) = sb
-
-regfile :: CBit a => Int -> Int
-  -> a -> [a] -> [a] -> [a] -> [a] -> ([a],[a])
-
-regfile n k ld d sa sb x =
-   unbitslice2 [regfile1 k ld d sa sb (x!!i)  | i <- [0..n-1]]

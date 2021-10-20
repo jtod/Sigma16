@@ -1,45 +1,28 @@
--- Sigma16: Multiply.hs
--- Copyright (C) 2020 John T. O'Donnell
--- email: john.t.odonnell9@gmail.com
--- License: GNU GPL Version 3 or later
--- See Sigma16/COPYRIGHT.txt, Sigma16/LICENSE.txt
+-- Multiply: circuit that multiplies two binary natural numbers
+-- This file is part of Hydra, see Hydra/README.md for copyright and license
 
--- This file is part of Sigma16.  Sigma16 is free software: you can
--- redistribute it and/or modify it under the terms of the GNU General
--- Public License as published by the Free Software Foundation, either
--- version 3 of the License, or (at your option) any later version.
--- Sigma16 is distributed in the hope that it will be useful, but
--- WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--- General Public License for more details.  You should have received
--- a copy of the GNU General Public License along with Sigma16.  If
--- not, see <https://www.gnu.org/licenses/>.
-
------------------------------------------------------------------------
+----------------------------------------------------------------------
 -- Binary multiplier circuit
------------------------------------------------------------------------
+----------------------------------------------------------------------
 
-module M1.Circuit.Multiply where
-
+module Circuit.Multiply where
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import HDL.Hydra.Circuits.Register
 
-{- Definition of a sequential functional unit that multiples two
-binary integers, along with test data and simulation driver.
+-- Definition of a circuit that multiples two binary integers.  The
+-- circuit is a functional unit, which uses a start control signal to
+-- initiate a multiplication and produces a ready output signal to
+-- indicate completion.
 
-The circuit is a functional unit, which uses a start control signal to
-initiate a multiplication and produces a ready output signal to
-indicate completion.
-
-The multiplier circuit uses the sequential shift-and-add algorithm to
-multiply two k-bit binary numbers, producing a 2k-bit product.  The
-specification is general, taking a size parameter k::Int.  The start
-control signal tells the multiplier to begin computing the product
-x*y, and any other multiplication in progress (if any) is aborted.  In
-order to make the simulation output more interesting, the multiplier
-outputs its internal register and sum values as well as the ready
-signal and the product. -}
+-- The multiplier circuit uses the sequential shift-and-add algorithm
+-- to multiply two k-bit binary numbers, producing a 2k-bit product.
+-- The specification is general, taking a size parameter k::Int.  The
+-- start control signal tells the multiplier to begin computing the
+-- product x*y, and any other multiplication in progress (if any) is
+-- aborted.  In order to make the simulation output more interesting,
+-- the multiplier outputs its internal register and sum values as well
+-- as the ready signal and the product.
 
 multiply
   :: CBit a               -- synchronous circuit
@@ -51,12 +34,12 @@ multiply
 
 multiply k start x y = (ready,prod,rx,ry,s)
   where
-    rx = wlatch k (mux1w start (shr rx) x)
-    ry = wlatch (2*k)
+    rx = latch k (mux1w start (shr rx) x)
+    ry = latch (2*k)
              (mux1w start
                 (shl ry)
                 (fanout k zero ++ y))
-    prod = wlatch (2*k)
+    prod = latch (2*k)
              (mux1w start
                 (mux1w (lsb rx) prod s)
                 (fanout (2*k) zero))

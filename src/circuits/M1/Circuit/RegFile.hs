@@ -1,9 +1,40 @@
--- module M1.Circuit.RegFile where
 module Circuit.RegFile where
 
 import HDL.Hydra.Core.Lib
 import HDL.Hydra.Circuits.Combinational
 import HDL.Hydra.Circuits.Register
+
+-- Register files
+
+regfile1
+  :: CBit a  -- a is signal type for synchronous circuit
+  => a       -- ld control
+  -> [a]     -- d:ds = destination address
+  -> [a]     -- sa:sas = source address a
+  -> [a]     -- sb:sbs = source address b
+  -> a       -- x
+  -> (a,a)   -- readout (a = reg[sa], b = reg[sb])
+
+regfile1 ld [] [] [] x = (r,r)
+  where r = reg1 ld x
+
+regfile1 ld (d:ds) (sa:sas) (sb:sbs) x = (a,b)
+  where
+    (a0,b0) = regfile1 ld0 ds sas sbs x
+    (a1,b1) = regfile1 ld1 ds sas sbs x
+    (ld0,ld1) = demux1 d ld
+    a = mux1 sa a0 a1
+    b = mux1 sb b0 b1
+
+--    (d1:ds) = d
+--    (sa1:sas) = sa
+--    (sb1:sbs) = sb
+
+regfile :: CBit a => Int -> Int
+  -> a -> [a] -> [a] -> [a] -> [a] -> ([a],[a])
+
+regfile n k ld d sa sb x =
+   unbitslice2 [regfile1 ld d sa sb (x!!i)  | i <- [0..n-1]]
 
 {- Register file with special treatment of R0 and R15
 
@@ -58,11 +89,6 @@ tailType RFfull   = RFtail
 tailType RFinside = RFinside
 tailType RFhead   = RFinside
 tailType RFtail   = RFtail
-
--- 1-bit Register file with special cases for lowest and highest
--- indices (R0, cc).  Sigma16 uses 4-bit addresses for d, sa, sb,
--- leading to 16 registers, where the special cases are R0 (the head,
--- i.e. lowest address) and R15 (the tail, i.e. highest address)
 
 regFileSpec1
   :: CBit a

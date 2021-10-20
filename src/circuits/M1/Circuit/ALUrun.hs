@@ -123,4 +123,3 @@ main = driver  $ do
        string "\n"]
 
   runSimulation
-  
