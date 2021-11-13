@@ -1,5 +1,8 @@
-# Sigma16 User Guide
+#+TITLE: Sigma16 User Guide
+#+AUTHOR: John T. O'Donnell
+#+DATE: October 2021
 # Copyright (C) 2020,2021 John T. O'Donnell.
+
 # License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
 # This file is part of Sigma16.  Sigma16 is free software: you can
@@ -13,13 +16,19 @@
 # copy of the GNU General Public License along with Sigma16.  If not,
 # see <https://www.gnu.org/licenses/>.
 
+# html
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docstyle.css" />
-#+OPTIONS: toc:nil
-#+OPTIONS: num:nil
+# #+OPTIONS: toc:nil
+# #+OPTIONS: num:nil
+# #+BEGIN_EXPORT html
+# <h1>Sigma16 User Guide</h1>
+# #+END_EXPORT
 
-#+BEGIN_EXPORT html
-<h1>Sigma16 User Guide</h1>
-#+END_EXPORT
+# latex 
+#+LATEX_CLASS: article
+#+LATEX_HEADER: \usepackage{svg}
+#+LATEX_HEADER: \svgpath{{figures/svg/}}
+
 
 # The following lines include a message giving the current version
 # number (VERSION.txt) and a message giving a pointer to the github
@@ -31,9 +40,10 @@
 # before the table of contents, so the version is clearly visible but
 # not too long and obtrusive.
 
-#+INCLUDE: "../../VERSION.txt" export html
-#+INCLUDE: "../../COPYRIGHT.txt" export html
-#+TOC: headlines:3
+# #+INCLUDE: "../../VERSION.txt" export html
+# #+INCLUDE: "../../COPYRIGHT.txt" export html
+
+# #+TOC: headlines:3
 
 * Introduction
 
@@ -1246,9 +1256,9 @@ Instruction formats: different types of instruction
 
 Sigma16 has several instruction formats
   
--  \alert{RRR} instructions use the \alert{registers}
--  \alert{RX} instructions use the \alert{memory}
--  \alert{EXP} instructions use \alert{registers and constant}
+-  RRR instructions use the registers
+-  RX instructions use the memory
+-  EXP instructions use registers and constant
   
 Each kind of instruction is called an instruction format.  All the
 instructions with the same format are similar Each instruction format
@@ -1286,7 +1296,7 @@ Every RRR instruction consists of
 - The instruction performs the operation on the operands and
   puts the result in the destination
   
-Example: add R3,R12,R5.  We need to specify \alert{which} RRR
+Example: add R3,R12,R5.  We need to specify which RRR
 instruction this is.  Is it add? sub? mul? another?  This is done with
 an operation code --- a number that says what the operation is.  There
 are about a dozen RRR instructions, so a 4-bit operation code
@@ -1334,8 +1344,8 @@ Representing RX instructions
 
 Every RX instruction contains two operands:
   
-- A \important{register}
-- A \important{memory location}
+- A register
+- A memory location
   
 We have seen several so far:
   
@@ -1670,7 +1680,7 @@ that location is encountered.  To prevent this, open the breakpoint
 popup again and click Disable.
 
 
-*** List of Core instructions
+*** Summary of Core Architecture
 
 The following table summarises the instructions in the Core subset of
 Sigma16.  This is an extract from the table for the full architecture
@@ -1693,10 +1703,11 @@ which appears below, in the Architecture section.
 | jump     | Core     |   | RX  | RX   | f,3  | pc := ea                          |
 | jumpc0   | Core     |   | RX  | kX   | f,4  | if R15.k=0 then pc := ea          |
 | jumpc1   | Core     |   | RX  | kX   | f,5  | if R15.k=1 then pc := ea          |
-| jal      | Core     |   | RX  | RX   | f,a  | Rd := pc, pc := ea                |
+| jal      | Core     |   | RX  | RX   | f,6  | Rd := pc, pc := ea                |
 |----------+----------+---+-----+------+------+-----------------------------------|
 |          |          |   |     |      |      | <33>                              |
 |----------+----------+---+-----+------+------+-----------------------------------|
+
 
 Pseudoinstructions for comparisons
 
@@ -2258,12 +2269,11 @@ formats are described later.
 *** RRR format
 
 RRR instructions are represented in one word comprising four 4-bit
-fields:
-
-[[file:./svg/RRRformat.svg]]
-
+fields.
 Each field contains 4 bits representing a binary number between 0
 and 15.
+
+[[file:svg/RRRformat.pdf]]
 
 - op (bits 15 to 12) is the operation code, usually called /opcode/.
   This determines the operation to be performed.  If the opcode is
@@ -2290,7 +2300,8 @@ this instruction is 0492.
 RX instructions specify a memory location as well as a register
 operand.  The machine language representation is two words:
 
-#+INCLUDE: "./svg/RXformat.svg" export html
+[[file:svg/RXformat.pdf]]
+
 
 The RX instruction format is used for instructions that use a memory
 address, which is specified by an index register and a displacement.
@@ -2353,7 +2364,7 @@ can be accommodated, and it allows for experimental instructions for
 research purposes.  (The name EXP stands simultaneously for both
 EXPansion and EXPerimentation.)
 
-#+INCLUDE: "./svg/EXPformat.svg" export html
+# [[file:svg/EXPformat.pdf]]
 
 There are two variants: EXP1 format requires one word, and EXP
 requires two words.  For both variants, the format of the first word
@@ -2366,7 +2377,7 @@ operand.
 
 The a and b fields form an 8-bit value called ab.
 
-[[file:svg/EXPformat.svg]]
+# [[file:svg/EXPformat.svg]]
 
 A second word is needed to represent RX and EXP formats.  There
 are individual names for the individual 4-bit fields, as well as names
@@ -2388,7 +2399,7 @@ represent numbers in the range from 0 through 31, and are used to
 specify bit indexes and field sizes for the 32-bit architecture
 extension.
 
-#+INCLUDE: "./svg/EXP3format.svg" export html
+#  #+INCLUDE: "./svg/EXP3format.svg" export html
 
 ** Instructions
 :PROPERTIES:
@@ -2805,7 +2816,7 @@ formats are described later.
 RRR instructions are represented in one word comprising four 4-bit
 fields:
 
-[[file:./svg/RRRformat.svg]]
+[[file:svg/RRRformat.pdf]]
 
 Each field contains 4 bits representing a binary number between 0
 and 15.
@@ -2835,7 +2846,8 @@ this instruction is 0492.
 RX instructions specify a memory location as well as a register
 operand.  The machine language representation is two words:
 
-#+INCLUDE: "./svg/RXformat.svg" export html
+[[file:svg/RXformat.pdf]]
+
 
 The RX instruction format is used for instructions that use a memory
 address, which is specified by an index register and a displacement.
@@ -2898,7 +2910,7 @@ can be accommodated, and it allows for experimental instructions for
 research purposes.  (The name EXP stands simultaneously for both
 EXPansion and EXPerimentation.)
 
-#+INCLUDE: "./svg/EXPformat.svg" export html
+# #+INCLUDE: "./svg/EXPformat.svg" export html
 
 There are two variants: EXP1 format requires one word, and EXP
 requires two words.  For both variants, the format of the first word
@@ -2911,7 +2923,7 @@ operand.
 
 The a and b fields form an 8-bit value called ab.
 
-[[file:svg/EXPformat.svg]]
+# [[file:svg/EXPformat.svg]]
 
 A second word is needed to represent RX and EXP formats.  There
 are individual names for the individual 4-bit fields, as well as names
@@ -4597,7 +4609,7 @@ and an optional module name.
   with a file.
 
 - If there is a file, this may be specified either as a path (the
-  unique identification of the file (C:\\Users\...\prog.asm.txt), or
+  unique identification of the file (=C:\\Users\...\prog.asm.txt=), or
   as just a filename (myprogram.asm.txt) which is relative to the
   current directory.
 
@@ -5200,7 +5212,7 @@ Sigma16/circuits/M1/programs
 #+END_EXAMPLE
 
 
-* M1: a Sigma16 CPU circuit
+* M1: a Sigma16 CPU circuit :noexport:
 
 
 Sigma16 is a 16-bit instruction set architecture, and M1 is a digital
@@ -5860,18 +5872,8 @@ shown in the following table, where don't-care values are left blank.
 Note that the alu doesn't implement some of the operations used by RRR
 instructions.  Those instructions will actually do nothing.
 
-  |~~~~~~~~~~~~~~~~~~~~~~~~|
-  | Function |  a,b   c,d  |
-  |~~~~~~~~~~|~~~~~~~~~~~~~|
-  |   x+y    |  0 0        |
-  |   x-y    |  0 1        |
-  |    -x    |  1 0        |
-  |   x+1    |  1 1   0 0  |
-  |   x<y    |  1 1   0 1  |
-  |   x=y    |  1 1   1 0  |
-  |   x>y    |  1 1   1 1  |
-  ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#+BEGIN_EXAMPLE
 ........................................................
 x is the first data input to the alu
 x = a choice from among {a, pc}
@@ -5889,7 +5891,7 @@ y = if ctl_y_ad = 0
       else ad
 
 ctl_y_ad = 1 means "make y = value in ad register"
-
+#+END_EXAMPLE
 
 **** Datapath
 **** Instruction control registers
@@ -6709,8 +6711,32 @@ provide as much as possible of the following information.
   version number (this is visible in the browser's display of the URL,
   and it's also visible at the top of the User Guide).
 
-** Typesetting notes
+** Typesetting notes :noexport:
 *** svg
+
+#+BEGIN_EXAMPLE
+$ svg2pdf.exe -$ XXXX-XXXX-XXXX-XXXX -dpi 72 -d  testfoo.pdf RRRtest.svg
+You have 94 time to evaluate "VeryUtils SVG to PDF Converter Command Line", you may purchase a full version from "https://veryutils.com/" web page.
+[Message]============================
+About to transcode 1 SVG file(s)
+
+Converting RRRtest.svg to testfoo.pdf ... ... success
+
+$
+
+$ svg2pdf.exe -$ john.t.odonnell9@gmail.com -dpi 72 -d bar.pdf RRRtest.svg
+
+
+
+$ svg2pdf -$ 65XS-D623-4455-S4VG-ET58 -dpi 72 -d baz.pdf RRRtest.svg
+Thank you for choosing "VeryUtils SVG to PDF Converter Command Line" product.
+[Message]============================
+About to transcode 1 SVG file(s)
+
+Converting RRRtest.svg to baz.pdf ... ... success
+
+$
+#+END_EXAMPLE
 
 There are several ways to include an svg image.
 
@@ -6723,7 +6749,7 @@ There are several ways to include an svg image.
 The idea is to inline the contents of the svg figure, but to obtain
 the text from a separate svg file.
 
-#+INCLUDE: "./svg/RRRformat.svg" export html
+# #+INCLUDE: "./svg/RRRformat.svg" export html
 
 That was an included file.
 
