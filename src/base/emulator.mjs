@@ -1380,15 +1380,17 @@ function exp_extract (es) {
     console.log ('exp_extract')
     const d_old = es.regfile[es.ir_d].get()
     const src = es.regfile[es.field_e].get()
-    const d_i = es.field_f
-    const s_i = es.field_g
-    const size = es.field_h
-    const d_new = arith.calculateExtract (16, 0xffff, d_old, src, d_i, s_i, size)
+    const d_left = es.field_f
+    const d_right = es.field_g
+    const s_left = es.field_h
+    const size = d_left - d_right + 1
+    const d_new = arith.calculateExtract (16, 0xffff, d_old,
+                                          src, d_left, s_left, size)
     console.log (`extract `
                      + ` d_old = ${arith.wordToHex4(d_old)}`
                      + ` src = ${arith.wordToHex4(src)}`
-                     + ` d_i = ${d_i}`
-                     + ` s_i = ${s_i}`
+                     + ` d_left = ${d_left}`
+                     + ` s_left = ${s_left}`
                      + ` size = ${size}`
                      + ` d_new = ${arith.wordToHex4(d_new)}`)
     es.regfile[es.ir_d].put(d_new);
@@ -1398,15 +1400,17 @@ function exp_extracti (es) {
     console.log ('exp_extracti')
     const d_old = es.regfile[es.ir_d].get()
     const src = (~ es.regfile[es.field_e].get()) & 0xffff
-    const d_i = es.field_f
-    const s_i = es.field_g
-    const size = es.field_h
-    const d_new = arith.calculateExtract (16, 0xffff, d_old, src, d_i, s_i, size)
-    console.log (`extract `
+    const d_left = es.field_f
+    const d_right = es.field_g
+    const s_left = es.field_h
+    const size = d_left - d_right + 1
+    const d_new = arith.calculateExtract (16, 0xffff, d_old,
+                                          src, d_left, s_left, size)
+    console.log (`extracti `
                      + ` d_old = ${arith.wordToHex4(d_old)}`
                      + ` src = ${arith.wordToHex4(src)}`
-                     + ` d_i = ${d_i}`
-                     + ` s_i = ${s_i}`
+                     + ` d_left = ${d_left}`
+                     + ` s_left = ${s_left}`
                      + ` size = ${size}`
                      + ` d_new = ${arith.wordToHex4(d_new)}`)
     es.regfile[es.ir_d].put(d_new);

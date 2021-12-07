@@ -929,6 +929,8 @@ function initializeButtons () {
                    () => user_guide_resize(-UGRLARGE));
 
     // Help boxes
+    prepareButton ('WP_Help',              () => toggleWelcomeHelp ());
+    prepareButton ('WelcomeHelpClose',     () => toggleWelcomeHelp ());
     prepareButton ('EXP_Help',             () => toggleExamplesHelp ());
     prepareButton ('ExamplesHelpClose',    () => toggleExamplesHelp ());
     prepareButton ('MP_Help',              () => toggleModulesHelp ());
@@ -1059,7 +1061,7 @@ function initializeButtons () {
 //-----------------------------------------------------------------------------
 
 const defaultKeyMap = new Map ([
-    ["KeyH",  toggleDefaultHelp],
+    ["KeyH",  toggleWelcomeHelp],
 ])
 
 // let currentKeyMap = defaultKeyMap
@@ -1113,11 +1115,15 @@ const procKeyMap = new Map ([
 
 // You can open or close a help box by pressing h
 
-let defaultHelpDialogueVisible = false
-export function toggleDefaultHelp () {
-    document.getElementById("DefaultHelpDialogue").style.display
-	= defaultHelpDialogueVisible ? "none" : "block";
-    defaultHelpDialogueVisible = !defaultHelpDialogueVisible;
+// Most tabs have their own specialized help.  For tabs where
+// specialized help isn't useful, the generic help will be
+// displayed.
+
+let genericHelpDialogueVisible = false
+export function toggleWelcomeHelp () {
+    document.getElementById("WelcomeHelpDialogue").style.display
+	= genericHelpDialogueVisible ? "none" : "block";
+    genericHelpDialogueVisible = !genericHelpDialogueVisible;
 }
 
 let modulesHelpDialogueVisible = false

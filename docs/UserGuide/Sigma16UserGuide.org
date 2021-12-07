@@ -1,7 +1,5 @@
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
-#+DATE: October 2021
-# Copyright (C) 2020,2021 John T. O'Donnell.
 
 # License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -18,106 +16,56 @@
 
 # html
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docstyle.css" />
-# #+OPTIONS: toc:nil
-# #+OPTIONS: num:nil
-# #+BEGIN_EXPORT html
-# <h1>Sigma16 User Guide</h1>
-# #+END_EXPORT
+#+OPTIONS: title:nil
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+BEGIN_EXPORT html
+<h1>Sigma16 User Guide</h1>
+#+END_EXPORT
+# The following version messages should come after the title but
+# before the table of contents, so the version is clearly visible but
+# not too long and obtrusive.
+#+INCLUDE: "../../VERSION.txt" export html
+#+INCLUDE: "../../COPYRIGHT.txt" export html
+#+TOC: headlines:5
 
 # latex 
 #+LATEX_CLASS: article
 #+LATEX_HEADER: \usepackage{svg}
 #+LATEX_HEADER: \svgpath{{figures/svg/}}
 
-
-# The following lines include a message giving the current version
-# number (VERSION.txt) and a message giving a pointer to the github
-# page where the latest version can be found (LATESTVERSION).  That
-# way, if a user is running an older version, the user guide will tell
-# them where to go to to upgrade.
-
-# The following version messages should come after the title but
-# before the table of contents, so the version is clearly visible but
-# not too long and obtrusive.
-
-# #+INCLUDE: "../../VERSION.txt" export html
-# #+INCLUDE: "../../COPYRIGHT.txt" export html
-
-# #+TOC: headlines:3
-
 * Introduction
 
-Sigma16 is a computer architecture designed for research and teaching
-in computer systems.  This application provides a complete environment
-for experimenting with the architecture, including an editor,
-assembler, linker, emulator, and an integrated development
-environment.  There is a digital circuit that implements the
-architecture, which is specified using the Hydra functional hardware
-description language.  Hydra can simulate the circuit, and machine
-language programs can run on both the emulator and the circuit.
+Sigma16 is a computer architecture designed for research and
+teaching in computer systems.  The architecture is simple yet
+powerful.  It is organized into subsets to make it easier to use:
+the core subset is suitable for beginners, the standard subset
+offers flexible programming techniques, and the full system supports
+the study of systems programming.
 
-The Sigma16 IDE (the main "app") is implemented in JavaScript and runs
-in a web browser.  There are additional components to the system that
-must be downloaded and run on a computer; these include a digital
-circuit that implements the architecture and a high speed emulator.
-You can run the IDE simply by clicking a link on the [Sigma16 Home
-Page](https://jtod.github.io/home/Sigma16/).
+This application provides a complete environment for experimenting
+with the architecture.  It includes an editor, assembler, linker,
+emulator, and an integrated development environment (IDE) with a
+graphical user interface.
 
-This user guide is organised by topic, with chapters on the
-architecture, the assembly language, the linker, and programming
-techniques.  However, it's a good idea to begin with an overview of
-how the whole system works, and to be able to write and run simple
-programs, before delving into the details.  For a quick start, begin
-with the tutorials, which show you how to enter and run a program and
-how to use the programming environment.
+Sigma16 runs in a web browser: you don't need to download or install
+anything.  To run it, click the prominent /Run/ link on the Sigma16
+Home Page: [[https://jtod.github.io/home/Sigma16]].
 
-This directory contains a digital circuits which is a full processor
-for the Core subset of the Sigma16 architecture.  It also contains a
-circuit simulator that will run the circuit.  You can make the circuit
-boot a machine language program; as the circuit runs it will execute
-the program.
+There are additional command line tools that can run in a shell; see
+the Installation section.  There is also a digital circuit
+(available separately) that implements the architecture.  Using
+these tools, machine language programs can run on both the emulator
+and the circuit.
 
--- M1 is a circuit "Machine 1" that implements the Core subset of
-   Sigma16
+For a quick start, begin with the tutorials, which introduce the
+architecture step by step.  The tutorials explain the machine, show
+how to program it, and demonstrate how to enter and run a program
+and how to use the programming environment.
 
--- HDL/Hydra is a functional computer hardware description language
-   (HDL).  This is a text language that allows you to decribe digital
-   circuits very precisely, and it also has the ability to simulate
-   the circuits.  All the circuits in M1 are specified using Hydra.  A
-   copy of Hydra in included in Sigma16/src/circuits.  This means you
-   don't need to download and install Hydra, and it ensures that the
-   version of Hydra is compatible with the other software toolss.
-
--- Sigma16 is a folder containing sofware tools that can read and
-   parse object files produced by the Sigma16 assembler.  This data is
-   used to provide inputs to the circuits
-
-The commands should be executed from within the circuits directory;
-this enables ghc to find the source files.
-
-The assembler reads in a source file (e.g. Add.asmltxt).  It writes
-out several files: the machine language code (Add.obj.txt), the
-assembly listing file (Add.lst.txt), and a metadata file (Add.md.txt).
-You can ignore the metadata file, but it's worth looking at the obj
-and lst files.  The object code file Add.obj.txt contains the actual
-machine language program which the circuit can execute.
-
-Naturally, if you modify the Sigma16 assembly language program, you
-need to assemble it again before running the machine language on the
-circuit.
-
-When you run a program in ghci with :main Simple/Add, the program is
-not being emulated.  The M1 circuit is a digital circuit consisting of
-logic gates and flip flops, and nothing else.  This circuit is
-relatively large and complex, and it is actually a full CPU for the
-Sigma16 Core instruction set architecture.  The simulation tools read
-in the machine language (from Add.obj.txt) and store it into the
-memory, and the circuit then executes the program.
-
-In the commands, you just specify the file basename "Add".  The
-assembler will automatically append ".asm.txt", and the interface to
-the circuit simulator will automatically append ".obj.txt".
-
+The remainder of the user guide is organised by topic, with chapters
+on the architecture, the assembly language, the linker, and
+programming techniques.
 
 * Tutorials
 
@@ -133,8 +81,15 @@ panel.
 
 *** Hello, world!
 
-To launch the program, visit the Sigma16 Home Page and click on the
-link to run it.  No download or installation is necessary.
+This tutorial introduces the main components of the system and shows
+how to run an example program.  For now, we focus just on how to use
+the software tools.  You don't need to understand the example code
+yet.  An explanation of the Sigma16 architecture and what the
+statements mean will come later.
+
+To launch the app, visit the Sigma16 Home Page and click on the link
+to run it.  Sigma16 runs in the browser; you don't need to download
+or install anything.
 
 The main window contains two main sections.  The largest area, on the
 left side, is the *main working area*.  When the program launches,
@@ -151,95 +106,111 @@ adjust by one pixel, the larger arrows by ten pixels.  If you resize
 the entire browser window, Sigma16 will maintain the same relative
 sizes of the main working area and the user guide sections.
 
+If your screen is small, and the main working area isn't big enough,
+click /Hide User Guide/ and all the space will be available to it.
+The button will change to /Show User Guide/.
+
 You can also open the User Guide in a separate browser tab or window.
 The Welcome page contains a link to do this.
-
-A good way to get started is to go through the entire process of
-running a simple program called *Hello, world!*.  For now, we focus
-just on how to use the software tools to run the program; an
-explanation of the Sigma16 architecture and what the statements mean
-will come later.
 
 The main working area has several pages, with buttons at the top to
 switch between them:
 
-- **Welcome** contains some introductory information, release notes,
-   and links.
+- *Welcome* contains some introductory information and links.
    
-- **Examples** contains a collection of assembly language programs
-  organized by topic.  The simplest examples just use the core part of
-  the architecture, while the advanced examples use additional
+- *Examples* contains a collection of assembly language programs
+  organized by topic.  The simplest examples just use the core part
+  of the architecture, while the advanced examples use additional
   features.
 
-- **Modules** shows a summary of all the files and modules you
-  currently have open.  It also provides buttons allowing you to open
-  files, close them, and select one to work on.
+- *Modules* shows a summary of all the files and modules you
+  currently have open.  It also provides buttons allowing you to
+  open files, close them, and select one to work on.
 
-- **Editor** shows the selected module, where it can be edited.  You
+- *Editor* shows the selected module, where it can be edited.  You
   can assemble and execute the selected module.  To run a program,
-  you'll load it into the Editor (there are several ways to do this),
-  then assemble it and then run it.
+  you'll load it into the Editor (there are several ways to do
+  this), then assemble it and then run it.
 
-- **Assembler** translates a program from assembly language to machine
-   language, and shows the assembly isting as well as the object code.
+- *Assembler* translates a program from assembly language to machine
+  language, and shows the assembly isting as well as the object
+  code.
 
-- **Linker** combines a collection of object code modles into a single
+- *Linker* combines a collection of object code modles into a single
   executable program.
 
-- **Processor** shows the components of the architecture and executes
+- *Processor* shows the components of the architecture and executes
   machine language programs.
+
+- *Options* allows you to configure how the system operates.
+
+- *About* gives general information, including version.
+
+- *Hide User Guide* makes the entire window available to the main
+  working area.  It is a toggle that changes to *Show User Guide*
 
 Let's begin by running a simple example program.
 
-- Click **Editor**, then **Hello, world!**.  This will enter a small
-  assembly language program into the editor window.  Later, we'll load
-  some of the more complex example programs into the editor, and you
-  can also modify a program or type in a new one from scratch.
+- Click *Editor*, then *Hello, world!*.  This will enter a small
+  assembly language program into the editor window.  Later, we'll
+  load some of the more complex example programs into the editor,
+  and you can also modify a program or type in a new one from
+  scratch.  For now, don't worry about the content of the program.
 
-- Click **Assembler** and then the **Assemble** button.  This
-  translates the program in the Editor page from assembly language to
-  machine language.  The **Show Listing** button displays the result
-  of the translation, including any error messages.  The **Show
-  object** button displays the object code, which is the machine
-  language program produced by the translation.
+- Click *Assembler*.  The assembler translates programs in assembly
+  language to machine language. When you first enter the Assembler
+  tab, the text in the Editor window is copied over; this is the
+  source program.
+
+- Click the *Assemble* button.  This will do the translation.  The
+  *assembly listing* is displayed: this shows the original source
+  code along with the machine language, and any error messages.  The
+  *Show object* button displays the object code, which is the
+  machine language program produced by the translation.  The *Show
+  source* button displays the original source code, and the *Show
+  Listing* button displays the assembly listing again.
 
 - For this simple example, we don't need the Linker, so you can skip
-  it.  The linker is needed for larger and more complex programs with
-  multiple modules, or with external references, or that need
+  it.  The linker is needed for larger and more complex programs
+  with multiple modules, or with external references, or that need
   relocation.
   
-- Click **Processor**, which shows the main components of the computer
-  architecture, including registers and memory.  These components are
-  explained later.  For now, just note that this page is where you can
-  run programs using the emulator.
+- Click *Processor*, which shows the main components of the computer
+  architecture, including registers and memory.  These components
+  are explained later.  For now, just note that this page is where
+  you can run programs using the emulator.
 
-- Still on the Processor page, click **Boot**.  This reads the machine
+- Still on the Processor page, click *Boot*.  This reads the machine
   language program into the memory, and you can see it in the Memory
   display.  The source code (the assembly language) appears in the
   bottom section.
 
-- Click **Step**.  The processor executes a single instruction and
-  displays the effects on the registers and memory: blue for using a
-  value, and red for modifying it.  The assembly listing shows the
-  instruction that just executed by highlighting it in red.  It also
-  shows the instruction that will execute next by highlighting it in
-  blue.  This is just to make it easier to follow what is happening;
-  the actual machine ignores the assembly language listing and doesn't
-  even "know" that it exists.
+- Click *Step*.  The processor executes a single instruction and
+  displays the effects on the registers and memory: blue for /using/
+  a value, and red for /modifying/ it.  The assembly listing shows
+  the instruction that just executed by highlighting it in red.  It
+  also shows the instruction that will execute next by highlighting
+  it in blue.  This is just to make it easier to follow what is
+  happening; the actual machine ignores the assembly language
+  listing and doesn't even "know" that it exists.
 
 - Click Step repeatedly to watch the program execute, instruction by
-  instruction.  When the program terminates, the small window labelled
-  **Emulator** will display Halted.
+  instruction.  When the program terminates, the small window
+  labelled *Emulator* will display *Halted*.
 
-- To rerun the program, click Boot again.
+- You can also run the program to completion, without having to
+  click Step so maany times.  Click *Boot* again to get the machine
+  back into the initial state.  Now click *Run*, and the program
+  will continue executing instructions until it halts.
 
-To run the program slowly, click Step repeatedly.  To run the program
-faster but without updating the display after each instruction, click
-Run.  At any time you can click Pause to stop the processor, and you
-can resume execution with either Step or Run.  Sometimes it's useful
-to let the processor run at full speed until it reaches a particular
-instruction, and then stop.  This can be done by setting a
-*breakpoint* (described in the Programming section).
+To run the program slowly, click Step repeatedly.  To run the
+program faster but without updating the display after each
+instruction, click Run.  At any time you can click Pause to stop the
+processor, and you can resume execution with either Step or Run.
+Sometimes it's useful to let the processor run at full speed until
+it reaches a particular instruction, and then stop.  This can be
+done by setting a *breakpoint* (described in the Programming
+section).
 
 There are two independent views into the memory; this is convenient
 for looking at the machine language code in one view and the data in
@@ -249,13 +220,13 @@ instruction to be executed is the one in memory location 0.  The ir
 and other registers also contain 0, but that is just the initial
 value.
 
-To exit the app, just close the browser window or tab.  This may
-put up a dialogue box warning that any unsaved data may be lost and
+To exit the app, just close the browser window or tab.  This may put
+up a dialogue box warning that any unsaved data may be lost and
 asking you to confirm.
 
 *** Registers, constants, and arithmetic
 
-The architecture has a **register file** which is an array of 16
+The architecture has a *register file* which is an array of 16
 registers, named R0, R1, R2, ..., R15.  The Register File is displayed
 in a box on the Processor page.
 
@@ -265,23 +236,26 @@ analogous to the registers in a calculator: think of each register as
 a box that can hold a number, and think of the register name as a
 variable name.
 
-A computer program is a sequence of **instructions**.  Instructions
+A computer program is a sequence of *instructions*.  Instructions
 are similar to statements in a programming language, except that they
 are simpler.
 
 Sigma16 performs arithmetic on data in registers.  To do any
 computation on some numbers, we first need to get those numbers into
-registers.  To place a constant into a register, use the lea
-instruction.  In the assembly language we use the **lea** instruction.
-For example, to load 42 into register 3, write
+registers.  The *lea* instruction. can be used to place a constant
+into a register.  For example, to load 42 into register 3, write
 
 #+BEGIN_EXAMPLE
-    lea  R2,42[R0]   ; R2 := 42
+    lea  R3,42[R0]   ; R3 := 42
 #+END_EXAMPLE
 
-This is a statement in **assembly language**, and it describes one
-instruction.  The operation is **lea**, the operands are **R2,9[R0]**,
-and the part after the semicolon is a comment.
+This is a statement in *assembly language*, and it describes one
+instruction.  This statement contains three parts:
+- The operation is *lea*.  This tells the computer what action to
+  perform, and "lea" says to put a value into a register.  Later we
+  will see why this instruction is called "lea".
+- The operands are *R2,9[R0]*
+- everything after the semicolon is a comment.
 
 The word *lea* is the *operation*, i.e. the name of the instruction.
 The operandd field consists of two operands separated by a comma.  The
@@ -298,7 +272,7 @@ convention used in assignment statements in many programming
 languages: the registers in sub R1,R2,R3 appear in the same order as
 the variables in R1 := R2-R3.
 
-For now, just ignore the **[R0]** part.  It's optional: you can omit
+For now, just ignore the *[R0]* part.  It's optional: you can omit
 it or include it.  The [R0] has a purpose but that won't become clear
 until later.  Also, the name "lea" may look odd, but this also has a
 meaning that will become clear later.
@@ -847,8 +821,8 @@ another.  It's easy to indent with spaces, and it works everywhere!
 
 *** Files and modules
 
-Whatever method you use to edit your programs, be sure to **save your
-work to a file** from time to time.  If you don't do that, sooner or
+Whatever method you use to edit your programs, be sure to *save your
+work to a file* from time to time.  If you don't do that, sooner or
 later the system will crash and you'll lose your data.
 
 A *module* is a section of a program; it may be the complete program
@@ -943,6 +917,7 @@ Common workflows:
   on the module in the Modules page.  This way you don't need to
   Download the editor buffer because your up-to-date text will be in
   the external editor (but of course you have to save the file there).
+
 
 *** Jumps and conditionals
 
@@ -1402,6 +1377,26 @@ secondary code in the b field.
 | load     |       1 |
 | store    |       2 |
 
+*** Pseudoinstructions
+
+#+BEGIN_EXAMPLE
+jumpc0 Rd,disp[Ra]
+#+END_EXAMPLE
+
+
+#+BEGIN_EXAMPLE
+jumpc1 Rd,disp[Ra]
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+jumplt  someLabel[R0]  ; if <  then goto someLabel
+jumple  someLabel[R0]  ; if <= then goto someLabel
+jumpeq  someLabel[R0]  ; if =  then goto someLabel
+jumpne  someLabel[R0]  ; if != then goto someLabel
+jumpge  someLabel[R0]  ; if >= then goto someLabel
+jumpgt  someLabel[R0]  ; if >  then goto someLabel
+#+END_EXAMPLE
+
 *** A strange program
 
 Consider ``Program Strange'' below.  This program doesn't compute
@@ -1723,7 +1718,16 @@ Assembly directives
 - data
 
 ** Standard architecture tutorial
+*** Logic
+*** Bit fields and shifting
+*** Stack instructions
+*** Saving registers for procedure call
+
+
+*** Arithmetic on natural numbers
 ** Systems architecture tutorial
+*** System control registers
+*** Interrupt handlers
 ** S32 architecture tutorial
 
 * Sigma16 Architecture reference
@@ -1731,19 +1735,30 @@ Assembly directives
 :CUSTOM_ID: sec-architecture
 :END:
 
-** Subsystems
-The system contains several main subsystems.  The most important of
-these are *registers*, *memory*, and *logic and arithmetic*, and
-*Input/Output*.  These are described in detail later, but here is a
-brief synopsis:
+Sigma16 contains a set of registers, a memory, computational units,
+and an Input/Output controller.
 
-- A register is a digital circuit that can retain one word of data.  A
+- A *register* is a digital circuit that can retain one word of data.  A
   new value can be loaded into a register, and the current contents
-  may be read out.  There are a number of special registers as well as
-  a *register file* that contains 16 registers.
+  may be read out.  Sigma16 contains several groups of registers;
+  each group is displayed in a box on the Processor tab.
+  
+  - The *Register File* is an array of 16 registers named R0, R1,
+    $ldots$, R15.  These registers are accessible to the machine
+    language program.  Programs use the register file to hold
+    variables that are currently in use.
+    
+  - The *Control* registers keep track of the instruction that is
+    currently executing.
+    
+  - The *System* registers control the system status and interrupts.
+    
+  - The *Segment* registers are used for memory management.
 
-- The memory can hold a large number of words.  It's similar to the
-  register file, but significantly slower and much larger.
+- The *memory* is an array of $2^{16}$ words.  Each word in the
+  memory is identified by an *address*, which is a 16-bit natural
+  number.  The memory is similar to the register file, but
+  significantly slower and much larger.
 
 - The ALU (arithmetic and logic unit) is a circuit that can do
   arithmetic, such as addition, subtraction, comparison, and some
@@ -1828,51 +1843,22 @@ of a word.  If a numeric value is out of range it is truncated.
   hexadecimal number.  In contexts where there is no ambiguiity, the $
   may be omitted: for example, the GUi shows register and memory
   contents as hexadecimal without the leading $.
-
+  
 ** Bits and fields  
 
+*** Indexing bits in a word
 
-**** add
+Bit positions are numbered from right to left, starting with 0.  The
+rightmost (least significant) bit has index 0, and the leftmost
+(most significant) bit has index 15.  The following table shows the
+indices of all the bits in a word.  The vertical bars show the
+groups of 4 bits.  This grouping has no effect on the instructions,
+but it helps to figure out the expected results in hex notation.
 
-Example: add R1,R2,R3 ; R1 := R2 + R3
+|-------+----+----+----+----+-------+----+----+---+---+-------+---+---+---+---+-------+---+---+---+---+-------|
+| \vert | 15 | 14 | 13 | 12 | \vert | 11 | 10 | 9 | 8 | \vert | 7 | 6 | 5 | 4 | \vert | 3 | 2 | 1 | 0 | \vert |
+|-------+----+----+----+----+-------+----+----+---+---+-------+---+---+---+---+-------+---+---+---+---+-------|
 
-The instruction add Rd,Ra,Rb has operands Ra and Rb and destination
-Rd.  It fetches the operands Ra and Rb, calculates the sum Ra + Rb,
-and loads the result into the destination Rd.  The effect is Rd :=
-Ra + Rb.  For example, add R5,R12,R2 performs R5 := R12 + R3.
-
-The add instruction is RRR format with opcode=0.  Given destination Rd
-and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
-reprseented by 0dab.
-
-  Code    Assembly          Effect
-  -----   ----------------  ------------------
-  062c    add R6,R2,R12     ; R6 := R2 + R12
-  0d13    add R13,R1,R3     ; R13 := R1 + R3
-  
-In addition to setting the destination register, the add instruction
-sets several bits in the condition code R15 and may set a bit in the
-req register.
-
----------  ---------------------
- R15.ccG    result > 0 (binary)
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result <tc 0 (two's complement)
- R15.ccV    overflow (binary)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
----------  ---------------------
-
-The bits in a word are numbered from right to left, starting at bit
-index 0 in the rightmost (least significant) position, up to index 15
-at the leftmost (most significant) position.  The notation x.n denotes
-the bit in x with index n.
-
-A field is a consecutiave sequence of bits within a word.  A field is
-specified with the index of the leftmost bit in the field, along with
-the size of the field.  For example, the field in x with index 9 and
-size 3 consists of the bits x.9 x.8 x.7.
 
 ** Memory
 
@@ -1902,9 +1888,10 @@ variables, records, arrays, pointers and linked data structures, jump
 tables, and more.  These techniques are described later.
 
 ** Registers
+
 *** Register file
 
-The **register file** is a set of 16 general registers that hold a 16
+The *register file* is a set of 16 general registers that hold a 16
 bit word.  A register is referenced by a 4-bit binary number.  In
 assembly language, we use the notations R0, R1, R2, ..., R9, R10, R11,
 R12, R13, R14, R15 to refer to the registers.  The state of the
@@ -1935,11 +1922,11 @@ conventions.
 
 **** R0 contains the constant 0
 
- One of the registers, R0, has a special property: it always contains
- the constant 0.  It is legal to perform an instruction that attempts
- to load some other value into R0, but the register will still contain
- 0 after executing such an instruction.  Such an instruction will
- simply have no lasting effect.
+One of the registers, R0, has a special property: it always contains
+the constant 0.  It is legal to perform an instruction that attempts
+to load some other value into R0, but the register will still
+contain 0 after executing such an instruction.  Such an instruction
+will simply have no lasting effect.
 
 **** R15 is the condition code register
 
@@ -2066,7 +2053,7 @@ program, and some instructions use them directly.
 **** Status register flags
 
 The processor can be executing in several modes, which are determined
-by the **system control registers**.
+by the *system control registers*.
 
 **** req and mask registers
 
@@ -2203,8 +2190,8 @@ language and digital circuit design is to master the instruction
 formats.
 
 The core architecture (the simplest part of the system) uses just two
-instruction formats: the **RRR format** for instructions that perform
-operations in the registers, and the **RX format** for instructions
+instruction formats: the *RRR format* for instructions that perform
+operations in the registers, and the *RX format* for instructions
 that refer to a memory location.
 
 The advanced parts of the architecture provide additional instructions
@@ -2216,7 +2203,6 @@ instructions).
 
 The S32 architecture extends Sigma16 to handle 32-bit words, and it
 uses the EXP3 format.
-
 
 Every instruction has a 4-bit field called the opcode (op for short).
 This gives 16 values of the opcode: 14 of them (0 through 13) denote
@@ -2255,7 +2241,7 @@ following table gives an overview.
 |--------+------+--------+-----------------+-------------------|
 | RRR    |    1 | op     | d,a,b           | add Rd,Ra,Rb      |
 | RX     |    2 | op,b   | d,a disp        | load Rd,disp[Ra]  |
-| EXP   |    2 | op,ab  | d,e,f,g,h       | save Rd,Re,gh[Rf] |
+| EXP    |    2 | op,ab  | d,e,f,g,h       | save Rd,Re,gh[Rf] |
 | EXP3   |    3 | op,ab  | d,e,f,g,h,p,q,r | extractl          |
 
 There are two kinds of format: the machine instruction formats, and
@@ -2364,6 +2350,7 @@ can be accommodated, and it allows for experimental instructions for
 research purposes.  (The name EXP stands simultaneously for both
 EXPansion and EXPerimentation.)
 
+# #+INCLUDE: "./svg/EXPformat.svg" export html
 # [[file:svg/EXPformat.pdf]]
 
 There are two variants: EXP1 format requires one word, and EXP
@@ -2409,6 +2396,36 @@ extension.
 *** Arithmetic
 
 **** add
+
+The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
+destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~, calculates
+the sum ~Ra~ + ~Rb~, and loads the result into the destination ~Rd~.
+The effect is ~Rd := Ra + Rb~.  For example, ~add R5,R12,R2~
+performs ~R5 := R12 + R3~.
+
+The add instruction is RRR format with opcode=0.  Given destination Rd
+and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
+reprseented by 0dab.
+
+  Code    Assembly          Effect
+  -----   ----------------  ------------------
+  062c    add R6,R2,R12     ; R6 := R2 + R12
+  0d13    add R13,R1,R3     ; R13 := R1 + R3
+  
+In addition to setting the destination register, the add instruction
+sets several bits in the condition code R15 and may set a bit in the
+req register.
+
+---------  ---------------------
+ R15.ccG    result > 0 (binary)
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result <tc 0 (two's complement)
+ R15.ccV    overflow (binary)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+---------  ---------------------
+
 The bits in a word are numbered from right to left, starting at bit
 index 0 in the rightmost (least significant) position, up to index 15
 at the leftmost (most significant) position.  The notation x.n denotes
@@ -2418,543 +2435,6 @@ A field is a consecutiave sequence of bits within a word.  A field is
 specified with the index of the leftmost bit in the field, along with
 the size of the field.  For example, the field in x with index 9 and
 size 3 consists of the bits x.9 x.8 x.7.
-
-** Memory
-
-The memory is a hardware array of words that are accessed by address.
-A memory address is 16 bits wide, and there is one memory location
-corresponding to each address, so there are 2^16 = 64k memory
-locations.  Each memory location is a 16-bit word.
-
-Instructions specify memory addresses in two parts: the
-*displacement*, which is a word representing a binary number, and the
-*index*, which is one of the registers in the register file.  For
-example, a memory address could be specified as $003c[R5]; the
-displacement is 003c and the index is R5.
-
-When the instruction is executed, the computer calculates the
-*effective address* by adding the value of the displacement and the
-value in the index register.  If R5 contains 2, then the effective
-address of $003c[R5] is 003e.
-
-This scheme may seem more complicated than simply specifying the
-address directly, but it is extraordinarily flexible.  If the machine
-language just gave the address as a single binary number, it would be
-limited to accessing simple static variables.  The effective address
-mechanism is simple to implement in hardware, as you can see in the
-digital circuit processor, yet it allows the implementation of local
-variables, records, arrays, pointers and linked data structures, jump
-tables, and more.  These techniques are described later.
-
-** Registers
-*** Register file
-
-The **register file** is a set of 16 general registers that hold a 16
-bit word.  A register is referenced by a 4-bit binary number.  In
-assembly language, we use the notations R0, R1, R2, ..., R9, R10, R11,
-R12, R13, R14, R15 to refer to the registers.  The state of the
-register file can be written as a table showing the value of each
-register:
-
-| Register | Contents |
-|----------+----------|
-| R0       | 0000     |
-| R1       | fffe     |
-| R2       | 13c4     |
-| ...      | ...      |
-| R14      | 03c8     |
-| R15      | 0020     |
-
-Sigma16 is a load/store style architecture; that is, it does not
-combine memory accesses with arithmetic.  All calculations are carried
-out in the register file, and explicit load and store instructions
-must be used to copy data between the memory and the register file.
-
-There are some programming conventions that use certain registers for
-special purposes.  The hardware does not enforce, or even know about,
-these conventions, and you do not have to follow the conventions in
-programming.  However, it is necessary to obey the conventions in
-order to use the standard software libraries in your program.  See the
-section on Programming for a discussion of these standard usage
-conventions.
-
-**** R0 contains the constant 0
-
- One of the registers, R0, has a special property: it always contains
- the constant 0.  It is legal to perform an instruction that attempts
- to load some other value into R0, but the register will still contain
- 0 after executing such an instruction.  Such an instruction will
- simply have no lasting effect.
-
-**** R15 is the condition code register
-
-Several instructions produce status information: the result of a
-comparison, whether there was an overflow, etc.  This information is
-automatically loaded into R15, which is the condition code register.
-The description of each instruction states whether R15 is modified,
-and what goes into it.
-
-The bits in R15 are indexed from bit 0 (the most significant, or
-lefttmost bit) to bit 15 (the least significant, or rightmost).  The
-condition code bits that have specific meanings are called *flags*.
-
-- Each bit position holds a Boolean value, either False or True,
-  represented by 0 or 1 respectively.
-- Each flag gives the status of a relation or event.  If the flag is
-  True (1) the relation holds or the event has occurred.  If the flag
-  is False (0) the relation does not hold, or the event has not
-  occurred.
-
-One way to use flags in the condition code is to control conditional
-jumps:
-- Use jumpc0 to jump if the Boolean is False
-- Use jumpc1 to jump if the Boolean is True
-
-Another way to use condition code flags is to save them as Boolean
-variables and perform logic operations on them.  This is done using
-the extract and logicb instructions.
-
-There are separate flags for integers (represented as two's complement) and natural
-numbers (represented as binary).  This is necessary because the
-relation between two words sometimes depends on the type of the data.
-For example, consider the word ffff (all 1 bits).  On its own, ffff is
-just a word of bits and has no inherent meaning.
-- If ffff is interpreted as a natural number (i.e. binary), it is
-  positive and has the value 65,535, and ffff > 0000
-- If ffff is interpreted as an integer (i.e. two's complement), then
-  it is negative and has the value -1, and ffff < 0000.
-Each flag has a short 1-character name to enable them to be displayed
-compactly.  A naming convention is that flags for integers (two's
-complement) have lower case letters, while flags for natural numbers
-(binary) have upper case letters.  For example:
-- l means < for integers
-- L means > for integers
-However, equality is the same regardless of type.  If two words
-consist of exactly the same bits, then they have the same value as
-integers, natural numbers, characters, addresses, and for any other
-possible type as well.  Therefore there is only one flag for equality,
-and its symbol is =.
-
-The following table lists all the condition code flags.  The index is
-the bit position in the condition code register (bit index 0 is the
-leftmost bit).  The symbol is a character that is displayed if the
-flag is 1.  The name is an alphabetic letter used in programs where
-the symbol is not allowed: for example you can't have a variable named
-is< so isE can be used instead.
-
-- index: Each flag has an index which gives its bit position in the
-  condition code.  Bits are numbered from right to left, starting
-  with 0.  Thus the least significant bit has index 0, and the most
-  significant bit has index 15.
-- meaning: Description using English or mathematical notation
-- symbol: Character that is displayed when the flag is True
-- name: Alphabetical name suggested for use within variable names.
-
-There is an exception for division by zero, but no corresponding flag
-in the condition code.  The reason is that the div instruction places
-the remainder in R15, so the condition code isn't available to
-represent division by 0.  You can test explicity for division by 0 by
-using jumpz specifying the register containing the divisor /before/
-execuing the div instruction.
-
-Bits are indexed from the right, starting from bit 0.  This bit with
-index 0 is the least significant, the bit with index 15 is the most
-significant bit.
-
-Table: Condition code flags
-
-| bit index | Relation        | Symbol |
-|-----------+-----------------+--------|
-|         0 | > Int           | g      |
-|         1 | > Nat           | G      |
-|         2 | =               | =      |
-|         3 | < Nat           | L      |
-|         4 | < Int           | <      |
-|         5 | Int overflow    | v      |
-|         6 | Nat overflow    | V      |
-|         7 | Carry           | C      |
-|         8 | Stack overflow  | S      |
-|         9 | Stack underflow | s      |
-
-*** Instruction control registers
-There are several instruction control registers that enable the
-processor to keep track of the state of the running program.  These
-registers are rarely used directly by the machine language program,
-but they are essential for keeping track of the execution of the
-program, and some instructions use them directly.
-
- - ir -- instruction register (16-bit word)
-
- - pc -- program counter (16-bit word)
-
- - adr -- address register (16-bit word)
-
- - dat -- data register (16-bit word)
- 
- - status -- collection of control flags
-
-*** System control registers
-
-|---+---------|
-| 0 | status  |
-| 1 | mask    |
-| 2 | req     |
-| 3 | istat   |
-| 4 | ipc     |
-| 5 | vect    |
-| 6 | psegBeg |
-| 7 | psecEnd |
-| 8 | dsegBeg |
-| 9 | dsegEnd |
-|---+---------|
-
-**** Status register flags
-
-The processor can be executing in several modes, which are determined
-by the **system control registers**.
-
-**** req and mask registers
-
-Interrupt request and mask bits (req and mask registers)
-
-|   | inp       | input                   |
-|   | out       | output                  |
-| 0 | timer     | timer interrupt request |
-| 1 | seg fault | segmentation fault      |
-|   | bin ovfl  | natural overflow        |
-|   | tc ovfl   | integer overflow        |
-| 2 | zdiv      | divide by 0             |
-|   | sovfl     | stack overflow          |
-|   | sufl      | stack underflow         |
-|   | utrap     | user trap               |
-
- - sys (bit 0)  -- system state (1-bit flag)
-
- - ie (bit 1)   -- interrupts enabled (1-bit flag)
-
-Table: Processor status flags
-
-<table>
-  <tr>
-    <th>Bit</th>
-    <th>Flag</th>
-    <th>Meaning</th>
-  </tr>
-  <tr>
-    <td>0</td>
-    <td>**U**</td>
-    <td>User state</td>
-  </tr>
-  <tr>
-    <td>1</td>
-    <td>**E**</td>
-    <td>Interrupts enabled</td>
-  </tr>
-</table>
-
-*** Interrupts and exceptions
-
- - mask
- 
- - req
- 
- - istat
- 
- - ipc
- 
- - vect
-
-**** Mask and request flags
-
-  <table>
-    <tr>
-      <th>Bit</th>
-      <th>Flag</th>
-      <th>Meaning</th>
-    </tr>
-    <tr>
-      <td>0</td>
-      <td>Trap</td>
-      <td>Trap</td>
-    </tr>
-    <tr>
-      <td>0</td>
-      <td>Trap</td>
-      <td>Trap</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>Overflow</td>
-      <td>Trap</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>Div0</td>
-      <td>Trap</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>StackFault</td>
-      <td>Trap</td>
-    </tr>
-    <tr>
-      <td>4</td>
-      <td>SegFault</td>
-      <td>Trap</td>
-    </tr>
-    <tr>
-      <td>5</td>
-      <td>Privelege</td>
-      <td>Trap</td>
-    </tr>
-    <tr>
-      <td>6</td>
-      <td>Timer</td>
-      <td>Interrupt</td>
-    </tr>
-    <tr>
-      <td>7</td>
-      <td>Input</td>
-      <td>Interrupt</td>
-    </tr>
-    <tr>
-      <td>8</td>
-      <td>Output</td>
-      <td>Interrupt</td>
-    </tr>
-  </table>
-
-** Instruction representation
-
-Instructions are represented in the memory of the computer using
-words, just like all other kinds of data.  From the programmer's
-perspective, an instruction is like a simple statement in a
-programming language.  From the circuit designer's perspective,
-instructions must be executed using logic gates, and the specific way
-it is represented as a word of bits is important.
-
-An instruction specifies several pieces of information.  For example,
-add R1,R2,R3 is an instruction that says four things: it's an
-addition, the operands come from R2 and R3, and the result goes into
-R1.  Therefore to represent instructions we need to organize a word as
-a collection of several *fields*, with each field giving one specific
-piece of information about the instruction.
-
-The particular scheme for describing an instruction as a collection of
-fields is called an *instruction format*.  Like most computers,
-Sigma16 has a small number of instruction formats and a larger number of
-instructions.  The key to understanding the interface between machine
-language and digital circuit design is to master the instruction
-formats.
-
-The core architecture (the simplest part of the system) uses just two
-instruction formats: the **RRR format** for instructions that perform
-operations in the registers, and the **RX format** for instructions
-that refer to a memory location.
-
-The advanced parts of the architecture provide additional instructions
-which are represented with the EXP format. The name EXP stands
-simultaneously for *expansion* (because it provides for many
-additional instructions) and *experimental* (because it allows for
-experimentation with the design and implementation of new
-instructions).
-
-The S32 architecture extends Sigma16 to handle 32-bit words, and it
-uses the EXP3 format.
-
-
-Every instruction has a 4-bit field called the opcode (op for short).
-This gives 16 values of the opcode: 14 of them (0 through 13) denote
-the 14 RRR instructions, described later.  If the op field is 14 (hex
-e) the instruction is EXP format and has a secondary opcode in the a
-and b fields.  If the op field contains 15 (hex f) the instruction is
-RX format with a secondary opcode in the b field.  The instruction
-formats are described below.
-
-The first word of every instruction contains the
-following fields.
-
-- op  (bits 0-3) opcode, determines instruction format
-- d   (bits 4-7) 4-bit destination
-- a   (bits 8-11) 4-bit operand
-- b   (bits 12-15) 4-bit operand, or expanded opcode for RX
-
-
-The details of each format and its fields are given below, and The
-following table gives an overview.
-- Each instruction format has a fixed size, which is the number of
-  words used to represent any instruction of that format.
-- These words are subdivided into 4-bit fields, each with a unique
-  name: op, d, a, b, etc.
-- The type of instruction is specified by the opcode, which is the op
-  field for RRR instructions, and which consists of several fields for
-  the other formats.
-- The instruction operands are specified by further fields.
-- Some instructions combine two 4-bit fields into a single 8-bit
-  field.
-  - The a and b fields may be combined to form an 8-bit field called ab
-    (only for the EXP format)
-  - The g and h fields may be combined to form an 8-bit field called gh
-
-| Format | Size | Opcode | Operands        | Example           |
-|--------+------+--------+-----------------+-------------------|
-| RRR    |    1 | op     | d,a,b           | add Rd,Ra,Rb      |
-| RX     |    2 | op,b   | d,a disp        | load Rd,disp[Ra]  |
-| EXP   |    2 | op,ab  | d,e,f,g,h       | save Rd,Re,gh[Rf] |
-| EXP3   |    3 | op,ab  | d,e,f,g,h,p,q,r | extractl          |
-
-There are two kinds of format: the machine instruction formats, and
-the assembly language instruction statement formats.  There are three
-machine instruction formats: RRR, RX, EXP.  However, there is a
-larger set of assembly language statement formats, because there are
-special syntaxes for some instructions, and there are assembler
-directives that aren't instructions at all.  The assembly language
-formats are described later.
-
-*** RRR format
-
-RRR instructions are represented in one word comprising four 4-bit
-fields:
-
-[[file:svg/RRRformat.pdf]]
-
-Each field contains 4 bits representing a binary number between 0
-and 15.
-
-- op (bits 15 to 12) is the operation code, usually called /opcode/.
-  This determines the operation to be performed.  If the opcode is
-  between 0 and 12 it specifies an RRR instruction.  An opcode greater
-  than 12 indicates an /expanding opcode/: the instruction is not RRR
-  but one of the other formats, and it has a secondary opcode that
-  specifies precisely which instruction it is.  This is explained in
-  the sections on RX and EXP formats.
-- d (bits 11 to 8) is the /destination register/; the register where
-  (in most cases) the result will be loaded.
-- a (bits 7 to 4) is the register containing the first operand.
-- b (bits 3 to 0) is the register containing the second operand.
-
-In most cases, an RRR instruction takes two operands in registers
-specified by the a and b fields and produces a result which is loaded
-into the register specified by the d field.  A typical example of an
-RRR instruction is add R4,R9,R2, which adds the contents of registers
-R9 and R2, and loads the result into R4.  It's equivalent to R4 :=
-R9 + R2.  The opcode for add is 0, so the machinen language code for
-this instruction is 0492.
-
-*** RX format
-
-RX instructions specify a memory location as well as a register
-operand.  The machine language representation is two words:
-
-[[file:svg/RXformat.pdf]]
-
-
-The RX instruction format is used for instructions that use a memory
-address, which is specified by an index register and a displacement.
-The name of the format describes briefly the two operands: a register
-(R) and an indexed memory address (X).
-
-An RX instruction contains two operands: one is a memory address, and
-the other is a register.  Typical RX instructions are loads, stores,
-and jumps.  The instruction consists of two consecutive words.  The
-first has the same format as an RRR instruction, with four fields: op,
-d, sa, sb.  The second word is a single 16-bit binary number, and is
-called the displacement.
-
-An RX instruction is represented by two words, with the following
-fields: op=15, b contains the secondary opcode which specifies which
-RX instruction it is, d is the destination, a is the index register,
-and the second word is a 16 bit constant called the displacement
-(often written disp for short).
-
-- op field (bits 0-3 of ir) is f for all RX instructions
-- d field (bits 4-7 of ir) has several uses
-- a field (bits 8-11 of ir) is index register for effective address
-- b field (bits 12-15 of ir) is secondary opcode
-- disp (displacement) is the second word of the instruction
-- ea (effective address) = displacement + r[a]
-
-The memory address is specified in two parts: an index register and
-the displacement.  The index register is specified in the sa field.
-In assembly language, the notation used is number[reg], where the
-number is the value of the displacement, and the reg is the index
-register.  Thus $20b3[R2] means the address has displacement $20b3 and
-the index register is R2.
-
-When the machine executes an RX instruction, it begins by calculating
-the effective address.  This is abbreviated "ea", and its value is the
-sum of the displacement and the contents of the index register.
-
-RX instructions are represented in two words, and they use an
-"expanding opcode".  That is, the op field of the first word of the
-instruction contains the constant f (the bits 1111) for every RX
-instruction, and the sb field is used to hold a secondary opcode
-indicating which RX instruction it is.
-
-The register operand is specified in the d field.  For several RX
-instructions, this is indeed the destination of the instruction: for
-example, load places data into Rd.  However, a few RX instructions use
-the d field differently (see, for example, the conditional jump
-instructions).
-
-The memory address is specified using the sa field and the
-displacement, which is the entire second word of the instruction.
-
-*** EXP format
-
-An EXP instruction contains 14 (hex e) in the op field, and the a and
-b fields are combined into a single 8-bit number that contains a
-secondary opcode.  This means that the EXP format allows for 256
-instructions.  This greatly expands the number of instructions that
-can be accommodated, and it allows for experimental instructions for
-research purposes.  (The name EXP stands simultaneously for both
-EXPansion and EXPerimentation.)
-
-# #+INCLUDE: "./svg/EXPformat.svg" export html
-
-There are two variants: EXP1 format requires one word, and EXP
-requires two words.  For both variants, the format of the first word
-is the same, with op=14 (4 bits), d (4 bits), and ab (8 bits).  The
-secondary operation code in the ab field determines whether the
-instruction consists of just one word (EXP1) or two (EXP).
-
-Some EXP instructions combine the g and h fields to provide an 8-bit
-operand.
-
-The a and b fields form an 8-bit value called ab.
-
-# [[file:svg/EXPformat.svg]]
-
-A second word is needed to represent RX and EXP formats.  There
-are individual names for the individual 4-bit fields, as well as names
-(disp, gh) for larger fields.
-
-- e (bits 0-3) 4-bit operand
-- f (bits 4-7) 4-bit operand
-- g (bits 8-11) 4-bit operand
-- h (bits 12-15) 4-bit operand
-- gh (bits 8-15) 8-bit operand
-- disp (bits 0-15) 16 bit operand "displacement"
-
-*** EXP3 format
-
-The EXP3 format uses three words to represent an instruction.  The
-first two words have the same layout as for EXP, and the third word
-contains three 5-bit fields and a 1-bit field.  The 5-bit fields
-represent numbers in the range from 0 through 31, and are used to
-specify bit indexes and field sizes for the 32-bit architecture
-extension.
-
-#+INCLUDE: "./svg/EXP3format.svg" export html
-
-** Instructions
-:PROPERTIES:
-:CUSTOM_ID: sec-instruction-set
-:END:
-
-*** Arithmetic
-
-**** add
 
 #+BEGIN_EXAMPLE
     add R1,R2,R3    ; R1 := R2 + R3
@@ -2974,20 +2454,6 @@ reprseented by 0dab.
 | 062c | add R6,R2,R12 | ; R6 := R2 + R12 |
 | 0d13 | add R13,R1,R3 | ; R13 := R1 + R3 |
   
-In addition to setting the destination register, the add instruction
-sets several bits in the condition code R15 and may set a bit in the
-req register.
-
----------  ---------------------
- R15.ccG    result > 0 (binary)
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result <tc 0 (two's complement)
- R15.ccV    overflow (binary)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
----------  ---------------------
-
 The add instruction can be used for both binary addition (on natural
 numbers) and for two's complement addition (on signed integers).
 
@@ -3163,6 +2629,349 @@ natural numbers represented in binary.
 - The remainder is placed in Ra, overwriting the least significant
   half of the dividend operand
 
+*** Logic and bits
+
+The instructions in this section treat a word as a sequence of bits,
+not as a number.  There are instructions that perform logic operations
+on individual bits, on all the bits in a word, and that operate on bit
+fields.
+
+The bits in a word x are indexed from 0 to 15, where 0 is the index of
+the leftmost (most significant) bit and 15 is the index or the
+rightmost (least significant) bit.  The notation x.i means the bit
+with index i in the word x.  For example, x.0 is the leftmost bit and
+x.15 is the rightmost bit.  When used in an instruction, a bit index
+is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
+
+A bit field is a contiguous sequence of bits in a word.  It is
+specified by the register containing a word, the index of the starting
+bit in the field, and the size of the field.
+
+The bit field instructions can be implemented using a combination of
+logic and shift instructions.  They are included in the architecture
+for several reasons:
+
+- These operations provide useful abstractions for writing
+  interpreters and simulators.
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
+
+**** cmp
+
+The compare instruction =cmp Ra,Rb= compares the values in the operand
+registers =Ra= and =Rb=, and then sets flags in the condition code
+(R15) to indicate the result. The notation R15.i means bit /i/ in R15;
+thus R15.0 is the leftmost bit of R15.  The instruction performs both
+natural number comparison (binary) and integer comparison (two's
+complement).  The resulting flags are
+
+- binary less than (L) in R15.0
+- two's complement less than (<) in R15.1
+- equal in R15.2
+- binary greater than (G) in R15.3
+- two's complement greater than (>) in R15.4
+
+The result of a cmp instruction can be used to control a conditional
+jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
+and the jumpc1 instruction jumps if a specified bit is 1.
+
+Pseudoinstructions provide the most common cases; for example jumple
+jumps if the condition code indicates that a comparison produced
+either integer less-than or equal.  A common pattern is a cmp followed
+by a jump pseudoinstruction, for example:
+
+#+BEGIN_EXAMPLE
+    cmp     R4,R9      ; compare R4 with R9
+    jumpgt  abc]R0]    ; if R4 > R9 then goto abc
+#+END_EXAMPLE
+
+**** logicw
+
+The logicw instruction performs a bitwise logic operation on two
+operands: each bit of the result is obtained by performing the logic
+function on the corresponding bits of the two operands.  The
+instruction allows an arbitrary logic function on two bits.
+
+A logic function is specified by g; the function itself is denoted
+*function g*.  This function is applied to the two operand registers
+Re and Rf, and the result is loaded into the destination register Rd.
+
+- General form: logicw Rd,Re,Rf,g
+- Instruction format: EXP
+- Assembly format: RRRKEXP
+- Rd := (function g) Re Rf
+
+| x | y | result |
+|---+---+--------|
+| 0 | 0 | a      |
+| 0 | 1 | b      |
+| 1 | 0 | c      |
+| 1 | 1 | d      |
+
+
+| abcd | hex | function |
+| 0000 |   0 |          |
+| 0001 |   1 |          |
+| 0010 |   2 |          |
+| 0011 |   3 |          |
+| 0100 |   4 |          |
+| 0101 |   5 |          |
+| 0110 |   6 |          |
+| 0111 |   7 |          |
+| 1000 |   8 |          |
+| 1001 |   9 |          |
+| 1010 |  10 |          |
+| 1011 |  11 |          |
+| 1100 |  12 |          |
+| 1101 |  13 |          |
+| 1110 |  14 |          |
+| 1111 |  15 |          |
+
+
+| x | y | x and y | x xor y | x or y |
+|---+---+---------+---------+--------+
+| 0 | 0 |       0 |       0 |      0 |
+| 0 | 1 |       0 |       1 |      1 |
+| 1 | 0 |       0 |       1 |      1 |
+| 1 | 1 |       1 |       0 |      1 |
+|---+---+---------+---------+--------+
+|   |   |       1 |       6 |      7 |
+|---+---+---------+---------+--------|
+
+| x | y | x nor y | inv y | inv x | x nand y |
+|---+---+---------+-------+-------+----------|
+| 0 | 0 |       1 |     1 |     1 |        1 |
+| 0 | 1 |       0 |     0 |     1 |        1 |
+| 1 | 0 |       0 |     1 |     0 |        1 |
+| 1 | 1 |       0 |     0 |     0 |        0 |
+|---+---+---------+-------+-------+----------|
+|   |   |       8 |     a |     c |        e |
+|---+---+---------+-------+-------+----------|
+
+
+| function | abcd | code |
+|----------+------+------|
+| and      | 0001 |    1 |
+| or       | 0111 |    7 |
+| xor      | 0110 |    6 |
+| inv x    | 1100 |   12 |
+| inv y    |      |      |
+
+**** logicb
+
+The /logicb/ instruction performs an arbitrary Boolean logic function
+on two operand bits, producing a result bit.  All three bits must be
+in the same register.  If a program keeps a collection of Boolean
+variables in one register, logicb supports evaluation of general
+expressions using those variables.
+
+This logicb instruction performs R1.3 := R1.9 xor R1.2:
+
+#+BEGIN_EXAMPLE
+      logicb  R1,3,9,2,6
+      logicb  d,e,f,g,h
+#+END_EXAMPLE
+
+This instruction performs logic on bits within R1.  The logic function
+is 6 (see Logic Functions), the operands are bits 9 and 2, and the
+result is placed into bit 3.  The instruction could be read as: within
+R1, perform logic function 6 on bits 9 and 2, and place the result in
+bit 3.
+
+Pseudoinstructions are provided for the most common logic functions;
+these all generate a logicb instruction.  The operands for these are
+the same as for logicb, except that the last operand (the logic
+function) is omitted.  Since the logical negation (invert) function
+has only one operand, the invb pseudoinstruction also omits the second
+operand bit index.  Here are examples of the logicb
+pseudoinstructions:
+
+#+BEGIN_EXAMPLE
+      invb    R1,3,9     ; R1.3 := !R1.9
+      andb    R1,3,9,2   ; R1.3 := R1.9 & R1.2
+      orb     R1,3,9,2   ; R1.3 := R1.9 | R1.2
+      xorb    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
+#+END_EXAMPLE
+
+The instruction format is EXP, with the following fields:
+
+#+BEGIN_EXAMPLE
+      logicb  Rd,e,f,g,h
+#+END_EXAMPLE
+
+- Rd is the destination register, which also contains both source
+  operands bits
+- e is the index of the destination bit
+- f is the index of the first argument bit
+- g is the index of the second argument bit
+- h is the logic function
+  
+**** shiftl, shiftr
+
+The instruction shiftl Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the left, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the leftmost k bits of the value are discarded and the
+rightmost k bits become 0.
+
+#+BEGIN_EXAMPLE
+   shiftl  R2,R3,5
+   op = e (EXP format)
+   d = 2 (destination register)
+   ab = secondary opcode
+   e = 3 (register operand)
+   f = 0 (unused, don't care)
+   gh = 5 (constant)
+#+END_EXAMPLE
+
+The instruction format is EXP, and the assembly language statement format
+is RRKEXP.
+
+Shift to the right.
+
+The instruction shiftr Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the right, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the rightmost k bits of the value are discarded and the
+leftmost k bits become 0.
+
+The following instruction shifts the value in R3 to the right by 5
+bits and place the result in R2.  The operand register R3 is not
+changed.
+
+#+BEGIN_EXAMPLE
+   shiftr  R2,R3,5
+#+END_EXAMPLE
+
+The instruction format is EXP, and the assembly language statement format
+is RRKEXP
+
+**** extract, extracti
+
+The extract instruction copies an arbitrary field of bits from a
+source register and inserts those bits into an arbitrary position in
+a destination register.  The extracti instruction is similar to
+extract, but extracti inverts the bits in the source field before
+they are inserted into the destination.
+
+The bits in the destination field are overwritten; other bits in the
+destination as well as all bits in the source are unchanged.
+
+The fields are specified by giving the bit indices of the leftmost
+bit in the field (the left index) and the rightmost bit in the
+field (the right index).  Normally the left index is greater than
+the right index; otherwise the field is empty.
+
+The assembly language format is RkkRk.  Rd is the destination
+register, the field to be overwritten is bits f to g (inclusive) in
+the destination, the source register is Re, and the source field
+starts at bit h in Re.  The general form of the assembly language
+statement is:
+
+#+BEGIN_EXAMPLE
+   extract Rd,f,g,Re,h
+#+END_EXAMPLE   
+
+The effect is to overwrite each bit in the destination field with
+the corresponding bit in the source field:
+
+#+BEGIN_EXAMPLE
+Rd.i := Rs.k
+Rd.i-1 := Rs.k-1
+...
+Rd.j := Rs.k-(j-i+1)
+#+END_EXAMPLE
+
+Example:
+#+BEGIN_EXAMPLE
+extract R2,7,4,R3,20
+R2.7 := R3.20
+R2.6 := R3.19
+R2.5 := R3.18
+R2.4 := R3.17
+#+END_EXAMPLE   
+
+The machine language format is EXP, with the following fields:
+
+|----+---+---+---|
+| op | d | a | b |
+|----+---+---+---|
+| e  | f | g | h |
+|----+---+---+---|
+
+- op  = e (escape to EXP)
+- d   = Rd (destination register)
+- ab  = secondary opcode for extract
+- e   = Re (source register)
+- f   = destination start bit_index
+- g   = destination end bit_index
+- h   = source start bit index
+
+-  (obsolete)  extract  Rd,Rs,d_index,s_index,size
+
+- Rd is the destination register
+- d_index (0..15) is the starting bit index in the destination register
+- size (0..15) is the number of bits in the field
+- Rs is the source register (field is obtained from this register)
+- s_index (0..15) is the starting bit index in the source register
+
+#+BEGIN_EXAMPLE
+      lea      R1,$ffff[R0]     ; ffff
+      add      R2,R0,R0         ; 0000
+      extract  R2,R1,11,3,4     ; 0f00  R2.11-8 := R1.3-0
+#+END_EXAMPLE
+
+The effect of an extract instruction can be described by writing each
+bit assignment individually, so there are /size/ individual bit
+assignments.  The notation R2.7 means /the bit at position 7 in
+register R2/.  Using this notation, the example above performs the
+following bit assignments:
+
+| extract R2,R1,11,3,4 |
+|----------------------|
+| R2.11 := R1.3        |
+| R2.10 := R1.2        |
+| R2.9 := R1.1         |
+| R2.8 := R1.0         |
+|----------------------|
+
+Although extract performs a number of bit assignments, it is a single
+instruction and its execution time is a small fixed number of clock
+cycles.  The execution time does not depend on the value of the field
+size, and extracting a large field doesn't require more time than
+extracting a small field. The hardware implementation of the
+instruction does not use an iteration to copy the bits; they are all
+copied in parallel in one clock cycle.
+
+Any register may be specified for the source and destination.  If they
+are the same, the effect is to move a bit field from one place to
+another within the register (this is not the same as a shift).  If the
+destination is R0, the result is discarded and the instruction has no
+effect.
+
+The size is a 4-bit field, and its value is between 0 and 15.  Thus an
+extract instruction cannot copy the entire word in one regsiter to
+another register, as a size of 16 cannot be specified.  If size=0 then
+the instruction does nothing.  the source and destination fields
+cannot extend beyond the rightmost bit in a register.
+
+Here is another example:
+
+#+BEGIN_EXAMPLE
+      add      R3,R0,R0
+      extract  R3,R1,13,5,1     ; 2000
+      lea      R4,$ffff[R0]
+      extract  R4,R0,13,5,1     ; dfff
+#+END_EXAMPLE
+
+
+
+
 *** Memory
 
 A memory address is a 16-bit binary number.  Instructions don't
@@ -3185,14 +2994,14 @@ effective address is just *a*.
 
 **** lea
 
-The **load effective address** instruction *lea Rd,disp[Rx]* calculates
+The *load effective address* instruction *lea Rd,disp[Rx]* calculates
 the effective address of the operand disp[Rx] and places the result in
 the destination register Rd.  The effective address is the binary sum
 disp+Rx.
 
 **** load
 
-The **load** instruction *load Rd,disp[Rx]* calculates the effective
+The *load* instruction *load Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and copies the word in memory at the
 effective address into the destination register Rd.  The effective
 address is the binary sum disp+Rx.
@@ -3213,7 +3022,7 @@ Examples
 
 **** store
 
-The **store** instruction *store Rd,disp[Rx]* calculates the effective
+The *store* instruction *store Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and the value of the destination
 register Rd into memory at the effective address.  The effective
 address is the binary sum disp+Rx.
@@ -3488,7 +3297,7 @@ is equivalent to
     load   R5,24[R14]
 #+END_EXAMPLE
 
-The **restore** instruction copies a sequence of consecutive memory
+The *restore* instruction copies a sequence of consecutive memory
 locations starting from the effecive address into a sequence of
 adjacent registers.  The index register (R14 in this example) is not
 changed.  Restore is equivalent to a fixed sequence of load
@@ -3526,332 +3335,16 @@ The effect is equivalent to
    load  R10,11[R14]
 #+END_EXAMPLE
 
-*** Logic and bits
+*** Flow of control
+**** jump
+**** jumpc0, jumpc1
+**** jal
+**** jumpz, jumpnz
 
-The instructions in this section treat a word as a sequence of bits,
-not as a number.  There are instructions that perform logic operations
-on individual bits, on all the bits in a word, and that operate on bit
-fields.
-
-The bits in a word x are indexed from 0 to 15, where 0 is the index of
-the leftmost (most significant) bit and 15 is the index or the
-rightmost (least significant) bit.  The notation x.i means the bit
-with index i in the word x.  For example, x.0 is the leftmost bit and
-x.15 is the rightmost bit.  When used in an instruction, a bit index
-is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
-
-A bit field is a contiguous sequence of bits in a word.  It is
-specified by the register containing a word, the index of the starting
-bit in the field, and the size of the field.
-
-The bit field instructions can be implemented using a combination of
-logic and shift instructions.  They are included in the architecture
-for several reasons:
-
-- These operations provide useful abstractions for writing
-  interpreters and simulators.
-- When used in an interpreter, bit field operations are executed
-  frequently: they are a crucial part of the "inner loop".  Therefore
-  the efficiency of common bit field operations is important.
-- The bit field instructions are easier to use and more readable than
-  the corresponding logic and shifts.
-- These instructions can be implemented efficiently in a digital
-  circuit and this implementation is an interesting design problem.
-
-**** cmp
-
-The compare instruction =cmp Ra,Rb= compares the values in the operand
-registers =Ra= and =Rb=, and then sets flags in the condition code
-(R15) to indicate the result. The notation R15.i means bit /i/ in R15;
-thus R15.0 is the leftmost bit of R15.  The instruction performs both
-natural number comparison (binary) and integer comparison (two's
-complement).  The resulting flags are
-
-- binary less than (L) in R15.0
-- two's complement less than (<) in R15.1
-- equal in R15.2
-- binary greater than (G) in R15.3
-- two's complement greater than (>) in R15.4
-
-The result of a cmp instruction can be used to control a conditional
-jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
-and the jumpc1 instruction jumps if a specified bit is 1.
-
-Pseudoinstructions provide the most common cases; for example jumple
-jumps if the condition code indicates that a comparison produced
-either integer less-than or equal.  A common pattern is a cmp followed
-by a jump pseudoinstruction, for example:
-
-#+BEGIN_EXAMPLE
-    cmp     R4,R9      ; compare R4 with R9
-    jumpgt  abc]R0]    ; if R4 > R9 then goto abc
-#+END_EXAMPLE
-
-**** logicw
-
-The logicw instruction performs a bitwise logic operation on two
-operands: each bit of the result is obtained by performing the logic
-function on the corresponding bits of the two operands.  The
-instruction allows an arbitrary logic function on two bits.
-
-A logic function is specified by g; the function itself is denoted
-*function g*.  This function is applied to the two operand registers
-Re and Rf, and the result is loaded into the destination register Rd.
-
-- General form: logicw Rd,Re,Rf,g
-- Instruction format: EXP
-- Assembly format: RRRKEXP
-- Rd := (function g) Re Rf
-
-| x | y | result |
-|---+---+--------|
-| 0 | 0 | a      |
-| 0 | 1 | b      |
-| 1 | 0 | c      |
-| 1 | 1 | d      |
-
-
-| abcd | hex | function |
-| 0000 |   0 |          |
-| 0001 |   1 |          |
-| 0010 |   2 |          |
-| 0011 |   3 |          |
-| 0100 |   4 |          |
-| 0101 |   5 |          |
-| 0110 |   6 |          |
-| 0111 |   7 |          |
-| 1000 |   8 |          |
-| 1001 |   9 |          |
-| 1010 |  10 |          |
-| 1011 |  11 |          |
-| 1100 |  12 |          |
-| 1101 |  13 |          |
-| 1110 |  14 |          |
-| 1111 |  15 |          |
-
-
-| x | y | x and y | x xor y | x or y |
-|---+---+---------+---------+--------+
-| 0 | 0 |       0 |       0 |      0 |
-| 0 | 1 |       0 |       1 |      1 |
-| 1 | 0 |       0 |       1 |      1 |
-| 1 | 1 |       1 |       0 |      1 |
-|---+---+---------+---------+--------+
-|   |   |       1 |       6 |      7 |
-|---+---+---------+---------+--------|
-
-| x | y | x nor y | inv y | inv x | x nand y |
-|---+---+---------+-------+-------+----------|
-| 0 | 0 |       1 |     1 |     1 |        1 |
-| 0 | 1 |       0 |     0 |     1 |        1 |
-| 1 | 0 |       0 |     1 |     0 |        1 |
-| 1 | 1 |       0 |     0 |     0 |        0 |
-|---+---+---------+-------+-------+----------|
-|   |   |       8 |     a |     c |        e |
-|---+---+---------+-------+-------+----------|
-
-
-| function | abcd | code |
-|----------+------+------|
-| and      | 0001 |    1 |
-| or       | 0111 |    7 |
-| xor      | 0110 |    6 |
-| inv x    | 1100 |   12 |
-| inv y    |      |      |
-
-**** logicb
-
-The /logicb/ instruction performs an arbitrary Boolean logic function
-on two operand bits, producing a result bit.  All three bits must be
-in the same register.  If a program keeps a collection of Boolean
-variables in one register, logicb supports evaluation of general
-expressions using those variables.
-
-This logicb instruction performs R1.3 := R1.9 xor R1.2:
-
-#+BEGIN_EXAMPLE
-      logicb  R1,3,9,2,6
-      logicb  d,e,f,g,h
-#+END_EXAMPLE
-
-This instruction performs logic on bits within R1.  The logic function
-is 6 (see Logic Functions), the operands are bits 9 and 2, and the
-result is placed into bit 3.  The instruction could be read as: within
-R1, perform logic function 6 on bits 9 and 2, and place the result in
-bit 3.
-
-Pseudoinstructions are provided for the most common logic functions;
-these all generate a logicb instruction.  The operands for these are
-the same as for logicb, except that the last operand (the logic
-function) is omitted.  Since the logical negation (invert) function
-has only one operand, the invb pseudoinstruction also omits the second
-operand bit index.  Here are examples of the logicb
-pseudoinstructions:
-
-#+BEGIN_EXAMPLE
-      invb    R1,3,9     ; R1.3 := !R1.9
-      andb    R1,3,9,2   ; R1.3 := R1.9 & R1.2
-      orb     R1,3,9,2   ; R1.3 := R1.9 | R1.2
-      xorb    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
-#+END_EXAMPLE
-
-The instruction format is EXP, with the following fields:
-
-#+BEGIN_EXAMPLE
-      logicb  Rd,e,f,g,h
-#+END_EXAMPLE
-
-- Rd is the destination register, which also contains both source
-  operands bits
-- e is the index of the destination bit
-- f is the index of the first argument bit
-- g is the index of the second argument bit
-- h is the logic function
-  
-**** shiftl
-
-The instruction shiftl Rd,Ra,k shifts the value in the operand
-register Ra by k bits to the left, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
-shift, the leftmost k bits of the value are discarded and the
-rightmost k bits become 0.
-
-#+BEGIN_EXAMPLE
-   shiftl  R2,R3,5
-   op = e (EXP format)
-   d = 2 (destination register)
-   ab = secondary opcode
-   e = 3 (register operand)
-   f = 0 (unused, don't care)
-   gh = 5 (constant)
-#+END_EXAMPLE
-
-The instruction format is EXP, and the assembly language statement format
-is RRKEXP.
-
-**** shiftr
-
-Shift to the right.
-
-The instruction shiftr Rd,Ra,k shifts the value in the operand
-register Ra by k bits to the right, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
-shift, the rightmost k bits of the value are discarded and the
-leftmost k bits become 0.
-
-The following instruction shifts the value in R3 to the right by 5
-bits and place the result in R2.  The operand register R3 is not
-changed.
-
-#+BEGIN_EXAMPLE
-   shiftr  R2,R3,5
-#+END_EXAMPLE
-
-The instruction format is EXP, and the assembly language statement format
-is RRKEXP
-
-**** extract
-
-The extract instruction copies an arbitrary field of bits from a
-source register and inserts those bits into an arbitrary position in a
-destination register.  The bits in the destination field are
-overwritten; other bits in the destination as well as all bits in the
-source are unchanged.
-
-Bit positions are numbered from right to left: least significant bit
-has index 0, and most significant bit has index 15.  The vertical bars
-show the groups of 4 bits: they have no effect on the instructions,
-but are just to help figure out the expected results in hex notation.
-
-#+BEGIN_EXAMPLE
-|----------------|---------------|---------------|---------------|
-|   .   .   .   .|  .   .   .   .|  .   .   .   .|  .   .   .   .|
-|  15  14  13  12| 11  10   9   8|  7   6   5   4|  3   2   1   0|
-|----------------|---------------|---------------|---------------|
-#+END_EXAMPLE
-
-The assembly language format isRRkkk.  The general form is
-
-#+BEGIN_EXAMPLE
-   extract  Rd,Rs,d_index,s_index,size
-#+END_EXAMPLE
-
-- Rd is the destination register
-- d_index (0..15) is the starting bit index in the destination register
-- size (0..15) is the number of bits in the field
-- Rs is the source register (field is obtained from this register)
-- s_index (0..15) is the starting bit index in the source register
-
-#+BEGIN_EXAMPLE
-      lea      R1,$ffff[R0]     ; ffff
-      add      R2,R0,R0         ; 0000
-      extract  R2,R1,11,3,4     ; 0f00  R2.11-8 := R1.3-0
-#+END_EXAMPLE
-
-The effect of an extract instruction can be described by writing each
-bit assignment individually, so there are /size/ individual bit
-assignments.  The notation R2.7 means /the bit at position 7 in
-register R2/.  Using this notation, the example above performs the
-following bit assignments:
-
-| extract R2,R1,11,3,4 |
-|----------------------|
-| R2.11 := R1.3        |
-| R2.10 := R1.2        |
-| R2.9 := R1.1         |
-| R2.8 := R1.0         |
-|----------------------|
-
-Although extract performs a number of bit assignments, it is a single
-instruction and its execution time is a small fixed number of clock
-cycles.  The execution time does not depend on the value of the field
-size, and extracting a large field doesn't require more time than
-extracting a small field. The hardware implementation of the
-instruction does not use an iteration to copy the bits; they are all
-copied in parallel in one clock cycle.
-
-Any register may be specified for the source and destination.  If they
-are the same, the effect is to move a bit field from one place to
-another within the register (this is not the same as a shift).  If the
-destination is R0, the result is discarded and the instruction has no
-effect.
-
-The size is a 4-bit field, and its value is between 0 and 15.  Thus an
-extract instruction cannot copy the entire word in one regsiter to
-another register, as a size of 16 cannot be specified.  If size=0 then
-the instruction does nothing.  the source and destination fields
-cannot extend beyond the rightmost bit in a register.
-
-Here is another example:
-
-#+BEGIN_EXAMPLE
-      add      R3,R0,R0
-      extract  R3,R1,13,5,1     ; 2000
-      lea      R4,$ffff[R0]
-      extract  R4,R0,13,5,1     ; dfff
-#+END_EXAMPLE
-
-The machine language format is EXP
-
-|----+---+---+---|
-| op | d | a | b |
-|----+---+---+---|
-| e  | f | g | h |
-|----+---+---+---|
-
-- op  = e (escape to EXP)
-- d   = Rd (destination register)
-- ab  = secondary opcode for extract
-- e   = Rs
-- f   = d_index
-- g   = s_index
-- h   = size
-
-**** extracti
-
-The extracti instruction is similar to extract, but extracti inverts
-the bits in the source field before they are inserted into the destination.
-
+*** System
+**** trap
+**** getctl, putctl
+**** resume
 ** Assembly language instruction formats with examples
 
 | afmt  | operand general form | example           | notes         |
@@ -4078,7 +3571,7 @@ formats, but there is not an exact correspondence for several reasons:
   is a pseudoinstruction which generates a *logicw* instruction
   specialised to perform a logical and.
 
-Table: **Assembly language statement formats**
+Table: *Assembly language statement formats*
 
 -------------------------------------------------------
  Asm   Example                  ML formats
@@ -5184,1398 +4677,29 @@ Close.  Then click Run, and the emulator will run at full speed until
 the pc reaches the specified value; then it will stop so you can
 examine the state of the machine.
 
-
-- Circuit
-
-There is a complete digital circuit called M1 that implements the core
-of the Sigma16 architecture (apart from the divide instruction).  This
-circuit is specified completely down to the level of logic gates and
-flip flops.  M1 uses sequential control and does not have instruction
-level parallelism.  Its design is written in Hydra, a functional
-computer hardware description language.  The circuit can be simulated,
-and you can run Sigma16 programs on the circuit.
-
-The directory structure: the M1 circuit is in the directory
-Sigma16/circuits/M1.  This directory defines a module (file) called
-M1driver.hs which needs to be imported by a program run file.  In
-addition, Hydra itself needs to be imported.  The program run files
-are in Sigma16/circuits/M1/programs/.
-
-#+BEGIN_EXAMPLE
-/c/Users/me/a/b/c/Hydra      path to Hydra on your machine
-Sigma16                      path to Sigma16 on your machine
-#+END_EXAMPLE
-
-#+BEGIN_EXAMPLE
-Sigma16/circuits/M1
-Sigma16/circuits/M1/programs
-#+END_EXAMPLE
-
-
-* M1: a Sigma16 CPU circuit :noexport:
-
-
-Sigma16 is a 16-bit instruction set architecture, and M1 is a digital
-circuit that implements it.  M1 is designed for simplicity rather than
-speed; more advanced circuits introduce techniques that make the
-system faster at the cost of greater complexity.
-
-M1 is specified using the Hydra hardware description language, which
-generates and simulates circuits.  There is also a simulation driver,
-M1run, which takes a machine language program, loads it into the
-system memory, and then simulates the circuit.  The effect of this is
-to execute the program on the circuit.  This is fundamentally
-different from emulation: M1 is pure hardware, consisting entirely of
-flip flops, logic gates, and wires.
-
-The simulation driver takes a machine language program as input, in
-the form of a list of strings giving the contents of memory words in
-hexadecimal.  It produces formatted output giving the value, for each
-clock cycle, of the most important internal signals in the circuit.
-Hydra, and has a simulator that can run machine language programs.
-
-** Installation
-
-*** Download Sigma16
-
-
-*** Install ghc
-
-Install the ghc Haskell compiler, which you can download from the
-Haskell web page [[https://www.haskell.org/]].  A standard
-installation will also install the packaging tool =cabal=.  Check that
-the installation succeeded with =ghc --version= and =cabal --version=.
-
-#+BEGIN_EXAMPLE
-$ ghc --version
-The Glorious Glasgow Haskell Compilation System, version 9.0.1
-$ cabal --version
-cabal-install version 3.4.0.0
-compiled using version 3.4.0.0 of the Cabal library
-#+END_EXAMPLE
-
-The following commands will download and install a few packages that
-are needed.  You only need to do this once:
-
-#+BEGIN_EXAMPLE
-cabal update
-cabal install --lib parsec
-cabal install --lib mtl
-cabal install --lib ansi-terminal
-#+END_EXAMPLE
-
-*** (Optional) Install node.js and configure shell commands
-
-This entire step is optional.  To run machine language programs on the
-circuit, you need to use the assembler to translate assembly language
-source to machine language.  You can use the Sigma16 GUI app to do
-that; just assemble a program, copy the object code text into a text
-editor, and save it as a file.
-
-If you do the installation described in this section, you can simply
-issue a command in the shell.  For example, this command will
-translate MyProg.asm.txt and create the file MyProg.obj.txt:
-
-#+BEGIN_EXAMPLE
-sigma16 assemble MyProg
-#+END_EXAMPLE
-
-Visit https://nodejs.org/en/download/
-and download node.js for your platform
-
-It's convenient to define an alias to the directory where you have the
-example programs.  For example, in .bashrc:
-
-#+BEGIN_EXAMPLE
-   export COREPROGS="../../examples/Core"
-#+END_EXAMPLE
-
-Add the following to your .bashrc
-file, but replace /Users//yourlogin/Documents/path/to/ with your own file
-location.
-
-#+BEGIN_EXAMPLE
-SIGMA16=/Users/yourlogin/Documents/path/to/Sigma16
-export SIGMA16
-#+END_EXAMPLE
-
-Sigma16/src/circuits contains a file .ghci that contains several
-commands which are automatically executed with ghci is launched.  If
-.ghci is missing, you can also enter those commands manually.  Here is
-the text of .ghci:
-
-#+BEGIN_EXAMPLE
-:set -package mtl
-:set -package parsec
-:load M1/Tools/Run
-#+END_EXAMPLE
-
-
-
-** Quick start
-
-The Sigma16 download contains all the files you need, with the correct
-directory structure.  Change to this directory, which contains Hydra,
-the M1 circuit, and some additional tools:
-
-#+BEGIN_EXAMPLE
-$ cd Sigma16/src/circuits   (you need to be in this directory)
-#+END_EXAMPLE
-
-Within Sigma16/src/circuits, there are several subdirectories:
-
-- Circuits contains a collection of small to medium examples.
-- M1 contains the M1 circuit, which is a CPU that implements the Core
-  Sigma16 instruction set
-- HDL/Hydra contains the Hydra hardware description language.  You
-  won't need to read or change anything in this directory, but it
-  needs to be there.
-- Sigm16 contains a function that reads in an object code file, parses
-  it, and generates the control signals needed to boot the program
-  into the circuit.  Again, you won't need to read or change anything
-  in this directory.
-
-*** Simulating a small circuit
-
-Here is a simple circuit specification file, Circuits/Reg1.hs:
-
-#+BEGIN_EXAMPLE
-module Circuits.Reg1 where
-
-import HDL.Hydra.Core.Lib
-import HDL.Hydra.Circuits.Combinational
--- import HDL.Hydra.Circuits.Register
-
---  This example is named myreg1 to avoid confusion with the reg1
--- circuit defined in the Hydra libraries.
-
--- Normally reg1 would only output r, as q is just an internal signal.
--- However, it is enlightening for a student to experiment
--- interactively with the circuit, and to do that it's helpful to see
--- the value of q.
-
-myreg1 :: CBit a => a -> a -> (a,a)
-myreg1 ld x = (r, q)
-  where r = dff q
-        q = or2 (and2 (inv ld) r) (and2 ld x)
-#+END_EXAMPLE
-
-To simulate the circuit, we need a simulation driver, a separate file
-that describes how to obtain the inputs and how to format the outputs.
-
-#+BEGIN_EXAMPLE
--- Reg1Run: simulate a 1-bit register circuit
--- Copyright (C) 2021 John T. O'Donnell.  This file is part of Sigma16.
--- See Sigma16/README and https://jtod.github.io/home/Sigma16/
-
--- This is an example of how to simulate a small circuit
--- interactively.  The circuit (myreg1) uses individual bits.  For an
--- example that also uses words, see RegRun.  See the User Guide and
--- Sigma16/src/circuits/README.
-
--- cd Sigma16/src/circuits   -- must be in this directory
--- ghci                      -- start ghci and initialize using .ghci
--- :load Circuits/Reg1Run    -- load the simulation driver
--- :main                     -- run it: launch the main program
-
-module Main where
-import HDL.Hydra.Core.Lib   -- the hardware description language
-import Circuits.Reg1        -- definition of the circuit to be simulated
-
-main :: Driver a
-main = driver $ do
-
-  -- Input ports
-  in_ld <- inPortBit "ld"
-  in_x  <- inPortBit "x"
-
-  -- Input signals
-  let ld = inbsig in_ld
-  let x  = inbsig in_x
-  
-  -- The circuit myreg1 receives input signals and defines output signals
-  let (r,q) = myreg1 ld x
-
-  -- The output ports are interfaces to the output signals
-  out_r <- outPortBit "r" r
-  out_q <- outPortBit "q" q
-
-  -- Run interactive simulation 
-  runSimulation
-#+END_EXAMPLE
-
-Much of this is boilerplate.  The file imports the Hydra language, and
-it also imports the Reg1 circuit.  The most important parts of the
-file are:
-- Input ports.  An input port is an object with some metadata along
-  with the actual input signal, and you generate a port with a line
-  like in_ld <- inPortBit "ld".  This says that in_ld is in input
-  port, and the name is "ld".  (See RegRun.hs for an example that has
-  some ports that are words.)
-- Input signals.  A signal is essentially a wire, and we need to
-  define the signal for each input port.  The following line says that
-  ld is a signal form the port in_ld:
-#+BEGIN_EXAMPLE
-  let ld = inbsig in_ld
-#+END_EXAMPLE
-- Circuit definition.  This is a let statement that says (r,q) are the
-  outputs from the myreg1 circuit which is connected to input signals
-  ld and x:
-#+BEGIN_EXAMPLE
-  let (r,q) = myreg1 ld x
-#+END_EXAMPLE
-- We define and output port for the output signals: thus out_r is an
-  output port that ontains the signal r:
-
-#+BEGIN_EXAMPLE
-  out_r <- outPortBit "r" r
-#+END_EXAMPLE
-
-- Finally, the last statement says to simulate the circuit:
-
-#+BEGIN_EXAMPLE
-  runSimulation
-#+END_EXAMPLE
-
-To run a simulation of the circuit, enter these commands (you need to
-be in the Sigma16/src/circuits directory).  $ is the bash shell
-prompt, and : is the ghci prompt.
-
-#+BEGIN_EXAMPLE
-   $ ghci                              start Haskell and load Hydra
-   ghci> :load Circuits/Reg1Run        load the reg1 circuit and its driver
-   ghci> :main                         run interactive simulation, entter h for help
-#+END_EXAMPLE
-
-This will start an interactive session.  When the system prompts for a
-command, just press Enter, which tells it to run for one clock cycle.
-It will them prompt for the value of each input port, and will print
-out the values of the signals.
-
-#+BEGIN_EXAMPLE
-clockCycle...
-----------------------------------------------------------------------
-Cycle 0
-Reading inputs from user:
-Enter value of ld (0 or 1, then enter)
-0
-Enter value of x (0 or 1, then enter)
-1
-Input signals during cycle 0
-    ld = 0
-    x = 1
-Output signals during cycle 0
-    r = 0
-    q = 0
-Enter command after prompt
-$
-doCommand: ws = []
-clockCycle...
-----------------------------------------------------------------------
-Cycle 1
-Reading inputs from user:
-Enter value of ld (0 or 1, then enter)
-0
-Enter value of x (0 or 1, then enter)
-0
-Input signals during cycle 1
-    ld = 0
-    x = 0
-Output signals during cycle 1
-    r = 0
-    q = 0
-Enter command after prompt
-#+END_EXAMPLE
-
-*** Words as well as bits
-
-A signal may be either a bit or a word.  See RegRun for an example.
-The second line says that in_x is an input port for a word of 4 bits.
-The last line says that x is a word signal from the in_x port.  To
-extact a signal from a port, use inbsig for bit signals, and use
-inwsig for word signals.
-
-#+BEGIN_EXAMPLE
-  in_ld <- inPortBit "ld"
-  in_x <- inPortWord "x" 4
-
-  -- Input signals  
-  let ld = inbsig in_ld
-  let x = inwsig in_x
-#+END_EXAMPLE
-
-*** Incorporating test data in the driver
-
-If you want to run many simulations with the same input data (or with
-only small changes to the data), it's easier to define the data in the
-driver file rather than entering it interactively
-Circuits/Reg1RunData gives an example of this.
-
-The file begins by several input data test cases.  Each data set is a
-list of strings, and each string gives the values for the inputs
-during a clock cycle.  The i'th number in the string gives the value
-of the i'th input port.  SInce the input ports are in_ld and then
-in_x, a string "1 0" means that ld=1 and x=0 for a clock cycle.
-
-#+BEGIN_EXAMPLE
-randominputs = [ "1 1", "0 0", "0 0", "1 0", "0 0", "0 1", "1 1", "0 1", "0 0"]
-alwaysLoad1 = ["1 1", "1 1", "1 1", "1 1", "1 1", "1 1"]
-alwaysLoad0 = ["1 0", "1 0","1 0","1 0","1 0","1 0","1 0"]
-idle = ["0 0", "0 0", "0 0", "0 0", "0 0", "0 0"]
-#+END_EXAMPLE
-
-The beginning of the driver has two statements connected to the input
-data.  The storeInputList command tells the driver to store
-randominputs in its internal state, under the key "data".  You can
-store many input lists in the state.  The next statement selects the
-particular input data, by its key.
-
-#+BEGIN_EXAMPLE
-main :: Driver a
-main = driver $ do
-
-  initialize
-  storeInputList "data" randominputs
-  selectInputList "data"
-#+END_EXAMPLE
-
-Now when you execute the simulation, the driver will automatically
-take the input data from the stored input list.  Each time you press
-Enter it will give the signal values for a clock cycle.  If you keep
-going after it runs out of data from the selexcted input list, the
-driver will start prompting you for the input values.
-
-*** Running a machine language program on the M1 CPU
-
-The M1 circuit is a complete CPU circuit for Sigma16 Core.  Its driver
-is M1/Run.hs, and the circuit itself is in M1/Circuits.
-
-To run a program on the circuit, we first need to translate it from
-assembly language to machine language.  If you have installed node.js
-and defined the shell alias, you can do this with the command:
-
-#+BEGIN_EXAMPLE
-  $ sigma16 assemble $COREPROGS/Simple/Add
-#+END_EXAMPLE
-
-In order to make it easy to run the collection of Sigma16 example
-programs on the circuit, the driver looks for files in the directory
-Sigma16/examples/Core.  A subdirectory there is Simple, and that
-contains a small test program named Add.asm.txt.
-
-The source program is Simple/Add.asm.txt, and the object code file
-must be named Simple/Add.obj.txt.  The following commands will run it:
-
-#+BEGIN_EXAMPLE
-  $ ghci                start Haskell and load Hydra
-  ghci> :load M1/Run    load M1 and its driver
- :main Simple/Add       run M1 circuit on examples/Core/Simple/Add.obj.txt
-#+END_EXAMPLE
-
-When you write your own circuits and drivers, it's a good idea to
-place them in a directory Sigma16/examples/Core/MYPROGS, and then you
-would run it with :main MYPROGS/prog1
-
-The command :main Simple/Add tells the simulation driver to read the
-file, parse it (i.e. translate the hex strings to numbers), and to
-generate the input signals required to make the CPU copy the machine
-language into memory, starting at location 0.  This processis called
-"booting".
-
-The driver is interactive: it reads a command, executes it, and reads
-another command.  You can get a list of commands by entering help:
-
-#+BEGIN_EXAMPLE
-Sigma16_M1 simulation
-Sigma16.M1> help
-Commands for the M1 driver
-  (blank)     -- perform one clock cycle
-  cycle       -- perform one clock cycle
-  run         -- perform clock cycles repeatedly until halt or break
-  regs        -- display contents of the register file
-  mem a b     -- display memory from address a to b
-  break FLAG  -- run will stop when FLAG signal is 1 (see list below)
-  quit        -- return to ghci or shell prompt
-  help        -- list the commands
-The following signals can be used as break FLAG:
- st_instr_fet st_dispatch st_add st_sub st_mul0 st_div0 st_cmp st_trap0 st_lea0 st_load0 st_store0 st_jump0 st_jumpc00 st_jumpc10 st_jal0
-Sigma16.M1>
-#+END_EXAMPLE
-
-Try pressing Enter several times.  This will simulate one clock cycle
-at a time, and print out full information about the signals during
-that cycle.  The Add program contains about a dozen words of machine
-code, so the Boot process will take the same number of Enter presses.
-Eventually the driver will output "Reset: control algorithm starting".
-
-The next clock cycle will show the control state to have st_instr_fet
-= 11.  Usually, every control state will be either 11 (the machine is
-doing this state) or 00 (the machine is not doing it).  If I/O is
-taking place, you will see a state of 10, but ignore that for now.
-
-At any time, you can enter the command run.  This will execute clock
-cycles repeatedly until the machine executes a trap halt instruction
-(trap R0,R0,R0).
-
-There are two commands that are very useful for debugging: you can
-print out the register file with **regs**, and you can print all the
-memory locations from address a to be with **mem a b**.
-
-The system is not "cheating" when you dump the registers or memory:
-there isn't some outside software that "looks inside" to get the data
-and print it.  Instead, the driver sets the circuit input signals
-telling it to perform an output operation (using DMA, direct memory
-access), and the driver collects and outputs the results.
-
-Another useful debugging technique is to set a breakpoint.  You may
-have a situation where you want to look in detail at how an
-instruction executes, but this could come after thousands of clock
-cycles, and you don't want to press Enter so may times.
-
-If you enter the command **break st_load0**, and then press run, the
-driver will simulate clock cycles repeatedly until the signal st_load0
-becomes 1; then it will stop and display the state of the system.
-
-*** Using ghci
-
-Useful ghci commands (see ghc User Guide for full documentationO
-#+BEGIN_EXAMPLE
-   :r         reload after editing any of the code
-   :q         exit ghci, go back to shell
-   ^C         stop and return to ghci prompt
-   uparrow    repeat previous command
-#+END_EXAMPLE
-
-When ghci is launched it automatically executes the commands in .ghci:
-
-#+BEGIN_EXAMPLE
-:set -package mtl
-:set -package parsec
-:load M1/Tools/Run
-#+END_EXAMPLE
-
-
-
-
-
-
-** The hardware description language Hydra
-Quick start
-Introduction
-Building block circuits
-   reg: n-bit register component
-   mux1w: multiplexer with 1-bit control
-   register file
-Instruction set architecture of Sigma16
-The M1 circuit
-   ir register (instruction register)
-   pc register (program counter)
-   ad register (address register)
-   memory
-   list of control signals
-Running machine language on the circuit
-   Interpreting the simulation output
-
-
-		   reg :  n-bit register component
-
-
-Use it to hold an n-bit number, and load a new value when you want
-
-  Interface
-    -- size paramemter n
-    -- two inputs: a load control and an n-bit data input
-    -- output: contents of the register
-  Example:  pc = reg n ctl_pc_ld q
-     suppose n=16 (as it is in Sigma16)
-     r is the 16-bit output of the register
-     ctl_pc_ld is a 1-bit control input
-     Output pc is the contents of the register
-     At next clock tick, if ctl_pc_ld=1 then pc := q
-
-
-------------------------------------------------------------------------
-		mux1w : multiplexer with 1-bit control
-------------------------------------------------------------------------
-
-Use it to choose from among several different values
-
-  Interface
-    -- first argument:  1-bit control input
-    -- second and third arguments: data word inputs
-    -- output: a word
-
-  Example:  mux1w ctl_adr_alu memdat r
-    ctl_adr_alu is a control bit
-    memdat, r are data word inputs
-      If ctl_adr_alu=0 then output = memdat
-      If ctl_adr_alu=1 then output = r
-
-
-------------------------------------------------------------------------
-			    Register file
-------------------------------------------------------------------------
-
-   readouts:
-     a = reg[rf_sa]
-     b = reg[rf_sb]
-   at clock tick:
-     if ctl_rf_ld=1
-        then reg[ir_d] := p
-
-ctl_rf_ld = 1 means "load p into reg[ir_d]"
-
-........................................................
-rf_sa is the first register to read out from regfile
-a = reg[rf_sa]
-It is a choice from among {ir_sa, ir_d}
-
-rf_sa =
-  if ctl_rf_sd = 0
-    then ir_sa
-    else ir_d
-
-Normally, we want to use ir_sa as the first register to read out.  In
-add R1,R2,R3 the ir_sa field is 2 and we want to read reg[2].  In this
-case, make ctl_rf_sd = 0.
-
-In a store instruction, we need to read out the register in ir_d.  For
-example, in store R5,xyz[R0] we have ir_d=5 and that's the register
-that needs to be read.  In this case, make ctl_rf_sd = 1.
-
-........................................................
-rf_sb is the second register to read out from regfile
-b = reg[rf_sb]
-It is always ir_sb
-
-........................................................
-p is the data input to regfile (the value to load into destination)
-
-p = a choice from among {memdat, r, pc}
-p = if ctl_rf_pc = 0
-      then p = (if ctl_rf_alu -0
-                  then memdat
-                  else r)
-      else pc
-
-This table summarises the value of p:
-
-ctl_rf_pc   ctl_rf_alu     p
---------------------------------
-    0           0        memdat
-    0           1         r
-    1           0         pc
-    1           1         pc
-
-
-
-------------------------------------------------------------------------
-				Memory
-------------------------------------------------------------------------
-
-Every cycle, the memory outputs mem[ma]
-At clock tick:
-  if m_sto
-    then mem[ma] := memdat
-
-  {This is a slight simplification: there are some further
-   issues concerning memory and Input/Output}
-
-ma = memory address, a choice among {ad, pc}
-ma = if ctl_ma_pc = 0
-       then ad
-       else pc
-
-ctl_ma_pc = 1 means "use pc as the memory address"
-
-
-** The M1 circuit
-
-This is a quick summary and reference for the M1 circuit, which
-implements the Sigma16 architecture.
-
-*** Files
-
-ALU.hs           -- specifies the M1 alu
-ALU_Run.hs       -- simulation driver and test data for the ALU
-Control.hs       -- specifies the M1 control
-Control_Run.hs   -- simulation driver and test data for the control
-CPU.hs           -- specifies the full M1 system
-CPU_Run.hs       -- simulation driver for the full system
-
-ProgArrayMax.hs  -- A machine language program to test the CPU
-                 -- This is the main program
-
-*** Core instructions implemented by M1
-
-
-The M1 circuit implements the Core subset of Sigma16 (apart from the
-mul and div instructions, which are nop).
-
-**** RRR instructions
-
- op   format  mnemonic   operands   action
----- -------- ---------- ---------- ------------------------------------
- 0     RRR    add        R1,R2,R3   R1 := R2+R3
- 1     RRR    sub        R1,R2,R3   R1 := R2-R3
- 2     RRR    mul        R1,R2,R3   R1 := R2*R3, R15 := high word
- 3     RRR    div        R1,R2,R3   R1 := R2/R3, R15 := R2 mod R3
- 4     RRR    cmp        R2,R3      R15 := comparison flags
- b     RRR    trap       R1,R2,R3   trap interrupt
-
-**** RX instructions
-
- op   b   format  mnemonic   operands   action
----- --- -------- ---------- ---------- ---------------------------------
- f    0     RX    lea        Rd,x[Ra]   Rd := x+Ra
- f    1     RX    load       Rd,x[Ra]   Rd := mem[x+Ra]
- f    2     RX    store      Rd,x[Ra]   mem[x+Ra] := Rd
- f    3     RX    jump       x[Ra]      pc := x+Ra
- f    4     RX    jumpc0     Rd,x[Ra]   if R15.d=0 then pc := x+Ra
- f    5     RX    jumpc1     Rd,x[Ra]   if R15.d=1 then pc := x+Ra
- f    6     RX    jal        Rd,x[Ra]   Rd := pc, pc := x+Ra
-
-**** Organization of M1
-
-M1 is a CPU that implements the Core subset of the Sigma16
-architecture.  It is designed for simplicity, and not optimized for
-speed.  It assumes that the memory runs at cache speed, and there is
-no separate cache.  There is a rudimentary I/O system that uses DMA to
-boot up the system by inputting a block of data and then jumps to
-location 0 to begin execution.  There is no instruction level
-parallelism.
-
-Some of the features of Sigma16 are not implemented in M1.  That means
-that some programs will give different results in the Sigma16 emulator
-and on the M1 circuit.  These features include some unimplemented
-instructions (mult, div, shifting, and logic).
-
-The M1 circuit consists of three main subsystems: datapath, control,
-and memory.  Inside the datapath is another subsystem, the alu.  Each
-of these is defined in a separate module, and there are separate
-simulation drivers for the alu, datapath, and control.  The m1 circuit
-connects the subsystems together and handles bootstrapping.
-
-**** ALU (arithmetic & logic unit)
-
-Inputs to ALU are x and y
-
-Operation to be performed is specified by an ALU opcode consisting of
-4 bits: ctl_alu_a, ctl_alu_b, ctl_alu_c, ctl_alu_d.  In the table
-below, call them just a,b,c,d.
-
-The ALU performs addition, subtraction, negation, increment, and
-comparision for <, =, and >.  It receives four control signals
-(a,b,c,d) that determine which function it will compute.  These are
-shown in the following table, where don't-care values are left blank.
-
-Note that the alu doesn't implement some of the operations used by RRR
-instructions.  Those instructions will actually do nothing.
-
-
-#+BEGIN_EXAMPLE
-........................................................
-x is the first data input to the alu
-x = a choice from among {a, pc}
-x = if ctl_x_pc = 0
-      then a
-      else pc
-
-ctl_x_pc = 1 means "make x = value in pc register"
-
-........................................................
-y is the second data input to the alu
-y = a choice from among {b, ad}
-y = if ctl_y_ad = 0
-      then b
-      else ad
-
-ctl_y_ad = 1 means "make y = value in ad register"
-#+END_EXAMPLE
-
-**** Datapath
-**** Instruction control registers
-
-- ir register (instruction register) holds the instruction currently
-  being executed.  At clock tick if ctl_ir_ld = 1 then ir := memdat
-
--  pc register (program counter) holds the address of the next
-  instruction word to be fetched At clock tick if ctl_pc_ld = 1 then
-  pc := q
-
-- q is the data input to the pc register. q is a choice from among {r,
-  ad} q = if ctl_pc_ad = 0 then r else ad
-
-- ad register (address register). This register holds the second word
-  of an RX instruction, and is also used for calculating the effective
-  address (when this is calculated by the ALU, we need adr := r)
-
-At clock tick
-  if ctl_adr_ld = 1
-     then ad := (if ctl_adr_alu = 0
-                  then memdat
-                  else r)
-
-**** Control
-****  Control signals
-
-   ctl_rf_alu,  -- Input to register file is ALU output r (if 0, use m)
-   ctl_rf_sd,   -- Use ir_d as source a address (if 0, use ir_sa)
-   ctl_alu_a,   -- 4-bit alu operation code (see section on the ALU)
-   ctl_alu_b,   --   "
-   ctl_alu_c,   --   "
-   ctl_alu_d,   --   "
-   ctl_ir_ld,   -- Load ir register (if 0, remain unchanged)
-   ctl_pc_ld,   -- Load pc register (if 0, remain unchanged)
-   ctl_pc_ad,   -- Input to pc is ad (if 0, r)
-   ctl_adr_ld,  -- Load ad register (if 0, remain unchanged)
-   ctl_adr_alu, -- Obtain ad input from alu (if 0, from memory data input)
-   ctl_ma_pc,   -- Transmit pc on memory address bus (if 0, transmit addr)
-   ctl_x_pc,    -- Transmit pc on x (if 0, transmit reg[sa])
-   ctl_y_ad,    -- Transmit ad on y (if 0, transmit reg[sb])
-   ctl_sto      -- Memory store (if 0, fetch)
-
-
-
-The simulation driver produces voluminous output that lets you see
-what is happening inside the circuit.  You can run the simulation two
-ways: interactively with ghci, or as a batch process with ghc.
-
-Interactive execution
-~~~~~~~~~~~~~~~~~~~~~
-
-While developing a circuit, it is easiest to use ghci.  This is
-interactive and provides commands that are helpful for looking at
-error messages, debugging, and performing quick experiments.  Enter
-these commands ($ is the shell prompt, : is the ghci prompt).
-
-   $ ghci
-   :load ArrayMax
-   main
-   :q
-
-
-**** Interpreting the simulation output
-
-The M1 system contains a lot of components and signals, and its
-simulation produces a large amount of output.  This section explains
-what the simulation driver does, and how to interpret its output.
-
-The M1 is a digital circuit, and its inputs and outputs are bit
-signals.  The simulation would be unreadable if presented with 1s and
-0s for input and output.  Therefore a simulation driver is used.  This
-is defined in CPU_Run.hs, and it converts the inputs (the hex string
-constants in ProgArrayMax.hs) into input bit signals, and it converts
-the output bit signals coming from the circuit into readable formatted
-strings.  This document ignores the formatting details, and focuses
-exclusively on how the digital circuit (M1.hs) runs the program.
-
-M1 is a digital circuit, and its inputs and outputs are bit signals.
-There are hundreds of bits for every clock cycle, and even a small
-program will execute for hundreds of clock cycles.  The simulation
-would be unreadable if all this data were represented with 1s and 0s.
-Using hex notation helps, but massive hex data is still hard to read.
-Therefore a simulation driver is used, which
-
-- converts the inputs (the machine language code written as hex string
-  constants) into input bit signals,
-- invokes the circuit simulator, and
-
-- converts the output bit signals produced by the circuit into
-  readable formatted strings.
-
-We will use the program ArrayMax as a running example.  There is an
-assembly language source program, ArrayMax.asm.txt.  This needs to be
-translated to machine language ("assembled").  That can be done with
-the Sigma16 application, which contains an assembler and emulator.
-
-The simulation output first identifies itself:
-
-...........................................................................
-System M1 simulation
-...........................................................................
-
-The system begins by using direct memory access to load the machine
-language program into memory, starting at location 0.  The executable
-(program followed by data) consists of 31 words.  To see this, note
-that the last word in the executable (labelled max) has address 001e,
-which is 30, and there are 31 locations from 0 through 30.
-Alternatively, you can just count the hex constants in the machine
-language.  Therefore the first 31 clock cycles are "stolen" by the DMA
-controller in order to load the executable code into memory.
-
-The system begins by using direct memory access to load the machine
-language program into memory, starting at location 0.  The executable
-(program followed by data) consists of 31 words.  To see this, note
-that the last word in the executable (labelled max) has address 001e,
-which is 30, and there are 31 locations from 0 through 30.
-Alternatively, you can just count the hex constants in the machine
-language.  Therefore the first 31 clock cycles are "stolen" by the DMA
-controller in order to load the executable code into memory.
-
-The output is divided into sections, one for each clock cycle.  The
-first line of a section gives the cycle number, followed by a label
-"Computer system inputs", followed by the values of four signals that
-pertain to the entire system.  The first section (clock cycle 0) is
-used by the DMA to store the first word of the executable ($1100) into
-the first word of memory ($0000).  As the DMA is active, the dma
-control signal is 1, and the address (dma_a) and data (dma_d) are set
-to the corresponding values.  At the clock tick that ends cycle 0, the
-memory will perform Mem[0] := 1100.
-
-The output is divided into sections, one for each clock cycle.  The
-first line of a section gives the cycle number, followed by a label
-"Computer system inputs", followed by the values of four signals that
-pertain to the entire system.  The first section (clock cycle 0) is
-used by the DMA to store the first word of the executable ($1100) into
-the first word of memory ($0000).  As the DMA is active, the dma
-control signal is 1, and the address (dma_a) and data (dma_d) are set
-to the corresponding values.  At the clock tick that ends cycle 0, the
-memory will perform Mem[0] := 1100.
-
-
-...........................................................................
-   0.  Computer system inputs
-         reset=0 dma=1 dma_a=0000 dma_d=1100
-...........................................................................
-
-...........................................................................
-Clock cycle 0
-Computer system inputs
-         reset=0 dma=1 dma_a=0000 dma_d=f100
-ctl_start = 0
-...........................................................................
-
-During Cycle 0, the system is using DMA to load the first word of the
-machine code into memory at address 0.  This process --- placing
-initial data into the memory --- is called bootstrapping.  The value
-of the first word is f100 and it goes into address 0.  Therefore the
-system sets these signals: reset=0 (don't start the processor yet);
-dma=1 (place a word of input into memory), dma_a=0000 (the address to
-put the word is 0000), and dma_d=f100 (the value of the data).  The
-processor isn't running and not ready to start, so ctl_start=0.  These
-signals are set during cycle 0, and the state change they request will
-occur at the next clock tick, which ends cycle 0 and begins cycle 1.
-The remainder of the simulation output for Cycle 0 contains nothing of
-interest, as the processor is idle.
-
-In Cycle 1, the next word of the machine language (checking the
-machine language code, you'll see this is 0001) is loaded into the
-next memory location (0001), so the driver sets the following system
-inputs:
-
-...........................................................................
-Clock cycle 1
-Computer system inputs
-         reset=0 dma=1 dma_a=0001 dma_d=0001
-...........................................................................
-
-The simulation driver continues to load the machine language into
-memory one word at a time.  The last word, 0019, is stored at location
-001e at the tick ending Cycle 30.
-
-
-The remainder of the section for Cycle 0 contains nothing of interest,
-as the processor is idle.  In Cycle 1, the next word of the machine
-language (in ArrayMax you'll see this is 0018) is loaded into the next
-memory location (0001), so the driver sets the following system
-inputs:
-
-...........................................................................
-         reset=0 dma=1 dma_a=0001 dma_d=0018
-...........................................................................
-
-...........................................................................
-Clock cycle 30
-Computer system inputs
-         reset=0 dma=1 dma_a=001e dma_d=0019
-ctl_start = 0
-...........................................................................
-
-At this point, the system as completed the bootstrapping input, and
-the computer's memory contains the executable program with its data.
-
-In Cycle 31, the m1 system starts the control algorithm by asserting
-the main system reset signal.  This causes, in turn, the value of
-ctl_start to become 1.  The effect of this is that, at the next clock
-tick, the control circuit will put a 1 in the state flip flop for the
-first state in the control algorithm, which is st_instr_fet.  Of
-course, during cycle 31 the control is not running yet, so
-st_instr_fet is still 0.
-
-
-The simulation driver continues this for 31 cycles, loading the
-machine language into memory one word at a time.  The last word (0000,
-the initial value of max) is stored at location 001e in Cycle 30.
-
-...........................................................................
-  30.  Computer system inputs
-         reset=0 dma=1 dma_a=001e dma_d=0000
-...........................................................................
-
-
-At this point, the simulation driver has completed the input, and the
-computer's memory contains the executable program with its data (all
-31 words of it!).
-
-In Cycle 31, the driver starts the control algorithm by asserting the
-main system reset signal.  The effect of this is to put a 1 on a
-signal that will, at the next clock tick, enter the state flip flop
-for the first state in the control algorithm, st_instr_fet.
-
-...........................................................................
-  31.  Computer system inputs
-         reset=1 dma=0 dma_a=0000 dma_d=0000
-...........................................................................
-
-...........................................................................
-Clock cycle 31
-Computer system inputs
-         reset=1 dma=0 dma_a=0000 dma_d=0000
-ctl_start = 1
-
-Control state
-   st_instr_fet = 0  st_dispatch = 0       st_add = 0       st_sub = 0
-...........................................................................
-
-The effect of the reset occurs at the clock tick between cycles 31 and
-32, so it becomes visible when we examine the values of signals during
-cycle 32.  Now reset and dma are both 0, and they will remain so for
-the duration of the execution.  The Control state section shows that
-the flip flop named st_instr_fet contains 1, while all others contain
-0.
-
-
-The effect of the reset occurs at the clock tick between cycles 31 and
-32, so it becomes visible when we examine the values of signals during
-cycle 32.  Now reset and dma are both 0, and they will remain so for
-the duration of the execution.  The Control state section shows that
-the flip flop named st_instr_fet contains 1, while all others contain
-0.
-
-The section "Control signals" shows the value of every control signal,
-as generated by the control circuit.  It has set the following signals
-to 1: ctl_alu_a, ctl_alu_b, ctl_ir_ld, ctl_pc_ld, ctl_ma_pc,
-ctl_x_pc.  The others are all 0.
-
-The simulation driver outputs the values of key signals each clock
-cycle.  This is one of the basic functions of every simulation driver.
-However, M1run goes beyond that: it contains algorithms that watch the
-signal values, looking for important events, and when it detects one
-it prints a special message surrounded by two lines of asterisks.
-During Cycle 31 the driver detects a very important event, as it sees
-that ctl_start=1, and it prints the following:
-
-************************************************************************
-Reset: control algorithm starting
-************************************************************************
-
-As you scroll through the simulation output, messages like this will
-appear from time to time.  A subtle but important point is that there
-isn't any code that simply prints such a message when the simulation
-reaches a certain point.  Instead, the driver observes and analyses
-the signals coming from the circuit.
-
-The section "Control signals" shows the value of every control signal,
-as generated by the control circuit.  It has set the following signals
-to 1: ctl_alu_a, ctl_alu_b, ctl_ir_ld, ctl_pc_ld, ctl_ma_pc,
-ctl_x_pc.  The others are all 0.
-
-First let's look at how the control signals are generated; then we
-consider what they mean and what effect they have on the datapath.
-
-First let's look at how the control signals are generated; then we
-consider what they mean and what effect they have on the datapath.
-
-
-Each control signal is generated by an or gate that or's the flip
-flops for the states in which that signal is asserted.  In Control.hs,
-you can see that the or gates for these signals that are 1 in Clock
-Cycle 32 include st_instr_fet among their inputs.  For example, here
-is the definition of the signal ctl_alu_a:
-
-      ctl_alu_a   = orw [st_instr_fet,st_load0,st_store0,st_lea0,
-                         st_cmpeq,st_cmplt,st_cmpgt,st_jumpf0,st_jal0]
-
-All of the control signals are generated by an or gate that or's the
-flip flops for the states in which that signal is asserted.  In M1.hs,
-you can see that the or gates for these signals include st_instr_fet
-among their inputs.  For example, here is the definition of the signal
-ctl_alu_a:
-
-  ctl_alu_a   = any1 [st_instr_fet,st_load0,st_ldval0,st_neg,st_cmpeq,
-                       st_cmplt,st_cmpgt,st_jumpf0]
-
-The orw building block computes the logical or of the word; since
-st_instr_fet is 1, the output of orw is 1 and ctl_alu_a has the value
-1.  The same holds for ctl_alu_b, ctl_ir_ld, ctl_pc_ld, ctl_ma_pc, and
-ctl_x_pc.  All of the other signals do not have st_instr_fet among the
-inputs to their any1 circuit, so those signals are 0.
-
-
-The any1 building block computes the logical or of the word; since
-st_instr_fet is 1, the output of any1 is 1 and ctl_alu_a has the value
-1.  The same holds for ctl_alu_b, ctl_ir_ld, ctl_pc_ld, ctl_ma_pc, and
-ctl_x_pc.  All of the other signals do not have st_instr_fet among the
-inputs to their any1 circuit, so those signals are 0.
-
-........................................................................
-Clock cycle 32
-Computer system inputs
-         reset=0 dma=0 dma_a=0000 dma_d=0000
-ctl_start = 0
-
-Control state
-   st_instr_fet = 1  st_dispatch = 0       st_add = 0       st_sub = 0
-        st_mul0 = 0     st_cmplt = 0     st_cmpeq = 0     st_cmpgt = 0
-       st_trap0 = 0      st_lea0 = 0      st_lea1 = 0     st_load0 = 0
-       st_load1 = 0     st_load2 = 0    st_store0 = 0    st_store1 = 0
-      st_store2 = 0     st_jump0 = 0     st_jump1 = 0    st_jumpf0 = 0
-      st_jumpf1 = 0    st_jumpt0 = 0    st_jumpt1 = 0      st_jal0 = 0
-        st_jal1 = 0
-
-Control signals
-    ctl_alu_a   = 1  ctl_alu_b   = 1  ctl_alu_c   = 0  ctl_alu_d   = 0
-    ctl_x_pc    = 1  ctl_y_ad    = 0  ctl_rf_ld   = 0  ctl_rf_pc   = 0
-    ctl_rf_alu  = 0  ctl_rf_sd   = 0  ctl_ir_ld   = 1  ctl_pc_ld   = 1
-    ctl_ad_ld   = 0  ctl_ad_alu  = 0  ctl_ma_pc   = 1  ctl_sto     = 0
-
-Datapath
-    ir = 0000  pc = 0000  ad = 0000   a = 0000   b = 0000   r = 0001
-     x = 0000   y = 0000   p = f100  ma = 0000  md = 0000 cnd = 0
-
-Memory
-   ctl_sto = 0      m_sto = 0
-     m_addr = 0000  m_real_addr = 0000  m_data = 0000  m_out =f100
-..............................................................................
-
-
-..............................................................................
-  32.  Computer system inputs
-         reset=0 dma=0 dma_a=0000 dma_d=0000
-
-       Control state
-         st_instr_fet = 1  st_dispatch = 0       st_nop = 0     st_load0 = 0
-             st_load1 = 0     st_load2 = 0    st_ldval0 = 0    st_ldval1 = 0
-               st_add = 0       st_sub = 0       st_neg = 0      st_mul0 = 0
-            st_store0 = 0    st_store1 = 0    st_store2 = 0     st_cmpeq = 0
-             st_cmplt = 0     st_cmpgt = 0    st_jumpt0 = 0    st_jumpt1 = 0
-            st_jumpt2 = 0    st_jumpf0 = 0    st_jumpf1 = 0    st_jumpf2 = 0
-             st_jump0 = 0     st_jump1 = 0     st_trape = 0     st_trapf = 0
-
-       Control signals
-         ctl_alu_a  = 1 ctl_alu_b  = 1 ctl_alu_c  = 0 ctl_alu_d  = 0
-         ctl_rf_ld  = 0 ctl_rf_alu = 0 ctl_rf_sd  = 0 ctl_ir_ld  = 1
-         ctl_pc_ld  = 1 ctl_ad_ld  = 0 ctl_ad_alu = 0 ctl_ma_pc  = 1
-         ctl_x_pc   = 1 ctl_y_ad   = 0 ctl_sto    = 0
-..............................................................................
-
-Now that we have seen how the control signals are generated, we move
-on to their meaning and effect.  The control algorithm (see M1.hs)
-contains the following definition for this state:
-
-  st_instr_fet:
-    ir := mem[pc], pc++;
-       {ctl_ma_pc, ctl_ir_ld, ctl_x_pc, ctl_alu=alu_inc, ctl_pc_ld}
-
-The first line is just the name of the state.  The second line is a
-comment describing the effect on the datapath, and the third line is
-the set of control signals that are 1 during the clock cycle when the
-machine is in this state.  (The keyword "assert" should be in front of
-the list of signals, but was omitted here.)
-
-
-Now that we have seen how the control signals are generated, we move
-on to their meaning and effect.  The control algorithm (see M1.hs)
-contains the following definition for this state:
-
-  st_instr_fet:
-    ir := mem[pc], pc++;
-       {ctl_ma_pc, ctl_ir_ld, ctl_x_pc, ctl_alu=alu_inc, ctl_pc_ld}
-
-The first line is just the name of the state.  The second line is a
-comment describing the effect on the datapath, and the third line is
-the set of control signals that are 1 during the clock cycle when the
-machine is in this state.  (The keyword "assert" should be in front of
-the list of signals, but was omitted here.)
-
-There are two ways to understand what's going on here: you can look at
-the datapath and see how the control signals cause it to perform the
-actions described in the comment, and you can look at the entire
-control algorithm and see how these actions contribute to the
-execution of machine language programs.
-
-There are two ways to understand what's going on here: you can look at
-the datapath and see how the control signals cause it to perform the
-actions described in the comment, and you can look at the entire
-control algorithm and see how these actions contribute to the
-execution of machine language programs.
-
-A good way to proceed is to follow the control algorithm as it
-executes the first instruction.  For each statement, check that the
-control circuit has set the right state flip flop and is asserting the
-right control signals.  Look at the register and processor signal
-values provided by the simulation driver, and check that the datapath
-is doing the right thing.
-
-
-A good way to proceed is to follow the control algorithm as it
-executes the first instruction.  For each statement, check that the
-control circuit has set the right state flip flop and is asserting the
-right control signals.  Look at the register and processor signal
-values provided by the simulation driver, and check that the datapath
-is doing the right thing.
-
-It isn't feasible to follow a long simulation in complete detail.
-That's why we use computers to perform simulations!  But there are a
-lot of interesting points that arise deep into the simulation output.
-For example, it's interesting to watch the control algorithm as it
-executes a conditional jump, and the best way to study this is to
-observe a conditional jump that actually jumps and another one that
-does not.
-
-It isn't feasible to follow a long simulation in complete detail.
-That's why we use computers to perform simulations!  But there are a
-lot of interesting points that arise deep into the simulation output.
-For example, it's interesting to watch the control algorithm as it
-executes a conditional jump, and the best way to study this is to
-observe a conditional jump that actually jumps and another one that
-does not.
-
-You can locate a state in which the processor is about to execute a
-certain type of instruction by scanning down the simulation output,
-looking for a 1 in the corresponding state.  (A good way to do this is
-to load the simulation output into a text editor, and to do a textual
-search.)
-
-You can locate a state in which the processor is about to execute a
-certain type of instruction by scanning down the simulation output,
-looking for a 1 in the corresponding state.  (A good way to do this is
-to load the simulation output into a text editor, and to do a textual
-search.)
-
-For example, the findmax programs executes some jumpf instructions.
-Scan through the output, looking for a point where st_jumpf0 = 1.
-This occurs in cycles 55, 66, 80, 91, 107, 118, 132, 143, and 159.
-Reading the control algorithm, we see that a decision is made base on
-the first operand register the ir_d register:
-
-  case reg[ir_sa] = 0 of
-    False:
-      break
-    True:
-      st_jumpf1:
-        pc := reg[ir_sa] + ad
-           {ctl_y_ad, ctl_alu_abcd=0000, ctl_pc_ld}
-
-
-For example, the findmax programs executes some jumpf instructions.
-Scan through the output, looking for a point where st_jumpf0 = 1.
-This occurs in cycles 59, 65, 86, 92, 113, 119, 138, 144, and 163.
-Reading the control algorithm, we see that a decision is made base on
-the first operand register:
-
-  case reg[ir_sa] = 0 of
-    False:
-      break
-    True:
-      st_jumpf1:
-        pc := reg[ir_sa] + ad
-           {ctl_y_ad, ctl_alu_abcd=0000, ctl_pc_ld}
-
-If the condition for jumping is False, the control algorithm is
-finished with the instruction, and it continues on to st_instr_fet
-(this is the "break" in the pseudo-code comment).  However, if the
-condition for jumping is True, the control algorithm enters state
-st_jumpf1, where it performs the jump by loading the pc register with
-the jump target.
-
-
-
-If the condition for jumping is False, the control algorithm is
-finished with the instruction, and it continues on to st_instr_fet
-(this is the "break" in the pseudo-code comment).  However, if the
-condition for jumping is True, the control algorithm enters state
-st_jumpf1, where it performs the jump by loading the pc register with
-the jump target.
-
-So let's look at the cycles where the machine is in state st_jumpf0,
-and find out which state it enters next.  This requires a bit of study
-of the simulation output, and here is the result:
-
- Cycle  Next cycle    Next state     Jumped?
- ~~~~~  ~~~~~~~~~~    ~~~~~~~~~~     ~~~~~~~
-   55       56       st_instr_fet      no
-   66       67       st_jumpf1        yes
-   80       81       st_instr_fet      no
-   91       92       st_instr_fet      no
-  107      108       st_instr_fet      no
-  118      119       st_jumpf1        yes
-  132      133       st_instr_fet      no
-  143      144       st_instr_fet      no
-  159      160       st_instr_fet      no
-
-
-So let's look at the cycles where the machine is in state st_jumpf0,
-and find out which state it enters next.  This requires a bit of study
-of the simulation output, and here is the result:
-
- Cycle  Next cycle    Next state     Jumped?
- ~~~~~  ~~~~~~~~~~    ~~~~~~~~~~     ~~~~~~~
-   59       60       st_instr_fet      no
-   65       66       st_instr_fet      no
-   86       87       st_instr_fet      no
-   92       93       st_instr_fet      no
-  113      114       st_instr_fet      no
-  119      120       st_jumpf1        yes
-  138      139       st_instr_fet      no
-  144      145       st_jumpf1        yes
-  163      164       st_jumpf1        yes
-
-So we have found several examples where the jump is taken, and several
-where it is not.  It's worth picking one example of each case, and
-studying it in detail.
-
-An especially valuable experiment is to pick some key points in the
-simulation so that you can follow the execution of the machine
-language program, as it searches through the array looking for the
-maximal element.
-
-So we have found several examples where the jump is taken, and several
-where it is not.  It's worth picking one example of each case, and
-studying it in detail.
-
-An especially valuable experiment is to pick some key points in the
-simulation so that you can follow the execution of the machine
-language program, as it searches through the array looking for the
-maximal element.
-
-
-
-
-
-Word notation
-~~~~~~~~~~~~~
-
-In a word, bit indices are 0, 1, ..., n-1 where bit 0 is most
-significant.
-
-w!!i                   i'th bit of word w
-field w i j            bits i..i+j-1 of word w
-
-
-Constant signals
-~~~~~~~~~~~~~~~~
-
-zero                   signal with constant 0 value
-one                    signal with constant 1 value
-
-Logic gates
-~~~~~~~~~~~
-
-inv                    inverter
-and2, and3, and4       and gate with 2, 3, 4 inputs
-nand2, nand3, nand4    and gate with 2, 3, 4 inputs
-or2, or3, or4          or gate with 2, 3, 4 inputs
-nor2, nor3, nor4       nor gate with 2, 3, 4 inputs
-xor2, xor3, xor4       xor gate with 2, 3, 4 inputs
-
-
-Flip flops
-~~~~~~~~~~
-
-dff                    delay flip flop
-
-
-Building block circuits
-~~~~~~~~~~~~~~~~~~~~~~~
-
-fanout n b             connect bit b to n outputs, forming a word
-boolword n b           form an n-bit word, lsb = b, other bits = 0
-any1                   or the bits in a word: result is 1 if any 1 bit
-winv w                 invert the bits in a word
-mux1w                  use 1-bit control to select between two words
-bitslice2 x y          convert pair of words to word of pairs
-mux2                   use two bit control to select one of four inputs
-
-
-Registers
-~~~~~~~~~
-
-reg n ld x                 n-bit register with load control ld, data input x
-regfile n k ld d sa sb x   register file with 2^k registers, each n-bits wide,
-                           load control ld, destination address d,
-                           reads out registers sa and sb, data input x
-
 * Installation
 
-** The processor circuit
-
-** Installation
-
 You can run most of Sigma16 in a web browser -- there's nothing to
-download, nothing to install.  Just click the link in the Sigma16 Home
-Page and it's running.
+download, nothing to install.  Visit the [Sigma16 home
+page](https://jtod.github.io/home/Sigma16/) in your browser and
+click on the link to launch the app.  It will run in your browser;
+you don't have to install anything.  The Home page also contains
+links to the source code and further information about the project.
 
-*** The easy way: running in browser with no installation
+** Command line tools
 
-To run the main app (the Integrated Development Environment, or IDE)
-visit the [Sigma16 home page](https://jtod.github.io/home/Sigma16/) in
-your browser and click on the link to launch the app.  It will run in
-your browser; you don't have to install anything.
+Sigma16 also contains some advanced features that use the command
+line in a shell.  These features include text commands for
+assembling and linking programs, and for running the circuit
+simulator.  These features require some software installation.  In
+addition, building Sigma16 from soure requires some additional
+software that must be installed.  All of the software required is
+free and open source, and all of it runs on Windows, Macintosh, and
+Gnu/Linux.
 
-The Home page also contains links to the source code, related
-documents, and further information about the project.  Its a good idea
-to bookmark the Home Page, rather than a specific release: that way
-you'll always get the latest version.
-
-The IDE runs in a web browser.  The browser needs to be up to date;
-the app won't work in very old versions of browsers.  Just keep your
-browser updated (you need to do that anyway) and it should work.
-
-*** Features that require software installation
-
-Sigma16 also contains some advanced features that use the command line
-in a shell.  These features include text commands for assembling and
-linking programs, and for running the circuit simulator.  These
-features require some software installation.  In addition, building
-Sigma16 from soure requires some additional software that must be
-installe.  All of the software required for Hydra is free and open
-source, and all of it runs on Windows, Macintosh, and Gnu/Linux.
-
-*** node: JavaScript
-*** npm: JavaScript packages
-*** ghc: Haskell
-
-Install the ghc Haskell compiler, which you can download from the
-Haskell web page [[https://www.haskell.org/]].  A standard
-installation will also install the packaging tool =cabal=.  Check that
-the installation succeeded with =ghc --version= and =cabal --version=.
-
-#+BEGIN_EXAMPLE
-$ ghc --version
-The Glorious Glasgow Haskell Compilation System, version 9.0.1
-$ cabal --version
-cabal-install version 3.4.0.0
-compiled using version 3.4.0.0 of the Cabal library
-#+END_EXAMPLE
-
-
-*** cabal: Haskell packages
-
-#+BEGIN_EXAMPLE
-cabal update
-cabal install --lib ansi-terminal
-#+END_EXAMPLE
+*** node and npm
 
 *** Configuring the shell
-
-It's convenient to define an alias to the directory where you have the
-example programs.  For example, in .bashrc:
-
-   export COREPROGS="../../examples/Core"
-   alias runcirc="runghc M1/Tools/Run"
-   
 
 Shell running bash
 
@@ -6589,58 +4713,12 @@ export SIGMA16
 alias helloworld="node ${SIGMA16}/app/helloworld.js"
 #+END_EXAMPLE
 
-src/circuits contains a file .ghci that contains several commands
-which are automatically executed with ghci is launched.  If .ghci is
-missing, you can also enter those commands manually.  Here is the text
-of .ghci:
-
-#+BEGIN_EXAMPLE
-:set -package mtl
-:set -package parsec
-:load M1/Tools/Run
-#+END_EXAMPLE
-
 *** Testing the installation
 
 #+BEGIN_EXAMPLE
 $ node --version
 v16.5.0
-$ ghc --version
-The Glorious Glasgow Haskell Compilation System, version 9.0.1
-$ alias sigma16
-alias sigma16='node PATH/TO/YOUR/INSTALLATION/Sigma16/src/cli/sigma16.mjs'
-$ cd Sigma16/src/circuit
-$ sigma16 assemble $COREPROGS/Simple/Add
-$ ghci
-:main SimpleAdd
-:q
 #+END_EXAMPLE
-
-*** Running the circuit simulator
-
--- Installation
-
--- Usage
---   cd to src/circuits  -- must be in this directory
---   ghci                -- start ghci and initialize using .ghci
---   :main Simple/Add    -- run M1 circuit on examples/Core/Simple/Add.obj.txt
---   :r                  -- reload, after you have changed a circuit source file
---   :q                  -- quit ghci, return to shell
-
-When ghci is launched it automatically executes the commands in .ghci:
-
-#+BEGIN_EXAMPLE
-:set -package mtl
-:set -package parsec
-:load M1/Tools/Run
-#+END_EXAMPLE
-
-*** Documentation
-
--  src/circuits/README.txt  -- how to run it
--  Sigma16 User Guide       -- the architecture and circuits
--  Hydra User Guide         -- the hardware description language.
-- ghc documentation:  https://downloads.haskell.org/ghc/latest/docs/html/users_guide/index.html
 
 *** Building Sigma16
 
@@ -6692,9 +4770,9 @@ If you encounter a problem with the app, please file a bug report.  It
 is essential in a bug report (for any software, not just Sigma16) to
 provide as much as possible of the following information.
 
-- State what version of the software you’re running.  This is visible
-  in the browser's URL field.  Also, make sure you’re running the
-  latest version!
+- State what version of the software you’re running.  This is
+  visible in the Welcome page, as well as the User Guide and the
+  Options page.
 
 - State what browser and operating system you're using.  There are
   some incompatibilities between Chrome, Firefox, Edge, and Safari, as
@@ -6707,9 +4785,7 @@ provide as much as possible of the following information.
 
 - If possible, provide some photos or screen shots showing the app at
   the point where the problem arose.  Smartphone photos are fine.  Try
-  to show the register display, the assembly listing display, and the
-  version number (this is visible in the browser's display of the URL,
-  and it's also visible at the top of the User Guide).
+  to show the processor display, including the registers.
 
 ** Typesetting notes :noexport:
 *** svg
@@ -6925,7 +5001,7 @@ $ tex2svg '\sin^2{\theta} + \cos^2{\theta} = 1' > identity.svg
 #+END_EXAMPLE
 
 Here is a formula
-#+INCLUDE: "./svg/identity.svg" export html
+x  #+INCLUDE: "./svg/identity.svg" export html
 which contains some math notation.  This looks good for display equations,
 but not so much for inline notation.
 

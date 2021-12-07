@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-09-27 Mon 14:33 -->
+<!-- 2021-11-20 Sat 11:39 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Sigma16 home page</title>
@@ -233,29 +233,27 @@ You don't need to download or install anything.
 </p>
 
 <div class="quickstartbox">
-<a href="https://sigma16.herokuapp.com/build/3.4.0/Sigma16/Sigma16.html">
+<a href="https://sigma16.herokuapp.com/sigma16/launch">
   Click to run Sigma16 </a>
 </div>
 
 <p>
 When the app runs in your browser, it will display the User Guide,
 which contains introductory tutorials as well as a detailed
-specification of the architecture, assembly language, and programming
-techniques.  You can also
-<a href="./releases/3.2.2/docs/UserGuide/Sigma16UserGuide.html">open the User
+specification of the architecture, assembly language, and
+programming techniques.  You can also
+<a href="https://sigma16.herokuapp.com/sigma16/userguide">open the User
 Guide in your browser</a>.
 </p>
 
-<div id="outline-container-orgf0e8253" class="outline-2">
-<h2 id="orgf0e8253">Introduction</h2>
-<div class="outline-text-2" id="text-orgf0e8253">
 <p>
 This architecture is simpler than most commercial products, making it
 a good vehicle for teaching and experimentation:
 </p>
 
 <ul class="org-ul">
-<li>A 16-bit architecture with a simple yet powerful instruction set.</li>
+<li>It is a 16-bit architecture with a simple yet powerful instruction
+set.</li>
 
 <li>A small core subset of the architecture is suitable for introductory
 teaching, and more advanced features support systems programming.</li>
@@ -269,124 +267,46 @@ mutual exclusion, and more.</li>
 <li>There is a digital circuit that implements Sigma16. The circuit is
 specified at the level of logic gates and flip flops, and is
 expressed in Hydra, a functional computer hardware description
-language.  Sigma16 programs can be executed using the emulator, and
-they can also be executed by simulating the digital circuit using
-the Hydra tools.</li>
+language.  Sigma16 programs can be executed using the emulator,
+and they can also be executed by simulating the digital circuit
+using the Hydra tools.</li>
 </ul>
-</div>
-</div>
 
-<div id="outline-container-orge6f9cc5" class="outline-2">
-<h2 id="orge6f9cc5">Where to find Sigma16</h2>
-<div class="outline-text-2" id="text-orge6f9cc5">
+<div id="outline-container-org7266adc" class="outline-3">
+<h3 id="org7266adc">About Sigma16</h3>
+<div class="outline-text-3" id="text-org7266adc">
 <p>
-It's best to bookmark this page, and to launch the app by clicking the
-link in the red box above.  That will always launch the latest
-released version.  Don't bookmark a specific release.
-</p>
-
-<p>
-To read the source code, see the <a href="https://github.com/jtod/Sigma16/">source repository</a>.  You can't run the
-app directly from the source repository; you need this home page to
-launch it.
-</p>
-
-<p>
-You can download the source code and run the app locally on your
-machine, without further access to the Internet.  If you do, be sure
-to check this page for updates from time to time.  There are also
-command line tools which require downloading and installation.  See
-the User Guide for details.
-</p>
-</div>
-
-<div id="outline-container-org4facfe2" class="outline-3">
-<h3 id="org4facfe2">Releases</h3>
-<div class="outline-text-3" id="text-org4facfe2">
-<p>
-To run the latest release, click the link in the red box at the top of
-this page.
-</p>
-
-<p>
-Some recent releases are listed below.  The top item is the latest
-release, and it's the same as the link in the red box at the top of
-the page.  Normally you shouldn't use an older version.
+This sofware is free and open source.
 </p>
 
 <ul class="org-ul">
-<li><a href="./releases/3.2.3/src/gui/Sigma16.html">launch 3.2.3</a></li>
-<li><a href="./releases/3.2.2/src/gui/Sigma16.html">launch 3.2.2</a></li>
-<li><a href="./releases/3.2.1/src/gui/Sigma16.html">launch 3.2.1</a></li>
+<li>The version number is given in the running app on the Welcome
+tab, the User Guide, and the Options tab.</li>
+
+<li>The architecture, implementation, circuits, and examples are
+designed and written by John O'Donnell.  See
+<a href="https://jtod.github.io/index.html">https://jtod.github.io/index.html</a>.</li>
+
+<li>Copyright &copy; 2021 John T. O'Donnell</li>
+
+<li>License: GNU GPL Version 3 or later</li>
+
+<li>The implementation is available on the
+<a href="https://github.com/jtod/Sigma16/">source repository</a>.  The app
+won't launch directly from the source repository; you need to
+click the link above on this home page to run it.</li>
+
+<li>Some components of the system, including the assembler and linker,
+are available as command line tools as well as on the graphical
+user interface provided by the web app.  The command line tools
+require downloading and installation; see the User Guide for
+details.</li>
+
+<li>The full text of the license is given in the source repository in
+Sigma16/LICENSE.txt, as well as at
+<a href="https://www.gnu.org/licenses">https://www.gnu.org/licenses</a>.</li>
 </ul>
-</div>
 
-<div id="outline-container-org4fee167" class="outline-4">
-<h4 id="org4fee167">Development version</h4>
-<div class="outline-text-4" id="text-org4fee167">
-<p>
-The following links are intended for development and testing of the
-software, and are not recommended for general use.  They may contain
-new features not yet in the latest release, but may be unstable.
-</p>
-
-<ul class="org-ul">
-<li><a href="https://sigma16.herokuapp.com/build/dev/Sigma16/Sigma16.html">dev</a></li>
-
-<li><a href="https://sigma16.herokuapp.com/build/release/Sigma16/Sigma16.html">RC</a></li>
-
-<li><a href="./releases/3.2.4/src/gui/Sigma16.html">3.2.4 development
-snapshot.</a></li>
-
-<li><a href="./testing/compatibility/Worker.html">compatibility test: web worker</a></li>
-
-<li><a href="./testing/compatibility/TypedArray.html">compatibility test: typed
-array</a></li>
-
-<li><a href="./testing/compatibility/SharedArray.html">compatibility test: shared
-array</a></li>
-
-<li><a href="./testing/compatibility/FreezeShm.html">compatibility test: freeze
-shared array</a></li>
-
-<li><a href="./testing/compatibility/config.html">config test</a></li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org1527f2a" class="outline-2">
-<h2 id="org1527f2a">About the software</h2>
-<div class="outline-text-2" id="text-org1527f2a">
-</div>
-<div id="outline-container-org959560e" class="outline-3">
-<h3 id="org959560e">Copyright</h3>
-<div class="outline-text-3" id="text-org959560e">
-<p>
-Copyright (C) 2019-2021 John T. O'Donnell.
-</p>
-
-<p>
-The architecture is designed by, and the software tools are written
-by, <a href="https://jtod.github.io/index.html">John O'Donnell</a>.  Email: john.t.odonnnell9@gmail.com
-</p>
-</div>
-</div>
-
-<div id="outline-container-orga9f6f7e" class="outline-3">
-<h3 id="orga9f6f7e">Implementation</h3>
-<div class="outline-text-3" id="text-orga9f6f7e">
-<p>
-The Sigma16 app is implemented in JavaScript, html 5, and css.  The
-digital circuit is implemented in Hydra, which requires Haskell.
-</p>
-</div>
-</div>
-
-<div id="outline-container-org514e8cb" class="outline-3">
-<h3 id="org514e8cb">License: GPL3</h3>
-<div class="outline-text-3" id="text-org514e8cb">
 <p>
 Sigma16 is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -403,9 +323,15 @@ for more details.
 
 <p>
 You should have received a copy of the GNU General Public License
-along with Sigma16.  If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>.
+along with Sigma16.  If not, see
+<a href="https://www.gnu.org/licenses">https://www.gnu.org/licenses</a>.
 </p>
+</div>
+</div>
 
+<div id="outline-container-orgee6f163" class="outline-2">
+<h2 id="orgee6f163">License</h2>
+<div class="outline-text-2" id="text-orgee6f163">
 <p>
 GNU GENERAL PUBLIC LICENSE
 Version 3, 29 June 2007
@@ -836,10 +762,9 @@ The GNU General Public License does not permit incorporating your program into p
 </div>
 </div>
 </div>
-</div>
 <div id="postamble" class="status">
 <p class="author">Author: John T. O'Donnell</p>
-<p class="date">Created: 2021-09-27 Mon 14:33</p>
+<p class="date">Created: 2021-11-20 Sat 11:39</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

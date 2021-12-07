@@ -1,12 +1,12 @@
 ; Shift: test the shift instructions
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; Sigma16: see README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021
 
      lea    R1,2[R0]         ; 0002   0000 0000 0000 0010
      shiftl R5,R1,4          ; 0020   0000 0000 0010 0000
      shiftl R6,R1,13         ; 4000   0100 0000 0000 0000
      shiftr R7,R6,3          ; 0800   0000 1000 0000 0000
      shiftr R7,R7,11         ; 0001   0000 0000 0000 0001
-
 
 ; Shift test data
       lea     R1,$0040[R0]  ; 0000 0000 0100 0000
@@ -20,12 +20,5 @@
 ; shiftl instruction
       shiftl  R4,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 1000 0000 = 0080
       shiftl  R5,R1,7       ; 0000 0000 0100 0000 -> 0010 0000 0000 0000 = 2000
-
-; shift instruction
-      lea     R1,$0040[R0]  ; 0040
-      lea     R6,3[R0]      ; 0003   R6 := 3
-      shift   R7,R1,R6      ; 0200   R7 := shift R1 left 3 bits
-      lea     R8,-3[R0]     ; fffd   R8 := -3
-      shift   R9,R1,R8      ; 0008   R9 := shift R1 right 3 bits
 
      trap   R0,R0,R0

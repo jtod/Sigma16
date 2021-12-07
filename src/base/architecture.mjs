@@ -130,12 +130,12 @@ export const aX       = Symbol ("JX");       // jump     loop[R0]
 export const aRX      = Symbol ("RX");       // load     R1,xyz[R2]
 export const akX      = Symbol ("KX");       // jumpc0   3,next[R0]
 export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
-export const aRRkkk   = Symbol ("RRk");      // extract  Rd,Rs,di,si,size
+// export const aRRkkk   = Symbol ("RRk");      // extract  Rd,Rs,di,si,size
 export const aRkk     = Symbol ("Rkk");      // field    R1,3,12  ?? should be RRkk
 export const aRkkkk   = Symbol ("Rkkkk");    // logicb   R1,3,8,2,xor
 export const aRkkk    = Symbol ("Rkkk");     // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");     // logicw   R1,R2,R3,xor
-export const aRkkRk   = Symbol ("RkkRk");    // extract  R1,3,5,R2,7
+export const aRkkRk   = Symbol ("RkkRk");    // extract  R1,7,4,R2,12
 export const aRRRkk   = Symbol ("RRRkk");    // inject   R1,R2,R3,5,7
 export const aRRX     = Symbol ("RRX");      // save     R1,R2,5[R13]
 export const aData    = Symbol ("data");     // data     34
@@ -403,8 +403,10 @@ statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,2]})
 statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
 statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,4]})
 statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,5]})
-statementSpec.set("extract",  {ifmt:iEXP, afmt:aRRkkk, opcode:[14,6]})
-statementSpec.set("extracti", {ifmt:iEXP, afmt:aRRkkk, opcode:[14,7]})
+// statementSpec.set("extract",  {ifmt:iEXP, afmt:aRRkkk, opcode:[14,6]})
+// statementSpec.set("extracti", {ifmt:iEXP, afmt:aRRkkk, opcode:[14,7]})
+statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,6]})
+statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,7]})
 statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,8]})
 statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,9]})
 statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,10]})

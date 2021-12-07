@@ -1,5 +1,6 @@
-; TestStdArithmetic: test cases for further arithmetic instructions
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; NatArith: test cases for arithmetic on natural numbers
+; Sigma16: see README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021
 
 ; Overflows
 
@@ -29,3 +30,4 @@
       lea    R2,10000[R0]
       divn   R3,R1,R2       ;  dividend in R1,R15, q in R3, rem in R15
 
+      trap   R0,R0,R0

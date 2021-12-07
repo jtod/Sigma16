@@ -1136,17 +1136,17 @@ function asmPass2 (ma) {
             s.codeWord2 = mkWord448 (e, f, gh)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
-// EXP-RRkkk -- extract Rd,Rs,di,si,size
-	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRkkk) {
+// EXP-RRkkk -- extract Rd,f,g,Re,h
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkRk) {
 	    console.log (`pass2 iEXP/aRRkkk`);
             requireNoperands (ma, s, 5)
             const ab = op.opcode[1]
             const d = requireReg (ma, s, s.operands[0])
-            const e = requireReg (ma, s, s.operands[1])
-            const f = requireK4 (ma, s, Field_f, s.operands[2])
-            const g = requireK4 (ma, s, Field_g, s.operands[3])
+            const f = requireK4 (ma, s, Field_f, s.operands[1])
+            const g = requireK4 (ma, s, Field_g, s.operands[2])
+            const e = requireReg (ma, s, s.operands[3])
             const h = requireK4 (ma, s, Field_h, s.operands[4])
-            console.log (`extract d=${d} e=${e} f=${f} g=${g}`)
+            console.log (`extract d=${d} e=${e} f=${f} g=${g} h=${h}`)
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
             s.codeWord2 = mkWord (e, f, g, h)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)

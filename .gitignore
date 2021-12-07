@@ -8,8 +8,6 @@ protected
 protect*
 node_modules
 *.wasm
-*.html
-*.pdf
 *.lst.txt
 *.obj.txt
 *.md.txt

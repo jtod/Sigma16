@@ -674,6 +674,8 @@ export function op_xor (a,b) {
 
 // These constants provide a faster way to set or clear the flags
 
+// calculateExtract is used for both the extract and extracti instructions
+
 export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
 // dmask contains 1 bits in the destination field
 // dclear is dest with 0s in destination field    
@@ -704,7 +706,8 @@ export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
                  + ` r=${wordToHex4(q)}`)
     return r
 }
-    // p = source field (surrounded by 0) shifted to destination position
+
+// p = source field (surrounded by 0) shifted to destination position
     // destination mask has 1 bits where field will be inserted
 
 function fieldMask (wsize, wmask, i, fsize) {

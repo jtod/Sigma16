@@ -1,1 +1,1 @@
-Version 3.4.1, November 2021.
+Version 3.4.1, December 2021.
