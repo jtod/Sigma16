@@ -81,75 +81,14 @@ panel.
 
 *** Hello, world!
 
-This tutorial introduces the main components of the system and shows
-how to run an example program.  For now, we focus just on how to use
-the software tools.  You don't need to understand the example code
-yet.  An explanation of the Sigma16 architecture and what the
-statements mean will come later.
+Let's begin by running a simple example program.  For now, we focus
+only on how to use the software tools.  You don't need to understand
+the example code yet.  An explanation of the program and the Sigma16
+architecture will come later.
 
 To launch the app, visit the Sigma16 Home Page and click on the link
 to run it.  Sigma16 runs in the browser; you don't need to download
 or install anything.
-
-The main window contains two main sections.  The largest area, on the
-left side, is the *main working area*.  When the program launches,
-this will show the Welcome page.  The *user guide* is on the right
-side.  At the top is a row of buttons (Welcome, Examples, etc.).
-These select which page is displayed in the main working area.
-
-It's convenient to see the main working area and the user guide side
-by side.  Begin by resizing the entire window (bigger is better).
-Then you can change the amount of space given to the user guide by
-clicking the arrow symbols on the right side of the top button bar.
-These arrows will expand or shrink the user guide: the small arrows
-adjust by one pixel, the larger arrows by ten pixels.  If you resize
-the entire browser window, Sigma16 will maintain the same relative
-sizes of the main working area and the user guide sections.
-
-If your screen is small, and the main working area isn't big enough,
-click /Hide User Guide/ and all the space will be available to it.
-The button will change to /Show User Guide/.
-
-You can also open the User Guide in a separate browser tab or window.
-The Welcome page contains a link to do this.
-
-The main working area has several pages, with buttons at the top to
-switch between them:
-
-- *Welcome* contains some introductory information and links.
-   
-- *Examples* contains a collection of assembly language programs
-  organized by topic.  The simplest examples just use the core part
-  of the architecture, while the advanced examples use additional
-  features.
-
-- *Modules* shows a summary of all the files and modules you
-  currently have open.  It also provides buttons allowing you to
-  open files, close them, and select one to work on.
-
-- *Editor* shows the selected module, where it can be edited.  You
-  can assemble and execute the selected module.  To run a program,
-  you'll load it into the Editor (there are several ways to do
-  this), then assemble it and then run it.
-
-- *Assembler* translates a program from assembly language to machine
-  language, and shows the assembly isting as well as the object
-  code.
-
-- *Linker* combines a collection of object code modles into a single
-  executable program.
-
-- *Processor* shows the components of the architecture and executes
-  machine language programs.
-
-- *Options* allows you to configure how the system operates.
-
-- *About* gives general information, including version.
-
-- *Hide User Guide* makes the entire window available to the main
-  working area.  It is a toggle that changes to *Show User Guide*
-
-Let's begin by running a simple example program.
 
 - Click *Editor*, then *Hello, world!*.  This will enter a small
   assembly language program into the editor window.  Later, we'll
@@ -212,6 +151,73 @@ it reaches a particular instruction, and then stop.  This can be
 done by setting a *breakpoint* (described in the Programming
 section).
 
+To exit the app, just close the browser window or tab.  This may put
+up a dialogue box warning that any unsaved data may be lost and
+asking you to confirm.
+
+*** A quick tour
+
+This tutorial introduces the main components of the architecture as
+well as the graphical user interface.
+
+The main window contains two main sections.  The largest area, on the
+left side, is the *main working area*.  When the program launches,
+this will show the Welcome page.  The *user guide* is on the right
+side.  At the top is a row of buttons (Welcome, Examples, etc.).
+These select which page is displayed in the main working area.
+
+It's convenient to see the main working area and the user guide side
+by side.  Begin by resizing the entire window (bigger is better).
+Then you can change the amount of space given to the user guide by
+clicking the arrow symbols on the right side of the top button bar.
+These arrows will expand or shrink the user guide: the small arrows
+adjust by one pixel, the larger arrows by ten pixels.  If you resize
+the entire browser window, Sigma16 will maintain the same relative
+sizes of the main working area and the user guide sections.
+
+If your screen is small, and the main working area isn't big enough,
+click /Hide User Guide/ and all the space will be available to it.
+The button will change to /Show User Guide/.
+
+You can also open the User Guide in a separate browser tab or window.
+The Welcome page contains a link to do this.
+
+The main working area has several pages, with buttons at the top to
+switch between them:
+
+- *Welcome* contains some introductory information and links.
+   
+- *Examples* contains a collection of assembly language programs
+  organized by topic.  The simplest examples just use the core part
+  of the architecture, while the advanced examples use additional
+  features.
+
+- *Modules* shows a summary of all the files and modules you
+  currently have open.  It also provides buttons allowing you to
+  open files, close them, and select one to work on.
+
+- *Editor* shows the selected module, where it can be edited.  You
+  can assemble and execute the selected module.  To run a program,
+  you'll load it into the Editor (there are several ways to do
+  this), then assemble it and then run it.
+
+- *Assembler* translates a program from assembly language to machine
+  language, and shows the assembly isting as well as the object
+  code.
+
+- *Linker* combines a collection of object code modles into a single
+  executable program.
+
+- *Processor* shows the components of the architecture and executes
+  machine language programs.
+
+- *Options* allows you to configure how the system operates.
+
+- *About* gives general information, including version.
+
+- *Hide User Guide* makes the entire window available to the main
+  working area.  It is a toggle that changes to *Show User Guide*
+
 There are two independent views into the memory; this is convenient
 for looking at the machine language code in one view and the data in
 the other view.  (Despite the two views, there is just one memory!)
@@ -219,16 +225,12 @@ At this point the pc register contains 0, meaning that the next
 instruction to be executed is the one in memory location 0.  The ir
 and other registers also contain 0, but that is just the initial
 value.
-
-To exit the app, just close the browser window or tab.  This may put
-up a dialogue box warning that any unsaved data may be lost and
-asking you to confirm.
-
+  
 *** Registers, constants, and arithmetic
 
-The architecture has a *register file* which is an array of 16
-registers, named R0, R1, R2, ..., R15.  The Register File is displayed
-in a box on the Processor page.
+Programs do most of their work using the *register file*, which is
+an array of 16 registers named R0, R1, R2, ..., R15.  The Register
+File is displayed in a box on the Processor page.
 
 A register is a circuit that can hold a number, and the elements of
 the register file can be used to hold variable values.  They are
