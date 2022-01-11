@@ -1276,11 +1276,11 @@ const example_hello_world =
 
 ; Calculate result := 6 * x, where x = 7
 
-     lea    R1,6       ; R1 := 6
-     load   R2,x       ; R2 := x (variable initialized to 7)
-     mul    R3,R1,R2   ; R3 := 6 * x = 42 (hex 002a)
-     store  R3,result  ; result := 6 * x
-     trap   R0,R0,R0   ; halt
+     lea    R1,6[R0]      ; R1 := 6
+     load   R2,x[R0]      ; R2 := x (variable initialized to 7)
+     mul    R3,R1,R2      ; R3 := 6 * x = 42 (hex 002a)
+     store  R3,result[R0] ; result := 6 * x
+     trap   R0,R0,R0      ; halt
 
 ; How to run the program:
 ;   (1) Translate to machine language: Assembler tab, click Assemble
