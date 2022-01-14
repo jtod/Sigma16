@@ -155,7 +155,22 @@ express.static.mime.define({'text/html': ['html']});
 
 app.get ('/', (req,res) => {
     console.log (`responding-/`)
-    res.sendFile (path.join (S16_BUILD_DIR, 'index.html'))
+    res.sendFile (path.join ('/app', 'topindex.html'))
+})
+
+app.get ('/index.html', (req,res) => {
+    console.log (`responding-/-index.html`)
+    res.sendFile (path.join ('/app', 'topindex.html'))
+})
+
+app.get ('/default.html', (req,res) => {
+    console.log (`responding-/-default.html`)
+    res.sendFile (path.join ('/app', 'topindex.html'))
+})
+
+app.get ('/docstyle.css', (req,res) => {
+    console.log (`responding-/`)
+    res.sendFile (path.join ('/app', 'docstyle.css'))
 })
 
 //-----------------------------------------------------------------------

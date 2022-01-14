@@ -38,10 +38,7 @@
 
 Sigma16 is a computer architecture designed for research and
 teaching in computer systems.  The architecture is simple yet
-powerful.  It is organized into subsets to make it easier to use:
-the core subset is suitable for beginners, the standard subset
-offers flexible programming techniques, and the full system supports
-the study of systems programming.
+powerful.
 
 This application provides a complete environment for experimenting
 with the architecture.  It includes an editor, assembler, linker,
@@ -58,23 +55,35 @@ the Installation section.  There is also a digital circuit
 these tools, machine language programs can run on both the emulator
 and the circuit.
 
-For a quick start, begin with the tutorials, which introduce the
-architecture step by step.  The tutorials explain the machine, show
-how to program it, and demonstrate how to enter and run a program
-and how to use the programming environment.
+The architecture is organized into subsets to make it easier to use:
+- The *Core* subset contains a small and simple instruction set which
+  is a good starting point for learning about computer architecture.
+  Although it is simple, Core is powerful enough to support realistic
+  programming.
+- The *Standard* subset offers flexible programming techniques,
+  including manipulation of bits and fields, arithmetic on natural
+  numbers and arbitrary precision integers, and concise support for
+  stack frames.
+- The full *System* supports the study of systems programming.  It
+  supports interrupts, concurrent processes, and mutual exclusion.
+Core is a subset of Standard, which is a subset of System.  To learn
+the full architecture, start with Core and then go on to Standard and
+System.
 
-The remainder of the user guide is organised by topic, with chapters
-on the architecture, the assembly language, the linker, and
-programming techniques.
+For a quick start, begin with the Core architecture tutorials, which
+introduce the architecture step by step.  The tutorials explain the
+machine, show how to program it, and demonstrate how to enter and run
+a program and how to use the programming environment.  A reference
+section follows the tutorials.
 
-* Tutorials
+* Core architecture
 
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the exercises in the main
 panel.
 
-** Core architecture tutorial
+** Core architecture tutorials
 :PROPERTIES:
 :CUSTOM_ID: sec-core-tutorial
 :END:
@@ -1562,7 +1571,6 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
-*** Testing and debugging
 *** Breakpoints
 
 Quick summary, explanation follows.  There are two ways to set a
@@ -1609,7 +1617,7 @@ to modify the program or reassemble it, or if you realise that you
 want a breakpoint after execution has already started, then an
 external break is better.
 
-**** Trap break
+*** Trap break
 
 You can use a trap instruction to break execution when it executes.
 The first operand of the instruction is a register that must contain
@@ -1651,7 +1659,7 @@ to resume full speed execution.
 For an example of a long running program with a trap break, see
 Examples / Testing / Looper.
 
-**** External break
+*** External break
 
 You can also tell the user interface to perform a breakpoint without
 modifying the program.  You need to know the address of the
@@ -1677,7 +1685,7 @@ that location is encountered.  To prevent this, open the breakpoint
 popup again and click Disable.
 
 
-*** Summary of Core Architecture
+** Summary of Core Architecture
 
 The following table summarises the instructions in the Core subset of
 Sigma16.  This is an extract from the table for the full architecture
@@ -1719,18 +1727,22 @@ Assembly directives
 
 - data
 
-** Standard architecture tutorial
-*** Logic
-*** Bit fields and shifting
-*** Stack instructions
-*** Saving registers for procedure call
+* Standard architecture
 
+* Standard architecture tutorials
+** Logic
+** Bit fields and shifting
+** Stack instructions
+** Saving registers for procedure call
 
-*** Arithmetic on natural numbers
-** Systems architecture tutorial
+** Arithmetic on natural numbers
+
+* Systems architecture
+
+** Systems architecture tutorials
 *** System control registers
 *** Interrupt handlers
-** S32 architecture tutorial
+
 
 * Sigma16 Architecture reference
 :PROPERTIES:
@@ -3462,9 +3474,9 @@ Instructions marked x are not are not implemented in this version.
  restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1] |
 
 
-* Sigma32 Architecture reference
+* Sigma32 architecture
 
-(Future extension - no currently available)
+(Future extension - not currently available)
 
 Sigma16 consists of a 16-bit architecture (S16) and a 32 bit extended
 architecture (S32).  This section discusses 
