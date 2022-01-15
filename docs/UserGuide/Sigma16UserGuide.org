@@ -36,14 +36,11 @@
 
 * Introduction
 
-Sigma16 is a computer architecture designed for research and
-teaching in computer systems.  The architecture is simple yet
-powerful.
-
-This application provides a complete environment for experimenting
-with the architecture.  It includes an editor, assembler, linker,
-emulator, and an integrated development environment (IDE) with a
-graphical user interface.
+Sigma16 is a computer architecture designed for research and teaching
+in computer systems.  This application provides a complete environment
+for experimenting with the architecture.  It includes an editor,
+assembler, linker, emulator, and an integrated development environment
+(IDE) with a graphical user interface.
 
 Sigma16 runs in a web browser: you don't need to download or install
 anything.  To run it, click the prominent /Run/ link on the Sigma16
@@ -55,17 +52,17 @@ the Installation section.  There is also a digital circuit
 these tools, machine language programs can run on both the emulator
 and the circuit.
 
-The architecture is organized into subsets to make it easier to use:
-- The *Core* subset contains a small and simple instruction set which
-  is a good starting point for learning about computer architecture.
-  Although it is simple, Core is powerful enough to support realistic
-  programming.
+The architecture is organized into subsets to make it easier to learn
+and to use:
+- The *Core* subset has a small instruction set which is a good
+  starting point for learning about computer architecture.  Although
+  simple, Core is powerful enough to support realistic programming.
 - The *Standard* subset offers flexible programming techniques,
-  including manipulation of bits and fields, arithmetic on natural
-  numbers and arbitrary precision integers, and concise support for
-  stack frames.
+  including manipulation of bits, Boolean expressions, shifting,
+  extracting fields, arithmetic on natural numbers and arbitrary
+  precision integers, and concise support for stack frames.
 - The full *System* supports the study of systems programming.  It
-  supports interrupts, concurrent processes, and mutual exclusion.
+  implements interrupts, concurrent processes, and mutual exclusion.
 Core is a subset of Standard, which is a subset of System.  To learn
 the full architecture, start with Core and then go on to Standard and
 System.
@@ -1573,8 +1570,7 @@ backward compatibility; this can lead to great complexity.
 
 *** Breakpoints
 
-Quick summary, explanation follows.  There are two ways to set a
-breakpoint:
+There are two ways to set a breakpoint:
 
 1. Insert a breakpoint in code: /lea  R10,4; trap R10,R0,R0/  Any
    register (except R0) can be used in place of R10.
