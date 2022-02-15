@@ -36,17 +36,11 @@
 
 * Introduction
 
-Sigma16 is a computer architecture designed for research and
-teaching in computer systems.  The architecture is simple yet
-powerful.  It is organized into subsets to make it easier to use:
-the core subset is suitable for beginners, the standard subset
-offers flexible programming techniques, and the full system supports
-the study of systems programming.
-
-This application provides a complete environment for experimenting
-with the architecture.  It includes an editor, assembler, linker,
-emulator, and an integrated development environment (IDE) with a
-graphical user interface.
+Sigma16 is a computer architecture designed for research and teaching
+in computer systems.  This application provides a complete environment
+for experimenting with the architecture.  It includes an editor,
+assembler, linker, emulator, and an integrated development environment
+(IDE) with a graphical user interface.
 
 Sigma16 runs in a web browser: you don't need to download or install
 anything.  To run it, click the prominent /Run/ link on the Sigma16
@@ -58,98 +52,58 @@ the Installation section.  There is also a digital circuit
 these tools, machine language programs can run on both the emulator
 and the circuit.
 
-For a quick start, begin with the tutorials, which introduce the
+The architecture is organized into subsets to make it easier to learn
+and to use:
+- The *Core* subset has a small instruction set which is a good
+  starting point for learning about computer architecture.  Although
+  simple, Core is powerful enough to support realistic programming.
+- The *Standard* subset offers flexible programming techniques,
+  including manipulation of bits, Boolean expressions, shifting,
+  extracting fields, arithmetic on natural numbers and arbitrary
+  precision integers, and concise support for stack frames.
+- The full *System* architecture supports the study of systems
+  programming.  It provides interrupts, concurrent processes, and
+  mutual exclusion.
+Core is a subset of Standard, which is a subset of System.  To learn
+the full architecture, start with Core and then go on to Standard and
+System.
+
+For a quick start, begin with the Core tutorials, which introduce the
 architecture step by step.  The tutorials explain the machine, show
-how to program it, and demonstrate how to enter and run a program
-and how to use the programming environment.
+how to program it, and demonstrate how to enter and run a program and
+how to use the programming environment.  A reference section follows
+the tutorials.
 
-The remainder of the user guide is organised by topic, with chapters
-on the architecture, the assembly language, the linker, and
-programming techniques.
+Our focus is on fundamental concepts, ideas and principles.  Sigma16
+illustrates the fundementals of computer systems but it avoids
+unnecessary complexity.  For example, Sigma16 has just one word size
+(16 bits) while most commercial machines provide a variety.  That
+variety is useful for practical applications but it complicates many
+of the details while not adding any new fundamental ideas.  Most
+commercial computers that achieve success in the marketplace
+eventually become encrusted with complications that help support
+backward compatibility; this can lead to great complexity.
 
-* Tutorials
+* Core architecture
 
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
-right panel while following along with the exercises in the main
-panel.
+right panel while following along with the examples in the main panel.
 
-** Core architecture tutorial
+** Core architecture tutorials
 :PROPERTIES:
 :CUSTOM_ID: sec-core-tutorial
 :END:
-
 *** Hello, world!
 
-This tutorial introduces the main components of the system and shows
-how to run an example program.  For now, we focus just on how to use
-the software tools.  You don't need to understand the example code
-yet.  An explanation of the Sigma16 architecture and what the
-statements mean will come later.
+Let's begin by running a simple example program.  For now, we focus
+only on how to use the software tools.  You don't need to understand
+the example code yet.  An explanation of the program and the Sigma16
+architecture will come later.
 
 To launch the app, visit the Sigma16 Home Page and click on the link
 to run it.  Sigma16 runs in the browser; you don't need to download
 or install anything.
-
-The main window contains two main sections.  The largest area, on the
-left side, is the *main working area*.  When the program launches,
-this will show the Welcome page.  The *user guide* is on the right
-side.  At the top is a row of buttons (Welcome, Examples, etc.).
-These select which page is displayed in the main working area.
-
-It's convenient to see the main working area and the user guide side
-by side.  Begin by resizing the entire window (bigger is better).
-Then you can change the amount of space given to the user guide by
-clicking the arrow symbols on the right side of the top button bar.
-These arrows will expand or shrink the user guide: the small arrows
-adjust by one pixel, the larger arrows by ten pixels.  If you resize
-the entire browser window, Sigma16 will maintain the same relative
-sizes of the main working area and the user guide sections.
-
-If your screen is small, and the main working area isn't big enough,
-click /Hide User Guide/ and all the space will be available to it.
-The button will change to /Show User Guide/.
-
-You can also open the User Guide in a separate browser tab or window.
-The Welcome page contains a link to do this.
-
-The main working area has several pages, with buttons at the top to
-switch between them:
-
-- *Welcome* contains some introductory information and links.
-   
-- *Examples* contains a collection of assembly language programs
-  organized by topic.  The simplest examples just use the core part
-  of the architecture, while the advanced examples use additional
-  features.
-
-- *Modules* shows a summary of all the files and modules you
-  currently have open.  It also provides buttons allowing you to
-  open files, close them, and select one to work on.
-
-- *Editor* shows the selected module, where it can be edited.  You
-  can assemble and execute the selected module.  To run a program,
-  you'll load it into the Editor (there are several ways to do
-  this), then assemble it and then run it.
-
-- *Assembler* translates a program from assembly language to machine
-  language, and shows the assembly isting as well as the object
-  code.
-
-- *Linker* combines a collection of object code modles into a single
-  executable program.
-
-- *Processor* shows the components of the architecture and executes
-  machine language programs.
-
-- *Options* allows you to configure how the system operates.
-
-- *About* gives general information, including version.
-
-- *Hide User Guide* makes the entire window available to the main
-  working area.  It is a toggle that changes to *Show User Guide*
-
-Let's begin by running a simple example program.
 
 - Click *Editor*, then *Hello, world!*.  This will enter a small
   assembly language program into the editor window.  Later, we'll
@@ -158,9 +112,11 @@ Let's begin by running a simple example program.
   scratch.  For now, don't worry about the content of the program.
 
 - Click *Assembler*.  The assembler translates programs in assembly
-  language to machine language. When you first enter the Assembler
-  tab, the text in the Editor window is copied over; this is the
-  source program.
+  language (the \source program\) to machine language (the \object
+  program\).  Assembly language is a human-readable notation, while
+  machine language is what the computer can execute.  When you first
+  enter the Assembler tab, the assembly language text in the Editor
+  window is copied over; this is the source program.
 
 - Click the *Assemble* button.  This will do the translation.  The
   *assembly listing* is displayed: this shows the original source
@@ -183,62 +139,125 @@ Let's begin by running a simple example program.
 - Still on the Processor page, click *Boot*.  This reads the machine
   language program into the memory, and you can see it in the Memory
   display.  The source code (the assembly language) appears in the
-  bottom section.
+  bottom section.  If the assembler produced any error messages, the
+  program will not boot until you fix the errors.
 
 - Click *Step*.  The processor executes a single instruction and
-  displays the effects on the registers and memory: blue for /using/
-  a value, and red for /modifying/ it.  The assembly listing shows
-  the instruction that just executed by highlighting it in red.  It
-  also shows the instruction that will execute next by highlighting
-  it in blue.  This is just to make it easier to follow what is
-  happening; the actual machine ignores the assembly language
-  listing and doesn't even "know" that it exists.
+  displays the effects on the registers and memory: blue for /using/ a
+  value, and red for /modifying/ it.  The assembly listing shows the
+  instruction that just executed by highlighting it in red.  It also
+  shows the instruction that will execute next by highlighting it in
+  blue.  This is just to make it easier to follow what is happening;
+  the machine executes the machine language program, which is in
+  memory, and it ignores the assembly language listing which is just a
+  convenience to help you follow the program.  The machine relies only
+  on the registers and memory, and doesn't even "know" that the
+  assembly listing exists.
+
+  There is a keyboard shortcut: after you have clicked Step once, you
+  can press the space bar to execute the next instruction.  Thus you
+  can step through the program by clicking Step, and then pressing the
+  space bar repeatedly.
 
 - Click Step repeatedly to watch the program execute, instruction by
   instruction.  When the program terminates, the small window
   labelled *Emulator* will display *Halted*.
 
-- You can also run the program to completion, without having to
-  click Step so maany times.  Click *Boot* again to get the machine
-  back into the initial state.  Now click *Run*, and the program
-  will continue executing instructions until it halts.
+- You can also run the program to completion, without having to click
+  Step so many times.  Click *Boot* again to get the machine back into
+  the initial state.  Now click *Run*, and the program will continue
+  executing instructions until it halts.
 
-To run the program slowly, click Step repeatedly.  To run the
-program faster but without updating the display after each
-instruction, click Run.  At any time you can click Pause to stop the
-processor, and you can resume execution with either Step or Run.
-Sometimes it's useful to let the processor run at full speed until
-it reaches a particular instruction, and then stop.  This can be
-done by setting a *breakpoint* (described in the Programming
-section).
-
-There are two independent views into the memory; this is convenient
-for looking at the machine language code in one view and the data in
-the other view.  (Despite the two views, there is just one memory!)
-At this point the pc register contains 0, meaning that the next
-instruction to be executed is the one in memory location 0.  The ir
-and other registers also contain 0, but that is just the initial
-value.
+To run the program slowly, click Step repeatedly.  To run the program
+faster but without updating the display after each instruction, click
+Run.  At any time you can click Pause to stop the processor, and you
+can resume execution with either Step or Run.  Sometimes it's useful
+to let the processor run at full speed until it reaches a particular
+instruction, and then stop.  This can be done by setting a
+*breakpoint* (described in the Breakpoint tutorial below).
 
 To exit the app, just close the browser window or tab.  This may put
 up a dialogue box warning that any unsaved data may be lost and
 asking you to confirm.
 
+*** A quick tour
+
+This tutorial introduces the main components of the architecture as
+well as the graphical user interface.
+
+The main window contains two main sections.  The largest area, on the
+left side, is the *main working area*.  When the program launches,
+this will show the Welcome page.  The *user guide* is on the right
+side.  At the top is a row of buttons (Welcome, Examples, etc.).
+These select which page is displayed in the main working area.
+
+It's convenient to see the main working area and the user guide side
+by side.  Begin by resizing the entire window (bigger is better).
+Then you can change the amount of space given to the user guide by
+clicking the arrow symbols on the right side of the top button bar.
+These arrows will expand or shrink the user guide: the small arrows
+adjust by one pixel, the larger arrows by ten pixels.  If you resize
+the entire browser window, Sigma16 will maintain the same relative
+sizes of the main working area and the user guide sections.
+
+If your screen is small, and the main working area isn't big enough,
+click /Hide User Guide/ and all the space will be made available to
+it.  The button will change to /Show User Guide/.
+
+You can also open the User Guide in a separate browser tab or window.
+The Welcome page contains a link to do this.
+
+The main working area has several pages, with buttons at the top to
+switch between them:
+
+- *Welcome* contains some introductory information and links.
+   
+- *Examples* contains a collection of assembly language programs
+  organized by the architecture subset.  Start with the Core examples.
+
+- *Modules* shows a summary of all the files and modules you currently
+  have open.  It also provides buttons allowing you to open files on
+  your computer, close them, and select one to work on.
+
+- *Editor* shows the selected module, where it can be edited.  You can
+  assemble and execute the selected module.  To run a program, you'll
+  load it into the Editor (there are several ways to do this), then
+  assemble it (Assembler tab) and then run it (Processor tab).
+
+- *Assembler* translates a program from assembly language to machine
+  language, and shows the assembly isting as well as the object
+  code.
+
+- *Linker* is used in the Standard and System architectures, but it is
+  not needed for Core.  (The linker combines a collection of object
+  code modules into a single executable program, and also performs
+  name resolution and relocation.)
+
+- *Processor* shows the components of the architecture and executes
+  machine language programs.
+
+- *Options* allows you to configure how the system operates.
+
+- *About* gives general information, including version.
+
+- *Hide User Guide* makes the entire window available to the main
+  working area.  It is a toggle that changes to *Show User Guide*.
+  
 *** Registers, constants, and arithmetic
 
-The architecture has a *register file* which is an array of 16
-registers, named R0, R1, R2, ..., R15.  The Register File is displayed
-in a box on the Processor page.
+Programs do most of their work using the *register file*, which is
+an array of 16 registers named R0, R1, R2, ..., R15.  The Register
+File is displayed in a box on the Processor page.
 
 A register is a circuit that can hold a number, and the elements of
 the register file can be used to hold variable values.  They are
 analogous to the registers in a calculator: think of each register as
 a box that can hold a number, and think of the register name as a
-variable name.
+variable name.  Two of the registers, R0 and R15, are special and
+should not be used to hold variables.
 
-A computer program is a sequence of *instructions*.  Instructions
-are similar to statements in a programming language, except that they
-are simpler.
+A computer program is a sequence of *instructions*.  Instructions are
+similar to statements in a programming language, but they are simpler.
 
 Sigma16 performs arithmetic on data in registers.  To do any
 computation on some numbers, we first need to get those numbers into
@@ -246,7 +265,7 @@ registers.  The *lea* instruction. can be used to place a constant
 into a register.  For example, to load 42 into register 3, write
 
 #+BEGIN_EXAMPLE
-    lea  R3,42[R0]   ; R3 := 42
+    lea  R3,42    ; R3 := 42
 #+END_EXAMPLE
 
 This is a statement in *assembly language*, and it describes one
@@ -254,28 +273,38 @@ instruction.  This statement contains three parts:
 - The operation is *lea*.  This tells the computer what action to
   perform, and "lea" says to put a value into a register.  Later we
   will see why this instruction is called "lea".
-- The operands are *R2,9[R0]*
-- everything after the semicolon is a comment.
+- The operands are *R2,42*
+- Everything after the semicolon is a comment.  This comment is a
+  programming language statement that describes what the instruction
+  does: it sets the variable R3 to 42.
 
-The word *lea* is the *operation*, i.e. the name of the instruction.
+The same instruction can be written in a longer form:
+#+BEGIN_EXAMPLE
+    lea  R3,42[R0]    ; R3 := 42
+#+END_EXAMPLE
+This is the same as above, except *[R0]* is written after the number.
+You can write the instruction either way; both are translated to
+exactly the same machine language, and they execute exactly the same
+way.  The significance of [R0], as well as the reason this instruction
+is named lea, will be explained later when we discuss arrays and
+pointers.  The short form =lea R3,42= is just an abbreviation for the
+long form =lea R3,42[R0]=.  You will see both forms in the example
+programs.
+
+The name *lea* is the *operation*, i.e. the name of the instruction.
 The operandd field consists of two operands separated by a comma.  The
-first operand (R2) is called the *destination*; this is the register
-where the result will be placed.  The second operand is a constant
-(42) followed by [R0].  When the computer executed this instruction,
-it simply places the constant into the destination.  In a higher level
-language, we could write *R2 := 42*.    
+first operand, R2, is called the *destination*; this is the register
+where the result will be placed.  The second operand is a constant 42
+followed by [R0].  When the computer executed this instruction, it
+simply places the constant into the destination.  In a higher level
+language, we could write *R2 := 42*.
 
-Most instructions follow a similar pattern, where the first operand is
-the destination where the result is placed, and the subsequent
-operands are the arguments to the computation.  This is the same
-convention used in assignment statements in many programming
-languages: the registers in sub R1,R2,R3 appear in the same order as
-the variables in R1 := R2-R3.
-
-For now, just ignore the *[R0]* part.  It's optional: you can omit
-it or include it.  The [R0] has a purpose but that won't become clear
-until later.  Also, the name "lea" may look odd, but this also has a
-meaning that will become clear later.
+Most instructions follow a similar pattern: the first operand is the
+destination where the result is placed, and the subsequent operands
+are the arguments to the computation.  This is the same convention
+used in assignment statements in many programming languages: the
+registers in add R1,R2,R3 appear in the same order as the variables in
+R1 := R2 + R3.
 
 All arithmetic operations take place in the registers, and there is a
 separate instruction for each operation.  For example, the following
@@ -292,9 +321,10 @@ operand (R4 in this example) is the *destination*, which is where the
 result will be placed.  The last two operands (R8 and R1) are the
 values that will be added.
 
-To perform a calculation, need to get the data into registers (using
-lea) and then perform the calculation (using arithmetic instructions).
-The following program calculates 3+4:
+To perform a calculation, we need to get the data into registers
+(using lea) and then perform the calculation (using arithmetic
+instructions).  The following program calculates 3 + 4 and puts the
+result into R2:
 
 #+BEGIN_EXAMPLE
     lea   R5,3[R0]    ; R5 := 3
@@ -323,10 +353,10 @@ register):
 
 The divide instruction is slightly different: it produces two results,
 the quotient and the remainder.  The quotient is placed in the
-destination, but the remainder is automatically placed into R15, even
-though the instruction doesn't mention R15.  (What happens if you
-write *div R15,R1,R2*?  In that case the quotient is placed into R15
-and the remainder is discarded.)
+destination, and the remainder is automatically placed into R15, even
+though the instruction doesn't mention R15.  If you write *div
+R15,R1,R2*, the quotient is placed in R15 and the remainder is
+discarded.
 
 Normally an arithmetic instruction will put a new value into the
 destination register, but the operand registers are left unchanged.
@@ -374,13 +404,13 @@ notation.
 The processor page shows numbers as hex without the leading $, but in
 an assembly language program the $ is needed to avoid ambiguity.
 
-Notice that Sigma uses := as the assignment operator; thus we write R7
-:= R7 + R8 (and we don't write R7 = R7 + R8).  This is because an
-assignment statement is profoundly different from an equation, and
-mathematicians have long used the = operator to indicate equations.
-It isn't just an academic or theoretical point; there have been plenty
-of occasions where computer programmers get confused between
-assignment and equality, and using the wrong operator doesn't help.
+Sigma uses := as the assignment operator; thus we write R7 := R7 + R8
+(and we don't write R7 = R7 + R8).  This is because an assignment
+statement is profoundly different from an equation, and mathematicians
+have long used the = operator to indicate equations.  It isn't just an
+academic or theoretical point; there have been plenty of occasions
+where computer programmers get confused between assignment and
+equality, and using the wrong operator doesn't help.
 
 Why does assembly language use a notation like add R5,R2,R3 instead of
 R5 := R2 + R3?  In short, every instruction will use a similar
@@ -408,18 +438,36 @@ avoid R0 and R15).
 
 This is nearly enough to constitute a complete program.  Only one more
 thing is needed: a way to terminate the program when it finishes.
-There is a special instruction to do this:
+There is a special instruction to do this: a trap instruction, where
+the first operand is R0, will stop the program.
 
 #+BEGIN_EXAMPLE
    trap  R0,R0,R0   ; halt
 #+END_EXAMPLE
 
-Try running this program.  You can go to the Editor and type it in,
-but this program is part of the collection of examples built in to
-Sigma16.  Here's how to run it:
+Here is a complete program named ConstArith:
 
-- Go to the Examples page.  Click Examples, then Basic examples, then
-  Small and simple programs, then ConstArith.  You should see the
+#+BEGIN_EXAMPLE
+; ConstArith: illustrate lea and arithmetic instructions
+; This file is part of Sigma16
+
+; Calculate 3 + 4 * 4 and put the result into R10
+; Use lea to put a constant into a register
+; Use mul and add to do arithmetic
+
+    lea  R1,3[R0]    ; R1 := 3
+    lea  R2,4[R0]    ; R2 := 4
+    lea  R3,5[R0]    ; R3 := 5
+    mul  R2,R2,R3    ; R2 := R2*R3  = 4*5
+    add  R10,R1,R2   ; R10 := R1 + R2 = 3 + 4*5 = 23
+    trap  R0,R0,R0   ; halt
+#+END_EXAMPLE
+
+You can go to the Editor and type it in, but this program is part of
+the collection of examples built in to Sigma16.  Here's how to run it:
+
+- Go to the Examples page.  Click Examples, then Core,
+  then Small and simple programs, then ConstArith.  You should see the
   listing of the program.
 - Click Editor, and you should see the text of the program in the
   window.
@@ -428,13 +476,16 @@ Sigma16.  Here's how to run it:
   watch the effect of each instruction by observing how the registers
   and memory are changed.
 
+The Processor page shows numbers in hexadecimal.  The mul instruction
+puts decimal 20 into R2, and this is displayed as hex 0014 (because
+1 * 16 + 4 = 20).
+
 It's a good idea to step through the program slowly, rather than
 running it to completion at full speed.  The emulator will show the
 next instruction to be executed, highlighted in blue.  Think about
 what the instruction should do; in particular what changes to the
 registers will occur?  Then click Step and check to see if the right
-thing happened.  Note that the emulator displays all values in
-hexadecimal notation.  (Tip: this is a good way to debug programs!)
+thing happened.
 
 Generally you can use any register you like, and the choices of
 registers in the previous examples are arbitrary.  Registers R1
@@ -457,7 +508,7 @@ different:
   this is set in R15.  Many of the instructions, including all the
   arithmetic instructions, change the value of R15 as well as placing
   the result in the destination register.  For this reason, R15 cannot
-  be used to hold a variable: its value would be destroyed almost
+  be used to hold a variable since its value would be destroyed almost
   immediately.
   
 To summarise, Registers R1 through R14 are all identical and can be
@@ -465,10 +516,9 @@ used for variables.  R0 contains 0 and will never change.  R1 changes
 very frequently and can be used to determine various error conditions
 and other information about an instruction.
 
-Example
-
+Here is another example:
 - Suppose we have variables a, b, c, d
-- R1=a, R2=b, R3=c, R4=d
+- Choose a register for each variable: R1=a, R2=b, R3=c, R4=d
 - We wish to compute R5 = (a+b) * (c-d)
 
 #+BEGIN_EXAMPLE
@@ -480,7 +530,7 @@ Example
 Summary.
 
 - A lea instruction of the form *lea d,const[R0]* will put the
-  constant into Rd.
+  constant into Rd.  It can also be written as *lea d,const*.
 - The general form of an arithmetic instruction is *op d,a,b*.  
   The meaning is *R_d := R_a  op  R_b*, and the fields are:
 
@@ -501,28 +551,36 @@ similar in some ways to the register file.  The memory contains a
 sequence of *memory locations*, each of which can hold a word.  Each
 location is identifed by an *address*, and the addresses count up from
 0.  We will use the notation *mem[a]* to denote the memory location
-with address a
+with address a.
+
+The processor page shows two independent views into the memory; this
+is convenient for looking at the machine language code in one view and
+the data in the other view.  Despite the two views, there is just one
+memory!
+
+The register file and the memory serve different purposes:
 
 - The register file is used to perform calculations.  In computing
-  something like x := (2*a + 3*b) / (x-1), all the arithmetic will be
+  something like x := (2*a + 3*b) / (x-1), all the arithmetic must be
   done using the register file.  But there are only a few registers
   available.
-  
+ 
 - The memory is much larger: it contains 65,536 locations so it can
   hold all the variables in a program.  But the memory has a
   limitation: the computer cannot do arithmetic directly on data in
   the memory.  
   
-A variable name refers to a word in memory.  Actually, the variable
-name just stands for the address of the location which contains the
-variable.  This allows you to refer to a variable by a name (x, sum,
-count) rather than an address (003c, 0104, 00d7).
+Normally, a program keeps its variables in memory, so a variable name
+refers to a word in memory.  Actually, the variable name just stands
+for the /address/ of the location which contains the variable.  This
+allows you to refer to a variable by a name (x, sum, count) rather
+than an address (003c, 0104, 00d7).
 
 Since we need a lot of variables, they need to be kept in memory.  But
 since we need to do arithmetic and arithmetic can be performed only on
 data in registers, we adopt the following strategy:
 
-- Keep data permanently in memory
+- Keep variables permanently in memory
 - When you need to do arithmetic, copy a variable from memory to a
   register
 - When finished, copy the result from a register back to memory
@@ -530,23 +588,20 @@ data in registers, we adopt the following strategy:
 Two instructions are needed to do this:
 - *load* copies a word from a memory location into a register.
   Suppose *xyz* is a variable in memory; then to copy its value into
-  R2 we could write *load R2,xyz[R0]*
+  R2 we could write either *load R2,xyz[R0]* or *load R2,xyz*.  Again,
+  the [R0] is optional; if you write the short form xyz the assembler
+  will automatically expand this to the full form xyz[R0].
 - *store* copies a word from a register into a memory location.  If R3
   contains the result of some calculations, and we want to put it back
-  into memory in a varaible named result, we would write *store
+  into memory in a variable named result, we would write *store
   R3,result[R0]*
   
-It's necessary to write [R0] after the variable name, similarly to
-writing [R0] after the constant in a lea instruction.  Again, the
-reason for that will be explained later but for now just treat it as
-an arbitrary rule.
-
 At this point we have enough instructions to write an assignment
 statement in assembly language.  Typically we will first write an
 algorithm using higher level language notation, and then translate it
 into instructions.
 
-The problem: translate *x := a+b+c* into assembly language.
+Example: translate *x := a+b+c* into assembly language.
 
 Solution:
 
@@ -559,21 +614,20 @@ Solution:
    store  R5,x[R0]      ; x := a+b+c
 #+END_EXAMPLE
 
-Why do we have registers and memory?  After all, this makes
-programming a little more complicated.  You have to keep track of
-which variables are currently in registers, and you have to use load
-and store instructions to copy data between the registers and memory.
-Wouldn't it be easier just to get rid of the distinction between
-registers and memory, and do all the arithmetic on memory?
+Why does the computer have both registers and memory?  After all, this
+makes programming a little more complicated.  You have to keep track
+of which variables are currently in registers, and you have to use
+load and store instructions to copy data between the registers and
+memory.  Wouldn't it be easier just to get rid of the distinction
+between registers and memory, and do all the arithmetic on memory?
 
-Yes, this would be simpler.  Furthermore, it's possible to design a
-computer that way, and there have actually been real computers like
-that.  However, this approach makes the computer very much slower.
-With modern circuits, a computer without load and store instructions
-(where you do arithmetic on memory locations) would run approximately
-100 times slower.  So nearly all modern computers do arithmetic in
-registers, and use instructions like load and store to copy data back
-and forth between registers and memory.
+Yes, this would be simpler, and there have actually been real
+computers like that.  However, this approach makes the computer very
+much slower.  With modern circuits, a computer without load and store
+instructions (where you do arithmetic on memory locations) would run
+approximately 100 times slower.  So nearly all modern computers do
+arithmetic in registers, and use instructions like load and store to
+copy data back and forth between registers and memory.
 
 The variables used in a program need to be defined and given an
 initial value.  This is done with the *data* statement.  The variable
@@ -591,24 +645,13 @@ abc  data  $02c6  ; specify initial value as hex
 #+END_EXAMPLE
 
 The data statements should come *after* all the instructions in the
-program.  This may look surprising: in some programming language you
+program.  This may look surprising: in some programming languages you
 have to declare your variables at the beginning, before using them.
 There is a very good reason why we will put the instructions first,
-and the data statements after; but again the reason will come later.
+and the data statements after; but the reason will come later.
 
-There is a simple example of a complete program that uses load, store,
-and data statement.  The text is given below, but you don't need to
-type it in.
-
-- Go to the Examples page.  Click Core, then Simple, then Add.  You
-  should see the listing of the program.
-- Click Copy example to editor
-- Click Editor, and you should see the text of the program in the
-  window.
-- Go to the Assembler page.  Click Assemble.
-- Go to the Processor page.  Click Boot, then Step repeatedly and
-  watch the effect of each instruction by observing how the registers
-  and memory are changed.
+Here is a simple example of a complete program that uses load, store,
+and data statements:
 
 #+BEGIN_EXAMPLE
 ; Program Add.  See Sigma16/README.md in top folder
@@ -632,20 +675,31 @@ y     data  14
 z     data   0
 #+END_EXAMPLE
 
-- Assembly language
+- Go to the Examples page.  Click Core, then Small and Simple
+  Programs, then Add.
+- Click Editor, and you should see the text of the program in the
+  window.
+- Go to the Assembler page.  Click Assemble.
+- Go to the Processor page.  Click Boot, then Step repeatedly and
+  watch the effect of each instruction by observing how the registers
+  and memory are changed.
 
-The programs shown here are written in *assembly language*.  The
-machine itself executes programs in *machine language*, which is
+*** Assembly language
+
+The programs we have seen so far are written in *assembly language*.
+The machine itself executes programs in *machine language*, which is
 covered later.  Assembly language is translated to machine language by
 a program called an *assembler*.
 
 The purpose of assembly language is to give the programmer absolute
-control over the machine language code without having to remember lots
-of numeric codes.  For example, it is easier to remember the name
-"mul" for multiply than to remember the machine language code (which
-happens to be 3).  Similarly, it's easier to remember the names of
-variables (x, y, sum, total) than the numeric addresses of the memory
-locations that hold these variables.
+control over the machine language program without having to remember
+lots of numeric addresses and codes.  Assembly language is readable
+for humans, while machine language is executable by machines.  For
+example, it is easier to remember the name "mul" for multiply than to
+remember the machine language code (which happens to be 3).
+Similarly, it's easier to remember the names of variables (x, y, sum,
+total) than the numeric addresses of the memory locations that hold
+these variables.
 
 The syntax of assembly language is simple and rigid.  Every statement
 must fit on one line of source code; you cannot have a statement that
@@ -661,6 +715,8 @@ example, the minus sign, the hyphen, the en-dash, and the em-dash all
 look similar -- you have to look really closely to see the difference
 -- but Sigma16 assembly language uses the minus sign, and the hyphens
 and dashes won't work.
+
+These are the legal characters in an assembly language program:
 
 - letters: _abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 - digits: 0123456789
@@ -718,10 +774,9 @@ Each of the following statements is wrong!
 loop1  store x[R0],R5  ; wrong order: should be R5,x[R0]
     addemup            ; invalid mnemonic
  loop2  load R1,x[R0]  ; Space before the label
-    load R6,x          ; should be x[R0]
 #+END_EXAMPLE
 
-If you forget some detail, look at one of the example programs
+If you forget some detail, look at one of the example programs.
 
 When the assembler is translating a program, it begins by looking at
 the spaces in order to split each statement into the four fields.
@@ -744,8 +799,6 @@ the assembler will decide that the mnemonic is add, the operands field
 is "R1," and all the rest - "R2,R3 ; x := a + b" -- is a comment, and
 the colors of the text in the assembly listing will show this clearly.
 
-Writing constants
-
 In assembly language, you can write constants in either decimal
 or hexadecimal.
   
@@ -762,16 +815,15 @@ x  data  25
 y  data  $2c9e
 #+END_EXAMPLE
 
-Correct form of operand field
+There are two \instruction formats\, which differ in the form of the
+operands:
 
-- RRR: Exactly three registers separated by commas R8,R13,R0.
+- RRR instructions have an operand field containing three registers
+  separated by commas.  Example: *add R8,R13,R0*.
   
-- RX:Two operands: first is a register, second is an address.  The
-  address is a name or constant followed by [register]. Example:
-  R12,array[R6]
-
-
-
+- RX instructions have an operand field that specifies a register and
+  an address.  The address is a name or constant, optionally followed
+  by a register. Examples: *load R12,array[R6]$ and *lea R5,23*.
 
 It isn't enough just to get the assembler to accept your program
 without error messages.  Your program should be clear and easy to
@@ -779,10 +831,10 @@ read.  This requires good style.  Good style saves time writing the
 program and getting it to work A sloppy program looks unprofessional.
 Here are a few tips.
 
-*Write good comments.* You should use good comments in all programs,
-regardless of language.  But comments are even more important in
-machine language, because the code tends to need more explanation.  At
-the beginning of the program, use comments to give the name of the
+*Write good comments.* You should include good comments in all
+programs, regardless of language.  Comments are especially important
+in machine language, because the code tends to need more explanation.
+At the beginning of the program, use comments to give the name of the
 program and to say what it does.  Use full line comments to say in
 general what's going on, and put a comment on every instruction to
 explain what it's doing.
@@ -815,9 +867,10 @@ what's important is to make the program neat and readable.
 tabs!  In general, never use tabs except in the (rare) cases they are
 actually required.  The tab character was introduced long ago into
 computer character sets to try to mimic the tab key on old mechanical
-typewriters But software does not handle tab consistently.  If you use
-tabs, your can look good in one application and like a mess in
-another.  It's easy to indent with spaces, and it works everywhere!
+typewriters.  Unfortunately, software does not handle tab characters
+consistently.  If you use tabs, your program can look good in one
+application and like a mess in another.  It's easy to indent with
+spaces, and it works everywhere.
 
 *** Files and modules
 
@@ -828,8 +881,7 @@ later the system will crash and you'll lose your data.
 A *module* is a section of a program; it may be the complete program
 or just a part of it.  A module may be saved in a file or it may
 simply be text in the editor buffer.  A program may consist of just
-one module, or it can be split between several files (*not supported
-yet, coming soon*).
+one module, or it can be split between several files.
 
 The Editor page contains a text area called the *editor buffer*.  When
 you launch Sigma16, there is one module whose text is empty and
@@ -851,10 +903,13 @@ browser.
 The reason there is limited control over the name of the saved file,
 and the directory where it is placed, is that web browsers enforce
 strict limitations on the ability of applications to access your file
-system.  That's a very good feature of browsers -- you don't want a
-random web page to start deleting or corrupting your files -- but it
-does make it a little inconvenient to save your edited assembly
+system.  That's a good feature of browsers -- you don't want a
+malicious web page to start reading, deleting, or corrupting your
+files -- but it does make it inconvenient to save your edited assembly
 programs.
+
+Another approach is to use a separate text editor, and to copy/paste
+text between the external editor and the Editor page on Sigma16.
 
 To create a new module without destroying the existing one, click
 *New* in the editor page.  This will make a new module with empty text
@@ -869,9 +924,9 @@ separated by horizontal lines.  The modules are numbered starting from
 module, the module number is shown, followed by some buttons to
 operate on that module, and some information about it.  The first few
 lines of the module are shown.  If you follow good programming style,
-where the first rew lines of each module identify what the program is,
-you'll be able to see at a glance what each module is without visiting
-it in the editor.
+where the first rew lines of each module identify the program, you'll
+be able to see at a glance what each module is without visiting it in
+the editor.
 
 Several buttons appear for each module in the list.  At any time, one
 of the modules is *selected*. Click the Select button for any module
@@ -911,13 +966,9 @@ Common workflows:
   and the assembly language only accepts the minus sign.  If you get
   bad characters, the assembler will give an error message.
   
-- Use an external editor and save the file.  In the Editor page, click
-  Choose files and select your source file.  Then, every time you edit
-  the text in your external editor, save it and then click *Refresh*
-  on the module in the Modules page.  This way you don't need to
-  Download the editor buffer because your up-to-date text will be in
-  the external editor (but of course you have to save the file there).
-
+- Use an external editor and save the file.  Use copy and paste to
+  transfer text between the external editor and the Sigma16 Editor
+  page.
 
 *** Jumps and conditionals
 
@@ -957,9 +1008,10 @@ if x < y then goto someLabel
 Any relational operation can be used; it isn't limited to less-than.
 Such conditionals are implemented in assembly language in two steps.
 First, a *comparison* instruction is used to produce a Boolean result,
-which is placed in the /condition code/.  Second, a *conditional jump*
-instruction will either jump or not jump, depending on the condition
-code.  This allows a choice of what instruction to execute next.
+which is placed in the /condition code/ (which is in R15).  Second, a
+*conditional jump* instruction will either jump or not jump, depending
+on the condition code.  This allows a choice of what instruction to
+execute next.
 
 The cmp instruction compares the integers in two registers, and it
 sets R15 to the result of the comparison.  R15 is a special register
@@ -990,7 +1042,7 @@ Usually a compare instruction is used to set the condition code, and
 it's followed by a conditional jump.  It is also possible to save the
 result of a comparison in a Boolean variable, to perform logic on
 Boolean varaibles, and to use them to control conditional jumps.
-These topics are covered in Section ???.
+This topic will be discussed later.
 
 The address in a jump instruction -- the place to jump to -- is
 normally specified as a label which is defined in the label field of
@@ -1015,9 +1067,7 @@ if bexp
 statement 2
 #+END_EXAMPLE
 
-
 This is translated according to the following pattern:
-
 
 #+BEGIN_EXAMPLE
      if !bexp then goto L1
@@ -1026,8 +1076,7 @@ L1:
      statement 2
 #+END_EXAMPLE
 
-
-Her is an example:
+Here is an example:
 
 #+BEGIN_EXAMPLE
 a := 93
@@ -1067,8 +1116,9 @@ skip  lea    R1,104[R0]    ; R1 := 104
       store  R1,b[R0]      ; b := 104
 #+END_EXAMPLE
 
-Notice the use of jumple: if the Boolean expression (y>x) is False we want to
-skip over the "then" part, so we want to jump if y <= x (hence jumple).
+Notice the use of jumple: if the Boolean expression (y>x) is False we
+want to skip over the "then" part, so we want to jump if y <= x (hence
+jumple).
 
 An if-then-else statement has a similar compilation pattern, but this
 time there are two separate parts: the "then-part" and the
@@ -1083,7 +1133,7 @@ and which doesn't use a Boolean.
    jump   somewhere[R0]    ; go to somewhere
 #+END_EXAMPLE
 
-The general form is
+The general form of an if-then-else is
 
 #+BEGIN_EXAMPLE
 if x < y
@@ -1227,25 +1277,20 @@ the program.  This approach is often used for special-purpose
 computers (primarily micro-controllers), but experience has shown this
 to be inferior for general purpose computers.
 
-Instruction formats: different types of instruction
-
-Sigma16 has several instruction formats
+Sigma16 has several different kinds of instruction.  These are called
+/instruction formats/.  All the instructions with the same format have
+similar representations in machine language.  The Sigma16 Core has two
+instruction formats:
   
 -  RRR instructions use the registers
 -  RX instructions use the memory
--  EXP instructions use registers and constant
-  
-Each kind of instruction is called an instruction format.  All the
-instructions with the same format are similar Each instruction format
-has a standard representation in the memory.
  
-The machine language program is in the memory So we need to represent
-each instruction as a word An instruction format is a systematic way
-to represent an instruction using a string of bits, on one or more
-words.  Every instruction is either RRR, RX, or EXP
+The machine language program is in the memory.  Therefore we need to
+represent each instruction as a word that can be stored in memory.  An
+instruction format is a systematic way to represent an instruction
+using one or more words (a word is a string of bits).
   
-- An RRR instruction is represented in one word (recall that a word is
-  16 bits).
+- An RRR instruction is represented in one word
 - An RX instruction is represented in two words.
   
 Fields of an instruction word
@@ -1262,7 +1307,7 @@ The names of the fields are:
 - a  -- usually holds the first source operand register
 - b -- usually holds the second source operand register
 
-Representing RRR instructions
+/Representing RRR instructions/
 
 Every RRR instruction consists of
   
@@ -1271,13 +1316,16 @@ Every RRR instruction consists of
 - The instruction performs the operation on the operands and
   puts the result in the destination
   
-Example: add R3,R12,R5.  We need to specify which RRR
-instruction this is.  Is it add? sub? mul? another?  This is done with
-an operation code --- a number that says what the operation is.  There
-are about a dozen RRR instructions, so a 4-bit operation code
-suffices.  We also need to specify three registers: destination and
-two source operands.  There are 16 registers, so a particular one can
-be specified by 4 bits.  Total requirements: 4 fields, each 4 bits ---
+Example: add R3,R12,R5.
+
+We need to specify which RRR instruction this is.  Is it add? sub?
+mul? another?  This is done with an operation code --- a number that
+says what the operation is.  There are about a dozen RRR instructions,
+so a 4-bit operation code suffices.
+
+We also need to specify three registers: destination and two source
+operands.  There are 16 registers, so a particular one can be
+specified by 4 bits.  Total requirements: 4 fields, each 4 bits ---
 total 16 bits.  An RRR instruction exactly fills one word.
 
 All RRR instructions have the same form, just the operation
@@ -1300,7 +1348,7 @@ Here are the RRR operation codes:
    sub        1
    mul        2
    div        3
-   trap       d
+   trap       b
 
 Don't memorise this table!  You just need to understand how it's used.
 
@@ -1315,12 +1363,12 @@ add  R13,R6,R9
 - Source operand registers are 6 and 9 (hex 6 and 9)
 - So the instruction is  0d69
 
-Representing RX instructions
+/Representing RX instructions/
 
 Every RX instruction contains two operands:
   
 - A register
-- A memory location
+- An address or constant
   
 We have seen several so far:
   
@@ -1339,20 +1387,24 @@ The memory operand has two parts:
   
 - The variable x is a name for the address where x is kept --- called
   the displacement.
-- The R0 part is just a register, called the index register.
+- The R0 part is just a register, called the index register.  This can
+  be any register, e.g. xyz[R5].  In the special case where the index
+  register is R0, you can write it in assembly language as either xyz
+  or xyz[R0].  However, the machine language representation is the
+  same, and it always gives the index register explicitly.
 
-Format of RX instruction
+Consider
 #+BEGIN_EXAMPLE
 load R1,x[R0]
 #+END_EXAMPLE
 
-There are two words in the machine language code.
-The first word has 4 fields: op, d, a, b, where
+There are two words in the machine language code.  The first word has
+4 fields: op, d, a, b, where
   
 - op contains f for every RX instruction
 - d contains the register operand (in the example, 1)
 - a contains the index register (in the example, 0)
-- b contains a code indicating \emph{which} RX instruction this is (1
+- b contains a code indicating which RX instruction this is (1
   means load)
   
 The second word contains the *displacement*.  In the example, this is
@@ -1379,14 +1431,21 @@ secondary code in the b field.
 
 *** Pseudoinstructions
 
+We have seen conditional jump instructions like *jumplt loop*.
+Technically, jumplt, jumpeq and the rest are called
+"pseudoinstructions".  They are just a convenient assembly language
+notations to describe the actual underlying machine language
+instructions.  All conditional jumps are expressed in machine language
+using just two real instructions: jumpc0 and jumpc1:
+
 #+BEGIN_EXAMPLE
 jumpc0 Rd,disp[Ra]
-#+END_EXAMPLE
-
-
-#+BEGIN_EXAMPLE
 jumpc1 Rd,disp[Ra]
 #+END_EXAMPLE
+
+The details of how jumpc0 and jumpc1 work will be discussed in the
+section on the Standard architecture.  Here is a list of the
+pseudoinstructions for conditional jumps after an integer comparison:
 
 #+BEGIN_EXAMPLE
 jumplt  someLabel[R0]  ; if <  then goto someLabel
@@ -1548,54 +1607,28 @@ successors.  However, as the design of effective addresses has become
 more sophisticated, the execute instruction is rarely needed, and most
 modern computers don't provide it.
 
-- Architecture
-
-Our focus is on fundamental concepts, ideas and principles.  Sigma16
-illustrates the fundementals of computer systems but it avoids
-unnecessary complexity.  For example, Sigma16 has just one word size
-(16 bits) while most commercial machines provide a variety.  That
-variety is useful for practical applications but it complicates many
-of the details while not adding any new fundamental ideas.  Most
-commercial computers that achieve success in the marketplace
-eventually become encrusted with complications that help support
-backward compatibility; this can lead to great complexity.
-
-*** Testing and debugging
 *** Breakpoints
 
-Quick summary, explanation follows.  There are two ways to set a
-breakpoint:
+When you are testing or debugging a program, you may need to execute
+many instructions before reaching the point you're interested in.
+Some programs execute thousands of instructions just to initialize.
+It's infeasible to step through all those instructions, yet if you
+just run at full speed you won't be able to see what's happening in
+the section you are working on.
 
-1. Insert a breakpoint in code: /lea  R10,4; trap R10,R0,R0/  Any
-   register (except R0) can be used in place of R10.
-2. Request a breakpoint in the user interface: Click Breakpoint, type
-   in address (e.g. $00b6), click Refresh, Enable, Close.
+The solution is to run the program at full speed but to force it to
+stop when it reaches a specific instruction.  This is called a
+/breakpoint/.  When the program stops at the breakpoint, you can
+examine the registers and step through instructions from that point.
+At any time you can click Run and full speed execution resumes, until
+either another breakpoint is encountered or the program terminates.
 
-If you're debugging some code in a large program, you may need to
-execute a lot of instructions before reaching the point you're
-interested in.  For example, many programs execute thousands of
-instructions just to initialize.  It's infeasible to step through all
-those instructions, yet if you just run at full speed you won't be
-able to see in detail what's happening in the section you are working
-on.
+Both a breakpoint and a halt instruction will stop execution of the
+program.  The difference is that after a breakpoint you can click Step
+or Run to continue, but after halt the program cannot execute any more
+instructions until you boot the processor again.
 
-A /breakpoint/ is a location in a program where execution will stop
-automatically.  The breakpoint indicates a specific instruction.  You
-Boot the program and set a breakpoint and then click Run.  It will
-execute at full speed until it reaches the instruction you've selected
-(the "breakpoint") and then execution stops.  You can examine the
-registers and memory and single step through the section of code
-you're working on.  At any time you can click Run and full speed
-execution resumes, until either another breakpoint is encountered or
-the program terminates.
-
-Both a breakpoint ahd halt will stop execution of the program.  The
-difference is that after a break you can click Step or Run to
-continue, but after halt the program cannot execute any more
-instructions.
-
-There are two ways to set a breakpoint
-
+There are two ways to set a breakpoint:
 - /Trap break/: Insert an instruction into the program that breaks
   execution at that point.
 - /External break/: Define a breakpoint in the user interface, without
@@ -1604,17 +1637,18 @@ There are two ways to set a breakpoint
 Both forms are useful.  Most of the time, while debugging a program, a
 trap break is easier and more convenient.  However, if you don't want
 to modify the program or reassemble it, or if you realise that you
-want a breakpoint after execution has already started, then an
+need a breakpoint after execution has already started, then an
 external break is better.
 
 **** Trap break
 
-You can use a trap instruction to break execution when it executes.
-The first operand of the instruction is a register that must contain
-4, the trap code for breakpoint.  The other two operands are ignored.
+A trap break is a trap instruction whose first operand register
+contains the value 4.  The other operand registers are ignored.  When
+this instruction executed, the emulator will stop execution, and you
+can resume execution later.
 
-Suppose you want to check in detail what the load instruction is doing
-in this code.
+Suppose you want to check  what the load instruction is doing
+in this code:
 
 #+BEGIN_EXAMPLE
     ...
@@ -1627,7 +1661,8 @@ Insert a breakpoint just /before/ the instruction you want to examine.
 The breakpoint requires two instructions.  The first instruction loads
 the break code into some register (say R9 but it doesn't matter
 which), and the second instruction is a trap which actually performs
-the break.
+the break.  The first operand is the register that contains the break
+code, and the other two operands are ignored, so we can just use R0.
 
 #+BEGIN_EXAMPLE
     ...
@@ -1642,29 +1677,35 @@ Now you can run the program at full speed, but when it executes the
 trap instruction, the emulator will stop.  Since the trap instruction
 has just executed, it will be highlighted in red, and the instruction
 you're interested in -- the load -- will be highlighted in blue.
-
-Now you can single step for a while, and click Run again at any time
+You can single step for a while, and click Run again at any time
 to resume full speed execution.
 
+A common technique is to put a trap break at the beginning of a loop.
+By clicking Run repeatedly, you can step through the loop iterations.
+
 For an example of a long running program with a trap break, see
-Examples / Testing / Looper.
+Examples / Core / Testing / Looper.
 
 **** External break
+   
+An external break tells the emulator to perform a breakpoint without
+modifying the program.  Use these steps to set an external break:
 
-You can also tell the user interface to perform a breakpoint without
-modifying the program.  You need to know the address of the
-instruction to stop at; find that from the assembly listing.
-
-1. In the processor page, click Breakpoint
-2. This pops up a small window.  Type in the breakpoint address.  It
+1. Find the address of the instruction to stop at: look at the
+   assembly listing, find the instruction, and the listing gives its
+   address.
+2. Go to the processor page, click Boot and then click
+   Breakpoint.
+3. A small window will appear; type in the breakpoint address.  It
    must be a hexadecimal address in assembly language format: it must
    begin with a $ and then contain four hex digits.  No other
    characters may be present, not even white space.
-3. Click Refresh.  This parses the address you entered and remembers
-   it.
-4. Click Enable.  This turns on the breakpoint.
-5. Click CLose.  This closes the breakpoint popup so you can see the
-   Processor again.
+4. Click Refresh.  This parses the address you entered and remembers
+   it.  (If you change the address in the window, click Refresh
+   again.)
+5. Click Enable.  This turns on the breakpoint.
+6. Click CLose.  The breakpoint popup window will disappear so you can
+   see the Processor again.
 
 Now click Run and the program will execute at full speed.  When the pc
 register is equal to the breakpoint address, the emulator will stop.
@@ -1674,12 +1715,121 @@ As long as the breakpoint is enabled, execution will stop every time
 that location is encountered.  To prevent this, open the breakpoint
 popup again and click Disable.
 
+** Summary of Core Architecture
 
-*** Summary of Core Architecture
+*** Core instruction formats
+
+**** RRR format
+
+RRR instructions are represented in one word comprising four 4-bit
+fields.
+Each field contains 4 bits representing a binary number between 0
+and 15.
+
+[[file:svg/RRRformat.pdf]]
+
+- op (bits 15 to 12) is the operation code, usually called /opcode/.
+  This determines the operation to be performed.  If the opcode is
+  between 0 and 12 it specifies an RRR instruction.  An opcode greater
+  than 12 indicates an /expanding opcode/: the instruction is not RRR
+  but one of the other formats, and it has a secondary opcode that
+  specifies precisely which instruction it is.  This is explained in
+  the sections on RX and EXP formats.
+- d (bits 11 to 8) is the /destination register/; the register where
+  (in most cases) the result will be loaded.
+- a (bits 7 to 4) is the register containing the first operand.
+- b (bits 3 to 0) is the register containing the second operand.
+
+In most cases, an RRR instruction takes two operands in registers
+specified by the a and b fields and produces a result which is loaded
+into the register specified by the d field.  A typical example of an
+RRR instruction is add R4,R9,R2, which adds the contents of registers
+R9 and R2, and loads the result into R4.  It's equivalent to R4 :=
+R9 + R2.  The opcode for add is 0, so the machinen language code for
+this instruction is 0492.
+
+**** RX format
+
+RX instructions specify a memory location as well as a register
+operand.  The machine language representation is two words:
+
+[[file:svg/RXformat.pdf]]
+
+
+The RX instruction format is used for instructions that use a memory
+address, which is specified by an index register and a displacement.
+The name of the format describes briefly the two operands: a register
+(R) and an indexed memory address (X).
+
+An RX instruction contains two operands: one is a memory address, and
+the other is a register.  Typical RX instructions are loads, stores,
+and jumps.  The instruction consists of two consecutive words.  The
+first has the same format as an RRR instruction, with four fields: op,
+d, sa, sb.  The second word is a single 16-bit binary number, and is
+called the displacement.
+
+An RX instruction is represented by two words, with the following
+fields: op=15, b contains the secondary opcode which specifies which
+RX instruction it is, d is the destination, a is the index register,
+and the second word is a 16 bit constant called the displacement
+(often written disp for short).
+
+- op field (bits 0-3 of ir) is f for all RX instructions
+- d field (bits 4-7 of ir) has several uses
+- a field (bits 8-11 of ir) is index register for effective address
+- b field (bits 12-15 of ir) is secondary opcode
+- disp (displacement) is the second word of the instruction
+- ea (effective address) = displacement + r[a]
+
+The memory address is specified in two parts: an index register and
+the displacement.  The index register is specified in the sa field.
+In assembly language, the notation used is number[reg], where the
+number is the value of the displacement, and the reg is the index
+register.  Thus $20b3[R2] means the address has displacement $20b3 and
+the index register is R2.
+
+When the machine executes an RX instruction, it begins by calculating
+the effective address.  This is abbreviated "ea", and its value is the
+sum of the displacement and the contents of the index register.
+
+RX instructions are represented in two words, and they use an
+"expanding opcode".  That is, the op field of the first word of the
+instruction contains the constant f (the bits 1111) for every RX
+instruction, and the sb field is used to hold a secondary opcode
+indicating which RX instruction it is.
+
+The register operand is specified in the d field.  For several RX
+instructions, this is indeed the destination of the instruction: for
+example, load places data into Rd.  However, a few RX instructions use
+the d field differently (see, for example, the conditional jump
+instructions).
+
+The memory address is specified using the sa field and the
+displacement, which is the entire second word of the instruction.
+
+
+*** Core instructions
 
 The following table summarises the instructions in the Core subset of
-Sigma16.  This is an extract from the table for the full architecture
-which appears below, in the Architecture section.
+Sigma16.  The columns are:
+- Mnemonic.  The assembly language name of the instruction
+- ISA. The Instruction Set Architecture subset that contains the
+  instruction; for this table all the instructions are Core.
+- P. * indicates that the instruction is privileged, blank indicates
+  that it is not.  All of the Core instructions are unprivileged.  For
+  the meaning of "privileged", see the System section.
+- Fmt. The instruction format.  There are two Core instruction
+  formats: RRR (instruction has three operand fields, each a register)
+  and RX (instruction has a register operand and an X operand
+  consisting of a displacement constant and an index register).
+- Args.  The assembly language argument format.  Usually this is the
+  same as Fmt.  However, some instructions don't use all the fields,
+  and the assembly language statement omits the irrelevant field
+  (e.g. cmp is RRR format but the assembly language statement omits
+  the d field, which is ignored).
+- Code.
+- Effect.  A statement in an imperative programming language which
+  describes what the instruction does.
 
 |----------+----------+---+-----+------+------+-----------------------------------|
 | Mnemonic | ISA      | P | Fmt | Args | Code | Effect                            |
@@ -1703,7 +1853,6 @@ which appears below, in the Architecture section.
 |          |          |   |     |      |      | <33>                              |
 |----------+----------+---+-----+------+------+-----------------------------------|
 
-
 Pseudoinstructions for comparisons
 
 - jumplt jump if <
@@ -1717,18 +1866,27 @@ Assembly directives
 
 - data
 
-** Standard architecture tutorial
-*** Logic
-*** Bit fields and shifting
-*** Stack instructions
-*** Saving registers for procedure call
+* Standard architecture
 
+The tutorials for the standard architecture will be availabe in a
+future release.  See the Example programs (in the Standard section)
+for examples, and see the full architecture reference for a list of
+the instructions.
 
-*** Arithmetic on natural numbers
-** Systems architecture tutorial
+* Standard architecture tutorials
+** Logic
+** Bit fields and shifting
+** Stack instructions
+** Saving registers for procedure call
+
+** Arithmetic on natural numbers
+
+* Systems architecture
+
+** Systems architecture tutorials
 *** System control registers
 *** Interrupt handlers
-** S32 architecture tutorial
+
 
 * Sigma16 Architecture reference
 :PROPERTIES:
@@ -2252,130 +2410,6 @@ special syntaxes for some instructions, and there are assembler
 directives that aren't instructions at all.  The assembly language
 formats are described later.
 
-*** RRR format
-
-RRR instructions are represented in one word comprising four 4-bit
-fields.
-Each field contains 4 bits representing a binary number between 0
-and 15.
-
-[[file:svg/RRRformat.pdf]]
-
-- op (bits 15 to 12) is the operation code, usually called /opcode/.
-  This determines the operation to be performed.  If the opcode is
-  between 0 and 12 it specifies an RRR instruction.  An opcode greater
-  than 12 indicates an /expanding opcode/: the instruction is not RRR
-  but one of the other formats, and it has a secondary opcode that
-  specifies precisely which instruction it is.  This is explained in
-  the sections on RX and EXP formats.
-- d (bits 11 to 8) is the /destination register/; the register where
-  (in most cases) the result will be loaded.
-- a (bits 7 to 4) is the register containing the first operand.
-- b (bits 3 to 0) is the register containing the second operand.
-
-In most cases, an RRR instruction takes two operands in registers
-specified by the a and b fields and produces a result which is loaded
-into the register specified by the d field.  A typical example of an
-RRR instruction is add R4,R9,R2, which adds the contents of registers
-R9 and R2, and loads the result into R4.  It's equivalent to R4 :=
-R9 + R2.  The opcode for add is 0, so the machinen language code for
-this instruction is 0492.
-
-*** RX format
-
-RX instructions specify a memory location as well as a register
-operand.  The machine language representation is two words:
-
-[[file:svg/RXformat.pdf]]
-
-
-The RX instruction format is used for instructions that use a memory
-address, which is specified by an index register and a displacement.
-The name of the format describes briefly the two operands: a register
-(R) and an indexed memory address (X).
-
-An RX instruction contains two operands: one is a memory address, and
-the other is a register.  Typical RX instructions are loads, stores,
-and jumps.  The instruction consists of two consecutive words.  The
-first has the same format as an RRR instruction, with four fields: op,
-d, sa, sb.  The second word is a single 16-bit binary number, and is
-called the displacement.
-
-An RX instruction is represented by two words, with the following
-fields: op=15, b contains the secondary opcode which specifies which
-RX instruction it is, d is the destination, a is the index register,
-and the second word is a 16 bit constant called the displacement
-(often written disp for short).
-
-- op field (bits 0-3 of ir) is f for all RX instructions
-- d field (bits 4-7 of ir) has several uses
-- a field (bits 8-11 of ir) is index register for effective address
-- b field (bits 12-15 of ir) is secondary opcode
-- disp (displacement) is the second word of the instruction
-- ea (effective address) = displacement + r[a]
-
-The memory address is specified in two parts: an index register and
-the displacement.  The index register is specified in the sa field.
-In assembly language, the notation used is number[reg], where the
-number is the value of the displacement, and the reg is the index
-register.  Thus $20b3[R2] means the address has displacement $20b3 and
-the index register is R2.
-
-When the machine executes an RX instruction, it begins by calculating
-the effective address.  This is abbreviated "ea", and its value is the
-sum of the displacement and the contents of the index register.
-
-RX instructions are represented in two words, and they use an
-"expanding opcode".  That is, the op field of the first word of the
-instruction contains the constant f (the bits 1111) for every RX
-instruction, and the sb field is used to hold a secondary opcode
-indicating which RX instruction it is.
-
-The register operand is specified in the d field.  For several RX
-instructions, this is indeed the destination of the instruction: for
-example, load places data into Rd.  However, a few RX instructions use
-the d field differently (see, for example, the conditional jump
-instructions).
-
-The memory address is specified using the sa field and the
-displacement, which is the entire second word of the instruction.
-
-*** EXP format
-
-An EXP instruction contains 14 (hex e) in the op field, and the a and
-b fields are combined into a single 8-bit number that contains a
-secondary opcode.  This means that the EXP format allows for 256
-instructions.  This greatly expands the number of instructions that
-can be accommodated, and it allows for experimental instructions for
-research purposes.  (The name EXP stands simultaneously for both
-EXPansion and EXPerimentation.)
-
-# #+INCLUDE: "./svg/EXPformat.svg" export html
-# [[file:svg/EXPformat.pdf]]
-
-There are two variants: EXP1 format requires one word, and EXP
-requires two words.  For both variants, the format of the first word
-is the same, with op=14 (4 bits), d (4 bits), and ab (8 bits).  The
-secondary operation code in the ab field determines whether the
-instruction consists of just one word (EXP1) or two (EXP).
-
-Some EXP instructions combine the g and h fields to provide an 8-bit
-operand.
-
-The a and b fields form an 8-bit value called ab.
-
-# [[file:svg/EXPformat.svg]]
-
-A second word is needed to represent RX and EXP formats.  There
-are individual names for the individual 4-bit fields, as well as names
-(disp, gh) for larger fields.
-
-- e (bits 0-3) 4-bit operand
-- f (bits 4-7) 4-bit operand
-- g (bits 8-11) 4-bit operand
-- h (bits 12-15) 4-bit operand
-- gh (bits 8-15) 8-bit operand
-- disp (bits 0-15) 16 bit operand "displacement"
 
 *** EXP3 format
 
@@ -3460,9 +3494,9 @@ Instructions marked x are not are not implemented in this version.
  restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1] |
 
 
-* Sigma32 Architecture reference
+* Sigma32 architecture
 
-(Future extension - no currently available)
+(Future extension - not currently available)
 
 Sigma16 consists of a 16-bit architecture (S16) and a 32 bit extended
 architecture (S32).  This section discusses 

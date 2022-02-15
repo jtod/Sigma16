@@ -51,7 +51,7 @@ a good vehicle for teaching and experimentation:
 
 *** About Sigma16
 
-This sofware is free and open source.
+- This sofware is free and open source.
 
 - The version number is given in the running app on the Welcome
   tab, the User Guide, and the Options tab.

@@ -1,6 +1,11 @@
 ; Logic: test the logic instructions
 ; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
 
+or    equ     7
+nor   equ     8
+xor   equ     6
+and   equ     1
+
 ; Bitwise logic instructions
 
      lea   R1,$0f96[R0]     ; 0000 1111 1001 0110
@@ -19,10 +24,6 @@
      logicb R1,14,1,0,6     ; R1.15 := R1.1 XOR R1.0
      lea    R1,6[R0]
      logicb R1,13,1,0,7     ; R1.15 := R1.1 OR R1.0
-
-; Logic: test instructions for bit fields, shifting, and logic
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
-
 
 ; Word logic
    lea   R1,$0f0f[R0]   ; 0f0f
@@ -50,140 +51,6 @@
 
 ; The function field is an expression, not just a constant, and the
 ; expression can include a forward reference to an equ.
-
-or    equ     7
-nor   equ     8
-xor   equ     6
-and   equ     1
-
-; Pseudoinstructions for logicw
-
-      inv     R3,R1        ; ff00
-      and     R4,R1,R2     ; 000f
-      or      R5,R1,R2     ; 0fff
-      xor     R6,R1,R2     ; 0ff0
-
-; logicb
-
-      add     R1,R0,R0     ; 0000
-      logicb  R1,3,9,2,15  ; 1000 R1.3 := 1
-      logicb  R1,3,9,2,0   ; 0000 R1.3 := 0
-      logicb  R1,3,9,2,15  ; 1000 R1.3 := 1
-      logicb  R1,6,0,0,15  ; 1200 R1.6 := 1
-
-      orb     R1,12,3,2    ; 1208 R1.12 := 1
-      invb    R1,15,0      ; 1209 R1.15 := 1
-      andb    R1,15,0,15   ; 1208 R1.15 := 0
-      xorb    R1,14,12,0
-      trap    R0,R0,R0     ; terminate
-
-; from temp test file
-
-; logicb
-
-; Test ability to set and clear for bit logic
-;      logicb  R3,R1,R2,7,15 ; or changes 0 to 1 .15 = 0001
-      lea     R4,$ffff[R0]  ; put 1 into destination
-;      logicb  R4,R1,R2,7,0  ; or changes 1 to 0  .0 = 7fff
-
-
-; inv R1 = 12
-      add     R3,R0,R0
-;      logicb  R3,R1,R2,12,0  ; inv R1  .0 = 00ff = 8000
-      add     R4,R0,R0
-;      logicb  R4,R1,R2,12,15 ; inv R1 .15 = 00ff = 0000
-
-; and = 1
-      add     R3,R0,R0
-      logicb  R3,R1,R2,1,0    ; 00ff and 0f0f  .0 = 0000
-      add     R4,R0,R0
-      logicb  R4,R1,R2,1,4    ; 00ff and 0f0f  .4 = 0000
-      add     R5,R0,R0
-      logicb  R5,R1,R2,1,8    ; 00ff and 0f0f  .8 = 0000
-      add     R6,R0,R0
-      logicb  R6,R1,R2,1,12   ; 00ff and 0f0f .12 = 0008
-
-; or = 7
-      add     R3,R0,R0
-      logicb  R3,R1,R2,7,0    ; 00ff or 0f0f   .0 = 0000
-      add     R4,R0,R0
-      logicb  R4,R1,R2,7,4    ; 00ff or 0f0f   .4 = 0800
-      add     R5,R0,R0
-      logicb  R5,R1,R2,7,8    ; 00ff or 0f0f   .8 = 0080
-      add     R6,R0,R0
-      logicb  R6,R1,R2,7,12   ; 00ff or 0f0f .12 = 0008
-
-; xor = 6
-      add     R3,R0,R0
-      logicb  R3,R1,R2,6,0    ; 00ff xor 0f0f   .0 = 0000
-      add     R4,R0,R0
-      logicb  R4,R1,R2,6,4    ; 00ff xor 0f0f   .4 = 0800
-      add     R5,R0,R0
-      logicb  R5,R1,R2,6,8    ; 00ff xor 0f0f   .8 = 0080
-      add     R6,R0,R0
-      logicb  R6,R1,R2,6,12   ; 00ff xor 0f0f  .12 = 0000
-
-; Pseudoinstructions for logicb
-
-; invb R1 = 12
-      add     R3,R0,R0
-      invb    R3,R1,0         ; inv R1  .0 = 00ff = 8000
-      add     R4,R0,R0
-      invb    R4,R1,15        ; inv R1 .15 = 00ff = 0000
-
-; andb = 1
-      add     R3,R0,R0
-      andb    R3,R1,R2,0      ; 00ff and 0f0f  .0 = 0000
-      add     R4,R0,R0
-      andb    R4,R1,R2,4      ; 00ff and 0f0f  .4 = 0000
-      add     R5,R0,R0
-      andb    R5,R1,R2,8      ; 00ff and 0f0f  .8 = 0000
-      add     R6,R0,R0
-      andb    R6,R1,R2,12     ; 00ff and 0f0f .12 = 0008
-
-; orb = 7
-      add     R3,R0,R0
-      orb     R3,R1,R2,0      ; 00ff or 0f0f   .0 = 0000
-      add     R4,R0,R0
-      orb     R4,R1,R2,4      ; 00ff or 0f0f   .4 = 0800
-      add     R5,R0,R0
-      orb     R5,R1,R2,8      ; 00ff or 0f0f   .8 = 0080
-      add     R6,R0,R0
-      orb     R6,R1,R2,12     ; 00ff or 0f0f .12 = 0008
-
-; xorb = 6
-      add     R3,R0,R0
-      xorb    R3,R1,R2,0      ; 00ff xor 0f0f   .0 = 0000
-      add     R4,R0,R0
-      xorb    R4,R1,R2,4      ; 00ff xor 0f0f   .4 = 0800
-      add     R5,R0,R0
-      xorb    R5,R1,R2,8      ; 00ff xor 0f0f   .8 = 0080
-      add     R6,R0,R0
-      xorb    R6,R1,R2,12     ; 00ff xor 0f0f  .12 = 0000
-
-
-; Demonstrate how to use the extract instruction to copy Booleans, and
-; the xorb instruction to perform logic on them (you can do any logic
-; function on the bits, not just xor).
-
-; Each bit in a word is identified by its index.  Bit 0 is the
-; rightmost (least significant), and Bit 15 is the leftmost (most
-; significant).  The notation R3.5 means bit 5 in R3, where bit 0 is
-; the rightmost (least significant) bit of the word.
-
-    lea     R1,23[R0]        ; R1 := 23
-    lea     R2,17[R0]        ; R2 := 17
-    cmp     R1,R2            ; compare 23 with 17
-    extract R3,R15,8,1,1     ; R5.12 := 23 > 17
-;    extract R3,15,1,R15,2   ; R5.15 := 23 = 17
-
-    lea     R4,23           ; R4 := 23
-    lea     R5,23           ; R4 := 23
-    cmp     R4,R5           ; compare 23 with 23
-;    extract R3,5,1,R15,4    ; R3.5 := 23 > 23
-;    extract R3,6,1,R15,2    ; R3.6 := 23 = 23
-
-    xorb    R3,0,12,5       ; R3.0 := R3.12 xor R3.5
 
 
      trap  R0,R0,R0

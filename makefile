@@ -76,12 +76,14 @@ YEARMONTHDAY=$(shell date +"%F")
 # MONTHYEARDAY=$(shell date +"%F")
 # YEARMONTHDAY=$(shell date -I")
 
-# Define the directories for sources, builds, and repositories
+# Source directory
+S16_DEV_SRC_DIR=$(S16_LOCAL_BUILDS_DIR)/Sigma16
 
+# The makefile can copy a build to the build directory
 S16_BUILDS_DIR=$(SIGMASYSTEM)/Sigma16-builds/build
-S16_DEV_SRC_DIR=$(S16_BUILDS_DIR)/dev/Sigma16
 S16_DEV_VERSION_DIR=$(S16_BUILDS_DIR)/$(VERSION)
 S16_DEV_BUILD_DIR=$(S16_DEV_VERSION_DIR)/Sigma16
+
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
 SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/SigServer
 

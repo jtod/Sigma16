@@ -1,4 +1,5 @@
 *~
+#*
 .env
 fileprefix.txt
 build
@@ -7,6 +8,8 @@ build
 protected
 protect*
 node_modules
+*old*
+*Spectre*
 *.wasm
 *.lst.txt
 *.obj.txt
