@@ -13,9 +13,27 @@
 # a copy of the GNU General Public License along with Sigma16.  If
 # not, see <https://www.gnu.org/licenses/>.
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
+# Environment variables
+#------------------------------------------------------------------------
+
+# S16_LOCAL_BUILD_DIR is the path to a directory that contains the
+# source, which is xxx/build/dev/Sigma16.  The Sigma16 source is
+# contained within xxx/build/dev so the server can assume that any
+# version being executed, either locally or on the server, has a path
+# of the form xxx/build/VERSIONNUMBER/Sigma16.  The source git
+# directory is ${S16_LOCAL_BUILD_DIR}/dev/Sigma16, so it can be
+# accessed using a "version" of "dev".
+
+# S16_SERVER_SRC_BUILD_DIR is the target build directory where "make
+# install-build" will put the files.  This is within the
+# SigServer/Sigma16 directory, and will be uploaded to the server.  A
+# particular version will have a path
+# ${S16_SERVER_SRC_BUILD_DIR}/sigma16/build/VERSION/Sigma16
+
+#------------------------------------------------------------------------
 # Resources on the Internet
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 # You can run Sigma16 online, without downloading or installing
 # anything: visit the Sigma16 home page and click the link:
@@ -33,9 +51,9 @@
 #    https://github.com/jtod/Sigma16
 #    https://github.com/jtod/Hydra
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # Usage
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 # emacs org C-c C-E h h   build html files from org source after make setVersion
 # make showconfig         display the configuration parameters
@@ -46,9 +64,9 @@
 # make installBuild       copy dev build to server repository
 # make installHomepage    copy homepage files to homepage repository
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # Configuration
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 # Environment variables defined on Heroko
 #  PAPERTRAIL_API_TOKEN
@@ -57,6 +75,7 @@
 #   S16_RUN_ENV           Heroku or Local
 #   S16_LATEST_RELEASE    version number of latest official release
 #   S16_RELEASE_VERSION   version number to use on request for 'release'
+#   S16_DEV_VERSION       version number to use on request for 'dev'
 
 # Environment variables defined on local build machine:
 #   S16_LOCAL_PORT      port for local server
@@ -77,13 +96,10 @@ YEARMONTHDAY=$(shell date +"%F")
 # YEARMONTHDAY=$(shell date -I")
 
 # Source directory
-S16_DEV_SRC_DIR=$(S16_LOCAL_BUILDS_DIR)/Sigma16
+S16_DEV_SRC_DIR=$(S16_LOCAL_BUILD_DIR)/Sigma16
 
-# The makefile can copy a build to the build directory
-S16_BUILDS_DIR=$(SIGMASYSTEM)/Sigma16-builds/build
-S16_DEV_VERSION_DIR=$(S16_BUILDS_DIR)/$(VERSION)
-S16_DEV_BUILD_DIR=$(S16_DEV_VERSION_DIR)/Sigma16
-
+# Target directory, makefile copies a build to this location
+S16_INSTALL_DIR=$(SIGMASYSTEM)/SigServer/Sigma16/build/$(VERSION)/Sigma16
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
 SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/SigServer
 
@@ -93,22 +109,23 @@ showconfig:
 	@echo "  S16_RUN_ENV = $(S16_RUN_ENV)"
 	@echo "  S16_LATEST_RELEASE = $(S16_LATEST_RELEASE)"
 	@echo "  S16_RELEASE_VERSION = $(S16_RELEASE_VERSION)"
+	@echo "  S16_DEV_VERSION = $(S16_DEV_VERSION)"
 	@echo "  S16_LOCAL_PORT = $(S16_LOCAL_PORT)"
 	@echo "  SIGMASYSTEM = $(SIGMASYSTEM)"
+	@echo "  S16_LOCAL_BUILD_DIR = $(S16_LOCAL_BUILD_DIR)"
+	@echo "  S16_SERVER_SRC_BUILD_DIR = $(S16_SERVER_SRC_BUILD_DIR)"
 	@echo "Calculated variables"
 	@echo "  VERSION = $(VERSION)"
 	@echo "  MONTHYEAR = $(MONTHYEAR)"
 	@echo "  YEARMONTHDAY = $(YEARMONTHDAY)"
-	@echo "  S16_BUILDS_DIR = $(S16_BUILDS_DIR)"
 	@echo "  S16_DEV_SRC_DIR = $(S16_DEV_SRC_DIR)"
-	@echo "  S16_DEV_VERSION_DIR = $(S16_DEV_VERSION_DIR)"
-	@echo "  S16_DEV_BUILD_DIR = $(S16_DEV_BUILD_DIR)"
+	@echo "  S16_INSTALL_DIR = $(S16_INSTALL_DIR)"
 	@echo "  S16_HOMEPAGE_REPOSITORY = $(S16_HOMEPAGE_REPOSITORY)"
 	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # make setVersion -- find version and define Version files
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 # make setVersion --- The version number is defined in
 # src/gui/package.json; this makefile finds the number there and
@@ -125,9 +142,9 @@ setVersion:
 	echo "Version $(VERSION), $(MONTHYEAR)." > VERSION.txt
 	echo "Copyright (c) $(YEAR) John T. O'Donnell" > COPYRIGHT.txt
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # make assemble
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 .PHONY: assemble
 assemble:
@@ -136,48 +153,55 @@ assemble:
 src/base/emcore.wasm: src/base/emcore.wat
 	cd src/base; wat2wasm emcore.wat --enable-threads
 
-#-------------------------------------------------------------------------------
-# make build - Copy files needed to run program from build/dev to build/i.j.k
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
+# make build
+#------------------------------------------------------------------------
+
+# Compile and install by copying essential files from source to
+# server.  This makefile is in the source directory.  The build is
+# copied to $(S16_INSTALL_DIR)
+#	mkdir -p -m700 $(S16_INSTALL_DIR)
 
 .PHONY: build
 build:
-	make VERSION.txt
-	make src/base/version.mjs
-	make src/base/emcore.wasm
+	@echo Installing in $(S16_INSTALL_DIR)
 
-	mkdir -p $(S16_DEV_BUILD_DIR)
-	cp -u *.html $(S16_DEV_BUILD_DIR)
-	cp -u *.txt  $(S16_DEV_BUILD_DIR)
+	make setVersion
+	make assemble
+	mkdir -p -m700 $(S16_INSTALL_DIR)
 
-	mkdir -p $(S16_DEV_BUILD_DIR)/src/gui
-	cp -u src/gui/*.mjs $(S16_DEV_BUILD_DIR)/src/gui
-	cp -u src/gui/*.css $(S16_DEV_BUILD_DIR)/src/gui
+	cp -u *.html $(S16_INSTALL_DIR)
+	cp -u *.txt  $(S16_INSTALL_DIR)
 
-	mkdir -p $(S16_DEV_BUILD_DIR)/src/base
-	cp -u src/base/*.mjs $(S16_DEV_BUILD_DIR)/src/base
+	mkdir -p -m700 $(S16_INSTALL_DIR)/src/gui
+	cp -u src/gui/*.mjs $(S16_INSTALL_DIR)/src/gui
+	cp -u src/gui/*.css $(S16_INSTALL_DIR)/src/gui
 
-	mkdir -p $(S16_DEV_BUILD_DIR)/docs
-	cp -u docs/*.css $(S16_DEV_BUILD_DIR)/docs
-	mkdir -p $(S16_DEV_BUILD_DIR)/docs/welcome
-	cp -u docs/welcome/*.html $(S16_DEV_BUILD_DIR)/docs/welcome
-	mkdir -p $(S16_DEV_BUILD_DIR)/docs/help
-	cp -u docs/help/*.html $(S16_DEV_BUILD_DIR)/docs/help
-	mkdir -p $(S16_DEV_BUILD_DIR)/docs/UserGuide
-	cp -u docs/UserGuide/*.html $(S16_DEV_BUILD_DIR)/docs/UserGuide
+	mkdir -p -m700 $(S16_INSTALL_DIR)/src/base
+	cp -u src/base/*.mjs $(S16_INSTALL_DIR)/src/base
 
-	mkdir -p $(S16_DEV_BUILD_DIR)/examples
-	cp -ur examples/* $(S16_DEV_BUILD_DIR)/examples
+	mkdir -p -m700 $(S16_INSTALL_DIR)/docs
+	chmod u+rwx $(S16_INSTALL_DIR)/docs
+	cp -u docs/*.css $(S16_INSTALL_DIR)/docs
+	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/welcome
+	cp -u docs/welcome/*.html $(S16_INSTALL_DIR)/docs/welcome
+	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/help
+	cp -u docs/help/*.html $(S16_INSTALL_DIR)/docs/help
+	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/UserGuide
+	cp -u docs/UserGuide/*.html $(S16_INSTALL_DIR)/docs/UserGuide
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/examples
+	cp -ur examples/* $(S16_INSTALL_DIR)/examples
 
 # If and when there are figure files, those will need to be copied too
-#	mkdir -p $(S16_DEV_BUILD_DIR)/docs/UserGuide/png
-#	cp -u docs/UserGuide/png/*.png $(S16_DEV_BUILD_DIR)/docs/UserGuide/png
-#	mkdir -p $(S16_DEV_BUILD_DIR)/docs/UserGuide/svg
-#	cp -u docs/UserGuide/svg/*.svg $(S16_DEV_BUILD_DIR)/docs/UserGuide/svg
+#	mkdir -p $(S16_INSTALL_DIR)/docs/UserGuide/png
+#	cp -u docs/UserGuide/png/*.png $(S16_INSTALL_DIR)/docs/UserGuide/png
+#	mkdir -p $(S16_INSTALL_DIR)/docs/UserGuide/svg
+#	cp -u docs/UserGuide/svg/*.svg $(S16_INSTALL_DIR)/docs/UserGuide/svg
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # Install server
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 # Copy server to Heroku github source directory.  Using quotes around
 # $(SIGSERVER_REPOSITORY) in case it contains spaces
@@ -186,12 +210,10 @@ build:
 installServer:
 	cp -u src/server/runserver.mjs $(SIGSERVER_REPOSITORY)/src/server
 	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server
-	cp -u src/server/*.html $(SIGSERVER_REPOSITORY)/build
-	cp -u docs/docstyle.css $(SIGSERVER_REPOSITORY)/build
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # Install build
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 # Copy the dev build to the server repository
 
@@ -199,9 +221,9 @@ installServer:
 installBuild:
 	cp -upr $(S16_DEV_SRC_DIR) $(SIGSERVER_REPOSITORY)/build/$(VERSION)
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # Install home page
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------
 
 # Copy the home page index and style from dev source to the Sigma16
 # home page repository.  From there it can be pushed to github.
@@ -217,3 +239,18 @@ installHomepage :
 
 circdoc :
 	cd src/circuits; haddock --html --hyperlinked-source --odir=doc HDL/Hydra/Circuits/* HDL/Hydra/Core/* M1/Circuit/*.hs M1/Tools/*.hs
+
+# deprecated...
+# S16_BUILDS_DIR=$(SIGMASYSTEM)/Sigma16-builds/build
+# S16_DEV_BUILD_DIR=$(S16_DEV_VERSION_DIR)/Sigma16
+#	@echo "  S16_BUILDS_DIR = $(S16_BUILDS_DIR)"
+#	@echo "  S16_DEV_BUILD_DIR = $(S16_DEV_BUILD_DIR)"
+#	@echo "  S16_DEV_VERSION_DIR = $(S16_DEV_VERSION_DIR)"
+# : the directory containing this makefile
+# Copy build to
+# deprecated...
+#	make VERSION.txt
+#	make src/base/version.mjs
+
+#	cp -u src/server/*.html $(SIGSERVER_REPOSITORY)/build
+#	cp -u docs/docstyle.css $(SIGSERVER_REPOSITORY)/build

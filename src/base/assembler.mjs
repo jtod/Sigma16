@@ -43,7 +43,7 @@ export class AsmInfo {
 	this.modName = "anonymous";     // defined in optional module statement
         this.text = "";                 // raw source text
         this.asmSrcLines = [];          // list of lines of source text
-	this.asmStmt = [];              // statements correspond to lines of source
+	this.asmStmt = [];              // statements correspond to source lines
 	this.symbols = [];              // symbols used in the source
 	this.symbolTable = new Map ();  // symbol table
 	this.locationCounter = 0;       //  next code address
@@ -539,10 +539,10 @@ comments field
    contains any characters
 */
 
-const identParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
-const nameParser = /^[a-zA-Z][a-zA-Z0-9_]*$/;
-const intParser = /^-?[0-9]+$/;
-export const hexParser = /^\$([0-9a-f]{4})$/;
+const identParser = /^[a-zA-Z][a-zA-Z0-9_]*$/
+const nameParser =  /^[a-zA-Z][a-zA-Z0-9_]*$/
+const intParser =   /^-?[0-9]+$/
+export const hexParser = /^\$([0-9a-f]{4})$/
 
 const rcParser =
     /^R([0-9a-f]|(?:1[0-5])),([a-zA-Z][a-zA-Z0-9]*)$/;
@@ -623,9 +623,7 @@ const parseSplitFields = new RegExp(regexpSplitFields);
 // const xParser = /^([-a-zA-Z0-9_\$]+)\[(R|r)([0-9a-f]|(?:1[0-5]))\]/;
 
 
-
 function requireX (ma, s, field) {
-    console.log (`requireX <${field}>`)
     const xrParser = /^([^\[]+)\[(.*)\]$/
     let disp = "0"
     let index = 0
@@ -635,6 +633,9 @@ function requireX (ma, s, field) {
         const regsrc = xr[2]
         index = requireReg (ma, s, regsrc)  // disp = field
         console.log (`requireX parse failed`)
+    } else { // allow [R0] to be omitted
+        disp = field
+        index = 0
     }
     const result = {disp, index}
     console.log (`requireX field=${field} disp=<${disp}> index=${index}`)
@@ -683,6 +684,14 @@ function requireNoperands (ma, s, n) {
 // ??? todo  give message if result>15
 
 // k4 is always fixed, never relocatable
+
+function requireK16 (ma, s, field, xs) {
+    com.mode.devlog (`requireK4 <${xs}>`);
+    const a = s.address.word;
+    const v = evaluate (ma, s, a, xs);
+    const result = v.word;
+    return result;
+}
 
 function requireK4 (ma, s, field, xs) {
     com.mode.devlog (`requireK4 <${xs}>`);
