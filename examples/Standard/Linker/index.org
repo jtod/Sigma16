@@ -1,5 +1,5 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Link
+#+TITLE: Linker
 #+OPTIONS: html-postamble:nil
 
 These files comprise one small program, and they illustrate use of the

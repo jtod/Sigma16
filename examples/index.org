@@ -9,7 +9,7 @@
 - [[./Standard/index.html][Standard]] Programs that use Core as well asadditional instructions
   for logic, bit manipulation, and stacks.
 
-- [[./Sys/index.org][Sys]] Programs that use systems programming
+- [[./System/index.org][System]] Programs that use systems programming
   instructions and registers.
 
 - [[./S32/index.org][S32]] Sigma32 is an extension of Sigma16 to allow

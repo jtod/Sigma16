@@ -1,5 +1,5 @@
-; Cmp
-; Test cmp instruction
+; Cmp: perform comparisons and set the condition code
+; John O'Donnell, 2022.  https://jtod.github.io/home/Sigma16/
 
      lea   R1,3[R0]
      lea   R2,6[R0]

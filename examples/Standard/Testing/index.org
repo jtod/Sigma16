@@ -1,0 +1,8 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Intermediate examples using standard instruction set
+#+OPTIONS: html-postamble:nil
+
+- [[./AsmStd/index.html][AsmStd]] Test assembly language statements
+  for standard architecture
+
+

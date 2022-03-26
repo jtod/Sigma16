@@ -1,5 +1,5 @@
 # Sigma16: makefile
-# Copyright (c) 2021 John T. O'Donnell, john.t.odonnell9@gmail.com
+# Copyright (c) 2022 John T. O'Donnell, john.t.odonnell9@gmail.com
 # License: GNU GPL Version 3 or later.  See README.org and LICENSE.txt
 
 # This file is part of Sigma16.  Sigma16 is free software: you can

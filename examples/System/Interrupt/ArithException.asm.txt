@@ -1,16 +1,12 @@
-; Exception: exception handlers
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
-
-; Arithmetic exceptions: overflow and division by 0
-
-; Using big-endian bit indexing
+; ArithException2: Catch exceptions in arithmetic operations
+; John O'Donnell, 2022.  See https://jtod.github.io/home/Sigma16/
 
 ; Request exception for overflow and divide by zero
 
    load   R1,zdivFlag[R0]    ; flag for division by 0
    load   R2,ovflFlag[R0]    ; flag for overflow
    or     R3,R1,R2           ; flag for either zdiv of overflow
-   putctl R3,imask           ; set interrupt mask for either zdiv of overflow
+   putctl R3,imask           ; set interrupt mask
 
 ; Enable interrupts and prepare interrupt vector
 

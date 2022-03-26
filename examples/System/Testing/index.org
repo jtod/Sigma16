@@ -1,0 +1,7 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: System Testing
+#+OPTIONS: html-postamble:nil
+
+- [[./TestAsmSys.asm.txt][TestAsmSys.asm.txt]] Test assembly language
+  statements for system instructions
+- [[./TestSystem.asm.txt][TestSystem.asm.txt]] Test execution of system instructions

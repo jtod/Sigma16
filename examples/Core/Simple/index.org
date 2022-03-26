@@ -2,6 +2,8 @@
 #+TITLE: Simple programs
 #+OPTIONS: html-postamble:nil
 
+Simple.org testing cjamed prg
+
 - [[./ConstArith.asm.txt][ConstArith.asm.txt]] This is a good example to
   start with.  It's a small program that does some arithmetic in the
   registers, illustrating the use of lea, add, and mul.

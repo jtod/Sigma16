@@ -1,9 +1,9 @@
 ; TimerInterrupt: run a loop while responding to interrupt requests
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2022.  See https://jtod.github.io/home/Sigma16/
 
 ; The program contains a loop.  When a timer interrupt occurs, the
-;  loop is interrupted and the handler prints "bing", then resumes the
-;  loop.
+; loop is interrupted and the handler prints "bing", then resumes the
+; loop.
 
 ; Request exception for timer
      lea    R1,timerBit[R0]   ; flag for timer interrupt

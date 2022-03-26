@@ -1,5 +1,6 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Interrupts
+#+TITLE: Control
 #+OPTIONS: html-postamble:nil
 
-- [[./TimerInterrupt.asm.txt][TimerInterrupt.asm.txt]]
+- [[./JumpZNZ.asm.txt][JumpZNZ]] Jumping conditional on relation to
+  zero

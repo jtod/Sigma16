@@ -2,7 +2,8 @@
 #+TITLE: S16 systems programming
 #+OPTIONS: html-postamble:nil
 
-- [[./Interrupt/index.html][Interrupts]]
+- [[./Interrupt/index.html][Interrupt]]
+- [[./Testing/index.html][Testing]]
 
 
 
