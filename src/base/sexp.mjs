@@ -81,6 +81,14 @@ function cons (x,y) {
     return new Cons (x,y)
 }
 
+function atomp (x) {
+    return x.atomic
+}
+
+function nullp (x) {
+    return x === nil
+}
+
 // Global names for basic atoms.
 
 let nil = atom ('nil')
@@ -138,10 +146,13 @@ function rplacd (x,y) {
 
 let inputTokens =
     [ "abc",
+      "pqr",
+      ".",
+      ")",
+      "hello",
       "(", "a", "b", "c", ")",
       "(", "w", "x", "(", "p", "q", ")", "y", "z", ")",
       "nil",
-      "(", ")",
       "end" ]
 
 function getToken () {
@@ -160,6 +171,12 @@ function lookToken () {
     }
 }
 
+// temp stub; possibly replace this with regular expression test
+function isSymbol (tok) {
+    let a = tok[0]
+    return a != '(' && a != ')' && a != '.'
+}
+
 function testGetToken () {
     console.log ('testGetToken')
     console.log (lookToken())
@@ -169,6 +186,11 @@ function testGetToken () {
     console.log (getToken())
     console.log (getToken())
     console.log (getToken())
+    console.log (isSymbol ('abc'))
+    console.log (isSymbol ('('))
+    console.log (isSymbol (')'))
+    console.log (isSymbol ('.'))
+    console.log (isSymbol (';'))
 }
 
 //----------------------------------------------------------------------
@@ -176,8 +198,65 @@ function testGetToken () {
 //----------------------------------------------------------------------
 
 
+function error(msg) {
+    console.log (`error: ${msg}`)
+    return nil
+}
+
 function readsexp () {
-    let t = gettoken ()
+    let t = getToken ()
+    let result = nil
+//    console.log (`readsexp: t = ${t}`)
+    if (isSymbol(t)) {
+        result = atom(t)
+    } else if (t == "(") {
+//        console.log ("readsexp: handling left paren")
+        let head = cons (nil,nil)
+        let last = head
+        let x = nil
+        let newCell = nil
+        while (lookToken() != ")") {
+            x = readsexp()
+//            console.log (`readsexp: x=${x.show()}`)
+            newCell = cons (x,nil)
+            rplacd (last,newCell)
+            last = newCell
+        }
+        let rp = getToken()
+        if (rp == ")") {
+            result = cdr(head)
+        } else {
+            error ("list doesn't end in right parenthesis")
+        }
+    } else if (t == ")") {
+        error ("readsexp: unexpected right paren")
+    } else if (t == ".") {
+        error ("readsexp: unexpected dot")
+    } else {
+        error ("readsexp: unexpected token ${t}")
+    }
+//    console.log (`reasexp: returning ${result.show()}`)
+    return result
+}
+
+function printSexp (x) {
+    let str = ""
+    if (atomp(x)) {
+        str = x.show()
+    } else {
+        str = "("
+        while (!nullp(x)) {
+            str = str + printSexp (car(x)) + " "
+            if (atomp(cdr(x)) && !nullp(cdr(x))) {
+                str = str + " . " + cdr(x).show()
+                x = nil
+            } else {
+                x = cdr(x)
+            }
+        }
+        str = str + ")"
+    }
+    return str
 }
 
 //----------------------------------------------------------------------
@@ -209,6 +288,7 @@ function unitTest () {
     let ztwo = z
     console.log ('ztwo is eq to z')
     console.log (ztwo.show())
+
     console.log (w.show())
     console.log (eq(ztwo,w))
     
@@ -231,4 +311,23 @@ function unitTest () {
 }
 
 // Run the testing
-unitTest ()
+// unitTest ()
+
+function readShow () {
+    let x = readsexp ()
+    console.log (`readShow: ${x.show()}`)
+    console.log (`${printSexp(x)}\n`)
+}
+
+console.log (nullp(nil))
+console.log (nullp (atom("abc")))
+console.log (nullp (cons(nil,nil)))
+
+readShow()
+readShow()
+readShow()
+readShow()
+readShow()
+readShow()
+readShow()
+
