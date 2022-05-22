@@ -85,6 +85,7 @@ function cons (x,y) {
 
 let nil = atom ('nil')
 let err = atom ('Error')
+let eof = atom ('EOF')
 
 // Since atoms are not interned, eq needs to compare the strings.
 
@@ -132,7 +133,7 @@ function rplacd (x,y) {
 }
 
 //----------------------------------------------------------------------
-// read
+// lexer
 //----------------------------------------------------------------------
 
 let inputTokens =
@@ -143,18 +144,40 @@ let inputTokens =
       "(", ")",
       "end" ]
 
-function gettoken () {
+function getToken () {
     if (inputTokens.length == 0) {
         return eof
     } else {
-        let x = inputTokens
+        return inputTokens.shift()
     }
-    
 }
+
+function lookToken () {
+    if (inputTokens.length == 0) {
+        return eof
+    } else {
+        return inputTokens[0]
+    }
+}
+
+function testGetToken () {
+    console.log ('testGetToken')
+    console.log (lookToken())
+    console.log (lookToken())
+    console.log (getToken())
+    console.log (lookToken())
+    console.log (getToken())
+    console.log (getToken())
+    console.log (getToken())
+}
+
+//----------------------------------------------------------------------
+// parser
+//----------------------------------------------------------------------
+
 
 function readsexp () {
     let t = gettoken ()
-    
 }
 
 //----------------------------------------------------------------------
@@ -163,6 +186,8 @@ function readsexp () {
 
 function unitTest () {
     console.log ("Start unit testing")
+
+    testGetToken()
     
     // atoms
     let x = new Atom("abc")
