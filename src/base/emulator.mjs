@@ -14,9 +14,9 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // emulator.mjs defines the machine language semantics
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as arch from './architecture.mjs';
