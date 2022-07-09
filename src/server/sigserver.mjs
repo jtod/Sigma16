@@ -1,5 +1,5 @@
 // sigserver.mjs
-// Copyright (C) 2021 John T. O'Donnell
+// Copyright (C) 2022 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. Sigma16/README.md, LICENSE.txt
 
@@ -122,6 +122,8 @@ const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
 const S16_RUN_ENV = process.env.S16_RUN_ENV
 const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
+
+let S16_LOCAL_BUILD_DIR  // set by StartServer if running locally
 
 // The build directory contains a directory for each version.  The
 // directory name may be a version number 3.3.1 or dev.  All versions
@@ -374,6 +376,7 @@ app.get ('/world.html', (req,res) => {
 // beginning of this file gives the URLs needed to launch any version.
 
 export function StartServer () {
+    console.log ('StartServer')
     let ok = true
     if (S16_RUN_ENV === 'Heroku') {
         console.log ('Running on Internet server')
@@ -383,14 +386,18 @@ export function StartServer () {
                                    'Sigma16', 'build')
     } else if (S16_RUN_ENV === 'Local') {
         console.log ('Running on local development machine')
-        S16_BUILD_DIR = process.env.S16_LOCAL_BUILD_DIR
+        S16_LOCAL_BUILD_DIR = process.env.S16_LOCAL_BUILD_DIR
+        S16_BUILD_DIR = S16_LOCAL_BUILD_DIR
+        console.log (`S16_LOCAL_BUILD_DIR = ${S16_LOCAL_BUILD_DIR}`)
+        console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 //        S16_BUILD_DIR = path.join (process.env.SIGPART1,
 //                                   process.env.SIGPART2,
 //                                   process.env.SIGPART3,
 //                                   'Sigma16', 'build')
-        console.log (`Local build directory = ${S16_BUILD_DIR}`)
+//        console.log (`Local build directory = ${S16_LOCAL_BUILD_DIR}`)
     } else {
-        console.log (`Server error: cannot find build directory for ${S16_RUN_ENV}`)
+        console.log (`Server error: cannot find build directory for `
+                     + `${S16_RUN_ENV}`)
         ok = false
     }
     if (ok) {
@@ -401,6 +408,7 @@ export function StartServer () {
         console.log (`S16_DEV_VERSION = ${S16_DEV_VERSION}`)
         console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
         console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-        app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
+        app.listen(PORT, () => console.log
+                   (`Server is listening on port ${PORT}`));
     }
 }
