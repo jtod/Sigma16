@@ -1,7 +1,7 @@
 // Sigma16: gui.mjs
-// Copyright (C) 2019-2021 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE and https://jtod.github.io/home/Sigma16/
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -14,11 +14,11 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // gui.mjs is the main program for the browser interface.  It's
 // launched by Sigma16.html and is the last JavaScript file to be
 // loaded
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 import * as ver   from '../base/version.mjs';
 import * as com   from '../base/common.mjs';
@@ -32,14 +32,14 @@ import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Constant parameters
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Window layout
 const InitMidLRratio = 0.6  // initial width ratio midMainLeft/midMainRight
-const UGRSMALL = 1  // small number of pixels to move for user guide resizing
-const UGRLARGE = 20 // large number of pixels to move for user guide resizing
+const UGRSMALL = 1  // small number of pixels to move for guide resizing
+const UGRLARGE = 20 // large number of pixels to move for guide resizing
 
 // Colors
 const DefaultPaneButtonBackground = "#f8f8f8"
@@ -47,15 +47,15 @@ const HighlightedPaneButtonBackground = "#e0fde0"
 
 // Initial options
 const InitialMainSliceSize = 500 // user can override on options page
-const InitialWorkerRefreshInterval = 250 // period (ms) of worker display refresh
+const InitialWorkerRefreshInterval = 250 // period (ms) worker disp refresh
 const InitialMDslidingSize = 4096
 const MemDispMinSize = 20 // always display at least this many locations
 const InitialMemorySizeStr = '64KW'
 const InitialMemorySize = 65536
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Initialization
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The program runs in a main thread and optionally a worker thread.
 // The program starts in the main thread; a worker thread is created
@@ -151,9 +151,9 @@ const InitialMemorySize = 65536
 //                      array buffer, making them accessible to both
 //                      the main thread and the worker thread.
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Global state variable
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The gui state is an instance of the GuiState class.  It's retained
 // in a global variable gst, which is defined here to get it into
@@ -165,9 +165,9 @@ const InitialMemorySize = 65536
 
 let gst = null
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Gui state class
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The global gui state gst is an instance of GuiState
 
@@ -989,9 +989,10 @@ function initializeButtons () {
     
     // Linker pane (LP)
     prepareButton ('LP_Link',            link.linkerGUI);
-    prepareButton ('LP_Read_Object',     link.getLinkerModules);
+    prepareButton ('LP_Show_Object',     link.linkShowObject);
     prepareButton ('LP_Show_Executable', link.linkShowExecutable);
     prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
+    prepareButton ('LP_Read_Object',     link.getLinkerModules);
 
     // Processor pane (PP)
     prepareButton ('PP_Boot',       () => procBoot (gst))
@@ -1056,9 +1057,9 @@ function initializeButtons () {
     prepareButton ('DisableDevTools', disableDevTools);
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Key maps
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 const defaultKeyMap = new Map ([
     ["KeyH",  toggleWelcomeHelp],
@@ -2871,7 +2872,8 @@ function initializeGuiLayout (gst) {
 
 function initializeGuiElements (gst) {
     hideBreakDialogue ();
-    document.getElementById('LinkerText').innerHTML = "";    
+//    document.getElementById('LinkerText').innerHTML = "";    
+    document.getElementById('LP_Body').innerHTML = "";    
     smod.prepareChooseFiles ();
     smod.initModules (gst);
     window.mode = com.mode;

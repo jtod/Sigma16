@@ -1,7 +1,7 @@
 // Sigma16: linker.mjs
-// Copyright (C) 2020 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE and https://jtod.github.io/home/Sigma16/
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -14,12 +14,12 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // linker.mjs manipulates object code, including the functions of a
 // linker and loader.  Services include combining a collection of
 // object modules to form an executable module; performing address
 // relocation; and loading an object module into memory.
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
@@ -34,9 +34,9 @@ import * as asm from './assembler.mjs';
 //   LP_Show_Object     linkShowExeObject
 //   LP_Show_Metadata   linkShowExeMetadata
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Linker state
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The linker state class encapsulates the linker's variables,
 // avoiding a group of global variables.  Normally there will be only
@@ -50,7 +50,8 @@ import * as asm from './assembler.mjs';
 // linkerInfo, and oms is a list of S15Modules that contain objInfo
 
 export class LinkerState  {
-    constructor (obMdTexts) { // obMdTexts is an ObjMd object with text for obj, md
+    constructor (obMdTexts) {
+        // obMdTexts is an ObjMd object with text for obj, md
         this.obMdTexts = obMdTexts;
         this.modMap = new Map ();
         this.oiList = [];
@@ -109,15 +110,15 @@ class AsmExport {
     }
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Object Info
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The ObjectInfo class collects information about each module being
 // linked, as well as the executable.  Constructor arguments: modname
-// is string giving base name of the module; omText is a string
-// giving the object code text, and omMd is a string giving the
-// metadata text (null if there is no metadata).
+// is string giving base name of the module; omText is a string giving
+// the object code text, and omMd is a string giving the metadata text
+// (null if there is no metadata).
 
 // Return just the first few lines of a (possibly long) text
 function takePrefix (xs) {
@@ -127,7 +128,8 @@ function takePrefix (xs) {
 export class ObjectInfo {
     constructor (i, obmdtext) {
         this.index = i; // position in array of object modules
-        this.obmdtext = obmdtext; // contains basename, object and metadata strings
+        this.obmdtext = obmdtext;
+        // obmdtext contains basename, object and metadata strings
         this.baseName = this.obmdtext.baseName;
         this.objText = this.obmdtext.objText;
         this.mdText = this.obmdtext.mdText;
@@ -242,20 +244,21 @@ function adjust (ls, om, addr, f) {
     }
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // GUI interface to linker
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
-// linkerGUI is invoked when the Link button on the Linker tab is
-// clicked.  It gathers all the modules that are loaded and calls the
-// linker.  The selected module is the main program and the executable
-// is stored in the selected module.
+// linkerGUI is an interface for the GUI to use; the primary work of
+// linkingis performed by linker.  linkerGUI is invoked when the Link
+// butto on the Linker tab is clicked.  It gathers all the modules
+// that are loaded and calls the linker.  The selected module is the
+// main program and the executable is stored in the selected module.
 
 export function linkerGUI () {
     console.log ("linkerGUI");
     const selm = st.env.getSelectedModule ();
     const selOMD = selm.objMd;
-    let objs = [selOMD];
+    let objs = [selOMD]; // put selected object module first
     for (const m of st.env.modules.values ()) {
         const isSel = selm.baseName === m.baseName;
         if (!isSel) { objs.push(m.objMd) }
@@ -275,7 +278,7 @@ export function linkerGUI () {
         + "\n\nMetadata\n"
         + mdText
         + "</pre>";
-    document.getElementById('LinkerBody').innerHTML = xs;
+    document.getElementById('LP_Body').innerHTML = xs;
     console.log ("--------------------------");
     console.log ("linkerGUI exeObjMd");
     console.log (exeObjMd);
@@ -283,37 +286,59 @@ export function linkerGUI () {
 
 }
 
-// Display executable on the linker pane; invoked when "Show object"
-// button is clicked
+// Show each object module ???
 
-export function linkShowExecutable () {
-    console.log ("linkShowExeObject");
-//    return // temp while ls.exeCode not working
-    let ls = st.env.linkerState;
-    let code = ls.exeCode;
+export function linkShowObject () {
+    console.log ("linkShowObject")
+    let ls = st.env.linkerState
+    let code = 'Object code modules...'
     let xs = "<pre class='HighlightedTextAsHtml'>"
         + code
         + "</pre>";
-    document.getElementById('LinkerBody').innerHTML = xs;
+    //    document.getElementById('LinkerBody').innerHTML = xs;
+    document.getElementById('LP_Body').innerHTML = xs;
+}
+
+// Display executable on the linker pane; invoked when "Show
+// executable" button is clicked
+
+export function linkShowExecutable () {
+    console.log ("linkShowExecutable");
+    let ls = st.env.linkerState;
+    let code = 'No executable'
+    //    let code = ls.exeCode;
+    let om = ls.exeObjMd
+    if (om) {
+        console.log ('linkShowExecutable have om')
+        code = om.objText
+    }
+    let xs = "<pre class='HighlightedTextAsHtml'>"
+        + code
+        + "</pre>";
+    //    document.getElementById('LinkerBody').innerHTML = xs;
+    document.getElementById('LP_Body').innerHTML = xs;
 }
 
 // Display the executable metadata; invokded when "Show metadata"
 // button is clicked
 
 export function linkShowMetadata () {
-    testMetadata ()      // testing
-//    return
+//    testMetadata ()      // testing
     let ls = st.env.linkerState;
     let md = "No metadata"
+    let om = ls.exeObjMd
+    if (om) {
+        console.log ('linkShowMetadata have om')
+        md = om.mdText
+    }
     let xs = "<pre class='HighlightedTextAsHtml'>"
         + md
         + "</pre>";
-    document.getElementById('LinkerBody').innerHTML = xs;
-
+    document.getElementById('LP_Body').innerHTML = xs;
 }
-export function testMetadata () {     // testing
-    
-    console.log ("******************************* testMetadata");
+
+export function testMetadata () {
+    console.log ("*** testMetadata");
     let x = new st.Metadata ()
     x.addMapping (5,6)
     x.addMapping (23,24)
@@ -322,7 +347,8 @@ export function testMetadata () {     // testing
     x.addMapping (300,301)
     x.addMapping (400,401)
     x.addMapping (500,501)
-    x.addSrcLines (["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l" ])
+    x.addSrcLines (["a", "b", "c", "d", "e", "f", "g",
+                    "h", "i", "j", "k", "l" ])
     console.log (`getSrcLines = ${x.getSrcLines()}`)
     console.log (`5 maps to ${x.mapArr[5]}`)
     console.log (`200 maps to ${x.mapArr[200]}`)
@@ -337,13 +363,12 @@ export function testMetadata () {     // testing
     console.log ("----------------- this is y to text -----------")
     const ytext = y.toText()
     console.log (`ytext = ${ytext}`)
-    
     return
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Linker main interface
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The linker takes a list of ObjMd records; each contains an objText
 // which is a string representing the object code, and an mdText which
@@ -375,9 +400,9 @@ export function linker (exeName, obMdTexts) {
     return result;
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Linker pass 1
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Pass 1 traverses the text lines of an object module, parses the
 // syntax, builds data blocks, and records the directives
@@ -387,8 +412,9 @@ function pass1 (ls) {
     ls.mcount = 0; // number of object modules being linked
     ls.oiList = []; // an ObjectInfo for each module being linked
     for (const obtext of ls.obMdTexts) {
-        let oi = new ObjectInfo (ls.mcount, obtext); // info about this module
-        console.log (`Linker pass 1: i=${ls.mcount} baseName=${oi.baseName}`);
+        let oi = new ObjectInfo (ls.mcount, obtext);
+        // oi contains info about this module
+        console.log (`Linker pass 1: i=${ls.mcount} baseName=${oi.baseName}`)
         ls.modMap.set (obtext.baseName, oi); // support lookup for imports
         ls.oiList.push (oi); // list keeps the modules in fixed order
         oi.objectLines = oi.objText.split("\n");
@@ -405,29 +431,6 @@ function pass1 (ls) {
     }
 }
 
-//        console.log (`pass 1 ${oi.baseName} origin=${oi.srcLineOrigin}`);
-//        let foo = oi.metadata.getSrcLines ();
-//        ls.metadata.addSrcLines (foo)
-//        let foo = oi.metadata.getSrcLines ();
-/*
-        ls.listing +=
-            `Object module ${oi.baseName}\n`
-            + `Start address = ${oi.startAddress}`
-            + ` Source origin = ${oi.SrcLineOrigin}\n`
-            + "Module object code\n"
-            + `${oi.objText}`
-            + "Module metadata\n"
-            + oi.metadata.toText ()
-            + "---- pairs:\n"
-            + oi.metadata.pairs.toString()
-            + "\n";
-*/
-//        console.log ("--------- pass1 pairs length .***************..")
-//        console.log (`ls.metadata.pairs.length = ${ls.metadata.pairs.length}`)
-        //        oi.srcLineOrigin = ls.metadata.getSrcLines().length;
-//        console.log (`----------------- BEFORE TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
-//        console.log (`----------------- AFTER TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
-
 // Parse object module om with linker state ls
 
 function parseObject (ls, obj) {
@@ -435,11 +438,12 @@ function parseObject (ls, obj) {
     obj.startAddress = ls.locationCounter;
     ls.modMap.set (obj.omName, obj);
     obj.asmExportMap = new Map ();
-    const relK = obj.startAddress; // relocation constant for the object module
+    const relK = obj.startAddress;
+    // relocation constant for the object module
     for (let x of obj.objectLines) {
 //        console.log (`Object line <${x}>`);
         let fields = parseObjLine (x);
-        com.mode.devlog (`-- op=${fields.operation} args=${fields.operands}`);
+        com.mode.devlog (`--op=${fields.operation} args=${fields.operands}`)
         if (x == "") {
 //            console.log ("skipping blank line");
         } else if(fields.operation == "module") {
@@ -464,8 +468,10 @@ function parseObject (ls, obj) {
             console.log ("Building export pass 1 export:");
             console.log (`name=${name} ${typeof name}`);
             console.log (`val=${val} ${typeof val}`);
-            console.log (`valNum=${arith.wordToHex4(valNum)} ${typeof valNum}`);
-            console.log (`valExp=${arith.wordToHex4(valExp)} ${typeof valExp}`);
+            console.log (`valNum=${arith.wordToHex4(valNum)}`
+                         + ` ${typeof valNum}`);
+            console.log (`valExp=${arith.wordToHex4(valExp)}`
+                         + ` ${typeof valExp}`);
             console.log (`status=${status} ${typeof status}`);
             const x = new AsmExport (name, valExp, status);
             obj.asmExportMap.set(fields.operands[0], x);
@@ -477,9 +483,9 @@ function parseObject (ls, obj) {
     }
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Linker pass 2
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Pass 2 revisits the imports and relocations that were recorded
 // during Pass 1, and makes the necessary adjustments to the object
@@ -501,18 +507,20 @@ function resolveImports (ls, om) {
     console.log (`Resolving imports for ${om.baseName}`);
     for (const x of om.asmImports) {
         console.log (`  Importing ${x.name} from ${x.mod}`);
-        if (ls.modMap.has(x.mod)) { // Does module we're importing from exist?
+        if (ls.modMap.has(x.mod)) { // does import module exist?
             const exporter = ls.modMap.get(x.mod);
-            if (exporter.asmExportMap.has(x.name)) { // Is the name exported?
+            if (exporter.asmExportMap.has(x.name)) { // is name exported?
                 const v = exporter.asmExportMap.get(x.name);
                 console.log (`LOOK v status = ${v.status}`);
                 const addrNum = arith.hex4ToWord(x.addr);
                 const valNum = v.val;
-                console.log (`look at resolveImport ${valNum} ${typeof valNum}`);
+                console.log (`look at resolveImport ${valNum}`
+                             + ` ${typeof valNum}`);
                 console.log (`    Set ${x.addr}.${x.field} := ${v.val}`);
                 adjust (ls, om, addrNum, (y) => valNum);
             } else {
-                console.log (`Linker error: ${x.name} not exported by ${x.mod}`);
+                console.log (`Linker error: ${x.name}`
+                             + ` not exported by ${x.mod}`);
             }
         } else {
             console.log (`Linker error: ${x.mod} not found`);
@@ -521,7 +529,8 @@ function resolveImports (ls, om) {
 }
 
 function resolveRelocations (ls, om) {
-    const relK = om.startAddress; // relocation constant for the object module
+    const relK = om.startAddress;
+    // relocation constant for the object module
     console.log (`Resolving relocations for ${om.baseBame}`
                  + ` relocation=${arith.wordToHex4(relK)}`);
     for (const a of om.relocations) {
@@ -531,9 +540,9 @@ function resolveRelocations (ls, om) {
     }
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Emit object code
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 function emitCode (ls) {
     console.log ("Emit object code");
@@ -556,7 +565,6 @@ function emitCode (ls) {
     return exeCode;
 }
 
-
 // ws is a list of words to be emitted as a sequence of data
 // statements, with a limited number of words per data statement in
 // order to keep the lines to a reasonable length.
@@ -575,9 +583,9 @@ function emitObjectWords (ws) {
     return code;
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Parser
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // A line of object code contains a required operation code, white
 // space, and a required operand which is a comma-separated list of
@@ -600,3 +608,28 @@ export function parseObjLine (xs) {
     }
         return {operation, operands}
 }
+
+
+//        console.log (`pass 1 ${oi.baseName} origin=${oi.srcLineOrigin}`);
+//        let foo = oi.metadata.getSrcLines ();
+//        ls.metadata.addSrcLines (foo)
+//        let foo = oi.metadata.getSrcLines ();
+/*
+        ls.listing +=
+            `Object module ${oi.baseName}\n`
+            + `Start address = ${oi.startAddress}`
+            + ` Source origin = ${oi.SrcLineOrigin}\n`
+            + "Module object code\n"
+            + `${oi.objText}`
+            + "Module metadata\n"
+            + oi.metadata.toText ()
+            + "---- pairs:\n"
+            + oi.metadata.pairs.toString()
+            + "\n";
+*/
+//        console.log ("--------- pass1 pairs length .***************..")
+//        console.log (`ls.metadata.pairs.length = ${ls.metadata.pairs.length}`)
+        //        oi.srcLineOrigin = ls.metadata.getSrcLines().length;
+//        console.log (`----------------- BEFORE TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
+//        console.log (`----------------- AFTER TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
+

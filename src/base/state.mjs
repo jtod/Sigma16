@@ -1,7 +1,7 @@
 // Sigma16: state.mjs
-// Copyright (C) 2021 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE and https://jtod.github.io/home/Sigma16/
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -14,10 +14,10 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // state.mjs defines global state for the system, IDE, modules, and
 // emulator
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The main components of the program avoid using global variables;
 // instead the necessary state is organized into records and passed as
@@ -29,9 +29,9 @@ import * as com from './common.mjs'
 import * as arch from './architecture.mjs'
 import * as ab from './arrbuf.mjs'
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Stages
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 export const StageAsm = Symbol ("Asm");   // .asm.   assembly language source
 export const StageObj = Symbol ("Obj");   // .obj.   object code
@@ -52,9 +52,9 @@ export function getStageSym (xs) {
         : null
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Representation of system state
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The system state contains a map from a base name foo to an
 // S16Module object, as well as the emulator state.
@@ -68,7 +68,8 @@ export class SystemState {
         this.linkerState = null;
     }
     showSelectedModuleName () {
-        return this.selectedModule ? this.selectedModule : "No module selected";
+        return this.selectedModule
+            ? this.selectedModule : "No module selected";
     }
     clearModules () {
         this.modules = new Map ();
@@ -127,18 +128,18 @@ export function envSummary () {
     com.mode.devlog ("End envSummary");
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Global state variable
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The environment is a global variable that contains all the system
 // state.
 
 export const env = new SystemState ();
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // S16Module
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 export class Executable {
     constructor (code, metadata) {
@@ -153,7 +154,6 @@ export class Executable {
         return xs
     }
 }
-
 
 // An S16Module is a container for all the files and objects that
 // share the same basename.
@@ -196,13 +196,15 @@ export class S16Module {
             : this.exeEdText || this.exeFile ? StageExe
             : null
     }
-// Obtain assembly language source code for assembler
+
+    // Obtain assembly language source code for assembler
     getAsmText () {
         com.mode.devlog (`This is getAsmText for ${this.baseName}`);
         let xs = this.asmEdText ? this.asmEdText
             : this.asmFile ? this.asmFile.text
             : "";
-        com.mode.devlog (`getAsmText returning basename=${this.baseName} <${xs}>`);
+        com.mode.devlog (`getAsmText returning`
+                         + ` basename=${this.baseName} <${xs}>`);
         return xs;
     }
     getObjText () {
@@ -283,8 +285,6 @@ function showFilePrefix (fr, label) {
         return "";
     }
 }
-    
-    
 
 function textPrefix (xs) {
     return "<div class='HighlightedTextAsHtml'>"
@@ -292,14 +292,12 @@ function textPrefix (xs) {
         + "<div>\n";
 }
 
-
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Container for object code and metadata
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // const emptyExe = {objectCode : "", metadata : null};
 const emptyExe = new Executable ("no object code", null);
-
 
 // The assembler produces both an object text and a metadata text.
 // For storage in a file, they are represnted as strings that are
@@ -325,10 +323,9 @@ export class ObjMd {
     }
 }
 
-
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Metadata
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // The emulator tries to display the source code line corresponding to
 // the instruction currently executing.  The information it needs to
@@ -337,8 +334,7 @@ export class ObjMd {
 // optional Metadata is present, the emulator can also show the source
 // code corresponding to the current and next instruction.
 
-// const eltsPerLineLimit = 16; // how many numbers in the mapping per line    }
-const eltsPerLineLimit = 4; // how many numbers in the mapping per line    }
+const eltsPerLineLimit = 4; // how many numbers in the mapping per line
 
 export class Metadata {
     constructor () {
@@ -349,7 +345,7 @@ export class Metadata {
         this.mapArr = [];  // mapArr[a] = i
         this.listingText = [];
         this.listingPlain = [];   // source lines
-        this.listingDec = [];     // source lines decorated with html span elements
+        this.listingDec = []; // src lines decorated with html span elements
         this.mdText = null;
         this.adrOffset = 0;
         this.srcOffset = 0; // convert a->i to a->i+srcLineOffset
@@ -366,7 +362,8 @@ export class Metadata {
         let xs = []
         this.mapArr = []
         for (const x of this.pairs) {
-            const p = {address: x.address + adrOffset, index: x.index + srcOffset}
+            const p = {address: x.address + adrOffset,
+                       index: x.index + srcOffset}
             xs.push (p)
             this.mapArr [x.address + adrOffset] = x.index + srcOffset
         }
@@ -385,7 +382,7 @@ export class Metadata {
         this.pairs.push (p)
         this.mapArr[a] = i;
     }
-    pushSrc (srcText, srcPlain, srcDec) { // add src line in three forms at end
+    pushSrc (srcText, srcPlain, srcDec) { // add src line in three forms
         this.listingText.push (srcText);
         this.listingPlain.push (srcPlain);
         this.listingDec.push (srcDec);
@@ -395,7 +392,7 @@ export class Metadata {
         this.listingPlain.unshift (srcPlain);
         this.listingDec.unshift (srcDec);
     }
-    addSrc (i, srcText, srcPlain, srcDec) { // add src line in three forms at i
+    addSrc (i, srcText, srcPlain, srcDec) { // add src line in three forms
         this.listingText[i] = srcText;
         this.listingPlain[i] = srcPlain;
         this.listingDec[i] = srcDec;
@@ -412,7 +409,7 @@ export class Metadata {
         const x = this.listingPlain[this.getSrcIdx(a)];
         return x ? x : `no plain src for ${a}`
     }
-    getSrcDec (a) { // return decorated source line corresponding to address a
+    getSrcDec (a) { // return decorated src line corresponding to address a
         const x = this.listingDec[this.getSrcIdx(a)];
         return x ? x : `no decorated src for ${a}`
     }
@@ -501,22 +498,23 @@ export class Metadata {
     }
 }
 
+/* deprecated
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Counter
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 export function getCount () {
     com.mode.devlog ("entering getCount");    
     let xmlHttp = new XMLHttpRequest();
-    xmlHttp.open('GET', 'https://hitcounter.pythonanywhere.com/count', false);
+    xmlHttp.open('GET', 'https://hitcounter.pythonanywhere.com/count', false)
     xmlHttp.send(null);
     let count = xmlHttp.responseText;
     com.mode.devlog (`getCount finishing: <${count}>`);
 }
 
-/*
 s16module.mjs:80 [Deprecation] Synchronous XMLHttpRequest on the main
 thread is deprecated because of its detrimental effects to the end
 user's experience. For more help, check https://xhr.spec.whatwg.org/.
+
 */

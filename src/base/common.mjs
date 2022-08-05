@@ -1,7 +1,7 @@
 // Sigma16: common.js
-// Copyright (C) 2020 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16. License: GNU GPL Version 3
+// See Sigma16/README, LICENSE and https://jtod.github.io/home/Sigma16/
+// Copyright (c) 2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -94,7 +94,8 @@ export const closingPreTag = /<[^>]*>$/;   // ...</pre> at end
 export function clearObjectCode () {
     let listing = "<pre class='HighlightedTextAsHtml'>"
         + "</pre>"
-    document.getElementById('LinkerText').innerHTML = listing;
+//    document.getElementById('LinkerText').innerHTML = listing;
+    document.getElementById('LP_Body').innerHTML = listing;
 //    console.log ("clearObjectCode skipping clear LinkerText");
 }
 
