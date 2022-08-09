@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-03-26 Sat 12:17 -->
+<!-- 2022-08-09 Tue 17:31 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Linker</title>
@@ -219,18 +219,11 @@
 <body>
 <div id="content">
 <h1 class="title">Linker</h1>
-<p>
-These files comprise one small program, and they illustrate use of the
-linker.  Load them both in the Modules tabhh, and assemble both.  Select
-the Main program, and then go to the Linker tab.
-</p>
-
 <ul class="org-ul">
-<li><a href="./Main.asm.txt">Main</a> Main program that uses some definitions in
-Mod1</li>
-
-<li><a href="./Mod1.asm.txt">Mod1</a> Imported module containing a function and
-variable</li>
+<li><a href="./LinkMain.asm.txt">LinkMain</a> A main program that imports
+LinkMod1</li>
+<li><a href="./LinkMod1.asm.txt">LinkMod1</a> LinkMod1 exports values used by
+LinkMain</li>
 </ul>
 </div>
 </body>

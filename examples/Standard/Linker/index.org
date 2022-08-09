@@ -1,13 +1,12 @@
+# examples/Standard/Linker/index.org
+# This file is part of Sigma16. See README and https://github.com/jtod/Hydra
+# Copyright (c) 2022 John T. O'Donnell
+
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
 #+TITLE: Linker
 #+OPTIONS: html-postamble:nil
 
-These files comprise one small program, and they illustrate use of the
-linker.  Load them both in the Modules tabhh, and assemble both.  Select
-the Main program, and then go to the Linker tab.
-
-- [[./Main.asm.txt][Main]] Main program that uses some definitions in
-  Mod1
-
-- [[./Mod1.asm.txt][Mod1]] Imported module containing a function and
-  variable
+- [[./LinkMain.asm.txt][LinkMain]] A main program that imports
+  LinkMod1
+- [[./LinkMod1.asm.txt][LinkMod1]] LinkMod1 exports values used by
+  LinkMain

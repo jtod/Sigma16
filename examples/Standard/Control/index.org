@@ -1,6 +1,0 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Control
-#+OPTIONS: html-postamble:nil
-
-- [[./JumpZNZ.asm.txt][JumpZNZ]] Jumping conditional on relation to
-  zero

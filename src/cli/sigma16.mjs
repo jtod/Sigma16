@@ -1,7 +1,7 @@
 // Sigma16.mjs
-// Copyright (C) 2020-2021 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16: https://jtod.github.io/home/Sigma16/
+// License: GNU GPL Version 3.  See Sigma16/README and LICENSE
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // Sigma16.mjs defines command line tools using node.js
 
@@ -16,16 +16,17 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Usage
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 /*
 Usage: node Sigma16.mjs <command> <argument> ... <argument>
 
 <command> is one of
   (empty)                   run gui using express, can view in browser
-  gui (or no command)       run gui using express, can view in browser
+  gui (or no command)       run gui using express from dev directory
+  run p                     run gui using path p
   assemble ProgName         translate ProgName.asm.txt to object
   link ExeName ModName...   link the modules and produce executable
   parameters                display the parameters and file paths
@@ -33,12 +34,13 @@ Usage: node Sigma16.mjs <command> <argument> ... <argument>
 It's convenient to define "sigma16" as an alias for "node
 /path/to/Sigma16.mjs" (see Installation below)
 
-  sigma16                   same as "sigma16 gui"
-  sigma16 gui               launch gui, visit http://localhost:3000/
-  sigma16 assemble foo      read foo.asm.txt, write foo.obj.txt, .lst.txt, .md.txt
-  sigma16 link foo m1 m2... read m1.obj.txt ..., write foo.obj.txt
-  sigma16 parameters        display parameters and exit
-  sigma16 test              for development only
+  sigma16                 same as "sigma16 gui"
+  sigma16 gui             launch gui, visit http://localhost:3000/
+  sigma16 run x           launch gui using version in path x
+  sigma16 assemble x      read x.asm.txt, write .obj.txt, .lst.txt, .md.txt
+  sigma16 link x m1 m2... read m1.obj.txt ..., write x.obj.txt
+  sigma16 parameters      display parameters and exit
+  sigma16 test            for development only
 
 ** linker: node Sigma16.mjs link <exe> <mod1> <mod2> ...
   Reads object from <mod1>.obj.txt, ...     (required)
@@ -48,9 +50,9 @@ It's convenient to define "sigma16" as an alias for "node
   Writes linker listing to <exe>.lst.txt
 */
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Installation
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 /*
 1. Software requirements: install npm, see https://nodejs.org/en/download/
@@ -67,9 +69,9 @@ alias sigma16="node ${SIGMA16}/src/Sigma16/cli/Sigma16.mjs"
 */
 
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Initialization
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Standard packages
 // import express from 'express';
@@ -98,7 +100,7 @@ const examplesDir = path.join (homeDir, "/examples");
 // Obtain command line arguments
 //   process.argv[0] = path to node.exe
 //   process.argv[1] = path to this file
-let command = process.argv[2];     // command to execute; if undefined use gui
+let command = process.argv[2]; // command to execute; if undefined use gui
 let commandArg = process.argv[3];  // argument to the command, if any
 
 // Display all the parameters and file paths
@@ -113,15 +115,18 @@ function showParameters () {
     console.log (`examplesDir =\n${examplesDir}`);
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Main program: dispatch on command
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Decide what operation is being requested, and do it
 function main  () {
     if (process.argv.length < 3 || command === "gui") {
         console.log ("calling StartServer")
-        serv.StartServer ()
+        serv.StartServer (null)
+    } else if (command === "run") {
+        console.log (`calling StartServer with ${commandArg}`)
+        serv.StartServer (arg)
     } else if (command === "assemble") {
         assembleCLI (commandArg);
     } else if (command === "link") {
@@ -137,9 +142,9 @@ function main  () {
     }
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Assembler
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Usage: node Sigma16.mjs assemble Foo
 //   Reads source from Foo.asm.txt
@@ -167,9 +172,9 @@ function assembleCLI () {
     }
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Command line interface to linker
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Usage: node sigma16.mjs link <exe> <mod1> <mod2> ...
 //   Reads object from <mod1>.obj.txt, ...     (required)
@@ -204,9 +209,9 @@ function linkCLI () {
     writeFile (`${exeBaseName}.lnk.txt`, lnkTxt);
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // File I/O via file names (runs in node but not in browser)
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Attempt to read file fname.  If file can't be read, give error
 // message and return empty string; otherwise return the contents of
@@ -241,9 +246,9 @@ export function writeFile (fname, txt) {
     return ok;
 }
 
-//-----------------------------------------------------------------------------
-// Test harness
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
+// Testing
+//----------------------------------------------------------------------
 
 function runtest () {
     console.log ("runtest");
@@ -283,7 +288,7 @@ function runtest () {
     console.log (`101 ${foo.getSrcIdx(101)}`);
     console.log (`102 ${foo.getSrcIdx(102)}`);
     console.log (`pl 101 ${foo.getSrcPlain(101)}`);
-    console.log ("********************** final result foo.teText ************");
+    console.log ("***************** final result foo.teText ************");
     console.log (foo.toText());
     
  /*    
@@ -312,8 +317,8 @@ function runtest () {
     console.log ("runtest finished");
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Run the main program
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 main ();

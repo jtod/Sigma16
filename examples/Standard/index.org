@@ -1,21 +1,14 @@
+# examples/Standard/index.org
+# This file is part of Sigma16. See README and https://github.com/jtod/Hydra
+# Copyright (c) 2022 John T. O'Donnell
+
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
 #+TITLE: Standard instruction set
 #+OPTIONS: html-postamble:nil
 
-- [[./Arithmetic/index.org][Arithmetic]] Accessing carry propagation,
-  natural numbers, arithmetic on big numbers
-- [[./BitField/index.org][Bit fields]] Accessing bit fields within
-  words
-- [[./Control/index.org][Control]] Conditional jumping
-- [[./TypeConversion/index.html][Type conversion]] Converting between
-  data types
-- [[./Linker/index.orgl][Linker]] Linking object modules into an
-  executable program
-- [[./Logic/index.org][Logic]] Boolean logic
-- [[./Stack/index.org][Stack]] Stack instructions
-- [[./DataStructures/index.html][Data structures]]  xx Arrays, records,
-  pointers, linked structures.
-- [[./Recursion/index.html][Recursion]] Recursive programs
-- [[./Testing/index.html][Testing]] xx
+- [[./Linker/index.html][Linker]]
+- [[./Interrupt/index.html][Interrupt]]
+- [[./Testing/index.html][Testing]] Short programs for testing the
+  instruction set
 
 

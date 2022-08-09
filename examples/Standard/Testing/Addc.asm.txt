@@ -1,0 +1,18 @@
+; TestAddc - test the addc instruction
+; This file is part of Sigma16. See README and https://github.com/jtod/Hydra
+; Copyright (c) 2022 John T. O'Donnell
+
+; addc is the "add with carry" instruction.  It's useful for addition
+; of large natural numbers that require several words.  The
+; instruction uses the carry bit in the condition code (R15) as the
+; carry input, and it overwrites the carry bit with the carry output
+; of the addition.  There is no overflow.  The numbers used here are
+; binary natural numbers.
+  
+     lea   R1,$f000[R0]  ; R1 = f000
+     lea   R2,$f001[R0]  ; R2 = f001
+     add   R3,R1,R2      ; R3 = e001 with carry = 1
+     lea   R4,2[R0]      ; R4 = 0002
+     addc  R5,R4,R4      ; R5 = 0005  2 + 2 + 1 (carry), clear carry bit
+     addc  R6,R4,R4      ; R6 = 0004  2 + 2 + 0 (carry), clear carry bit
+     trap  R0,R0,R0      ; terminate

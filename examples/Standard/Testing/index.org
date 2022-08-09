@@ -1,8 +1,15 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Intermediate examples using standard instruction set
+#+TITLE: Standard instruction set: Testing
 #+OPTIONS: html-postamble:nil
 
-- [[./AsmStd/index.html][AsmStd]] Test assembly language statements
+- [[./AsmStd.asm.txt][AsmStd]] Test assembly language statements
   for standard architecture
-
-
+- [[./Addc.asm.txt][Addc]] Add with carry
+- [[./BitField.asm.txt][BitField]] BitField
+- [[./JumpZNZ.asm.txt][JumpZNZ]] JumpZNZ
+- [[./Logic.asm.txt][Logic]]
+- [[./NatArith.asm.txt][NatArith]]
+- [[./SaveRestore.asm.txt][SaveRestore]]
+- [[./Shift.asm.txt][Shift]]
+- [[./Stack.asm.txt][Stack]]
+- [[./TestJump.asm.txt][TestJump]]

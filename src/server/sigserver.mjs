@@ -1,7 +1,7 @@
 // sigserver.mjs
-// Copyright (C) 2022 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16: https://jtod.github.io/home/Sigma16/
+// License: GNU GPL Version 3.  See Sigma16/README and LICENSE
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU
@@ -177,7 +177,7 @@ app.get ('/docstyle.css', (req,res) => {
 
 //-----------------------------------------------------------------------
 // Provide latest version on request
-// URL path: status/latest/i.j.k
+// URL path: /sigma16/status/latest/i.j.k
 //-----------------------------------------------------------------------
 
 // When Sigma16 initializes, it makes an http fetch to
@@ -188,7 +188,7 @@ app.get ('/docstyle.css', (req,res) => {
 // see whether they are running the latest release.
 
 
-// deprecated, use following version, remove this eventually...
+// Older versions use this form; keep for backward compatibility
 app.get ('/status/latest/:callerversion', (req,res) => {
     const reqInfo = {
         date: new Date (),
@@ -375,7 +375,8 @@ app.get ('/world.html', (req,res) => {
 // S16_RELEASE_VERSION and S16_DEV_VERSION.  A comment at the
 // beginning of this file gives the URLs needed to launch any version.
 
-export function StartServer () {
+// if run env is Local, arg is the BUILD_DIR to use
+export function StartServer (optBuildPath) {
     console.log ('StartServer')
     let ok = true
     if (S16_RUN_ENV === 'Heroku') {

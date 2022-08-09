@@ -1,0 +1,269 @@
+; ConvertInt: convert between integer and string of decimal digits
+; This file is part of Sigma16. https://jtod.github.io/home/Sigma16
+; Copyright (c) 2022 John T. O'Donnell
+
+ConvertInt module
+           export  ShowInt
+
+;--------------------------------------------------------------------
+; ShowInt: convert int to decimal string
+;--------------------------------------------------------------------
+
+
+; ShowInt converts an integer to a string, placing it in a buffer of a
+; specified size in memory.  The integer may be signed.  Leading
+; spaces are inserted if the buffer size is larger than required, and
+; the buffer is filled with ### if the buffer size isn't large enough
+
+; procedure ShowInt converts an integer x to a decimal string, to be
+; stored in an array of characters at address bufstart, with the
+; string size limited to bufsize.  If x is negative, a minus sign is
+; inserted.  If the buffer is larger than needed, leading spaces are
+; inserted.  If the buffer is too small to hold the number, it is
+; filled with # characters.  The procedure returns the number of
+; leading spaces; this enables the caller to find the non-space part
+; of the string by adding that number to the buffer address.  Every 16
+; bit two's complement number can be shown using 6 characters,
+; e.g. -30000.
+
+; High level algorithm
+; procedure ShowInt (x:Int, *bufstart:Char, bufsize:Int) : Int 
+;   negative : Bool
+;   *bufend : Char
+;   q, r, i : Int
+;   negative := False
+;   bufend := bufstart + bufsize - 1  ; ptr to last char in buf
+;   if x < 0
+;     then x := -x
+;          negative := True
+;   p := bufend
+;   repeat
+;     r := x mod 10
+;     x := x div 10
+;     *p := digits[r]
+;     p := p - 1
+;     until x = 0 || p < bufstart
+;   if x > 0 || (negative && p < bufstart)
+;     then p := bufstart
+;          while p <= bufend
+;             *p := HashChar
+;             p := p + 1
+;          k := 0
+;     else if negative
+;            then *p := MinusSign
+;                 p := p - 1
+;          k := p + 1 - bufstart
+;          while p >= bufstart
+;            *p := Space
+;            p := p - 1
+;   return k 
+
+;--------------------------------------------------------------------
+; Low level algorithm
+
+; procedure ShowInt (x:Int, *bufstart:Char, bufsize:Int) : Int 
+;   negative := False
+;   bufend := bufstart + bufsize - 1  ; ptr to last char in buf
+;   if x >= 0 then goto NotNeg
+;   x := -x
+;   negative := True
+; NotNeg
+;   p := bufend
+
+; DigitLoop
+;     r := x mod 10
+;     x := x div 10
+;     *p := digits[r]
+;     p := p - 1
+;     if x = 0 then goto DigitLoopDone
+;     if p < bufstart then goto DigitLoopDone
+;     goto DigitLoop
+; DigitLoopDone
+
+;   if x > 0 then goto ShowIntTooBig
+;   if negative /= 0 then goto ShowIntFinish
+;   if not p >= bufstart then goto ShowIntFinish
+;   goto ShowIntTooBig
+
+; ShowIntTooBig
+;   p := bufstart
+; ShowIntHashLoop
+;   if p < bufend then goto ShowIntHashLoopDone
+;   *p := HashChar
+;   p := p + 1
+;   goto ShowIntHashLoop
+; ShowIntHashLoopDone
+;   k := 0
+;   goto ShowIntDone
+
+; ShowIntFinish
+;   if not negative then goto ShowIntNotNeg
+;   *p := MinusSign
+;   p := p - 1
+; ShowIntNotNeg
+;   k := p + 1 - bufstart
+; ShowIntSpaceLoop
+;   if p < bufstart then goto ShowIntSpaceLoopDone
+;   *p := Space
+;   p := p - 1
+;   goto ShowIntSpaceLoop
+; ShowIntSpaceLoopDone
+; ShowIntDone
+;   return k 
+
+;--------------------------------------------------------------------
+; ShowInt: convert an integer to a string of 6 characters
+;--------------------------------------------------------------------
+
+; Assembly language algorithm
+
+; Arguments (x:Int, *bufstart:Char, bufsize:Int)
+;   R1 = x = integer to convert
+;   R2 = bufstart = address of string
+;   R3 = bufsize = number of characters in string
+;   R12 = return address
+; Result
+;   R1 = k = number of leading spaces; -1 if overflow
+
+; Structure of stack frame for ShowInt, frame size = 12
+;  11[R14]  save R10
+;  10[R14]  save R9
+;   9[R14]  save R8
+;   8[R14]  save R7
+;   7[R14]  save R6
+;   6[R14]  save R5
+;   5[R14]  save R4
+;   4[R14]  save R3
+;   3[R14]  save R2
+;   2[R14]  save R1
+;   1[R14]  return address
+;   0[R14]  dynamic link, pointer to previous stack frame
+
+; Local register usage
+;   R4  = constant 1
+;   R5  = negative
+;   R6  = bufend
+;   R7  = p
+;   R8  = temp
+;   R9  = r
+;   R10 = constant 10
+
+ShowInt
+; Create stack frame
+    store  R14,0[R12]          ; save dynamic link
+    add    R14,R12,R0          ; stack pointer := stack top
+    lea    R12,12[R14]         ; stack top := stack ptr + frame size
+    cmp    R12,R11             ; stack top ~ stack limit
+    jumpgt StackOverflow[R0]   ; if top>limit then goto stack overflow
+    store  R13,1[R14]          ; save return address
+    store  R1,2[R14]           ; save R1
+    store  R2,3[R14]           ; save R2
+    store  R3,4[R14]           ; save R3
+    store  R4,5[R14]           ; save R4
+    store  R5,6[R14]           ; save R5
+    store  R6,7[R14]           ; save R6
+    store  R7,8[R14]           ; save R7
+    store  R8,9[R14]           ; save R8
+    store  R9,10[R14]          ; save R9
+    store  R10,11[R14]         ; save R10
+
+    lea    R4,1[R0]            ; R4 := constant 1
+    lea    R10,10[R0]          ; R10 := constant 10
+    add    R5,R0,R0            ; negative := False
+    add    R6,R2,R3            ; bufend := bufstart + bufsize
+    sub    R6,R6,R4            ; bufend := bufstart + bufsize - 1
+
+    cmp    R1,R0               ; compare x, 0
+    jumpge SInotNeg[R0]        ; if nonnegative then goto SInotNeg
+    sub    R1,R0,R1            ; x := -x
+    add    R5,R1,R0            ; negative := True
+SInotNeg
+    add    R7,R6,R0            ; p := bufend
+
+SIdigLp
+    div    R1,R1,R10           ; x := x div 10
+    add    R9,R15,R0           ; r := x mod 10
+    load   R8,Digits[R9]       ; temp := Digits[r]
+    store  R8,0[R7]            ; *p := digits[r]
+    sub    R7,R7,R4            ; p := p - 1
+    cmp    R1,R0
+    jumpeq SIdigLpEnd[R0]      ; if x = 0 then goto SIdigLpEnd
+    cmp    R7,R2               ; compare p, bufstart
+    jumplt SIdigLpEnd[R0]      ; if p < bufstart then goto SIdigLpEnd
+    jump   SIdigLp[R0]         ; goto SIdigLp
+SIdigLpEnd
+
+    cmp    R1,R0               ; compare x, 0
+    jumpgt SItooBig[R0]        ; if x > 0 then goto SItooBig
+    cmp    R5,R0               ; is x negative?
+    jumpeq SIfinish[R0]        ; if nonnegative then goto SIfinish
+    cmp    R7,R2               ; compare p, bufstart
+    jumpge SIfinish[R0]        ; if p >= bufstart then goto SIfinish
+    jump   SItooBig[R0]        ; goto SItooBig
+
+SItooBig
+    add    R7,R2,R0            ; p := bufstart
+SIhashLp
+    cmp    R7,R6               ; compare p, bufend
+    jumpgt SIhashLpEnd[R0]     ; if p > bufend then goto SIhashLpEnd
+    load   R8,Hash[R0]         ; R8 := '#'
+    store  R8,0[R7]            ; *p := '#'
+    add    R7,R7,R4            ; p := p + 1
+    jump   SIhashLp[R0]        ; goto SIhashLp
+SIhashLpEnd
+    add    R1,R0,R0            ; k := 0
+    jump   SIend[R0]           ; goto SIend
+
+SIfinish
+    cmp    R5,R0               ; compare R5, False
+    jumpeq SInoMinus[R0]       ; if not negative then goto SInoMinus
+    load   R8,Minus[R0]        ; R8 := '-'
+    store  R8,0[R7]            ; *p := '-'
+    sub    R7,R7,R4            ; p := p - 1
+SInoMinus
+    add    R1,R7,R4            ; k := p + 1
+    sub    R1,R1,R2            ; k := p + 1 - bufstart
+SIspaceLp
+    cmp    R7,R2               ; compare p, bufstart
+    jumplt SIspaceLpEnd[R0]    ; if p < bufstart then goto SIspaceLpEnd
+    load   R8,Space[R0]        ; temp := ' '
+    store  R8,0[R7]            ; *p := ' '
+    sub    R7,R7,R4            ; p := p - 1
+    jump SIspaceLp[R0]         ; goto SIspaceLp
+SIspaceLpEnd
+
+SIend
+; return
+    load   R1,2[R14]           ; save R1
+    load   R2,3[R14]           ; save R2
+    load   R3,4[R14]           ; save R3
+    load   R4,5[R14]           ; save R4
+    load   R5,6[R14]           ; save R5
+    load   R6,7[R14]           ; save R6
+    load   R7,8[R14]           ; save R7
+    load   R8,9[R14]           ; save R8
+    load   R9,10[R14]          ; save R9
+    load   R10,11[R14]         ; save R10
+    load   R13,1[R14]          ; save return address
+    add    R12,R14,R0          ; R12 := R14, restore stack top
+    load   R14,0[R14]          ; pop stack frame    
+    jump   0[R13]              ; return
+
+StackOverflow
+    trap   R0,R0,R0
+Digits
+      data  $0030   ; '0'
+      data  $0031   ; '1'
+      data  $0032   ; '2'
+      data  $0033   ; '3'
+      data  $0034   ; '4'
+      data  $0035   ; '5'
+      data  $0036   ; '6'
+      data  $0037   ; '7'
+      data  $0038   ; '8'
+      data  $0039   ; '9'
+
+Minus     data  $002d   ; '-'
+Newline   data  10
+Hash      data  35
+Space     data  32

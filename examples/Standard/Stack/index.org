@@ -1,9 +1,0 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Stack
-#+OPTIONS: html-postamble:nil
-
-- [[./Stack.asm.txt][Stack]] Operations on stacks: push, pop, top
-- [[./SaveRestore.asm.txt][SaveRestore]] Saving and restoring
-  registers on the stack
-
-  

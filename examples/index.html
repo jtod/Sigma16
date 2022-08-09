@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-03-25 Fri 15:01 -->
+<!-- 2022-08-09 Tue 17:29 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Sigma16 example programs</title>
@@ -220,22 +220,23 @@
 <div id="content">
 <h1 class="title">Sigma16 example programs</h1>
 <ul class="org-ul">
-<li><a href="./Core/index.html">Core</a> Simple programs that use only the small core subset of the
-architecture.  The core instructions are add, sub, mul, div, cmp,
-trap, lea, load, store, jump, jal, jumpXX.</li>
+<li><a href="./Core/index.html">Core Instruction Set</a> Simple programs that use
+only the small core subset of the architecture.  The core
+instructions are add, sub, mul, div, cmp, trap, lea, load, store,
+jump, jal, jumpXX (family of conditional jumps).</li>
 
-<li><a href="./Standard/index.html">Standard</a> Programs that use Core as well asadditional instructions
-for logic, bit manipulation, and stacks.</li>
+<li><a href="./Standard/index.html">Standard Instruction Set</a> Programs that
+use the full instruction set: all the Core instructions are
+available, as well as additional instructions for logic, bit
+manipulation, stacks, interrupts, mutual exclusion.</li>
 
-<li><a href="./System/index.html">System</a> Programs that use systems programming
-instructions and registers.</li>
+<li><a href="./Lib/index.html">Library</a> Utility functions that can be imported
+by a user program</li>
 
-<li><a href="./S32/index.html">S32</a> Sigma32 is an extension of Sigma16 to allow
-32 bit full words.  The architecture is backwards compatible with
+<li><a href="./S32/index.html">S32</a> Extension of Sigma16 to allow 32 bit full
+words.  The Sigma32 architecture is backwards compatible with
 Sigma16, and it allows a larger address space as well as operations
 that require full words.</li>
-
-<li><a href="./Testing/index.html">Testing</a> Programs for testing the system.</li>
 </ul>
 </div>
 </body>

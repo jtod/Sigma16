@@ -1,7 +1,7 @@
 // Sigma16: architecture.mjs
-// Copyright (C) 2020 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -14,17 +14,17 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // architecture.mjs defines global constants and tables specifying
 // formats, opcodes, mnemonics, and flag bits
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Bit indexing
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // There are two conventions for indexing bits in a word that contains
 // k bits. Then
@@ -78,9 +78,9 @@ export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) 
 
 export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Architecture constants
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Should make memSize adjustable in settings, with default = 65536
 
@@ -108,9 +108,9 @@ export function formatSize (ifmt) {
         : 0
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Assembly language statement formats
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Statement formats include directives as well as syntax for
 // instructions.  R is a general register, C is a system control
@@ -146,9 +146,9 @@ export const aOrg     = Symbol ("org");      // org      arr+5
 export const aEqu     = Symbol ("equ");      // equ      rcd+4
 export const aBlock   = Symbol ("block");    // block    100
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Instruction mnemonics
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // These arrays are indexed by an opcode to give the corresponding
 // mnemonic
@@ -202,9 +202,9 @@ ctlReg.set ("psegEnd",  {ctlRegIndex:7});
 ctlReg.set ("dsegBeg",  {ctlRegIndex:8});
 ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Condition code
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // The condition code is a word of individual Boolean flags giving the
 // results of comparisons and other conditions.  R15 contains the
@@ -281,9 +281,9 @@ export function showCC (c) {
 
 
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Status register bits
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Define the bit index for each flag in the status register.  "Big
 // endian" notation is used, where 0 indicates the most significant
@@ -302,9 +302,9 @@ export function showCC (c) {
 export const userStateBit     = 0;   // 0 = system state,  1 = user state
 export const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Interrupt request and mask bits
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 export const timerBit            = 0;   // timer has gone off
 export const segFaultBit         = 1;   // access invalid virtual address
@@ -314,9 +314,9 @@ export const userTrapBit         = 4;   // user trap
 export const overflowBit         = 5;   // overflow occurred
 export const zDivBit             = 6;   // division by 0
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Assembly language data definitions for control bits
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // A systems program can use the following canonical data definitions
 // to access the control bits.  These statements can be copied and
@@ -335,9 +335,9 @@ export const zDivBit             = 6;   // division by 0
 // overflowBit     data   $0800   ; bit 4
 // zDivBit         data   $0400   ; bit 5
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Assembly language statements
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // The instruction set is defined by a map from mnemonic to statement
 // specification. The assembler uses the map to generate the machine
@@ -465,15 +465,20 @@ statementSpec.set("jumpnco",
 // Pseudoinstructions that generate jumpc1 (secondary opcode = 5)
 
 statementSpec.set("jumplt",
-                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccl],   pseudo:true})
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccl],
+                   pseudo:true})
 statementSpec.set("jumpeq",
-                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccE],   pseudo:true})
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccE],
+                   pseudo:true})
 statementSpec.set("jumpgt",
-                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccg],   pseudo:true})
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccg],
+                   pseudo:true})
 statementSpec.set("jumpv",
-                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccv],   pseudo:true})
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccv],
+                   pseudo:true})
 statementSpec.set("jumpco",
-                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccC],   pseudo:true})
+                  {ifmt:iRX,  afmt:aX,  opcode:[15,5,bit_ccC],
+                   pseudo:true})
 
 // Mnemonics for logic instructions
 
@@ -499,7 +504,8 @@ statementSpec.set("xorb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,6,6],
 
 // Mnemonic for bit field
 
-statementSpec.set("field",   {ifmt:iEXP, afmt:aRkk,  opcode:[14,8], pseudo:true});
+statementSpec.set("field",   {ifmt:iEXP, afmt:aRkk,  opcode:[14,8],
+                              pseudo:true});
 
 export const clearIntEnable = maskToClearBitBE (intEnableBit);
 export const setSystemState = maskToClearBitBE (userStateBit);
