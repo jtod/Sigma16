@@ -969,6 +969,7 @@ function testWd(op,d,a,b) {
 // are handled in Pass2 because they use labels.
 
 function asmPass2 (ma) {
+    com.mode.setTrace()
     com.mode.devlog('Assembler Pass 2');
     objectWordBuffer = [];
     relocationAddressBuffer = [];
@@ -1012,15 +1013,17 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
 // RX-RX
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aRX) {
-	    com.mode.devlog (`Pass2 RX/RX`);
+	    com.mode.devlog (`***** Pass2 RX/RX`);
             requireNoperands (ma, s, 2)
             const d = requireReg(ma,s,s.operands[0]);
             const {disp,index} = requireX(ma,s,s.operands[1]);
-            com.mode.devlog (`RX/RX disp = /${disp}/`)
+            com.mode.devlog (`RX/RX disp = /${disp}/ index=${index}`)
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
+            console.log (`RX/RX v=${v}`)
             if (v.evalRel) {
+                console.log ('RX/RX generating relocation')
                 generateRelocation (ma, s, s.address.word+1);
             }
             com.mode.devlog (`pass 2 RX/RX a=${a} b=${b} v=${v.toString()}`);
@@ -1029,41 +1032,51 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
-// RX-X pseudo
-        } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
-	    com.mode.devlog (`Pass2 RX/X pseudo`);
+// RX-X
+//        } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
+        } else if (op.ifmt==arch.iRX && op.afmt==arch.aX) {
+            com.mode.devlog (`***** Pass2 RX/X`);
             requireNoperands (ma, s, 1)
+            const d = op.pseudo ? op.opcode[2] : 0
             const {disp,index} = requireX (ma, s, s.operands[0])
-            const d = op.opcode[2]
+            com.mode.devlog (`RX/X disp = /${disp}/ index=${index}`)
             let a = index
             let b = op.opcode[1]
             let v = evaluate (ma, s, s.address.word+1, disp);
-	    console.log (`Pass2 RX/X pseudo v=${v}`);
+            console.log (`RX/X v=${v}`)
             if (v.evalRel) {
+                console.log ('RX/X generating relocation')
                 generateRelocation (ma, s, s.address.word+1);
             }
+            com.mode.devlog (`pass 2 RX/X a=${a} b=${b} v=${v.toString()}`)
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-// RX-X --- jump L1[R0]
+            handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
+//            console.log (`${op.pseudo ? "YES PSEUDO" : "NOT PSEUDO"}`)
+            //	    com.mode.devlog (`Pass2 RX/X pseudo`);
+            //            const d = op.opcode[2]
+            // RX-X not-pseudo --- jump L1[R0]
+/*            
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !op.pseudo) {
-            com.mode.devlog (`Pass2 RX/X)`);
+            com.mode.devlog (`Pass2 RX/X not-pseudo)`);
             com.mode.devlog (`RX/X real ${s.operands[0]}`);
             requireNoperands (ma, s, 1)
-            const d = 0;
             const {disp,index} = requireX(ma,s,s.operands[0]);
-            com.mode.devlog (`RX/X disp = /${disp}/`)
+            const d = 0;  // only difference based on pseudo
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
             if (v.evalRel) {
                 generateRelocation (ma, s, s.address.word+1);
             }
+            com.mode.devlog (`RX/X disp = /${disp}/`)
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
+*/
 // RX-kX
         } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 RX/kX`);
@@ -1430,6 +1443,7 @@ function asmPass2 (ma) {
     emitImports (ma);
     ma.objectCode.push ("");
     ma.objectText = ma.objectCode.join("\n");
+    com.mode.clearTrace()
 }
 
 // handleVal: Generate relocation or import if necessary

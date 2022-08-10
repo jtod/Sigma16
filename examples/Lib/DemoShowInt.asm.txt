@@ -11,38 +11,48 @@
 DemoShowInt module
 ShowInt     import  ConvertInt,ShowInt
 
-
-    lea    R14,CallStack[R0]   ; initialise stack pointer
-    store  R0,0[R14]           ; main program dynamic link := nil
-    lea    R12,1[R14]          ; initialise stack top
-    load   R1,StackSize[R0]    ; R1 := stack size
-    add    R11,R14,R1          ; StackLimit := &CallStack + StackSize
-
+;    lea    R14,CallStack[R0]   ; initialise stack pointer
+;    store  R0,0[R14]           ; main program dynamic link := nil
+;    lea    R12,1[R14]          ; initialise stack top
+;    load   R1,StackSize[R0]    ; R1 := stack size
+;    add    R11,R14,R1          ; StackLimit := &CallStack + StackSize
 
 ; print 7 in 1 character
-    lea    R1,7[R0]       ; number to print
+    lea    R1,7[R0]         ; number to print
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,1[R0]         ; size of buffer to use
+;    store  R14,1[R14]
+;    lea    R14,1[R14]
     jal    R13,ShowInt[R0]  ; put string for R1 into buffer
-    add    R4,R1,R0         ; R4 = number of leading spaces
     lea    R1,2[R0]         ; trap write code
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,1[R0]         ; size of buffer to use
-    trap   R1,R2,R3
-    trap   R0,R0,R0
-    jal    R13,WriteNewLine[R0]
+    trap   R1,R2,R3         ; print the number
+    jal    R10,WriteNewLine[R0]
 
+; print 8 in 1 character
+    lea    R1,8[R0]         ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,1[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+;    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,1[R0]         ; size of buffer to use
+    trap   R1,R2,R3         ; print the number
+    jal    R10,WriteNewLine[R0]
+    
 ; print 264 in 2 characters
     lea    R1,264[R0]       ; number to print
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,2[R0]         ; size of buffer to use
     jal    R13,ShowInt[R0]  ; put string for R1 into buffer
-    add    R4,R1,R0         ; R4 = number of leading spaces
+;    add    R4,R1,R0         ; R4 = number of leading spaces
     lea    R1,2[R0]         ; trap write code
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,2[R0]         ; size of buffer to use
     trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
+    jal    R10,WriteNewLine[R0]
 
 ; -1 in 2 characters
     lea    R1,-1[R0]        ; number to print
@@ -54,7 +64,7 @@ ShowInt     import  ConvertInt,ShowInt
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,2[R0]         ; size of buffer to use
     trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
+    jal    R10,WriteNewLine[R0]
 
 ; 47 in 5 characters
     lea    R1,47[R0]        ; number to print
@@ -66,7 +76,7 @@ ShowInt     import  ConvertInt,ShowInt
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,5[R0]         ; size of buffer to use
     trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
+    jal    R10,WriteNewLine[R0]
 
 ; 264 in 5 characters
     lea    R1,264[R0]       ; number to print
@@ -78,7 +88,7 @@ ShowInt     import  ConvertInt,ShowInt
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,5[R0]         ; size of buffer to use
     trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
+    jal    R10,WriteNewLine[R0]
 
 ; 29371 in 5 characters
     lea    R1,29371[R0]     ; number to print
@@ -90,7 +100,7 @@ ShowInt     import  ConvertInt,ShowInt
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,5[R0]         ; size of buffer to use
     trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
+    jal    R10,WriteNewLine[R0]
 
 ; -92 in 4 characters
     lea    R1,-92[R0]       ; number to print
@@ -102,19 +112,7 @@ ShowInt     import  ConvertInt,ShowInt
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,3[R0]         ; size of buffer to use
     trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
-
-; 6285 in 4 characters
-    lea    R1,6285[R0]      ; number to print
-    lea    R2,TSIbuf[R0]    ; address of buffer
-    lea    R3,4[R0]         ; size of buffer to use
-    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
-    add    R4,R1,R0         ; R4 = number of leading spaces
-    lea    R1,2[R0]         ; trap write code
-    lea    R2,TSIbuf[R0]    ; address of buffer
-    lea    R3,4[R0]         ; size of buffer to use
-    trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
+    jal    R10,WriteNewLine[R0]
 
 ; 6285 in 3 characters
     lea    R1,6285[R0]      ; number to print
@@ -126,42 +124,33 @@ ShowInt     import  ConvertInt,ShowInt
     lea    R2,TSIbuf[R0]    ; address of buffer
     lea    R3,3[R0]         ; size of buffer to use
     trap   R1,R2,R3
-    jal    R13,WriteNewLine[R0]
+    jal    R10,WriteNewLine[R0]
+
+; 6285 in 4 characters
+    lea    R1,6285[R0]      ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,4[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,4[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
 
     trap   R0,R0,R0         ; terminate
 
+; Lightweight subroutine.  Doesn't build stack frame, uses R7,R8,R9
+; for temporary and R10 for return address
+
 WriteNewLine
+    lea    R7,2[R0]         ; trap write code
+    lea    R8,NewLine[R0]   ; address of character
+    lea    R9,1[R0]         ; write 1 character
+    trap   R7,R8,R9         ; write newline
+    jump   0[R10]           ; return
 
-; Structure of stack frame for WriteNewLine, frame size = 5
-;  4[R14]  save R3
-;  3[R14]  save R2
-;  2[R14]  save R1
-;  1[R14]  return address
-;  0[R14]  pointer to previous stack frame
-
-    store  R14,0[R12]          ; save dynamic link
-    add    R14,R12,R0          ; stack pointer := stack top
-    lea    R12,5[R14]          ; stack top := stack ptr + frame size
-    cmp    R12,R11             ; stack top ~ stack limit
-    jumpgt StackOverflow[R0]   ; if top>limit then goto stack overflow
-    store  R13,1[R14]          ; save return address
-    store  R1,2[R14]           ; save R1
-    store  R2,3[R14]           ; save R2
-    store  R3,4[R14]           ; save R3
-
-    lea    R1,2[R0]            ; trap write code
-    lea    R2,NewLine[R0]      ; address of character to write
-    lea    R3,1[R0]            ; write 1 character
-    trap   R1,R2,R3            ; write
-    load   R1,2[R14]           ; restore R1
-    load   R2,3[R14]           ; restore R2
-    load   R3,4[R14]           ; restore R3
-    load   R13,1[R14]          ; restore return address
-    add    R12,R14,R0          ; R12 := R14, restore stack top
-    load   R14,0[R14]          ; pop stack frame
-    jump   0[R13]              ; return
-
-NewLine  equ  10
+NewLine  data  10
 
 TSIbuf                         ; buffer for the strings of digits
     data  0

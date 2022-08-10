@@ -1,0 +1,6 @@
+     load   R1,x[R2]
+     jump   z[R5]
+     jumplt a[R6]
+a    trap   R0,R0,R0
+x    data   1
+z    data   3

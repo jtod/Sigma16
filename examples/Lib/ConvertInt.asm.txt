@@ -150,22 +150,22 @@ ConvertInt module
 
 ShowInt
 ; Create stack frame
-    store  R14,0[R12]          ; save dynamic link
-    add    R14,R12,R0          ; stack pointer := stack top
-    lea    R12,12[R14]         ; stack top := stack ptr + frame size
-    cmp    R12,R11             ; stack top ~ stack limit
-    jumpgt StackOverflow[R0]   ; if top>limit then goto stack overflow
-    store  R13,1[R14]          ; save return address
-    store  R1,2[R14]           ; save R1
-    store  R2,3[R14]           ; save R2
-    store  R3,4[R14]           ; save R3
-    store  R4,5[R14]           ; save R4
-    store  R5,6[R14]           ; save R5
-    store  R6,7[R14]           ; save R6
-    store  R7,8[R14]           ; save R7
-    store  R8,9[R14]           ; save R8
-    store  R9,10[R14]          ; save R9
-    store  R10,11[R14]         ; save R10
+;    store  R14,0[R12]          ; save dynamic link
+;    add    R14,R12,R0          ; stack pointer := stack top
+;    lea    R12,12[R14]         ; stack top := stack ptr + frame size
+;    cmp    R12,R11             ; stack top ~ stack limit
+;    jumpgt StackOverflow[R0]   ; if top>limit then goto stack overflow
+;    store  R13,1[R14]          ; save return address
+;    store  R1,2[R14]           ; save R1
+;    store  R2,3[R14]           ; save R2
+;    store  R3,4[R14]           ; save R3
+;    store  R4,5[R14]           ; save R4
+;    store  R5,6[R14]           ; save R5
+;    store  R6,7[R14]           ; save R6
+;    store  R7,8[R14]           ; save R7
+;    store  R8,9[R14]           ; save R8
+;    store  R9,10[R14]          ; save R9
+;    store  R10,11[R14]         ; save R10
 
     lea    R4,1[R0]            ; R4 := constant 1
     lea    R10,10[R0]          ; R10 := constant 10
@@ -234,19 +234,19 @@ SIspaceLpEnd
 
 SIend
 ; return
-    load   R1,2[R14]           ; save R1
-    load   R2,3[R14]           ; save R2
-    load   R3,4[R14]           ; save R3
-    load   R4,5[R14]           ; save R4
-    load   R5,6[R14]           ; save R5
-    load   R6,7[R14]           ; save R6
-    load   R7,8[R14]           ; save R7
-    load   R8,9[R14]           ; save R8
-    load   R9,10[R14]          ; save R9
-    load   R10,11[R14]         ; save R10
-    load   R13,1[R14]          ; save return address
-    add    R12,R14,R0          ; R12 := R14, restore stack top
-    load   R14,0[R14]          ; pop stack frame    
+;    load   R1,2[R14]           ; restore R1
+;    load   R2,3[R14]           ; save R2
+;    load   R3,4[R14]           ; save R3
+;    load   R4,5[R14]           ; save R4
+;    load   R5,6[R14]           ; save R5
+;    load   R6,7[R14]           ; save R6
+;    load   R7,8[R14]           ; save R7
+;    load   R8,9[R14]           ; save R8
+;    load   R9,10[R14]          ; save R9
+;    load   R10,11[R14]         ; save R10
+;    load   R13,1[R14]          ; save return address
+;    add    R12,R14,R0          ; R12 := R14, restore stack top
+;    load   R14,0[R14]          ; pop stack frame    
     jump   0[R13]              ; return
 
 StackOverflow
