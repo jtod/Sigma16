@@ -96,13 +96,16 @@ YEARMONTHDAY=$(shell date +"%F")
 # MONTHYEARDAY=$(shell date +"%F")
 # YEARMONTHDAY=$(shell date -I")
 
-# Source directory
+# Source directory, contains development version
 S16_DEV_SRC_DIR=$(S16_LOCAL_BUILD_DIR)/Sigma16
 
-# Target directory, makefile copies a build to this location
-S16_INSTALL_DIR=$(SIGMASYSTEM)/server/Sigma16/build/$(VERSION)/Sigma16
-S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
+# Server repository, makefile copies a build to this location
 SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/server
+S16_INSTALL_VERSION_DIR=$(SIGSERVER_REPOSITORY)/Sigma16/build/$(VERSION)
+S16_INSTALL_DIR=$(S16_INSTALL_VERSION_DIR)/Sigma16
+
+# Homepage repository
+S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
 
 .PHONY: showconfig
 showconfig:
@@ -152,7 +155,8 @@ assemble:
 	make src/base/emcore.wasm
 
 src/base/emcore.wasm: src/base/emcore.wat
-	cd src/base; wat2wasm emcore.wat --enable-threads
+	echo Skipping wat2wasm
+#	cd src/base; wat2wasm emcore.wat --enable-threads
 
 #--------------------------------------------------------------------------
 # make compile -- compile in src directory
@@ -168,13 +172,17 @@ compile:
 # make build -- compile and install into local server repository
 #--------------------------------------------------------------------------
 
-gotoInstall:
-	@echo Test Installing in $(S16_INSTALL_DIR)
+checkInstallDir:
+	@echo Check: would install in $(S16_INSTALL_VERSION_DIR)
 	cd $(S16_INSTALL_DIR); pwd; ls
+
 
 .PHONY: build
 build:
 	@echo Installing in $(S16_INSTALL_DIR)
+
+	@echo backup $(S16_INSTALL_VERSION_DIR)
+	mv -i $(S16_INSTALL_VERSION_DIR) $(S16_INSTALL_VERSION_DIR)-bak
 
 	make setVersion
 #	make assemble

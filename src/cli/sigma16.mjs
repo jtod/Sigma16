@@ -123,10 +123,13 @@ function showParameters () {
 function main  () {
     if (process.argv.length < 3 || command === "gui") {
         console.log ("calling StartServer")
-        serv.StartServer (null)
+        serv.StartServer ("gui", "")
     } else if (command === "run") {
         console.log (`calling StartServer with ${commandArg}`)
-        serv.StartServer (arg)
+        serv.StartServer ("run", "")
+    } else if (command === "version") {
+        console.log (`calling StartServer with ${commandArg}`)
+        serv.StartServer (command, commandArg)
     } else if (command === "assemble") {
         assembleCLI (commandArg);
     } else if (command === "link") {
