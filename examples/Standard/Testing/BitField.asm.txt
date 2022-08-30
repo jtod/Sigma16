@@ -1,6 +1,5 @@
-; Extract: test extract instructions
-; Sigma16: see README and https://jtod.github.io/home/Sigma16/
-; John O'Donnell, 2021
+; BitField: test instructions that operate on bit fields
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; Extracting bit fields.  Bit positions are numbered from right to
 ; left: least significant bit has index 0, and most significant bit

@@ -1,5 +1,5 @@
-; InsertionSort
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; InsertionSort: sort an array of numbers with insertion sort algorithm
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; InsertionSort is a standard sorting algorithm; it illustrates the
 ; translation of a high level algorithm to assembly language

@@ -1,0 +1,42 @@
+; Extract: test extract instructions
+; Sigma16: see README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021
+
+; Extracting bit fields.  Bit positions are numbered from right to
+; left: least significant bit has index 0, and most significant bit
+; has index 15.  The vertical bars show the groups of 4 bits: they
+; have no effect on the instructions, but are just to help figure out
+; the expected results in hex notation.
+
+; |----------------|---------------|---------------|---------------|
+; |   .   .   .   .|  .   .   .   .|  .   .   .   .|  .   .   .   .|
+; |  15  14  13  12| 11  10   9   8|  7   6   5   4|  3   2   1   0|
+; |----------------|---------------|---------------|---------------|
+
+; The machine language format is EXP, and the assembly language
+; format is aRkkRk
+
+; extract Rd,f,g,Re,h
+
+; op  = e (escape to EXP)
+; d   = Rd (destination register)
+; ab  = secondary opcode for extract
+; e   = Re (source register)
+; f   = destination start bit_index
+; g   = destination end bit_index
+; h   = source start bit index
+   
+;   +----+----+----+----+
+;   | op |  d |  a |  b |
+;   +----+----+----+----+
+;   |  e |  f | g  |  h |
+;   +----+----+----+----+
+  
+      lea      R1,$ffff[R0]     ; ffff
+      add      R2,R0,R0         ; 0000
+      extract  R2,11,8,R1,3     ; 0f00  R2.11-8 := R1.3-0
+
+      add      R3,R0,R0         ; 0000
+      extracti R3,11,8,R0,3     ; 0f00  R2.11-8 := inv R0.3-0
+
+      trap     R0,R0,R0

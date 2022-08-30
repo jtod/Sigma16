@@ -1,9 +1,15 @@
 ; TimerInterrupt: run a loop while responding to interrupt requests
-; John O'Donnell, 2022.  See https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
-; The program contains a loop.  When a timer interrupt occurs, the
-; loop is interrupted and the handler prints "bing", then resumes the
-; loop.
+; This program illustrates how to set up interrupts and catch a timer
+; interrupt.  The main program is an infinite loop.  When a timer
+; interrupt occurs, the loop is interrupted and the handler prints
+; "bing", then resumes the loop.  To generate a timer interrupt, click
+; the Timer Interrupt button.
+
+; Assemble the program, boot it, and click Run.  Then click the
+; Interrupt button from time to time.  Each time you do, "bing" will
+; be printed in the output window.
 
 ; Request exception for timer
      lea    R1,timerBit[R0]   ; flag for timer interrupt

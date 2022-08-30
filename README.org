@@ -18,16 +18,15 @@ Guide.
 ** About Sigma16
 
 The version number is given in the running app on the Welcome page,
-the User Guide, and the Options page.
+the User Guide, and the Options page.  The latest version is available
+on the Source Repository: [[https://github.com/jtod/Sigma16]]
 
-The architecture, implementation, circuits, and examples are
-designed and written by [John
-O'Donnell](https://jtod.github.io/index.html).
+The architecture, implementation, circuits, and examples are designed
+and written by [John O'Donnell](https://jtod.github.io/index.html).
 
-- Copyright (C) 2021 John T. O'Donnell
-- License: GNU GPL Version 3 or later
-- The full text of the license is given in the source repository in
-  Sigma16/LICENSE.txt, as well as at
+- Copyright (c) 2019-2022 John T. O'Donnell
+- License: GNU GPL Version 3.  The full text of the license is given
+  in the source repository in Sigma16/LICENSE.txt, as well as at
   [[https://www.gnu.org/licenses][https://www.gnu.org/licenses]].
 
 Sigma16 is free software: you can redistribute it and/or modify it

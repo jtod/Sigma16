@@ -4,6 +4,7 @@
 
 - [[./ArithException.asm.txt][ArithException.asm.txt]] Catch arithmetic
   exceptions by enabling interrupts
+
 - [[./TimerInterrupt.asm.txt][TimerInterrupt.asm.txt]] Run an infinite
   loop that does nothing, but when you click the /Timer Interrupt/
   button an external interrupt occurs

@@ -1,5 +1,5 @@
-; SmallTest
-; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
+; CondCode: test condition codes
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; Condition code flags are defined in architecture.mjs.  Each flag has
 ; a symbolic name used in the implementation, and a display name used
@@ -49,4 +49,45 @@
       cmp    R4,R3      ; R15 = 0018 <L
       add    R9,R15,R0  ; R9 := 0018
 
-      trap   R0,R0,R0
+; Addition
+      add    R5,R1,R2   ; R15 = 0001 >   8 is positive
+      add    R5,R2,R4   ; R15 = 0010 <   -2 is negative
+      add    R5,R1,R3   ; R15 = 0002 -   0 is zero
+
+; More test data
+
+      lea     R1,-30000[R0]    ; R1 = I: -30000   N: 8ad0
+      lea     R2,-2[R0]        ; R2 = I:     -2   N: fffe
+      lea     R3,13[R0]        ; R3 = I:     13   N: 000d
+      lea     R4,28749[R0]     ; R4 = I:  28749   N: 704d
+
+      cmp     R0,R0     ; R15 = 0004  =
+      cmp     R0,R1     ; R15 = 0009  > L
+      cmp     R0,R2     ; R15 = 0009  > L
+      cmp     R0,R3     ; R15 = 0018  < L
+      cmp     R0,R4     ; R15 = 0018  < L
+
+      cmp     R1,R0     ; R15 = 0012  < G
+      cmp     R1,R1     ; R15 = 0004  =
+      cmp     R1,R2     ; R15 = 0018  < L
+      cmp     R1,R3     ; R15 = 0012  < G
+      cmp     R1,R4     ; R15 = 0012  < G
+      cmp     R2,R0     ; R15 = 0012  < G
+      cmp     R2,R1     ; R15 = 0003  > G
+      cmp     R2,R2     ; R15 = 0004  =
+      cmp     R2,R3     ; R15 = 0012  < G
+      cmp     R2,R4     ; R15 = 0012  < G
+
+      cmp     R3,R0     ; R15 = 0003  > G
+      cmp     R3,R1     ; R15 = 0009  > L
+      cmp     R3,R2     ; R15 = 0009  > L
+      cmp     R3,R3     ; R15 = 0004  =
+      cmp     R3,R4     ; R15 = 0018  < L
+
+      cmp     R4,R0     ; R15 = 0003  > G
+      cmp     R4,R1     ; R15 = 0009  > L
+      cmp     R4,R2     ; R15 = 0009  > L
+      cmp     R4,R3     ; R15 = 0003  > G
+      cmp     R4,R4     ; R15 = 0004  =
+
+      trap    R0,R0,R0

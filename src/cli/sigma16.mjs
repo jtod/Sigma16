@@ -324,4 +324,5 @@ function runtest () {
 // Run the main program
 //----------------------------------------------------------------------
 
+console.log ("Starting main")
 main ();

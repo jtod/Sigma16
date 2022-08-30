@@ -1,5 +1,8 @@
 ; Cmp: perform comparisons and set the condition code
-; John O'Donnell, 2022.  https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+
+; This program loads some constants into registers, and then performs
+; various comparisons which set the condition code.
 
      lea   R1,3[R0]
      lea   R2,6[R0]
@@ -8,7 +11,6 @@
      cmp   R3,R2       ; 0003  > Int (bit 0), > Nat (bit 1)
      cmp   R2,R2       ; 0004  = (bit 2)
      lea   R4,-2[R0]   ; fffe
-     cmp   R2,R4       ; 0009  > Int (bit 0),  < Nat (bit 3)  also  carry/ovfl 
-     cmp   R4,R2       ; 0012  < Int (bit 4),  > Nat (bit 1)  also  carry/ovfl 
+     cmp   R2,R4       ; 0009  > Int (bit 0),  < Nat (bit 3)  carry/ovfl 
+     cmp   R4,R2       ; 0012  < Int (bit 4),  > Nat (bit 1)  carry/ovfl 
      trap  R0,R0,R0
-     

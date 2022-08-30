@@ -6,14 +6,15 @@
 
 - [[./AsmErrMessages.asm.txt][AsmErrMessages.asm.txt]]
 
-- [[./LargeAddr.asm.txt][LargeAddr.asm.txt]]
+- [[./Arithmetic.asm.txt][Arithmetic.asm.txt]]
+
+- [[./Memory.asm.txt][Memory.asm.txt]]
+
+- [[./CondCode.asm.txt][CondCode.asm.txt]]
+
+- [[./Jumps.asm.txt][Jumps.asm.txt]]
 
 - [[./Looper.asm.txt][Looper.asm.txt]]
 
-- [[./TestCoreArithmetic.asm.txt][TestCoreArithmetic.asm.txt]]
-
-- [[./TestCoreCondCode.asm.txt][TestCoreCondCode.asm.txt]]
-
-- [[./TestCoreJumping.asm.txt][TestCoreJumping.asm.txt]]
-
-- [[./TestCoreMemory.asm.txt][TestCoreMemory.asm.txt]]
+- [[./Break.asm.txt][Break.asm.txt]]
+  

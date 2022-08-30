@@ -1,5 +1,11 @@
-; ArithException2: Catch exceptions in arithmetic operations
-; John O'Donnell, 2022.  See https://jtod.github.io/home/Sigma16/
+; ArithException: Catch exceptions in arithmetic operations
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+
+; This program shows how to use interrupts to catch arithmetic
+; exceptions, such as overflow and divide by 0.  This approach is
+; better than testing the condition code explicitly after every
+; instruction: it is easier, more efficient, and it guarantees that
+; every operation will be checked.
 
 ; Request exception for overflow and divide by zero
 

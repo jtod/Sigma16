@@ -93,8 +93,6 @@ VERSION:=$(shell cat src/package.json | grep version | head -1 | awk -F= "{ prin
 YEAR=$(shell date +"%Y")
 MONTHYEAR=$(shell date +"%B %Y")
 YEARMONTHDAY=$(shell date +"%F")
-# MONTHYEARDAY=$(shell date +"%F")
-# YEARMONTHDAY=$(shell date -I")
 
 # Source directory, contains development version
 S16_DEV_SRC_DIR=$(S16_LOCAL_BUILD_DIR)/Sigma16
@@ -126,6 +124,25 @@ showconfig:
 	@echo "  S16_INSTALL_DIR = $(S16_INSTALL_DIR)"
 	@echo "  S16_HOMEPAGE_REPOSITORY = $(S16_HOMEPAGE_REPOSITORY)"
 	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
+
+#--------------------------------------------------------------------------
+# Check documents
+#--------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------
+# Preparing a release
+#--------------------------------------------------------------------------
+
+# make setVersion
+
+# emacs: update html for README.org, docs/welcome/welcome.org,
+# docs/UserGUide/Sigma16UserGuide.org
+
+# emacs: update html for docs/help/*.org
+
+# HomePage doesn't need to be updated for a release; only when the
+# homepage text is changed. emacs: update html for
+# docs/S16Homepage/index.org
 
 #--------------------------------------------------------------------------
 # make setVersion -- find version and define Version files
@@ -173,7 +190,8 @@ compile:
 #--------------------------------------------------------------------------
 
 checkInstallDir:
-	@echo Check: would install in $(S16_INSTALL_VERSION_DIR)
+	@echo S16_INSTALL_VERSION_DIR = $(S16_INSTALL_VERSION_DIR)
+	@echo S16_INSTALL_DIR = $(S16_INSTALL_DIR)
 	cd $(S16_INSTALL_DIR); pwd; ls
 
 
@@ -182,6 +200,7 @@ build:
 	@echo Installing in $(S16_INSTALL_DIR)
 
 	@echo backup $(S16_INSTALL_VERSION_DIR)
+	touch $(S16_INSTALL_VERSION_DIR)
 	mv -i $(S16_INSTALL_VERSION_DIR) $(S16_INSTALL_VERSION_DIR)-bak
 
 	make setVersion

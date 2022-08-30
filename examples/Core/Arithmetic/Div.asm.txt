@@ -1,5 +1,5 @@
 ; Div: illustrate division
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; div is an RRR instruction, but unlike most RRR instructions it
 ; produces two results: the quotient is placed in the destination

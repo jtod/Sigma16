@@ -1,5 +1,5 @@
 ; Add: a minimal program that adds two integer variables
-; John O'Donnell, 2022.  https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; Execution starts at location 0, where the first instruction will be
 ; placed when the program is executed.

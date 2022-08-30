@@ -1,21 +1,8 @@
-# Sigma16: examples/Standard/Testing/index.org
-# This file is part of Sigma16.  License: GNU GPL Version 3
-# See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
-# Copyright (c) 2019-2022 John T. O'Donnell
-
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Standard instruction set: Testing
+#+TITLE: Intermediate examples using standard instruction set
 #+OPTIONS: html-postamble:nil
 
-- [[./AsmStd.asm.txt][AsmStd]] Test assembly language statements
+- [[./AsmStd/index.html][AsmStd]] Test assembly language statements
   for standard architecture
-- [[./Relocatable.asm.txt][Relocatable]]
-- [[./Addc.asm.txt][Addc]] Add with carry
-- [[./BitField.asm.txt][BitField]] BitField
-- [[./JumpZNZ.asm.txt][JumpZNZ]] JumpZNZ
-- [[./Logic.asm.txt][Logic]]
-- [[./NatArith.asm.txt][NatArith]]
-- [[./SaveRestore.asm.txt][SaveRestore]]
-- [[./Shift.asm.txt][Shift]]
-- [[./Stack.asm.txt][Stack]]
-- [[./TestJump.asm.txt][TestJump]]
+
+

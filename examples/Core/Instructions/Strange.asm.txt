@@ -1,4 +1,18 @@
-; Strange: A Sigma16 program that is a bit strange    
+; Strange: A Sigma16 program that is a bit strange
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+
+; Run the program with different initial values of y.  Use the Editor
+; page to change the constant in the "y data 0" statement.  Try to
+; predict what the program will do with each of these initial values:
+
+;    y data 0
+;    y data 256
+;    y data 8192
+;    y data -5424
+
+; What do you think is going on?  Read the tutorial "A strange
+; program" in the Tutorial section of the User Guide.
+
         load   R1,y[R0]
         load   R2,x[R0]
         add    R2,R2,R1

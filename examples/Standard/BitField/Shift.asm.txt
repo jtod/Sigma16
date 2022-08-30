@@ -1,0 +1,24 @@
+; Shift: test the shift instructions
+; Sigma16: see README and https://jtod.github.io/home/Sigma16/
+; John O'Donnell, 2021
+
+     lea    R1,2[R0]         ; 0002   0000 0000 0000 0010
+     shiftl R5,R1,4          ; 0020   0000 0000 0010 0000
+     shiftl R6,R1,13         ; 4000   0100 0000 0000 0000
+     shiftr R7,R6,3          ; 0800   0000 1000 0000 0000
+     shiftr R7,R7,11         ; 0001   0000 0000 0000 0001
+
+; Shift test data
+      lea     R1,$0040[R0]  ; 0000 0000 0100 0000
+
+; shiftr instruction
+      shiftr  R2,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 0010 0000 = 0020
+      shiftr  R2,R2,1       ; 0000 0000 0010 0000 -> 0000 0000 0001 0000 = 0010
+      shiftr  R2,R2,1       ; 0000 0000 0001 0000 -> 0000 0000 0000 1000 = 0008
+      shiftr  R3,R1,5       ; 0000 0000 0100 0000 -> 0000 0000 0000 0010 = 0002
+
+; shiftl instruction
+      shiftl  R4,R1,1       ; 0000 0000 0100 0000 -> 0000 0000 1000 0000 = 0080
+      shiftl  R5,R1,7       ; 0000 0000 0100 0000 -> 0010 0000 0000 0000 = 2000
+
+     trap   R0,R0,R0

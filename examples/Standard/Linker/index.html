@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-08-09 Tue 17:31 -->
+<!-- 2022-08-30 Tue 16:47 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Linker</title>
@@ -219,6 +219,26 @@
 <body>
 <div id="content">
 <h1 class="title">Linker</h1>
+<p>
+This example program consists of two modules: a main program and a
+subroutine.
+</p>
+<ul class="org-ul">
+<li>First load each module into the editor and assemble it</li>
+<li>In the modules page, make sure the main program is Selected</li>
+<li>Go to the Linker page and click Link.  This will produce and
+executable module.</li>
+<li>Go to the Processor page and click Boot.  The main program will be
+loaded into memory, followed by the subroutine.  Furthermore, the
+addresses in the machine language code for all the external
+references will be adjusted to the correct locations.</li>
+<li>Step through the program.</li>
+</ul>
+
+<p>
+Here are the source files for the two modules:
+</p>
+
 <ul class="org-ul">
 <li><a href="./LinkMain.asm.txt">LinkMain</a> A main program that imports
 LinkMod1</li>

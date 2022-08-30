@@ -2,10 +2,9 @@
 #+TITLE: Subroutines
 #+OPTIONS: html-postamble:nil
 
-These programs illustrate the basic mechanisms of subroutines,
-including procedures and functions.  For a more sohpisticated
-treatment, using a call stack of activation records, see the Advanced
-collection.
-
 - [[./Subroutine.asm.txt][Subroutine]] A simple subroutine,
-  demonstrating call and return.
+  demonstrating basic call and return.
+
+- [[./Factorial.asm.txt][Factorial]] Illustrate procedures using the
+  execution stack, including stack frames, call and return, and
+  recursion.
