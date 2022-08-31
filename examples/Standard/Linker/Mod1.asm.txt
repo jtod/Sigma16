@@ -1,0 +1,12 @@
+; Mod1: linker example
+; This file is part of Sigma16. See README and https://jtod.github.io/home/Sigma16/
+
+Mod1  module
+fcn   load     R8,abc[R0]   ; R8 := 15
+      add      R1,R1,R8     ; R1 := R1 + 15
+      jump     0[R14]       ; return
+abc   data     15
+def   data     23
+      export   fcn
+      export   abc
+      export   def

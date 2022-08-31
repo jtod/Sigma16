@@ -1,0 +1,5 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Logic
+#+OPTIONS: html-postamble:nil
+
+- [[./Logic.asm.txt][Logic]] Boolean logic

@@ -144,6 +144,9 @@ showconfig:
 # homepage text is changed. emacs: update html for
 # docs/S16Homepage/index.org
 
+# $ git tag -a v3.4.3 -m "version 3.4.3"
+# $ git push --tags
+
 #--------------------------------------------------------------------------
 # make setVersion -- find version and define Version files
 #--------------------------------------------------------------------------
