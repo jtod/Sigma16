@@ -1,7 +1,7 @@
 // sigserver.mjs
-// This file is part of Sigma16: https://jtod.github.io/home/Sigma16/
-// License: GNU GPL Version 3.  See Sigma16/README and LICENSE
-// Copyright (c) 2022 John T. O'Donnell
+// Copyright (C) 2022 John T. O'Donnell
+// email: john.t.odonnell9@gmail.com
+// License: GNU GPL Version 3 or later. Sigma16/README.md, LICENSE.txt
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU
@@ -15,62 +15,38 @@
 // along with Sigma16.  If not, see <https://www.gnu.org/licenses/>.
 
 //-----------------------------------------------------------------------
-// Sigma Server
+// SigServer
 //-----------------------------------------------------------------------
 
 // Sigma16 can run either in a browser which provides a graphical user
 // interface (GUI), or in a shell which provides a text interface.
 
 // Sigma16 provides a command line interface to some of its
-// components, including the assembler and linker. In this case the
-// interaction uses text commands in a shell, and is executed by
-// node.js.  There is no GUI, a browser is not required, and this
-// server program is not required.  For example: `sigma16 assemble
-// myprog' will translate myprog.asm.txt to machine language
-// myprog.obj.txt.
+// components. In this case the interaction uses text commands in a
+// shell; there is no GUI, a browser is not required, and this server
+// program is not required.
 
 // The GUI runs in a browser, which requires Sigma16 to fetch its
-// files from a server via https.  This program is the server, and it
-// can run without modification either on an Internet host (Heroku) or
-// on a local machine, using environment variables to adapt.
+// files from a server via https.  The server can run either on an
+// Internet host (Heroku) or on a local machine.  This program is the
+// server for Sigma16, and it uses environment variables to adapt to
+// either Heroku or a local machine.
 
-// Sigma16 won't run on github pages because github.io provides only a
-// static server.  Sigma16 uses concurrent processes with shared
-// memory, and (from May 2021) browsers require cross origin isolation
-// in order to use shared memory.  Since github.io does not serve
-// pages with the required headers, it doesn't support Sigma16.  In
-// contrast, this program is a web server that enforces cross origin
-// isolation, and it works for Sigma16 using a modern browser.  It can
-// run on a local computer for offline testing, or on an Internet
-// server for production use.
+// Sigma16 won't run on github pages, because github.io provides
+// only a static server.  Sigma16 uses concurrent processes with
+// shared memory, and (from May 2021) browsers require cross origin
+// isolation in order to use shared memory.  Since github.io does
+// not serve pages with the required headers, it doesn't support
+// Sigma16.  In contrast, this program is a web server that enforces
+// cross origin isolation, so it works for Sigma16 using a modern
+// browser.  It can run on a local computer for offline testing, or
+// on an Internet server for production use.
 
-// To run the server on a local machine:
-//    - execute `node src/server/runserver.mjs'
-//    - visit http://localhost:3000/...(see below)...
+// To use a local server:
+//    - execute `node src/server/runserver.mjs
+//    - visit http://localhost:3000/...Sigma16 path...
 // To use the Internet server:
-//    - visit https://sigma16.herokuapp.com
-//        /Sigma16/build/release/Sigma16/Sigma16.html
-
-//-----------------------------------------------------------------------
-// Directories and files
-//-----------------------------------------------------------------------
-
-// $(SIGMASYSTEM)/src/Sigma16/build/dev/Sigma16           development
-// $(SIGMASYSTEM)/src/server/Sigma16/build/3.4.2/Sigma16  local repository
-// /app/build/3.4.2/Sigma16                               Heroku server
-
-// All executable versions are stored in a build directory, with a
-// path of the form .../build/VERSION/Sigma16 where VERSION can be a
-// specific version number (e.g. "3.4.2") or "release" or "dev".
-
-// The server accesses the files in two steps:
-//   1. When the server launches, it sets S16_BUILD_DIR to the
-//      build directory.  This depends on S15_RUN_ENV, which indicates
-//      whether the program is running locally or on the server,
-//      as well as the command line arguments, which can specify the
-//      version to run.
-//   2. When a client makes a request, the URL cam specify release,
-//      dev, or a specific version
+//    - visit https://sigma16.herokuapp.com/...Sigma16 path...
 
 //-----------------------------------------------------------------------
 // URLs
@@ -79,69 +55,30 @@
 // The server supports the following URLs, where xxx is either
 //    https://sigma16.herokuapp.com/
 //    http://localhost:3000/
+// --- rather than xxx denotes deprecated URL
 
 // Index page with general information
 //    xxx/
 
 // Return version number of the latest release of Sigma16, where
 // i.j.k is the version number of the build making the request
-//   xxx/sigma16/status/latest/i.j.k     used in newer versions
-//   xxx/status/latest/i.j.k             used in older versions
+//    xxx/sigma16/status/latest/i.j.k            *** NEW
 
-// Launch current release on Heroku server
-// The server replaces "release" with S16_RELEASE_VERSION
-// https://sigma16.herokuapp.com/Sigma16/build/release/Sigma16/Sigma16.html
-
-// Launch development test version on Heroku server.
-// This would normally be a copy of the local dev version
-// The server replaces "test" with S16_DEV_VERSION
-// https://sigma16.herokuapp.com/Sigma16/build/release/Sigma16/Sigma16.html
-
-// Launch specified release i.j.k on Heroku server
-// https://sigma16.herokuapp.com/Sigma16/build/i.j.k/Sigma16/Sigma16.html
-// Example: version 3.4.0
-// https://sigma16.herokuapp.com/Sigma16/build/3.4.0/Sigma16/Sigma16.html
-
-// Run development version on local machine
-// The server replaces "dev" with S16_DEV_VERSION
-// http://localhost:3000/sigma16/build/dev/Sigma16/Sigma16.html
-
-// Run specified version i.j.k from server repository on local machine
-// Launch server with: sigma16 version
-// Then provide version number in URL, e.g. for version 3.2.4 use:
-// http://localhost:3000/sigma16/build/3.2.4/Sigma16/Sigma16.html
+// Launch specified release of Sigma16
+//    xxx/sigma16/run                            *** NEW Latest release
+//    xxx/sigma16/dev                            *** NEW dev version
+//    xxx/sigma16/test                           *** NEW release candidate
+//    xxx/sigma16/version/VERSION               *** NEW launch specific version
 
 // Testing the server
-//   xxx/pseudopassword/hello.html
+//   xxx/pseudopassword/hello.html               *** deprecated
 //   xxx/pseudopassword/world.html
 
 // DEPRECATED
-//    xxx/sigma16/run                       *** NEW Latest release
-//    xxx/sigma16/dev                       *** NEW dev version
-//    xxx/sigma16/test                      *** NEW release candidate
-//    xxx/sigma16/version/VERSION           *** NEW launch specific version
-//    xxx/build/release/Sigma16/Sigma16.html     *** OLD deprecated
-//    xxx/build/dev/Sigma16/Sigma16.html         *** deprecated
-//    xxx/build/3.4.0/Sigma16/Sigma16.html       *** deprecated
-
-//-----------------------------------------------------------------------
-// Translating URL to file
-//-----------------------------------------------------------------------
-
-// The Sigma16 Home Page uses the following URL for the "Click to
-// launch Sigma16" link:
-
-//   https://sigma16.herokuapp.com/Sigma16
-//     /build/release/Sigma16/Sigma16.html
-
-// The server substitutes the current release number for "release",
-// and serves the following file:
-
-//   /app/Sigma16/build/3.4.2/Sigma16/Sigma16.html
-
-// When the top html file requests further URLs, it does so relative
-// to build/release and the server translates them all to build/3.4.2
-// (or whatever the current release version is).
+//    ---/status/latest/i.j.k                    *** deprecated, retain for now
+//    ---/build/release/Sigma16/Sigma16.html     *** OLD deprecated
+//    ---/build/dev/Sigma16/Sigma16.html         *** deprecated
+//    ---/build/3.4.0/Sigma16/Sigma16.html       *** deprecated
 
 //-----------------------------------------------------------------------
 // Packages
@@ -162,22 +99,21 @@ import { fileURLToPath } from 'url';
 // On the local server, the environment variables are set in .bashrc.
 // On Heroku, they are set using heroku config
 
-// Query
-//   S16_LATEST_RELEASE is reported as response to status/latest query
+// Versions
 
-// Release version
-//   S16_RELEASE_VERSION is substituted for 'release' in http path
-//   These are typically the same in production but different for testing
-
-// Development version
-//   S16_DEV_VERSION is substituted for 'dev' in http path
+// S16_LATEST_RELEASE is reported as response to status/latest query
+// S16_RELEASE_VERSION is substituted for 'release' in http path
+// These are typically the same in production but different for testing
+// S16_DEV_VERSION is substituted for 'dev' in http path
 
 // To set the environment variables:
 //   heroku login
 //   heroku config:set FOOBAR=VALUE   -- set environment variable
 //   heroku config                    -- show configuration variables
 
-// Read and save the environment variables for versions
+// Look up the environment variables
+
+// Environment variables: versions
 const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
 const S16_RELEASE_VERSION = process.env.S16_RELEASE_VERSION
 const S16_DEV_VERSION = process.env.S16_DEV_VERSION
@@ -185,12 +121,7 @@ const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 // Environment variables: Server configuration
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
 const S16_RUN_ENV = process.env.S16_RUN_ENV
-const SIGMASYSTEM = process.env.SIGMASYSTEM
 const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
-
-const SIGSERVER_REPOSITORY = `${SIGMASYSTEM}/server`
-console.log (`SIGMASYSTEM = ${SIGMASYSTEM}`)
-console.log (`SIGSERVER_REPOSITORY = ${SIGSERVER_REPOSITORY}`)
 
 let S16_LOCAL_BUILD_DIR  // set by StartServer if running locally
 
@@ -246,7 +177,7 @@ app.get ('/docstyle.css', (req,res) => {
 
 //-----------------------------------------------------------------------
 // Provide latest version on request
-// URL path: /sigma16/status/latest/i.j.k
+// URL path: status/latest/i.j.k
 //-----------------------------------------------------------------------
 
 // When Sigma16 initializes, it makes an http fetch to
@@ -256,7 +187,8 @@ app.get ('/docstyle.css', (req,res) => {
 // That value is displayed on the Options page, enabling the user to
 // see whether they are running the latest release.
 
-// Older versions use this form; keep for backward compatibility
+
+// deprecated, use following version, remove this eventually...
 app.get ('/status/latest/:callerversion', (req,res) => {
     const reqInfo = {
         date: new Date (),
@@ -272,8 +204,6 @@ app.get ('/status/latest/:callerversion', (req,res) => {
     res.send (reply)
 })
 
-// Starting URL with /sigma16 allows for status request for future
-// programs
 app.get ('/sigma16/status/latest/:callerversion', (req,res) => {
     const reqInfo = {
         date: new Date (),
@@ -316,6 +246,7 @@ function finish (req, res, loc) {
 }
 
 // start page
+
 
 app.get('/sigma16/build/:version/Sigma16/Sigma16.html', (req, res) => {
     const raw_v = req.params.version
@@ -444,8 +375,7 @@ app.get ('/world.html', (req,res) => {
 // S16_RELEASE_VERSION and S16_DEV_VERSION.  A comment at the
 // beginning of this file gives the URLs needed to launch any version.
 
-// if run env is Local, arg is the BUILD_DIR to use
-export function StartServer (command) {
+export function StartServer () {
     console.log ('StartServer')
     let ok = true
     if (S16_RUN_ENV === 'Heroku') {
@@ -457,11 +387,14 @@ export function StartServer (command) {
     } else if (S16_RUN_ENV === 'Local') {
         console.log ('Running on local development machine')
         S16_LOCAL_BUILD_DIR = process.env.S16_LOCAL_BUILD_DIR
-        S16_BUILD_DIR = command === "version"
-            ? `${SIGSERVER_REPOSITORY}/Sigma16/build`
-            : S16_LOCAL_BUILD_DIR
+        S16_BUILD_DIR = S16_LOCAL_BUILD_DIR
         console.log (`S16_LOCAL_BUILD_DIR = ${S16_LOCAL_BUILD_DIR}`)
         console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
+//        S16_BUILD_DIR = path.join (process.env.SIGPART1,
+//                                   process.env.SIGPART2,
+//                                   process.env.SIGPART3,
+//                                   'Sigma16', 'build')
+//        console.log (`Local build directory = ${S16_LOCAL_BUILD_DIR}`)
     } else {
         console.log (`Server error: cannot find build directory for `
                      + `${S16_RUN_ENV}`)
@@ -469,7 +402,6 @@ export function StartServer (command) {
     }
     if (ok) {
         console.log ("Starting Sigma16 server")
-        console.log (`command = ${command}`)
         console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
         console.log (`S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
         console.log (`S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
@@ -480,11 +412,3 @@ export function StartServer (command) {
                    (`Server is listening on port ${PORT}`));
     }
 }
-
-// deprecated
-//        S16_BUILD_DIR = S16_LOCAL_BUILD_DIR
-//        S16_BUILD_DIR = path.join (process.env.SIGPART1,
-//                                   process.env.SIGPART2,
-//                                   process.env.SIGPART3,
-//                                   'Sigma16', 'build')
-//        console.log (`Local build directory = ${S16_LOCAL_BUILD_DIR}`)
