@@ -1,3 +1,7 @@
+# examples/Core/index.org
+# This file is part of Sigma16.  https://github.com/jtod/Sigma16
+# Copyright (c) 2022 John T. O'Donnell
+
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
 #+TITLE: Core architecture
 #+OPTIONS: html-postamble:nil

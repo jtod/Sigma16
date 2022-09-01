@@ -8,7 +8,6 @@
 
 - [[./Linker/index.html][Linker]]
 - [[./Interrupt/index.html][Interrupt]]
-- [[./Testing/index.html][Testing]] Short programs for testing the
-  instruction set
+- [[./Testing/index.html][Testing]] Short programs for testing the instruction set
 
 
