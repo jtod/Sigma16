@@ -1,7 +1,7 @@
 // Sigma16: assembler.mjs
-// Copyright (C) 2020-2021 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// This file is part of Sigma16.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -14,9 +14,9 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // assembler.mjs translates assembly language to machine language
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
@@ -24,9 +24,9 @@ import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Global
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Buffers to hold generated object code
 
@@ -34,9 +34,9 @@ let objBufferLimit = 8;             // how many code items to allow per line
 let objectWordBuffer = [];          // list of object code words
 let relocationAddressBuffer = [];   // list of relocation addresses
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Assembler information record
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 export class AsmInfo {
     constructor () {
@@ -58,9 +58,9 @@ export class AsmInfo {
     }
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Character set
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // CharSet is a string containing all the characters that may appear
 // in a valid Sigma16 assembly language source program.  It's always
@@ -107,9 +107,9 @@ function validateChars (xs) {
     return badlocs
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Symbol table
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // The symbol table is a map from strings to Identifiers, where the
 // string is the text of the identifier name, and the Identifier
@@ -158,9 +158,9 @@ function displaySymbolTableHtml (ma) {
     }
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Instruction fields
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 export const Field_op = Symbol ("op");
 export const Field_d = Symbol ("d");
@@ -172,9 +172,9 @@ export const Field_f = Symbol ("f");
 export const Field_g = Symbol ("g");
 export const Field_h = Symbol ("h");
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Values
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // A value is a 16-bit word represented as a natural number; it also
 // has attributes (origin and movability) that affect its usage.
@@ -252,9 +252,9 @@ const Zero = mkConstVal (0);
 const One  = mkConstVal (1);
 const Two  = mkConstVal (2);
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Evaluation of expressions
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // An expression is assembly language syntax that specifies a value.
 // The assembler evaluates expressions to calculate the corresponding
@@ -320,9 +320,9 @@ function evaluate (ma, s, a, x) {
     return result;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Assembly language statement
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Each statement has a listing line which contains the line number,
 // object code, and source code.  There are two versions of this:
@@ -384,9 +384,9 @@ function printAsmStmt (ma,x) {
     }
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Error messages
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Report an assembly error: s is an assembly source line, err is an
 // error message
@@ -400,9 +400,9 @@ function mkErrMsg (ma,s,err) {
     ma.nAsmErrors++;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // GUI interface to the assembler
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // GUI action to enter the assembler pane and display the source code
 // for the selected module
@@ -465,9 +465,9 @@ export function setMetadata () {
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Assembler
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Translate assembly language source code to object code, also
 // producing an assembly listing and metadata.  The source code is
@@ -512,9 +512,9 @@ export function assembler (baseName, srcText) {
     return ai;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Regular expressions for the parser
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Syntax of assembly language
 
@@ -682,7 +682,6 @@ function requireNoperands (ma, s, n) {
 
 // ??? todo  Generate import if necessary
 // ??? todo  give message if result>15
-
 // k4 is always fixed, never relocatable
 
 function requireK16 (ma, s, field, xs) {
@@ -737,9 +736,9 @@ function requireReg (ma, s, field) {
     return result;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Parser
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Parse the source for line i and update the object with the results.
 // Each source line is a statement; a statement consists of a sequence
@@ -833,9 +832,9 @@ function parseOperation (ma,s) {
     }
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Assembler Pass 1
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Pass 1 parses the source, calculates the code size for each
 // statement, defines labels, and maintains the location counter.
@@ -943,9 +942,9 @@ function findCtlIdx (ma,s,xs) {
     return i;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Pass 2
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Make a code word from four 4-bit fields
 
@@ -970,6 +969,7 @@ function testWd(op,d,a,b) {
 // are handled in Pass2 because they use labels.
 
 function asmPass2 (ma) {
+    com.mode.setTrace()
     com.mode.devlog('Assembler Pass 2');
     objectWordBuffer = [];
     relocationAddressBuffer = [];
@@ -979,11 +979,13 @@ function asmPass2 (ma) {
 	com.mode.devlog(`Pass2 line ${s.lineNumber} = /${s.srcLine}/`);
         com.mode.devlog (`>>> pass2 operands = ${s.operands}`);
         let op = s.operation;
-        com.mode.devlog (`Pass2 op ${s.fieldOperation} ${showOperation(op)}`);
+        com.mode.devlog (`Pass2 op ${s.fieldOperation} ${showOperation(op)}`)
         com.mode.devlog (`Pass2 op ifmt=${op.ifmt.description}`
-                         + ` afmt=${op.afmt.description} pseudo=${op.pseudo}`);
+                         + ` afmt=${op.afmt.description}`
+                         + ` pseudo=${op.pseudo}`);
 // Directives        
-        if (op.ifmt==arch.iDir && [arch.aBlock,arch.aOrg].includes(op.afmt)) {
+        if (op.ifmt==arch.iDir
+            && [arch.aBlock,arch.aOrg].includes(op.afmt)) {
             let a = s.orgAddr;
             let ahex = arith.wordToHex4 (a)
             com.mode.devlog (`Pass 2 org/block a=${a} ahex=${ahex}`);
@@ -1011,15 +1013,17 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
 // RX-RX
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aRX) {
-	    com.mode.devlog (`Pass2 RX/RX`);
+	    com.mode.devlog (`***** Pass2 RX/RX`);
             requireNoperands (ma, s, 2)
             const d = requireReg(ma,s,s.operands[0]);
             const {disp,index} = requireX(ma,s,s.operands[1]);
-            com.mode.devlog (`RX/RX disp = /${disp}/`)
+            com.mode.devlog (`RX/RX disp = /${disp}/ index=${index}`)
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
+            console.log (`RX/RX v=${v}`)
             if (v.evalRel) {
+                console.log ('RX/RX generating relocation')
                 generateRelocation (ma, s, s.address.word+1);
             }
             com.mode.devlog (`pass 2 RX/RX a=${a} b=${b} v=${v.toString()}`);
@@ -1028,40 +1032,51 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
-// RX-X pseudo
-        } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
-	    com.mode.devlog (`Pass2 RX/X pseudo`);
+// RX-X
+//        } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
+        } else if (op.ifmt==arch.iRX && op.afmt==arch.aX) {
+            com.mode.devlog (`***** Pass2 RX/X`);
             requireNoperands (ma, s, 1)
+            const d = op.pseudo ? op.opcode[2] : 0
             const {disp,index} = requireX (ma, s, s.operands[0])
-            const d = op.opcode[2]
+            com.mode.devlog (`RX/X disp = /${disp}/ index=${index}`)
             let a = index
             let b = op.opcode[1]
             let v = evaluate (ma, s, s.address.word+1, disp);
+            console.log (`RX/X v=${v}`)
             if (v.evalRel) {
+                console.log ('RX/X generating relocation')
                 generateRelocation (ma, s, s.address.word+1);
             }
+            com.mode.devlog (`pass 2 RX/X a=${a} b=${b} v=${v.toString()}`)
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-// RX-X --- jump L1[R0]
+            handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
+//            console.log (`${op.pseudo ? "YES PSEUDO" : "NOT PSEUDO"}`)
+            //	    com.mode.devlog (`Pass2 RX/X pseudo`);
+            //            const d = op.opcode[2]
+            // RX-X not-pseudo --- jump L1[R0]
+/*            
 	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !op.pseudo) {
-            com.mode.devlog (`Pass2 RX/X)`);
+            com.mode.devlog (`Pass2 RX/X not-pseudo)`);
             com.mode.devlog (`RX/X real ${s.operands[0]}`);
             requireNoperands (ma, s, 1)
-            const d = 0;
             const {disp,index} = requireX(ma,s,s.operands[0]);
-            com.mode.devlog (`RX/X disp = /${disp}/`)
+            const d = 0;  // only difference based on pseudo
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
             if (v.evalRel) {
                 generateRelocation (ma, s, s.address.word+1);
             }
+            com.mode.devlog (`RX/X disp = /${disp}/`)
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
+*/
 // RX-kX
         } else if (op.ifmt==arch.iRX && op.afmt==arch.akX) {
 	    com.mode.devlog (`pass2 RX/kX`);
@@ -1072,6 +1087,9 @@ function asmPass2 (ma) {
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
+            if (v.evalRel) {
+                generateRelocation (ma, s, s.address.word+1);
+            }
             s.codeWord1 = mkWord (op.opcode[0], d, a, b);
             s.codeWord2 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
@@ -1425,6 +1443,7 @@ function asmPass2 (ma) {
     emitImports (ma);
     ma.objectCode.push ("");
     ma.objectText = ma.objectCode.join("\n");
+    com.mode.clearTrace()
 }
 
 // handleVal: Generate relocation or import if necessary
@@ -1536,9 +1555,9 @@ function showOperation (op) {
     }
 }
 
-// ----------------------------------------------------------------------
+//----------------------------------------------------------------------
 // deprecated
-// ----------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 
 /*            RX-X pseudo

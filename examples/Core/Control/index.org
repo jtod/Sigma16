@@ -3,7 +3,9 @@
 #+OPTIONS: html-postamble:nil
 
 - [[./Cmp.asm.txt][Cmp.asm.txt]] Comparisons and the condition code
+
 - [[./Jump.asm.txt][Jump.asm.txt]] Unconditional jumps
-- [[./CondJump.asm.txt][CondJump.asm.txt]] Conditional jumps using the
-  condition code
+
+- [[./ConditionalJump.asm.txt][ConditionalJump.asm.txt]] Conditional
+  jumps using the condition code
 

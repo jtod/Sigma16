@@ -1,0 +1,169 @@
+; DemoShowInt: example using ShowInt
+; This file is part of Sigma16. https://jtod.github.io/home/Sigma16
+; Copyright (c) 2022 John T. O'Donnell
+
+; DemoShowInt is a procedure that tests ShowInt by calling it on
+; various test data and prints the result.  It is good practice to
+; include testing software in a program.  Normally this procedure is
+; not called, but there is a commented-out call to it near the
+; beginning.
+
+DemoShowInt module
+ShowInt     import  ConvertInt,ShowInt
+
+;    lea    R14,CallStack[R0]   ; initialise stack pointer
+;    store  R0,0[R14]           ; main program dynamic link := nil
+;    lea    R12,1[R14]          ; initialise stack top
+;    load   R1,StackSize[R0]    ; R1 := stack size
+;    add    R11,R14,R1          ; StackLimit := &CallStack + StackSize
+
+; print 7 in 1 character
+    lea    R1,7[R0]         ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,1[R0]         ; size of buffer to use
+;    store  R14,1[R14]
+;    lea    R14,1[R14]
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,1[R0]         ; size of buffer to use
+    trap   R1,R2,R3         ; print the number
+    jal    R10,WriteNewLine[R0]
+
+; print 8 in 1 character
+    lea    R1,8[R0]         ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,1[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+;    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,1[R0]         ; size of buffer to use
+    trap   R1,R2,R3         ; print the number
+    jal    R10,WriteNewLine[R0]
+    
+; print 264 in 2 characters
+    lea    R1,264[R0]       ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,2[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+;    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,2[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+; -1 in 2 characters
+    lea    R1,-1[R0]        ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,2[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,2[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+; 47 in 5 characters
+    lea    R1,47[R0]        ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,5[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,5[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+; 264 in 5 characters
+    lea    R1,264[R0]       ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,5[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,5[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+; 29371 in 5 characters
+    lea    R1,29371[R0]     ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,5[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,5[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+; -92 in 4 characters
+    lea    R1,-92[R0]       ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,3[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,3[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+; 6285 in 3 characters
+    lea    R1,6285[R0]      ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,3[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,3[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+; 6285 in 4 characters
+    lea    R1,6285[R0]      ; number to print
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,4[R0]         ; size of buffer to use
+    jal    R13,ShowInt[R0]  ; put string for R1 into buffer
+    add    R4,R1,R0         ; R4 = number of leading spaces
+    lea    R1,2[R0]         ; trap write code
+    lea    R2,TSIbuf[R0]    ; address of buffer
+    lea    R3,4[R0]         ; size of buffer to use
+    trap   R1,R2,R3
+    jal    R10,WriteNewLine[R0]
+
+    trap   R0,R0,R0         ; terminate
+
+; Lightweight subroutine.  Doesn't build stack frame, uses R7,R8,R9
+; for temporary and R10 for return address
+
+WriteNewLine
+    lea    R7,2[R0]         ; trap write code
+    lea    R8,NewLine[R0]   ; address of character
+    lea    R9,1[R0]         ; write 1 character
+    trap   R7,R8,R9         ; write newline
+    jump   0[R10]           ; return
+
+NewLine  data  10
+
+TSIbuf                         ; buffer for the strings of digits
+    data  0
+    data  0
+    data  0
+    data  0
+    data  0
+    data  0
+    data  0
+
+StackOverflow
+    trap   R0,R0,R0
+
+StackSize       data  1000
+AllocationArea  data   0
+CallStack       data   0

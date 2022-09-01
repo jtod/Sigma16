@@ -1,6 +1,14 @@
 ; Factorial: illustrate recursion with stack frames
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
+; This example implements a recursive algorithm to computer
+; factorials, illustrating subroutine call and return and stack
+; frames.
+
+; This is not actually a good way to compute factorials: a simple
+; loop is simpler and more efficient.  But this program provides a
+; good illustration of the execution stack and recursion.
+  
 ;---------------------------------------------------------------------
 ; Program Factorial
 ;---------------------------------------------------------------------

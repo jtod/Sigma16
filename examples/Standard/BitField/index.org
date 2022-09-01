@@ -1,8 +1,0 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Bit Fields
-#+OPTIONS: html-postamble:nil
-
-- [[./BitField.asm.txt][BitField]] Bit fields
-- [[./Shift.asm.txt][Shift]] Shifting bit fields
-
-

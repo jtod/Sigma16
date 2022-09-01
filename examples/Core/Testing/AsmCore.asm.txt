@@ -1,10 +1,9 @@
 ; AsmCore: test assembly of each statement in the core architecture
-; This file is part of Sigma16; see README, https://jtod.github.io/home/Sigma16/
-; John O'Donnell, 2021
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; This is a set of examples of all the core assembly language
-; statements.  It should assemble without any syntax errors, but it
-; isn't intended to be executed.
+; statements.  It should assemble without any syntax errors, but
+; running it won't do anything useful.
 
 ;-------------------------------------------------------------
 ; Character set

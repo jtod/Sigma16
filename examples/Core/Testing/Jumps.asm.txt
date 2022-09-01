@@ -1,6 +1,5 @@
 ; Jumps: test Sigma16 Core jumping instructions 
-; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
-; John O'Donnell, 2021
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; Full test: step through the program.  Quick test: run the program to
 ; completion and then check the counts at the end.
@@ -84,8 +83,18 @@ ge4
 done
       store  R8,GoodCount[R0]    ; save count of correct results
       store  R9,ErrorCount[R0]   ; save count of errors
-      trap   R0,R0,R0            ; terminate
+
+; Jal
+
+     jal   R13,sub1[R0]
+     jal   R13,sub2[R0]
+     trap  R0,R0,R0          ; terminate
+
+sub1 lea   R3,20[R0]
+     jump  0[R13]
+
+sub2 lea   R4,40[R0]
+     jump  0[R13]
 
 GoodCount   data  0              ; count of successful tests
 ErrorCount  data  0              ; count of unsuccessful tests
-

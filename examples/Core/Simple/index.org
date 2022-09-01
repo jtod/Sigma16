@@ -2,18 +2,12 @@
 #+TITLE: Simple programs
 #+OPTIONS: html-postamble:nil
 
-Simple.org testing cjamed prg
-
-- [[./ConstArith.asm.txt][ConstArith.asm.txt]] This is a good example to
-  start with.  It's a small program that does some arithmetic in the
-  registers, illustrating the use of lea, add, and mul.
-
 - [[./Add.asm.txt][Add.asm.txt]] A small program that adds two
-  variables, illustrating the use of load, store, and data.
+  variables, illustrating the use of load, store, and data. This is a
+  good example to start with.
 
-- [[./LoadStore.asm.txt][LoadStore.asm.txt]] Demonstrate how to use the
-  load and store instructions to access variables.
+- [[./LoadStore.asm.txt][LoadStore.asm.txt]] Demonstrate how to use
+  the load and store instructions to access variables in memory.
 
-- [[./CmpJump.asm.txt][CmpJump.asm.txt]] Illustrate how to use the
-  compare and conditional jump instructions to perform an if-then
-  conditional.
+- [[./ConstArith.asm.txt][ConstArith.asm.txt]] Do some arithmetic in
+  the registers, illustrating the use of lea, add, and mul.

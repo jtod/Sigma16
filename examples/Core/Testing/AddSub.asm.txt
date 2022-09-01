@@ -1,7 +1,0 @@
-   lea    R1,4[R0]   ; 0004
-   lea    R2,5[R0]   ; 0005
-   add    R3,R1,R2   ; 0009
-   sub    R4,R1,R2   ; ffff
-   sub    R5,R2,R1   ; 0001
-   add    R6,R1,R4   ; 0003
-   trap   R0,R0,R0

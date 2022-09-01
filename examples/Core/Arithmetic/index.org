@@ -2,26 +2,23 @@
 #+TITLE: Arithmetic examples
 #+OPTIONS: html-postamble:nil
 
-- [[./AddDecimal.asm.txt][AddDecimal.asm.txt]] Shows how to represent
-  integers in decimal (actually *binary coded decimal*) and how to add
-  bcd integers.  In this representation, and integer is a sequence of
-  decimal digits, and a decimal digit is represented as a 4-bit binary
-  number.
+- [[./WriteBCD.asm.txt][WriteBCD]] Demonstrates Binary Coded Decimal
+  (BCD) representation of integers.  In this representation, and
+  integer is a sequence of decimal digits, and a decimal digit is
+  represented as a 4-bit binary number.
 
-- [[./BigPowers2.asm.txt][BigPowers2]]
+- [[./AddDecimal.asm.txt][AddDecimal.asm.txt]] Shows how to add BCD
+  integers.
+
+- [[./BigPowers2.asm.txt][BigPowers2]] Prints powers of 2, using BCD
+  representation to allow for large numbers.
 
 - [[./BinToDec.asm.txt][BinToDec]] Convert a binary word to a string
   of characters giving decimal representation.
 
-- [[./Div.asm.txt][Div]] Division
+- [[./Mult.asm.txt][Mult]] Illustrate the div instruction
 
-- [[./Logic.asm.txt][Logic]]
-
-- [[./Mult.asm.txt][Mult]]
-
-- [[./Shift.asm.txt][Shift]]
-
-- [[./WriteBCD.asm.txt][WriteBCD]]
+- [[./Div.asm.txt][Div]] Illustrate the div instruction
 
 
 

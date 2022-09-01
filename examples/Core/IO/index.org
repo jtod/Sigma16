@@ -15,7 +15,8 @@ write.
 - [[./Write.asm.txt][Write]] Demonstrate how to output a character
   string.
 
-- [[./Read.asm.txt][Read]] Demonstrate how to read some input from the user.
+- [[./Read.asm.txt][Read]] Demonstrate how to read some input from the
+  user.
 
 - [[./ReadWrite.asm.txt][ReadWrite]] Read some input from the user and
   then write it back out.

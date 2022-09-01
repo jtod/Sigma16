@@ -1,5 +1,5 @@
 ; LoadStore: demonstrate the load, store, and lea instructions
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
      lea    R1,1[R0]   ; load a constant: R1 := 1
      load   R2,a[R0]   ; load a variable: R2 := a = 23

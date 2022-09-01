@@ -84,11 +84,16 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
-* Core architecture
+
+* Tutorials
 
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the examples in the main panel.
+
+The first group of tutorials introduce the core architecture, and the
+second group covers the full architecture.
+
 
 ** Core architecture tutorials
 :PROPERTIES:
@@ -872,7 +877,7 @@ consistently.  If you use tabs, your program can look good in one
 application and like a mess in another.  It's easy to indent with
 spaces, and it works everywhere.
 
-*** Files and modules
+*** Editing files
 
 Whatever method you use to edit your programs, be sure to *save your
 work to a file* from time to time.  If you don't do that, sooner or
@@ -1715,9 +1720,7 @@ As long as the breakpoint is enabled, execution will stop every time
 that location is encountered.  To prevent this, open the breakpoint
 popup again and click Disable.
 
-** Summary of Core Architecture
-
-*** Core instruction formats
+*** Summary of core instruction formats
 
 **** RRR format
 
@@ -1807,8 +1810,7 @@ instructions).
 The memory address is specified using the sa field and the
 displacement, which is the entire second word of the instruction.
 
-
-*** Core instructions
+*** Summary of core instructions
 
 The following table summarises the instructions in the Core subset of
 Sigma16.  The columns are:
@@ -1866,29 +1868,25 @@ Assembly directives
 
 - data
 
-* Standard architecture
+
+** Full architecture tutorials
 
 The tutorials for the standard architecture will be availabe in a
 future release.  See the Example programs (in the Standard section)
 for examples, and see the full architecture reference for a list of
 the instructions.
 
-* Standard architecture tutorials
-** Logic
-** Bit fields and shifting
-** Stack instructions
-** Saving registers for procedure call
-
-** Arithmetic on natural numbers
-
-* Systems architecture
-
-** Systems architecture tutorials
+*** Logic
+*** Bit fields and shifting
+*** Stack instructions
+*** Saving registers for procedure call
+*** Arithmetic on natural numbers
+*** Modules and linking
 *** System control registers
-*** Interrupt handlers
+*** Interrupts
 
 
-* Sigma16 Architecture reference
+* Components of the architecture
 :PROPERTIES:
 :CUSTOM_ID: sec-architecture
 :END:
@@ -1924,6 +1922,7 @@ and an Input/Output controller.
 
 - The Input/Output system can transfer data between the computer and
   the outside world.
+
 
 ** Words
 
@@ -2002,7 +2001,7 @@ of a word.  If a numeric value is out of range it is truncated.
   may be omitted: for example, the GUi shows register and memory
   contents as hexadecimal without the leading $.
   
-** Bits and fields  
+*** Bits and fields  
 
 *** Indexing bits in a word
 
@@ -2044,6 +2043,7 @@ mechanism is simple to implement in hardware, as you can see in the
 digital circuit processor, yet it allows the implementation of local
 variables, records, arrays, pointers and linked data structures, jump
 tables, and more.  These techniques are described later.
+
 
 ** Registers
 
@@ -2183,35 +2183,19 @@ registers are rarely used directly by the machine language program,
 but they are essential for keeping track of the execution of the
 program, and some instructions use them directly.
 
- - ir -- instruction register (16-bit word)
+- pc -- program counter (16-bit word)
+- ir -- instruction register (16-bit word)
+- adr -- address register (16-bit word)
+- dat -- data register (16-bit word)
+- status -- collection of control flags
 
- - pc -- program counter (16-bit word)
+*** Interrupt control registers
 
- - adr -- address register (16-bit word)
-
- - dat -- data register (16-bit word)
- 
- - status -- collection of control flags
-
-*** System control registers
-
-|---+---------|
-| 0 | status  |
-| 1 | mask    |
-| 2 | req     |
-| 3 | istat   |
-| 4 | ipc     |
-| 5 | vect    |
-| 6 | psegBeg |
-| 7 | psecEnd |
-| 8 | dsegBeg |
-| 9 | dsegEnd |
-|---+---------|
-
-**** Status register flags
-
-The processor can be executing in several modes, which are determined
-by the *system control registers*.
+- mask
+- req
+- rstat
+- rpc
+- vect
 
 **** req and mask registers
 
@@ -2251,18 +2235,6 @@ Table: Processor status flags
     <td>Interrupts enabled</td>
   </tr>
 </table>
-
-*** Interrupts and exceptions
-
- - mask
- 
- - req
- 
- - istat
- 
- - ipc
- 
- - vect
 
 **** Mask and request flags
 
@@ -2323,6 +2295,11 @@ Table: Processor status flags
       <td>Interrupt</td>
     </tr>
   </table>
+
+*** Segmentation control registers
+
+(Not implemented in this version)
+
 
 ** Instruction representation
 
@@ -2422,14 +2399,17 @@ extension.
 
 #  #+INCLUDE: "./svg/EXP3format.svg" export html
 
-** Instructions
+** Interrupts
+
+
+* Instruction set
 :PROPERTIES:
 :CUSTOM_ID: sec-instruction-set
 :END:
 
-*** Arithmetic
+** Arithmetic
 
-**** add
+*** add
 
 The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
 destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~, calculates
@@ -2530,7 +2510,7 @@ numbers) and for two's complement addition (on signed integers).
   and the overflow flag is 1 in the mask register, then an interrupt
   will occur immediatelhy after the add instruction executes.
 
-**** sub
+*** sub
 
 Example: sub R1,R2,R3 ; R1 := R2 - R3
 
@@ -2564,7 +2544,7 @@ req register.
  R15.CCc    carry output
 ---------  ---------------------
 
-**** mul
+*** mul
 
 Example: mul R1,R2,R3 ; R1 := R2 * R3
 
@@ -2588,7 +2568,7 @@ into Rd.
  R15.CCc    carry output
 ---------  ---------------------
 
-**** div
+*** div
 
 Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
 
@@ -2623,7 +2603,7 @@ division by 0.
   division by 0.  See the section on Interrupts.  This approach does
   not require a compare or jump instruction for each division.
 
-**** addc
+*** addc
 
 The addc instruction performs a binary addition with carry
 propagation.  It adds the two operand registers and the carry bit in
@@ -2632,7 +2612,7 @@ destination register Rd and the carry output is written back into the
 carry bit, overwriting its previous value.  Overflow is not possible
 with this instruction.
 
-**** muln
+*** muln
 
 #+BEGIN_EXAMPLE
      muln   Rd,Ra,Rb
@@ -2644,7 +2624,7 @@ significant part) is loaded into R15, and the rightmost 16 bits (the
 least significant part) is loaded into Rd.  If Rd is R15, the most
 significant part is discarded.
 
-**** divn
+*** divn
 
 #+BEGIN_EXAMPLE
      divn   Rd,Ra,Rb
@@ -2663,7 +2643,7 @@ natural numbers represented in binary.
 - The remainder is placed in Ra, overwriting the least significant
   half of the dividend operand
 
-*** Logic and bits
+** Logic and bits
 
 The instructions in this section treat a word as a sequence of bits,
 not as a number.  There are instructions that perform logic operations
@@ -2695,7 +2675,7 @@ for several reasons:
 - These instructions can be implemented efficiently in a digital
   circuit and this implementation is an interesting design problem.
 
-**** cmp
+*** cmp
 
 The compare instruction =cmp Ra,Rb= compares the values in the operand
 registers =Ra= and =Rb=, and then sets flags in the condition code
@@ -2724,7 +2704,7 @@ by a jump pseudoinstruction, for example:
     jumpgt  abc]R0]    ; if R4 > R9 then goto abc
 #+END_EXAMPLE
 
-**** logicw
+*** logicw
 
 The logicw instruction performs a bitwise logic operation on two
 operands: each bit of the result is obtained by performing the logic
@@ -2796,7 +2776,7 @@ Re and Rf, and the result is loaded into the destination register Rd.
 | inv x    | 1100 |   12 |
 | inv y    |      |      |
 
-**** logicb
+*** logicb
 
 The /logicb/ instruction performs an arbitrary Boolean logic function
 on two operand bits, producing a result bit.  All three bits must be
@@ -2845,7 +2825,7 @@ The instruction format is EXP, with the following fields:
 - g is the index of the second argument bit
 - h is the logic function
   
-**** shiftl, shiftr
+*** shiftl, shiftr
 
 The instruction shiftl Rd,Ra,k shifts the value in the operand
 register Ra by k bits to the left, and the result is placed in the
@@ -2885,7 +2865,7 @@ changed.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-**** extract, extracti
+*** extract, extracti
 
 The extract instruction copies an arbitrary field of bits from a
 source register and inserts those bits into an arbitrary position in
@@ -3006,7 +2986,7 @@ Here is another example:
 
 
 
-*** Memory
+** Memory
 
 A memory address is a 16-bit binary number.  Instructions don't
 specify addresses directly; they specify an address with two
@@ -3026,14 +3006,14 @@ If you just want to specify an address *a* in an instruction, this can
 be written as "a[R0]".  Since R0 contains the constant 0, the
 effective address is just *a*.
 
-**** lea
+*** lea
 
 The *load effective address* instruction *lea Rd,disp[Rx]* calculates
 the effective address of the operand disp[Rx] and places the result in
 the destination register Rd.  The effective address is the binary sum
 disp+Rx.
 
-**** load
+*** load
 
 The *load* instruction *load Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and copies the word in memory at the
@@ -3054,7 +3034,7 @@ Examples
    load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
 #+END_EXAMPLE
 
-**** store
+*** store
 
 The *store* instruction *store Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx] and the value of the destination
@@ -3090,7 +3070,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_EXAMPLE
 
-**** Stack representation
+*** Stack representation
 
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -3128,7 +3108,7 @@ A stack can be created and initialized by allocating a region of
 memory, setting /stack base/ to the first word and /stack limit/ to
 the last word, and setting /stack top/ to /stack base/ - 1.
 
-**** push
+*** push
 
 The push instruction pushes an element onto a stack.  It is RRR
 format, and its general form is:
@@ -3170,7 +3150,7 @@ will occur after the push instruction completes.  There will be no
 interrupt if interrupts are disabled, or the stack fault bit is not
 set in the mask register.
 
-**** pop
+*** pop
 
 The push instruction removes an element onto a stack and returns it.
 The instruction is RRR format, and its general form is:
@@ -3200,7 +3180,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-**** top
+*** top
 
 The top instruction returns the top element on a stack but does not
 remove it.  The instruction is RRR format, and its general form is:
@@ -3229,7 +3209,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-**** save
+*** save
 
 The *save* instruction stores a sequence of adjacent registers into a
 block of contiguous memory locations.  The sequence of registers is
@@ -3311,7 +3291,7 @@ is equivalent to
    store   R3,11[R5]
 #+END_EXAMPLE
 
-**** restore
+*** restore
 
 Restore Rd,disp[Ra] loads R1, ..., Rd from consecutive memory
 locations starting from the effective address.
@@ -3369,16 +3349,17 @@ The effect is equivalent to
    load  R10,11[R14]
 #+END_EXAMPLE
 
-*** Flow of control
-**** jump
-**** jumpc0, jumpc1
-**** jal
-**** jumpz, jumpnz
+** Flow of control
+*** jump
+*** jumpc0, jumpc1
+*** jal
+*** jumpz, jumpnz
 
-*** System
-**** trap
-**** getctl, putctl
-**** resume
+** System
+*** trap
+*** getctl, putctl
+*** resume
+
 ** Assembly language instruction formats with examples
 
 | afmt  | operand general form | example           | notes         |
@@ -3394,13 +3375,15 @@ The effect is equivalent to
 | RC    | Rc,Rd                | putctl vect,R4    |               |
 |       |                      |                   |               |
 
-** Instruction set
+
+* Table of instructions
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
 
-Instructions marked x are not are not implemented in this version.
+Instructions marked x (primarily S32 instructions) are not are not
+implemented in this version.
 
 |-------------+------+---+------+-------+------+-----------------------------------|
 | Mnemonic    | ISA  | P | Fmt  | Args  | Code | Effect                            |
@@ -3410,12 +3393,12 @@ Instructions marked x are not are not implemented in this version.
 | mul         | Core |   | RRR  | RRR   | 2    | Rd := Ra * Rb                     |
 | div         | Core |   | RRR  | RRR   | 3    | Rd := Ra / Rb, R15 := Ra rem Rb   |
 | cmp         | Core |   | RRR  | RR    | 4    | R15 := Ra cmp Rb                  |
-| addc        | Std  |   | RRR  | RRR   | 5    | Rd := Ra + Rb + R15.carry         |
-| muln        | Std  |   | RRR  | RRR   | 6    | R15++Rd := Ra :*: Rb              |
-| divn        | Std  |   | RRR  | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
-| push        | Std  |   | RRR  | RRR   | 8    | M[ea] := Rd, Rb++                 |
-| pop         | Std  |   | RRR  | RRR   | 9    | Rb--, Rd := M[ea]                 |
-| nop         | Std  |   | RRR  | RRR   | a    | -- reserved --
+| addc        | Full |   | RRR  | RRR   | 5    | Rd := Ra + Rb + R15.carry         |
+| muln        | Full |   | RRR  | RRR   | 6    | R15++Rd := Ra :*: Rb              |
+| divn        | Full |   | RRR  | RRR   | 7    | R15++Rd := R15++Ra :/: Rb         |
+| push        | Full |   | RRR  | RRR   | 8    | M[ea] := Rd, Rb++                 |
+| pop         | Full |   | RRR  | RRR   | 9    | Rb--, Rd := M[ea]                 |
+| nop         | Full |   | RRR  | RRR   | a    | -- reserved --                    |
 | trap        | Core |   | RRR  | RRR   | b    | user interrupt                    |
 |             |      |   |      |       | c    | -- reserved --                    |
 |             |      |   |      |       | d    | escape to EXP3 format             |
@@ -3429,24 +3412,24 @@ Instructions marked x are not are not implemented in this version.
 | jumpc0      | Core |   | RX   | kX    | f,4  | if R15.k=0 then pc := ea          |
 | jumpc1      | Core |   | RX   | kX    | f,5  | if R15.k=1 then pc := ea          |
 | jal         | Core |   | RX   | RX    | f,6  | Rd := pc, pc := ea                |
-| jumpz       | Std  |   | RX   | RX    | f,7  | if Rd = 0 then pc := ea           |
-| jumpnz      | Std  |   | RX   | RX    | f,8  | if Rd != 0 then pc := ea          |
-| x brc0      | Std  |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
-| x brc1      | Std  |   | RX   | RX    | f,a  | Rd := M[ea], M[ea] := 1           |
-| x testset   | Std  |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
+| jumpz       | Full |   | RX   | RX    | f,7  | if Rd = 0 then pc := ea           |
+| jumpnz      | Full |   | RX   | RX    | f,8  | if Rd != 0 then pc := ea          |
+| x brc0      | Full |   | RX   | RX    | f,9  | Rd := M[ea], M[ea] := 1           |
+| x brc1      | Full |   | RX   | RX    | f,a  | Rd := M[ea], M[ea] := 1           |
+| x testset   | Full |   | RX   | RX    | f,b  | Rd := M[ea], M[ea] := 1           |
 | x leal      | S32  |   | RX   | RX    | f,c  | Rd := ea                          |
 | x loadl     | S32  |   | RX   | RX    | f,d  | Rd := M[ea]                       |
 | x storel    | S32  |   | RX   | RX    | f,e  | M[ea] := Rd                       |
 |             |      |   | RX   |       | f,f  | -- reserved --                    |
 |-------------+------+---+------+-------+------+-----------------------------------|
-| save        | Std  |   | EXP  | RRx   | e,00 | M[ea] := R1, ..., M[ea+d-1] := Rd |
-| restore     | Std  |   | EXP  | RRx   | e,01 | R1 := M[ea], ..., Rd := M[ea+d-1] |
-| shiftl      | Std  |   | EXP  | RRk   | e,02 | Rd := Ra shl b                    |
-| shiftr      | Std  |   | EXP  | RRk   | e,03 | Rd := Ra shr b                    |
-| logicw      | Std  |   | EXP  | RRRk  | e,04 | Rd := Re (lut g) Rf               |
-| logicb      | Std  |   | EXP  | Rkkkk | e,05 | Rd.e := Rd.f (lut h) Rd.g         |
-| extract     | Std  |   | EXP  | RkkRk | e,06 | Rd := extract Rd di size Rs si    |
-| extracti    | Std  |   | EXP  | RkkRk | e,07 | Rd := extracti Rd di size Rs si   |
+| save        | Full |   | EXP  | RRx   | e,00 | M[ea] := R1, ..., M[ea+d-1] := Rd |
+| restore     | Full |   | EXP  | RRx   | e,01 | R1 := M[ea], ..., Rd := M[ea+d-1] |
+| shiftl      | Full |   | EXP  | RRk   | e,02 | Rd := Ra shl b                    |
+| shiftr      | Full |   | EXP  | RRk   | e,03 | Rd := Ra shr b                    |
+| logicw      | Full |   | EXP  | RRRk  | e,04 | Rd := Re (lut g) Rf               |
+| logicb      | Full |   | EXP  | Rkkkk | e,05 | Rd.e := Rd.f (lut h) Rd.g         |
+| extract     | Full |   | EXP  | RkkRk | e,06 | Rd := extract Rd di size Rs si    |
+| extracti    | Full |   | EXP  | RkkRk | e,07 | Rd := extracti Rd di size Rs si   |
 | getctl      | Sys  | P | EXP  | RC    | e,08 | Rd := Sc                          |
 | putctl      | Sys  | P | EXP  | RC    | e,09 | Sc := Rd                          |
 | resume      | Sys  | P | EXP  | R     | e,0a | pc := ipc, status := istatus      |
@@ -3513,7 +3496,8 @@ uses S32 instructions will execute correctly only on S32.  Any S32
 instruction executed on S16 will be treated just like any other
 instruction with an illegal opcode.
 
-* Assembly language reference
+
+* Assembly language
 
 :PROPERTIES:
 :CUSTOM_ID: sec-assembly-language
@@ -3569,152 +3553,6 @@ Machine language
     1423
     219a
 #+END_EXAMPLE
-
-** Assembly language statement formats
-
-Assembly language statements generally correspond to the instruction
-formats, but there is not an exact correspondence for several reasons:
-
-- Sometimes an instruction is written in assembly language with a
-  field omitted which exists in the machine language code but is
-  ignored.  For example, the instruction *cmp R1,R2* generates an RRR
-  instruction, but the third operand field is omitted because the
-  instruction requires only one operand, not two.  The assembler sets
-  the unused operand to 0, but the machine ignores it.  This is called
-  a "don't care" field in the instruction.
-  
-- Sometimes two instructions look the same in assembly language but
-  use different machine language instruction formats.  For example,
-  *add R1,R2,R3* and *push R1,R2,R3* look similar, but *add* uses the
-  RRR instruction format and *push* uses the EXP instruction format.
-  The reason for this is that there are not enough bits in the op
-  field to accommodate all the instructions with three register
-  operands, so an *expanding opcode* is used.  Thus push is
-  represented with op=14, indicating EXP format, and the EXP variant
-  is used for this instruction.
-  
-- The 4-bit fields are sometimes used to denote a register from the
-  register file (R3), or a control register (mask), or a constant .
-  In assembly language the constants are written just as a number
-  (e.g. shiftl R1,R2,5).  Control registers are written by name rather
-  than their number in the control register file (e.g. getctl
-  R3,mask).
-  
-- Some assembly language statements are *pseudoinstructions*.  These
-  are special cases of more general instructions.  For example, *and*
-  is a pseudoinstruction which generates a *logicw* instruction
-  specialised to perform a logical and.
-
-Table: *Assembly language statement formats*
-
--------------------------------------------------------
- Asm   Example                  ML formats
-------- ---------------------  ---------------------------
- RRR     add     Rd,Ra,Rb       RRR
- RX      lea     Rd,disp[Ra]    RX
-
- RR      inv     Rd,Ra          RRR (b ignored), RREXP
- JX      jump    disp[Ra]       RX (b ignored)
- KX      jumpc0  d,disp[Ra]     RX (d is constant)
-
- RRK     shiftl  Rd,Ra,k        EXP
- RkkRk   extract Rd,e,f,Rg,h    EXP
- RCEXP   getctl  Re,Cf          EXP
--------------------------------------------------------
-
-An EXP instruction may use the fields op, d, ab, e, f, g, h.  The g
-and h fields can be combined into a single 8-bit field gh All EXP
-instructions combine the a and b fields into a single 8-bit field
-called ab.  Some EXP instructions combine the g and h fields into a
-single 8-bit field called gh.  The EXP format has the following
-variants.
-  
-- The RREXP format takes two register operands, which are in the e and
-  f fields of the second word. The d field of the first word and the g
-  and h fields of the second word are ignored (the assembler will set
-  these to 0).  Any RREXP instruction could be reprsented as RRR, but
-  there are only a few RRR opcodes avaiable, so uncommon instructions
-  that require two registers are represented as RREXP.  Example:
-  *execute R5,R6* is RREXP.
-
-- The RCEXP format takes two register operands; the first is a general
-  register and the second is a control register.  An example of the
-  operand field is *R3,mask*.  The operands are in the e and f fields
-  of the second word.  The d field of the first word and the g and h
-  fields of the second word are ignored (the assembler will set these
-  to 0.)  The first operand is an element of the register file (for
-  example, R4).  The second operand is a control register, which is
-  specified by a 4-bit number.  In assembly language, we normally
-  refer to the control registers by name rather than number, to make
-  it easier to remember which is which.  For example, *getctl
-  R3,status* has RCEXP format.
-  
-- The RRREXP format takes three register operands, which are in the f,
-  g, and h fields of the second word. An example of the operand field
-  is $R1,R2,R3*.  The d field of the first word and the e field of the
-  second word are ignored (the assembler will set these to 0).  The
-  RRREXP instructions would be a natural fit for the RRR format, but
-  there are not enough RRR opcodes available, so the EXP format is
-  used to expand the number of instructions that can be represented.
-  For example, *push R5,R8,R9* has RRREXP format.
-  
-- The RRKEXP format takes two register operands and a 4-bit constant
-  number.  An example of the operand field is *R1,R2,13*.  The
-  register operands are in the f and g fields of the second word, and
-  constant is in the h field of the second word.  The d field of the
-  first word and the e field of the second word are ignored (the
-  assembler sets these to 0).  For example, *shiftr R3,R6,7* has
-  RRKEXP format.
-  
-- The RRKKEXP format takes two register operands and two 4-bit
-  constant binary number operands.  The register operands are in the e
-  and f fields of the second word, while the two constants are in the
-  g and h fields.  The d field of the first word is ignored (the
-  assembler sets it to 0).
-  
-- The RRXEXP format takes two register operands as well as a memory
-  address specified with an 8-bit offset and index register.  Thus
-  these instructions require three registers to be specified, as well
-  as the offset.  Thus every bit of both instruction words is needed
-  to represent an RRXEXP format instruction.  In assembly language,
-  the memory address is written as *offset[Rh]* where *offset* is an
-  -bit binary number and Rh is a register.  The effective memory
-  address is *offset+Rh*. This is similar to ordinary memory
-  addresses; the only difference is that it uses an 8-bit offset
-  rather than a 16-bit displacement. For example, *save R1,R9,2[R14]*
-  has RRKEXP format.  
-
-*- Expressions, values and relocatables
-
-- An expression is syntax: 23, -5, $b23e, struc+5, arrEnd-arrStart
-- A value denotes a word (it is a number) and is the result of
-  evaluating an expression
-- A value is marked as either relocatable or fixed
-- Expressions may occur in
-  - Displacement field of an assembly language statement; the value of
-    the expression is placed in the displacement field of the
-    corresponding machine language instruction.
-  - If a displacement value is relocatable, its address is recorded in
-    the list of addressess of words to be relocated
-  - Right hand side of an equ statement.  The value may be fixed or
-    relocatable.  The name (the left hand side) is defined as a new
-    identifier, the definition line is the line containing the equ,
-    the value is the evaluation of the right hand side, which may be
-    either fixed or relocatable.  Identifiers used in the expression
-    on the RHS have the line number included in their usage lines.
-  - But identifiers that appear in an expression (even if relocatable)
-    are not recorded in the relocation list; only displacements are
-    placed in the relocation list.
-
-
-- Instruction set
-
-The following sections describe the instructions in groups organized
-by their function.  Some of the groups contain instructions with
-different formats.  From the programmer's perspective the function is
-more important, so these groups are useful in finding the right
-instruction to use.  (From the perspective of designing a digital
-circuit to impleemnt the architecture, the format is essential.)
 
 
 ** Programs, modules, and files
@@ -3861,7 +3699,8 @@ Every value is either *fixed* or *relocatable*.  If a module is
 linked, then its relocatable values may be translated, but the fixed
 values remain unchanged.
 
-** Code statements
+
+** Code generators
 Each line of source code is an assembly language statement.  Unlike
 higher level languages, assembly language statements are not nested.
 There are three kinds of assembly language statement:
@@ -3905,6 +3744,42 @@ one or more white space characters.
 
 *** Instructions
 
+Assembly language statements generally correspond to the instruction
+formats, but there is not an exact correspondence for several reasons:
+
+- Sometimes an instruction is written in assembly language with a
+  field omitted which exists in the machine language code but is
+  ignored.  For example, the instruction *cmp R1,R2* generates an RRR
+  instruction, but the third operand field is omitted because the
+  instruction requires only one operand, not two.  The assembler sets
+  the unused operand to 0, but the machine ignores it.  This is called
+  a "don't care" field in the instruction.
+  
+- Sometimes two instructions look the same in assembly language but
+  use different machine language instruction formats.  For example,
+  *add R1,R2,R3* and *push R1,R2,R3* look similar, but *add* uses the
+  RRR instruction format and *push* uses the EXP instruction format.
+  The reason for this is that there are not enough bits in the op
+  field to accommodate all the instructions with three register
+  operands, so an *expanding opcode* is used.  Thus push is
+  represented with op=14, indicating EXP format, and the EXP variant
+  is used for this instruction.
+  
+- The 4-bit fields are sometimes used to denote a register from the
+  register file (R3), or a control register (mask), or a constant .
+  In assembly language the constants are written just as a number
+  (e.g. shiftl R1,R2,5).  Control registers are written by name rather
+  than their number in the control register file (e.g. getctl
+  R3,mask).
+  
+- Some assembly language statements are *pseudoinstructions*.  These
+  are special cases of more general instructions.  For example, *and*
+  is a pseudoinstruction which generates a *logicw* instruction
+  specialised to perform a logical and.
+
+Table: *Assembly language statement formats*
+
+
  | Label   | Statement | Operands | Purpose                    |
  |---------+-----------+----------+----------------------------|
  | optname | data      | exprs    | generate word for each exp |
@@ -3914,6 +3789,114 @@ one or more white space characters.
  |         | Rop       | r        |                            |
  |         | RRKKop    | r,r,k,k  |                            |
 
+-------------------------------------------------------
+ Asm   Example                  ML formats
+------- ---------------------  ---------------------------
+ RRR     add     Rd,Ra,Rb       RRR
+ RX      lea     Rd,disp[Ra]    RX
+
+ RR      inv     Rd,Ra          RRR (b ignored), RREXP
+ JX      jump    disp[Ra]       RX (b ignored)
+ KX      jumpc0  d,disp[Ra]     RX (d is constant)
+
+ RRK     shiftl  Rd,Ra,k        EXP
+ RkkRk   extract Rd,e,f,Rg,h    EXP
+ RCEXP   getctl  Re,Cf          EXP
+-------------------------------------------------------
+
+An EXP instruction may use the fields op, d, ab, e, f, g, h.  The g
+and h fields can be combined into a single 8-bit field gh All EXP
+instructions combine the a and b fields into a single 8-bit field
+called ab.  Some EXP instructions combine the g and h fields into a
+single 8-bit field called gh.  The EXP format has the following
+variants.
+  
+- The RREXP format takes two register operands, which are in the e and
+  f fields of the second word. The d field of the first word and the g
+  and h fields of the second word are ignored (the assembler will set
+  these to 0).  Any RREXP instruction could be reprsented as RRR, but
+  there are only a few RRR opcodes avaiable, so uncommon instructions
+  that require two registers are represented as RREXP.  Example:
+  *execute R5,R6* is RREXP.
+
+- The RCEXP format takes two register operands; the first is a general
+  register and the second is a control register.  An example of the
+  operand field is *R3,mask*.  The operands are in the e and f fields
+  of the second word.  The d field of the first word and the g and h
+  fields of the second word are ignored (the assembler will set these
+  to 0.)  The first operand is an element of the register file (for
+  example, R4).  The second operand is a control register, which is
+  specified by a 4-bit number.  In assembly language, we normally
+  refer to the control registers by name rather than number, to make
+  it easier to remember which is which.  For example, *getctl
+  R3,status* has RCEXP format.
+  
+- The RRREXP format takes three register operands, which are in the f,
+  g, and h fields of the second word. An example of the operand field
+  is $R1,R2,R3*.  The d field of the first word and the e field of the
+  second word are ignored (the assembler will set these to 0).  The
+  RRREXP instructions would be a natural fit for the RRR format, but
+  there are not enough RRR opcodes available, so the EXP format is
+  used to expand the number of instructions that can be represented.
+  For example, *push R5,R8,R9* has RRREXP format.
+  
+- The RRKEXP format takes two register operands and a 4-bit constant
+  number.  An example of the operand field is *R1,R2,13*.  The
+  register operands are in the f and g fields of the second word, and
+  constant is in the h field of the second word.  The d field of the
+  first word and the e field of the second word are ignored (the
+  assembler sets these to 0).  For example, *shiftr R3,R6,7* has
+  RRKEXP format.
+  
+- The RRKKEXP format takes two register operands and two 4-bit
+  constant binary number operands.  The register operands are in the e
+  and f fields of the second word, while the two constants are in the
+  g and h fields.  The d field of the first word is ignored (the
+  assembler sets it to 0).
+  
+- The RRXEXP format takes two register operands as well as a memory
+  address specified with an 8-bit offset and index register.  Thus
+  these instructions require three registers to be specified, as well
+  as the offset.  Thus every bit of both instruction words is needed
+  to represent an RRXEXP format instruction.  In assembly language,
+  the memory address is written as *offset[Rh]* where *offset* is an
+  -bit binary number and Rh is a register.  The effective memory
+  address is *offset+Rh*. This is similar to ordinary memory
+  addresses; the only difference is that it uses an 8-bit offset
+  rather than a 16-bit displacement. For example, *save R1,R9,2[R14]*
+  has RRKEXP format.  
+
+Expressions, values and relocatables
+
+- An expression is syntax: 23, -5, $b23e, struc+5, arrEnd-arrStart
+- A value denotes a word (it is a number) and is the result of
+  evaluating an expression
+- A value is marked as either relocatable or fixed
+- Expressions may occur in
+  - Displacement field of an assembly language statement; the value of
+    the expression is placed in the displacement field of the
+    corresponding machine language instruction.
+  - If a displacement value is relocatable, its address is recorded in
+    the list of addressess of words to be relocated
+  - Right hand side of an equ statement.  The value may be fixed or
+    relocatable.  The name (the left hand side) is defined as a new
+    identifier, the definition line is the line containing the equ,
+    the value is the evaluation of the right hand side, which may be
+    either fixed or relocatable.  Identifiers used in the expression
+    on the RHS have the line number included in their usage lines.
+  - But identifiers that appear in an expression (even if relocatable)
+    are not recorded in the relocation list; only displacements are
+    placed in the relocation list.
+
+
+- Instruction set
+
+The following sections describe the instructions in groups organized
+by their function.  Some of the groups contain instructions with
+different formats.  From the programmer's perspective the function is
+more important, so these groups are useful in finding the right
+instruction to use.  (From the perspective of designing a digital
+circuit to impleemnt the architecture, the format is essential.)
 
 *** data
 
@@ -4098,6 +4081,7 @@ This shows each identifier (or "symbol") that appears in the program,
 the address allocated for the symbol, the source code line where it
 was defined, and the source code lines where it was used.
 
+
 ** Summary of assembly language statements
 
 | Statement  | Label  | Operands              | Purpose                    |
@@ -4110,93 +4094,7 @@ was defined, and the source code lines where it was used.
 
 
 
-* User interface
-*** Files and modules
-- In Modules tab, click Choose Files
-  - The dialogue shows .asm.txt, .lnk.txt, .obj.txt, .md.txt
-  - To select all the relevant files in a directory, click the little
-    box at the left on the row giving "Name, date modified, ..."
-  - Click Open (or cancel)
-*** Simple standalone programs
-
- If a program does not import any names, it is *standalone*.  The text
- of the program is shown in the editor pane.  Go to the Assembler pane
- and click Assemble.  If there are no errors, go directly to the
- Processor pane (you can skip the Linker) and click Boot.  This will
- read the machine language into the memory, and now you can run the
- program.
-
-*** Programs with multiple modules
-
-A module consists of program text, and it may have an optional file,
-and an optional module name.
-
-- The module text is a sequence of assembly language statements.  The
-  text may exist only in the editor buffer, or it may be associated
-  with a file.
-
-- If there is a file, this may be specified either as a path (the
-  unique identification of the file (=C:\\Users\...\prog.asm.txt=), or
-  as just a filename (myprogram.asm.txt) which is relative to the
-  current directory.
-
-To edit a file, the modDir and modName are both optional.  An edited
-file may have a module name specified with a module statement.  To
-read or save a file, both the module directory and name must be known.
-
-Editor operations on files and modules
-
-Each operation that changes the editor buffer (New, Open, Close)
-checks first to see whehter the buffer has been changed since it was
-last saved.  If so, a dialogue asks whether the file should be saved.
-
-- New -- Check whether text in the editor buffer has been saved; if
-  not, ask whether to save it.  Create a new module with empty text
-  and no file name, add it to the module set, and select it as the
-  current module.  Clear the text in the editor buffer.
-
-- Open -- Check whether text in the editor buffer has been saved; if
-  not, ask whether to save it.  Enter the open file dialogue where an
-  existing file can be found by navigation or by typing in its name.
-  If the dialogue is cancelled, the module set and editor buffer are
-  left unchanged.  If a file is selected in the dialogue, and it is
-  already in the module set, then it is selected in the current
-  module.  Otherwise, a new module is created with the file's
-  contents, and is selected as the current module.  and The file is
-  loaded into the editor buffer and added to the module set.
-
-- Refresh -- The file corresponding to the current module is read, and
-  its contents are loaded into the editor buffer.
-
-- SaveAs -- Enters the save file dialogue where the directory and file
-  name can be chosen.  The editor buffer is written into this file.
-
-- Save -- Writes the editor buffer into the current file and
-  directory.  If either the module name or directory is not known,
-  this reverts to a SaveAs.
-
-- Select -- Opens a list of all modules; you can click one of them
-  which is then set as the current module.
-  
-- Close -- Check whether text in the editor buffer has been saved; if
-  not, ask whether to save it. The module is removed from the module
-  set, and the editor buffer is cleared.  The first module (module
-  number 0) is selected as the current module, but if there is no
-  module at all, an empty module is created and selected as current
-  (in effect, if there is only one module and you close it, an
-  automatic New is performed).
-
-- Example -- Reads in a very simple example program and sets it as the
-  current module.  This is a standalone program; you can simply click
-  Editor: Example, then Assembler: Assemble, then Processor: Boot, and
-  run the program.  This example is used in the first "getting
-  started" tutorial.  The example program is also available in the
-  Examples directory, accessible through Editor: Open.
-
-Select is for switching among the existing modules, while New and Open
-are for introducing a new module.
-
-* Linker
+* Object code and linker
 :PROPERTIES:
 :CUSTOM_ID: sec-linker
 :END:
@@ -4287,7 +4185,6 @@ import  Mod3,ybit,03be,g
 #+END_EXAMPLE
 
 *** export
-
 
 *** relocate
 
@@ -4394,7 +4291,7 @@ source 32
   arbitrary, except that the selected module always comes first in the
   executable.
 
-** Loader
+** Booter
 *** Executable code
 
   An executable module is written in the same language as object
@@ -4413,6 +4310,94 @@ source 32
   reads in the currently selected module and checks to see whether it is
   a valid executable module.  If so, it loads the code into the memory.
   If not, it indicates that the program cannot be booted.
+
+
+* User interface
+*** Files and modules
+- In Modules tab, click Choose Files
+  - The dialogue shows .asm.txt, .lnk.txt, .obj.txt, .md.txt
+  - To select all the relevant files in a directory, click the little
+    box at the left on the row giving "Name, date modified, ..."
+  - Click Open (or cancel)
+*** Simple standalone programs
+
+ If a program does not import any names, it is *standalone*.  The text
+ of the program is shown in the editor pane.  Go to the Assembler pane
+ and click Assemble.  If there are no errors, go directly to the
+ Processor pane (you can skip the Linker) and click Boot.  This will
+ read the machine language into the memory, and now you can run the
+ program.
+
+*** Programs with multiple modules
+
+A module consists of program text, and it may have an optional file,
+and an optional module name.
+
+- The module text is a sequence of assembly language statements.  The
+  text may exist only in the editor buffer, or it may be associated
+  with a file.
+
+- If there is a file, this may be specified either as a path (the
+  unique identification of the file (=C:\\Users\...\prog.asm.txt=), or
+  as just a filename (myprogram.asm.txt) which is relative to the
+  current directory.
+
+To edit a file, the modDir and modName are both optional.  An edited
+file may have a module name specified with a module statement.  To
+read or save a file, both the module directory and name must be known.
+
+Editor operations on files and modules
+
+Each operation that changes the editor buffer (New, Open, Close)
+checks first to see whehter the buffer has been changed since it was
+last saved.  If so, a dialogue asks whether the file should be saved.
+
+- New -- Check whether text in the editor buffer has been saved; if
+  not, ask whether to save it.  Create a new module with empty text
+  and no file name, add it to the module set, and select it as the
+  current module.  Clear the text in the editor buffer.
+
+- Open -- Check whether text in the editor buffer has been saved; if
+  not, ask whether to save it.  Enter the open file dialogue where an
+  existing file can be found by navigation or by typing in its name.
+  If the dialogue is cancelled, the module set and editor buffer are
+  left unchanged.  If a file is selected in the dialogue, and it is
+  already in the module set, then it is selected in the current
+  module.  Otherwise, a new module is created with the file's
+  contents, and is selected as the current module.  and The file is
+  loaded into the editor buffer and added to the module set.
+
+- Refresh -- The file corresponding to the current module is read, and
+  its contents are loaded into the editor buffer.
+
+- SaveAs -- Enters the save file dialogue where the directory and file
+  name can be chosen.  The editor buffer is written into this file.
+
+- Save -- Writes the editor buffer into the current file and
+  directory.  If either the module name or directory is not known,
+  this reverts to a SaveAs.
+
+- Select -- Opens a list of all modules; you can click one of them
+  which is then set as the current module.
+  
+- Close -- Check whether text in the editor buffer has been saved; if
+  not, ask whether to save it. The module is removed from the module
+  set, and the editor buffer is cleared.  The first module (module
+  number 0) is selected as the current module, but if there is no
+  module at all, an empty module is created and selected as current
+  (in effect, if there is only one module and you close it, an
+  automatic New is performed).
+
+- Example -- Reads in a very simple example program and sets it as the
+  current module.  This is a standalone program; you can simply click
+  Editor: Example, then Assembler: Assemble, then Processor: Boot, and
+  run the program.  This example is used in the first "getting
+  started" tutorial.  The example program is also available in the
+  Examples directory, accessible through Editor: Open.
+
+Select is for switching among the existing modules, while New and Open
+are for introducing a new module.
+
 
 * Programming
 :PROPERTIES:
@@ -4711,6 +4696,7 @@ Close.  Then click Run, and the emulator will run at full speed until
 the pc reaches the specified value; then it will stop so you can
 examine the state of the machine.
 
+
 * Installation
 
 You can run most of Sigma16 in a web browser -- there's nothing to
@@ -4771,6 +4757,7 @@ Use emacs to build *.html from source *.org
 $ npm install -g wabt
 $ wat2wasm emcore.wat --enable-threads
 #+END_EXAMPLE
+
 
 * About Sigma16
 :PROPERTIES:

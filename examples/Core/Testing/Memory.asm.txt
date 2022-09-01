@@ -1,0 +1,36 @@
+; Memory: test load, store, addresses
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+
+     load   R1,a[R0]
+     load   R2,b[R0]
+     load   R3,c[R0]
+     load   R4,d[R0]
+
+     lea    R9,2[R4]   ; R9  := 0002
+     lea    R4,20[R0]
+     jump   loop[R0]
+     lea    R4,7[R0]   ; R4  := 0007
+     load   R2,xy[R0]  ; R2  := 002a  42
+loop store  R4,xy[R9]  ; mem change 002c to 0007
+
+; Store into some random large addresses to test scrolling
+
+     lea    R1,7
+     store  R1,$0c21
+     store  R1,$8000
+     store  R1,$00ea
+     store  R1,$0509
+     store  R1,$bfe2
+     store  R1,$e70d
+     store  R1,$ffff
+     store  R1,$04cd
+     trap   R0,R0,R0
+
+a    data   1
+b    data   2
+c    data   3
+d    data   4
+xy   data  42
+     data  43
+     data  44
+     data  45

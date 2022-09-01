@@ -1,20 +1,24 @@
+# examples/index.org
+# This file is part of Sigma16. https://github.com/jtod/Sigma1g
+# Copyright (c) 2022 John T. O'Donnell
+
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docs/docstyle.css" />
 #+TITLE: Sigma16 example programs
 #+OPTIONS: html-postamble:nil
 
-- [[./Core/index.html][Core]] Simple programs that use only the small core subset of the
-  architecture.  The core instructions are add, sub, mul, div, cmp,
-  trap, lea, load, store, jump, jal, jumpXX.
+- [[./Core/index.html][Core Instruction Set]] Simple programs that use only the small core
+  subset of the architecture.  The core instructions are add, sub,
+  mul, div, cmp, trap, lea, load, store, jump, jal, jumpXX (family of
+  conditional jumps).
 
-- [[./Standard/index.html][Standard]] Programs that use Core as well asadditional instructions
-  for logic, bit manipulation, and stacks.
+- [[./Standard/index.html][Standard Instruction Set]] Programs that use the full instruction set:
+  all the Core instructions are available, as well as additional
+  instructions for logic, bit manipulation, stacks, interrupts, mutual
+  exclusion.
 
-- [[./System/index.org][System]] Programs that use systems programming
-  instructions and registers.
-
-- [[./S32/index.org][S32]] Sigma32 is an extension of Sigma16 to allow
-  32 bit full words.  The architecture is backwards compatible with
+- [[./Lib/index.html][Library]] Utility functions that can be imported by a user program
+  
+- [[./S32/index.org][S32]] (not yet available) Extension of Sigma16 to allow 32 bit full
+  words.  The Sigma32 architecture is backwards compatible with
   Sigma16, and it allows a larger address space as well as operations
   that require full words.
-
-- [[./Testing/index.html][Testing]] Programs for testing the system.

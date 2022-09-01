@@ -1,0 +1,18 @@
+; ConditionalJump: demonstrate compare followed by conditional jump
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+
+; Given the constants in the lea instructions, the instruction
+; labelled yes should be executed.  You can modify the constants in
+; the editor tab (e.g. make R1 be 50 instead of 5).  Assemble the
+; modified program, and` then the instruction labelled no should be
+; executed.
+
+      lea     R1,5[R0]   ; R1 := 5
+      lea     R2,23[R0]  ; R2 := 23
+      cmp     R1,R2      : compare R1 with R2
+      jumplt  yes[R0]    ; if R1 < R2 then goto yes
+no    add     R0,R0,R0   ; this executes if we did NOT jump
+      jump    done[R0]   ; go to end of program
+yes   add     R0,R0,R0   ; this executes if we DID jump
+done  trap    R0,R0,R0   ; halt
+

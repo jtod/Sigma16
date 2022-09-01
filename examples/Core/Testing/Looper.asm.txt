@@ -1,5 +1,5 @@
 ; Looper: a long-running program for timing measurements
-; This file is part of Sigma16. See README and https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; This program contains two nested loops; its purpose is for testing,
 ; performance measurements, and demonstrating breakpoints.

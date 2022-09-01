@@ -1,7 +1,7 @@
 // Sigma16: common.js
-// This file is part of Sigma16. License: GNU GPL Version 3
-// See Sigma16/README, LICENSE and https://jtod.github.io/home/Sigma16/
-// Copyright (c) 2022 John T. O'Donnell
+// This file is part of Sigma16.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (c) 2019-2022 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -14,9 +14,9 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // common.js
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 export const S16HOMEPAGEURL = 'https://jtod.github.io/home/Sigma16'
 
@@ -63,24 +63,22 @@ export let mode = {
     }
 }
 
-
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Logging error message
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 export function indicateError (xs) {
     console.log (`%c${xs}`, 'color:red; font-weight:bold')
     console.trace ()
 }
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Dialogues with the user
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 export function modalWarning (msg) {
     alert (msg);
 }
-
 
 // The innerHTML
 // string is <pre ...>text of example</pre>.  The pre and pre tags

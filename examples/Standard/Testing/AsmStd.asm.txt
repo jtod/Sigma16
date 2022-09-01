@@ -1,6 +1,5 @@
-; AsmStdStatements: test assembly of each statement in the standard architecture
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
-; John O'Donnell, 2021
+; AsmStdStatements: test assembly of each statement
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; This is a set of examples of all the statements in the Std
 ; architecture.  It should assemble without any syntax errors, but it
@@ -82,3 +81,17 @@ f      import   Mod2,fcn
        export   loop          ; 0007 relocatable
        export   loop2         ; 0007 relocatable
 
+; System statements
+
+       resume                 ; e000
+       getctl   R2,req        ; e009 2200
+       putctl   R4,status     ; e00a 4000
+       putctl   R4,mask       ; e00a 4100
+       putctl   R4,req        ; e00a 4200
+       putctl   R4,istat      ; e00a 4300
+       putctl   R4,ipc        ; e00a 4400
+       putctl   R4,vect       ; e00a 4500
+       putctl   R4,psegBeg    ; e00a 4600
+       putctl   R4,psegEnd    ; e00a 4700
+       putctl   R4,dsegBeg    ; e00a 4800
+       putctl   R4,dsegEnd    ; e00a 4900

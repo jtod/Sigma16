@@ -1,6 +1,7 @@
 # Sigma16: makefile
-# Copyright (c) 2022 John T. O'Donnell, john.t.odonnell9@gmail.com
-# License: GNU GPL Version 3 or later.  See README.org and LICENSE.txt
+# This file is part of Sigma16.  License: GNU GPL Version 3
+# See Sigma16/README, LICENSE and https://jtod.github.io/home/Sigma16/
+# Copyright (c) 2019-2022 John T. O'Donnell
 
 # This file is part of Sigma16.  Sigma16 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU General
@@ -101,7 +102,7 @@ S16_DEV_SRC_DIR=$(S16_LOCAL_BUILD_DIR)/Sigma16
 # Target directory, makefile copies a build to this location
 S16_INSTALL_DIR=$(SIGMASYSTEM)/SigServer/Sigma16/build/$(VERSION)/Sigma16
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
-SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/SigServer
+SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/server
 
 .PHONY: showconfig
 showconfig:

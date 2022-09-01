@@ -1,5 +1,5 @@
 ; Read: demonstrate how to read input
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; Demonstrate how to read characters entered by the user
 

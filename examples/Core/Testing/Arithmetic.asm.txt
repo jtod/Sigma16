@@ -1,0 +1,65 @@
+; TestCoreArithmetic: test cases for arithmetic instructions
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+
+      lea    R1,4[R0]       ; 0004
+      lea    R2,5[R0]       ; 0005
+      add    R3,R1,R2       ; 0009
+      sub    R4,R1,R2       ; ffff
+      sub    R5,R2,R1       ; 0001
+      add    R6,R1,R4       ; 0003
+
+; Loading primary and secondary into register file
+
+      lea    R1,$f20b[R0]   ; R1 = f20b
+      sub    R2,R0,R1       ; R2 = 0df5 = 3,573
+      lea    R3,$00ab[R0]   ; R3 = 00ab
+      lea    R4,5[R0]       ; R4 = 0005
+      add    R5,R3,R4       ; R5 = 00b0
+
+      load   R6,k1[R0]      ; R6 = ffb7
+      load   R7,k2[R0]      ; R2 = 00fa
+      add    R8,R6,R7       ; R8 = 00b1   -73 + 250 = 177
+
+      load   R9,neg1[R0]    ; R9 = ffff
+      lea    R10,1[R0]      ; R10 = 0001
+      add    R11,R9,R10     ; R11 = 0000
+
+      lea    R1,27          ; R1 = 001b
+      lea    R2,183         ; R2 = 00b7
+      mul    R3,R1,R2       ; R3 = 134d 27 * 183 = 4,941 = 4096 + 3*256 + 4*16 + 13
+
+      lea    R1,27          ; R1 = 001b
+      lea    R2,3           ; R2 = 0003
+      div    R3,R1,R2       ; R3 = 0009  R15 = 0000
+      lea    R4,12          ; F4 = 000c
+      div    R5,R1,R4       ; R5 = 0002  R15 = 0003
+
+; Test muln and divn instructions
+
+; Multiply two large natural (unsigned) numbers
+    lea    R1,40000[R0]
+    lea    R2,50000[R0]
+    muln   R3,R1,R2
+
+; This is multiplying 4*10^4 * 5*10^4 = 20*10^8 = 2* 10^9
+; The exected result is 40000 * 50000 = 2,000,000,000
+; Actual result = R15 ++ R3 = $7735 ++ $9400 = $77359400 = 2,000,000,000
+
+    lea    R4,67[R0]
+    divn   R5,R3,R4   ; 2,000,000,000 / 3
+
+; Dividend is R15 ++ R3 = 2,000,000,000
+; Divisor is 67
+; Expected result is
+;   Quotient = 29,850,746
+;   Remainder = 18
+; Actual result is
+;   Quotient = R15 ++ R5 = $01c7 ++ $7c7a = $01c77c7a = 29,850,746
+;   Remainder = R3 = $0012 = 18
+
+      trap   R0,R0,R0       ; terminate
+
+k0    data    73            ; 0049
+k1    data   -73            ; ffb7
+k2    data   250            ; 00fa
+neg1  data    -1            ; $ffff

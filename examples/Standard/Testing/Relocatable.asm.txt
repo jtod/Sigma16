@@ -1,0 +1,17 @@
+; Relocatable: test assembly of relocatable and nonrelocatable addresses
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+
+; Assembler test cases for determination of relocatability of names
+  
+load   R1,x[R2]
+     jump   z[R5]
+     jumplt a[R6]
+x    data   1
+z    data   3
+y    data   2
+a    trap   R0,R0,R0
+b    trap   R0,R0,R0
+c    trap   R0,R0,R0
+     jumpge b[R7]
+     add    R0,R0,R0
+     lea    R3,y[R4]
