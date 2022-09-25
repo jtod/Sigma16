@@ -21,6 +21,25 @@
 ; bit 8  0100  S      S        bin carry out, carry in (addc)
 ; bit 9  0200  s      s        bin carry out, carry in (addc)
 
+; Test CC display on emulator GUI page
+      lea   R15,$0000[R0]  ; no cc bit set
+      lea   R15,$0001[R0]  ; >
+      lea   R15,$0002[R0]  ; G
+      lea   R15,$0004[R0]  ; =
+      lea   R15,$0008[R0]  ; L
+      lea   R15,$0010[R0]  ; <
+      lea   R15,$0020[R0]  ; v
+      lea   R15,$0040[R0]  ; V
+      lea   R15,$0080[R0]  ; C
+      lea   R15,$0100[R0]  ; S
+      lea   R15,$0200[R0]  ; s
+      lea   R15,$0400[R0]
+      lea   R15,$0800[R0]
+      lea   R15,$1000[R0]
+      lea   R15,$2000[R0]
+      lea   R15,$4000[R0]
+      lea   R15,$8000[R0]
+      
 ; Test data
       lea   R1,3[R0]    ; 0003  R1 := 3
       lea   R2,5[R0]    ; 0005  R2 := 5

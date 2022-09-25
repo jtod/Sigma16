@@ -1,5 +1,5 @@
 ; ShowInt: convert integer to string of decimal digits
-; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+; Sigma16  https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; This Sigma16 program defines and tests ShowInt, a procedure that
 ; converts an integer to a string of decimal digits.
@@ -39,7 +39,6 @@ str   data   $003f  ; str[0] = '?' - array to hold decimal string
 
 ;***********************************************************************
 ; Procedure ShowInt
-
 ; Convert an integer n to a decimal string of size k at address a
 ; Input parameters
 ;   R1 = n --- integer to convert to a string

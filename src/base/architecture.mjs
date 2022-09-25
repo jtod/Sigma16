@@ -156,24 +156,23 @@ export const aBlock   = Symbol ("block");    // block    100
 export const mnemonicRRR =
   ["add",      "sub",      "mul",       "div",        // 0-3
    "cmp",      "addc",     "muln",      "divn",       // 4-7
-   "push",     "pop",       "top",      "trap",       // 8-11
-   "nop",      "EXP3",     "EXP",      "RX"]         // 12-15
+   "rrr1",     "rrr2",     "rrr3",      "rrr4",       // 8-11
+   "trap",     "EXP3",     "EXP2",      "RX"]         // 12-15
 
 export const mnemonicRX =
   ["lea",      "load",     "store",     "jump",       // 0-3
-   "jumpc0",   "jumpc1",   "jal",       "jumpz",
+   "jumpc0",   "jumpc1",   "jal",       "jumpz",      // 4-7
    "jumpnz",   "brc0",     "brc1",      "testset",    // 8-b
    "leal",     "loadl",    "storel",    "noprx"]      // c-f
 
-export const mnemonicEXP =
-    ["save",    "restore",  "shiftl",   "shiftr",      // 0-3
-     "logicw",  "logicb",   "extract",  "extracti",    // 4-7
-     "getctl",   "putctl",  "resume",   "addcl",       // 8-11
-     "adde",     "sube",      "mule",                 // 10-13
-     "dive",     "cmpe",     "pushl",    "popl",
-     "topl",     "savel",    "restorel", "shiftll",
-     "shiftrl",  "logicwl",  "logicbl",  "extractl",
-     "extractil" ]
+export const mnemonicEXP2 =
+    ["push",     "pop",      "top",     "save",      // 0-3
+     "restore",  "shiftl",   "shiftr",  "logicw",    // 4-7
+     "logicb",   "extract",  "extracti","getctl",    // 8-11
+     "putctl",   "resume",   "addcl",   "adde",
+     "sube",     "mule",    "dive",     "cmpe",
+     "savel",    "restorel", "shiftll", "shiftrl",
+     "logicwl",  "logicbl",  "extractl", "extractil" ]
 
 // execute, dispatch
 
@@ -358,11 +357,15 @@ statementSpec.set("cmp",   {ifmt:iRRR, afmt:aRR,  opcode:[4]})
 statementSpec.set("addc",  {ifmt:iRRR, afmt:aRRR, opcode:[5]})
 statementSpec.set("muln",  {ifmt:iRRR, afmt:aRRR, opcode:[6]})
 statementSpec.set("divn",  {ifmt:iRRR, afmt:aRRR, opcode:[7]})
-statementSpec.set("push",  {ifmt:iRRR, afmt:aRRR, opcode:[8]})
-statementSpec.set("pop",   {ifmt:iRRR, afmt:aRRR, opcode:[9]})
-statementSpec.set("top",   {ifmt:iRRR, afmt:aRRR, opcode:[10]})
-statementSpec.set("trap",  {ifmt:iRRR, afmt:aRRR, opcode:[11]})
-statementSpec.set("nop",   {ifmt:iRRR, afmt:aRRR, opcode:[12]})
+statementSpec.set("rrr1",  {ifmt:iRRR, afmt:aRRR, opcode:[8]})
+statementSpec.set("rrr2",  {ifmt:iRRR, afmt:aRRR, opcode:[9]})
+statementSpec.set("rrr3",  {ifmt:iRRR, afmt:aRRR, opcode:[10]})
+statementSpec.set("rrr4",  {ifmt:iRRR, afmt:aRRR, opcode:[11]})
+statementSpec.set("trap",  {ifmt:iRRR, afmt:aRRR, opcode:[12]})
+
+// statementSpec.set("push",  {ifmt:iRRR, afmt:aRRR, opcode:[8]})
+// statementSpec.set("pop",   {ifmt:iRRR, afmt:aRRR, opcode:[9]})
+// statementSpec.set("top",   {ifmt:iRRR, afmt:aRRR, opcode:[10]})
 
 // The following primary opcodes do not indicate RRR instructions:
 //   13: escape to EXP3
@@ -397,19 +400,20 @@ statementSpec.set("storel",  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
 // and an 8-bit secondary opcode in the ab field, where ab >= 8.  (If
 // 0 <= ab <8 then the instruction is EXP1 format.)
 
-statementSpec.set("save",     {ifmt:iEXP, afmt:aRRX,   opcode:[14,0]})
-statementSpec.set("restore",  {ifmt:iEXP, afmt:aRRX,   opcode:[14,1]})
-statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,2]})
-statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
-statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,4]})
-statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,5]})
-// statementSpec.set("extract",  {ifmt:iEXP, afmt:aRRkkk, opcode:[14,6]})
-// statementSpec.set("extracti", {ifmt:iEXP, afmt:aRRkkk, opcode:[14,7]})
-statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,6]})
-statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,7]})
-statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,8]})
-statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,9]})
-statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,10]})
+statementSpec.set("push",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,0]})
+statementSpec.set("pop",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,1]})
+statementSpec.set("top",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,2]})
+statementSpec.set("save",     {ifmt:iEXP, afmt:aRRX,   opcode:[14,3]})
+statementSpec.set("restore",  {ifmt:iEXP, afmt:aRRX,   opcode:[14,4]})
+statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,5]})
+statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,6]})
+statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,7]})
+statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,8]})
+statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,9]})
+statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,10]})
+statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,11]})
+statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,12]})
+statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,13]})
 
 // The following instructions are in the S32 extended architecture,
 // and are not currently implemented
@@ -482,24 +486,24 @@ statementSpec.set("jumpco",
 
 // Mnemonics for logic instructions
 
-statementSpec.set("invw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,4,12],
+statementSpec.set("invw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,7,12],
                               pseudo:true});
-statementSpec.set("andw",    {ifmt:iEXP, afmt:aRRR,    opcode:[14,4,1],
+statementSpec.set("andw",    {ifmt:iEXP, afmt:aRRR,    opcode:[14,7,1],
                               pseudo:true});
-statementSpec.set("orw",     {ifmt:iEXP, afmt:aRRR,    opcode:[14,4,7],
+statementSpec.set("orw",     {ifmt:iEXP, afmt:aRRR,    opcode:[14,7,7],
                               pseudo:true});
-statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRRR, opcode:[14,4,6],
+statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRRR, opcode:[14,7,6],
                               pseudo:true});
 
 // Mnemonics for logicb instructions
 
-statementSpec.set("invb",    {ifmt:iEXP, afmt:aRkk, opcode:[14,5,12],
+statementSpec.set("invb",    {ifmt:iEXP, afmt:aRkk, opcode:[14,8,12],
                               pseudo:true});
-statementSpec.set("andb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,5,1],
+statementSpec.set("andb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,8,1],
                               pseudo:true});
-statementSpec.set("orb",     {ifmt:iEXP, afmt:aRkkk, opcode:[14,5,7],
+statementSpec.set("orb",     {ifmt:iEXP, afmt:aRkkk, opcode:[14,8,7],
                               pseudo:true});
-statementSpec.set("xorb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,6,6],
+statementSpec.set("xorb",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,8,6],
                               pseudo:true});
 
 // Mnemonic for bit field

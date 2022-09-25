@@ -26,6 +26,8 @@ ConvertInt module
 ; bit two's complement number can be shown using 6 characters,
 ; e.g. -30000.
 
+
+
 ; High level algorithm
 ; procedure ShowInt (x:Int, *bufstart:Char, bufsize:Int) : Int 
 ;   negative : Bool

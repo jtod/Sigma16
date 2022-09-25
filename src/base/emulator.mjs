@@ -1010,14 +1010,14 @@ const handle_rx = (es) => {
     dispatch_RX [es.ir_b] (es);
 }
 
-const handle_EXP = (es) => {
-    console.log ("handle_EXP")
-    es.instrFmtStr = "EXP";
+const handle_EXP2 = (es) => {
+    console.log ("handle_EXP2")
+    es.instrFmtStr = "EXP2";
     let code = 16*es.ir_a + es.ir_b;
-    if (code < limitEXPcode) {
+    if (code < limitEXP2code) {
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
-	dispatch_EXP [code] (es);
+	dispatch_EXP2 [code] (es);
     } else {
 	com.mode.devlog (`EXP bad code ${arith.wordToHex4(code)}`);
     }
@@ -1025,6 +1025,7 @@ const handle_EXP = (es) => {
 
 // push: Rd = src data x, Ra = top, Rb = limit
 
+// ????? Needs modificaiton because of change from RRR to EXP2
 const op_push  = (es) => {
     const x = es.regfile[es.ir_d].get()
     const ra = es.ir_a
@@ -1046,6 +1047,7 @@ const op_push  = (es) => {
 
 // pop: Rd = destination data x, Ra = top, Rb = base
 
+// ????? Needs modificaiton because of change from RRR to EXP2
 const op_pop  = (es) => {
     const ra = es.ir_a
     let top = es.regfile[ra].get()
@@ -1094,15 +1096,17 @@ const dispatch_primary_opcode =
         ab_c  (arith.op_cmp),     // 4
         cab_dc (arith.op_addc),   // 5
         cab_dc (arith.op_muln),   // 6
-        cab_dca (arith.op_divn),   // 7
-        dab (op_push),            // 8
-        dab (op_pop),             // 9
-        ab_dc (arith.op_nop),     // a reserved: nop
-        op_trap,                  // b
-        ab_dc (arith.op_nop),     // c reserved: nop
+        cab_dca (arith.op_divn),  // 7
+        ab_dc (arith.op_nop),     // 8 reserved rrr1
+        ab_dc (arith.op_nop),     // 9 reserved rrr2
+        ab_dc (arith.op_nop),     // a reserved rrr3
+        ab_dc (arith.op_nop),     // b reserved rrr4
+        op_trap,                  // c
         ab_dc (arith.op_nop),     // d escape to EXP3  x
-        handle_EXP,               // e escape to EXP
+        handle_EXP2,               // e escape to EXP
         handle_rx ]               // f escape to RX
+//        dab (op_push),            // 8
+//        dab (op_pop),             // 9
 
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
@@ -1280,17 +1284,17 @@ function rx_nop (es) {
 
 // EXP format
 
-function exp_nop (es) {
-    com.mode.devlog ('exp_nop');
+function exp2_nop (es) {
+    com.mode.devlog ('exp2_nop');
 }
 
-function exp_resume (es) {
-    console.log ('exp_resume')
+function exp2_resume (es) {
+    console.log ('exp2_resume')
     es.statusreg.put (es.rstat.get())
     es.pc.put (limitAddress (es, es.rpc.get()))
 }
 
-function exp_save (es) {
+function exp2_save (es) {
     const rStart = es.ir_d;
     const rEnd = es.field_e;
     const index = es.regfile[es.field_f].get();
@@ -1301,8 +1305,8 @@ function exp_save (es) {
     sr_looper ((a,r) => memStore (es, a, es.regfile[r].get()), ea, rStart, rEnd);
 }
 
-function exp_restore (es) {
-    com.mode.devlog ('exp_restore');
+function exp2_restore (es) {
+    com.mode.devlog ('exp2_restore');
     const rStart = es.ir_d;
     const rEnd = es.field_e;
     const index = es.regfile[es.field_f].get();
@@ -1328,14 +1332,14 @@ function sr_looper (f,addr,first,last) {
 function bininc4 (x) { return x >= 15 ? 0 : x+1 }
 
 // temp like put
-function exp_getctl (es) {
-    com.mode.devlog ('exp_getctl');
+function exp2_getctl (es) {
+    com.mode.devlog ('exp2_getctl');
     let cregn = es.field_f;
     let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
-    com.mode.devlog (`exp_getctl cregn=${cregn} cregidx=${cregidx}`);
+    com.mode.devlog (`exp2_getctl cregn=${cregn} cregidx=${cregidx}`);
     es.regfile[es.field_e].put(es.register[cregidx].get());
 }
-function exp_putctl (es) {
+function exp2_putctl (es) {
     com.mode.devlog ('putctl');
     let cregn = es.field_f;
     let cregidx = cregn + ctlRegIndexOffset; // init in gui.js
@@ -1345,12 +1349,12 @@ function exp_putctl (es) {
     es.register[cregidx].refresh(); // ???
 }
 
-function exp_execute (es) {
-    com.mode.devlog ("exp_execute");
+function exp2_execute (es) {
+    com.mode.devlog ("exp2_execute");
 }
 
 
-function exp_shiftl (es) {
+function exp2_shiftl (es) {
     com.mode.devlog (`shiftl d=${arith.wordToHex4(es.field_d)}`
                      + ` e=${arith.wordToHex4(es.field_e)}`
                      + ` gh=${arith.wordToHex4(es.field_gh)}`)
@@ -1362,7 +1366,7 @@ function exp_shiftl (es) {
     es.regfile[es.ir_d].put(result);
 }
 
-function exp_shiftr (es) {
+function exp2_shiftr (es) {
     com.mode.devlog (`shiftr d=${arith.wordToHex4(es.field_d)}`
                      + ` e=${arith.wordToHex4(es.field_e)}`
                      + ` gh=${arith.wordToHex4(es.field_gh)}`)
@@ -1376,8 +1380,8 @@ function exp_shiftr (es) {
 
 // extract
 
-function exp_extract (es) {
-    console.log ('exp_extract')
+function exp2_extract (es) {
+    console.log ('exp2_extract')
     const d_old = es.regfile[es.ir_d].get()
     const src = es.regfile[es.field_e].get()
     const d_left = es.field_f
@@ -1396,8 +1400,8 @@ function exp_extract (es) {
     es.regfile[es.ir_d].put(d_new);
 }
 
-function exp_extracti (es) {
-    console.log ('exp_extracti')
+function exp2_extracti (es) {
+    console.log ('exp2_extracti')
     const d_old = es.regfile[es.ir_d].get()
     const src = (~ es.regfile[es.field_e].get()) & 0xffff
     const d_left = es.field_f
@@ -1416,7 +1420,7 @@ function exp_extracti (es) {
     es.regfile[es.ir_d].put(d_new);
 }
 
-function exp_logicw (es) {
+function exp2_logicw (es) {
     com.mode.devlog ('EXP logicw')
     const x = es.regfile[es.field_e].get()              // operand 1
     const y = es.regfile[es.field_f].get()              // operand 2
@@ -1427,7 +1431,7 @@ function exp_logicw (es) {
     es.regfile[es.ir_d].put(result);
 }
 
-function exp_logicb (es) {
+function exp2_logicb (es) {
     com.mode.devlog (`EXP logicb`);
     const w = es.regfile[es.ir_d].get()                      // operand word
     const x = arch.getBitInWordLE (w, es.field_f)            // operand bit x
@@ -1443,11 +1447,11 @@ function exp_logicb (es) {
 
 // EXP format instructions require a second word
 
-const exp = (f) => (es) => {
+const exp2 = (f) => (es) => {
     console.log (`>>> EXP instruction`)
     com.mode.devlog (`>>> EXP instruction`)
     let expCode = 16 * es.ir_a + es.ir_b
-    es.instrOpStr = arch.mnemonicEXP[expCode]
+    es.instrOpStr = arch.mnemonicEXP2[expCode]
     console.log (`EXP instruction, code = ${expCode} ${es.instrOpStr}`)
     es.instrDisp = memFetchInstr (es, es.pc.get())
     es.adr.put (es.instrDisp);
@@ -1468,24 +1472,31 @@ const exp = (f) => (es) => {
     f (es);
 }
 
-const dispatch_EXP =
-      [ exp (exp_save),      // 0
-        exp (exp_restore),   // 1
-        exp (exp_shiftl),    // 2
-        exp (exp_shiftr),    // 3
-        exp (exp_logicw),    // 4
-        exp (exp_logicb),    // 5
-        exp (exp_extract),   // 6
-        exp (exp_extracti),  // 7
-        exp (exp_getctl),    // 8
-        exp (exp_putctl),     // a
-        exp (exp_resume)    // 0
+const dispatch_EXP2 =
+      [ exp2 (exp2_nop),    // temp placeholder for push
+        exp2 (exp2_nop),    // temp placeholder for pop
+        exp2 (exp2_nop),    // temp placeholder for top
+//        exp2 (exp2_push),      // 0
+//        exp2 (exp2_pop),      // 0
+//        exp2 (exp2_top),      // 0
+        exp2 (exp2_save),      // 0
+        exp2 (exp2_restore),   // 1
+        exp2 (exp2_shiftl),    // 2
+        exp2 (exp2_shiftr),    // 3
+        exp2 (exp2_logicw),    // 4
+        exp2 (exp2_logicb),    // 5
+        exp2 (exp2_extract),   // 6
+        exp2 (exp2_extracti),  // 7
+        exp2 (exp2_getctl),    // 8
+        exp2 (exp2_putctl),     // a
+        exp2 (exp2_resume)    // 0
     ]
 
-const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
+const limitEXP2code = dispatch_EXP2.length;  // any code above this is nop
 
 /*
 Deprecated
+// ????? Needs modificaiton because of change from RRR to EXP2
 const op_top  = (es) => {
     const a = es.regfile[es.ir_a].get();
     const b = es.regfile[es.ir_b].get();
@@ -1497,8 +1508,8 @@ const op_top  = (es) => {
     }
 }
 
- function exp_push (es) {
-    com.mode.devlog ('exp_push');
+ function exp2_push (es) {
+    com.mode.devlog ('exp2_push');
     let top = es.regfile[es.field_a].get();
     let last = es.regfile[es.field_b].get();
     if (top < last) {
@@ -1510,8 +1521,8 @@ const op_top  = (es) => {
     }
 }
 
-function exp_pop (es) {
-    com.mode.devlog ('exp_pop');
+function exp2_pop (es) {
+    com.mode.devlog ('exp2_pop');
     let top = es.regfile[es.field_f].get();
     let first = es.regfile[es.field_g].get();
     if (top >= first) {
@@ -1523,8 +1534,8 @@ function exp_pop (es) {
     }
 }
 
-function exp_top (es) {
-    com.mode.devlog ('exp_top');
+function exp2_top (es) {
+    com.mode.devlog ('exp2_top');
     let top = es.regfile[es.field_f].get();
     let first = es.regfile[es.field_g].get();
     if (top >= first) {

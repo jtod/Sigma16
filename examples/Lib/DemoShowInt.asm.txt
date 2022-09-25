@@ -164,6 +164,77 @@ TSIbuf                         ; buffer for the strings of digits
 StackOverflow
     trap   R0,R0,R0
 
+WriteNewLine2
+
+; Structure of stack frame for WriteNewLine, frame size = 5
+;  4[R14]  save R3
+;  3[R14]  save R2
+;  2[R14]  save R1
+;  1[R14]  return address
+;  0[R14]  pointer to previous stack frame
+
+    store  R14,0[R12]          ; save dynamic link
+    add    R14,R12,R0          ; stack pointer := stack top
+    lea    R12,5[R14]          ; stack top := stack ptr + frame size
+    cmp    R12,R11             ; stack top ~ stack limit
+    jumpgt StackOverflow[R0]   ; if top>limit then goto stack overflow
+    store  R13,1[R14]          ; save return address
+    store  R1,2[R14]           ; save R1
+    store  R2,3[R14]           ; save R2
+    store  R3,4[R14]           ; save R3
+
+    lea    R1,2[R0]            ; trap write code
+    lea    R2,NewLine[R0]      ; address of character to write
+    lea    R3,1[R0]            ; write 1 character
+    trap   R1,R2,R3            ; write
+    load   R1,2[R14]           ; restore R1
+    load   R2,3[R14]           ; restore R2
+    load   R3,4[R14]           ; restore R3
+    load   R13,1[R14]          ; restore return address
+    add    R12,R14,R0          ; R12 := R14, restore stack top
+    load   R14,0[R14]          ; pop stack frame
+    jump   0[R13]              ; return
+
+
+
+; Old version...
+
+DemoShowInt
+      lea    R1,2[R0]          ; trap code - write
+      lea    R2,Digits[R0]     ; string of digits and -
+      lea    R3,12[R0]         ; length of digits, -, and newline
+      trap   R1,R2,R3          ; write
+
+; Convert x to decimal string
+      load   R1,x[R0]          ; R1 = x = integer to convert
+      lea    R2,str[R0]        ; R2 = address of result string
+      load   R3,size[R0]       ; R3 = size of field
+      jal    R13,ShowInt[R0]   ; convert x to string
+
+; Write x in decimal
+      lea    R1,2[R0]          ; trap code - write
+      lea    R2,str[R0]        ; string containing x
+      load   R3,size[R0]       ; R3 = size of field
+      lea    R4,1[R0]          ; R4 = 1
+      add    R3,R3,R4          ; Increment size for newline character
+      trap   R1,R2,R3          ; write
+
+; Terminate
+      trap   R0,R0,R0          ; terminate main program
+
+showInt import ShowInt,ShowInt
+
+x     data   17284  ; number to print
+size  data   7      ; size of str
+str   data   $003f  ; str[0] = '?' - array to hold decimal string
+      data   $003f  ; str[1] = '?'
+      data   $003f  ; str[2] = '?'
+      data   $003f  ; str[3] = '?'
+      data   $003f  ; str[4] = '?'
+      data   $003f  ; str[5] = '?'
+      data   $003f  ; str[6] = '?'
+      data  $000a   ; newline
+
 StackSize       data  1000
 AllocationArea  data   0
 CallStack       data   0

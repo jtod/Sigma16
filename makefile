@@ -104,7 +104,6 @@ S16_INSTALL_DIR=$(S16_INSTALL_VERSION_DIR)/Sigma16
 
 # Homepage repository
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
-SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/server
 
 .PHONY: showconfig
 showconfig:

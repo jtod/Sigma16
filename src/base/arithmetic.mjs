@@ -1,5 +1,5 @@
 // Sigma16: arithmetic.mjs
-// Copyright (C) 2020-2021 John T. O'Donnell
+// Copyright (c) 2019-2022 John T. O'Donnell
 // email: john.t.odonnell9@gmail.com
 // License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,12 +14,12 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // arithmetic.mjs defines arithmetic for the architecture using
 // JavaScript arithmetic.  This includes word representation, data
 // conversions, and bit manipulation, operations on fields, and
 // arithmetic as required by the instruction set architecture.
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
@@ -28,9 +28,9 @@ import * as arch from './architecture.mjs';
 export const word16mask = 0x0000ffff
 export const word32mask = 0xffffffff
 
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Ensuring and asserting validity of words
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // All operations that produce a word should produce a valid word,
 // which is represented as a nonnegative integer.  For a k-bit word,
@@ -123,9 +123,9 @@ function validateInt (x) {
 }
 
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Logic
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Mnemonics for logic
 
@@ -194,9 +194,9 @@ function applyLogicFcnHelper (p,q,r,s, x, y) {
 }
 
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Words, binary numbers, and two's complement integers
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Sigma16 uses 16-bit words.  A word is represented as a JavaScript
 // integer whose value is the binary interpretation of the word.  Thus
@@ -239,9 +239,9 @@ export function wordToBool (x) {
 //}
 
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Converting between binary words and two's complement integers
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Natural numbers are represented in binary.  The binary value of a
 // word w is just s (i.e. the value of the JavaScript int).
@@ -278,9 +278,9 @@ function showWord (w) {
         : `word ${w} is invalid: out of range`;
 }
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 //  Operating on fields of a word
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Return the 4-bit fields of a word
 
@@ -297,9 +297,9 @@ export function splitWord (x) {
 }
 
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Hexadecimal notation
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // The assembly language allows hex numbers to be written with either
 // lower case a-f or upper case A-F.  When it outputs hex numbers, the
@@ -387,9 +387,9 @@ function hexCharToInt (cx) {
     return y;
 }
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Bitwise logic on words
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Invert each bit in a word
 
@@ -398,9 +398,9 @@ function wordInvert (x) {
 }
 
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Testing arithmetic operations
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Example: test_rrdc ("op_add", op_add, 49, -7)
 
@@ -438,9 +438,9 @@ const g_rr  = (op,c,a,b) => op (a,b);
 const g_crr = (op,c,a,b) => op (c,a,b);
 
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Basic addition and subtraction
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Add two binary numbers.  If there is a carry out, that is
 // discarded: instead of overflow, the result wraps around.  For
@@ -460,9 +460,9 @@ export function incrAddress (es, x, i) {
     return r
 }
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Operations for the instructions
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Shift a by k bits.  k>0 means shift left, k<0 means shift right.
 // Thhis calculates a * 2^k where a is a natural number (binary).

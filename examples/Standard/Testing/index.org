@@ -1,8 +1,22 @@
+# examples/Standard/index.org
+# This file is part of Sigma16. https://github.com/jtod/Sigma16
+# Copyright (c) 2022 John T. O'Donnell
+
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Intermediate examples using standard instruction set
+#+TITLE: Test cases for the standard instruction set
 #+OPTIONS: html-postamble:nil
 
 - [[./AsmStd/index.html][AsmStd]] Test assembly language statements
   for standard architecture
+- [[./Relocatable.asm.txt][Relocatable]] Assembler determination of
+  relocatable names
+- [[./StdArithmetic.asm.txt][StdArithmetic]]
+- [[./StdJumps.asm.txt][StdJumps]]
+- [[./Logic.asm.txt][Logic]]
+- [[./Shift.asm.txt][Shift]]
+- [[./BitField.asm.txt][BitField]]
+- [[./SaveRestore.asm.txt][SaveRestore]]
+- [[./Stack.asm.txt][Stack]]
+- [[./System.asm.txt][System]]
 
 
