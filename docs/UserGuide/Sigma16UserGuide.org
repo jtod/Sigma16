@@ -1,5 +1,7 @@
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
+#+DATE: Version 3.4.4, November 2022
+#+EMAIL: john.t.odonnell9@gmail.com
 
 # License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
 
@@ -14,25 +16,36 @@
 # copy of the GNU General Public License along with Sigma16.  If not,
 # see <https://www.gnu.org/licenses/>.
 
+# problem: need this to avoid two titles for html, but this prevents
+# latex from producing the title
+
 # html
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docstyle.css" />
-#+OPTIONS: title:nil
-#+OPTIONS: toc:nil
-#+OPTIONS: num:nil
-#+BEGIN_EXPORT html
-<h1>Sigma16 User Guide</h1>
-#+END_EXPORT
-# The following version messages should come after the title but
-# before the table of contents, so the version is clearly visible but
-# not too long and obtrusive.
-#+INCLUDE: "../../VERSION.txt" export html
-#+INCLUDE: "../../COPYRIGHT.txt" export html
-#+TOC: headlines:5
 
 # latex 
 #+LATEX_CLASS: article
-#+LATEX_HEADER: \usepackage{svg}
-#+LATEX_HEADER: \svgpath{{figures/svg/}}
+
+# deprecated
+# #+BEGIN_EXPORT latex
+# \maketitle
+# This is in a begin export latex
+# #+END_EXPORT
+
+#   #+OPTIONS: title:nil
+#  #+OPTIONS: title:nil
+# #+BEGIN_EXPORT html org
+# #+OPTIONS: toc:nil
+# # <h1>Sigma16 User Guide</h1>
+# #+END_EXPORT
+# #+OPTIONS: num:nil
+# The following version messages should come after the title but
+# before the table of contents, so the version is clearly visible but
+# not too long and obtrusive.
+# #+INCLUDE: "../../VERSION.txt" export html
+# #+INCLUDE: "../../COPYRIGHT.txt" export html
+# #+TOC: headlines:5
+#  #+LATEX_HEADER: \usepackage{svg}
+#  #+LATEX_HEADER: \svgpath{{figures/svg/}}
 
 * Introduction
 
@@ -117,8 +130,8 @@ or install anything.
   scratch.  For now, don't worry about the content of the program.
 
 - Click *Assembler*.  The assembler translates programs in assembly
-  language (the \source program\) to machine language (the \object
-  program\).  Assembly language is a human-readable notation, while
+  language (the source program) to machine language (the object
+  program).  Assembly language is a human-readable notation, while
   machine language is what the computer can execute.  When you first
   enter the Assembler tab, the assembly language text in the Editor
   window is copied over; this is the source program.
@@ -820,7 +833,7 @@ x  data  25
 y  data  $2c9e
 #+END_EXAMPLE
 
-There are two \instruction formats\, which differ in the form of the
+There are two instruction formats, which differ in the form of the
 operands:
 
 - RRR instructions have an operand field containing three registers
@@ -3373,6 +3386,7 @@ The effect is equivalent to
 |       |                      |                   |               |
 
 
+
 * Table of instructions
 
 #+BEGIN_EXPORT html
@@ -3449,8 +3463,8 @@ The effect is equivalent to
 | x addl      | S32  |     |   | EXP2 | RRR   | e,0e | Rd := Ra + Rb                      |
 | x subl      | S32  |     |   | EXP2 | RRR   | e,0f | Rd := Ra - Rb                      |
 | x mull      | S32  |     |   | EXP2 | RRR   | e,10 | Rd := Ra * Rb                      |
-| x divl      | S32  |     |   | EXP2 | RRR   | e,11  | Rd := Ra / Rb, R15 := Ra rem Rb    |
-| x cmpl      | S32  |     |   | EXP2 | RRR   | e,12  | Rd := Ra / Rb, R15 := Ra rem Rb    |
+| x divl      | S32  |     |   | EXP2 | RRR   | e,11 | Rd := Ra / Rb, R15 := Ra rem Rb    |
+| x cmpl      | S32  |     |   | EXP2 | RRR   | e,12 | Rd := Ra / Rb, R15 := Ra rem Rb    |
 | x addcl     | S32  |     |   | EXP2 | RRR   | e,13 | Rd := Ra + Rb + R15.carry          |
 | x pushl     | S32  |     |   | EXP2 | RRR   | e,14 | M[ea] := Rd, Rb++                  |
 | x popl      | S32  |     |   | EXP2 | RRR   | e,15 | Rb--, Rd := M[ea]                  |
