@@ -32,8 +32,12 @@ import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 
+// Normally runs in user mode, which is the default.  For development
+//and experimentation, set Dev mode.  In console, enter setModeDev()
+//or setModeUser().
+
 //-------------------------------------------------------------------------
-// Constant parameters
+//Constant parameters
 //-------------------------------------------------------------------------
 
 // Window layout
@@ -175,7 +179,8 @@ class GuiState {
     constructor () {
         // Configuration parameters
         this.options = new Options ()
-
+        this.guiMode = 'User'
+        
         // Keyboard
         this.currentKeyMap = defaultKeyMap
 
@@ -215,7 +220,7 @@ class GuiState {
         this.metadata           = null
 	this.asmListingCurrent  = [] // listing displayed in emulator pane
         this.asmListingHeight   = 0   // height in pixels of the listing
-	this.curInstrLineNo     = -1  // -1 indicates no line has been highlighted
+	this.curInstrLineNo     = -1  // -1 if no line has been highlighted
 	this.nextInstrLineNo    = -1
 	this.saveCurSrcLine     = ""
 	this.saveNextSrcLine    - ""
@@ -240,7 +245,7 @@ class Options {
 
         // Version
         this.thisVersion = ver.s16version
-        this.latestRelease = 'see Sigma16 Home Page'
+        this.latestRelease = 'see Sigma16 Home Page' // update after server query
         
         // Platform capabilities
         this.supportLocalStorage = !!window.localStorage
@@ -1054,7 +1059,7 @@ function initializeButtons () {
     prepareButton ('DevTools104',    devTools104);
     prepareButton ('DevTools105',    devTools105);
     prepareButton ('DevTools106',    devTools106);
-    prepareButton ('DisableDevTools', disableDevTools);
+    prepareButton ('DisableDev',     setModeUser);
 }
 
 //-------------------------------------------------------------------------
@@ -2663,31 +2668,44 @@ window.test_op_add = (x,y) => {
 // These are experimental tools that are normally disabled.  They
 // aren't documented, aren't intended for users, and aren't stable.
 // To use them, press F12 to display the browser console, then enter
-// enableDevTools() which will make the tools' buttons visible; to
-// hide them again enter disableDevTools().
+// setModeDev() which will make the tools' buttons visible; to
+// hide them again enter setModeUser().
 
 // DevElts is list of ids of elements to be shown or hidden.  To
 // ensure they are hidden by default, they should have class="Hidden"
 // specified in their html element: the css for .Hidden specifies
 // visibility: "hidden".
 
-const DevElts = [ "DevTools_Pane_Button" ]
+const DevElts = [ DevTools_Pane_Button,
+                 Arch16button, Arch32button]
 //  ,  "PP_RunGui",  "PP_Test1", "PP_Test2"]
 
 // Define functions that show/hide the DevElts and attach the
 // functions to the window to put them into scope at the top level
 
-function disableDevTools () { DevElts.map (hideElement) }
-function enableDevTools ()  { DevElts.map (showElement) }
-window.enableDevTools = enableDevTools;
-window.disableDevTools = disableDevTools;
+function setModeUser () {
+    console.log ('setModeUser')
+    gst.guiMode = 'User'
+    DevElts.map (hideElement)
+}
+function setModeDev ()  {
+    console.log ('setModeDev')
+    gst.guiMode = 'Dev'
+    DevElts.map (showElement)
+}
+window.setModeDev = setModeDev;
+window.setModeUser = setModeUser;
 
-function showElement (eltName) {
-    document.getElementById(eltName).style.visibility = "visible";
+//function showElement (eltName) {
+function showElement (elt) {
+//    document.getElementById(eltName).style.visibility = "visible";
+    elt.style.visibility = "visible";
 }
 
-function hideElement (eltName) {
-    document.getElementById(eltName).style.visibility = "hidden";
+//function hideElement (eltName) {
+function hideElement (elt) {
+    //    document.getElementById(eltName).style.visibility = "hidden";
+    elt.style.visibility = "hidden";
 }
 
 function devTools100 () {
@@ -2906,8 +2924,8 @@ function setArch16 () {
     es.addressMask = arith.word16mask
 //    console.log (`addressMask (S16) = ${es.addressMask}`)
     setRegisterSize (16)
-    highlightArchButton('Arch16button')
-    unhighlightArchButton('Arch32button')
+        highlightArchButton('Arch16button')
+        unhighlightArchButton('Arch32button')
     document.documentElement.style
         .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
     procReset (gst)
@@ -2919,8 +2937,8 @@ function setArch32 () {
     es.addressMask = arith.word32mask
     console.log (`addressMask (S32) = ${es.addressMask}`)
     setRegisterSize (32)
-    highlightArchButton('Arch32button')
-    unhighlightArchButton('Arch16button')
+        highlightArchButton('Arch32button')
+        unhighlightArchButton('Arch16button')
     gst.es.pc.show = arith.wordToHex8
     document.documentElement.style
         .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
@@ -3153,7 +3171,7 @@ window.onload = function () {
     console.log("starting initializers")
     com.mode.trace = false
     initializeSystem ()
-    enableDevTools ()
     enableKeyboardShortcuts ()
+    setModeUser ()
     console.log ('system is now running')
 }

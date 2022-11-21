@@ -894,10 +894,6 @@ const cab_dca = (f) => (es) => {
     es.regfile[es.ir_a].put(tertiary)
 }
 
-
-
-
-
 const op_trap = (es) => {
 //  console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
     switch (es.thread_host) {
