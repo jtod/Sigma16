@@ -1059,7 +1059,7 @@ function initializeButtons () {
     prepareButton ('DevTools104',    devTools104);
     prepareButton ('DevTools105',    devTools105);
     prepareButton ('DevTools106',    devTools106);
-    prepareButton ('DisableDev',     setModeUser);
+//    prepareButton ('DisableDev',     setModeUser);
 }
 
 //-------------------------------------------------------------------------
