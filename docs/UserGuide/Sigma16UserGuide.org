@@ -1,6 +1,6 @@
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
-#+DATE: Version 3.4.5, November 2022
+#+DATE: Version 3.5.0, December 2022
 #+EMAIL: john.t.odonnell9@gmail.com
 
 # License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
