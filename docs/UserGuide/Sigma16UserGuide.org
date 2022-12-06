@@ -799,7 +799,7 @@ In assembly language, you can write constants in either decimal
 or hexadecimal.
   
 - decimal:   50
-- hexadecimal: $0032
+- hexadecimal: $003b
 
 Examples:
 
@@ -1921,8 +1921,7 @@ Sigma16 uses the following terminology:
 - A *double word* is a sequence of 32 bits.
 - A *generic word* is a sequence of bits of arbitrary length.
 
-In S16, every data value is a word.  S32 allows computations on both
-words and double words.  The system does not use bytes (a byte is 8
+In S16, every data value is a word.   The system does not use bytes (a byte is 8
 bits) or extended words (64 bits).
 
 The bits of a word are indexed from right to left, starting with 0.
@@ -2326,9 +2325,6 @@ additional instructions) and *experimental* (because it allows for
 experimentation with the design and implementation of new
 instructions).
 
-The S32 architecture extends Sigma16 to handle 32-bit words, and it
-uses the EXP3 format.
-
 Every instruction has a 4-bit field called the opcode (op for short).
 This gives 16 values of the opcode: 14 of them (0 through 13) denote
 the 14 RRR instructions, described later.  If the op field is 14 (hex
@@ -2367,7 +2363,6 @@ following table gives an overview.
 | RRR    |    1 | op     | d,a,b           | add Rd,Ra,Rb      |
 | RX     |    2 | op,b   | d,a,disp       | load Rd,disp[Ra]  |
 | EXP    |    2 | op,ab  | d,e,f,g,h       | save Rd,Re,gh[Rf] |
-| EXP3   |    3 | op,ab  | d,e,f,g,h,p,q,r | extractl          |
 
 There are two kinds of format: the machine instruction formats, and
 the assembly language instruction statement formats.  There are three
@@ -2378,16 +2373,6 @@ directives that aren't instructions at all.  The assembly language
 formats are described later.
 
 
-*** EXP3 format
-
-The EXP3 format uses three words to represent an instruction.  The
-first two words have the same layout as for EXP, and the third word
-contains three 5-bit fields and a 1-bit field.  The 5-bit fields
-represent numbers in the range from 0 through 31, and are used to
-specify bit indexes and field sizes for the 32-bit architecture
-extension.
-
-#  #+INCLUDE: "./svg/EXP3format.svg" export html
 
 ** Interrupts
 
@@ -3199,8 +3184,34 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** save
+*** save, restore
 
+ save  
+ save     |       RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd  M[Rb+ofs+(f-e+1)] := Rf |
+ restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1] |
+
+This instruction saves registers R3 through R9 into memory starting at
+address mem[5 + R13].
+
+#+BEGIN_EXAMPLE
+   save   R3,R9,5[R13]
+#+END_EXAMPLE
+
+It is equivalent to a sequence of store instructions:
+#+BEGIN_EXAMPLE
+   store   R3,5[R13]
+   store   R4,6[R13]
+   store   R5,7[R13]
+   store   R6,8[R13]
+   store   R7,9[R13]
+   store   R8,10[R13]
+   store   R9,11[R13]
+#+END_EXAMPLE
+
+The constant k (5 in this example) must satisfy $0 \leq k \leq 255$,
+because it is represented by an 8-bit field in the instruction.
+
+ 
 The *save* instruction stores a sequence of adjacent registers into a
 block of contiguous memory locations.  The sequence of registers is
 specified by giving the first and last register, and the starting
@@ -3365,29 +3376,149 @@ The effect is equivalent to
 | RC    | Rc,Rd                | putctl vect,R4    |               |
 |       |                      |                   |               |
 
-
-
 * Table of instructions
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
 
-- Instructions marked x (primarily S32 instructions) are not are not
-  implemented in this version.
 - The Mnemonic gives the symbolic name of the instruction used in
   assembly language
 - The ISA specifies the smallest subset of the instruction set
   architecture that allows this instruction.  The Core subset is a
   minimal architecture; the Standard subset contains a full range of
-  instructions, and the S32 system (not currently available) contains
-  additional instructions for operating on 32 bit words.
+  instructions
 - The R15 entry indicates how the instruction uses R15: cc indicates
   the instruction sets the condition code in R15, and x indicates the
   instruction places data in R15.  A blank entry means the
   instruction does not change R15.
 - The P entry indicates whether the instruction is Privileged (P) or
   not (blank)
+
+The Args column shows the assembly language statement format.
+- R is a register, e.g. R4 or R15
+- D is an expression denoting the displacement, which must be
+  representable in 16 bits
+- k is a small constant representable in 4 bits, so 0 <= k < 16
+- K is a large constant representable in 12 bits, so 0 <=k < 4096
+
+|----------+------+-----+---+-----+----------+------+------------------------------------|
+| Mnemonic | ISA  | R15 | P | Fmt | Args     | Code | Effect                             |
+|----------+------+-----+---+-----+----------+------+------------------------------------|
+| add      | Core | cc  |   | RRR | RRR      | 0    | Rd := Ra + Rb                      |
+| sub      | Core | cc  |   | RRR | RRR      | 1    | Rd := Ra - Rb                      |
+| mul      | Core | cc  |   | RRR | RRR      | 2    | Rd := Ra * Rb                      |
+| div      | Core | rem |   | RRR | RRR      | 3    | Rd := Ra / Rb, R15 := Ra rem Rb    |
+| cmp      | Core | cc  |   | RRR | RR       | 4    | R15 := Ra cmp Rb                   |
+| addc     | Std  | cc  |   | RRR | RRR      | 5    | Rd := Ra + Rb + R15.carry          |
+| muln     | Std  | d   |   | RRR | RRR      | 6    | R15++Rd := Ra :*: Rb               |
+| divn     | Std  | d   |   | RRR | RRR      | 7    | R15++Rd := R15++Ra :/: Rb          |
+|          | Core |     |   | RRR | RRR      | 8    | nop, reserved for experimenting -- |
+|          | Core |     |   | RRR | RRR      | 9    | nop, reserved for experiment --    |
+|          | Core |     |   | RRR | RRR      | a    | nop, reserved for experiment --    |
+|          | Core |     |   | RRR | RRR      | b    | nop, reserved for experiment --    |
+| trap     | Core |     |   | RRR | RRR      | c    | user interrupt                     |
+|          |      |     |   |     |          | d    | nop, reserved                      |
+|          |      |     |   |     |          | e    | escape to EXP format               |
+|          |      |     |   |     |          | f    | escape to RX format                |
+|----------+------+-----+---+-----+----------+------+------------------------------------|
+| lea      | Core |     |   | RX  | RX       | f,0  | Rd := ea                           |
+| load     | Core |     |   | RX  | RX       | f,1  | Rd := M[ea]                        |
+| store    | Core |     |   | RX  | RX       | f,2  | M[ea] := Rd                        |
+| jump     | Core |     |   | RX  | RX       | f,3  | pc := ea                           |
+| jumpc0   | Core |     |   | RX  | kX       | f,4  | R15.k=0 ==> pc := ea               |
+| jumpc1   | Core |     |   | RX  | kX       | f,5  | R15.k=1 ==> pc := ea               |
+| jal      | Core |     |   | RX  | RX       | f,6  | Rd := pc, pc := ea                 |
+| testset  | Sys  |     |   | RX  | RX       | f,7  | Rd := M[ea], M[ea] := 1            |
+|          |      |     |   | RX  |          | f,8  | -- reserved --                     |
+|          |      |     |   | RX  |          | ...  | -- reserved --                     |
+|          |      |     |   | RX  |          | f,f  | -- reserved --                     |
+|----------+------+-----+---+-----+----------+------+------------------------------------|
+| brf      | Std  |     |   | RX  | k12      | f,9  | pc := pc+2+fgh                     |
+| brb      | Std  |     |   | RX  | k12      | f,9  | pc := pc+2-fgh                     |
+| brfc0    | Std  |     |   | RX  | R,k4,k12 | f,9  | !Rd.e => pc += 2+fgh               |
+| brbc0    | Std  |     |   | RX  | R,k4,k12 | f,9  | !Rd.e => pc += 2-fgh               |
+| brfc1    | Std  |     |   | RX  | R,k4,k12 | f,a  | Rd.e  => pc += 2+fgh               |
+| brbc1    | Std  |     |   | RX  | R,k4,k12 | f,a  | Rd.e  => pc += 2-fgh               |
+| brfz     | Std  |     |   | RX  | R,k16    | f,7  | Rd=0  => pc += 2+fgh               |
+| brbz     | Std  |     |   | RX  | R,k16    | f,7  | Rd=0  => pc += 2-fgh               |
+| brfnz    | Std  |     |   | RX  | R,k16    | f,8  | Rd!=0 => pc += 2+fgh               |
+| brbnz    | Std  |     |   | RX  | R,k16    | f,8  | Rd!=0 => pc += 2-fgh               |
+| save     | Std  |     |   | EXP | R,R,k12  | e,03 | M[ea] := R1, ..., M[ea+d-1] := Rd  |
+| restore  | Std  |     |   | EXP | R,R,k12  | e,04 | R1 := M[ea], ..., Rd := M[ea+d-1]  |
+| push     | Std  | cc  |   | EXP | R,R,R    | e,00 | M[ea] := Rd, Rb++                  |
+| pop      | Std  | cc  |   | EXP | R,R,R    | e,01 | Rb--, Rd := M[ea]                  |
+| top      | Std  | cc  |   | EXP | R,R,R    | e,02 | Rb--, Rd := M[ea]                  |
+| shiftl   | Std  |     |   | EXP | R,R,k4   | e,05 | Rd := Ra shl b                     |
+| shiftr   | Std  |     |   | EXP | R,R,k4   | e,06 | Rd := Ra shr b                     |
+| logicw   | Std  |     |   | EXP | R,R,R,k4 | e,07 | Rd := Re (lut g) Rf                |
+| logicb   | Std  |     |   | EXP | R,k,k,kk | e,08 | Rd.e := Rd.f (lut h) Rd.g          |
+| extract  | Std  |     |   | EXP | RkkRk    | e,09 | Rd := extract Rd di size Rs si     |
+| extracti | Std  |     |   | EXP | RkkRk    | e,0a | Rd := extracti Rd di size Rs si    |
+| getctl   | Sys  |     | P | EXP | RC       | e,0b | Rd := Sc                           |
+| putctl   | Sys  |     | P | EXP | RC       | e,0c | Sc := Rd                           |
+| resume   | Sys  |     | P | EXP | R        | e,0d | pc := ipc, status := istatus       |
+|          |      |     |   | EXP |          | e,1e | -- reserved --                     |
+|          |      |     |   | EXP |          | ...  | -- reserved --                     |
+|          |      |     |   | EXP |          | e,ff | -- reserved --                     |
+|----------+------+-----+---+-----+----------+------+------------------------------------|
+|          |      |     |   |     |          |      | <33>                               |
+|----------+------+-----+---+-----+----------+------+------------------------------------|
+
+#+BEGIN_EXPORT html
+</div">
+#+END_EXPORT
+
+**** Pseudoinstructions
+
+* Sigma32 architecture :noexport:
+
+*** EXP3 format
+| EXP3   |    3 | op,ab  | d,e,f,g,h,p,q,r | extractl          |
+
+The EXP3 format uses three words to represent an instruction.  The
+first two words have the same layout as for EXP, and the third word
+contains three 5-bit fields and a 1-bit field.  The 5-bit fields
+represent numbers in the range from 0 through 31, and are used to
+specify bit indexes and field sizes for the 32-bit architecture
+extension.
+
+#  #+INCLUDE: "./svg/EXP3format.svg" export html
+
+The S32 architecture extends Sigma16 to handle 32-bit words, and it
+uses the EXP3 format.
+
+- Instructions marked x (primarily S32 instructions) are not are not
+  implemented in this version.
+
+  , and the S32 system (not currently available) contains
+  additional instructions for operating on 32 bit words.
+
+- A new 32 bit extension allows computations with a much larger
+  memory, while retainign full backward compatibility.  Programs using
+  the 16-bit architecture run without modification on the extended
+  32-bit architecture.
+  
+
+ S32 allows computations on both
+words and double words.
+
+(Future extension - not currently available)
+
+Sigma16 consists of a 16-bit architecture (S16) and a 32 bit extended
+architecture (S32).  This section discusses 
+
+The processor has buttons to select whether it is emulating S16 or
+S32.  When you first enter the processor page, it is in S16 mode.
+Clicking the S16 or S32 button will set the mode and clear the
+registers and memory.
+
+S16 and S32 are different but closely related machines.  S16 is a
+subset of S32.  Every feature in S16 is also present in S32, and every
+S16 program will run the same on either architecture.  A program that
+uses S32 instructions will execute correctly only on S32.  Any S32
+instruction executed on S16 will be treated just like any other
+instruction with an illegal opcode.
 
 |-------------+------+-----+---+------+-------+------+------------------------------------|
 | Mnemonic    | ISA  | R15 | P | Fmt  | Args  | Code | Effect                             |
@@ -3406,7 +3537,7 @@ The effect is equivalent to
 |             | Core |     |   | RRR  | RRR   | b    | nop, reserved for experiment --    |
 | trap        | Core |     |   | RRR  | RRR   | c    | user interrupt                     |
 |             |      |     |   |      |       | d    | nop, reserved                      |
-|             |      |     |   |      |       | e    | escape to EXP2 format              |
+|             |      |     |   |      |       | e    | escape to EXP format               |
 |             |      |     |   |      |       | f    | escape to RX format                |
 |-------------+------+-----+---+------+-------+------+------------------------------------|
 | lea         | Core |     |   | RX   | RX    | f,0  | Rd := ea                           |
@@ -3427,40 +3558,40 @@ The effect is equivalent to
 | x storel    | S32  |     |   | RX   | RX    | f,e  | M[ea] := Rd                        |
 |             |      |     |   | RX   |       | f,f  | -- reserved --                     |
 |-------------+------+-----+---+------+-------+------+------------------------------------|
-| push ?      | Std  | cc  |   | EXP2 | RRR   | e,00 | M[ea] := Rd, Rb++                  |
-| pop  ?      | Std  | cc  |   | EXP2 | RRR   | e,01 | Rb--, Rd := M[ea]                  |
-| top  ?      | Std  | cc  |   | EXP2 | RRR   | e,02 | Rb--, Rd := M[ea]                  |
-| save ?      | Std  |     |   | EXP2 | RRx   | e,03 | M[ea] := R1, ..., M[ea+d-1] := Rd  |
-| restore ?   | Std  |     |   | EXP2 | RRx   | e,04 | R1 := M[ea], ..., Rd := M[ea+d-1]  |
-| shiftl      | Std  |     |   | EXP2 | RRk   | e,05 | Rd := Ra shl b                     |
-| shiftr      | Std  |     |   | EXP2 | RRk   | e,06 | Rd := Ra shr b                     |
-| logicw      | Std  |     |   | EXP2 | RRRk  | e,07 | Rd := Re (lut g) Rf                |
-| logicb   ?  | Std  |     |   | EXP2 | Rkkkk | e,08 | Rd.e := Rd.f (lut h) Rd.g          |
-| extract  ?  | Std  |     |   | EXP2 | RkkRk | e,09 | Rd := extract Rd di size Rs si     |
-| extracti ?  | Std  |     |   | EXP2 | RkkRk | e,0a | Rd := extracti Rd di size Rs si    |
-| getctl      | Sys  |     | P | EXP2 | RC    | e,0b | Rd := Sc                           |
-| putctl      | Sys  |     | P | EXP2 | RC    | e,0c | Sc := Rd                           |
-| resume      | Sys  |     | P | EXP2 | R     | e,0d | pc := ipc, status := istatus       |
+| push ?      | Std  | cc  |   | EXP  | RRR   | e,00 | M[ea] := Rd, Rb++                  |
+| pop  ?      | Std  | cc  |   | EXP  | RRR   | e,01 | Rb--, Rd := M[ea]                  |
+| top  ?      | Std  | cc  |   | EXP  | RRR   | e,02 | Rb--, Rd := M[ea]                  |
+| save ?      | Std  |     |   | EXP  | RRx   | e,03 | M[ea] := R1, ..., M[ea+d-1] := Rd  |
+| restore ?   | Std  |     |   | EXP  | RRx   | e,04 | R1 := M[ea], ..., Rd := M[ea+d-1]  |
+| shiftl      | Std  |     |   | EXP  | RRk   | e,05 | Rd := Ra shl b                     |
+| shiftr      | Std  |     |   | EXP  | RRk   | e,06 | Rd := Ra shr b                     |
+| logicw      | Std  |     |   | EXP  | RRRk  | e,07 | Rd := Re (lut g) Rf                |
+| logicb   ?  | Std  |     |   | EXP  | Rkkkk | e,08 | Rd.e := Rd.f (lut h) Rd.g          |
+| extract  ?  | Std  |     |   | EXP  | RkkRk | e,09 | Rd := extract Rd di size Rs si     |
+| extracti ?  | Std  |     |   | EXP  | RkkRk | e,0a | Rd := extracti Rd di size Rs si    |
+| getctl      | Sys  |     | P | EXP  | RC    | e,0b | Rd := Sc                           |
+| putctl      | Sys  |     | P | EXP  | RC    | e,0c | Sc := Rd                           |
+| resume      | Sys  |     | P | EXP  | R     | e,0d | pc := ipc, status := istatus       |
 |-------------+------+-----+---+------+-------+------+------------------------------------|
-| x addl      | S32  |     |   | EXP2 | RRR   | e,0e | Rd := Ra + Rb                      |
-| x subl      | S32  |     |   | EXP2 | RRR   | e,0f | Rd := Ra - Rb                      |
-| x mull      | S32  |     |   | EXP2 | RRR   | e,10 | Rd := Ra * Rb                      |
-| x divl      | S32  |     |   | EXP2 | RRR   | e,11 | Rd := Ra / Rb, R15 := Ra rem Rb    |
-| x cmpl      | S32  |     |   | EXP2 | RRR   | e,12 | Rd := Ra / Rb, R15 := Ra rem Rb    |
-| x addcl     | S32  |     |   | EXP2 | RRR   | e,13 | Rd := Ra + Rb + R15.carry          |
-| x pushl     | S32  |     |   | EXP2 | RRR   | e,14 | M[ea] := Rd, Rb++                  |
-| x popl      | S32  |     |   | EXP2 | RRR   | e,15 | Rb--, Rd := M[ea]                  |
-| x topl      | S32  |     |   | EXP2 | RRR   | e,16 | Rd := M[ea]                        |
-| x savel     | S32  |     |   | EXP2 | RRRk  | e,17 | M[ea] := R1, ..., M[ea+d-1] := Rd  |
-| x restorel  | S32  |     |   | EXP2 | RRRk  | e,18 | R1 := M[ea], ..., Rd := M[ea+d-1]  |
-| x addf      | S32  |     |   | EXP2 | RRR   | e,19 | Rd := Ra + Rb                      |
-| x subf      | S32  |     |   | EXP2 | RRR   | e,1a | Rd := Ra - Rb                      |
-| x mulf      | S32  |     |   | EXP2 | RRR   | e,1b | Rd := Ra * Rb                      |
-| x divf      | S32  |     |   | EXP2 | RRR   | e,1c | Rd := Ra / Rb, R15 := Ra rem Rb    |
-| x cmpf      | S32  |     |   | EXP2 | RR    | e,1d | R15 := Ra cmp Rb                   |
-|             |      |     |   | EXP2 |       | e,1e | -- reserved --                     |
-|             |      |     |   | EXP2 |       | ...  | -- reserved --                     |
-|             |      |     |   | EXP2 |       | e,ff | -- reserved --                     |
+| x addl      | S32  |     |   | EXP  | RRR   | e,0e | Rd := Ra + Rb                      |
+| x subl      | S32  |     |   | EXP  | RRR   | e,0f | Rd := Ra - Rb                      |
+| x mull      | S32  |     |   | EXP  | RRR   | e,10 | Rd := Ra * Rb                      |
+| x divl      | S32  |     |   | EXP  | RRR   | e,11 | Rd := Ra / Rb, R15 := Ra rem Rb    |
+| x cmpl      | S32  |     |   | EXP  | RRR   | e,12 | Rd := Ra / Rb, R15 := Ra rem Rb    |
+| x addcl     | S32  |     |   | EXP  | RRR   | e,13 | Rd := Ra + Rb + R15.carry          |
+| x pushl     | S32  |     |   | EXP  | RRR   | e,14 | M[ea] := Rd, Rb++                  |
+| x popl      | S32  |     |   | EXP  | RRR   | e,15 | Rb--, Rd := M[ea]                  |
+| x topl      | S32  |     |   | EXP  | RRR   | e,16 | Rd := M[ea]                        |
+| x savel     | S32  |     |   | EXP  | RRRk  | e,17 | M[ea] := R1, ..., M[ea+d-1] := Rd  |
+| x restorel  | S32  |     |   | EXP  | RRRk  | e,18 | R1 := M[ea], ..., Rd := M[ea+d-1]  |
+| x addf      | S32  |     |   | EXP  | RRR   | e,19 | Rd := Ra + Rb                      |
+| x subf      | S32  |     |   | EXP  | RRR   | e,1a | Rd := Ra - Rb                      |
+| x mulf      | S32  |     |   | EXP  | RRR   | e,1b | Rd := Ra * Rb                      |
+| x divf      | S32  |     |   | EXP  | RRR   | e,1c | Rd := Ra / Rb, R15 := Ra rem Rb    |
+| x cmpf      | S32  |     |   | EXP  | RR    | e,1d | R15 := Ra cmp Rb                   |
+|             |      |     |   | EXP  |       | e,1e | -- reserved --                     |
+|             |      |     |   | EXP  |       | ...  | -- reserved --                     |
+|             |      |     |   | EXP  |       | e,ff | -- reserved --                     |
 |-------------+------+-----+---+------+-------+------+------------------------------------|
 | x shiftll   | S32  |     |   | EXP3 | RRk   | d,00 | Rd := Ra shl b                     |
 | x shiftrl   | S32  |     |   | EXP3 | RRk   | d,01 | Rd := Ra shr b                     |
@@ -3474,37 +3605,6 @@ The effect is equivalent to
 |-------------+------+-----+---+------+-------+------+------------------------------------|
 |             |      |     |   |      |       |      | <33>                               |
 |-------------+------+-----+---+------+-------+------+------------------------------------|
-
-#+BEGIN_EXPORT html
-</div">
-#+END_EXPORT
-
-**** Pseudoinstructions
-
- save  
- save     |       RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd  M[Rb+ofs+(f-e+1)] := Rf |
- restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1] |
-
-
-* Sigma32 architecture
-
-(Future extension - not currently available)
-
-Sigma16 consists of a 16-bit architecture (S16) and a 32 bit extended
-architecture (S32).  This section discusses 
-
-The processor has buttons to select whether it is emulating S16 or
-S32.  When you first enter the processor page, it is in S16 mode.
-Clicking the S16 or S32 button will set the mode and clear the
-registers and memory.
-
-S16 and S32 are different but closely related machines.  S16 is a
-subset of S32.  Every feature in S16 is also present in S32, and every
-S16 program will run the same on either architecture.  A program that
-uses S32 instructions will execute correctly only on S32.  Any S32
-instruction executed on S16 will be treated just like any other
-instruction with an illegal opcode.
-
 
 * Assembly language
 
@@ -5048,10 +5148,6 @@ but not so much for inline notation.
   significant bit has index 0, and the most significant bit has
   index 15.
 - The architecture is organized into precisely defined subsets
-- A new 32 bit extension allows computations with a much larger
-  memory, while retainign full backward compatibility.  Programs using
-  the 16-bit architecture run without modification on the extended
-  32-bit architecture.
 *** Version 3.3.2, April 2021
 - There is no change in the architecture
 - The software is modified to enable it to continue working when a
