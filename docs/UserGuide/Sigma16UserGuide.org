@@ -1871,6 +1871,9 @@ the instructions.
 ** Arithmetic on natural numbers
 ** Modules and linking
 ** System control registers
+
+[[./figures/control-block-pc.png]]
+
 ** Interrupts
 
 
@@ -3438,7 +3441,7 @@ The Args column shows the assembly language statement format.
 | brb      | Std  |     |   | RX  | k12      | f,9  | pc := pc+2-fgh                     |
 | brfc0    | Std  |     |   | RX  | R,k4,k12 | f,9  | !Rd.e => pc += 2+fgh               |
 | brbc0    | Std  |     |   | RX  | R,k4,k12 | f,9  | !Rd.e => pc += 2-fgh               |
-| brfc1    | Std  |     |   | RX  | R,k4,k12 | f,a  | Rd.e  => pc += 2+fgh               |
+| brfc1    | Std  |     |   | RX  | R,k4,k12 | f,a  |  Rd.e  => pc += 2+fgh              |
 | brbc1    | Std  |     |   | RX  | R,k4,k12 | f,a  | Rd.e  => pc += 2-fgh               |
 | brfz     | Std  |     |   | RX  | R,k16    | f,7  | Rd=0  => pc += 2+fgh               |
 | brbz     | Std  |     |   | RX  | R,k16    | f,7  | Rd=0  => pc += 2-fgh               |
