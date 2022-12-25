@@ -1,7 +1,7 @@
 // Sigma16: assembler.mjs
 // This file is part of Sigma16.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
-// Copyright (c) 2019-2022 John T. O'Donnell
+// Copyright (c) 2019-2023 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -40,14 +40,14 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 
 export class AsmInfo {
     constructor () {
-	this.modName = "anonymous";     // defined in optional module statement
+	this.modName = "anonymous";     // default
         this.text = "";                 // raw source text
         this.asmSrcLines = [];          // list of lines of source text
-	this.asmStmt = [];              // statements correspond to source lines
+	this.asmStmt = [];              // corresponds to source lines
 	this.symbols = [];              // symbols used in the source
 	this.symbolTable = new Map ();  // symbol table
 	this.locationCounter = 0;       //  next code address
-	this.objectCode = [];           // string hex representation of object
+	this.objectCode = [];           // string hex representation
         this.objectText = "";           // object code as single string
         this.metadata = new st.Metadata (); // address-source map
         this.imports = [];              // imported module/identifier
@@ -139,9 +139,10 @@ function displaySymbolTableHtml (ma) {
                          "<span class='ListingHeader'>Symbol table</span>",
                          "<span class='ListingHeader'>Symbol table</span>");
     let symtabHeader = "Name        Val Org Mov  Def Used";
-    ma.metadata.pushSrc (symtabHeader,
-                         `<span class='ListingHeader'>${symtabHeader}</span>`,
-                         `<span class='ListingHeader'>${symtabHeader}</span>`);
+    ma.metadata.pushSrc
+      (symtabHeader,
+       `<span class='ListingHeader'>${symtabHeader}</span>`,
+       `<span class='ListingHeader'>${symtabHeader}</span>`);
     let syms  =[ ...ma.symbolTable.keys() ].sort();
     com.mode.devlog (`Symbol table keys = ${syms}`);
     for (let symkey of syms) {
@@ -299,14 +300,14 @@ function evaluate (ma, s, a, x) {
     if (x.search(nameParser) == 0) { // identifier
 	let r = ma.symbolTable.get(x);
 	if (r) {
-            result = r.value.copy(); // identifier already has a value, return it
+            result = r.value.copy(); // identifier already has a value
             r.usageLines.push (s.lineNumber+1);
 	} else {
             mkErrMsg (ma, s, 'symbol ' + x + ' is not defined');
             result = mkConstVal(0); // new Value (0, Local, Fixed);
 	}
     } else if (x.search(intParser) == 0) { // integer literal
- //        result = new Value (arith.intToWord(parseInt(x,10)), Local, Fixed);
+//       result = new Value (arith.intToWord(parseInt(x,10)), Local, Fixed);
         result = mkConstVal(arith.intToWord(parseInt(x,10)));
     } else if (x.search(hexParser) == 0) { // hex literal
 //      result =  new Value (arith.hex4ToWord(x.slice(1)), Local, Fixed);
@@ -342,21 +343,21 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    address,                           // address where code goes
 	    srcLine,                           // source line
 	    listingLinePlain: "",              // object and source text
-	    listingLineHighlightedFields : "", // listing with src field spans
+	    listingLineHighlightedFields : "", // listing with field spans
 	    fieldLabel : '',                   // label
 	    fieldSpacesAfterLabel : '',        // white space
 	    fieldOperation : '',               // operation mnemonic
 	    fieldSpacesAfterOperation : '',    // white space
 	    fieldOperands : '',                // operands
-	    fieldComment : '',                 // comments are after operand or ;
+	    fieldComment : '',                 // comments after operand or ;
 	    hasLabel : false,                  // statement has a valid label
-            operation : null,                  // spec of the operation if exists
-            operands : [],                     // array of individual operands
+            operation : null,                  // operation spec if it exists
+            operands : [],                     // individual operands
 	    codeSize : Zero,                   // number of words generated
-	    orgAddr : -1,                      // address specified by org/block
+	    orgAddr : -1,                      // addr specified by org/block
 	    codeWord1 : null,                  // first word of object
 	    codeWord2 : null,                  // second word of object
-	    errors : []                        // array of lines of error messages
+	    errors : []                        // lines of error messages
 	   }
 }
 
@@ -376,7 +377,8 @@ function printAsmStmt (ma,x) {
 		 + ' disp=' + x.field_disp + ' dat=' + x.dat);
     console.log ('  address = ' + x.address
 		 + ' codesize=' + x.codeSize.word
-		 + ' codeWord1=' + x.codeWord1 + ' codeWord2=' + x.codeWord2);
+		 + ' codeWord1=' + x.codeWord1
+                 + ' codeWord2=' + x.codeWord2);
     if (x.errors.length > 0) {
 	console.log ('error messages:\n' + x.errors.join('\n'));
     } else {
@@ -417,8 +419,10 @@ export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
     const m = st.env.getSelectedModule ();
     const src =  m.getAsmText();
-    document.getElementById('AsmTextHtml').innerHTML = ""; // clear text in asm
-    document.getElementById('ProcAsmListing').innerHTML = ""; // clear text in proc
+    document.getElementById('AsmTextHtml').innerHTML = "";
+    // clear text in asm
+    document.getElementById('ProcAsmListing').innerHTML = "";
+    // clear text in proc
     com.clearObjectCode (); // clear text in linker pane
     const ai = assembler (m.baseName, src);
     m.asmInfo = ai;
@@ -494,9 +498,10 @@ export function assembler (baseName, srcText) {
     ai.exports = [];
     ai.locationCounter = new Value (0, Local, Relocatable);
     ai.symbolTable.clear();
-    ai.metadata.pushSrc ("Line Addr Code Code Source",
-                 "<span class='ListingHeader'>Line Addr Code Code Source</span>",
-                 "<span class='ListingHeader'>Line Addr Code Code Source</span>");
+    ai.metadata.pushSrc
+      ("Line Addr Code Code Source",
+       "<span class='ListingHeader'>Line Addr Code Code Source</span>",
+       "<span class='ListingHeader'>Line Addr Code Code Source</span>");
     asmPass1 (ai);
     asmPass2 (ai);
     if (ai.nAsmErrors > 0) {
@@ -641,6 +646,7 @@ function requireX (ma, s, field) {
     console.log (`requireX field=${field} disp=<${disp}> index=${index}`)
     return result
 }
+
 /*
 const dx = xParser.exec (field);
     let result = {disp: "0", index: 0};
@@ -811,14 +817,17 @@ function parseOperation (ma,s) {
                 s.codeSize = One.copy();
             } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aOrg) {
-                let y = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+                let y = evaluate (ma, s, ma.locationCounter,
+                                  s.fieldOperands);
                 s.orgAddr = y.value;
                 com.mode.devlog (`parse Operation orgAddr=${s.orgAddr}`);
             } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aBlock) {
-                let y = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+                let y = evaluate (ma, s, ma.locationCounter,
+                                  s.fieldOperands);
                 s.orgAddr = mkConstVal (ma.locationCounter.word + y.word);
-                com.mode.devlog (`parse Op BLOCK orgAddr=${s.orgAddr.toString()}`);
+                com.mode.devlog
+                  (`parse Op BLOCK orgAddr=${s.orgAddr.toString()}`);
             } else {
 	        s.codeSize = mkConstVal(arch.formatSize(x.ifmt));
             }
@@ -842,18 +851,21 @@ function parseOperation (ma,s) {
 // into an array of lines of text.
 
 function asmPass1 (ma) {
-    com.mode.devlog('Assembler Pass 1: ' + ma.asmSrcLines.length + ' source lines');
+    com.mode.devlog('Assembler Pass 1: ' + ma.asmSrcLines.length
+                    + ' source lines');
     for (let i = 0; i < ma.asmSrcLines.length; i++) {
         com.mode.devlog (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
-	ma.asmStmt[i] = mkAsmStmt (i, ma.locationCounter.copy(), ma.asmSrcLines[i]);
+	ma.asmStmt[i] = mkAsmStmt (i, ma.locationCounter.copy(),
+                                   ma.asmSrcLines[i]);
 	let s = ma.asmStmt[i];
         let badCharLocs = validateChars (ma.asmSrcLines[i]);
         com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
 
         if (badCharLocs.length > 0) {
-            mkErrMsg (ma,s,`Invalid ch at position ${badCharLocs}`);
+            mkErrMsg (ma,s,`Invalid character at position ${badCharLocs}`);
             mkErrMsg (ma,s, "See User Guide for list of valid characters");
-            mkErrMsg (ma,s, "(Word processors often insert invalid characters)");
+            mkErrMsg (ma,s, "(Word processors often insert"
+                            + " invalid characters)");
         }
         parseAsmLine (ma,i);
         com.mode.devlog (`Pass 1 ${i} /${s.srcLine}/`
@@ -955,10 +967,19 @@ function mkWord (op,d,a,b) {
 
 // Make a code word from two 4-bit fields and an 8 bit field (EXP format)
 
-function mkWord448 (op,d,k) {
+function mkWord448 (x,y,k8) {
     let clear4 = 0x000f;
     let clear8 = 0x00ff;
-    return ((op&clear4)<<12) | ((d&clear4)<<8) | (k&clear8);
+    return ((x&clear4)<<12) | ((y&clear4)<<8) | (k8&clear8);
+}
+
+// Make a code word from a 4-bit field and a 12 bit field
+
+function mkWord412 (k4,k12) {
+    let clear4 = 0x000f;
+    let clear8 = 0x00ff;
+    let clear12 = 0x0fff;
+    return ((k4&clear4)<<12) | (k12&clear12)
 }
 
 function testWd(op,d,a,b) {

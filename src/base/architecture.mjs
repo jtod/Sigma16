@@ -1,7 +1,7 @@
 // Sigma16: architecture.mjs
 // This file is part of Sigma16.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
-// Copyright (c) 2019-2022 John T. O'Donnell
+// Copyright (c) 2019-2023 John T. O'Donnell
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -67,16 +67,30 @@ export function maskToSetBitBE   (k,i) { return (1 << (k-i)) & 0xffff }
 
 // Access bit i in register r with k-bit words
 
-export function getBitInRegLE   (r,i)   { return (r.get() >>> i) & 0x0001 }
-export function clearBitInRegLE (r,i)   { r.put (r.get() & maskToClearBitLE(i)) }
-export function setBitInRegLE   (r,i)   { r.put (r.get() | maskToSetBitLE(i)) }
-export function getBitInRegBE   (k,r,i) { return (r.get() >>> (k-i)) & 0x0001 }
-export function clearBitInRegBE (k,r,i) { r.put (r.get() & maskToClearBitBE(k,i)) }
-export function setBitInRegBE   (k,r,i) { r.put (r.get() | maskToSetBitBE(k,i)) }
+export function getBitInRegLE (r,i) {
+    return (r.get() >>> i) & 0x0001
+}
+export function clearBitInRegLE (r,i) {
+    r.put (r.get() & maskToClearBitLE(i))
+}
+export function setBitInRegLE (r,i) {
+    r.put (r.get() | maskToSetBitLE(i))
+}
+export function getBitInRegBE (k,r,i) {
+    return (r.get() >>> (k-i)) & 0x0001
+}
+export function clearBitInRegBE (k,r,i) {
+    r.put (r.get() & maskToClearBitBE(k,i))
+}
+export function setBitInRegBE (k,r,i) {
+    r.put (r.get() | maskToSetBitBE(k,i))
+}
 
 // Return Boolean from bit i in word x
 
-export function extractBoolLE (x,i) { return getBitInWordLE (x,i) === 1 }
+export function extractBoolLE (x,i) {
+    return getBitInWordLE (x,i) === 1
+}
 
 //----------------------------------------------------------------------
 // Architecture constants
@@ -94,17 +108,15 @@ export const S32 = Symbol ('S32')
 
 // Instruction formats
 
-export const iRRR     = Symbol ("RRR");
-export const iRX      = Symbol ("RX");
-export const iEXP    = Symbol ("EXP");
-export const iEXP3    = Symbol ("EXP3");
+export const iRRR   = Symbol ("RRR");
+export const iRX    = Symbol ("RX");
+export const iEXP   = Symbol ("EXP");
 
 // Return the size of an instruction given its format
 
 export function formatSize (ifmt) {
     return ifmt==iRRR  ? 1
         : (ifmt==iRX || ifmt==iEXP) ? 2
-        : ifmt==iEXP3 ? 3
         : 0
 }
 
@@ -122,6 +134,7 @@ export const iData    = Symbol ("data")
 export const iDir     = Symbol ("iDir")
 export const iEmpty   = Symbol ("iEmpty")
 
+// Assembly language statement operand formats
 export const a0       = Symbol ("");         // resume
 export const aRR      = Symbol ("RR");       // cmp      R1,R2
 export const aRRR     = Symbol ("RRR");      // add      R1,R2,R3
@@ -130,8 +143,7 @@ export const aX       = Symbol ("X");       // jump     loop[R0]
 export const aRX      = Symbol ("RX");       // load     R1,xyz[R2]
 export const akX      = Symbol ("kX");       // jumpc0   3,next[R0]
 export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
-// export const aRRkkk   = Symbol ("RRk");      // extract  Rd,Rs,di,si,size
-export const aRkk     = Symbol ("Rkk");      // field    R1,3,12  ?? should be RRkk
+export const aRkk     = Symbol ("Rkk"); // field R1,3,12  ?? should be RRkk
 export const aRkkkk   = Symbol ("Rkkkk");    // logicb   R1,3,8,2,xor
 export const aRkkk    = Symbol ("Rkkk");     // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");     // logicw   R1,R2,R3,xor
@@ -145,6 +157,8 @@ export const aExport  = Symbol ("export");   // export   fcn
 export const aOrg     = Symbol ("org");      // org      arr+5
 export const aEqu     = Symbol ("equ");      // equ      rcd+4
 export const aBlock   = Symbol ("block");    // block    100
+
+// export const aRRkkk   = Symbol ("RRk");      // extract  Rd,Rs,di,si,size
 
 //----------------------------------------------------------------------
 // Instruction mnemonics
@@ -165,19 +179,14 @@ export const mnemonicRX =
    "jumpnz",   "brc0",     "brc1",      "testset",    // 8-b
    "leal",     "loadl",    "storel",    "noprx"]      // c-f
 
-export const mnemonicEXP2 =
-    ["push",     "pop",      "top",     "save",      // 0-3
-     "restore",  "shiftl",   "shiftr",  "logicw",    // 4-7
-     "logicb",   "extract",  "extracti","getctl",    // 8-11
-     "putctl",   "resume",   "addcl",   "adde",
-     "sube",     "mule",    "dive",     "cmpe",
-     "savel",    "restorel", "shiftll", "shiftrl",
-     "logicwl",  "logicbl",  "extractl", "extractil" ]
-
-// execute, dispatch
-
-export const mnemonicEXP3 =
-  ["shiftll", "shiftrl"]
+export const mnemonicEXP =
+  ["brf",      "brb",      "brfc0",     "brbc0",      // 00-03
+   "brfc1",    "brbc1",    "brfz",      "brbz",       // 04-07
+   "brfnz",    "brbnz",    "save",      "restore",    // 08-0b
+   "push",     "pop",      "top",       "shiftl",     // 0c-0f
+   "shiftr",   "logicw",   "logicb",    "logicbcc",   // 10-13
+   "extract",  "extracti", "getctl",    "putctl",     // 14-17
+   "resume"]                                          // 18
 
 //-------------------------------------
 // Mnemonics for control registers
@@ -400,35 +409,37 @@ statementSpec.set("storel",  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
 // and an 8-bit secondary opcode in the ab field, where ab >= 8.  (If
 // 0 <= ab <8 then the instruction is EXP1 format.)
 
-statementSpec.set("push",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,0]})
-statementSpec.set("pop",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,1]})
-statementSpec.set("top",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,2]})
-statementSpec.set("save",     {ifmt:iEXP, afmt:aRRX,   opcode:[14,3]})
-statementSpec.set("restore",  {ifmt:iEXP, afmt:aRRX,   opcode:[14,4]})
-statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,5]})
-statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,6]})
-statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,7]})
-statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,8]})
-statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,9]})
-statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,10]})
-statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,11]})
-statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,12]})
-statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,13]})
+// brf  loop            16-bit offset
+// brfc0 R5,7,loop      8-bit offset
+// brfz  R3,loop        12-bit offset
 
-// The following instructions are in the S32 extended architecture,
-// and are not currently implemented
+statementSpec.set("brf",      {ifmt:iEXP, afmt:aK,     opcode:[14,0]})
+statementSpec.set("brb",      {ifmt:iEXP, afmt:aK,     opcode:[14,1]})
+statementSpec.set("brfc0",    {ifmt:iEXP, afmt:aRkK,   opcode:[14,2]})
+statementSpec.set("brbc0",    {ifmt:iEXP, afmt:aRkK,   opcode:[14,3]})
+statementSpec.set("brfc1",    {ifmt:iEXP, afmt:aRkK,   opcode:[14,4]})
+statementSpec.set("brbc1",    {ifmt:iEXP, afmt:aRkK,   opcode:[14,5]})
+statementSpec.set("brfz",     {ifmt:iEXP, afmt:aRK,    opcode:[14,6]})
+statementSpec.set("brbz",     {ifmt:iEXP, afmt:aRK,    opcode:[14,7]})
+statementSpec.set("brfnz",    {ifmt:iEXP, afmt:aRK,    opcode:[14,8]})
+statementSpec.set("brbnz",    {ifmt:iEXP, afmt:aRK,    opcode:[14,9]})
+statementSpec.set("save",     {ifmt:iEXP, afmt:aRRX,   opcode:[14,10]})
+statementSpec.set("restore",  {ifmt:iEXP, afmt:aRRX,   opcode:[14,11]})
+statementSpec.set("push",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,12]})
+statementSpec.set("pop",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,13]})
+statementSpec.set("top",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,14]})
+statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,15]})
+statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,16]})
+statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,17]})
+statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,18]})
+statementSpec.set("logicbcc", {ifmt:iEXP, afmt:aRkkkk, opcode:[14,19]})
+statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,20]})
+statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,21]})
+statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,22]})
+statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,23]})
+statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,24]})
 
-statementSpec.set("addl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,17]})
-statementSpec.set("subl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,18]})
-statementSpec.set("mull",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,19]})
-statementSpec.set("divl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,20]})
-statementSpec.set("cmpl",     {ifmt:iEXP,  afmt:aRR,   opcode:[14,21]})
 
-// EXP3 instructions are represented in 3 words, with primary opcode d
-// and an 8-bit secondary opcode in the ab field.
-
-statementSpec.set("shiftll", {ifmt:iEXP3, afmt:aRRk, opcode:[13,0]})
-statementSpec.set("shiftrl", {ifmt:iEXP3, afmt:aRRk, opcode:[13,1]})
 
 // Assembler directives
 
@@ -513,3 +524,22 @@ statementSpec.set("field",   {ifmt:iEXP, afmt:aRkk,  opcode:[14,8],
 
 export const clearIntEnable = maskToClearBitBE (intEnableBit);
 export const setSystemState = maskToClearBitBE (userStateBit);
+
+// deprecated or in progress...
+// execute, dispatch
+// export const mnemonicEXP3 = ["shiftll", "shiftrl"]
+// export const iEXP3  = Symbol ("EXP3");
+//        : ifmt==iEXP3 ? 3
+// EXP3 instructions are represented in 3 words, with primary opcode d
+// and an 8-bit secondary opcode in the ab field.
+
+// statementSpec.set("shiftll", {ifmt:iEXP3, afmt:aRRk, opcode:[13,0]})
+// statementSpec.set("shiftrl", {ifmt:iEXP3, afmt:aRRk, opcode:[13,1]})
+
+// The following instructions are in the S32 extended architecture,
+// and are not currently implemented
+// statementSpec.set("addl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,17]})
+// statementSpec.set("subl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,18]})
+// statementSpec.set("mull",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,19]})
+// statementSpec.set("divl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,20]})
+// statementSpec.set("cmpl",     {ifmt:iEXP,  afmt:aRR,   opcode:[14,21]})
