@@ -139,12 +139,16 @@ export const a0       = Symbol ("");         // resume
 export const aRR      = Symbol ("RR");       // cmp      R1,R2
 export const aRRR     = Symbol ("RRR");      // add      R1,R2,R3
 export const aRC      = Symbol ("RC");       // putctl   R1,status
-export const aX       = Symbol ("X");       // jump     loop[R0]
+export const aK       = Symbol ("K");        // brf      loop
+export const aX       = Symbol ("X");        // jump     loop[R0]
 export const aRX      = Symbol ("RX");       // load     R1,xyz[R2]
+export const aRK      = Symbol ("RK");       // brfnz    R1,xyz
 export const akX      = Symbol ("kX");       // jumpc0   3,next[R0]
 export const aRRk     = Symbol ("RRk");      // invb     R1,R2,7
 export const aRkk     = Symbol ("Rkk"); // field R1,3,12  ?? should be RRkk
+export const aRkK     = Symbol ("RkK");      // brfc0  R2,4,230
 export const aRkkkk   = Symbol ("Rkkkk");    // logicb   R1,3,8,2,xor
+export const aRkRkk   = Symbol ("RkRkk");    // logicbcc R5,4,R9,3,and
 export const aRkkk    = Symbol ("Rkkk");     // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");     // logicw   R1,R2,R3,xor
 export const aRkkRk   = Symbol ("RkkRk");    // extract  R1,7,4,R2,12
@@ -432,7 +436,7 @@ statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,15]})
 statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,16]})
 statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,17]})
 statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,18]})
-statementSpec.set("logicbcc", {ifmt:iEXP, afmt:aRkkkk, opcode:[14,19]})
+statementSpec.set("logicbcc", {ifmt:iEXP, afmt:aRkRkk, opcode:[14,19]})
 statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,20]})
 statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,21]})
 statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,22]})
@@ -497,13 +501,13 @@ statementSpec.set("jumpco",
 
 // Mnemonics for logic instructions
 
-statementSpec.set("invw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,7,12],
+statementSpec.set("invw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,17,12],
                               pseudo:true});
-statementSpec.set("andw",    {ifmt:iEXP, afmt:aRRR,    opcode:[14,7,1],
+statementSpec.set("andw",    {ifmt:iEXP, afmt:aRRR,    opcode:[14,17,1],
                               pseudo:true});
-statementSpec.set("orw",     {ifmt:iEXP, afmt:aRRR,    opcode:[14,7,7],
+statementSpec.set("orw",     {ifmt:iEXP, afmt:aRRR,    opcode:[14,17,7],
                               pseudo:true});
-statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRRR, opcode:[14,7,6],
+statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRRR, opcode:[14,17,6],
                               pseudo:true});
 
 // Mnemonics for logicb instructions

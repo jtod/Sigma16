@@ -1006,31 +1006,31 @@ const handle_rx = (es) => {
     dispatch_RX [es.ir_b] (es);
 }
 
-const handle_EXP2 = (es) => {
-    console.log ("handle_EXP2")
-    es.instrFmtStr = "EXP2";
+const handle_EXP = (es) => {
+    console.log ("handle_EXP")
+    es.instrFmtStr = "EXP";
     let code = 16*es.ir_a + es.ir_b;
-    if (code < limitEXP2code) {
+    if (code < limitEXPcode) {
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
-	dispatch_EXP2 [code] (es);
+	dispatch_EXP [code] (es);
     } else {
 	com.mode.devlog (`EXP bad code ${arith.wordToHex4(code)}`);
     }
 }
 
-// push: Rd = src data x, Ra = top, Rb = limit
-
-// ????? Needs modificaiton because of change from RRR to EXP2
-const op_push  = (es) => {
+// push Rd,Re,Rf : Rd = src data x, Re = top, Rf = limit
+const exp2_push  = (es) => {
     const x = es.regfile[es.ir_d].get()
-    const ra = es.ir_a
-    let top = es.regfile[ra].get()
-    const limit = es.regfile[es.ir_b].get()
-    com.mode.devlog (`push x=${x} ra=${ra} top=${top} limit=${limit}`)
+    //     const ra = es.ir_a
+    const re = es.field_e;
+    let top = es.regfile[re].get()
+    //    const limit = es.regfile[es.ir_b].get()
+    const limit = es.regfile[es.field_f].get()
+    console.log (`push x=${x} re=${re} top=${top} limit=${limit}`)
     if (top < limit) {
         top = top + 1
-        es.regfile[ra].put(top)
+        es.regfile[re].put(top)
         memStore (es, top, x)
     } else {
 // Indicate stack overflow in codition code and interrupt request
@@ -1041,23 +1041,34 @@ const op_push  = (es) => {
     }
 }
 
-// pop: Rd = destination data x, Ra = top, Rb = base
-
-// ????? Needs modificaiton because of change from RRR to EXP2
-const op_pop  = (es) => {
-    const ra = es.ir_a
-    let top = es.regfile[ra].get()
-    const base = es.regfile[es.ir_b].get()
+// pop Rd,Re,Rf : Rd = dest data x, Re = top, Rf = base
+const exp2_pop  = (es) => {
+    const re = es.field_e;
+    let top = es.regfile[re].get()
+    const base = es.regfile[es.field_f].get()
     if (top >= base) {
         es.regfile[es.ir_d].put(memFetchData(es,top))
         top = top - 1
-        es.regfile[es.ir_a].put(top)
+        es.regfile[es.field_e].put(top)
     } else {
 // Indicate stack underflow in codition code and interrupt request
         console.log (`pop: stack underflow`);
         es.regfile[15].put(0)
         arch.setBitInRegLE (es.regfile[15], arch.bit_ccs)
         arch.setBitInRegLE (es.req, arch.stackUnderflowBit)
+    }
+}
+
+// ????? Needs modificaiton because of change from RRR to EXP2
+// const op_top  = (es) => {
+const exp2_top  = (es) => {
+    const a = es.regfile[es.ir_a].get();
+    const b = es.regfile[es.ir_b].get();
+    if (a >= b) {
+        es.regfile[es.ir_d].put(memFetchData(es,a));
+    } else {
+        com.mode.devlog (`pop: stack underflow`);
+        arith.setBitInRegLE (req, arch.stackUnderflowBit);
     }
 }
 
@@ -1099,7 +1110,7 @@ const dispatch_primary_opcode =
         ab_dc (arith.op_nop),     // b reserved rrr4
         op_trap,                  // c
         ab_dc (arith.op_nop),     // d escape to EXP3  x
-        handle_EXP2,               // e escape to EXP
+        handle_EXP,               // e escape to EXP
         handle_rx ]               // f escape to RX
 //        dab (op_push),            // 8
 //        dab (op_pop),             // 9
@@ -1447,7 +1458,7 @@ const exp2 = (f) => (es) => {
     console.log (`>>> EXP instruction`)
     com.mode.devlog (`>>> EXP instruction`)
     let expCode = 16 * es.ir_a + es.ir_b
-    es.instrOpStr = arch.mnemonicEXP2[expCode]
+    es.instrOpStr = arch.mnemonicEXP[expCode]
     console.log (`EXP instruction, code = ${expCode} ${es.instrOpStr}`)
     es.instrDisp = memFetchInstr (es, es.pc.get())
     es.adr.put (es.instrDisp);
@@ -1468,41 +1479,58 @@ const exp2 = (f) => (es) => {
     f (es);
 }
 
-const dispatch_EXP2 =
-      [ exp2 (exp2_nop),    // temp placeholder for push
-        exp2 (exp2_nop),    // temp placeholder for pop
-        exp2 (exp2_nop),    // temp placeholder for top
+const dispatch_EXP =
+      [ exp2 (exp2_nop), // 00
+        exp2 (exp2_nop), // 01
+        exp2 (exp2_nop), // 02
+        exp2 (exp2_nop), // 03
+        exp2 (exp2_nop), // 04
+        exp2 (exp2_nop), // 05
+        exp2 (exp2_nop), // 06
+        exp2 (exp2_nop), // 07
+        exp2 (exp2_nop), // 08
+        exp2 (exp2_nop), // 09
+        exp2 (exp2_nop), // 0a
+        exp2 (exp2_nop), // 0b
+        exp2 (exp2_push),     // 0c push
+        exp2 (exp2_pop),      // 0d pop
+        exp2 (exp2_top),      // 0e top
+        exp2 (exp2_shiftl),   // 0f shiftl
+        exp2 (exp2_shiftr),   // 10 shiftr
+        exp2 (exp2_logicw),   // 11 logicw
+        exp2 (exp2_logicb),   // 12 logicb
+        exp2 (exp2_nop),      // 13 logicbcc ?????
+        exp2 (exp2_extract),  // 14 extract
+        exp2 (exp2_extracti), // 15 extracti
+        exp2 (exp2_getctl),   // 16 getctl
+        exp2 (exp2_putctl),   // 17 putctl
+        exp2 (exp2_resume) ]  // 18 resume
+
 //        exp2 (exp2_push),      // 0
 //        exp2 (exp2_pop),      // 0
 //        exp2 (exp2_top),      // 0
-        exp2 (exp2_save),      // 0
-        exp2 (exp2_restore),   // 1
-        exp2 (exp2_shiftl),    // 2
-        exp2 (exp2_shiftr),    // 3
-        exp2 (exp2_logicw),    // 4
-        exp2 (exp2_logicb),    // 5
-        exp2 (exp2_extract),   // 6
-        exp2 (exp2_extracti),  // 7
-        exp2 (exp2_getctl),    // 8
-        exp2 (exp2_putctl),     // a
-        exp2 (exp2_resume)    // 0
-    ]
+//        exp2 (exp2_save),      // 0
+//        exp2 (exp2_restore),   // 1
+//    ]
 
-const limitEXP2code = dispatch_EXP2.length;  // any code above this is nop
+// done:
+//        exp2 (exp2_nop),    // temp placeholder for push
+//        exp2 (exp2_nop),    // temp placeholder for pop
+//        exp2 (exp2_nop),    // temp placeholder for top
+//        exp2 (exp2_shiftl),    // 2
+//        exp2 (exp2_shiftr),    // 3
+//        exp2 (exp2_logicw),    // 4
+//        exp2 (exp2_logicb),    // 5
+//        exp2 (exp2_extract),   // 6
+//        exp2 (exp2_extracti),  // 7
+//        exp2 (exp2_getctl),    // 8
+//        exp2 (exp2_putctl),     // a
+//        exp2 (exp2_resume)    // 0
+
+const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 
 /*
 Deprecated
-// ????? Needs modificaiton because of change from RRR to EXP2
-const op_top  = (es) => {
-    const a = es.regfile[es.ir_a].get();
-    const b = es.regfile[es.ir_b].get();
-    if (a >= b) {
-        es.regfile[es.ir_d].put(memFetchData(es,a));
-    } else {
-        com.mode.devlog (`pop: stack underflow`);
-        arith.setBitInRegLE (req, arch.stackUnderflowBit);
-    }
-}
 
  function exp2_push (es) {
     com.mode.devlog ('exp2_push');

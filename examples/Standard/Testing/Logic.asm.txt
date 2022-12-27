@@ -1,56 +1,52 @@
-; Logic: test the logic instructions and pseudoinstructions
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Logic: Test the logic instructions and pseudoinstructions
+; Sigma16: https://jtod.github.io/home/Sigma16/
 
-or    equ     7
-nor   equ     8
-xor   equ     6
-and   equ     1
-
-; Bitwise logic instructions
-
-     lea   R1,$0f96[R0]     ; 0000 1111 1001 0110
-     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
-     andw  R3,R1,R2         ; 0000 0011 0000 0010   expected
-
-     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
-     orw   R3,R1,R2         ; 0011 1111 1011 0110   expected
-
-     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
-     xorw  R3,R1,R2         ; 0011 1100 1011 0100   expected
-
-     lea    R1,6[R0]
-     logicb R1,15,1,0,1     ; R1.15 := R1.1 AND R1.0
-     lea    R1,6[R0]
-     logicb R1,14,1,0,6     ; R1.15 := R1.1 XOR R1.0
-     lea    R1,6[R0]
-     logicb R1,13,1,0,7     ; R1.15 := R1.1 OR R1.0
-
-; Word logic
-   lea   R1,$0f0f[R0]   ; 0f0f
-   lea   R2,$00ff[R0]   ; 00ff
+; Word logic test data
+     lea     R1,$00ff[R0]    ; 00ff
+     lea     R2,$0f0f[R0]    ; 0f0f
 
 ; Word logic pseudoinstructions
-   andw  R3,R1,R2       ; 000f
-   orw   R4,R1,R2       ; 0fff
-   xorw  R5,R1,R2       ; 0ff0
+     invw    R3,R2           ; f0f0
+     andw    R4,R1,R2        ; 000f
+     orw     R5,R1,R2        ; 0fff
+     xorw    R6,R1,R2        ; 0ff0
 
-; Test data
+; Word logic
+     logicw  R7,R1,R2,and    ; 000f
+     logicw  R8,R1,R2,or     ; 0fff
+     logicw  R9,R1,R2,xor    ; 0ff0
+     logicw  R10,R1,R2,nor   ; f000
 
-      lea     R1,$00ff[R0] ; R1 := 00ff
-      lea     R2,$0f0f[R0] ; R1 := 0f0f
+; Bit logic
+     lea    R1,6[R0]         ; 0006 = 0000 0000 0000 0110
 
-; logicw
+; logicb operates on arbitrary bits within one register
+     logicb R1,15,1,0,and    ; 0006 = 0000 0000 0000 0110
+                             ;   R1.15 := R1.1 and R1.0 = 0
+     logicb R1,14,1,0,or     ; 4006 = 0100 0000 0000 0110
+                             ;   R1.14 := R1.1 or R1.0 = 1
+     logicb R1,13,1,0,xor    ; 6006 = 0110 0000 0000 0110
+                             ;   R1.13 := R1.1 xor R1.0 = 1
+     logicb R1,12,1,0,nor    ; 6006 = 0110 0000 0000 0110
+                             ;   R1.12 := R1.1 nor R1.0 = 0
 
-      logicw  R3,R1,R2,1   ; R1 and R2 = 000f
-      logicw  R4,R1,R2,6   ; R1 xor R2 = 0ff0
+     trap  R0,R0,R0          ; terminate
 
-      logicw  R5,R1,R2,or  ; 0fff
-      logicw  R6,R1,R2,nor ; f000
-      logicw  R6,R1,R2,xor ; 0ff0
-      logicw  R7,R1,R2,and ; 000f
-
-; The function field is an expression, not just a constant, and the
+; Define symbolic names for the codes for common logic functions.  The
+; function field is an expression, not just a constant, and the
 ; expression can include a forward reference to an equ.
 
+and  equ    1
+or   equ    7
+xor  equ    6
+nor  equ    8
 
-     trap  R0,R0,R0
+; deprecated
+
+     lea    R1,$0f96[R0]     ; 0f96 = 0000 1111 1001 0110
+     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
+     andw   R3,R1,R2         ; 0302 = 0000 0011 0000 0010
+     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
+     orw    R3,R1,R2         ; 3fb6 = 0011 1111 1011 0110
+     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
+     xorw   R3,R1,R2         ; 3cb4 = 0011 1100 1011 0100

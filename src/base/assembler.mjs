@@ -1150,9 +1150,11 @@ function asmPass2 (ma) {
             const e = requireReg (ma, s, s.operands[1])
             const f = requireReg (ma, s, s.operands[2])
             const g = 0
-            const h = s.operands[3]
+            //            const h = s.operands[3]
+            const hexp = evaluate (ma, s, s.address.word, s.operands[3])
+            const h = hexp.word
             s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
-            s.codeWord2 = mkWord448 (e,f,g,h)
+            s.codeWord2 = mkWord (e,f,g,h)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 // EXP-Rkkkk -- logicb R1,2,3,4,6  --  Rd.e := Rd.f FCN_h Rd.g
@@ -1252,8 +1254,9 @@ function asmPass2 (ma) {
                 mkErrMsg (ma, s, `ERROR operation requires RR operands`);
             }
 
-// EXP-RRR  andw R1,R2,R3
-	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRR && op.pseudo) {
+// EXP-RRR  push R1,R2,R3
+//  } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRR && op.pseudo) {
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRR) {
             com.mode.devlog ('Pass2 EXP/RRR pseudo');
             requireNoperands (ma, s, 3)
             const addr = s.address.word;
@@ -1261,7 +1264,8 @@ function asmPass2 (ma) {
             const e = requireReg (ma, s, s.operands[1]);
             const f = requireReg (ma, s, s.operands[2]);
             const g = 0;
-            const h = op.opcode[2];
+            //          const h = op.opcode[2];
+            const h = 0;
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
             s.codeWord2 = mkWord (e, f, g, h);
             generateObjectWord (ma, s, s.address.word, s.codeWord1);

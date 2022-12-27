@@ -3489,11 +3489,11 @@ consist of one of the following:
 | brbnz    | Std  |     |   | EXP |        |            | D,Disp            | e,09 | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
 | save     | Std  |     |   | EXP |        |            | D,E,P             | e,0a | ed0a;EQ-- | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
 | restore  | Std  |     |   | EXP |        |            | D,E,P             | e,0b | ed0b;EQ-- | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
-| push     | Std  | cc  |   | EXP |        |            | D,E,F             | e,0c | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
-| pop      | Std  | cc  |   | EXP |        |            | D,E,F             | e,0d | ed0d;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| top      | Std  | cc  |   | EXP |        |            | D,E,F             | e,0e | ed0e;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| shiftl   | Std  |     |   | EXP |        |            | D,E,L             | e,0f | ed0f;EJ-- | Rd := Ra shl b                     |                                                  |
-| shiftr   | Std  |     |   | EXP |        |            | D,E,L             | e,10 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
+| push     | Std  | cc  |   | EXP | aRRR   |            | D,E,F             | e,0c | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
+| pop      | Std  | cc  |   | EXP | aRRR   |            | D,E,F             | e,0d | ed0d;EF-- | Rb--, Rd := M[ea]                  |                                                  |
+| top      | Std  | cc  |   | EXP | aRRR   |            | D,E,F             | e,0e | ed0e;EF-- | Rb--, Rd := M[ea]                  |                                                  |
+| shiftl   | Std  |     |   | EXP | aRRk   |            | D,E,L             | e,0f | ed0f;EJ-- | Rd := Ra shl b                     |                                                  |
+| shiftr   | Std  |     |   | EXP | aRRk   |            | D,E,L             | e,10 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
 | logicw   | Std  |     |   | EXP | aRRRk  | Rd,Re,Rf,h | op,d,$0b;e,f,$0,h | e,11 | eD11;EFM- | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
 | logicb   | Std  |     |   | EXP | aRkkkk |            | D,K,L,M,N         | e,12 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicb R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
 | logicbcc | Std  |     |   | EXP | aRkRkk |            | D,K,L,M,N         | e,13 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
