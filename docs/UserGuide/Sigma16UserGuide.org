@@ -86,6 +86,31 @@ appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the examples in the main panel.
 
 
+* Why Sigma16?
+
+
+** Focus on connections
+*** Vertical connections
+- ISA - target for compilation
+- circuit implements ISA
+*** Horizontal connections
+- ISA - programming language constructs
+- ISA - OS kernel
+** Principles and training
+- When you learn one architecture, it's much easier to learn more
+- 
+** Synthetic vs commercial architecture
+*** Benefit of commercial architecture: training
+- But which architecture? x86? ARM? RISC-V? New ones?
+** Design rationale
+*** As simple as possible -- but no simpler
+*** 16-bit word size
+*** Register file
+*** Readable machine language
+** Software tools
+*** Integrated environment
+*** Run in browser without installation
+
 * Core architecture tutorials
 :PROPERTIES:
 :CUSTOM_ID: sec-core-tutorial
