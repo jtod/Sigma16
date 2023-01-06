@@ -1291,8 +1291,123 @@ function rx_nop (es) {
 
 // EXP format
 
+
 function exp2_nop (es) {
     com.mode.devlog ('exp2_nop');
+}
+
+function exp2_brf (es) {
+    com.mode.devlog('exp_brf')
+    es.pc.put (limitAddress (es, es.pc.get() + es.adr.get()))
+}
+
+function exp2_brb (es) {
+    com.mode.devlog('exp_brb')
+    es.pc.put (limitAddress (es, es.pc.get() - es.adr.get()))
+}
+
+function exp2_brfz (es) {
+    com.mode.devlog('exp_brf')
+    const x = es.regfile[es.ir_d].get()
+    if (x === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + es.adr.get()))
+        console.log ("brfz is branching")
+    } else {
+        console.log ("brfz is not branching")
+    }
+}
+
+function exp2_brbz (es) {
+    com.mode.devlog('exp_brb')
+    const x = es.regfile[es.ir_d].get()
+    if (x === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() - es.adr.get()))
+        console.log ("brbz is branching")
+    } else {
+        console.log ("brbz is not branching")
+    }
+}
+
+function exp2_brfnz (es) {
+    com.mode.devlog('exp_brfnz')
+    const x = es.regfile[es.ir_d].get()
+    if (x != 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + es.adr.get()))
+        console.log ("brfnz is branching")
+    } else {
+        console.log ("brfnz is not branching")
+    }
+}
+
+
+function exp2_brbnz (es) {
+    com.mode.devlog('exp_brbnz')
+    const x = es.regfile[es.ir_d].get()
+    if (x != 0) {
+        es.pc.put (limitAddress (es, es.pc.get() - es.adr.get()))
+        console.log ("brbnz is branching")
+    } else {
+        console.log ("brbnz is not branching")
+    }
+}
+
+function exp2_brfc0 (es) {
+    com.mode.devlog('exp_brfc0')
+    const x = es.regfile[es.ir_d].get()
+    const bitidx = es.field_e
+    const b = arch.getBitInWordLE (x, bitidx)
+    const offset = es.instrDisp & 0x0fff
+    console.log (`brfc0 x=${x} bitidx=${bitidx} b=${b}`)
+    if (b === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + offset))
+        console.log ("brfc0 is branching")
+    } else {
+        console.log ("brfc0 is not branching")
+    }
+}
+
+function exp2_brbc0 (es) {
+    com.mode.devlog('exp_brbc0')
+    const x = es.regfile[es.ir_d].get()
+    const bitidx = es.field_e
+    const b = arch.getBitInWordLE (x, bitidx)
+    const offset = es.instrDisp & 0x0fff
+    console.log (`brbc0 x=${x} bitidx=${bitidx} b=${b}`)
+    if (b === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() - offset))
+        console.log ("brbc0 is branching")
+    } else {
+        console.log ("brbc0 is not branching")
+    }
+}
+
+function exp2_brfc1 (es) {
+    com.mode.devlog('exp_brfc1')
+    const x = es.regfile[es.ir_d].get()
+    const bitidx = es.field_e
+    const b = arch.getBitInWordLE (x, bitidx)
+    const offset = es.instrDisp & 0x0fff
+    console.log (`brfc1 x=${x} bitidx=${bitidx} b=${b}`)
+    if (b !== 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + offset))
+        console.log ("brfc1 is branching")
+    } else {
+        console.log ("brfc1 is not branching")
+    }
+}
+
+function exp2_brbc1 (es) {
+    com.mode.devlog('exp_brbc1')
+    const x = es.regfile[es.ir_d].get()
+    const bitidx = es.field_e
+    const b = arch.getBitInWordLE (x, bitidx)
+    const offset = es.instrDisp & 0x0fff
+    if (b !== 0) {
+        es.pc.put (limitAddress (es, es.pc.get() - offset))
+        console.log ("brbc1 is branching")
+    } else {
+        console.log ("brbc1 is not branching")
+    }
 }
 
 function exp2_resume (es) {
@@ -1362,7 +1477,7 @@ function exp2_execute (es) {
 
 
 function exp2_shiftl (es) {
-    com.mode.devlog (`shiftl d=${arith.wordToHex4(es.field_d)}`
+    com.mode.devlog (`shiftl d=${arith.wordToHex4(es.ir_d)}`
                      + ` e=${arith.wordToHex4(es.field_e)}`
                      + ` gh=${arith.wordToHex4(es.field_gh)}`)
     const x = es.regfile[es.field_e].get();
@@ -1374,7 +1489,7 @@ function exp2_shiftl (es) {
 }
 
 function exp2_shiftr (es) {
-    com.mode.devlog (`shiftr d=${arith.wordToHex4(es.field_d)}`
+    com.mode.devlog (`shiftr d=${arith.wordToHex4(es.ir_d)}`
                      + ` e=${arith.wordToHex4(es.field_e)}`
                      + ` gh=${arith.wordToHex4(es.field_gh)}`)
     const x = es.regfile[es.field_e].get();
@@ -1480,18 +1595,18 @@ const exp2 = (f) => (es) => {
 }
 
 const dispatch_EXP =
-      [ exp2 (exp2_nop), // 00
-        exp2 (exp2_nop), // 01
-        exp2 (exp2_nop), // 02
-        exp2 (exp2_nop), // 03
-        exp2 (exp2_nop), // 04
-        exp2 (exp2_nop), // 05
-        exp2 (exp2_nop), // 06
-        exp2 (exp2_nop), // 07
-        exp2 (exp2_nop), // 08
-        exp2 (exp2_nop), // 09
-        exp2 (exp2_nop), // 0a
-        exp2 (exp2_nop), // 0b
+      [ exp2 (exp2_brf),      // 00
+        exp2 (exp2_brb),      // 01
+        exp2 (exp2_brfc0),    // 02
+        exp2 (exp2_brbc0),    // 03
+        exp2 (exp2_brfc1),    // 04
+        exp2 (exp2_brbc1),    // 05
+        exp2 (exp2_brfz),     // 06
+        exp2 (exp2_brbz),     // 07
+        exp2 (exp2_brfnz),    // 08
+        exp2 (exp2_brbnz),    // 09
+        exp2 (exp2_save),     // 0a
+        exp2 (exp2_restore),  // 0b
         exp2 (exp2_push),     // 0c push
         exp2 (exp2_pop),      // 0d pop
         exp2 (exp2_top),      // 0e top
@@ -1538,7 +1653,7 @@ Deprecated
     let last = es.regfile[es.field_b].get();
     if (top < last) {
         top += 1;
-        memStore (es, top, es.regfile[es.field_d].get());
+        memStore (es, top, es.regfile[es.ir_d].get());
         es.regfile[es.field_f].put(top);
     } else {
         console.log ("push: stack overflow")

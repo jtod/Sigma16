@@ -211,6 +211,15 @@ export function addVal (ma,s,x,y) {
     return result;
 }
 
+// Calculate offset for pc-relative addressing
+function findOffset (here, there) {
+    const k = there.movability === Relocatable
+          ? Math.abs (there.word - (here.word + 2))
+          : there.word
+    console.log (`findOffset here=${here} there=${there} k=${k}`)
+    return k
+}
+
 // Word addition doesn't overflow, but wraps around.  Any negative
 // would be an internal error, and is set to 0 with message.
 
@@ -1117,10 +1126,48 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             handleVal (ma, s, s.address.word, s.operands[0], k, Field_d);
             handleVal (ma, s, s.address.word+1, disp, v, Field_disp);
+// EXP-aK pc-relative
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aKpcr) {
+            console.log (`Pass2 EXP/K pcr`)
+            requireNoperands (ma, s, 1)
+            const dest = evaluate (ma, s, s.address.word, s.operands[0])
+            const offset = findOffset (s.address, dest)
+            console.log (`pc relative offset = ${offset}`)
+            s.codeWord1 = mkWord448(op.opcode[0],0,op.opcode[1])
+            s.codeWord2 = offset
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+
+// EXP-aRK pc-relative
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRKpcr) {
+            console.log (`Pass2 EXP/RK pcr`)
+            requireNoperands (ma, s, 2)
+            const d = requireReg (ma, s, s.operands[0])
+            const dest = evaluate (ma, s, s.address.word, s.operands[1])
+            const offset = findOffset (s.address, dest)
+            console.log (`pc relative offset = ${offset}`)
+            s.codeWord1 = mkWord448(op.opcode[0],d,op.opcode[1])
+            s.codeWord2 = offset
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+// EXP-aRkK pc-relative
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkKpcr) {
+            console.log (`Pass2 EXP/RkK pcr`)
+            requireNoperands (ma, s, 3)
+            const d = requireReg (ma, s, s.operands[0])
+            const e = requireK4 (ma, s, Field_e, s.operands[1])
+            const dest = evaluate (ma, s, s.address.word, s.operands[2])
+            const offset = findOffset (s.address, dest)
+            console.log (`pc relative offset = ${offset}`)
+            s.codeWord1 = mkWord448(op.opcode[0],d,op.opcode[1])
+            s.codeWord2 = mkWord412 (e, offset)
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+            
 // EXP1-null -- resume
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.a0) {
 	    com.mode.devlog (`Pass2 iEXP1/no-operand`)
-//            requireNoperands (ma, s, 0)
+            requireNoperands (ma, s, 0)
             s.codeWord1 = mkWord448(op.opcode[0],0,op.opcode[1])
             s.codeword2 = 0
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
@@ -1186,6 +1233,7 @@ function asmPass2 (ma) {
             s.codeWord2 = mkWord448 (e, f, gh)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+            
 // EXP-RRkkk -- extract Rd,f,g,Re,h
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkRk) {
 	    console.log (`pass2 iEXP/aRRkkk`);
