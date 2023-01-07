@@ -3062,7 +3062,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_EXAMPLE
 
-*** Stack representation
+*** Stack
 
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -3203,15 +3203,26 @@ if Ra >= Rb
 
 *** save, restore
 
- save  
- save     |       RX   | RX    | f,9  | M[ea] := R1, ..., M[ea+d-1] := Rd  M[Rb+ofs+(f-e+1)] := Rf |
- restore  |   | RX   | RX    | f,a  | R1 := M[ea], ..., Rd := M[ea+d-1] |
+The =save= and =restore= instructions are analogous to =store= and
+=load=, but they transfer a block of data between registers and
+memory, not just an individual word.
 
-This instruction saves registers R3 through R9 into memory starting at
-address mem[5 + R13].
+- *save* stores a sequence of adjacent registers into a block of
+  contiguous memory locations.
+- *restore* is the opposite: it loads the block of memory into the
+  registers.
+
+For both instructions, the sequence of registers is specified by
+giving the first and last register.  The starting address of the
+memory block is specified by an effective address of the form
+=offset[Reg]=, where Reg is any register (e.g. R4, R13, etc) and
+=offset= is a number between 0 and 255.
+
+This instruction will save registers R3 through R9 into memory
+starting at address 5 + R13:
 
 #+BEGIN_EXAMPLE
-   save   R3,R9,5[R13]
+   save    R3,R6,5[R13]
 #+END_EXAMPLE
 
 It is equivalent to a sequence of store instructions:
@@ -3220,64 +3231,66 @@ It is equivalent to a sequence of store instructions:
    store   R4,6[R13]
    store   R5,7[R13]
    store   R6,8[R13]
-   store   R7,9[R13]
-   store   R8,10[R13]
-   store   R9,11[R13]
 #+END_EXAMPLE
 
-The constant k (5 in this example) must satisfy $0 \leq k \leq 255$,
-because it is represented by an 8-bit field in the instruction.
-
- 
-The *save* instruction stores a sequence of adjacent registers into a
-block of contiguous memory locations.  The sequence of registers is
-specified by giving the first and last register, and the starting
-address of the memory block is specified by the effective address.
-The instruction does not change the value of any register, including
-the index register.
-
-A save instruction is equivalent to a fixed sequence of store
-instructions; The save instruction stores a set of contiguous
-registers into memory.  The starting address of the memory block is
-specified by an index register and an 8-bit displacement.  The
-instruction *save Re,Rf,gh[Ra]* stores the contents of Re, Re+1, ...,
-Rf into memory at consecutive locations beginning with *mem[Ra+gh]*.
-
-For example, the following save instruction
+To load the entire block back into the same registers, use
 
 #+BEGIN_EXAMPLE
-      save R2,R9,20[R14]
+   restore R3,R6,5[R13]
 #+END_EXAMPLE
 
-is equivalent to the following sequence of store instructions:
-
+This is equivalent to a sequence of load instructions:
 #+BEGIN_EXAMPLE
-  store  R2,20[R14]
-  store  R3,21[R14]
-  store  R4,22[R14]
-  store  R5,23[R14]
-  store  R6,24[R14]
-  store  R7,25[R14]
-  store  R8,26[R14]
-  store  R9,27[R14]
+   load    R3,5[R13]
+   load    R4,6[R13]
+   load    R5,7[R13]
+   load    R6,8[R13]
 #+END_EXAMPLE
 
-The assembly language notation for a save instruction is similar to an
-RX instruction, but two registers are used to specify a block of
-registers, and the displacement is an 8-bit field gh. Its assembly
-language operand format is RRX.  Because of these differences, save is
-an EXP format instruction:
+There is an important restriction with =save= and =restore=: the
+displacement is limited to a small natural number between 0 and 255.
+(Recall that for load and store, the displacement can be as large as
+65,535.)  The reason for this is that the save and restore
+instructions are EXP format and the offset is represented by an 8-bit
+field (whereas load and store are RX format and the displacement is a
+16-bit word).
 
-#+BEGIN_EXAMPLE
-      save Rd,Re,gh[Rf]
-#+END_EXAMPLE  
+A common usage of save and restore is to simplify procedure call and
+return.  When a procedure is called, store the registers onto the execution stack when a procedure
+is called (using save), and then to load them back from the stack when
+the procedure is returned (restore).  Normally, the format of a stack
+frame has a fixed location for saving the registers, at a small offset
+from the beginning of the frame.  A register called the /stack
+pointer/ gives the address of the frame, and the offset for saving the
+registers is normally a small value (such as 3 or similar).
 
-asm format RRx  (x is short displacement and index register)
+Both save and restore are EXP format instructions, so each instruction
+is two words:
 
-The purpose of save is to copy the state of a block of
-registers into memory during a procedure call or a context switch.
-The registers can be reloaded by the restore instruction.
+- The first instruction word:
+  - op = e (indicating escape to EXP format)
+  - d = index register
+  - ab = secondary opcode
+- The second word:
+  - e = first register
+  - f = second register
+  - gh = 8-bit offset
+- The starting address of the memory block is R[d] + gh
+- The set of registers is R[e], R[e+1], ..., R[f]
 
+For save, the effect is
+- mem[R[d]+gh] := R[e]
+- mem[R[d]+gh+1] := R[e+1]
+- mem[R[d]+gh+2] := R[e+2]
+- ...
+- mem[R[d]+gh+f-e] := R[f]
+
+For restore, the effect is similar but the assignments are reversed:
+- R[e] := mem[R[d]+gh]
+- etc.
+
+The argument registers are not modified, unless they happen to be
+loaded by a restore.
 
 
 The instruction is EXP format, and the offset is limited to 8 bits,
@@ -3293,41 +3306,18 @@ stored.  If *e* > *f* then the register numbers wrap around  For
 example, 
 
 #+BEGIN_EXAMPLE
-   save    R11,R3,3[R5]
+   save    R14,R2,20[R5]
 #+END_EXAMPLE
 
 is equivalent to
 #+BEGIN_EXAMPLE
-   store   R11,3[R5]
-   store   R12,4[R5]
-   store   R13,5[R5]
-   store   R14,6[R5]
-   store   R15,7[R5]
-   store   R0,8[R5]
-   store   R1,9[R5]
-   store   R2,10[R5]
-   store   R3,11[R5]
+   store   R14,20[R5]
+   store   R15,21[R5]
+   store   R0,22[R5]
+   store   R1,23[R5]
+   store   R2,24[R5]
 #+END_EXAMPLE
 
-*** restore
-
-Restore Rd,disp[Ra] loads R1, ..., Rd from consecutive memory
-locations starting from the effective address.
-For example,
-
-#+BEGIN_EXAMPLE
-    restore R5,20[R14]
-#+END_EXAMPLE
-
-is equivalent to
-
-#+BEGIN_EXAMPLE
-    load   R1,20[R14]
-    load   R2,21[R14]
-    load   R3,22[R14]
-    load   R4,23[R14]
-    load   R5,24[R14]
-#+END_EXAMPLE
 
 The *restore* instruction copies a sequence of consecutive memory
 locations starting from the effecive address into a sequence of
@@ -3336,8 +3326,6 @@ changed.  Restore is equivalent to a fixed sequence of load
 instructions; its purpose of restore is to restore the state of
 registers from memory after a procedure call or a context switch.
 
-Typically, save is used as part of a procedure call and restore is
-used as part of the return.
 
 The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
 at consecutive locations beginning with mem[gh+Rf] into registers Re,
