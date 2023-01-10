@@ -1,5 +1,5 @@
 ; Stack: Test the stack instructions: push, pop, top
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Sigma16: https://jtod.github.io/home/Sigma16
 
 ; R11 = stack base: address of first element in stack
 ; R12 = stack limit: address of last element in stack
@@ -126,39 +126,6 @@ test_stack
    push  R3,R11,R12
    push  R4,R11,R12
    push  R5,R11,R12
-
-
-; Wraparound from R15
-   lea     R1,64[R0]
-   lea     R2,65[R0]
-   lea     R3,66[R0]
-   lea     R4,67[R0]
-   lea     R10,68[R0]
-   lea     R11,69[R0]
-   lea     R12,70[R0]
-   lea     R13,71[R0]
-   lea     R14,72[R0]
-   lea     R15,73[R0]
-   lea     R5,area[R0]
-   save    R11,R3,3[R5]
-   add     R1,R0,R0
-   add     R2,R0,R0
-   add     R3,R0,R0
-   add     R4,R0,R0
-   add     R10,R0,R0
-   add     R11,R0,R0
-   add     R12,R0,R0
-   add     R13,R0,R0
-   add     R14,R0,R0
-   add     R15,R0,R0
-   restore R11,R3,3[R5]
-
-
-; lea
-
-; load and store
-
-
 
    trap  R0,R0,R0
    

@@ -1306,6 +1306,7 @@ function exp2_brb (es) {
     es.pc.put (limitAddress (es, es.pc.get() - es.adr.get()))
 }
 
+
 function exp2_brfz (es) {
     com.mode.devlog('exp_brf')
     const x = es.regfile[es.ir_d].get()
@@ -1414,6 +1415,19 @@ function exp2_resume (es) {
     console.log ('exp2_resume')
     es.statusreg.put (es.rstat.get())
     es.pc.put (limitAddress (es, es.rpc.get()))
+}
+
+function exp2_dsptch (es) {
+    com.mode.devlog('exp_dsptch')
+    const code = es.regfile[es.ir_d].get()  // code
+    const size = es.field_e                 // field size
+    const k = es.instrDisp & 0x0fff         // fixed offset
+    const mask = (1 << size) - 1
+    const safecode = (code & mask)
+    const offset = safecode << 1 + k        // variable offset
+    const dest =  es.pc.get() + offset      // destination address
+    console.log (`code=${code} size=${size} k=${k} mask=${mask} safecode=${safecode} offset=${offset} dest=${dest}`)
+    es.pc.put (limitAddress (es, dest))
 }
 
 function exp2_save (es) {
@@ -1567,6 +1581,23 @@ function exp2_logicb (es) {
     es.regfile[es.ir_d].put(wresult)
 }
 
+function exp2_logicc (es) {
+    com.mode.devlog (`EXP logicc`);
+    const xreg = es.regfile[es.ir_d].get()               // operand word
+    const xbit = arch.getBitInWordLE (xreg, es.field_e)  // operand bit x
+    const yreg = es.regfile[es.field_f].get()            // operand word
+    const ybit = arch.getBitInWordLE (yreg, es.field_g)  // operand bit y
+    const fcn = es.field_h                               // logic function
+    const bresult = arith.applyLogicFcnBit (fcn, xbit, ybit) // bit result
+    const oldcc = es.regfile[15].get()                // old cc value
+    const wresult = arch.putBitInWordLE (16, oldcc, arch.bit_ccf, bresult)
+    es.regfile[15].put(wresult)                       // put bresult into cc
+    com.mode.devlog (`logicc oldccw=${arith.wordToHex4(oldcc)}`
+                     + ` xbit=${xbit} ybit=${ybit}`
+                     + ` fcn=${fcn} bresult=${bresult}`
+                     + ` wresult=${arith.wordToHex4(wresult)}`)
+}
+
 // EXP format instructions require a second word
 
 const exp2 = (f) => (es) => {
@@ -1605,21 +1636,22 @@ const dispatch_EXP =
         exp2 (exp2_brbz),     // 07
         exp2 (exp2_brfnz),    // 08
         exp2 (exp2_brbnz),    // 09
-        exp2 (exp2_save),     // 0a
-        exp2 (exp2_restore),  // 0b
-        exp2 (exp2_push),     // 0c push
-        exp2 (exp2_pop),      // 0d pop
-        exp2 (exp2_top),      // 0e top
-        exp2 (exp2_shiftl),   // 0f shiftl
-        exp2 (exp2_shiftr),   // 10 shiftr
-        exp2 (exp2_logicw),   // 11 logicw
-        exp2 (exp2_logicb),   // 12 logicb
-        exp2 (exp2_nop),      // 13 logicbcc ?????
-        exp2 (exp2_extract),  // 14 extract
-        exp2 (exp2_extracti), // 15 extracti
-        exp2 (exp2_getctl),   // 16 getctl
-        exp2 (exp2_putctl),   // 17 putctl
-        exp2 (exp2_resume) ]  // 18 resume
+        exp2 (exp2_dsptch),   // 0a
+        exp2 (exp2_save),     // 0b
+        exp2 (exp2_restore),  // 0c
+        exp2 (exp2_push),     // 0d
+        exp2 (exp2_pop),      // 0e
+        exp2 (exp2_top),      // 0f
+        exp2 (exp2_shiftl),   // 10
+        exp2 (exp2_shiftr),   // 11
+        exp2 (exp2_logicw),   // 12
+        exp2 (exp2_logicb),   // 13
+        exp2 (exp2_logicc),   // 14
+        exp2 (exp2_extract),  // 15
+        exp2 (exp2_extracti), // 16
+        exp2 (exp2_getctl),   // 17
+        exp2 (exp2_putctl),   // 18
+        exp2 (exp2_resume) ]  // 19
 
 //        exp2 (exp2_push),      // 0
 //        exp2 (exp2_pop),      // 0

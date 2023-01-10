@@ -32,7 +32,7 @@ loop
      jump   loop[R0]          ; goto loop
 
 ; Mutual exclusion
-     testset R5,mutex[R0]
+     tstset R5,mutex[R0]
 done
      trap   R0,R0,R0
 

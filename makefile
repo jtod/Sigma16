@@ -229,6 +229,7 @@ build:
 	cp -u docs/help/*.html $(S16_INSTALL_DIR)/docs/help
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/UserGuide
 	cp -u docs/UserGuide/*.html $(S16_INSTALL_DIR)/docs/UserGuide
+	cp -u docs/UserGuide/*.pdf $(S16_INSTALL_DIR)/docs/UserGuide
 
 	mkdir -p -m700 $(S16_INSTALL_DIR)/examples
 	cp -ur examples/* $(S16_INSTALL_DIR)/examples
@@ -259,39 +260,3 @@ installHomepage :
 	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
-#--------------------------------------------------------------------------
-# M1
-#--------------------------------------------------------------------------
-
-M1doc :
-	cd src/circuits; haddock --html --hyperlinked-source --odir=doc HDL/Hydra/Circuits/* HDL/Hydra/Core/* M1/Circuit/*.hs M1/Tools/*.hs
-
-
-# deprecated...
-
-#--------------------------------------------------------------------------
-# Install build: copy the dev build to the local server repository
-#--------------------------------------------------------------------------
-# .PHONY: installBuild
-# installBuild:
-# 	cp -upr $(S16_DEV_SRC_DIR) $(SIGSERVER_REPOSITORY)/build/$(VERSION)
-
-# If and when there are figure files, those will need to be copied too
-#	mkdir -p $(S16_INSTALL_DIR)/docs/UserGuide/png
-#	cp -u docs/UserGuide/png/*.png $(S16_INSTALL_DIR)/docs/UserGuide/png
-#	mkdir -p $(S16_INSTALL_DIR)/docs/UserGuide/svg
-#	cp -u docs/UserGuide/svg/*.svg $(S16_INSTALL_DIR)/docs/UserGuide/svg
-
-# S16_BUILDS_DIR=$(SIGMASYSTEM)/Sigma16-builds/build
-# S16_DEV_BUILD_DIR=$(S16_DEV_VERSION_DIR)/Sigma16
-#	@echo "  S16_BUILDS_DIR = $(S16_BUILDS_DIR)"
-#	@echo "  S16_DEV_BUILD_DIR = $(S16_DEV_BUILD_DIR)"
-#	@echo "  S16_DEV_VERSION_DIR = $(S16_DEV_VERSION_DIR)"
-# : the directory containing this makefile
-# Copy build to
-# deprecated...
-#	make VERSION.txt
-#	make src/base/version.mjs
-
-#	cp -u src/server/*.html $(SIGSERVER_REPOSITORY)/build
-#	cp -u docs/docstyle.css $(SIGSERVER_REPOSITORY)/build

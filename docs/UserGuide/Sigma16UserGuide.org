@@ -23,7 +23,7 @@
 # To generate html: C-c C-e h h (export to html)
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docstyle.css" />
 
-# latex 
+# LaTeX
 # To generate latex: C-c C-e l l (export to latex file)
 # To generate pdf: C-c C-e l p (export to pdf)
 #+LATEX_CLASS: article
@@ -85,31 +85,6 @@ The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the examples in the main panel.
 
-
-* Why Sigma16?
-
-
-** Focus on connections
-*** Vertical connections
-- ISA - target for compilation
-- circuit implements ISA
-*** Horizontal connections
-- ISA - programming language constructs
-- ISA - OS kernel
-** Principles and training
-- When you learn one architecture, it's much easier to learn more
-- 
-** Synthetic vs commercial architecture
-*** Benefit of commercial architecture: training
-- But which architecture? x86? ARM? RISC-V? New ones?
-** Design rationale
-*** As simple as possible -- but no simpler
-*** 16-bit word size
-*** Register file
-*** Readable machine language
-** Software tools
-*** Integrated environment
-*** Run in browser without installation
 
 * Core architecture tutorials
 :PROPERTIES:
@@ -2159,18 +2134,19 @@ significant bit.
 
 Table: Condition code flags
 
-| bit index | Relation        | Symbol |
-|-----------+-----------------+--------|
-|         0 | > Int           | g      |
-|         1 | > Nat           | G      |
-|         2 | =               | =      |
-|         3 | < Nat           | L      |
-|         4 | < Int           | <      |
-|         5 | Int overflow    | v      |
-|         6 | Nat overflow    | V      |
-|         7 | Carry           | C      |
-|         8 | Stack overflow  | S      |
-|         9 | Stack underflow | s      |
+| bit index | Relation               | Symbol |
+|-----------+------------------------+--------|
+|         0 | > Int                  | g      |
+|         1 | > Nat                  | G      |
+|         2 | =                      | =      |
+|         3 | < Nat                  | L      |
+|         4 | < Int                  | <      |
+|         5 | Int overflow           | v      |
+|         6 | Nat overflow           | V      |
+|         7 | Carry                  | C      |
+|         8 | Stack overflow         | S      |
+|         9 | Stack underflow        | s      |
+|        10 | logicc function result | f      |
 
 *** Instruction control registers
 There are several instruction control registers that enable the
@@ -2386,597 +2362,6 @@ formats are described later.
 :PROPERTIES:
 :CUSTOM_ID: sec-instruction-set
 :END:
-
-** Arithmetic
-
-*** add
-
-The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
-destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~, calculates
-the sum ~Ra~ + ~Rb~, and loads the result into the destination ~Rd~.
-The effect is ~Rd := Ra + Rb~.  For example, ~add R5,R12,R2~
-performs ~R5 := R12 + R3~.
-
-The add instruction is RRR format with opcode=0.  Given destination Rd
-and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
-reprseented by 0dab.
-
-  Code    Assembly          Effect
-  -----   ----------------  ------------------
-  062c    add R6,R2,R12     ; R6 := R2 + R12
-  0d13    add R13,R1,R3     ; R13 := R1 + R3
-  
-The add instruction sets both the destination register and the
-condition code.  Flags in the condition code indicate overflow, carry,
-and sign of the result.
-
----------  ---------------------
- R15.ccG    result > 0 (binary)
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result <tc 0 (two's complement)
- R15.ccV    overflow (binary)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
----------  ---------------------
-
-The bits in a word are numbered from right to left, starting at bit
-index 0 in the rightmost (least significant) position, up to index 15
-at the leftmost (most significant) position.  The notation x.n denotes
-the bit in x with index n.
-
-A field is a consecutiave sequence of bits within a word.  A field is
-specified with the index of the leftmost bit in the field, along with
-the size of the field.  For example, the field in x with index 9 and
-size 3 consists of the bits x.9 x.8 x.7.
-
-#+BEGIN_EXAMPLE
-    add R1,R2,R3    ; R1 := R2 + R3
-#+END_EXAMPLE
-
-The instruction add Rd,Ra,Rb has operands Ra and Rb and destination
-Rd.  It fetches the operands Ra and Rb, calculates the sum Ra + Rb,
-and loads the result into the destination Rd.  The effect is Rd :=
-Ra + Rb.  For example, add R5,R12,R2 performs R5 := R12 + R3.
-
-The add instruction is RRR format with opcode=0.  Given destination Rd
-and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
-reprseented by 0dab.
-
-| Code | Assembly      | Effect           |
-|------+---------------+------------------|
-| 062c | add R6,R2,R12 | ; R6 := R2 + R12 |
-| 0d13 | add R13,R1,R3 | ; R13 := R1 + R3 |
-  
-The add instruction can be used for both binary addition (on natural
-numbers) and for two's complement addition (on signed integers).
-
-- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
-  If two natural numbers are added, the result is a natural number
-  (the result cannot be negative).  If the result is 65536 or larger,
-  it cannot be represented as a 16 bit binary number.  If this
-  happens, the destination register is set to the lower 16 bits of the
-  true result, and the binary overflow flag is set in the Condition Code.
-  
-- 16-bit two's complement numbers are signed integers -32999?, ...,
-  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
-  is a signed integer.  If the result is less than -32000 or greater
-  than 32000, then the result cannot be represented as a 16 bit two's
-  complement number.  If this happens, the destination register is set
-  to the lower 16 bits of the true result, and the two's complement
-  overflow flag is set in the Condition Code.  Furthermore, the
-  overflow flag is set in the req register.  If interrupts are enabled
-  and the overflow flag is 1 in the mask register, then an interrupt
-  will occur immediatelhy after the add instruction executes.
-
-The add instruction can be used for both binary addition (on natural
-numbers) and for two's complement addition (on signed integers).
-
-- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
-  If two natural numbers are added, the result is a natural number
-  (the result cannot be negative).  If the result is 65536 or larger,
-  it cannot be represented as a 16 bit binary number.  If this
-  happens, the destination register is set to the lower 16 bits of the
-  true result, and the binary overflow flag is set in the Condition Code.
-  
-- 16-bit two's complement numbers are signed integers -32999?, ...,
-  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
-  is a signed integer.  If the result is less than -32000 or greater
-  than 32000, then the result cannot be represented as a 16 bit two's
-  complement number.  If this happens, the destination register is set
-  to the lower 16 bits of the true result, and the two's complement
-  overflow flag is set in the Condition Code.  Furthermore, the
-  overflow flag is set in the req register.  If interrupts are enabled
-  and the overflow flag is 1 in the mask register, then an interrupt
-  will occur immediatelhy after the add instruction executes.
-
-*** sub
-
-Example: sub R1,R2,R3 ; R1 := R2 - R3
-
-This instruction is similar to add; the only difference is that it
-calculates R2-R3 and places the result in R1.  The effect on the
-condition code is the same as for add.
-
-The instruction sub Rd,Ra,Rb has operands Ra and Rb and destination
-Rd.  It fetches the operands Ra and Rb, calculates the difference Ra -
-Rb, and loads the result into the destination Rd.  The effect is Rd :=
-Ra - Rb.  For example, sub R5,R12,R2 performs R5 := R12 - R3.
-
-The sub instruction is RRR format with opcode=1.
-
-  Code    Assembly          Effect
-  -----   ----------------  ------------------
-  162c    sub R6,R2,R12     ; R6 := R2 - R12
-  1d13    sub R13,R1,R3     ; R13 := R1 - R3
-  
-In addition to setting the destination register, the sub instruction
-sets several bits in the condition code R15 and may set a bit in the
-req register.
-
----------  ---------------------
- R15.ccG    result > 0 (binary)
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result < 0 (two's complement)
- R15.ccV    overflow (binary)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
----------  ---------------------
-
-*** mul
-
-Example: mul R1,R2,R3 ; R1 := R2 * R3
-
-The multiply instruction mul Rd,Ra,Rb calculates the integer (two's
-complement) product of the operands Ra and Rb, and places the result
-in the destination register Rd.  The mul instruction does not produce
-the natural (binary) product.
-
-If the magnitude of the product is too large to be representable as a
-16 bit two's complement integer, this is an overflow.  If overflow
-occurs, the integer overflow bit is set in the condition code (F15)
-and the integer overflow bit is also set in the interrupt request
-register (req), and the lower order 16 bits of the product are loaded
-into Rd.
-
----------  ---------------------
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result < 0 (two's complement)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
----------  ---------------------
-
-*** div
-
-Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
-
-Unlike the other arithmetic operations, the divide instruction div
-Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder
-Ra rem Rb.  It loads the quotient into the destination register Rd,
-and the remainder is loaded into R15.
-
-If the destination register Rd is actually R15, then the quotient is
-placed in R15, and the remainder is discarded.
-
-The divide instruction doesn't set the condition code, since R15 is
-used for the remainder.  Therefore there is no condition code bit to
-indicate division by 0.  However, it is easy for a program to detect a
-division by 0.
-
-- (Explicit test for error) The program can compare the divisor with 0
-  before or after executing the divide instruction, and jump to an
-  error handler if the divisor is 0.  This is similar to testing the
-  condition code after an add, sub, or mul instruction, but it does
-  require two instructions: a compare followed by a conditional jump.
-  For example:
-
-#+BEGIN_EXAMPLE
-   div    R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
-   cmp    R3,R0       ; Did we divide by 0?
-   jumpeq zeroDivide[R0] ; If yes, handle error
-#+END_EXAMPLE
-  
-- (Exception) The program can detect division by 0 using an interrupt.
-  To do this, enable interrupts and enable the interrupt mask for
-  division by 0.  See the section on Interrupts.  This approach does
-  not require a compare or jump instruction for each division.
-
-*** addc
-
-The addc instruction performs a binary addition with carry
-propagation.  It adds the two operand registers and the carry bit in
-the condition code register, R15.  The sum is loaded into the
-destination register Rd and the carry output is written back into the
-carry bit, overwriting its previous value.  Overflow is not possible
-with this instruction.
-
-*** muln
-
-#+BEGIN_EXAMPLE
-     muln   Rd,Ra,Rb
-#+END_EXAMPLE
-
-The muln instruction calculates the product of two natural numbers in
-Ra and Rb.  The result is 32 bits; the leftmost 16 bits (the most
-significant part) is loaded into R15, and the rightmost 16 bits (the
-least significant part) is loaded into Rd.  If Rd is R15, the most
-significant part is discarded.
-
-*** divn
-
-#+BEGIN_EXAMPLE
-     divn   Rd,Ra,Rb
-#+END_EXAMPLE
-
-The divn instruction divides two natural numbers: dividend / divisor.
-All the numbers -- numerator, denominator, quotient, remainder -- are
-natural numbers represented in binary.
-
-- The dividend is a 32 bit natural number; its leftmost 16 bits are in
-  R15 and the rightmost 16 bits are in Ra.  Thedenominator is in Rb.
-- Two results are produced: a 32-bit quotient anda 16-bit remainder.
-- The leftmost 16 bits of the quotient are placedin R15 (replacing the
-  leftmost part of the dividend).  The rightmost16 bits of the
-  quotient are placed in Rd.
-- The remainder is placed in Ra, overwriting the least significant
-  half of the dividend operand
-
-** Logic and bits
-
-The instructions in this section treat a word as a sequence of bits,
-not as a number.  There are instructions that perform logic operations
-on individual bits, on all the bits in a word, and that operate on bit
-fields.
-
-The bits in a word x are indexed from 0 to 15, where 0 is the index of
-the leftmost (most significant) bit and 15 is the index or the
-rightmost (least significant) bit.  The notation x.i means the bit
-with index i in the word x.  For example, x.0 is the leftmost bit and
-x.15 is the rightmost bit.  When used in an instruction, a bit index
-is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
-
-A bit field is a contiguous sequence of bits in a word.  It is
-specified by the register containing a word, the index of the starting
-bit in the field, and the size of the field.
-
-The bit field instructions can be implemented using a combination of
-logic and shift instructions.  They are included in the architecture
-for several reasons:
-
-- These operations provide useful abstractions for writing
-  interpreters and simulators.
-- When used in an interpreter, bit field operations are executed
-  frequently: they are a crucial part of the "inner loop".  Therefore
-  the efficiency of common bit field operations is important.
-- The bit field instructions are easier to use and more readable than
-  the corresponding logic and shifts.
-- These instructions can be implemented efficiently in a digital
-  circuit and this implementation is an interesting design problem.
-
-*** cmp
-
-The compare instruction =cmp Ra,Rb= compares the values in the operand
-registers =Ra= and =Rb=, and then sets flags in the condition code
-(R15) to indicate the result. The notation R15.i means bit /i/ in R15;
-thus R15.0 is the leftmost bit of R15.  The instruction performs both
-natural number comparison (binary) and integer comparison (two's
-complement).  The resulting flags are
-
-- binary less than (L) in R15.0
-- two's complement less than (<) in R15.1
-- equal in R15.2
-- binary greater than (G) in R15.3
-- two's complement greater than (>) in R15.4
-
-The result of a cmp instruction can be used to control a conditional
-jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
-and the jumpc1 instruction jumps if a specified bit is 1.
-
-Pseudoinstructions provide the most common cases; for example jumple
-jumps if the condition code indicates that a comparison produced
-either integer less-than or equal.  A common pattern is a cmp followed
-by a jump pseudoinstruction, for example:
-
-#+BEGIN_EXAMPLE
-    cmp     R4,R9      ; compare R4 with R9
-    jumpgt  abc]R0]    ; if R4 > R9 then goto abc
-#+END_EXAMPLE
-
-*** logicw
-
-The logicw instruction performs a bitwise logic operation on two
-operands: each bit of the result is obtained by performing the logic
-function on the corresponding bits of the two operands.  The
-instruction allows an arbitrary logic function on two bits.
-
-A logic function is specified by g; the function itself is denoted
-*function g*.  This function is applied to the two operand registers
-Re and Rf, and the result is loaded into the destination register Rd.
-
-Example
-
-logicw R5,R7,R2,x ; R5 := R7 xor R2
-  
-- General form: logicw Rd,Re,Rf,g
-- Instruction format: EXP
-- Assembly format: RRRKEXP
-- Rd := (function g) Re Rf
-
-| x | y | result |
-|---+---+--------|
-| 0 | 0 | a      |
-| 0 | 1 | b      |
-| 1 | 0 | c      |
-| 1 | 1 | d      |
-
-
-| abcd | hex | function |
-| 0000 |   0 |          |
-| 0001 |   1 |          |
-| 0010 |   2 |          |
-| 0011 |   3 |          |
-| 0100 |   4 |          |
-| 0101 |   5 |          |
-| 0110 |   6 |          |
-| 0111 |   7 |          |
-| 1000 |   8 |          |
-| 1001 |   9 |          |
-| 1010 |  10 |          |
-| 1011 |  11 |          |
-| 1100 |  12 |          |
-| 1101 |  13 |          |
-| 1110 |  14 |          |
-| 1111 |  15 |          |
-
-
-| x | y | x and y | x xor y | x or y |
-|---+---+---------+---------+--------+
-| 0 | 0 |       0 |       0 |      0 |
-| 0 | 1 |       0 |       1 |      1 |
-| 1 | 0 |       0 |       1 |      1 |
-| 1 | 1 |       1 |       0 |      1 |
-|---+---+---------+---------+--------+
-|   |   |       1 |       6 |      7 |
-|---+---+---------+---------+--------|
-
-| x | y | x nor y | inv y | inv x | x nand y |
-|---+---+---------+-------+-------+----------|
-| 0 | 0 |       1 |     1 |     1 |        1 |
-| 0 | 1 |       0 |     0 |     1 |        1 |
-| 1 | 0 |       0 |     1 |     0 |        1 |
-| 1 | 1 |       0 |     0 |     0 |        0 |
-|---+---+---------+-------+-------+----------|
-|   |   |       8 |     a |     c |        e |
-|---+---+---------+-------+-------+----------|
-
-
-| function | abcd | code |
-|----------+------+------|
-| and      | 0001 |    1 |
-| or       | 0111 |    7 |
-| xor      | 0110 |    6 |
-| inv x    | 1100 |   12 |
-| inv y    |      |      |
-
-*** logicb and logicbcc
-
-The /logicb/ instruction performs an arbitrary Boolean logic function
-on two operand bits, producing a result bit.  All three bits must be
-in the same register.  If a program keeps a collection of Boolean
-variables in one register, logicb supports evaluation of general
-expressions using those variables.
-
-This logicb instruction performs R1.3 := R1.9 xor R1.2:
-
-#+BEGIN_EXAMPLE
-      logicb  R1,3,9,2,6
-      logicb  d,e,f,g,h
-#+END_EXAMPLE
-
-This instruction performs logic on bits within R1.  The logic function
-is 6 (see Logic Functions), the operands are bits 9 and 2, and the
-result is placed into bit 3.  The instruction could be read as: within
-R1, perform logic function 6 on bits 9 and 2, and place the result in
-bit 3.
-
-logicbcc also performs a logic function on individual bits.  The
-operands may be any bit in any register.  The result is placed in the
-logb bit in the condition code (R15).
-
-#+BEGIN_EXAMPLE
-  logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
-#+END_EXAMPLE
-
-Pseudoinstructions are provided for the most common logic functions;
-these all generate a logicb instruction.  The operands for these are
-the same as for logicb, except that the last operand (the logic
-function) is omitted.  Since the logical negation (invert) function
-has only one operand, the invb pseudoinstruction also omits the second
-operand bit index.  Here are examples of the logicb
-pseudoinstructions:
-
-#+BEGIN_EXAMPLE
-      invb    R1,3,9     ; R1.3 := !R1.9
-      andb    R1,3,9,2   ; R1.3 := R1.9 & R1.2
-      orb     R1,3,9,2   ; R1.3 := R1.9 | R1.2
-      xorb    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
-#+END_EXAMPLE
-
-The instruction format is EXP, with the following fields:
-
-#+BEGIN_EXAMPLE
-      logicb  Rd,e,f,g,h
-#+END_EXAMPLE
-
-- Rd is the destination register, which also contains both source
-  operands bits
-- e is the index of the destination bit
-- f is the index of the first argument bit
-- g is the index of the second argument bit
-- h is the logic function
-  
-*** shiftl, shiftr
-
-The instruction shiftl Rd,Ra,k shifts the value in the operand
-register Ra by k bits to the left, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
-shift, the leftmost k bits of the value are discarded and the
-rightmost k bits become 0.
-
-#+BEGIN_EXAMPLE
-   shiftl  R2,R3,5
-   op = e (EXP format)
-   d = 2 (destination register)
-   ab = secondary opcode
-   e = 3 (register operand)
-   f = 0 (unused, don't care)
-   gh = 5 (constant)
-#+END_EXAMPLE
-
-The instruction format is EXP, and the assembly language statement format
-is RRKEXP.
-
-Shift to the right.
-
-The instruction shiftr Rd,Ra,k shifts the value in the operand
-register Ra by k bits to the right, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
-shift, the rightmost k bits of the value are discarded and the
-leftmost k bits become 0.
-
-The following instruction shifts the value in R3 to the right by 5
-bits and place the result in R2.  The operand register R3 is not
-changed.
-
-#+BEGIN_EXAMPLE
-   shiftr  R2,R3,5
-#+END_EXAMPLE
-
-The instruction format is EXP, and the assembly language statement format
-is RRKEXP
-
-*** extract, extracti
-
-The extract instruction copies an arbitrary field of bits from a
-source register and inserts those bits into an arbitrary position in
-a destination register.  The extracti instruction is similar to
-extract, but extracti inverts the bits in the source field before
-they are inserted into the destination.
-
-The bits in the destination field are overwritten; other bits in the
-destination as well as all bits in the source are unchanged.
-
-The fields are specified by giving the bit indices of the leftmost
-bit in the field (the left index) and the rightmost bit in the
-field (the right index).  Normally the left index is greater than
-the right index; otherwise the field is empty.
-
-The assembly language format is RkkRk.  Rd is the destination
-register, the field to be overwritten is bits f to g (inclusive) in
-the destination, the source register is Re, and the source field
-starts at bit h in Re.  The general form of the assembly language
-statement is:
-
-#+BEGIN_EXAMPLE
-   extract Rd,f,g,Re,h
-#+END_EXAMPLE   
-
-The effect is to overwrite each bit in the destination field with
-the corresponding bit in the source field:
-
-#+BEGIN_EXAMPLE
-Rd.i := Rs.k
-Rd.i-1 := Rs.k-1
-...
-Rd.j := Rs.k-(j-i+1)
-#+END_EXAMPLE
-
-Example:
-#+BEGIN_EXAMPLE
-extract R2,7,4,R3,20
-R2.7 := R3.20
-R2.6 := R3.19
-R2.5 := R3.18
-R2.4 := R3.17
-#+END_EXAMPLE   
-
-The machine language format is EXP, with the following fields:
-
-|----+---+---+---|
-| op | d | a | b |
-|----+---+---+---|
-| e  | f | g | h |
-|----+---+---+---|
-
-- op  = e (escape to EXP)
-- d   = Rd (destination register)
-- ab  = secondary opcode for extract
-- e   = Re (source register)
-- f   = destination start bit_index
-- g   = destination end bit_index
-- h   = source start bit index
-
--  (obsolete)  extract  Rd,Rs,d_index,s_index,size
-
-- Rd is the destination register
-- d_index (0..15) is the starting bit index in the destination register
-- size (0..15) is the number of bits in the field
-- Rs is the source register (field is obtained from this register)
-- s_index (0..15) is the starting bit index in the source register
-
-#+BEGIN_EXAMPLE
-      lea      R1,$ffff[R0]     ; ffff
-      add      R2,R0,R0         ; 0000
-      extract  R2,R1,11,3,4     ; 0f00  R2.11-8 := R1.3-0
-#+END_EXAMPLE
-
-The effect of an extract instruction can be described by writing each
-bit assignment individually, so there are /size/ individual bit
-assignments.  The notation R2.7 means /the bit at position 7 in
-register R2/.  Using this notation, the example above performs the
-following bit assignments:
-
-| extract R2,R1,11,3,4 |
-|----------------------|
-| R2.11 := R1.3        |
-| R2.10 := R1.2        |
-| R2.9 := R1.1         |
-| R2.8 := R1.0         |
-|----------------------|
-
-Although extract performs a number of bit assignments, it is a single
-instruction and its execution time is a small fixed number of clock
-cycles.  The execution time does not depend on the value of the field
-size, and extracting a large field doesn't require more time than
-extracting a small field. The hardware implementation of the
-instruction does not use an iteration to copy the bits; they are all
-copied in parallel in one clock cycle.
-
-Any register may be specified for the source and destination.  If they
-are the same, the effect is to move a bit field from one place to
-another within the register (this is not the same as a shift).  If the
-destination is R0, the result is discarded and the instruction has no
-effect.
-
-The size is a 4-bit field, and its value is between 0 and 15.  Thus an
-extract instruction cannot copy the entire word in one regsiter to
-another register, as a size of 16 cannot be specified.  If size=0 then
-the instruction does nothing.  the source and destination fields
-cannot extend beyond the rightmost bit in a register.
-
-Here is another example:
-
-#+BEGIN_EXAMPLE
-      add      R3,R0,R0
-      extract  R3,R1,13,5,1     ; 2000
-      lea      R4,$ffff[R0]
-      extract  R4,R0,13,5,1     ; dfff
-#+END_EXAMPLE
-
-
-
 
 ** Memory
 
@@ -3201,7 +2586,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** save, restore
+*** save, restor
 
 The =save= and =restore= instructions are analogous to =store= and
 =load=, but they transfer a block of data between registers and
@@ -3209,7 +2594,7 @@ memory, not just an individual word.
 
 - *save* stores a sequence of adjacent registers into a block of
   contiguous memory locations.
-- *restore* is the opposite: it loads the block of memory into the
+- *restor* is the opposite: it loads the block of memory into the
   registers.
 
 For both instructions, the sequence of registers is specified by
@@ -3236,7 +2621,7 @@ It is equivalent to a sequence of store instructions:
 To load the entire block back into the same registers, use
 
 #+BEGIN_EXAMPLE
-   restore R3,R6,5[R13]
+   restor R3,R6,5[R13]
 #+END_EXAMPLE
 
 This is equivalent to a sequence of load instructions:
@@ -3247,24 +2632,24 @@ This is equivalent to a sequence of load instructions:
    load    R6,8[R13]
 #+END_EXAMPLE
 
-There is an important restriction with =save= and =restore=: the
+There is an important restriction with =save= and =restor=: the
 displacement is limited to a small natural number between 0 and 255.
 (Recall that for load and store, the displacement can be as large as
-65,535.)  The reason for this is that the save and restore
+65,535.)  The reason for this is that the save and restor
 instructions are EXP format and the offset is represented by an 8-bit
 field (whereas load and store are RX format and the displacement is a
 16-bit word).
 
-A common usage of save and restore is to simplify procedure call and
+A common usage of save and restor is to simplify procedure call and
 return.  When a procedure is called, store the registers onto the execution stack when a procedure
 is called (using save), and then to load them back from the stack when
-the procedure is returned (restore).  Normally, the format of a stack
+the procedure is returned (restor).  Normally, the format of a stack
 frame has a fixed location for saving the registers, at a small offset
 from the beginning of the frame.  A register called the /stack
 pointer/ gives the address of the frame, and the offset for saving the
 registers is normally a small value (such as 3 or similar).
 
-Both save and restore are EXP format instructions, so each instruction
+Both save and restor are EXP format instructions, so each instruction
 is two words:
 
 - The first instruction word:
@@ -3285,12 +2670,12 @@ For save, the effect is
 - ...
 - mem[R[d]+gh+f-e] := R[f]
 
-For restore, the effect is similar but the assignments are reversed:
+For restor, the effect is similar but the assignments are reversed:
 - R[e] := mem[R[d]+gh]
 - etc.
 
 The argument registers are not modified, unless they happen to be
-loaded by a restore.
+loaded by a restor.
 
 
 The instruction is EXP format, and the offset is limited to 8 bits,
@@ -3319,15 +2704,15 @@ is equivalent to
 #+END_EXAMPLE
 
 
-The *restore* instruction copies a sequence of consecutive memory
+The *restor* instruction copies a sequence of consecutive memory
 locations starting from the effecive address into a sequence of
 adjacent registers.  The index register (R14 in this example) is not
-changed.  Restore is equivalent to a fixed sequence of load
-instructions; its purpose of restore is to restore the state of
+changed.  Restor is equivalent to a fixed sequence of load
+instructions; its purpose of restor is to restor the state of
 registers from memory after a procedure call or a context switch.
 
 
-The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
+The instruction *restor Re,Rf,gh[Rd]* copies the contents of memory
 at consecutive locations beginning with mem[gh+Rf] into registers Re,
 Re+1, ..., Rf.
 
@@ -3339,7 +2724,7 @@ assembly language statement format is RRXEXP.
 
 For example, consider this instruction:
 #+BEGIN_EXAMPLE
-   restore  R3,R10,4[R14]
+   restor  R3,R10,4[R14]
 #+END_EXAMPLE
 
 The effect is equivalent to
@@ -3354,12 +2739,792 @@ The effect is equivalent to
    load  R9,10[R14]
    load  R10,11[R14]
 #+END_EXAMPLE
+** Arithmetic
 
-** Flow of control
+*** add
+
+The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
+destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~, calculates
+the sum ~Ra~ + ~Rb~, and loads the result into the destination ~Rd~.
+The effect is ~Rd := Ra + Rb~.  For example, ~add R5,R12,R2~
+performs ~R5 := R12 + R3~.
+
+The add instruction is RRR format with opcode=0.  Given destination Rd
+and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
+reprseented by 0dab.
+
+  Code    Assembly          Effect
+  -----   ----------------  ------------------
+  062c    add R6,R2,R12     ; R6 := R2 + R12
+  0d13    add R13,R1,R3     ; R13 := R1 + R3
+  
+The add instruction sets both the destination register and the
+condition code.  Flags in the condition code indicate overflow, carry,
+and sign of the result.
+
+---------  ---------------------
+ R15.ccG    result > 0 (binary)
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result <tc 0 (two's complement)
+ R15.ccV    overflow (binary)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+---------  ---------------------
+
+The bits in a word are numbered from right to left, starting at bit
+index 0 in the rightmost (least significant) position, up to index 15
+at the leftmost (most significant) position.  The notation x.n denotes
+the bit in x with index n.
+
+A field is a consecutiave sequence of bits within a word.  A field is
+specified with the index of the leftmost bit in the field, along with
+the size of the field.  For example, the field in x with index 9 and
+size 3 consists of the bits x.9 x.8 x.7.
+
+#+BEGIN_EXAMPLE
+    add R1,R2,R3    ; R1 := R2 + R3
+#+END_EXAMPLE
+
+The instruction add Rd,Ra,Rb has operands Ra and Rb and destination
+Rd.  It fetches the operands Ra and Rb, calculates the sum Ra + Rb,
+and loads the result into the destination Rd.  The effect is Rd :=
+Ra + Rb.  For example, add R5,R12,R2 performs R5 := R12 + R3.
+
+The add instruction is RRR format with opcode=0.  Given destination Rd
+and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
+reprseented by 0dab.
+
+| Code | Assembly      | Effect           |
+|------+---------------+------------------|
+| 062c | add R6,R2,R12 | ; R6 := R2 + R12 |
+| 0d13 | add R13,R1,R3 | ; R13 := R1 + R3 |
+  
+The add instruction can be used for both binary addition (on natural
+numbers) and for two's complement addition (on signed integers).
+
+- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
+  If two natural numbers are added, the result is a natural number
+  (the result cannot be negative).  If the result is 65536 or larger,
+  it cannot be represented as a 16 bit binary number.  If this
+  happens, the destination register is set to the lower 16 bits of the
+  true result, and the binary overflow flag is set in the Condition Code.
+  
+- 16-bit two's complement numbers are signed integers -32999?, ...,
+  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
+  is a signed integer.  If the result is less than -32000 or greater
+  than 32000, then the result cannot be represented as a 16 bit two's
+  complement number.  If this happens, the destination register is set
+  to the lower 16 bits of the true result, and the two's complement
+  overflow flag is set in the Condition Code.  Furthermore, the
+  overflow flag is set in the req register.  If interrupts are enabled
+  and the overflow flag is 1 in the mask register, then an interrupt
+  will occur immediatelhy after the add instruction executes.
+
+The add instruction can be used for both binary addition (on natural
+numbers) and for two's complement addition (on signed integers).
+
+- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
+  If two natural numbers are added, the result is a natural number
+  (the result cannot be negative).  If the result is 65536 or larger,
+  it cannot be represented as a 16 bit binary number.  If this
+  happens, the destination register is set to the lower 16 bits of the
+  true result, and the binary overflow flag is set in the Condition Code.
+  
+- 16-bit two's complement numbers are signed integers -32999?, ...,
+  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
+  is a signed integer.  If the result is less than -32000 or greater
+  than 32000, then the result cannot be represented as a 16 bit two's
+  complement number.  If this happens, the destination register is set
+  to the lower 16 bits of the true result, and the two's complement
+  overflow flag is set in the Condition Code.  Furthermore, the
+  overflow flag is set in the req register.  If interrupts are enabled
+  and the overflow flag is 1 in the mask register, then an interrupt
+  will occur immediatelhy after the add instruction executes.
+
+*** sub
+
+Example: sub R1,R2,R3 ; R1 := R2 - R3
+
+This instruction is similar to add; the only difference is that it
+calculates R2-R3 and places the result in R1.  The effect on the
+condition code is the same as for add.
+
+The instruction sub Rd,Ra,Rb has operands Ra and Rb and destination
+Rd.  It fetches the operands Ra and Rb, calculates the difference Ra -
+Rb, and loads the result into the destination Rd.  The effect is Rd :=
+Ra - Rb.  For example, sub R5,R12,R2 performs R5 := R12 - R3.
+
+The sub instruction is RRR format with opcode=1.
+
+  Code    Assembly          Effect
+  -----   ----------------  ------------------
+  162c    sub R6,R2,R12     ; R6 := R2 - R12
+  1d13    sub R13,R1,R3     ; R13 := R1 - R3
+  
+In addition to setting the destination register, the sub instruction
+sets several bits in the condition code R15 and may set a bit in the
+req register.
+
+---------  ---------------------
+ R15.ccG    result > 0 (binary)
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result < 0 (two's complement)
+ R15.ccV    overflow (binary)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+ R15.ccf    logicc instruction function result
+---------  ---------------------
+
+*** mul
+
+Example: mul R1,R2,R3 ; R1 := R2 * R3
+
+The multiply instruction mul Rd,Ra,Rb calculates the integer (two's
+complement) product of the operands Ra and Rb, and places the result
+in the destination register Rd.  The mul instruction does not produce
+the natural (binary) product.
+
+If the magnitude of the product is too large to be representable as a
+16 bit two's complement integer, this is an overflow.  If overflow
+occurs, the integer overflow bit is set in the condition code (F15)
+and the integer overflow bit is also set in the interrupt request
+register (req), and the lower order 16 bits of the product are loaded
+into Rd.
+
+---------  ---------------------
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result < 0 (two's complement)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+---------  ---------------------
+
+*** div
+
+Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
+
+Unlike the other arithmetic operations, the divide instruction div
+Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder
+Ra rem Rb.  It loads the quotient into the destination register Rd,
+and the remainder is loaded into R15.
+
+If the destination register Rd is actually R15, then the quotient is
+placed in R15, and the remainder is discarded.
+
+The divide instruction doesn't set the condition code, since R15 is
+used for the remainder.  Therefore there is no condition code bit to
+indicate division by 0.  However, it is easy for a program to detect a
+division by 0.
+
+- (Explicit test for error) The program can compare the divisor with 0
+  before or after executing the divide instruction, and jump to an
+  error handler if the divisor is 0.  This is similar to testing the
+  condition code after an add, sub, or mul instruction, but it does
+  require two instructions: a compare followed by a conditional jump.
+  For example:
+
+#+BEGIN_EXAMPLE
+   div    R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
+   cmp    R3,R0       ; Did we divide by 0?
+   jumpeq zeroDivide[R0] ; If yes, handle error
+#+END_EXAMPLE
+  
+- (Exception) The program can detect division by 0 using an interrupt.
+  To do this, enable interrupts and enable the interrupt mask for
+  division by 0.  See the section on Interrupts.  This approach does
+  not require a compare or jump instruction for each division.
+
+*** cmp
+
+The compare instruction =cmp Ra,Rb= compares the values in the operand
+registers =Ra= and =Rb=, and then sets flags in the condition code
+(R15) to indicate the result. The notation R15.i means bit /i/ in R15;
+thus R15.0 is the leftmost bit of R15.  The instruction performs both
+natural number comparison (binary) and integer comparison (two's
+complement).  The resulting flags are
+
+- binary less than (L) in R15.0
+- two's complement less than (<) in R15.1
+- equal in R15.2
+- binary greater than (G) in R15.3
+- two's complement greater than (>) in R15.4
+
+The result of a cmp instruction can be used to control a conditional
+jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
+and the jumpc1 instruction jumps if a specified bit is 1.
+
+Pseudoinstructions provide the most common cases; for example jumple
+jumps if the condition code indicates that a comparison produced
+either integer less-than or equal.  A common pattern is a cmp followed
+by a jump pseudoinstruction, for example:
+
+#+BEGIN_EXAMPLE
+    cmp     R4,R9      ; compare R4 with R9
+    jumpgt  abc]R0]    ; if R4 > R9 then goto abc
+#+END_EXAMPLE
+*** addc
+
+The addc instruction performs a binary addition with carry
+propagation.  It adds the two operand registers and the carry bit in
+the condition code register, R15.  The sum is loaded into the
+destination register Rd and the carry output is written back into the
+carry bit, overwriting its previous value.  Overflow is not possible
+with this instruction.
+
+*** muln
+
+#+BEGIN_EXAMPLE
+     muln   Rd,Ra,Rb
+#+END_EXAMPLE
+
+The muln instruction calculates the product of two natural numbers in
+Ra and Rb.  The result is 32 bits; the leftmost 16 bits (the most
+significant part) is loaded into R15, and the rightmost 16 bits (the
+least significant part) is loaded into Rd.  If Rd is R15, the most
+significant part is discarded.
+
+*** divn
+
+#+BEGIN_EXAMPLE
+     divn   Rd,Ra,Rb
+#+END_EXAMPLE
+
+The divn instruction divides two natural numbers: dividend / divisor.
+All the numbers -- numerator, denominator, quotient, remainder -- are
+natural numbers represented in binary.
+
+- The dividend is a 32 bit natural number; its leftmost 16 bits are in
+  R15 and the rightmost 16 bits are in Ra.  Thedenominator is in Rb.
+- Two results are produced: a 32-bit quotient anda 16-bit remainder.
+- The leftmost 16 bits of the quotient are placedin R15 (replacing the
+  leftmost part of the dividend).  The rightmost16 bits of the
+  quotient are placed in Rd.
+- The remainder is placed in Ra, overwriting the least significant
+  half of the dividend operand
+
+
+** Jumps
 *** jump
 *** jumpc0, jumpc1
 *** jal
 *** jumpz, jumpnz
+
+** Branches
+
+A branch instruction transfers control to another address, rather than
+to the following instruction. The destination address is specified as
+an offset relative to the value of the pc (after the pc has been
+incremented).
+
+*** brf, brb
+
+The brf instruction is Branch forward, and the brb instruction is
+branch backward.
+
+The operand is a 16-bit natural number called the /offset/.  This is
+added to (brf) or subtracted from (brb) the current value of the pc
+register.  Since the pc is incremented as the instruction is fetched,
+an offset of 0 refers to the instruction after the brf/brb.
+
+#+BEGIN_EXAMPLE
+a    brf  3
+     add  R0,R0,R0  ; brf 0 would go here
+     add  R0,R0,R0  ; brf 1 would go here
+     add  R0,R0,R0  ; brf 2 would go here
+b    add  R0,R0,R0  ; the instruction a actually goes here
+#+END_EXAMPLE
+
+Normally the operand is expressed as a label rather than a constant.
+
+#+BEGIN_EXAMPLE
+a    brf  b
+     add  R0,R0,R0
+     add  R0,R0,R0
+     add  R0,R0,R0
+b    add  R0,R0,R0  ; the instruction a goes here
+#+END_EXAMPLE
+
+If the operand is expressed as a number (brf 3), the assembler uses
+the number in the machine instruction.  However, if the operand is
+expressed as a lable (brf b), the assembler calculates the correct
+offset value and inserts that into the machine instruction.
+
+In order to implement /goto xyz/, use =brf xyz= (branch forward) if
+=xyz= occurs after the branch instruction, and use =brb xyz= (branch
+backward) if =xyz= occurs before the branch.
+
+*** brfc0, brbc0, brfc1, brbc1
+
+There are four conditional branch instructions that perform a branch
+based on the value of a bit in a register.  For example, brfc1
+R7,3,dest is equivalent to "go to dest if bit 3 of R7 is 1".  The
+instructions are:
+
+- brfc0 - branch forward if the specified bit is 0
+- brfc1 - branch forward if the specified bit is 1
+- brbc0 - branch backward if the specified bit is 0
+- brbc1 - branch backward if the specified bit is 1
+
+These instructions are somewhat similar to jumpc0 and jumpc1, but
+there are two key differences:
+
+- The branch instructions can use any bit in any register of the
+  register file to determine whether the branch will take place, but
+  the jump instructions can use only a bit in the condition code R15.
+- The branch instructions are pc-relative, but the jump instructions
+  give the absolute address of the destination.
+
+*** brfz, brbz, brfnz, brbnz
+
+These instructions perform a branch if a specified register is either
+equal to 0 (z), or not equal to 0 (nz).  Equal to 0 means every bit in
+the register is 0; not equal to 0 means some bit in the register is 1.
+For example, brfnz R3,dest means "if R3 !=0 then goto dest".
+
+- brfz - branch forward if zero
+- brfnz - branch forward if not zero
+- brbz - branch backward if zero
+- brbnz - branch backward if not zero
+
+*** dsptch (dispatch)
+
+The /dispatch/ instruction implements a branch table.  It provides an
+efficient way to implement a case statement using a binary code.
+
+Suppose =code= is a variable that contains an integer, such that $0
+\leq code < 8$.  The following set of instructions will branch to a
+specific destination depending on the value of the code.
+
+#+BEGIN_EXAMPLE
+   load   R8,code[R0]  ; load a 3-bit binary code
+   dsptch R8,3,0       ; 38 dispatch 3-bit code
+   brf    caseA        ; if code=0 then goto caseA
+   brf    caseB        ; if code=1 then goto caseB
+   brf    caseC        ; if code=2 then goto caseC
+   brf    caseD        ; if code=3 then goto caseD
+   brf    caseE        ; if code=4 then goto caseE
+   brf    caseF        ; if code=5 then goto caseF
+   brf    caseG        ; if code=6 then goto caseG
+   brf    caseH        ; if code=7 then goto caseH
+#+END_EXAMPLE
+
+The =dsptch= instruction has three operands: a register /code/ that
+specifies a binary code, an integer constant /size/ that gives the
+number of bits in the code, and a fixed /offset/ (which is usually 0).
+
+- The instruction automatically uses /size/ to mask the
+  code, by performing a logical and.  For example, if /size/ is 3, it
+  calculates  /code/ AND fff7.  This ensures that the resulting
+  code is not out of range: it is guaranteed to lie between 0 and $2 ^
+  size - 1$.
+- The instruction then performs a pc relative branch forward by a
+  distance of 2 * code + offset.  The multiplication by 2 ensures that
+  a 2-word instruction can be placed in each position in the branch
+  table.
+- The branch table is normally a sequence of unconditional branch
+  instructions, either brf or brb.
+
+** Logic and bits
+
+The instructions in this section treat a word as a sequence of bits,
+not as a number.  There are instructions that perform logic operations
+on individual bits, on all the bits in a word, and that operate on bit
+fields.
+
+The bits in a word x are indexed from 0 to 15, where 0 is the index of
+the leftmost (most significant) bit and 15 is the index or the
+rightmost (least significant) bit.  The notation x.i means the bit
+with index i in the word x.  For example, x.0 is the leftmost bit and
+x.15 is the rightmost bit.  When used in an instruction, a bit index
+is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
+
+A bit field is a contiguous sequence of bits in a word.  It is
+specified by the register containing a word, the index of the starting
+bit in the field, and the size of the field.
+
+The bit field instructions can be implemented using a combination of
+logic and shift instructions.  They are included in the architecture
+for several reasons:
+
+- These operations provide useful abstractions for writing
+  interpreters and simulators.
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
+
+*** pseudoinstructions: invw, andw, orw, xorw
+
+There are pseudoinstructions that perform common bitwise logical
+operations on one or two words, producing a word result.  The
+commonest logical operations are supported: logical negation, logical
+and, inclusive or, and exclusive or.
+
+- invw  R3,R4  ; R3 := invert R4
+- andw  R3,R4,R5 ; R3 := R4 and R5
+- orw  R3,R4,R5 ; R3 := R4 or R5
+- xorw  R3,R4,R5 ; R3 := R4 xor R5
+
+A pseudoinstruction is not actually a machine instruction: the Sigma16
+processor circuit does not have an =andw= instruction.  Instead, it
+has a more general and powerful instruction (=logicw=) that is capable
+of performing =andw=, as well as many other operations.  The =andw=
+pseudoinstruction is just an assembly language notation that generates
+the corresponding =logicw=.  Using pseudoinstructions can make a
+program more readable, and it enables you to perform simple logic
+operations without learning the more complicated general instructions.
+
+*** General logic functions
+
+The commonest Boolean operators are inv, and, or, which can be defined
+using truth tables.  The truth table for inv (also called not, logical
+negation) has just one input and two lines:
+
+| x | inv x |
+|---+-------|
+| 0 |     1 |
+| 1 |     0 |
+
+The truth tables for and, or, xor have two inputs and four lines
+that enumerate all possible inputs and the corresponding output.  (For
+now, ignore the numbers in the bottom line.)
+
+| x | y | x and y | x xor y | x or y |
+|---+---+---------+---------+--------+
+| 0 | 0 |       0 |       0 |      0 |
+| 0 | 1 |       0 |       1 |      1 |
+| 1 | 0 |       0 |       1 |      1 |
+| 1 | 1 |       1 |       0 |      1 |
+|---+---+---------+---------+--------+
+|   |   |       1 |       6 |      7 |
+|---+---+---------+---------+--------|
+
+However, those aren't the only logic functions with two inputs.  Other
+useful ones inlcude nor (not or) as well as nand (not and):
+
+| x | y | x nor y | inv y | inv x | x nand y |
+|---+---+---------+-------+-------+----------|
+| 0 | 0 |       1 |     1 |     1 |        1 |
+| 0 | 1 |       0 |     0 |     1 |        1 |
+| 1 | 0 |       0 |     1 |     0 |        1 |
+| 1 | 1 |       0 |     0 |     0 |        0 |
+|---+---+---------+-------+-------+----------|
+|   |   |       8 |     a |     c |        e |
+|---+---+---------+-------+-------+----------|
+
+How many other logic functions exist?  (After all, some of them are
+useful.)  /Every/ logic funciton with two inputs $x$, $y$, can be
+defined by a truth table where we list all possible values for
+$(x,y)$, and give the corresponding result.  Each result could be
+either 0 or 1.  So every logic function can be defined by the
+following table, with appropriate values for $(a,b,c,d)$:
+
+| x | y | result |
+|---+---+--------|
+| 0 | 0 | a      |
+| 0 | 1 | b      |
+| 1 | 0 | c      |
+| 1 | 1 | d      |
+
+For example, if $(a,b,c,d) = (0,0,0,1)$ this is the truth table for
+/and/.  if $(a,b,c,d) = (0,1,1,0)$ this is the truth table for /xor/.
+For convenience and brevity, we can write the binary value of each
+string of four bits: thus the code for /xor/ is 6 and so on.  The
+following table lists some of the logic funcitons, but it actually
+enumerates /all/ of them.
+
+| abcd | code | function |
+| 0000 |    0 |          |
+| 0001 |    1 | x and y  |
+| 0010 |    2 |          |
+| 0011 |    3 |          |
+| 0100 |    4 |          |
+| 0101 |    5 |          |
+| 0110 |    6 | x xor y  |
+| 0111 |    7 | x or y   |
+| 1000 |    8 | x nor y  |
+|   nn |    9 |          |
+| 1010 |   10 | inv y    |
+| 1011 |   11 |          |
+| 1100 |   12 | inv x    |
+| 1101 |   13 |          |
+| 1110 |   14 | x nand y |
+| 1111 |   15 |          |
+
+Instead of providing half a dozen specialised instructions for some
+(but not all) of the useful logic functions, Sigma16 provides general
+logic instructions that implement /all/ of them. These are =logicw= to
+perform logic on all the bits in a word, and =logicb= and =logicc= to
+perform logic on individual bits (i.e. Boolean variables).
+
+*** logicw
+
+The logicw instruction performs a bitwise logic operation on two
+operands: each bit of the result is obtained by performing the logic
+function on the corresponding bits of the two operands.  The
+instruction allows an arbitrary logic function on two bits.
+
+An arbitrary logic function of two varialbes /g/ is applied to the two
+operand registers Re and Rf, and the result is loaded into the
+destination register Rd.  The function /g/ is specified by a number
+giving the binary value of the result (see above); for example, 6 is
+the code for exclusive or.  For example:
+
+#+BEGIN_EXAMPLE
+   logicw R5,R7,R2,6 ; R5 := R7 xor R2
+#+END_EXAMPLE
+  
+- General form: logicw Rd,Re,Rf,g
+- Instruction format: EXP
+- Assembly format: RRRk
+- Rd := (function g) Re Rf
+
+If you're using one of the most common logic functions, a
+pseudoinstruction may be more convenient.  The following assembly
+language statements generate exactly the same machine language:
+
+#+BEGIN_EXAMPLE
+     logicw R5,R7,R2,6     ; R5 := R7 xor R2
+     xorw   R5,R7,R2       ; R5 := R7 xor R2
+#+END_EXAMPLE
+
+Also, you can define a symbol for the logic function using an =equ=
+assembly directive; that symbol can then be used instead of the
+numeric code:
+
+#+BEGIN_EXAMPLE
+xor  equ   6
+     ...
+     logicw R5,R7,R2,xor   ; R5 := R7 xor R2
+#+END_EXAMPLE
+
+*** logicb, logicc
+
+The /logicb/ and =logicc= instructions perform an arbitrary Boolean
+logic function on two operand bits, producing a result bit.
+
+- =logicb= performs logic on bits that are all in the same register.
+  If a program keeps a collection of Boolean variables in one
+  register, logicb supports evaluation of general expressions using
+  those variables.
+- =logicc= performs logic on bits that may be in any register, but the
+  result always goes into the condition code R15.
+
+This logicb instruction performs R1.3 := R1.9 xor R1.2:
+
+#+BEGIN_EXAMPLE
+      logicb  R1,3,9,2,6
+      logicb  d,e,f,g,h
+#+END_EXAMPLE
+
+This instruction performs logic on bits within R1.  The logic function
+is 6 (see Logic Functions), the operands are bits 9 and 2, and the
+result is placed into bit 3.  The instruction could be read as: within
+R1, perform logic function 6 on bits 9 and 2, and place the result in
+bit 3.
+
+The =logicc= instruction also performs a logic function on individual
+bits.  The operands may be any bit in any register.  The result is
+placed in the =logc= bit in the condition code (R15).
+
+#+BEGIN_EXAMPLE
+  logicc  R2,3,R7,8,6 ; R15.logc := R2.3 xor R7.8 |
+#+END_EXAMPLE
+
+Pseudoinstructions are provided for the most common logic functions;
+these all generate a logicb instruction.  The operands for these are
+the same as for logicb, except that the last operand (the logic
+function) is omitted.  Since the logical negation (invert) function
+has only one operand, the invb seudoinstruction also omits the second
+operand bit index.  Here are examples of the logicb
+pseudoinstructions:
+
+#+BEGIN_EXAMPLE
+      invb    R1,3,9     ; R1.3 := !R1.9
+      andb    R1,3,9,2   ; R1.3 := R1.9 & R1.2
+      orb     R1,3,9,2   ; R1.3 := R1.9 | R1.2
+      xorb    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
+#+END_EXAMPLE
+
+The instruction format is EXP, with the following fields:
+
+#+BEGIN_EXAMPLE
+      logicb  Rd,e,f,g,h
+#+END_EXAMPLE
+
+- Rd is the destination register, which also contains both source
+  operands bits
+- e is the index of the destination bit
+- f is the index of the first argument bit
+- g is the index of the second argument bit
+- h is the logic function
+  
+
+** Bit fields
+*** shiftl, shiftr
+
+The instruction shiftl Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the left, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the leftmost k bits of the value are discarded and the
+rightmost k bits become 0.
+
+#+BEGIN_EXAMPLE
+   shiftl  R2,R3,5
+   op = e (EXP format)
+   d = 2 (destination register)
+   ab = secondary opcode
+   e = 3 (register operand)
+   f = 0 (unused, don't care)
+   gh = 5 (constant)
+#+END_EXAMPLE
+
+The instruction format is EXP, and the assembly language statement format
+is RRKEXP.
+
+Shift to the right.
+
+The instruction shiftr Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the right, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the rightmost k bits of the value are discarded and the
+leftmost k bits become 0.
+
+The following instruction shifts the value in R3 to the right by 5
+bits and place the result in R2.  The operand register R3 is not
+changed.
+
+#+BEGIN_EXAMPLE
+   shiftr  R2,R3,5
+#+END_EXAMPLE
+
+The instruction format is EXP, and the assembly language statement format
+is RRKEXP
+
+*** extract, extracti
+
+The extract instruction copies an arbitrary field of bits from a
+source register and inserts those bits into an arbitrary position in
+a destination register.  The extracti instruction is similar to
+extract, but extracti inverts the bits in the source field before
+they are inserted into the destination.
+
+The bits in the destination field are overwritten; other bits in the
+destination as well as all bits in the source are unchanged.
+
+The fields are specified by giving the bit indices of the leftmost
+bit in the field (the left index) and the rightmost bit in the
+field (the right index).  Normally the left index is greater than
+the right index; otherwise the field is empty.
+
+The assembly language format is RkkRk.  Rd is the destination
+register, the field to be overwritten is bits f to g (inclusive) in
+the destination, the source register is Re, and the source field
+starts at bit h in Re.  The general form of the assembly language
+statement is:
+
+#+BEGIN_EXAMPLE
+   extract Rd,f,g,Re,h
+#+END_EXAMPLE   
+
+The effect is to overwrite each bit in the destination field with
+the corresponding bit in the source field:
+
+#+BEGIN_EXAMPLE
+Rd.i := Rs.k
+Rd.i-1 := Rs.k-1
+...
+Rd.j := Rs.k-(j-i+1)
+#+END_EXAMPLE
+
+Example:
+#+BEGIN_EXAMPLE
+extract R2,7,4,R3,20
+R2.7 := R3.20
+R2.6 := R3.19
+R2.5 := R3.18
+R2.4 := R3.17
+#+END_EXAMPLE   
+
+The machine language format is EXP, with the following fields:
+
+|----+---+---+---|
+| op | d | a | b |
+|----+---+---+---|
+| e  | f | g | h |
+|----+---+---+---|
+
+- op  = e (escape to EXP)
+- d   = Rd (destination register)
+- ab  = secondary opcode for extract
+- e   = Re (source register)
+- f   = destination start bit_index
+- g   = destination end bit_index
+- h   = source start bit index
+
+-  (obsolete)  extract  Rd,Rs,d_index,s_index,size
+
+- Rd is the destination register
+- d_index (0..15) is the starting bit index in the destination register
+- size (0..15) is the number of bits in the field
+- Rs is the source register (field is obtained from this register)
+- s_index (0..15) is the starting bit index in the source register
+
+#+BEGIN_EXAMPLE
+      lea      R1,$ffff[R0]     ; ffff
+      add      R2,R0,R0         ; 0000
+      extract  R2,R1,11,3,4     ; 0f00  R2.11-8 := R1.3-0
+#+END_EXAMPLE
+
+The effect of an extract instruction can be described by writing each
+bit assignment individually, so there are /size/ individual bit
+assignments.  The notation R2.7 means /the bit at position 7 in
+register R2/.  Using this notation, the example above performs the
+following bit assignments:
+
+| extract R2,R1,11,3,4 |
+|----------------------|
+| R2.11 := R1.3        |
+| R2.10 := R1.2        |
+| R2.9 := R1.1         |
+| R2.8 := R1.0         |
+|----------------------|
+
+Although extract performs a number of bit assignments, it is a single
+instruction and its execution time is a small fixed number of clock
+cycles.  The execution time does not depend on the value of the field
+size, and extracting a large field doesn't require more time than
+extracting a small field. The hardware implementation of the
+instruction does not use an iteration to copy the bits; they are all
+copied in parallel in one clock cycle.
+
+Any register may be specified for the source and destination.  If they
+are the same, the effect is to move a bit field from one place to
+another within the register (this is not the same as a shift).  If the
+destination is R0, the result is discarded and the instruction has no
+effect.
+
+The size is a 4-bit field, and its value is between 0 and 15.  Thus an
+extract instruction cannot copy the entire word in one regsiter to
+another register, as a size of 16 cannot be specified.  If size=0 then
+the instruction does nothing.  the source and destination fields
+cannot extend beyond the rightmost bit in a register.
+
+Here is another example:
+
+#+BEGIN_EXAMPLE
+      add      R3,R0,R0
+      extract  R3,R1,13,5,1     ; 2000
+      lea      R4,$ffff[R0]
+      extract  R4,R0,13,5,1     ; dfff
+#+END_EXAMPLE
+
+
 
 ** System
 *** trap
@@ -3380,6 +3545,7 @@ The effect is equivalent to
 | RkkRk | Ra,j,n,Rb,k          | extract           |               |
 | RC    | Rc,Rd                | putctl vect,R4    |               |
 |       |                      |                   |               |
+
 
 * Table of instructions
 
@@ -3454,69 +3620,70 @@ consist of one of the following:
 - 
 
   
-|----------+------+-----+---+-----+---------+------------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| Mnemonic | ISA  | R15 | P | Fmt |         | Afmt       | Args              | Op   | Object    | Effect                             |                                                  |
-|----------+------+-----+---+-----+---------+------------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| add      | Core | cc  |   | RRR |         |            | D,A,B             | 0    | 0DAB      | Rd := Ra + Rb                      |                                                  |
-| sub      | Core | cc  |   | RRR |         |            | D,A,B             | 1    | 1DAB      | Rd := Ra - Rb                      |                                                  |
-| mul      | Core | cc  |   | RRR |         |            | D,A,B             | 2    | 2DAB      | Rd := Ra * Rb                      |                                                  |
-| div      | Core | rem |   | RRR |         |            | D,A,B             | 3    | 3DAB      | Rd := Ra / Rb, R15 := Ra rem Rb    |                                                  |
-| cmp      | Core | cc  |   | RRR |         |            | D,A               | 4    | 4da0      | R15 := Ra cmp Rb                   |                                                  |
-| addc     | Std  | cc  |   | RRR |         |            | D,A,B             | 5    | 5DAB      | Rd := Ra + Rb + R15.carry          |                                                  |
-| muln     | Std  | d   |   | RRR |         |            | D,A,B             | 6    | 6DAB      | R15++Rd := Ra :*: Rb               |                                                  |
-| divn     | Std  | d   |   | RRR |         |            | D,A,B             | 7    | 7DAB      | R15++Rd := R15++Ra :/: Rb          |                                                  |
-|          | Core |     |   | RRR |         |            | D,A,B             | 8    | 8DAB      | nop, reserved for experimenting -- |                                                  |
-|          | Core |     |   | RRR |         |            | D,A,B             | 9    | 9DAB      | nop, reserved for experiment --    |                                                  |
-|          | Core |     |   | RRR |         |            | D,A,B             | a    | aDAB      | nop, reserved for experiment --    |                                                  |
-|          | Core |     |   | RRR |         |            | D,A,B             | b    | bDAB      | nop, reserved for experiment --    |                                                  |
-| trap     | Core |     |   | RRR |         |            | D,A,B             | c    | cDAB      | user interrupt                     |                                                  |
-|          |      |     |   |     |         |            |                   | d    | d---      | nop, reserved                      |                                                  |
-|          |      |     |   |     |         |            |                   | e    | e---      | escape to EXP format               |                                                  |
-|          |      |     |   |     |         |            |                   | f    | f---      | escape to RX format                |                                                  |
-|----------+------+-----+---+-----+---------+------------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| lea      | Core |     |   | RX  |         |            | D,A[Disp]         | f,0  | fDA0;Disp | Rd := ea                           |                                                  |
-| load     | Core |     |   | RX  |         |            | D,A[Disp]         | f,1  | fDA1;Disp | Rd := M[ea]                        |                                                  |
-| store    | Core |     |   | RX  |         |            | D,A[Disp]         | f,2  | fDA2;Disp | M[ea] := Rd                        |                                                  |
-| jump     | Core |     |   | RX  |         |            | D,A[Disp]         | f,3  | fDA3;Disp | pc := ea                           |                                                  |
-| jumpc0   | Core |     |   | RX  |         |            | J,A[Disp]         | f,4  | fKA4;Disp | R15.k=0 ==> pc := ea               |                                                  |
-| jumpc1   | Core |     |   | RX  |         |            | J,A[Disp]         | f,5  | fKA5;Disp | R15.k=1 ==> pc := ea               |                                                  |
-| jal      | Core |     |   | RX  |         |            | D,A[Disp]         | f,6  | fDA6;Disp | Rd := pc, pc := ea                 |                                                  |
-| testset  | Sys  |     |   | RX  |         |            | D,A[Disp]         | f,7  | fDA7;Disp | Rd := M[ea], M[ea] := 1            |                                                  |
-|          |      |     |   | RX  |         |            |                   | f,8  | f--8;---- | -- reserved --                     |                                                  |
-|          |      |     |   | RX  |         |            |                   | ...  |           | -- reserved --                     |                                                  |
-|          |      |     |   | RX  |         |            |                   | f,f  | f--F;---- | -- reserved --                     |                                                  |
-|----------+------+-----+---+-----+---------+------------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| brf      | Std  |     |   | EXP | aKpcr   |            | Disp              | e,00 | e000;Disp | pc := pc+2+fgh                     |                                                  |
-| brb      | Std  |     |   | EXP | aKpcr   |            | Disp              | e,01 | e001;Disp | pc := pc+2-fgh                     |                                                  |
-| brfc0    | Std  |     |   | EXP | aRkKpcr |            | D,K,Q             | e,02 | ed02;KQ-- | !Rd.e => pc += 2+fgh               |                                                  |
-| brbc0    | Std  |     |   | EXP | aRkKpcr |            | D,K,Q             | e,03 | ed03;KQ-- | !Rd.e => pc += 2-fgh               |                                                  |
-| brfc1    | Std  |     |   | EXP | aRkKpcr |            | D,K,Q             | e,04 | ed04;KQ-- | Rd.e  => pc += 2+fgh               |                                                  |
-| brbc1    | Std  |     |   | EXP | aRkKpcr |            | D,K,Q             | e,05 | ed05;KQ-- | Rd.e  => pc += 2-fgh               |                                                  |
-| brfz     | Std  |     |   | EXP | aRKpcr  |            | D,Disp            | e,06 | ed06;Disp | Rd=0  => pc += 2+fgh               |                                                  |
-| brbz     | Std  |     |   | EXP | aRkpcr  |            | D,Disp            | e,07 | ed07;Disp | Rd=0  => pc += 2-fgh               |                                                  |
-| brfnz    | Std  |     |   | EXP | aRKpcr  |            | D,Disp            | e,08 | ed08;Disp | Rd!=0 => pc += 2+fgh               |                                                  |
-| brbnz    | Std  |     |   | EXP | aRKpcr  |            | D,Disp            | e,09 | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
-| save     | Std  |     |   | EXP | aRRx    |            | D,E,P             | e,0a | eD0a;EFx  | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
-| restore  | Std  |     |   | EXP | aRRx    |            | D,E,P             | e,0b | ed0b;EQ-- | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
-| push     | Std  | cc  |   | EXP | aRRR    |            | D,E,F             | e,0c | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
-| pop      | Std  | cc  |   | EXP | aRRR    |            | D,E,F             | e,0d | ed0d;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| top      | Std  | cc  |   | EXP | aRRR    |            | D,E,F             | e,0e | ed0e;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| shiftl   | Std  |     |   | EXP | aRRk    |            | D,E,L             | e,0f | ed0f;EJ-- | Rd := Ra shl b                     |                                                  |
-| shiftr   | Std  |     |   | EXP | aRRk    |            | D,E,L             | e,10 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
-| logicw   | Std  |     |   | EXP | aRRRk   | Rd,Re,Rf,h | op,d,$0b;e,f,$0,h | e,11 | eD11;EFM- | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
-| logicb   | Std  |     |   | EXP | aRkkkk  |            | D,K,L,M,N         | e,12 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicb R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
-| logicbcc | Std  |     |   | EXP | aRkRkk  |            | D,K,L,M,N         | e,13 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
-| extract  | Std  |     |   | EXP |         |            | D,E,L,M,N         | e,14 | eD13;ELMN | Rd := extract Rd di size Rs si     |                                                  |
-| extracti | Std  |     |   | EXP |         |            | D,E,L,M,N         | e,15 | eD14;ELMN | Rd := extracti Rd di size Rs si    |                                                  |
-| getctl   | Sys  |     | P | EXP |         |            | D,C               | e,16 | eD15;C--- | Rd := Sc                           |                                                  |
-| putctl   | Sys  |     | P | EXP |         |            | D,                | e,17 | eD16;C--- | Sc := Rd                           |                                                  |
-| resume   | Sys  |     | P | EXP |         |            | R                 | e,18 | e-18;---- | pc := ipc, status := istatus       |                                                  |
-|          |      |     |   | EXP |         |            |                   | e,19 | e-19;---- | reserved                           |                                                  |
-|          |      |     |   | EXP |         |            |                   | ...  |           | reserved                           |                                                  |
-|          |      |     |   | EXP |         |            |                   | e,ff | e-ff;---- | reserved                           |                                                  |
-|----------+------+-----+---+-----+---------+------------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-|          |      |     |   |     |         |            |                   |      |           | <33>                               |                                                  |
-|----------+------+-----+---+-----+---------+------------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| Name   | ISA  | R15 | P | Fmt | Afmt  | Args              | Op   | Object    | Effect                             |                                                  |
+|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| add    | Core | cc  |   | RRR | RRR   | D,A,B             | 0    | 0DAB      | Rd := Ra + Rb                      |                                                  |
+| sub    | Core | cc  |   | RRR | RRR   | D,A,B             | 1    | 1DAB      | Rd := Ra - Rb                      |                                                  |
+| mul    | Core | cc  |   | RRR | RRR   | D,A,B             | 2    | 2DAB      | Rd := Ra * Rb                      |                                                  |
+| div    | Core | rem |   | RRR | RRR   | D,A,B             | 3    | 3DAB      | Rd := Ra / Rb, R15 := Ra rem Rb    |                                                  |
+| cmp    | Core | cc  |   | RRR | RR    | D,A               | 4    | 4da0      | R15 := Ra cmp Rb                   |                                                  |
+| addc   | Std  | cc  |   | RRR | RRR   | D,A,B             | 5    | 5DAB      | Rd := Ra + Rb + R15.carry          |                                                  |
+| muln   | Std  | d   |   | RRR | RRR   | D,A,B             | 6    | 6DAB      | R15++Rd := Ra :*: Rb               |                                                  |
+| divn   | Std  | d   |   | RRR | RRR   | D,A,B             | 7    | 7DAB      | R15++Rd := R15++Ra :/: Rb          |                                                  |
+|        | Core |     |   | RRR |       | D,A,B             | 8    | 8DAB      | nop, reserved for experimenting -- |                                                  |
+|        | Core |     |   | RRR |       | D,A,B             | 9    | 9DAB      | nop, reserved for experiment --    |                                                  |
+|        | Core |     |   | RRR |       | D,A,B             | a    | aDAB      | nop, reserved for experiment --    |                                                  |
+|        | Core |     |   | RRR |       | D,A,B             | b    | bDAB      | nop, reserved for experiment --    |                                                  |
+| trap   | Core |     |   | RRR | RRR   | D,A,B             | c    | cDAB      | user interrupt                     |                                                  |
+|        |      |     |   |     |       |                   | d    | d---      | nop, reserved                      |                                                  |
+|        |      |     |   |     |       |                   | e    | e---      | escape to EXP format               |                                                  |
+|        |      |     |   |     |       |                   | f    | f---      | escape to RX format                |                                                  |
+|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| lea    | Core |     |   | RX  | RX    | D,A[Disp]         | f,0  | fDA0;Disp | Rd := ea                           |                                                  |
+| load   | Core |     |   | RX  | RX    | D,A[Disp]         | f,1  | fDA1;Disp | Rd := M[ea]                        |                                                  |
+| store  | Core |     |   | RX  | RX    | D,A[Disp]         | f,2  | fDA2;Disp | M[ea] := Rd                        |                                                  |
+| jump   | Core |     |   | RX  | X     | D,A[Disp]         | f,3  | fDA3;Disp | pc := ea                           |                                                  |
+| jumpc0 | Core |     |   | RX  | kX    | J,A[Disp]         | f,4  | fKA4;Disp | R15.k=0 ==> pc := ea               |                                                  |
+| jumpc1 | Core |     |   | RX  | kX    | J,A[Disp]         | f,5  | fKA5;Disp | R15.k=1 ==> pc := ea               |                                                  |
+| jal    | Core |     |   | RX  | RX    | D,A[Disp]         | f,6  | fDA6;Disp | Rd := pc, pc := ea                 |                                                  |
+| tstset | Sys  |     |   | RX  | RX    | D,A[Disp]         | f,7  | fDA7;Disp | Rd := M[ea], M[ea] := 1            |                                                  |
+|        |      |     |   | RX  |       |                   | f,8  | f--8;---- | -- reserved --                     |                                                  |
+|        |      |     |   | RX  |       |                   | ...  |           | -- reserved --                     |                                                  |
+|        |      |     |   | RX  |       |                   | f,f  | f--F;---- | -- reserved --                     |                                                  |
+|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| brf    | Std  |     |   | EXP | K     | Disp              | e,00 | e000;Disp | pc := pc+2+fgh                     |                                                  |
+| brb    | Std  |     |   | EXP | K     | Disp              | e,01 | e001;Disp | pc := pc+2-fgh                     |                                                  |
+| brfc0  | Std  |     |   | EXP | RkK   | D,K,Q             | e,02 | ed02;KQ-- | !Rd.e => pc += 2+fgh               |                                                  |
+| brbc0  | Std  |     |   | EXP | RkK   | D,K,Q             | e,03 | ed03;KQ-- | !Rd.e => pc += 2-fgh               |                                                  |
+| brfc1  | Std  |     |   | EXP | RkK   | D,K,Q             | e,04 | ed04;KQ-- | Rd.e  => pc += 2+fgh               |                                                  |
+| brbc1  | Std  |     |   | EXP | RkK   | D,K,Q             | e,05 | ed05;KQ-- | Rd.e  => pc += 2-fgh               |                                                  |
+| brfz   | Std  |     |   | EXP | RK    | D,Disp            | e,06 | ed06;Disp | Rd=0  => pc += 2+fgh               |                                                  |
+| brbz   | Std  |     |   | EXP | Rk    | D,Disp            | e,07 | ed07;Disp | Rd=0  => pc += 2-fgh               |                                                  |
+| brfnz  | Std  |     |   | EXP | RK    | D,Disp            | e,08 | ed08;Disp | Rd!=0 => pc += 2+fgh               |                                                  |
+| brbnz  | Std  |     |   | EXP | RK    | D,Disp            | e,09 | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
+| dsptch | Std  |     |   | EXP | RkK   | D,Disp            | e,0a | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
+| save   | Std  |     |   | EXP | RRX   | D,E,P             | e,0b | eD0a;EFx  | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
+| restor | Std  |     |   | EXP | RRX   | D,E,P             | e,0c | ed0b;EQ-- | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
+| push   | Std  | cc  |   | EXP | RRR   | D,E,F             | e,0d | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
+| pop    | Std  | cc  |   | EXP | RRR   | D,E,F             | e,0e | ed0d;EF-- | Rb--, Rd := M[ea]                  |                                                  |
+| top    | Std  | cc  |   | EXP | RRR   | D,E,F             | e,1f | ed0e;EF-- | Rb--, Rd := M[ea]                  |                                                  |
+| shiftl | Std  |     |   | EXP | RRk   | D,E,L             | e,10 | ed0f;EJ-- | Rd := Ra shl b                     |                                                  |
+| shiftr | Std  |     |   | EXP | RRk   | D,E,L             | e,11 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
+| logicw | Std  |     |   | EXP | RRRk  | op,d,$0b;e,f,$0,h | e,12 | eD11;EFM- | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
+| logicb | Std  |     |   | EXP | Rkkkk | D,K,L,M,N         | e,13 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicb R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
+| logicc | Std  |     |   | EXP | RkRkk | D,K,L,M,N         | e,14 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
+| extrc  | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,15 | eD13;ELMN | Rd := extract Rd di size Rs si     |                                                  |
+| extrci | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,16 | eD14;ELMN | Rd := extracti Rd di size Rs si    |                                                  |
+| getctl | Sys  |     | P | EXP | RC    | D,C               | e,17 | eD15;C--- | Rd := Sc                           |                                                  |
+| putctl | Sys  |     | P | EXP | RC    | D,                | e,18 | eD16;C--- | Sc := Rd                           |                                                  |
+| resume | Sys  |     | P | EXP | null  | R                 | e,19 | e-18;---- | pc := ipc, status := istatus       |                                                  |
+|        |      |     |   | EXP |       |                   | e,1a | e-19;---- | reserved                           |                                                  |
+|        |      |     |   | EXP |       |                   | ...  |           | reserved                           |                                                  |
+|        |      |     |   | EXP |       |                   | e,ff | e-ff;---- | reserved                           |                                                  |
+|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+|        |      |     |   |     |       |                   |      |           | <33>                               |                                                  |
+|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
 
 #+BEGIN_EXPORT html
 </div">
@@ -4793,6 +4960,32 @@ $ wat2wasm emcore.wat --enable-threads
 #+END_EXAMPLE
 
 
+
+*** Why Sigma16?
+
+
+**** Focus on connections
+***** Vertical connections
+- ISA - target for compilation
+- circuit implements ISA
+***** Horizontal connections
+- ISA - programming language constructs
+- ISA - OS kernel
+**** Principles and training
+- When you learn one architecture, it's much easier to learn more
+- 
+**** Synthetic vs commercial architecture
+***** Benefit of commercial architecture: training
+- But which architecture? x86? ARM? RISC-V? New ones?
+**** Design rationale
+***** As simple as possible -- but no simpler
+***** 16-bit word size
+***** Register file
+***** Readable machine language
+**** Software tools
+***** Integrated environment
+***** Run in browser without installation
+
 * About Sigma16
 :PROPERTIES:
 :CUSTOM_ID: sec-about-sigma16
@@ -4842,230 +5035,17 @@ provide as much as possible of the following information.
   the point where the problem arose.  Smartphone photos are fine.  Try
   to show the processor display, including the registers.
 
-** Typesetting notes :noexport:
-*** svg
-
-#+BEGIN_EXAMPLE
-$ svg2pdf.exe -$ XXXX-XXXX-XXXX-XXXX -dpi 72 -d  testfoo.pdf RRRtest.svg
-You have 94 time to evaluate "VeryUtils SVG to PDF Converter Command Line", you may purchase a full version from "https://veryutils.com/" web page.
-[Message]============================
-About to transcode 1 SVG file(s)
-
-Converting RRRtest.svg to testfoo.pdf ... ... success
-
-$
-
-$ svg2pdf.exe -$ john.t.odonnell9@gmail.com -dpi 72 -d bar.pdf RRRtest.svg
-
-
-
-$ svg2pdf -$ 65XS-D623-4455-S4VG-ET58 -dpi 72 -d baz.pdf RRRtest.svg
-Thank you for choosing "VeryUtils SVG to PDF Converter Command Line" product.
-[Message]============================
-About to transcode 1 SVG file(s)
-
-Converting RRRtest.svg to baz.pdf ... ... success
-
-$
-#+END_EXAMPLE
-
-There are several ways to include an svg image.
-
-#+BEGIN_EXPORT html
-<h3> silly heading</h3>
-#+END_EXPORT
-
-*** svg the best way: inline include
-
-The idea is to inline the contents of the svg figure, but to obtain
-the text from a separate svg file.
-
-# #+INCLUDE: "./svg/RRRformat.svg" export html
-
-That was an included file.
-
-*** Raw inline svg
-
-Hello there this is it 
-
-#+BEGIN_EXPORT html
-<div>
-<svg width="160" height="40" >
-
-  <title>RRR format</title>
-  <desc>Fields of RRR instruction format</desc>
-
-
-  <g style="font-size: 14pt; font-family: sans-serif">
-  
-    <rect x="0" y="0" width="160" height="40"
-          style="fill: none; stroke: black"/>
-    <line x1="40" y1="0" x2="40" y2="40" style="stroke: black"/>
-    <line x1="80" y1="0" x2="80" y2="40" style="stroke: black"/>
-    <line x1="120" y1="0" x2="120" y2="40" style="stroke: black"/>
-
-    <text x="20" y="25" style="text-anchor: middle">op</text>
-    <text x="60" y="25" style="text-anchor: middle">d</text>
-    <text x="100" y="25" style="text-anchor: middle">a</text>
-    <text x="140" y="25" style="text-anchor: middle">b</text>
-
-  </g>
-</svg>
-</div>
-#+END_EXPORT
-That was it!
-
-*** svg via org mode external link
-
-Here is the source code in the org file
-#+BEGIN_EXAMPLE
-[[file:svg/RRRformat.svg]]
-#+END_EXAMPLE
-
-It's important not to use a description in the external link; i.e. the
-link ends with two consecutive right brackets.  (If a description is
-given, then org will put in a button to click to get the image, but
-what I want is for the image to appear inline.)
-
-That code appears here:
-[[file:svg/RRRformat.svg]]
-Org produces the following code in the html export:
-
-#+BEGIN_EXAMPLE
-<p>
-That code appears here:
-<object type="image/svg+xml" data="svg/RRRformat.svg" class="org-svg">
-Sorry, your browser does not support SVG.</object>
-Org produces the following code in the html export:
-</p>
-#+END_EXAMPLE
-
-*** Using raw html to include image
-
-An alternative is to use raw html to include the image:
-Here is the source code in the org file
-
-#+BEGIN_EXAMPLE
-#+HTML: <img src='svg/RRRformat.svg'/>
-#+END_EXAMPLE
-That code goes here:
-#+HTML: <img src='svg/RRRformat.svg'/>
-And this is  the code that org puts into the html export:
-
-#+BEGIN_EXAMPLE
-<p>
-That code goes here:
-</p>
-<img src='svg/RRRformat.svg'/>
-<p>
-And this is  the code that org puts into the html export:
-#+END_EXAMPLE
-
-*** Embedding an object
-
-/Embedding as an image./ Here is an external svg figure.  From
-Eisenberg, J. David; Bellamy-Royds, Amelia. SVG Essentials: Producing
-Scalable Vector Graphics with XML (p. 21). O'Reilly Media. Kindle
-Edition.
-
-The svg specifies xmlns but this external reference is a problem
-
-#+BEGIN_EXAMPLE
-  xmlns="http://www.w3.org/2000/svg">
-#+END_EXAMPLE
-
-Here is the figure
-
-#+HTML: <img src='svg/simplefig.svg'/>
-
-That was an external svg figure
-
-/Embedding as an object./  Here is the same file but embedded as an
-object rather than an image.
-
-The following generates an error when the app is loaded:
-
-#+BEGIN_EXAMPLE
-Error in event handler: TypeError: Cannot read property 'querySelectorAll' of null
-    at d.resetClassificationForFrames (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:1:46879)
-    at d.resetAllClassifications (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:1:46056)
-    at j._classifyHandler (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:83684)
-    at t.MessageHandler._onSendMessageListener (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:152024)
-    at chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:151660
-#+END_EXAMPLE
-
-The problem is with importing the svg figure as an object.
-
-xxx #+BEGIN_EXPORT html
-<object data="svg/simplefig.svg" type="image/svg+xml"
-title="simplefig">
-</object>
-xxx #+END_EXPORT
-
-That is the end of the figure embedded as an object.
-
-*** Asides
-
-Here is an example of an AsideNote.
-
-#+HTML: <div class='AsideNote'>
-*Aside note.* This is some text surrounded by a box and with a soft
-background color.  Since org puts a <p> tag around the contents of the
-div, the css sets the top and bottom margins to 0em for div.AsideNote
-> p.
-#+HTML: <asidepar>
-To have a paragraph inside the AsideNote, use <asidepar>.
-#+HTML: </div>
-
-*** Math in plain html
-
-From org documentation: The HTML export back-end transforms ‘<’ and
-‘>’ to ‘&lt;’ and ‘&gt;’. To include raw HTML code in the Org file so
-the HTML export back-end can insert that HTML code in the output, use
-this inline syntax: ‘@@html:...@@’. For example: Here are some html
-math symbols
-
-- @@html: &sum; @@
-- @@html: &sum;<sub>n = 0</sub><sup>&inf;</sup> @@
-- @@html: &sum; <sub>i=0</sub> <sup>n-1</sup> @@
-- @@html: &sum; <sub>0&le;i&lt;n</sub> (x<sub>i</sub> * 2 <sup>i</sup>) @@
-- @@html: 2 &le; 3 @@
-- @@html: 4 &ge; 5 @@
-- @@html: <MATH>&int;_a_^b^{f(x)<over>1+x} dx</MATH> @@
-
-*** Math mode
-
-There is a problem with using mathjax while rendering the user guide,
-because of the cross domain limitations enforced by SigServer.
-However, the following does not trigger mathjax:
-
-- $x_i$
-- $x \leq y$
-- $x_i < y_i$
-- $\sum_{i=0}^{n-1} {x_{i} \times 2^{i}} $
-
-*** The best way: use tex2svg
-
-The best approach is to use the power of TeX for describing math, and
-the vector graphics of svg to render it.  This needs to be done
-offline, and the raw svg is included in the html page.
-
-#+BEGIN_EXAMPLE
-npm install --global mathjax-node
-$ tex2svg '\sin^2{\theta} + \cos^2{\theta} = 1' > identity.svg
-#+END_EXAMPLE
-
-Here is a formula
-x  #+INCLUDE: "./svg/identity.svg" export html
-which contains some math notation.  This looks good for display equations,
-but not so much for inline notation.
-
 ** Release notes
+*** Version 3.5.0, January 2023
+- No change to the Core instruction set
+- revised the Standard instructions, some changes to representation
+- added family of branch instructions
 *** Version 3.4.0
 - Bit indexing is changed to "little end" style.  The least
   significant bit has index 0, and the most significant bit has
   index 15.
-- The architecture is organized into precisely defined subsets
+- The architecture is organized into precisely defined subsets: Core
+  and Standard
 *** Version 3.3.2, April 2021
 - There is no change in the architecture
 - The software is modified to enable it to continue working when a
@@ -5161,7 +5141,6 @@ There are some new instructions and features, as well as some
 instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
-
 
 ** Text of GPL3 License
 
@@ -5384,3 +5363,222 @@ The hypothetical commands `show w' and `show c' should show the appropriate part
 You should also get your employer (if you work as a programmer) or school, if any, to sign a “copyright disclaimer” for the program, if necessary. For more information on this, and how to apply and follow the GNU GPL, see <https://www.gnu.org/licenses/>.
 
 The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+* Typesetting notes :noexport:
+** svg
+
+#+BEGIN_EXAMPLE
+$ svg2pdf.exe -$ XXXX-XXXX-XXXX-XXXX -dpi 72 -d  testfoo.pdf RRRtest.svg
+You have 94 time to evaluate "VeryUtils SVG to PDF Converter Command Line", you may purchase a full version from "https://veryutils.com/" web page.
+[Message]============================
+About to transcode 1 SVG file(s)
+
+Converting RRRtest.svg to testfoo.pdf ... ... success
+
+$
+
+$ svg2pdf.exe -$ john.t.odonnell9@gmail.com -dpi 72 -d bar.pdf RRRtest.svg
+
+
+
+$ svg2pdf -$ 65XS-D623-4455-S4VG-ET58 -dpi 72 -d baz.pdf RRRtest.svg
+Thank you for choosing "VeryUtils SVG to PDF Converter Command Line" product.
+[Message]============================
+About to transcode 1 SVG file(s)
+
+Converting RRRtest.svg to baz.pdf ... ... success
+
+$
+#+END_EXAMPLE
+
+There are several ways to include an svg image.
+
+#+BEGIN_EXPORT html
+<h3> silly heading</h3>
+#+END_EXPORT
+
+** svg the best way: inline include
+
+The idea is to inline the contents of the svg figure, but to obtain
+the text from a separate svg file.
+
+# #+INCLUDE: "./svg/RRRformat.svg" export html
+
+That was an included file.
+
+** Raw inline svg
+
+Hello there this is it 
+
+#+BEGIN_EXPORT html
+<div>
+<svg width="160" height="40" >
+
+  <title>RRR format</title>
+  <desc>Fields of RRR instruction format</desc>
+
+
+  <g style="font-size: 14pt; font-family: sans-serif">
+  
+    <rect x="0" y="0" width="160" height="40"
+          style="fill: none; stroke: black"/>
+    <line x1="40" y1="0" x2="40" y2="40" style="stroke: black"/>
+    <line x1="80" y1="0" x2="80" y2="40" style="stroke: black"/>
+    <line x1="120" y1="0" x2="120" y2="40" style="stroke: black"/>
+
+    <text x="20" y="25" style="text-anchor: middle">op</text>
+    <text x="60" y="25" style="text-anchor: middle">d</text>
+    <text x="100" y="25" style="text-anchor: middle">a</text>
+    <text x="140" y="25" style="text-anchor: middle">b</text>
+
+  </g>
+</svg>
+</div>
+#+END_EXPORT
+That was it!
+
+** svg via org mode external link
+
+Here is the source code in the org file
+#+BEGIN_EXAMPLE
+[[file:svg/RRRformat.svg]]
+#+END_EXAMPLE
+
+It's important not to use a description in the external link; i.e. the
+link ends with two consecutive right brackets.  (If a description is
+given, then org will put in a button to click to get the image, but
+what I want is for the image to appear inline.)
+
+That code appears here:
+[[file:svg/RRRformat.svg]]
+Org produces the following code in the html export:
+
+#+BEGIN_EXAMPLE
+<p>
+That code appears here:
+<object type="image/svg+xml" data="svg/RRRformat.svg" class="org-svg">
+Sorry, your browser does not support SVG.</object>
+Org produces the following code in the html export:
+</p>
+#+END_EXAMPLE
+
+** Using raw html to include image
+
+An alternative is to use raw html to include the image:
+Here is the source code in the org file
+
+#+BEGIN_EXAMPLE
+#+HTML: <img src='svg/RRRformat.svg'/>
+#+END_EXAMPLE
+That code goes here:
+#+HTML: <img src='svg/RRRformat.svg'/>
+And this is  the code that org puts into the html export:
+
+#+BEGIN_EXAMPLE
+<p>
+That code goes here:
+</p>
+<img src='svg/RRRformat.svg'/>
+<p>
+And this is  the code that org puts into the html export:
+#+END_EXAMPLE
+
+** Embedding an object
+
+/Embedding as an image./ Here is an external svg figure.  From
+Eisenberg, J. David; Bellamy-Royds, Amelia. SVG Essentials: Producing
+Scalable Vector Graphics with XML (p. 21). O'Reilly Media. Kindle
+Edition.
+
+The svg specifies xmlns but this external reference is a problem
+
+#+BEGIN_EXAMPLE
+  xmlns="http://www.w3.org/2000/svg">
+#+END_EXAMPLE
+
+Here is the figure
+
+#+HTML: <img src='svg/simplefig.svg'/>
+
+That was an external svg figure
+
+/Embedding as an object./  Here is the same file but embedded as an
+object rather than an image.
+
+The following generates an error when the app is loaded:
+
+#+BEGIN_EXAMPLE
+Error in event handler: TypeError: Cannot read property 'querySelectorAll' of null
+    at d.resetClassificationForFrames (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:1:46879)
+    at d.resetAllClassifications (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:1:46056)
+    at j._classifyHandler (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:83684)
+    at t.MessageHandler._onSendMessageListener (chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:152024)
+    at chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/content/contentScripts/kwift.CHROME.min.js:17:151660
+#+END_EXAMPLE
+
+The problem is with importing the svg figure as an object.
+
+xxx #+BEGIN_EXPORT html
+<object data="svg/simplefig.svg" type="image/svg+xml"
+title="simplefig">
+</object>
+xxx #+END_EXPORT
+
+That is the end of the figure embedded as an object.
+
+** Asides
+
+Here is an example of an AsideNote.
+
+#+HTML: <div class='AsideNote'>
+*Aside note.* This is some text surrounded by a box and with a soft
+background color.  Since org puts a <p> tag around the contents of the
+div, the css sets the top and bottom margins to 0em for div.AsideNote
+> p.
+#+HTML: <asidepar>
+To have a paragraph inside the AsideNote, use <asidepar>.
+#+HTML: </div>
+
+** Math in plain html
+
+From org documentation: The HTML export back-end transforms ‘<’ and
+‘>’ to ‘&lt;’ and ‘&gt;’. To include raw HTML code in the Org file so
+the HTML export back-end can insert that HTML code in the output, use
+this inline syntax: ‘@@html:...@@’. For example: Here are some html
+math symbols
+
+- @@html: &sum; @@
+- @@html: &sum;<sub>n = 0</sub><sup>&inf;</sup> @@
+- @@html: &sum; <sub>i=0</sub> <sup>n-1</sup> @@
+- @@html: &sum; <sub>0&le;i&lt;n</sub> (x<sub>i</sub> * 2 <sup>i</sup>) @@
+- @@html: 2 &le; 3 @@
+- @@html: 4 &ge; 5 @@
+- @@html: <MATH>&int;_a_^b^{f(x)<over>1+x} dx</MATH> @@
+
+** Math mode
+
+There is a problem with using mathjax while rendering the user guide,
+because of the cross domain limitations enforced by SigServer.
+However, the following does not trigger mathjax:
+
+- $x_i$
+- $x \leq y$
+- $x_i < y_i$
+- $\sum_{i=0}^{n-1} {x_{i} \times 2^{i}} $
+
+** The best way: use tex2svg
+
+The best approach is to use the power of TeX for describing math, and
+the vector graphics of svg to render it.  This needs to be done
+offline, and the raw svg is included in the html page.
+
+#+BEGIN_EXAMPLE
+npm install --global mathjax-node
+$ tex2svg '\sin^2{\theta} + \cos^2{\theta} = 1' > identity.svg
+#+END_EXAMPLE
+
+Here is a formula
+x  #+INCLUDE: "./svg/identity.svg" export html
+which contains some math notation.  This looks good for display equations,
+but not so much for inline notation.
+

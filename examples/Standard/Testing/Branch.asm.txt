@@ -1,67 +1,88 @@
 ; Branch: Test the pc relative branch instructions
 ; Sigma16: https://jtod.github.io/home/Sigma16
 
-    lea   R5,$00f0   ; 1 (bit 3 = 0, bit 4 = 1)
+    lea    R5,$00f0   ; 1 (bit 3 = 0, bit 4 = 1)
 
 ; br f/b
 
-    brf   3          ; 2 brf constant
-    add   R0,R0,R0
-    add   R0,R0,R0
-    add   R0,R0,R0
-    add   R0,R0,R0   ; 3
-    brf   a          ; 4 brf label
-    add   R0,R0,R0   ; 
-b   add   R0,R0,R0   ; 6
-    add   R0,R0,R0   ; 7
-    brf   c          ; 8 brf
-    add   R0,R0,R0   ;
-a   brb   b          ; 5 brb
+    brf    3          ; 2 brf constant
+    add    R0,R0,R0
+    add    R0,R0,R0
+    add    R0,R0,R0
+    add    R0,R0,R0   ; 3
+    brf    a          ; 4 brf label
+    add    R0,R0,R0   ; 
+b   add    R0,R0,R0   ; 6
+    add    R0,R0,R0   ; 7
+    brf    c          ; 8 brf
+    add    R0,R0,R0   ;
+a   brb    b          ; 5 brb
 
 ; br f/b z/nz
-c   add   R0,R0,R0   ; 9
-    brfz  R5,bad     ; 10 brfz don't branch
-    brfz  R0,d       ; 11 brfz do branch
-    add   R0,R0,R0
-    add   R0,R0,R0
-e   add   R0,R0,R0   ; 14
-    brf   f          ; 15
-    add   R0,R0,R0
-d   brbz  R5,bad     ; 12 brbz don't branch
-    brbz  R0,e       ; 13 brbz do branch
-f   add   R0,R0,R0   ; 16
-    brfnz R0,bad     ; 17 brfz don't branch
-    brfnz R5,g       ; 18 brfz do branch
-    add   R0,R0,R0
-    add   R0,R0,R0
-h   add   R0,R0,R0   ; 21
-    brf   i          ; 22
-    add   R0,R0,R0
-g   brbnz R0,bad     ; 19 brbz don't branch
-    brbnz R5,h       ; 20 brbz do branch
+c   add    R0,R0,R0   ; 9
+    brfz   R5,bad     ; 10 brfz don't branch
+    brfz   R0,d       ; 11 brfz do branch
+    add    R0,R0,R0
+    add    R0,R0,R0
+e   add    R0,R0,R0   ; 14
+    brf    f          ; 15
+    add    R0,R0,R0
+d   brbz   R5,bad     ; 12 brbz don't branch
+    brbz   R0,e       ; 13 brbz do branch
+f   add    R0,R0,R0   ; 16
+    brfnz  R0,bad     ; 17 brfz don't branch
+    brfnz  R5,g       ; 18 brfz do branch
+    add    R0,R0,R0
+    add    R0,R0,R0
+h   add    R0,R0,R0   ; 21
+    brf    i          ; 22
+    add    R0,R0,R0
+g   brbnz  R0,bad     ; 19 brbz don't branch
+    brbnz  R5,h       ; 20 brbz do branch
 
 ; br f/b c0/c1
-i   add   R0,R0,R0   ; 23
-    brfc0 R5,4,bad   ; 24 brfc0 don't branch
-    brfc0 R5,3,j     ; 25 brfc0 do branch
-    add   R0,R0,R0
-    add   R0,R0,R0
-k   add   R0,R0,R0   ; 28
-    brf   l          ; 29
-    add   R0,R0,R0
-j   brbc0 R5,4,bad   ; 26 brbc0 don't branch
-    brbc0 R5,3,k     ; 27 brbc0 do branch
-l   add   R0,R0,R0   ; 30
-    brfc1 R5,3,bad   ; 31 brfc1 don't branch
-    brfc1 R5,4,m     ; 32 brfc1 do branch
-    add   R0,R0,R0
-    add   R0,R0,R0
-n   add   R0,R0,R0   ; 35
-    brf   o          ; 36
-    add   R0,R0,R0
-m   brbc1 R5,3,bad   ; 33 brbc1 don't branch
-    brbc1 R5,4,n     ; 34 brbc1 do branch
+i   add    R0,R0,R0   ; 23
+    brfc0  R5,4,bad   ; 24 brfc0 don't branch
+    brfc0  R5,3,j     ; 25 brfc0 do branch
+    add    R0,R0,R0
+    add    R0,R0,R0
+k   add    R0,R0,R0   ; 28
+    brf    l          ; 29
+    add    R0,R0,R0
+j   brbc0  R5,4,bad   ; 26 brbc0 don't branch
+    brbc0  R5,3,k     ; 27 brbc0 do branch
+l   add    R0,R0,R0   ; 30
+    brfc1  R5,3,bad   ; 31 brfc1 don't branch
+    brfc1  R5,4,m     ; 32 brfc1 do branch
+    add    R0,R0,R0
+    add    R0,R0,R0
+n   add    R0,R0,R0   ; 35
+    brf    o          ; 36
+    add    R0,R0,R0
+m   brbc1  R5,3,bad   ; 33 brbc1 don't branch
+    brbc1  R5,4,n     ; 34 brbc1 do branch
 
-o   trap  R0,R0,R0   ; 37 terminate with success
-bad add   R0,R0,R0   ; error! should not go here
-    trap  R0,R0,R0   ; terminate with failure
+o   lea    R8,5[R0]  ; 37 code
+    dsptch R8,3,0    ; 38 dispatch 3-bit code
+    brf    bad       ;    0
+    brf    bad       ;    1
+    brf    bad       ;    2
+    brf    bad       ;    3
+    brf    bad       ;    4
+    brf    p         ; 39 5
+    brf    bad       ;    6
+    brf    bad       ;    7
+p   lea    R9,14[R0] ; 40 masked code = 6
+    dsptch R9,3,0    ; 41
+    brf    bad       ;    0
+    brf    bad       ;    1
+    brf    bad       ;    2
+    brf    bad       ;    3
+    brf    bad       ;    4
+    brf    bad       ;    5
+    brf    q         ; 42 6
+    brf    bad       ;    7
+
+q   trap   R0,R0,R0   ; 43 terminate with success
+bad add    R0,R0,R0   ; error! should not go here
+    trap   R0,R0,R0   ; terminate with failure
