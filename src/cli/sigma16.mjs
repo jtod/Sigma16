@@ -1,9 +1,6 @@
 // Sigma16.mjs
-// This file is part of Sigma16: https://jtod.github.io/home/Sigma16/
-// License: GNU GPL Version 3.  See Sigma16/README and LICENSE
-// Copyright (c) 2019-2022 John T. O'Donnell
-
-// Sigma16.mjs defines command line tools using node.js
+// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3 or later
+// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -19,6 +16,8 @@
 //----------------------------------------------------------------------
 // Usage
 //----------------------------------------------------------------------
+
+// Sigma16.mjs defines command line tools using node.js
 
 /*
 Usage: node Sigma16.mjs <command> <argument> ... <argument>

@@ -1,7 +1,6 @@
 // Sigma16: emwt.mjs
-// Copyright (C) 2021 John T. O'Donnell
-// email: john.t.odonnell9@gmail.com
-// License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
+// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3 or later
+// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
