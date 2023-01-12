@@ -4986,6 +4986,30 @@ $ wat2wasm emcore.wat --enable-threads
 ***** Integrated environment
 ***** Run in browser without installation
 
+* Rationale and design
+
+- Why Sigma16?
+- Focus on connections
+- Vertical connections
+- ISA - target for compilation
+- circuit implements ISA
+- Horizontal connections
+- ISA - programming language constructs
+- ISA - OS kernel
+- Principles and training
+- When you learn one architecture, it’s much easier to learn more
+- Synthetic vs commercial architecture
+- Benefit of commercial architecture: training
+- But which architecture? x86? ARM? RISC-V? New ones?
+- Design rationale
+- As simple as possible – but no simpler
+- 16-bit word size
+- nRegister file
+- Readable machine language
+- Software tools
+- Integrated environment
+- Run in browser without installation
+
 * About Sigma16
 :PROPERTIES:
 :CUSTOM_ID: sec-about-sigma16

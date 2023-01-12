@@ -1,4 +1,4 @@
-; Overflow - test the overflow condition code flag
+; Overflow: test the overflow condition code flag
 ; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 

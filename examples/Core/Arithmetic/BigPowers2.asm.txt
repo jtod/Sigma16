@@ -1,5 +1,6 @@
-; BigPowers2:  print powers of 2 using BCD arithmetic
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; BigPowers2:  Print powers of 2 using BCD arithmetic.
+; Integers of unbounded size are represented as an array of digits.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2022
 
 ; Print the first n powers of 2, where the powers are represented as
 ; k-digit BCD

@@ -26,8 +26,8 @@ and written by [John O'Donnell](https://jtod.github.io/index.html).
 
 - Copyright (C) 2023 John T. O'Donnell
 - License: GNU GPL Version 3 or later.  The full text of the license
-  is given in the source repository in Sigma16/LICENSE.txt, as well as
-  at [[https://www.gnu.org/licenses][https://www.gnu.org/licenses]].
+  is given in the source repository in Sigma16/LICENSE, as well as at
+  [[https://www.gnu.org/licenses][https://www.gnu.org/licenses]].
 
 Sigma16 is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
