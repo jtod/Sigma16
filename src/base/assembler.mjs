@@ -1,7 +1,8 @@
 // Sigma16: assembler.mjs
-// This file is part of Sigma16.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
-// Copyright (c) 2019-2023 John T. O'Donnell
+
+// Copyright (C) 2023 John T. O'Donnell
+// This file is part of Sigma16.  https://jtod.github.io/home/Sigma16
+// License: GNU GPL Version 3 or later
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General

@@ -15,6 +15,29 @@
 # not, see <https://www.gnu.org/licenses/>.
 
 #--------------------------------------------------------------------------
+# Quick notes
+#--------------------------------------------------------------------------
+
+# Start new version, e.g. 3.5.1
+# - edit src/package.json, update "version": "3.5.1"
+# - edit docs/UserGuide/Sigma16UserGuide.org,
+#   update #+DATE: Version 3.5.1, January 2023
+#   Then build html and pdf
+# - make setVersion
+# - edit docs/welcome/welcome.org, build html
+
+# Install new release, e.g. v3.5.0:
+# make build
+# heroku login
+# git add .
+# git commit -m 'v3.5.0'
+# git push heroku main
+# heroku config:set S16_RELEASE_VERSION=3.5.0
+#    S16_LATEST_RELEASE=3.5.0
+#    S16_DEV_VERSION=3.5.1
+
+
+#--------------------------------------------------------------------------
 # Environment variables
 #--------------------------------------------------------------------------
 
@@ -256,7 +279,7 @@ installServer:
 .PHONY : installHomepage
 installHomepage :
 	mkdir -p $(S16_HOMEPAGE_REPOSITORY)/admin
-	cp -u protected/SIGSERVERURL.txt $(S16_HOMEPAGE_REPOSITORY)/admin
+#	cp -u protected/SIGSERVERURL.txt $(S16_HOMEPAGE_REPOSITORY)/admin
 	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
