@@ -1,5 +1,7 @@
-; Main: linker example
-; This file is part of Sigma16. See README and https://jtod.github.io/home/Sigma16/
+; Main: Linker example.
+; Test linker.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+
 ; Assemble Main, assemble Mod1, selecte Main, link
 
 Main  module

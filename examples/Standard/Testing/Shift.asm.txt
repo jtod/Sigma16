@@ -1,5 +1,6 @@
-; Shift: test the shift instructions
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Shift: Test the shift instructions.
+; Expected results are given in comments.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
     lea    R1,2[R0]      ; 0002   0000 0000 0000 0010
     shiftl R5,R1,4       ; 0020   0000 0000 0010 0000

@@ -1,5 +1,6 @@
-; AsmStdStatements: test assembly of each statement
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; AsmStdStatements: Test assembly of each statement.
+; For checking that assembler generates correct object code.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; This is a set of examples of all the statements in the Std
 ; architecture.  It should assemble without any syntax errors, but it

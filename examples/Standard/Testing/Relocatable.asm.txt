@@ -1,5 +1,6 @@
-; Relocatable: test assembly of relocatable and nonrelocatable addresses
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Relocatable: Test assembly of relocatable and nonrelocatable addresses.
+; Contains some names that are relocatable, others that are fixed.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Assembler test cases for determination of relocatability of names
   

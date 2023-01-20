@@ -1,6 +1,6 @@
-; ConvertInt: convert between integer and string of decimal digits
-; This file is part of Sigma16. https://jtod.github.io/home/Sigma16
-; Copyright (c) 2022 John T. O'Donnell
+; ConvertInt: Convert between integer and string of decimal digits.
+; Subroutines that can be called by other programs.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ConvertInt module
            export  ShowInt
@@ -8,7 +8,6 @@ ConvertInt module
 ;--------------------------------------------------------------------
 ; ShowInt: convert int to decimal string
 ;--------------------------------------------------------------------
-
 
 ; ShowInt converts an integer to a string, placing it in a buffer of a
 ; specified size in memory.  The integer may be signed.  Leading
@@ -25,8 +24,6 @@ ConvertInt module
 ; of the string by adding that number to the buffer address.  Every 16
 ; bit two's complement number can be shown using 6 characters,
 ; e.g. -30000.
-
-
 
 ; High level algorithm
 ; procedure ShowInt (x:Int, *bufstart:Char, bufsize:Int) : Int 

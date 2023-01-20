@@ -1,9 +1,6 @@
-; BinToDec: convert binary to decimal
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
-
-; This program illustrates how to print a binary number, how to use
-; binary coded decimal (BCD), and how to write procedures that aren't
-; reentrant.
+; BinToDec: Convert binary to decimal.
+; Illustrate how to print a binary number as a string of decimal digits.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; The main program takes a 16-bit binary number, converts it to BCD
 ; with 5 digits, converts that to a string, and prints the string.  It

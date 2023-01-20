@@ -1,5 +1,6 @@
-; ConditionalJump: demonstrate compare followed by conditional jump
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; ConditionalJump: Demonstrate compare followed by conditional jump.
+; The cmp instruction sets condition code, conditional jump uses it.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Given the constants in the lea instructions, the instruction
 ; labelled yes should be executed.  You can modify the constants in

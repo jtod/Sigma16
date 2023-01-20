@@ -1,6 +1,6 @@
-; DemoShowInt: example using ShowInt
-; This file is part of Sigma16. https://jtod.github.io/home/Sigma16
-; Copyright (c) 2022 John T. O'Donnell
+; DemoShowInt: Example using ShowInt.
+; This is a main program that can be linked with the ShowInt module.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; DemoShowInt is a procedure that tests ShowInt by calling it on
 ; various test data and prints the result.  It is good practice to
@@ -194,8 +194,6 @@ WriteNewLine2
     add    R12,R14,R0          ; R12 := R14, restore stack top
     load   R14,0[R14]          ; pop stack frame
     jump   0[R13]              ; return
-
-
 
 ; Old version...
 

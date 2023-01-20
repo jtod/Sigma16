@@ -1,5 +1,6 @@
-; Factorial: illustrate recursion with stack frames
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Factorial: Illustrate recursion with stack frames.
+; On each call, a stack frame is created and pushed on stack.
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
 ; This example implements a recursive algorithm to computer
 ; factorials, illustrating subroutine call and return and stack

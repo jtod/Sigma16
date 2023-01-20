@@ -1,5 +1,6 @@
-; WriteBCD: print a BCD number
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; WriteBCD: Print a BCD number.
+; Illustrate output of an array of decimal digits.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; This program illustrates how to print a binary coded decimal (BCD)
 ; number, and how to write non-reentrant procedures with static local

@@ -1,5 +1,6 @@
-; StackArrayRobust: stack implemented using array
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; StackArrayRobust: Stack implemented using array.
+; Error is indicated if pushing into a full stack, or popping empty. 
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ;------------------------------------------------------------------------
 ; Main program

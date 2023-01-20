@@ -15,73 +15,132 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-// Usage: node .../exidx.mjs builds Index.html in examples directory
+// Usage: must run in Sigma16 source directory. node .../exidx.mjs
+// builds index.html in examples directory and all its subdirectories.
+// It assumes every source file ends in .asm.txt, and it uses the
+// first two lines of text to find the text to display in the index.
 
 import * as fs from 'fs';
 
-const asmSrcFile = /^\w+\.asm\.txt$/  // find asm source files
-const exampleDir = /(Examples\S*)/    // find last part of directory path
-const exampleName = /[^\:]*\:(.*)/    // find comment after : in first line
-const leadingsemi = /\;(.*)/           // find leading semicolon in second line
+// Parsing
+const asmSrcFile = /\.asm\.txt$/      // find asm source files
+const exampleDir = /(Examples\S*)/   // find last part of directory path
+const exampleName = /[^\:]*\:(.*)/   // find comment after : in first line
+const leadingsemi = /\;(.*)/         // find leading semicolon in second line
 
-// Find title of the index page
-const dir = process.cwd ()            // current directory
-const xs = dir.match(exampleDir)      // Examples/Arch/Group
-let title = xs[0] ? xs[0] : "Examples"
-title = title.replace(/\\/g, '/')     // replace \ by / in path
+// Global count variables
+let nSourceFiles = 0
+let nDirectories = 0
 
-// Read directory
-const flist = fs.readdirSync('.')     // all the files in directory
+// Header of the generated html
+function initHtml (title) {
+    let initHtmlIdx = "<html>\n"
+    initHtmlIdx += "<head>\n"
+    initHtmlIdx +=
+        "<style type=text/css media=screen>\n"
+        + "body { font-family: sans-serif; }\n"
+        + "h1 { font-size: 1.8em; }\n"
+        + "a { font-weight: bold; font-size: 1.2em; }\n"
+        + "p { margin-left: 5em; margin-bottom: 1em; }\n"
+        + "ul li { padding: 0.5em 0em; }\n"
+        + "ul { line-height: 1em; }\n"
+        + "</style>\n"
+    initHtmlIdx += "</head>\n"
+    initHtmlIdx += "<body>\n"
+    initHtmlIdx += `<h1>${title}</h1>\n`
+    initHtmlIdx += '<ul>\n'
+    return initHtmlIdx
+}
 
-// Generate html
-let htmlIdx = "<html>\n"
-htmlIdx += "<head>\n"
-htmlIdx +=
-    "<style type=text/css media=screen>\n"
-    + "body { font-family: sans-serif; }\n"
-    + "h1 { font-size: 1.8em; }\n"
-    + "a { font-weight: bold; font-size: 1.2em; }\n"
-    + "p { margin-left: 5em; margin-bottom: 1em; }\n"
-    + "ul { line-height: 1em; }\n"
-    + "</style>\n"
-htmlIdx += "</head>\n"
-htmlIdx += "<body>\n"
-let count = 0
+// Utility function: display info about a file path
+function showFileStats (path, statsObj) {
+    const description = statsObj.isFile() ? 'file'
+          : statsObj.isDirectory() ? 'dir'
+          : 'err'
+    console.log (`showFileStats: path ${path} is ${description}`)
+}
 
-htmlIdx += `<h1>${title}</h1>\n`
+// Indentation of depth d
+function depth (d) {
+    return '   '.repeat(d)
+}
 
-htmlIdx += '<ul>\n'
+// This is the top level function; the main program calls it, and when
+// a subdirectory is encountered handleDir is called recursively.
+// d = depth, topdir = .../Sigma16, f = path from Sigma16 to current
 
-for (let f of flist) {
-    if (asmSrcFile.test(f)) { // consider only *.asm.txt
-        count++
-        let text = fs.readFileSync (f)
+function handleDir (d, topdir, parents, f) {
+    nDirectories++
+    let path = `${topdir}${parents}/${f}`
+    let extparents = `${parents}/${f}`
+    console.log (`${depth(d)}Directory ${parents}/${f}`)
+    let title = f
+    title = title.replace(/\\/g, '/')     // replace \ by / in path
+    let html = initHtml (title)
+    if (d > 0) {
+        html += `<li> <a href=\"../index.html">Up to ${parents}</a> </li>\n`
+    }
+    let newHtml = `<li>`
+        + ` <a href=\"./${title}/index.html\">${title}</a>`
+        + `</li>\n`
+    const flist = fs.readdirSync(path)     // all the files in directory
+    let fileCount = 0
+    let subdirCount = 0
+    for (let h of flist) {
+        let hpath = `${path}/${h}`
+        const fStats = fs.statSync (hpath)
+        if (fStats.isFile()) {
+            fileCount++
+            html += handleFile (d+1, topdir, extparents, h)
+        } else if (fStats.isDirectory()) {
+            subdirCount++
+            html += handleDir (d+1, topdir, extparents, h)
+        } else {
+            console.log (`${depth(d)}bad path ${h}`)
+        }
+    }
+
+    // Print summary and finish html
+    console.log (`${depth(d+1)}Directory ${f}:`
+                 + ` found ${fileCount} source files`
+                 + ` and ${subdirCount} subdirectories`)
+    html += '</ul>\n'
+    html += '</body>\n</html>\n'
+    const indexPath = `${path}/index.html`
+    fs.writeFileSync (indexPath, html)
+    return newHtml
+}
+
+function handleFile (d, topdir, parents, f) {
+    let html = ''
+    let path = `${topdir}${parents}/${f}`
+//    console.log (`${depth(d)}handleFile par=${parents} f=${f}`)
+    if (path.search(asmSrcFile) > -1) { // consider only *.asm.txt
+        nSourceFiles++
+        console.log (`${depth(d)}Source file ${f}`)
+        let text = fs.readFileSync (path)
         let xs = String(text).split ('\n')
-        htmlIdx += `<li> <a href=\"./${f}\">${f}</a> `
+        html += `<li> <a href=\"./${f}\">${f}</a> `
         let rawline1 = xs[0]
         let ys = rawline1.match(exampleName)
-        console.log (`ys = ${ys}`)
         let line1comment = ys[1]
         let rawline2 = xs[1]
         let zs = rawline2.match(leadingsemi)
-        console.log (`zs = ${zs}`)
         let line2comment = zs[1]
-        htmlIdx += "<p>" + line1comment + '\n' + line2comment + '\n' + "</p>\n"
-        htmlIdx += '</li>\n'
+        html += line1comment + '\n' + line2comment + '\n'
+        html += '</li>\n'
+    } else {
+        console.log (`${depth(d)}Skipping ${f}`)
     }
+    return html
 }
 
-htmlIdx += '</ul>\n'
-htmlIdx += '</body>\n</html>\n'
-fs.writeFileSync ('Index.html', htmlIdx)
-console.log (`Found ${count} assembly source files`)
+// Main program: exidx should be launched from the Sigma16 source
+// directory, and it starts with the Examples directory
 
-        //        htmlIdx += '<pre>\n'
-//        htmlIdx += '</pre>\n'
-        //        htmlIdx +=
-        //        htmlIdx += "</p>"
-//        htmlIdx += xs[0] + '\n' + xs[1] + '\n'
-// console.log (`dir = ${dir}`)
-// console.log (exampleDir.test(dir))
-// console.log (`xs = ${xs}`)
-// console.log (`title = ${title}`)
+const sigdir = process.cwd ()            // current directory
+console.log (`exidx starting in ${sigdir}`)
+handleDir (0,  sigdir, '', 'Examples')
+console.log (`Found ${nDirectories} directories`
+             + ` and ${nSourceFiles} source files.`)
+console.log ('exidx finished')

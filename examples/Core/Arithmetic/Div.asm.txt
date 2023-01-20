@@ -1,5 +1,6 @@
-; Div: illustrate division
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Div: Example of division.
+; Calculate both quotient (in destination register) and remainder (R15).
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; div is an RRR instruction, but unlike most RRR instructions it
 ; produces two results: the quotient is placed in the destination

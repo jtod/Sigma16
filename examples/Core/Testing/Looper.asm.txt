@@ -1,5 +1,6 @@
-; Looper: a long-running program for timing measurements
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Looper: A long-running program for timing measurements.
+; Run loop for n*m iterations, so it can execute a lot of instructions.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; This program contains two nested loops; its purpose is for testing,
 ; performance measurements, and demonstrating breakpoints.

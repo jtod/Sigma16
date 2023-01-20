@@ -1,5 +1,6 @@
-; ArraySum: find sum of the elements of an array
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; ArraySum: Find sum of the elements of an array.
+; A loop that iterates over an array and adds the elements.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; The program is given
 ;   *  a natural number n, assume n >= 0

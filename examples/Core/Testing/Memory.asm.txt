@@ -1,5 +1,6 @@
-; Memory: test load, store, addresses
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Memory: Test load, store, addresses.
+; Expected results given in comments.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
      load   R1,a[R0]
      load   R2,b[R0]

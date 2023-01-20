@@ -1,5 +1,6 @@
-; ArrayMax: find maximum element of an array
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; ArrayMax: Find maximum element of an array.
+; A loop that traverses an array and returns the largest element.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ;---------------------------------------------------------------------
 ; The program finds the maximum element of an array.  It is given

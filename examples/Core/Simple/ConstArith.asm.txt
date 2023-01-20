@@ -1,5 +1,6 @@
-; ConstArith: illustrate lea and arithmetic instructions
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; ConstArith: Illustrate lea and arithmetic instructions.
+; Use lea to load constants into registers, then do arithmetic.
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
 ; Calculate 3 + 4 * 4 and put the result into R10
 ; Use lea to put a constant into a register

@@ -1,5 +1,6 @@
-; AsmCore: test assembly of each statement in the core architecture
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; AsmCore: Test assembly of each statement in the core architecture.
+; Check that the assembler generates correct object code.
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
 ; This is a set of examples of all the core assembly language
 ; statements.  It should assemble without any syntax errors, but

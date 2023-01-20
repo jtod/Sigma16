@@ -1,5 +1,6 @@
-; ArithException: Catch exceptions in arithmetic operations
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; ArithException: Catch exceptions in arithmetic operations.
+; Set system control registers to cause interrupt on exceptions.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; This program shows how to use interrupts to catch arithmetic
 ; exceptions, such as overflow and divide by 0.  This approach is

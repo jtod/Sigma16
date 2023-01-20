@@ -1,5 +1,7 @@
-; Logic: Test the logic instructions and pseudoinstructions
-; Sigma16: https://jtod.github.io/home/Sigma16/
+; Logic: Test the logic instructions and pseudoinstructions.
+; Instructions logicw, logicb. Pseudoinstructions for common operators.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+
 
 ; Word logic test data
      lea     R1,$00ff[R0]    ; 00ff

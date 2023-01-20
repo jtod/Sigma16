@@ -1,5 +1,6 @@
-; Stack: Test the stack instructions: push, pop, top
-; Sigma16: https://jtod.github.io/home/Sigma16
+; Stack: Test the stack instructions: push, pop, top.
+; Put test data in registers, then perform stack operations.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; R11 = stack base: address of first element in stack
 ; R12 = stack limit: address of last element in stack

@@ -1,5 +1,6 @@
-; TimerInterrupt: run a loop while responding to interrupt requests
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; TimerInterrupt: Run a loop while responding to interrupt requests.
+; Illustrate how to set interrupts and how to generate timer interrupts.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; This program illustrates how to set up interrupts and catch a timer
 ; interrupt.  The main program is an infinite loop.  When a timer

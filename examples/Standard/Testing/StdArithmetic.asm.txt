@@ -1,5 +1,6 @@
-; StdArith: test cases for arithmetic
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; StdArith: Test cases for arithmetic.
+; Add with carry, multiply and divide on natural numbers.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; addc is the "add with carry" instruction.  It's useful for addition
 ; of large natural numbers that require several words.  The

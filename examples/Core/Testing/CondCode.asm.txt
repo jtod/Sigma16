@@ -1,5 +1,6 @@
-; CondCode: test condition codes
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; CondCode: Test condition codes.
+; Perform a variety of instructions that set condition code bits.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Condition code flags are defined in architecture.mjs.  Each flag has
 ; a symbolic name used in the implementation, and a display name used

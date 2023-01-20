@@ -1,5 +1,6 @@
-; ReadWrite: read a string and write it
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; ReadWrite: Read a string and write it.
+; Illustrate both input and output.
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
 ; Read up to 4 characters into str
         lea    R1,1[R0]       ; trap code for Read

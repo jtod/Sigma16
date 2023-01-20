@@ -1,5 +1,6 @@
-; System: test system control registers and instructions
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; System: Test system control registers and instructions.
+; Examples of putctl, getctl.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Control registers
 

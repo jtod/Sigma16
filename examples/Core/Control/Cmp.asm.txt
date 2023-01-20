@@ -1,5 +1,6 @@
-; Cmp: perform comparisons and set the condition code
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Cmp: Perform comparisons and set the condition code.
+; Observe condition code R15 after each cmp instruction.
+; Sigma16: https://jtod.github.io/home/Sigma16.  John O'Donnell, 2023
 
 ; This program loads some constants into registers, and then performs
 ; various comparisons which set the condition code.

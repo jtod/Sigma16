@@ -1,5 +1,6 @@
-; Read: demonstrate how to read input
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Read: Demonstrate how to read input using a trap instruction.
+; Set trap code, address of buffer, and number of characters to read.
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
 ; Demonstrate how to read characters entered by the user
 

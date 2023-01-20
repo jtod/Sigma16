@@ -1,5 +1,6 @@
-; Overflow: test the overflow condition code flag
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Overflow: Test detection of overflow.
+; Overflow in an arithmetic operation is indicated in the condition code.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 
 ; Condition code is R15

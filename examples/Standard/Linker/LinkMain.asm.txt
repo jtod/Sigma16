@@ -1,5 +1,6 @@
-; Main: linker example
-; Copyright (c) 2022 John T. O'Donnell. https://jtod.github.io/home/Sigma16
+; Main: Linker example;
+; This is a main program which imports definitions from Mod1.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Assemble Main, assemble Mod1, selecte Main, link
 

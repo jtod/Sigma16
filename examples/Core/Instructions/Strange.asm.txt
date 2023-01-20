@@ -1,4 +1,5 @@
-; Strange: A Sigma16 program that is a bit strange
+; Strange: A Sigma16 program that is a bit strange.
+; This program is discussed in detail in a tutorial
 ; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
 
 ; Run the program with different initial values of y.  Use the Editor

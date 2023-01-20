@@ -1,5 +1,6 @@
-; ArrayAddk: add k to each element of an array
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; ArrayAddk: Add k to each element of an array.
+; Simple example of array traversal.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Traverse an array and add constant k to each element
 

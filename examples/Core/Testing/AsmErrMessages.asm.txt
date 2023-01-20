@@ -1,5 +1,6 @@
-; AsmErrMessages: test assembly language error messages
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; AsmErrMessages: Test assembly language error messages.
+; This program contains as many errors as possible, on purpose!
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
 ; This program contains a lot of syntax errors.  Its purpose is to
 ; test the assembler's error handling.  This file is a source of

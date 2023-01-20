@@ -1,5 +1,6 @@
-; SaveRestore: test save and restore instructions
-; Sigma16: https://jtod.github.io/home/Sigma16
+; SaveRestore: Test save and restore instructions.
+; These instructions simplify procedure call and return.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
     lea    R13,stack[R0]
     lea    R1,17[R0]

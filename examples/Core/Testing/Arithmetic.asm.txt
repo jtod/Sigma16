@@ -1,5 +1,6 @@
-; TestCoreArithmetic: test cases for arithmetic instructions
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; TestCoreArithmetic: Test cases for arithmetic instructions.
+; Expected results are given in comments.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
       lea    R1,4[R0]       ;  4 0004
       lea    R2,5[R0]       ;  5 0005

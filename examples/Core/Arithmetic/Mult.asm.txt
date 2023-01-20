@@ -1,5 +1,6 @@
-; Mult: demonstrate the multiplication instruction
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Mult: Example of multiplication.
+; The mul instruction multiplies signed integers; overflow is possible.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
      load   R1,a[R0]
      load   R2,b[R0]

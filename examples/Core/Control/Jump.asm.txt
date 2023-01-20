@@ -1,5 +1,6 @@
-; Jump: demonstrate the unconditional jump instruction
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Jump: Demonstrate the unconditional jump instruction.
+; A jump instruction specifies address to go to.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; R2 is initialized to 2.  The jump instruction skips over another
 ; instruction that changes R2.

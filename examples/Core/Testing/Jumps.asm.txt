@@ -1,5 +1,6 @@
-; Jumps: test Sigma16 Core jumping instructions 
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; Jumps: Test Sigma16 Core jumping instructions.
+; Test jump, conditional jumps, and conditional jump pseudoinstructions.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Full test: step through the program.  Quick test: run the program to
 ; completion and then check the counts at the end.

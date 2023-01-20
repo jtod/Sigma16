@@ -1,5 +1,6 @@
-; WriteChunks: write several short strings on the same output line
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; WriteChunks: Write several short strings on the same output line.
+; Trap write doesn't terminate line of output unless \n character is given.
+; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
         lea    R1,2[R0]       ; trap code for Write
 

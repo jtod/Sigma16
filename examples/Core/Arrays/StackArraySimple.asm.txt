@@ -1,5 +1,6 @@
-; StackArraySimple: stack implemented using array without error checking
-; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2022
+; StackArraySimple: Stack implemented using array.
+; For simplicity, this program doesn't check for errors, so it's unsafe.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; This is a simple implementation of a stack using an array; there is
 ; no error checking and no saving/restoring of registers.
