@@ -1,6 +1,18 @@
-; Mult: Example of multiplication.
+; Mult: demonstrate the multiplication instruction
 ; The mul instruction multiplies signed integers; overflow is possible.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+
+     lea  R1,3[R0]
+     lea  R2,4[R0]
+     mul   R3,R1,R2    -- 3 * 4 = 12 = $000c
+
+     lea   R4,179[R0]
+     lea   R5,137[R0]
+     mul   R6,R4,R5    -- 179 * 137 = 24,523 = $5fcb
+
+     load   R7,cc[R0]
+     lea    R8,-5[R0]
+     trap   R0,R0,R0
 
      load   R1,a[R0]
      load   R2,b[R0]
@@ -23,3 +35,7 @@ d    data    -1
 e    data   492
 f    data   738
 g    data  -598
+cc   data    -5
+dd   data    -1
+
+     data  24523

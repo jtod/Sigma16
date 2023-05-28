@@ -1,4 +1,4 @@
-; Write: Demonstrate output using trap.
+; Write: Demonstrate output using trap
 ; Set trap code, buffer address, and size in registers.
 ; Sigma16: https://jtod.github.io/home/Sigma16/  John O'Donnell, 2023
 
@@ -36,5 +36,12 @@ str2    data $03b1   ; 03b1 is Greek alpha in Unicode
         data $03bb
         data   10   ; character code for newline
 
-
-
+str3    data   69   ; 'E'
+        data  108   ; 'l'
+        data  101   ; 'e'
+        data  112   ; 'p'
+        data  104   ; 'h'
+        data   97   ; 'a'
+        data  110   ; 'n'
+        data  116   ; 't'
+        data   10   ; character code for newline

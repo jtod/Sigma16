@@ -1,0 +1,18 @@
+; ReadWrite: read a string and write it
+; This file is part of Sigma16; see README and https://jtod.github.io/home/Sigma16/
+
+; Read 4 characters into str
+        lea    R1,1[R0]       ; trap code for Read
+        lea    R2,str[R0]     ; R2 := address of input buffer str
+        lea    R3,4[R0]       ; R3 := size of input buffer
+        trap   R1,R2,R3       ; read into str
+
+; Write what was just read
+        lea    R1,2[R0]       ; trap code for Write
+        lea    R2,str[R0]     ; R2 := address of input buffer str
+        lea    R3,4[R0]       ; R3 := size of input buffer
+        trap   R1,R2,R3       ; write str
+
+        trap   R0,R0,R0       ; terminate
+
+str                           ; data area for the string

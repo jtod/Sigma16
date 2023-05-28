@@ -1,0 +1,6 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Linked lists
+#+OPTIONS: html-postamble:nil
+
+A linked list is a set of nodes, where each node contains some data
+and a pointer to the next node.

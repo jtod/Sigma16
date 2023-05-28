@@ -1,4 +1,4 @@
-; CondCode: Test condition codes.
+; Cmp: Test condition codes set by the cmp instruction
 ; Perform a variety of instructions that set condition code bits.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 

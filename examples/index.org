@@ -1,0 +1,53 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../docs/docstyle.css" />
+#+TITLE: Testing
+#+OPTIONS: html-postamble:nil
+
+These files are for testing the implementation of Sigma16.  They also
+provide examples of all the assembly language statements and the
+instruction set.
+
+
+- [[./AsmCore.asm.txt][AsmCore]] Test assembly of Core instructions
+
+- [[./AsmStd.asm.txt][AsmStd]] Test assembly of Std instructions
+
+- [[./AsmSys.asm.txt][AsmSys]] Test assembly of Sys instructions
+
+- [[./AsmS32.asm.txt][AsmS32]] Test assembly of S32 instructions
+
+- [[./AsmErrMessages.asm.txt][AsmErrMessages]] Test error messages
+  with invalid statements
+
+- [[./TestCoreArithmetic.asm.txt][TestCoreArithmetic]] Test arithmetic operations
+
+- [[./TestCoreMemory.asm.txt][TestCoreMemory]] Loads, stores, stack
+  operations, saving and restoring registers.
+
+- [[./LargeAddr.asm.txt][LargeAddr]]
+
+- [[./TestCoreCondCode.asm.txt][TestCoreCondCode]] Test the condition
+  codes
+
+- [[./TestCoreJumping.asm.txt][TestCoreJumping]] Test the comparisons,
+  jumps, and conditional jumps.
+
+- [[./TestCoreLogic.asm.txt][TestCoreLogic]] Test the operations on
+  Booleans and logic functions
+
+- [[./TestSysException.asm.txt][TestSysException]] Exceptions
+
+- [[./TestStdBitField.asm.txt][TestStdBitField]] Bit and bit field
+  manipulation
+
+- [[./Break.asm.txt][Break]] Breakpoint performed by a trap
+
+- [[./System.asm.txt][System]] System control registers
+
+- [[./S32.asm.txt][S32]] 32-bit instructions
+
+- [[./Linker/index.html][Linker]]
+
+- [[./Looper.asm.txt][Looper]] Long running program with no I/O
+
+- [[./TimerInterrupt.asm.txt][TimerInterrupt]] Run a loop while
+  responding to interrupt requests

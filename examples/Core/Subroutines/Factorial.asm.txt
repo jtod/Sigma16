@@ -6,6 +6,10 @@
 ; factorials, illustrating subroutine call and return and stack
 ; frames.
 
+; To keep this program as simple as possible, it doesn't check for
+; stack overflow, and it doesn't provide static links.  A complete
+; pattern for procedure calls needs both of those features too.
+
 ; This is not actually a good way to compute factorials: a simple
 ; loop is simpler and more efficient.  But this program provides a
 ; good illustration of the execution stack and recursion.
@@ -106,5 +110,5 @@ return
 ; Static data segment
 
 x       data   5
-result  data   0
+result  data   0   ; will store x! (x factorial)
 stack   data   0   ; stack extends from here on...

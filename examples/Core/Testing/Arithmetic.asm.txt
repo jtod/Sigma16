@@ -1,18 +1,25 @@
-; TestCoreArithmetic: Test cases for arithmetic instructions.
+; Arithmetic: Test cases for core arithmetic instructions.
 ; Expected results are given in comments.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
-      lea    R1,4[R0]       ;  4 0004
-      lea    R2,5[R0]       ;  5 0005
-      lea    R3,-6[R0]      ; -6 fffa
+      lea    R1,4[R0]    ; 0004
+      lea    R2,5[R0]    ; 0005
+      add    R3,R1,R2    ; 0009
+      sub    R4,R1,R2    ; ffff
+      sub    R5,R2,R1    ; 0001
+      add    R6,R1,R4    ; 0003
 
-      add    R4,R1,R2       ;  9 0009  G>
-      add    R5,R1,R3       ; -2 fffe  <G
-      add    R6,R0,R0       ;  0 0000  =
+      lea    R1,4[R0]    ;  4 0004
+      lea    R2,5[R0]    ;  5 0005
+      lea    R3,-6[R0]   ; -6 fffa
 
-      sub    R4,R2,R1       ;  1 0001  G>
-      sub    R5,R1,R2       ; -1 ffff  G<
-      add    R6,R2,R2       ;  0 0000  ==
+      add    R4,R1,R2    ;  9 0009  G>
+      add    R5,R1,R3    ; -2 fffe  <G
+      add    R6,R0,R0    ;  0 0000  =
+
+      sub    R4,R2,R1    ;  1 0001  G>
+      sub    R5,R1,R2    ; -1 ffff  G<
+      add    R6,R2,R2    ;  0 0000  ==
 
 ; Loading primary and secondary into register file
 

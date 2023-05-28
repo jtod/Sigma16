@@ -1,0 +1,27 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Subroutines
+#+OPTIONS: html-postamble:nil
+
+These programs illustrate the basic mechanisms of subroutines,
+including procedures and functions.
+
+- [[./Jal.asm.txt][Jal]]  Illustrate the jump and link (jal)
+  instruction, which is the foundation for subroutines.
+
+- [[./Subroutine.asm.txt][Subroutine]] A simple subroutine,
+  demonstrating call and return.
+  
+- [[./OverwriteReturnAddress.asm.txt][OverwriteReturnAddress]]
+
+- [[./zapR13crash.asm.txt][zapR13crash]] Show what happens if the
+  program doesn't save the return address properly: the program
+  crashes.
+
+- [[./SaveR13stack.asm.txt][SaveR13stack]]  The program saves the
+  return address properly.
+  
+- [[./Factorial.asm.txt][Factorial]]  A program that calculates
+  factorials using recursion.  There are much better ways to compute
+  factorials, but this program gives a relatively simple example of
+  how recursion works.
+

@@ -1,0 +1,6 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Sorting
+#+OPTIONS: html-postamble:nil
+
+- [[./InsertionSort.asm.txt][InsertionSort]] A program that uses the
+  insertion sort algorithm on an array of integers.

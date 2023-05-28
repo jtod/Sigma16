@@ -1,0 +1,6 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Records
+#+OPTIONS: html-postamble:nil
+
+A record is a data structure that contains several words called
+/fields/.  A field may contain a number, character, or pointer.

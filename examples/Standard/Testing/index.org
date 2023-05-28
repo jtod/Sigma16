@@ -1,0 +1,33 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Standard architecture testing
+#+OPTIONS: html-postamble:nil
+
+- [[./Addc.asm.txt][Addc]]
+
+- [[./AdmStd.asm.txt][AsmStd]]
+
+- [[./BitField.asm.txt][BitField]]
+
+- [[./Branch.asm.txt][Branch]]
+
+- [[./Ctl.asm.txt][Ctl]]
+
+- [[./Jump.asm.txt][Jump]]
+
+- [[./Logic.asm.txt][Logic]]
+  
+- [[./NatArith.asm.txt][NatArith]]
+
+- [[./Relocatable.asm.txt][Relocatable]]
+
+- [[./SaveRestore.asm.txt][SaveRestore]]
+
+- [[./Shift.asm.txt][Shift]]
+  
+- [[./Stack.asm.txt][Stack]]
+
+- [[./StdArithmetic.asm.txt][StdArithmetic]]
+
+- [[./StdArithmetic.asm.txt][StdArithmetic]]
+
+- [[./System.asm.txt][System]]

@@ -1,0 +1,31 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
+#+TITLE: Arithmetic examples
+#+OPTIONS: html-postamble:nil
+
+- [[./AddDecimal.asm.txt][AddDecimal.asm.txt]] Shows how to represent
+  integers in decimal (actually *binary coded decimal*) and how to add
+  bcd integers.  BCD represents an integer as a sequence of decimal
+  digits, and a decimal digit is represented as a 4-bit binary number.
+
+- [[./BigPowers2.asm.txt][BigPowers2]] Print a list of powers of 2,
+  using BCD representation.  This allows large numbers to be
+  represented, so the table goes far beyond the largest number that
+  can be represented in a 16-bit word.
+
+- [[./BinToDec.asm.txt][BinToDec]] Convert a binary word to a string
+  of characters giving decimal representation.
+
+- [[./Div.asm.txt][Div]] Illustrate the division instruction,
+  including quotient and remainder.
+
+- [[./Mult.asm.txt][Mult]] Illustrate the multiplication instruction.
+
+- [[./Overflow.asm.txt][Overflow]] Show how overflow is detected when
+  the result of an arithmetic operation is too big to fit in a word.
+
+- [[./WriteBCD.asm.txt][WriteBCD]]  Print out a number represented
+  using BCD (binary coded decimal).
+
+
+
+

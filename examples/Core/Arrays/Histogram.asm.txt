@@ -1,0 +1,219 @@
+; Histogram
+; Traverse an array of integers and print histogram
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+
+; This program prints a bar chart showing the values in an array x
+; containing a sequence of n integers.  There is also an integer limit
+; that is used to limit the length of output lines.
+
+; There is one line of output for each element of x, consisting of a
+; row of asterisks (*).  Normally, the number of asterisks in line is
+; x[i].  However, if x[i] is negative, then a minus sign is printed
+; instead of asterisks.  Furthermore, the number of asterisks printed
+; must never exceed limit.  If x[i] > limit then only limit asterisks
+; are printed, and they are followed by a greater-than sign (>) which
+; indicates that the output was truncated.
+
+;-----------------------------------------------------------------------
+; High level algorithm
+
+; for i := 0 to n-1
+;    k := 0
+;    if x[i] < 0
+;       then outbuf[k] := '-'
+;            k := k + 1
+;       else
+;          while k < x[i] && k < limit do
+;              outbuf[k] := '*'
+;              k := k + 1
+;          if k < x[i]
+;             then outbuf[k] := '>'
+;                  k := k + 1
+;    outbuf[k] := newline character
+;    k := k+1
+;    write outbuf with length = k
+
+;-----------------------------------------------------------------------
+; Low level algorithm
+; 
+;    i := 0
+; Loop
+;    if not (i < n) then goto Done
+;    k := 0
+;    if not (x[i] < 0) then goto NotNeg
+;    outbuf[k] := '-'
+;    k := k + 1
+;    goto EndLine
+; NotNeg
+;    if not (k < x[i]) then goto Check
+;    if not (k < limit) then goto Check
+;    outbuf[k] := '*'
+;    k := k + 1
+;    goto NotNeg
+; Check
+;    if not (k < x[i]) then goto EndLine
+;    outbuf[k] := '>'
+;    k := k + 1
+; EndLine
+;    outbuf[k] := newline
+;    k := k + 1
+;    write outbuf (size := k)
+;    i := i+1
+;    goto Loop
+; Done
+
+;-----------------------------------------------------------------------
+; Assembly language implementation
+
+; Register usage
+;   R1,R2,R3 reserved for write operations
+;   R4 = constant 1
+;   R5 = limit
+;   R6 = i
+;   R7 = n
+;   R8 = k
+;   R9 = x[i]
+;   R10 = temp
+
+; Initialize registers and set i := 0
+     lea     R4,1[R0]          ; R4 := constant 1
+     load    R5,limit[R0]      ; R5 := limit
+     add     R6,R0,R0          ; R6 := i = 0
+     load    R7,n[R0]          ; R7 := n
+
+Loop
+; if not (i<n) then goto Done
+     cmp     R6,R7             ; compare i, n
+     jumpge  Done[R0]          ; if not (i<n) then goto Done
+
+; k := 0
+     add     R8,R0,R0          ; k := 0
+
+; if not (x[i] < 0) then goto NotNeg
+     load    R9,x[R6]          ; R9 := x[i]
+     cmp     R9,R0             ; compare x[i], 0
+     jumpge  NotNeg[R0]        ; if not (x[i]<0) then goto NotNeg
+
+; outbuf[k] := '-'
+     load    R10,minus[R0]     ; R10 := '-'
+     store   R10,outbuf[R8]    ; outbuf[k] := '-'
+
+; k := k + 1
+     add     R8,R8,R4          ; k := k + 1
+
+; goto EndLine
+     jump    EndLine[R0]       ; goto EndLine
+
+NotNeg
+; if not (k < x[i]) then goto Check
+     cmp     R8,R9             ; compare k, x[i]
+     jumpge  Check[R0]         ; if not (k < x[i]) then goto Check
+
+; if not (k < limit) then goto Check
+     cmp     R8,R5             ; compare k, limit
+     jumpge  Check[R0]         ; if not (k < limit) then goto Check
+
+; outbuf[k] := '*'
+     load    R10,star[R0]      ; R10 := '*'
+     store   R10,outbuf[R8]    ; outbuf[k] := '*'
+
+; k := k + 1
+     add     R8,R8,R4          ; k := k + 1
+
+; goto NotNeg
+     jump    NotNeg[R0]        ; goto NotNeg
+
+Check
+; if not (k < x[i]) then goto EndLine
+     cmp     R8,R9             ; compare k, x[i]
+     jumpge  EndLine[R0]       ; if not (k < x[i]) then goto EndLine
+
+; outbuf[k] := '>'
+     load    R10,gt[R0]        ; R10 := '>'
+     store   R10,outbuf[R8]    ; outbuf[k] := '>'
+
+; k := k + 1
+     add     R8,R8,R4          ; k := k + 1
+
+EndLine
+; outbuf[k] := newline
+     load    R10,newline[R0]   ; R10 := newline
+     store   R10,outbuf[R8]    ; outbuf[k] := newline
+
+; k := k + 1
+     add     R8,R8,R4          ; k := k + 1
+
+; write outbuf (size = k)
+     lea     R1,2[R0]          ; trap code: write
+     lea     R2,outbuf[R0]     ; address of outbuf string
+     add     R3,R8,R0          ; string size := k
+     trap    R1,R2,R3          ; write outbuf (size = k)
+
+; i := i+1
+     add     R6,R6,R4          ; i := i + 1
+
+; goto Loop
+     jump    Loop[R0]          ; goto Loop
+
+Done
+     trap    R0,R0,R0          ; terminate
+
+;-----------------------------------------------------------------------
+; Constants - initial values should not be changed
+
+minus   data  $002d   ; code for '-'
+gt      data  $003e   ; code for '>'
+newline data  $000a   ; code for newline
+star    data  $002a   ; code for '*'
+
+;-----------------------------------------------------------------------
+; Variables - these initial values may be changed
+
+limit   data    10    ; maximum number of * to write
+
+; x is the input: an array of n values to display in histogram
+n       data    15    ; size of array x
+x       data     1    ; x[0]
+        data     2
+        data     0
+        data     3
+        data    -2
+        data     7
+        data     8
+        data     9
+        data    10
+        data    11
+        data    12
+        data    50
+        data     3
+        data     2
+        data     1
+
+;-----------------------------------------------------------------------
+; Output buffer
+outbuf  data  $0000   ; outbuf[0]
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000

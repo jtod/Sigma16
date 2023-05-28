@@ -1,4 +1,4 @@
-; Break: Test case for trap break.
+; TrapBreak: Test case for trap break.
 ; The program contains a long-running loop, containing a trap break.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 

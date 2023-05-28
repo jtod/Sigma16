@@ -1,0 +1,46 @@
+; Pointer.asm.txt
+; Sigma16 program: illustrate pointers
+; John O'Donnell, 2019
+
+; Using a pointer to a variable
+
+; Use lea to get a constant: R1 := 5
+
+     lea    R1,5[R0]     ; R1 := 5 (constant)
+
+; Accessing variable x by its address, with R0: R2 := x
+     load   R2,x[R0]     ; R2 := x
+     add    R2,R2,R1     ; R2 := x + 5
+     store  R2,x[R0]     ; x := x + 5
+
+; Make a pointer to x:  R3 := &x
+     lea    R3,x[R0]     ; R3 := &x
+
+; Follow a pointer: *R3 := *R3 + 5 (add 5 to whatever word R3 points
+; to).  The effect is to add 5 to x.
+  
+     load   R4,0[R3]     ; R4 := *R3
+     add    R4,R4,R1     ; R4 := *R3 + 5
+     store  R4,0[R3]     ; *R3 := *R3 + 5
+
+; Make a pointer to y:  R3 := &y
+     lea    R3,y[R0]     ; R3 := &y
+
+; Again, follow a pointer: *R3 := *R3 + 5 (add 5 to whatever word R3
+; points to).  Notice that the following code is identical to the code
+; above, but this time it adds 5 to y, instead adding 5 to x.  In
+; other words, we could write a program fragment like this, put it in
+; a procedure, and call it with pointers to different variables.  The
+; use of a pointer allows us to write generic algorithms.
+
+     load   R4,0[R3]     ; R4 := *R3
+     add    R4,R4,R1     ; R4 := *R3 + 5
+     store  R4,0[R3]     ; *R3 := *R3 + 5
+
+; Terminate
+     trap   R0,R0,R0     ; halt
+
+; Data definitions
+
+x    data   2
+y    data   9
