@@ -1,0 +1,68 @@
+; DotProduct: Calculate the dot product of two vectors
+; Traverse arrays and calculate a scalar result
+; John O'Donnell, 2014
+
+; We are given an integer variable n and two arrays
+; X = x[0], x[1], ..., x[n-1] and Y = y[0], y[1], ..., y[n-1].
+; This program computes the dot product of X and Y, which is
+; x[0] * y[0] + x[1] * y[1] +  ... + x[n-1] * y[n-1].
+
+; Initial data values are: n = 3, x = 2, 5, 3, and y = 6, 2, 4.
+; The expected result is 2*6 + 5*2 + 3*4 = 34.
+
+; High level algorithm; the result is p
+;   p = 0
+;   for i = 0 to n-1
+;     p = p + x[i] * y[i]
+
+; Low level (goto-style) algorithm
+;       p = 0
+;       i = 0
+; loop: if not (i<n) then goto done
+;       p = p + x[i] * y[i]
+;       i = i + 1
+;       goto loop
+
+; The low level algorithm is translated to assembly language,
+; keeping the variables in memory.
+
+; R1 = constant 1
+; R2 = i
+; R3 = n
+; R4 = p
+
+; Initialize the variables
+     lea    R1,1[R0]      ; R1 = 1
+     lea    R2,0[R0]      ; i = 0
+     load   R3,n[R0]      ; R3 = n
+     lea    R4,0[R0]      ; p = 0
+
+loop
+; if not (i<n) then goto done
+     cmplt  R5,R2,R3      ; R5 = (i<n)
+     jumpf  R5,done[R0]   ; if not (i<n) then goto done
+
+; p = p + x[i] * y[i]
+     load   R5,x[R2]      ; R5 = x[i]
+     load   R6,y[R2]      ; R6 = y[i]
+     mul    R5,R5,R6      ; R5 = x[i] * y[i]
+     add    R4,R4,R5      ; p = p + x[i] * y[i]
+
+; i = i + 1
+     add    R2,R2,R1      ; i = i + 1
+
+; goto loop
+     jump   loop[R0]      ; goto loop
+
+done
+     store  R4,p[R0]      ; save p
+     trap   R0,R0,R0      ; terminate
+
+n    data   3
+p    data   0
+x    data   2             ; x[0]
+     data   5             ; x[1]
+     data   3             ; x[2]
+y    data   6             ; y[0]
+     data   2             ; y[2]
+     data   4             ; y[3]

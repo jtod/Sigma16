@@ -15,12 +15,10 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-// Usage: must run in Sigma16 source directory
-// Launch with bash alias exidx, runs src/cli/exidx.mjs
-
-// Builds index.html in examples directory and all its subdirectories.
-// Assumes every source file ends in .asm.txt, and uses the first two
-// lines of text to find the text to display in the index.
+// Usage: must run in Sigma16 source directory. node .../exidx.mjs
+// builds index.html in examples directory and all its subdirectories.
+// It assumes every source file ends in .asm.txt, and it uses the
+// first two lines of text to find the text to display in the index.
 
 import * as fs from 'fs';
 
@@ -116,7 +114,7 @@ function handleDir (d, topdir, parents, f) {
 function handleFile (d, topdir, parents, f) {
     let html = ''
     let path = `${topdir}${parents}/${f}`
-//    console.log (`${depth(d)}handleFile par=${parents} f=${f} path=${path}`)
+//    console.log (`${depth(d)}handleFile par=${parents} f=${f}`)
     if (path.search(asmSrcFile) > -1) { // consider only *.asm.txt
         nSourceFiles++
         console.log (`${depth(d)}Source file ${f}`)
