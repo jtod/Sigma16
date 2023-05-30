@@ -1,6 +1,0 @@
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../../../docs/docstyle.css" />
-#+TITLE: Pointers
-#+OPTIONS: html-postamble:nil
-
-- [[./Pointer.asm.txt][Pointer]] Demonstrate basic operations on
-  pointers

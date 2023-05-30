@@ -1,0 +1,4 @@
+; SimplePointer: define a some pointers with data statements
+; Illustrate how a pointers are represented
+; Sigma16
+

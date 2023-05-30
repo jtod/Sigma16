@@ -1,0 +1,4 @@
+; ListRepresentation: define a small list with data statements
+; Illustrate how a linked list is represented in memory
+; Sigma16
+
