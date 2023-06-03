@@ -1,6 +1,5 @@
 ; Jump: test conditional and unconditional transfer of control
-; This file is part of Sigma16. See README, https://jtod.github.io/home/Sigma16/
-; John O'Donnell, 2021
+; Sigma16  https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Condition code flags are defined in architecture.mjs
 
@@ -66,6 +65,7 @@ b    lea     R1,1[R0]      ; R1 := 1
      lea     R9,998[R0]    ; should not execute
 a    lea     R9,997[R0]    ; should not execute
 c    lea     R9,996[R0]    ; should not execute
+d    lea     R9,996[R0]    ; should execute
 
 ; jumpz
       lea    R1,5[R0]

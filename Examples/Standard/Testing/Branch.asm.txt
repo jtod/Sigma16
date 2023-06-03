@@ -1,6 +1,6 @@
 ; Branch: Test the pc relative branch instructions.
 ; The numbers in comments indicate expected order of execution.
-; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+; Sigma16  https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
     lea    R5,$00f0   ; 1 (bit 3 = 0, bit 4 = 1)
 

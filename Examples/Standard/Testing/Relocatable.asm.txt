@@ -2,17 +2,21 @@
 ; Contains some names that are relocatable, others that are fixed.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
-; Assembler test cases for determination of relocatability of names
+; Assembler test cases for determination of relocatability of names.
+; This program isn't for execution, just for testing the assembler.
   
-load   R1,x[R2]
-     jump   z[R5]
-     jumplt a[R6]
-x    data   1
-z    data   3
-y    data   2
-a    trap   R0,R0,R0
-b    trap   R0,R0,R0
-c    trap   R0,R0,R0
-     jumpge b[R7]
+     load   R1,c[R2]
+     jump   d[R5]
+a    add    R1,R2,R3   ; a is relocatable
+     jumplt e[R6]
+b    data   2          ; b is relocatable
+     add    R4,R5,R6
+c    equ    3          ; c is fixed
+d    equ    a          ; d is relocatabl
+e    load   R6,f[R5]   ; e is relocatable
+     add    R8,R9,R10
+     jumpge g[R7]
      add    R0,R0,R0
-     lea    R3,y[R4]
+f    equ    e          ; f is relocatable
+g    equ    c          ; g is fixed
+     lea    R3,a[R4]

@@ -205,8 +205,8 @@ export let ctlReg = new Map();
 ctlReg.set ("status",   {ctlRegIndex:0});
 ctlReg.set ("mask",     {ctlRegIndex:1});
 ctlReg.set ("req",      {ctlRegIndex:2});
-ctlReg.set ("rstat",    {ctlRegIndex:3});
-ctlReg.set ("rpc",      {ctlRegIndex:4});
+ctlReg.set ("istat",    {ctlRegIndex:3});
+ctlReg.set ("ipc",      {ctlRegIndex:4});
 ctlReg.set ("vect",     {ctlRegIndex:5});
 ctlReg.set ("psegBeg",  {ctlRegIndex:6});
 ctlReg.set ("psegEnd",  {ctlRegIndex:7});
@@ -399,7 +399,7 @@ statementSpec.set("jumpc1", {ifmt:iRX,   afmt:akX, opcode:[15,5]})
 statementSpec.set("jal",    {ifmt:iRX,   afmt:aRX, opcode:[15,6]})
 statementSpec.set("jumpz",  {ifmt:iRX,   afmt:aRX, opcode:[15,7]})
 statementSpec.set("jumpnz", {ifmt:iRX,   afmt:aRX, opcode:[15,8]})
-statementSpec.set("tstset", {ifmt:iRX,   afmt:aRX, opcode:[15,11]})
+statementSpec.set("testset", {ifmt:iRX,   afmt:aRX, opcode:[15,11]})
 
 // EXP1 instructions are represented in 1 word, with primary opcode e
 // and an 8-bit secondary opcode in the ab field.  The secondary
@@ -427,7 +427,7 @@ statementSpec.set("brfnz",  {ifmt:iEXP,  afmt:aRK,   opcode:[14,8]})
 statementSpec.set("brbnz",  {ifmt:iEXP,  afmt:aRK,   opcode:[14,9]})
 statementSpec.set("dsptch", {ifmt:iEXP,  afmt:aRkK,  opcode:[14,10]})
 statementSpec.set("save",   {ifmt:iEXP,  afmt:aRRX,     opcode:[14,11]})
-statementSpec.set("restor", {ifmt:iEXP,  afmt:aRRX,     opcode:[14,12]})
+statementSpec.set("restore", {ifmt:iEXP,  afmt:aRRX,     opcode:[14,12]})
 statementSpec.set("push",   {ifmt:iEXP,  afmt:aRRR,     opcode:[14,13]})
 statementSpec.set("pop",    {ifmt:iEXP,  afmt:aRRR,     opcode:[14,14]})
 statementSpec.set("top",    {ifmt:iEXP,  afmt:aRRR,     opcode:[14,15]})
@@ -436,8 +436,8 @@ statementSpec.set("shiftr", {ifmt:iEXP,  afmt:aRRk,     opcode:[14,17]})
 statementSpec.set("logicw", {ifmt:iEXP,  afmt:aRRRk,    opcode:[14,18]})
 statementSpec.set("logicb", {ifmt:iEXP,  afmt:aRkkkk,   opcode:[14,19]})
 statementSpec.set("logicc", {ifmt:iEXP,  afmt:aRkRkk,   opcode:[14,20]})
-statementSpec.set("extrc",  {ifmt:iEXP,  afmt:aRkkRk,   opcode:[14,21]})
-statementSpec.set("extrci", {ifmt:iEXP,  afmt:aRkkRk,   opcode:[14,22]})
+statementSpec.set("extract",  {ifmt:iEXP,  afmt:aRkkRk,   opcode:[14,21]})
+statementSpec.set("extracti", {ifmt:iEXP,  afmt:aRkkRk,   opcode:[14,22]})
 statementSpec.set("getctl", {ifmt:iEXP,  afmt:aRC,      opcode:[14,23]})
 statementSpec.set("putctl", {ifmt:iEXP,  afmt:aRC,      opcode:[14,24]})
 statementSpec.set("resume", {ifmt:iEXP,  afmt:a0,       opcode:[14,25]})

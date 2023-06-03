@@ -1,6 +1,6 @@
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
-#+DATE: Version 3.6.0, May 2023
+#+DATE: Version 3.6.1, June 2023
 #+EMAIL: john.t.odonnell9@gmail.com
 
 # License: GNU GPL Version 3 or later. See Sigma16/README.md, LICENSE.txt
@@ -508,9 +508,9 @@ different:
   immediately.
   
 To summarise, Registers R1 through R14 are all identical and can be
-used for variables.  R0 contains 0 and will never change.  R1 changes
-very frequently and can be used to determine various error conditions
-and other information about an instruction.
+used for variables.  R0 contains 0 and will never change.  R15 changes
+frequently and can be used to determine various error conditions and
+other information about an instruction.
 
 Here is another example:
 - Suppose we have variables a, b, c, d
@@ -618,8 +618,8 @@ memory.  Wouldn't it be easier just to get rid of the distinction
 between registers and memory, and do all the arithmetic on memory?
 
 Yes, this would be simpler, and there have actually been real
-computers like that.  However, this approach makes the computer very
-much slower.  With modern circuits, a computer without load and store
+computers like that.  However, this approach makes the computer
+slower.  With modern circuits, a computer without load and store
 instructions (where you do arithmetic on memory locations) would run
 approximately 100 times slower.  So nearly all modern computers do
 arithmetic in registers, and use instructions like load and store to
@@ -643,8 +643,8 @@ abc  data  $02c6  ; specify initial value as hex
 The data statements should come *after* all the instructions in the
 program.  This may look surprising: in some programming languages you
 have to declare your variables at the beginning, before using them.
-There is a very good reason why we will put the instructions first,
-and the data statements after; but the reason will come later.
+There is a good reason why we will put the instructions first, and the
+data statements after; but the reason will come later.
 
 Here is a simple example of a complete program that uses load, store,
 and data statements:
@@ -1248,8 +1248,7 @@ considered to be good practice or good style.  But it is more than
 just an issue of style.  If you always treat the statements inside
 compilation patterns as blocks, the patterns will "just work", no
 matter how deeply nested they are.  If you violate the block
-structure, you will find the program extremely difficult to get to
-work.
+structure, you will find it difficult to get the program to work.
 
 ** Machine language
 
@@ -2586,7 +2585,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** save, restor
+*** save, restore
 
 The =save= and =restore= instructions are analogous to =store= and
 =load=, but they transfer a block of data between registers and
@@ -2594,7 +2593,7 @@ memory, not just an individual word.
 
 - *save* stores a sequence of adjacent registers into a block of
   contiguous memory locations.
-- *restor* is the opposite: it loads the block of memory into the
+- *restore* is the opposite: it loads the block of memory into the
   registers.
 
 For both instructions, the sequence of registers is specified by
@@ -2621,7 +2620,7 @@ It is equivalent to a sequence of store instructions:
 To load the entire block back into the same registers, use
 
 #+BEGIN_EXAMPLE
-   restor R3,R6,5[R13]
+   restore R3,R6,5[R13]
 #+END_EXAMPLE
 
 This is equivalent to a sequence of load instructions:
@@ -2632,24 +2631,25 @@ This is equivalent to a sequence of load instructions:
    load    R6,8[R13]
 #+END_EXAMPLE
 
-There is an important restriction with =save= and =restor=: the
+There is an important restriction with =save= and =restore=: the
 displacement is limited to a small natural number between 0 and 255.
 (Recall that for load and store, the displacement can be as large as
-65,535.)  The reason for this is that the save and restor
+65,535.)  The reason for this is that the save and restore
 instructions are EXP format and the offset is represented by an 8-bit
 field (whereas load and store are RX format and the displacement is a
 16-bit word).
 
-A common usage of save and restor is to simplify procedure call and
-return.  When a procedure is called, store the registers onto the execution stack when a procedure
-is called (using save), and then to load them back from the stack when
-the procedure is returned (restor).  Normally, the format of a stack
-frame has a fixed location for saving the registers, at a small offset
-from the beginning of the frame.  A register called the /stack
-pointer/ gives the address of the frame, and the offset for saving the
-registers is normally a small value (such as 3 or similar).
+A common usage of save and restore is to simplify procedure call and
+return.  When a procedure is called, store the registers onto the
+execution stack when a procedure is called (using save), and then to
+load them back from the stack when the procedure is returned
+(restore).  Normally, the format of a stack frame has a fixed location
+for saving the registers, at a small offset from the beginning of the
+frame.  A register called the /stack pointer/ gives the address of the
+frame, and the offset for saving the registers is normally a small
+value (such as 3 or similar).
 
-Both save and restor are EXP format instructions, so each instruction
+Both save and restore are EXP format instructions, so each instruction
 is two words:
 
 - The first instruction word:
@@ -2670,12 +2670,12 @@ For save, the effect is
 - ...
 - mem[R[d]+gh+f-e] := R[f]
 
-For restor, the effect is similar but the assignments are reversed:
+For restore, the effect is similar but the assignments are reversed:
 - R[e] := mem[R[d]+gh]
 - etc.
 
 The argument registers are not modified, unless they happen to be
-loaded by a restor.
+loaded by a restore.
 
 
 The instruction is EXP format, and the offset is limited to 8 bits,
@@ -2704,15 +2704,15 @@ is equivalent to
 #+END_EXAMPLE
 
 
-The *restor* instruction copies a sequence of consecutive memory
+The *restore* instruction copies a sequence of consecutive memory
 locations starting from the effecive address into a sequence of
 adjacent registers.  The index register (R14 in this example) is not
-changed.  Restor is equivalent to a fixed sequence of load
-instructions; its purpose of restor is to restor the state of
+changed.  Restore is equivalent to a fixed sequence of load
+instructions; its purpose of restore is to restore the state of
 registers from memory after a procedure call or a context switch.
 
 
-The instruction *restor Re,Rf,gh[Rd]* copies the contents of memory
+The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
 at consecutive locations beginning with mem[gh+Rf] into registers Re,
 Re+1, ..., Rf.
 
@@ -2724,7 +2724,7 @@ assembly language statement format is RRXEXP.
 
 For example, consider this instruction:
 #+BEGIN_EXAMPLE
-   restor  R3,R10,4[R14]
+   restore  R3,R10,4[R14]
 #+END_EXAMPLE
 
 The effect is equivalent to
@@ -3620,70 +3620,70 @@ consist of one of the following:
 - 
 
   
-|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| Name   | ISA  | R15 | P | Fmt | Afmt  | Args              | Op   | Object    | Effect                             |                                                  |
-|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| add    | Core | cc  |   | RRR | RRR   | D,A,B             | 0    | 0DAB      | Rd := Ra + Rb                      |                                                  |
-| sub    | Core | cc  |   | RRR | RRR   | D,A,B             | 1    | 1DAB      | Rd := Ra - Rb                      |                                                  |
-| mul    | Core | cc  |   | RRR | RRR   | D,A,B             | 2    | 2DAB      | Rd := Ra * Rb                      |                                                  |
-| div    | Core | rem |   | RRR | RRR   | D,A,B             | 3    | 3DAB      | Rd := Ra / Rb, R15 := Ra rem Rb    |                                                  |
-| cmp    | Core | cc  |   | RRR | RR    | D,A               | 4    | 4da0      | R15 := Ra cmp Rb                   |                                                  |
-| addc   | Std  | cc  |   | RRR | RRR   | D,A,B             | 5    | 5DAB      | Rd := Ra + Rb + R15.carry          |                                                  |
-| muln   | Std  | d   |   | RRR | RRR   | D,A,B             | 6    | 6DAB      | R15++Rd := Ra :*: Rb               |                                                  |
-| divn   | Std  | d   |   | RRR | RRR   | D,A,B             | 7    | 7DAB      | R15++Rd := R15++Ra :/: Rb          |                                                  |
-|        | Core |     |   | RRR |       | D,A,B             | 8    | 8DAB      | nop, reserved for experimenting -- |                                                  |
-|        | Core |     |   | RRR |       | D,A,B             | 9    | 9DAB      | nop, reserved for experiment --    |                                                  |
-|        | Core |     |   | RRR |       | D,A,B             | a    | aDAB      | nop, reserved for experiment --    |                                                  |
-|        | Core |     |   | RRR |       | D,A,B             | b    | bDAB      | nop, reserved for experiment --    |                                                  |
-| trap   | Core |     |   | RRR | RRR   | D,A,B             | c    | cDAB      | user interrupt                     |                                                  |
-|        |      |     |   |     |       |                   | d    | d---      | nop, reserved                      |                                                  |
-|        |      |     |   |     |       |                   | e    | e---      | escape to EXP format               |                                                  |
-|        |      |     |   |     |       |                   | f    | f---      | escape to RX format                |                                                  |
-|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| lea    | Core |     |   | RX  | RX    | D,A[Disp]         | f,0  | fDA0;Disp | Rd := ea                           |                                                  |
-| load   | Core |     |   | RX  | RX    | D,A[Disp]         | f,1  | fDA1;Disp | Rd := M[ea]                        |                                                  |
-| store  | Core |     |   | RX  | RX    | D,A[Disp]         | f,2  | fDA2;Disp | M[ea] := Rd                        |                                                  |
-| jump   | Core |     |   | RX  | X     | D,A[Disp]         | f,3  | fDA3;Disp | pc := ea                           |                                                  |
-| jumpc0 | Core |     |   | RX  | kX    | J,A[Disp]         | f,4  | fKA4;Disp | R15.k=0 ==> pc := ea               |                                                  |
-| jumpc1 | Core |     |   | RX  | kX    | J,A[Disp]         | f,5  | fKA5;Disp | R15.k=1 ==> pc := ea               |                                                  |
-| jal    | Core |     |   | RX  | RX    | D,A[Disp]         | f,6  | fDA6;Disp | Rd := pc, pc := ea                 |                                                  |
-| tstset | Sys  |     |   | RX  | RX    | D,A[Disp]         | f,7  | fDA7;Disp | Rd := M[ea], M[ea] := 1            |                                                  |
-|        |      |     |   | RX  |       |                   | f,8  | f--8;---- | -- reserved --                     |                                                  |
-|        |      |     |   | RX  |       |                   | ...  |           | -- reserved --                     |                                                  |
-|        |      |     |   | RX  |       |                   | f,f  | f--F;---- | -- reserved --                     |                                                  |
-|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-| brf    | Std  |     |   | EXP | K     | Disp              | e,00 | e000;Disp | pc := pc+2+fgh                     |                                                  |
-| brb    | Std  |     |   | EXP | K     | Disp              | e,01 | e001;Disp | pc := pc+2-fgh                     |                                                  |
-| brfc0  | Std  |     |   | EXP | RkK   | D,K,Q             | e,02 | ed02;KQ-- | !Rd.e => pc += 2+fgh               |                                                  |
-| brbc0  | Std  |     |   | EXP | RkK   | D,K,Q             | e,03 | ed03;KQ-- | !Rd.e => pc += 2-fgh               |                                                  |
-| brfc1  | Std  |     |   | EXP | RkK   | D,K,Q             | e,04 | ed04;KQ-- | Rd.e  => pc += 2+fgh               |                                                  |
-| brbc1  | Std  |     |   | EXP | RkK   | D,K,Q             | e,05 | ed05;KQ-- | Rd.e  => pc += 2-fgh               |                                                  |
-| brfz   | Std  |     |   | EXP | RK    | D,Disp            | e,06 | ed06;Disp | Rd=0  => pc += 2+fgh               |                                                  |
-| brbz   | Std  |     |   | EXP | Rk    | D,Disp            | e,07 | ed07;Disp | Rd=0  => pc += 2-fgh               |                                                  |
-| brfnz  | Std  |     |   | EXP | RK    | D,Disp            | e,08 | ed08;Disp | Rd!=0 => pc += 2+fgh               |                                                  |
-| brbnz  | Std  |     |   | EXP | RK    | D,Disp            | e,09 | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
-| dsptch | Std  |     |   | EXP | RkK   | D,Disp            | e,0a | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
-| save   | Std  |     |   | EXP | RRX   | D,E,P             | e,0b | eD0a;EFx  | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
-| restor | Std  |     |   | EXP | RRX   | D,E,P             | e,0c | ed0b;EQ-- | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
-| push   | Std  | cc  |   | EXP | RRR   | D,E,F             | e,0d | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
-| pop    | Std  | cc  |   | EXP | RRR   | D,E,F             | e,0e | ed0d;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| top    | Std  | cc  |   | EXP | RRR   | D,E,F             | e,1f | ed0e;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| shiftl | Std  |     |   | EXP | RRk   | D,E,L             | e,10 | ed0f;EJ-- | Rd := Ra shl b                     |                                                  |
-| shiftr | Std  |     |   | EXP | RRk   | D,E,L             | e,11 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
-| logicw | Std  |     |   | EXP | RRRk  | op,d,$0b;e,f,$0,h | e,12 | eD11;EFM- | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
-| logicb | Std  |     |   | EXP | Rkkkk | D,K,L,M,N         | e,13 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicb R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
-| logicc | Std  |     |   | EXP | RkRkk | D,K,L,M,N         | e,14 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
-| extrc  | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,15 | eD13;ELMN | Rd := extract Rd di size Rs si     |                                                  |
-| extrci | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,16 | eD14;ELMN | Rd := extracti Rd di size Rs si    |                                                  |
-| getctl | Sys  |     | P | EXP | RC    | D,C               | e,17 | eD15;C--- | Rd := Sc                           |                                                  |
-| putctl | Sys  |     | P | EXP | RC    | D,                | e,18 | eD16;C--- | Sc := Rd                           |                                                  |
-| resume | Sys  |     | P | EXP | null  | R                 | e,19 | e-18;---- | pc := ipc, status := istatus       |                                                  |
-|        |      |     |   | EXP |       |                   | e,1a | e-19;---- | reserved                           |                                                  |
-|        |      |     |   | EXP |       |                   | ...  |           | reserved                           |                                                  |
-|        |      |     |   | EXP |       |                   | e,ff | e-ff;---- | reserved                           |                                                  |
-|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
-|        |      |     |   |     |       |                   |      |           | <33>                               |                                                  |
-|--------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+|----------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| Name     | ISA  | R15 | P | Fmt | Afmt  | Args              | Op   | Object    | Effect                             |                                                  |
+|----------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| add      | Core | cc  |   | RRR | RRR   | D,A,B             | 0    | 0DAB      | Rd := Ra + Rb                      |                                                  |
+| sub      | Core | cc  |   | RRR | RRR   | D,A,B             | 1    | 1DAB      | Rd := Ra - Rb                      |                                                  |
+| mul      | Core | cc  |   | RRR | RRR   | D,A,B             | 2    | 2DAB      | Rd := Ra * Rb                      |                                                  |
+| div      | Core | rem |   | RRR | RRR   | D,A,B             | 3    | 3DAB      | Rd := Ra / Rb, R15 := Ra rem Rb    |                                                  |
+| cmp      | Core | cc  |   | RRR | RR    | D,A               | 4    | 4da0      | R15 := Ra cmp Rb                   |                                                  |
+| addc     | Std  | cc  |   | RRR | RRR   | D,A,B             | 5    | 5DAB      | Rd := Ra + Rb + R15.carry          |                                                  |
+| muln     | Std  | d   |   | RRR | RRR   | D,A,B             | 6    | 6DAB      | R15++Rd := Ra :*: Rb               |                                                  |
+| divn     | Std  | d   |   | RRR | RRR   | D,A,B             | 7    | 7DAB      | R15++Rd := R15++Ra :/: Rb          |                                                  |
+|          | Core |     |   | RRR |       | D,A,B             | 8    | 8DAB      | nop, reserved for experimenting -- |                                                  |
+|          | Core |     |   | RRR |       | D,A,B             | 9    | 9DAB      | nop, reserved for experiment --    |                                                  |
+|          | Core |     |   | RRR |       | D,A,B             | a    | aDAB      | nop, reserved for experiment --    |                                                  |
+|          | Core |     |   | RRR |       | D,A,B             | b    | bDAB      | nop, reserved for experiment --    |                                                  |
+| trap     | Core |     |   | RRR | RRR   | D,A,B             | c    | cDAB      | user interrupt                     |                                                  |
+|          |      |     |   |     |       |                   | d    | d---      | nop, reserved                      |                                                  |
+|          |      |     |   |     |       |                   | e    | e---      | escape to EXP format               |                                                  |
+|          |      |     |   |     |       |                   | f    | f---      | escape to RX format                |                                                  |
+|----------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| lea      | Core |     |   | RX  | RX    | D,A[Disp]         | f,0  | fDA0;Disp | Rd := ea                           |                                                  |
+| load     | Core |     |   | RX  | RX    | D,A[Disp]         | f,1  | fDA1;Disp | Rd := M[ea]                        |                                                  |
+| store    | Core |     |   | RX  | RX    | D,A[Disp]         | f,2  | fDA2;Disp | M[ea] := Rd                        |                                                  |
+| jump     | Core |     |   | RX  | X     | D,A[Disp]         | f,3  | fDA3;Disp | pc := ea                           |                                                  |
+| jumpc0   | Core |     |   | RX  | kX    | J,A[Disp]         | f,4  | fKA4;Disp | R15.k=0 ==> pc := ea               |                                                  |
+| jumpc1   | Core |     |   | RX  | kX    | J,A[Disp]         | f,5  | fKA5;Disp | R15.k=1 ==> pc := ea               |                                                  |
+| jal      | Core |     |   | RX  | RX    | D,A[Disp]         | f,6  | fDA6;Disp | Rd := pc, pc := ea                 |                                                  |
+| testset  | Sys  |     |   | RX  | RX    | D,A[Disp]         | f,7  | fDA7;Disp | Rd := M[ea], M[ea] := 1            |                                                  |
+|          |      |     |   | RX  |       |                   | f,8  | f--8;---- | -- reserved --                     |                                                  |
+|          |      |     |   | RX  |       |                   | ...  |           | -- reserved --                     |                                                  |
+|          |      |     |   | RX  |       |                   | f,f  | f--F;---- | -- reserved --                     |                                                  |
+|----------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+| brf      | Std  |     |   | EXP | K     | Disp              | e,00 | e000;Disp | pc := pc+2+fgh                     |                                                  |
+| brb      | Std  |     |   | EXP | K     | Disp              | e,01 | e001;Disp | pc := pc+2-fgh                     |                                                  |
+| brfc0    | Std  |     |   | EXP | RkK   | D,K,Q             | e,02 | ed02;KQ-- | !Rd.e => pc += 2+fgh               |                                                  |
+| brbc0    | Std  |     |   | EXP | RkK   | D,K,Q             | e,03 | ed03;KQ-- | !Rd.e => pc += 2-fgh               |                                                  |
+| brfc1    | Std  |     |   | EXP | RkK   | D,K,Q             | e,04 | ed04;KQ-- | Rd.e  => pc += 2+fgh               |                                                  |
+| brbc1    | Std  |     |   | EXP | RkK   | D,K,Q             | e,05 | ed05;KQ-- | Rd.e  => pc += 2-fgh               |                                                  |
+| brfz     | Std  |     |   | EXP | RK    | D,Disp            | e,06 | ed06;Disp | Rd=0  => pc += 2+fgh               |                                                  |
+| brbz     | Std  |     |   | EXP | Rk    | D,Disp            | e,07 | ed07;Disp | Rd=0  => pc += 2-fgh               |                                                  |
+| brfnz    | Std  |     |   | EXP | RK    | D,Disp            | e,08 | ed08;Disp | Rd!=0 => pc += 2+fgh               |                                                  |
+| brbnz    | Std  |     |   | EXP | RK    | D,Disp            | e,09 | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
+| dsptch   | Std  |     |   | EXP | RkK   | D,Disp            | e,0a | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
+| save     | Std  |     |   | EXP | RRX   | D,E,P             | e,0b | eD0a;EFx  | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
+| restore  | Std  |     |   | EXP | RRX   | D,E,P             | e,0c | ed0b;EQ-- | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
+| push     | Std  | cc  |   | EXP | RRR   | D,E,F             | e,0d | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
+| pop      | Std  | cc  |   | EXP | RRR   | D,E,F             | e,0e | ed0d;EF-- | Rb--, Rd := M[ea]                  |                                                  |
+| top      | Std  | cc  |   | EXP | RRR   | D,E,F             | e,1f | ed0e;EF-- | Rb--, Rd := M[ea]                  |                                                  |
+| shiftl   | Std  |     |   | EXP | RRk   | D,E,L             | e,10 | ed0f;EJ-- | Rd := Ra shl b                     |                                                  |
+| shiftr   | Std  |     |   | EXP | RRk   | D,E,L             | e,11 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
+| logicw   | Std  |     |   | EXP | RRRk  | op,d,$0b;e,f,$0,h | e,12 | eD11;EFM- | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
+| logicb   | Std  |     |   | EXP | Rkkkk | D,K,L,M,N         | e,13 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicb R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
+| logicc   | Std  |     |   | EXP | RkRkk | D,K,L,M,N         | e,14 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
+| extract  | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,15 | eD13;ELMN | Rd := extract Rd di size Rs si     |                                                  |
+| extracti | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,16 | eD14;ELMN | Rd := extracti Rd di size Rs si    |                                                  |
+| getctl   | Sys  |     | P | EXP | RC    | D,C               | e,17 | eD15;C--- | Rd := Sc                           |                                                  |
+| putctl   | Sys  |     | P | EXP | RC    | D,                | e,18 | eD16;C--- | Sc := Rd                           |                                                  |
+| resume   | Sys  |     | P | EXP | null  | R                 | e,19 | e-18;---- | pc := ipc, status := istatus       |                                                  |
+|          |      |     |   | EXP |       |                   | e,1a | e-19;---- | reserved                           |                                                  |
+|          |      |     |   | EXP |       |                   | ...  |           | reserved                           |                                                  |
+|          |      |     |   | EXP |       |                   | e,ff | e-ff;---- | reserved                           |                                                  |
+|----------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
+|          |      |     |   |     |       |                   |      |           | <33>                               |                                                  |
+|----------+------+-----+---+-----+-------+-------------------+------+-----------+------------------------------------+--------------------------------------------------|
 
 #+BEGIN_EXPORT html
 </div">
@@ -3729,8 +3729,8 @@ addresses (numbers) and the assembler calculates them
 
 Compilers and assemblers are similar in some ways: both of them
 translate a program from one language to another.  The main difference
-is that compilers translate between languages that are very different,
-while assemblers translate between very similar languages.
+is that compilers translate between languages that are quite
+different, while assemblers translate between similar languages.
 
 Example: a sequence of RRR instructions
 
@@ -4589,7 +4589,7 @@ last saved.  If so, a dialogue asks whether the file should be saved.
   (in effect, if there is only one module and you close it, an
   automatic New is performed).
 
-- Example -- Reads in a very simple example program and sets it as the
+- Example -- Reads in a simple example program and sets it as the
   current module.  This is a standalone program; you can simply click
   Editor: Example, then Assembler: Assemble, then Processor: Boot, and
   run the program.  This example is used in the first "getting

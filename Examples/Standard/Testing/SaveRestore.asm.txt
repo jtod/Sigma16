@@ -2,23 +2,58 @@
 ; These instructions simplify procedure call and return.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
-    lea    R13,stack[R0]
-    lea    R1,17[R0]
-    lea    R2,18[R0]
-    lea    R3,19[R0]
-    lea    R4,20[R0]
-    lea    R5,21[R0]
-    lea    R6,22[R0]
-    lea    R7,23[R0]
-    save   R3,R5,6[R13]
-    add    R1,R0,R0
-    add    R2,R0,R0
-    add    R3,R0,R0
-    add    R4,R0,R0
-    add    R5,R0,R0
-    add    R6,R0,R0
-    add    R7,R0,R0
-    restor R3,R5,6[R13]
-    trap   R0,R0,R0
+; R13 points to stack
+    lea     R13,stack[R0]
 
-stack data 0
+; load some test data into registers
+    lea     R1,17[R0]
+    lea     R2,18[R0]
+    lea     R3,19[R0]
+    lea     R4,20[R0]
+    lea     R5,21[R0]
+    lea     R6,22[R0]
+    lea     R7,23[R0]
+
+; save the registers onto the stack
+    save    R3,R5,6[R13]  ; store R3-R5 into memory at 6[R13]
+
+; clear the registers
+    add     R1,R0,R0
+    add     R2,R0,R0
+    add     R3,R0,R0
+    add     R4,R0,R0
+    add     R5,R0,R0
+    add     R6,R0,R0
+    add     R7,R0,R0
+
+; restore the registers from the stack
+    restore R3,R5,6[R13]  ; load R3-R5 from memory at 6[R13]
+
+; Wraparound from R15
+    lea     R1,64[R0]
+    lea     R2,65[R0]
+    lea     R3,66[R0]
+    lea     R4,67[R0]
+    lea     R10,68[R0]
+    lea     R11,69[R0]
+    lea     R12,70[R0]
+    lea     R13,71[R0]
+    lea     R14,72[R0]
+    lea     R15,73[R0]
+    lea     R5,stack[R0]
+    save    R11,R3,3[R5]
+    add     R1,R0,R0
+    add     R2,R0,R0
+    add     R3,R0,R0
+    add     R4,R0,R0
+    add     R10,R0,R0
+    add     R11,R0,R0
+    add     R12,R0,R0
+    add     R13,R0,R0
+    add     R14,R0,R0
+    add     R15,R0,R0
+    restore R11,R3,3[R5]
+
+    trap    R0,R0,R0
+
+stack data 0              ; the stack area begins here
