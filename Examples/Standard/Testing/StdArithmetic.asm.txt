@@ -2,56 +2,39 @@
 ; Add with carry, multiply and divide on natural numbers.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
-; addc is the "add with carry" instruction.  It's useful for addition
-; of large natural numbers that require several words.  The
-; instruction uses the carry bit in the condition code (R15) as the
-; carry input, and it overwrites the carry bit with the carry output
-; of the addition.  There is no overflow.  The numbers used here are
-; binary natural numbers.
+;----------------------------------------------------------------------
+; Multiplication of natural numbers
 
-; Overflows
+; muln: multiply two 16-bit natural numbers, where the result may
+; require 32 bits.  The lower order word of the result is placed in
+; Rd, and the higher order word is placed in R15.  No condition code
+; bits are set.
 
-      lea    R1,$ffff
-      lea    R2,1
-      add    R3,R1,R2       ; R3 = 0000, R15 = 
+; Example: 40,000 * 50,000.  This is multiplying 4*10^4 * 5*10^4 =
+; 20*10^8 = 2* 10^9.  The exected result is 40000 * 50000 =
+; 2,000,000,000 = $7735 9400 = 2,000,000,000.  The result is
+; represented in R15 ++ R3, so R15 = $7735 and R3 = $9400.
 
-; addc: add with carry
-      add    R15,R0,R0
-      lea    R1,$ffff[R0]
-      addc   R2,R1,R1
-      add    R15,R0,R0
-      lea    R1,3[R0]
-      addc   R2,R1,R1
+    lea   R1,40000[R0]
+    lea   R2,50000[R0]
+    muln  R3,R1,R2        ; R3 = 9400, R15 = 7735
 
-     lea   R1,$f000[R0]  ; R1 = f000
-     lea   R2,$f001[R0]  ; R2 = f001
-     add   R3,R1,R2      ; R3 = e001 with carry = 1
-     lea   R4,2[R0]      ; R4 = 0002
-     addc  R5,R4,R4      ; R5 = 0005  2 + 2 + 1 (carry), clear carry bit
-     addc  R6,R4,R4      ; R6 = 0004  2 + 2 + 0 (carry), clear carry bit
+; Example: 10,000 * 10,000.
 
-; muln
-      lea    R1,10000[R0]
-      lea    R2,10000[R0]
-      muln   R3,R1,R2       ; result in R3 and R15
+    lea    R1,10000[R0]
+    lea    R2,10000[R0]
+    muln   R3,R1,R2       ; result in R3 and R15
 
-; divn
-      lea    R1,10000[R0]
-      lea    R2,10000[R0]
-      divn   R3,R1,R2       ;  dividend in R1,R15, q in R3, rem in R15
+; Example: 5 * 3.
 
-; Multiply two large natural (unsigned) numbers
-    lea    R1,40000[R0]
-    lea    R2,50000[R0]
-    muln   R3,R1,R2
+; Example: -5 * 3.
 
-; This is multiplying 4*10^4 * 5*10^4 = 20*10^8 = 2* 10^9
-; The exected result is 40000 * 50000 = 2,000,000,000
-; Actual result = R15 ++ R3 = $7735 ++ $9400 = $77359400 = 2,000,000,000
+;----------------------------------------------------------------------
+; Division of natural numbers
 
-    lea    R4,67[R0]
-    divn   R5,R3,R4   ; 2,000,000,000 / 3
+; divn: divide a 2-word natural number by a small 1-word number.
 
+; Example: 2,000,000,000 / 3.
 ; Dividend is R15 ++ R3 = 2,000,000,000
 ; Divisor is 67
 ; Expected result is
@@ -61,4 +44,41 @@
 ;   Quotient = R15 ++ R5 = $01c7 ++ $7c7a = $01c77c7a = 29,850,746
 ;   Remainder = R3 = $0012 = 18
 
-     trap  R0,R0,R0      ; terminate
+    lea    R4,67[R0]
+    divn   R5,R3,R4   ; 2,000,000,000 / 3
+
+    lea    R1,10000[R0]
+    lea    R2,10000[R0]
+    divn   R3,R1,R2       ;  dividend in R1,R15, q in R3, rem in R15
+
+;----------------------------------------------------------------------
+; Addition of natural numbers
+
+; addc is the "add with carry" instruction.  It's useful for addition
+; of large natural numbers that require several words.  The
+; instruction uses the carry bit in the condition code (R15) as the
+; carry input, and it overwrites the carry bit with the carry output
+; of the addition.  There is no overflow.  The numbers used here are
+; binary natural numbers.
+
+; addc: add with carry
+    add    R15,R0,R0
+    lea    R1,$ffff[R0]
+    addc   R2,R1,R1
+    add    R15,R0,R0
+    lea    R1,3[R0]
+    addc   R2,R1,R1
+
+    lea   R1,$f000[R0]  ; R1 = f000
+    lea   R2,$f001[R0]  ; R2 = f001
+    add   R3,R1,R2      ; R3 = e001 with carry = 1
+    lea   R4,2[R0]      ; R4 = 0002
+    addc  R5,R4,R4      ; R5 = 0005  2 + 2 + 1 (carry), clear carry bit
+    addc  R6,R4,R4      ; R6 = 0004  2 + 2 + 0 (carry), clear carry bit
+
+; Overflows
+    lea    R1,$ffff
+    lea    R2,1
+    add     R3,R1,R2       ; R3 = 0000, R15 = 
+
+    trap  R0,R0,R0      ; terminate

@@ -1188,8 +1188,24 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
-        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkK) {
-// EXP-RkK (brfc0, brbc0, brfc1, brbc1)
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkk && op.pseudo) {
+            // EXP-Rkk aRkk pseudo: invb Similar to aRkkkk but with
+            // operands[3]=0 unspecified and operands[4] = opcode[2]
+            console.log (`Pass2 EXP/Rkk pseudo`)
+            requireNoperands (ma, s, 3)
+            const ab = op.opcode[1]
+            const d = requireReg(ma,s,s.operands[0])
+            const e = requireK4 (ma, s, Field_e, s.operands[1])
+            const f = requireK4 (ma, s, Field_f, s.operands[2])
+            const g = 0 // second arg is ignored
+            const h = op.opcode[2] // function code
+	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
+            s.codeWord2 = mkWord (e, f, g, h)
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkK && !op.pseudo) {
+// EXP-RkK:  brfc0, brbc0, brfc1, brbc1
             console.log (`Pass2 EXP/RkK pcr`)
             requireNoperands (ma, s, 3)
             const d = requireReg (ma, s, s.operands[0])
@@ -1252,8 +1268,8 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkRkk) {
-// EXP-Rkkkk (logicc) logicc R3,4,R9,8,xor
-            com.mode.devlog ('Pass2 EXP/Rkkkk (logicc)')
+// EXP-RkRkk (logicu) logicu R3,4,R9,8,xor
+            com.mode.devlog ('Pass2 EXP/RkRkk')
             requireNoperands (ma, s, 5)
             const ab = op.opcode[1]
             const d = requireReg (ma, s, s.operands[0])          // op1
@@ -1261,6 +1277,21 @@ function asmPass2 (ma) {
             const f = requireReg (ma, s, s.operands[2])          // op2
             const g = requireK4  (ma, s, Field_g, s.operands[3]) // idx2
             const h = requireK4  (ma, s, Field_h, s.operands[4]) // fcn
+	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
+            s.codeWord2 = mkWord (e, f, g, h)
+            generateObjectWord (ma, s, s.address.word, s.codeWord1)
+            generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkRk) {
+// EXP-RkRk (moveb) moveb R3,4,R5,13
+            com.mode.devlog ('Pass2 EXP/RkRk')
+            requireNoperands (ma, s, 4)
+            const ab = op.opcode[1]
+            const d = requireReg (ma, s, s.operands[0])          // op1
+            const e = requireK4  (ma, s, Field_e, s.operands[1]) // idx1
+            const f = requireReg (ma, s, s.operands[2])          // op2
+            const g = requireK4  (ma, s, Field_g, s.operands[3]) // idx2
+            const h = 0
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
             s.codeWord2 = mkWord (e, f, g, h)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)

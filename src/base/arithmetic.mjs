@@ -20,6 +20,8 @@
 // arithmetic as required by the instruction set architecture.
 //------------------------------------------------------------------------
 
+// to do: unify getBitInWordLE, putBitInWordLE with extractBit, setBit
+
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
@@ -229,8 +231,41 @@ export function wordToBool (x) {
     return ! (x === 0);
 }
 
+//------------------------------------------------------------------------
+// Indexing a bit in a word
+//------------------------------------------------------------------------
+
 // return bit i from word w, result is number (0 or 1)
-//function extractBit (w,i) {
+
+export function extractBit (w,i) {
+    const select = 1 << i         // word with 1 at index i
+    const x = w & select          // clear bits at other indices
+    const result = x==0 ? 0 : 1   // value of w.i
+    console.log (`extractBit w=${wordToHex4(w)}`
+                 + ` i=${i} result=$result}`)
+    return result
+}
+
+// set bit in word w at index i to b (b should be 0 or 1)
+
+export function setBit (w,i,b) {
+    const select = limit16 (1 << i)
+    let mask, result
+    if (b==0) {
+        // set w.i := 0
+        mask = wordInvert (select)   // 0 at index i, 1 elsewhere
+        result = w & mask
+    } else {
+        // set w.i := 1
+        mask = select   // 1 at index i, 0 elsewhere
+        result = w | mask
+    }
+    console.log (`setBit w=${wordToHex4(w)}`
+                 + ` i=${i} b=${b} result=${wordToHex4(result)}`)
+    return result
+}
+
+// function extractBit (w,i) {
 //    let foo = 1 << i;
 //    let bar = foo & w;
 //    com.mode.devlog (`foo = ${foo}`);
@@ -760,3 +795,4 @@ function test_add () {
     test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
     test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
 }
+

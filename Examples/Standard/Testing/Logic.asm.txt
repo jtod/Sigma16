@@ -1,246 +1,108 @@
 ; Logic: Test the logic instructions and pseudoinstructions.
-; Instructions logicw, logicb. Pseudoinstructions for common operators.
+; Instructions logicw, logicb, logicc plus pseudoinstructions.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+  
+; Logic instructions. Notation: Rd.i is bit at index i in Rd
+;   logicw Rd,Ra,Rb,f   means  Rd := Ra (f) Rb
+;   logicb Rd,i,j,k,f   means  Rd.i := Rd.j (f) Rd.k
+;   logicc Rd,i,Re,j,f  means  R15.LC := Rd.i (f) Re.j
+;   moveb  Rd,i,Re,j,f  if lsb f = 0 then move else moveinv
+;                       Rd.i := Re.j xor f.0
+; Pseudoinstructions specify the function f in the mnemonic
+;   andw Rd,Ra,Rb  is equivalent to  logicw Rd,Ra,Rb,and
+
+  logicb  R3,4,5,6,7
+  logicu  R5,6,R7,8,9
+
+   lea    R1,$00ff[R0]
+   lea    R2,$00f0[R0]
+   logicu R1,8,R2,4,or   ; 01ff
+   logicu R1,7,R2,4,and  ; 01ff
+   logicu R1,6,R2,3,and  ; 01bf
 
 
-; Word logic test data
-     lea     R1,$00ff[R0]    ; 00ff
-     lea     R2,$0f0f[R0]    ; 0f0f
-
-; Word logic pseudoinstructions
-     invw    R3,R2           ; f0f0
-     andw    R4,R1,R2        ; 000f
-     orw     R5,R1,R2        ; 0fff
-     xorw    R6,R1,R2        ; 0ff0
-
-; Word logic
-     logicw  R7,R1,R2,and    ; 000f
-     logicw  R8,R1,R2,or     ; 0fff
-     logicw  R9,R1,R2,xor    ; 0ff0
-     logicw  R10,R1,R2,nor   ; f000
-
-; Word logic
-   lea   R1,$0f0f[R0]   ; 0f0f
-   lea   R2,$00ff[R0]   ; 00ff
-
-; Word logic pseudoinstructions
-   andw  R3,R1,R2       ; 000f
-   orw   R4,R1,R2       ; 0fff
-   xorw  R5,R1,R2       ; 0ff0
-
-     lea   R1,$0f96[R0]     ; 0000 1111 1001 0110
-     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
-
-; Pseudoinstructions for logicw
-
-      invw     R3,R1        ; ff00
-      andw     R4,R1,R2     ; 000f
-      orw      R5,R1,R2     ; 0fff
-      xorw     R6,R1,R2     ; 0ff0
-
-     andw  R3,R1,R2         ; 0000 0011 0000 0010   expected
-
-     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
-     orw   R3,R1,R2         ; 0011 1111 1011 0110   expected
-
-     lea   R2,$3322[R0]     ; 0011 0011 0010 0010
-     xorw  R3,R1,R2         ; 0011 1100 1011 0100   expected
-
-     lea    R1,6[R0]
-     logicb R1,15,1,0,1     ; R1.15 := R1.1 AND R1.0
-     lea    R1,6[R0]
-     logicb R1,14,1,0,6     ; R1.15 := R1.1 XOR R1.0
-     lea    R1,6[R0]
-     logicb R1,13,1,0,7     ; R1.15 := R1.1 OR R1.0
-
-
-
-
-; Test data
-
-      lea     R1,$00ff[R0] ; R1 := 00ff
-      lea     R2,$0f0f[R0] ; R1 := 0f0f
-
-; logicw
-
-      logicw  R3,R1,R2,1   ; R1 and R2 = 000f
-      logicw  R4,R1,R2,6   ; R1 xor R2 = 0ff0
-
-      logicw  R5,R1,R2,or  ; 0fff
-      logicw  R6,R1,R2,nor ; f000
-      logicw  R6,R1,R2,xor ; 0ff0
-      logicw  R7,R1,R2,and ; 000f
-
-
-; Bit logic
-     lea    R1,6[R0]         ; 0006 = 0000 0000 0000 0110
-
-
-; logicb
-
-      add     R1,R0,R0     ; 0000
-      logicb  R1,3,9,2,15  ; 1000 R1.3 := 1
-      logicb  R1,3,9,2,0   ; 0000 R1.3 := 0
-      logicb  R1,3,9,2,15  ; 1000 R1.3 := 1
-      logicb  R1,6,0,0,15  ; 1200 R1.6 := 1
-
-      orb     R1,12,3,2    ; 1208 R1.12 := 1
-      invb    R1,15,0      ; 1209 R1.15 := 1
-      andb    R1,15,0,15   ; 1208 R1.15 := 0
-      xorb    R1,14,12,0
-      trap    R0,R0,R0     ; terminate
-
-
-; logicb operates on arbitrary bits within one register
-     logicb R1,15,1,0,and    ; 0006 = 0000 0000 0000 0110
-                             ;   R1.15 := R1.1 and R1.0 = 0
-     logicb R1,14,1,0,or     ; 4006 = 0100 0000 0000 0110
-                             ;   R1.14 := R1.1 or R1.0 = 1
-     logicb R1,13,1,0,xor    ; 6006 = 0110 0000 0000 0110
-                             ;   R1.13 := R1.1 xor R1.0 = 1
-     logicb R1,12,1,0,nor    ; 6006 = 0110 0000 0000 0110
-                             ;   R1.12 := R1.1 nor R1.0 = 0
-
-; Test ability to set and clear for bit logic
-;      logicb  R3,R1,R2,7,15 ; or changes 0 to 1 .15 = 0001
-      lea     R4,$ffff[R0]  ; put 1 into destination
-;      logicb  R4,R1,R2,7,0  ; or changes 1 to 0  .0 = 7fff
-
-
-; inv R1 = 12
-      add     R3,R0,R0
-;      logicb  R3,R1,R2,12,0  ; inv R1  .0 = 00ff = 8000
-      add     R4,R0,R0
-;      logicb  R4,R1,R2,12,15 ; inv R1 .15 = 00ff = 0000
-
-; and = 1
-      add     R3,R0,R0
-;      logicb  R3,R1,R2,1,0    ; 00ff and 0f0f  .0 = 0000
-      add     R4,R0,R0
-;      logicb  R4,R1,R2,1,4    ; 00ff and 0f0f  .4 = 0000
-      add     R5,R0,R0
-;      logicb  R5,R1,R2,1,8    ; 00ff and 0f0f  .8 = 0000
-      add     R6,R0,R0
-;      logicb  R6,R1,R2,1,12   ; 00ff and 0f0f .12 = 0008
-
-; or = 7
-      add     R3,R0,R0
-;      logicb  R3,R1,R2,7,0    ; 00ff or 0f0f   .0 = 0000
-      add     R4,R0,R0
-;      logicb  R4,R1,R2,7,4    ; 00ff or 0f0f   .4 = 0800
-      add     R5,R0,R0
-;      logicb  R5,R1,R2,7,8    ; 00ff or 0f0f   .8 = 0080
-      add     R6,R0,R0
-;      logicb  R6,R1,R2,7,12   ; 00ff or 0f0f .12 = 0008
-
-; xor = 6
-      add     R3,R0,R0
-;      logicb  R3,R1,R2,6,0    ; 00ff xor 0f0f   .0 = 0000
-      add     R4,R0,R0
-;      logicb  R4,R1,R2,6,4    ; 00ff xor 0f0f   .4 = 0800
-      add     R5,R0,R0
-;      logicb  R5,R1,R2,6,8    ; 00ff xor 0f0f   .8 = 0080
-      add     R6,R0,R0
-;      logicb  R6,R1,R2,6,12   ; 00ff xor 0f0f  .12 = 0000
-
-; Pseudoinstructions for logicb
-
-; invb R1 = 12
-      add     R3,R0,R0
-;      invb    R3,R1,0         ; inv R1  .0 = 00ff = 8000
-      add     R4,R0,R0
-;      invb    R4,R1,15        ; inv R1 .15 = 00ff = 0000
-
-; andb = 1
-      add     R3,R0,R0
-;      andb    R3,R1,R2,0      ; 00ff and 0f0f  .0 = 0000
-      add     R4,R0,R0
-;      andb    R4,R1,R2,4      ; 00ff and 0f0f  .4 = 0000
-      add     R5,R0,R0
-;      andb    R5,R1,R2,8      ; 00ff and 0f0f  .8 = 0000
-      add     R6,R0,R0
-;      andb    R6,R1,R2,12     ; 00ff and 0f0f .12 = 0008
-
-; orb = 7
-      add     R3,R0,R0
-;      orb     R3,R1,R2,0      ; 00ff or 0f0f   .0 = 0000
-      add     R4,R0,R0
-;      orb     R4,R1,R2,4      ; 00ff or 0f0f   .4 = 0800
-      add     R5,R0,R0
-;      orb     R5,R1,R2,8      ; 00ff or 0f0f   .8 = 0080
-      add     R6,R0,R0
-;      orb     R6,R1,R2,12     ; 00ff or 0f0f .12 = 0008
-
-; xorb = 6
-      add     R3,R0,R0
-;      xorb    R3,R1,R2,0      ; 00ff xor 0f0f   .0 = 0000
-      add     R4,R0,R0
-;      xorb    R4,R1,R2,4      ; 00ff xor 0f0f   .4 = 0800
-      add     R5,R0,R0
-;      xorb    R5,R1,R2,8      ; 00ff xor 0f0f   .8 = 0080
-      add     R6,R0,R0
-;      xorb    R6,R1,R2,12     ; 00ff xor 0f0f  .12 = 0000
-
-     lea    R1,$0009[R0]     ; 0009
-     lea    R2,$0003[R0]     ; 0003
-
-;     logicc R1,1,R2,3,and    ; R15=0000    0 and 0 = 0
-;     logicc R1,1,R2,1,and    ; R15=0000    0 and 1 = 0
-;     logicc R1,0,R2,3,and    ; R15=0000    1 and 0 = 0
-;     logicc R1,0,R2,1,and    ; R15=0400    1 and 1 = 1
-
-;     logicc R1,1,R2,3,or     ; R15=0000    0 or 0 = 0
-;     logicc R1,1,R2,1,or     ; R15=0400    0 or 1 = 1
-;     logicc R1,0,R2,3,or     ; R15=0400    1 or 0 = 1
-;     logicc R1,0,R2,1,or     ; R15=0400    1 or 1 = 1
-
-;     logicc R1,1,R2,3,6      ; R15=0000    0 xor 0 = 0
-;     logicc R1,1,R2,1,6      ; R15=0400    0 xor 1 = 1
-;     logicc R1,0,R2,3,6      ; R15=0400    1 xor 0 = 1
-;     logicc R1,0,R2,1,6      ; R15=0000    1 xor 1 = 0
-
-
-
-; Demonstrate how to use the extract instruction to copy Booleans, and
-; the xorb instruction to perform logic on them (you can do any logic
-; function on the bits, not just xor).
-
-; Each bit in a word is identified by its index.  Bit 0 is the
-; rightmost (least significant), and Bit 15 is the leftmost (most
-; significant).  The notation R3.5 means bit 5 in R3, where bit 0 is
-; the rightmost (least significant) bit of the word.
-
-    lea     R1,23[R0]        ; R1 := 23
-    lea     R2,17[R0]        ; R2 := 17
-    cmp     R1,R2            ; compare 23 with 17
-;    extract R3,R15,8,1,1     ; R5.12 := 23 > 17
-    extract R3,15,1,R15,2   ; R5.15 := 23 = 17
-
-    lea     R4,23           ; R4 := 23
-    lea     R5,23           ; R4 := 23
-    cmp     R4,R5           ; compare 23 with 23
-    extract R3,5,1,R15,4    ; R3.5 := 23 > 23
-    extract R3,6,1,R15,2    ; R3.6 := 23 = 23
-
-    xorb    R3,0,12,5       ; R3.0 := R3.12 xor R3.5
-
-     trap  R0,R0,R0          ; terminate
-
-; Define symbolic names for the codes for common logic functions.  The
-; function field is an expression, not just a constant, and the
-; expression can include a forward reference to an equ.
-
+; Symbolic names for the codes for common logic functions
+inv  equ    12
 and  equ    1
 or   equ    7
 xor  equ    6
+nand equ    14
 nor  equ    8
+xnor equ    9
 
-; deprecated
+; Word logic
+     lea     R1,$00ff[R0]  ; R1 := 00ff
+     lea     R2,$0f0f[R0]  ; R2 := 0f0f
 
-     lea    R1,$0f96[R0]     ; 0f96 = 0000 1111 1001 0110
-     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
-     andw   R3,R1,R2         ; 0302 = 0000 0011 0000 0010
-     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
-     orw    R3,R1,R2         ; 3fb6 = 0011 1111 1011 0110
-     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
-     xorw   R3,R1,R2         ; 3cb4 = 0011 1100 1011 0100
+; Word logic instructions
+     logicw  R3,R1,R2,and  ; R3 := 000f
+     logicw  R4,R1,R2,or   ; R4 := 0fff
+     logicw  R5,R1,R2,xor  ; R5 := 0ff0
+     logicw  R6,R1,R2,nor  ; R6 := f000
+
+; Word logic pseudoinstructions
+     invw    R7,R2         ; R7 := f0f0
+     andw    R8,R1,R2      ; R8 := 000f
+     orw     R9,R1,R2      ; R9 := 0fff
+     xorw    R10,R1,R2     ; R10 := 0ff0
+
+; Bit logic instructions
+     lea    R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+
+     logicb R1,15,0,0,and  ; R1 := 0002  R1.15 = 0
+     logicb R1,14,0,1,and  ; R1 := 0002  R1.14 = 0
+     logicb R1,13,1,0,and  ; R1 := 0002  R1.13 = 0
+     logicb R1,12,1,1,and  ; R1 := 1002  R1.12 = 1
+
+     logicb R1,11,0,0,or   ; R1 := 1002  R1.11 = 0
+     logicb R1,10,0,1,or   ; R1 := 1402  R1.10 = 1
+     logicb R1,9,1,0,or    ; R1 := 1602  R1.9 = 1
+     logicb R1,8,1,1,or    ; R1 := 1702  R1.8 = 1
+
+     logicb R1,7,0,0,xor   ; R1 := 1702  R1.7 = 0
+     logicb R1,6,0,1,xor   ; R1 := 1742  R1.6 = 1
+     logicb R1,5,1,0,xor   ; R1 := 1762  R1.5 = 1
+     logicb R1,4,1,1,xor   ; R1 := 1762  R1.4 = 0
+
+     logicb R1,3,0,0,inv   ; R1 := 176a  R1.3 = 1
+     logicb R1,2,1,0,inv   ; R1 := 176a  R1.2 = 0
+
+; Bit logic pseudo-instructions
+     lea    R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+
+     andb R1,15,0,0        ; R1 := 0002  R1.15 = 0
+     andb R1,14,0,1        ; R1 := 0002  R1.14 = 0
+     andb R1,13,1,0        ; R1 := 0002  R1.13 = 0
+     andb R1,12,1,1        ; R1 := 1002  R1.12 = 1
+
+     orb R1,11,0,0         ; R1 := 1002  R1.11 = 0
+     orb R1,10,0,1         ; R1 := 1402  R1.10 = 1
+     orb R1,9,1,0          ; R1 := 1602  R1.9 = 1
+     orb R1,8,1,1          ; R1 := 1702  R1.8 = 1
+
+     xorb R1,7,0,0         ; R1 := 1702  R1.7 = 0
+     xorb R1,6,0,1         ; R1 := 1742  R1.6 = 1
+     xorb R1,5,1,0         ; R1 := 1762  R1.5 = 1
+     xorb R1,4,1,1         ; R1 := 1762  R1.4 = 0
+
+     invb R1,3,0         ; R1 := 176a  R1.3 = 1
+     invb R1,2,1         ; R1 := 176a  R1.2 = 0
+
+     lea    R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+
+     nandb R1,15,0,0       ; R1 := 8002  R1.15 = 1
+     nandb R1,14,0,1       ; R1 := c002  R1.14 = 1
+     nandb R1,13,1,0       ; R1 := e002  R1.13 = 1
+     nandb R1,12,1,1       ; R1 := e002  R1.12 = 0
+
+     norb R1,15,0,0        ; R1 := e802  R1.15 = 1
+     norb R1,14,0,1        ; R1 := e802  R1.14 = 0
+     norb R1,13,1,0        ; R1 := e802  R1.13 = 0
+     norb R1,12,1,1        ; R1 := e802  R1.12 = 0
+
+     xnorb R1,15,0,0       ; R1 := e882  R1.15 = 1
+     xnorb R1,14,0,1       ; R1 := e882  R1.14 = 0
+     xnorb R1,13,1,0       ; R1 := e882  R1.13 = 0
+     xnorb R1,12,1,1       ; R1 := e892  R1.12 = 1
+
+     trap   R0,R0,R0

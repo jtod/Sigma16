@@ -1416,7 +1416,7 @@ function exp2_resume (es) {
     es.pc.put (limitAddress (es, es.rpc.get()))
 }
 
-function exp2_dsptch (es) {
+function exp2_dispatch (es) {
     com.mode.devlog('exp_dsptch')
     const code = es.regfile[es.ir_d].get()  // code
     const size = es.field_e                 // field size
@@ -1555,6 +1555,7 @@ function exp2_extracti (es) {
     es.regfile[es.ir_d].put(d_new);
 }
 
+
 function exp2_logicw (es) {
     com.mode.devlog ('EXP logicw')
     const x = es.regfile[es.field_e].get()              // operand 1
@@ -1573,15 +1574,26 @@ function exp2_logicb (es) {
     const y = arch.getBitInWordLE (w, es.field_g)            // operand bit y
     const fcn = es.field_h                                   // logic function
     const bresult = arith.applyLogicFcnBit (fcn, x, y)       // bit result
-    const wresult = arch.putBitInWordLE (16, w, es.field_e, bresult) // full result
+    const wresult = arch.putBitInWordLE (16, w, es.field_e, bresult) // word
     console.log (`logicb w=${arith.wordToHex4(w)} x=${x} y=${y}`
                      + ` fcn=${fcn} bresult=${bresult}`
                      + ` wresult=${arith.wordToHex4(wresult)}`)
     es.regfile[es.ir_d].put(wresult)
 }
 
-function exp2_logicc (es) {
-    com.mode.devlog (`EXP logicc`);
+// logicu  Rd,e,Rf,g,h ; Rd.e := Rd.e (h) Rf.g
+function exp2_logicu (es) {
+    com.mode.devlog (`EXP logicu`);
+    const regx = es.regfile[es.ir_d].get()           // first operand Rd
+    const bitx = arith.extractBit (regx, es.field_e) // Rd.e
+    const regy = es.regfile[es.field_f].get()        // second operand Rf
+    const bity = arith.extractBit (regy, es.field_g) // Rf.g
+    const fcn = es.field_h
+    const bresult = arith.applyLogicFcnBit (fcn, bitx, bity) // apply function
+    const wresult = arith.setBit (regx, es.field_e, bresult) // update dest
+    es.regfile[es.ir_d].put(wresult)                 // writeback
+}
+/* old version for logicc, replaced by logicu
     const xreg = es.regfile[es.ir_d].get()               // operand word
     const xbit = arch.getBitInWordLE (xreg, es.field_e)  // operand bit x
     const yreg = es.regfile[es.field_f].get()            // operand word
@@ -1595,7 +1607,8 @@ function exp2_logicc (es) {
                      + ` xbit=${xbit} ybit=${ybit}`
                      + ` fcn=${fcn} bresult=${bresult}`
                      + ` wresult=${arith.wordToHex4(wresult)}`)
-}
+                     }
+*/                     
 
 // EXP format instructions require a second word
 
@@ -1635,7 +1648,7 @@ const dispatch_EXP =
         exp2 (exp2_brbz),     // 07
         exp2 (exp2_brfnz),    // 08
         exp2 (exp2_brbnz),    // 09
-        exp2 (exp2_dsptch),   // 0a
+        exp2 (exp2_dispatch), // 0a
         exp2 (exp2_save),     // 0b
         exp2 (exp2_restore),  // 0c
         exp2 (exp2_push),     // 0d
@@ -1645,7 +1658,7 @@ const dispatch_EXP =
         exp2 (exp2_shiftr),   // 11
         exp2 (exp2_logicw),   // 12
         exp2 (exp2_logicb),   // 13
-        exp2 (exp2_logicc),   // 14
+        exp2 (exp2_logicu),   // 14
         exp2 (exp2_extract),  // 15
         exp2 (exp2_extracti), // 16
         exp2 (exp2_getctl),   // 17
@@ -1723,3 +1736,35 @@ function exp2_top (es) {
 //        ab_dc (arith.op_muld),    // 7
 //        ab_dc (arith.op_divd),    // 8
 //        ab_c  (arith.op_cmpd),    // 9
+
+// function exp2_moveb (es) { // ??????????
+//     console.log ('exp2_moveb')
+//     // d = destination
+//     // e = index of destination bit
+//     // f = operand register
+//    // g = index of bit in operand
+//    // h = don't care
+//    const x = es.regfile[es.field_f].get()     // operand register
+//    const x_index = es.field_g                 // index of operand bit
+//    const bit = arith.extractBit (x, x_index) // selected bit in operand
+//    const d_old = es.regfile[es.ir_d].get()    // old value of destination
+//    const d_index = es.field_e                 // index of operand bit
+//    const d_new = arith.setBit (d_old, d_index, bit) // update destination
+//    console.log (`moveb`
+//                 + ` x=${arith.wordToHex4(x)}`
+//                 + ` x_index=${x_index}`
+//                 + ` bit=${bit}`
+//                 + ` d_old=${arith.wordToHex4(d_old)}`
+//                 + ` d_index=${d_index}`
+//                 + ` d_new=${arith.wordToHex4(d_new)}`
+//                )
+//    es.regfile[es.ir_d].put(d_new)
+// }
+
+
+// function exp2_movebi (es) { // ????
+//     console.log ('exp2_movebi')
+//     const d_old = es.regfile[es.ir_d].get() // old value of destination
+//     const d_new = d_old
+//     es.regfile[es.ir_d].put(d_new);
+// }

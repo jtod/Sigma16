@@ -30,6 +30,16 @@ import * as ed    from './editor.mjs';
 import * as asm   from '../base/assembler.mjs';
 import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
+import * as ct    from './consoletest.mjs';
+
+//-------------------------------------------------------------------------
+// Debugging tools
+//-------------------------------------------------------------------------
+
+// To make exported functions executable in the console, enter
+// exposeConsole().  Then enter, for example, arith.setBit(6,11,1)
+
+window.exposeConsole = ct.exposeConsole
 
 // Normally runs in user mode, which is the default.  For development
 //and experimentation, set Dev mode.  In console, enter setModeDev()
@@ -3165,6 +3175,7 @@ function showCChex () {
 // The initializers require the DOM elements to exist and the
 // functions to be defined, so they are performed after all the
 // modules have been loaded.
+
 
 window.onload = function () {
     console.log("starting initializers")

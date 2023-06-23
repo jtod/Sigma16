@@ -28,9 +28,12 @@
 # To generate pdf: C-c C-e l p (export to pdf)
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [a4paper,11pt,twoside]
-#+LATEX_HEADER: \usepackage{tikz}
+#+LATEX_HEADER: \usepackage{sigma16}
 
 * Introduction
+
+# Uncomment this to check that \usepackage{sigma16} works:
+# \SigmaTest
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
@@ -1902,33 +1905,12 @@ Sigma16 uses the following terminology:
 - A *double word* is a sequence of 32 bits.
 - A *generic word* is a sequence of bits of arbitrary length.
 
-In S16, every data value is a word.   The system does not use bytes (a byte is 8
-bits) or extended words (64 bits).
+In Sigma16, every data value is a word.  The system does not use bytes
+(a byte is 8 bits) or extended words (64 bits).
 
 The bits of a word are indexed from right to left, starting with 0.
-The rightmost (least significant) bit has index 0.  For a word, the
-leftmost (most significant) bit has index 15.  For a double word, the
-leftmost bit has index 31.
-
-#+HTML: <div class='AsideNote'>
-*Word terminology.* A byte is almost universally agreed to be 8 bits,
-but the terminology for words is not standard.  Computers have been
-built with many different word sizes, including 1 bit (Goodyear
-Aerospace MPP), 4 bits (Intel 4004), 7 bits (IBM 1401), 8 bits (Intel
-8080), 12 bits (PDP-8), 15 bits (Apollo Guidance Computer), 16 bits
-(IBM 1130), 17 bits (EDSAC), 18 bits (PDP-15), 24 bits (CDC 924), 32
-bits (IBM 360), 36 bits (IBM 7094), 40 bits (IAS), 44 bits (M-EDVAC),
-48 bits (Burroughs 5000), 60 bits (CDC 6600), and 64 bits (Cray 1).
-Much of the variation appears in early computers; most current
-machines have a word size which is a power of 2.  (Some of these
-computers have an additional parity bit, which is invisible to
-software and not included in the figures.)
-#+HTML: <asidepar>
-Many computers have shorter and longer words as well as their standard
-size.  For example, IBM 360 and its descendants have a 32-bit full
-word, a 16-bit half word, and a 64-bit double word.  For Sigma16, a
-word is 16 bits and a double word is 32 bits.
-#+HTML: </div>
+Thus the least significant (rightmost) bit has index 0, and the most
+significant bit (leftmost) has index 15.
 
 Every data type must be represented as one or more words.  By itself,
 a word has no inherent meaning: it is just a sequence of bits.
@@ -1940,13 +1922,12 @@ as natural numbers.
 Natural numbers are represented in binary.  The binary value of an
 n-bit generic word x is
 
-binval (x) = @@html:&sum;<sub>0&le;i&lt;n</sub>@@ (x_i * 2^i)
+$$binval (x) = \sum_{0 \leq i < n} x_i * 2^i$$
 
-For a word (16 bits), natural numbers are restricted to the range from
-0 through @@html: 2 <sup>16</sup> - 1@@; that is, from 0 through
-65,535.  For a double word (32 bits), natural numbers are restricted
-to the range from 0 and @@html: 2 <sup>32</sup> - 1@@; that is, from 0
-through 4,294,967,295.
+For a word of 16 bits, natural numbers are restricted to the range
+from 0 through $2^{16}-1$; that is, from 0 through 65,535.  For a
+double word (32 bits), natural numbers are restricted to the range
+from 0 through $2^{32}-1$; that is, from 0 through 4,294,967,295.
 
 Integers are represented using two's complement notation.  If the
 leftmost (most significant) bit of a word is 0, its two's complement
@@ -1986,6 +1967,10 @@ but it helps to figure out the expected results in hex notation.
 | \vert | 15 | 14 | 13 | 12 | \vert | 11 | 10 | 9 | 8 | \vert | 7 | 6 | 5 | 4 | \vert | 3 | 2 | 1 | 0 | \vert |
 |-------+----+----+----+----+-------+----+----+---+---+-------+---+---+---+---+-------+---+---+---+---+-------|
 
+For a word $x$, the notation $x.i$ means the value of the bit at index
+$i$ in the word.  For example, $R5.12$ is the value of bit at index 12
+in R5.  The least significant bit of R2 is $R2.0$, and the most
+significant bit is $R2.15$.
 
 ** Memory
 
@@ -2006,14 +1991,13 @@ value in the index register.  If R5 contains 2, then the effective
 address of $003c[R5] is 003e.
 
 This scheme may seem more complicated than simply specifying the
-address directly, but it is extraordinarily flexible.  If the machine
-language just gave the address as a single binary number, it would be
-limited to accessing simple static variables.  The effective address
-mechanism is simple to implement in hardware, as you can see in the
-digital circuit processor, yet it allows the implementation of local
-variables, records, arrays, pointers and linked data structures, jump
-tables, and more.  These techniques are described later.
-
+address directly, but it is flexible.  If the machine language just
+gave the address as a single binary number, it would be limited to
+accessing simple static variables.  The effective address mechanism is
+simple to implement in hardware, as you can see in the digital circuit
+processor, yet it allows the implementation of local variables,
+records, arrays, pointers and linked data structures, jump tables, and
+more.  These techniques are described later.
 
 ** Registers
 
@@ -2105,33 +2089,18 @@ integers, natural numbers, characters, addresses, and for any other
 possible type as well.  Therefore there is only one flag for equality,
 and its symbol is =.
 
-The following table lists all the condition code flags.  The index is
-the bit position in the condition code register (bit index 0 is the
-leftmost bit).  The symbol is a character that is displayed if the
-flag is 1.  The name is an alphabetic letter used in programs where
-the symbol is not allowed: for example you can't have a variable named
-is< so isE can be used instead.
-
+The following table lists all the condition code flags.
 - index: Each flag has an index which gives its bit position in the
   condition code.  Bits are numbered from right to left, starting
-  with 0.  Thus the least significant bit has index 0, and the most
-  significant bit has index 15.
+  with 0.
 - meaning: Description using English or mathematical notation
-- symbol: Character that is displayed when the flag is True
-- name: Alphabetical name suggested for use within variable names.
+- symbol: Character that is showin in the processor display when the
+  flag is 1.
+- name: Alphabetical name used as a variable name for the flag.
 
-There is an exception for division by zero, but no corresponding flag
-in the condition code.  The reason is that the div instruction places
-the remainder in R15, so the condition code isn't available to
-represent division by 0.  You can test explicity for division by 0 by
-using jumpz specifying the register containing the divisor /before/
-execuing the div instruction.
-
-Bits are indexed from the right, starting from bit 0.  This bit with
-index 0 is the least significant, the bit with index 15 is the most
-significant bit.
 
 Table: Condition code flags
+
 
 | bit index | Relation               | Symbol |
 |-----------+------------------------+--------|
@@ -2146,6 +2115,14 @@ Table: Condition code flags
 |         8 | Stack overflow         | S      |
 |         9 | Stack underflow        | s      |
 |        10 | logicc function result | f      |
+
+There is an exception for division by zero, but no corresponding flag
+in the condition code.  The reason is that the div instruction places
+the remainder in R15, so the condition code isn't available to
+represent division by 0.  You can use an interrupt to detect division
+by 0, and you can test explicity for division by 0 by using jumpz
+specifying the register containing the divisor before execuing the div
+instruction.
 
 *** Instruction control registers
 There are several instruction control registers that enable the
@@ -2271,6 +2248,14 @@ Table: Processor status flags
 
 (Not implemented in this version)
 
+** Interrupts
+
+
+* Instruction set
+:PROPERTIES:
+:CUSTOM_ID: sec-instruction-set
+:END:
+
 
 ** Instruction representation
 
@@ -2354,15 +2339,11 @@ special syntaxes for some instructions, and there are assembler
 directives that aren't instructions at all.  The assembly language
 formats are described later.
 
-** Interrupts
+*** RRR format
+*** RX format
+*** EXP format
 
-
-* Instruction set
-:PROPERTIES:
-:CUSTOM_ID: sec-instruction-set
-:END:
-
-** Memory
+** Accessing memory
 
 A memory address is a 16-bit binary number.  Instructions don't
 specify addresses directly; they specify an address with two
@@ -2446,7 +2427,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_EXAMPLE
 
-*** Stack
+*** Stack representation
 
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -2585,7 +2566,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** save, restore
+*** save and restore
 
 The =save= and =restore= instructions are analogous to =store= and
 =load=, but they transfer a block of data between registers and
@@ -2739,6 +2720,7 @@ The effect is equivalent to
    load  R9,10[R14]
    load  R10,11[R14]
 #+END_EXAMPLE
+
 ** Arithmetic
 
 *** add
@@ -3006,17 +2988,25 @@ natural numbers represented in binary.
 
 
 ** Jumps
+
+A jump is a transfer control to another address, rather than to the
+following instruction. The destination address is specified as the
+effective address in the jump instruction.  A jump can be used to
+implement a goto statement.  (See also [[*Branches][Branches]].)
+
 *** jump
 *** jumpc0, jumpc1
 *** jal
 *** jumpz, jumpnz
+
 
 ** Branches
 
 A branch instruction transfers control to another address, rather than
 to the following instruction. The destination address is specified as
 an offset relative to the value of the pc (after the pc has been
-incremented).
+incremented).  A branch can be used to implement a goto statement.
+(See also [[*Jumps][Jumps]].)
 
 *** brf, brb
 
@@ -3088,7 +3078,7 @@ For example, brfnz R3,dest means "if R3 !=0 then goto dest".
 - brbz - branch backward if zero
 - brbnz - branch backward if not zero
 
-*** dsptch (dispatch)
+*** dispatch
 
 The /dispatch/ instruction implements a branch table.  It provides an
 efficient way to implement a case statement using a binary code.
@@ -3099,7 +3089,7 @@ specific destination depending on the value of the code.
 
 #+BEGIN_EXAMPLE
    load   R8,code[R0]  ; load a 3-bit binary code
-   dsptch R8,3,0       ; 38 dispatch 3-bit code
+   dispatch R8,3,0       ; 38 dispatch 3-bit code
    brf    caseA        ; if code=0 then goto caseA
    brf    caseB        ; if code=1 then goto caseB
    brf    caseC        ; if code=2 then goto caseC
@@ -3110,7 +3100,7 @@ specific destination depending on the value of the code.
    brf    caseH        ; if code=7 then goto caseH
 #+END_EXAMPLE
 
-The =dsptch= instruction has three operands: a register /code/ that
+The =dispatch= instruction has three operands: a register /code/ that
 specifies a binary code, an integer constant /size/ that gives the
 number of bits in the code, and a fixed /offset/ (which is usually 0).
 
@@ -3126,7 +3116,7 @@ number of bits in the code, and a fixed /offset/ (which is usually 0).
 - The branch table is normally a sequence of unconditional branch
   instructions, either brf or brb.
 
-** Logic and bits
+ ** Logic and bits
 
 The instructions in this section treat a word as a sequence of bits,
 not as a number.  There are instructions that perform logic operations
@@ -3158,28 +3148,16 @@ for several reasons:
 - These instructions can be implemented efficiently in a digital
   circuit and this implementation is an interesting design problem.
 
-*** pseudoinstructions: invw, andw, orw, xorw
 
-There are pseudoinstructions that perform common bitwise logical
-operations on one or two words, producing a word result.  The
-commonest logical operations are supported: logical negation, logical
-and, inclusive or, and exclusive or.
-
-- invw  R3,R4  ; R3 := invert R4
-- andw  R3,R4,R5 ; R3 := R4 and R5
-- orw  R3,R4,R5 ; R3 := R4 or R5
-- xorw  R3,R4,R5 ; R3 := R4 xor R5
-
-A pseudoinstruction is not actually a machine instruction: the Sigma16
-processor circuit does not have an =andw= instruction.  Instead, it
-has a more general and powerful instruction (=logicw=) that is capable
-of performing =andw=, as well as many other operations.  The =andw=
-pseudoinstruction is just an assembly language notation that generates
-the corresponding =logicw=.  Using pseudoinstructions can make a
-program more readable, and it enables you to perform simple logic
-operations without learning the more complicated general instructions.
+** Logic
 
 *** General logic functions
+
+There are 16 Boolean logic functions that take two arguments.  The
+commonest ones are /and/, /or/, /xor/.  Sigma16 provides instructions
+for all the logic functions, not just the commonest ones.  The logical
+negation (inversion) function /inv/ is treated as one of the 16, which
+just ignores its second argument.
 
 The commonest Boolean operators are inv, and, or, which can be defined
 using truth tables.  The truth table for inv (also called not, logical
@@ -3262,7 +3240,7 @@ logic instructions that implement /all/ of them. These are =logicw= to
 perform logic on all the bits in a word, and =logicb= and =logicc= to
 perform logic on individual bits (i.e. Boolean variables).
 
-*** logicw
+*** Word logic
 
 The logicw instruction performs a bitwise logic operation on two
 operands: each bit of the result is obtained by performing the logic
@@ -3303,7 +3281,53 @@ xor  equ   6
      logicw R5,R7,R2,xor   ; R5 := R7 xor R2
 #+END_EXAMPLE
 
-*** logicb, logicc
+*** Word logic pseudoinstructions: invw, andw, orw, xorw
+
+There are pseudoinstructions that perform common bitwise logical
+operations on one or two words, producing a word result.  The
+commonest logical operations are supported: logical negation, logical
+and, inclusive or, and exclusive or.
+
+- invw  R3,R4  ; R3 := invert R4
+- andw  R3,R4,R5 ; R3 := R4 and R5
+- orw  R3,R4,R5 ; R3 := R4 or R5
+- xorw  R3,R4,R5 ; R3 := R4 xor R5
+
+A pseudoinstruction is not actually a machine instruction: the Sigma16
+processor circuit does not have an =andw= instruction.  Instead, it
+has a more general and powerful instruction (=logicw=) that is capable
+of performing =andw=, as well as many other operations.  The =andw=
+pseudoinstruction is just an assembly language notation that generates
+the corresponding =logicw=.  Using pseudoinstructions can make a
+program more readable, and it enables you to perform simple logic
+operations without learning the more complicated general instructions.
+
+*** Bit logic: logicb, logicc
+
+You can perform logic on individual bits, not just bitwise logic on
+entire words.
+
+
+logicb specifies two operand bits and a destination bit, where
+all bits are in the same register.
+
+#+BEGIN_EXAMPLE
+   logicb  Rd,e,f,g,h  ; Rd.e := Rd.f (h) Rd.g
+   Assembler format Rkkkk
+#+END_EXAMPLE
+
+logicu specifies two operand bits that may be in different registers.
+The result updates (overwrites) the first operand.
+
+#+BEGIN_EXAMPLE
+   logicu  Rd,e,Rf,g,h   ; Rd.e := Rd.e (h) Rf.g
+   Assembler format RkRkk
+#+END_EXAMPLE
+
+
+- logicb performs any bit logic function where the operands and result
+  are all in the same register.  This is exactly what you need when a
+  program has a collection of Boolean flags kept in the same word.
 
 The /logicb/ and =logicc= instructions perform an arbitrary Boolean
 logic function on two operand bits, producing a result bit.
@@ -3328,13 +3352,6 @@ result is placed into bit 3.  The instruction could be read as: within
 R1, perform logic function 6 on bits 9 and 2, and place the result in
 bit 3.
 
-The =logicc= instruction also performs a logic function on individual
-bits.  The operands may be any bit in any register.  The result is
-placed in the =logc= bit in the condition code (R15).
-
-#+BEGIN_EXAMPLE
-  logicc  R2,3,R7,8,6 ; R15.logc := R2.3 xor R7.8 |
-#+END_EXAMPLE
 
 Pseudoinstructions are provided for the most common logic functions;
 these all generate a logicb instruction.  The operands for these are
@@ -3364,8 +3381,11 @@ The instruction format is EXP, with the following fields:
 - g is the index of the second argument bit
 - h is the logic function
   
+*** Bit logic pseudoinstructions
 
-** Bit fields
+
+** Operations on bit fields
+
 *** shiftl, shiftr
 
 The instruction shiftl Rd,Ra,k shifts the value in the operand
@@ -3524,30 +3544,25 @@ Here is another example:
       extract  R4,R0,13,5,1     ; dfff
 #+END_EXAMPLE
 
+*** moveb, movebi
+
+#+BEGIN_EXAMPLE
+    moveb  R3,8,R14,3  ; e317 8e30, R3.8 := R14.3
+    movebi R3,8,R14,3  ; e318 8e30, R3.8 := inv (R14.3)
+#+END_EXAMPLE
 
 
-** System
-*** trap
+
+
+
+** System control
+
+*** trap 
 *** getctl, putctl
 *** resume
 
-** Assembly language instruction formats with examples
 
-| afmt  | operand general form | example           | notes         |
-|-------+----------------------+-------------------+---------------|
-| RRR   | Rd,Ra,Rb             | add R1,R2,R3      |               |
-| RR    | Ra,Rb                | cmp R1,R2         |               |
-| RX    | Rd,disp[Ra]          | load R1,xyz[R2]   |               |
-| kX    | k,disp[Ra]           | jumpc0 6,loop[R2] | 0 <= k <= 15  |
-| RRRk  | Rd,Ra,Rb,K[Re]       | save R1,R5,3[R14] | 0 <= K <= 255 |
-| RRk   | Ra,Rb,k              | shiftl R1,R2,5    | 0 <= k <= 15  |
-| Rkkkk | Rd,e,f,g,h           | logicb R1,        |               |
-| RkkRk | Ra,j,n,Rb,k          | extract           |               |
-| RC    | Rc,Rd                | putctl vect,R4    |               |
-|       |                      |                   |               |
-
-
-* Table of instructions
+** Table of instructions
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -3662,7 +3677,7 @@ consist of one of the following:
 | brbz     | Std  |     |   | EXP | Rk    | D,Disp            | e,07 | ed07;Disp | Rd=0  => pc += 2-fgh               |                                                  |
 | brfnz    | Std  |     |   | EXP | RK    | D,Disp            | e,08 | ed08;Disp | Rd!=0 => pc += 2+fgh               |                                                  |
 | brbnz    | Std  |     |   | EXP | RK    | D,Disp            | e,09 | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
-| dsptch   | Std  |     |   | EXP | RkK   | D,Disp            | e,0a | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
+| dispatch | Std  |     |   | EXP | RkK   | D,Disp            | e,0a | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
 | save     | Std  |     |   | EXP | RRX   | D,E,P             | e,0b | eD0a;EFx  | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
 | restore  | Std  |     |   | EXP | RRX   | D,E,P             | e,0c | ed0b;EQ-- | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
 | push     | Std  | cc  |   | EXP | RRR   | D,E,F             | e,0d | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
@@ -3672,7 +3687,7 @@ consist of one of the following:
 | shiftr   | Std  |     |   | EXP | RRk   | D,E,L             | e,11 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
 | logicw   | Std  |     |   | EXP | RRRk  | op,d,$0b;e,f,$0,h | e,12 | eD11;EFM- | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
 | logicb   | Std  |     |   | EXP | Rkkkk | D,K,L,M,N         | e,13 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicb R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
-| logicc   | Std  |     |   | EXP | RkRkk | D,K,L,M,N         | e,14 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
+| logicu   | Std  |     |   | EXP | RkRkk | D,K,L,M,N         | e,14 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
 | extract  | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,15 | eD13;ELMN | Rd := extract Rd di size Rs si     |                                                  |
 | extracti | Std  |     |   | EXP | RkkRk | D,E,L,M,N         | e,16 | eD14;ELMN | Rd := extracti Rd di size Rs si    |                                                  |
 | getctl   | Sys  |     | P | EXP | RC    | D,C               | e,17 | eD15;C--- | Rd := Sc                           |                                                  |
@@ -3689,7 +3704,8 @@ consist of one of the following:
 </div">
 #+END_EXPORT
 
-**** Pseudoinstructions
+*** Pseudoinstructions
+
 
 * Assembly language
 
@@ -3747,6 +3763,22 @@ Machine language
     1423
     219a
 #+END_EXAMPLE
+
+
+** Assembly language instruction formats with examples
+
+| afmt  | operand general form | example           | notes         |
+|-------+----------------------+-------------------+---------------|
+| RRR   | Rd,Ra,Rb             | add R1,R2,R3      |               |
+| RR    | Ra,Rb                | cmp R1,R2         |               |
+| RX    | Rd,disp[Ra]          | load R1,xyz[R2]   |               |
+| kX    | k,disp[Ra]           | jumpc0 6,loop[R2] | 0 <= k <= 15  |
+| RRRk  | Rd,Ra,Rb,K[Re]       | save R1,R5,3[R14] | 0 <= K <= 255 |
+| RRk   | Ra,Rb,k              | shiftl R1,R2,5    | 0 <= k <= 15  |
+| Rkkkk | Rd,e,f,g,h           | logicb R1,        |               |
+| RkkRk | Ra,j,n,Rb,k          | extract           |               |
+| RC    | Rc,Rd                | putctl vect,R4    |               |
+|       |                      |                   |               |
 
 
 ** Programs, modules, and files
@@ -5387,6 +5419,7 @@ The hypothetical commands `show w' and `show c' should show the appropriate part
 You should also get your employer (if you work as a programmer) or school, if any, to sign a “copyright disclaimer” for the program, if necessary. For more information on this, and how to apply and follow the GNU GPL, see <https://www.gnu.org/licenses/>.
 
 The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
+
 
 * Typesetting notes :noexport:
 ** svg
