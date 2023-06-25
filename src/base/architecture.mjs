@@ -328,7 +328,8 @@ export const stackOverflowBit    = 2;   // invalid memory virtual address
 export const stackUnderflowBit   = 3;   // invalid memory virtual address
 export const userTrapBit         = 4;   // user trap
 export const overflowBit         = 5;   // overflow occurred
-export const zDivBit             = 6;   // division by 0
+export const binoverflowBi       = 6;   // overflow occurred
+export const zDivBit             = 7;   // division by 0
 
 //----------------------------------------------------------------------
 // Assembly language data definitions for control bits

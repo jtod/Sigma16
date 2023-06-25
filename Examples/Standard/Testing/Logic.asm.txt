@@ -1,25 +1,16 @@
 ; Logic: Test the logic instructions and pseudoinstructions.
-; Instructions logicw, logicb, logicc plus pseudoinstructions.
-; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+; Instructions logicw, logicb, logicu, and pseudoinstructions.
+; Sigma16 https://jtod.github.io/home/Sigma16 John O'Donnell, 2023
   
 ; Logic instructions. Notation: Rd.i is bit at index i in Rd
-;   logicw Rd,Ra,Rb,f   means  Rd := Ra (f) Rb
-;   logicb Rd,i,j,k,f   means  Rd.i := Rd.j (f) Rd.k
-;   logicc Rd,i,Re,j,f  means  R15.LC := Rd.i (f) Re.j
-;   moveb  Rd,i,Re,j,f  if lsb f = 0 then move else moveinv
-;                       Rd.i := Re.j xor f.0
+;    logicw Rd,Re,Rf,h    means  Rd := h (Re, Rf)
+;    logicb Rd,e,f,g,h    means  Rd.e := h (Rd.f, Rd.g)
+;    logicu Rd,e,Rf,g,h   means  Rd.e := h (Rd.e, Rf.g)
+
 ; Pseudoinstructions specify the function f in the mnemonic
-;   andw Rd,Ra,Rb  is equivalent to  logicw Rd,Ra,Rb,and
-
-  logicb  R3,4,5,6,7
-  logicu  R5,6,R7,8,9
-
-   lea    R1,$00ff[R0]
-   lea    R2,$00f0[R0]
-   logicu R1,8,R2,4,or   ; 01ff
-   logicu R1,7,R2,4,and  ; 01ff
-   logicu R1,6,R2,3,and  ; 01bf
-
+;    andw Rd,Ra,Rb   is equivalent to  logicw Rd,Ra,Rb,and
+;    orb  Rd,i,j,k   is equivalent to  logicb Rd,Ra,Rb,or
+;    xoru Rd,e,Rf,g  is equivalent to  logicu Rd,e,Rf,g,xor
 
 ; Symbolic names for the codes for common logic functions
 inv  equ    12
@@ -46,63 +37,79 @@ xnor equ    9
      orw     R9,R1,R2      ; R9 := 0fff
      xorw    R10,R1,R2     ; R10 := 0ff0
 
-; Bit logic instructions
-     lea    R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
 
-     logicb R1,15,0,0,and  ; R1 := 0002  R1.15 = 0
-     logicb R1,14,0,1,and  ; R1 := 0002  R1.14 = 0
-     logicb R1,13,1,0,and  ; R1 := 0002  R1.13 = 0
-     logicb R1,12,1,1,and  ; R1 := 1002  R1.12 = 1
+; logicb
+; Check assembly
+     logicb  R3,4,5,6,7
+     logicu  R5,6,R7,8,9
 
-     logicb R1,11,0,0,or   ; R1 := 1002  R1.11 = 0
-     logicb R1,10,0,1,or   ; R1 := 1402  R1.10 = 1
-     logicb R1,9,1,0,or    ; R1 := 1602  R1.9 = 1
-     logicb R1,8,1,1,or    ; R1 := 1702  R1.8 = 1
+; logicu instruction
 
-     logicb R1,7,0,0,xor   ; R1 := 1702  R1.7 = 0
-     logicb R1,6,0,1,xor   ; R1 := 1742  R1.6 = 1
-     logicb R1,5,1,0,xor   ; R1 := 1762  R1.5 = 1
-     logicb R1,4,1,1,xor   ; R1 := 1762  R1.4 = 0
+     lea     R1,$00ff[R0]
+     lea     R2,$00f0[R0]
+     logicu  R1,8,R2,4,or   ; 01ff
+     logicu  R1,7,R2,4,and  ; 01ff
+     logicu  R1,6,R2,3,and  ; 01bf
 
-     logicb R1,3,0,0,inv   ; R1 := 176a  R1.3 = 1
-     logicb R1,2,1,0,inv   ; R1 := 176a  R1.2 = 0
+; logicu pseudoinstructions
 
-; Bit logic pseudo-instructions
-     lea    R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+; logicb instruction
+     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
 
-     andb R1,15,0,0        ; R1 := 0002  R1.15 = 0
-     andb R1,14,0,1        ; R1 := 0002  R1.14 = 0
-     andb R1,13,1,0        ; R1 := 0002  R1.13 = 0
-     andb R1,12,1,1        ; R1 := 1002  R1.12 = 1
+     logicb  R1,15,0,0,and  ; R1 := 0002  R1.15 = 0
+     logicb  R1,14,0,1,and  ; R1 := 0002  R1.14 = 0
+     logicb  R1,13,1,0,and  ; R1 := 0002  R1.13 = 0
+     logicb  R1,12,1,1,and  ; R1 := 1002  R1.12 = 1
 
-     orb R1,11,0,0         ; R1 := 1002  R1.11 = 0
-     orb R1,10,0,1         ; R1 := 1402  R1.10 = 1
-     orb R1,9,1,0          ; R1 := 1602  R1.9 = 1
-     orb R1,8,1,1          ; R1 := 1702  R1.8 = 1
+     logicb  R1,11,0,0,or   ; R1 := 1002  R1.11 = 0
+     logicb  R1,10,0,1,or   ; R1 := 1402  R1.10 = 1
+     logicb  R1,9,1,0,or    ; R1 := 1602  R1.9 = 1
+     logicb  R1,8,1,1,or    ; R1 := 1702  R1.8 = 1
 
-     xorb R1,7,0,0         ; R1 := 1702  R1.7 = 0
-     xorb R1,6,0,1         ; R1 := 1742  R1.6 = 1
-     xorb R1,5,1,0         ; R1 := 1762  R1.5 = 1
-     xorb R1,4,1,1         ; R1 := 1762  R1.4 = 0
+     logicb  R1,7,0,0,xor   ; R1 := 1702  R1.7 = 0
+     logicb  R1,6,0,1,xor   ; R1 := 1742  R1.6 = 1
+     logicb  R1,5,1,0,xor   ; R1 := 1762  R1.5 = 1
+     logicb  R1,4,1,1,xor   ; R1 := 1762  R1.4 = 0
 
-     invb R1,3,0         ; R1 := 176a  R1.3 = 1
-     invb R1,2,1         ; R1 := 176a  R1.2 = 0
+     logicb  R1,3,0,0,inv   ; R1 := 176a  R1.3 = 1
+     logicb  R1,2,1,0,inv   ; R1 := 176a  R1.2 = 0
 
-     lea    R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+; logicb pseudo-instructions
+     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
 
-     nandb R1,15,0,0       ; R1 := 8002  R1.15 = 1
-     nandb R1,14,0,1       ; R1 := c002  R1.14 = 1
-     nandb R1,13,1,0       ; R1 := e002  R1.13 = 1
-     nandb R1,12,1,1       ; R1 := e002  R1.12 = 0
+     andb    R1,15,0,0      ; R1 := 0002  R1.15 = 0
+     andb    R1,14,0,1      ; R1 := 0002  R1.14 = 0
+     andb    R1,13,1,0      ; R1 := 0002  R1.13 = 0
+     andb    R1,12,1,1      ; R1 := 1002  R1.12 = 1
 
-     norb R1,15,0,0        ; R1 := e802  R1.15 = 1
-     norb R1,14,0,1        ; R1 := e802  R1.14 = 0
-     norb R1,13,1,0        ; R1 := e802  R1.13 = 0
-     norb R1,12,1,1        ; R1 := e802  R1.12 = 0
+     orb     R1,11,0,0      ; R1 := 1002  R1.11 = 0
+     orb     R1,10,0,1      ; R1 := 1402  R1.10 = 1
+     orb     R1,9,1,0       ; R1 := 1602  R1.9 = 1
+     orb     R1,8,1,1       ; R1 := 1702  R1.8 = 1
 
-     xnorb R1,15,0,0       ; R1 := e882  R1.15 = 1
-     xnorb R1,14,0,1       ; R1 := e882  R1.14 = 0
-     xnorb R1,13,1,0       ; R1 := e882  R1.13 = 0
-     xnorb R1,12,1,1       ; R1 := e892  R1.12 = 1
+     xorb    R1,7,0,0       ; R1 := 1702  R1.7 = 0
+     xorb    R1,6,0,1       ; R1 := 1742  R1.6 = 1
+     xorb    R1,5,1,0       ; R1 := 1762  R1.5 = 1
+     xorb    R1,4,1,1       ; R1 := 1762  R1.4 = 0
 
-     trap   R0,R0,R0
+     invb    R1,3,0         ; R1 := 176a  R1.3 = 1
+     invb    R1,2,1         ; R1 := 176a  R1.2 = 0
+
+     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+
+     nandb   R1,15,0,0      ; R1 := 8002  R1.15 = 1
+     nandb   R1,14,0,1      ; R1 := c002  R1.14 = 1
+     nandb   R1,13,1,0      ; R1 := e002  R1.13 = 1
+     nandb   R1,12,1,1      ; R1 := e002  R1.12 = 0
+
+     norb    R1,15,0,0      ; R1 := e802  R1.15 = 1
+     norb    R1,14,0,1      ; R1 := e802  R1.14 = 0
+     norb    R1,13,1,0      ; R1 := e802  R1.13 = 0
+     norb    R1,12,1,1      ; R1 := e802  R1.12 = 0
+
+     xnorb   R1,15,0,0      ; R1 := e882  R1.15 = 1
+     xnorb   R1,14,0,1      ; R1 := e882  R1.14 = 0
+     xnorb   R1,13,1,0      ; R1 := e882  R1.13 = 0
+     xnorb   R1,12,1,1      ; R1 := e892  R1.12 = 1
+
+     trap    R0,R0,R0
