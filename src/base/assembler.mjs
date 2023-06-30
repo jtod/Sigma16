@@ -1253,8 +1253,8 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkkk) {
-// EXP-Rkkkk (logicb) logicb R3,6,8,2,xor
-            com.mode.devlog ('Pass2 EXP/Rkkkk (logicb)')
+// EXP-Rkkkk (logicr) logicr R3,6,8,2,xor
+            com.mode.devlog ('Pass2 EXP/Rkkkk (logicr)')
             requireNoperands (ma, s, 5)
             const ab = op.opcode[1]
             const d = requireReg(ma,s,s.operands[0])
@@ -1268,7 +1268,7 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkRkk) {
-// EXP-RkRkk (logicu) logicu R3,4,R9,8,xor
+// EXP-RkRkk (logicb) logicb R3,4,R9,8,xor
             com.mode.devlog ('Pass2 EXP/RkRkk')
             requireNoperands (ma, s, 5)
             const ab = op.opcode[1]

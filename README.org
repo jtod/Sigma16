@@ -1,15 +1,15 @@
-* Sigma16 source directory
+* Sigma16
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
-for experimenting with the architecture.  See the user guide in the
+for experimenting with the architecture.  See the User Guide in the
 docs directory for full documentation.
 
 ** Quick start: Running Sigma16 in a web page
 
 You don't need to install anything.  Just visit the [Sigma16 Home
-Page](https://jtod.github.io/home/Sigma16/) and click the prominent
-link to "Run Sigma16 in your browser".
+Page](https://jtod.github.io/home/Sigma16/) and *Click to run
+Sigma16*.
 
 It is also possible to download the software and run it locally,
 without Internet access.  See the Installation section in the User
@@ -17,12 +17,16 @@ Guide.
 
 ** About Sigma16
 
-The version number is given in the running app on the Welcome page,
-the User Guide, and the Options page.  The latest version is available
-on the Source Repository: [[https://github.com/jtod/Sigma16]]
+The latest version is available on the Source Repository:
+[[https://github.com/jtod/Sigma16]].
 
-The architecture, implementation, circuits, and examples are designed
-and written by [John O'Donnell](https://jtod.github.io/index.html).
+The version number is given in the Version.txt file in the source
+directory.  It's also given in the running app on the Welcome page,
+the User Guide, and the Options page.
+
+The architecture, implementation, circuits, documentation, and
+examples are designed and written by [John
+O'Donnell](https://jtod.github.io/index.html).
 
 - Copyright (C) 2023 John T. O'Donnell
 - License: GNU GPL Version 3 or later.  The full text of the license

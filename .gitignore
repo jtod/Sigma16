@@ -16,6 +16,8 @@ node_modules
 *.obj.txt
 *.md.txt
 deprecated*
+*.fdb_latexmk
+*.fls
 *.hi
 *.o
 *.exe
