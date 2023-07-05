@@ -280,3 +280,15 @@ installHomepage :
 	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
+
+clean :
+	find ./ \( -name '*~' \
+	  -o -name '*fdb_latexmk' \
+	  -o -name '*log' \
+	  -o -name '*out' \
+	  -o -name '*aux' \
+	  -o -name '*toc' \
+	  -o -name '*fls' \
+	  -o -name '*fdb_latexmk' \
+	  -o -name 'temp*' \) -delete
+

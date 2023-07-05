@@ -358,8 +358,10 @@ const hexDigit =
 // Return a string giving the hex representation of a word
 
 export function wordToHex4 (x) {
-    let [p,q,r,s] = splitWord (limit16 (x))
-    return hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s]
+    const [p,q,r,s] = splitWord (limit16 (x))
+    const result = hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s]
+    console.log (`&&&&& wordToHex4 x=${x} result=${result}`)
+    return result
 }
 
 export function wordToHex8 (x) { 

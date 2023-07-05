@@ -694,7 +694,6 @@ export function executeInstruction (es) {
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
     if (arch.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
-        com.mode.devlog (`execute instruction: interrupt`)
 	let i = 0; // interrupt that is taken
 	while (i<16 && arch.getBitInWordLE(mr,i) === 0) { i++ }
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)

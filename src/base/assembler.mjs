@@ -827,13 +827,16 @@ function parseOperation (ma,s) {
                        && s.operation.afmt==arch.aOrg) {
                 let y = evaluate (ma, s, ma.locationCounter,
                                   s.fieldOperands);
-                s.orgAddr = y.value;
+                s.orgAddr = y;
+                console.log (`$$$$$$$$$$ org s.orgAddr=${s.orgAddr} line 831`)
                 com.mode.devlog (`parse Operation orgAddr=${s.orgAddr}`);
+                console.log (`***** parse Op ORG  orgAddr=${s.orgAddr}`);
             } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aBlock) {
                 let y = evaluate (ma, s, ma.locationCounter,
                                   s.fieldOperands);
                 s.orgAddr = mkConstVal (ma.locationCounter.word + y.word);
+                console.log (`parse Op ORG orgAddr=${s.orgAddr}`);
                 com.mode.devlog
                   (`parse Op BLOCK orgAddr=${s.orgAddr.toString()}`);
             } else {
@@ -919,11 +922,14 @@ function handleLabel (ma,s) {
 
 function updateLocationCounter (ma,s,i) {
             com.mode.devlog (`Pass 1 ${i} @ was ${ma.locationCounter.toString()}`);
-        if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aOrg) {
-            let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-            com.mode.devlog (`Org v= ${v.toString()}`);
-            ma.locationCounter = v.copy();
-            com.mode.devlog (`org ${i} ${ma.locationCounter.toString()}`);
+    if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aOrg) {
+        console.log (`######### pass1 org about to get v line 926`)
+        let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+        console.log (`######### pass1 org v=${v}`)
+        com.mode.devlog (`Org v= ${v.toString()}`);
+        ma.locationCounter = v.copy();
+        com.mode.devlog (`org ${i} ${ma.locationCounter.toString()}`);
+        console.log (`######### org ${i} ${ma.locationCounter.toString()}`);
         } else if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aBlock) {
             let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
             if (v.movability==Fixed) {
@@ -1016,11 +1022,18 @@ function asmPass2 (ma) {
 // Directives        
         if (op.ifmt==arch.iDir
             && [arch.aBlock,arch.aOrg].includes(op.afmt)) {
-            let a = s.orgAddr;
-            let ahex = arith.wordToHex4 (a)
+            console.log ('********** pass2 ORG handler')
+            const a = s.orgAddr;
+            console.log (`***** Pass2 genORG a=${a}`);
+            console.log ('********** pass2 ORG calling wordToHex4')
+            const ahex = arith.wordToHex4 (a);
+            console.log ('********** pass2 ORG back from wordToHex4')
+            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} calling emit`);
             com.mode.devlog (`Pass 2 org/block a=${a} ahex=${ahex}`);
             emitObjectWords (ma);
+            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} back fr emit`);
             let stmt = `org      ${ahex}`
+            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} stmt=${stmt}`);
             ma.objectCode.push (stmt);
 
 // RRR-RRR
@@ -1253,8 +1266,8 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkkk) {
-// EXP-Rkkkk (logicb) logicb R3,6,8,2,xor
-            com.mode.devlog ('Pass2 EXP/Rkkkk (logicb)')
+// EXP-Rkkkk (logicr) logicr R3,6,8,2,xor
+            com.mode.devlog ('Pass2 EXP/Rkkkk (logicr)')
             requireNoperands (ma, s, 5)
             const ab = op.opcode[1]
             const d = requireReg(ma,s,s.operands[0])
@@ -1268,7 +1281,7 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkRkk) {
-// EXP-RkRkk (logicu) logicu R3,4,R9,8,xor
+// EXP-RkRkk (logicb) logicb R3,4,R9,8,xor
             com.mode.devlog ('Pass2 EXP/RkRkk')
             requireNoperands (ma, s, 5)
             const ab = op.opcode[1]

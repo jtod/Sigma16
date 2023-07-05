@@ -1,6 +1,6 @@
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
-#+DATE: Version 3.6.1, June 2023
+#+DATE: Version 3.6.3, July 2023
 #+EMAIL: john.t.odonnell9@gmail.com
 
 # This file is part of Sigma16: https://github.com/jtod/Sigma16.
@@ -30,8 +30,6 @@
 
 # html
 # To generate html: C-c C-e h h (export to html)
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../docstyle.css" />
-#+HTML_HEAD_EXTRA: <style>span[class^="section-number-"]:after { content: '.'; }</style>
 
 # LaTeX
 # To generate latex: C-c C-e l l (export to latex file)
@@ -39,19 +37,21 @@
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [a4paper,11pt,twoside]
 #+LATEX_HEADER: \usepackage{sigma16}
-
+#+BEGIN_EXPORT latex
 \begin{scope}
   \renewcommand{\numberline}[1]{{}}
   \tableofcontents
 \end{scope}
+#+END_EXPORT
+
+# Notes
+# to do: automate inclusion of version and date
+# to do: single space metadata inclusion at end
+# Testing: Uncomment next line to check that \usepackage{sigma16} works:
+# \SigmaTest
+# demo: Internal link: (See also [[*Branches][Branches]].)
 
 * Introduction
-
-# Testing
-# Uncomment this to check that \usepackage{sigma16} works:
-# \SigmaTest
-
-# Internal link: (See also [[*Branches][Branches]].)
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
@@ -71,20 +71,18 @@ and the circuit.
 
 The architecture is organized into subsets to make it easier to learn
 and to use:
+
 - The *Core* subset has a small instruction set which is a good
   starting point for learning about computer architecture.  Although
   simple, Core is powerful enough to support realistic programming.
 - The *Standard* subset offers flexible programming techniques,
   including manipulation of bits, Boolean expressions, shifting,
   extracting fields, arithmetic on natural numbers and arbitrary
-  precision integers, and concise support for stack frames.
-- The full *System* architecture supports the study of systems
-  programming.  It provides interrupts, concurrent processes, and
-  mutual exclusion.
-Core is a subset of Standard, which is a subset of System.  To learn
-the full architecture, start with Core and then go on to Standard and
-System.
-
+  precision integers, and concise support for stack frames. It also
+  supports the study of systems programming, providing interrupts,
+  protection, concurrent processes, and mutual exclusion, and memory
+  management.
+  
 For a quick start, begin with the Core tutorials, which introduce the
 architecture step by step.  The tutorials explain the machine, show
 how to program it, and demonstrate how to enter and run a program and
@@ -101,12 +99,9 @@ commercial computers that achieve success in the marketplace
 eventually become encrusted with complications that help support
 backward compatibility; this can lead to great complexity.
 
-
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the examples in the main panel.
-
-
 
 * Core architecture tutorials
 :PROPERTIES:
@@ -1929,10 +1924,12 @@ addressable memory location is a word, and a memory address is a word.
 Each register is a word.
 
 By itself, a word has no inherent meaning: it is just a sequence of
-bits.  However, some instructions act on a word assuming that it
-represents some particular primitive data type.
-Every primitive data value is represented either as a word (natural
-numbers, integers, addresses) or as a bit within a word (Booleans).
+bits.  Some instructions operate on a word without regard to what it
+means: for example, several instructions copy a word from one place to
+another.  Other instructions act on a word assuming that it represents
+some particular primitive data type: for example, integer arithmetic
+instructions assume that the word represents an integer, while address
+instructions assume that the word represents a natural number.
 
 Sigma16 supports natural numbers, and integers, which are represented
 as words.  It also supports Booleans, which are represented as a bit
@@ -1958,9 +1955,15 @@ $$\fbox{$\ x_{15}\> x_{14}\> x_{13}\> x_{12}
 For a word $x$, the notation $x.i$ means the value of the bit at index
 $i$ in the word, for $0 \leq i < 16$.  For example, $R5.12$ is the
 value of bit at index 12 in R5.  The least significant bit of R2 is
-$R2.0$, and the most significant bit is $R2.15$.
+$R2.0$, and the most significant bit is $R2.15$.  When used in an
+instruction, a bit index is specified as a 4-bit binary number /i/
+such that 0 <= /i/ = 16.
 
 *** Fields  
+
+A bit field is a contiguous sequence of bits in a word.  It is
+specified by the register containing a word, the index of the starting
+bit in the field, and the size of the field.
 
 *** Natural numbers
 
@@ -2102,7 +2105,7 @@ jumps:
 
 Another way to use condition code flags is to save them as Boolean
 variables and perform logic operations on them.  This is done using
-the extract and logicb instructions.
+the extract and logicr instructions.
 
 There are separate flags for integers (represented as two's complement) and natural
 numbers (represented as binary).  This is necessary because the
@@ -2440,6 +2443,7 @@ Example:
    e714 52d6
 #+END_EXAMPLE
 
+
 ** Accessing memory
 
 A memory address is a 16-bit binary number.  Instructions don't
@@ -2524,7 +2528,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_EXAMPLE
 
-*** Stack representation
+*** Stack of words
 
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -2562,7 +2566,7 @@ A stack can be created and initialized by allocating a region of
 memory, setting /stack base/ to the first word and /stack limit/ to
 the last word, and setting /stack top/ to /stack base/ - 1.
 
-*** push
+**** push
 
 The push instruction pushes an element onto a stack.  It is RRR
 format, and its general form is:
@@ -2604,7 +2608,7 @@ will occur after the push instruction completes.  There will be no
 interrupt if interrupts are disabled, or the stack fault bit is not
 set in the mask register.
 
-*** pop
+**** pop
 
 The push instruction removes an element onto a stack and returns it.
 The instruction is RRR format, and its general form is:
@@ -2634,7 +2638,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** top
+**** top
 
 The top instruction returns the top element on a stack but does not
 remove it.  The instruction is RRR format, and its general form is:
@@ -2663,11 +2667,21 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_EXAMPLE
 
-*** save and restore
+*** Stack frames
 
-The =save= and =restore= instructions are analogous to =store= and
-=load=, but they transfer a block of data between registers and
-memory, not just an individual word.
+When a program calls a procedure it is usually necessary to save the
+state of the caller in a data structure called a stack frame.  (This
+is not necessary during a "tail call".)  The stack frame is pushed
+onto the execution stack.  When the procedure returns, the contents of
+the stack frame need to be loaded back into the registers.  These
+operations can be performed by ordinary store instructions (for
+procedure call) and load instructions (for procedure return).
+However, this often requires a significant number of instructions.
+
+The =save= and =restore= instructions transfer a block of data between
+registers and memory, making it easier to use stack frames.  These
+instructions are analogous to =store= and =load=, but they store or
+load multiple words, not just an individual word.
 
 - *save* stores a sequence of adjacent registers into a block of
   contiguous memory locations.
@@ -2680,34 +2694,15 @@ memory block is specified by an effective address of the form
 =offset[Reg]=, where Reg is any register (e.g. R4, R13, etc) and
 =offset= is a number between 0 and 255.
 
-This instruction will save registers R3 through R9 into memory
-starting at address 5 + R13:
+Normally $d \leq e$, in which case the number of registers to be saved
+is $e-d + 1$.  If $d > e$, the instruction will do nothing.  The base
+register $R_f$ should not lie within the group of registers to be
+saved or restored.
 
-#+BEGIN_EXAMPLE
-   save    R3,R6,5[R13]
-#+END_EXAMPLE
-
-It is equivalent to a sequence of store instructions:
-#+BEGIN_EXAMPLE
-   store   R3,5[R13]
-   store   R4,6[R13]
-   store   R5,7[R13]
-   store   R6,8[R13]
-#+END_EXAMPLE
-
-To load the entire block back into the same registers, use
-
-#+BEGIN_EXAMPLE
-   restore R3,R6,5[R13]
-#+END_EXAMPLE
-
-This is equivalent to a sequence of load instructions:
-#+BEGIN_EXAMPLE
-   load    R3,5[R13]
-   load    R4,6[R13]
-   load    R5,7[R13]
-   load    R6,8[R13]
-#+END_EXAMPLE
+The first register to be saved is $R_d$, and the last register to be
+saved is $R_e$.  The instruction always stores at least one register.
+If $d = e$, for example =save R5,R5,0[R14]= then only R5 is stored.
+If $d < e$ then the register numbers wrap around For example,
 
 There is an important restriction with =save= and =restore=: the
 displacement is limited to a small natural number between 0 and 255.
@@ -2717,90 +2712,71 @@ instructions are EXP format and the offset is represented by an 8-bit
 field (whereas load and store are RX format and the displacement is a
 16-bit word).
 
-A common usage of save and restore is to simplify procedure call and
-return.  When a procedure is called, store the registers onto the
-execution stack when a procedure is called (using save), and then to
-load them back from the stack when the procedure is returned
-(restore).  Normally, the format of a stack frame has a fixed location
-for saving the registers, at a small offset from the beginning of the
-frame.  A register called the /stack pointer/ gives the address of the
-frame, and the offset for saving the registers is normally a small
-value (such as 3 or similar).
-
-Both save and restore are EXP format instructions, so each instruction
-is two words:
-
-- The first instruction word:
-  - op = e (indicating escape to EXP format)
-  - d = index register
-  - ab = secondary opcode
-- The second word:
-  - e = first register
-  - f = second register
-  - gh = 8-bit offset
-- The starting address of the memory block is R[d] + gh
-- The set of registers is R[e], R[e+1], ..., R[f]
-
-For save, the effect is
-- mem[R[d]+gh] := R[e]
-- mem[R[d]+gh+1] := R[e+1]
-- mem[R[d]+gh+2] := R[e+2]
-- ...
-- mem[R[d]+gh+f-e] := R[f]
-
-For restore, the effect is similar but the assignments are reversed:
-- R[e] := mem[R[d]+gh]
-- etc.
-
-The argument registers are not modified, unless they happen to be
-loaded by a restore.
-
-
 The instruction is EXP format, and the offset is limited to 8 bits,
 because it is specified in the *gh* field, which is the rightmost 8
 bits of the second word of the instruction.  The secondary opcode is
-8, which is in the ab field of the first word of the instruction.
+9, which is in the ab field of the first word of the instruction.
 
-The first register to be saved is in the *e* field, and the last
-register to be saved is in the *f* field.  The instruction always
-stores at least one register.  If *e* and *f* are the same, for
-example *save R5,R5,0[F14]* then that register (R5 in the example) is
-stored.  If *e* > *f* then the register numbers wrap around  For
-example, 
+**** save
+
+The general form is
 
 #+BEGIN_EXAMPLE
-   save    R14,R2,20[R5]
+   save Rd,Re,gh[Rf]
+   EXP op=#e ab=$0b
 #+END_EXAMPLE
 
-is equivalent to
+The save instruction performs a sequence of stores:
+
+- $\mathsf{mem}[R_f+gh] := R_d$
+- $\mathsf{mem}[R_f+gh+1] := R_{d+1}$
+- $\mathsf{mem}[R_f+gh+2] := R_{d+2}$
+- $\ldots$
+- $\mathsf{mem}[R_f+gh+e-d] := R_e$
+
+For example, the following instruction will save registers R3 through R9
+into memory starting at address 6 + R13:
+
 #+BEGIN_EXAMPLE
-   store   R14,20[R5]
-   store   R15,21[R5]
-   store   R0,22[R5]
-   store   R1,23[R5]
-   store   R2,24[R5]
+   save   R3,R9,6[R13]  ; e30b 9d06. store R3-R9 starting at 6[R13]
 #+END_EXAMPLE
 
+It is equivalent to a sequence of store instructions:
+#+BEGIN_EXAMPLE
+   store   R3,6[R13]
+   store   R4,7[R13]
+   store   R5,8[R13]
+   store   R6,9[R13]
+   store   R7,10[R13]
+   store   R8,11[R13]
+   store   R9,12[R13]
+#+END_EXAMPLE
 
-The *restore* instruction copies a sequence of consecutive memory
-locations starting from the effecive address into a sequence of
-adjacent registers.  The index register (R14 in this example) is not
-changed.  Restore is equivalent to a fixed sequence of load
-instructions; its purpose of restore is to restore the state of
-registers from memory after a procedure call or a context switch.
+As this example shows, using =save= and =restore= can make procedure
+calls more concise and readable as well as less error-prone.
 
+**** restore
 
-The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
-at consecutive locations beginning with mem[gh+Rf] into registers Re,
-Re+1, ..., Rf.
+This =restore= instruction has the same operands as the corresponding
+=save=, and it performs a sequence of stores corresponding to the
+loads performed by save.  The general form is
 
-The instruction is EXP format, and the displacement is limited to 8
-bits, because it is specified in the gh field (the rightmost 8 bits)
-of the second word of the instruction.  The secondary opcode is 9,
-which is in the ab field of the first word of the instruction. The
-assembly language statement format is RRXEXP.
+#+BEGIN_EXAMPLE
+   restore Rd,Re,gh[Rf]
+   EXP op=#e ab=$0c
+#+END_EXAMPLE
 
-For example, consider this instruction:
+The restore instruction performs a sequence of loads:
+
+\begin{verbatim}
+- $R_d := \mathsf{mem}[R_f+gh] $
+- $R_{d+1} := \mathsf{mem}[R_f+gh+1] $
+- $R_{d+2} := \mathsf{mem}[R_f+gh+2] $
+- $\ldots$
+- $R_e := \mathsf{mem}[R_f+gh+e-d] $
+\end{verbatim}
+
+  For example, consider this instruction:
 #+BEGIN_EXAMPLE
    restore  R3,R10,4[R14]
 #+END_EXAMPLE
@@ -2817,6 +2793,69 @@ The effect is equivalent to
    load  R9,10[R14]
    load  R10,11[R14]
 #+END_EXAMPLE
+
+
+Suppose a stack frame was created by the =save= example above. 
+To restore the registers from the stack frame, use:
+  
+#+BEGIN_EXAMPLE
+   restore R3,R9,6[R13]  ; e30b 9d06. store R3-R9 starting at 6[R13]
+#+END_EXAMPLE
+
+It is equivalent to a sequence of store instructions:
+
+#+BEGIN_EXAMPLE
+   load   R3,6[R13]
+   load   R4,7[R13]
+   load   R5,8[R13]
+   load   R6,9[R13]
+   load   R7,10[R13]
+   load   R8,11[R13]
+   load   R9,12[R13]
+#+END_EXAMPLE
+  
+
+#+BEGIN_EXAMPLE
+   restore R3,R5,6[R13]  ; e30c 5d06. load R3-R5 starting at 6[R13]
+#+END_EXAMPLE
+
+This is equivalent to a sequence of load instructions:
+#+BEGIN_EXAMPLE
+   load    R3,6[R13]
+   load    R4,7[R13]
+   load    R5,8[R13]
+   load    R6,9[R13]
+#+END_EXAMPLE
+
+
+
+The *restore* instruction copies a sequence of consecutive memory
+locations starting from the effecive address into a sequence of
+adjacent registers.  The index register (R14 in this example) is not
+changed.  Restore is equivalent to a fixed sequence of load
+instructions; its purpose of restore is to restore the state of
+registers from memory after a procedure call or a context switch.
+
+
+The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
+at consecutive locations beginning with mem[gh+Rf] into registers Re,
+Re+1, ..., Rf.
+
+
+
+**** Implementing procedure call and return
+
+A common usage of save and restore is to simplify procedure call and
+return.  When a procedure is called, store the registers onto the
+execution stack when a procedure is called (using save), and then to
+load them back from the stack when the procedure is returned
+(restore).  Normally, the format of a stack frame has a fixed location
+for saving the registers, at a small offset from the beginning of the
+frame.  A register called the /stack pointer/ gives the address of the
+frame, and the offset for saving the registers is normally a small
+value (such as 3 or similar).
+
+
 
 
 ** Arithmetic
@@ -3098,6 +3137,7 @@ implement a goto statement.  (See also [[*Branches][Branches]].)
 
 *** jal
 
+
 ** Branches
 
 A branch instruction transfers control to another address, rather than
@@ -3214,91 +3254,64 @@ number of bits in the code, and a fixed /offset/ (which is usually 0).
 - The branch table is normally a sequence of unconditional branch
   instructions, either brf or brb.
 
- ** Logic and bits
-
-The instructions in this section treat a word as a sequence of bits,
-not as a number.  There are instructions that perform logic operations
-on individual bits, on all the bits in a word, and that operate on bit
-fields.
-
-The bits in a word x are indexed from 0 to 15, where 0 is the index of
-the leftmost (most significant) bit and 15 is the index or the
-rightmost (least significant) bit.  The notation x.i means the bit
-with index i in the word x.  For example, x.0 is the leftmost bit and
-x.15 is the rightmost bit.  When used in an instruction, a bit index
-is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
-
-A bit field is a contiguous sequence of bits in a word.  It is
-specified by the register containing a word, the index of the starting
-bit in the field, and the size of the field.
-
-The bit field instructions can be implemented using a combination of
-logic and shift instructions.  They are included in the architecture
-for several reasons:
-
-- These operations provide useful abstractions for writing
-  interpreters and simulators.
-- When used in an interpreter, bit field operations are executed
-  frequently: they are a crucial part of the "inner loop".  Therefore
-  the efficiency of common bit field operations is important.
-- The bit field instructions are easier to use and more readable than
-  the corresponding logic and shifts.
-- These instructions can be implemented efficiently in a digital
-  circuit and this implementation is an interesting design problem.
-
 
 ** Logic
 
+The commonest Boolean operators are =inv=, =and=, =or=, and =xor=.
+However, these aren't the only useful operations: there are 16 logic
+functions of two arguments.  Instead of providing specialised
+instructions for a few of the logic functions, Sigma16 provides three
+general instructions that implement all of them.
+
+- =logicw= performs logic on all the corresponding bits in two operand
+  registers, and places the word result in a destination register.
+- =logicr= performs logic on two operand bits within a register, and
+  places the result in a destination bit in the same register.
+- =logicb= performs logic on two operand bits that may be in different
+  registers.  The result overwrites the first operand bit.
+
+The bit logic instructions =logicr= and =logicb= extract the operand
+bits from registers, calculate the result using a supplied function,
+and put the bit back into a word, leaving the rest of the word
+unchanged.  The word logic instructions update every bit in the
+destination.  The bit logic instructions update only one bit in the
+destination, enabling you to keep many Boolean variables in just one
+register.
+
+Logic instructions make it easy to calculate any Boolean expression,
+but they are not the only way.  In some cases it is better to use
+"short circuit evaluation".
+  
 *** General logic functions
 
-There are 16 Boolean logic functions that take two arguments.  The
-commonest ones are /and/, /or/, /xor/.  Sigma16 provides instructions
-for all the logic functions, not just the commonest ones.  The logical
-negation (inversion) function /inv/ is treated as one of the 16, which
-just ignores its second argument.
-
-The commonest Boolean operators are inv, and, or, which can be defined
-using truth tables.  The truth table for inv (also called not, logical
-negation) has just one input and two lines:
+The invert function (also called not, logical negation) has one input.
 
 | x | inv x |
 |---+-------|
 | 0 |     1 |
 | 1 |     0 |
 
-The truth tables for and, or, xor have two inputs and four lines
-that enumerate all possible inputs and the corresponding output.  (For
-now, ignore the numbers in the bottom line.)
+The truth tables for =and=, =or=, =xor= have two inputs.
 
-| x | y | x and y | x xor y | x or y |
-|---+---+---------+---------+--------+
-| 0 | 0 |       0 |       0 |      0 |
-| 0 | 1 |       0 |       1 |      1 |
-| 1 | 0 |       0 |       1 |      1 |
-| 1 | 1 |       1 |       0 |      1 |
-|---+---+---------+---------+--------+
-|   |   |       1 |       6 |      7 |
-|---+---+---------+---------+--------|
+| x | y | x and y | x or y | x xor y |
+|---+---+---------+--------+---------|
+| 0 | 0 |       0 |      0 |       0 |
+| 0 | 1 |       0 |      1 |       1 |
+| 1 | 0 |       0 |      1 |       1 |
+| 1 | 1 |       1 |      1 |       0 |
+|---+---+---------+--------+---------|
 
-However, those aren't the only logic functions with two inputs.  Other
-useful ones inlcude nor (not or) as well as nand (not and):
+These aren't the only logic functions with two inputs.  Every logic
+function with two inputs $x$ and $y$ can be defined by a truth table
+where we list all possible values for the inputs and give the
+corresponding result.  Each input could be either 0 or 1.  Since there
+are 2, there are $2^2 = 4$ lines in the truth table.
 
-| x | y | x nor y | inv y | inv x | x nand y |
-|---+---+---------+-------+-------+----------|
-| 0 | 0 |       1 |     1 |     1 |        1 |
-| 0 | 1 |       0 |     0 |     1 |        1 |
-| 1 | 0 |       0 |     1 |     0 |        1 |
-| 1 | 1 |       0 |     0 |     0 |        0 |
-|---+---+---------+-------+-------+----------|
-|   |   |       8 |     a |     c |        e |
-|---+---+---------+-------+-------+----------|
-
-How many other logic functions exist?  (After all, some of them are
-useful.)  /Every/ logic funciton with two inputs $x$, $y$, can be
-defined by a truth table where we list all possible values for
-$(x,y)$, and give the corresponding result.  Each result could be
-either 0 or 1.  So every logic function can be defined by the
-following table, with appropriate values for $(a,b,c,d)$:
+The tables above give specific values, either 0 or 1, for each result.
+For example, the result column for the =and= function is (reading from
+top to bottom) 0001, while =xor= is 0110.  For an arbitrary function,
+we can write the result column as $abcd$ where each variable is either
+0 or 1.
 
 | x | y | result |
 |---+---+--------|
@@ -3307,73 +3320,85 @@ following table, with appropriate values for $(a,b,c,d)$:
 | 1 | 0 | c      |
 | 1 | 1 | d      |
 
-For example, if $(a,b,c,d) = (0,0,0,1)$ this is the truth table for
-/and/.  if $(a,b,c,d) = (0,1,1,0)$ this is the truth table for /xor/.
-For convenience and brevity, we can write the binary value of each
-string of four bits: thus the code for /xor/ is 6 and so on.  The
-following table lists some of the logic funcitons, but it actually
-enumerates /all/ of them.
+Since there are 4 variables, there are $2^4$ possible settings of
+$(a,b,c,d)$ and consequently there are 16 Boolean logic functions that
+take two arguments.  For example, if $(a,b,c,d) = (0,0,0,1)$ this is
+the truth table for /and/.  if $(a,b,c,d) = (0,1,1,0)$ this is the
+truth table for /xor/.
 
-| abcd | code | function |
-| 0000 |    0 |          |
+The Sigma16 logic instructions take a 4-bit code that specifies the
+logic function by giving the values of $(a,b,c,d)$.  In assembly
+language, the code is given as a decimal number between 0 and 15.
+The codes for the most common functions are:
+
+| abcd | code | name     |
+|------+------+----------|
 | 0001 |    1 | x and y  |
-| 0010 |    2 |          |
-| 0011 |    3 |          |
-| 0100 |    4 |          |
-| 0101 |    5 |          |
 | 0110 |    6 | x xor y  |
 | 0111 |    7 | x or y   |
 | 1000 |    8 | x nor y  |
-|   nn |    9 |          |
-| 1010 |   10 | inv y    |
-| 1011 |   11 |          |
-| 1100 |   12 | inv x    |
-| 1101 |   13 |          |
 | 1110 |   14 | x nand y |
-| 1111 |   15 |          |
 
-Instead of providing half a dozen specialised instructions for some
-(but not all) of the useful logic functions, Sigma16 provides general
-logic instructions that implement /all/ of them. These are =logicw= to
-perform logic on all the bits in a word, and =logicb= and =logicc= to
-perform logic on individual bits (i.e. Boolean variables).
+Furthermore, the =inv= function can be treated as a 2-input function
+where the second argument is ignored.
 
-*** Word logic
+*** Word logic: logicw
 
 The logicw instruction performs a bitwise logic operation on two
 operands: each bit of the result is obtained by performing the logic
 function on the corresponding bits of the two operands.  The
 instruction allows an arbitrary logic function on two bits.
 
-An arbitrary logic function of two varialbes /g/ is applied to the two
+An arbitrary logic function of two variables is applied to the two
 operand registers Re and Rf, and the result is loaded into the
-destination register Rd.  The function /g/ is specified by a number
-giving the binary value of the result (see above); for example, 6 is
-the code for exclusive or.  For example:
+destination register Rd.  The function $h$ is specified as described
+above; for example, 6 is the code for exclusive or.  The general form
+is
 
 #+BEGIN_EXAMPLE
-   logicw R5,R7,R2,6 ; R5 := R7 xor R2
+   logicw  Rd,Re,Rf,h     ; Rd := h (Re, Rf)
+   EXP. op=#e, ab=$12, g is ignored
 #+END_EXAMPLE
 
-The instruction format is EXP and the assembly format is RRRk. The
-general form is
+The following example computes the =xor= of registers R1 and R2, and
+puts the result into R3.
+
 #+BEGIN_EXAMPLE
-   logicw Rd,Re,Rf,h
+   lea     R1,$00ff[R0]  ; R1 := 00ff
+   lea     R2,$0f0f[R0]  ; R2 := 0f0f
+   logicw  R3,R1,R2,6    ; e312 1206. R3 := 0ff0
 #+END_EXAMPLE
-The meaning is Rd := h (Re,Rf).
+
+*** Pseudoinstructions: invw, andw, orw, xorw
 
 If you're using one of the most common logic functions, a
-pseudoinstruction may be more convenient.  The following assembly
-language statements generate exactly the same machine language:
+pseudoinstruction is convenient and can make a program more readable.
+There are pseudoinstructions =invw=, =andw=, =orw=, =xorw= which have
+the same form as =logicw= except the function is specified by the
+pseudo operation and the function operand is omitted.
 
 #+BEGIN_EXAMPLE
-     logicw R5,R7,R2,6     ; R5 := R7 xor R2
-     xorw   R5,R7,R2       ; R5 := R7 xor R2
+    invw  R3,R4     ; R3 := invert R4
+    andw  R3,R4,R5  ; R3 := R4 and R5
+    or w  R3,R4,R5  ; R3 := R4 or R5
+    xorw  R3,R4,R5  ; R3 := R4 xor R5
 #+END_EXAMPLE
 
-Also, you can define a symbol for the logic function using an =equ=
-assembly directive; that symbol can then be used instead of the
-numeric code:
+A pseudoinstruction is not a machine instruction: the Sigma16
+processor does not have an =andw= instruction.  Instead, the assembler
+generates the =logicw= instruction corresponding to any of =invw=,
+=andw=, =orw=, =xorw=.  The following assembly language statements
+generate exactly the same machine language:
+
+#+BEGIN_EXAMPLE
+     logicw R5,R7,R2,1     ; R5 := R7 and R2
+     andw   R5,R7,R2       ; R5 := R7 and R2
+#+END_EXAMPLE
+
+If you prefer to use the actual machine instruction, rather than a
+pseudoinstruction, you can define a symbol for the logic function
+using an =equ= assembly directive.  The symbol can then be used
+instead of the numeric code:
 
 #+BEGIN_EXAMPLE
 xor  equ   6
@@ -3381,62 +3406,16 @@ xor  equ   6
      logicw R5,R7,R2,xor   ; R5 := R7 xor R2
 #+END_EXAMPLE
 
-*** Word logic pseudoinstructions: invw, andw, orw, xorw
+*** Bit logic within a register: logicr
 
-There are pseudoinstructions that perform common bitwise logical
-operations on one or two words, producing a word result.  The
-commonest logical operations are supported: logical negation, logical
-and, inclusive or, and exclusive or.
-
-- invw  R3,R4  ; R3 := invert R4
-- andw  R3,R4,R5 ; R3 := R4 and R5
-- orw  R3,R4,R5 ; R3 := R4 or R5
-- xorw  R3,R4,R5 ; R3 := R4 xor R5
-
-A pseudoinstruction is not actually a machine instruction: the Sigma16
-processor circuit does not have an =andw= instruction.  Instead, it
-has a more general and powerful instruction (=logicw=) that is capable
-of performing =andw=, as well as many other operations.  The =andw=
-pseudoinstruction is just an assembly language notation that generates
-the corresponding =logicw=.  Using pseudoinstructions can make a
-program more readable, and it enables you to perform simple logic
-operations without learning the more complicated general instructions.
-
-*** Bit logic
-
-The bit logic instructions, =logicb= and =logicu=, perform logic on
-individual bits.  These instructions make it easy to calculate any
-Boolean expression, and they also enable you to keep a set of Boolean
-variables in just one register.
-
-Bit logic is not the only way to evaluate compound Boolean
-expressions; an alternative is to use "short circuit evaluation".
-
-The bit logic instructions extract the operand bits from registers,
-calculate the result using a supplied function, and put the bit back
-into a word, leaving the rest of the word unchanged.  The word logic
-instructions update every bit in the destination, while the bit logic
-instructions update only one bit in the destination.
-
-**** logicb
-
-The logicb instruction =logicb= allows you to specify any two operand
-bits and a destination bit, but there is a restriction: all three of
-these bits must be in the same register.  This instruction performs
-any bit logic function where the operands and result are all in the
-same register.  This is exactly what you need when a program has a
-collection of Boolean flags kept in the same word.  The general form
-is:
+The =logicr= instruction allows you to specify any two operand bits
+and a destination bit, all within the same register.  This is
+convenient when a program has a collection of Boolean flags kept in
+the same word.  The general form is:
 
 #+BEGIN_EXAMPLE
-   logicb  Rd,e,f,g,h  ; Rd.e := h (Rd.f, Rd.g)
+   logicr  Rd,e,f,g,h  ; Rd.e := h (Rd.f, Rd.g)
    EXP op=#e ab=$13
-#+END_EXAMPLE
-
-The instruction format is EXP, with the following fields:
-
-#+BEGIN_EXAMPLE
-      logicb  Rd,e,f,g,h
 #+END_EXAMPLE
 
 - Rd is the destination register, which also contains both source
@@ -3445,120 +3424,139 @@ The instruction format is EXP, with the following fields:
 - f is the index of the first argument bit
 - g is the index of the second argument bit
 - h is the logic function
-  
+- The instruction format is EXP, with primary =e= and secondary opcode
+  =$13=.
 
-If your program keeps a set of Boolean variables in one register, you
-can calculate Boolean expressions in that register with =logicb=.
-
-Here is an example that performs logic on bits within R1.  The logic
-function xor has code 6 (see Logic Functions), the operands are bits 9
-and 2, and the result is placed into bit 3.  The instruction could be
-read as: within R1, perform logic function 6 on bits 9 and 2, and
-place the result in bit 3.
+Here is an example that performs logic on bits within R1, which is
+initialized to 0002. and calculates the logic or of bit 0 (which is 0)
+and bit 1 (which is 1).  The result goes into bit 10, changing R1 from
+=$0002= to =$0402=.  The logic function or has code 7.  Tthe operands
+are bits 9 and 2, and the result is placed into bit 3.  The
+instruction says: within R1, perform logic function 7 on bits 0 and 1,
+and place the result in bit 10.
 
 #+BEGIN_EXAMPLE
-   logicb  R5,3,9,2,6  ; R5.3 := R5.9 xor R5.2
-   e513 3926
+  lea     R1,2[R0]     ; R1 := 0002, R1.0 = 0, R1.1 = 1
+  logicr  R1,10,0,1,or ; e113 a017. R1 := 0402, R1.10 = 1  
 #+END_EXAMPLE
 
 The op field of the first word of the machine language code for this
 example is 14 (hex e), indicating EXP format.  The secondary operation
-code is hex =13=, which is stored in the =ab= field.  Since the
-general form is =logicb Rd,e,f,g,h=, we have $d=5$, $e=3$, $f=9$,
-$g=2$, and $h=6$.  So the machine language code for =logicb
-R5,3,9,2,6= is =e513 3926=.
+code is =$13=, which is stored in the =ab= field.  Since the general
+form is =logicr Rd,e,f,g,h=, we have $d=1$, $e=a$, $f=0$, $g=1$, and
+$h=7$, so the machine language code is =e113 a017=.
 
-**** logicu
+If your program keeps a set of Boolean variables in one register, you
+can calculate Boolean expressions in that register with =logicr=.
 
-The =logicu= instruction specifies two operand bits that may be in
-different registers.  But you cannot put the result bit anywhere; it
-will update (overwrite) the first operand bit.  The general form is:
+*** Pseudoinstructions invr, andr, orr, xorb
+
+Pseudoinstructions are provided for the most common bit logic
+functions.  The operands are the same as for =logicr=, except the last
+operand is omitted, as the function is specified by the mnemonic.
 
 #+BEGIN_EXAMPLE
-   logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
-   EXP op=#e ab=$14
+      invr    R1,3,9     ; R1.3 := inv R1.9
+      andr    R1,3,9,2   ; R1.3 := R1.9 and R1.2
+      orr     R1,3,9,2   ; R1.3 := R1.9 or R1.2
+      xorr    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
+#+END_EXAMPLE
+
+*** Bit logic across registers: logicb
+
+The =logicb= instruction specifies two operand bits that may be in
+different registers.  The result will overwrite the first operand bit.
+The general form is:
+
+#+BEGIN_EXAMPLE
+   logicb  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
+   EXP op=$e ab=$14
 #+END_EXAMPLE
 
 Example:
 #+BEGIN_EXAMPLE
-   logicu  R7,5,R2,13,xor  ; R1.3 := R1.9 xor R1.2:
-   e714 52d6
+   lea    R2,$0200[R0]   ; R2.9 := 1
+   lea    R7,$0000[R0]   ; R7.13 := 0
+   logicb R2,9,R7,13,xor ; e214 97d6. R2 := 0200, R2.9 := R2.9 xor R7.13
 #+END_EXAMPLE
 
-**** Pseudoinstructions invb andb orb xorb
-
-Pseudoinstructions are provided for the most common logic functions
-for both =logicb= and =logicu=.  The operands for these are the same
-as for =logicb= or =logicu=, except that the last operand (the logic
-function) is omitted.  Since the logical negation (invert) function
-has only one operand, the =invb= seudoinstruction also omits the
-second operand bit index.
+*** Pseudoinstructions invb, andb, orb, xorb
 
 #+BEGIN_EXAMPLE
-      invb    R1,3,9     ; R1.3 := inv R1.9
-      andb    R1,3,9,2   ; R1.3 := R1.9 and R1.2
-      orb     R1,3,9,2   ; R1.3 := R1.9 or R1.2
-      xorb    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
+      invb    R1,3,R2,9   ; R1.3 := inv R2.9
+      andb    R1,3,R2,9   ; R1.3 := R1.3 and R2.9
+      orub    R1,3,R2,9   ; R1.3 := R1.3 or R2.9
+      xorb    R1,3,R2,9   ; R1.3 := R1.3 xor R2.9
 #+END_EXAMPLE
 
-**** Pseudoinstructions invu andu oru xoru
+The =invb= pseudoinstruction is more flexible than =invr=, as it
+allows the operands to come from different registers.  However, if
+you're doing logic operations in a word of Booleans, it may be clearer
+to write =invb R9,3,7= than to write the equivalent =invbr R9,3,R9,7=.
+
+*** Pseudoinstructions setb, clearb, moveb, movebi
+
+The bit logic instructions have some useful special cases that don't
+appear to involve logic at all.  These are supported by
+pseudoinstructions.
+
+- =setb Rd,e= puts 1 into a specified bit: =Rd.e := 1=.
 
 #+BEGIN_EXAMPLE
-      invu    R1,3,R2,9   ; R1.3 := inv R2.9
-      andu    R1,3,R2,9   ; R1.3 := R1.3 and R2.9
-      oruu    R1,3,R2,9   ; R1.3 := R1.3 or R2.9
-      xoru    R1,3,R2,9   ; R1.3 := R1.3 xor R2.9
+    setb   R4,7         ; R4.7 := 1
 #+END_EXAMPLE
 
-The =invu= pseudoinstruction is more flexible than =invb=.  However,
-if you're doing logic operations in a word of Booleans, it may be
-clearer to write =invb R9,3,7= than to write the equivalent =invbu
-R9,3,R9,7=.
-
-**** Pseudoinstructions setb, clearb, moveb
-
-The =clearu= pseudoinstruction sets a specified bit to 0, and =setu=
-sets a specified bit to 1.
-
-The =moveu= pseudoinstruction extracts a bit from a register and
-writes that into a specified destination.
+- =clearb Rd,e= puts 0 into the specified bit.
 
 #+BEGIN_EXAMPLE
-    clearu R4,7         ; R4.7 := 0
-    setu   R4,7         ; R4.7 := 1
-    moveu  R4,7,R12,5   ; R4.7 := R12.5
+    clearb R4,7         ; R4.7 := 0
 #+END_EXAMPLE
 
-** Operations on bit fields
-
-*** shiftl, shiftr
-
-The instruction shiftl Rd,Ra,k shifts the value in the operand
-register Ra by k bits to the left, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
-shift, the leftmost k bits of the value are discarded and the
-rightmost k bits become 0.
+- =moveb Rd,e,Rf,g= copies a bit from one register into a specified
+  position in another register.
 
 #+BEGIN_EXAMPLE
-   shiftl  R2,R3,5
-   op = e (EXP format)
-   d = 2 (destination register)
-   ab = secondary opcode
-   e = 3 (register operand)
-   f = 0 (unused, don't care)
-   gh = 5 (constant)
+    moveb  R4,7,R12,5   ; R4.7 := R12.5
 #+END_EXAMPLE
 
-The instruction format is EXP, and the assembly language statement format
-is RRKEXP.
+- =movebi Rd,e,Rf,g= inverts a bit and copies it from one register
+  into a specified position in another register.
 
-Shift to the right.
+#+BEGIN_EXAMPLE
+    moveb  R4,7,R12,5   ; R4.7 := R12.5
+#+END_EXAMPLE
 
-The instruction shiftr Rd,Ra,k shifts the value in the operand
+** Bit fields
+
+The bit field instructions treat a word as a string of bits, and
+operate either on the entire string or a substring (i.e. a bit field).
+
+*** Shifting: shiftl, shiftr
+
+The shift instructions treat the operand as a string of bits, and move
+each bit a fixed distance to the left or right.
+
+The instruction shiftl =Rd,Ra,k= shifts the value in the operand
+register Ra by h bits to the left, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  The
+leftmost k bits of the operand are discarded and the rightmost k bits
+of the result become 0.  The general form is
+
+#+BEGIN_EXAMPLE
+   shiftl Rd,Re,h
+   EXP op=$e, ab=$10, f,g are ignored
+#+END_EXAMPLE
+
+The instruction =shiftr Rd,Re,k= shifts the value in the operand
 register Ra by k bits to the right, and the result is placed in the
 destination register Rd.  The operand Ra is not modified.  During the
 shift, the rightmost k bits of the value are discarded and the
-leftmost k bits become 0.
+leftmost k bits become 0.  The general form is
+
+#+BEGIN_EXAMPLE
+   shiftr Rd,Re,h
+   EXP op=$e, ab=$11, f,g are ignored
+#+END_EXAMPLE
 
 The following instruction shifts the value in R3 to the right by 5
 bits and place the result in R2.  The operand register R3 is not
@@ -3571,7 +3569,7 @@ changed.
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
 
-*** extract, extracti
+*** Obtaining fields: extract, extracti
 
 The extract instruction copies an arbitrary field of bits from a
 source register and inserts those bits into an arbitrary position in
@@ -3689,6 +3687,19 @@ Here is another example:
       extract  R4,R0,13,5,1     ; dfff
 #+END_EXAMPLE
 
+These instructions can be implemented using a combination of
+logic and shift instructions.  They are included in the architecture
+for several reasons:
+
+- These operations provide useful abstractions for writing
+  interpreters and simulators.
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
 
 ** System control
 
@@ -3753,70 +3764,70 @@ consist of one of the following:
 - 
 
   
-|----------+------+-----+---+-----+-------+------------+------+-----------+------------------------------------+--------------------------------------------------|
-| Name     | ISA  | R15 | P | Fmt | Afmt  | Args       | Op   | Object    | Effect                             |                                                  |
-|----------+------+-----+---+-----+-------+------------+------+-----------+------------------------------------+--------------------------------------------------|
-| add      | Core | cc  |   | RRR | RRR   | D,A,B      | 0    | 0DAB      | Rd := Ra + Rb                      |                                                  |
-| sub      | Core | cc  |   | RRR | RRR   | D,A,B      | 1    | 1DAB      | Rd := Ra - Rb                      |                                                  |
-| mul      | Core | cc  |   | RRR | RRR   | D,A,B      | 2    | 2DAB      | Rd := Ra * Rb                      |                                                  |
-| div      | Core | rem |   | RRR | RRR   | D,A,B      | 3    | 3DAB      | Rd := Ra / Rb, R15 := Ra rem Rb    |                                                  |
-| cmp      | Core | cc  |   | RRR | RR    | D,A        | 4    | 4da0      | R15 := Ra cmp Rb                   |                                                  |
-| addc     | Std  | cc  |   | RRR | RRR   | D,A,B      | 5    | 5DAB      | Rd := Ra + Rb + R15.carry          |                                                  |
-| muln     | Std  | d   |   | RRR | RRR   | D,A,B      | 6    | 6DAB      | R15++Rd := Ra :*: Rb               |                                                  |
-| divn     | Std  | d   |   | RRR | RRR   | D,A,B      | 7    | 7DAB      | R15++Rd := R15++Ra :/: Rb          |                                                  |
-|          | Core |     |   | RRR |       | D,A,B      | 8    | 8DAB      | nop, reserved for experimenting -- |                                                  |
-|          | Core |     |   | RRR |       | D,A,B      | 9    | 9DAB      | nop, reserved for experiment --    |                                                  |
-|          | Core |     |   | RRR |       | D,A,B      | a    | aDAB      | nop, reserved for experiment --    |                                                  |
-|          | Core |     |   | RRR |       | D,A,B      | b    | bDAB      | nop, reserved for experiment --    |                                                  |
-| trap     | Core |     |   | RRR | RRR   | D,A,B      | c    | cDAB      | user interrupt                     |                                                  |
-|          |      |     |   |     |       |            | d    | d---      | nop, reserved                      |                                                  |
-|          |      |     |   |     |       |            | e    | e---      | escape to EXP format               |                                                  |
-|          |      |     |   |     |       |            | f    | f---      | escape to RX format                |                                                  |
-|----------+------+-----+---+-----+-------+------------+------+-----------+------------------------------------+--------------------------------------------------|
-| lea      | Core |     |   | RX  | RX    | D,A[Disp]  | f,0  | fDA0;Disp | Rd := ea                           |                                                  |
-| load     | Core |     |   | RX  | RX    | D,A[Disp]  | f,1  | fDA1;Disp | Rd := M[ea]                        |                                                  |
-| store    | Core |     |   | RX  | RX    | D,A[Disp]  | f,2  | fDA2;Disp | M[ea] := Rd                        |                                                  |
-| jump     | Core |     |   | RX  | X     | D,A[Disp]  | f,3  | fDA3;Disp | pc := ea                           |                                                  |
-| jumpc0   | Core |     |   | RX  | kX    | J,A[Disp]  | f,4  | fKA4;Disp | R15.k=0 ==> pc := ea               |                                                  |
-| jumpc1   | Core |     |   | RX  | kX    | J,A[Disp]  | f,5  | fKA5;Disp | R15.k=1 ==> pc := ea               |                                                  |
-| jal      | Core |     |   | RX  | RX    | D,A[Disp]  | f,6  | fDA6;Disp | Rd := pc, pc := ea                 |                                                  |
-| testset  | Sys  |     |   | RX  | RX    | D,A[Disp]  | f,7  | fDA7;Disp | Rd := M[ea], M[ea] := 1            |                                                  |
-|          |      |     |   | RX  |       |            | f,8  | f--8;---- | -- reserved --                     |                                                  |
-|          |      |     |   | RX  |       |            | ...  |           | -- reserved --                     |                                                  |
-|          |      |     |   | RX  |       |            | f,f  | f--F;---- | -- reserved --                     |                                                  |
-|----------+------+-----+---+-----+-------+------------+------+-----------+------------------------------------+--------------------------------------------------|
-| brf      | Std  |     |   | EXP | K     | Disp       | e,00 | e000;Disp | pc := pc+2+fgh                     |                                                  |
-| brb      | Std  |     |   | EXP | K     | Disp       | e,01 | e001;Disp | pc := pc+2-fgh                     |                                                  |
-| brfc0    | Std  |     |   | EXP | RkK   | D,K,Q      | e,02 | ed02;KQ-- | !Rd.e => pc += 2+fgh               |                                                  |
-| brbc0    | Std  |     |   | EXP | RkK   | D,K,Q      | e,03 | ed03;KQ-- | !Rd.e => pc += 2-fgh               |                                                  |
-| brfc1    | Std  |     |   | EXP | RkK   | D,K,Q      | e,04 | ed04;KQ-- | Rd.e  => pc += 2+fgh               |                                                  |
-| brbc1    | Std  |     |   | EXP | RkK   | D,K,Q      | e,05 | ed05;KQ-- | Rd.e  => pc += 2-fgh               |                                                  |
-| brfz     | Std  |     |   | EXP | RK    | D,Disp     | e,06 | ed06;Disp | Rd=0  => pc += 2+fgh               |                                                  |
-| brbz     | Std  |     |   | EXP | Rk    | D,Disp     | e,07 | ed07;Disp | Rd=0  => pc += 2-fgh               |                                                  |
-| brfnz    | Std  |     |   | EXP | RK    | D,Disp     | e,08 | ed08;Disp | Rd!=0 => pc += 2+fgh               |                                                  |
-| brbnz    | Std  |     |   | EXP | RK    | D,Disp     | e,09 | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
-| dispatch | Std  |     |   | EXP | RkK   | D,Disp     | e,0a | ed09;Disp | Rd!=0 => pc += 2-fgh               |                                                  |
-| save     | Std  |     |   | EXP | RRX   | D,E,P      | e,0b | eD0a;EFx  | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
-| restore  | Std  |     |   | EXP | RRX   | D,E,P      | e,0c | ed0b;EQ-- | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
-| push     | Std  | cc  |   | EXP | RRR   | D,E,F      | e,0d | ed0c;EF-- | M[ea] := Rd, Rb++                  |                                                  |
-| pop      | Std  | cc  |   | EXP | RRR   | D,E,F      | e,0e | ed0d;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| top      | Std  | cc  |   | EXP | RRR   | D,E,F      | e,1f | ed0e;EF-- | Rb--, Rd := M[ea]                  |                                                  |
-| shiftl   | Std  |     |   | EXP | RRk   | D,E,L      | e,10 | ed0f;EJ-- | Rd := Ra shl b                     |                                                  |
-| shiftr   | Std  |     |   | EXP | RRk   | D,E,L      | e,11 | eD10;EJ-- | Rd := Ra shr b                     |                                                  |
-| logicw   | Std  |     |   | EXP | RRRk  | Rd,Re,Rf,h | e,12 | eD11;EFM- | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
-| logicb   | Std  |     |   | EXP | Rkkkk | D,K,L,M,N  | e,13 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicb R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
-| logicu   | Std  |     |   | EXP | RkRkk | D,K,L,M,N  | e,14 | eD12;KLMN | Rd.e := Rd.f (lut h) Rd.g          | logicbcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
-| extract  | Std  |     |   | EXP | RkkRk | D,E,L,M,N  | e,15 | eD13;ELMN | Rd := extract Rd di size Rs si     |                                                  |
-| extracti | Std  |     |   | EXP | RkkRk | D,E,L,M,N  | e,16 | eD14;ELMN | Rd := extracti Rd di size Rs si    |                                                  |
-| getctl   | Sys  |     | P | EXP | RC    | D,C        | e,17 | eD15;C--- | Rd := Sc                           |                                                  |
-| putctl   | Sys  |     | P | EXP | RC    | D,         | e,18 | eD16;C--- | Sc := Rd                           |                                                  |
-| resume   | Sys  |     | P | EXP | null  | R          | e,19 | e-18;---- | pc := ipc, status := istatus       |                                                  |
-|          |      |     |   | EXP |       |            | e,1a | e-19;---- | reserved                           |                                                  |
-|          |      |     |   | EXP |       |            | ...  |           | reserved                           |                                                  |
-|          |      |     |   | EXP |       |            | e,ff | e-ff;---- | reserved                           |                                                  |
-|----------+------+-----+---+-----+-------+------------+------+-----------+------------------------------------+--------------------------------------------------|
-|          |      |     |   |     |       |            |      |           | <33>                               |                                                  |
-|----------+------+-----+---+-----+-------+------------+------+-----------+------------------------------------+--------------------------------------------------|
+|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
+| Name     | ISA  | R15 | P | Fmt | Afmt  | Args         | Op   | Effect                             |                                                  |
+|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
+| add      | Core | cc  |   | RRR | RRR   | D,A,B        | 0    | Rd := Ra + Rb                      |                                                  |
+| sub      | Core | cc  |   | RRR | RRR   | D,A,B        | 1    | Rd := Ra - Rb                      |                                                  |
+| mul      | Core | cc  |   | RRR | RRR   | D,A,B        | 2    | Rd := Ra * Rb                      |                                                  |
+| div      | Core | rem |   | RRR | RRR   | D,A,B        | 3    | Rd := Ra / Rb, R15 := Ra rem Rb    |                                                  |
+| cmp      | Core | cc  |   | RRR | RR    | D,A          | 4    | R15 := Ra cmp Rb                   |                                                  |
+| addc     | Std  | cc  |   | RRR | RRR   | D,A,B        | 5    | Rd := Ra + Rb + R15.carry          |                                                  |
+| muln     | Std  | d   |   | RRR | RRR   | D,A,B        | 6    | R15++Rd := Ra :*: Rb               |                                                  |
+| divn     | Std  | d   |   | RRR | RRR   | D,A,B        | 7    | R15++Rd := R15++Ra :/: Rb          |                                                  |
+|          | Core |     |   | RRR |       | D,A,B        | 8    | nop, reserved for experimenting -- |                                                  |
+|          | Core |     |   | RRR |       | D,A,B        | 9    | nop, reserved for experiment --    |                                                  |
+|          | Core |     |   | RRR |       | D,A,B        | a    | nop, reserved for experiment --    |                                                  |
+|          | Core |     |   | RRR |       | D,A,B        | b    | nop, reserved for experiment --    |                                                  |
+| trap     | Core |     |   | RRR | RRR   | D,A,B        | c    | user interrupt                     |                                                  |
+|          |      |     |   |     |       |              | d    | nop, reserved                      |                                                  |
+|          |      |     |   |     |       |              | e    | escape to EXP format               |                                                  |
+|          |      |     |   |     |       |              | f    | escape to RX format                |                                                  |
+|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
+| lea      | Core |     |   | RX  | RX    | D,A[Disp]    | f,0  | Rd := ea                           |                                                  |
+| load     | Core |     |   | RX  | RX    | D,A[Disp]    | f,1  | Rd := M[ea]                        |                                                  |
+| store    | Core |     |   | RX  | RX    | D,A[Disp]    | f,2  | M[ea] := Rd                        |                                                  |
+| jump     | Core |     |   | RX  | X     | D,A[Disp]    | f,3  | pc := ea                           |                                                  |
+| jumpc0   | Core |     |   | RX  | kX    | J,A[Disp]    | f,4  | R15.k=0 ==> pc := ea               |                                                  |
+| jumpc1   | Core |     |   | RX  | kX    | J,A[Disp]    | f,5  | R15.k=1 ==> pc := ea               |                                                  |
+| jal      | Core |     |   | RX  | RX    | D,A[Disp]    | f,6  | Rd := pc, pc := ea                 |                                                  |
+| testset  | Sys  |     |   | RX  | RX    | D,A[Disp]    | f,7  | Rd := M[ea], M[ea] := 1            |                                                  |
+|          |      |     |   | RX  |       |              | f,8  | -- reserved --                     |                                                  |
+|          |      |     |   | RX  |       |              | ...  | -- reserved --                     |                                                  |
+|          |      |     |   | RX  |       |              | f,f  | -- reserved --                     |                                                  |
+|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
+| brf      | Std  |     |   | EXP | K     | Disp         | e,00 | pc := pc+2+fgh                     |                                                  |
+| brb      | Std  |     |   | EXP | K     | Disp         | e,01 | pc := pc+2-fgh                     |                                                  |
+| brfc0    | Std  |     |   | EXP | RkK   | D,K,Q        | e,02 | !Rd.e => pc += 2+fgh               |                                                  |
+| brbc0    | Std  |     |   | EXP | RkK   | D,K,Q        | e,03 | !Rd.e => pc += 2-fgh               |                                                  |
+| brfc1    | Std  |     |   | EXP | RkK   | D,K,Q        | e,04 | Rd.e  => pc += 2+fgh               |                                                  |
+| brbc1    | Std  |     |   | EXP | RkK   | D,K,Q        | e,05 | Rd.e  => pc += 2-fgh               |                                                  |
+| brfz     | Std  |     |   | EXP | RK    | D,Disp       | e,06 | Rd=0  => pc += 2+fgh               |                                                  |
+| brbz     | Std  |     |   | EXP | Rk    | D,Disp       | e,07 | Rd=0  => pc += 2-fgh               |                                                  |
+| brfnz    | Std  |     |   | EXP | RK    | D,Disp       | e,08 | Rd!=0 => pc += 2+fgh               |                                                  |
+| brbnz    | Std  |     |   | EXP | RK    | D,Disp       | e,09 | Rd!=0 => pc += 2-fgh               |                                                  |
+| dispatch | Std  |     |   | EXP | RkK   | D,Disp       | e,0a | Rd!=0 => pc += 2-fgh               |                                                  |
+| save     | Std  |     |   | EXP | RRX   | Rd,Re,gh[Rf] | e,0b | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
+| restore  | Std  |     |   | EXP | RRX   | D,E,P        | e,0c | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
+| push     | Std  | cc  |   | EXP | RRR   | D,E,F        | e,0d | M[ea] := Rd, Rb++                  |                                                  |
+| pop      | Std  | cc  |   | EXP | RRR   | D,E,F        | e,0e | Rb--, Rd := M[ea]                  |                                                  |
+| top      | Std  | cc  |   | EXP | RRR   | D,E,F        | e,1f | Rb--, Rd := M[ea]                  |                                                  |
+| shiftl   | Std  |     |   | EXP | RRk   | D,E,L        | e,10 | Rd := Ra shl b                     |                                                  |
+| shiftr   | Std  |     |   | EXP | RRk   | D,E,L        | e,11 | Rd := Ra shr b                     |                                                  |
+| logicw   | Std  |     |   | EXP | RRRk  | Rd,Re,Rf,h   | e,12 | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
+| logicr   | Std  |     |   | EXP | Rkkkk | Rd,e,f,g,h   | e,13 | Rd.e := Rd.f (lut h) Rd.g          | logicr R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
+| logicb   | Std  |     |   | EXP | RkRkk | Rd,e,Rf,g,h  | e,14 | Rd.e := Rd.f (lut h) Rd.g          | logicrcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
+| extract  | Std  |     |   | EXP | RkkRk | D,E,L,M,N    | e,15 | Rd := extract Rd di size Rs si     |                                                  |
+| extracti | Std  |     |   | EXP | RkkRk | D,E,L,M,N    | e,16 | Rd := extracti Rd di size Rs si    |                                                  |
+| getctl   | Sys  |     | P | EXP | RC    | D,C          | e,17 | Rd := Sc                           |                                                  |
+| putctl   | Sys  |     | P | EXP | RC    | D,           | e,18 | Sc := Rd                           |                                                  |
+| resume   | Sys  |     | P | EXP | null  | R            | e,19 | pc := ipc, status := istatus       |                                                  |
+|          |      |     |   | EXP |       |              | e,1a | reserved                           |                                                  |
+|          |      |     |   | EXP |       |              | ...  | reserved                           |                                                  |
+|          |      |     |   | EXP |       |              | e,ff | reserved                           |                                                  |
+|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
+|          |      |     |   |     |       |              |      | <33>                               |                                                  |
+|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
 
 #+BEGIN_EXPORT html
 </div">
@@ -3893,7 +3904,7 @@ Machine language
 | kX    | k,disp[Ra]           | jumpc0 6,loop[R2] | 0 <= k <= 15  |
 | RRRk  | Rd,Ra,Rb,K[Re]       | save R1,R5,3[R14] | 0 <= K <= 255 |
 | RRk   | Ra,Rb,k              | shiftl R1,R2,5    | 0 <= k <= 15  |
-| Rkkkk | Rd,e,f,g,h           | logicb R1,        |               |
+| Rkkkk | Rd,e,f,g,h           | logicr R1,        |               |
 | RkkRk | Ra,j,n,Rb,k          | extract           |               |
 | RC    | Rc,Rd                | putctl vect,R4    |               |
 |       |                      |                   |               |

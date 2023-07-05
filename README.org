@@ -1,38 +1,100 @@
-* Sigma16 source directory
+* Sigma16
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
-for experimenting with the architecture.  See the user guide in the
-docs directory for full documentation.
+for experimenting with the architecture, including an editor,
+assembler, linker, emulator, and an integrated development environment
+(IDE) with a graphical user interface.
 
-** Quick start: Running Sigma16 in a web page
+Sigma16 is suitable for use in a first course on computer systems.  No
+prior knowledge of computer architecture is required; the only
+prerequisite is some general experience with programming.  But Sigma16
+is not limited to beginners: by following through the documentation
+and examples, you will gain understanding of machine and assembly
+language, as well as intermediate and advanced programming techniques,
+culminating in a simple operating system kernel.
 
-You don't need to install anything.  Just visit the [Sigma16 Home
-Page](https://jtod.github.io/home/Sigma16/) and click the prominent
-link to "Run Sigma16 in your browser".
+This is free software, available at
+[[https://github.com/jtod/Sigma16]] under the GPL-3 license.
+
+** Don't need to install: Sigma16 runs in browser
+
+Sigma16 runs in a web browser: you don't need to download or install
+anything.  To launch the app, just visit the Sigma16 Home Page,
+[[https://jtod.github.io/home/Sigma16/]], and *Click to run Sigma16*.
 
 It is also possible to download the software and run it locally,
-without Internet access.  See the Installation section in the User
-Guide.
+without Internet access.  There are command line tools for running the
+assembler and linker in a shell, and the GUI can also be executed on a
+local machine.  See the Installation section in the User Guide.
 
-** About Sigma16
+** Documentation and examples
 
-The version number is given in the running app on the Welcome page,
-the User Guide, and the Options page.  The latest version is available
-on the Source Repository: [[https://github.com/jtod/Sigma16]]
+The running app displays the User Guide, which shows how to get
+started step by step.  Just launch the app and follow the tutorials.
+You can also access the User Guide directly, without launching the
+app:
 
-The architecture, implementation, circuits, and examples are designed
-and written by [John O'Donnell](https://jtod.github.io/index.html).
+- [[https://sigma16.herokuapp.com/Sigma16/build/release/Sigma16/docs/UserGuide/Sigma16UserGuide.html][User Guide (html)]]
+- [[https://sigma16.herokuapp.com/Sigma16/build/release/Sigma16/docs/UserGuide/Sigma16UserGuide.pdf][User Guide (pdf)]]
+
+The app contains a collection of example programs.  The User Guide
+begins with tutorials that introduce the system step by step, showing
+how the examples work, followed by a reference specification of the
+architecture, instruction set, and assembly language.
+
+The examples include basic programming, compilation patterns,
+conditionals, loops, arrays, logic, bit manipulation, records,
+arithmetic on large natural numbers ("bignum"), modules, import and
+export, linking, relocation, pointers, lists, trees, graphs,
+concurrency, mutual exclusion, memory management, and threads and
+processes.
+
+** Architecture
+
+The architecture is designed to be simple enough for beginners to
+learn easily, yet flexible enough to support advanced programming
+techniques, including systems programming.  This is a 16-bit
+architecture; all registers and memory locations are 16 bit words, and
+addresses are 16 bits.
+
+A subset of the architecture called /Core/ is suitable for elementary
+courses in computer systems.  Core has 17 instructions, with some
+additional pseudoinstructions for convenience.
+
+The full architecture, called /Standard/, has additional instructions
+for logic, bit fields, arithmetic on large natural numbers, and
+systems programming.
+
+** Digital circuit
+
+There is also a digital circuit, available separately, that implements
+the Core architecture.  The circuit is specified at the level of logic
+gates and flip flops, and is expressed in Hydra, a functional computer
+hardware description language: [[https://github.com/jtod/Hydra]].
+Hydra can simulate the circuit, so the example programs in the Core
+architecture can run on the circuit as well as the emulator.
+
+** About the Sigma16 software
+
+The latest version is available on the Source Repository
+[[https://github.com/jtod/Sigma16]].
+
+The version number is given in the =Version.txt= file in the source
+directory.  It's also given in the running app on the Welcome page,
+the User Guide, and the Options page.
+
+The architecture, implementation, circuits, documentation, and
+examples are designed and written by John O'Donnell,
+[[https://jtod.github.io/index.html]].
 
 - Copyright (C) 2023 John T. O'Donnell
-- License: GNU GPL Version 3 or later.  The full text of the license
-  is given in the source repository in Sigma16/LICENSE, as well as at
+- License: GNU GPL Version 3.  The full text of the license is given
+  in the source repository in Sigma16/LICENSE, as well as at
   [[https://www.gnu.org/licenses][https://www.gnu.org/licenses]].
 
 Sigma16 is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
+under the terms of the GNU General Public License version 3.
 
 Sigma16 is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or

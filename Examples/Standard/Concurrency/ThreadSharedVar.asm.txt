@@ -1,0 +1,380 @@
+; ThreadSharedVar: Two threads accessing shared variable.
+; Demonstrate need for mutual exclusion in a critical region.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+
+; Testing
+;    jump  StartB[R0]
+;   trap R0,R0,R0   
+
+; If interrupt occurs in critical region, an increment is lost.
+
+; Notes
+
+; When an instruction is about to execute, the processor checks for
+; interrupts as follows
+
+; let mr = mask & req
+; if mr && status.intEnableBit
+;   then -- process interrupt
+;     i := min {j | 0 <= j < 16 && mr.j = 1}    ; interrupt priority
+;     rpc := pc
+;     rstat := status
+;     req.i := 0
+;     pc := vect + 2*i
+;     status.intEnable := 0, status.userState := 0
+;   else -- no interrupt, proceed with instruction
+
+; Each thread can use all the registers, which are saved on an
+; interrupt and restored when the thread is resumed.
+
+; Kernel transfers control to a thread
+; GiveTimeSlice
+;  CurrentTCB := FindTCB (CurrentThread)
+;  restore state of CurrentThread from CurrentTCB
+;  resume with interrupts enabled (give time slice)
+; Current thread := ChooseNextThread (CurrentThread)
+;    jump MainLoop[R0]
+
+;------------------------------------------------------------------------
+; System control flags
+;------------------------------------------------------------------------
+
+; Status register control bit indices
+userStateBit    equ    $0001   ; bit index 0
+intEnable       equ    $0002   ; bit index 1
+
+; Interrupt control bit indices
+timerBit        equ    $0001   ; bit index 0
+segFaultBit     equ    $0002   ; bit index 1
+stackOverBit    equ    $0004   ; bit index 2
+stackUnderBit   equ    $0008   ; bit index 3
+userTrapBit     equ    $0010   ; bit index 4
+overflowBit     equ    $0020   ; bit index 5
+zDivBit         equ    $0040   ; bit index 6
+
+InitStatus  equ  0
+
+;------------------------------------------------------------------------
+; Kernel: Initialization
+;------------------------------------------------------------------------
+
+; Create TCB for Thread A
+    lea    R1,0[R0]             ; A is thread number 0
+    jal    R14,FindTCB[R0]      ; R2 := &TCB for A
+    lea    R3,StartA[R0]        ; address where A starts execution
+    store  R3,TCB_pc[R2]        ; initialize initial pc for A
+    lea    R3,InitStatus[R0]
+    store  R3,TCB_status[R2]
+
+; Create TCB for Thread B
+    lea    R1,1[R0]             ; B is thread number 1
+    jal    R14,FindTCB[R0]      ; R2 := &TCB for B
+    lea    R3,StartB[R0]        ; address where B starts execution
+    store  R3,TCB_pc[R2]        ; initialize initial pc for B
+    lea    R3,InitStatus[R0]
+    store  R3,TCB_status[R2]
+
+; Initialize CurrentThread (0: A running, 1: B running)
+    store  R0,CurrentThread[R0] ; start with thread A
+
+; Initialize the interrupt system
+    lea    R1,timerBit[R0]      ; flag for timer interrupt
+    putctl R1,mask              ; set interrupt mask
+    lea    R1,InterruptVector[R0]     ; address of vector
+    putctl R1,vect              ; initialize vector register
+
+; Start the CurrentThread
+    jump   GiveTimeSlice[R0]    ; transfer control to thread
+
+; From now on the program is controlled by preemptive interrupts
+
+;------------------------------------------------------------------------
+; Kernel: Interrupt vector and default handlers
+;------------------------------------------------------------------------
+
+InterruptVector
+    jump   HandleTimerInterrupt[R0]
+    jump   HandleSegFault[R0]
+    jump   HandleStackFault[R0]
+    jump   HandleUserTrap[R0]
+    jump   HandleOverflow[R0]
+    jump   HandleZdiv[R0]
+
+; Dummy interrupt handlers.  This program just uses timer interrupts.
+; If any of the following interrupts occurs, the kernel will
+; terminate.
+
+HandleSegFault
+HandleStackFault
+HandleUserTrap
+HandleOverflow
+HandleZdiv
+    trap    R0,R0,R0   ; kernel terminates (killing threads)
+
+;------------------------------------------------------------------------
+; Kernel: Timer interrupt handler and thread scheduler
+;------------------------------------------------------------------------
+
+HandleTimerInterrupt
+
+; When a timer interrupt occurs, the handler saves the state of the
+; running process, chooses the next thread to run, and then gives it a
+; time slice.
+
+; Save R1 in a fixed location so the kernel can use it as a pointer to
+; the CurrentTCB without corrupting the thread that was interrupted.
+; Then the rest of the registers are saved in the TCB, and finally the
+; value of R1 is recovered from SpecialSave1 and stored into the TCB.
+
+; Save state of the interrupted thread.  First save R1 in a special
+; fixed place, then set R1 to the address of the TCB for the current
+; thread.  That makes it possible to save the rest of the registers,
+; and finally we can get the saved value of R1 from SpecialSaveR1 and
+; put it too into the TCB.
+
+SaveState
+    store  R1,SpecialSaveR1[R0]  ; make R1 available
+    load   R1,CurrentTCB[R0]     ; point to TCB
+    save   R2,R15,TCB_R2[R1]     ; save R2-R15 into TCB
+    load   R2,SpecialSaveR1[R0]  ; recover R1 value
+    store  R2,TCB_R1[R1]         ; save R1 into TCB
+    getctl R2,ipc                ; recover pc
+    store  R2,TCB_pc[R1]         ; save pc into TCB
+
+DoSomeKernelWork
+; At this point, the registers have been saved and the kernel can use
+; them normally.
+    load   R2,InterruptCount[R0]   ; increment InterruptCount
+    load   R3,InterruptLimit[R0]
+    cmp    R2,R3
+    jumpge ShutDown[R0]
+    lea    R3,1[R0]
+    add    R2,R2,R3
+    store  R2,InterruptCount[R0]
+    lea    R4,2[R0]          ; trap code for write
+    lea    R5,asterisk[R0]  ; string to print
+    lea    R6,1[R0]          ; length of string
+    trap   R4,R5,R6          ; print the string
+
+; Scheduler: select thread to run next
+    load   R1,CurrentThread[R0]
+    jal    R14,ChooseNextThread[R0]
+    store  R2,CurrentThread[R0]
+
+; Yield control to the thread
+    jump   GiveTimeSlice[R0]
+
+;------------------------------------------------------------------------
+; Kernel procedures
+;------------------------------------------------------------------------
+
+; A user thread may request the kernel to terminate it, but should not
+; perform a ShutDown, which stops the entire computer.  This is
+; reserved for the operating system.
+
+ShutDown
+    trap   R0,R0,R0
+  
+;----------------------------------------
+ChooseNextThread
+; Assume no thread is blocked, and return the next thread number in
+; round robin order.  Given x, the result is x+1 mod Nthreads.
+;   Arg: R1 contains thread number x for last running thread
+;   Return: R2 will contain number of the thread to run next
+
+    lea    R3,1[R0]         ; 1
+    add    R2,R1,R3         ; x + 1
+    load   R4,Nthreads[R0]  ; Nthreads
+    div    R0,R2,R4         ; R15 := (x+1) mod Nthreads
+    add    R2,R15,R0        ; R2 = (x+1) mod Nthreads
+    jump   0[R14]           ; return
+
+;----------------------------------------
+FindTCB
+; Each thread is identified by a thread number ranging from 0 to
+; Nthreads-1.  The address of the TCB for thread number TN is TCBarea
+; + TCB_size * TN.
+;   Arg: R1 contains thread number x
+;   Return: R2 will contain address of TCB for thread x
+    lea    R5,TCB_size[R0]    ; TCB_size
+    mul    R6,R5,R1          ; R6 := TCB_size * x
+    lea    R5,TCBarea[R0]    ; &TCBarea
+    add    R2,R5,R6          ; R2 := &TCBarea + TCB_size * x
+    jump   0[R14]            ; return
+
+;----------------------------------------
+GiveTimeSlice
+
+; Give a time slice to CurrentThread.  This routine isn't called with
+; jal but doesn't return.  The kernel simply jumps to this code, which
+; transfers control to a user thread, which also won't return.  The
+; kernel regains control preemptively when a timer interrupt occurs.
+
+; Get address of TCB for CurrentThread
+    load    R1,CurrentThread[R0]  ; CurrentThread
+    jal     R14,FindTCB[R0]       ; R2 := &TCB for CurrentThread
+    add     R1,R2,R0              ; R1 := &TCB for CurrentThread
+    store   R1,CurrentTCB[R0]     ; CurrentTCB := &TCB for CurrentThread
+    lea     R2,intEnable[R0]      ; prepare to restore interrupt enable
+    putctl  R2,istat              ; resume will set status
+    load    R2,TCB_pc[R1]         ; get pc value for thread
+    putctl  R2,ipc                ; resume will restore  pc
+    restore R2,R15,TCB_R2[R1]     ; restore R2-R15
+    load    R1,TCB_R1[R1]         ; restore R1
+    resume                        ; context switch
+
+;------------------------------------------------------------------------
+; Kernel data
+;------------------------------------------------------------------------
+
+Nthreads        data     2   ; A and B
+CurrentThread   data     0   ; start with A
+CurrentTCB      data     0   ; Address of TCB for CurrentThread
+InterruptLimit  data    20   ; shutdown after this number of interrupts
+SpecialSaveR1   data     0
+InterruptCount  data     0
+
+; String constants
+asterisk        data    42
+
+; Thread control block (TCB) layout
+TCB_size   equ 17  ; number of words in block
+TCB_pc     equ  0
+TCB_status equ  1
+TCB_R1     equ  2   ; offset where R1 is saved
+TCB_R2     equ  3   ; offset where R2 is saved
+
+; Thread Control Block area
+TCBarea
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+    data   0
+
+;------------------------------------------------------------------------
+; User space: shared variable
+;------------------------------------------------------------------------
+
+; Both Thread A and Thread B increment ShardVar from time to time.
+; The final value of SharedVar should be equal to the sum of the
+; number of increments performed by each thread.  However, if a
+; thread break occurs inside a critical region, an increment
+; operation can be "lost" and the final value of SharedVar will be
+; less than the correct value.
+
+SharedVar  data  0  ; a counter accessed by Threads A and B
+
+;------------------------------------------------------------------------
+; User Thread A (thread number 0)
+;------------------------------------------------------------------------
+
+StartA
+    lea    R1,1[R0]          ; R3 := constant 1
+    load   R2,limitA[R0]     ; limit on number of iterations
+    lea    R9,10[R0]         ; help user to see which thread is running
+loopA
+    lea    R3,4              ; trap break code
+    trap   R3,R0,R0          ; breakpoint
+    load   R3,countA[R0]
+;    cmp    R3,R2             ; compare countA with limitA
+;    jumpge doneA[R0]         ; quit at limit
+    add    R3,R3,R1          ; countA := countA + 1
+    store  R3,countA[R0]
+    load   R3,SharedVar[R0]
+    add    R3,R3,R1
+    store  R3,SharedVar[R0]
+    lea    R3,2[R0]          ; trap code for write
+    lea    R4,messageA[R0]   ; &string to print
+    lea    R5,1[R0]          ; length of message
+    trap   R3,R4,R5          ; print the message
+    jump   loopA[R0]         ; goto loop
+; doneA
+;    trap   R0,R0,R0  ; should request termination of thread
+
+countA   data   0
+limitA   data   5
+messageA data   97      ; char code for a
+
+;------------------------------------------------------------------------
+; User Thread B (thread number 1)
+;------------------------------------------------------------------------
+
+StartB
+    lea    R1,1[R0]          ; R3 := constant 1
+    load   R2,limitB[R0]     ; limit on number of iterations
+    lea    R9,11[R0]         ; help user to see which thread is running
+loopB
+    lea    R3,4              ; trap break code
+    trap   R3,R0,R0          ; breakpoint
+    load   R3,countB[R0]
+;    cmp    R3,R2             ; compare countA with limitA
+;    jumpge doneB[R0]         ; quit at limit
+    add    R3,R3,R1          ; countA := countA + 1
+    store  R3,countB[R0]
+    load   R3,SharedVar[R0]
+    add    R3,R3,R1
+    store  R3,SharedVar[R0]
+    lea    R3,2[R0]          ; trap code for write
+    lea    R4,messageB[R0]   ; &string to print
+    lea    R5,1[R0]          ; length of message
+    trap   R3,R4,R5          ; print the message
+    jump   loopB[R0]         ; goto loop
+; doneB
+;    trap   R0,R0,R0  ; should request termination of thread
+
+countB    data   0
+limitB    data   5
+messageB  data   98      ; char code for b
+
+
