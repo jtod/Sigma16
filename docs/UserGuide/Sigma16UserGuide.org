@@ -3254,6 +3254,37 @@ number of bits in the code, and a fixed /offset/ (which is usually 0).
 - The branch table is normally a sequence of unconditional branch
   instructions, either brf or brb.
 
+** Logic and bits
+
+The instructions in this section treat a word as a sequence of bits,
+not as a number.  There are instructions that perform logic operations
+on individual bits, on all the bits in a word, and that operate on bit
+fields.
+
+The bits in a word x are indexed from 0 to 15, where 0 is the index of
+the leftmost (most significant) bit and 15 is the index or the
+rightmost (least significant) bit.  The notation x.i means the bit
+with index i in the word x.  For example, x.0 is the leftmost bit and
+x.15 is the rightmost bit.  When used in an instruction, a bit index
+is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
+
+A bit field is a contiguous sequence of bits in a word.  It is
+specified by the register containing a word, the index of the starting
+bit in the field, and the size of the field.
+
+The bit field instructions can be implemented using a combination of
+logic and shift instructions.  They are included in the architecture
+for several reasons:
+
+- These operations provide useful abstractions for writing
+  interpreters and simulators.
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
 
 ** Logic
 
@@ -3514,6 +3545,27 @@ pseudoinstructions.
 
 - =moveb Rd,e,Rf,g= copies a bit from one register into a specified
   position in another register.
+
+#+BEGIN_EXAMPLE
+    moveb  R4,7,R12,5   ; R4.7 := R12.5
+#+END_EXAMPLE
+
+- =movebi Rd,e,Rf,g= inverts a bit and copies it from one register
+  into a specified position in another register.
+
+#+BEGIN_EXAMPLE
+    moveb  R4,7,R12,5   ; R4.7 := R12.5
+#+END_EXAMPLE
+
+** Bit fields
+
+*** shiftl, shiftr
+
+The instruction shiftl Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the left, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the leftmost k bits of the value are discarded and the
+rightmost k bits become 0.
 
 #+BEGIN_EXAMPLE
     moveb  R4,7,R12,5   ; R4.7 := R12.5
@@ -5548,7 +5600,6 @@ The hypothetical commands `show w' and `show c' should show the appropriate part
 You should also get your employer (if you work as a programmer) or school, if any, to sign a “copyright disclaimer” for the program, if necessary. For more information on this, and how to apply and follow the GNU GPL, see <https://www.gnu.org/licenses/>.
 
 The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
-
 
 * Typesetting notes :noexport:
 ** svg
