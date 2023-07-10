@@ -45,7 +45,8 @@ export class AsmInfo {
 	this.asmStmt = [];              // corresponds to source lines
 	this.symbols = [];              // symbols used in the source
 	this.symbolTable = new Map ();  // symbol table
-	this.locationCounter = 0;       //  next code address
+	this.locationCounter =          //  next code address
+            new Value (0, Local, Relocatable);
 	this.objectCode = [];           // string hex representation
         this.objectText = "";           // object code as single string
         this.metadata = new st.Metadata (); // address-source map
@@ -315,7 +316,6 @@ function evaluate (ma, s, a, x) {
             result = mkConstVal(0); // new Value (0, Local, Fixed);
 	}
     } else if (x.search(intParser) == 0) { // integer literal
-//       result = new Value (arith.intToWord(parseInt(x,10)), Local, Fixed);
         result = mkConstVal(arith.intToWord(parseInt(x,10)));
     } else if (x.search(hexParser) == 0) { // hex literal
 //      result =  new Value (arith.hex4ToWord(x.slice(1)), Local, Fixed);
@@ -363,6 +363,8 @@ function mkAsmStmt (lineNumber, address, srcLine) {
             operands : [],                     // individual operands
 	    codeSize : Zero,                   // number of words generated
 	    orgAddr : -1,                      // addr specified by org/block
+            reserveSize : Zero,
+            locCounterUpdate : Zero,           // new LC after reserve directive
 	    codeWord1 : null,                  // first word of object
 	    codeWord2 : null,                  // second word of object
 	    errors : []                        // lines of error messages
@@ -635,7 +637,6 @@ const parseSplitFields = new RegExp(regexpSplitFields);
 // const xParser = /^([-a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
 // const xParser = /^([-a-zA-Z0-9_\$]+)\[(R|r)([0-9a-f]|(?:1[0-5]))\]/;
 
-
 function requireX (ma, s, field) {
     const xrParser = /^([^\[]+)\[(.*)\]$/
     let disp = "0"
@@ -654,23 +655,6 @@ function requireX (ma, s, field) {
     console.log (`requireX field=${field} disp=<${disp}> index=${index}`)
     return result
 }
-
-/*
-const dx = xParser.exec (field);
-    let result = {disp: "0", index: 0};
-    if (dx) { // disp[reg]
-        const {0:all, 1:disp, 2:index} = dx;
-        com.mode.devlog (`requireX 0=${all} 1=${disp} 2=${index}`);
-        result = {disp,index};
-    } else { // disp
-        const displayField = field ? field : "";
-        mkErrMsg (ma, s, `operand ${displayField} is not disp[reg]`);
-    }
-    com.mode.devlog (`requireX ${field} return ${result.disp} ${result.index}`);
-    console.log (`requireX ${field} return ${result.disp} ${result.index}`);
-    return result;
-*/
-
 
 // requireNoperands checks whether the instruction contains the
 // correct number of operands, and if there aren't enough it defiles
@@ -824,21 +808,19 @@ function parseOperation (ma,s) {
                        && s.operation.afmt==arch.aData) {
                 s.codeSize = One.copy();
             } else if (s.operation.ifmt==arch.iDir
+                       && s.operation.afmt==arch.aReserve) {
+                let y = evaluate (ma, s, ma.locationCounter,
+                                  s.fieldOperands);
+                //                s.reserveAddr = y.word;
+                s.reserveSize = y;
+                com.mode.devlog (`parse Operation reserveSize=${s.reserveSize}`);
+            } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aOrg) {
                 let y = evaluate (ma, s, ma.locationCounter,
                                   s.fieldOperands);
-                s.orgAddr = y;
-                console.log (`$$$$$$$$$$ org s.orgAddr=${s.orgAddr} line 831`)
+                //                s.orgAddr = y.word;
+                s.orgAddr = y
                 com.mode.devlog (`parse Operation orgAddr=${s.orgAddr}`);
-                console.log (`***** parse Op ORG  orgAddr=${s.orgAddr}`);
-            } else if (s.operation.ifmt==arch.iDir
-                       && s.operation.afmt==arch.aBlock) {
-                let y = evaluate (ma, s, ma.locationCounter,
-                                  s.fieldOperands);
-                s.orgAddr = mkConstVal (ma.locationCounter.word + y.word);
-                console.log (`parse Op ORG orgAddr=${s.orgAddr}`);
-                com.mode.devlog
-                  (`parse Op BLOCK orgAddr=${s.orgAddr.toString()}`);
             } else {
 	        s.codeSize = mkConstVal(arch.formatSize(x.ifmt));
             }
@@ -906,8 +888,9 @@ function handleLabel (ma,s) {
             let v = ExtVal.copy();
             let i = new Identifier (s.fieldLabel, mod, extname, v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);
-            com.mode.devlog (`Label import ${s.lineNumber} locname=${s.fieldLabel}`
-                             + ` mod=${mod} extname=${extname}`);
+            com.mode.devlog
+              (`Label import ${s.lineNumber} locname=${s.fieldLabel}`
+               + ` mod=${mod} extname=${extname}`);
         } else {
             let v = ma.locationCounter.copy();
             com.mode.devlog (`def label lc = ${ma.locationCounter.toString()}`);
@@ -921,30 +904,28 @@ function handleLabel (ma,s) {
 }
 
 function updateLocationCounter (ma,s,i) {
-            com.mode.devlog (`Pass 1 ${i} @ was ${ma.locationCounter.toString()}`);
+    com.mode.devlog (`Pass 1 ${i} @ was ${ma.locationCounter.toString()}`);
     if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aOrg) {
-        console.log (`######### pass1 org about to get v line 926`)
         let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-        console.log (`######### pass1 org v=${v}`)
-        com.mode.devlog (`Org v= ${v.toString()}`);
         ma.locationCounter = v.copy();
+        console.log (`P1 org @${ma.locationCounter.toString()}`);
         com.mode.devlog (`org ${i} ${ma.locationCounter.toString()}`);
-        console.log (`######### org ${i} ${ma.locationCounter.toString()}`);
-        } else if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aBlock) {
-            let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-            if (v.movability==Fixed) {
-                com.mode.devlog (`Block v= ${v.toString()}`);
-                ma.locationCounter = addVal(ma,s,ma.locationCounter,v).copy();
-                com.mode.devlog (`block ${i} ${ma.locationCounter.toString()}`);
-            } else {
-                mkErrMsg (ma, s, `operand for block must be Fixed`);
-            }
-        } else {
-            com.mode.devlog (`Pass1 code codesize=${s.codeSize.toString()}`);
-            ma.locationCounter = addVal (ma, s, ma.locationCounter, s.codeSize);
-            com.mode.devlog (`code ${i} ${ma.locationCounter.toString()}`);
-        }
+    } else if (s.operation.ifmt==arch.iDir
+               && s.operation.afmt==arch.aReserve) {
+        let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
+        console.log (`P1 reserve0 @<${ma.locationCounter.toString()}>`);
+        console.log (`P1 reservev v=<${v}>`);
+        ma.locationCounter.add (v);
+        s.locCounterUpdate = ma.locationCounter.copy()
+        console.log (`P1 reserve1 @<${ma.locationCounter.toString()}>`);
+        com.mode.devlog (`reserve ${i} ${ma.locationCounter.toString()}`);
+    } else {
+        com.mode.devlog (`Pass1 code codesize=${s.codeSize.toString()}`);
+//       ma.locationCounter = addVal (ma, s, ma.locationCounter, s.codeSize);
+        ma.locationCounter.add (s.codeSize);
+        com.mode.devlog (`code ${i} ${ma.locationCounter.toString()}`);
     }
+}
 
 function printAsmStmts (ma) {
     for (let i = 0; i < ma.asmStmt.length; i++) {
@@ -1020,22 +1001,22 @@ function asmPass2 (ma) {
                          + ` pseudo=${op.pseudo}`);
 
 // Directives        
-        if (op.ifmt==arch.iDir
-            && [arch.aBlock,arch.aOrg].includes(op.afmt)) {
-            console.log ('********** pass2 ORG handler')
-            const a = s.orgAddr;
-            console.log (`***** Pass2 genORG a=${a}`);
-            console.log ('********** pass2 ORG calling wordToHex4')
-            const ahex = arith.wordToHex4 (a);
-            console.log ('********** pass2 ORG back from wordToHex4')
-            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} calling emit`);
-            com.mode.devlog (`Pass 2 org/block a=${a} ahex=${ahex}`);
+        if (op.ifmt==arch.iDir && op.afmt == arch.aOrg) {
             emitObjectWords (ma);
-            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} back fr emit`);
+            const a = s.orgAddr;
+            const ahex = arith.wordToHex4 (a.word);
             let stmt = `org      ${ahex}`
-            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} stmt=${stmt}`);
+            ma.objectCode.push (stmt);
+        } else if (op.ifmt==arch.iDir && op.afmt==arch.aReserve) {
+            emitObjectWords (ma);
+            const size = s.reserveSize;
+            //            const xhex = arith.wordToHex4 (ma.locationCounter.word)
+            const xhex = arith.wordToHex4 (s.locCounterUpdate.word)
+            let stmt = `org      ${xhex}`
             ma.objectCode.push (stmt);
 
+            
+            
 // RRR-RRR
         } else if (op.ifmt==arch.iRRR && op.afmt==arch.aRRR) {
             com.mode.devlog (`pass2 iRRR/aRRR`);
@@ -1129,6 +1110,16 @@ function asmPass2 (ma) {
 //            requireNoperands (ma, s, 0) triggers error
             s.codeWord1 = mkWord448(op.opcode[0],0,op.opcode[1])
             s.codeword2 = 0
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
+
+// EXP-R (timeron)
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aR) {
+            com.mode.devlog (`pass2 EXP/R`);
+            requireNoperands (ma, s, 1)
+            const d = requireReg(ma,s,s.operands[0]);
+            s.codeWord1 = mkWord448(op.opcode[0],d,op.opcode[1])
+            s.codeWord2 = 0
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
@@ -1783,3 +1774,60 @@ const datParser =
 
 */
 
+//            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} stmt=${stmt}`);
+// pass 2 org
+//            com.mode.devlog (`Pass 2 org/block a=${a} ahex=${ahex}`);
+//            console.log ('********** pass2 ORG handler')
+            //            && [arch.aBlock,arch.aOrg].includes(op.afmt)) {
+//            console.log (`***** Pass2 genORG a=${a}`);
+//            console.log ('********** pass2 ORG calling wordToHex4')
+//         console.log ('********** pass2 ORG back from wordToHex4')
+//        console.log (`***** Pass2 genORG a=${a} ahex=${ahex} calling emit`);
+//        console.log (`***** Pass2 genORG a=${a} ahex=${ahex} back fr emit`);
+
+//            console.log (`!!!!!!!! size=<${size}> @=${ma.locationCounter}`)
+//            console.log (`************* $$$$$$$$$$$$$$$ `)
+//        const x = ma.locationCounter.add (size)
+//        console.log (`!!!!!!!! size=${size} @=${ma.locationCounter} x=${x}`)
+//            console.log (`** Pass2 genReserve ${size} <${stmt}>`);
+
+/*
+const dx = xParser.exec (field);
+    let result = {disp: "0", index: 0};
+    if (dx) { // disp[reg]
+        const {0:all, 1:disp, 2:index} = dx;
+        com.mode.devlog (`requireX 0=${all} 1=${disp} 2=${index}`);
+        result = {disp,index};
+    } else { // disp
+        const displayField = field ? field : "";
+        mkErrMsg (ma, s, `operand ${displayField} is not disp[reg]`);
+    }
+    com.mode.devlog (`requireX ${field} return ${result.disp} ${result.index}`);
+    console.log (`requireX ${field} return ${result.disp} ${result.index}`);
+    return result;
+*/
+
+                // console.log (`$$$$$$$$$$ ********** !!!!!!!!!!!!! `
+//                    + ` org parseOp` + ` operands=${s.fieldOperands} `
+//                + ` y=<${y}> s.orgAddr=${s.orgAddr}`)
+//                console.log (`***** parse Op ORG  orgAddr=${s.orgAddr}`);
+//            } else if (s.operation.ifmt==arch.iDir
+//                       && s.operation.afmt==arch.aBlock) {
+//                let y = evaluate (ma, s, ma.locationCounter,
+//                                  s.fieldOperands);
+//                s.orgAddr = mkConstVal (ma.locationCounter.word + y.word);
+//                console.log (`parse Op ORG orgAddr=${s.orgAddr}`);
+//                com.mode.devlog
+//                  (`parse Op BLOCK orgAddr=${s.orgAddr.toString()}`);
+
+//        console.log (`######### pass1 org about to get v line 926`)
+//        console.log (`######### pass1 org v=${v}`)
+//        console.log (`######### org ${i} ${ma.locationCounter.toString()}`);
+// old Block code
+//        if (v.movability==Fixed) {
+//            com.mode.devlog (`Block v= ${v.toString()}`);
+//            ma.locationCounter = addVal(ma,s,ma.locationCounter,v).copy();
+//            com.mode.devlog (`block ${i} ${ma.locationCounter.toString()}`);
+//        } else {
+//            mkErrMsg (ma, s, `operand for block must be Fixed`);
+//        }

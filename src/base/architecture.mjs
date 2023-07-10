@@ -134,33 +134,35 @@ export const iDir     = Symbol ("iDir")
 export const iEmpty   = Symbol ("iEmpty")
 
 // Assembly language statement operand formats
-export const a0      = Symbol ("");        // resume
-export const aRR     = Symbol ("RR");      // cmp      R1,R2
-export const aRRR    = Symbol ("RRR");     // add      R1,R2,R3
-export const aRC     = Symbol ("RC");      // putctl   R1,status
-export const aK      = Symbol ("K");       // brf      loop
-export const aX      = Symbol ("X");       // jump     loop[R0]
-export const aRX     = Symbol ("RX");      // load     R1,xyz[R2]
-export const aRRX    = Symbol ("RRX");     // save     R4,R7,5[R13]
-export const aRK     = Symbol ("RK");      // brfnz    R1,xyz
-export const akX     = Symbol ("kX");      // jumpc0   3,next[R0]
-export const aRRk    = Symbol ("RRk");     //
-export const aRkk    = Symbol ("Rkk");     // invb, field R1,3,12  ??
-export const aRkK    = Symbol ("RkK");     // brfc0  R2,4,230
-export const aRkkkk  = Symbol ("Rkkkk");   // logicr   R1,3,8,2,xor
-export const aRkRk   = Symbol ("RkRk");    // moveb   R5,4,R9,3
-export const aRkRkk  = Symbol ("RkRkk");   // logicc  R5,4,R9,3,and
-export const aRkkk   = Symbol ("Rkkk");    // xorb     R1,3,8,2
-export const aRRRk   = Symbol ("RRRk");    // logicw   R1,R2,R3,xor
-export const aRkkRk  = Symbol ("RkkRk");   // extract  R1,7,4,R2,12
-export const aRRRkk  = Symbol ("RRRkk");   // inject   R1,R2,R3,5,7
-export const aData   = Symbol ("data");    // data     34
-export const aModule = Symbol ("module");  // module
-export const aImport = Symbol ("import");  // import   Mod1,x
-export const aExport = Symbol ("export");  // export   fcn
-export const aOrg    = Symbol ("org");     // org      arr+5
-export const aEqu    = Symbol ("equ");     // equ      rcd+4
-export const aBlock  = Symbol ("block");   // block    100
+export const a0       = Symbol ("");        // resume
+export const aR       = Symbol ("R");       // timeron  R1
+export const aRR      = Symbol ("RR");      // cmp      R1,R2
+export const aRRR     = Symbol ("RRR");     // add      R1,R2,R3
+export const aRC      = Symbol ("RC");      // putctl   R1,status
+export const aK       = Symbol ("K");       // brf      loop
+export const aX       = Symbol ("X");       // jump     loop[R0]
+export const aRX      = Symbol ("RX");      // load     R1,xyz[R2]
+export const aRRX     = Symbol ("RRX");     // save     R4,R7,5[R13]
+export const aRK      = Symbol ("RK");      // brfnz    R1,xyz
+export const akX      = Symbol ("kX");      // jumpc0   3,next[R0]
+export const aRRk     = Symbol ("RRk");     //
+export const aRkk     = Symbol ("Rkk");     // invb, field R1,3,12  ??
+export const aRkK     = Symbol ("RkK");     // brfc0  R2,4,230
+export const aRkkkk   = Symbol ("Rkkkk");   // logicr   R1,3,8,2,xor
+export const aRkRk    = Symbol ("RkRk");    // moveb   R5,4,R9,3
+export const aRkRkk   = Symbol ("RkRkk");   // logicc  R5,4,R9,3,and
+export const aRkkk    = Symbol ("Rkkk");    // xorb     R1,3,8,2
+export const aRRRk    = Symbol ("RRRk");    // logicw   R1,R2,R3,xor
+export const aRkkRk   = Symbol ("RkkRk");   // extract  R1,7,4,R2,12
+export const aRRRkk   = Symbol ("RRRkk");   // inject   R1,R2,R3,5,7
+export const aData    = Symbol ("data");    // data     34
+export const aModule  = Symbol ("module");  // module
+export const aImport  = Symbol ("import");  // import   Mod1,x
+export const aExport  = Symbol ("export");  // export   fcn
+export const aReserve = Symbol ("reserve"); // reserve  20
+export const aOrg     = Symbol ("org");     // org      $ff00
+export const aEqu     = Symbol ("equ");     // equ      rcd+4
+export const aBlock   = Symbol ("block");   // block    100
 
 // export const aRRkkk   = Symbol ("RRk");      // extract  Rd,Rs,di,si,size
 
@@ -184,13 +186,13 @@ export const mnemonicRX =
    "leal",     "loadl",    "storel",    "noprx"]      // c-f
 
 export const mnemonicEXP =
-    ["brf",     "brb",      "brfi",     "brfc0",   // 00-03
-     "brbc0",   "brfc1",    "brbc1",    "brfz",    // 04-07
-     "brbz",    "brfnz",    "brbnz",    "save",    // 08-0b
-     "restore", "push",     "pop",      "top",     // 0c-0f
-     "shiftl",  "shiftr",   "logicw",   "logicr",  // 10-13
-     "logicc",  "extract",  "extracti", "moveb",   // 14-17
-     "movebi",  "getctl",   "putctl",   "resume"]  // 18-1b
+    ["brf",     "brb",      "brfc0",    "brbc0",    // 00-03
+     "brfc1",   "brbc1",    "brfz",     "brbz",     // 04-07
+     "brfnz",   "brbnz",    "dispatch", "save",     // 08-0b
+     "restore", "push",     "pop",      "top",      // 0c-0f
+     "shiftl",  "shiftr",   "logicw",   "logicr",   // 10-13
+     "logicb",  "extract",  "extracti", "getctl",   // 14-17
+     "putctl",  "resume",   "timeron",  "timeroff"] // 18-1b
 
 //-------------------------------------
 // Mnemonics for control registers
@@ -315,8 +317,9 @@ export function showCC (c) {
 // the machine boots, because interrupts are unsafe to execute until
 // the interrupt vector has been initialized.
 
-export const userStateBit     = 0;   // 0 = system state,  1 = user state
-export const intEnableBit     = 1;   // 0 = disabled,      1 = enabled
+export const userStateBit    = 0; // 0 = system state, 1 = user state
+export const intEnableBit    = 1; // 0 = disabled, 1 = enabled
+export const TimerRunningBit = 2; // 0 = off, 1 = running
 
 //----------------------------------------------------------------------
 // Interrupt request and mask bits
@@ -443,16 +446,19 @@ statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,22]})
 statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,23]})
 statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,24]})
 statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,25]})
+statementSpec.set("timeron",  {ifmt:iEXP, afmt:aR,     opcode:[14,26]})
+statementSpec.set("timeroff", {ifmt:iEXP, afmt:a0,     opcode:[14,27]})
 
 // Assembler directives
 
-statementSpec.set("data",     {ifmt:iData, afmt:aData,   opcode:[]})
-statementSpec.set("module",   {ifmt:iDir,  afmt:aModule, opcode:[]})
-statementSpec.set("import",   {ifmt:iDir,  afmt:aImport, opcode:[]})
-statementSpec.set("export",   {ifmt:iDir,  afmt:aExport, opcode:[]})
-statementSpec.set("org",      {ifmt:iDir,  afmt:aOrg,    opcode:[]})
-statementSpec.set("equ",      {ifmt:iDir,  afmt:aEqu,    opcode:[]})
-statementSpec.set("block",    {ifmt:iDir,  afmt:aBlock,  opcode:[]})
+statementSpec.set("data",     {ifmt:iData, afmt:aData,    opcode:[]})
+statementSpec.set("module",   {ifmt:iDir,  afmt:aModule,  opcode:[]})
+statementSpec.set("import",   {ifmt:iDir,  afmt:aImport,  opcode:[]})
+statementSpec.set("export",   {ifmt:iDir,  afmt:aExport,  opcode:[]})
+statementSpec.set("reserve",  {ifmt:iDir,  afmt:aReserve, opcode:[]})
+statementSpec.set("org",      {ifmt:iDir,  afmt:aOrg,     opcode:[]})
+statementSpec.set("equ",      {ifmt:iDir,  afmt:aEqu,     opcode:[]})
+statementSpec.set("block",    {ifmt:iDir,  afmt:aBlock,   opcode:[]})
 
 // Possible additional instructions...
 // statementSpec.set("execute",  {ifmt:iEXP, afmt:aRR,  opcode:[14,12]});

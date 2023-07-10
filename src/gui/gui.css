@@ -892,14 +892,20 @@ iframe {
     grid-column-start: IOVlineStart;
     grid-column-end:  IOVlineEnd;
     overflow-y: auto;
+    /*    overflow-x: auto;
     overflow-x: auto;
+          width: auto;
+   */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-all;
+    width: 100%;
     background-color: white;
     border-color: blue;
     border-style: solid;
     margin: 2px;
     color: black;
     height: var(--IOlogHeight);
-    width: auto;
 }
 
 #IOlogHtmlArea {

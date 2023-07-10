@@ -186,8 +186,9 @@ showconfig:
 .PHONY: setVersion
 setVersion:
 	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
-	echo "Version $(VERSION), $(MONTHYEAR)." > VERSION.txt
+	echo "Version $(VERSION), $(MONTHYEAR)" > VERSION.txt
 	echo "Copyright (c) $(YEAR) John T. O'Donnell" > COPYRIGHT.txt
+	echo "#+MACRO: S16version Version $(VERSION), $(MONTHYEAR)" > docs/VersionMacro.org
 
 #--------------------------------------------------------------------------
 # make assemble

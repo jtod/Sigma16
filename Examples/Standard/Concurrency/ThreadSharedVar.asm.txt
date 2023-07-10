@@ -58,33 +58,37 @@ InitStatus  equ  0
 ; Kernel: Initialization
 ;------------------------------------------------------------------------
 
+SliceDuration equ 100
+
 ; Create TCB for Thread A
-    lea    R1,0[R0]             ; A is thread number 0
-    jal    R14,FindTCB[R0]      ; R2 := &TCB for A
-    lea    R3,StartA[R0]        ; address where A starts execution
-    store  R3,TCB_pc[R2]        ; initialize initial pc for A
-    lea    R3,InitStatus[R0]
-    store  R3,TCB_status[R2]
+    lea     R1,0[R0]             ; A is thread number 0
+    jal     R14,FindTCB[R0]      ; R2 := &TCB for A
+    lea     R3,StartA[R0]        ; address where A starts execution
+    store   R3,TCB_pc[R2]        ; initialize initial pc for A
+    lea     R3,InitStatus[R0]
+    store   R3,TCB_status[R2]
 
 ; Create TCB for Thread B
-    lea    R1,1[R0]             ; B is thread number 1
-    jal    R14,FindTCB[R0]      ; R2 := &TCB for B
-    lea    R3,StartB[R0]        ; address where B starts execution
-    store  R3,TCB_pc[R2]        ; initialize initial pc for B
-    lea    R3,InitStatus[R0]
-    store  R3,TCB_status[R2]
+    lea     R1,1[R0]             ; B is thread number 1
+    jal     R14,FindTCB[R0]      ; R2 := &TCB for B
+    lea     R3,StartB[R0]        ; address where B starts execution
+    store   R3,TCB_pc[R2]        ; initialize initial pc for B
+    lea     R3,InitStatus[R0]
+    store   R3,TCB_status[R2]
 
 ; Initialize CurrentThread (0: A running, 1: B running)
-    store  R0,CurrentThread[R0] ; start with thread A
+    store   R0,CurrentThread[R0] ; start with thread A
 
 ; Initialize the interrupt system
-    lea    R1,timerBit[R0]      ; flag for timer interrupt
-    putctl R1,mask              ; set interrupt mask
-    lea    R1,InterruptVector[R0]     ; address of vector
-    putctl R1,vect              ; initialize vector register
+    lea     R1,timerBit[R0]      ; flag for timer interrupt
+    putctl  R1,mask              ; set interrupt mask
+    lea     R1,InterruptVector[R0] ; address of vector
+    putctl  R1,vect              ; initialize vector register
+    lea     R2,SliceDuration[R0] ; timer interval
+    timeron R2                   ; set timer and start
 
 ; Start the CurrentThread
-    jump   GiveTimeSlice[R0]    ; transfer control to thread
+    jump   GiveTimeSlice[R0]     ; transfer control to thread
 
 ; From now on the program is controlled by preemptive interrupts
 
@@ -133,36 +137,35 @@ HandleTimerInterrupt
 ; put it too into the TCB.
 
 SaveState
-    store  R1,SpecialSaveR1[R0]  ; make R1 available
-    load   R1,CurrentTCB[R0]     ; point to TCB
-    save   R2,R15,TCB_R2[R1]     ; save R2-R15 into TCB
-    load   R2,SpecialSaveR1[R0]  ; recover R1 value
-    store  R2,TCB_R1[R1]         ; save R1 into TCB
-    getctl R2,ipc                ; recover pc
-    store  R2,TCB_pc[R1]         ; save pc into TCB
+    store    R1,SpecialSaveR1[R0]  ; make R1 available
+    load     R1,CurrentTCB[R0]     ; point to TCB
+    save     R2,R15,TCB_R2[R1]     ; save R2-R15 into TCB
+    load     R2,SpecialSaveR1[R0]  ; recover R1 value
+    store    R2,TCB_R1[R1]         ; save R1 into TCB
+    getctl   R2,ipc                ; recover pc
+    store    R2,TCB_pc[R1]         ; save pc into TCB
+    timeroff
 
 DoSomeKernelWork
 ; At this point, the registers have been saved and the kernel can use
 ; them normally.
-    load   R2,InterruptCount[R0]   ; increment InterruptCount
-    load   R3,InterruptLimit[R0]
-    cmp    R2,R3
-    jumpge ShutDown[R0]
-    lea    R3,1[R0]
-    add    R2,R2,R3
-    store  R2,InterruptCount[R0]
-    lea    R4,2[R0]          ; trap code for write
-    lea    R5,asterisk[R0]  ; string to print
-    lea    R6,1[R0]          ; length of string
-    trap   R4,R5,R6          ; print the string
+    load    R2,InterruptCount[R0]     ; increment InterruptCount
+    load    R3,InterruptLimit[R0]
+    cmp     R2,R3
+    jumpge  ShutDown[R0]
+    lea     R3,1[R0]
+    add     R2,R2,R3
+    store   R2,InterruptCount[R0]
+    lea     R4,2[R0]                  ; trap code for write
+    lea     R5,asterisk[R0]           ; string to print
+    lea     R6,1[R0]                  ; length of string
+    trap    R4,R5,R6                  ; print the string
 
 ; Scheduler: select thread to run next
-    load   R1,CurrentThread[R0]
-    jal    R14,ChooseNextThread[R0]
-    store  R2,CurrentThread[R0]
-
-; Yield control to the thread
-    jump   GiveTimeSlice[R0]
+    load    R1,CurrentThread[R0]
+    jal     R14,ChooseNextThread[R0]
+    store   R2,CurrentThread[R0]
+    jump    GiveTimeSlice[R0]        ; Yield control to the thread
 
 ;------------------------------------------------------------------------
 ; Kernel procedures
@@ -210,6 +213,9 @@ GiveTimeSlice
 ; transfers control to a user thread, which also won't return.  The
 ; kernel regains control preemptively when a timer interrupt occurs.
 
+; Start timer
+    lea     R3,SliceDuration[R0]
+    timeron R3
 ; Get address of TCB for CurrentThread
     load    R1,CurrentThread[R0]  ; CurrentThread
     jal     R14,FindTCB[R0]       ; R2 := &TCB for CurrentThread
@@ -230,7 +236,7 @@ GiveTimeSlice
 Nthreads        data     2   ; A and B
 CurrentThread   data     0   ; start with A
 CurrentTCB      data     0   ; Address of TCB for CurrentThread
-InterruptLimit  data    20   ; shutdown after this number of interrupts
+InterruptLimit  data   100   ; shutdown after this number of interrupts
 SpecialSaveR1   data     0
 InterruptCount  data     0
 
@@ -245,62 +251,7 @@ TCB_R1     equ  2   ; offset where R1 is saved
 TCB_R2     equ  3   ; offset where R2 is saved
 
 ; Thread Control Block area
-TCBarea
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
-    data   0
+TCBarea reserve 200
 
 ;------------------------------------------------------------------------
 ; User space: shared variable
@@ -325,7 +276,7 @@ StartA
     lea    R9,10[R0]         ; help user to see which thread is running
 loopA
     lea    R3,4              ; trap break code
-    trap   R3,R0,R0          ; breakpoint
+;    trap   R3,R0,R0          ; breakpoint
     load   R3,countA[R0]
 ;    cmp    R3,R2             ; compare countA with limitA
 ;    jumpge doneA[R0]         ; quit at limit
@@ -356,7 +307,7 @@ StartB
     lea    R9,11[R0]         ; help user to see which thread is running
 loopB
     lea    R3,4              ; trap break code
-    trap   R3,R0,R0          ; breakpoint
+;    trap   R3,R0,R0          ; breakpoint
     load   R3,countB[R0]
 ;    cmp    R3,R2             ; compare countA with limitA
 ;    jumpge doneB[R0]         ; quit at limit

@@ -360,7 +360,7 @@ const hexDigit =
 export function wordToHex4 (x) {
     const [p,q,r,s] = splitWord (limit16 (x))
     const result = hexDigit[p] + hexDigit[q] + hexDigit[r] + hexDigit[s]
-    console.log (`&&&&& wordToHex4 x=${x} result=${result}`)
+//    console.log (`&&&&& wordToHex4 x=${x} result=${result}`)
     return result
 }
 

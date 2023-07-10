@@ -1,7 +1,15 @@
+#+INCLUDE: ../VersionMacro.org
+
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
-#+DATE: Version 3.6.3, July 2023
-#+EMAIL: john.t.odonnell9@gmail.com
+#+DATE: {{{S16version()}}}
+
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [a4paper,11pt,twoside]
+#+LATEX_HEADER: \usepackage{sigma16}
+#+BEGIN_EXPORT latex
+\tableofcontents
+#+END_EXPORT
 
 # This file is part of Sigma16: https://github.com/jtod/Sigma16.
 # License: GNU GPL Version 3 or later. See Sigma16/README.md,
@@ -16,9 +24,6 @@
 # PURPOSE.  See the GNU General Public License for more details.  You
 # should have received a copy of the GNU General Public License along
 # with Sigma16.  If not, see <https://www.gnu.org/licenses/>.
-
-#+OPTIONS: H:6
-#+OPTIONS: toc:5
 
 # .emacs.d/init.el configures org-export-filter-options-functions to
 # set different section number formatting for html and latex.  For
@@ -38,10 +43,7 @@
 #+LATEX_CLASS_OPTIONS: [a4paper,11pt,twoside]
 #+LATEX_HEADER: \usepackage{sigma16}
 #+BEGIN_EXPORT latex
-\begin{scope}
-  \renewcommand{\numberline}[1]{{}}
-  \tableofcontents
-\end{scope}
+\tableofcontents
 #+END_EXPORT
 
 # Notes
@@ -3874,7 +3876,9 @@ consist of one of the following:
 | getctl   | Sys  |     | P | EXP | RC    | D,C          | e,17 | Rd := Sc                           |                                                  |
 | putctl   | Sys  |     | P | EXP | RC    | D,           | e,18 | Sc := Rd                           |                                                  |
 | resume   | Sys  |     | P | EXP | null  | R            | e,19 | pc := ipc, status := istatus       |                                                  |
-|          |      |     |   | EXP |       |              | e,1a | reserved                           |                                                  |
+| timeron  | Sys  |     | P | EXP | Rk    | Rd,efgh      | e,1a | timer := efgh, enable := 1         |                                                  |
+| timeroff | Sys  |     | P | EXP |       |              | e,1b | timer := 0, enable := =            |                                                  |
+|          |      |     |   | EXP |       |              | e,1c | reserved                           |                                                  |
 |          |      |     |   | EXP |       |              | ...  | reserved                           |                                                  |
 |          |      |     |   | EXP |       |              | e,ff | reserved                           |                                                  |
 |----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
@@ -4397,13 +4401,25 @@ aend
 asize      equ  aend-astart
 #+END_EXAMPLE
 
-*** block
+*** reserve
+
+The =reserve= statement has one operand, which is a numeric constant.
+The assembler increments the location counter by the value of the
+operand.
+
+This can be used to reserve a block of memory, for example
+to hold a stack or heap data structure.
 
 #+BEGIN_EXAMPLE
 asize   equ    100
-n       data   asize
-arr     block  asize
+n       reserve asize
 #+END_EXAMPLE
+
+If the operand of a =reserve= statement is a symbol defined by an
+=equ=, that definition must precede the =reserve= statement.  This is
+because pass 1 of the assembler needs to calculate the address of each
+code word, and an =equ= that follows the =reserve= statement would not
+become known until after the size of the =reserve= is needed.
 
 *** org
 
@@ -4411,20 +4427,20 @@ The org statement sets the location counter to a specified address.
 Subsequent instructions and data will be placed in memory at
 contiguous locations starting from that address.
 
-There is one argument, which is an expression denoting the new value
-of the location counter.  The location counter has an associated
-attribute that specifies either Relocatable or Fixed.  The org
-statement sets this attribute, as well as the numeric value of the
-location counter, to the value of the operand.
-
-Examples:
-
-    org   35     ; subsequent code starts from 0023 (Fixed)
-    org   @+50   ; skip 50 words (Relocatable)
+#+BEGIN_EXAMPLE
+    org   35     ; subsequent code starts from address 0023
+#+END_EXAMPLE
 
 The assembler initializes the location counter to 0 before it begins
-translating an assembly language module.  This means that every module
-begins implicitly with org 0.
+translating an assembly language module.  Every module begins
+implicitly with org 0.
+
+# There is one argument, which is an expression denoting the new value
+# of the location counter.  The location counter has an associated
+# attribute that specifies either Relocatable or Fixed.  The org
+# statement sets this attribute, as well as the numeric value of the
+# location counter, to the value of the operand.
+#     org   @+50   ; skip 50 words (Relocatable)
 
 *** import
 

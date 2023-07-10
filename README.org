@@ -1,5 +1,7 @@
 * Sigma16
 
+#+INCLUDE: ./VERSION.txt
+
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture, including an editor,

@@ -21,9 +21,9 @@ import * as com from './common.mjs'
 import * as arith from './arithmetic.mjs'
 import * as arch from './architecture.mjs'
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Memory map of the emulator state array
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // There is an emulator state object which is accessible as gst.es.
 
@@ -88,10 +88,9 @@ export const BPoffset16   = 2 * BPoffset32
 export const RegOffset16  = 2 * RegOffset32
 export const MemOffset16  = 2 * MemOffset32
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // General access functions
-//-------------------------------------------------------------------------------
-
+//-----------------------------------------------------------------------------
 
 // Each section consists of elemens of a specific word size, except
 // the SCB which contains some 64-bit elements but is mostly 32-bit
@@ -108,21 +107,21 @@ export const MemOffset16  = 2 * MemOffset32
 // contains mostly 32-bit elements, but the count of instructions
 // executed is 64 bits.
 
-export function read16  (es, a, k)    { return arith.limit16 (es.vec16 [a + k]) }
+export function read16 (es, a, k) { return arith.limit16 (es.vec16 [a + k]) }
 export function write16 (es, a, k, x) { es.vec16 [a+k] = arith.limit16(x) }
-export function read32  (es, a, k)    { return arith.limit32 (es.vec32 [a + k]) }
+export function read32 (es, a, k) { return arith.limit32 (es.vec32 [a + k]) }
 export function write32 (es, a, k, x) { es.vec32 [a+k] = arith.limit32(x) }
-export function read64  (es, a, k)    { return es.vec64 [a + k] }
+export function read64  (es, a, k) { return es.vec64 [a + k] }
 export function write64 (es, a, k, x) { es.vec64 [a+k] = x }
 
 // In Web Assembly, the index for accessing an element is the byte
 // index.  Thus read16 i in wa must push 2*i and then fetch.
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // System control block
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
-// The system control block is stored in (shared) memory and contains
+// The system control block is stored in shared memory and contains
 // information that pertains to the entire system, including all
 // running emulators.  Any information that is specific to a
 // particular emulator (either the main gui thread or a worker thread)
@@ -134,12 +133,20 @@ export function write64 (es, a, k, x) { es.vec64 [a+k] = x }
 export const SCB_nInstrExecuted   =   0  // count instructions executed
 
 // Indices for 32-bit elements, which follow the 64-bit elements
-export const SCB_status           =   8  // condition of the entire system
-export const SCB_cur_instr_addr   =   9  // address of instruction executing now
-export const SCB_next_instr_addr  =  10  // address of next instruction
-export const SCB_emwt_run_mode    =  11
-export const SCB_emwt_trap        =  12
-export const SCB_pause_request    =  13  // pause request is pending
+export const SCB_status            =   8 // condition of the entire system
+export const SCB_cur_instr_addr    =   9 // address of executing instruction
+export const SCB_next_instr_addr   =  10 // address of next instruction
+export const SCB_emwt_run_mode     =  11
+export const SCB_emwt_trap         =  12
+export const SCB_pause_request     =  13 // pause request is pending
+export const SCB_timer_running     =  14 // 1 after timeron, 0 after timeroff
+export const SCB_timer_minor_count =  15 // count down to 0
+export const SCB_timer_major_count =  16 // count down to 0
+export const SCB_timer_resolution  =  17 // number of instructions per tick
+
+// Usage examples:
+//   writeSCB (es, SCB_timer_minor_count, x)
+//   x = readSCB (es, SCB_timer_minor_count)
 
 // SCB access functions
 
@@ -204,12 +211,16 @@ export function showSCBstatus (es) {
 function writeInstrCount (es, n)     { write32 (es, 0, SCBoffset32, n) }
 export function readInstrCount (es)  { return read32 (es, 0, SCBoffset32) }
 export function clearInstrCount (es) { writeInstrCount (es, 0) }
-export function incrInstrCount (es) { writeInstrCount (es, readInstrCount(es) + 1) }
-export function decrInstrCount (es) { writeInstrCount (es, readInstrCount(es) - 1) }
+export function incrInstrCount (es) {
+    writeInstrCount (es, readInstrCount(es) + 1)
+}
+export function decrInstrCount (es) {
+    writeInstrCount (es, readInstrCount(es) - 1)
+}
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Registers
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // In S16, all registers contain 16 bits.  In S32 all registers
 // contain 32 bits (apart from the 16-bit ir), and the 16-bit
@@ -254,9 +265,9 @@ export function readReg32 (es, r) {
 export function writeReg32 (es, r, x) {
     if (r!==0) write32 (es, r, RegOffset32, x) }
 
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Memory
-//-------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 // access Mem16 uses address of 16-bit word
 

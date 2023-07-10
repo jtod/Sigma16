@@ -1402,8 +1402,10 @@ export function refreshDisplay (gst) {
 // document DOM out of the emulator
 
 export function guiDisplayNinstr (gst) {
-        let n = gst.es.vec32[0]
-        document.getElementById("nInstrExecuted").innerHTML = n
+    let n = gst.es.vec32[0]
+    document.getElementById("nInstrExecuted").innerHTML = n
+    const tc = ab.readSCB (gst.es, ab.SCB_timer_major_count)
+    document.getElementById("TimerCounter").innerHTML = tc
 }
 
 export function guiDisplayMem (gst, elt, xs) {
@@ -1973,13 +1975,20 @@ export function procBoot (gst) {
         xs = objectCode[i];
         com.mode.devlog (`boot: objectCode line ${i} = <${xs}>`);
         fields = link.parseObjLine (xs);
-        com.mode.devlog (`boot op=<${fields.operation}> args=<${fields.operands}>`);
+        com.mode.devlog (`boot op=<${fields.operation}>`
+                         + ` args=<${fields.operands}>`);
         if (fields.operation == "module") {
             let modname = fields.operands[0];
             let safemodname = modname ? modname : "(anonymous)";
             com.mode.devlog (`boot: module ${safemodname}`);
+        } else if (fields.operation == "reserve") {
+            const x = arith.hex4ToWord (fields.operands[0])
+            location += x
+            console.log (`boot reserve ${x}, @${location}`)
         } else if (fields.operation == "org") {
-            com.mode.devlog ("--- skipping org");
+            const x = arith.hex4ToWord (fields.operands[0])
+            location = x
+            console.log (`boot org, @${location}`)
         } else if (fields.operation == "data") {
             com.mode.devlog ("boot: data");
             for (let j = 0; j < fields.operands.length; j++) {

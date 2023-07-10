@@ -29,6 +29,31 @@ import * as link from './linker.mjs';
 import * as smod from './s16module.mjs';
 
 //-----------------------------------------------------------------------
+// Default parameters
+//-----------------------------------------------------------------------
+
+// Number of minor cycles per timer tick
+export const defaultTimerResolution = 2
+
+//-----------------------------------------------------------------------
+// Access to system control register flags
+//-----------------------------------------------------------------------
+
+// e.g. x = GetStatusBit (es, arch.userStateBit)
+function GetStatusBit (es,i) {
+    const r = es.statusreg.get()
+    const x = arch.getBitInWordLE (r,i)
+    return x
+}
+
+// e.g. SetStatusBit (es, arch.userStateBit, 1)
+function SetStatusBit (es,i,x) {
+    const r = es.statusreg.get();
+    const y = arch.putBitInWordLE (16,r,i,x);
+    es.statusreg.put(y)
+}
+
+//-----------------------------------------------------------------------
 // Interface to emulator
 //-----------------------------------------------------------------------
 
@@ -39,7 +64,7 @@ export function limitAddress (es, x) { return x & es.addressMask }
 // procReset (es)                  - set registers and memory to 0
 // boot (es)                       - load executable into memory
 // mainThreadLooper (es)           - run main until stopping condition
-// executeInstructino (es)         - execute one instruction in either thread
+// executeInstruction (es)         - execute one instruction in either thread
 
 // look up these...
 
@@ -452,6 +477,7 @@ export function procReset (es) {
     ab.resetSCB (es)
     resetRegisters (es);
     memClear (es);
+    initializeTimer (es, defaultTimerResolution);
 //    console.log ('em.procReset finished')
 //    clearClock (es)
 //    refreshDisplay (es)
@@ -626,6 +652,56 @@ export function instructionLooper (es) {
 }
 
 //------------------------------------------------------------------------------
+// Check timer when instruction executes
+
+export function initializeTimer (es, resolution) {
+    ab.writeSCB (es, ab.SCB_timer_running, 0)
+    ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
+    ab.writeSCB (es, ab.SCB_timer_major_count, 0)
+    ab.writeSCB (es, ab.SCB_timer_resolution, resolution)
+}
+
+// Start the timer with interval value x
+export function StartTimer (es, x) {
+    ab.writeSCB (es, ab.SCB_timer_running, 1)
+    ab.writeSCB (es, ab.SCB_timer_major_count, x)
+    ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
+}
+
+export function StopTimer (es) {
+    ab.writeSCB (es, ab.SCB_timer_running, 0)
+    ab.writeSCB (es, ab.SCB_timer_major_count, 0)
+    ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
+}
+
+export function timerTick (es) {
+    let ticking = ab.readSCB (es, ab.SCB_timer_running)
+    if (ticking==1) {
+        let x = ab.readSCB (es, ab.SCB_timer_minor_count)
+        if (x>0) {
+            ab.writeSCB (es, ab.SCB_timer_minor_count, x-1)
+        } else {
+            let y = ab.readSCB(es, ab.SCB_timer_major_count)
+            if (y>0) {
+                ab.writeSCB (es, ab.SCB_timer_major_count, y-1)
+                let a = ab.readSCB(es, ab.SCB_timer_resolution)
+                ab.writeSCB (es, ab.SCB_timer_minor_count, a)
+            } else {
+                ab.writeSCB (es, ab.SCB_timer_running, 0)
+                let reqOld = es.req.get()
+                let reqNew = arith.setBit (reqOld, arch.timerBit, 1)
+                es.req.put (reqNew)
+                console.log ('Timer interrupt request')
+                // Set timer interrupt request
+                // Get interrupt request register, set timer bit
+            }
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
 // Wrapper around instruction execution
 //------------------------------------------------------------------------------
 
@@ -690,11 +766,12 @@ export function executeInstruction (es) {
     clearInstrDecode (es)
     ab.writeSCB (es, ab.SCB_cur_instr_addr, es.pc.get())
 // Check for interrupt
-    let mr = es.mask.get() & es.req.get() // ???
+    let mr = es.mask.get() & es.req.get() // any request specified by mask
     com.mode.devlog (`interrupt mr = ${arith.wordToHex4(mr)}`)
     if (arch.getBitInRegLE (es.statusreg, arch.intEnableBit) && mr) {
         com.mode.devlog (`execute instruction: interrupt`)
-	let i = 0; // interrupt that is taken
+        console.log ('Interrupting')
+	let i = 0; // find interrupt that is taken
 	while (i<16 && arch.getBitInWordLE(mr,i) === 0) { i++ }
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
 	es.rpc.put(es.pc.get())           // save the pc
@@ -704,7 +781,8 @@ export function executeInstruction (es) {
         // Disable interrupts and enter system state
 	es.statusreg.put (es.statusreg.get()
 		       & arch.maskToClearBitLE(arch.intEnableBit)
-		       & arch.maskToClearBitLE(arch.userStateBit))
+		          & arch.maskToClearBitLE(arch.userStateBit))
+        StopTimer (es)
 	return
     }
 
@@ -722,7 +800,8 @@ export function executeInstruction (es) {
 arith
     com.mode.devlog (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
     
-// com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) + ' ir = ' + arith.wordToHex4(instr));
+    // com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) '
+    //        + ' ir = ' + arith.wordToHex4(instr));
     let tempinstr = es.ir.get();
     com.mode.devlog (`ExInstr instr=${arith.wordToHex4(tempinstr)}`)
     es.ir_b = tempinstr & 0x000f;
@@ -733,23 +812,22 @@ arith
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
 //    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
-    com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
-
-// console.log(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`,
-//               'color:red')
-
-
+    com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} `
+                    + ` ${es.ir_a} ${es.ir_b}`, 'color:red');
+    // console.log(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} `
+    // + ` ${es.ir_a} ${es.ir_b}` + 'color:red')
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
 //    console.log (`about to dispatch prim - es.ir_a=${es.ir_a}`)
-//  console.log (`about to dispatch prim - es.reg[es.ir_a]=${es.regfile[es.ir_a]}`)
+// console.log (`dispatching prim - es.reg[es.ir_a]=${es.regfile[es.ir_a]}`)
 
     com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
 
 //    console.log (`exInstr R1=${es.regfile[1].get()}`)
     dispatch_primary_opcode [es.ir_op] (es);
-    ab.incrInstrCount (es)
+    ab.incrInstrCount (es);
+    timerTick (es);
 //    console.log (`Finished executeInstruction: ${showEsInfo(es)}`)
 //    com.mode.trace = false
 }
@@ -1415,6 +1493,19 @@ function exp2_resume (es) {
     es.pc.put (limitAddress (es, es.rpc.get()))
 }
 
+function exp2_timeron (es) {
+    console.log ('exp2_timeron')
+    // check privilege
+    const x = es.regfile[es.ir_d].get()
+    StartTimer (es, x)
+}
+
+function exp2_timeroff (es) {
+    console.log ('exp2_timeroff')
+    // check privilege
+    StopTimer (es)
+}
+
 function exp2_dispatch (es) {
     com.mode.devlog('exp_dsptch')
     const code = es.regfile[es.ir_d].get()  // code
@@ -1656,13 +1747,15 @@ const dispatch_EXP =
         exp2 (exp2_shiftl),   // 10
         exp2 (exp2_shiftr),   // 11
         exp2 (exp2_logicw),   // 12
-        exp2 (exp2_logicb),   // 13
-        exp2 (exp2_logicu),   // 14
+        exp2 (exp2_logicb),   // 13  b -> r
+        exp2 (exp2_logicu),   // 14  u -> b
         exp2 (exp2_extract),  // 15
         exp2 (exp2_extracti), // 16
         exp2 (exp2_getctl),   // 17
         exp2 (exp2_putctl),   // 18
-        exp2 (exp2_resume) ]  // 19
+        exp2 (exp2_resume),   // 19
+        exp2 (exp2_timeron),  // 1a
+        exp2 (exp2_timeroff)] // 1b
 
 //        exp2 (exp2_push),      // 0
 //        exp2 (exp2_pop),      // 0
