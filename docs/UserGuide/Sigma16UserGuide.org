@@ -7,9 +7,6 @@
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [a4paper,11pt,twoside]
 #+LATEX_HEADER: \usepackage{sigma16}
-#+BEGIN_EXPORT latex
-\tableofcontents
-#+END_EXPORT
 
 # This file is part of Sigma16: https://github.com/jtod/Sigma16.
 # License: GNU GPL Version 3 or later. See Sigma16/README.md,
@@ -45,13 +42,6 @@
 #+BEGIN_EXPORT latex
 \tableofcontents
 #+END_EXPORT
-
-# Notes
-# to do: automate inclusion of version and date
-# to do: single space metadata inclusion at end
-# Testing: Uncomment next line to check that \usepackage{sigma16} works:
-# \SigmaTest
-# demo: Internal link: (See also [[*Branches][Branches]].)
 
 * Introduction
 
@@ -104,6 +94,7 @@ backward compatibility; this can lead to great complexity.
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the examples in the main panel.
+
 
 * Core architecture tutorials
 :PROPERTIES:
@@ -1863,10 +1854,10 @@ future release.  See the Example programs (in the Standard section)
 for examples, and see the full architecture reference for a list of
 the instructions.
 
+** Saving registers for procedure call
 ** Logic
 ** Bit fields and shifting
 ** Stack instructions
-** Saving registers for procedure call
 ** Arithmetic on natural numbers
 ** Modules and linking
 ** System control registers
@@ -1913,7 +1904,6 @@ and an Input/Output controller.
 - The Input/Output system can transfer data between the computer and
   the outside world.
 
-
 ** Words
 
 In Sigma16, a *word* is a sequence of 16 bits.  Occasionally we will
@@ -1939,6 +1929,14 @@ within a word.  Addresses and characters are both represented as
 natural numbers.
 
 *** Indexing bits in a word
+
+The bits in a word x are indexed from 0 to 15, where 0 is the index of
+the leftmost (most significant) bit and 15 is the index or the
+rightmost (least significant) bit.  The notation x.i means the bit
+with index i in the word x.  For example, x.0 is the leftmost bit and
+x.15 is the rightmost bit.  When used in an instruction, a bit index
+is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
+
 
 The bits of a word are indexed from right to left, starting with 0.
 The least significant (rightmost) bit has index 0, and the most
@@ -2229,13 +2227,6 @@ addresses of interrupt handlers.
 
 Control the memory management unit.
 
-
-* Instruction set
-:PROPERTIES:
-:CUSTOM_ID: sec-instruction-set
-:END:
-
-
 ** Instruction representation
 
 Instructions are represented in the memory of the computer using
@@ -2445,6 +2436,11 @@ Example:
    e714 52d6
 #+END_EXAMPLE
 
+
+* Instruction set
+:PROPERTIES:
+:CUSTOM_ID: sec-instruction-set
+:END:
 
 ** Accessing memory
 
@@ -2843,9 +2839,7 @@ The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
 at consecutive locations beginning with mem[gh+Rf] into registers Re,
 Re+1, ..., Rf.
 
-
-
-**** Implementing procedure call and return
+**** Procedure call and return
 
 A common usage of save and restore is to simplify procedure call and
 return.  When a procedure is called, store the registers onto the
@@ -2856,9 +2850,6 @@ for saving the registers, at a small offset from the beginning of the
 frame.  A register called the /stack pointer/ gives the address of the
 frame, and the offset for saving the registers is normally a small
 value (such as 3 or similar).
-
-
-
 
 ** Arithmetic
 
@@ -3125,7 +3116,6 @@ natural numbers represented in binary.
 - The remainder is placed in Ra, overwriting the least significant
   half of the dividend operand
 
-
 ** Jumps
 
 A jump is a transfer control to another address, rather than to the
@@ -3138,7 +3128,6 @@ implement a goto statement.  (See also [[*Branches][Branches]].)
 *** jumpz, jumpnz
 
 *** jal
-
 
 ** Branches
 
@@ -3255,38 +3244,6 @@ number of bits in the code, and a fixed /offset/ (which is usually 0).
   table.
 - The branch table is normally a sequence of unconditional branch
   instructions, either brf or brb.
-
-** Logic and bits
-
-The instructions in this section treat a word as a sequence of bits,
-not as a number.  There are instructions that perform logic operations
-on individual bits, on all the bits in a word, and that operate on bit
-fields.
-
-The bits in a word x are indexed from 0 to 15, where 0 is the index of
-the leftmost (most significant) bit and 15 is the index or the
-rightmost (least significant) bit.  The notation x.i means the bit
-with index i in the word x.  For example, x.0 is the leftmost bit and
-x.15 is the rightmost bit.  When used in an instruction, a bit index
-is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
-
-A bit field is a contiguous sequence of bits in a word.  It is
-specified by the register containing a word, the index of the starting
-bit in the field, and the size of the field.
-
-The bit field instructions can be implemented using a combination of
-logic and shift instructions.  They are included in the architecture
-for several reasons:
-
-- These operations provide useful abstractions for writing
-  interpreters and simulators.
-- When used in an interpreter, bit field operations are executed
-  frequently: they are a crucial part of the "inner loop".  Therefore
-  the efficiency of common bit field operations is important.
-- The bit field instructions are easier to use and more readable than
-  the corresponding logic and shifts.
-- These instructions can be implemented efficiently in a digital
-  circuit and this implementation is an interesting design problem.
 
 ** Logic
 
@@ -3561,29 +3518,24 @@ pseudoinstructions.
 
 ** Bit fields
 
-*** shiftl, shiftr
+The instructions in this section treat a word as a sequence of bits,
+not as a number.  There are instructions that perform logic operations
+on individual bits, on all the bits in a word, and that operate on bit
+fields.
 
-The instruction shiftl Rd,Ra,k shifts the value in the operand
-register Ra by k bits to the left, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
-shift, the leftmost k bits of the value are discarded and the
-rightmost k bits become 0.
+The bit field instructions can be implemented using a combination of
+logic and shift instructions.  They are included in the architecture
+for several reasons:
 
-#+BEGIN_EXAMPLE
-    moveb  R4,7,R12,5   ; R4.7 := R12.5
-#+END_EXAMPLE
-
-- =movebi Rd,e,Rf,g= inverts a bit and copies it from one register
-  into a specified position in another register.
-
-#+BEGIN_EXAMPLE
-    moveb  R4,7,R12,5   ; R4.7 := R12.5
-#+END_EXAMPLE
-
-** Bit fields
-
-The bit field instructions treat a word as a string of bits, and
-operate either on the entire string or a substring (i.e. a bit field).
+- These operations provide useful abstractions for writing
+  interpreters and simulators.
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
 
 *** Shifting: shiftl, shiftr
 
@@ -3622,6 +3574,27 @@ changed.
 
 The instruction format is EXP, and the assembly language statement format
 is RRKEXP
+
+The instruction shiftl Rd,Ra,k shifts the value in the operand
+register Ra by k bits to the left, and the result is placed in the
+destination register Rd.  The operand Ra is not modified.  During the
+shift, the leftmost k bits of the value are discarded and the
+rightmost k bits become 0.
+
+#+BEGIN_EXAMPLE
+    moveb  R4,7,R12,5   ; R4.7 := R12.5
+#+END_EXAMPLE
+
+- =movebi Rd,e,Rf,g= inverts a bit and copies it from one register
+  into a specified position in another register.
+
+#+BEGIN_EXAMPLE
+    moveb  R4,7,R12,5   ; R4.7 := R12.5
+#+END_EXAMPLE
+
+
+The bit field instructions treat a word as a string of bits, and
+operate either on the entire string or a substring (i.e. a bit field).
 
 *** Obtaining fields: extract, extracti
 
@@ -3757,10 +3730,11 @@ for several reasons:
 
 ** System control
 
-*** trap 
-*** getctl, putctl
-*** resume
+*** Request to OS: trap 
+*** Accessing control: getctl, putctl
+*** Context switching: resume
 
+*** Timer: timeron, timeroff
 
 ** Table of instructions
 
@@ -3889,8 +3863,6 @@ consist of one of the following:
 </div">
 #+END_EXPORT
 
-*** Pseudoinstructions
-
 
 * Assembly language
 
@@ -3949,50 +3921,240 @@ Machine language
     219a
 #+END_EXAMPLE
 
-
-** Assembly language instruction formats with examples
-
-| afmt  | operand general form | example           | notes         |
-|-------+----------------------+-------------------+---------------|
-| RRR   | Rd,Ra,Rb             | add R1,R2,R3      |               |
-| RR    | Ra,Rb                | cmp R1,R2         |               |
-| RX    | Rd,disp[Ra]          | load R1,xyz[R2]   |               |
-| kX    | k,disp[Ra]           | jumpc0 6,loop[R2] | 0 <= k <= 15  |
-| RRRk  | Rd,Ra,Rb,K[Re]       | save R1,R5,3[R14] | 0 <= K <= 255 |
-| RRk   | Ra,Rb,k              | shiftl R1,R2,5    | 0 <= k <= 15  |
-| Rkkkk | Rd,e,f,g,h           | logicr R1,        |               |
-| RkkRk | Ra,j,n,Rb,k          | extract           |               |
-| RC    | Rc,Rd                | putctl vect,R4    |               |
-|       |                      |                   |               |
-
-
 ** Programs, modules, and files
 
-The assembler inputs a program in assembly language.  Its primary
-output is an *object module* which contains the machine language code.
-The assembler also produces an *assembly listing*, which presents the
-program in a form useful for the programmer, and a *metadata module*
-which enables the emulator to track the source statement corresponding
-to each instruction.
+Sigma16 has the flexibility required for "programming in the large".
+It provides modules, separate assembly, import and export, relocation,
+linking, executables, and booting.  It also has special conventions
+that enable the user to skip those complications, and simply enter a
+standalone program, assemble it, and run it.  The system is
+straightforward for beginners but allows a transition to realistic
+systems programming.
 
-Each module has an associated object code, which may be empty. The
-object code can be produced by a successful assembly (i.e. an assembly
-with no errors) or it can be obtained from the Editor.  This allows
-object code to be read from a file or entered directly by the user.
+The assembler inputs a program in assembly language.  This is called
+the /source module/.  The assembler outputs an /object module/ that
+contains the machine language code.  The assembler also produces an
+/assembly listing/, which presents the program in a form useful for
+the programmer.  The assembly listing shows the source code, the
+corresponding machine language, a symbol table, and any error
+messages.  Finally, the assembler outputs a /metadata module/ that
+enables the emulator to track the source statement corresponding to
+each instruction.
 
+A simple program consists of just one source module that does not
+import anything.  This is a /standalone program/, and assembling it
+produces an /executable program/.  An executable program is an object
+module that does not require linking; it can be booted directly in the
+processor.
 
-There is a standard convention for file names.  If, for example, you
-have a program named MyProgram, then the files associated with it
-should be as follows:
+A larger program may consist of several source modules, including one
+main program.  This requires use of the /linker/ to combine the
+collection of object modules into a single executable program.
 
-    -----------------  -----------
-    module name        MyProgram
-    source file        MyProgram.asm.txt
-    object file        MyProgram.obj.txt
-    assembly listing   MyProgram.lst.txt
-    -----------------  -----------
+*** Standalone programs
 
-** Values
+If a program consists of just one source module that does not import
+any names, it is /standalone/.  There are several ways to input a
+standalone program: you can choose it from one of the examples, load
+it from a file, or type it into the editor.  In all cases, the text of
+the program is shown in the editor pane.  Go to the Assembler pane and
+click Assemble.  If there are no errors, go directly to the Processor
+pane (you can skip the Linker) and click Boot.  This will read the
+machine language into the memory, and now you can run the program.
+
+*** Modules
+
+Large programs are easier to develop if you break them into separate
+modules which can be assembled separately.  One of the modules is
+identified as the /main module/, and it imports the other modules.
+This allows you to define procedures, global variables, and symbolic
+constants in separate modules.  Many separate programs can reuse these
+modules simply by importing them.
+
+The Sigma16 app maintains a /Module Set/ describing all the modules
+that it knows about.  The usual workflow is to read in all the modules
+comprising a program, and to assemble each of them.  Then the linker
+combines all the modules in the Module Set to form an executable.  The
+executable can be saved to a file, or it can be booted into the
+processor.
+
+The Module Set is displayed in the /Modules/ page.  Key information
+about each module is shown, including the first few lines of the
+source code.  It is good practice to begin every source module with
+two or three lines of comments that identify the code, giving its
+name, purpose, author, and date.
+
+The app maintains several invariants:
+- At all times, there is at least one module.  If you close the last
+  remaining module, a new one with empty source code is immediately
+  created, to ensure that there is at least one module.
+- At all times, exactly one module is /selected/.  The assembler
+  always works on the selected module. When you go to the Assemble
+  page, the assembler source code is set to the text of the selected
+  module.
+- At all times, the source code text of the selected module is
+  displayed in the editor window.
+
+Each module in the Module Set has a /module record/ that contains
+everything the app knows about the module:
+- (optional) the name of the module
+- (always) the source code (which could just be an empty or blank
+  string)
+- (optional) the filename and file handle of the source code
+- (if there is a file handle) whether the code in the file is /stale/
+  (i.e.  the current source code has been edited and differs from the
+  text in the file)
+- (after assembly) the object code. Each module has an associated
+  object code, which may be empty. The object code can be produced by
+  a successful assembly (i.e. an assembly with no errors) or it can be
+  obtained from the Editor.  This allows object code to be read from a
+  file or entered directly by the user.
+- (after assembly) the assembly listing
+- (after assembly) the metadata
+
+**** Creating a module
+
+- /Launch./ When the Sigma16 app is launched, it creates the initial
+  Module Set containing a module whose source text is the empty
+  string.  This module is automatically selected, and it is not
+  associated with a file.  As always, you can see the source code text
+  (which is empty) by going to the Editor.
+- /Load example./ You can open one of the Examples: Go to the Examples
+  page, navigate through the index pages to one of the programs, and
+  select it.  This will add a new module to the Module Set, select it,
+  and set its source code to the contents of the file.  The object
+  code is set to empty.
+- /Read file./ You can read a source file from your user space to
+  create a module.  Go to the Modules page and click Choose Module.
+  This adds the result to the Module Set.  The object code is set to
+  empty.
+- /Editor: New./ Go to the Editor page and click /New/.  This creates
+  a new module whose name is =Anonymous= whose source text is the
+  empty string.  The new module is selected and added to the Module
+  Set (you can see it by going to the Modules page).  The previous
+  text in the editor page is not lost; it remains in the module that
+  had previous been selected.
+
+**** Selecting a module
+
+The Modules page shows which module is currently selected, and its
+source text is visible if you go to the Editor page.
+
+**** Changing a module
+- /Edit text./
+- /Save./
+- /Select./
+
+**** Closing a module
+- /Close./
+
+*** Modules page
+
+- In Modules tab, click Choose Files
+  - The dialogue shows .asm.txt, .lnk.txt, .obj.txt, .md.txt
+  - To select all the relevant files in a directory, click the little
+    box at the left on the row giving "Name, date modified, ..."
+  - Click Open (or cancel)
+
+*** Editor page
+
+Editor operations on files and modules
+
+Each operation that changes the editor buffer (New, Open, Close)
+checks first to see whehter the buffer has been changed since it was
+last saved.  If so, a dialogue asks whether the file should be saved.
+
+- New -- Check whether text in the editor buffer has been saved; if
+  not, ask whether to save it.  Create a new module with empty text
+  and no file name, add it to the module set, and select it as the
+  current module.  Clear the text in the editor buffer.
+
+- Open -- Check whether text in the editor buffer has been saved; if
+  not, ask whether to save it.  Enter the open file dialogue where an
+  existing file can be found by navigation or by typing in its name.
+  If the dialogue is cancelled, the module set and editor buffer are
+  left unchanged.  If a file is selected in the dialogue, and it is
+  already in the module set, then it is selected in the current
+  module.  Otherwise, a new module is created with the file's
+  contents, and is selected as the current module.  and The file is
+  loaded into the editor buffer and added to the module set.
+
+- Refresh -- The file corresponding to the current module is read, and
+  its contents are loaded into the editor buffer.
+
+- SaveAs -- Enters the save file dialogue where the directory and file
+  name can be chosen.  The editor buffer is written into this file.
+
+- Save -- Writes the editor buffer into the current file and
+  directory.  If either the module name or directory is not known,
+  this reverts to a SaveAs.
+
+- Select -- Opens a list of all modules; you can click one of them
+  which is then set as the current module.
+  
+- Close -- Check whether text in the editor buffer has been saved; if
+  not, ask whether to save it. The module is removed from the module
+  set, and the editor buffer is cleared.  The first module (module
+  number 0) is selected as the current module, but if there is no
+  module at all, an empty module is created and selected as current
+  (in effect, if there is only one module and you close it, an
+  automatic New is performed).
+
+- Example -- Reads in a simple example program and sets it as the
+  current module.  This is a standalone program; you can simply click
+  Editor: Example, then Assembler: Assemble, then Processor: Boot, and
+  run the program.  This example is used in the first "getting
+  started" tutorial.  The example program is also available in the
+  Examples directory, accessible through Editor: Open.
+
+Select is for switching among the existing modules, while New and Open
+are for introducing a new module.
+
+*** Files
+
+A source module may be stored in a file, although this is not
+required.  The assembler will produce several objects, which can also
+be stored into files.
+
+There is a standard convention for Sigma16 filenames.  All filenames
+end with a two-part extension, such as =.asm.txt=.  The first part
+(=.asm=) tells Sigma16 what kind of information the file contains, and
+the final part (=.txt=) enables the computer you're running on to
+interpret the file as plain text.  If you have a program named
+=MyProgram=, then the files associated with it must be named as
+follows:
+
+| Description      | Language          | Filename          |
+|------------------+-------------------+-------------------|
+| source code      | assembly language | MyProgram.asm.txt |
+| object code      | object language   | MyProgram.obj.txt |
+| assembly listing | plain text        | MyProgram.lst.txt |
+| metadata         | plain text        | MyProgram.md.txt  |
+
+The first part of the filename (=MyProgram=) is the /base name/, and
+is the same for all the files for the module.  The last part
+(=.asm.txt=) is the /extension/.
+
+A filename can be specified either as a full path (the unique
+identification of the file (=C:\\Users\...\prog.asm.txt=), or as just
+a filename (myprogram.asm.txt) which is relative to the current
+directory.
+
+To edit a file, the modDir and modName are both optional.  An edited
+file may have a module name specified with a module statement.  To
+read or save a file, both the module directory and name must be known.
+
+There are two ways to read in a file:
+- Go to the /Examples/ page, navigate to one of the examples, and open
+  it.  This will create a new module record and read the =.asm.txt=
+  file into the source code for that record.  The object, assembly
+  listing, and metadata for the module record are set to the empty
+  string.
+- Go to the /Modules/ page, click /Choose File/, and navigate to a
+  source file anywhere in your file space. Selet that file, and it
+  will be read into the source code for a newly created module record.
+
+** Fixed and relocatable values
 
 A value is a 16-bit word.  An assembly language program uses
 expressions to denote values, but the actual underlying quantity is a
@@ -4110,7 +4272,6 @@ Every value is either *fixed* or *relocatable*.  If a module is
 linked, then its relocatable values may be translated, but the fixed
 values remain unchanged.
 
-
 ** Code generators
 Each line of source code is an assembly language statement.  Unlike
 higher level languages, assembly language statements are not nested.
@@ -4189,6 +4350,20 @@ formats, but there is not an exact correspondence for several reasons:
   specialised to perform a logical and.
 
 Table: *Assembly language statement formats*
+  
+| afmt  | operand general form | example           | notes         |
+|-------+----------------------+-------------------+---------------|
+| RRR   | Rd,Ra,Rb             | add R1,R2,R3      |               |
+| RR    | Ra,Rb                | cmp R1,R2         |               |
+| RX    | Rd,disp[Ra]          | load R1,xyz[R2]   |               |
+| kX    | k,disp[Ra]           | jumpc0 6,loop[R2] | 0 <= k <= 15  |
+| RRRk  | Rd,Ra,Rb,K[Re]       | save R1,R5,3[R14] | 0 <= K <= 255 |
+| RRk   | Ra,Rb,k              | shiftl R1,R2,5    | 0 <= k <= 15  |
+| Rkkkk | Rd,e,f,g,h           | logicr R1,        |               |
+| RkkRk | Ra,j,n,Rb,k          | extract           |               |
+| RC    | Rc,Rd                | putctl vect,R4    |               |
+|       |                      |                   |               |
+  
 
 
  | Label   | Statement | Operands | Purpose                    |
@@ -4200,20 +4375,17 @@ Table: *Assembly language statement formats*
  |         | Rop       | r        |                            |
  |         | RRKKop    | r,r,k,k  |                            |
 
--------------------------------------------------------
- Asm   Example                  ML formats
-------- ---------------------  ---------------------------
- RRR     add     Rd,Ra,Rb       RRR
- RX      lea     Rd,disp[Ra]    RX
 
- RR      inv     Rd,Ra          RRR (b ignored), RREXP
- JX      jump    disp[Ra]       RX (b ignored)
- KX      jumpc0  d,disp[Ra]     RX (d is constant)
-
- RRK     shiftl  Rd,Ra,k        EXP
- RkkRk   extract Rd,e,f,Rg,h    EXP
- RCEXP   getctl  Re,Cf          EXP
--------------------------------------------------------
+| Asm   | instruction | operands    | ML formats             |
+|-------+-------------+-------------+------------------------|
+| RRR   | add         | Rd,Ra,Rb    | RRR                    |
+| RX    | lea         | Rd,disp[Ra] | RX                     |
+| RR    | inv         | Rd,Ra       | RRR (b ignored), RREXP |
+| JX    | jump        | disp[Ra]    | RX (b ignored)         |
+| KX    | jumpc0      | d,disp[Ra]  | RX (d is constant)     |
+| RRK   | shiftl      | Rd,Ra,k     | EXP                    |
+| RkkRk | extract     | Rd,e,f,Rg,h | EXP                    |
+| RCEXP | getctl      | Re,Cf       | EXP                    |
 
 An EXP instruction may use the fields op, d, ab, e, f, g, h.  The g
 and h fields can be combined into a single 8-bit field gh All EXP
@@ -4299,8 +4471,7 @@ Expressions, values and relocatables
     are not recorded in the relocation list; only displacements are
     placed in the relocation list.
 
-
-- Instruction set
+**** Instruction set
 
 The following sections describe the instructions in groups organized
 by their function.  Some of the groups contain instructions with
@@ -4308,6 +4479,7 @@ different formats.  From the programmer's perspective the function is
 more important, so these groups are useful in finding the right
 instruction to use.  (From the perspective of designing a digital
 circuit to impleemnt the architecture, the format is essential.)
+*** Pseudoinstructions
 
 *** data
 
@@ -4343,13 +4515,21 @@ uses $ to indicate that a number is a hex constant (e.g. $03b7) but
 the object language data statement requires all numbers to be 4-digit
 hex constants, and does not require (or allow) a preceding $ character
 
-
 ** Directives
 
 A directive is an assembly language statement that gives further
 information about how to translate the program to object code and how
 to link the code with other modules.  Directirves specify metadata but
 they don't generate an instruction or constant data.
+
+
+| Statement  | Label  | Operands              | Purpose                    |
+|------------+--------+-----------------------+----------------------------|
+| identifier | module |                       | Define name of module      |
+|            | org    | expression            | Set location counter       |
+| identifier | equ    | expression            | Define value               |
+| identifier | import | identifier,identifier | Import  value  from module |
+|            | export | identifier            | Export values              |
 
 *** module
 
@@ -4384,6 +4564,66 @@ then basename should be /modname/.  For example, the file
 Heapsort.asm.txt might contain the statement /Heapsort module/.  If
 there is no module statement, basename is arbitrary.
 
+*** import
+
+The import statement states that the value of an identifier is defined
+in another module.  During the assembly of the module containing the
+import, the identifier is given a provisional value of 0, but this
+will be replaced by the actual value by the linker.  For example,
+
+#+BEGIN_EXAMPLE
+x   import  Mod1,x
+y   import  Mod1,abc
+#+END_EXAMPLE
+
+says that x is a name that can be used in this module, but it is
+defined in Mod1; y can be used in this module but it is defined in
+Mod1 under the name abc.
+*** export
+
+An export statement says that the module is making the value of a
+symbol available for use in other modules, which may import it.  The
+statement takes two operands: the name being exported and the value,
+which must be a 4-digit hex constant.  It makes no difference whether
+the name is relocatable, as the linker performs any relocation before
+writing the exported value into other modules that import it.
+Examples:
+
+#+BEGIN_EXAMPLE
+export  haltcode,0
+export  fcn,002c
+#+END_EXAMPLE
+
+The export statement states that the value of an identifier should be
+made available for other modules to import.  For example, this module
+defines a function and exports it so other modules can import and call
+it:
+
+#+BEGIN_EXAMPLE
+Mod1     module
+         export fcn
+
+fcn      add    R1,R1,R1
+         jump   0[R12]
+#+END_EXAMPLE
+
+ ** Assembly listing
+
+The first section of the assembly listing shows each line of the
+source program.  The line number appears first, followed by the memory
+address that the instruction on this line will be placed in.  The
+address is given as a 4 digit hexadecimal number, and it is binary
+(not two's complement).  Next comes the machine language code
+generated by the line of source code.  If the line contains a two-word
+instruction, there will be two 4-digit hexadecimal values; for a
+one-word instruction there will be one hex number, and if the line
+doesn't produce any code these fields will be blank.  After the code,
+the original source statement appears.
+
+The second section of the assembly listing is the *Symbol Table*.
+This shows each identifier (or "symbol") that appears in the program,
+the address allocated for the symbol, the source code line where it
+was defined, and the source code lines where it was used.
 *** equ
 
 #+BEGIN_EXAMPLE
@@ -4441,80 +4681,6 @@ implicitly with org 0.
 # statement sets this attribute, as well as the numeric value of the
 # location counter, to the value of the operand.
 #     org   @+50   ; skip 50 words (Relocatable)
-
-*** import
-
-The import statement states that the value of an identifier is defined
-in another module.  During the assembly of the module containing the
-import, the identifier is given a provisional value of 0, but this
-will be replaced by the actual value by the linker.  For example,
-
-#+BEGIN_EXAMPLE
-x   import  Mod1,x
-y   import  Mod1,abc
-#+END_EXAMPLE
-
-says that x is a name that can be used in this module, but it is
-defined in Mod1; y can be used in this module but it is defined in
-Mod1 under the name abc.
-
-*** export
-
-An export statement says that the module is making the value of a
-symbol available for use in other modules, which may import it.  The
-statement takes two operands: the name being exported and the value,
-which must be a 4-digit hex constant.  It makes no difference whether
-the name is relocatable, as the linker performs any relocation before
-writing the exported value into other modules that import it.
-Examples:
-
-#+BEGIN_EXAMPLE
-export  haltcode,0
-export  fcn,002c
-#+END_EXAMPLE
-
-The export statement states that the value of an identifier should be
-made available for other modules to import.  For example, this module
-defines a function and exports it so other modules can import and call
-it:
-
-#+BEGIN_EXAMPLE
-Mod1     module
-         export fcn
-
-fcn      add    R1,R1,R1
-         jump   0[R12]
-#+END_EXAMPLE
-
- ** Assembly listing
-
-The first section of the assembly listing shows each line of the
-source program.  The line number appears first, followed by the memory
-address that the instruction on this line will be placed in.  The
-address is given as a 4 digit hexadecimal number, and it is binary
-(not two's complement).  Next comes the machine language code
-generated by the line of source code.  If the line contains a two-word
-instruction, there will be two 4-digit hexadecimal values; for a
-one-word instruction there will be one hex number, and if the line
-doesn't produce any code these fields will be blank.  After the code,
-the original source statement appears.
-
-The second section of the assembly listing is the *Symbol Table*.
-This shows each identifier (or "symbol") that appears in the program,
-the address allocated for the symbol, the source code line where it
-was defined, and the source code lines where it was used.
-
-
-** Summary of assembly language statements
-
-| Statement  | Label  | Operands              | Purpose                    |
-|------------+--------+-----------------------+----------------------------|
-| identifier | module |                       | Define name of module      |
-|            | org    | expression            | Set location counter       |
-| identifier | equ    | expression            | Define value               |
-| identifier | import | identifier,identifier | Import  value  from module |
-|            | export | identifier            | Export values              |
-
 
 
 * Object code and linker
@@ -4740,93 +4906,6 @@ source 32
   reads in the currently selected module and checks to see whether it is
   a valid executable module.  If so, it loads the code into the memory.
   If not, it indicates that the program cannot be booted.
-
-
-* User interface
-*** Files and modules
-- In Modules tab, click Choose Files
-  - The dialogue shows .asm.txt, .lnk.txt, .obj.txt, .md.txt
-  - To select all the relevant files in a directory, click the little
-    box at the left on the row giving "Name, date modified, ..."
-  - Click Open (or cancel)
-*** Simple standalone programs
-
- If a program does not import any names, it is *standalone*.  The text
- of the program is shown in the editor pane.  Go to the Assembler pane
- and click Assemble.  If there are no errors, go directly to the
- Processor pane (you can skip the Linker) and click Boot.  This will
- read the machine language into the memory, and now you can run the
- program.
-
-*** Programs with multiple modules
-
-A module consists of program text, and it may have an optional file,
-and an optional module name.
-
-- The module text is a sequence of assembly language statements.  The
-  text may exist only in the editor buffer, or it may be associated
-  with a file.
-
-- If there is a file, this may be specified either as a path (the
-  unique identification of the file (=C:\\Users\...\prog.asm.txt=), or
-  as just a filename (myprogram.asm.txt) which is relative to the
-  current directory.
-
-To edit a file, the modDir and modName are both optional.  An edited
-file may have a module name specified with a module statement.  To
-read or save a file, both the module directory and name must be known.
-
-Editor operations on files and modules
-
-Each operation that changes the editor buffer (New, Open, Close)
-checks first to see whehter the buffer has been changed since it was
-last saved.  If so, a dialogue asks whether the file should be saved.
-
-- New -- Check whether text in the editor buffer has been saved; if
-  not, ask whether to save it.  Create a new module with empty text
-  and no file name, add it to the module set, and select it as the
-  current module.  Clear the text in the editor buffer.
-
-- Open -- Check whether text in the editor buffer has been saved; if
-  not, ask whether to save it.  Enter the open file dialogue where an
-  existing file can be found by navigation or by typing in its name.
-  If the dialogue is cancelled, the module set and editor buffer are
-  left unchanged.  If a file is selected in the dialogue, and it is
-  already in the module set, then it is selected in the current
-  module.  Otherwise, a new module is created with the file's
-  contents, and is selected as the current module.  and The file is
-  loaded into the editor buffer and added to the module set.
-
-- Refresh -- The file corresponding to the current module is read, and
-  its contents are loaded into the editor buffer.
-
-- SaveAs -- Enters the save file dialogue where the directory and file
-  name can be chosen.  The editor buffer is written into this file.
-
-- Save -- Writes the editor buffer into the current file and
-  directory.  If either the module name or directory is not known,
-  this reverts to a SaveAs.
-
-- Select -- Opens a list of all modules; you can click one of them
-  which is then set as the current module.
-  
-- Close -- Check whether text in the editor buffer has been saved; if
-  not, ask whether to save it. The module is removed from the module
-  set, and the editor buffer is cleared.  The first module (module
-  number 0) is selected as the current module, but if there is no
-  module at all, an empty module is created and selected as current
-  (in effect, if there is only one module and you close it, an
-  automatic New is performed).
-
-- Example -- Reads in a simple example program and sets it as the
-  current module.  This is a standalone program; you can simply click
-  Editor: Example, then Assembler: Assemble, then Processor: Boot, and
-  run the program.  This example is used in the first "getting
-  started" tutorial.  The example program is also available in the
-  Examples directory, accessible through Editor: Open.
-
-Select is for switching among the existing modules, while New and Open
-are for introducing a new module.
 
 
 * Programming
@@ -5190,31 +5269,6 @@ $ wat2wasm emcore.wat --enable-threads
 
 
 
-*** Why Sigma16?
-
-
-**** Focus on connections
-***** Vertical connections
-- ISA - target for compilation
-- circuit implements ISA
-***** Horizontal connections
-- ISA - programming language constructs
-- ISA - OS kernel
-**** Principles and training
-- When you learn one architecture, it's much easier to learn more
-- 
-**** Synthetic vs commercial architecture
-***** Benefit of commercial architecture: training
-- But which architecture? x86? ARM? RISC-V? New ones?
-**** Design rationale
-***** As simple as possible -- but no simpler
-***** 16-bit word size
-***** Register file
-***** Readable machine language
-**** Software tools
-***** Integrated environment
-***** Run in browser without installation
-
 * Rationale and design
 
 - Why Sigma16?
@@ -5238,6 +5292,32 @@ $ wat2wasm emcore.wat --enable-threads
 - Software tools
 - Integrated environment
 - Run in browser without installation
+
+** Why Sigma16?
+
+
+*** Focus on connections
+**** Vertical connections
+- ISA - target for compilation
+- circuit implements ISA
+**** Horizontal connections
+- ISA - programming language constructs
+- ISA - OS kernel
+*** Principles and training
+- When you learn one architecture, it's much easier to learn more
+- 
+*** Synthetic vs commercial architecture
+**** Benefit of commercial architecture: training
+- But which architecture? x86? ARM? RISC-V? New ones?
+*** Design rationale
+**** As simple as possible -- but no simpler
+**** 16-bit word size
+**** Register file
+**** Readable machine language
+*** Software tools
+**** Integrated environment
+**** Run in browser without installation
+
 
 * About Sigma16
 :PROPERTIES:
@@ -5617,7 +5697,13 @@ You should also get your employer (if you work as a programmer) or school, if an
 
 The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
+
 * Typesetting notes :noexport:
+** Notes
+- Testing: Include \SigmaTest  to check that \usepackage{sigma16} works
+- Internal link: (See also [[*Branches][Branches]].)
+- to do: single space metadata inclusion at end
+
 ** svg
 
 #+BEGIN_EXAMPLE
@@ -5650,7 +5736,24 @@ There are several ways to include an svg image.
 <h3> silly heading</h3>
 #+END_EXPORT
 
-** svg the best way: inline include
+
+*** The best way: use tex2svg
+
+The best approach is to use the power of TeX for describing math, and
+the vector graphics of svg to render it.  This needs to be done
+offline, and the raw svg is included in the html page.
+
+#+BEGIN_EXAMPLE
+npm install --global mathjax-node
+$ tex2svg '\sin^2{\theta} + \cos^2{\theta} = 1' > identity.svg
+#+END_EXAMPLE
+
+Here is a formula
+x  #+INCLUDE: "./svg/identity.svg" export html
+which contains some math notation.  This looks good for display equations,
+but not so much for inline notation.
+
+*** svg the best way: inline include
 
 The idea is to inline the contents of the svg figure, but to obtain
 the text from a separate svg file.
@@ -5659,7 +5762,7 @@ the text from a separate svg file.
 
 That was an included file.
 
-** Raw inline svg
+*** Raw inline svg
 
 Hello there this is it 
 
@@ -5690,7 +5793,7 @@ Hello there this is it
 #+END_EXPORT
 That was it!
 
-** svg via org mode external link
+*** svg via org mode external link
 
 Here is the source code in the org file
 #+BEGIN_EXAMPLE
@@ -5818,20 +5921,4 @@ However, the following does not trigger mathjax:
 - $x \leq y$
 - $x_i < y_i$
 - $\sum_{i=0}^{n-1} {x_{i} \times 2^{i}} $
-
-** The best way: use tex2svg
-
-The best approach is to use the power of TeX for describing math, and
-the vector graphics of svg to render it.  This needs to be done
-offline, and the raw svg is included in the html page.
-
-#+BEGIN_EXAMPLE
-npm install --global mathjax-node
-$ tex2svg '\sin^2{\theta} + \cos^2{\theta} = 1' > identity.svg
-#+END_EXAMPLE
-
-Here is a formula
-x  #+INCLUDE: "./svg/identity.svg" export html
-which contains some math notation.  This looks good for display equations,
-but not so much for inline notation.
 

@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------
 
 import * as com from './common.mjs';
-import * as smod from './s16module.mjs';
+// import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
@@ -420,14 +420,21 @@ function mkErrMsg (ma,s,err) {
 // for the selected module
 
 export function enterAssembler () {
-    const m = st.env.getSelectedModule ();
-    const src = m.getAsmText();
-    setAsmSource (src)
+    const m = st.env.moduleSet.getSelectedModule ();
+    const src = m.getAsmText ();
+    console.log (`enterAssembler src=${src}`);
+    setAsmSource (src);
 }
+//    console.log (`enterAssembler m=${m}`)
+    //    const m = st.env.getSelectedModule ();
+    //    const src = m.getAsmText();
+    //    const src = m ? m.getAsmText() : "";
 
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
-    const m = st.env.getSelectedModule ();
+//    const m = st.env.getSelectedModule ();
+    const m = st.env.moduleSet.getSelectedModule ();
+    console.log (`assemblerGUI m=${m}`)
     const src =  m.getAsmText();
     document.getElementById('AsmTextHtml').innerHTML = "";
     // clear text in asm
@@ -441,7 +448,8 @@ export function assemblerGUI () {
 }
 
 export function displayAsmSource () {
-    const m = st.env.getSelectedModule ();
+//    const m = st.env.getSelectedModule ();
+    const m = st.env.moduleSet.getSelectedModule ();
     const ai =  m.asmInfo;
     setAsmSource (ai.text)
 }
@@ -457,7 +465,8 @@ export function setAsmSource (txt) {
 
 export function setAsmListing () {
     com.mode.devlog ("setAsmListing");
-    const m = st.env.getSelectedModule ();
+    const m = st.env.moduleSet.getSelectedModule ();
+//    const m = st.env.getSelectedModule ();
     const ai =  m.asmInfo;
     let lst = ai.metadata.listingDec; // array of listing lines
     lst.unshift("<pre class='HighlightedTextAsHtml'>")
@@ -466,14 +475,17 @@ export function setAsmListing () {
 }
 
 export function setObjectListing () {
-    const m = st.env.getSelectedModule ();
+    const m = st.env.moduleSet.getSelectedModule ();
+//    const m = st.env.getSelectedModule ();
     const codeText = m.asmInfo.objMd.objText;
     let listing = "<pre class='VerbatimText'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
 export function setMetadata () {
-    const m = st.env.getSelectedModule ();
+//    const m = st.env.getSelectedModule ();
+    const m = st.env.moduleSet.getSelectedModule ();
+    const src = m.getAsmText ();
     const mdText = m.asmInfo.objMd.mdText;
     let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;

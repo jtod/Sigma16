@@ -48,16 +48,18 @@ export function setEditorBufferText (xs) {
 export function enterEditor () {
 //    com.mode.trace = true;
     com.mode.devlog ("ed.enterEditor");
-    let m = st.env.getSelectedModule (); // module to be edited
+    //    let m = st.env.getSelectedModule (); // module to be edited
+    let m = st.env.moduleSet.getSelectedModule ()
     if (m) {
         console.log ("enterEditor, found selectedModule")
         let bn = m.baseName; // name of the module
-        let stage = m.edCurrentStage; // stage of the module to edit
-        let xs = `${bn} ${stage.description}`;
+//        let stage = m.edCurrentStage; // stage of the module to edit
+        //        let xs = `${bn} ${stage.description}`;
+        let xs = bn;
         document.getElementById("EDP_Selected").innerText = xs;
         edGetTextToEdit (m);
     } else {
-        console.log ("enterEditor, no selectedModule")
+        console.log ("Error: enterEditor, no selectedModule")
         setEditorBufferText ("")
     }
 }
@@ -68,7 +70,8 @@ export function enterEditor () {
 
 export function leaveEditor () {
     com.mode.devlog ('leaveEditor called');
-    const m = st.env.getSelectedModule (); // module to be edited
+    //    const m = st.env.getSelectedModule (); // module to be edited
+    const m = st.env.moduleSet.getSelectedModule ()
     if (m) {
         saveEditorBufferText (m);
     } else {
@@ -107,14 +110,17 @@ function isEditorTextHtml (xs) {
 
 // Get the text to edit from module m
 export function edGetTextToEdit (m) {
+    const xs = m.getAsmText ();
+    setEditorBufferText (xs);    
+}
+/*
     const s = m.edCurrentStage;
     const xs = s == st.StageAsm ? m.getAsmText ()
           : s == st.StageObj ? m.getObjText ()
           : s == st.StageLnk ? m.getLnkText ()
           : s == st.StageExe ? m.getExeText ()
           : "";
-    setEditorBufferText (xs);    
-}
+*/
 
 export function saveEditorBufferText (m) {
     const xs = getEditorBufferText ()
@@ -213,7 +219,9 @@ function makeTextFile (text) {
 
 export function copyEditorBufferToModule () {
     com.mode.devlog ("copyEditorBufferToModule");
-    const m = st.env.getSelectedModule ();
-    m.text = document.getElementById("EditorTextArea").value;
+    //    const m = st.env.getSelectedModule ();
+    const m = st.env.moduleSet.getSelectedModule ()
+    //    m.text = document.getElementById("EditorTextArea").value;
+    m.asmText = document.getElementById("EditorTextArea").value;
 }
 

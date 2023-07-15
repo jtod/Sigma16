@@ -2,6 +2,9 @@
 ; Demonstrate need for mutual exclusion in a critical region.
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
+; Configuration
+SliceDuration equ 1
+
 ; Testing
 ;    jump  StartB[R0]
 ;   trap R0,R0,R0   
@@ -58,7 +61,6 @@ InitStatus  equ  0
 ; Kernel: Initialization
 ;------------------------------------------------------------------------
 
-SliceDuration equ 100
 
 ; Create TCB for Thread A
     lea     R1,0[R0]             ; A is thread number 0
@@ -84,8 +86,6 @@ SliceDuration equ 100
     putctl  R1,mask              ; set interrupt mask
     lea     R1,InterruptVector[R0] ; address of vector
     putctl  R1,vect              ; initialize vector register
-    lea     R2,SliceDuration[R0] ; timer interval
-    timeron R2                   ; set timer and start
 
 ; Start the CurrentThread
     jump   GiveTimeSlice[R0]     ; transfer control to thread
@@ -138,8 +138,12 @@ HandleTimerInterrupt
 
 SaveState
     store    R1,SpecialSaveR1[R0]  ; make R1 available
+      lea    R1,4              ; trap break code
+      trap   R1,R0,R0          ; breakpoint
     load     R1,CurrentTCB[R0]     ; point to TCB
     save     R2,R15,TCB_R2[R1]     ; save R2-R15 into TCB
+      lea    R3,4              ; trap break code
+      trap   R3,R0,R0          ; breakpoint
     load     R2,SpecialSaveR1[R0]  ; recover R1 value
     store    R2,TCB_R1[R1]         ; save R1 into TCB
     getctl   R2,ipc                ; recover pc

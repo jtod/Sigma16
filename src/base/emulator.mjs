@@ -33,7 +33,7 @@ import * as smod from './s16module.mjs';
 //-----------------------------------------------------------------------
 
 // Number of minor cycles per timer tick
-export const defaultTimerResolution = 2
+export const defaultTimerResolution = 1
 
 //-----------------------------------------------------------------------
 // Access to system control register flags
@@ -666,12 +666,14 @@ export function StartTimer (es, x) {
     ab.writeSCB (es, ab.SCB_timer_running, 1)
     ab.writeSCB (es, ab.SCB_timer_major_count, x)
     ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
+    SetStatusBit (es, arch.TimerRunningBit, 1)
 }
 
 export function StopTimer (es) {
     ab.writeSCB (es, ab.SCB_timer_running, 0)
     ab.writeSCB (es, ab.SCB_timer_major_count, 0)
     ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
+    SetStatusBit (es, arch.TimerRunningBit, 0)
 }
 
 export function timerTick (es) {

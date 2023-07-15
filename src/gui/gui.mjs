@@ -384,6 +384,7 @@ function setArrayBufferWebAssembly (warn) {
     com.mode.devlog ('setArrayBufferWebAssembly')
     setArrayBufferShared (warn)
 }
+
 /*
 com.mode.devlog ('setArrayBufferWebAssembly')
     const opt = gst.options
@@ -823,7 +824,8 @@ const showPane = (gst) => (p) => {
     case ModulesPane:
         gst.currentKeyMap = modulesKeyMap
         highlightPaneButton (gst, "Modules_Pane_Button")
-        smod.refreshModulesList ();
+        //        smod.refreshModulesList ();
+        st.env.moduleSet.refreshDisplay ()
         break;
     case EditorPane:
         gst.currentKeyMap = editorKeyMap
@@ -975,7 +977,8 @@ function initializeButtons () {
 
     // Modules pane (MP)
     // prepareButton ('MP_New',    smod.newModule)
-    prepareButton ('MP_Refresh',    smod.refreshModulesList)
+    //    prepareButton ('MP_Refresh',    smod.refreshModulesList)
+    prepareButton ('MP_Refresh',    st.env.moduleSet.refreshDisplay ())
     prepareButton ('MP_New',        smod.newMod)
     prepareButton ('MP_Hello_world', () => insert_example(example_hello_world))
     prepareButton ('MP_Test1',        smod.test1)
@@ -1083,7 +1086,8 @@ const defaultKeyMap = new Map ([
 
 const modulesKeyMap = new Map ([
     ["KeyH",  toggleModulesHelp],
-    ["KeyR",  smod.refreshModulesList],
+    //    ["KeyR",  smod.refreshModulesList],
+//    ["KeyR",  st.env.moduleSet.refreshDisplay], ?????????? order of def?
     ["KeyW",  () => insert_example(example_hello_world)],
 ])
 
@@ -1274,16 +1278,20 @@ function selectExample() {
     let m = new st.S16Module (ed.findModName (ys))
     m.asmEdText = ys;
     smod.refreshEditorBuffer();
-    smod.refreshModulesList();
+    st.env.ModuleSet.refreshDisplay ()
+    //    smod.refreshModulesList();
 }
 
 function insert_example(exampleText) {
     com.mode.devlog('Inserting example add into editor text');
-    let m = st.env.mkSelectModule ("HelloWorld");
-    m.asmEdText = exampleText;
-    smod.refreshModulesList ();
+    let m = st.env.moduleSet.addModule ()
+    m.asmText = exampleText;
+    st.env.moduleSet.refreshDisplay ()
     document.getElementById('EditorTextArea').value = exampleText;
-};
+}
+//    let m = st.env.mkSelectModule ("HelloWorld");
+//    m.asmEdText = exampleText;
+//    smod.refreshModulesList ();
 
 const example_hello_world =
 `; Program Hello, world!
@@ -2911,7 +2919,10 @@ function initializeGuiElements (gst) {
 //    document.getElementById('LinkerText').innerHTML = "";    
     document.getElementById('LP_Body').innerHTML = "";    
     smod.prepareChooseFiles ();
-    smod.initModules (gst);
+    //    smod.initModules (gst);
+    //    smod.initializeModuleSet (); // gst is global variable
+    st.env.moduleSet = new smod.ModuleSet ()
+//    smod.testModSet (); // TEMP TESTING ??????
     window.mode = com.mode;
     prepareExampleText (gst)
 }
