@@ -984,6 +984,8 @@ function initializeButtons () {
     prepareButton ('MP_Test1',        smod.test1)
     prepareButton ('MP_Test2',        smod.test2)
     prepareButton ('MP_Test3',        smod.test3)
+    prepareButton ('MP_OpenFile',      smod.openFile)
+    prepareButton ('MP_OpenDirectory', smod.openDir)
 
     // Editor pane (EDP)
     prepareButton ('EDP_Selected',    ed.edSelectedButton);
@@ -1273,23 +1275,14 @@ function selectExample() {
     console.log ('selectExample')
     let exElt = document.getElementById('ExamplesIframeId');
     let xs = exElt.contentWindow.document.body.innerHTML;
-    console.log (`selectExample raw xs = ${xs}`);
     let skipPreOpen = xs.replace(com.openingPreTag,"");
     let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
     com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
-    console.log (`selectExample cooked = ${ys}`);
-    //    let m = new st.S16Module ("Example");
-    //    let m = new st.S16Module (ed.findModName (ys))
-    //    let m = new smod.Sigma16Module ();
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (ys);
     m.setHtmlDisplay ()
-//    st.env.moduleSet.refreshDisplay ()
-//    m.refreshInEditorBuffer ()
-    //    smod.refreshEditorBuffer();
-    //    smod.refreshModulesList();
-    //    m.asmEdText = ys;
+    smod.handleSelect (m)
 }
 
 // This is an example program that's defined as a string in the JS
@@ -1299,6 +1292,7 @@ function insert_example(exampleText) {
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (exampleText)
     m.setHtmlDisplay ()
+    smod.handleSelect (m)
 //    st.env.moduleSet.refreshDisplay ()
 }
 //    document.getElementById('EditorTextArea').value = exampleText;
@@ -2933,17 +2927,17 @@ function initializeGuiElements (gst) {
 //    document.getElementById('LinkerText').innerHTML = "";    
     document.getElementById('LP_Body').innerHTML = "";    
     smod.prepareChooseFiles ();
-    //    smod.initModules (gst);
-    //    smod.initializeModuleSet (); // gst is global variable
     st.env.moduleSet = new smod.ModuleSet ()
     let m = st.env.moduleSet.addModule () // initialize system with one module
     m.changeAsmSrc ("; This is dummy initial source text\n")
     m.setHtmlDisplay ()
-//    smod.testModSet (); // TEMP TESTING ??????
+    smod.handleSelect (m)
     window.mode = com.mode;
     prepareExampleText (gst)
 }
-
+//    smod.initModules (gst);
+//    smod.initializeModuleSet (); // gst is global variable
+//    smod.testModSet (); // TEMP TESTING ??????
 
 function initializeTracing (gst) {
     com.mode.devlog (`Thread ${gst.es.mode} initialization complete`)
@@ -3222,3 +3216,14 @@ window.onload = function () {
     setModeUser ()
     console.log ('system is now running')
 }
+
+//    console.log (`selectExample raw xs = ${xs}`);
+//    console.log (`selectExample cooked = ${ys}`);
+    //    let m = new st.S16Module ("Example");
+    //    let m = new st.S16Module (ed.findModName (ys))
+    //    let m = new smod.Sigma16Module ();
+//    st.env.moduleSet.refreshDisplay ()
+//    m.refreshInEditorBuffer ()
+    //    smod.refreshEditorBuffer();
+    //    smod.refreshModulesList();
+    //    m.asmEdText = ys;

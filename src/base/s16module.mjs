@@ -21,20 +21,15 @@ import * as com from "./common.mjs";
 import * as st  from "./state.mjs";
 import * as asm  from "./assembler.mjs";
 
-// testing
-export function test1 () {
+// testing and to do
+// add id tag to module Element for (1) file base name and (2) src code line
+// setAsmSrc - modify src code line in module Element
+// module keeps track of original text and current text, changed/unchanged
+
+export async function test1 () {
     console.log ("****** ModSet test1 ******")
-    let elt = document.querySelector ("#ModSetControls")
-    let t1 = document.createTextNode ("This is some <b>preliminary</b> text. ")
-    let t2 = document.createTextNode (" Ending with this. ")
-    let middle = document.createElement ("span")
-//    let i = st.env.moduleSet.modIdCounter++
-    middle.innerHTML = `This number ${i} is <b>important</b> to see.  `
-    let para = document.createElement ("p")
-    para.appendChild (t1)
-    para.appendChild (middle)
-    para.appendChild (t2)
-    elt.appendChild (para)
+    const xs = await readFile ()
+    console.log (xs)
 }
 
 export function test2 () {
@@ -44,10 +39,12 @@ export function test2 () {
 
 export function test3 () {
     console.log ("****** ModSet test3 ******")
-    st.env.moduleSet.refreshDisplay()
+    let x = document.getElementById ("MODULE-2-SEL-FLAG")
+    let y = x.textContent
+    console.log (`test3 ${y}`)
+    x.textContent = "Ha I changed it"
+//    st.env.moduleSet.refreshDisplay()
 }
-
-
 
 // Diagnostic function: traverse Module Set Element and show modules.
 // Note that m.children gives all Element children, whild m.childNodes
@@ -64,35 +61,12 @@ export function showModElts () {
         console.log (x)
     }
 }
-//    console.log (`  ${x.modIdx} x.asmInfo.asmSrcText.split("\n")[0])`)
-//    e = e.nextElementSibling
-//    let e = m.firstElementChild
-//    while (e) {
-
-//    let maIdx = mIdx - 1
-//    let ma = st.env.moduleSet.modules[maIdx]
-//    let maElt = ma.displayElt
-//    console.log (`Module Up: swap ${mIdx} ${maIdx}`)
-//    m.modIdx = maIdx
-//    ma.modIdx = mIdx
-//    const containerElt = document.getElementById("ModSetControls")
-//    containerElt.before (maElt, m)
-    //    containerElt.removeChild (b.displayElt)
-//    st.env.moduleSet.modules[maIdx] = m
-//    st.env.moduleSet.modules[mIdx] = ma
-//}
-//    if (mIdx < 1) {
-//        console.log (`modUp: nothing to do`)
-//        return null
-//    }
-
 
 //----------------------------------------------------------------------------
 // Sigma16 module
 //----------------------------------------------------------------------------
 
-// An Sigma16Module is a container for all the data related to a
-// specific source module.
+// Container for all the data related to a specific source module.
 
 export class Sigma16Module {
     constructor () {
@@ -121,12 +95,28 @@ export class Sigma16Module {
         this.asmInfo.objText = Unavailable
         this.asmInfo.asmListingText = Unavailable
         this.asmInfo.mdText = Unavailable
+        const srcLineElt =
+              document.getElementById (`MODULE-${this.modKey}-SRCLINE`)
+        //        srcLineElt.textContent = txt  ????????????????? later
+        
+    }
+    setSelected (b) {
+        let selTxt = b ? "Selected" : ""
+        this.selectElt.textContent = selTxt
     }
     setHtmlDisplay () {
         const modPara = document.createElement ("p")
         const t1 = document.createElement ("span")
         t1.innerHTML = `<b>Module key=${this.modKey}.</b> `
         modPara.appendChild (t1)
+
+        const t2 = document.createElement ("span")
+        this.selectElt = t2
+        t2.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
+        const t2text = document.createTextNode ("selected")
+        t2.appendChild (t2text)
+        modPara.appendChild (t2)
+        
         const bSelect = document.createElement ("button")
         bSelect.textContent = "Select"
         modPara.appendChild (bSelect)
@@ -138,9 +128,14 @@ export class Sigma16Module {
         modPara.appendChild (bClose)
         const br = document.createElement ("br")
         modPara.appendChild (br)
-        const tSrc = document.createTextNode (
+
+        const spanSrc = document.createElement ("span")
+        spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
+        const tSrcText = document.createTextNode (
             this.asmInfo.asmSrcText.split("\n")[0])
-        modPara.appendChild (tSrc)
+        spanSrc.appendChild (tSrcText)
+        modPara.appendChild (spanSrc)
+
         const containerElt = document.getElementById("ModSetControls")
         containerElt.appendChild (modPara)
         this.displayElt = modPara
@@ -172,14 +167,24 @@ export function newModKey () {
     return i
 }
 
-// Handle a Select button click in the list of modules
+//----------------------------------------------------------------------------
+// Handle controls for individual modules
+//----------------------------------------------------------------------------
+
+// Select module m, put it into Editor pane
 
 export function handleSelect (m) {
-    console.log (`Select module ${m.modKey}`)
+    const oldSelIdx = st.env.moduleSet.selectedModuleIdx
+    const newSelIdx = m.modIdx
+    st.env.moduleSet.modules[oldSelIdx].setSelected (false)
+    st.env.moduleSet.modules[newSelIdx].setSelected (true)
+    st.env.moduleSet.selectedModuleIdx = newSelIdx
+    console.log (`Select module old=${oldSelIdx}, new=${newSelIdx}`)
 }
+//    console.log (`Select module ${m.modKey}, i=${i}`)
+//    m.setSelected (true)
 
-// Handle up button.  Move current module m up, swapping it with the
-// module before it, called ma
+// Move current module m up in the Module Set list
 
 export function handleModUp (m) {
     console.log (`Move module ${m.modKey} up`)
@@ -202,6 +207,8 @@ export function handleModUp (m) {
         console.log ("handleModUp: nothing to do")
     }
 }
+
+// Close a module and remove it from the module set
 
 export function handleClose (m) {
     console.log (`Close module ${m.modKey}`)
@@ -267,7 +274,25 @@ export class ModuleSet {
 }
 
 //-------------------------------------------------------------------------
-// Files
+// Files - new version using File System Access API
+//-------------------------------------------------------------------------
+
+export async function openFile () {
+    console.log (`ModSet: open file`)
+    const [fileHandle] = await window.showOpenFilePicker()
+    const file = await fileHandle.getFile()
+    const xs = await file.text ()
+    console.log (xs)
+    const m = st.env.moduleSet.getSelectedModule ()
+    m.changeAsmSrc (xs)
+}
+
+export async function openDirectory () {
+    console.log (`ModSet: open directory`)
+}
+
+//-------------------------------------------------------------------------
+// Files - old version using FileReader
 //-------------------------------------------------------------------------
 
 // Interface
@@ -875,5 +900,68 @@ export function newMod () {
     const x = st.env.mkSelectModule ();
     com.mode.devlog (`newMod ${x}`)
     refreshModulesList();
+}
+*/
+
+/* was test1
+    let elt = document.querySelector ("#ModSetControls")
+    let t1 = document.createTextNode ("This is some <b>preliminary</b> text. ")
+    let t2 = document.createTextNode (" Ending with this. ")
+    let middle = document.createElement ("span")
+//    let i = st.env.moduleSet.modIdCounter++
+    middle.innerHTML = `This number ${i} is <b>important</b> to see.  `
+    let para = document.createElement ("p")
+    para.appendChild (t1)
+    para.appendChild (middle)
+    para.appendChild (t2)
+    elt.appendChild (para)
+*/
+
+//    console.log (`  ${x.modIdx} x.asmInfo.asmSrcText.split("\n")[0])`)
+//    e = e.nextElementSibling
+//    let e = m.firstElementChild
+//    while (e) {
+
+//    let maIdx = mIdx - 1
+//    let ma = st.env.moduleSet.modules[maIdx]
+//    let maElt = ma.displayElt
+//    console.log (`Module Up: swap ${mIdx} ${maIdx}`)
+//    m.modIdx = maIdx
+//    ma.modIdx = mIdx
+//    const containerElt = document.getElementById("ModSetControls")
+//    containerElt.before (maElt, m)
+    //    containerElt.removeChild (b.displayElt)
+//    st.env.moduleSet.modules[maIdx] = m
+//    st.env.moduleSet.modules[mIdx] = ma
+//}
+//    if (mIdx < 1) {
+//        console.log (`modUp: nothing to do`)
+//        return null
+//    }
+
+//        console.log ("HERE IS THE SPAN ELEMENT")
+//        console.log (modDisplaySrcLineElt)
+//        const xs = modDisplaySrcLineElt.textContent
+//        console.log (`***** changeAsmSrc  ${xs}`)
+
+
+/*
+const pickerOpts = {
+  types: [
+    {
+      description: "Sigma16 files",
+        accept: { * },
+    },
+  ],
+  excludeAcceptAllOption: true,
+  multiple: false,
+}
+
+async function getTheFile() {
+  // Open file picker and destructure the result the first handle
+  const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
+
+  // get file contents
+  const fileData = await fileHandle.getFile();
 }
 */
