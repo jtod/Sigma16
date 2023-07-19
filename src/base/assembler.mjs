@@ -37,26 +37,34 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 // Assembler information record
 //----------------------------------------------------------------------
 
+// A ...Text fields is a single string that can be used for display,
+// and a ...Lines field is a list of individual lines corresponding to
+// the text string.
+
 export class AsmInfo {
-    constructor () {
-	this.modName = "anonymous";     // default
-        this.text = "";                 // raw source text
-        this.asmSrcLines = [];          // list of lines of source text
-	this.asmStmt = [];              // corresponds to source lines
-	this.symbols = [];              // symbols used in the source
-	this.symbolTable = new Map ();  // symbol table
-	this.locationCounter =          //  next code address
+    constructor (m) {
+        this.asmSrcText = "; default asm src"; // raw source text
+        this.asmSrcLines = [];               // list of lines of source text
+        this.objectText = "";       // object code as single string
+	this.objectCode = [];                // string hex representation
+        this.mdText = "";
+        this.metadata = new Metadata ();  // address-source map
+        this.asmListingText = "";
+
+	this.asmModName = "anonymous";     // may be defined by module stmt
+	this.asmStmt = [];                 // corresponds to source lines
+	this.symbols = [];                 // symbols used in the source
+	this.symbolTable = new Map ();     // symbol table
+	this.locationCounter =             //  next code address
             new Value (0, Local, Relocatable);
-	this.objectCode = [];           // string hex representation
-        this.objectText = "";           // object code as single string
-        this.metadata = new st.Metadata (); // address-source map
-        this.imports = [];              // imported module/identifier
-        this.exports = [];              // exported identifiers
-	this.nAsmErrors = 0;            // errors in assembly source code
-        this.executable = st.emptyExe;  // {object code, maybe metadata}
-        this.objMd = null;
+        this.imports = [];                 // imported module/identifier
+        this.exports = [];                 // exported identifiers
+	this.nAsmErrors = 0;               // errors in assembly source code
+        //        this.executable = st.emptyExe;    // {object code, maybe metadata}
+        this.executable = emptyExe;    // {object code, maybe metadata}
     }
 }
+//        this.objMd = null;
 
 //----------------------------------------------------------------------
 // Character set
@@ -534,7 +542,8 @@ export function assembler (baseName, srcText) {
     displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
-    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
+    //    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
+    ai.objMd = new ObjMd (baseName, ai.objectText, mdText);
     com.mode.devlog (ai.objectText);
     return ai;
 }
@@ -1717,6 +1726,227 @@ function showOperation (op) {
         return "unknown op"
     }
 }
+
+export class Executable {
+    constructor (code, metadata) {
+        this.code = code
+        this.metadata = metadata
+        com.mode.devlog (`new executable: ${this.showShort ()}`)
+    }
+    showShort () {
+        let xs = `Executable: ${this.code.length} lines object code`
+        xs += this.metadata ? `${this.metadata.length} lines metadata`
+            : `no metadata`
+        return xs
+    }
+}
+
+//-------------------------------------------------------------------------
+// Container for object code and metadata
+//-------------------------------------------------------------------------
+
+// const emptyExe = {objectCode : "", metadata : null};
+const emptyExe = new Executable ("no object code", null);
+
+// The assembler produces both an object text and a metadata text.
+// For storage in a file, they are represnted as strings that are
+// stored in an ObjMd container.  For use during emulation, they are
+// stored in an AdrSrcMap object.  An ObjMd is used to serialize or
+// populate an AdrSrcMap.
+
+export class ObjMd {
+    constructor (baseName, objText, mdText) {
+        this.baseName = baseName;
+        this.objText = objText;
+        com.mode.devlog (this.objText);
+        this.mdText = mdText;
+    }
+    hasObjectCode () {
+        return this.objText ? true : false
+    }
+    showShort () {
+        let xs = `Object/metadata (${this.baseName}): `
+            + `${this.objText.split("\n").length} lines of object text,`
+            + ` ${this.mdText.split("\n").length} lines of metadata`;
+        return xs;
+    }
+}
+
+//-------------------------------------------------------------------------
+// Metadata
+//-------------------------------------------------------------------------
+
+// The emulator tries to display the source code line corresponding to
+// the instruction currently executing.  The information it needs to
+// do this is called Metadata.  This is optional: the emulator needs
+// only the object code to run a machine language program.  If the
+// optional Metadata is present, the emulator can also show the source
+// code corresponding to the current and next instruction.
+
+const eltsPerLineLimit = 4; // how many numbers in the mapping per line
+
+export class Metadata {
+    constructor () {
+        this.clear ();
+    }
+    clear () {
+        this.pairs = [];   // list of (a,i) pairs for serializing
+        this.mapArr = [];  // mapArr[a] = i
+        this.listingText = [];
+        this.listingPlain = [];   // source lines
+        this.listingDec = []; // src lines decorated with html span elements
+        this.mdText = null;
+        this.adrOffset = 0;
+        this.srcOffset = 0; // convert a->i to a->i+srcLineOffset
+    }
+    addPairs (ps) {
+        for (let p of ps) {
+            this.mapArr [p.address] = p.index
+            this.pairs.push (p)
+        }
+    }
+    translateMap (adrOffset, srcOffset) {
+        this.adrOffset = adrOffset
+        this.srcOffset = srcOffset
+        let xs = []
+        this.mapArr = []
+        for (const x of this.pairs) {
+            const p = {address: x.address + adrOffset,
+                       index: x.index + srcOffset}
+            xs.push (p)
+            this.mapArr [x.address + adrOffset] = x.index + srcOffset
+        }
+        this.pairs = xs
+    }
+    addMappingSrc (a, i, srcText, srcPlain, srcDec) { // add a->i plus src
+        const p = {address: a, index: i}
+        this.pairs.push(p)
+        this.mapArr[a] = i;
+        this.listingText[i] = srcText;
+        this.listingPlain[i] = srcPlain;
+        this.listingDec[i] = srcDec;
+    }
+    addMapping (a, i) { // add new mapping a->i
+        const p = {address: a, index: i}
+        this.pairs.push (p)
+        this.mapArr[a] = i;
+    }
+    pushSrc (srcText, srcPlain, srcDec) { // add src line in three forms
+        this.listingText.push (srcText);
+        this.listingPlain.push (srcPlain);
+        this.listingDec.push (srcDec);
+    }
+    unshiftSrc (srcText, srcPlain, srcDec) { // add src line at start
+        this.listingText.unshift (srcText);
+        this.listingPlain.unshift (srcPlain);
+        this.listingDec.unshift (srcDec);
+    }
+    addSrc (i, srcText, srcPlain, srcDec) { // add src line in three forms
+        this.listingText[i] = srcText;
+        this.listingPlain[i] = srcPlain;
+        this.listingDec[i] = srcDec;
+    }
+    getSrcIdx (a) { // find source line index corresponding to address a
+        const i = this.mapArr[a];
+        return i ? i : 0;
+    }
+    getSrcText (a) { // return text source line corresponding to address a
+        const x = this.listingText[this.getSrcIdx(a)];
+        return x ? x : `no text src for ${a}`
+    }
+    getSrcPlain (a) { // return plain source line corresponding to address a
+        const x = this.listingPlain[this.getSrcIdx(a)];
+        return x ? x : `no plain src for ${a}`
+    }
+    getSrcDec (a) { // return decorated src line corresponding to address a
+        const x = this.listingDec[this.getSrcIdx(a)];
+        return x ? x : `no decorated src for ${a}`
+    }
+    getMdText () {
+        if (!this.mdText) { this.mdText = this.toText () }
+        return this.mdText
+    }
+    addSrcLines (xs) {
+        for (let i = 0; i < xs.length; i += 3) {
+            this.listingText.push (xs[i]);
+            this.listingPlain.push (xs[i+1]);
+            this.listingDec.push (xs[i+2]);
+        }
+    }
+    setMdText (xs) {
+        this.mdText = xs;
+    }
+    fromText (x) { // parse text and populate the object
+        this.clear ();
+        this.mdText = x;
+        const xs = x.split ("\n");
+        let ns = [];
+        let i = 0;
+        while (i < xs.length && xs[i].substring(0,6) != "source" ) {
+            let ys = xs[i].split(",");
+            ns = ns.concat (ys.map ((q) => parseInt(q)));
+            i++;
+        }
+        let j = 0;
+        while (j < ns.length) {
+            let a = ns[j] ? ns[j] : 0;
+            let idx = ns[j+1] ? ns[j+1] : 0;
+            this.addMapping (a, idx);
+            j += 2;
+        }
+        i++; // skip "source"
+        j = 0;
+        while (i < xs.length) {
+            if (xs[i] != "") {
+                this.listingText[j]  = xs[i] ? xs[i] : "";
+                this.listingPlain[j] = xs[i+1] ? xs[i+1] : "";
+                this.listingDec[j]   = xs[i+2] ? xs[i+2] : "";
+                j += 1;
+                i += 3;
+            } else {
+                i++; //skip empty line
+            }
+        }
+    }
+    mapToTexts () {  // convert map to list of lines of text
+        let xs = []; // flatten the pairs
+        for (const p of this.pairs) {
+            xs.push (p.address, p.index);
+        }
+        let ys = []; // list of length-limited lists
+        while (xs.length > 0) {
+            ys.push (xs.splice(0,eltsPerLineLimit))
+        }
+        let zs = [] // list of strings showing the map
+        for (const y of ys) {
+            zs.push (y.toString())
+        }
+        return zs
+    }
+    getSrcLines () {
+        let xs = [];
+        for (let i = 0; i < this.listingPlain.length; i++) {
+            xs.push (this.listingText[i]);
+            xs.push (this.listingPlain[i]);
+            xs.push (this.listingDec[i]);
+        }
+        return xs;
+    }
+    getPlainLines () {
+        let xs = [];
+        for (let i = 0; i < this.listingPlain.length; i++) {
+            xs.push (this.listingPlain[i]);
+        }
+        return xs;
+    }
+    toText () { // convert contents of object to text
+        let xs = this.mapToTexts ()
+        xs.push ("source")
+        xs = xs.concat (this.getSrcLines ())
+        return xs.join ("\n")
+    }
+}
+
 
 //----------------------------------------------------------------------
 // deprecated

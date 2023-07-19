@@ -1264,31 +1264,45 @@ function checkExample () {
 //    com.mode.devlog (`checkExample <${xs}>\n<${ys}>`)
 }
 
-// Make new module, copy example text into it, and select it
+// A collection of example programs is part of the Sigma16 app, in
+// Sigma16/Examples.  When the user navigates through the indices and
+// selects an example, this program creates a new module and inserts
+// the example text into it.
 
 function selectExample() {
+    console.log ('selectExample')
     let exElt = document.getElementById('ExamplesIframeId');
     let xs = exElt.contentWindow.document.body.innerHTML;
-    com.mode.devlog (`selectExample raw xs = ${xs}`);
+    console.log (`selectExample raw xs = ${xs}`);
     let skipPreOpen = xs.replace(com.openingPreTag,"");
     let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
     com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
+    console.log (`selectExample cooked = ${ys}`);
     //    let m = new st.S16Module ("Example");
-    let m = new st.S16Module (ed.findModName (ys))
-    m.asmEdText = ys;
-    smod.refreshEditorBuffer();
-    st.env.ModuleSet.refreshDisplay ()
+    //    let m = new st.S16Module (ed.findModName (ys))
+    //    let m = new smod.Sigma16Module ();
+    let m = st.env.moduleSet.addModule ()
+    m.changeAsmSrc (ys);
+    m.setHtmlDisplay ()
+//    st.env.moduleSet.refreshDisplay ()
+//    m.refreshInEditorBuffer ()
+    //    smod.refreshEditorBuffer();
     //    smod.refreshModulesList();
+    //    m.asmEdText = ys;
 }
 
+// This is an example program that's defined as a string in the JS
+// program, so no file needs to be read.
 function insert_example(exampleText) {
     com.mode.devlog('Inserting example add into editor text');
     let m = st.env.moduleSet.addModule ()
-    m.asmText = exampleText;
-    st.env.moduleSet.refreshDisplay ()
-    document.getElementById('EditorTextArea').value = exampleText;
+    m.changeAsmSrc (exampleText)
+    m.setHtmlDisplay ()
+//    st.env.moduleSet.refreshDisplay ()
 }
+//    document.getElementById('EditorTextArea').value = exampleText;
+//    m.asmText = exampleText;
 //    let m = st.env.mkSelectModule ("HelloWorld");
 //    m.asmEdText = exampleText;
 //    smod.refreshModulesList ();
@@ -1932,7 +1946,7 @@ export function toggleFullDisplay () {
 // linker (executable code).
 
 export function obtainExecutable () {
-    let m = st.env.getSelectedModule();
+    let m = st.env.moduleSet.getSelectedModule();
     let exe = m.executable ? m.executable : m.objMd;
     if (exe) {
         com.mode.devlog (`Found executable for selected module`);
@@ -1948,7 +1962,7 @@ export function procBoot (gst) {
     com.mode.devlog ("boot");
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     ab.resetSCB (es)
-    let m = st.env.getSelectedModule ();
+    let m = st.env.moduleSet.getSelectedModule ();
     let exe = obtainExecutable ();
     const objectCodeText = exe.objText;
     const metadataText   = exe.mdText;
@@ -2922,6 +2936,9 @@ function initializeGuiElements (gst) {
     //    smod.initModules (gst);
     //    smod.initializeModuleSet (); // gst is global variable
     st.env.moduleSet = new smod.ModuleSet ()
+    let m = st.env.moduleSet.addModule () // initialize system with one module
+    m.changeAsmSrc ("; This is dummy initial source text\n")
+    m.setHtmlDisplay ()
 //    smod.testModSet (); // TEMP TESTING ??????
     window.mode = com.mode;
     prepareExampleText (gst)
