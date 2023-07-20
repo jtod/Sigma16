@@ -72,6 +72,8 @@ export class Sigma16Module {
     constructor () {
         this.modKey = newModKey ()
         this.modIdx = st.env.moduleSet.modules.length
+        this.fileHandle = null
+        this.filename = "(no file)"
         this.baseName = "(no file)"
         this.fileInfo = null // can hold instance of FileInfo
         this.isMain = true // may be changed by assembler
@@ -90,7 +92,7 @@ export class Sigma16Module {
     changeAsmSrc (txt) {
         // also: make sure the editor text and original file text (if
         // exists) are ok
-        console.log (`Module changeAsmSrc ${txt}`)
+//        console.log (`Module changeAsmSrc ${txt}`)
         this.asmInfo.asmSrcText = txt;
         this.asmInfo.objText = Unavailable
         this.asmInfo.asmListingText = Unavailable
@@ -103,6 +105,7 @@ export class Sigma16Module {
     setSelected (b) {
         let selTxt = b ? "Selected" : ""
         this.selectElt.textContent = selTxt
+        st.env.moduleSet.previousSelectedIdx = this.modIdx
     }
     setHtmlDisplay () {
         const modPara = document.createElement ("p")
@@ -174,7 +177,8 @@ export function newModKey () {
 // Select module m, put it into Editor pane
 
 export function handleSelect (m) {
-    const oldSelIdx = st.env.moduleSet.selectedModuleIdx
+    //    const oldSelIdx = st.env.moduleSet.selectedModuleIdx
+    const oldSelIdx = st.env.moduleSet.previousSelectedIdx
     const newSelIdx = m.modIdx
     st.env.moduleSet.modules[oldSelIdx].setSelected (false)
     st.env.moduleSet.modules[newSelIdx].setSelected (true)
@@ -212,7 +216,44 @@ export function handleModUp (m) {
 
 export function handleClose (m) {
     console.log (`Close module ${m.modKey}`)
+    const elt = m.displayElt
+    elt.remove ()
+    const a = st.env.moduleSet.modules
+    const i = m.modIdx
+
+    let si = st.env.moduleSet.selectedModuleIdx
+    let pi = st.env.moduleSet.previousSelectedIdx
+    console.log (`close before: si=${si} pi=${pi}`)
+    if (si == i) {
+        si = si - 1 // max 0 si-1
+    } else if (si > i) {
+        si = si - 1
+    }
+    if (pi == i) {
+        pi = 0
+    } else if (pi > i) {
+        pi = pi - 1
+    }
+    st.env.moduleSet.selectedModuleIdx = si
+    st.env.moduleSet.previousSelectedIdx = pi
+    console.log (`close after: si=${si} pi=${pi}`)
+    
+    console.log (`close: before, len=${a.length}`)
+    for (let x of a) {
+        console.log (`idx=${x.modIdx} key=${x.modKey}`)
+    }
+    a.splice (i,1)
+    let newSize = a.length
+    for (let j = i; j < newSize; j++) {
+        a[j].modIdx = j
+    }
+    console.log (`close: after, len=${a.length}`)
+    for (let x of a) {
+        console.log (`idx=${x.modIdx} key=${x.modKey}`)
+    }
 }
+//    for (let q = 0; q < a.length; q++) {
+//        console.log (`q=${q} idx=${a[q].modIdx} key=${a[q].modKey}`)
 
 //----------------------------------------------------------------------------
 // Sigma16 module set
@@ -235,11 +276,15 @@ export class ModuleSet {
         console.log ('Initializing ModuleSet')
         this.modules = []
         this.selectedModuleIdx = 0
+        this.previousSelectedIdx = 0
     }
     addModule () {
         const m = new Sigma16Module ()
         this.modules.push (m)
+//        let oldsel = st.env.moduleSet.modules[this.selectedModuleIdx]
+//        oldsel.setSelected (false)
         this.selectedModuleIdx = this.modules.length - 1
+//        this.setSelected (true) // ??? redundant
         console.log (`addModule there are $(this.modules.length) modules\n`)
         return m
     }
@@ -283,12 +328,49 @@ export async function openFile () {
     const file = await fileHandle.getFile()
     const xs = await file.text ()
     console.log (xs)
-    const m = st.env.moduleSet.getSelectedModule ()
+    let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (xs)
+    m.setHtmlDisplay ()
+    handleSelect (m)
+    m.fileName = file.name
+    m.fileHandle = fileHandle
 }
+    //    const m = st.env.moduleSet.getSelectedModule ()
+//    ed.setEditorBufferText (xs)
+//    console.log (`open File, got name ${fn}`)
+
+export async function saveFile () {
+    let i = st.env.moduleSet.selectedModuleIdx
+    let m = st.env.moduleSet.modules[i]
+    let fh = m.fileHandle
+    let xs = m.asmInfo.asmSrcText
+    xs += " Here is some added stuff...\n"
+    const writable = await fh.createWritable()
+    await writable.write(xs)
+    await writable.close()
+}
+
 
 export async function openDirectory () {
     console.log (`ModSet: open directory`)
+    const dh = await window.showDirectoryPicker ()
+    const promises = []
+    let fs = []
+    for await (const entry of dh.values()) {
+        if (entry.kind !== "file") {
+            continue
+        }
+        fs.push (entry.getFile())
+    }
+    console.log ("Here are the filenames")
+    for await (let f of fs) {
+        console.log (f.name)
+    }
+    console.log ("End of the filenames")
+    console.log ("Here are the file sizes")
+    for await (let f of fs) {
+        console.log (f.size)
+    }
 }
 
 //-------------------------------------------------------------------------
@@ -516,452 +598,3 @@ function refreshWhenReadsFinished  () {
         }
     com.mode.devlog (`checkAllReadsFinished returning`);
 }
-
-//-----------------------------------------------------------------------------
-// Deprecated
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Display list of modules
-//-----------------------------------------------------------------------------
-
-// Produce a formatted list of all open modules and display in Modules page
-
-/*
-export function refreshModulesList() {
-    console.log ('refreshModulesList')
-    let xs = st.env.ModuleSet.show ()
-    document.getElementById('FilesBody').innerHTML = xs;
-}
-*/
-
-//    let xs = "";
-//    for (const bn of st.env.modules.keys ()) {
-//        xs += st.env.modules.get(bn).showHtml();
-//    }
-//    document.getElementById('FilesBody').innerHTML = xs;
-//    for (const bn of st.env.modules.keys ()) {
-//        const m = st.env.modules.get (bn);
-//        const selElt = document.getElementById(m.selectId);
-//        selElt.addEventListener ("click", event => { handleSelect (bn) });
-//        const closeElt = document.getElementById(m.closeId);
-//        closeElt.addEventListener ("click", event => { handleClose (bn) });
-//    }
-
-//-----------------------------------------------------------------------------
-// Update editor buffer
-//-----------------------------------------------------------------------------
-    
-// Copy text of the selected module to the editor buffer
-
-// deprecated, see refreshInEditorBuffer method...
-/*
-export function refreshEditorBuffer () {
-    com.mode.devlog (`refreshEditorBuffer`);
-    console.log (`refreshEditorBuffer`);
-    const m = st.env.getSelectedModule ();
-    const xs = m.asmInfo.asmSrcText;
-    document.getElementById("EditorTextArea").value = xs;
-} */
-
-/*
-export function testModSet () {
-    console.log ('start testModSet')
-    console.log (st.env.moduleSet.show ())
-    st.env.moduleSet.addModule ()
-    console.log (st.env.moduleSet.show ())
-    console.log ('end testModSet')
-}
-*/
-
-// about S16module...
-// All files associated with any of these objects must
-// share the same basename.
-
-// A module may come from either a file or the editor pane, and may contain
-//   - AsmInfo: assembly language source and information collected by assembler
-//   - ObjInfo: object language source and information collected by linker
-//   - LinkInfo: commands for the linker
-
-// Each module has a moduleType indicating whether it originates from
-// the assembler, from reading in an object module, etc.  The type is
-// determined by the user's choice of command or from the filename (if
-// any) but not by parsing the contents.  For example, if the user
-// Assembles a file, then it is deemed to be assembly text.
-
-//        console.log ('moduleSet: refresh display')
-//        console.log (`moduleSet.refreshDisplay: ${xs}\n`)
-//        console.log ('module set generate display')
-//            console.log (`i=${i} y=${y} `)
-//        console.log ('module set generate display: ${xs}')
-
-//-----------------------------------------------------------------------------
-// Initialize modules
-//-----------------------------------------------------------------------------
-
-// Create and select an initial module
-/* deprecated, use new ModuleSet
-export function initModules () {
-//    com.mode.trace = true;
-com.mode.devlog ("initModules");
-st.env.clearModules ();
-refreshModulesList();
-}
-*/
-
-//----------------------------------------------------------------------------
-// Module set
-//----------------------------------------------------------------------------
-
-/*
-export class ModuleSet {
-    constructor () {
-        const initModule = new Module ("anonymous", "", null)
-        this.moduleList = null; // new 
-    }
-    showSelectedModuleName () {
-        return this.selectedModule
-            ? this.selectedModule : "No module selected";
-    }
-    clearModules () {
-        this.modules = new Map ();
-        this.anonymousCount = 0;
-        this.selectedModule = null;
-    }
-    mkSelectModule (mname) {
-        com.mode.devlog (`mkSelectModule ${mname}`);
-        if (mname && this.modules.has (mname)) {
-            this.selectedModule = mname;
-        } else if (mname) {
-            this.selectedModule = mname;
-            this.modules.set (mname, new S16Module (mname));
-        } else {
-            this.anonymousCount++;
-            const xs = `anonymous${this.anonymousCount}`;
-            this.modules.set (xs, new S16Module (xs));
-            this.selectedModule = xs;
-        }
-        const m = this.modules.get(this.selectedModule);
-        return m;
-    }
-    closeModule (mname) {
-        this.modules.delete (mname);
-    }
-    getSelectedModule () {
-        com.mode.devlog ("getSelectedModule");
-        if (env.modules.size == 0) { // no modules
-//            this.anonymousCount++;
-//            const xs = `anonymous${this.anonymousCount}`;
-//            this.modules.set (xs, new S16Module (xs));
-//            this.selectedModule = xs;
-            this.selectedModule = null
-        } else if (!this.selectedModule) { // nothing selected
-            com.mode.devlog ("getSelectedModule, in nothing selected")
-            this.selectedModule = [...this.modules.keys()][0].baseName;
-        } else if (this.modules.get(this.selectedModule)) { // it exists
-            com.mode.devlog ("getSelectedModule, found it")
-        } else  { // it doesn't exist
-            com.mode.devlog ("getSelectedModule, doesn't exist, making it")
-            return this.mkModule (this.selectedModule);
-        }
-        return this.modules.get (this.selectedModule);
-    }
-}
-*/
-
-// Return a string giving a concise overfiew of Module Set
-// change name to ModSetSummary
-// export function envSummary () {
-/*
-export function modSetSummary () {
-    com.mode.devlog ("Begin module set summary");
-    for (const x of env.modules.keys()) {
-        com.mode.devlog (`key = ${x}`);
-        const m = env.modules.get(x);
-        com.mode.devlog (`  bn=${m.baseName}`);
-    }
-    com.mode.devlog ("End module set summary");
-}
-*/
-
-//        this.objText = 
-//        this.asmListingText =
-//        this.mdText = "Unavailable, the source must be assembled\n"
-
-// The source text of module m is changed when a source file is read
-// or the text is changed in the editor.  When this happens, the new
-// source is saved in m.asmText, and a suitable message is placed in
-// the object, listing, and metadata strings (m.objText,
-// m.asmListingText, m.md.Text).  When the assembler is run, these
-// strings are updated.
-
-// The following information exists only after assembly, and is held in
-// the asmInfo object: nAsmErrors, isExecutable
-
-/*
-// Old version
-export class S16Module {
-    constructor (baseName) {
-        com.mode.devlog (`>>> new S16Module ${baseName}`);
-// general properties of a module        
-        this.baseName = baseName;
-        env.modules.set (baseName, this);
-         env.selectedModule = baseName
-        this.selectId = `select_${baseName}`;
-        this.closeId = `close_${baseName}`;
-// files containing text for various stages of a module        
-        this.asmFile = null; // assembly language source
-        this.objFile = null; // object code
-        this.omdFile = null; // object metadata
-        this.lnkFile = null; // link command
-        this.exeFile = null; // executable
-        this.xmdFile = null; // executable metadata
-        // editor text for various stages of a module
-        this.edCurrentStage = StageAsm;
-        this.asmEdText = "";
-        this.objEdText = "";
-        this.lnkEdText = "";
-        this.exeEdText = "";
-// containers for the stage functions        
-        this.asmInfo = null;
-        this.objInfo = null;
-        this.linkInfo = null;
-// containers for object code and metadata
-        this.objMd = null;       // ObjMd created by assembler
-        this.executable = null;  // ObjMd created by linker
-    }
-// In case a module has data for several stages, choose one to use    
-    getPrimaryStage () {
-        return this.asmEdText || this.asmFile ? StageAsm
-            : this.objEdText || this.objFile ? StageObj
-            : this.linkEdText || this.linkFile ? StageLink
-            : this.exeEdText || this.exeFile ? StageExe
-            : null
-    } 
-
-    // Obtain assembly language source code for assembler
-    getAsmText () {
-        console.log ('getAsmText')
-        console.log (`This is getAsmText for ${this.baseName}`);
-        com.mode.devlog (`This is getAsmText for ${this.baseName}`);
-        let xs = this.asmEdText ? this.asmEdText
-            : this.asmFile ? this.asmFile.text
-            : "";
-        console.log (`&&&&& ***** getAsmText ${this.asmEdText} ${this.asmFile}  ${this.asmFile.text} xs=${xs}`)
-        com.mode.devlog (`getAsmText returning`
-                         + ` basename=${this.baseName} <${xs}>`);
-        return xs;
-    }
-    getObjText () {
-        let xs = this.objEdText ? this.objEdText
-            : this.objFile ? this.objFile.text
-            : "";
-        return xs;
-    }
-    getExeText () {
-        let xs = this.exeEdText ? this.exeEdText
-            : this.exeFile ? this.exeFile.text
-            : "";
-        return xs;
-    }
-    getLinkText () {
-        let xs = this.linkEdText ? this.linkEdText
-            : this.linkFile ? this.linkFile.text
-            : "";
-        return xs;
-    }
-    showShort () {
-        let xs = `Module baseName=${this.baseName}\n`;
-//        xs += `"stage=${this.stage.description}`;
-        xs += showFileShort ("asm", this.asmFile);
-        xs += showFileShort (" obj", this.objile);
-        xs += showFileShort (" omd", this.omdFile);
-        xs += showFileShort (" lnk", this.lnkFile);
-        xs += showFileShort (" exe", this.exeFile);
-        xs += showFileShort (" xmd", this.xmdFile);
-        xs += this.asmInfo ? "Has assembly language code\n" : "";
-        xs += this.objInfo ? "Has object code\n" : "";
-        xs += this.linkInfo ? "Has linked code\n" : "";
-        return xs;
-    }
-    showHtml () {
-        let xs = "<ul>\n";
-        xs += `<li> <b>`;
-        xs += ((env.selectedModule == this.baseName)
-               ? `<span class='SELECTEDFILE'>${this.baseName}</span>`
-               : `${this.baseName}`);
-        xs += `</b>\n`;
-        xs += (env.selectedModule == this.baseName ? "Selected" : "" );
-        xs += `<button id='${this.selectId}'>Select</button>`;
-        xs += `<button id='${this.closeId}'>Close</button>`;
-        xs += "<br>";
-        xs += showFilePrefix (this.asmFile, "Assembly code:");
-        xs += showFilePrefix (this.objFile, "Object code:");
-        xs += showFilePrefix (this.exeFile, "Executable code:");
-        xs += showFilePrefix (this.lnkFile, "Linker command:");
-        xs += `</li>\n`;
-        xs += "</ul>\n";
-        return xs;
-    }
-}
-*/
-        //        return this.modules [this.selectedModuleIdx]
-
-//        document.getElementById('EditorTextArea').value = txt;
-//        st.env.moduleSet.refreshDisplay ()
-
-/*
-function handleSelect (bn) {
-    console.log (`********** module ${bn} Select clicked **********`)
-//    com.mode.devlog (`Select button for ${bn} invoked`);
-//    let mod = st.env.mkSelectModule (bn);
-//    refreshModulesList ();
-}
-
-// Handle a "Close" button click in the list of modules on the Modules
-// page: close the module with basename bn.
-
-function handleClose (bn) {
-    com.mode.devlog (`Close button for ${bn} invoked`);
-    st.env.closeModule (bn);
-    refreshModulesList ();
-}
-*/
-
-/*    show () {  // module show deprecated
-        let xs = ""
-//        xs += `(id=${this.modId}`
-        xs += this.asmInfo.asmSrcText.split("\n")[0]
-        xs += "<br>"
-        xs += this.asmInfo.objectText
-        xs += "<br>\n"
-        return xs
-        }
-        */
-//        const tEnd = document.createTextNode ("End of module")
-//        modPara.appendChild (tEnd)
-        //        xs += `<button id='${this.selectId}'>Select</button>`;
-//        xs += `<button id='${this.closeId}'>Close</button>`;
-//        xs += "<br>"
-//        xs += "</p>\n"
-//        xs += `${this.asmInfo.asmSrcText.split("\n")[0]}`
-//        xs += `<p>${this.asmInfo.objectText}</p>\n`
-//        console.log (`&&& ${containerElt ? 'ok' : 'nope'}`)
-//        console.log (`***** setHtmlDisplay xs=${xs}*****`)
-//        containerElt.innerHTML += xs
-
-//        document.getElementById(this.selectId)
-//            .addEventListener ("click", event => handleSelect(this.selectId))
-
-//        containerElt.innerHTML += `<p>new material for ${this.modId}</p><br>`
-//        let containerElt = document.getElementById("EditorTextArea")
-//        let containerElt = document.querySelector ("#ModSetControls")
-//        let para = document.createElement ('p')
-//        para.textContent = "some new stuff"
-//        containerElt.append (para)
-
-        //        this.modId = st.env.moduleSet.modIdCounter;
-        //        st.env.moduleSet.modIdCounter++;
-//        this.changeAsmSrc ("; Initial asm source text\n")
-//        this.setHtmlDisplay ()
-
-/*    test2
-    const containerElt = document.getElementById("ModSetControls")
-    let a = st.env.moduleSet.modules[2]
-    let aelt = a.displayElt
-    let b = st.env.moduleSet.modules[3]
-    let belt = b.displayElt
-    let temp = document.createTextNode ("aardvark bat")
-    containerElt.before (aelt, temp)
-    //    let bb = containerElt.removeChild (b.displayElt)
-    //    a.displayElt.insertBefore (b.displayElt)
-    st.env.moduleSet.modules[2] = b
-    st.env.moduleSet.modules[3] = a
-*/
-
-        //        maElt.before (m)
-        //        containerElt.before (maElt, m)
-
-//        this.modIdCounter = 0
-//        this.addModule () 
-
-//            let id = this.modId
-            //            xs += `<b>Module ${i}.</b>`
-
-//        let xs = this.generateDisplay ()
-//        document.getElementById('FilesBody').innerHTML = xs
-//        document.getElementById('ModuleSetDisplay').innerHTML = xs
-
-// Handle the New button on Modules pane by creating a new anonymous
-// module
-// Deprecated, use Editor: New
-/*
-export function newMod () {
-    const x = st.env.mkSelectModule ();
-    com.mode.devlog (`newMod ${x}`)
-    refreshModulesList();
-}
-*/
-
-/* was test1
-    let elt = document.querySelector ("#ModSetControls")
-    let t1 = document.createTextNode ("This is some <b>preliminary</b> text. ")
-    let t2 = document.createTextNode (" Ending with this. ")
-    let middle = document.createElement ("span")
-//    let i = st.env.moduleSet.modIdCounter++
-    middle.innerHTML = `This number ${i} is <b>important</b> to see.  `
-    let para = document.createElement ("p")
-    para.appendChild (t1)
-    para.appendChild (middle)
-    para.appendChild (t2)
-    elt.appendChild (para)
-*/
-
-//    console.log (`  ${x.modIdx} x.asmInfo.asmSrcText.split("\n")[0])`)
-//    e = e.nextElementSibling
-//    let e = m.firstElementChild
-//    while (e) {
-
-//    let maIdx = mIdx - 1
-//    let ma = st.env.moduleSet.modules[maIdx]
-//    let maElt = ma.displayElt
-//    console.log (`Module Up: swap ${mIdx} ${maIdx}`)
-//    m.modIdx = maIdx
-//    ma.modIdx = mIdx
-//    const containerElt = document.getElementById("ModSetControls")
-//    containerElt.before (maElt, m)
-    //    containerElt.removeChild (b.displayElt)
-//    st.env.moduleSet.modules[maIdx] = m
-//    st.env.moduleSet.modules[mIdx] = ma
-//}
-//    if (mIdx < 1) {
-//        console.log (`modUp: nothing to do`)
-//        return null
-//    }
-
-//        console.log ("HERE IS THE SPAN ELEMENT")
-//        console.log (modDisplaySrcLineElt)
-//        const xs = modDisplaySrcLineElt.textContent
-//        console.log (`***** changeAsmSrc  ${xs}`)
-
-
-/*
-const pickerOpts = {
-  types: [
-    {
-      description: "Sigma16 files",
-        accept: { * },
-    },
-  ],
-  excludeAcceptAllOption: true,
-  multiple: false,
-}
-
-async function getTheFile() {
-  // Open file picker and destructure the result the first handle
-  const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
-
-  // get file contents
-  const fileData = await fileHandle.getFile();
-}
-*/

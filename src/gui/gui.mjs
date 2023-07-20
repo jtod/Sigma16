@@ -985,7 +985,8 @@ function initializeButtons () {
     prepareButton ('MP_Test2',        smod.test2)
     prepareButton ('MP_Test3',        smod.test3)
     prepareButton ('MP_OpenFile',      smod.openFile)
-    prepareButton ('MP_OpenDirectory', smod.openDir)
+    prepareButton ('MP_Save',          smod.saveFile)
+    prepareButton ('MP_OpenDirectory', smod.openDirectory)
 
     // Editor pane (EDP)
     prepareButton ('EDP_Selected',    ed.edSelectedButton);
@@ -1293,6 +1294,7 @@ function insert_example(exampleText) {
     m.changeAsmSrc (exampleText)
     m.setHtmlDisplay ()
     smod.handleSelect (m)
+    ed.setEditorBufferText (exampleText)
 //    st.env.moduleSet.refreshDisplay ()
 }
 //    document.getElementById('EditorTextArea').value = exampleText;
@@ -3216,14 +3218,3 @@ window.onload = function () {
     setModeUser ()
     console.log ('system is now running')
 }
-
-//    console.log (`selectExample raw xs = ${xs}`);
-//    console.log (`selectExample cooked = ${ys}`);
-    //    let m = new st.S16Module ("Example");
-    //    let m = new st.S16Module (ed.findModName (ys))
-    //    let m = new smod.Sigma16Module ();
-//    st.env.moduleSet.refreshDisplay ()
-//    m.refreshInEditorBuffer ()
-    //    smod.refreshEditorBuffer();
-    //    smod.refreshModulesList();
-    //    m.asmEdText = ys;
