@@ -21,6 +21,10 @@ import * as com from "./common.mjs";
 import * as st  from "./state.mjs";
 import * as asm  from "./assembler.mjs";
 
+//-----------------------------------------------------------------------------
+// Testing and diagnostics
+//-----------------------------------------------------------------------------
+
 // testing and to do
 // add id tag to module Element for (1) file base name and (2) src code line
 // setAsmSrc - modify src code line in module Element
@@ -46,10 +50,9 @@ export function test3 () {
 //    st.env.moduleSet.refreshDisplay()
 }
 
-// Diagnostic function: traverse Module Set Element and show modules.
-// Note that m.children gives all Element children, whild m.childNodes
-// gives all nodes in m, which includes whitespace and comments as
-// well as elements.
+// Traverse Module Set Element and show modules.  Note that m.children
+// gives all Element children, while m.childNodes gives all nodes in
+// m, which includes whitespace and comments as well as elements.
 
 export function showModElts () {
     console.log ("Elements of the Module Set")
@@ -70,35 +73,41 @@ export function showModElts () {
 
 export class Sigma16Module {
     constructor () {
-        this.modKey = newModKey ()
-        this.modIdx = st.env.moduleSet.modules.length
+         this.modKey = newModKey () // Persistent and unique gensym key
+        this.modIdx = st.env.moduleSet.modules.length // Transient array index
         this.fileHandle = null
         this.filename = "(no file)"
         this.baseName = "(no file)"
         this.fileInfo = null // can hold instance of FileInfo
         this.isMain = true // may be changed by assembler
+        this.currentSrc = "" // master copy of (possibly edited) source code
+        this.savedSrc = "" // source code as last saved/read to/from file
         this.asmInfo = new asm.AsmInfo (this)
-        this.displayElt = null
+        this.displayElt = null // DOM element for module display on page
+        this.displaySrcLineElt = null
         this.selectId = `SELECT-${this.modKey}`
         this.closeId = `CLOSE-${this.modKey}`
         this.upId = `UP-${this.modKey}`
         this.selectElt = null // set when addModule
         this.closeElt = null // set when addModule
         this.upElt = null // set when addModule
+        this.setHtmlDisplay ()
     }
     getAsmText () {
         return this.asmInfo.asmSrcText
     }
     changeAsmSrc (txt) {
+        this.currentSrc = txt
         // also: make sure the editor text and original file text (if
         // exists) are ok
 //        console.log (`Module changeAsmSrc ${txt}`)
-        this.asmInfo.asmSrcText = txt;
+//        this.asmInfo.asmSrcText = txt;
         this.asmInfo.objText = Unavailable
         this.asmInfo.asmListingText = Unavailable
         this.asmInfo.mdText = Unavailable
-        const srcLineElt =
-              document.getElementById (`MODULE-${this.modKey}-SRCLINE`)
+        this.displaySrcLineElt.textContent = this.currentSrc.split("\n")[0]
+//        const srcLineElt =
+//              document.getElementById (`MODULE-${this.modKey}-SRCLINE`)
         //        srcLineElt.textContent = txt  ????????????????? later
         
     }
@@ -134,8 +143,10 @@ export class Sigma16Module {
 
         const spanSrc = document.createElement ("span")
         spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
+        this.displaySrcLineElt = spanSrc
         const tSrcText = document.createTextNode (
-            this.asmInfo.asmSrcText.split("\n")[0])
+            this.currentSrc.split("\n")[0])
+            //            this.asmInfo.asmSrcText.split("\n")[0])
         spanSrc.appendChild (tSrcText)
         modPara.appendChild (spanSrc)
 
@@ -149,7 +160,6 @@ export class Sigma16Module {
         bClose.addEventListener (
             "click", event => handleClose (this))
     }
-
     // Use refreshInEditorBuffer when the text is changed from an
     // ourside source, such as reading a file.  Don't use this when
     // the user edits the text in the editor.
@@ -309,7 +319,7 @@ export class ModuleSet {
         return xs
         }
     refreshDisplay () {
-        for (let i = 0; i < st.env.moduleSet.modules.length; i++) {
+         for (let i = 0; i < st.env.moduleSet.modules.length; i++) {
             console.log (`*** ${i} ${st.env.moduleSet.modules[i].modIdx} `)
             console.log (st.env.moduleSet.modules[i]
                          .asmInfo.asmSrcText.split("\n")[0])
@@ -330,7 +340,7 @@ export async function openFile () {
     console.log (xs)
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (xs)
-    m.setHtmlDisplay ()
+//    m.setHtmlDisplay ()
     handleSelect (m)
     m.fileName = file.name
     m.fileHandle = fileHandle
@@ -454,6 +464,7 @@ export class FileRecord {
 // selected.  The function reads the files and creates entries in the
 // modules list for them.
 
+/* Old file handler (version 3.5.0 and earlier)
 // Initialize the Modules page by setting up an event handler for the
 // FileInput element.
 
@@ -464,6 +475,7 @@ export function prepareChooseFiles () {
         handleSelectedFiles (elt.files)
     })
 }
+*/
 
 // Parse string xs and check that it's in the form basename.ftype.txt
 // where basename is any string not containing "." and ftype is one of

@@ -1,6 +1,6 @@
 // Sigma16: editor.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3 or later
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -25,125 +25,50 @@ import * as arith from '../base/arithmetic.mjs';
 import * as st    from '../base/state.mjs';
 
 //-----------------------------------------------------------------------------
-// Operations on editor buffer
+// Operations on editor text buffer
 //-----------------------------------------------------------------------------
 
 export function getEditorBufferText () {
-    const xs = document.getElementById("EditorTextArea").value;
-    return xs;
+    const xs = document.getElementById("EditorTextArea").value
+    return xs
 }
 
 export function setEditorBufferText (xs) {
-    document.getElementById("EditorTextArea").value = xs;
+    document.getElementById("EditorTextArea").value = xs
 }
 
-//-----------------------------------------------------------------------------
-// Actions on entering and leaving the editor
-//-----------------------------------------------------------------------------
-
-// If there is a selected module, copy its text into the editor
-// buffer; if not, then clear the editor buffer, and later when
-// leaving the editor a module to hold it will be created and selected
-
-export function enterEditor () {
-//    com.mode.trace = true;
-    com.mode.devlog ("ed.enterEditor");
-    //    let m = st.env.getSelectedModule (); // module to be edited
-    let m = st.env.moduleSet.getSelectedModule ()
-    if (m) {
-        console.log ("enterEditor, found selectedModule")
-        let bn = m.baseName; // name of the module
-//        let stage = m.edCurrentStage; // stage of the module to edit
-        //        let xs = `${bn} ${stage.description}`;
-        let xs = bn;
-        document.getElementById("EDP_Selected").innerText = xs;
-        edGetTextToEdit (m);
-    } else {
-        console.log ("Error: enterEditor, no selectedModule")
-        setEditorBufferText ("")
-    }
-}
-
-// If there is a selected module, copy the text from the editor buffer
-// back to that module.  If not, create a new module and copy the
-// editor buffer text into it.
-
-export function leaveEditor () {
-    com.mode.devlog ('leaveEditor called');
-    //    const m = st.env.getSelectedModule (); // module to be edited
+// Get the text to edit from selected module
+export function edGetTextToEdit () {
     const m = st.env.moduleSet.getSelectedModule ()
-    if (m) {
-        saveEditorBufferText (m);
-    } else {
-        const y = findModName (getEditorBufferText ())
-        const x = y ? y : "EditorText"
-        console.log (`leaveEditor ${x}`)
-        let m = st.env.mkSelectModule (y)
-        saveEditorBufferText (m)
-    }
+    const xs = m.currentSrc
+    return xs
 }
 
-export function findModName (xs) {
-    const modNameParser = /\s*;\s*([a-zA-Z0-9_]+)/
-    const q = modNameParser.exec (xs.split("\n")[0])
-    let y
-    if (q) {
-        console.log (`findModName 0=<${q[0]}> 1=<${q[1]}> 2=<${q[2]}>`)
-        y = q[1]
-    } else {
-        y = "EditorText"
-    }
-    return y
-}
-
-
-function isEditorTextHtml (xs) {
-    const htmlDetector = /\s*<\?xml\sversion=/
-    const q = htmlDetector.exec (xs.split("\n")[0])
-    let isHtml
-    if (q) { // xs looks like an html index
-        isHtml = true
-    } else { // xs looks like example program text
-        isHtml = false
-    }
-}
-
-// Get the text to edit from module m
-export function edGetTextToEdit (m) {
-    const xs = m.getAsmText ();
-    setEditorBufferText (xs);    
-}
-/*
-    const s = m.edCurrentStage;
-    const xs = s == st.StageAsm ? m.getAsmText ()
-          : s == st.StageObj ? m.getObjText ()
-          : s == st.StageLnk ? m.getLnkText ()
-          : s == st.StageExe ? m.getExeText ()
-          : "";
-*/
-
-export function saveEditorBufferText (m) {
+// Copy editor buffer contents to module set
+export function saveEditorBufferText () {
+    const m = st.env.moduleSet.getSelectedModule ()
     const xs = getEditorBufferText ()
-    const s = m.edCurrentStage
-    switch (s) {
-    case st.StageAsm: m.asmEdText = xs; break;
-    case st.StageObj: m.objEdText = xs; break;
-    case st.StageLnk: m.lnkEdText = xs; break;
-    case st.StageExe: m.exeEdText = xs; break;
-    default: m.asmEdText = xs
-    }
+    //    m.currentSrc = xs
+    m.changeAsmSrc (xs)
 }
 
-export function edSelectedButton () {
-    console.log ("edSelectedButton clicked");
+//-----------------------------------------------------------------------------
+// Entering and leaving the editor
+//-----------------------------------------------------------------------------
+
+// Put source code of selected module in editor buffer
+export function enterEditor () {
+    com.mode.devlog ("enterEditor")
+    let xs = edGetTextToEdit ()
+    setEditorBufferText (xs)
+    console.log (`enterEditor ${xs}`)
 }
 
-
-function setEditorText (stage, text) {
-    document.getElementById('EditorTextArea').value = text;
-    currentStage = stage;
+// Save contents of editor buffer into selected module
+export function leaveEditor () {
+    com.mode.devlog ('leaveEditor');
+    saveEditorBufferText ()
 }
-
 
 //-----------------------------------------------------------------------------
 // Editor buttons
@@ -219,9 +144,123 @@ function makeTextFile (text) {
 
 export function copyEditorBufferToModule () {
     com.mode.devlog ("copyEditorBufferToModule");
-    //    const m = st.env.getSelectedModule ();
     const m = st.env.moduleSet.getSelectedModule ()
-    //    m.text = document.getElementById("EditorTextArea").value;
-    m.asmText = document.getElementById("EditorTextArea").value;
+    const xs = getEditorBufferText ()
+    m.currentSrc = xs
+    console.log (`copyEditorBufferToModule ${xs}`)
 }
 
+/*
+//    let xs = = document.getElementById("EditorTextArea").value;
+    //    const m = st.env.getSelectedModule ();
+    //    m.text = document.getElementById("EditorTextArea").value;
+//export function edGetTextToEdit (m) {
+//    setEditorBufferText (xs);    
+    const s = m.edCurrentStage;
+    const xs = s == st.StageAsm ? m.getAsmText ()
+          : s == st.StageObj ? m.getObjText ()
+          : s == st.StageLnk ? m.getLnkText ()
+          : s == st.StageExe ? m.getExeText ()
+          : "";
+
+    const s = st.env.moduleSet.selectedModuleIdx
+    const m = st.env.moduleSet.modules[s]
+
+*/
+    //    const xs = m.getAsmText ()
+
+//    const s = m.edCurrentStage
+//    switch (s) {
+//    case st.StageAsm: m.asmEdText = xs; break;
+//    case st.StageObj: m.objEdText = xs; break;
+//    case st.StageLnk: m.lnkEdText = xs; break;
+//    case st.StageExe: m.exeEdText = xs; break;
+//    default: m.asmEdText = xs
+//    }
+
+/*
+    let m = st.env.moduleSet.getSelectedModule ()
+      if (m) {
+        console.log ("enterEditor, found selectedModule")
+        let xs = edGetTextToEdit (m)
+        setEditorBufferText (xs)
+    } else {
+        console.log ("Error: enterEditor, no selectedModule")
+        setEditorBufferText ("")
+    }
+}
+*/
+//        let bn = m.baseName; // name of the module
+//        let xs = bn;
+//        document.getElementById("EDP_Selected").innerText = xs;
+//    com.mode.trace = true;
+//    let m = st.env.getSelectedModule (); // module to be edited
+//        let stage = m.edCurrentStage; // stage of the module to edit
+//        let xs = `${bn} ${stage.description}`;
+
+// If there is a selected module, copy its text into the editor
+// buffer; if not, then clear the editor buffer, and later when
+// leaving the editor a module to hold it will be created and selected
+
+// If there is a selected module, copy the text from the editor buffer
+// back to that module.  If not, create a new module and copy the
+// editor buffer text into it.
+    
+/* old version of leaveEditor
+      
+    //    const m = st.env.getSelectedModule (); // module to be edited
+    const m = st.env.moduleSet.getSelectedModule ()
+    if (m) {
+        saveEditorBufferText (m);
+    } else {
+        const y = findModName (getEditorBufferText ())
+        const x = y ? y : "EditorText"
+        console.log (`leaveEditor ${x}`)
+        let m = st.env.mkSelectModule (y)
+        saveEditorBufferText (m)
+    }
+}
+*/
+
+    /* redundant, removing    
+export function findModName (xs) {
+    const modNameParser = /\s*;\s*([a-zA-Z0-9_]+)/
+    const q = modNameParser.exec (xs.split("\n")[0])
+    let y
+    if (q) {
+        console.log (`findModName 0=<${q[0]}> 1=<${q[1]}> 2=<${q[2]}>`)
+        y = q[1]
+    } else {
+        y = "EditorText"
+    }
+    return y
+}
+    */
+
+/*
+function isEditorTextHtml (xs) {
+    const htmlDetector = /\s*<\?xml\sversion=/
+    const q = htmlDetector.exec (xs.split("\n")[0])
+    let isHtml
+    if (q) { // xs looks like an html index
+        isHtml = true
+    } else { // xs looks like example program text
+        isHtml = false
+    }
+}
+*/
+
+/*    
+export function edSelectedButton () {
+    console.log ("edSelectedButton clicked");
+}
+*/
+
+/*    
+function setEditorText (stage, text) {
+    document.getElementById('EditorTextArea').value = text;
+    currentStage = stage;
+}
+*/
+
+    

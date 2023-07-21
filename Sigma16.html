@@ -199,20 +199,10 @@ visiting this file in a browser.
 	    <div class="Pane" id="ModulesPane">
 	      <div class="PaneButtons">
 		<button id="MP_Help"> Help </button>
-		<button id="MP_OpenFile"> Open file </button>
-		<button id="MP_Save"> Save </button>
 		<button id="MP_OpenDirectory"> Open directory </button>
 		<button id="MP_Test1"> Test 1 </button>
 		<button id="MP_Test2"> Test 2 </button>
 		<button id="MP_Test3"> Test 3 </button>
-
-		<input type="file" multiple id="FileInput"
-                       accept=".asm.txt, .obj.txt, .md.txt, .lnk.txt"
-		       name="myfileselector">
-                </input>
-		<button id="MP_Refresh"> Refresh </button>
-		<button id="MP_New"> New </button>
-		<button id="MP_Hello_world"> Hello, world! </button>
 	      </div>
 	      <div class="HighlightedTextAsHtml"
                    id="ModuleSetDisplay">
@@ -226,22 +216,24 @@ visiting this file in a browser.
 	    <div class="Pane" id="EditorPane">
 	      <div class="PaneButtons">
 		<button id="EDP_Help"> Help </button>
-                <button id="EDP_Selected"> selected </button>
+		<button id="EDP_New"> New </button>
+		<button id="EDP_OpenFile"> Open file </button>
+		<button id="EDP_Save"> Save </button>
+		<button id="EDP_SaveAs"> Save As </button>
 		<button id="EDP_Clear"> Clear </button>
 		<button id="EDP_Revert"> Revert </button>
-		<button id="EDP_New"> New </button>
-                <button id="EDP_Save"> Save </button>
+		<button id="EDP_Hello_world"> Hello, world! </button>
+                <!-- version 3.5.0 and before used <a download...> to
+                read file; this is replaced by File System Access API
+                in version 3.6.3
 		<a download="S16DownloadFile.txt"
 		   id="editorDownloadAnchor"
 		   style="display: none">
 		</a>
-		<button id="EDP_Hello_world"> Hello, world! </button>
-                <!--
-		<button id="EDP_Asm"> Asm </button>
-		<button id="EDP_Obj"> Obj </button>
-		<button id="EDP_Exe"> Exe </button>
-		<button id="EDP_Link"> Link </button>
-		<button id="EDP_Test"> Test </button>
+                <input type="file" multiple id="FileInput"
+                       accept=".asm.txt, .obj.txt, .md.txt, .lnk.txt"
+		       name="myfileselector">
+                </input>
                 -->
 	      </div>
 	      <div class="PaneBody" id="EditorBody">
@@ -658,3 +650,21 @@ visiting this file in a browser.
     </div>
   </body>
 </html>
+
+<!--
+    <button id="EDP_Selected"> selected </button>
+                <button id="EDP_Save"> Save </button>
+		<button id="EDP_Asm"> Asm </button>
+		<button id="EDP_Obj"> Obj </button>
+		<button id="EDP_Exe"> Exe </button>
+		<button id="EDP_Link"> Link </button>
+		<button id="EDP_Test"> Test </button>
+
+		<button id="MP_Refresh"> Refresh </button>
+		<button id="MP_New"> New </button>
+		<button id="MP_Hello_world"> Hello, world! </button>
+
+                -->
+
+
+                

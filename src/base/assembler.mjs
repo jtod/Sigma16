@@ -1,6 +1,6 @@
 // Sigma16: assembler.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3 or later
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -428,15 +428,16 @@ function mkErrMsg (ma,s,err) {
 // for the selected module
 
 export function enterAssembler () {
-    const m = st.env.moduleSet.getSelectedModule ();
-    const src = m.getAsmText ();
-    console.log (`enterAssembler src=${src}`);
-    setAsmSource (src);
+    const m = st.env.moduleSet.getSelectedModule ()
+    const src = m.currentSrc
+    setAsmSource (src)
 }
+//    console.log (`enterAssembler src=${src}`)
+//    const src = m.getAsmText ()
 //    console.log (`enterAssembler m=${m}`)
-    //    const m = st.env.getSelectedModule ();
-    //    const src = m.getAsmText();
-    //    const src = m ? m.getAsmText() : "";
+//    const m = st.env.getSelectedModule ();
+//    const src = m.getAsmText();
+//    const src = m ? m.getAsmText() : "";
 
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");

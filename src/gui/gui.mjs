@@ -1,6 +1,6 @@
 // Sigma16: gui.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3 or later
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -14,7 +14,7 @@
 // not, see <https://www.gnu.org/licenses/>.
 
 //-------------------------------------------------------------------------
-// gui.mjs is the main program for the browser interface.  It's
+// gui.mjs is the main program for the browser interface.  It is
 // launched by Sigma16.html and is the last JavaScript file to be
 // loaded
 //-------------------------------------------------------------------------
@@ -975,30 +975,20 @@ function initializeButtons () {
     prepareButton ('EXP_Examples_Home',    examplesHome);
     prepareButton ('EXP_Back',    examplesBack);
 
-    // Modules pane (MP)
-    // prepareButton ('MP_New',    smod.newModule)
-    //    prepareButton ('MP_Refresh',    smod.refreshModulesList)
-    prepareButton ('MP_Refresh',    st.env.moduleSet.refreshDisplay ())
-    prepareButton ('MP_New',        smod.newMod)
-    prepareButton ('MP_Hello_world', () => insert_example(example_hello_world))
+// Modules pane (MP)
+    prepareButton ('MP_OpenDirectory', smod.openDirectory)
     prepareButton ('MP_Test1',        smod.test1)
     prepareButton ('MP_Test2',        smod.test2)
     prepareButton ('MP_Test3',        smod.test3)
-    prepareButton ('MP_OpenFile',      smod.openFile)
-    prepareButton ('MP_Save',          smod.saveFile)
-    prepareButton ('MP_OpenDirectory', smod.openDirectory)
 
     // Editor pane (EDP)
-    prepareButton ('EDP_Selected',    ed.edSelectedButton);
+    prepareButton ('EDP_New',         ed.edNew);
+    prepareButton ('EDP_OpenFile',    smod.openFile)
+    prepareButton ('EDP_Save',        smod.saveFile)
+    prepareButton ('EDP_SaveAs',      smod.saveAsFile)
     prepareButton ('EDP_Clear',       ed.edClear);
     prepareButton ('EDP_Revert',      ed.edRevert);
-    prepareButton ('EDP_New',         ed.edNew);
-    prepareButton ('EDP_Save',        ed.edDownload);
-    prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world));
-    // prepareButton ('EDP_Asm',         ed.edAsm);
-    // prepareButton ('EDP_Obj',         ed.edObj);
-    // prepareButton ('EDP_Exe',         ed.edExe);
-    // prepareButton ('EDP_Link',        ed.edLink);
+    prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world))
 
     // Assembler pane (AP)
     prepareButton ('AP_Assemble',        asm.assemblerGUI);
@@ -1282,7 +1272,7 @@ function selectExample() {
     let ys = skipPreClose;
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (ys);
-    m.setHtmlDisplay ()
+//    m.setHtmlDisplay ()
     smod.handleSelect (m)
 }
 
@@ -1292,7 +1282,7 @@ function insert_example(exampleText) {
     com.mode.devlog('Inserting example add into editor text');
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (exampleText)
-    m.setHtmlDisplay ()
+//    m.setHtmlDisplay ()
     smod.handleSelect (m)
     ed.setEditorBufferText (exampleText)
 //    st.env.moduleSet.refreshDisplay ()
@@ -2928,11 +2918,11 @@ function initializeGuiElements (gst) {
     hideBreakDialogue ();
 //    document.getElementById('LinkerText').innerHTML = "";    
     document.getElementById('LP_Body').innerHTML = "";    
-    smod.prepareChooseFiles ();
+    //    smod.prepareChooseFiles ();  // Old file handler, obsolete
     st.env.moduleSet = new smod.ModuleSet ()
     let m = st.env.moduleSet.addModule () // initialize system with one module
     m.changeAsmSrc ("; This is dummy initial source text\n")
-    m.setHtmlDisplay ()
+//    m.setHtmlDisplay ()
     smod.handleSelect (m)
     window.mode = com.mode;
     prepareExampleText (gst)
@@ -3209,7 +3199,6 @@ function showCChex () {
 // functions to be defined, so they are performed after all the
 // modules have been loaded.
 
-
 window.onload = function () {
     console.log("starting initializers")
     com.mode.trace = false
@@ -3218,3 +3207,16 @@ window.onload = function () {
     setModeUser ()
     console.log ('system is now running')
 }
+
+//    prepareButton ('EDP_Selected',    ed.edSelectedButton);
+//    prepareButton ('EDP_Save',        ed.edDownload);
+    // prepareButton ('EDP_Asm',         ed.edAsm);
+    // prepareButton ('EDP_Obj',         ed.edObj);
+    // prepareButton ('EDP_Exe',         ed.edExe);
+    // prepareButton ('EDP_Link',        ed.edLink);
+
+// prepareButton ('MP_New',    smod.newModule)
+//    prepareButton ('MP_Refresh',    smod.refreshModulesList)
+// prepareButton ('MP_Refresh',    st.env.moduleSet.refreshDisplay ())
+// prepareButton ('MP_New',        smod.newMod)
+// prepareButton ('MP_Hello_world', () => insert_example(example_hello_world))
