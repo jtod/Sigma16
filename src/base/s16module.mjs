@@ -65,6 +65,46 @@ export function showModElts () {
     }
 }
 
+//-------------------------------------------------------------------------
+// Files - new version using File System Access API
+//-------------------------------------------------------------------------
+
+export async function openFile () {
+    console.log (`ModSet: open file`)
+    const [fileHandle] = await window.showOpenFilePicker()
+    const file = await fileHandle.getFile()
+    await file.text ()
+        .then (xs => {
+            console.log (`openFile lambda xs = ${xs}`)
+            const fn = file.name
+            const m = st.env.moduleSet.addModule ()
+            handleSelect (m)
+            m.changeAsmSrc (xs)
+            document.getElementById("EditorTextArea").value = xs        
+            console.log ("openFile just changed asm src")
+            m.fileHandle = fileHandle
+            m.filename = fn
+            console.log (`openFile received fn=${fn} xs=${xs}`)
+        }, () => {
+            console.log ("failed to read file")
+        })
+}
+
+//    const m = st.env.moduleSet.getSelectedModule ()
+//    ed.setEditorBufferText (xs)
+//    console.log (`open File, got name ${fn}`)
+
+export async function saveFile () {
+    let i = st.env.moduleSet.selectedModuleIdx
+    let m = st.env.moduleSet.modules[i]
+    let fh = m.fileHandle
+    let xs = m.asmInfo.asmSrcText
+    xs += " Here is some added stuff...\n"
+    const writable = await fh.createWritable()
+    await writable.write(xs)
+    await writable.close()
+}
+
 //----------------------------------------------------------------------------
 // Sigma16 module
 //----------------------------------------------------------------------------
@@ -97,18 +137,19 @@ export class Sigma16Module {
         return this.asmInfo.asmSrcText
     }
     changeAsmSrc (txt) {
+        console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
         this.currentSrc = txt
+//        setEditorBufferText (txt)
         // also: make sure the editor text and original file text (if
         // exists) are ok
-//        console.log (`Module changeAsmSrc ${txt}`)
-//        this.asmInfo.asmSrcText = txt;
         this.asmInfo.objText = Unavailable
         this.asmInfo.asmListingText = Unavailable
         this.asmInfo.mdText = Unavailable
         this.displaySrcLineElt.textContent = this.currentSrc.split("\n")[0]
+//        this.asmInfo.asmSrcText = txt;
 //        const srcLineElt =
 //              document.getElementById (`MODULE-${this.modKey}-SRCLINE`)
-        //        srcLineElt.textContent = txt  ????????????????? later
+//        srcLineElt.textContent = txt  ????????????????? later
         
     }
     setSelected (b) {
@@ -328,43 +369,12 @@ export class ModuleSet {
     }
 }
 
-//-------------------------------------------------------------------------
-// Files - new version using File System Access API
-//-------------------------------------------------------------------------
 
-export async function openFile () {
-    console.log (`ModSet: open file`)
-    const [fileHandle] = await window.showOpenFilePicker()
-    const file = await fileHandle.getFile()
-    const xs = await file.text ()
-    console.log (xs)
-    let m = st.env.moduleSet.addModule ()
-    m.changeAsmSrc (xs)
-//    m.setHtmlDisplay ()
-    handleSelect (m)
-    m.fileName = file.name
-    m.fileHandle = fileHandle
-}
-    //    const m = st.env.moduleSet.getSelectedModule ()
-//    ed.setEditorBufferText (xs)
-//    console.log (`open File, got name ${fn}`)
-
-export async function saveFile () {
-    let i = st.env.moduleSet.selectedModuleIdx
-    let m = st.env.moduleSet.modules[i]
-    let fh = m.fileHandle
-    let xs = m.asmInfo.asmSrcText
-    xs += " Here is some added stuff...\n"
-    const writable = await fh.createWritable()
-    await writable.write(xs)
-    await writable.close()
-}
-
-
-export async function openDirectory () {
+export async function startOpenDirectory () {
     console.log (`ModSet: open directory`)
     const dh = await window.showDirectoryPicker ()
     const promises = []
+    let results = []
     let fs = []
     for await (const entry of dh.values()) {
         if (entry.kind !== "file") {
@@ -375,12 +385,19 @@ export async function openDirectory () {
     console.log ("Here are the filenames")
     for await (let f of fs) {
         console.log (f.name)
+        const xs = await f.tex ()
+        results.push ([f, xs])
     }
     console.log ("End of the filenames")
     console.log ("Here are the file sizes")
     for await (let f of fs) {
         console.log (f.size)
     }
+    return results
+}
+
+export async function openDirectory () {
+    let rs = await startOpenDirectory
 }
 
 //-------------------------------------------------------------------------

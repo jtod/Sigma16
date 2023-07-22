@@ -24,6 +24,8 @@ import * as arch  from '../base/architecture.mjs';
 import * as arith from '../base/arithmetic.mjs';
 import * as st    from '../base/state.mjs';
 
+
+
 //-----------------------------------------------------------------------------
 // Operations on editor text buffer
 //-----------------------------------------------------------------------------
@@ -33,9 +35,11 @@ export function getEditorBufferText () {
     return xs
 }
 
+/*
 export function setEditorBufferText (xs) {
     document.getElementById("EditorTextArea").value = xs
 }
+*/
 
 // Get the text to edit from selected module
 export function edGetTextToEdit () {
@@ -49,6 +53,7 @@ export function saveEditorBufferText () {
     const m = st.env.moduleSet.getSelectedModule ()
     const xs = getEditorBufferText ()
     //    m.currentSrc = xs
+    console.log (`saveEditorBufferText m=${m.modKey} xs=${xs}`)
     m.changeAsmSrc (xs)
 }
 
@@ -60,13 +65,15 @@ export function saveEditorBufferText () {
 export function enterEditor () {
     com.mode.devlog ("enterEditor")
     let xs = edGetTextToEdit ()
-    setEditorBufferText (xs)
+    document.getElementById("EditorTextArea").value = xs
+//    setEditorBufferText (xs)
     console.log (`enterEditor ${xs}`)
 }
 
 // Save contents of editor buffer into selected module
 export function leaveEditor () {
     com.mode.devlog ('leaveEditor');
+    console.log (`leave editor, buffer=${getEditorBufferText()}`)
     saveEditorBufferText ()
 }
 
@@ -81,7 +88,8 @@ export function edClear () {
 export function edNew () {
     console.log ("Editor new");
     st.env.selectedModule = null
-    setEditorBufferText ("")
+    document.getElementById("EditorTextArea").value = ""
+//    setEditorBufferText ("")
 }
 
 export function edRevert () {
