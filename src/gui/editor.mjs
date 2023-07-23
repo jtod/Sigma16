@@ -87,10 +87,14 @@ export function edClear () {
 
 export function edNew () {
     console.log ("Editor new");
-    st.env.selectedModule = null
+    saveEditorBufferText ()
+    const m = st.env.moduleSet.addModule ()
+    smod.handleSelect (m)
     document.getElementById("EditorTextArea").value = ""
-//    setEditorBufferText ("")
 }
+//    st.env.selectedModule = null
+//    document.getElementById("EditorTextArea").value = ""
+//    setEditorBufferText ("")
 
 export function edRevert () {
     console.log ("Editor revert");
@@ -270,5 +274,3 @@ function setEditorText (stage, text) {
     currentStage = stage;
 }
 */
-
-    

@@ -984,10 +984,11 @@ function initializeButtons () {
     // Editor pane (EDP)
     prepareButton ('EDP_New',         ed.edNew);
     prepareButton ('EDP_OpenFile',    smod.openFile)
+    prepareButton ('EDP_RefreshFile', smod.refreshFile)
     prepareButton ('EDP_Save',        smod.saveFile)
     prepareButton ('EDP_SaveAs',      smod.saveAsFile)
-    prepareButton ('EDP_Clear',       ed.edClear);
-    prepareButton ('EDP_Revert',      ed.edRevert);
+//    prepareButton ('EDP_Clear',       ed.edClear);
+//    prepareButton ('EDP_Revert',      ed.edRevert);
     prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world))
 
     // Assembler pane (AP)
@@ -1272,7 +1273,6 @@ function selectExample() {
     let ys = skipPreClose;
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (ys);
-//    m.setHtmlDisplay ()
     smod.handleSelect (m)
 }
 
@@ -1285,14 +1285,6 @@ function insert_example(exampleText) {
     smod.handleSelect (m)
     document.getElementById("EditorTextArea").value = exampleText
 }
-//    m.setHtmlDisplay ()
-//    ed.setEditorBufferText (exampleText)
-//    st.env.moduleSet.refreshDisplay ()
-//    document.getElementById('EditorTextArea').value = exampleText;
-//    m.asmText = exampleText;
-//    let m = st.env.mkSelectModule ("HelloWorld");
-//    m.asmEdText = exampleText;
-//    smod.refreshModulesList ();
 
 const example_hello_world =
 `; Program Hello, world!
@@ -3221,3 +3213,15 @@ window.onload = function () {
 // prepareButton ('MP_Refresh',    st.env.moduleSet.refreshDisplay ())
 // prepareButton ('MP_New',        smod.newMod)
 // prepareButton ('MP_Hello_world', () => insert_example(example_hello_world))
+
+// insert_example
+//    m.setHtmlDisplay ()
+//    ed.setEditorBufferText (exampleText)
+//    st.env.moduleSet.refreshDisplay ()
+//    document.getElementById('EditorTextArea').value = exampleText;
+//    m.asmText = exampleText;
+//    let m = st.env.mkSelectModule ("HelloWorld");
+//    m.asmEdText = exampleText;
+//    smod.refreshModulesList ();
+
+//    m.setHtmlDisplay ()
