@@ -80,7 +80,7 @@ export async function openFile () {
             const m = st.env.moduleSet.addModule ()
             handleSelect (m)
             m.changeAsmSrc (xs)
-            document.getElementById("EditorTextArea").value = xs        
+            document.getElementById("EditorTextArea").value = xs
             console.log ("openFile just changed asm src")
             m.fileHandle = fileHandle
             m.filename = fn
@@ -95,14 +95,31 @@ export async function openFile () {
 //    console.log (`open File, got name ${fn}`)
 
 export async function saveFile () {
-    let i = st.env.moduleSet.selectedModuleIdx
-    let m = st.env.moduleSet.modules[i]
-    let fh = m.fileHandle
-    let xs = m.asmInfo.asmSrcText
-    xs += " Here is some added stuff...\n"
+    console.log ("Save")
+    const m = st.env.moduleSet.getSelectedModule ()
+    const fh = m.fileHandle
+    const xs = document.getElementById("EditorTextArea").value
     const writable = await fh.createWritable()
     await writable.write(xs)
     await writable.close()
+    m.currentSrc = xs
+    m.savedSrc = xs
+}
+
+export async function saveAsFile () {
+    console.log ("Save as...")
+    const m = st.env.moduleSet.getSelectedModule ()
+    const fh = await window.showSaveFilePicker ()
+    const file = await fh.getFile ()
+    const fn = file.name
+    const xs = document.getElementById("EditorTextArea").value
+    const writable = await fh.createWritable()
+    await writable.write(xs)
+    await writable.close()
+    m.fileHandle = fh
+    m.filename = fn
+    m.currentSrc = xs
+    m.savedSrc = xs
 }
 
 //----------------------------------------------------------------------------

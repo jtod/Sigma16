@@ -1279,14 +1279,15 @@ function selectExample() {
 // This is an example program that's defined as a string in the JS
 // program, so no file needs to be read.
 function insert_example(exampleText) {
-    com.mode.devlog('Inserting example add into editor text');
+    com.mode.devlog('Inserting Hello World example into editor text');
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (exampleText)
-//    m.setHtmlDisplay ()
     smod.handleSelect (m)
-    ed.setEditorBufferText (exampleText)
-//    st.env.moduleSet.refreshDisplay ()
+    document.getElementById("EditorTextArea").value = exampleText
 }
+//    m.setHtmlDisplay ()
+//    ed.setEditorBufferText (exampleText)
+//    st.env.moduleSet.refreshDisplay ()
 //    document.getElementById('EditorTextArea').value = exampleText;
 //    m.asmText = exampleText;
 //    let m = st.env.mkSelectModule ("HelloWorld");

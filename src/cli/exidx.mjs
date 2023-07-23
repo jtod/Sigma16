@@ -1,7 +1,6 @@
 // Sigma16: exidx.mjs
 // Build html index of directory of asm.txt examples
-
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3 or later
+// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
