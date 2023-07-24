@@ -835,7 +835,7 @@ const showPane = (gst) => (p) => {
     case AssemblerPane:
         gst.currentKeyMap = asmKeyMap
         highlightPaneButton (gst, "Assembler_Pane_Button")
-        asm.enterAssembler ();
+        asm.enterAssemblerPage ();
         break;
     case LinkerPane:
         gst.currentKeyMap = linkerKeyMap
@@ -994,9 +994,9 @@ function initializeButtons () {
     // Assembler pane (AP)
     prepareButton ('AP_Assemble',        asm.assemblerGUI);
     prepareButton ('AP_Show_Source',     asm.displayAsmSource);
-    prepareButton ('AP_Show_Object',     asm.setObjectListing);
-    prepareButton ('AP_Show_Listing',    asm.setAsmListing);
-    prepareButton ('AP_Show_Metadata',   asm.setMetadata);
+    prepareButton ('AP_Show_Object',     asm.displayObjectListing);
+    prepareButton ('AP_Show_Listing',    asm.displayAsmListing);
+    prepareButton ('AP_Show_Metadata',   asm.displayMetadata);
     
     // Linker pane (LP)
     prepareButton ('LP_Link',            link.linkerGUI);
@@ -1101,9 +1101,9 @@ const asmKeyMap = new Map ([
     ["KeyH",  toggleAssemblerHelp],
     ["KeyA",  asm.assemblerGUI],
     ["KeyS",  asm.displayAsmSource],
-    ["KeyO",  asm.setObjectListing],
-    ["KeyL",  asm.setAsmListing],
-    ["KeyM",  asm.setMetadata],
+    ["KeyO",  asm.displayObjectListing],
+    ["KeyL",  asm.displayAsmListing],
+    ["KeyM",  asm.displayMetadata],
 ])
 
 const linkerKeyMap = new Map ([

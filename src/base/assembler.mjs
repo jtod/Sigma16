@@ -18,7 +18,6 @@
 //----------------------------------------------------------------------
 
 import * as com from './common.mjs';
-// import * as smod from './s16module.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as st from './state.mjs';
@@ -32,6 +31,103 @@ import * as st from './state.mjs';
 let objBufferLimit = 8;             // how many code items to allow per line
 let objectWordBuffer = [];          // list of object code words
 let relocationAddressBuffer = [];   // list of relocation addresses
+
+//----------------------------------------------------------------------
+// GUI interface to the assembler
+//----------------------------------------------------------------------
+
+// The assembler finds the currently selected module m, and then picks
+// up the source text from m.currentSrc.  It leaves its results in
+// m.asmInfo.  If it finds the name of the module being assembled from
+// a module statement, it updates the module's record in
+// st.env.moduleSet.
+
+// Main functions in the assembler API:
+// enterAssembler ()       -- when the user goes to the Assembler page
+// assemblerGUI ()         -- when "Assemble" button is clicked
+// setSource ()            -- when "Show Source" button is clicked
+// displayObjectListing () -- when "Show Object" button is clicked
+// displayAsmListing ()    -- when "Show Listing" button is clicked
+// displayMetadata ()      -- when "Show Metadata" button is clicked
+
+// Called when user goes to the Assembler page
+
+export function enterAssemblerPage () {
+    const m = st.env.moduleSet.getSelectedModule ()
+    const ai = m.asmInfo
+    ai.asmSrcText = m.currentSrc.slice ()
+    ai.asmSrcLines = ai.asmSrcText.split("\n")
+    mDisplayAsmSource (m)
+    ai.objMd = new ObjMd ("anonymous", notYet, notYet)
+    ai.metadata.listingDec = []
+}
+
+const notYet = "Listing will be available after assembly"
+
+// Called when user clicks "Assemble" on assembler page
+
+export function assemblerGUI () {
+    com.mode.devlog ("assemblerGUI starting");
+    const m = st.env.moduleSet.getSelectedModule ();
+    console.log (`assemblerGUI m=${m}`)
+    const src =  m.getAsmText();
+    document.getElementById('AsmTextHtml').innerHTML = "";
+    // clear text in asm
+    document.getElementById('ProcAsmListing').innerHTML = "";
+    // clear text in proc
+    com.clearObjectCode (); // clear text in linker pane
+    const ai = assembler (m.baseName, src);
+    m.asmInfo = ai;
+    m.objMd = ai.objMd;
+    displayAsmListing ();
+}
+
+// Called when user clicks "Show Source" on the assembler page
+
+export function displayAsmSource () {
+    const m = st.env.moduleSet.getSelectedModule ();
+    mDisplayAsmSource (m)
+}
+
+// Worker function for displayAsmSource, given module m
+
+export function mDisplayAsmSource (m) {
+    let xs = m.asmInfo.asmSrcLines.slice ()
+    xs.unshift("<pre class='HighlightedTextAsHtml'>");
+    xs.push("</pre>");
+    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
+}
+
+// Called when user clicks "Show Object" on the assembler page
+
+export function displayObjectListing () {
+    const m = st.env.moduleSet.getSelectedModule ();
+    const codeText = m.asmInfo.objMd.objText;
+    let listing = "<pre class='VerbatimText'>" + codeText + "</pre>";
+    document.getElementById('AsmTextHtml').innerHTML = listing;
+}
+
+// Called when user clicks "Show Listing" on the assembler page
+
+export function displayAsmListing () {
+    com.mode.devlog ("displayAsmListing");
+    const m = st.env.moduleSet.getSelectedModule ();
+    const ai =  m.asmInfo;
+    let lst = ai.metadata.listingDec; // array of listing lines
+    lst.unshift("<pre class='HighlightedTextAsHtml'>")
+    lst.push("</pre>")
+    document.getElementById('AsmTextHtml').innerHTML = lst.join("\n")
+}
+
+// Called when user clicks "Show Metadata" on the assembler page
+
+export function displayMetadata () {
+    const m = st.env.moduleSet.getSelectedModule ();
+    const src = m.getAsmText ();
+    const mdText = m.asmInfo.objMd.mdText;
+    let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
+    document.getElementById('AsmTextHtml').innerHTML = listing;
+}
 
 //----------------------------------------------------------------------
 // Assembler information record
@@ -60,7 +156,8 @@ export class AsmInfo {
         this.imports = [];                 // imported module/identifier
         this.exports = [];                 // exported identifiers
 	this.nAsmErrors = 0;               // errors in assembly source code
-        //        this.executable = st.emptyExe;    // {object code, maybe metadata}
+        //        this.executable = st.emptyExe;
+        // {object code, maybe metadata}
         this.executable = emptyExe;    // {object code, maybe metadata}
     }
 }
@@ -421,86 +518,6 @@ function mkErrMsg (ma,s,err) {
 }
 
 //----------------------------------------------------------------------
-// GUI interface to the assembler
-//----------------------------------------------------------------------
-
-// GUI action to enter the assembler pane and display the source code
-// for the selected module
-
-export function enterAssembler () {
-    const m = st.env.moduleSet.getSelectedModule ()
-    const src = m.currentSrc
-    setAsmSource (src)
-}
-//    console.log (`enterAssembler src=${src}`)
-//    const src = m.getAsmText ()
-//    console.log (`enterAssembler m=${m}`)
-//    const m = st.env.getSelectedModule ();
-//    const src = m.getAsmText();
-//    const src = m ? m.getAsmText() : "";
-
-export function assemblerGUI () {
-    com.mode.devlog ("assemblerGUI starting");
-//    const m = st.env.getSelectedModule ();
-    const m = st.env.moduleSet.getSelectedModule ();
-    console.log (`assemblerGUI m=${m}`)
-    const src =  m.getAsmText();
-    document.getElementById('AsmTextHtml').innerHTML = "";
-    // clear text in asm
-    document.getElementById('ProcAsmListing').innerHTML = "";
-    // clear text in proc
-    com.clearObjectCode (); // clear text in linker pane
-    const ai = assembler (m.baseName, src);
-    m.asmInfo = ai;
-    m.objMd = ai.objMd;
-    setAsmListing ();
-}
-
-export function displayAsmSource () {
-//    const m = st.env.getSelectedModule ();
-    const m = st.env.moduleSet.getSelectedModule ();
-    const ai =  m.asmInfo;
-    setAsmSource (ai.text)
-}
-
-// Put the txt into the text element on the assembler page
-
-export function setAsmSource (txt) {
-    let xs = txt.split ("\n");
-    xs.unshift("<pre class='HighlightedTextAsHtml'>");
-    xs.push("</pre>");
-    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
-}
-
-export function setAsmListing () {
-    com.mode.devlog ("setAsmListing");
-    const m = st.env.moduleSet.getSelectedModule ();
-//    const m = st.env.getSelectedModule ();
-    const ai =  m.asmInfo;
-    let lst = ai.metadata.listingDec; // array of listing lines
-    lst.unshift("<pre class='HighlightedTextAsHtml'>")
-    lst.push("</pre>")
-    document.getElementById('AsmTextHtml').innerHTML = lst.join("\n")
-}
-
-export function setObjectListing () {
-    const m = st.env.moduleSet.getSelectedModule ();
-//    const m = st.env.getSelectedModule ();
-    const codeText = m.asmInfo.objMd.objText;
-    let listing = "<pre class='VerbatimText'>" + codeText + "</pre>";
-    document.getElementById('AsmTextHtml').innerHTML = listing;
-}
-
-export function setMetadata () {
-//    const m = st.env.getSelectedModule ();
-    const m = st.env.moduleSet.getSelectedModule ();
-    const src = m.getAsmText ();
-    const mdText = m.asmInfo.objMd.mdText;
-    let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
-    document.getElementById('AsmTextHtml').innerHTML = listing;
-}
-
-//----------------------------------------------------------------------
 //  Assembler
 //----------------------------------------------------------------------
 
@@ -513,14 +530,16 @@ export function setMetadata () {
 // and cli.
 
 export function assembler (baseName, srcText) {
-    const ai = new AsmInfo ();
+    const m = st.env.moduleSet.getSelectedModule ()
+    const ai = m.asmInfo
+//    const ai = new AsmInfo ();
     ai.text = srcText;
     console.log ("assembler")
     console.log ("assembler, srcText=...")
     console.log (ai.text)
     let src2 = removeCR (srcText);
 //    let badlocs = validateChars (src2);
-    ai.asmSrcLines = src2.split("\n");
+//    ai.asmSrcLines = src2.split("\n");
     com.mode.devlog (`assembler nloc=${ai.asmSrcLines.length}`);
     ai.nAsmErrors = 0;
     ai.asmStmt = [];
@@ -2074,3 +2093,46 @@ const dx = xParser.exec (field);
 //        } else {
 //            mkErrMsg (ma, s, `operand for block must be Fixed`);
 //        }
+
+//    console.log (`enterAssembler src=${src}`)
+//    const src = m.getAsmText ()
+//    console.log (`enterAssembler m=${m}`)
+//    const m = st.env.getSelectedModule ();
+//    const src = m.getAsmText();
+//    const src = m ? m.getAsmText() : "";
+
+// GUI action to enter the assembler pane and display the source code
+// for the selected module
+
+//    setAsmSource (ai,src)
+//    displayAsmSource ()
+//    setAsmSource (ai.text)
+//    let xs = txt.split ("\n");
+//    ai.asmSrcLines = xs
+
+
+/*
+// Get the source text and put it into AsmInfo object
+export function setAsmSource (ai,txt) {
+    ai.asmSrcText = txt
+    let xs = txt.split ("\n");
+    ai.asmSrcLines = xs
+    xs.unshift("<pre class='HighlightedTextAsHtml'>");
+    xs.push("</pre>");
+    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
+}
+*/
+
+// import * as smod from './s16module.mjs';
+
+//    const xs = ai.asmSrcLines
+//    ai.asmSrcLines = src2.split("\n");
+
+//    const ai =  m.asmInfo;
+
+/*
+    let xs = ai.asmSrcLines
+    xs.unshift("<pre class='HighlightedTextAsHtml'>");
+    xs.push("</pre>");
+    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
+*/

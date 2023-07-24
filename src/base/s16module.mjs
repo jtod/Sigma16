@@ -161,10 +161,11 @@ export class Sigma16Module {
     changeAsmSrc (txt) {
         console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
         this.currentSrc = txt
-        this.asmInfo.objText = Unavailable
-        this.asmInfo.asmListingText = Unavailable
-        this.asmInfo.mdText = Unavailable
-        this.displaySrcLineElt.textContent = this.currentSrc.split("\n")[0]
+        document.getElementById("EditorTextArea").value = txt
+//        this.asmInfo.objText = Unavailable
+//        this.asmInfo.asmListingText = Unavailable
+//        this.asmInfo.mdText = Unavailable
+        this.displaySrcLineElt.textContent = txt.split("\n")[0]
         
     }
     setSelected (b) {
