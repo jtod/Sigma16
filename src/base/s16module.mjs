@@ -448,6 +448,8 @@ function textPrefix (xs) {
         + "<div>\n";
 }
 
+// Deprecated...
+
 //-----------------------------------------------------------------------------
 // File record
 //-----------------------------------------------------------------------------
@@ -605,72 +607,19 @@ function refreshWhenReadsFinished  () {
     com.mode.devlog (`checkAllReadsFinished returning`);
 }
 
-//        setEditorBufferText (txt)
-        // also: make sure the editor text and original file text (if
-        // exists) are ok
-//        this.asmInfo.asmSrcText = txt;
-//        const srcLineElt =
-//              document.getElementById (`MODULE-${this.modKey}-SRCLINE`)
-//        srcLineElt.textContent = txt  ????????????????? later
-//    st.env.moduleSet.refreshDisplay()
+// Produce a formatted list of all open modules and display in Modules page
 
-// test3...
-//    let x = document.getElementById ("MODULE-2-SEL-FLAG")
-//    let y = x.textContent
-//    console.log (`test3 ${y}`)
-//    x.textContent = "Ha I changed it"
-
-// testing and to do
-// add id tag to module Element for (1) file base name and (2) src code line
-// setAsmSrc - modify src code line in module Element
-// module keeps track of original text and current text, changed/unchanged
-
-//    console.log (`Select module ${m.modKey}, i=${i}`)
-//    m.setSelected (true)
-
-//    for (let q = 0; q < a.length; q++) {
-//        console.log (`q=${q} idx=${a[q].modIdx} key=${a[q].modKey}`)
-
-// moduleSet
-//        let oldsel = st.env.moduleSet.modules[this.selectedModuleIdx]
-//        oldsel.setSelected (false)
-//        this.setSelected (true) // ??? redundant
-
-
-// export async function startOpenDirectory () {
-// export async function openDirectory () {
-//     let rs = await startOpenDirectory
-// }
-
-
-//-----------------------------------------------------------------------------
-// Module pane buttons
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Reading files in the Sigma16 directories
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Reading files selected by user
-//-----------------------------------------------------------------------------
-
-// When the user is in the Modules page and clicks Choose Files, a
-// multiple file chooser widget is displayed, and its onchange event
-// signals handleSelectedFiles with a list of file objects that were
-// selected.  The function reads the files and creates entries in the
-// modules list for them.
-
-/* Old file handler (version 3.5.0 and earlier)
-// Initialize the Modules page by setting up an event handler for the
-// FileInput element.
-
-export function prepareChooseFiles () {
-    com.mode.devlog ("prepareChooseFiles")
-    let elt = document.getElementById('FileInput')
-    elt.addEventListener ('change', event => {
-        handleSelectedFiles (elt.files)
-    })
+export function refreshModulesList() {
+    let xs = "";
+    for (const bn of st.env.modules.keys ()) {
+        xs += st.env.modules.get(bn).showHtml();
+    }
+    document.getElementById('FilesBody').innerHTML = xs;
+    for (const bn of st.env.modules.keys ()) {
+        const m = st.env.modules.get (bn);
+        const selElt = document.getElementById(m.selectId);
+        selElt.addEventListener ("click", event => { handleSelect (bn) });
+        const closeElt = document.getElementById(m.closeId);
+        closeElt.addEventListener ("click", event => { handleClose (bn) });
+    }
 }
-*/
-
