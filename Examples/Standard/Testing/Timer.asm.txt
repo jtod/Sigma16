@@ -1,0 +1,20 @@
+; Timer: Test the timeron and timeroff instructions.
+; Step through the loop, and check timer interrupt
+; Sigma16  https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+
+      load    R5,interval[R0]
+      lea     R1,1[R0]
+      load    R2,limit[R0]
+      add     R3,R0,R0
+
+      timeron R5
+loop  cmp     R3,R2
+      jumpge  done[R0]
+      add     R3,R3,R1
+      jump    loop[R0]
+
+done  timeroff
+      trap    R0,R0,R0
+
+limit     data  8
+interval  data  3

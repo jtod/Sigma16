@@ -3,7 +3,7 @@
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 
 ; Configuration
-SliceDuration equ 1
+SliceDuration equ 75  ; Timer counts down from SliceDuration to 0
 
 ; Testing
 ;    jump  StartB[R0]
@@ -154,7 +154,7 @@ DoSomeKernelWork
 ; At this point, the registers have been saved and the kernel can use
 ; them normally.
     load    R2,InterruptCount[R0]     ; increment InterruptCount
-    load    R3,InterruptLimit[R0]
+    load     R3,InterruptLimit[R0]
     cmp     R2,R3
     jumpge  ShutDown[R0]
     lea     R3,1[R0]
@@ -280,7 +280,7 @@ StartA
     lea    R9,10[R0]         ; help user to see which thread is running
 loopA
     lea    R3,4              ; trap break code
-;    trap   R3,R0,R0          ; breakpoint
+    trap   R3,R0,R0          ; breakpoint
     load   R3,countA[R0]
 ;    cmp    R3,R2             ; compare countA with limitA
 ;    jumpge doneA[R0]         ; quit at limit
@@ -311,7 +311,7 @@ StartB
     lea    R9,11[R0]         ; help user to see which thread is running
 loopB
     lea    R3,4              ; trap break code
-;    trap   R3,R0,R0          ; breakpoint
+    trap   R3,R0,R0          ; breakpoint
     load   R3,countB[R0]
 ;    cmp    R3,R2             ; compare countA with limitA
 ;    jumpge doneB[R0]         ; quit at limit
