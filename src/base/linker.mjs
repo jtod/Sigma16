@@ -255,7 +255,7 @@ function adjust (ls, om, addr, f) {
 
 export function linkerGUI () {
     console.log ("linkerGUI");
-    const selm = st.env.getSelectedModule ();
+    const selm = st.env.moduleSet.getSelectedModule ();
     const selOMD = selm.objMd;
     let objs = [selOMD]; // put selected object module first
     for (const m of st.env.modules.values ()) {
@@ -266,8 +266,8 @@ export function linkerGUI () {
     let result = linker (selm.baseName, objs);
     let exeObjMd = result.exe;
     selm.objMd = exeObjMd;
-    let xm = st.env.getSelectedModule ();
-    xm.executable = exeObjMd;
+    let xm = st.env.moduleSet.getSelectedModule ();
+    xm.executable = st.exeObjMd;
     let objectText = exeObjMd.objText;
     let mdText = exeObjMd.mdText;
     let listing = result.listing;

@@ -1948,7 +1948,7 @@ export function procBoot (gst) {
     es.copyable = em.initEsCopyable
 
     initializeProcessorElements (gst) // ????
-    gst.metadata = new st.Metadata ();
+    gst.metadata = new asm.Metadata ();
     gst.metadata.fromText (metadataText);
 
     let objectCode = objectCodeText.split("\n");

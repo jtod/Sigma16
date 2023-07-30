@@ -58,7 +58,8 @@ export function enterAssemblerPage () {
     ai.asmSrcText = m.currentSrc.slice ()
     ai.asmSrcLines = ai.asmSrcText.split("\n")
     mDisplayAsmSource (m)
-    ai.objMd = new ObjMd ("anonymous", notYet, notYet)
+    //    ai.objMd = new st.ObjMd ("anonymous", notYet, notYet)
+    ai.objMd = new st.ObjMd (notYet, notYet)
     ai.metadata.listingDec = []
 }
 
@@ -156,12 +157,8 @@ export class AsmInfo {
         this.imports = [];                 // imported module/identifier
         this.exports = [];                 // exported identifiers
 	this.nAsmErrors = 0;               // errors in assembly source code
-        //        this.executable = st.emptyExe;
-        // {object code, maybe metadata}
-        this.executable = emptyExe;    // {object code, maybe metadata}
     }
 }
-//        this.objMd = null;
 
 //----------------------------------------------------------------------
 // Character set
@@ -563,7 +560,8 @@ export function assembler (baseName, srcText) {
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
     //    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
-    ai.objMd = new ObjMd (baseName, ai.objectText, mdText);
+    //    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
+    ai.objMd = new st.ObjMd (ai.objectText, mdText);
     com.mode.devlog (ai.objectText);
     return ai;
 }
@@ -825,7 +823,6 @@ function parseLabel (ma,s) {
         mkErrMsg(ma, s, s.fieldLabel + ' is not a valid label');
     }
 }
-
 
 // Set operation to the instruction set object describing the
 // operation, if the operation field is defined in the map of
@@ -1490,112 +1487,6 @@ function asmPass2 (ma) {
 	} else {
 	    com.mode.devlog('pass2 other, noOperation');
 	}
-
-
-/*            
-// RRREXP ???            
-	} else if (op.ifmt==arch.aRRREXP) { // ????????????????????????????
-	    com.mode.devlog (`pass2 aRRREXP`);
-            requireNoperands (ma, s, 3)
-            s.d  = s.operand_str1;   // first register
-	    s.field_e  = s.operand_str2;   // second register
-	    s.field_f  = s.operand_str3;   // second register
-	    s.field_g  = logicFunction(s.fieldOperation);
-	    s.codeWord1 = mkWord448(op.opcode[0],s.d,op.opcode[1]);
-            s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,0);
-	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-
-/*            
-// EXP-Rkk  field Rd,3,8    extract Rd,dindex,size
-	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkk & op.pseudo) {
-            com.mode.devlog ('Pass2 EXP/Rkk pseudo');
-            requireNoperands (ma, s, 3)
-            const addr = s.address.word;
-            let d = 0
-            let e = 0
-            let f = 0
-            let g = 0
-            let h = 0
-            if (s.fieldOperation === "field") { // field
-                d = requireReg (ma, s, s.operands[0])
-                e = requireK4 (ma, s, Field_e, s.operands[1])
-                f = requireK4 (ma, s, Field_f, s.operands[2])
-                g = 0
-                h = 0
-            } else if (s.fieldOperation === "invb") { // invb
-                d = requireReg (ma, s, s.operands[0])
-                e = requireK4 (ma, s, Field_e, s.operands[1])
-                f = requireK4 (ma, s, Field_f, s.operands[2])
-                g = 0
-                h = 12 // invert arg 1
-            } else { // error
-            }
-	    s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-            s.codeWord2 = mkWord (e, f, g, h);
-            generateObjectWord (ma, s, s.address.word, s.codeWord1);
-            generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-
-     /*
-            const x = rrkkParser.exec (s.fieldOperands);
-            if (x) {
-                const {1:d, 2:e, 3:g, 4:h} = x;
-                let f = 0;
-	        s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-	        s.codeWord2 = mkWord (e, f, g, h);
-	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-            } else {
-                mkErrMsg (ma, s, `ERROR operation requires RRkk operands`);
-            }
-
-        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkRk ) {
-// EXP-RkkRk (extrc, extrci)
-            com.mode.devlog (`Pass2 iEXP/aRkkRk`);
-            requireNoperands (ma, s, 5)
-            com.mode.devlog (`kkkk 0=${s.operands[0]}`)
-            com.mode.devlog (`kkkk 1=${s.operands[1]}`)
-            com.mode.devlog (`kkkk 2=${s.operands[2]}`)
-            com.mode.devlog (`kkkk 3=${s.operands[3]}`)
-            com.mode.devlog (`kkkk 4=${s.operands[4]}`)
-            requireNoperands (ma, s, 5)
-            const d = requireReg (ma, s, s.operands[0]);
-            const e = requireK4  (ma, s, Field_e, s.operands[1]);
-            const f = requireK4  (ma, s, Field_f, s.operands[2]);
-            const g = requireReg (ma, s, s.operands[3]);
-            const h = requireK4  (ma, s, Field_h, s.operands[4]);
-            s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-            s.codeWord2 = mkWord (e, f, g, h);
-            generateObjectWord (ma, s, s.address.word, s.codeWord1);
-            generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-
-//            console.log (`${op.pseudo ? "YES PSEUDO" : "NOT PSEUDO"}`)
-            //	    com.mode.devlog (`Pass2 RX/X pseudo`);
-            //            const d = op.opcode[2]
-            // RX-X not-pseudo --- jump L1[R0]
-/*            
-	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !op.pseudo) {
-            com.mode.devlog (`Pass2 RX/X not-pseudo)`);
-            com.mode.devlog (`RX/X real ${s.operands[0]}`);
-            requireNoperands (ma, s, 1)
-            const {disp,index} = requireX(ma,s,s.operands[0]);
-            const d = 0;  // only difference based on pseudo
-            let a = index;
-            let b = op.opcode[1];
-            let v = evaluate (ma, s, s.address.word+1, disp);
-            if (v.evalRel) {
-                generateRelocation (ma, s, s.address.word+1);
-            }
-            com.mode.devlog (`RX/X disp = /${disp}/`)
-            s.codeWord1 = mkWord (op.opcode[0], d, a, b);
-            s.codeWord2 = v.word;
-	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-//      } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
         
 	s.listingLinePlain =  (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + arith.wordToHex4(s.address.word)
@@ -1744,51 +1635,6 @@ function showOperation (op) {
             + `opcode=${op.opcode} pseudo=${op.pseudo}`;
     } else {
         return "unknown op"
-    }
-}
-
-export class Executable {
-    constructor (code, metadata) {
-        this.code = code
-        this.metadata = metadata
-        com.mode.devlog (`new executable: ${this.showShort ()}`)
-    }
-    showShort () {
-        let xs = `Executable: ${this.code.length} lines object code`
-        xs += this.metadata ? `${this.metadata.length} lines metadata`
-            : `no metadata`
-        return xs
-    }
-}
-
-//-------------------------------------------------------------------------
-// Container for object code and metadata
-//-------------------------------------------------------------------------
-
-// const emptyExe = {objectCode : "", metadata : null};
-const emptyExe = new Executable ("no object code", null);
-
-// The assembler produces both an object text and a metadata text.
-// For storage in a file, they are represnted as strings that are
-// stored in an ObjMd container.  For use during emulation, they are
-// stored in an AdrSrcMap object.  An ObjMd is used to serialize or
-// populate an AdrSrcMap.
-
-export class ObjMd {
-    constructor (baseName, objText, mdText) {
-        this.baseName = baseName;
-        this.objText = objText;
-        com.mode.devlog (this.objText);
-        this.mdText = mdText;
-    }
-    hasObjectCode () {
-        return this.objText ? true : false
-    }
-    showShort () {
-        let xs = `Object/metadata (${this.baseName}): `
-            + `${this.objText.split("\n").length} lines of object text,`
-            + ` ${this.mdText.split("\n").length} lines of metadata`;
-        return xs;
     }
 }
 
@@ -1967,172 +1813,115 @@ export class Metadata {
     }
 }
 
+// Deprecated
 
-//----------------------------------------------------------------------
-// deprecated
-//----------------------------------------------------------------------
+/*            
+// RRREXP ???            
+	} else if (op.ifmt==arch.aRRREXP) { // ????????????????????????????
+	    com.mode.devlog (`pass2 aRRREXP`);
+            requireNoperands (ma, s, 3)
+            s.d  = s.operand_str1;   // first register
+	    s.field_e  = s.operand_str2;   // second register
+	    s.field_f  = s.operand_str3;   // second register
+	    s.field_g  = logicFunction(s.fieldOperation);
+	    s.codeWord1 = mkWord448(op.opcode[0],s.d,op.opcode[1]);
+            s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,0);
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
+*/
 
+/*            
+// EXP-Rkk  field Rd,3,8    extract Rd,dindex,size
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkk & op.pseudo) {
+            com.mode.devlog ('Pass2 EXP/Rkk pseudo');
+            requireNoperands (ma, s, 3)
+            const addr = s.address.word;
+            let d = 0
+            let e = 0
+            let f = 0
+            let g = 0
+            let h = 0
+            if (s.fieldOperation === "field") { // field
+                d = requireReg (ma, s, s.operands[0])
+                e = requireK4 (ma, s, Field_e, s.operands[1])
+                f = requireK4 (ma, s, Field_f, s.operands[2])
+                g = 0
+                h = 0
+            } else if (s.fieldOperation === "invb") { // invb
+                d = requireReg (ma, s, s.operands[0])
+                e = requireK4 (ma, s, Field_e, s.operands[1])
+                f = requireK4 (ma, s, Field_f, s.operands[2])
+                g = 0
+                h = 12 // invert arg 1
+            } else { // error
+            }
+	    s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
+            s.codeWord2 = mkWord (e, f, g, h);
+            generateObjectWord (ma, s, s.address.word, s.codeWord1);
+            generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
+*/
 
-/*            RX-X pseudo
-//            const x = xParser.exec  (s.fieldOperands);
-//            if (x) {
-//                const {1:disp, 2:a} = x;
-            let disp = x.disp
-            let index = x.index
-                let b = op.opcode[1];
-                let d = op.opcode[2];
-                let v = evaluate (ma, s, s.address.word+1, disp);
-                if (v.evalRel) {
-                    com.mode.devlog (`relocatable displacement`);
-                    generateRelocation (ma, s, s.address.word+1);
-                }
-	        s.codeWord1 = mkWord (op.opcode[0], d, a, b);
-                s.codeWord2 = v.word;
+     /*
+            const x = rrkkParser.exec (s.fieldOperands);
+            if (x) {
+                const {1:d, 2:e, 3:g, 4:h} = x;
+                let f = 0;
+	        s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
+	        s.codeWord2 = mkWord (e, f, g, h);
 	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             } else {
-                mkErrMsg (ma, s, `ERROR operation requires X operand`);
+                mkErrMsg (ma, s, `ERROR operation requires RRkk operands`);
             }
-*/
-/*    
-    const x =  regParser.exec (field);
-    let n = 0;
-    if (x) {
-        n = x[1];
-    } else {
-        const displayField = field ? field : "";
-        mkErrMsg (ma, s, `operand ${displayField} is not a valid register`);
-        n = 0;
-    }
-*/
 
-/*
-// const regParser = /^R([0-9a-f]|(?:1[0-5]))$/;
-const regParser = /^(R|r)([0-9a-f]|(?:1[0-5]))$/;
-
-const rxParser =
-    /^R([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
-const kxParser =
-    /^([0-9a-f]|(?:1[0-5])),(-?[a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
-
-const rrrrParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
-const rrkParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
-const rrrkParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?)$/;
-const rrrkkParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?),([0-9][0-9]?)$/;
-const rkkParser =
-    /^R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?),([0-9][0-9]?)$/;
-const rrkkParser =
-    /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5])),([0-9][0-9]?),([0-9][0-9]?)$/;
-// aRC asm format (register, control reg name): getctl R3,mask
-const nameNameParser = // import statement
-      /^([a-zA-Z][a-zA-Z0-9_]*),([a-zA-Z][a-zA-Z0-9_]*)$/;
-
-const datParser =
-    /^(((?:[a-zA-Z][a-zA-Z0-9_]*)|(?:\$[0-9a-f]{4})|(?:-?[0-9]+)))$/;
-
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkRk ) {
+// EXP-RkkRk (extrc, extrci)
+            com.mode.devlog (`Pass2 iEXP/aRkkRk`);
+            requireNoperands (ma, s, 5)
+            com.mode.devlog (`kkkk 0=${s.operands[0]}`)
+            com.mode.devlog (`kkkk 1=${s.operands[1]}`)
+            com.mode.devlog (`kkkk 2=${s.operands[2]}`)
+            com.mode.devlog (`kkkk 3=${s.operands[3]}`)
+            com.mode.devlog (`kkkk 4=${s.operands[4]}`)
+            requireNoperands (ma, s, 5)
+            const d = requireReg (ma, s, s.operands[0]);
+            const e = requireK4  (ma, s, Field_e, s.operands[1]);
+            const f = requireK4  (ma, s, Field_f, s.operands[2]);
+            const g = requireReg (ma, s, s.operands[3]);
+            const h = requireK4  (ma, s, Field_h, s.operands[4]);
+            s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
+            s.codeWord2 = mkWord (e, f, g, h);
+            generateObjectWord (ma, s, s.address.word, s.codeWord1);
+            generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 */
 
-//            console.log (`***** Pass2 genORG a=${a} ahex=${ahex} stmt=${stmt}`);
-// pass 2 org
-//            com.mode.devlog (`Pass 2 org/block a=${a} ahex=${ahex}`);
-//            console.log ('********** pass2 ORG handler')
-            //            && [arch.aBlock,arch.aOrg].includes(op.afmt)) {
-//            console.log (`***** Pass2 genORG a=${a}`);
-//            console.log ('********** pass2 ORG calling wordToHex4')
-//         console.log ('********** pass2 ORG back from wordToHex4')
-//        console.log (`***** Pass2 genORG a=${a} ahex=${ahex} calling emit`);
-//        console.log (`***** Pass2 genORG a=${a} ahex=${ahex} back fr emit`);
-
-//            console.log (`!!!!!!!! size=<${size}> @=${ma.locationCounter}`)
-//            console.log (`************* $$$$$$$$$$$$$$$ `)
-//        const x = ma.locationCounter.add (size)
-//        console.log (`!!!!!!!! size=${size} @=${ma.locationCounter} x=${x}`)
-//            console.log (`** Pass2 genReserve ${size} <${stmt}>`);
-
-/*
-const dx = xParser.exec (field);
-    let result = {disp: "0", index: 0};
-    if (dx) { // disp[reg]
-        const {0:all, 1:disp, 2:index} = dx;
-        com.mode.devlog (`requireX 0=${all} 1=${disp} 2=${index}`);
-        result = {disp,index};
-    } else { // disp
-        const displayField = field ? field : "";
-        mkErrMsg (ma, s, `operand ${displayField} is not disp[reg]`);
-    }
-    com.mode.devlog (`requireX ${field} return ${result.disp} ${result.index}`);
-    console.log (`requireX ${field} return ${result.disp} ${result.index}`);
-    return result;
+//            console.log (`${op.pseudo ? "YES PSEUDO" : "NOT PSEUDO"}`)
+            //	    com.mode.devlog (`Pass2 RX/X pseudo`);
+            //            const d = op.opcode[2]
+            // RX-X not-pseudo --- jump L1[R0]
+/*            
+	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !op.pseudo) {
+            com.mode.devlog (`Pass2 RX/X not-pseudo)`);
+            com.mode.devlog (`RX/X real ${s.operands[0]}`);
+            requireNoperands (ma, s, 1)
+            const {disp,index} = requireX(ma,s,s.operands[0]);
+            const d = 0;  // only difference based on pseudo
+            let a = index;
+            let b = op.opcode[1];
+            let v = evaluate (ma, s, s.address.word+1, disp);
+            if (v.evalRel) {
+                generateRelocation (ma, s, s.address.word+1);
+            }
+            com.mode.devlog (`RX/X disp = /${disp}/`)
+            s.codeWord1 = mkWord (op.opcode[0], d, a, b);
+            s.codeWord2 = v.word;
+	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 */
-
-                // console.log (`$$$$$$$$$$ ********** !!!!!!!!!!!!! `
-//                    + ` org parseOp` + ` operands=${s.fieldOperands} `
-//                + ` y=<${y}> s.orgAddr=${s.orgAddr}`)
-//                console.log (`***** parse Op ORG  orgAddr=${s.orgAddr}`);
-//            } else if (s.operation.ifmt==arch.iDir
-//                       && s.operation.afmt==arch.aBlock) {
-//                let y = evaluate (ma, s, ma.locationCounter,
-//                                  s.fieldOperands);
-//                s.orgAddr = mkConstVal (ma.locationCounter.word + y.word);
-//                console.log (`parse Op ORG orgAddr=${s.orgAddr}`);
-//                com.mode.devlog
-//                  (`parse Op BLOCK orgAddr=${s.orgAddr.toString()}`);
-
-//        console.log (`######### pass1 org about to get v line 926`)
-//        console.log (`######### pass1 org v=${v}`)
-//        console.log (`######### org ${i} ${ma.locationCounter.toString()}`);
-// old Block code
-//        if (v.movability==Fixed) {
-//            com.mode.devlog (`Block v= ${v.toString()}`);
-//            ma.locationCounter = addVal(ma,s,ma.locationCounter,v).copy();
-//            com.mode.devlog (`block ${i} ${ma.locationCounter.toString()}`);
-//        } else {
-//            mkErrMsg (ma, s, `operand for block must be Fixed`);
-//        }
-
-//    console.log (`enterAssembler src=${src}`)
-//    const src = m.getAsmText ()
-//    console.log (`enterAssembler m=${m}`)
-//    const m = st.env.getSelectedModule ();
-//    const src = m.getAsmText();
-//    const src = m ? m.getAsmText() : "";
-
-// GUI action to enter the assembler pane and display the source code
-// for the selected module
-
-//    setAsmSource (ai,src)
-//    displayAsmSource ()
-//    setAsmSource (ai.text)
-//    let xs = txt.split ("\n");
-//    ai.asmSrcLines = xs
+//      } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
 
 
-/*
-// Get the source text and put it into AsmInfo object
-export function setAsmSource (ai,txt) {
-    ai.asmSrcText = txt
-    let xs = txt.split ("\n");
-    ai.asmSrcLines = xs
-    xs.unshift("<pre class='HighlightedTextAsHtml'>");
-    xs.push("</pre>");
-    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
-}
-*/
-
-// import * as smod from './s16module.mjs';
-
-//    const xs = ai.asmSrcLines
-//    ai.asmSrcLines = src2.split("\n");
-
-//    const ai =  m.asmInfo;
-
-/*
-    let xs = ai.asmSrcLines
-    xs.unshift("<pre class='HighlightedTextAsHtml'>");
-    xs.push("</pre>");
-    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
-*/
+//        this.executable = st.emptyExe;
+// {object code, maybe metadata}
+//   this.executable = st.emptyExe;    // {object code, maybe metadata}
+//        this.objMd = null;

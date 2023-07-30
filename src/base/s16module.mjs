@@ -623,3 +623,5 @@ export function refreshModulesList() {
         closeElt.addEventListener ("click", event => { handleClose (bn) });
     }
 }
+
+
