@@ -79,6 +79,7 @@ export class SystemState {
 export const env = new SystemState ();
 // export const gst = env;  // refactor, use one or the other of gst, env
 
+/* deprecated
 //-------------------------------------------------------------------------
 // Container for object code and metadata
 //-------------------------------------------------------------------------
@@ -107,6 +108,7 @@ export class ObjMd {
         return xs;
     }
 }
+*/
 
 /* deprecated
 //-------------------------------------------------------------------------

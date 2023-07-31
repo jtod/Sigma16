@@ -21,42 +21,8 @@ import * as com from "./common.mjs";
 import * as st  from "./state.mjs";
 import * as asm  from "./assembler.mjs";
 
-//-----------------------------------------------------------------------------
-// Testing and diagnostics
-//-----------------------------------------------------------------------------
-
-export async function test1 () {
-    console.log ("****** ModSet test1 ******")
-    const xs = await readFile ()
-    console.log (xs)
-}
-
-export function test2 () {
-    console.log ("****** ModSet test2 ******")
-    showModElts ()
-}
-
-export function test3 () {
-    console.log ("****** ModSet test3 ******")
-}
-
-// Traverse Module Set Element and show modules.  Note that m.children
-// gives all Element children, while m.childNodes gives all nodes in
-// m, which includes whitespace and comments as well as elements.
-
-export function showModElts () {
-    console.log ("Elements of the Module Set")
-    let m = document.getElementById("ModSetControls")
-    //    let xs = m.children
-    let xs = m.childNodes
-    console.log (`Element ModSetControls has ${xs.length} child nodes`)
-    for (let x of xs) {
-        console.log (x)
-    }
-}
-
 //-------------------------------------------------------------------------
-// Files - new version using File System Access API
+// Files using File System Access API
 //-------------------------------------------------------------------------
 
 export async function openFile () {
@@ -135,16 +101,18 @@ export async function saveAsFile () {
 
 export class Sigma16Module {
     constructor () {
-         this.modKey = newModKey () // Persistent and unique gensym key
+        this.modKey = newModKey () // Persistent and unique gensym key
         this.modIdx = st.env.moduleSet.modules.length // Transient array index
         this.fileHandle = null
         this.filename = "(no file)"
         this.baseName = "(no file)"
         this.fileInfo = null // can hold instance of FileInfo
         this.isMain = true // may be changed by assembler
+        this.asmInfo = new asm.AsmInfo (this)
         this.currentSrc = "" // master copy of (possibly edited) source code
         this.savedSrc = "" // source code as last saved/read to/from file
-        this.asmInfo = new asm.AsmInfo (this)
+        this.objText = ""
+        this.mdText = ""
         this.displayElt = null // DOM element for module display on page
         this.displaySrcLineElt = null
         this.selectId = `SELECT-${this.modKey}`
@@ -154,6 +122,12 @@ export class Sigma16Module {
         this.closeElt = null // set when addModule
         this.upElt = null // set when addModule
         this.setHtmlDisplay ()
+    }
+    hasObjectCode () {
+        return this.objText !== ""
+    }
+    hasMetadata () {
+        return this.mdText !== ""
     }
     getAsmText () {
         return this.asmInfo.asmSrcText
@@ -166,7 +140,6 @@ export class Sigma16Module {
 //        this.asmInfo.asmListingText = Unavailable
 //        this.asmInfo.mdText = Unavailable
         this.displaySrcLineElt.textContent = txt.split("\n")[0]
-        
     }
     setSelected (b) {
         let selTxt = b ? "Selected" : ""
@@ -625,3 +598,37 @@ export function refreshModulesList() {
 }
 
 
+
+//-----------------------------------------------------------------------------
+// Testing and diagnostics
+//-----------------------------------------------------------------------------
+
+export async function test1 () {
+    console.log ("****** ModSet test1 ******")
+    const xs = await readFile ()
+    console.log (xs)
+}
+
+export function test2 () {
+    console.log ("****** ModSet test2 ******")
+    showModElts ()
+}
+
+export function test3 () {
+    console.log ("****** ModSet test3 ******")
+}
+
+// Traverse Module Set Element and show modules.  Note that m.children
+// gives all Element children, while m.childNodes gives all nodes in
+// m, which includes whitespace and comments as well as elements.
+
+export function showModElts () {
+    console.log ("Elements of the Module Set")
+    let m = document.getElementById("ModSetControls")
+    //    let xs = m.children
+    let xs = m.childNodes
+    console.log (`Element ModSetControls has ${xs.length} child nodes`)
+    for (let x of xs) {
+        console.log (x)
+    }
+}

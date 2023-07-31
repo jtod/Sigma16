@@ -1921,9 +1921,12 @@ export function toggleFullDisplay () {
 // Booter
 //-------------------------------------------------------------------------------
 
+// old version deprecated; get objText and mdText from selected module
+
 // Find the executable; it may come from assembler (object code) or
 // linker (executable code).
 
+/*
 export function obtainExecutable () {
     let m = st.env.moduleSet.getSelectedModule();
     let exe = m.executable ? m.executable : m.objMd;
@@ -1935,6 +1938,7 @@ export function obtainExecutable () {
         return null;
     }
 }
+*/
 
 export function procBoot (gst) {
     const es = gst.es
@@ -1942,9 +1946,11 @@ export function procBoot (gst) {
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     ab.resetSCB (es)
     let m = st.env.moduleSet.getSelectedModule ();
-    let exe = obtainExecutable ();
-    const objectCodeText = exe.objText;
-    const metadataText   = exe.mdText;
+//    let exe = obtainExecutable ();
+//    const objectCodeText = exe.objText;
+    //    const metadataText   = exe.mdText;
+    const objectCodeText = m.objText
+    const metadataText = m.mdText
     es.copyable = em.initEsCopyable
 
     initializeProcessorElements (gst) // ????

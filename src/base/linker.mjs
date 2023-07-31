@@ -1,6 +1,6 @@
 // Sigma16: linker.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (c) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -256,11 +256,18 @@ function adjust (ls, om, addr, f) {
 export function linkerGUI () {
     console.log ("linkerGUI");
     const selm = st.env.moduleSet.getSelectedModule ();
-    const selOMD = selm.objMd;
-    let objs = [selOMD]; // put selected object module first
-    for (const m of st.env.modules.values ()) {
-        const isSel = selm.baseName === m.baseName;
-        if (!isSel) { objs.push(m.objMd) }
+    const selObj = selm.objText
+    const selMd = selm.mdText
+    let objs = [selObj]
+    let mds = [selMd]
+    for (const m of st.env.moduleSet.modules) {
+        console.log (`linker checking module key=${m.modKey}`)
+        const isSel = m.modKey === selm.modKey
+        //        if (!isSel) { objs.push(m.objMd) }
+        if (!isSel) {
+            objs.push (m.objText)
+            mds.push (m.mdText)
+        }
         console.log (`linkerGUI ${isSel} ${m.baseName}`);
     }
     let result = linker (selm.baseName, objs);
@@ -282,8 +289,11 @@ export function linkerGUI () {
     console.log ("linkerGUI exeObjMd");
     console.log (exeObjMd);
     console.log ("--------------------------");
-
 }
+// for (const m of st.env.modules.values ()) {
+// const isSel = selm.baseName === m.baseName;
+//    const selOMD = selm.objMd;
+    //    let objs = [selOMD]; // put selected object module first
 
 // Show each object module ???
 

@@ -162,7 +162,7 @@ export class EmulatorState {
         this.startTime        = null
         this.eventTimer       = null  // returned by setInterval
         this.emInstrSliceSize = 500 // n instructions before looper yields
-        this.sliceUnlimited   = true // if false, looper enforces emInstrSliceSize
+        this.sliceUnlimited   = true // if F, looper enforces emInstrSliceSize
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false

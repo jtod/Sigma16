@@ -59,7 +59,7 @@ export function enterAssemblerPage () {
     ai.asmSrcLines = ai.asmSrcText.split("\n")
     mDisplayAsmSource (m)
     //    ai.objMd = new st.ObjMd ("anonymous", notYet, notYet)
-    ai.objMd = new st.ObjMd (notYet, notYet)
+//    ai.objMd = new st.ObjMd (notYet, notYet)
     ai.metadata.listingDec = []
 }
 
@@ -79,7 +79,7 @@ export function assemblerGUI () {
     com.clearObjectCode (); // clear text in linker pane
     const ai = assembler (m.baseName, src);
     m.asmInfo = ai;
-    m.objMd = ai.objMd;
+//    m.objMd = ai.objMd;
     displayAsmListing ();
 }
 
@@ -103,7 +103,8 @@ export function mDisplayAsmSource (m) {
 
 export function displayObjectListing () {
     const m = st.env.moduleSet.getSelectedModule ();
-    const codeText = m.asmInfo.objMd.objText;
+    //    const codeText = m.asmInfo.objMd.objText;
+    const codeText = m.objText
     let listing = "<pre class='VerbatimText'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
@@ -125,7 +126,8 @@ export function displayAsmListing () {
 export function displayMetadata () {
     const m = st.env.moduleSet.getSelectedModule ();
     const src = m.getAsmText ();
-    const mdText = m.asmInfo.objMd.mdText;
+    //    const mdText = m.asmInfo.objMd.mdText;
+    const mdText = m.mdText
     let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
@@ -561,7 +563,9 @@ export function assembler (baseName, srcText) {
     ai.objectText = ai.objectCode.join("\n");
     //    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
     //    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
-    ai.objMd = new st.ObjMd (ai.objectText, mdText);
+    //    ai.objMd = new st.ObjMd (ai.objectText, mdText);
+    m.objText = ai.objectText
+    m.mdText = mdText
     com.mode.devlog (ai.objectText);
     return ai;
 }
