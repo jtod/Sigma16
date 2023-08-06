@@ -20,78 +20,7 @@
 import * as com from "./common.mjs";
 import * as st  from "./state.mjs";
 import * as asm  from "./assembler.mjs";
-
-//-------------------------------------------------------------------------
-// Files using File System Access API
-//-------------------------------------------------------------------------
-
-export async function openFile () {
-    console.log (`ModSet: open file`)
-    const [fileHandle] = await window.showOpenFilePicker()
-    const file = await fileHandle.getFile()
-    await file.text ()
-        .then (xs => {
-            console.log (`openFile lambda xs = ${xs}`)
-            const fn = file.name
-            const m = st.env.moduleSet.addModule ()
-            handleSelect (m)
-            m.changeAsmSrc (xs)
-            document.getElementById("EditorTextArea").value = xs
-            console.log ("openFile just changed asm src")
-            m.fileHandle = fileHandle
-            m.filename = fn
-            console.log (`openFile received fn=${fn} xs=${xs}`)
-        }, () => {
-            console.log ("failed to read file")
-        })
-}
-
-export async function refreshFile () {
-    console.log (`ModSet: refresh file`)
-    const m = st.env.moduleSet.getSelectedModule ()
-    const fileHandle = m.fileHandle
-    if (fileHandle) {
-        const file = await fileHandle.getFile()
-        await file.text ()
-            .then (xs => {
-                console.log (`refreshFile lambda xs = ${xs}`)
-                m.changeAsmSrc (xs)
-                document.getElementById("EditorTextArea").value = xs
-            }, () => {
-                console.log ("refresh: failed to read file")
-            })
-    } else {
-        console.log ("Cannot refresh: module is not associated with a file")
-    }
-}
-
-export async function saveFile () {
-    console.log ("Save")
-    const m = st.env.moduleSet.getSelectedModule ()
-    const fh = m.fileHandle
-    const xs = document.getElementById("EditorTextArea").value
-    const writable = await fh.createWritable()
-    await writable.write(xs)
-    await writable.close()
-    m.currentSrc = xs
-    m.savedSrc = xs
-}
-
-export async function saveAsFile () {
-    console.log ("Save as...")
-    const m = st.env.moduleSet.getSelectedModule ()
-    const fh = await window.showSaveFilePicker ()
-    const file = await fh.getFile ()
-    const fn = file.name
-    const xs = document.getElementById("EditorTextArea").value
-    const writable = await fh.createWritable()
-    await writable.write(xs)
-    await writable.close()
-    m.fileHandle = fh
-    m.filename = fn
-    m.currentSrc = xs
-    m.savedSrc = xs
-}
+// import * as file  from "./file.mjs";
 
 //----------------------------------------------------------------------------
 // Sigma16 module
@@ -132,13 +61,17 @@ export class Sigma16Module {
     getAsmText () {
         return this.asmInfo.asmSrcText
     }
-    changeAsmSrc (txt) {
+    changeAsmSrc (txt) { // new text may not be saved in file
         console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
         this.currentSrc = txt
         document.getElementById("EditorTextArea").value = txt
-//        this.asmInfo.objText = Unavailable
-//        this.asmInfo.asmListingText = Unavailable
-//        this.asmInfo.mdText = Unavailable
+        this.displaySrcLineElt.textContent = txt.split("\n")[0]
+    }
+    changeSavedAsmSrc (txt) { // new text is saved in file
+        console.log (`Module ${this.modKey} changeSavedAsmSrc ${txt}`)
+        this.currentSrc = txt
+        this.savedSrc = txt
+        document.getElementById("EditorTextArea").value = txt
         this.displaySrcLineElt.textContent = txt.split("\n")[0]
     }
     setSelected (b) {
@@ -351,38 +284,162 @@ export class ModuleSet {
     }
 }
 
+
+//-----------------------------------------------------------------------------
+// Testing and diagnostics
+//-----------------------------------------------------------------------------
+
+export async function test1 () {
+    console.log ("****** ModSet test1 ******")
+    const xs = await readFile ()
+    console.log (xs)
+}
+
+export function test2 () {
+    console.log ("****** ModSet test2 ******")
+    showModElts ()
+}
+
+export function test3 () {
+    console.log ("****** ModSet test3 ******")
+}
+
+// Traverse Module Set Element and show modules.  Note that m.children
+// gives all Element children, while m.childNodes gives all nodes in
+// m, which includes whitespace and comments as well as elements.
+
+export function showModElts () {
+    console.log ("Elements of the Module Set")
+    let m = document.getElementById("ModSetControls")
+    //    let xs = m.children
+    let xs = m.childNodes
+    console.log (`Element ModSetControls has ${xs.length} child nodes`)
+    for (let x of xs) {
+        console.log (x)
+    }
+}
+
+//-----------------------------------------------------------------------------
+// file.mjs: access files on local client computer
+//-----------------------------------------------------------------------------
+
+// import * as com from "./common.mjs";
+// import * as st  from "./state.mjs";
+
+// There are two sets of functions: the old version using FileReader
+// works on mlst browsers.  The new superior version uses
+// FileReaderAccess API and works on Chrome and Edge, but not on
+// Safari or Firefox.
+
+
+//-------------------------------------------------------------------------
+// New version: Files using File System Access API
+// Supported on Chrome, Edge, but not Safari, Firefox
+//-------------------------------------------------------------------------
+
+export async function openFile () {
+    console.log (`ModSet: open file`)
+    const openOptions = {
+        types: [
+            {description: "Source file",
+             accept: { "text/plain": [".asm.txt"] }},
+            {description: "Object file",
+             accept: { "text/plain": [".obj.txt"] }}
+            ],
+        excludeAcceptAllOption: false
+    }
+    const [fileHandle] = await window.showOpenFilePicker (openOptions)
+    const file = await fileHandle.getFile ()
+    await file.text ()
+        .then (xs => {
+            console.log (`openFile lambda xs = ${xs}`)
+            const fn = file.name
+            const m = st.env.moduleSet.addModule ()
+            handleSelect (m)
+            m.changeSavedAsmSrc (xs)
+            m.fileHandle = fileHandle
+            m.filename = fn
+            document.getElementById("EditorTextArea").value = xs
+            console.log ("openFile just changed asm src")
+            console.log (`openFile received fn=${fn} xs=${xs}`)
+        }, () => {
+            console.log ("failed to read file")
+        })
+}
+
+export async function refreshFile () {
+    console.log (`ModSet: refresh file`)
+    const m = st.env.moduleSet.getSelectedModule ()
+    const fileHandle = m.fileHandle
+    if (fileHandle) {
+        const file = await fileHandle.getFile()
+        await file.text ()
+            .then (xs => {
+                console.log (`refreshFile lambda xs = ${xs}`)
+                m.changeAsmSrc (xs)
+                 document.getElementById("EditorTextArea").value = xs
+            }, () => {
+                console.log ("refresh: failed to read file")
+            })
+    } else {
+        console.log ("Cannot refresh: module is not associated with a file")
+    }
+}
+
+export async function saveFile () {
+    console.log ("Save")
+    const m = st.env.moduleSet.getSelectedModule ()
+    const fh = m.fileHandle
+    const xs = document.getElementById("EditorTextArea").value
+    const writable = await fh.createWritable()
+    await writable.write(xs)
+    await writable.close()
+    m.currentSrc = xs
+    m.savedSrc = xs
+}
+
+export async function saveAsFile () {
+    console.log ("Save as...")
+    const m = st.env.moduleSet.getSelectedModule ()
+    const fh = await window.showSaveFilePicker ()
+    const file = await fh.getFile ()
+    const fn = file.name
+    const xs = document.getElementById("EditorTextArea").value
+    const writable = await fh.createWritable()
+    await writable.write(xs)
+    await writable.close()
+    m.fileHandle = fh
+    m.filename = fn
+    m.currentSrc = xs
+    m.savedSrc = xs
+}
+
 export async function openDirectory () {
     console.log (`ModSet: open directory`)
-    const dh = await window.showDirectoryPicker ()
-    const promises = []
-    let results = []
-    let fs = []
-    for await (const entry of dh.values()) {
-        if (entry.kind !== "file") {
+    // get a FileSystemDirectoryHandle
+    const dirHandle = await window.showDirectoryPicker ()
+    // fh is a fileHandle for an entry in the directory
+    for await (const fh of dirHandle.values()) {
+        if (fh.kind !== "file") {
+            console.log (`skipping fh=${fh}`)
             continue
         }
-        fs.push (entry.getFile())
-    }
-    console.log ("Open directory: the files")
-    for await (const f of fs) {
-        console.log (f.name)
-        const xs = await f.text ()
-        results.push ([f, xs])
-    }
-    console.log ("End of the filenames")
-    console.log ("Here are the file sizes")
-    for await (let r of results) {
-        const [f,xs] = r
-        console.log (f.size)
+        const file = await fh.getFile ()
+        const xs = await file.text ()
+        const fn = await file.name
         const m = st.env.moduleSet.addModule ()
         handleSelect (m)
-        m.changeAsmSrc (xs)
         document.getElementById ("EditorTextArea").value = xs
+        m.fileHandle = fh
+        m.filename = fn
+        m.changeSavedAsmSrc (xs)
+        console.log (`  file ${fn} of size ${file.size}`)
+        console.log (`  file contents = ${xs}\n******`)
     }
 }
 
 //-------------------------------------------------------------------------
-// Files - old version using FileReader
+// File access, old legacy version using FileReader (ok on most browsers)
 //-------------------------------------------------------------------------
 
 // Interface
@@ -420,8 +477,6 @@ function textPrefix (xs) {
         + xs.split("\n").slice(0,4).join("<br>")
         + "<div>\n";
 }
-
-// Deprecated...
 
 //-----------------------------------------------------------------------------
 // File record
@@ -597,38 +652,65 @@ export function refreshModulesList() {
     }
 }
 
+// deprecated
 
 
-//-----------------------------------------------------------------------------
-// Testing and diagnostics
-//-----------------------------------------------------------------------------
+//        console.log (`open-dir filename=${m.filename}`)
+//        const [fileHandle, file, xs] = r
+//        console.log (`openDir fh=${fh}`)
+//    let fhs = [] // array of file handles in the directory
+//    return null
+//    for await (const fh of fhs) {
+//    const promises = []
+//    let results = []
+//    console.log ("Open directory: the files")
+        //        console.log (f.name)
+//        const [fileHandle,file] = f
+//        results.push ([fileHandle, file, xs])
+//        }
+//        fhs.push (fh)
+//    }
+//    console.log (`openDir has ${fhs.length} files`)
 
-export async function test1 () {
-    console.log ("****** ModSet test1 ******")
-    const xs = await readFile ()
-    console.log (xs)
-}
+//    }
+//    console.log ("End of the filenames")
+//    console.log ("Here are the file sizes")
+//    for await (let r of results) {
 
-export function test2 () {
-    console.log ("****** ModSet test2 ******")
-    showModElts ()
-}
-
-export function test3 () {
-    console.log ("****** ModSet test3 ******")
-}
-
-// Traverse Module Set Element and show modules.  Note that m.children
-// gives all Element children, while m.childNodes gives all nodes in
-// m, which includes whitespace and comments as well as elements.
-
-export function showModElts () {
-    console.log ("Elements of the Module Set")
-    let m = document.getElementById("ModSetControls")
-    //    let xs = m.children
-    let xs = m.childNodes
-    console.log (`Element ModSetControls has ${xs.length} child nodes`)
-    for (let x of xs) {
-        console.log (x)
+/* intermediate version, modified and not working
+export async function openDirectory () {
+    console.log (`ModSet: open directory`)
+    const dh = await window.showDirectoryPicker ()
+    const promises = []
+    let results = []
+    let fs = []
+    for await (const entry of dh.values()) {
+        if (entry.kind !== "file") {
+            continue
+        }
+        fs.push (entry)
+    }
+    console.log ("Open directory: the files")
+    for await (const f of fs) {
+        //        console.log (f.name)
+//        const [fileHandle,file] = f
+        const xs = await file.text ()
+        results.push ([fileHandle, file, xs])
+    }
+    console.log ("End of the filenames")
+    console.log ("Here are the file sizes")
+    for await (let r of results) {
+        const [fileHandle, file, xs] = r
+        const fn = file.name
+        console.log (file.size)
+        const m = st.env.moduleSet.addModule ()
+        handleSelect (m)
+        m.changeSavedAsmSrc (xs)
+        m.fileHandle = fileHandle
+        m.filename = fn
+        console.log (`open-dir filename=${m.filename}`)
+        document.getElementById ("EditorTextArea").value = xs
     }
 }
+*/
+ 

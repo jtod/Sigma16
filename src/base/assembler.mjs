@@ -43,7 +43,7 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 // st.env.moduleSet.
 
 // Main functions in the assembler API:
-// enterAssembler ()       -- when the user goes to the Assembler page
+// enterAssemblerPage ()   -- when the user goes to the Assembler page
 // assemblerGUI ()         -- when "Assemble" button is clicked
 // setSource ()            -- when "Show Source" button is clicked
 // displayObjectListing () -- when "Show Object" button is clicked
@@ -54,34 +54,42 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 
 export function enterAssemblerPage () {
     const m = st.env.moduleSet.getSelectedModule ()
+    console.log ("enterAssemblerPage")
+    console.log (m.currentSrc)
     const ai = m.asmInfo
-    ai.asmSrcText = m.currentSrc.slice ()
+    //    ai.asmSrcText = m.currentSrc.slice ()
+    ai.asmSrcText = m.currentSrc
     ai.asmSrcLines = ai.asmSrcText.split("\n")
     mDisplayAsmSource (m)
-    //    ai.objMd = new st.ObjMd ("anonymous", notYet, notYet)
-//    ai.objMd = new st.ObjMd (notYet, notYet)
     ai.metadata.listingDec = []
 }
+//    ai.objMd = new st.ObjMd ("anonymous", notYet, notYet)
+//    ai.objMd = new st.ObjMd (notYet, notYet)
 
 const notYet = "Listing will be available after assembly"
 
 // Called when user clicks "Assemble" on assembler page
 
+// Require m.asmInfo.asmSrcText and m.asmInfo.asmSrcLines are set
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
     const m = st.env.moduleSet.getSelectedModule ();
-    console.log (`assemblerGUI m=${m}`)
-    const src =  m.getAsmText();
+    console.log (`assemblerGUI m=${m.modKey}`)
     document.getElementById('AsmTextHtml').innerHTML = "";
-    // clear text in asm
     document.getElementById('ProcAsmListing').innerHTML = "";
-    // clear text in proc
     com.clearObjectCode (); // clear text in linker pane
-    const ai = assembler (m.baseName, src);
-    m.asmInfo = ai;
-//    m.objMd = ai.objMd;
+    assembler (m)
     displayAsmListing ();
+    console.log ("++++++++++++++++++++ asm done")
+    console.log (m.asmInfo.objectText)
 }
+    //    const src =  m.getAsmText();
+//    const src = m.currentSrc.slice ()
+    // clear text in asm
+    // clear text in proc
+    //    const ai = assembler (m, src);
+//    m.asmInfo = ai;
+//    m.objMd = ai.objMd;
 
 // Called when user clicks "Show Source" on the assembler page
 
@@ -177,39 +185,11 @@ export class AsmInfo {
 const CharSet =
       "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // letters
       + "0123456789"              // digits
-      + " \t,;\n"                 // separators
+      + " \t,;\r\n"               // separators
       + '"'                       // quotes
       + "'"                       // quotes
       + ".$[]()+-*"               // punctuation
       + "?¬£`<=>!%^&{}#~@:|/\\";  // other
-
-// removeCR copies a string with all \r characters removed.  In
-// Unix/Linux a line ends with \n, but in Windows lines end with \r\n
-// (CRLF).  The regular expressions used for parsing assume \n as the
-// line terminator.
-
-function removeCR (xs) {
-    return xs.split("").filter (c => c.charCodeAt(0) != 13).join("");
-    }
-
-// Check that the source code contains only valid characters (defined
-// to be characters in CharSet).  Do this check after removing \r
-// (carriage return) characters.
-
-function validateChars (xs) {
-    com.mode.devlog (`validateChars`);
-    let i, c;
-    let badlocs = [];
-    for (i = 0; i < xs.length; i++) {
-        c = xs.charAt(i);
-        if (!CharSet.includes(c)) {
-            com.mode.errlog (`validateChars: bad char at ${i} in ${xs}`);
-            badlocs.push(i);
-            com.mode.devlog (`i=${i} charcode=${xs.charCodeAt(i)}`);
-        }
-    }
-    return badlocs
-}
 
 //----------------------------------------------------------------------
 // Symbol table
@@ -447,6 +427,11 @@ function showAsmStmt (s) {
     com.mode.devlog (`*** showAsmStmt line=${s.lineNumber}`);
     com.mode.devlog (`*** srcLine=${s.srcLine}`);
     com.mode.devlog (`*** address=${s.address}`);
+
+    console.log (`*** AsmStmt line = ${s.lineNumber}`);
+    console.log (`*** AsmStmt line length = ${s.srcLine.length}`);
+    console.log (`*** AsmStmt srcLine = <${s.srcLine}<`);
+    console.log (`*** AsmStmt address = ${s.address}`);
 }
 
 function mkAsmStmt (lineNumber, address, srcLine) {
@@ -516,30 +501,79 @@ function mkErrMsg (ma,s,err) {
     ma.nAsmErrors++;
 }
 
+// splitLines should replace all usage of split("\n" and removeCR
+
+/*
+    console.log ("**************************")
+    console.log (`splitlines ${txt.length} <${txt}>`)
+    console.log (txt)
+    txt.replace ("a", "A")
+    console.log (txt)
+    txt = txt.replace ("b", "B")
+    console.log (txt)
+    console.log (`splitlines after remove r ${txt.length} <${txt}>`)
+    console.log (`splitlines ${lines}`)
+    console.log (`splitlines ${lines[0].length}`)
+    console.log (`splitlines ${lines[1].length}`)
+*/
+
+export function splitLines (txt) {
+    let lines = txt.split ("\n")
+    return lines
+}
+
+//    let cleantxt = txt.replace ("\r", ";WAS-CR")
+//    let cleantxt = removeCR (txt)
+    //    let lines = cleantxt.split ("\n")
+
+// removeCR copies a string with all \r characters removed.  In
+// Unix/Linux a line ends with \n, but in Windows lines end with \r\n
+// (CRLF).  The regular expressions used for parsing assume \n as the
+// line terminator.
+
+function removeCR (xs) {
+    return xs.split("").filter (c => c.charCodeAt(0) != 13).join("");
+    }
+
+// Check that the source code contains only valid characters (defined
+// to be characters in CharSet).  Do this check after removing \r
+// (carriage return) characters.
+
+function validateChars (xs) {
+    com.mode.devlog (`validateChars`);
+    let i, c;
+    let badlocs = [];
+    for (i = 0; i < xs.length; i++) {
+        c = xs.charAt(i);
+        if (!CharSet.includes(c)) {
+            com.mode.errlog (`validateChars: bad char at ${i} in ${xs}`);
+            badlocs.push(i);
+            com.mode.devlog (`i=${i} charcode=${xs.charCodeAt(i)}`);
+        }
+    }
+    return badlocs
+}
+
 //----------------------------------------------------------------------
 //  Assembler
 //----------------------------------------------------------------------
 
 // Translate assembly language source code to object code, also
-// producing an assembly listing and metadata.  The source code is
-// passed as the argument srcText, a single string containing \n to
-// separate the lines of source.  The assembler creates an AsmInfo
-// object "ai" which records information about the assembly, and this
-// object is returned.  This is the main translator, used for both gui
-// and cli.
+// producing an assembly listing and metadata.  The argument m is an
+// s16module which contains the source code in m.currentSrc.  The
+// assembler obtains an existing asmInfo from m, names it ai, and
+// fills in the fields of ai.  This approach enables bidirectional
+// transfer of information about the module between the ModuleSet and
+// the assembler.  This function is the main translator, used for both
+// gui and cli.
 
-export function assembler (baseName, srcText) {
-    const m = st.env.moduleSet.getSelectedModule ()
+export function assembler (m) {
     const ai = m.asmInfo
-//    const ai = new AsmInfo ();
-    ai.text = srcText;
-    console.log ("assembler")
-    console.log ("assembler, srcText=...")
-    console.log (ai.text)
-    let src2 = removeCR (srcText);
-//    let badlocs = validateChars (src2);
-//    ai.asmSrcLines = src2.split("\n");
-    com.mode.devlog (`assembler nloc=${ai.asmSrcLines.length}`);
+    ai.srcText = m.currentSrc
+    ai.srcLines = splitLines (ai.srcText)
+    console.log (`Entering assembler, ${ai.asmSrcLines.length} source lines`)
+    console.log (ai.srcLines)
+    
     ai.nAsmErrors = 0;
     ai.asmStmt = [];
     ai.symbols = [];
@@ -561,15 +595,11 @@ export function assembler (baseName, srcText) {
     displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
-    //    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
-    //    ai.objMd = new st.ObjMd (baseName, ai.objectText, mdText);
-    //    ai.objMd = new st.ObjMd (ai.objectText, mdText);
     m.objText = ai.objectText
     m.mdText = mdText
     com.mode.devlog (ai.objectText);
-    return ai;
+    return
 }
-
 //----------------------------------------------------------------------
 //  Regular expressions for the parser
 //----------------------------------------------------------------------
@@ -672,7 +702,9 @@ const regexpSplitFields =
       + regExpWhiteSpace              // separator
       + regexpFieldNoStringLit        // operands
       + regExpComment                 // comment
-      + '$';                          // anchor to end of line
+
+// No need to anchor to end of line; a trailing \r is ok
+//      + '$';                          // anchor to end of line
 
 const parseField = new RegExp(regExpField);
 const parseSplitFields = new RegExp(regexpSplitFields);
@@ -791,8 +823,11 @@ function requireReg (ma, s, field) {
 function parseAsmLine (ma,i) {
     com.mode.devlog (`parseAsmLine i=${i}`);
     let s = ma.asmStmt[i];
+    console.log (`parseAsmLine i=${i}`);
     showAsmStmt(s);
+
     let p = parseSplitFields.exec(s.srcLine);
+    console.log (`parseAsmLine i=${i} srcLine=<${s.srcLine}>  p=${p}`)
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
     s.fieldOperation = p[3];
@@ -890,11 +925,13 @@ function asmPass1 (ma) {
                     + ' source lines');
     for (let i = 0; i < ma.asmSrcLines.length; i++) {
         com.mode.devlog (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
+        console.log (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
 	ma.asmStmt[i] = mkAsmStmt (i, ma.locationCounter.copy(),
                                    ma.asmSrcLines[i]);
 	let s = ma.asmStmt[i];
         let badCharLocs = validateChars (ma.asmSrcLines[i]);
-        com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
+        //        com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
+        console.log (`validateChars: badCharLocs=${badCharLocs}`);
 
         if (badCharLocs.length > 0) {
             mkErrMsg (ma,s,`Invalid character at position ${badCharLocs}`);

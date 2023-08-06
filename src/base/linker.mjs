@@ -159,7 +159,7 @@ export class ObjectBlock {
     insertWord (x) {
         this.xs.push(x);
         this.blockSize++;
-    }
+    } 
 }
 
 function showObjectInfo (om) {
