@@ -977,9 +977,9 @@ function initializeButtons () {
 
 // Modules pane (MP)
     prepareButton ('MP_OpenDirectory', smod.openDirectory)
-    prepareButton ('MP_Test1',        smod.test1)
-    prepareButton ('MP_Test2',        smod.test2)
-    prepareButton ('MP_Test3',        smod.test3)
+//    prepareButton ('MP_Test1',        smod.test1)
+//    prepareButton ('MP_Test2',        smod.test2)
+//    prepareButton ('MP_Test3',        smod.test3)
 
     // Editor pane (EDP)
     prepareButton ('EDP_New',         ed.edNew);
@@ -990,7 +990,7 @@ function initializeButtons () {
 //    prepareButton ('EDP_Clear',       ed.edClear);
 //    prepareButton ('EDP_Revert',      ed.edRevert);
     prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world))
-
+    prepareButton ('EDP_Download', ed.edDownload)  // legacy way to saveas
     // Assembler pane (AP)
     prepareButton ('AP_Assemble',        asm.assemblerGUI);
     prepareButton ('AP_Show_Source',     asm.displayAsmSource);
@@ -1289,18 +1289,24 @@ function insert_example(exampleText) {
 const example_hello_world =
 `; Program Hello, world!
 ; A simple starter program for Sigma16
-
 ; Calculate result := 6 * x, where x = 7
 
-     lea    R1,6       ; R1 := 6
-     load   R2,x       ; R2 := x (variable initialized to 7)
-     mul    R3,R1,R2   ; R3 := 6 * x = 42 (hex 002a)
-     store  R3,result  ; result := 6 * x
-     trap   R0,R0,R0   ; halt
+; The instructions come first, variables defined later
+
+     lea    R1,6[R0]      ; R1 := 6
+     load   R2,x[R0]      ; R2 := x (variable initialized to 7)
+     mul    R3,R1,R2      ; R3 := 6 * x = 42 (hex 002a)
+     store  R3,result[R0] ; result := 6 * x
+     trap   R0,R0,R0      ; halt
 
 ; How to run the program:
-;   (1) Translate to machine language: Assembler tab, click Assemble
-;   (2) Run it: Processor tab, Boot, click Step for each instruction
+;   (1) Translate to machine language:
+;       - Assembler tab
+;       - click Assemble
+;   (2) Run it:
+;       - Processor tab
+;       - click Boot
+;       - click Step for each instruction
 
 ; When the program halts, we should see the following:
 ;   R1 contains  6 (0006)
@@ -2915,20 +2921,16 @@ function initializeGuiLayout (gst) {
 
 function initializeGuiElements (gst) {
     hideBreakDialogue ();
-//    document.getElementById('LinkerText').innerHTML = "";    
     document.getElementById('LP_Body').innerHTML = "";    
-    //    smod.prepareChooseFiles ();  // Old file handler, obsolete
+    ed.prepareChooseFiles ();  // legacy file handler
     st.env.moduleSet = new smod.ModuleSet ()
-    let m = st.env.moduleSet.addModule () // initialize system with one module
-    m.changeAsmSrc ("; This is dummy initial source text\n")
+    let m = st.env.moduleSet.addModule () // initialize with a module
+    m.changeAsmSrc ("; Enter your program here\n")
 //    m.setHtmlDisplay ()
     smod.handleSelect (m)
     window.mode = com.mode;
     prepareExampleText (gst)
 }
-//    smod.initModules (gst);
-//    smod.initializeModuleSet (); // gst is global variable
-//    smod.testModSet (); // TEMP TESTING ??????
 
 function initializeTracing (gst) {
     com.mode.devlog (`Thread ${gst.es.mode} initialization complete`)
@@ -2936,10 +2938,10 @@ function initializeTracing (gst) {
 
 function initializeSystem () {
     com.mode.devlog ('Initializing system')
-    gst = new GuiState ()          // Create gui state and set global variable
+    gst = new GuiState ()  // Create gui state and set global variable
     adjustInitialOptions ()
-    initializeGuiElements (gst)    // Initialize gui elements
-    initializeGuiLayout (gst)      // Initialize gui layout
+    initializeGuiElements (gst) // Initialize gui elements
+    initializeGuiLayout (gst)   // Initialize gui layout
     initializeButtons (gst)
     refreshOptionsDisplay ()
     findLatestRelease (gst)

@@ -57,20 +57,16 @@ export function enterAssemblerPage () {
     console.log ("enterAssemblerPage")
     console.log (m.currentSrc)
     const ai = m.asmInfo
-    //    ai.asmSrcText = m.currentSrc.slice ()
     ai.asmSrcText = m.currentSrc
     ai.asmSrcLines = ai.asmSrcText.split("\n")
     mDisplayAsmSource (m)
     ai.metadata.listingDec = []
 }
-//    ai.objMd = new st.ObjMd ("anonymous", notYet, notYet)
-//    ai.objMd = new st.ObjMd (notYet, notYet)
 
 const notYet = "Listing will be available after assembly"
 
 // Called when user clicks "Assemble" on assembler page
 
-// Require m.asmInfo.asmSrcText and m.asmInfo.asmSrcLines are set
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
     const m = st.env.moduleSet.getSelectedModule ();
@@ -83,13 +79,6 @@ export function assemblerGUI () {
     console.log ("++++++++++++++++++++ asm done")
     console.log (m.asmInfo.objectText)
 }
-    //    const src =  m.getAsmText();
-//    const src = m.currentSrc.slice ()
-    // clear text in asm
-    // clear text in proc
-    //    const ai = assembler (m, src);
-//    m.asmInfo = ai;
-//    m.objMd = ai.objMd;
 
 // Called when user clicks "Show Source" on the assembler page
 
@@ -501,35 +490,10 @@ function mkErrMsg (ma,s,err) {
     ma.nAsmErrors++;
 }
 
-// splitLines should replace all usage of split("\n" and removeCR
-
-/*
-    console.log ("**************************")
-    console.log (`splitlines ${txt.length} <${txt}>`)
-    console.log (txt)
-    txt.replace ("a", "A")
-    console.log (txt)
-    txt = txt.replace ("b", "B")
-    console.log (txt)
-    console.log (`splitlines after remove r ${txt.length} <${txt}>`)
-    console.log (`splitlines ${lines}`)
-    console.log (`splitlines ${lines[0].length}`)
-    console.log (`splitlines ${lines[1].length}`)
-*/
-
 export function splitLines (txt) {
     let lines = txt.split ("\n")
     return lines
 }
-
-//    let cleantxt = txt.replace ("\r", ";WAS-CR")
-//    let cleantxt = removeCR (txt)
-    //    let lines = cleantxt.split ("\n")
-
-// removeCR copies a string with all \r characters removed.  In
-// Unix/Linux a line ends with \n, but in Windows lines end with \r\n
-// (CRLF).  The regular expressions used for parsing assume \n as the
-// line terminator.
 
 function removeCR (xs) {
     return xs.split("").filter (c => c.charCodeAt(0) != 13).join("");
@@ -572,7 +536,7 @@ export function assembler (m) {
     ai.srcText = m.currentSrc
     ai.srcLines = splitLines (ai.srcText)
     console.log (`Entering assembler, ${ai.asmSrcLines.length} source lines`)
-    console.log (ai.srcLines)
+//    console.log (ai.srcLines)
     
     ai.nAsmErrors = 0;
     ai.asmStmt = [];
@@ -694,6 +658,7 @@ const regexpFieldNoStringLit =  '((?:[^\\s";]*)?)'
 const regExpWhiteSpace = '((?:\\s+)?)';
 const regExpComment = '((?:.*))';
 
+// No need to anchor to end of line; a trailing \r is ok
 const regexpSplitFields =
       '^'                             // anchor to beginning of line
       + regexpFieldNoStringLit        // label
@@ -703,14 +668,9 @@ const regexpSplitFields =
       + regexpFieldNoStringLit        // operands
       + regExpComment                 // comment
 
-// No need to anchor to end of line; a trailing \r is ok
-//      + '$';                          // anchor to end of line
 
 const parseField = new RegExp(regExpField);
 const parseSplitFields = new RegExp(regexpSplitFields);
-
-// const xParser = /^([-a-zA-Z0-9_\$]+)\[R([0-9a-f]|(?:1[0-5]))\]/;
-// const xParser = /^([-a-zA-Z0-9_\$]+)\[(R|r)([0-9a-f]|(?:1[0-5]))\]/;
 
 function requireX (ma, s, field) {
     const xrParser = /^([^\[]+)\[(.*)\]$/
@@ -827,7 +787,7 @@ function parseAsmLine (ma,i) {
     showAsmStmt(s);
 
     let p = parseSplitFields.exec(s.srcLine);
-    console.log (`parseAsmLine i=${i} srcLine=<${s.srcLine}>  p=${p}`)
+//    console.log (`parseAsmLine i=${i} srcLine=<${s.srcLine}>  p=${p}`)
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
     s.fieldOperation = p[3];
@@ -965,7 +925,8 @@ function handleLabel (ma,s) {
             let mod = s.operands[0];
             let extname = s.operands[1];
             let v = ExtVal.copy();
-            let i = new Identifier (s.fieldLabel, mod, extname, v, s.lineNumber+1);
+            let i = new Identifier (s.fieldLabel, mod, extname,
+                                    v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);
             com.mode.devlog
               (`Label import ${s.lineNumber} locname=${s.fieldLabel}`
@@ -1000,7 +961,6 @@ function updateLocationCounter (ma,s,i) {
         com.mode.devlog (`reserve ${i} ${ma.locationCounter.toString()}`);
     } else {
         com.mode.devlog (`Pass1 code codesize=${s.codeSize.toString()}`);
-//       ma.locationCounter = addVal (ma, s, ma.locationCounter, s.codeSize);
         ma.locationCounter.add (s.codeSize);
         com.mode.devlog (`code ${i} ${ma.locationCounter.toString()}`);
     }
@@ -1228,21 +1188,7 @@ function asmPass2 (ma) {
             s.codeWord2 = mkWord (e, f, g, h);
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-/*            
-            const x = rrParser.exec (s.fieldOperands);
-            if (x) {
-                const {1:d, 2:e} = x;
-                let f = 0;
-                let g = arith.logicFunction(s.fieldOperation);
-                let h = 0;
-	        s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-                s.codeWord2 = mkWord (e, f, g, h);
-                generateObjectWord (ma, s, s.address.word, s.codeWord1);
-                generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-            } else {
-                mkErrMsg (ma, s, `ERROR operation requires RR operands`);
-            }
-*/
+
         } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRR) {
 // EXP-RRR (push, pop, top; if pseudo then andw, orw, xorw)
             com.mode.devlog ('Pass2 EXP/RRR');
@@ -1445,8 +1391,6 @@ function asmPass2 (ma) {
                 mkErrMsg (ma, s, `ERROR operation requires RC operands`);
             }
 
-
-
         } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRRk) {
             com.mode.devlog (`pass2 aRRRk`);
             requireNoperands (ma, s, 4)
@@ -1460,8 +1404,6 @@ function asmPass2 (ma) {
 	    s.codeWord2 = mkWord (e, f, g, h);
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-
-
 
 // EXP-RRX save, restore
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRX) {
@@ -1540,7 +1482,8 @@ function asmPass2 (ma) {
 	    + s.fieldSpacesAfterOperation
 	    + s.fieldOperands
 	    + fixHtmlSymbols (s.fieldComment);
-	s.listingLineHighlightedFields = (s.lineNumber+1).toString().padStart(4,' ')
+	s.listingLineHighlightedFields =
+            (s.lineNumber+1).toString().padStart(4,' ')
 	    + ' ' + arith.wordToHex4(s.address.word)
 	    + ' ' + (s.codeSize.word>0 ? arith.wordToHex4(s.codeWord1) : '    ')
 	    + ' ' + (s.codeSize.word>1 ? arith.wordToHex4(s.codeWord2) : '    ')
@@ -1550,7 +1493,8 @@ function asmPass2 (ma) {
 	    + com.highlightField (s.fieldOperation, "FIELDOPERATION")
 	    + s.fieldSpacesAfterOperation
 	    + com.highlightField (s.fieldOperands, "FIELDOPERAND")
-	    + com.highlightField (fixHtmlSymbols(s.fieldComment), "FIELDCOMMENT") ;
+	    + com.highlightField (fixHtmlSymbols(s.fieldComment),
+                                  "FIELDCOMMENT") ;
         ma.metadata.pushSrc (s.listingLinePlain,
                              s.listingLinePlain,
                              s.listingLineHighlightedFields);
@@ -1853,116 +1797,3 @@ export class Metadata {
         return xs.join ("\n")
     }
 }
-
-// Deprecated
-
-/*            
-// RRREXP ???            
-	} else if (op.ifmt==arch.aRRREXP) { // ????????????????????????????
-	    com.mode.devlog (`pass2 aRRREXP`);
-            requireNoperands (ma, s, 3)
-            s.d  = s.operand_str1;   // first register
-	    s.field_e  = s.operand_str2;   // second register
-	    s.field_f  = s.operand_str3;   // second register
-	    s.field_g  = logicFunction(s.fieldOperation);
-	    s.codeWord1 = mkWord448(op.opcode[0],s.d,op.opcode[1]);
-            s.codeWord2 = mkWord(s.field_e,s.field_f,s.field_g,0);
-	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-
-/*            
-// EXP-Rkk  field Rd,3,8    extract Rd,dindex,size
-	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkk & op.pseudo) {
-            com.mode.devlog ('Pass2 EXP/Rkk pseudo');
-            requireNoperands (ma, s, 3)
-            const addr = s.address.word;
-            let d = 0
-            let e = 0
-            let f = 0
-            let g = 0
-            let h = 0
-            if (s.fieldOperation === "field") { // field
-                d = requireReg (ma, s, s.operands[0])
-                e = requireK4 (ma, s, Field_e, s.operands[1])
-                f = requireK4 (ma, s, Field_f, s.operands[2])
-                g = 0
-                h = 0
-            } else if (s.fieldOperation === "invb") { // invb
-                d = requireReg (ma, s, s.operands[0])
-                e = requireK4 (ma, s, Field_e, s.operands[1])
-                f = requireK4 (ma, s, Field_f, s.operands[2])
-                g = 0
-                h = 12 // invert arg 1
-            } else { // error
-            }
-	    s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-            s.codeWord2 = mkWord (e, f, g, h);
-            generateObjectWord (ma, s, s.address.word, s.codeWord1);
-            generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-
-     /*
-            const x = rrkkParser.exec (s.fieldOperands);
-            if (x) {
-                const {1:d, 2:e, 3:g, 4:h} = x;
-                let f = 0;
-	        s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-	        s.codeWord2 = mkWord (e, f, g, h);
-	        generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	        generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-            } else {
-                mkErrMsg (ma, s, `ERROR operation requires RRkk operands`);
-            }
-
-        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkRk ) {
-// EXP-RkkRk (extrc, extrci)
-            com.mode.devlog (`Pass2 iEXP/aRkkRk`);
-            requireNoperands (ma, s, 5)
-            com.mode.devlog (`kkkk 0=${s.operands[0]}`)
-            com.mode.devlog (`kkkk 1=${s.operands[1]}`)
-            com.mode.devlog (`kkkk 2=${s.operands[2]}`)
-            com.mode.devlog (`kkkk 3=${s.operands[3]}`)
-            com.mode.devlog (`kkkk 4=${s.operands[4]}`)
-            requireNoperands (ma, s, 5)
-            const d = requireReg (ma, s, s.operands[0]);
-            const e = requireK4  (ma, s, Field_e, s.operands[1]);
-            const f = requireK4  (ma, s, Field_f, s.operands[2]);
-            const g = requireReg (ma, s, s.operands[3]);
-            const h = requireK4  (ma, s, Field_h, s.operands[4]);
-            s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
-            s.codeWord2 = mkWord (e, f, g, h);
-            generateObjectWord (ma, s, s.address.word, s.codeWord1);
-            generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-
-//            console.log (`${op.pseudo ? "YES PSEUDO" : "NOT PSEUDO"}`)
-            //	    com.mode.devlog (`Pass2 RX/X pseudo`);
-            //            const d = op.opcode[2]
-            // RX-X not-pseudo --- jump L1[R0]
-/*            
-	} else if (op.ifmt==arch.iRX && op.afmt==arch.aX && !op.pseudo) {
-            com.mode.devlog (`Pass2 RX/X not-pseudo)`);
-            com.mode.devlog (`RX/X real ${s.operands[0]}`);
-            requireNoperands (ma, s, 1)
-            const {disp,index} = requireX(ma,s,s.operands[0]);
-            const d = 0;  // only difference based on pseudo
-            let a = index;
-            let b = op.opcode[1];
-            let v = evaluate (ma, s, s.address.word+1, disp);
-            if (v.evalRel) {
-                generateRelocation (ma, s, s.address.word+1);
-            }
-            com.mode.devlog (`RX/X disp = /${disp}/`)
-            s.codeWord1 = mkWord (op.opcode[0], d, a, b);
-            s.codeWord2 = v.word;
-	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
-	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
-*/
-//      } else if (op.ifmt==arch.iRX && op.afmt==arch.aX && op.pseudo) {
-
-
-//        this.executable = st.emptyExe;
-// {object code, maybe metadata}
-//   this.executable = st.emptyExe;    // {object code, maybe metadata}
-//        this.objMd = null;

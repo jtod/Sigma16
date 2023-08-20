@@ -35,6 +35,7 @@ export class Sigma16Module {
         this.fileHandle = null
         this.filename = "(no file)"
         this.baseName = "(no file)"
+        this.fileRecord = null
         this.fileInfo = null // can hold instance of FileInfo
         this.isMain = true // may be changed by assembler
         this.asmInfo = new asm.AsmInfo (this)
@@ -714,3 +715,37 @@ export async function openDirectory () {
 }
 */
  
+/*
+export function setEditorBufferText (xs) {
+    document.getElementById("EditorTextArea").value = xs
+}
+*/
+
+// From edNew...
+//    st.env.selectedModule = null
+//    document.getElementById("EditorTextArea").value = ""
+//    setEditorBufferText ("")
+
+
+/*
+export function edRevert () {
+    console.log ("Editor revert");
+}
+
+export function edAsm () {
+    console.log ("Editor assembly language");
+}
+
+export function edObj () {
+    console.log ("Editor object code");
+}
+
+export function edExe () {
+    console.log ("Editor executable code");
+}
+
+export function edLink () {
+    console.log ("Editor linker command");
+}
+*/
+

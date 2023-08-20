@@ -24,8 +24,6 @@ import * as arch  from '../base/architecture.mjs';
 import * as arith from '../base/arithmetic.mjs';
 import * as st    from '../base/state.mjs';
 
-
-
 //-----------------------------------------------------------------------------
 // Operations on editor text buffer
 //-----------------------------------------------------------------------------
@@ -34,12 +32,6 @@ export function getEditorBufferText () {
     const xs = document.getElementById("EditorTextArea").value
     return xs
 }
-
-/*
-export function setEditorBufferText (xs) {
-    document.getElementById("EditorTextArea").value = xs
-}
-*/
 
 // Get the text to edit from selected module
 export function edGetTextToEdit () {
@@ -57,9 +49,9 @@ export function saveEditorBufferText () {
     m.changeAsmSrc (xs)
 }
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Entering and leaving the editor
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 
 // Put source code of selected module in editor buffer
 export function enterEditor () {
@@ -77,9 +69,9 @@ export function leaveEditor () {
     saveEditorBufferText ()
 }
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Editor buttons
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 
 export function edClear () {
     document.getElementById('EditorTextArea').value = "";
@@ -92,30 +84,9 @@ export function edNew () {
     smod.handleSelect (m)
     document.getElementById("EditorTextArea").value = ""
 }
-//    st.env.selectedModule = null
-//    document.getElementById("EditorTextArea").value = ""
-//    setEditorBufferText ("")
 
-export function edRevert () {
-    console.log ("Editor revert");
-}
-
-export function edAsm () {
-    console.log ("Editor assembly language");
-}
-
-export function edObj () {
-    console.log ("Editor object code");
-}
-
-export function edExe () {
-    console.log ("Editor executable code");
-}
-
-export function edLink () {
-    console.log ("Editor linker command");
-}
-
+// THE FOLLOWING IS NO LONGER TRUE IN CHROMIUM BROWSERS...
+// RETAINING FOR COMPATIBILITY WITH SAFARI, FIREFOX
 // In a browser, the CORS restrictions make it impossible to do a
 // general file "Save As..." operation.  Instead, the user can
 // "Download" which allows them to decide where to save a file, and
@@ -129,7 +100,6 @@ export function edDownload () {
     downloadElt.href = makeTextFile(edText);  // provide text to download
     downloadElt.click();  // perform the download
 }
-
 
 let textFile = null
 
@@ -162,115 +132,112 @@ export function copyEditorBufferToModule () {
     console.log (`copyEditorBufferToModule ${xs}`)
 }
 
-/*
-//    let xs = = document.getElementById("EditorTextArea").value;
-    //    const m = st.env.getSelectedModule ();
-    //    m.text = document.getElementById("EditorTextArea").value;
-//export function edGetTextToEdit (m) {
-//    setEditorBufferText (xs);    
-    const s = m.edCurrentStage;
-    const xs = s == st.StageAsm ? m.getAsmText ()
-          : s == st.StageObj ? m.getObjText ()
-          : s == st.StageLnk ? m.getLnkText ()
-          : s == st.StageExe ? m.getExeText ()
-          : "";
+//--------------------------------------------------------------------------
+// Legacy method: Reading files selected by user
+// Should work on non-Chromium browsers: hopefully FireFox and Safari
+// For Chrome and Edge, the new functions are better.
+//
+// This code is from v3.5.0 s16module.mjs, and is retained for the
+// time being for backward compatibility with browsers that don't yet
+// support FileSystemAccess API
 
-    const s = st.env.moduleSet.selectedModuleIdx
-    const m = st.env.moduleSet.modules[s]
+//---------------------------------------------------------------------------
+// File record
+//---------------------------------------------------------------------------
 
-*/
-    //    const xs = m.getAsmText ()
+// A file record "fr" contains information about a file that has been
+// selected and opened by the user.  It is constructed with "file", a
+// file handle provided by html in response to a user open file
+// request; the baseName of the file, and the stage (asm, obj, exe,
+// lnk).  To extract metadata of a file from file record fr, use
+// fr.f.type, fr.f.size, and fr.f.lastModifiedDate.
 
-//    const s = m.edCurrentStage
-//    switch (s) {
-//    case st.StageAsm: m.asmEdText = xs; break;
-//    case st.StageObj: m.objEdText = xs; break;
-//    case st.StageLnk: m.lnkEdText = xs; break;
-//    case st.StageExe: m.exeEdText = xs; break;
-//    default: m.asmEdText = xs
-//    }
-
-/*
-    let m = st.env.moduleSet.getSelectedModule ()
-      if (m) {
-        console.log ("enterEditor, found selectedModule")
-        let xs = edGetTextToEdit (m)
-        setEditorBufferText (xs)
-    } else {
-        console.log ("Error: enterEditor, no selectedModule")
-        setEditorBufferText ("")
+export class FileRecord  {
+    constructor (f, baseName, stage) {
+        this.f = f;
+        this.fileName = f.name; // full filename
+        this.baseName = baseName; // base part of filename
+        this.stage = stage; // asm, obj, lnk, exe
+        this.text = "";
+        this.fileReader = mkFileReader (this);
+        this.fileReadComplete = false;
     }
 }
-*/
-//        let bn = m.baseName; // name of the module
-//        let xs = bn;
-//        document.getElementById("EDP_Selected").innerText = xs;
+
+// When the user is in the Modules (now Editor) page and clicks Choose
+// Files, a multiple file chooser widget is displayed, and its
+// onchange event signals handleSelectedFiles with a list of file
+// objects that were selected.  The function reads the files and
+// creates entries in the modules list for them.
+
+// Initialize the Modules page by setting up an event handler for the
+// FileInput element.
+
+export function prepareChooseFiles () {
+    com.mode.devlog ("prepareChooseFiles")
+    let elt = document.getElementById('FileInput')
+    elt.addEventListener ('change', event => {
+        handleSelectedFiles (elt.files)
+    })
+}
+
+// When the user clicks Choose files, the browser produces a FileList
+// object.  This function traverses that list and creates a module for
+// each file
+
+// When the Choose Files button is clicked, a file chooser dialogue
+// box appears.  If the user selects one or more files and clicks
+// open, handleSelectedFiles is called with a list of file handles for
+// the files chosen by the user.  This function obtains and records
+// metadata for each file, creates a fileReader object, and initiates
+// the file read.
+
+let newFiles = [];
+
+export function handleSelectedFiles (flist) {
 //    com.mode.trace = true;
-//    let m = st.env.getSelectedModule (); // module to be edited
-//        let stage = m.edCurrentStage; // stage of the module to edit
-//        let xs = `${bn} ${stage.description}`;
-
-// If there is a selected module, copy its text into the editor
-// buffer; if not, then clear the editor buffer, and later when
-// leaving the editor a module to hold it will be created and selected
-
-// If there is a selected module, copy the text from the editor buffer
-// back to that module.  If not, create a new module and copy the
-// editor buffer text into it.
-    
-/* old version of leaveEditor
-      
-    //    const m = st.env.getSelectedModule (); // module to be edited
-    const m = st.env.moduleSet.getSelectedModule ()
-    if (m) {
-        saveEditorBufferText (m);
-    } else {
-        const y = findModName (getEditorBufferText ())
-        const x = y ? y : "EditorText"
-        console.log (`leaveEditor ${x}`)
-        let m = st.env.mkSelectModule (y)
-        saveEditorBufferText (m)
+    com.mode.devlog (`*** handleSelectedFiles: ${flist.length} files`);
+    console.log (`*** handleSelectedFiles: ${flist.length} files`);
+    newFiles = [];
+    let baseName;
+    let stage
+    for (let f of flist) {
+        baseName = f.name
+        //        const mod = st.env.mkSelectModule (baseName);
+        const mod = new smod.Sigma16Module ()
+        mod.fileHandle = f
+        mod.filename = baseName
+        mod.baseName = baseName
+        const fileRecord = new FileRecord (f, baseName, null);
+        mod.fileRecord = fileRecord
+        newFiles.push(fileRecord);
+        fileRecord.fileReader.readAsText (f);
+        console.log ("******** handleSelected Files: mod.showshort");
+        console.log (mod.showShort());
     }
+    console.log ("handleSelectedFiles at end");
+    st.envSummary();
 }
-*/
 
-    /* redundant, removing    
-export function findModName (xs) {
-    const modNameParser = /\s*;\s*([a-zA-Z0-9_]+)/
-    const q = modNameParser.exec (xs.split("\n")[0])
-    let y
-    if (q) {
-        console.log (`findModName 0=<${q[0]}> 1=<${q[1]}> 2=<${q[2]}>`)
-        y = q[1]
-    } else {
-        y = "EditorText"
+function mkFileReader (fileRecord) {
+//    com.mode.trace = true;
+    const fr = new FileReader();
+    fr.onload = function (e) {
+	com.mode.devlog (`File reader ${fileRecord.fileName} onload`);
+	console.log (`File reader ${fileRecord.fileName} onload`);
+        fileRecord.text = e.target.result;
+        console.log (`file onload bn=${fileRecord.baseName} `
+                     + `fileName=${fileRecord.fileName} `
+                     + `text=${fileRecord.text}`);
+        fileRecord.fileReadComplete = true;
+        let m = new smod.Sigma16Module ()
+        m.currentSrc = fileRecord.text
+        m.savedSrc = fileRecord.text
     }
-    return y
-}
-    */
-
-/*
-function isEditorTextHtml (xs) {
-    const htmlDetector = /\s*<\?xml\sversion=/
-    const q = htmlDetector.exec (xs.split("\n")[0])
-    let isHtml
-    if (q) { // xs looks like an html index
-        isHtml = true
-    } else { // xs looks like example program text
-        isHtml = false
+    fr.onerror = function (e) {
+        com.mode.devlog (`Error: could not read file ${fileRecord.fileName}`
+                     + ` (error code = ${e.target.error.code})`);
+        fileRecord.fileReadComplete = true;
     }
+    return fr;
 }
-*/
-
-/*    
-export function edSelectedButton () {
-    console.log ("edSelectedButton clicked");
-}
-*/
-
-/*    
-function setEditorText (stage, text) {
-    document.getElementById('EditorTextArea').value = text;
-    currentStage = stage;
-}
-*/
