@@ -133,7 +133,7 @@ export class ObjectInfo {
         this.objText = this.obmdtext.objText;
         this.mdText = this.obmdtext.mdText;
         this.objectLines = [];
-        this.mdLines = this.mdText.split("\n");
+        this.mdLines = this.mdText ? this.mdText.split("\n") : []
         this.metadata = null;
         this.startAddress = 0;
         this.srcLineOrigin = 0;
@@ -258,6 +258,7 @@ export function linkerGUI () {
     const selm = st.env.moduleSet.getSelectedModule ();
     const selObj = selm.objText
     const selMd = selm.mdText
+    console.log (`selm obj = ${selObj} md=${selMd}`)
     let objs = [selObj]
     let mds = [selMd]
     for (const m of st.env.moduleSet.modules) {
@@ -267,6 +268,7 @@ export function linkerGUI () {
         if (!isSel) {
             objs.push (m.objText)
             mds.push (m.mdText)
+            console.log (`lnk adding ${m.objText}`)
         }
         console.log (`linkerGUI ${isSel} ${m.baseName}`);
     }
