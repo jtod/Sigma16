@@ -74,7 +74,9 @@ export function assemblerGUI () {
     document.getElementById('AsmTextHtml').innerHTML = "";
     document.getElementById('ProcAsmListing').innerHTML = "";
     com.clearObjectCode (); // clear text in linker pane
-    assembler (m)
+    let ai = assembler (m)
+    m.asmInfo = ai;
+    m.objMd = ai.objMd  // ai is result of assembler
     displayAsmListing ();
     console.log ("++++++++++++++++++++ asm done")
     console.log (m.asmInfo.objectText)
@@ -156,6 +158,7 @@ export class AsmInfo {
         this.imports = [];                 // imported module/identifier
         this.exports = [];                 // exported identifiers
 	this.nAsmErrors = 0;               // errors in assembly source code
+        this.objMd = null;
     }
 }
 
@@ -561,8 +564,10 @@ export function assembler (m) {
     ai.objectText = ai.objectCode.join("\n");
     m.objText = ai.objectText
     m.mdText = mdText
+    ai.objMd = new st.ObjMd (ai.objectText, mdText)
+    console.log (`Assembler creating ObjMd:\n${ai.objMd.showShort()}`);
     com.mode.devlog (ai.objectText);
-    return
+    return ai
 }
 //----------------------------------------------------------------------
 //  Regular expressions for the parser

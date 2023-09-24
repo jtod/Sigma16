@@ -9,7 +9,8 @@
     "homepage": "https://jtod.github.io/home/Sigma16/",
     "main": "src/cli/Sigma16.mjs",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "asm": "node wa/assemble.js"
     },
     "keywords": [
         "Sigma16",
@@ -25,6 +26,7 @@
     "dependencies": {
         "cors": "^2.8.5",
         "ejs": "^3.1.8",
-        "express": "^4.18.1"
+        "express": "^4.18.1",
+        "wabt": "^1.0.20"
     }
 }

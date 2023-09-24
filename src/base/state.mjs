@@ -254,7 +254,6 @@ export class Metadata {
     }
 }
 
-/* deprecated
 //-------------------------------------------------------------------------
 // Container for object code and metadata
 //-------------------------------------------------------------------------
@@ -266,24 +265,30 @@ export class Metadata {
 // populate an AdrSrcMap.
 
 export class ObjMd {
-    //    constructor (baseName, objText, mdText) {
     constructor (objText, mdText) {
-//        this.baseName = baseName;
         this.objText = objText;
-        com.mode.devlog (this.objText);
+        this.objLines = objText.split("\n");
         this.mdText = mdText;
+        this.mdLines = this.mdText.split("\n");
     }
+    //    constructor (baseName, objText, mdText) {
+//        this.baseName = baseName;
+//        com.mode.devlog (this.objText);
     hasObjectCode () {
         return this.objText ? true : false
     }
     showShort () {
-        let xs = `Object/metadata (${this.baseName}): `
-            + `${this.objText.split("\n").length} lines of object text,`
-            + ` ${this.mdText.split("\n").length} lines of metadata`;
+        let xs = "Object/Metadata:\n"
+            + `${this.objLines.length} lines of object text\n`
+            + this.objLines.slice(0,3).join("\n")
+            + `\n${this.mdLines.length} lines of metadata text\n`
+            + this.mdLines.slice(0,3).join("\n")
         return xs;
     }
 }
-*/
+//            + `${this.objText.split("\n").length} lines of object text,`
+//            + ` ${this.mdText.split("\n").length} lines of metadata`;
+
 
 /* deprecated
 //-------------------------------------------------------------------------

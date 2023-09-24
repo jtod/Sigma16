@@ -128,8 +128,9 @@ export class ObjectInfo {
     constructor (i, obmdtext) {
         this.index = i; // position in array of object modules
         this.obmdtext = obmdtext;
+        this.objMd = null; // ?????????
         // obmdtext contains basename, object and metadata strings
-        this.baseName = this.obmdtext.baseName;
+        this.baseName = "no basename"; // this.obmdtext.baseName;
         this.objText = this.obmdtext.objText;
         this.mdText = this.obmdtext.mdText;
         this.objectLines = [];
@@ -256,22 +257,26 @@ function adjust (ls, om, addr, f) {
 export function linkerGUI () {
     console.log ("linkerGUI");
     const selm = st.env.moduleSet.getSelectedModule ();
-    const selObj = selm.objText
-    const selMd = selm.mdText
-    console.log (`selm obj = ${selObj} md=${selMd}`)
-    let objs = [selObj]
-    let mds = [selMd]
+    const selOMD = selm.objMd
+//    const selObj = selm.objText
+//    const selMd = selm.mdText
+//    console.log (`selm obj = ${selObj} md=${selMd}`)
+//    let objs = [selObj]
+    //    let mds = [selMd]
+    let objs = [selOMD]; // put selected object module first
     for (const m of st.env.moduleSet.modules) {
         console.log (`linker checking module key=${m.modKey}`)
         const isSel = m.modKey === selm.modKey
         //        if (!isSel) { objs.push(m.objMd) }
         if (!isSel) {
-            objs.push (m.objText)
-            mds.push (m.mdText)
+            objs.push (m.objMd);
+//            objs.push (m.objText)
+//            mds.push (m.mdText)
             console.log (`lnk adding ${m.objText}`)
         }
         console.log (`linkerGUI ${isSel} ${m.baseName}`);
     }
+    console.log (`Calling linker with ${objs.length} objects`)
     let result = linker (selm.baseName, objs);
     let exeObjMd = result.exe;
     selm.objMd = exeObjMd;
@@ -321,7 +326,9 @@ export function linkShowExecutable () {
     let om = ls.exeObjMd
     if (om) {
         console.log ('linkShowExecutable have om')
-        code = om.objText
+        let {exeObjMd, exeListing} = om
+        //        code = om.objText
+        code = exeObjMd.objText
     }
     let xs = "<pre class='HighlightedTextAsHtml'>"
         + code
@@ -423,9 +430,10 @@ function pass1 (ls) {
     ls.mcount = 0; // number of object modules being linked
     ls.oiList = []; // an ObjectInfo for each module being linked
     for (const obtext of ls.obMdTexts) {
+//  console.log (`Linker pass 1: i=${ls.mcount} baseName=${oi.baseName}`)
+        console.log (`Linker pass 1: i=${ls.mcount} obtext=${obtext} `)
         let oi = new ObjectInfo (ls.mcount, obtext);
         // oi contains info about this module
-        console.log (`Linker pass 1: i=${ls.mcount} baseName=${oi.baseName}`)
         ls.modMap.set (obtext.baseName, oi); // support lookup for imports
         ls.oiList.push (oi); // list keeps the modules in fixed order
         oi.objectLines = oi.objText.split("\n");

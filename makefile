@@ -232,11 +232,13 @@ setVersion:
 
 .PHONY: assemble
 assemble:
-	make src/base/emcore.wasm
+	cd src/wa; make wasm
 
-src/base/emcore.wasm: src/base/emcore.wat
-	echo Skipping wat2wasm
-#	cd src/base; wat2wasm emcore.wat --enable-threads
+testwa:
+	cd src/wa; make test
+
+wasmclean:
+	rm -f src/wa/*.wasm
 
 #--------------------------------------------------------------------------
 # make compile -- compile in src directory
