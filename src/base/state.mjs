@@ -25,6 +25,7 @@
 // interface functios with the state, for example boot(emulatorState).
 
 import * as com from './common.mjs'
+import * as arith from './arithmetic.mjs';
 import * as arch from './architecture.mjs'
 import * as ab from './arrbuf.mjs'
 
@@ -63,11 +64,11 @@ export class SystemState {
         this.moduleSet = null
         this.emulatorState = null;
         this.linkerState = null;
+        this.haveExecutable = false;
+        this.executableCode = "";
+        this.executableMD = "";
     }
 }
-//        this.modules = new Map ();
-//        this.selectedModule = null;
-//        this.anonymousCount = 0;
 
 //-------------------------------------------------------------------------
 // Global state variable
@@ -78,6 +79,424 @@ export class SystemState {
 
 export const env = new SystemState ();
 // export const gst = env;  // refactor, use one or the other of gst, env
+
+//----------------------------------------------------------------------
+// Modules
+//----------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+// Sigma16 module
+//-------------------------------------------------------------------------
+
+// Generate a fresh module key
+export let nextModKey = 0
+export function newModKey () {
+    let i = nextModKey
+    nextModKey++
+    return i
+}
+
+// Container for all the data related to a specific source module.
+
+export class Sigma16Module {
+    constructor () {
+        this.modKey = newModKey () // Persistent and unique gensym key
+        this.modIdx = env.moduleSet.modules.length // Transient arr index
+        this.fileHandle = null
+        this.filename = "(no file)"
+        this.baseName = "(no file)"
+        this.fileRecord = null
+        this.fileInfo = null // can hold instance of FileInfo
+        this.isMain = true // may be changed by assembler
+        this.asmInfo = new AsmInfo (this)
+        this.currentSrc = "" // master copy of (possibly edited) source code
+        this.savedSrc = "" // source code as last saved/read to/from file
+        this.objText = ""
+        this.mdText = ""
+        this.displayElt = null // DOM element for module display on page
+        this.displaySrcLineElt = null
+        this.selectId = `SELECT-${this.modKey}`
+        this.closeId = `CLOSE-${this.modKey}`
+        this.upId = `UP-${this.modKey}`
+        this.selectElt = null // set when addModule
+        this.closeElt = null // set when addModule
+        this.upElt = null // set when addModule
+        this.setHtmlDisplay ()
+    }
+    showShort () {
+        let xs = `Sigma16Module key=${this.modKey} name=${this.baseName}`
+        xs += ` {(this.fileHandle ? "has file" : "no file")}\n`
+        xs += ` src=${this.currentSrc.slice(0,200)}...\n`
+        xs += ` obj=${this.objText.slice(0,200)}...\n`
+        xs += ` AsmInfo:\n`
+        xs += this.asmInfo.showShort()
+        xs += "End of module\n"
+        return xs
+    }
+    hasObjectCode () {
+        return this.objText !== ""
+    }
+    hasMetadata () {
+        return this.mdText !== ""
+    }
+    getAsmText () {
+        return this.asmInfo.asmSrcText
+    }
+    changeAsmSrc (txt) { // new text may not be saved in file
+        console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
+        this.currentSrc = txt
+        document.getElementById("EditorTextArea").value = txt
+        this.displaySrcLineElt.textContent = txt.split("\n")[0]
+    }
+    changeSavedAsmSrc (txt) { // new text is saved in file
+        console.log (`Module ${this.modKey} changeSavedAsmSrc ${txt}`)
+        this.currentSrc = txt
+        this.savedSrc = txt
+        document.getElementById("EditorTextArea").value = txt
+        this.displaySrcLineElt.textContent = txt.split("\n")[0]
+    }
+    setSelected (b) {
+        let selTxt = b ? "Selected" : ""
+        this.selectElt.textContent = selTxt
+        env.moduleSet.previousSelectedIdx = this.modIdx
+    }
+    setHtmlDisplay () {
+        const modPara = document.createElement ("p")
+        const t1 = document.createElement ("span")
+        t1.innerHTML = `<b>Module key=${this.modKey}.</b> `
+        modPara.appendChild (t1)
+
+        const t2 = document.createElement ("span")
+        this.selectElt = t2
+        t2.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
+        const t2text = document.createTextNode ("selected")
+        t2.appendChild (t2text)
+        modPara.appendChild (t2)
+        
+        const bSelect = document.createElement ("button")
+        bSelect.textContent = "Select"
+        modPara.appendChild (bSelect)
+        const bUp = document.createElement ("button")
+        bUp.textContent = "Up"
+        modPara.appendChild (bUp)
+        const bClose = document.createElement ("button")
+        bClose.textContent = "Close"
+        modPara.appendChild (bClose)
+        const br = document.createElement ("br")
+        modPara.appendChild (br)
+
+        const spanSrc = document.createElement ("span")
+        spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
+        this.displaySrcLineElt = spanSrc
+        const tSrcText = document.createTextNode (
+            this.currentSrc.split("\n")[0])
+            //            this.asmInfo.asmSrcText.split("\n")[0])
+        spanSrc.appendChild (tSrcText)
+        modPara.appendChild (spanSrc)
+
+        const containerElt = document.getElementById("ModSetControls")
+        containerElt.appendChild (modPara)
+        this.displayElt = modPara
+        bSelect.addEventListener (
+            "click", event => handleSelect(this))
+        bUp.addEventListener (
+            "click", event => handleModUp (this))
+        bClose.addEventListener (
+            "click", event => handleClose (this))
+    }
+    // Use refreshInEditorBuffer when the text is changed from an
+    // ourside source, such as reading a file.  Don't use this when
+    // the user edits the text in the editor.
+    refreshInEditorBuffer () {
+        const xs = this.asmInfo.asmSrcText;
+        console.log (`refreshInEditorBuffer xs=${xs}`);
+        document.getElementById("EditorTextArea").value = xs;
+    }
+}
+
+
+//-------------------------------------------------------------------------
+// Hendle button operations
+//-------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+// Handle controls for individual modules
+//-------------------------------------------------------------------------
+
+// Select module m, put it into Editor pane
+
+export function handleSelect (m) {
+    //    const oldSelIdx = st.env.moduleSet.selectedModuleIdx
+    const oldSelIdx = env.moduleSet.previousSelectedIdx
+    const newSelIdx = m.modIdx
+    env.moduleSet.modules[oldSelIdx].setSelected (false)
+    env.moduleSet.modules[newSelIdx].setSelected (true)
+    env.moduleSet.selectedModuleIdx = newSelIdx
+    console.log (`Select module old=${oldSelIdx}, new=${newSelIdx}`)
+}
+
+// Move current module m up in the Module Set list
+
+export function handleModUp (m) {
+    console.log (`Move module ${m.modKey} up`)
+    let mIdx = m.modIdx
+    let mElt = m.displayElt
+    let maElt = mElt.previousElementSibling
+    if (maElt) {
+        let maIdx = mIdx - 1
+        let ma = env.moduleSet.modules[maIdx]
+        console.log (`Module Up: move m ${mIdx} up to before ma ${maIdx}`)
+        console.log (`mElt=${mElt}`)
+        console.log (`maElt=${maElt}`)
+        m.modIdx = maIdx
+        ma.modIdx = mIdx
+        const containerElt = document.getElementById("ModSetControls")
+        containerElt.insertBefore (mElt, maElt)
+        env.moduleSet.modules[maIdx] = m
+        env.moduleSet.modules[mIdx] = ma
+    } else {
+        console.log ("handleModUp: nothing to do")
+    }
+}
+
+// Close a module and remove it from the module set
+
+export function handleClose (m) {
+    console.log (`Close module ${m.modKey}`)
+    const elt = m.displayElt
+    elt.remove ()
+    const a = env.moduleSet.modules
+    const i = m.modIdx
+
+    let si = env.moduleSet.selectedModuleIdx
+    let pi = env.moduleSet.previousSelectedIdx
+    console.log (`close before: si=${si} pi=${pi}`)
+    if (si == i) {
+        si = si - 1 // max 0 si-1
+    } else if (si > i) {
+        si = si - 1
+    }
+    if (pi == i) {
+        pi = 0
+    } else if (pi > i) {
+        pi = pi - 1
+    }
+    env.moduleSet.selectedModuleIdx = si
+    env.moduleSet.previousSelectedIdx = pi
+    console.log (`close after: si=${si} pi=${pi}`)
+    
+    console.log (`close: before, len=${a.length}`)
+    for (let x of a) {
+        console.log (`idx=${x.modIdx} key=${x.modKey}`)
+    }
+    a.splice (i,1)
+    let newSize = a.length
+    for (let j = i; j < newSize; j++) {
+        a[j].modIdx = j
+    }
+    console.log (`close: after, len=${a.length}`)
+    for (let x of a) {
+        console.log (`idx=${x.modIdx} key=${x.modKey}`)
+    }
+}
+
+
+//-------------------------------------------------------------------------
+// Sigma16 module set
+//-------------------------------------------------------------------------
+
+// There is one ModuleSet object, env.moduleSet, which is an
+// instance of class ModuleSet and is stored as a component of the
+// global environment env.  It contains an array of all the extant
+// modules, as well as keeping track of the currently selected module.
+// Invariants: (1) at all times, there is at least one module, and (2)
+// at all times, one module is selected, (3) the text of the selected
+// module is in the editor buffer, and (4) at all times there is text
+// for the object code, assembly listing, and metadata (if there's no
+// valid data for these, there will be dummy text saying "Not
+// available, the source needs to be assembled".  Usage example:
+// env.moduleSet.getSelectedModule ()
+
+export class ModuleSet {
+    constructor () {
+        console.log ('Initializing ModuleSet')
+        this.modules = []
+        this.selectedModuleIdx = 0
+        this.previousSelectedIdx = 0
+    }
+    addModule () {
+        const m = new Sigma16Module ()
+        this.modules.push (m)
+        this.selectedModuleIdx = this.modules.length - 1
+        console.log (`addModule there are $(this.modules.length) modules\n`)
+        return m
+    }
+    getSelectedModule () {
+        return this.modules [this.selectedModuleIdx]
+    }
+    generateDisplay () {
+        let xs = "<div class='HighlightedTextAsHtml'>\n"
+        xs += "<h3>List of modules</h1>\n"
+        this.modules.forEach ((m,i,a) => {
+            let y = m.show();
+            xs += `<b>Module.</b> (key=${m.modKey})`
+            xs += (i==this.selectedModuleIdx ? ' Selected' : '')
+            xs += `<button id='${this.selectId}'>Select</button>`;
+            xs += `<button id='${this.closeId}'>Close</button>`;
+            xs += `<br>\n`
+            xs += m.show()
+            xs += "<br>\n"
+        })
+        xs += "</div>\n"
+        console.log (`\n*** Module Set (html)\n${xs}\n***`)
+        return xs
+        }
+    refreshDisplay () {
+         for (let i = 0; i < env.moduleSet.modules.length; i++) {
+            console.log (`*** ${i} ${env.moduleSet.modules[i].modIdx} `)
+            console.log (env.moduleSet.modules[i]
+                         .asmInfo.asmSrcText.split("\n")[0])
+            console.log ('\n')
+        }
+    }
+}
+
+
+//----------------------------------------------------------------------
+// Assembler information record
+//----------------------------------------------------------------------
+
+// A ...Text fields is a single string that can be used for display,
+// and a ...Lines field is a list of individual lines corresponding to
+// the text string.
+
+export class AsmInfo {
+    constructor (m) {
+        this.asmSrcText = "; default asm src"; // raw source text
+        this.asmSrcLines = [];               // list of lines of source text
+        this.objectText = "";       // object code as single string
+	this.objectCode = [];                // string hex representation
+        this.mdText = "";
+        this.metadata = new Metadata ();  // address-source map
+        this.asmListingText = "";
+
+	this.asmModName = "anonymous";     // may be defined by module stmt
+	this.asmStmt = [];                 // corresponds to source lines
+	this.symbols = [];                 // symbols used in the source
+	this.symbolTable = new Map ();     // symbol table
+	this.locationCounter =             //  next code address
+            new Value (0, Local, Relocatable);
+        this.imports = [];                 // imported module/identifier
+        this.exports = [];                 // exported identifiers
+	this.nAsmErrors = 0;               // errors in assembly source code
+        this.objMd = null;
+    }
+    showShort () {
+        let xs = `AsmInfo`
+        let showSrc = this.asmSrcLines.slice(0,4).join("\n")
+        let showObj = this.objectCode.slice(0,4).join("\n")
+        xs += ` asmModName=${this.asmModName}\n`
+        xs += showSrc
+        xs += showObj
+        return xs
+    }
+}
+
+//----------------------------------------------------------------------
+// Symbol table
+//----------------------------------------------------------------------
+
+// The symbol table is a map from strings to Identifiers, where the
+// string is the text of the identifier name, and the Identifier
+// object is a record containing all the required information about
+// the identifier.
+
+// An Identifier is a symbol table entry: i.e. a record giving all the
+// information about an identifier.  It is stored in the symbol table
+// keyed by the identifier string.  The name is the identifier string,
+// taken from the label field; v is its value, and defline is line
+// number where the identifier was defined.
+
+export class Identifier {
+    constructor (name, mod, extname, v, defLine) {
+        this.name = name;
+        this.mod = mod;
+        this.extname = extname;
+        this.value = v;
+        this.defLine = defLine;
+        this.usageLines = [];
+    }
+}
+
+export function displaySymbolTableHtml (ma) {
+    ma.metadata.pushSrc ("", "", "");
+    ma.metadata.pushSrc ("Symbol table",
+                         "<span class='ListingHeader'>Symbol table</span>",
+                         "<span class='ListingHeader'>Symbol table</span>");
+    let symtabHeader = "Name        Val Org Mov  Def Used";
+    ma.metadata.pushSrc
+      (symtabHeader,
+       `<span class='ListingHeader'>${symtabHeader}</span>`,
+       `<span class='ListingHeader'>${symtabHeader}</span>`);
+    let syms  =[ ...ma.symbolTable.keys() ].sort();
+    com.mode.devlog (`Symbol table keys = ${syms}`);
+    for (let symkey of syms) {
+        let x = ma.symbolTable.get (symkey);
+        let fullname = x.mod ? `${x.mod}.${x.name}`
+            : `${x.name}`;
+        let xs = fullname.padEnd(11)
+            + x.value.toString()
+    	    + x.defLine.toString().padStart(5)
+            + '  '
+            + x.usageLines.join(',');
+
+        ma.metadata.pushSrc (xs, xs, xs);
+    }
+}
+
+//-------------------------------------------------------------------------
+// Value
+//-------------------------------------------------------------------------
+
+// A value is a 16-bit word represented as a natural number; it also
+// has attributes (origin and movability) that affect its usage.
+// Values are produced by evaluating an expression.  Values may be
+// used to define instruction fields, and they may also be used as
+// arguments to assembler directives.
+
+
+// Origin attribute
+export const Local = Symbol ("Loc");         // defined in this module
+export const External = Symbol ("Ext");      // defined in another module
+
+// Movability attribute
+export const Fixed = Symbol ("Fix");         // constant
+export const Relocatable = Symbol ("Rel");   // changes during relocation
+
+export class Value {
+    constructor (v, o, m) {
+        this.word = v;
+        this.origin = o;
+        this.movability = m;
+    }
+    copy () {
+        return new Value (this.word, this.origin, this.movability);
+    }
+    add (k) {
+        this.word = this.word + k.word;
+        this.movability =
+            k.movability==Fixed ? this.movability
+            : this.movability==Fixed ? k.movability
+            : Fixed;
+    }
+    toString () {
+        let xs =  `${arith.wordToHex4(this.word)}`
+            + ` ${this.origin.description}`
+            + ` ${this.movability.description}`
+        return xs;
+    }
+}
+
 
 //-------------------------------------------------------------------------
 // Metadata
@@ -255,6 +674,81 @@ export class Metadata {
 }
 
 //-------------------------------------------------------------------------
+// Imports and exports
+//-------------------------------------------------------------------------
+
+// Constructor arguments: module that exports a name, the name, the
+// address/field where the imported value will be inserted.
+
+export class AsmImport {
+    constructor (mod, name, addr, field) {
+        this.mod = mod;
+        this.name = name;
+        this.addr = addr;
+        this.field = field;
+    }
+    show () {
+        return `AsmImport mod=${this.mod} name=${this.name} `
+        + `addr=${arith.wordToHex4(this.addr)} field=${this.field}\n`;
+    }
+}
+
+export function showAsmImports (xs) {
+    let r = "AsmImports...\n";
+    for (const x of xs) { r += x.show() }
+    return r;
+}
+
+// name (string) is the identifier being exported, val (number) is the
+// value of the identifier, status (string) is either "relocatable" or
+// "fixed".
+
+export class AsmExport {
+    constructor (name,val,status) {
+        this.name = name;
+        this.val = val;
+        this.status = status;
+    }
+    show () {
+        return `Export name=${this.name} val=${arith.wordToHex4(this.val)}`
+            + ` status=${this.status}`;
+    }
+}
+
+export function showModMap (m) {
+    let r = "Module map...\n";
+    for (const k of m.keys()) {
+        r += `key ${k} -> ${m.get(k).objectLines.length}\n`;
+    }
+    return r;
+
+}
+
+export function showAsmExportMap (m) {
+    //    let r = "AsmExport map...\n";
+    let r = "";
+    for (const k of m.keys()) {
+        r += `key ${k} -> ${m.get(k).show()}`;
+    }
+    return r;
+}
+
+export function showAsmExports (xs) {
+    let r = "AsmExports...\n";
+    for (const x of xs) { r += x.show() }
+    return r;
+}
+
+export function showBlocks (bs) {
+    let xs = "";
+    for (const b of bs) {
+        xs += b.showBlock();
+        console.log (b.xs);
+    }
+    return xs;
+}
+
+//-------------------------------------------------------------------------
 // Container for object code and metadata
 //-------------------------------------------------------------------------
 
@@ -265,15 +759,13 @@ export class Metadata {
 // populate an AdrSrcMap.
 
 export class ObjMd {
-    constructor (objText, mdText) {
+    constructor (modName, objText, mdText) {
+        this.modName = modName;
         this.objText = objText;
         this.objLines = objText.split("\n");
         this.mdText = mdText;
         this.mdLines = this.mdText.split("\n");
     }
-    //    constructor (baseName, objText, mdText) {
-//        this.baseName = baseName;
-//        com.mode.devlog (this.objText);
     hasObjectCode () {
         return this.objText ? true : false
     }
@@ -286,11 +778,135 @@ export class ObjMd {
         return xs;
     }
 }
+
+//-------------------------------------------------------------------------
+// Linker state
+//-------------------------------------------------------------------------
+
+// The linker state class encapsulates the linker's variables,
+// avoiding a group of global variables.  Normally there will be only
+// one object in the class, which can be a global variable or passed
+// as an argument to user interface functions.  When a linker state is
+// created it is given the file baseName of the executable to be
+// created, and a list of text strings comprising the object code of
+// the modules to be linked.
+
+// exeMod is an S16Module in which an executable will be built in
+// linkerInfo, and oms is a list of S15Modules that contain objInfo
+
+export class LinkerState  {
+    constructor (obMdTexts) {
+        // obMdTexts is an ObjMd object with text for obj, md
+        this.obMdTexts = obMdTexts;
+        this.modMap = new Map ();
+        this.oiList = [];
+        this.mcount = 0; // number of object modules
+        this.locationCounter = 0;
+        this.metadata = new Metadata ();
+        this.objectLines = [];
+        this.srcLines = [];
+        this.linkErrors = []; // error messages
+        this.listing = "";
+        this.exeObjMd = null; // result of link
+    }
+    show () {
+        let xs = "Linker state:\n"
+        xs += `Location counter = `
+        xs += `${arith.wordToHex4(this.locationCounter)}\n`;
+        xs += `${this.linkErrors.length} Error messages: `
+        xs += `${this.linkErrors}\n`;
+        xs += `metadata.pairs.length = ${this.metadata.pairs.length}`
+        xs += this.exeCodeText;
+        xs += this.exeMdText;
+        return xs;
+    }
+}
+
+
+//-------------------------------------------------------------------------
+// Object Info
+//-------------------------------------------------------------------------
+
+// The ObjectInfo class collects information about each module being
+// linked, as well as the executable.  Constructor arguments: modname
+// is string giving base name of the module; omText is a string giving
+// the object code text, and omMd is a string giving the metadata text
+// (null if there is no metadata).
+
+// Return just the first few lines of a (possibly long) text
+export function takePrefix (xs) {
+    return xs ? xs.split("\n").slice(0,3).join("\n") : xs
+}
+
+export class ObjectInfo {
+    constructor (i, obmdtext) {
+        this.index = i; // position in array of object modules
+        this.obmdtext = obmdtext;
+        // obmdtext contains basename, object and metadata strings
+        this.objMd = null; // ?????????
+        this.baseName = "no basename"; // this.obmdtext.baseName;
+        this.objText = this.obmdtext.objText;
+        this.mdText = this.obmdtext.mdText;
+        this.objectLines = [];
+        this.mdLines = this.mdText ? this.mdText.split("\n") : []
+        this.metadata = null;
+        this.startAddress = 0;
+        this.srcLineOrigin = 0;
+        this.dataBlocks = [new ObjectBlock (0)];
+        this.relocations = [];
+        this.asmImports = [];
+        this.asmExportMap = new Map ();
+        this.omAsmExports = [];
+    }
+    show () {
+        let xs = `ObjectInfo\n`
+//        const xs = `${om.omName}\n`
+//              + `  lines of code = ${om.objectLines.length}\n`
+//              + `  start address = ${om.startAddress}\n`
+//              + `  end address = ${om.endAddress}\n`
+//              + `  relocations = ${om.relocations}\n`
+//              + showAsmImports (om.asmImports)
+//              + showAsmExports (om.omAsmExports)
+//              + showAsmExportMap (om.asmExportMap)
+//              + showBlocks (om.dataBlocks)
+//              + "\n";
+        return xs;
+    }
+}
+
+export class ObjectBlock {
+    constructor (blockStart) {
+        this.blockStart = blockStart;
+        this.blockSize = 0;
+        this.xs = [];
+    }
+    showBlock () {
+        return `Block of ${this.blockSize} words from `
+            + `${arith.wordToHex4(this.blockStart)}: `
+            + `${this.xs.map(arith.wordToHex4)}`;
+    }
+    insertWord (x) {
+        this.xs.push(x);
+        this.blockSize++;
+    } 
+}
+
+
+
+// LinkerState
+//        xs += `Executable: ${this.parent.baseName}\n`
+//        xs += "Modules:\n";
+//        for (const om of this.oms) {
+//            xs += showObjectModule (om);
+//        }
+//        xs += `Object:\n${this.objectLines.join("\n")}`
+
+/* deprecated
+
+// ObjMd
 //            + `${this.objText.split("\n").length} lines of object text,`
 //            + ` ${this.mdText.split("\n").length} lines of metadata`;
 
-
-/* deprecated
 //-------------------------------------------------------------------------
 // Executable
 //-------------------------------------------------------------------------
@@ -318,3 +934,12 @@ export class Executable {
 const emptyExe = new Executable ("no object code", null);
 */
 
+// ObjMd
+//    constructor (baseName, objText, mdText) {
+//        this.baseName = baseName;
+//        com.mode.devlog (this.objText);
+
+// SystemState
+//        this.modules = new Map ();
+//        this.selectedModule = null;
+//        this.anonymousCount = 0;

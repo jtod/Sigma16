@@ -33,188 +33,6 @@ import * as asm from './assembler.mjs';
 //   LP_Show_Object     linkShowExeObject
 //   LP_Show_Metadata   linkShowExeMetadata
 
-//-------------------------------------------------------------------------
-// Linker state
-//-------------------------------------------------------------------------
-
-// The linker state class encapsulates the linker's variables,
-// avoiding a group of global variables.  Normally there will be only
-// one object in the class, which can be a global variable or passed
-// as an argument to user interface functions.  When a linker state is
-// created it is given the file baseName of the executable to be
-// created, and a list of text strings comprising the object code of
-// the modules to be linked.
-
-// exeMod is an S16Module in which an executable will be built in
-// linkerInfo, and oms is a list of S15Modules that contain objInfo
-
-export class LinkerState  {
-    constructor (obMdTexts) {
-        // obMdTexts is an ObjMd object with text for obj, md
-        this.obMdTexts = obMdTexts;
-        this.modMap = new Map ();
-        this.oiList = [];
-        this.mcount = 0; // number of object modules
-        this.locationCounter = 0;
-        this.metadata = new st.Metadata ();
-        this.objectLines = [];
-        this.srcLines = [];
-        this.linkErrors = []; // error messages
-        this.listing = "";
-        this.exeObjMd = null; // result of link
-    }
-}
-
-export function showLS (ls) {
-    let xs = "Linker state:\n"
-    xs += `Executable: ${ls.parent.baseName}\n`
-    xs += `Location counter = ${arith.wordToHex4(ls.locationCounter)}\n`;
-    xs += `${ls.linkErrors.length} Error messages: ${ls.linkErrors}\n`;
-    xs += "Modules:\n";
-    for (const om of ls.oms) {
-        xs += showObjectModule (om);
-    }
-    return xs;
-}
-    
-// Constructor arguments: module that exports a name, the name, the
-// address/field where the imported value will be inserted.
-
-class AsmImport {
-    constructor (mod, name, addr, field) {
-        this.mod = mod;
-        this.name = name;
-        this.addr = addr;
-        this.field = field;
-    }
-    show () {
-        return `AsmImport mod=${this.mod} name=${this.name} `
-        + `addr=${arith.wordToHex4(this.addr)} field=${this.field}\n`;
-    }
-}
-
-// name (string) is the identifier being exported, val (number) is the
-// value of the identifier, status (string) is either "relocatable" or
-// "fixed".
-
-class AsmExport {
-    constructor (name,val,status) {
-        this.name = name;
-        this.val = val;
-        this.status = status;
-    }
-    show () {
-        return `Export name=${this.name} val=${arith.wordToHex4(this.val)}`
-            + ` status=${this.status}`;
-    }
-}
-
-//-------------------------------------------------------------------------
-// Object Info
-//-------------------------------------------------------------------------
-
-// The ObjectInfo class collects information about each module being
-// linked, as well as the executable.  Constructor arguments: modname
-// is string giving base name of the module; omText is a string giving
-// the object code text, and omMd is a string giving the metadata text
-// (null if there is no metadata).
-
-// Return just the first few lines of a (possibly long) text
-function takePrefix (xs) {
-    return xs ? xs.split("\n").slice(0,3).join("\n") : xs
-}
-
-export class ObjectInfo {
-    constructor (i, obmdtext) {
-        this.index = i; // position in array of object modules
-        this.obmdtext = obmdtext;
-        this.objMd = null; // ?????????
-        // obmdtext contains basename, object and metadata strings
-        this.baseName = "no basename"; // this.obmdtext.baseName;
-        this.objText = this.obmdtext.objText;
-        this.mdText = this.obmdtext.mdText;
-        this.objectLines = [];
-        this.mdLines = this.mdText ? this.mdText.split("\n") : []
-        this.metadata = null;
-        this.startAddress = 0;
-        this.srcLineOrigin = 0;
-        this.dataBlocks = [new ObjectBlock (0)];
-        this.relocations = [];
-        this.asmImports = [];
-        this.asmExportMap = new Map ();
-        this.omAsmExports = [];
-    }
-}
-
-export class ObjectBlock {
-    constructor (blockStart) {
-        this.blockStart = blockStart;
-        this.blockSize = 0;
-        this.xs = [];
-    }
-    showBlock () {
-        return `Block of ${this.blockSize} words from `
-            + `${arith.wordToHex4(this.blockStart)}: `
-            + `${this.xs.map(arith.wordToHex4)}`;
-    }
-    insertWord (x) {
-        this.xs.push(x);
-        this.blockSize++;
-    } 
-}
-
-function showObjectInfo (om) {
-    const xs = `${om.omName}\n`
-          + `  lines of code = ${om.objectLines.length}\n`
-          + `  start address = ${om.startAddress}\n`
-          + `  end address = ${om.endAddress}\n`
-          + `  relocations = ${om.relocations}\n`
-          + showAsmImports (om.asmImports)
-          + showAsmExports (om.omAsmExports)
-          + showAsmExportMap (om.asmExportMap)
-          + showBlocks (om.dataBlocks)
-          + "\n";
-    return xs;
-}
-
-function showAsmImports (xs) {
-    let r = "AsmImports...\n";
-    for (const x of xs) { r += x.show() }
-    return r;
-}
-
-function showModMap (m) {
-    let r = "Module map...\n";
-    for (const k of m.keys()) {
-        r += `key ${k} -> ${m.get(k).objectLines.length}\n`;
-    }
-    return r;
-
-}
-function showAsmExportMap (m) {
-    //    let r = "AsmExport map...\n";
-    let r = "";
-    for (const k of m.keys()) {
-        r += `key ${k} -> ${m.get(k).show()}`;
-    }
-    return r;
-}
-
-function showAsmExports (xs) {
-    let r = "AsmExports...\n";
-    for (const x of xs) { r += x.show() }
-    return r;
-}
-
-function showBlocks (bs) {
-    let xs = "";
-    for (const b of bs) {
-        xs += b.showBlock();
-        console.log (b.xs);
-    }
-    return xs;
-}
-
 // Modify an object code word, for either import or relocation.  The
 // context is ls (linker state) and om (object module).  addr (number)
 // is address of object code word to change.  f is a function that
@@ -258,33 +76,27 @@ export function linkerGUI () {
     console.log ("linkerGUI");
     const selm = st.env.moduleSet.getSelectedModule ();
     const selOMD = selm.objMd
-//    const selObj = selm.objText
-//    const selMd = selm.mdText
-//    console.log (`selm obj = ${selObj} md=${selMd}`)
-//    let objs = [selObj]
-    //    let mds = [selMd]
     let objs = [selOMD]; // put selected object module first
     for (const m of st.env.moduleSet.modules) {
-        console.log (`linker checking module key=${m.modKey}`)
+        console.log (`Linker checking module key=${m.modKey}`)
+        console.log (m.showShort())
         const isSel = m.modKey === selm.modKey
-        //        if (!isSel) { objs.push(m.objMd) }
         if (!isSel) {
             objs.push (m.objMd);
-//            objs.push (m.objText)
-//            mds.push (m.mdText)
             console.log (`lnk adding ${m.objText}`)
         }
         console.log (`linkerGUI ${isSel} ${m.baseName}`);
     }
     console.log (`Calling linker with ${objs.length} objects`)
-    let result = linker (selm.baseName, objs);
-    let exeObjMd = result.exe;
+    let ls = linker (selm.baseName, objs);
+    console.log (ls.show())
+    let exeObjMd = ls.exeObjMd;
     selm.objMd = exeObjMd;
     let xm = st.env.moduleSet.getSelectedModule ();
     xm.executable = st.exeObjMd;
     let objectText = exeObjMd.objText;
     let mdText = exeObjMd.mdText;
-    let listing = result.listing;
+    let listing = ""; // result.listing;
     let xs = "<pre class='HighlightedTextAsHtml'>"
         + objectText
         + listing
@@ -292,26 +104,21 @@ export function linkerGUI () {
         + mdText
         + "</pre>";
     document.getElementById('LP_Body').innerHTML = xs;
-    console.log ("--------------------------");
-    console.log ("linkerGUI exeObjMd");
-    console.log (exeObjMd);
-    console.log ("--------------------------");
+    st.env.linkerState = ls;
+//    console.log ("--------------------------");
+//    console.log ("linkerGUI exeObjMd");
+//    console.log (exeObjMd);
+//    console.log ("--------------------------");
 }
-// for (const m of st.env.modules.values ()) {
-// const isSel = selm.baseName === m.baseName;
-//    const selOMD = selm.objMd;
-    //    let objs = [selOMD]; // put selected object module first
-
-// Show each object module ???
 
 export function linkShowObject () {
-    console.log ("linkShowObject")
-    let ls = st.env.linkerState
-    let code = 'Object code modules...'
+    console.log ("linkShowObject");
+    let ls = st.env.linkerState;
+    let code = ls.exeCodeText;
     let xs = "<pre class='HighlightedTextAsHtml'>"
+        + "Object code\n"
         + code
         + "</pre>";
-    //    document.getElementById('LinkerBody').innerHTML = xs;
     document.getElementById('LP_Body').innerHTML = xs;
 }
 
@@ -319,6 +126,26 @@ export function linkShowObject () {
 // executable" button is clicked
 
 export function linkShowExecutable () {
+    console.log ("linkShowExecutable");
+    let ls = st.env.linkerState;
+    console.log (`${ls ? "ls ok" : "ls bad"}`);
+    let xs;
+    if (ls.linkErrors.length > 0) {
+        xs = "<pre class='HighlightedTextAsHtml'>"
+            + "Link errors, program is not executable\n"
+            + ls.linkErrors.join("\n")
+            + "</pre>";
+    } else {
+        let code = ls.exeCodeText;
+        xs = "<pre class='HighlightedTextAsHtml'>"
+            + "Link successful, executable is:\n"
+            + code
+            + "</pre>";
+    }
+    document.getElementById('LP_Body').innerHTML = xs;
+}
+
+/*    showObject should iterate over modules?
     console.log ("linkShowExecutable");
     let ls = st.env.linkerState;
     let code = 'No executable'
@@ -335,7 +162,8 @@ export function linkShowExecutable () {
         + "</pre>";
     //    document.getElementById('LinkerBody').innerHTML = xs;
     document.getElementById('LP_Body').innerHTML = xs;
-}
+    }
+*/
 
 // Display the executable metadata; invokded when "Show metadata"
 // button is clicked
@@ -397,15 +225,14 @@ export function testMetadata () {
 // there are no linker errors, the result module can be booted.
 
 export function linker (exeName, obMdTexts) {
-    console.log ("-------------- entering linker...");
-    const ls = new LinkerState (obMdTexts); // holds linker's variables
+    console.log (`Entering linker, target exe = ${exeName}`);
+    const ls = new st.LinkerState (obMdTexts); // holds linker's variables
     st.env.linkerState = ls; // record linker state in global environment
     pass1 (ls); // parse object and record directives
     pass2 (ls); // process imports and relocations
     ls.exeCodeText = emitCode (ls);
     ls.exeMdText = ls.metadata.toText ();
     ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);
-    const result = {exe: ls.exeObjMd, listing: ls.listing};
 
     console.log ("-------------------------- linker executable code -----")
     console.log (`ls.metadata.pairs.length = ${ls.metadata.pairs.length}`)
@@ -414,8 +241,15 @@ export function linker (exeName, obMdTexts) {
     console.log ("-------------------------- linker exe metadata -----")
     console.log (ls.exeMdText);
     console.log ("-------------------------- end of exe metadata -----")
-
-    return result;
+    if (ls.linkErrors.length > 0) {
+        st.env.haveExecutable = false;
+        st.env.executable = "";
+    } else {
+        st.env.haveExecutable = true;
+        st.env.executableCode = ls.exeCodeText;
+        st.env.executableMD = ls.exeMdText;
+    }
+    return ls;
 }
 
 //-------------------------------------------------------------------------
@@ -432,7 +266,7 @@ function pass1 (ls) {
     for (const obtext of ls.obMdTexts) {
 //  console.log (`Linker pass 1: i=${ls.mcount} baseName=${oi.baseName}`)
         console.log (`Linker pass 1: i=${ls.mcount} obtext=${obtext} `)
-        let oi = new ObjectInfo (ls.mcount, obtext);
+        let oi = new st.ObjectInfo (ls.mcount, obtext);
         // oi contains info about this module
         ls.modMap.set (obtext.baseName, oi); // support lookup for imports
         ls.oiList.push (oi); // list keeps the modules in fixed order
@@ -479,7 +313,7 @@ function parseObject (ls, obj) {
                 ls.locationCounter++;
             }
         } else if (fields.operation == "import") {
-            obj.asmImports.push(new AsmImport (...fields.operands));
+            obj.asmImports.push(new st.AsmImport (...fields.operands));
         } else if (fields.operation == "export") {
             const [name,val,status] = [...fields.operands];
             const valNum = arith.hex4ToWord(val);
@@ -492,7 +326,7 @@ function parseObject (ls, obj) {
             console.log (`valExp=${arith.wordToHex4(valExp)}`
                          + ` ${typeof valExp}`);
             console.log (`status=${status} ${typeof status}`);
-            const x = new AsmExport (name, valExp, status);
+            const x = new st.AsmExport (name, valExp, status);
             obj.asmExportMap.set(fields.operands[0], x);
         } else if (fields.operation == "relocate") {
             obj.relocations.push(...fields.operands);
@@ -628,6 +462,10 @@ export function parseObjLine (xs) {
         return {operation, operands}
 }
 
+// deprecated
+
+//    const result = {exe: ls.exeObjMd, listing: ls.listing};
+//    return result;
 
 //        console.log (`pass 1 ${oi.baseName} origin=${oi.srcLineOrigin}`);
 //        let foo = oi.metadata.getSrcLines ();
@@ -652,3 +490,23 @@ export function parseObjLine (xs) {
 //        console.log (`----------------- BEFORE TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
 //        console.log (`----------------- AFTER TRANSLATE pass1 ${oi.baseName} ${oi.metadata.mapToTexts().join(" ")} ------------  `)
 
+// linkerGUI
+        //        if (!isSel) { objs.push(m.objMd) }
+//    const selObj = selm.objText
+//    const selMd = selm.mdText
+//    console.log (`selm obj = ${selObj} md=${selMd}`)
+//    let objs = [selObj]
+    //    let mds = [selMd]
+//            objs.push (m.objText)
+//            mds.push (m.mdText)
+//    let result = linker (selm.baseName, objs);
+// for (const m of st.env.modules.values ()) {
+// const isSel = selm.baseName === m.baseName;
+//    const selOMD = selm.objMd;
+    //    let objs = [selOMD]; // put selected object module first
+
+// Show each object module ???
+
+// linkShowObject
+//    let code = 'Object code modules...'
+//    document.getElementById('LinkerBody').innerHTML = xs;

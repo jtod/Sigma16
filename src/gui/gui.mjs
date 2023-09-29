@@ -1273,7 +1273,7 @@ function selectExample() {
     let ys = skipPreClose;
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (ys);
-    smod.handleSelect (m)
+    st.handleSelect (m)
 }
 
 // This is an example program that's defined as a string in the JS
@@ -1282,7 +1282,7 @@ function insert_example(exampleText) {
     com.mode.devlog('Inserting Hello World example into editor text');
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (exampleText)
-    smod.handleSelect (m)
+    st.handleSelect (m)
     document.getElementById("EditorTextArea").value = exampleText
 }
 
@@ -2923,11 +2923,12 @@ function initializeGuiElements (gst) {
     hideBreakDialogue ();
     document.getElementById('LP_Body').innerHTML = "";    
     ed.prepareChooseFiles ();  // legacy file handler
-    st.env.moduleSet = new smod.ModuleSet ()
+    //    st.env.moduleSet = new smod.ModuleSet ()
+    st.env.moduleSet = new st.ModuleSet ()
     let m = st.env.moduleSet.addModule () // initialize with a module
     m.changeAsmSrc ("; Enter your program here\n")
 //    m.setHtmlDisplay ()
-    smod.handleSelect (m)
+    st.handleSelect (m)
     window.mode = com.mode;
     prepareExampleText (gst)
 }

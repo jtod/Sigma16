@@ -78,8 +78,10 @@ export function assemblerGUI () {
     m.asmInfo = ai;
     m.objMd = ai.objMd  // ai is result of assembler
     displayAsmListing ();
-    console.log ("++++++++++++++++++++ asm done")
     console.log (m.asmInfo.objectText)
+    console.log ("++++++++++++++++++++ m.showShort:")
+    console.log (m.showShort())
+    console.log ("++++++++++++++++++++ asm done")
 }
 
 // Called when user clicks "Show Source" on the assembler page
@@ -131,36 +133,6 @@ export function displayMetadata () {
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
 
-//----------------------------------------------------------------------
-// Assembler information record
-//----------------------------------------------------------------------
-
-// A ...Text fields is a single string that can be used for display,
-// and a ...Lines field is a list of individual lines corresponding to
-// the text string.
-
-export class AsmInfo {
-    constructor (m) {
-        this.asmSrcText = "; default asm src"; // raw source text
-        this.asmSrcLines = [];               // list of lines of source text
-        this.objectText = "";       // object code as single string
-	this.objectCode = [];                // string hex representation
-        this.mdText = "";
-        this.metadata = new st.Metadata ();  // address-source map
-        this.asmListingText = "";
-
-	this.asmModName = "anonymous";     // may be defined by module stmt
-	this.asmStmt = [];                 // corresponds to source lines
-	this.symbols = [];                 // symbols used in the source
-	this.symbolTable = new Map ();     // symbol table
-	this.locationCounter =             //  next code address
-            new Value (0, Local, Relocatable);
-        this.imports = [];                 // imported module/identifier
-        this.exports = [];                 // exported identifiers
-	this.nAsmErrors = 0;               // errors in assembly source code
-        this.objMd = null;
-    }
-}
 
 //----------------------------------------------------------------------
 // Character set
@@ -183,57 +155,6 @@ const CharSet =
       + ".$[]()+-*"               // punctuation
       + "?¬£`<=>!%^&{}#~@:|/\\";  // other
 
-//----------------------------------------------------------------------
-// Symbol table
-//----------------------------------------------------------------------
-
-// The symbol table is a map from strings to Identifiers, where the
-// string is the text of the identifier name, and the Identifier
-// object is a record containing all the required information about
-// the identifier.
-
-// An Identifier is a symbol table entry: i.e. a record giving all the
-// information about an identifier.  It is stored in the symbol table
-// keyed by the identifier string.  The name is the identifier string,
-// taken from the label field; v is its value, and defline is line
-// number where the identifier was defined.
-
-class Identifier {
-    constructor (name, mod, extname, v, defLine) {
-        this.name = name;
-        this.mod = mod;
-        this.extname = extname;
-        this.value = v;
-        this.defLine = defLine;
-        this.usageLines = [];
-    }
-}
-
-function displaySymbolTableHtml (ma) {
-    ma.metadata.pushSrc ("", "", "");
-    ma.metadata.pushSrc ("Symbol table",
-                         "<span class='ListingHeader'>Symbol table</span>",
-                         "<span class='ListingHeader'>Symbol table</span>");
-    let symtabHeader = "Name        Val Org Mov  Def Used";
-    ma.metadata.pushSrc
-      (symtabHeader,
-       `<span class='ListingHeader'>${symtabHeader}</span>`,
-       `<span class='ListingHeader'>${symtabHeader}</span>`);
-    let syms  =[ ...ma.symbolTable.keys() ].sort();
-    com.mode.devlog (`Symbol table keys = ${syms}`);
-    for (let symkey of syms) {
-        let x = ma.symbolTable.get (symkey);
-        let fullname = x.mod ? `${x.mod}.${x.name}`
-            : `${x.name}`;
-        let xs = fullname.padEnd(11)
-            + x.value.toString()
-    	    + x.defLine.toString().padStart(5)
-            + '  '
-            + x.usageLines.join(',');
-
-        ma.metadata.pushSrc (xs, xs, xs);
-    }
-}
 
 //----------------------------------------------------------------------
 // Instruction fields
@@ -253,33 +174,20 @@ export const Field_h = Symbol ("h");
 // Values
 //----------------------------------------------------------------------
 
-// A value is a 16-bit word represented as a natural number; it also
-// has attributes (origin and movability) that affect its usage.
-// Values are produced by evaluating an expression.  Values may be
-// used to define instruction fields, and they may also be used as
-// arguments to assembler directives.
-
-// Origin attribute
-export const Local = Symbol ("Loc");         // defined in this module
-export const External = Symbol ("Ext");      // defined in another module
-
-// Movability attribute
-export const Fixed = Symbol ("Fix");         // constant
-export const Relocatable = Symbol ("Rel");   // changes during relocation
 
 // Add x+y and return the result.  Need ma and s for generating error
 // messages.
 
 export function addVal (ma,s,x,y) {
     let result = Zero.copy();
-    if (x.origin==External || y.origin==External) {
+    if (x.origin==st.External || y.origin==st.External) {
         mkErrMsg (ma, s, `Cannot perform arithmetic on external value`)
-    } else  if (x.movability==Relocatable && y.movability==Relocatable) {
+    } else  if (x.movability==st.Relocatable && y.movability==st.Relocatable) {
         mkErrMsg (ma, s, `Cannot add two relocatable values`);
     } else {
-        let m = x.movability==Relocatable || y.movability==Relocatable
-                  ? Relocatable : Fixed;
-        result = new Value (wrapWord (x.word + y.word), Local, m);
+        let m = x.movability==st.Relocatable || y.movability==st.Relocatable
+                  ? st.Relocatable : st.Fixed;
+        result = new st.Value (wrapWord (x.word + y.word), st.Local, m);
     }
     com.mode.devlog (`addVal ${x.word} + ${y.word} = ${result.word}`);
     com.mode.devlog (`addVal ${x.toString()} +  ${y.toString()}`
@@ -289,7 +197,7 @@ export function addVal (ma,s,x,y) {
 
 // Calculate offset for pc-relative addressing
 function findOffset (here, there) {
-    const k = there.movability === Relocatable
+    const k = there.movability === st.Relocatable
           ? Math.abs (there.word - (here.word + 2))
           : there.word
     console.log (`findOffset here=${here} there=${there} k=${k}`)
@@ -307,33 +215,10 @@ function wrapWord (x) {
     return x; // check for neg, and mod
 }
 
-export class Value {
-    constructor (v, o, m) {
-        this.word = v;
-        this.origin = o;
-        this.movability = m;
-    }
-    copy () {
-        return new Value (this.word, this.origin, this.movability);
-    }
-    add (k) {
-        this.word = this.word + k.word;
-        this.movability =
-            k.movability==Fixed ? this.movability
-            : this.movability==Fixed ? k.movability
-            : Fixed;
-    }
-    toString () {
-        let xs =  `${arith.wordToHex4(this.word)}`
-            + ` ${this.origin.description}`
-            + ` ${this.movability.description}`
-        return xs;
-    }
-}
 
-const ExtVal = new Value (0, External, Fixed);
+const ExtVal = new st.Value (0, st.External, st.Fixed);
 
-function mkConstVal (k) { return new Value (k, Local, Fixed); }
+function mkConstVal (k) { return new st.Value (k, st.Local, st.Fixed); }
 const Zero = mkConstVal (0);
 const One  = mkConstVal (1);
 const Two  = mkConstVal (2);
@@ -389,16 +274,16 @@ function evaluate (ma, s, a, x) {
             r.usageLines.push (s.lineNumber+1);
 	} else {
             mkErrMsg (ma, s, 'symbol ' + x + ' is not defined');
-            result = mkConstVal(0); // new Value (0, Local, Fixed);
+            result = mkConstVal(0); // new Value (0, st.Local, st.Fixed);
 	}
     } else if (x.search(intParser) == 0) { // integer literal
         result = mkConstVal(arith.intToWord(parseInt(x,10)));
     } else if (x.search(hexParser) == 0) { // hex literal
-//      result =  new Value (arith.hex4ToWord(x.slice(1)), Local, Fixed);
+//      result =  new Value (arith.hex4ToWord(x.slice(1)), st.Local, st.Fixed);
         result =  mkConstVal (arith.hex4ToWord(x.slice(1)));
     } else { // compound expression (not yet implemented)
         mkErrMsg (ma, s, 'expression ' + x + ' has invalid syntax');
-        result = Zero.copy(); // new Value (0, Local, Fixed);
+        result = Zero.copy(); // new Value (0, st.Local, st.Fixed);
     }
 //    com.mode.devlog (`evaluate received expression ${x}`)
     com.mode.devlog (`evaluate ${x} returning (${result.toString()})`)
@@ -546,7 +431,7 @@ export function assembler (m) {
     ai.symbols = [];
     ai.objectCode = [];
     ai.exports = [];
-    ai.locationCounter = new Value (0, Local, Relocatable);
+    ai.locationCounter = new st.Value (0, st.Local, st.Relocatable);
     ai.symbolTable.clear();
     ai.metadata.pushSrc
       ("Line Addr Code Code Source",
@@ -559,12 +444,13 @@ export function assembler (m) {
         let y = com.highlightField (x, 'ERR');
         ai.metadata.unshiftSrc (x, y, y);
     }
-    displaySymbolTableHtml(ai); // add symbol table to listing
+    st.displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
     m.objText = ai.objectText
     m.mdText = mdText
-    ai.objMd = new st.ObjMd (ai.objectText, mdText)
+    ai.objMd = new st.ObjMd ("module", ai.objectText, mdText)
+    // Handle module name if present
     console.log (`Assembler creating ObjMd:\n${ai.objMd.showShort()}`);
     com.mode.devlog (ai.objectText);
     return ai
@@ -923,14 +809,14 @@ function handleLabel (ma,s) {
             com.mode.devlog (`Parse line ${s.lineNumber} label: module`);
         } else if (s.fieldOperation==="equ") {
             let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-            let i = new Identifier (s.fieldLabel, null, null, v, s.lineNumber+1);
+            let i = new st.Identifier (s.fieldLabel, null, null, v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);
             com.mode.devlog (`Parse line ${s.lineNumber} set ${i.toString()}`);
         } else if (s.fieldOperation==="import") {
             let mod = s.operands[0];
             let extname = s.operands[1];
             let v = ExtVal.copy();
-            let i = new Identifier (s.fieldLabel, mod, extname,
+            let i = new st.Identifier (s.fieldLabel, mod, extname,
                                     v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);
             com.mode.devlog
@@ -940,7 +826,7 @@ function handleLabel (ma,s) {
             let v = ma.locationCounter.copy();
             com.mode.devlog (`def label lc = ${ma.locationCounter.toString()}`);
             com.mode.devlog (`def label v = ${v.toString()}`);
-            let i = new Identifier (s.fieldLabel, null, null, v, s.lineNumber+1);
+            let i = new st.Identifier (s.fieldLabel, null, null, v, s.lineNumber+1);
             com.mode.devlog (`Parse line ${s.lineNumber} label ${s.fieldLabel}`
                              + ` set ${i.toString()}`);
             ma.symbolTable.set (s.fieldLabel, i);
@@ -1454,7 +1340,7 @@ function asmPass2 (ma) {
             s.codeWord1 = v.word;
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
             //            if (v.getIsRelocatable()) {
-            if (v.movability==Relocatable) {
+            if (v.movability==st.Relocatable) {
                 com.mode.devlog (`relocatable data`);
                 generateRelocation (ma, s, s.address.word);
             }
@@ -1523,9 +1409,9 @@ function asmPass2 (ma) {
 
 function handleVal (ma, s, a, vsrc, v, field) {
     com.mode.devlog (`handleVal ${a} /${vsrc}/ ${field.description}`);
-    if (v.origin==Local && v.movability==Relocatable) {
+    if (v.origin==st.Local && v.movability==st.Relocatable) {
         generateRelocation (ma, s, a);
-    } else if (v.origin==External) {
+    } else if (v.origin==st.External) {
         let sym = ma.symbolTable.get(vsrc);
         if (sym) {
             let modstr = sym.mod;
@@ -1608,7 +1494,7 @@ function emitExports (ma) {
         com.mode.devlog (ma.symbolTable);
         sym = ma.symbolTable.get(y);
         if (sym) {
-            r = sym.value.movability==Relocatable ? "relocatable" : "fixed";
+            r = sym.value.movability==st.Relocatable ? "relocatable" : "fixed";
             w = arith.wordToHex4(sym.value.word);
             com.mode.devlog (`emit exports y=${y} r=${r} w=${w}`);
             ma.objectCode.push (`export   ${y},${w},${r}`);

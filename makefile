@@ -232,13 +232,7 @@ setVersion:
 
 .PHONY: assemble
 assemble:
-	cd src/wa; make wasm
-
-testwa:
-	cd src/wa; make test
-
-wasmclean:
-	rm -f src/wa/*.wasm
+	wat2wasm src/base/emcore.wat -o src/base/emcore.wasm
 
 #--------------------------------------------------------------------------
 # make compile -- compile in src directory

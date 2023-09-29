@@ -13,282 +13,22 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // S16module.mjs: represent S16 module and set of modules, handle files
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 
 import * as com from "./common.mjs";
 import * as st  from "./state.mjs";
 import * as asm  from "./assembler.mjs";
 // import * as file  from "./file.mjs";
 
-//----------------------------------------------------------------------------
-// Sigma16 module
-//----------------------------------------------------------------------------
-
-// Container for all the data related to a specific source module.
-
-export class Sigma16Module {
-    constructor () {
-        this.modKey = newModKey () // Persistent and unique gensym key
-        this.modIdx = st.env.moduleSet.modules.length // Transient array index
-        this.fileHandle = null
-        this.filename = "(no file)"
-        this.baseName = "(no file)"
-        this.fileRecord = null
-        this.fileInfo = null // can hold instance of FileInfo
-        this.isMain = true // may be changed by assembler
-        this.asmInfo = new asm.AsmInfo (this)
-        this.currentSrc = "" // master copy of (possibly edited) source code
-        this.savedSrc = "" // source code as last saved/read to/from file
-        this.objText = ""
-        this.mdText = ""
-        this.displayElt = null // DOM element for module display on page
-        this.displaySrcLineElt = null
-        this.selectId = `SELECT-${this.modKey}`
-        this.closeId = `CLOSE-${this.modKey}`
-        this.upId = `UP-${this.modKey}`
-        this.selectElt = null // set when addModule
-        this.closeElt = null // set when addModule
-        this.upElt = null // set when addModule
-        this.setHtmlDisplay ()
-    }
-    hasObjectCode () {
-        return this.objText !== ""
-    }
-    hasMetadata () {
-        return this.mdText !== ""
-    }
-    getAsmText () {
-        return this.asmInfo.asmSrcText
-    }
-    changeAsmSrc (txt) { // new text may not be saved in file
-        console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
-        this.currentSrc = txt
-        document.getElementById("EditorTextArea").value = txt
-        this.displaySrcLineElt.textContent = txt.split("\n")[0]
-    }
-    changeSavedAsmSrc (txt) { // new text is saved in file
-        console.log (`Module ${this.modKey} changeSavedAsmSrc ${txt}`)
-        this.currentSrc = txt
-        this.savedSrc = txt
-        document.getElementById("EditorTextArea").value = txt
-        this.displaySrcLineElt.textContent = txt.split("\n")[0]
-    }
-    setSelected (b) {
-        let selTxt = b ? "Selected" : ""
-        this.selectElt.textContent = selTxt
-        st.env.moduleSet.previousSelectedIdx = this.modIdx
-    }
-    setHtmlDisplay () {
-        const modPara = document.createElement ("p")
-        const t1 = document.createElement ("span")
-        t1.innerHTML = `<b>Module key=${this.modKey}.</b> `
-        modPara.appendChild (t1)
-
-        const t2 = document.createElement ("span")
-        this.selectElt = t2
-        t2.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
-        const t2text = document.createTextNode ("selected")
-        t2.appendChild (t2text)
-        modPara.appendChild (t2)
-        
-        const bSelect = document.createElement ("button")
-        bSelect.textContent = "Select"
-        modPara.appendChild (bSelect)
-        const bUp = document.createElement ("button")
-        bUp.textContent = "Up"
-        modPara.appendChild (bUp)
-        const bClose = document.createElement ("button")
-        bClose.textContent = "Close"
-        modPara.appendChild (bClose)
-        const br = document.createElement ("br")
-        modPara.appendChild (br)
-
-        const spanSrc = document.createElement ("span")
-        spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
-        this.displaySrcLineElt = spanSrc
-        const tSrcText = document.createTextNode (
-            this.currentSrc.split("\n")[0])
-            //            this.asmInfo.asmSrcText.split("\n")[0])
-        spanSrc.appendChild (tSrcText)
-        modPara.appendChild (spanSrc)
-
-        const containerElt = document.getElementById("ModSetControls")
-        containerElt.appendChild (modPara)
-        this.displayElt = modPara
-        bSelect.addEventListener (
-            "click", event => handleSelect(this))
-        bUp.addEventListener (
-            "click", event => handleModUp (this))
-        bClose.addEventListener (
-            "click", event => handleClose (this))
-    }
-    // Use refreshInEditorBuffer when the text is changed from an
-    // ourside source, such as reading a file.  Don't use this when
-    // the user edits the text in the editor.
-    refreshInEditorBuffer () {
-        const xs = this.asmInfo.asmSrcText;
-        console.log (`refreshInEditorBuffer xs=${xs}`);
-        document.getElementById("EditorTextArea").value = xs;
-    }
-}
-
 const Unavailable = "Unavailable until the source code is assembled\n"
 
-// Generate a fresh module key
-export let nextModKey = 0
-export function newModKey () {
-    let i = nextModKey
-    nextModKey++
-    return i
-}
-
-//----------------------------------------------------------------------------
-// Handle controls for individual modules
-//----------------------------------------------------------------------------
-
-// Select module m, put it into Editor pane
-
-export function handleSelect (m) {
-    //    const oldSelIdx = st.env.moduleSet.selectedModuleIdx
-    const oldSelIdx = st.env.moduleSet.previousSelectedIdx
-    const newSelIdx = m.modIdx
-    st.env.moduleSet.modules[oldSelIdx].setSelected (false)
-    st.env.moduleSet.modules[newSelIdx].setSelected (true)
-    st.env.moduleSet.selectedModuleIdx = newSelIdx
-    console.log (`Select module old=${oldSelIdx}, new=${newSelIdx}`)
-}
-
-// Move current module m up in the Module Set list
-
-export function handleModUp (m) {
-    console.log (`Move module ${m.modKey} up`)
-    let mIdx = m.modIdx
-    let mElt = m.displayElt
-    let maElt = mElt.previousElementSibling
-    if (maElt) {
-        let maIdx = mIdx - 1
-        let ma = st.env.moduleSet.modules[maIdx]
-        console.log (`Module Up: move m ${mIdx} up to before ma ${maIdx}`)
-        console.log (`mElt=${mElt}`)
-        console.log (`maElt=${maElt}`)
-        m.modIdx = maIdx
-        ma.modIdx = mIdx
-        const containerElt = document.getElementById("ModSetControls")
-        containerElt.insertBefore (mElt, maElt)
-        st.env.moduleSet.modules[maIdx] = m
-        st.env.moduleSet.modules[mIdx] = ma
-    } else {
-        console.log ("handleModUp: nothing to do")
-    }
-}
-
-// Close a module and remove it from the module set
-
-export function handleClose (m) {
-    console.log (`Close module ${m.modKey}`)
-    const elt = m.displayElt
-    elt.remove ()
-    const a = st.env.moduleSet.modules
-    const i = m.modIdx
-
-    let si = st.env.moduleSet.selectedModuleIdx
-    let pi = st.env.moduleSet.previousSelectedIdx
-    console.log (`close before: si=${si} pi=${pi}`)
-    if (si == i) {
-        si = si - 1 // max 0 si-1
-    } else if (si > i) {
-        si = si - 1
-    }
-    if (pi == i) {
-        pi = 0
-    } else if (pi > i) {
-        pi = pi - 1
-    }
-    st.env.moduleSet.selectedModuleIdx = si
-    st.env.moduleSet.previousSelectedIdx = pi
-    console.log (`close after: si=${si} pi=${pi}`)
-    
-    console.log (`close: before, len=${a.length}`)
-    for (let x of a) {
-        console.log (`idx=${x.modIdx} key=${x.modKey}`)
-    }
-    a.splice (i,1)
-    let newSize = a.length
-    for (let j = i; j < newSize; j++) {
-        a[j].modIdx = j
-    }
-    console.log (`close: after, len=${a.length}`)
-    for (let x of a) {
-        console.log (`idx=${x.modIdx} key=${x.modKey}`)
-    }
-}
-
-//----------------------------------------------------------------------------
-// Sigma16 module set
-//----------------------------------------------------------------------------
-
-// There is one ModuleSet object, st.env.moduleSet, which is an
-// instance of class ModuleSet and is stored as a component of the
-// global environment st.env.  It contains an array of all the extant
-// modules, as well as keeping track of the currently selected module.
-// Invariants: (1) at all times, there is at least one module, and (2)
-// at all times, one module is selected, (3) the text of the selected
-// module is in the editor buffer, and (4) at all times there is text
-// for the object code, assembly listing, and metadata (if there's no
-// valid data for these, there will be dummy text saying "Not
-// available, the source needs to be assembled".  Usage example:
-// st.env.moduleSet.getSelectedModule ()
-
-export class ModuleSet {
-    constructor () {
-        console.log ('Initializing ModuleSet')
-        this.modules = []
-        this.selectedModuleIdx = 0
-        this.previousSelectedIdx = 0
-    }
-    addModule () {
-        const m = new Sigma16Module ()
-        this.modules.push (m)
-        this.selectedModuleIdx = this.modules.length - 1
-        console.log (`addModule there are $(this.modules.length) modules\n`)
-        return m
-    }
-    getSelectedModule () {
-        return this.modules [this.selectedModuleIdx]
-    }
-    generateDisplay () {
-        let xs = "<div class='HighlightedTextAsHtml'>\n"
-        xs += "<h3>List of modules</h1>\n"
-        this.modules.forEach ((m,i,a) => {
-            let y = m.show();
-            xs += `<b>Module.</b> (key=${m.modKey})`
-            xs += (i==this.selectedModuleIdx ? ' Selected' : '')
-            xs += `<button id='${this.selectId}'>Select</button>`;
-            xs += `<button id='${this.closeId}'>Close</button>`;
-            xs += `<br>\n`
-            xs += m.show()
-            xs += "<br>\n"
-        })
-        xs += "</div>\n"
-        console.log (`\n*** Module Set (html)\n${xs}\n***`)
-        return xs
-        }
-    refreshDisplay () {
-         for (let i = 0; i < st.env.moduleSet.modules.length; i++) {
-            console.log (`*** ${i} ${st.env.moduleSet.modules[i].modIdx} `)
-            console.log (st.env.moduleSet.modules[i]
-                         .asmInfo.asmSrcText.split("\n")[0])
-            console.log ('\n')
-        }
-    }
-}
 
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Testing and diagnostics
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 
 export async function test1 () {
     console.log ("****** ModSet test1 ******")
@@ -320,9 +60,9 @@ export function showModElts () {
     }
 }
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // file.mjs: access files on local client computer
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 
 // import * as com from "./common.mjs";
 // import * as st  from "./state.mjs";
@@ -331,7 +71,6 @@ export function showModElts () {
 // works on mlst browsers.  The new superior version uses
 // FileReaderAccess API and works on Chrome and Edge, but not on
 // Safari or Firefox.
-
 
 //-------------------------------------------------------------------------
 // New version: Files using File System Access API
@@ -479,9 +218,9 @@ function textPrefix (xs) {
         + "<div>\n";
 }
 
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // File record
-//-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 
 // A file record "fr" contains information about a file that has been
 // selected and opened by the user.  It is constructed with "file", a
@@ -655,7 +394,6 @@ export function refreshModulesList() {
 
 // deprecated
 
-
 //        console.log (`open-dir filename=${m.filename}`)
 //        const [fileHandle, file, xs] = r
 //        console.log (`openDir fh=${fh}`)
@@ -725,7 +463,6 @@ export function setEditorBufferText (xs) {
 //    st.env.selectedModule = null
 //    document.getElementById("EditorTextArea").value = ""
 //    setEditorBufferText ("")
-
 
 /*
 export function edRevert () {
