@@ -21,14 +21,14 @@ import * as com from './common.mjs'
 import * as arith from './arithmetic.mjs'
 import * as arch from './architecture.mjs'
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Memory map of the emulator state array
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
-// There is an emulator state object which is accessible as gst.es.
+// There is an emulator state object which is accessible as env.es.
 
 // Most of the emulator's variables are stored in a system state
-// vector, which is an element of gst.es.  The system state vector
+// vector, which is an element of env.es.  The system state vector
 // contains several arrays (breakpoint, registers, memory) as well as
 // individual variables (instruction count, ir fields, etc.).
 

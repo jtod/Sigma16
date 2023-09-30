@@ -13,9 +13,9 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//--------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // emulator.mjs defines the machine language semantics
-//--------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as arch from './architecture.mjs';
@@ -60,11 +60,11 @@ function SetStatusBit (es,i,x) {
 // See also arith.limit16 and arith.limit32
 export function limitAddress (es, x) { return x & es.addressMask }
 
-// initializeMachineState (es)     - create registers and memory
-// procReset (es)                  - set registers and memory to 0
-// boot (es)                       - load executable into memory
-// mainThreadLooper (es)           - run main until stopping condition
-// executeInstruction (es)         - execute one instruction in either thread
+// initializeMachineState (es)    - create registers and memory
+// procReset (es)                 - set registers and memory to 0
+// boot (es)                      - load executable into memory
+// mainThreadLooper (es)          - run main until stopping condition
+// executeInstruction (es)        - execute one instruction in either thread
 
 // look up these...
 
@@ -101,9 +101,9 @@ export function initRegHighlighting (es) {
     es.regStored = []
 }
 
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Emulator state
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // The emulator state contains the variables needed to interpret the
 // machine language.  It's passed as needed to functions; the
@@ -142,7 +142,8 @@ export function showCopyable (x) {
 export class EmulatorState {
     constructor (thread_host, f, g, h) {
         this.thread_host = thread_host // which thread runs this instance
-        console.log (`%cCreating ES thread_host = ${this.thread_host}`, 'color:red')
+        console.log (`%cCreating ES thread_host = ${this.thread_host}`,
+                     'color:red')
         this.arch = arch.S16
         
         // Display functions provided by user interface
@@ -157,12 +158,12 @@ export class EmulatorState {
         this.vec16            = null
         this.vec32            = null
         this.vec64            = null
-        this.emRunCapability  = com.ES_gui_thread // default: run in main thread
-        this.emRunThread      = com.ES_gui_thread // default: run in main thread
+        this.emRunCapability  = com.ES_gui_thread // default use main thread
+        this.emRunThread      = com.ES_gui_thread // default use main thread
         this.startTime        = null
         this.eventTimer       = null  // returned by setInterval
         this.emInstrSliceSize = 500 // n instructions before looper yields
-        this.sliceUnlimited   = true // if F, looper enforces emInstrSliceSize
+        this.sliceUnlimited   = true // if F, enforce emInstrSliceSize
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false
@@ -228,7 +229,8 @@ export class EmulatorState {
 // containing all the registers, so the emulator can refresh them all
 // together.
 
-export const ctlRegIndexOffset = 20;  // add to ctl reg no. to get register[] index
+export const ctlRegIndexOffset = 20;  // add to ctl reg number
+                                      //   to get register[] index
 export let sysCtlRegIdx = 0;          // index of first system control reg
 export let registerIndex = 0;         // unique index for each reg
 
@@ -266,16 +268,17 @@ function testReg2 () {
 //    regShowAccesses();
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Registers
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // genregister creates and returns an object representing a register.
 // The registers are created in gui.js in the window.onload function,
 // because they need the gui display elements to be created first.
 // Arguments to the constructor are:
 
-//   - regNumber is index in a reg file (0 if irrelevant); e.g. for R5 it's 5
+//   - regNumber is index in a reg file (0 if irrelevant);
+//       e.g. for R5 it's 5
 //   - regName is string representation; e.g. for R5 it's "R5"
 //   - eltName is the html id of the gui element that displays the register
 //   - showFcn converts the value to a string
@@ -363,7 +366,6 @@ export function resetRegisters (es) {
 //  Memory representation and access
 //----------------------------------------------------------------------
 
-
 // Usage
 //   General operations
 //     memInitialize              get html elements, clear refresh, display
@@ -376,7 +378,8 @@ export function resetRegisters (es) {
 //     adr = memFetchData (a)     data fetch
 //     memStore (a,x)             store
 //     memShowAccesses ()         update array of hex strings
-//     memDisplayFast ()          render html elements showing only accessed area
+//     memDisplayFast ()          render html elements showing
+//                                  only accessed area
 //     memDisplayFull ()          render html elements showing full memory
 //     memDisplay ()              use display mode to select fast or full
 
@@ -387,14 +390,6 @@ export function resetRegisters (es) {
 // accesses (fetches and stores) in order to generate the displays.
 
 let memory = [];  // the memory contents, indexed by address
-// let memString = []; // a string for each location, to be displayed
-// let memElt1, memElt2;  // html elements for two views into the memory IN es
-// export let memFetchInstrLog = [];
-// export let memFetchDataLog = [];
-// export let memStoreLog = [];
-// export let memFetchInstrLogOld = [];
-// export let memFetchDataLogOld = [];
-// export let memStoreLogOld = [];
 
 
 // There are two primary memory accesses: fetch and store.  These
@@ -423,15 +418,7 @@ export function memClear (es) {
     for (let a = 0; a < arch.memSize; a++) {
         ab.writeMem16 (es, a, 0)
     }
-//    console.log ('memClear finished')
 }
-        //        memStore (es, a, 0)
-//    clearLoggingData (es)
-//    es.copyable.memFetchInstrLog = [];
-//    es.copyable.memFetchDataLog = [];
-//    es.copyable.memStoreLog = [];
-//    memRefresh (es);
-
 
 // Fetch and return a word from memory at address a, and record the
 // address so the display can show this access.
@@ -466,9 +453,9 @@ export function memStore (es, a, x) {
 //    es.shm[ab.EmMemOffset + a] = x
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Initialize machine state
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Separate clearing state from refreshing display
 export function procReset (es) {
@@ -478,63 +465,43 @@ export function procReset (es) {
     resetRegisters (es);
     memClear (es);
     initializeTimer (es, defaultTimerResolution);
-//    console.log ('em.procReset finished')
-//    clearClock (es)
-//    refreshDisplay (es)
 }
 
 export function initializeMachineState (es) {
     com.mode.devlog (`%cem.initializeMachineState thread=${es.thread_host}`,
                     'color:red')
 
-//  mode=${es.mode}`)
-//    initializeProcessorElements (es);  // so far, it's just instr decode
-//    clearInstrDecode (emulatorState);
-//    clearInstrDecode (es);
-
     // Build the register file; sysStateVec index = reg number
     for (let i = 0; i < 16; i++) {
 	let regname = 'R' + i; // also the id for element name
-        es.regfile[i] = new genregister (es, regname, regname, arith.wordToHex4)
-//     es.regfile[i] = new genregister (es, i, regname, regname, arith.wordToHex4)
-//	es.register[i] = es.regfile[i]
+        es.regfile[i] = new genregister (es, regname, regname,
+                                         arith.wordToHex4)
     }
 
     // Instruction control registers
     es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
-//    es.pc   = new genregister (es, 'pc', 'pcElt', arith.wordToHex8); // ????? S32
-// ???????????????? S32
     es.ir   = new genregister (es, 'ir',   'irElt',    arith.wordToHex4);
     es.adr  = new genregister (es, 'adr',  'adrElt',   arith.wordToHex4);
     es.dat  = new genregister (es, 'dat',  'datElt',   arith.wordToHex4);
-//    es.pc   = new genregister (es, 0,  'pc',   'pcElt',    arith.wordToHex4);
-//    es.ir   = new genregister (es, 0,  'ir',   'irElt',    arith.wordToHex4);
-//    es.adr  = new genregister (es, 0,  'adr',  'adrElt',   arith.wordToHex4);
-//    es.dat  = new genregister (es, 0,  'dat',  'datElt',   arith.wordToHex4);
 
     // Interrupt control registers
-    es.statusreg  = new genregister (es, 'statusreg', 'statusElt',  arith.wordToHex4);
-//   es.statusreg  = new genregister (es, 0, 'statusreg', 'statusElt',  arith.wordToHex4);
+    es.statusreg  = new genregister (es, 'statusreg', 'statusElt',
+                                     arith.wordToHex4);
     // bit 0 (lsb) :  0 = User state, 1 = System state
     // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
     // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
 
     es.mask  = new genregister (es, 'mask', 'maskElt',  arith.wordToHex4);
     es.req   = new genregister (es, 'req',  'reqElt',   arith.wordToHex4);
-//    es.mask  = new genregister (es, 0, 'mask', 'maskElt',  arith.wordToHex4);
-//    es.req   = new genregister (es, 0, 'req',  'reqElt',   arith.wordToHex4);
     // mask and request use the same bit positions for flags
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
-
+    
     es.rstat    = new genregister (es, 'rstat',  'rstatElt',  arith.wordToHex4);
     es.rpc      = new genregister (es, 'rpc',    'rpcElt',    arith.wordToHex4);
     es.vect     = new genregister (es, 'vect',   'vectElt',   arith.wordToHex4);
-//  es.rstat    = new genregister (es, 0, 'rstat',  'rstatElt',  arith.wordToHex4);
-//  es.rpc      = new genregister (es, 0, 'rpc',    'rpcElt',    arith.wordToHex4);
-//  es.vect     = new genregister (es, 0, 'vect',   'vectElt',   arith.wordToHex4);
 
 // Segment control registers
     es.bpseg = new genregister (es, 'bpseg',  'bpsegElt',  arith.wordToHex4);
@@ -542,14 +509,10 @@ export function initializeMachineState (es) {
     es.bdseg = new genregister (es, 'bdseg',  'bdsegElt',  arith.wordToHex4);
     es.edseg = new genregister (es, 'edseg',  'edsegElt',  arith.wordToHex4);
 
-//    es.bpseg = new genregister (es, 0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
-//  es.epseg = new genregister (es, 0, 'epseg',  'epsegElt',  arith.wordToHex4);
-//  es.bdseg = new genregister (es, 0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
-//  es.edseg = new genregister (es, 0, 'edseg',  'edsegElt',  arith.wordToHex4);
-
 // Record the control registers    
     es.controlRegisters =
-	[es.pc, es.ir, es.adr, es.dat,   // not accessible to getctl/putctl instructions
+	[es.pc, es.ir, es.adr, es.dat,
+         // not accessible to getctl/putctl instructions
 	 // the following can be used for getctl/getctl, indexing from 0
 	 es.statusreg, es.mask, es.req, es.rstat, es.rpc, es.vect,
          es.bpseg, es.epseg, es.bdseg, es.edseg
@@ -559,36 +522,28 @@ export function initializeMachineState (es) {
     resetRegisters (es);
 }
 
-
 // Must wait until onload event
 
 function memInitialize (es) {
     if (es.thread_host === com.ES_gui_thread) {
         memClear(es);    // set each location to 0
-//        memRefresh(es);  // generate a string showing each location
-//        es.initializeMemDisplay (es)
-//        es.memElt1 = document.getElementById('MemDisplay1');
-//        es.memElt2 = document.getElementById('MemDisplay2');
-//        memDisplay(es);  // put the strings into the gui display elements
     }
 }
 
-
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Decode instruction
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 export function showInstrDecode (es) {
     es.instrCodeStr = (es.instrCode ? arith.wordToHex4 (es.instrCode) : "")
 	+ " " + (es.instrDisp ? arith.wordToHex4 (es.instrDisp) : "");
     es.instrEAStr = es.instrEA ? arith.wordToHex4 (es.instrEA) : "";
     com.mode.devlog (`showInstrDecode fmt = ${es.instrFmtStr}`);
-//    refreshInstrDecode (es);
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Controlling instruction execution
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Using the main gui thread, run instructions repeatedly until a
 // stopping condition arises.  Yield control each iteration to avoid
@@ -651,7 +606,7 @@ export function instructionLooper (es) {
     }
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Check timer when instruction executes
 
 export function initializeTimer (es, resolution) {
@@ -701,11 +656,9 @@ export function timerTick (es) {
     }
 }
 
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Wrapper around instruction execution
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // When running, the logging data isn't needed.  The worker thread
 // needs to clear it to prevent a space leak.
@@ -724,25 +677,10 @@ export function clearRegLogging (es) {
     es.copyable.regStored = []
 }
 
-/*
-export function clearInstrDecode (es) {
-    return ; // ?????????????????????
-    es.instrOpCode = null;
-    es.instrDisp = null;
-    es.instrCodeStr  = "";
-    es.instrFmtStr   = "";
-    es.instrOp    = "";
-    es.instrArgs  = "";
-    es.instrEA = null;
-    es.instrEAStr    = "";
-    es.instrEffect = [];
-}
 
-*/
-
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Machine language semantics
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 export function clearInstrDecode (es) {
     es.instrOpCode = null
@@ -776,10 +714,10 @@ export function executeInstruction (es) {
 	let i = 0; // find interrupt that is taken
 	while (i<16 && arch.getBitInWordLE(mr,i) === 0) { i++ }
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
-	es.rpc.put(es.pc.get())           // save the pc
+	es.rpc.put(es.pc.get())            // save the pc
 	es.rstat.put(es.statusreg.get())   // save the status register
-	arch.clearBitInRegLE (es.req,i)  // clear the interrupt that was taken
-	es.pc.put (limitAddress (es, es.vect.get() + 2*i))  // jump to handler
+	arch.clearBitInRegLE (es.req,i)    // clear the taken interrupt
+	es.pc.put (limitAddress (es, es.vect.get() + 2*i))  // goto handler
         // Disable interrupts and enter system state
 	es.statusreg.put (es.statusreg.get()
 		       & arch.maskToClearBitLE(arch.intEnableBit)
@@ -799,7 +737,7 @@ export function executeInstruction (es) {
     es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
     es.pc.put (limitAddress (es, es.nextInstrAddr))
     ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
-arith
+// arith ????? editing stub?
     com.mode.devlog (`ExInstr pcnew=${arith.wordToHex4(es.nextInstrAddr)}`)
     
     // com.mode.devlog('pc = ' + arith.wordToHex4(pc.get()) '
@@ -813,18 +751,19 @@ arith
     es.ir_d = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.ir_op = tempinstr & 0x000f;
-//    com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`);
+// com.mode.devlog(`ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`)
     com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} `
                     + ` ${es.ir_a} ${es.ir_b}`, 'color:red');
-    // console.log(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} `
-    // + ` ${es.ir_a} ${es.ir_b}` + 'color:red')
+// console.log(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} `
+// + ` ${es.ir_a} ${es.ir_b}` + 'color:red')
     es.instrFmtStr = "RRR";  // Replace if opcode expands to RX or EXP
     es.instrOpStr = arch.mnemonicRRR[es.ir_op]  // Replace if opcode expands
     com.mode.devlog (`ExInstr dispatch primary opcode ${es.ir_op}`);
-//    console.log (`about to dispatch prim - es.ir_a=${es.ir_a}`)
+// console.log (`about to dispatch prim - es.ir_a=${es.ir_a}`)
 // console.log (`dispatching prim - es.reg[es.ir_a]=${es.regfile[es.ir_a]}`)
 
-    com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
+    com.mode.devlog(`%cExInstr ir fields ${es.ir_op} ${es.ir_d}`
+                    + ` ${es.ir_a} ${es.ir_b}`, 'color:red');
 
 //    console.log (`exInstr R1=${es.regfile[1].get()}`)
     dispatch_primary_opcode [es.ir_op] (es);
@@ -866,13 +805,6 @@ arith
 // trap  -- perform trap; instruction ignores all registers but OS may use them
 
 
-/* JavaScript: example of a lambda expression and a curried lambda
-  const foobar = (x) => (y) => x+y;
-  let baz = foobar (5);
-  let bar = foobar (41);
-  let abc = foobar (7) (50);
-*/
-
 // ab_dc instructions take two register arguments in a and b, and
 // produce two results: primary and secondary.  The primary is loaded
 // into d.  The secondary is normally loaded into condition code, but
@@ -896,7 +828,6 @@ const ab_dac = (f) => (es) => {
     es.regfile[es.ir_a].put(primary);
     if (es.ir_a<15) { es.regfile[15].put(secondary) }
 }
-
 
 // Apply f to d, a, b
 const rrrc = (f) => (es) => {
@@ -1218,12 +1149,9 @@ const rx = (f) => (es) => {
     es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp)
     es.instrEA = es.ea;
     es.adr.put (es.instrEA);
-//    es.nextInstrAddr = arith.binAdd (es, es.curInstrAddr, es.instrDisp)
-//    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
-//    es.adr.put (es.instrDisp);
-//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
     com.mode.devlog (`rx ea, disp=${arith.wordToHex4(es.instrDisp)}`);
-    com.mode.devlog (`rx ea, idx=${arith.wordToHex4(es.regfile[es.ir_a].get())}`);
+    com.mode.devlog (`rx ea, `
+                     + `idx=${arith.wordToHex4(es.regfile[es.ir_a].get())}`)
     com.mode.devlog('rx ea = ' + arith.wordToHex4(es.ea));
     f (es);
 }
@@ -1685,22 +1613,6 @@ function exp2_logicu (es) {
     const wresult = arith.setBit (regx, es.field_e, bresult) // update dest
     es.regfile[es.ir_d].put(wresult)                 // writeback
 }
-/* old version for logicc, replaced by logicu
-    const xreg = es.regfile[es.ir_d].get()               // operand word
-    const xbit = arch.getBitInWordLE (xreg, es.field_e)  // operand bit x
-    const yreg = es.regfile[es.field_f].get()            // operand word
-    const ybit = arch.getBitInWordLE (yreg, es.field_g)  // operand bit y
-    const fcn = es.field_h                               // logic function
-    const bresult = arith.applyLogicFcnBit (fcn, xbit, ybit) // bit result
-    const oldcc = es.regfile[15].get()                // old cc value
-    const wresult = arch.putBitInWordLE (16, oldcc, arch.bit_ccf, bresult)
-    es.regfile[15].put(wresult)                       // put bresult into cc
-    com.mode.devlog (`logicc oldccw=${arith.wordToHex4(oldcc)}`
-                     + ` xbit=${xbit} ybit=${ybit}`
-                     + ` fcn=${fcn} bresult=${bresult}`
-                     + ` wresult=${arith.wordToHex4(wresult)}`)
-                     }
-*/                     
 
 // EXP format instructions require a second word
 
@@ -1759,26 +1671,6 @@ const dispatch_EXP =
         exp2 (exp2_timeron),  // 1a
         exp2 (exp2_timeroff)] // 1b
 
-//        exp2 (exp2_push),      // 0
-//        exp2 (exp2_pop),      // 0
-//        exp2 (exp2_top),      // 0
-//        exp2 (exp2_save),      // 0
-//        exp2 (exp2_restore),   // 1
-//    ]
-
-// done:
-//        exp2 (exp2_nop),    // temp placeholder for push
-//        exp2 (exp2_nop),    // temp placeholder for pop
-//        exp2 (exp2_nop),    // temp placeholder for top
-//        exp2 (exp2_shiftl),    // 2
-//        exp2 (exp2_shiftr),    // 3
-//        exp2 (exp2_logicw),    // 4
-//        exp2 (exp2_logicb),    // 5
-//        exp2 (exp2_extract),   // 6
-//        exp2 (exp2_extracti),  // 7
-//        exp2 (exp2_getctl),    // 8
-//        exp2 (exp2_putctl),     // a
-//        exp2 (exp2_resume)    // 0
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 
@@ -1862,3 +1754,120 @@ function exp2_top (es) {
 //     const d_new = d_old
 //     es.regfile[es.ir_d].put(d_new);
 // }
+
+// memory deprecated
+// let memString = []; // a string for each location, to be displayed
+// let memElt1, memElt2;  // html elements for two views into the memory IN es
+// export let memFetchInstrLog = [];
+// export let memFetchDataLog = [];
+// export let memStoreLog = [];
+// export let memFetchInstrLogOld = [];
+// export let memFetchDataLogOld = [];
+// export let memStoreLogOld = [];
+
+// memClear
+//    console.log ('memClear finished')
+        //        memStore (es, a, 0)
+//    clearLoggingData (es)
+//    es.copyable.memFetchInstrLog = [];
+//    es.copyable.memFetchDataLog = [];
+//    es.copyable.memStoreLog = [];
+//    memRefresh (es);
+
+//    console.log ('em.procReset finished')
+//    clearClock (es)
+//    refreshDisplay (es)
+
+// initializeMachineState
+//  mode=${es.mode}`)
+//    initializeProcessorElements (es);  // so far, it's just instr decode
+//    clearInstrDecode (emulatorState);
+//    clearInstrDecode (es);
+//     es.regfile[i] = new genregister (es, i, regname, regname, arith.wordToHex4)
+//	es.register[i] = es.regfile[i]
+
+//    es.pc   = new genregister (es, 'pc', 'pcElt', arith.wordToHex8); // ????? S32
+// ???????????????? S32
+//    es.pc   = new genregister (es, 0,  'pc',   'pcElt',    arith.wordToHex4);
+//    es.ir   = new genregister (es, 0,  'ir',   'irElt',    arith.wordToHex4);
+//    es.adr  = new genregister (es, 0,  'adr',  'adrElt',   arith.wordToHex4);
+//    es.dat  = new genregister (es, 0,  'dat',  'datElt',   arith.wordToHex4);
+//   es.statusreg  = new genregister (es, 0, 'statusreg', 'statusElt',  arith.wordToHex4);
+//    es.mask  = new genregister (es, 0, 'mask', 'maskElt',  arith.wordToHex4);
+//    es.req   = new genregister (es, 0, 'req',  'reqElt',   arith.wordToHex4);
+//  es.rstat    = new genregister (es, 0, 'rstat',  'rstatElt',  arith.wordToHex4);
+//  es.rpc      = new genregister (es, 0, 'rpc',    'rpcElt',    arith.wordToHex4);
+//  es.vect     = new genregister (es, 0, 'vect',   'vectElt',   arith.wordToHex4);
+//    es.bpseg = new genregister (es, 0, 'bpseg',  'bpsegElt',  arith.wordToHex4);
+//  es.epseg = new genregister (es, 0, 'epseg',  'epsegElt',  arith.wordToHex4);
+//  es.bdseg = new genregister (es, 0, 'bdseg',  'bdsegElt',  arith.wordToHex4);
+//  es.edseg = new genregister (es, 0, 'edseg',  'edsegElt',  arith.wordToHex4);
+// memInitialize        
+//        memRefresh(es);  // generate a string showing each location
+//        es.initializeMemDisplay (es)
+//        es.memElt1 = document.getElementById('MemDisplay1');
+//        es.memElt2 = document.getElementById('MemDisplay2');
+//        memDisplay(es);  // put the strings into the gui display elements
+
+// showInstrDecode
+    //    refreshInstrDecode (es);
+
+/*
+export function clearInstrDecode (es) {
+    return ; // ?????????????????????
+    es.instrOpCode = null;
+    es.instrDisp = null;
+    es.instrCodeStr  = "";
+    es.instrFmtStr   = "";
+    es.instrOp    = "";
+    es.instrArgs  = "";
+    es.instrEA = null;
+    es.instrEAStr    = "";
+    es.instrEffect = [];
+}
+
+*/
+
+// rx
+//    es.nextInstrAddr = arith.binAdd (es, es.curInstrAddr, es.instrDisp)
+//    es.nextInstrAddr = arith.incrAddress (es, es.curInstrAddr, 1)
+//    es.adr.put (es.instrDisp);
+//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp);
+
+/* old version for logicc, replaced by logicu
+    const xreg = es.regfile[es.ir_d].get()               // operand word
+    const xbit = arch.getBitInWordLE (xreg, es.field_e)  // operand bit x
+    const yreg = es.regfile[es.field_f].get()            // operand word
+    const ybit = arch.getBitInWordLE (yreg, es.field_g)  // operand bit y
+    const fcn = es.field_h                               // logic function
+    const bresult = arith.applyLogicFcnBit (fcn, xbit, ybit) // bit result
+    const oldcc = es.regfile[15].get()                // old cc value
+    const wresult = arch.putBitInWordLE (16, oldcc, arch.bit_ccf, bresult)
+    es.regfile[15].put(wresult)                       // put bresult into cc
+    com.mode.devlog (`logicc oldccw=${arith.wordToHex4(oldcc)}`
+                     + ` xbit=${xbit} ybit=${ybit}`
+                     + ` fcn=${fcn} bresult=${bresult}`
+                     + ` wresult=${arith.wordToHex4(wresult)}`)
+                     }
+*/                     
+
+//        exp2 (exp2_push),      // 0
+//        exp2 (exp2_pop),      // 0
+//        exp2 (exp2_top),      // 0
+//        exp2 (exp2_save),      // 0
+//        exp2 (exp2_restore),   // 1
+//    ]
+
+// done:
+//        exp2 (exp2_nop),    // temp placeholder for push
+//        exp2 (exp2_nop),    // temp placeholder for pop
+//        exp2 (exp2_nop),    // temp placeholder for top
+//        exp2 (exp2_shiftl),    // 2
+//        exp2 (exp2_shiftr),    // 3
+//        exp2 (exp2_logicw),    // 4
+//        exp2 (exp2_logicb),    // 5
+//        exp2 (exp2_extract),   // 6
+//        exp2 (exp2_extracti),  // 7
+//        exp2 (exp2_getctl),    // 8
+//        exp2 (exp2_putctl),     // a
+//        exp2 (exp2_resume)    // 0

@@ -91,25 +91,21 @@ export function linkerGUI () {
     let ls = linker (selm.baseName, objs);
     console.log (ls.show())
     let exeObjMd = ls.exeObjMd;
-    selm.objMd = exeObjMd;
-    let xm = st.env.moduleSet.getSelectedModule ();
-    xm.executable = st.exeObjMd;
-    let objectText = exeObjMd.objText;
-    let mdText = exeObjMd.mdText;
-    let listing = ""; // result.listing;
+    selm.linkMainObjMd = exeObjMd;
+//    let objectText = exeObjMd.objText;
+//    let mdText = exeObjMd.mdText;
+//    let listing = ""; // result.listing;
     let xs = "<pre class='HighlightedTextAsHtml'>"
-        + objectText
-        + listing
+//        + objectText
+//        + listing
         + "\n\nMetadata\n"
-        + mdText
+//        + mdText
         + "</pre>";
     document.getElementById('LP_Body').innerHTML = xs;
     st.env.linkerState = ls;
-//    console.log ("--------------------------");
-//    console.log ("linkerGUI exeObjMd");
-//    console.log (exeObjMd);
-//    console.log ("--------------------------");
 }
+//    let xm = st.env.moduleSet.getSelectedModule ();
+//    xm.executable = st.exeObjMd;
 
 export function linkShowObject () {
     console.log ("linkShowObject");
@@ -232,23 +228,14 @@ export function linker (exeName, obMdTexts) {
     pass2 (ls); // process imports and relocations
     ls.exeCodeText = emitCode (ls);
     ls.exeMdText = ls.metadata.toText ();
-    ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);
 
-    console.log ("-------------------------- linker executable code -----")
-    console.log (`ls.metadata.pairs.length = ${ls.metadata.pairs.length}`)
-    console.log ("-------------------------- linker executable code -----")
-    console.log (ls.exeCodeText);
-    console.log ("-------------------------- linker exe metadata -----")
-    console.log (ls.exeMdText);
-    console.log ("-------------------------- end of exe metadata -----")
-    if (ls.linkErrors.length > 0) {
-        st.env.haveExecutable = false;
-        st.env.executable = "";
-    } else {
-        st.env.haveExecutable = true;
-        st.env.executableCode = ls.exeCodeText;
-        st.env.executableMD = ls.exeMdText;
-    }
+    //    ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);
+    ls.exeObjMd = ls.linkErrors.length > 0
+        ? new st.ObjMd ("executable", ls.exeCodeText, lsexeMdText)
+        : null;
+    console.log (`Number of linker errors = ${ls.linkErrors.length}`)
+    console.log (`Linker errors = ${ls.linkErrors}`)
+//    console.log (ls.exeObjMd.showShort());
     return ls;
 }
 
@@ -510,3 +497,24 @@ export function parseObjLine (xs) {
 // linkShowObject
 //    let code = 'Object code modules...'
 //    document.getElementById('LinkerBody').innerHTML = xs;
+
+/*    
+    if (ls.linkErrors.length > 0) {
+        st.env.haveExecutable = false;
+        st.env.executable = "";
+    } else {
+        st.env.haveExecutable = true;
+        st.env.executableCode = ls.exeCodeText;
+        st.env.executableMD = ls.exeMdText;
+        }
+    console.log ("-------------------------- linker executable code -----")
+    console.log (ls.exeCodeText);
+    console.log ("-------------------------- linker exe metadata -----")
+    console.log (ls.exeMdText);
+    console.log ("-------------------------- end of exe metadata -----")
+*/
+
+//    console.log ("--------------------------");
+//    console.log ("linkerGUI exeObjMd");
+//    console.log (exeObjMd);
+//    console.log ("--------------------------");

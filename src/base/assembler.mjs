@@ -18,9 +18,9 @@
 //----------------------------------------------------------------------
 
 import * as com from './common.mjs';
+import * as st from './state.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
-import * as st from './state.mjs';
 
 //----------------------------------------------------------------------
 // Global
@@ -104,11 +104,12 @@ export function mDisplayAsmSource (m) {
 
 export function displayObjectListing () {
     const m = st.env.moduleSet.getSelectedModule ();
-    //    const codeText = m.asmInfo.objMd.objText;
-    const codeText = m.objText
+    const codeText = m.objMd ? m.objMd.objText : "no object code";
     let listing = "<pre class='VerbatimText'>" + codeText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
+//    const codeText = m.asmInfo.objMd.objText;
+//    const codeText = m.objText // ***********************
 
 // Called when user clicks "Show Listing" on the assembler page
 
@@ -128,7 +129,7 @@ export function displayMetadata () {
     const m = st.env.moduleSet.getSelectedModule ();
     const src = m.getAsmText ();
     //    const mdText = m.asmInfo.objMd.mdText;
-    const mdText = m.mdText
+    const mdText = m.mdText // *************************
     let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
@@ -179,7 +180,7 @@ export const Field_h = Symbol ("h");
 // messages.
 
 export function addVal (ma,s,x,y) {
-    let result = Zero.copy();
+    let result = st.Zero.copy();
     if (x.origin==st.External || y.origin==st.External) {
         mkErrMsg (ma, s, `Cannot perform arithmetic on external value`)
     } else  if (x.movability==st.Relocatable && y.movability==st.Relocatable) {
@@ -215,13 +216,6 @@ function wrapWord (x) {
     return x; // check for neg, and mod
 }
 
-
-const ExtVal = new st.Value (0, st.External, st.Fixed);
-
-function mkConstVal (k) { return new st.Value (k, st.Local, st.Fixed); }
-const Zero = mkConstVal (0);
-const One  = mkConstVal (1);
-const Two  = mkConstVal (2);
 
 //----------------------------------------------------------------------
 // Evaluation of expressions
@@ -274,16 +268,16 @@ function evaluate (ma, s, a, x) {
             r.usageLines.push (s.lineNumber+1);
 	} else {
             mkErrMsg (ma, s, 'symbol ' + x + ' is not defined');
-            result = mkConstVal(0); // new Value (0, st.Local, st.Fixed);
+            result = st.mkConstVal(0); // new Value (0, st.Local, st.Fixed);
 	}
     } else if (x.search(intParser) == 0) { // integer literal
-        result = mkConstVal(arith.intToWord(parseInt(x,10)));
+        result = st.mkConstVal(arith.intToWord(parseInt(x,10)));
     } else if (x.search(hexParser) == 0) { // hex literal
 //      result =  new Value (arith.hex4ToWord(x.slice(1)), st.Local, st.Fixed);
-        result =  mkConstVal (arith.hex4ToWord(x.slice(1)));
+        result =  st.mkConstVal (arith.hex4ToWord(x.slice(1)));
     } else { // compound expression (not yet implemented)
         mkErrMsg (ma, s, 'expression ' + x + ' has invalid syntax');
-        result = Zero.copy(); // new Value (0, st.Local, st.Fixed);
+        result = st.Zero.copy(); // new Value (0, st.Local, st.Fixed);
     }
 //    com.mode.devlog (`evaluate received expression ${x}`)
     com.mode.devlog (`evaluate ${x} returning (${result.toString()})`)
@@ -327,10 +321,10 @@ function mkAsmStmt (lineNumber, address, srcLine) {
 	    hasLabel : false,                  // statement has a valid label
             operation : null,                  // operation spec if it exists
             operands : [],                     // individual operands
-	    codeSize : Zero,                   // number of words generated
+	    codeSize : st.Zero,                // number of words generated
 	    orgAddr : -1,                      // addr specified by org/block
-            reserveSize : Zero,
-            locCounterUpdate : Zero,           // new LC after reserve directive
+            reserveSize : st.Zero,
+            locCounterUpdate : st.Zero,    // new LC after reserve directive
 	    codeWord1 : null,                  // first word of object
 	    codeWord2 : null,                  // second word of object
 	    errors : []                        // lines of error messages
@@ -447,9 +441,11 @@ export function assembler (m) {
     st.displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
-    m.objText = ai.objectText
-    m.mdText = mdText
-    ai.objMd = new st.ObjMd ("module", ai.objectText, mdText)
+//    m.objText = ai.objectText
+//    m.mdText = mdText
+    ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
+        ? new st.ObjMd ("module", ai.objectText, mdText)
+        : null;
     // Handle module name if present
     console.log (`Assembler creating ObjMd:\n${ai.objMd.showShort()}`);
     com.mode.devlog (ai.objectText);
@@ -734,7 +730,7 @@ function parseOperation (ma,s) {
                 com.mode.devlog (`parseOperation module=${ma.modName}`);
             } else if (s.operation.ifmt==arch.iData
                        && s.operation.afmt==arch.aData) {
-                s.codeSize = One.copy();
+                s.codeSize = st.One.copy();
             } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aReserve) {
                 let y = evaluate (ma, s, ma.locationCounter,
@@ -750,11 +746,11 @@ function parseOperation (ma,s) {
                 s.orgAddr = y
                 com.mode.devlog (`parse Operation orgAddr=${s.orgAddr}`);
             } else {
-	        s.codeSize = mkConstVal(arch.formatSize(x.ifmt));
+	        s.codeSize = st.mkConstVal(arch.formatSize(x.ifmt));
             }
 	} else {
             s.operation = arch.emptyOperation;
-            s.codeSize = Zero;
+            s.codeSize = st.Zero;
             mkErrMsg (ma, s, `${op} is not a valid operation`)
 	}
     } else {
@@ -815,7 +811,8 @@ function handleLabel (ma,s) {
         } else if (s.fieldOperation==="import") {
             let mod = s.operands[0];
             let extname = s.operands[1];
-            let v = ExtVal.copy();
+//           let v = ExtVal.copy();
+            let v = st.ExtVal.copy();
             let i = new st.Identifier (s.fieldLabel, mod, extname,
                                     v, s.lineNumber+1);
             ma.symbolTable.set (s.fieldLabel, i);

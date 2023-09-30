@@ -30,9 +30,9 @@ let emwt = {
     es: null // emulator state
     }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Communication protocol
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 self.addEventListener ("message", e => {
     if (e.data) {
@@ -60,9 +60,9 @@ self.addEventListener ("message", e => {
             break
         case 101: // emwt step
             console.log (`emwt: received request step`)
-            console.log (`emwt before doStep : ${em.showEsInfo (gst.es)}`)
+            console.log (`emwt before doStep : ${em.showEsInfo (emwt.es)}`)
             doStep ()
-            console.log (`emwt after doStep : ${em.showEsInfo (gst.es)}`)
+            console.log (`emwt after doStep : ${em.showEsInfo (emwt.es)}`)
             msg = {code: 201, payload: 0}
             self.postMessage (msg)
             break

@@ -15,7 +15,7 @@
 
 //-------------------------------------------------------------------------
 // state.mjs defines global state for the system, IDE, modules, and
-// emulator
+// emulator, including key data structures.
 //-------------------------------------------------------------------------
 
 // The main components of the program avoid using global variables;
@@ -64,9 +64,6 @@ export class SystemState {
         this.moduleSet = null
         this.emulatorState = null;
         this.linkerState = null;
-        this.haveExecutable = false;
-        this.executableCode = "";
-        this.executableMD = "";
     }
 }
 
@@ -78,11 +75,6 @@ export class SystemState {
 // state.
 
 export const env = new SystemState ();
-// export const gst = env;  // refactor, use one or the other of gst, env
-
-//----------------------------------------------------------------------
-// Modules
-//----------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
 // Sigma16 module
@@ -100,34 +92,41 @@ export function newModKey () {
 
 export class Sigma16Module {
     constructor () {
+        // identify the module
         this.modKey = newModKey () // Persistent and unique gensym key
         this.modIdx = env.moduleSet.modules.length // Transient arr index
+        this.baseName = "anonymous"
+        // possible file associated with module
         this.fileHandle = null
         this.filename = "(no file)"
-        this.baseName = "(no file)"
         this.fileRecord = null
         this.fileInfo = null // can hold instance of FileInfo
-        this.isMain = true // may be changed by assembler
-        this.asmInfo = new AsmInfo (this)
+        // data for the module
         this.currentSrc = "" // master copy of (possibly edited) source code
         this.savedSrc = "" // source code as last saved/read to/from file
-        this.objText = ""
-        this.mdText = ""
+        this.asmInfo = new AsmInfo (this); // filled in by assembler
+        this.objMd = null;
+        this.linkMainObjMd = null;
+        // updated by assembler, linker, or reading file
+//        this.objText = ""
+//        this.mdText = ""
+        // DOM elements for display on Modules page
         this.displayElt = null // DOM element for module display on page
         this.displaySrcLineElt = null
-        this.selectId = `SELECT-${this.modKey}`
-        this.closeId = `CLOSE-${this.modKey}`
-        this.upId = `UP-${this.modKey}`
         this.selectElt = null // set when addModule
         this.closeElt = null // set when addModule
         this.upElt = null // set when addModule
+        this.selectId = `SELECT-${this.modKey}`
+        this.closeId = `CLOSE-${this.modKey}`
+        this.upId = `UP-${this.modKey}`
+        // initial; call setHtmlDisplay again when something changes
         this.setHtmlDisplay ()
     }
     showShort () {
         let xs = `Sigma16Module key=${this.modKey} name=${this.baseName}`
         xs += ` {(this.fileHandle ? "has file" : "no file")}\n`
         xs += ` src=${this.currentSrc.slice(0,200)}...\n`
-        xs += ` obj=${this.objText.slice(0,200)}...\n`
+//        xs += ` obj=${this.objText.slice(0,200)}...\n`
         xs += ` AsmInfo:\n`
         xs += this.asmInfo.showShort()
         xs += "End of module\n"
@@ -213,11 +212,7 @@ export class Sigma16Module {
         document.getElementById("EditorTextArea").value = xs;
     }
 }
-
-
-//-------------------------------------------------------------------------
-// Hendle button operations
-//-------------------------------------------------------------------------
+//        this.isMain = true // may be changed by assembler
 
 //-------------------------------------------------------------------------
 // Handle controls for individual modules
@@ -497,6 +492,15 @@ export class Value {
     }
 }
 
+export const ExtVal = new Value (0, External, Fixed);
+
+export function mkConstVal (k) {
+    return new Value (k, Local, Fixed);
+}
+
+export const Zero = mkConstVal (0);
+export const One  = mkConstVal (1);
+export const Two  = mkConstVal (2);
 
 //-------------------------------------------------------------------------
 // Metadata
@@ -765,6 +769,13 @@ export class ObjMd {
         this.objLines = objText.split("\n");
         this.mdText = mdText;
         this.mdLines = this.mdText.split("\n");
+        this.isExecutable = this.checkExecutable (this);
+    }
+    checkExecutable () {
+        let ok = true;
+        ok &= this.objLines.length > 0;
+        // also check for imports
+        return ok;
     }
     hasObjectCode () {
         return this.objText ? true : false
@@ -943,3 +954,7 @@ const emptyExe = new Executable ("no object code", null);
 //        this.modules = new Map ();
 //        this.selectedModule = null;
 //        this.anonymousCount = 0;
+
+//        this.haveExecutable = false;
+//        this.executableCode = "";
+//        this.executableMD = "";
