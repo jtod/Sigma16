@@ -58,13 +58,14 @@ function adjust (ls, om, addr, f) {
         i++;
     }
     if (!found) {
-        console.log (`Linker error: address ${arith.wordToHex4(addr)} not defined`);
+        console.log (`Linker error: address `
+                     + `${arith.wordToHex4(addr)} not defined`);
     }
 }
 
-//-------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // GUI interface to linker
-//-------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // linkerGUI is an interface for the GUI to use; the primary work of
 // linkingis performed by linker.  linkerGUI is invoked when the Link
@@ -92,9 +93,7 @@ export function linkerGUI () {
     console.log (ls.show())
     let exeObjMd = ls.exeObjMd;
     selm.linkMainObjMd = exeObjMd;
-//    let objectText = exeObjMd.objText;
-//    let mdText = exeObjMd.mdText;
-//    let listing = ""; // result.listing;
+    console.log (`linkerGUI: null? linkMainObjMd = ${null==exeObjMd}`)
     let xs = "<pre class='HighlightedTextAsHtml'>"
 //        + objectText
 //        + listing
@@ -104,8 +103,6 @@ export function linkerGUI () {
     document.getElementById('LP_Body').innerHTML = xs;
     st.env.linkerState = ls;
 }
-//    let xm = st.env.moduleSet.getSelectedModule ();
-//    xm.executable = st.exeObjMd;
 
 export function linkShowObject () {
     console.log ("linkShowObject");
@@ -140,26 +137,6 @@ export function linkShowExecutable () {
     }
     document.getElementById('LP_Body').innerHTML = xs;
 }
-
-/*    showObject should iterate over modules?
-    console.log ("linkShowExecutable");
-    let ls = st.env.linkerState;
-    let code = 'No executable'
-    //    let code = ls.exeCode;
-    let om = ls.exeObjMd
-    if (om) {
-        console.log ('linkShowExecutable have om')
-        let {exeObjMd, exeListing} = om
-        //        code = om.objText
-        code = exeObjMd.objText
-    }
-    let xs = "<pre class='HighlightedTextAsHtml'>"
-        + code
-        + "</pre>";
-    //    document.getElementById('LinkerBody').innerHTML = xs;
-    document.getElementById('LP_Body').innerHTML = xs;
-    }
-*/
 
 // Display the executable metadata; invokded when "Show metadata"
 // button is clicked
@@ -228,11 +205,9 @@ export function linker (exeName, obMdTexts) {
     pass2 (ls); // process imports and relocations
     ls.exeCodeText = emitCode (ls);
     ls.exeMdText = ls.metadata.toText ();
-
-    //    ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);
     ls.exeObjMd = ls.linkErrors.length > 0
-        ? new st.ObjMd ("executable", ls.exeCodeText, lsexeMdText)
-        : null;
+        ? null
+        : new st.ObjMd ("executable", ls.exeCodeText, ls.exeMdText);
     console.log (`Number of linker errors = ${ls.linkErrors.length}`)
     console.log (`Linker errors = ${ls.linkErrors}`)
 //    console.log (ls.exeObjMd.showShort());
@@ -264,7 +239,7 @@ function pass1 (ls) {
         oi.srcLineOrigin = ls.metadata.getPlainLines().length;
         ls.metadata.addSrcLines (oi.metadata.getSrcLines ());
         parseObject (ls, oi);
-        ls.metadata.addSrcLines (oi.metadata.getSrcLines ());
+//        ls.metadata.addSrcLines (oi.metadata.getSrcLines ());
         oi.metadata.translateMap (oi.startAddress, oi.srcLineOrigin)
         ls.metadata.addPairs (oi.metadata.pairs)
         ls.mcount++;
@@ -282,7 +257,7 @@ function parseObject (ls, obj) {
     // relocation constant for the object module
     for (let x of obj.objectLines) {
 //        console.log (`Object line <${x}>`);
-        let fields = parseObjLine (x);
+        let fields = st.parseObjLine (x);
         com.mode.devlog (`--op=${fields.operation} args=${fields.operands}`)
         if (x == "") {
 //            console.log ("skipping blank line");
@@ -423,32 +398,6 @@ function emitObjectWords (ws) {
     return code;
 }
 
-//-------------------------------------------------------------------------
-// Parser
-//-------------------------------------------------------------------------
-
-// A line of object code contains a required operation code, white
-// space, and a required operand which is a comma-separated list of
-// fields that may contain letters, digits, and commas.
-
-export function parseObjLine (xs) {
-    const objLineParser = /^([a-z]+)\s+([\w,]+)$/;
-    const blankLineParser = /^\w*$/;
-    let blankLine = blankLineParser.exec (xs);
-    let splitLine = objLineParser.exec (xs);
-    let operation = "";
-    let operands = [];
-    if (splitLine) {
-        operation = splitLine[1];
-        operands = splitLine[2].split(',');
-    } else if (blankLine) {
-        console.log (`parseObjLine: found blank line <${xs}>`);
-    } else {
-        console.log ('linker error: object line has invalid format: ' + xs);
-    }
-        return {operation, operands}
-}
-
 // deprecated
 
 //    const result = {exe: ls.exeObjMd, listing: ls.listing};
@@ -518,3 +467,34 @@ export function parseObjLine (xs) {
 //    console.log ("linkerGUI exeObjMd");
 //    console.log (exeObjMd);
 //    console.log ("--------------------------");
+
+
+/*    showObject should iterate over modules?
+    console.log ("linkShowExecutable");
+    let ls = st.env.linkerState;
+    let code = 'No executable'
+    //    let code = ls.exeCode;
+    let om = ls.exeObjMd
+    if (om) {
+        console.log ('linkShowExecutable have om')
+        let {exeObjMd, exeListing} = om
+        //        code = om.objText
+        code = exeObjMd.objText
+    }
+    let xs = "<pre class='HighlightedTextAsHtml'>"
+        + code
+        + "</pre>";
+    //    document.getElementById('LinkerBody').innerHTML = xs;
+    document.getElementById('LP_Body').innerHTML = xs;
+    }
+*/
+
+//    let objectText = exeObjMd.objText;
+//    let mdText = exeObjMd.mdText;
+//    let listing = ""; // result.listing;
+//    let xm = st.env.moduleSet.getSelectedModule ();
+//    xm.executable = st.exeObjMd;
+
+//    const result = new ObjMd ("exe", ls.exeCodeText, ls.exeMdText);
+//    ls.exeObjMd = result;
+//    ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);

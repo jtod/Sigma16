@@ -1923,28 +1923,59 @@ export function toggleFullDisplay () {
 	 }  // loses info but makes tab switching faster
 }
 
-//-------------------------------------------------------------------------------
-// Booter
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+// Find executable
+//-------------------------------------------------------------------------
 
-// old version deprecated; get objText and mdText from selected module
+// If there is a linked main, use that; otherwise try for an object
+// module.  Check that it is executable.  Return objMd if found and
+// executable; otherwise return null.
 
-// Find the executable; it may come from assembler (object code) or
-// linker (executable code).
-
-/*
-export function obtainExecutable () {
-    let m = st.env.moduleSet.getSelectedModule();
-    let exe = m.executable ? m.executable : m.objMd;
-    if (exe) {
-        com.mode.devlog (`Found executable for selected module`);
-        return exe;
+function findExecutable () {
+    const m = st.env.moduleSet.getSelectedModule ();
+    let result = null;
+    const exe = m.linkMainObjMd;
+    console.log (`findExecutable null? exe ${exe==null}`)
+    if (exe && exe.checkExecutable()) {
+        console.log ("findExecutable: using linked exe");
+        result = exe;
     } else {
-        com.mode.devlog (`Cannot find executable`);
-        return null;
+        const obj = m.objMd;
+        if (obj && obj.checkExecutable()) {
+            console.log ("findExecutable: using obj");
+            result = obj;
+        }
     }
+    if (result) {
+        console.log (`findExecutable:\n${result.objText}`)
+    } else {
+        console.log ("findExecutable: not found");
+    }
+    return result;
+}
+
+/*    
+    const objMd = m.linkMainObjMd ? m.linkMainObjMd
+          : m.objMd ? m.objMd
+          : null;
+    console.log (`*** findExecutable linkMainObjMd `
+                 + ` ${m.linkMainObjMd ? m.linkMainObjMd.showShort() : "linkMain-objmd-none"}`)
+    console.log (`*** findExecutable objMd ${objMd ? objMd.showShort() : "objmd-none"}`)
+    const exe = !objMd ? null
+          : objMd.checkExecutable() ? objMd
+          : null
+    if (exe) {
+        console.log (`findExecutable: code =\n${exe.objText}`)
+    } else {
+        console.log (`findExecutable: null`)
+    }
+    return exe;
 }
 */
+    
+//-------------------------------------------------------------------------
+// Booter
+//-------------------------------------------------------------------------
 
 export function procBoot (gst) {
     const es = gst.es
@@ -1952,11 +1983,27 @@ export function procBoot (gst) {
     com.mode.devlog (`current emulator mode = ${es.mode}`)
     ab.resetSCB (es)
     let m = st.env.moduleSet.getSelectedModule ();
-//    let exe = obtainExecutable ();
-//    const objectCodeText = exe.objText;
-    //    const metadataText   = exe.mdText;
-    const objectCodeText = m.objText
-    const metadataText = m.mdText
+    //    let objMd = m.objMd
+    const objMd = findExecutable ();
+    if (!objMd) {
+        alert ("No executable object code, cannot boot.\n"
+               + "Set object code by:\n"
+               + "   - assembling a standalone program,\n"
+               + "   - or linking several object modules,\n"
+               + "   - or reading executable .obj.txt file."
+              );
+//        let xs =  "<pre class='HighlightedTextAsHtml'>"
+//            + "<span class='ExecutableStatus'>"
+//            + "Boot failed: module is not executable"
+//            + "</span><br>"
+//            + "</pre>";
+//        document.getElementById('LinkerText').innerHTML = xs;
+        ab.writeSCB (es, ab.SCB_status, ab.SCB_reset)
+        console.log ("boot failed");
+        return;
+    }
+    const objectCodeText = objMd.objText;
+    const metadataText = objMd.mdText
     es.copyable = em.initEsCopyable
 
     initializeProcessorElements (gst) // ????
@@ -1987,7 +2034,7 @@ export function procBoot (gst) {
     for (let i = 0; i < objectCode.length; i++) {
         xs = objectCode[i];
         com.mode.devlog (`boot: objectCode line ${i} = <${xs}>`);
-        fields = link.parseObjLine (xs);
+        fields = st.parseObjLine (xs);
         com.mode.devlog (`boot op=<${fields.operation}>`
                          + ` args=<${fields.operands}>`);
         if (fields.operation == "module") {
@@ -2073,9 +2120,9 @@ export function procBoot (gst) {
     com.mode.devlog ("boot returning");
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Emulator control from the gui
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 function procInterrupt (gst) {
     console.log ('*** procInterrupt')
@@ -2100,9 +2147,9 @@ export function procPause (gst) {
     com.mode.devlog ("em wrote procPause request")
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Elapsed time clock
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 const ClockWidth = 7 // number of characters to display
 
@@ -2164,9 +2211,9 @@ export function test1 (es) {
     refreshRFdiysplay (es)
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Running the emulator
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Main interface function to step one instruction; runs in main gui
 // thread
@@ -2279,9 +2326,9 @@ function procRun () {
     }
 }
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Breakpoint
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Sigma16 used to have a rich facility for setting breakpoints, and
 // this will be reinstated (probably summer 2021).  (The flexible
@@ -2351,9 +2398,9 @@ function breakClose (gst) {
     hideBreakDialogue ();
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Emulator thread
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 function logShmStatus (es) {
     let status = ab.showSCBstatus (es)
@@ -2374,9 +2421,9 @@ function logShmStatus (es) {
     return xs
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Emulator state
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 
 function mkMainEmulatorState () {
@@ -2388,9 +2435,9 @@ function mkMainEmulatorState () {
         () => finishRun (gst) )
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // System state vector
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Memory is allocated in the main thread and made available to the
 // emulator in the main thread by saving it in gst.es.vecbuf.  If
@@ -2434,9 +2481,9 @@ function allocateStateVector () {
 //    ab.testSysStateVec (es)  // keep this: important testing tool
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // EMWT communications protocol
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // The main gui thread and emulator thread communicate through two
 // mechanisms: message passing and shared memory.  A consistent
@@ -2683,9 +2730,9 @@ function initializeEmwtProtocol (es) {
     })
 }
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Dev tools
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Needed only for console debugging; otherwise can be deleted or
 // commented out
@@ -2745,7 +2792,6 @@ function devTools100 () {
     
 }
 
-
 function devTools102 () {
     console.log ("DevTools102 clicked");
     action102 ()
@@ -2769,9 +2815,9 @@ function devTools106 () {
     action106 ()
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Debug, testing, and experiments
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Each field controls debug/test output for one aspect of the
 // program.  The output will be produced iff the field is set to true.
@@ -2862,9 +2908,9 @@ function editorButton1() {
     window.location.hash = "#HREFTESTING";
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Test pane
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // From emulator.js
 
@@ -2898,9 +2944,9 @@ function testpane3 () {
     com.mode.devlog ('testpane 3 clicked');
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Initialization
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 function initializeMainEmulator () {
     em.initializeMachineState (gst.es)
@@ -2997,9 +3043,9 @@ function unhighlightArchButton (a) {
     s.border = '2px solid gray'
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Functions called by EmCore
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 function printnum (x) {
     console.log (`printnum: ${x}`)
@@ -3013,9 +3059,9 @@ function barprint (x) {
     console.log (`barprint: ${x}`)
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // EmCore
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // Most of the source modules can be loaded by the main html file,
 // using ./ to find the file location.  However, the actual URL of the
@@ -3140,9 +3186,9 @@ function testEmCore () {
 }
 window.testEmCore = testEmCore
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Testing
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 function runtests () {
     console.log ("runtests starting")
@@ -3234,3 +3280,30 @@ window.onload = function () {
 //    smod.refreshModulesList ();
 
 //    m.setHtmlDisplay ()
+
+// Booter
+// old version deprecated; get objText and mdText from selected module
+
+// Find the executable; it may come from assembler (object code) or
+// linker (executable code).
+
+/*
+export function obtainExecutable () {
+    let m = st.env.moduleSet.getSelectedModule();
+    let exe = m.executable ? m.executable : m.objMd;
+    if (exe) {
+        com.mode.devlog (`Found executable for selected module`);
+        return exe;
+    } else {
+        com.mode.devlog (`Cannot find executable`);
+        return null;
+    }
+}
+*/
+
+// procBoot    
+//    let exe = obtainExecutable ();
+//    const objectCodeText = exe.objText;
+//    const metadataText   = exe.mdText;
+//    const objectCodeText = m.objText
+//    const metadataText = m.mdText

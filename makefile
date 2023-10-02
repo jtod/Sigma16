@@ -33,8 +33,15 @@
 #    - make setVersion
 #    - edit docs/UserGuide/Sigma16UserGuide.org,
 #        #+DATE: Version 3.6.4, August 2023
-#    - Use emacs to build html and pdf: ctl-c ctl-e h h, ctl-C ctl-E l p
-#    - edit docs/welcome/welcome.org, build html ctl-c ctl-e h h
+#          NO LONGER NEEDED, it uses ../VersionMacro.org which is written
+#          by make setVersion
+
+# Building documents
+#    - edit docs/welcome/welcome.org
+#    - edit docs/UserGuide/Sigma16UserGuide.org
+#    - Use emacs to build html and pdf
+#      - build html: ctl-c ctl-e h h
+#      - build pdf: ctl-c ctl-e l l, then pdflatex Sigma16UserGuide
 
 # *** Snapshot from time to time
 # On development machine:
@@ -156,6 +163,7 @@ VERSION:=$(shell cat src/package.json | grep version | head -1 | awk -F= "{ prin
 YEAR=$(shell date +"%Y")
 MONTHYEAR=$(shell date +"%B %Y")
 YEARMONTHDAY=$(shell date +"%F")
+YEARMONTHDAYTIME=$(shell date +"%F-%H-%M")
 
 # Source directory, contains development version
 S16_DEV_SRC_DIR=$(S16_LOCAL_BUILD_DIR)/Sigma16
@@ -191,6 +199,13 @@ showconfig:
 #--------------------------------------------------------------------------
 # Check documents
 #--------------------------------------------------------------------------
+
+docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex
+	pdflatex docs/UserGuide/Sigma16UserGuide
+
+copyDraftGuide : docs/UserGuide/Sigma16UserGuide.pdf
+	cp docs/UserGuide/Sigma16UserGuide.pdf $(SIGMA)/editing-drafts/$(YEARMONTHDAYTIME)-Sigma16UserGuide.pdf
+	cp docs/UserGuide/Sigma16UserGuide.html $(SIGMA)/editing-drafts/$(YEARMONTHDAYTIME)-Sigma16UserGuide.html
 
 #--------------------------------------------------------------------------
 # Preparing a release

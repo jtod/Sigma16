@@ -3,9 +3,10 @@
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
 #+DATE: {{{S16version()}}}
+# comment out DATE definition above when exporting just one section
 
 #+LATEX_CLASS: article
-#+LATEX_CLASS_OPTIONS: [a4paper,11pt,twoside]
+#+LATEX_CLASS_OPTIONS: [a4paper,11pt]
 #+LATEX_HEADER: \usepackage{sigma16}
 
 # This file is part of Sigma16: https://github.com/jtod/Sigma16.
@@ -45,6 +46,8 @@
 #+END_EXPORT
 
 * Introduction
+
+new test
 
 this is a test after changing OneDrive back to C two three
 
@@ -1732,7 +1735,7 @@ fields.
 Each field contains 4 bits representing a binary number between 0
 and 15.
 
-[[file:svg/RRRformat.pdf]]
+# [[file:svg/RRRformat.pdf]]
 
 - op (bits 15 to 12) is the operation code, usually called /opcode/.
   This determines the operation to be performed.  If the opcode is
@@ -1759,7 +1762,7 @@ this instruction is 0492.
 RX instructions specify a memory location as well as a register
 operand.  The machine language representation is two words:
 
-[[file:svg/RXformat.pdf]]
+# [[file:svg/RXformat.pdf]]
 
 
 The RX instruction format is used for instructions that use a memory
@@ -1865,7 +1868,7 @@ the instructions.
 ** Modules and linking
 ** System control registers
 
-[[./figures/control-block-pc.png]]
+# [[./figures/control-block-pc.png]]
 
 ** Interrupts
 
@@ -3739,7 +3742,7 @@ for several reasons:
 
 *** Timer: timeron, timeroff
 
-** Table of instructions
+* Summary of instruction set
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -3794,73 +3797,135 @@ consist of one of the following:
   constant q (in the fgh fields)
 - 
 
-  
-|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
-| Name     | ISA  | R15 | P | Fmt | Afmt  | Args         | Op   | Effect                             |                                                  |
-|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
-| add      | Core | cc  |   | RRR | RRR   | D,A,B        | 0    | Rd := Ra + Rb                      |                                                  |
-| sub      | Core | cc  |   | RRR | RRR   | D,A,B        | 1    | Rd := Ra - Rb                      |                                                  |
-| mul      | Core | cc  |   | RRR | RRR   | D,A,B        | 2    | Rd := Ra * Rb                      |                                                  |
-| div      | Core | rem |   | RRR | RRR   | D,A,B        | 3    | Rd := Ra / Rb, R15 := Ra rem Rb    |                                                  |
-| cmp      | Core | cc  |   | RRR | RR    | D,A          | 4    | R15 := Ra cmp Rb                   |                                                  |
-| addc     | Std  | cc  |   | RRR | RRR   | D,A,B        | 5    | Rd := Ra + Rb + R15.carry          |                                                  |
-| muln     | Std  | d   |   | RRR | RRR   | D,A,B        | 6    | R15++Rd := Ra :*: Rb               |                                                  |
-| divn     | Std  | d   |   | RRR | RRR   | D,A,B        | 7    | R15++Rd := R15++Ra :/: Rb          |                                                  |
-|          | Core |     |   | RRR |       | D,A,B        | 8    | nop, reserved for experimenting -- |                                                  |
-|          | Core |     |   | RRR |       | D,A,B        | 9    | nop, reserved for experiment --    |                                                  |
-|          | Core |     |   | RRR |       | D,A,B        | a    | nop, reserved for experiment --    |                                                  |
-|          | Core |     |   | RRR |       | D,A,B        | b    | nop, reserved for experiment --    |                                                  |
-| trap     | Core |     |   | RRR | RRR   | D,A,B        | c    | user interrupt                     |                                                  |
-|          |      |     |   |     |       |              | d    | nop, reserved                      |                                                  |
-|          |      |     |   |     |       |              | e    | escape to EXP format               |                                                  |
-|          |      |     |   |     |       |              | f    | escape to RX format                |                                                  |
-|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
-| lea      | Core |     |   | RX  | RX    | D,A[Disp]    | f,0  | Rd := ea                           |                                                  |
-| load     | Core |     |   | RX  | RX    | D,A[Disp]    | f,1  | Rd := M[ea]                        |                                                  |
-| store    | Core |     |   | RX  | RX    | D,A[Disp]    | f,2  | M[ea] := Rd                        |                                                  |
-| jump     | Core |     |   | RX  | X     | D,A[Disp]    | f,3  | pc := ea                           |                                                  |
-| jumpc0   | Core |     |   | RX  | kX    | J,A[Disp]    | f,4  | R15.k=0 ==> pc := ea               |                                                  |
-| jumpc1   | Core |     |   | RX  | kX    | J,A[Disp]    | f,5  | R15.k=1 ==> pc := ea               |                                                  |
-| jal      | Core |     |   | RX  | RX    | D,A[Disp]    | f,6  | Rd := pc, pc := ea                 |                                                  |
-| testset  | Sys  |     |   | RX  | RX    | D,A[Disp]    | f,7  | Rd := M[ea], M[ea] := 1            |                                                  |
-|          |      |     |   | RX  |       |              | f,8  | -- reserved --                     |                                                  |
-|          |      |     |   | RX  |       |              | ...  | -- reserved --                     |                                                  |
-|          |      |     |   | RX  |       |              | f,f  | -- reserved --                     |                                                  |
-|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
-| brf      | Std  |     |   | EXP | K     | Disp         | e,00 | pc := pc+2+fgh                     |                                                  |
-| brb      | Std  |     |   | EXP | K     | Disp         | e,01 | pc := pc+2-fgh                     |                                                  |
-| brfc0    | Std  |     |   | EXP | RkK   | D,K,Q        | e,02 | !Rd.e => pc += 2+fgh               |                                                  |
-| brbc0    | Std  |     |   | EXP | RkK   | D,K,Q        | e,03 | !Rd.e => pc += 2-fgh               |                                                  |
-| brfc1    | Std  |     |   | EXP | RkK   | D,K,Q        | e,04 | Rd.e  => pc += 2+fgh               |                                                  |
-| brbc1    | Std  |     |   | EXP | RkK   | D,K,Q        | e,05 | Rd.e  => pc += 2-fgh               |                                                  |
-| brfz     | Std  |     |   | EXP | RK    | D,Disp       | e,06 | Rd=0  => pc += 2+fgh               |                                                  |
-| brbz     | Std  |     |   | EXP | Rk    | D,Disp       | e,07 | Rd=0  => pc += 2-fgh               |                                                  |
-| brfnz    | Std  |     |   | EXP | RK    | D,Disp       | e,08 | Rd!=0 => pc += 2+fgh               |                                                  |
-| brbnz    | Std  |     |   | EXP | RK    | D,Disp       | e,09 | Rd!=0 => pc += 2-fgh               |                                                  |
-| dispatch | Std  |     |   | EXP | RkK   | D,Disp       | e,0a | Rd!=0 => pc += 2-fgh               |                                                  |
-| save     | Std  |     |   | EXP | RRX   | Rd,Re,gh[Rf] | e,0b | M[ea] := R1, ..., M[ea+d-1] := Rd  |                                                  |
-| restore  | Std  |     |   | EXP | RRX   | D,E,P        | e,0c | R1 := M[ea], ..., Rd := M[ea+d-1]  |                                                  |
-| push     | Std  | cc  |   | EXP | RRR   | D,E,F        | e,0d | M[ea] := Rd, Rb++                  |                                                  |
-| pop      | Std  | cc  |   | EXP | RRR   | D,E,F        | e,0e | Rb--, Rd := M[ea]                  |                                                  |
-| top      | Std  | cc  |   | EXP | RRR   | D,E,F        | e,1f | Rb--, Rd := M[ea]                  |                                                  |
-| shiftl   | Std  |     |   | EXP | RRk   | D,E,L        | e,10 | Rd := Ra shl b                     |                                                  |
-| shiftr   | Std  |     |   | EXP | RRk   | D,E,L        | e,11 | Rd := Ra shr b                     |                                                  |
-| logicw   | Std  |     |   | EXP | RRRk  | Rd,Re,Rf,h   | e,12 | Rd := Re (lut g) Rf                | logicw R5,R7,R2,x ; R5 := R7 xor R2              |
-| logicr   | Std  |     |   | EXP | Rkkkk | Rd,e,f,g,h   | e,13 | Rd.e := Rd.f (lut h) Rd.g          | logicr R3,12,9,2,6 ; R3.12 := R3.9 xor R3.6      |
-| logicb   | Std  |     |   | EXP | RkRkk | Rd,e,Rf,g,h  | e,14 | Rd.e := Rd.f (lut h) Rd.g          | logicrcc R2,3,R7,8,6 ; R15.logb := R2.3 xor R7.8 |
-| extract  | Std  |     |   | EXP | RkkRk | D,E,L,M,N    | e,15 | Rd := extract Rd di size Rs si     |                                                  |
-| extracti | Std  |     |   | EXP | RkkRk | D,E,L,M,N    | e,16 | Rd := extracti Rd di size Rs si    |                                                  |
-| getctl   | Sys  |     | P | EXP | RC    | D,C          | e,17 | Rd := Sc                           |                                                  |
-| putctl   | Sys  |     | P | EXP | RC    | D,           | e,18 | Sc := Rd                           |                                                  |
-| resume   | Sys  |     | P | EXP | null  | R            | e,19 | pc := ipc, status := istatus       |                                                  |
-| timeron  | Sys  |     | P | EXP | Rk    | Rd,efgh      | e,1a | timer := efgh, enable := 1         |                                                  |
-| timeroff | Sys  |     | P | EXP |       |              | e,1b | timer := 0, enable := =            |                                                  |
-|          |      |     |   | EXP |       |              | e,1c | reserved                           |                                                  |
-|          |      |     |   | EXP |       |              | ...  | reserved                           |                                                  |
-|          |      |     |   | EXP |       |              | e,ff | reserved                           |                                                  |
-|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
-|          |      |     |   |     |       |              |      | <33>                               |                                                  |
-|----------+------+-----+---+-----+-------+--------------+------+------------------------------------+--------------------------------------------------|
+*** RRR format
+
+This is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.  This is some plain text. This is some
+plain text.  This is some plain text. This is some plain text.  This
+is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.
+
+|------+---+-------+----+---------------------------------|
+| Name | P | Args  | Op | Effect                          |
+|------+---+-------+----+---------------------------------|
+| add  |   | d,a,b |  0 | Rd := Ra + Rb (cc)              |
+| sub  |   | d,a,b |  1 | Rd := Ra - Rb (cc)              |
+| mul  |   | d,a,b |  2 | Rd := Ra * Rb (cc)              |
+| div  |   | d,a,b |  3 | Rd := Ra / Rb, R15 := Ra rem Rb |
+| cmp  |   | d,a   |  4 | R15 := Ra cmp Rb (cc)           |
+| addc |   | d,a,b |  5 | Rd := Ra + Rb + R15.carry (cc)  |
+| muln |   | d,a,b |  6 | R15++Rd := Ra :*: Rb            |
+| divn |   | d,a,b |  7 | R15++Rd := R15++Ra :/: Rb       |
+|      |   | d,a,b |  8 | nop, reserved                   |
+|      |   | d,a,b |  9 | nop, reserved                   |
+|      |   | d,a,b |  a | nop, reserved                   |
+|      |   | d,a,b |  b | nop, reserved                   |
+| trap |   | d,a,b |  c | user interrupt                  |
+|      |   |       |  d | nop, reserved                   |
+|      |   |       |  e | escape to EXP format            |
+|      |   |       |  f | escape to RX format             |
+
+This is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.  This is some plain text. This is some
+plain text.  This is some plain text. This is some plain text.  This
+is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.
+
+*** RX format
+
+All RX instructions apart from testset are in the Core subset.
+
+
+This is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.  This is some plain text. This is some
+plain text.  This is some plain text. This is some plain text.  This
+is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.
+
+
+|---------+---+--------+-----+-------------------------|
+| Name    | P | Args   | Op  | Effect                  |
+|---------+---+--------+-----+-------------------------|
+| lea     |   | d,a[x] | f,0 | Rd := ea                |
+| load    |   | d,a[x] | f,1 | Rd := M[ea]             |
+| store   |   | d,a[x] | f,2 | M[ea] := Rd             |
+| jump    |   | d,a[x] | f,3 | pc := ea                |
+| jumpc0  |   | j,a[x] | f,4 | R15.k=0 ==> pc := ea    |
+| jumpc1  |   | j,a[x] | f,5 | R15.k=1 ==> pc := ea    |
+| jal     |   | d,a[x] | f,6 | Rd := pc, pc := ea      |
+| testset |   | d,a[x] | f,7 | Rd := M[ea], M[ea] := 1 |
+|         |   |        | f,8 | nop, reserved           |
+|         |   |        | ... | nop, reserved           |
+|         |   |        | f,f | nop, reserved           |
+|---------+---+--------+-----+-------------------------|
+
+
+This is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.  This is some plain text. This is some
+plain text.  This is some plain text. This is some plain text.  This
+is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.
+
+
+*** EXP format
+
+Rkk D,K,Q
+
+
+This is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.  This is some plain text. This is some
+plain text.  This is some plain text. This is some plain text.  This
+is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.
+
+
+|----------+---+--------------+------+-----------------------------------|
+| Name     | P | Args         | Op   | Effect                            |
+|----------+---+--------------+------+-----------------------------------|
+| brb      |   | x            | e,01 | pc := pc+2-fgh                    |
+| brfc0    |   | d,k,q        | e,02 | !Rd.e => pc += 2+fgh              |
+| brbc0    |   | d,k,q        | e,03 | !Rd.e => pc += 2-fgh              |
+| brfc1    |   | d,k,q        | e,04 | Rd.e  => pc += 2+fgh              |
+| brbc1    |   | d,k,q        | e,05 | Rd.e  => pc += 2-fgh              |
+| brfz     |   | d,x          | e,06 | Rd=0  => pc += 2+fgh              |
+| brbz     |   | d,x          | e,07 | Rd=0  => pc += 2-fgh              |
+| brfnz    |   | d,x          | e,08 | Rd!=0 => pc += 2+fgh              |
+| brbnz    |   | d,x          | e,09 | Rd!=0 => pc += 2-fgh              |
+| dispatch |   | d,x          | e,0a | Rd!=0 => pc += 2-fgh              |
+| save     |   | Rd,e,gh[Rf]  | e,0b | M[ea] := R1,                      |
+|          |   |              |      | ..., M[ea+d-1] := Rd              |
+|          |   |              |      | ..., M[ea+d-1] := Rd              |
+| restore  |   | Rd,e,gh[Rf]  | e,0c | R1 := M[ea],
+|          |   |              |      | ..., Rd := M[ea+d-1]              |
+| push     |   | Rd,E,F       | e,0d | M[ea] := Rd, Rb++                 |
+| pop      |   | D,E,F        | e,0e | Rb--, Rd := M[ea]                 |
+| top      |   | D,E,F        | e,1f | Rb--, Rd := M[ea]                 |
+| shiftl   |   | D,E,L        | e,10 | Rd := Ra shl b                    |
+| shiftr   |   | D,E,L        | e,11 | Rd := Ra shr b                    |
+| logicw   |   | Rd,Re,Rf,h   | e,12 | Rd := Re (lut g) Rf               |
+| logicr   |   | Rd,e,f,g,h   | e,13 | Rd.e := Rd.f (lut h) Rd.g         |
+| logicb   |   | Rd,e,Rf,g,h  | e,14 | Rd.e := Rd.f (lut h) Rd.g         |
+| extract  |   | Rd,E,L,M,N   | e,15 | Rd := extr Rd di sz Rs si         |
+| extracti |   | Rd,E,L,M,N   | e,16 | Rd := extri Rd di sz Rs si        |
+| getctl   | P | Rd,c         | e,17 | Rd := Sc                          |
+| putctl   | P | Rd,c         | e,18 | Sc := Rd                          |
+| resume   | P |              | e,19 | pc := ipc, status := istatus      |
+| timeron  | P | Rd,efgh      | e,1a | timer := efgh, enable := 1        |
+| timeroff | P |              | e,1b | timer := 0, enable := =           |
+|          |   |              | e,1c | reserved                          |
+|          |   |              | ...  | reserved                          |
+|          |   |              | e,ff | reserved                          |
+|----------+---+--------------+------+-----------------------------------|
+|          |   |              |      | <33>                              |
+|----------+---+--------------+------+-----------------------------------|
+
+
+This is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.  This is some plain text. This is some
+plain text.  This is some plain text. This is some plain text.  This
+is some plain text. This is some plain text.  This is some plain
+text. This is some plain text.
+
 
 #+BEGIN_EXPORT html
 </div">
@@ -5752,7 +5817,7 @@ $ tex2svg '\sin^2{\theta} + \cos^2{\theta} = 1' > identity.svg
 #+END_EXAMPLE
 
 Here is a formula
-x  #+INCLUDE: "./svg/identity.svg" export html
+# x  #+INCLUDE: "./svg/identity.svg" export html
 which contains some math notation.  This looks good for display equations,
 but not so much for inline notation.
 
@@ -5809,7 +5874,7 @@ given, then org will put in a button to click to get the image, but
 what I want is for the image to appear inline.)
 
 That code appears here:
-[[file:svg/RRRformat.svg]]
+# [[file:svg/RRRformat.svg]]
 Org produces the following code in the html export:
 
 #+BEGIN_EXAMPLE
@@ -5857,7 +5922,7 @@ The svg specifies xmlns but this external reference is a problem
 
 Here is the figure
 
-#+HTML: <img src='svg/simplefig.svg'/>
+# #+HTML: <img src='svg/simplefig.svg'/>
 
 That was an external svg figure
 

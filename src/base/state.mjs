@@ -771,10 +771,24 @@ export class ObjMd {
         this.mdLines = this.mdText.split("\n");
         this.isExecutable = this.checkExecutable (this);
     }
+    // return true if this ObjMd is executable (i.e. can be booted)
     checkExecutable () {
+        console.log (`checkExecutalbe ${this.objText}`)
         let ok = true;
         ok &= this.objLines.length > 0;
-        // also check for imports
+        // If there is an import it isn't executable
+        for (let i = 0; i < this.objLines.length; i++) {
+            const xs = this.objLines[i];
+            const fields = parseObjLine (xs);
+            if (fields.operation == "import") {
+                com.mode.devlog (`check executable: import`
+                                 + ` (${fields.operands})`)
+                console.log (`check executable: import`
+                                 + ` (${fields.operands})`)
+                ok = false;
+            }
+        }
+        console.log (`checkExecutable = ${ok}`)
         return ok;
     }
     hasObjectCode () {
@@ -788,6 +802,32 @@ export class ObjMd {
             + this.mdLines.slice(0,3).join("\n")
         return xs;
     }
+}
+
+//-------------------------------------------------------------------------
+// Object code parser
+//-------------------------------------------------------------------------
+
+// A line of object code contains a required operation code, white
+// space, and a required operand which is a comma-separated list of
+// fields that may contain letters, digits, and commas.
+
+export function parseObjLine (xs) {
+    const objLineParser = /^([a-z]+)\s+([\w,]+)$/;
+    const blankLineParser = /^\w*$/;
+    let blankLine = blankLineParser.exec (xs);
+    let splitLine = objLineParser.exec (xs);
+    let operation = "";
+    let operands = [];
+    if (splitLine) {
+        operation = splitLine[1];
+        operands = splitLine[2].split(',');
+    } else if (blankLine) {
+        console.log (`parseObjLine: found blank line <${xs}>`);
+    } else {
+        console.log ('linker error: object line has invalid format: ' + xs);
+    }
+        return {operation, operands}
 }
 
 //-------------------------------------------------------------------------
@@ -855,7 +895,7 @@ export class ObjectInfo {
         this.obmdtext = obmdtext;
         // obmdtext contains basename, object and metadata strings
         this.objMd = null; // ?????????
-        this.baseName = "no basename"; // this.obmdtext.baseName;
+        this.baseName = "anonymous"; // this.obmdtext.baseName;
         this.objText = this.obmdtext.objText;
         this.mdText = this.obmdtext.mdText;
         this.objectLines = [];
