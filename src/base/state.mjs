@@ -77,10 +77,12 @@ export class SystemState {
 export const env = new SystemState ();
 
 //-------------------------------------------------------------------------
-// Sigma16 module
+// Module keys
 //-------------------------------------------------------------------------
 
-// Generate a fresh module key
+// Each module has a unique key.  Generate a fresh module key when a
+// module is created.  The key will never be reused.
+
 export let nextModKey = 0
 export function newModKey () {
     let i = nextModKey
@@ -88,34 +90,39 @@ export function newModKey () {
     return i
 }
 
-// Container for all the data related to a specific source module.
+//-------------------------------------------------------------------------
+// Sigma16 module
+//-------------------------------------------------------------------------
+
+// Container for all the data related to a specific module.
 
 export class Sigma16Module {
     constructor () {
         // identify the module
         this.modKey = newModKey () // Persistent and unique gensym key
         this.modIdx = env.moduleSet.modules.length // Transient arr index
-        this.baseName = "anonymous"
+        this.moduleName = "anonymous" // from filename or module stmt
         // possible file associated with module
         this.fileHandle = null
         this.filename = "(no file)"
+        this.baseName = "anonymous"
         this.fileRecord = null
         this.fileInfo = null // can hold instance of FileInfo
         // data for the module
         this.currentSrc = "" // master copy of (possibly edited) source code
         this.savedSrc = "" // source code as last saved/read to/from file
         this.asmInfo = new AsmInfo (this); // filled in by assembler
-        this.objMd = null;
-        this.linkMainObjMd = null;
-        // updated by assembler, linker, or reading file
-//        this.objText = ""
-//        this.mdText = ""
+        this.objMd = null; // object code for module
+        this.linkMainObjMd = null; // executable for linked main module
         // DOM elements for display on Modules page
         this.displayElt = null // DOM element for module display on page
+//        this.displayModuleNameElt = null
+        this.displayModuleNameElt = document.createTextNode ("initModNam")
         this.displaySrcLineElt = null
         this.selectElt = null // set when addModule
         this.closeElt = null // set when addModule
         this.upElt = null // set when addModule
+        this.modNameId = `MODNAME-${this.modKey}`
         this.selectId = `SELECT-${this.modKey}`
         this.closeId = `CLOSE-${this.modKey}`
         this.upId = `UP-${this.modKey}`
@@ -123,7 +130,7 @@ export class Sigma16Module {
         this.setHtmlDisplay ()
     }
     showShort () {
-        let xs = `Sigma16Module key=${this.modKey} name=${this.baseName}`
+        let xs = `Sigma16Module key=${this.modKey} name=${this.moduleName}`
         xs += ` {(this.fileHandle ? "has file" : "no file")}\n`
         xs += ` src=${this.currentSrc.slice(0,200)}...\n`
 //        xs += ` obj=${this.objText.slice(0,200)}...\n`
@@ -142,13 +149,14 @@ export class Sigma16Module {
         return this.asmInfo.asmSrcText
     }
     changeAsmSrc (txt) { // new text may not be saved in file
-        console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
+        //        console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
+        console.log (`Module ${this.modKey} changeAsmSrc`)
         this.currentSrc = txt
         document.getElementById("EditorTextArea").value = txt
         this.displaySrcLineElt.textContent = txt.split("\n")[0]
     }
     changeSavedAsmSrc (txt) { // new text is saved in file
-        console.log (`Module ${this.modKey} changeSavedAsmSrc ${txt}`)
+//        console.log (`Module ${this.modKey} changeSavedAsmSrc ${txt}`)
         this.currentSrc = txt
         this.savedSrc = txt
         document.getElementById("EditorTextArea").value = txt
@@ -159,10 +167,32 @@ export class Sigma16Module {
         this.selectElt.textContent = selTxt
         env.moduleSet.previousSelectedIdx = this.modIdx
     }
+    setModuleName (txt) {
+        console.log (`setModuleName ${txt}`)
+        this.moduleName = txt
+        this.displayModuleNameElt.textContent = txt
+        console.log (`Setting module name ${txt}`
+                     + ` for key=${this.modKey}`)
+    }
     setHtmlDisplay () {
         const modPara = document.createElement ("p")
+
+
         const t1 = document.createElement ("span")
-        t1.innerHTML = `<b>Module key=${this.modKey}.</b> `
+        const t1b = document.createElement ("b")
+        const textModule = document.createTextNode ("Module ")
+        t1b.appendChild (textModule)
+//        const textModuleName = document.createTextNode (this.moduleName)
+//        t1b.appendChild (textModuleName)
+        t1b.appendChild (this.displayModuleNameElt)
+        const textSpaceAfterName = document.createTextNode (" ")
+        t1b.appendChild (textSpaceAfterName)
+        // ????? key is internal, maybe not show it?
+//        const textModuleKey =  document.createTextNode (this.modKey)
+//        t1b.appendChild (textModuleKey)
+//        t1.innerHTML = `<b>Module ${this.moduleName} `
+        //            + `key=${this.modKey}.</b> `
+        t1.appendChild (t1b)
         modPara.appendChild (t1)
 
         const t2 = document.createElement ("span")
@@ -329,24 +359,7 @@ export class ModuleSet {
     getSelectedModule () {
         return this.modules [this.selectedModuleIdx]
     }
-    generateDisplay () {
-        let xs = "<div class='HighlightedTextAsHtml'>\n"
-        xs += "<h3>List of modules</h1>\n"
-        this.modules.forEach ((m,i,a) => {
-            let y = m.show();
-            xs += `<b>Module.</b> (key=${m.modKey})`
-            xs += (i==this.selectedModuleIdx ? ' Selected' : '')
-            xs += `<button id='${this.selectId}'>Select</button>`;
-            xs += `<button id='${this.closeId}'>Close</button>`;
-            xs += `<br>\n`
-            xs += m.show()
-            xs += "<br>\n"
-        })
-        xs += "</div>\n"
-        console.log (`\n*** Module Set (html)\n${xs}\n***`)
-        return xs
-        }
-    refreshDisplay () {
+    refreshDisplay () { // this is used
          for (let i = 0; i < env.moduleSet.modules.length; i++) {
             console.log (`*** ${i} ${env.moduleSet.modules[i].modIdx} `)
             console.log (env.moduleSet.modules[i]
@@ -895,7 +908,8 @@ export class ObjectInfo {
         this.obmdtext = obmdtext;
         // obmdtext contains basename, object and metadata strings
         this.objMd = null; // ?????????
-        this.baseName = "anonymous"; // this.obmdtext.baseName;
+        this.moduleName = "anonymous"; // this.obmdtext.baseName;
+//        this.baseName = "anonymous"; // this.obmdtext.baseName;
         this.objText = this.obmdtext.objText;
         this.mdText = this.obmdtext.mdText;
         this.objectLines = [];
@@ -998,3 +1012,28 @@ const emptyExe = new Executable ("no object code", null);
 //        this.haveExecutable = false;
 //        this.executableCode = "";
 //        this.executableMD = "";
+
+/* obsolete method of ModuleSet
+    generateDisplayISTHISUSED () { // this is not used
+        let xs = "<div class='HighlightedTextAsHtml'>\n"
+        xs += "<h3>List of modules</h1>\n"
+        this.modules.forEach ((m,i,a) => {
+            let y = m.show();
+            xs += `<b>Module.</b> (key=${m.modKey})`
+            xs += (i==this.selectedModuleIdx ? ' Selected' : '')
+            xs += `<button id='${this.selectId}'>Select</button>`;
+            xs += `<button id='${this.closeId}'>Close</button>`;
+            xs += `<br>\n`
+            xs += m.show()
+            xs += "<br>\n"
+        })
+        xs += "</div>\n"
+        console.log (`\n*** Module Set (html)\n${xs}\n***`)
+        return xs
+        }
+*/
+
+// Sigma16Module, these are now in objMd
+        // updated by assembler, linker, or reading file
+//        this.objText = ""
+//        this.mdText = ""

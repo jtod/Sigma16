@@ -37,6 +37,9 @@
 #          by make setVersion
 
 # Building documents
+#    - make setVersion
+#    - edit README.org
+#      - github renders README.org, README.html is only for previewing
 #    - edit docs/welcome/welcome.org
 #    - edit docs/UserGuide/Sigma16UserGuide.org
 #    - Use emacs to build html and pdf
@@ -197,15 +200,22 @@ showconfig:
 	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
 
 #--------------------------------------------------------------------------
-# Check documents
+# Documents
 #--------------------------------------------------------------------------
 
+# Copy draft documents for markup on iPad
+ANNOTATED_DOCS=/cygdrive/c/Users/johnt/iCloudDrive/Sigma-editing-docs
+
 docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex
-	pdflatex docs/UserGuide/Sigma16UserGuide
+	cd docs/UserGuide ; pdflatex Sigma16UserGuide
+#	pdflatex docs/UserGuide/Sigma16UserGuide
+#	pdflatex docs/UserGuide/Sigma16UserGuide
+#	makeindex docs/UserGuide/Sigma16UserGuide
+#	pdflatex docs/UserGuide/Sigma16UserGuide
 
 copyDraftGuide : docs/UserGuide/Sigma16UserGuide.pdf
-	cp docs/UserGuide/Sigma16UserGuide.pdf $(SIGMA)/editing-drafts/$(YEARMONTHDAYTIME)-Sigma16UserGuide.pdf
-	cp docs/UserGuide/Sigma16UserGuide.html $(SIGMA)/editing-drafts/$(YEARMONTHDAYTIME)-Sigma16UserGuide.html
+	cp docs/UserGuide/Sigma16UserGuide.pdf $(ANNOTATED_DOCS)/$(YEARMONTHDAYTIME)-Sigma16UserGuide.pdf
+	cp docs/UserGuide/Sigma16UserGuide.html $(ANNOTATED_DOCS)/$(YEARMONTHDAYTIME)-Sigma16UserGuide.html
 
 #--------------------------------------------------------------------------
 # Preparing a release
@@ -328,6 +338,9 @@ installHomepage :
 	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
+#--------------------------------------------------------------------------
+# Clean up files
+#--------------------------------------------------------------------------
 
 clean :
 	find ./ \( -name '*~' \
@@ -339,4 +352,3 @@ clean :
 	  -o -name '*fls' \
 	  -o -name '*fdb_latexmk' \
 	  -o -name 'temp*' \) -delete
-

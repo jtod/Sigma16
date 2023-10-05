@@ -45,7 +45,7 @@ export function saveEditorBufferText () {
     const m = st.env.moduleSet.getSelectedModule ()
     const xs = getEditorBufferText ()
     //    m.currentSrc = xs
-    console.log (`saveEditorBufferText m=${m.modKey} xs=${xs}`)
+//    console.log (`saveEditorBufferText m=${m.modKey} xs=${xs}`)
     m.changeAsmSrc (xs)
 }
 
@@ -65,7 +65,7 @@ export function enterEditor () {
 // Save contents of editor buffer into selected module
 export function leaveEditor () {
     com.mode.devlog ('leaveEditor');
-    console.log (`leave editor, buffer=${getEditorBufferText()}`)
+//    console.log (`leave editor, buffer=${getEditorBufferText()}`)
     saveEditorBufferText ()
 }
 

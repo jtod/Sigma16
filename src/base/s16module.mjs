@@ -77,6 +77,15 @@ export function showModElts () {
 // Supported on Chrome, Edge, but not Safari, Firefox
 //-------------------------------------------------------------------------
 
+// var base = new String(str).substring(str.lastIndexOf('/') + 1);
+
+function getFileBaseName (fname) {
+    const i = fname.indexOf (".");
+    const baseName = fname.substring(0,i);
+    console.log (`getFileBaseName ${fname} ${i} ${baseName}`);
+    return baseName;
+}
+
 export async function openFile () {
     console.log (`ModSet: open file`)
     const openOptions = {
@@ -92,16 +101,20 @@ export async function openFile () {
     const file = await fileHandle.getFile ()
     await file.text ()
         .then (xs => {
-            console.log (`openFile lambda xs = ${xs}`)
+//            console.log (`openFile lambda xs = ${xs}`)
             const fn = file.name
             const m = st.env.moduleSet.addModule ()
-            handleSelect (m)
+            st.handleSelect (m)
             m.changeSavedAsmSrc (xs)
             m.fileHandle = fileHandle
             m.filename = fn
+            //            m.moduleName = `(Read file ${fn})`
+            console.log (`calling m.setModuleName ${fn}`)
+            m.setModuleName (getFileBaseName(fn))
+            console.log (`openFile module ${m.moduleName}`)
             document.getElementById("EditorTextArea").value = xs
             console.log ("openFile just changed asm src")
-            console.log (`openFile received fn=${fn} xs=${xs}`)
+//            console.log (`openFile received fn=${fn} xs=${xs}`)
         }, () => {
             console.log ("failed to read file")
         })
@@ -168,7 +181,7 @@ export async function openDirectory () {
         const xs = await file.text ()
         const fn = await file.name
         const m = st.env.moduleSet.addModule ()
-        handleSelect (m)
+        st.handleSelect (m)
         document.getElementById ("EditorTextArea").value = xs
         m.fileHandle = fh
         m.filename = fn
@@ -189,7 +202,8 @@ export async function openDirectory () {
 export function showFileShort (label, fr) {
     let xs = label;
     if (fr) {
-        xs += `basename=${fr.baseName}`;
+        //        xs += `basename=${fr.baseName}`;
+        xs += `moduleName=${fr.moduleName}`;
         xs += ` stage=${fr.stage.description}`;
         xs += ` fileReadComplete=${fr.fileReadComplete}\n`;
         xs += fr.text.split("\n").slice(0,5).join("\n");
@@ -386,7 +400,7 @@ export function refreshModulesList() {
     for (const bn of st.env.modules.keys ()) {
         const m = st.env.modules.get (bn);
         const selElt = document.getElementById(m.selectId);
-        selElt.addEventListener ("click", event => { handleSelect (bn) });
+        selElt.addEventListener ("click", event => { st.handleSelect (bn) });
         const closeElt = document.getElementById(m.closeId);
         closeElt.addEventListener ("click", event => { handleClose (bn) });
     }

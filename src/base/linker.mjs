@@ -86,10 +86,12 @@ export function linkerGUI () {
             objs.push (m.objMd);
             console.log (`lnk adding ${m.objText}`)
         }
-        console.log (`linkerGUI ${isSel} ${m.baseName}`);
+        //        console.log (`linkerGUI ${isSel} ${m.baseName}`);
+        console.log (`linkerGUI ${isSel} ${m.moduleName}`);
     }
     console.log (`Calling linker with ${objs.length} objects`)
-    let ls = linker (selm.baseName, objs);
+    //    let ls = linker (selm.baseName, objs);
+    let ls = linker (selm.moduleName, objs);
     console.log (ls.show())
     let exeObjMd = ls.exeObjMd;
     selm.linkMainObjMd = exeObjMd;
@@ -230,7 +232,8 @@ function pass1 (ls) {
         console.log (`Linker pass 1: i=${ls.mcount} obtext=${obtext} `)
         let oi = new st.ObjectInfo (ls.mcount, obtext);
         // oi contains info about this module
-        ls.modMap.set (obtext.baseName, oi); // support lookup for imports
+//        ls.modMap.set (obtext.baseName, oi); // support lookup for imports
+        ls.modMap.set (obtext.moduleName, oi); // support lookup for imports
         ls.oiList.push (oi); // list keeps the modules in fixed order
         oi.objectLines = oi.objText.split("\n");
         oi.metadata = new st.Metadata ();
@@ -310,7 +313,8 @@ function pass2 (ls) {
     console.log ("Pass 2");
     for (let i = 0; i < ls.oiList.length; i++) {
         let oi = ls.oiList[i];
-        console.log (`--- pass 2 oi ${i} (${oi.baseName})`);
+        //        console.log (`--- pass 2 oi ${i} (${oi.baseName})`);
+        console.log (`--- pass 2 oi ${i} (${oi.moduleName})`);
         resolveImports (ls, oi);
         resolveRelocations (ls, oi);
     }
@@ -319,7 +323,8 @@ function pass2 (ls) {
 // Resolve the imports for objInfo object
 
 function resolveImports (ls, om) {
-    console.log (`Resolving imports for ${om.baseName}`);
+    //    console.log (`Resolving imports for ${om.baseName}`);
+    console.log (`Resolving imports for ${om.moduleName}`);
     for (const x of om.asmImports) {
         console.log (`  Importing ${x.name} from ${x.mod}`);
         if (ls.modMap.has(x.mod)) { // does import module exist?
@@ -367,8 +372,10 @@ function emitCode (ls) {
     } else {
         for (let i = 0; i < ls.oiList.length; i++) {
             let oi = ls.oiList[i];
-            console.log (`Emitting code for ${oi.baseName}`);
-            exeCode += `module ${oi.baseName}\n`;
+            console.log (`Emitting code for ${oi.moduleName}`);
+            exeCode += `module ${oi.moduleName}\n`;
+//            console.log (`Emitting code for ${oi.baseName}`);
+//            exeCode += `module ${oi.baseName}\n`;
             exeCode += `org ${arith.wordToHex4(oi.startAddress)}\n`;
             for (const b of oi.dataBlocks) {
                 exeCode += emitObjectWords (b.xs);
