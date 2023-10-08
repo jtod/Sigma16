@@ -41,9 +41,12 @@ import * as ct    from './consoletest.mjs';
 
 window.exposeConsole = ct.exposeConsole
 
+// See window.getExampleModuleName = getExampleModuleName below; this
+// should not be necessary.
+
 // Normally runs in user mode, which is the default.  For development
-//and experimentation, set Dev mode.  In console, enter setModeDev()
-//or setModeUser().
+// and experimentation, set Dev mode.  In console, enter setModeDev()
+// or setModeUser().
 
 //-------------------------------------------------------------------------
 //Constant parameters
@@ -989,7 +992,8 @@ function initializeButtons () {
     prepareButton ('EDP_SaveAs',      smod.saveAsFile)
 //    prepareButton ('EDP_Clear',       ed.edClear);
 //    prepareButton ('EDP_Revert',      ed.edRevert);
-    prepareButton ('EDP_Hello_world', () => insert_example(example_hello_world))
+    prepareButton ('EDP_Hello_world', () =>
+        insert_example ("HelloWorld", example_hello_world))
     prepareButton ('EDP_Download', ed.edDownload)  // legacy way to saveas
     // Assembler pane (AP)
     prepareButton ('AP_Assemble',        asm.assemblerGUI);
@@ -1082,7 +1086,7 @@ const modulesKeyMap = new Map ([
     ["KeyH",  toggleModulesHelp],
     //    ["KeyR",  smod.refreshModulesList],
 //    ["KeyR",  st.env.moduleSet.refreshDisplay], ?????????? order of def?
-    ["KeyW",  () => insert_example(example_hello_world)],
+    ["KeyW",  () => insert_example ("HelloWorld", example_hello_world)],
 ])
 
 const examplesKeyMap = new Map ([
@@ -1094,7 +1098,7 @@ const editorKeyMap = new Map ([
     ["KeyC",  ed.edClear],
     ["KeyN",  ed.edNew],
     ["KeyS",  ed.edDownload],
-    ["KeyW",  () => insert_example(example_hello_world)],
+    ["KeyW",  () => insert_example ("HelloWorld", example_hello_world)],
 ])
 
 const asmKeyMap = new Map ([
@@ -1261,27 +1265,59 @@ function checkExample () {
 // A collection of example programs is part of the Sigma16 app, in
 // Sigma16/Examples.  When the user navigates through the indices and
 // selects an example, this program creates a new module and inserts
-// the example text into it.
+// the example text into it.  The text of the example is obtained as
+// follows: (1) the user clicks a link in the Examples page; (2) the
+// browser fetches the file and displays it; (3) the selectExample
+// function obtains the example text using innerHTML; and (4) the
+// function strips off the html tags.  The function obtains the module
+// name from the first line of the example text.  It is required that
+// every example begins with a first line of the form "; EXAMPLENAME:
+// what the example is\n..."
+
 
 function selectExample() {
     console.log ('selectExample')
     let exElt = document.getElementById('ExamplesIframeId');
     let xs = exElt.contentWindow.document.body.innerHTML;
+    console.log (`selectExample xs=[${xs}]`);
     let skipPreOpen = xs.replace(com.openingPreTag,"");
     let skipPreClose = skipPreOpen.replace(com.closingPreTag,"");
     com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
-    let m = st.env.moduleSet.addModule ()
+    console.log (`selectExample ys=[${ys}]`);
+    let m = st.env.moduleSet.addModule ();
     m.changeAsmSrc (ys);
-    st.handleSelect (m)
+    const modName = getExampleModuleName (ys);
+    m.setModuleName (modName);
+    st.handleSelect (m);
 }
+    //    const modName = `[ModName from example first line]`;
 
-// This is an example program that's defined as a string in the JS
-// program, so no file needs to be read.
-function insert_example(exampleText) {
+// Obtain module name from first line of example, which must be of the
+// form "; ModuleName ...".  Standard practice is to put a colon after
+// the module name, like this: "; ModuleName: the is an example...".
+// If the first line of the example doesn't match the standard form, a
+// dummy module name "ExampleModule" is returned.  Any number of
+// spaces may follow the initial ; but good style is to use exactly
+// one space.
+
+export function getExampleModuleName (txt) {
+    let p =/^\;\s*(\w+)/;
+    let m = txt.match (p);
+    let result = m ? m[1] : "ExampleModule";
+    console.log (`getExampleModuleName txt=${txt} m=${m}`);
+    return result;
+}
+window.getExampleModuleName = getExampleModuleName
+
+// Hello World is an example program that's defined as a string in the
+// JS program, so no file needs to be read.
+
+function insert_example (exampleName, exampleText) {
     com.mode.devlog('Inserting Hello World example into editor text');
     let m = st.env.moduleSet.addModule ()
     m.changeAsmSrc (exampleText)
+    m.setModuleName (exampleName)
     st.handleSelect (m)
     document.getElementById("EditorTextArea").value = exampleText
 }

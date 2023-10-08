@@ -37,7 +37,7 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 //----------------------------------------------------------------------
 
 // The assembler finds the currently selected module m, and then picks
-// up the source text from m.currentSrc.  It leaves its results in
+// up the source text from m.currentAsmSrc.  It leaves its results in
 // m.asmInfo.  If it finds the name of the module being assembled from
 // a module statement, it updates the module's record in
 // st.env.moduleSet.
@@ -55,9 +55,9 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 export function enterAssemblerPage () {
     const m = st.env.moduleSet.getSelectedModule ()
     console.log ("enterAssemblerPage")
-    console.log (m.currentSrc)
+    console.log (m.currentAsmSrc)
     const ai = m.asmInfo
-    ai.asmSrcText = m.currentSrc
+    ai.asmSrcText = m.currentAsmSrc
     ai.asmSrcLines = ai.asmSrcText.split("\n")
     mDisplayAsmSource (m)
     ai.metadata.listingDec = []
@@ -406,7 +406,7 @@ function validateChars (xs) {
 
 // Translate assembly language source code to object code, also
 // producing an assembly listing and metadata.  The argument m is an
-// s16module which contains the source code in m.currentSrc.  The
+// s16module which contains the source code in m.currentAsmSrc.  The
 // assembler obtains an existing asmInfo from m, names it ai, and
 // fills in the fields of ai.  This approach enables bidirectional
 // transfer of information about the module between the ModuleSet and
@@ -415,7 +415,7 @@ function validateChars (xs) {
 
 export function assembler (m) {
     const ai = m.asmInfo
-    ai.srcText = m.currentSrc
+    ai.srcText = m.currentAsmSrc
     ai.srcLines = splitLines (ai.srcText)
     console.log (`Entering assembler, ${ai.asmSrcLines.length} source lines`)
 //    console.log (ai.srcLines)
@@ -444,11 +444,11 @@ export function assembler (m) {
 //    m.objText = ai.objectText
 //    m.mdText = mdText
     ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
-        ? new st.ObjMd ("module", ai.objectText, mdText)
+        ? new st.ObjMd (m.moduleName, ai.objectText, mdText)
         : null;
     // Handle module name if present
-    console.log (`Assembler creating ObjMd:\n${ai.objMd.showShort()}`);
-    com.mode.devlog (ai.objectText);
+//    console.log (`Assembler creating ObjMd:\n${ai.objMd.showShort()}`);
+//    com.mode.devlog (ai.objectText);
     return ai
 }
 //----------------------------------------------------------------------

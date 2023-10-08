@@ -81,6 +81,7 @@ export function showModElts () {
 
 function getFileBaseName (fname) {
     const i = fname.indexOf (".");
+//    const baseName = `[getFileBaseName ${fname.substring(0,i)}]`;
     const baseName = fname.substring(0,i);
     console.log (`getFileBaseName ${fname} ${i} ${baseName}`);
     return baseName;
@@ -103,14 +104,14 @@ export async function openFile () {
         .then (xs => {
 //            console.log (`openFile lambda xs = ${xs}`)
             const fn = file.name
+            const modName = getFileBaseName (fn)
             const m = st.env.moduleSet.addModule ()
             st.handleSelect (m)
             m.changeSavedAsmSrc (xs)
             m.fileHandle = fileHandle
             m.filename = fn
-            //            m.moduleName = `(Read file ${fn})`
-            console.log (`calling m.setModuleName ${fn}`)
-            m.setModuleName (getFileBaseName(fn))
+            console.log (`calling m.setModuleName ${modName}`)
+            m.setModuleName (modName)
             console.log (`openFile module ${m.moduleName}`)
             document.getElementById("EditorTextArea").value = xs
             console.log ("openFile just changed asm src")
@@ -147,8 +148,8 @@ export async function saveFile () {
     const writable = await fh.createWritable()
     await writable.write(xs)
     await writable.close()
-    m.currentSrc = xs
-    m.savedSrc = xs
+    m.currentAsmSrc = xs
+    m.savedAsmSrc = xs
 }
 
 export async function saveAsFile () {
@@ -163,8 +164,8 @@ export async function saveAsFile () {
     await writable.close()
     m.fileHandle = fh
     m.filename = fn
-    m.currentSrc = xs
-    m.savedSrc = xs
+    m.currentAsmSrc = xs
+    m.savedAsmSrc = xs
 }
 
 export async function openDirectory () {

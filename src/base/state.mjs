@@ -96,11 +96,50 @@ export function newModKey () {
 
 // Container for all the data related to a specific module.
 
+// If assembly source exists, then m.asmSrcOrigin is either "file" or
+// "editor".  If it is null, there is no assembly source.
+
+// If object exists, then m.objOrigin is either "assembler", "file", or
+// "editor".  If it is null, there is no object.
+
+// If executable exists, then exeOrigin is either "linker", "file", or
+// "editor". If it is null, there is no executable.
+
+// When text is changed by reading a file or modifying editor buffer,
+// one of the following setXxxCode functions is called.  This will
+// update the necessary fields in the module, and will also set any
+// stale fields to null.
+
+// makeStageDisplay sets up the DOM elements to display a stage, and
+// returns functions to update those elements
+//   page is an element that will hold this display
+//   stage is one of Assembly, Object, Executable
+//   Returns functions to set the origin and the code
+
+function makeStageDisplay (page,stage) {
+    console.log (`makeStageDisplay ${stage}`)
+    const displaySpanElt = document.createElement ("span");
+    displaySpanElt.appendChild (document.createTextNode (`${stage} code: `));
+    const displayOriginElt = document.createTextNode ("none");
+    const setOrigin = (x) => { displayOriginElt.textContent = x;};
+    displaySpanElt.appendChild (displayOriginElt);
+    page.appendChild (displaySpanElt);
+    const displayCodeElt = document.createElement ("div");
+    const displayCodeTextElt = document.createTextNode ("no code available");
+    const setCode = (x) => {
+        console.log (`makeStageDisplay setCode=${x}`)
+        displayCodeTextElt.textContent = x.slice(0,100);
+    };
+    displayCodeElt.appendChild (displayCodeTextElt)
+    page.appendChild (displayCodeElt);
+    return {setOrigin, setCode}
+}
+
 export class Sigma16Module {
     constructor () {
         // identify the module
         this.modKey = newModKey () // Persistent and unique gensym key
-        this.modIdx = env.moduleSet.modules.length // Transient arr index
+        this.modIdx = env.moduleSet.modules.length // Transient array index
         this.moduleName = "anonymous" // from filename or module stmt
         // possible file associated with module
         this.fileHandle = null
@@ -108,130 +147,150 @@ export class Sigma16Module {
         this.baseName = "anonymous"
         this.fileRecord = null
         this.fileInfo = null // can hold instance of FileInfo
-        // data for the module
-        this.currentSrc = "" // master copy of (possibly edited) source code
-        this.savedSrc = "" // source code as last saved/read to/from file
+        this.fileType = "none" // {none, asm, obj, exe}
+        this.fileText = ""
+        // assembly source code
+        this.asmSrcCodeOrigin = "none"; // {none, file, example, editor}
+        this.currentAsmSrc = null; // source code (possibly edited)
+        this.savedAsmSrc = null; // code as last saved/read to/from file
         this.asmInfo = new AsmInfo (this); // filled in by assembler
-        this.objMd = null; // object code for module
-        this.linkMainObjMd = null; // executable for linked main module
+        // object code
+        this.objCodeOrigin = "none"; // {none, file, assembler}
+        this.objMd = null; // object holding object code and metadata
+        // executable code
+        this.exeCodeOrigin = "none"; // {none, file, linker}
+        this.exeObjMd = null; // executable for linked main module
+
         // DOM elements for display on Modules page
         this.displayElt = null // DOM element for module display on page
-//        this.displayModuleNameElt = null
         this.displayModuleNameElt = document.createTextNode ("initModNam")
-        this.displaySrcLineElt = null
-        this.selectElt = null // set when addModule
-        this.closeElt = null // set when addModule
-        this.upElt = null // set when addModule
+        // DOM elements for module control buttons
+        this.selectElt = document.createElement ("span")
+        this.selectEltText = document.createTextNode ("selected")
+        
+        // css names to access DOM display elements
         this.modNameId = `MODNAME-${this.modKey}`
         this.selectId = `SELECT-${this.modKey}`
         this.closeId = `CLOSE-${this.modKey}`
         this.upId = `UP-${this.modKey}`
-        // initial; call setHtmlDisplay again when something changes
-        this.setHtmlDisplay ()
+        this.modPara = document.createElement ("p")
+
+        this.t1 = document.createElement ("span")
+        this.t1b = document.createElement ("b")
+        this.textModule = document.createTextNode ("Module ")
+        this.textSpaceAfterName = document.createTextNode (" ")
+        this.bSelect = document.createElement ("button")
+        this.bUp = document.createElement ("button")
+        this.bClose = document.createElement ("button")
+        this.br = document.createElement ("br")
+        this.spanSrc = document.createElement ("span")
+        this.asmDisplaySpanElt = document.createElement ("span")
+
+        this.t1b.appendChild (this.textModule)
+        this.t1b.appendChild (this.displayModuleNameElt)
+        this.t1b.appendChild (this.textSpaceAfterName)
+        this.t1.appendChild (this.t1b)
+        this.modPara.appendChild (this.t1)
+
+        this.selectElt.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
+        this.selectElt.appendChild (this.selectEltText)
+        this.modPara.appendChild (this.selectElt)
+        
+        this.bSelect.textContent = "Select"
+        this.modPara.appendChild (this.bSelect)
+        this.bUp.textContent = "Up"
+        this.modPara.appendChild (this.bUp)
+        this.bClose.textContent = "Close"
+        this.modPara.appendChild (this.bClose)
+        this.spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
+        
+//        this.displaySrcLineElt = this.spanSrc
+        this.tSrcText = document.createTextNode ( "dummy")
+        this.spanSrc.appendChild (this.tSrcText)
+        this.modPara.appendChild (this.spanSrc)
+
+        this.containerElt = document.getElementById("ModSetControls")
+        this.containerElt.appendChild (this.modPara)
+        this.displayElt = this.modPara
+        this.bSelect.addEventListener (
+            "click", event => handleSelect(this))
+        this.bUp.addEventListener (
+            "click", event => handleModUp (this))
+        this.bClose.addEventListener (
+            "click", event => handleClose (this))
+        this.asmDisplay = makeStageDisplay (this.modPara, "Assembly");
+        this.objDisplay = makeStageDisplay (this.modPara, "Object");
+        this.exeDisplay = makeStageDisplay (this.modPara, "Executable");
     }
-    showShort () {
-        let xs = `Sigma16Module key=${this.modKey} name=${this.moduleName}`
-        xs += ` {(this.fileHandle ? "has file" : "no file")}\n`
-        xs += ` src=${this.currentSrc.slice(0,200)}...\n`
-//        xs += ` obj=${this.objText.slice(0,200)}...\n`
-        xs += ` AsmInfo:\n`
-        xs += this.asmInfo.showShort()
-        xs += "End of module\n"
-        return xs
-    }
-    hasObjectCode () {
-        return this.objText !== ""
-    }
-    hasMetadata () {
-        return this.mdText !== ""
-    }
-    getAsmText () {
-        return this.asmInfo.asmSrcText
-    }
-    changeAsmSrc (txt) { // new text may not be saved in file
-        //        console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
-        console.log (`Module ${this.modKey} changeAsmSrc`)
-        this.currentSrc = txt
-        document.getElementById("EditorTextArea").value = txt
-        this.displaySrcLineElt.textContent = txt.split("\n")[0]
-    }
-    changeSavedAsmSrc (txt) { // new text is saved in file
-//        console.log (`Module ${this.modKey} changeSavedAsmSrc ${txt}`)
-        this.currentSrc = txt
-        this.savedSrc = txt
-        document.getElementById("EditorTextArea").value = txt
-        this.displaySrcLineElt.textContent = txt.split("\n")[0]
-    }
-    setSelected (b) {
-        let selTxt = b ? "Selected" : ""
-        this.selectElt.textContent = selTxt
-        env.moduleSet.previousSelectedIdx = this.modIdx
+    ident () { // shortcut for identifying module
+        return `module ${this.modKey}`;
     }
     setModuleName (txt) {
         console.log (`setModuleName ${txt}`)
         this.moduleName = txt
         this.displayModuleNameElt.textContent = txt
-        console.log (`Setting module name ${txt}`
-                     + ` for key=${this.modKey}`)
+        console.log (`${this.ident} setting name=${txt}`)
     }
-    setHtmlDisplay () {
-        const modPara = document.createElement ("p")
-
-
-        const t1 = document.createElement ("span")
-        const t1b = document.createElement ("b")
-        const textModule = document.createTextNode ("Module ")
-        t1b.appendChild (textModule)
-//        const textModuleName = document.createTextNode (this.moduleName)
-//        t1b.appendChild (textModuleName)
-        t1b.appendChild (this.displayModuleNameElt)
-        const textSpaceAfterName = document.createTextNode (" ")
-        t1b.appendChild (textSpaceAfterName)
-        // ????? key is internal, maybe not show it?
-//        const textModuleKey =  document.createTextNode (this.modKey)
-//        t1b.appendChild (textModuleKey)
-//        t1.innerHTML = `<b>Module ${this.moduleName} `
-        //            + `key=${this.modKey}.</b> `
-        t1.appendChild (t1b)
-        modPara.appendChild (t1)
-
-        const t2 = document.createElement ("span")
-        this.selectElt = t2
-        t2.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
-        const t2text = document.createTextNode ("selected")
-        t2.appendChild (t2text)
-        modPara.appendChild (t2)
-        
-        const bSelect = document.createElement ("button")
-        bSelect.textContent = "Select"
-        modPara.appendChild (bSelect)
-        const bUp = document.createElement ("button")
-        bUp.textContent = "Up"
-        modPara.appendChild (bUp)
-        const bClose = document.createElement ("button")
-        bClose.textContent = "Close"
-        modPara.appendChild (bClose)
-        const br = document.createElement ("br")
-        modPara.appendChild (br)
-
-        const spanSrc = document.createElement ("span")
-        spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
-        this.displaySrcLineElt = spanSrc
-        const tSrcText = document.createTextNode (
-            this.currentSrc.split("\n")[0])
-            //            this.asmInfo.asmSrcText.split("\n")[0])
-        spanSrc.appendChild (tSrcText)
-        modPara.appendChild (spanSrc)
-
-        const containerElt = document.getElementById("ModSetControls")
-        containerElt.appendChild (modPara)
-        this.displayElt = modPara
-        bSelect.addEventListener (
-            "click", event => handleSelect(this))
-        bUp.addEventListener (
-            "click", event => handleModUp (this))
-        bClose.addEventListener (
-            "click", event => handleClose (this))
+    staleAsmCode () { // asm src code is stale
+        console.log (`${ident} asm src code is stale`)
+        this.asmDisplay.setOrigin ("none")
+        this.asmDisplay.setCode ("")
+    }
+    staleObjCode () { // obj code is stale
+        console.log (`${this.ident} obj code is stale`)
+        this.objDisplay.setOrigin ("none")
+        this.objDisplay.setCode ("")
+    }
+    staleExeCode () { // exe code is stale
+        console.log (`${this.ident} exe code is stale`)
+        this.exeDisplay.setOrigin ("none")
+        this.exeDisplay.setCode ("")
+    }
+    setAsmCode (txt, origin) {
+        console.log (`${this.ident} setAsmCode ${txt.substring(0,100)}`)
+        this.asmSrcCodeOrigin = origin
+        this.currentAsmSrc = txt
+        this.asmDisplay.setCode (txt)
+        this.asmDisplay.setOrigin (origin)
+        this.staleObjCode ()
+        this.staleExeCode ()
+    }
+    setObjCode (txt) {
+        console.log (`${this.ident} setObjCode ${txt.substring(0,100)}`)
+        this.asmObjCodeOrigin = origin
+        this.currentObjSrc = txt
+        this.objDisplay.setCode (txt)
+        this.objDisplay.setOrigin (origin)
+        this.staleAsmCode ()
+        this.staleExeCode ()
+    }
+    setExeCode (txt) {
+        console.log (`${this.ident} setExeCode ${txt.substring(0,100)}`)
+        this.asmExeCodeOrigin = origin
+        this.currentExeSrc = txt
+        this.exeDisplay.setCode (txt)
+        this.exeDisplay.setOrigin (origin)
+        this.staleAsmCode ()
+        this.staleObjCode ()
+    }
+    hasMetadata () { // deprecated
+        return this.mdText !== ""
+    }
+    changeAsmSrc (txt) { // new text may not be saved in file
+        console.log (`Module ${this.modKey} changeAsmSrc`)
+        this.currentAsmSrc = txt
+        document.getElementById("EditorTextArea").value = txt
+        //        this.setAsmCode (txt.split("\n")[0])
+        this.setAsmCode (txt)
+    }
+    changeSavedAsmSrc (txt) { // new text is saved in file
+        this.savedAsmSrc = txt
+        this.changeAsmSrc (txt)
+    }
+    setSelected (b) {
+        let selTxt = b ? "Selected" : ""
+        this.selectElt.textContent = selTxt
+        env.moduleSet.previousSelectedIdx = this.modIdx
     }
     // Use refreshInEditorBuffer when the text is changed from an
     // ourside source, such as reading a file.  Don't use this when
@@ -241,8 +300,17 @@ export class Sigma16Module {
         console.log (`refreshInEditorBuffer xs=${xs}`);
         document.getElementById("EditorTextArea").value = xs;
     }
+    showShort () { // for testing with console.log
+        let xs = `Sigma16Module key=${this.modKey} name=${this.moduleName}`
+        xs += ` {(this.fileHandle ? "has file" : "no file")}\n`
+        xs += ` src=${this.currentAsmSrc.slice(0,200)}...\n`
+//        xs += ` obj=${this.objText.slice(0,200)}...\n`
+        xs += ` AsmInfo:\n`
+        xs += this.asmInfo.showShort()
+        xs += "End of module\n"
+        return xs
+    }
 }
-//        this.isMain = true // may be changed by assembler
 
 //-------------------------------------------------------------------------
 // Handle controls for individual modules
@@ -910,8 +978,10 @@ export class ObjectInfo {
         this.objMd = null; // ?????????
         this.moduleName = "anonymous"; // this.obmdtext.baseName;
 //        this.baseName = "anonymous"; // this.obmdtext.baseName;
-        this.objText = this.obmdtext.objText;
-        this.mdText = this.obmdtext.mdText;
+//        this.objText = this.obmdtext.objText;
+        //        this.mdText = this.obmdtext.mdText;
+        this.objText = obmdtext.objText
+        this.mdText = obmdtext.mdText
         this.objectLines = [];
         this.mdLines = this.mdText ? this.mdText.split("\n") : []
         this.metadata = null;
@@ -1037,3 +1107,107 @@ const emptyExe = new Executable ("no object code", null);
         // updated by assembler, linker, or reading file
 //        this.objText = ""
 //        this.mdText = ""
+
+        // initialize display
+        // call setHtmlDisplay again when something changes
+        // DOM elements for module display
+        // setHtmlDisplay
+//        const textModuleName = document.createTextNode (this.moduleName)
+//        t1b.appendChild (textModuleName)
+        // ????? key is internal, maybe not show it?
+//        const textModuleKey =  document.createTextNode (this.modKey)
+//        t1b.appendChild (textModuleKey)
+//        t1.innerHTML = `<b>Module ${this.moduleName} `
+        //            + `key=${this.modKey}.</b> `
+//        this.modPara.appendChild (br)   ???????????????
+
+//            this.currentAsmSrc.split("\n")[0])
+//            //            this.asmInfo.asmSrcText.split("\n")[0])
+//    getAsmText () {   // use m.getAsmSrc
+//        return this.asmInfo.asmSrcText
+//    }
+        //        console.log (`Module ${this.modKey} changeAsmSrc ${txt}`)
+        //        this.displaySrcLineElt.textContent = txt.split("\n")[0]
+//        console.log (`Module ${this.modKey} changeSavedAsmSrc ${txt}`)
+    
+/*    
+    setHtmlDisplay () { // generate display on module page
+        this.t1b.appendChild (textModule)
+//        const textModuleName = document.createTextNode (this.moduleName)
+//        t1b.appendChild (textModuleName)
+        this.t1b.appendChild (this.displayModuleNameElt)
+        this.t1b.appendChild (textSpaceAfterName)
+        // ????? key is internal, maybe not show it?
+//        const textModuleKey =  document.createTextNode (this.modKey)
+//        t1b.appendChild (textModuleKey)
+//        t1.innerHTML = `<b>Module ${this.moduleName} `
+        //            + `key=${this.modKey}.</b> `
+        this.t1.appendChild (this.t1b)
+        this.modPara.appendChild (this.t1)
+
+        this.selectElt = this.t2
+        this.t2.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
+        this.t2.appendChild (this.t2text)
+        this.modPara.appendChild (this.t2)
+        
+        this.bSelect.textContent = "Select"
+        this.modPara.appendChild (this.bSelect)
+        this.bUp.textContent = "Up"
+        this.modPara.appendChild (this.bUp)
+        this.bClose.textContent = "Close"
+        this.modPara.appendChild (this.bClose)
+        this.modPara.appendChild (br)
+
+        this.spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
+        
+        this.displaySrcLineElt = this.spanSrc
+        this.tSrcText = document.createTextNode ( "dummy")
+//            this.currentAsmSrc.split("\n")[0])
+//            //            this.asmInfo.asmSrcText.split("\n")[0])
+        this.spanSrc.appendChild (this.tSrcText)
+        this.modPara.appendChild (this.spanSrc)
+
+        this.containerElt = document.getElementById("ModSetControls")
+        this.containerElt.appendChild (this.modPara)
+        this.displayElt = modPara
+        this.bSelect.addEventListener (
+            "click", event => handleSelect(this))
+        this.bUp.addEventListener (
+            "click", event => handleModUp (this))
+        this.bClose.addEventListener (
+            "click", event => handleClose (this))
+            }
+*/            
+
+        //        this.t2 = document.createElement ("span")
+        //        this.t2text = document.createTextNode ("selected")
+//        this.selectElt = this.t2
+//        this.t2.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
+//        this.t2.appendChild (this.t2text)
+//        this.modPara.appendChild (this.t2)
+
+//        this.selectElt = null // set when addModule
+//        this.displayAsmStatusElt = null
+
+//        this.isMain = true // may be changed by assembler
+//        window.asmDisplay = this.asmDisplay
+//        window.objDisplay = this.objDisplay
+//        window.exeDisplay = this.objDisplay
+        // Console: window.asmDisplay.setCode("some new code")
+
+//        this.closeElt = null // set when addModule
+//        this.upElt = null // set when addModule
+
+//        this.currentAsmSrc = txt
+//        document.getElementById("EditorTextArea").value = txt
+//        this.setAsmCode (txt.split("\n")[0])
+        //        this.displaySrcLineElt.textContent = txt.split("\n")[0]
+        // FIX THIS ?????????????????
+
+        // display assembly source code status
+//        this.displaySrcLineElt = null
+        // display object code status
+
+        // display executable code status
+//        this.displayObjStatusElt = null
+//        this.displayExeStatusElt = null

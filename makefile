@@ -203,9 +203,6 @@ showconfig:
 # Documents
 #--------------------------------------------------------------------------
 
-# Copy draft documents for markup on iPad
-ANNOTATED_DOCS=/cygdrive/c/Users/johnt/iCloudDrive/Sigma-editing-docs
-
 docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex
 	cd docs/UserGuide ; pdflatex Sigma16UserGuide
 #	pdflatex docs/UserGuide/Sigma16UserGuide
@@ -213,9 +210,47 @@ docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex
 #	makeindex docs/UserGuide/Sigma16UserGuide
 #	pdflatex docs/UserGuide/Sigma16UserGuide
 
+#--------------------------------------------------------------------------
+# Copy editing
+#--------------------------------------------------------------------------
+
+# Copy draft documents for markup on iPad
+# ANNOTATED_DOCS=/cygdrive/c/Users/johnt/iCloudDrive/Sigma-editing-docs
+ANNOTATED_DOCS="/cygdrive/g/My Drive/Sigma-editing-docs"
+# G:\My Drive\Sigma-editing-docs
+
+copyDocs :
+	make copyDraftGuide
+	make copyListing
+
 copyDraftGuide : docs/UserGuide/Sigma16UserGuide.pdf
 	cp docs/UserGuide/Sigma16UserGuide.pdf $(ANNOTATED_DOCS)/$(YEARMONTHDAYTIME)-Sigma16UserGuide.pdf
 	cp docs/UserGuide/Sigma16UserGuide.html $(ANNOTATED_DOCS)/$(YEARMONTHDAYTIME)-Sigma16UserGuide.html
+
+copyListing:
+	cd $(ANNOTATED_DOCS); \
+	  a2ps --delegate no --columns=1 --portrait \
+	     --header=Sigma16-$(YEARMONTHDAYTIME) --toc \
+	  ${SIGMA16}/README.org \
+	  ${SIGMA16}/docs/welcome/welcome.org \
+	  ${SIGMA16}/VERSION.txt \
+	  ${SIGMA16}/src/package.json \
+	  ${SIGMA16}/docs/VersionMacro.org \
+	  ${SIGMA16}/makefile \
+	  ${SIGMA16}/src/base/*.mjs \
+	  ${SIGMA16}/src/base/*.wat \
+	  ${SIGMA16}/Sigma16.html \
+	  ${SIGMA16}/src/gui/*.mjs \
+	  ${SIGMA16}/src/gui/*.css \
+	  ${SIGMA16}/src/cli/*.mjs \
+	  ${SIGMA16}/src/server/*.mjs \
+	  ${SIGMA16}/src/compatibility/*.mjs \
+	  ${SIGMA16}/src/compatibility/*.html \
+	  ${HOME}/docs/org/Sigma.org \
+	     -o $(YEARMONTHDAYTIME)-Sigma16-listing.ps; \
+	  ps2pdf $(YEARMONTHDAYTIME)-Sigma16-listing.ps \
+	     $(YEARMONTHDAYTIME)-Sigma16-listing.pdf ; \
+	  rm $(YEARMONTHDAYTIME)-Sigma16-listing.ps
 
 #--------------------------------------------------------------------------
 # Preparing a release

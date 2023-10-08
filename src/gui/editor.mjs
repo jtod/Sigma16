@@ -13,10 +13,10 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // editor.mjs provides a minimal text editor for writing and modifying
 // code, both assembly language and object code.
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 import * as com   from '../base/common.mjs';
 import * as smod  from '../base/s16module.mjs';
@@ -24,9 +24,9 @@ import * as arch  from '../base/architecture.mjs';
 import * as arith from '../base/arithmetic.mjs';
 import * as st    from '../base/state.mjs';
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // Operations on editor text buffer
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 export function getEditorBufferText () {
     const xs = document.getElementById("EditorTextArea").value
@@ -36,7 +36,7 @@ export function getEditorBufferText () {
 // Get the text to edit from selected module
 export function edGetTextToEdit () {
     const m = st.env.moduleSet.getSelectedModule ()
-    const xs = m.currentSrc
+    const xs = m.currentAsmSrc
     return xs
 }
 
@@ -44,14 +44,14 @@ export function edGetTextToEdit () {
 export function saveEditorBufferText () {
     const m = st.env.moduleSet.getSelectedModule ()
     const xs = getEditorBufferText ()
-    //    m.currentSrc = xs
+    //    m.currentAsmSrc = xs
 //    console.log (`saveEditorBufferText m=${m.modKey} xs=${xs}`)
     m.changeAsmSrc (xs)
 }
 
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Entering and leaving the editor
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 // Put source code of selected module in editor buffer
 export function enterEditor () {
@@ -69,9 +69,9 @@ export function leaveEditor () {
     saveEditorBufferText ()
 }
 
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Editor buttons
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------
 
 export function edClear () {
     document.getElementById('EditorTextArea').value = "";
@@ -128,11 +128,11 @@ export function copyEditorBufferToModule () {
     com.mode.devlog ("copyEditorBufferToModule");
     const m = st.env.moduleSet.getSelectedModule ()
     const xs = getEditorBufferText ()
-    m.currentSrc = xs
+    m.currentAsmSrc = xs
     console.log (`copyEditorBufferToModule ${xs}`)
 }
 
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------
 // Legacy method: Reading files selected by user
 // Should work on non-Chromium browsers: hopefully FireFox and Safari
 // For Chrome and Edge, the new functions are better.
@@ -141,9 +141,9 @@ export function copyEditorBufferToModule () {
 // time being for backward compatibility with browsers that don't yet
 // support FileSystemAccess API
 
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 // File record
-//---------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
 // A file record "fr" contains information about a file that has been
 // selected and opened by the user.  It is constructed with "file", a
@@ -231,8 +231,8 @@ function mkFileReader (fileRecord) {
                      + `text=${fileRecord.text}`);
         fileRecord.fileReadComplete = true;
         let m = new smod.Sigma16Module ()
-        m.currentSrc = fileRecord.text
-        m.savedSrc = fileRecord.text
+        m.currentAsmSrc = fileRecord.text
+        m.savedAsmSrc = fileRecord.text
     }
     fr.onerror = function (e) {
         com.mode.devlog (`Error: could not read file ${fileRecord.fileName}`
