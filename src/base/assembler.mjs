@@ -77,8 +77,10 @@ export function assemblerGUI () {
     let ai = assembler (m)
     m.asmInfo = ai;
     m.objMd = ai.objMd  // ai is result of assembler
+    m.objDisplay.setOrigin ("assembler")
+    m.objDisplay.setCode (m.objMd.objText)
     displayAsmListing ();
-    console.log (m.asmInfo.objectText)
+    console.log (m.asmInfo.objecftText)
     console.log ("++++++++++++++++++++ m.showShort:")
     console.log (m.showShort())
     console.log ("++++++++++++++++++++ asm done")

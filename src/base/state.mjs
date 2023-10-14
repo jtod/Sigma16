@@ -125,22 +125,33 @@ function makeStageDisplay (page,stage) {
     displaySpanElt.appendChild (displayOriginElt);
     page.appendChild (displaySpanElt);
     const displayCodeElt = document.createElement ("div");
-    const displayCodeTextElt = document.createTextNode ("no code available");
+    const displayCodeTextElt = document.createElement ("div");
     const setCode = (x) => {
         console.log (`makeStageDisplay setCode=${x}`)
-        displayCodeTextElt.textContent = x.slice(0,100);
+        displayCodeTextElt.innerHTML =
+            showInitialLines (DisplayInitLinesLength, x);
     };
     displayCodeElt.appendChild (displayCodeTextElt)
     page.appendChild (displayCodeElt);
     return {setOrigin, setCode}
 }
 
+export const DisplayInitLinesLength = 5;
+
+// return the first few lines of a string in html
+export function showInitialLines (k,txt) {
+    let xs = txt.split ("\n");
+    let ys = xs.slice(0,k).join("<br>");
+    return ys;
+}
+window.showInitialLines = showInitialLines;
+
 export class Sigma16Module {
     constructor () {
         // identify the module
         this.modKey = newModKey () // Persistent and unique gensym key
         this.modIdx = env.moduleSet.modules.length // Transient array index
-        this.moduleName = "anonymous" // from filename or module stmt
+        this.moduleName = "Anonymous" // from filename or module stmt
         // possible file associated with module
         this.fileHandle = null
         this.filename = "(no file)"
@@ -161,66 +172,70 @@ export class Sigma16Module {
         this.exeCodeOrigin = "none"; // {none, file, linker}
         this.exeObjMd = null; // executable for linked main module
 
-        // DOM elements for display on Modules page
-        this.displayElt = null // DOM element for module display on page
-        this.displayModuleNameElt = document.createTextNode ("initModNam")
-        // DOM elements for module control buttons
+        // display module name (can be changed by assembler)
+        this.displayModuleNameElt =
+            document.createTextNode (this.moduleName);
+        this.displayModNameb = document.createElement ("b")
+        this.displayModNameb.appendChild (this.displayModuleNameElt)
+        this.displayModNameb.appendChild (document.createTextNode (" "));
+        const setModName = (x) => {
+            console.log (`Setting module name := ${x}`);
+            this.moduleName = x;
+            displayModuleNameElt.textContent = x;
+        };
+        // displayModIdLine is span element for module name, id, buttons
+        this.displayModIdLine = document.createElement ("span")
+        this.displayModIdLine.appendChild (document.createTextNode
+                                           ("Module "));
+        this.displayModIdLine.appendChild (this.displayModNameb)
+
+        // modPara is a p element holding entire module display
+        this.modPara = document.createElement ("p")
+        this.modPara.appendChild (this.displayModIdLine)
+
+        // selectElt indicates whether the module is selected
         this.selectElt = document.createElement ("span")
         this.selectEltText = document.createTextNode ("selected")
-        
-        // css names to access DOM display elements
-        this.modNameId = `MODNAME-${this.modKey}`
-        this.selectId = `SELECT-${this.modKey}`
-        this.closeId = `CLOSE-${this.modKey}`
-        this.upId = `UP-${this.modKey}`
-        this.modPara = document.createElement ("p")
-
-        this.t1 = document.createElement ("span")
-        this.t1b = document.createElement ("b")
-        this.textModule = document.createTextNode ("Module ")
-        this.textSpaceAfterName = document.createTextNode (" ")
-        this.bSelect = document.createElement ("button")
-        this.bUp = document.createElement ("button")
-        this.bClose = document.createElement ("button")
-        this.br = document.createElement ("br")
-        this.spanSrc = document.createElement ("span")
-        this.asmDisplaySpanElt = document.createElement ("span")
-
-        this.t1b.appendChild (this.textModule)
-        this.t1b.appendChild (this.displayModuleNameElt)
-        this.t1b.appendChild (this.textSpaceAfterName)
-        this.t1.appendChild (this.t1b)
-        this.modPara.appendChild (this.t1)
-
         this.selectElt.setAttribute ("id", `MODULE-${this.modKey}-SEL-FLAG`)
         this.selectElt.appendChild (this.selectEltText)
         this.modPara.appendChild (this.selectElt)
-        
-        this.bSelect.textContent = "Select"
-        this.modPara.appendChild (this.bSelect)
-        this.bUp.textContent = "Up"
-        this.modPara.appendChild (this.bUp)
-        this.bClose.textContent = "Close"
-        this.modPara.appendChild (this.bClose)
-        this.spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
-        
-//        this.displaySrcLineElt = this.spanSrc
-        this.tSrcText = document.createTextNode ( "dummy")
-        this.spanSrc.appendChild (this.tSrcText)
-        this.modPara.appendChild (this.spanSrc)
 
-        this.containerElt = document.getElementById("ModSetControls")
-        this.containerElt.appendChild (this.modPara)
-        this.displayElt = this.modPara
+        // select button
+        this.bSelect = document.createElement ("button")
+        this.bSelect.textContent = "Select"
+        this.selectId = `SELECT-${this.modKey}`
         this.bSelect.addEventListener (
             "click", event => handleSelect(this))
+        this.modPara.appendChild (this.bSelect)
+
+        // up button
+        this.bUp = document.createElement ("button")
+        this.bUp.textContent = "Up"
+        this.upId = `UP-${this.modKey}`
         this.bUp.addEventListener (
             "click", event => handleModUp (this))
+        this.modPara.appendChild (this.bUp)
+
+        // close button
+        this.bClose = document.createElement ("button")
+        this.bClose.textContent = "Close"
+        this.closeId = `CLOSE-${this.modKey}`
         this.bClose.addEventListener (
             "click", event => handleClose (this))
+        this.modPara.appendChild (this.bClose)
+
+        this.spanSrc = document.createElement ("span")
+        this.spanSrc.setAttribute ("id", `MODULE-${this.modKey}-SRCLINE`)
+        this.spanSrc.appendChild (document.createElement ("br"))
+        this.modPara.appendChild (this.spanSrc)
+        // Display asm, obj, exe code status
         this.asmDisplay = makeStageDisplay (this.modPara, "Assembly");
         this.objDisplay = makeStageDisplay (this.modPara, "Object");
         this.exeDisplay = makeStageDisplay (this.modPara, "Executable");
+        // complete container for module display
+        this.containerElt = document.getElementById("ModSetControls")
+        this.containerElt.appendChild (this.modPara)
+        this.displayElt = this.modPara
     }
     ident () { // shortcut for identifying module
         return `module ${this.modKey}`;
@@ -288,7 +303,7 @@ export class Sigma16Module {
         this.changeAsmSrc (txt)
     }
     setSelected (b) {
-        let selTxt = b ? "Selected" : ""
+        let selTxt = b ? "Selected " : ""
         this.selectElt.textContent = selTxt
         env.moduleSet.previousSelectedIdx = this.modIdx
     }
@@ -1211,3 +1226,9 @@ const emptyExe = new Executable ("no object code", null);
         // display executable code status
 //        this.displayObjStatusElt = null
 //        this.displayExeStatusElt = null
+
+//        this.modNameId = `MODNAME-${this.modKey}`
+        //        this.displayModIdLine.appendChild (this.t1b)
+        //        displayCodeTextElt.textContent = x.slice(0,100);
+        //        displayCodeTextElt.textContent = showInitialLines (x);
+    //    const displayCodeTextElt = document.createTextNode ("no code available");

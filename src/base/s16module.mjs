@@ -501,3 +501,18 @@ export function edLink () {
 }
 */
 
+//        this.displayElt = null // DOM element for module display on page
+
+//        this.displaySrcLineElt = this.spanSrc
+//        this.tSrcText = document.createTextNode ( "dummy")
+//        this.spanSrc.appendChild (this.tSrcText)
+
+//        this.t1b.appendChild (this.textSpaceAfterName)
+//        this.textSpaceAfterName = document.createTextNode (" ")
+//        this.textModule = document.createTextNode ("Module ")
+//        this.t1.appendChild (this.textModule)
+//        this.t1b.appendChild (this.textModule)
+
+//        this.br = document.createElement ("br")
+//        this.asmDisplaySpanElt = document.createElement ("span")
+

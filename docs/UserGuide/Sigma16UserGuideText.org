@@ -1,5 +1,7 @@
 * Introduction
 
+#+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
+
 # To typeset, use the top document, Sigma16UserGuide.org.  This file
 # may also be included in the csbook as an appendix.  Individual
 # sections can be typeset with C-c C-e C-s h h or C-c C-e C-s h h
@@ -1688,11 +1690,10 @@ popup again and click Disable.
 *** RRR format
 
 RRR instructions are represented in one word comprising four 4-bit
-fields.
-Each field contains 4 bits representing a binary number between 0
-and 15.
+fields.  Each field contains 4 bits representing a binary number
+between 0 and 15.
 
-# [[file:svg/RRRformat.pdf]]
+{{{svgfig(RRRformat)}}}
 
 - op (bits 15 to 12) is the operation code, usually called /opcode/.
   This determines the operation to be performed.  If the opcode is
@@ -1719,8 +1720,7 @@ this instruction is 0492.
 RX instructions specify a memory location as well as a register
 operand.  The machine language representation is two words:
 
-# [[file:svg/RXformat.pdf]]
-
+{{{svgfig(EXPformat)}}}
 
 The RX instruction format is used for instructions that use a memory
 address, which is specified by an index register and a displacement.
