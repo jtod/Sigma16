@@ -257,11 +257,13 @@ function pass1 (ls) {
 
 // Parse object module om with linker state ls
 
-function parseObject (ls, obj) {
+function parseObject (ls, obj) { // obj is an oi providing info about module
     com.mode.trace = false;
     obj.startAddress = ls.locationCounter;
-    ls.modMap.set (obj.omName, obj);
-        console.log (`Lnk-parseObject modMap set ${obtext.moduleName}`)
+    //    ls.modMap.set (obj.omName, obj);
+    ls.modMap.set (obj.modName, obj);
+    //    console.log (`Lnk-parseObject modMap set ${obtext.moduleName}`)
+    console.log (`Lnk-parseObject modMap set ${obj.modName}`)
     obj.asmExportMap = new Map ();
     const relK = obj.startAddress;
     // relocation constant for the object module
