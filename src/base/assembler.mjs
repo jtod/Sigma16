@@ -77,8 +77,9 @@ export function assemblerGUI () {
     let ai = assembler (m)
     m.asmInfo = ai;
     m.objMd = ai.objMd  // ai is result of assembler
-    m.objDisplay.setOrigin ("assembler")
+    m.objDisplay.setOrigin ("produced by assembler")
     m.objDisplay.setCode (m.objMd.objText)
+//    m.objDisplay.setCode (m.objMd, x => {x.objText })
     displayAsmListing ();
     console.log (m.asmInfo.objecftText)
     console.log ("++++++++++++++++++++ m.showShort:")
@@ -443,16 +444,17 @@ export function assembler (m) {
     st.displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
-//    m.objText = ai.objectText
-//    m.mdText = mdText
     ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
         ? new st.ObjMd (m.moduleName, ai.objectText, mdText)
         : null;
+    return ai
+}
+//    m.objText = ai.objectText
+//    m.mdText = mdText
     // Handle module name if present
 //    console.log (`Assembler creating ObjMd:\n${ai.objMd.showShort()}`);
 //    com.mode.devlog (ai.objectText);
-    return ai
-}
+
 //----------------------------------------------------------------------
 //  Regular expressions for the parser
 //----------------------------------------------------------------------

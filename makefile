@@ -203,12 +203,12 @@ showconfig:
 # Documents
 #--------------------------------------------------------------------------
 
-docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex
-	cd docs/UserGuide ; pdflatex Sigma16UserGuide
-#	pdflatex docs/UserGuide/Sigma16UserGuide
-#	pdflatex docs/UserGuide/Sigma16UserGuide
-#	makeindex docs/UserGuide/Sigma16UserGuide
-#	pdflatex docs/UserGuide/Sigma16UserGuide
+docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex \
+	  docs/UserGuide/Sigma16UserGuideText.tex
+	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+	makeindex docs/UserGuide/Sigma16UserGuide
+	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
 
 #--------------------------------------------------------------------------
 # Copy editing

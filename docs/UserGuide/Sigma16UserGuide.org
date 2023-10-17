@@ -1,4 +1,4 @@
-# Usage: pdflatex --shell-escape Sigma16UserGuide
+# Usage. cd docs/Userguide; pdflatex --shell-escape Sigma16UserGuide
 
 #+INCLUDE: ../VersionMacro.org
 #+TITLE: Sigma16 User Guide
@@ -40,12 +40,10 @@
 # INCLUDE is skipped, and the second MACRO definition prevents an
 # error message (undefined macro) from aborting the export.
 
-#+MACRO: FIGURES ./figures/
-
-
-        
+# Redundant
 # Provide appropriate code for svg figure depending on export backend
-# See org-export-global-macros defined in ox.el and changed in init.el
+# See org-export-global-macros defined in ox.el and changed in init.el  NO
+#  #+MACRO: FIGURES ./figures/ redundant ??
 #  #+MACRO: svgfigHTML [[./figures/svg/$1.svg]]
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
@@ -69,6 +67,8 @@
 #+BEGIN_EXPORT latex
 \tableofcontents
 #+END_EXPORT
+
+test in Sigma16UserGuide.org, about to include text
 
 #+INCLUDE: Sigma16UserGuideText.org
 ** GPL3 license

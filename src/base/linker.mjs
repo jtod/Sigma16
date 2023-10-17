@@ -77,21 +77,23 @@ export function linkerGUI () {
     console.log ("linkerGUI");
     const selm = st.env.moduleSet.getSelectedModule ();
     const selOMD = selm.objMd
-    let objs = [selOMD]; // put selected object module first
+    let objMds = [selOMD]; // objMds :: [ObjMd], selected module first
     for (const m of st.env.moduleSet.modules) {
-        console.log (`Linker checking module key=${m.modKey}`)
-        console.log (m.showShort())
+        console.log (`Linker checking ${m.moduleName} key=${m.modKey}`)
         const isSel = m.modKey === selm.modKey
         if (!isSel) {
-            objs.push (m.objMd);
-            console.log (`lnk adding ${m.objText}`)
+            objMds.push (m.objMd);
         }
-        //        console.log (`linkerGUI ${isSel} ${m.baseName}`);
         console.log (`linkerGUI ${isSel} ${m.moduleName}`);
     }
-    console.log (`Calling linker with ${objs.length} objects`)
+    console.log ("Objects to be linked:")
+    //    for (const m of objMds) {
+    for (const om of objMds) {
+        console.log (`   ${om.modName}`)
+    }
+    console.log (`Calling linker with ${objMds.length} ObjMds`)
     //    let ls = linker (selm.baseName, objs);
-    let ls = linker (selm.moduleName, objs);
+    let ls = linker (selm.moduleName, objMds);
     console.log (ls.show())
     let exeObjMd = ls.exeObjMd;
     selm.linkMainObjMd = exeObjMd;
@@ -199,9 +201,9 @@ export function testMetadata () {
 // linker errors, the messages are placed in the result module; if
 // there are no linker errors, the result module can be booted.
 
-export function linker (exeName, obMdTexts) {
-    console.log (`Entering linker, target exe = ${exeName}`);
-    const ls = new st.LinkerState (obMdTexts); // holds linker's variables
+export function linker (mainName, objMds) {
+    console.log (`Entering linker, main module = ${mainName}`);
+    const ls = new st.LinkerState (mainName, objMds);
     st.env.linkerState = ls; // record linker state in global environment
     pass1 (ls); // parse object and record directives
     pass2 (ls); // process imports and relocations
@@ -227,13 +229,12 @@ function pass1 (ls) {
     console.log ("*** Linker pass 1");
     ls.mcount = 0; // number of object modules being linked
     ls.oiList = []; // an ObjectInfo for each module being linked
-    for (const obtext of ls.obMdTexts) {
-//  console.log (`Linker pass 1: i=${ls.mcount} baseName=${oi.baseName}`)
-        console.log (`Linker pass 1: i=${ls.mcount} obtext=${obtext} `)
-        let oi = new st.ObjectInfo (ls.mcount, obtext);
-        // oi contains info about this module
-//        ls.modMap.set (obtext.baseName, oi); // support lookup for imports
-        ls.modMap.set (obtext.moduleName, oi); // support lookup for imports
+    for (const objMd of ls.objMds) {
+        console.log (`Linker pass 1: i=${ls.mcount}`
+                     + ` examining ${objMd.modName}`)
+        let oi = new st.ObjectInfo (ls.mcount, objMd.modName, objMd);
+        ls.modMap.set (oi.modName, oi); // support lookup for imports
+        console.log (`Linker pass1 modMap set ${oi.modName}`)
         ls.oiList.push (oi); // list keeps the modules in fixed order
         oi.objectLines = oi.objText.split("\n");
         oi.metadata = new st.Metadata ();
@@ -247,7 +248,12 @@ function pass1 (ls) {
         ls.metadata.addPairs (oi.metadata.pairs)
         ls.mcount++;
     }
+    console.log ("Linker pass1 finished");
+    ls.showModMap ();
 }
+// oi contains relevant info about this module
+//    ls.modMap.set (objMd.baseName, oi); // support lookup for imports
+//    ls.modMap.set (objMd.moduleName, oi); // support lookup for imports
 
 // Parse object module om with linker state ls
 
@@ -255,6 +261,7 @@ function parseObject (ls, obj) {
     com.mode.trace = false;
     obj.startAddress = ls.locationCounter;
     ls.modMap.set (obj.omName, obj);
+        console.log (`Lnk-parseObject modMap set ${obtext.moduleName}`)
     obj.asmExportMap = new Map ();
     const relK = obj.startAddress;
     // relocation constant for the object module
@@ -505,3 +512,7 @@ function emitObjectWords (ws) {
 //    const result = new ObjMd ("exe", ls.exeCodeText, ls.exeMdText);
 //    ls.exeObjMd = result;
 //    ls.exeObjMd = new st.ObjMd (exeName, ls.exeCodeText, ls.exeMdText);
+
+//        console.log (m.showShort())
+//            console.log (`lnk adding ${m.objText}`)
+        //        console.log (`linkerGUI ${isSel} ${m.baseName}`);

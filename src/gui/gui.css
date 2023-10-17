@@ -199,10 +199,18 @@ scroll from working */
     margin-left: 0em;
 }
 
-.code {
+pre {
+    /*    font-size: var(--pre-font-size);
+         font-size: 1.5em;
+*/
 }
 
-#TestingPRE {
+.LiteralCode {
+    font-size: 1.1em;
+    color: blue;
+    margin-top: 0em;
+    margin-bottom: 0em;
+    margin-left: 1em;
     font-family: var(--main-font-family);
     font-size: var(--pre-font-size);
 }

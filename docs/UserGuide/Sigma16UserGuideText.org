@@ -8,6 +8,8 @@
 # followed by pdflatex Sigma16UserGuideText.  Index items break
 # <p>...</p> for html export, so put them at end of paragraph.
 
+test in Text.org
+
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.  It includes an editor,
@@ -1720,7 +1722,8 @@ this instruction is 0492.
 RX instructions specify a memory location as well as a register
 operand.  The machine language representation is two words:
 
-{{{svgfig(EXPformat)}}}
+Here is RX
+{{{svgfig(RRRformat)}}}
 
 The RX instruction format is used for instructions that use a memory
 address, which is specified by an index register and a displacement.
@@ -1809,7 +1812,6 @@ Assembly directives
 
 - data
 
-
 * Standard architecture tutorials
 
 The tutorials for the standard architecture will be availabe in a
@@ -1829,43 +1831,62 @@ the instructions.
 
 ** Interrupts
 
-
 * The Sigma16 architecture
 :PROPERTIES:
 :CUSTOM_ID: sec-architecture
 :END:
 
-Sigma16 contains a set of registers, a memory, computational units,
-and an Input/Output controller.
+Sigma16 contains a set of registers, an arithmetic logic unit (ALU)
+and functional units for arithmetic calculations, a memory, a memory
+management unit that provides virtual memory, an interrupt system, and
+an Input/Output controller using direct memory access (DMA).
 
-- A *register* is a digital circuit that can retain one word of data.  A
-  new value can be loaded into a register, and the current contents
-  may be read out.  Sigma16 contains several groups of registers;
-  each group is displayed in a box on the Processor tab.
-  
-  - The *Register File* is an array of 16 registers named R0, R1,
-    $ldots$, R15.  These registers are accessible to the machine
-    language program.  Programs use the register file to hold
-    variables that are currently in use.
-    
-  - The *Control* registers keep track of the instruction that is
-    currently executing.
-    
-  - The *System* registers control the system status and interrupts.
-    
-  - The *Segment* registers are used for memory management.
+** Implementations
 
-- The *memory* is an array of $2^{16}$ words.  Each word in the
-  memory is identified by an *address*, which is a 16-bit natural
-  number.  The memory is similar to the register file, but
-  significantly slower and much larger.
+The Sigma16 software application contains a complete programming
+environment, using emulation to implement the processor.  The
+programming environment includes a file manager, editor, assembler,
+linker, and emulator, and it provides Input/Output and secondary
+storage.  The software runs in a web browser, and does not require any
+installation.  There are also command line tools which can be
+installed on a local computer, but they are not necessary.
 
-- The ALU (arithmetic and logic unit) is a circuit that can do
-  arithmetic, such as addition, subtraction, comparison, and some
-  other operations
+There is also a digital circuit, specified in a functional hardware
+description language, which implements the Core architecture.  The
+circuit specification is executable, and Core programs can be executed
+by simulating the circuit.  The circuit is suitable for implementation
+using either an FPGA or a custom VLSI design.  In simulation, the
+simulation driver provides Input/Output, and in a hardware realisation
+these would be provided by I/O hardware.
 
-- The Input/Output system can transfer data between the computer and
-  the outside world.
+** Subsystems
+
+A *register* is a digital circuit that can retain one word of data.  A
+new value can be loaded into a register, and the current contents may
+be read out.  Sigma16 contains several groups of registers; each group
+is displayed in a box on the Processor tab.
+
+- The *Register File* is an array of 16 registers named R0, R1,
+  $ldots$, R15.  These registers are accessible to the machine
+  language program.  Programs use the register file to hold variables
+  that are currently in use.
+- The *Control* registers keep track of the instruction that is
+  currently executing.
+- The *System* registers control the system status and interrupts.
+- The *Virtual Memory* registers are used for memory management.
+
+The *memory* is an array of $2^{16}$ words.  Each word in the memory
+is identified by an *address*, which is a 16-bit natural number.  The
+memory is similar to the register file, but significantly slower and
+much larger.
+
+*Computational units.* The ALU (arithmetic and logic unit) is a
+circuit that can do arithmetic, such as addition, subtraction,
+comparison, and some other operations More complex operations, such as
+multiplication and division, are provided by functional units.
+
+The *Input/Output* system can transfer data between the computer and
+the outside world.
 
 ** Words
 
@@ -1881,33 +1902,32 @@ Each register is a word.
 By itself, a word has no inherent meaning: it is just a sequence of
 bits.  Some instructions operate on a word without regard to what it
 means: for example, several instructions copy a word from one place to
-another.  Other instructions act on a word assuming that it represents
-some particular primitive data type: for example, integer arithmetic
-instructions assume that the word represents an integer, while address
-instructions assume that the word represents a natural number.
+another and it doesn't matter what the word means.  Other instructions
+act on a word assuming that it represents some particular primitive
+data type.  For example, integer arithmetic assumes that the word
+represents an integer, while address arithmetic assumes that the word
+represents a natural number.
 
 Sigma16 supports natural numbers, and integers, which are represented
 as words.  It also supports Booleans, which are represented as a bit
-within a word.  Addresses and characters are both represented as
-natural numbers.
+within a word.  Addresses and characters are represented as natural
+numbers.
 
 *** Indexing bits in a word
-
-The bits in a word x are indexed from 0 to 15, where 0 is the index of
-the leftmost (most significant) bit and 15 is the index or the
-rightmost (least significant) bit.  The notation x.i means the bit
-with index i in the word x.  For example, x.0 is the leftmost bit and
-x.15 is the rightmost bit.  When used in an instruction, a bit index
-is specified as a 4-bit binary number /i/ such that 0 <= /i/ <= 15.
-
 
 The bits of a word are indexed from right to left, starting with 0.
 The least significant (rightmost) bit has index 0, and the most
 significant bit (leftmost) has index 15.
 
+The notation $x.i$ means the bit with index $i$ in the word $x$, for
+$0 \leq i \leq 15$.  For example, $x.0$ is the rightmost bit and
+$x.15$ is the leftmost bit.  When used in an instruction, a bit index
+is specified as a 4-bit binary number $i$ such that $0 \leq i \leq
+15$.
+
 The following table shows the indices of all the bits in a word.  The
-vertical bars break the word into groups of 4 bits.  This grouping has
-helps to figure out the expected value of a word in hex notation.
+vertical bars break the word into groups of 4 bits.  This grouping
+corresponds to the representation of the word in hex notation.
 
 $$\fbox{$\ x_{15}\> x_{14}\> x_{13}\> x_{12}
   \ \vert\ x_{11}\> x_{10}\> x_{9}\> x_{8}
@@ -1915,22 +1935,17 @@ $$\fbox{$\ x_{15}\> x_{14}\> x_{13}\> x_{12}
   \ \vert\ x_{3}\> x_{2}\> x_{1}\> x_{0}
   \ $}$$
 
-For a word $x$, the notation $x.i$ means the value of the bit at index
-$i$ in the word, for $0 \leq i < 16$.  For example, $R5.12$ is the
-value of bit at index 12 in R5.  The least significant bit of R2 is
-$R2.0$, and the most significant bit is $R2.15$.  When used in an
-instruction, a bit index is specified as a 4-bit binary number /i/
-such that 0 <= /i/ = 16.
-
 *** Fields  
 
 A bit field is a contiguous sequence of bits in a word.  It is
-specified by the register containing a word, the index of the starting
-bit in the field, and the size of the field.
+specified by two numbers: the index of the leftmost bit in the field,
+and the size of the field.
 
 *** Natural numbers
 
-Natural numbers are represented in binary.  The binary value of an
+The natural numbers are $0, 1, 2, \ldots$.  All natural numbers are
+nonnegative.  Natural numbers are represented in binary.  Sigma16 uses
+natural numbers to represent memory addresses.  The binary value of an
 $n$-bit generic word $x$ is
 
 $$binval (x) = \sum_{0 \leq i < n} x_i * 2^i$$
@@ -1940,12 +1955,13 @@ from 0 through $2^{16}-1$; that is, from 0 through 65,535.  For a
 double word (32 bits), natural numbers are restricted to the range
 from 0 through $2^{32}-1$; that is, from 0 through 4,294,967,295.
 
-A binary number cannot be negative.  If you need numbers that can be
-negative or positive, you must use an integer.  The arithmetic
-instructions in Sigma16 operate on integers, but address arithmetic is
-performed in binary.
+A natural number (and hence a binary number) cannot be negative.  If
+you need numbers that can be negative or positive, you must use an
+integer.  The arithmetic instructions in Sigma16 operate on integers,
+but address arithmetic is performed in binary.
 
 *** Integers
+
 Integers are represented using two's complement notation.  If the
 leftmost (most significant) bit of a word is 0, its two's complement
 value is the same as its binary value.  If the leftmost bit is 1, the
@@ -1970,9 +1986,9 @@ of a word.  If a numeric value is out of range it is truncated.
   hex digits (e.g 3b2f).  In assembly language programs, hex constants
   are written with a preceding $ sign (e.g. $3b2f).  This is necessary
   to avoid ambiguity: 1234 is a decimal number and $1234 is a
-  hexadecimal number.  In contexts where there is no ambiguiity, the $
-  may be omitted: for example, the GUi shows register and memory
-  contents as hexadecimal without the leading $.
+  hexadecimal number.  In contexts where there is no ambiguity, the $
+  may be omitted: for example, the user interface shows register and
+  memory contents as hexadecimal without the leading $.
 
 ** Memory
 
@@ -2313,6 +2329,7 @@ needed for the secondary operation code.
 
 The second word consists of one 16-bit field called the displacement
 (abbreviated as disp).
+
 |--------------|
 | displacement |
 |--------------|
@@ -2352,6 +2369,8 @@ format.  The a and b fields are treated as one 8-bit natural number,
 which is the secondary operation code.  This provides for the
 possibility of up to 256 EXP format instructions, which enables new
 experimental instructions to be defined.
+
+{{{svgfig(EXPformat)}}}
 
 |----+---+----|
 | op | d | ab |

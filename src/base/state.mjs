@@ -126,7 +126,7 @@ function makeStageDisplay (page,stage) {
     page.appendChild (displaySpanElt);
     const displayCodeElt = document.createElement ("div");
     const displayCodeTextElt = document.createElement ("div");
-    const setCode = (x) => {
+    const setCode = (x) => {  // f extracts some or all of x to display
         console.log (`makeStageDisplay setCode=${x}`)
         displayCodeTextElt.innerHTML =
             showInitialLines (DisplayInitLinesLength, x);
@@ -136,15 +136,15 @@ function makeStageDisplay (page,stage) {
     return {setOrigin, setCode}
 }
 
-export const DisplayInitLinesLength = 5;
+export const DisplayInitLinesLength = 3;
 
 // return the first few lines of a string in html
 export function showInitialLines (k,txt) {
-    let xs = txt.split ("\n");
-    let ys = xs.slice(0,k).join("<br>");
-    return ys;
+    const xs = txt.split ("\n");
+    let ys = xs.slice(0,k);
+    if (xs.length > k) {ys.push (`... ${xs.length-k} more lines ...`)};
+    return "<pre class='LiteralCode'>" + ys.join("<br>") + "</pre>";
 }
-window.showInitialLines = showInitialLines;
 
 export class Sigma16Module {
     constructor () {
@@ -942,9 +942,10 @@ export function parseObjLine (xs) {
 // linkerInfo, and oms is a list of S15Modules that contain objInfo
 
 export class LinkerState  {
-    constructor (obMdTexts) {
-        // obMdTexts is an ObjMd object with text for obj, md
-        this.obMdTexts = obMdTexts;
+    constructor (mainName, objMds) {
+        // objMds is an ObjMd object with text for obj, md
+        this.mainName = mainName;
+        this.objMds = objMds;
         this.modMap = new Map ();
         this.oiList = [];
         this.mcount = 0; // number of object modules
@@ -955,6 +956,11 @@ export class LinkerState  {
         this.linkErrors = []; // error messages
         this.listing = "";
         this.exeObjMd = null; // result of link
+    }
+    showModMap () {
+        console.log ("Linker state modMap:")
+        console.log (this.modMap)
+        console.log ("End of modMap")
     }
     show () {
         let xs = "Linker state:\n"
@@ -968,7 +974,6 @@ export class LinkerState  {
         return xs;
     }
 }
-
 
 //-------------------------------------------------------------------------
 // Object Info
@@ -986,17 +991,14 @@ export function takePrefix (xs) {
 }
 
 export class ObjectInfo {
-    constructor (i, obmdtext) {
+    constructor (i, modName, objMd) {
         this.index = i; // position in array of object modules
-        this.obmdtext = obmdtext;
-        // obmdtext contains basename, object and metadata strings
+        this.modName = modName;
+        this.objMd = objMd;
         this.objMd = null; // ?????????
-        this.moduleName = "anonymous"; // this.obmdtext.baseName;
-//        this.baseName = "anonymous"; // this.obmdtext.baseName;
-//        this.objText = this.obmdtext.objText;
-        //        this.mdText = this.obmdtext.mdText;
-        this.objText = obmdtext.objText
-        this.mdText = obmdtext.mdText
+//        this.moduleName = "anonymous"; // this.obmdtext.baseName;
+        this.objText = objMd.objText
+        this.mdText = objMd.mdText
         this.objectLines = [];
         this.mdLines = this.mdText ? this.mdText.split("\n") : []
         this.metadata = null;
@@ -1041,7 +1043,10 @@ export class ObjectBlock {
     } 
 }
 
-
+        // obmdtext contains basename, object and metadata strings
+//        this.baseName = "anonymous"; // this.obmdtext.baseName;
+//        this.objText = this.obmdtext.objText;
+        //        this.mdText = this.obmdtext.mdText;
 
 // LinkerState
 //        xs += `Executable: ${this.parent.baseName}\n`
