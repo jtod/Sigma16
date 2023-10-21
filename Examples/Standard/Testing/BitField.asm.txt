@@ -14,16 +14,22 @@
 ; |----------------|---------------|---------------|---------------|
 
 ; The machine language format is EXP, and the assembly language
-; format is aRkkRk
+; format is RkkRk
 
-; extract Rd,f,g,Re,h
+; Assembly language: extract Rd,f,g,Re,h
+; Effect:            Rd.f..g := Re.h..(h+g-f)
+; EXP opcode:        e,15
 
+; Example:           extract R2,11,8,R1,3
+; Machine language:  e215 1b83
+
+; Instruction fields
 ; op  = e (escape to EXP)
 ; d   = Rd (destination register)
 ; ab  = secondary opcode for extract
 ; e   = Re (source register)
 ; f   = destination start bit_index
-; g   = destination end bit_index
+; g   = field size
 ; h   = source start bit index
    
 ;   +----+----+----+----+

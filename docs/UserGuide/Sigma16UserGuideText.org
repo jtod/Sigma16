@@ -8,8 +8,6 @@
 # followed by pdflatex Sigma16UserGuideText.  Index items break
 # <p>...</p> for html export, so put them at end of paragraph.
 
-test in Text.org
-
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.  It includes an editor,
@@ -1863,15 +1861,16 @@ these would be provided by I/O hardware.
 
 A *register* is a digital circuit that can retain one word of data.  A
 new value can be loaded into a register, and the current contents may
-be read out.  Sigma16 contains several groups of registers; each group
-is displayed in a box on the Processor tab.
+be read out.  Registers are fast, and most computation is performed
+using the registers.  Sigma16 contains several groups of registers;
+each group is displayed in a box on the Processor tab.
 
 - The *Register File* is an array of 16 registers named R0, R1,
-  $ldots$, R15.  These registers are accessible to the machine
+  $\ldots$, R15.  These registers are accessible to the machine
   language program.  Programs use the register file to hold variables
   that are currently in use.
-- The *Control* registers keep track of the instruction that is
-  currently executing.
+- The *Control* registers (pc, ir, adr) keep track of the instruction
+  that is currently executing.
 - The *System* registers control the system status and interrupts.
 - The *Virtual Memory* registers are used for memory management.
 
@@ -2508,7 +2507,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_EXAMPLE
 
-*** Stack of words
+*** Stacks
 
 Three instructions (push, pop, top) support operations on a stack
 represented as an array of contiguous elements, where the stack grows
@@ -3498,27 +3497,7 @@ pseudoinstructions.
     moveb  R4,7,R12,5   ; R4.7 := R12.5
 #+END_EXAMPLE
 
-** Bit fields
-
-The instructions in this section treat a word as a sequence of bits,
-not as a number.  There are instructions that perform logic operations
-on individual bits, on all the bits in a word, and that operate on bit
-fields.
-
-The bit field instructions can be implemented using a combination of
-logic and shift instructions.  They are included in the architecture
-for several reasons:
-
-- These operations provide useful abstractions for writing
-  interpreters and simulators.
-- When used in an interpreter, bit field operations are executed
-  frequently: they are a crucial part of the "inner loop".  Therefore
-  the efficiency of common bit field operations is important.
-- The bit field instructions are easier to use and more readable than
-  the corresponding logic and shifts.
-- These instructions can be implemented efficiently in a digital
-  circuit and this implementation is an interesting design problem.
-
+** Bit manipulation
 *** Shifting: shiftl, shiftr
 
 The shift instructions treat the operand as a string of bits, and move
@@ -3574,45 +3553,121 @@ rightmost k bits become 0.
     moveb  R4,7,R12,5   ; R4.7 := R12.5
 #+END_EXAMPLE
 
+*** Bit fields: extract, extracti
 
-The bit field instructions treat a word as a string of bits, and
-operate either on the entire string or a substring (i.e. a bit field).
+The extract and extracti instructions provide access to a field within
+a word.  The extract instruction copies an arbitrary field of bits
+from a source register and inserts those bits into an arbitrary
+position in a destination register. The destination field is
+overwritten, while other bits in the destination register as well as
+all bits in the source register are unchanged.
 
-*** Obtaining fields: extract, extracti
+The extracti instruction is similar, but it inverts the bits in the
+field before they are inserted into the destination.
 
-The extract instruction copies an arbitrary field of bits from a
-source register and inserts those bits into an arbitrary position in
-a destination register.  The extracti instruction is similar to
-extract, but extracti inverts the bits in the source field before
-they are inserted into the destination.
+These instructions are useful for systems programming.  Emulators need
+to access instruction fields, software implementing floating point
+needs to access the parts of a floating point number, and networking
+software needs to decode message headers.
 
-The bits in the destination field are overwritten; other bits in the
-destination as well as all bits in the source are unchanged.
+*Bit indexing.* Sigma16 indexes bit positions in a word from right to
+left, starting from 0.  The least significant (rightmost) bit has
+index 0, and the most significant (leftmost) bit has index 15.
 
-The fields are specified by giving the bit indices of the leftmost
-bit in the field (the left index) and the rightmost bit in the
-field (the right index).  Normally the left index is greater than
-the right index; otherwise the field is empty.
+A bit field is a sequence of bits within a word.  A field is specified
+using a pair of 4-bit natural numbers $L,R$, where $L$ is the index of
+the leftmost bit in the field and $R$ is the index of the rightmost
+bit.  The size of a field is $\max (0, L-R+1)$. Consequently, if $L<R$
+the size is 0. For example:
 
-The assembly language format is RkkRk.  Rd is the destination
-register, the field to be overwritten is bits f to g (inclusive) in
-the destination, the source register is Re, and the source field
-starts at bit h in Re.  The general form of the assembly language
-statement is:
+- R8.6,4 is the field consisting of R8.6, R8.5, R8.4 and its size
+  is 3.
+- R8.11,11 is the field consisting of R8.11 and its size is 1.
+- R8.15,0 is the field containing the entire contents of R8 and its
+  size is 16.
+- R8.5,7 is an empty field containing no bits; its size is 0
+
+*Machine language.* The machine language format of extract and
+extracti is EXP, with the following fields:
+
+|----+---+---+---|
+| op | d | a | b |
+|----+---+---+---|
+| e  | f | g | h |
+|----+---+---+---|
+
+- op  = $e (escape to EXP)
+- Rd  = destination register
+- ab  = secondary opcode: $15 for extract and $16 for extracti
+- Re  = source register
+- f   = destination start index L
+- g   = destination end index R
+- h   = source start index L
+
+*Effect.* The effect is to overwrite each bit in the destination field
+with the corresponding bit in the source field:
+
+- Size of the field = f-g+1
+- In general, $R = L - size + 1$
+- Destination field = Rd.f, Rd.f-1, ..., Rd.g
+- Check that this works for destination: $R = L - size + 1 = f -
+  (f-g+1) + 1 = f - f + g - 1 + 1 = g
+- Source field = Re.h, Re.h-1, ..., Re.h-f+g
+- Calculate $R$ for source, which is not specified in the instruction.
+  $R = L - size + 1 = h - (f-g+1) + 1 = h - f + g - 1 + 1 = h - f + g
+
+The size of a field $L,R$ is $L-R+1$.  The instruction specifies the
+destination field as $f,g$.  Only the leftmost index of the source
+field is specified explicitly; the rightmost index of the source is
+$h+g-f$.  The sizes of the source and destination fields must be the
+same, and we can verify this by calculationt the size of the source
+field = $h - (h+g-f) + 1 = f-g+1$.
+
+#+BEGIN_EXAMPLE
+Rd.f := Re.h
+Rd.f-1 := Re.h-1
+...
+Rd.g := Re.h-f+g
+#+END_EXAMPLE
+
+For example, consider =extract R14,9,7,R13,5=, where $f=9$, $g=7$,
+$h=5$.  The field size is $f-g+1 = 9-7+1 = 3$, so 3 bit assignments
+take place.  The index of the rightmost bit in the source field =
+$h-f+g = 5 -9 + 7 = 3$.  Therefore the instruction performs the
+following bit assignments:
+
+#+BEGIN_EXAMPLE
+R14.9 := R13.5
+R14.8 := R13.4
+R14.7 := R13.3
+#+END_EXAMPLE
+
+*Assembly language.* The assembly language operand format for extract
+is RkkRk, where R denotes a register number and k denotes a 4-bit
+constant.  The general form of the instruction, in assembly language,
+is
 
 #+BEGIN_EXAMPLE
    extract Rd,f,g,Re,h
 #+END_EXAMPLE   
 
-The effect is to overwrite each bit in the destination field with
-the corresponding bit in the source field:
+where
+
+- Rd is the destination register
+- f   = destination start bit_index
+- g   = destination end bit_index
+- Re is the source register
+- h   = source start bit index
 
 #+BEGIN_EXAMPLE
-Rd.i := Rs.k
-Rd.i-1 := Rs.k-1
-...
-Rd.j := Rs.k-(j-i+1)
-#+END_EXAMPLE
+; Assembly language: extract Rd,f,g,Re,h
+; Effect:            Rd.f..g := Re.h..(h+g-f)
+; EXP opcode:        e,15
+
+; Example:           extract R2,11,8,R1,3
+; Machine language:  e215 1b83
+#+END_EXAMPLE   
+
 
 Example:
 #+BEGIN_EXAMPLE
@@ -3623,35 +3678,19 @@ R2.5 := R3.18
 R2.4 := R3.17
 #+END_EXAMPLE   
 
-The machine language format is EXP, with the following fields:
+The extract and extracti instructions can be implemented using a
+combination of logic and shift instructions.  They are included in the
+architecture for several reasons:
 
-|----+---+---+---|
-| op | d | a | b |
-|----+---+---+---|
-| e  | f | g | h |
-|----+---+---+---|
-
-- op  = e (escape to EXP)
-- d   = Rd (destination register)
-- ab  = secondary opcode for extract
-- e   = Re (source register)
-- f   = destination start bit_index
-- g   = destination end bit_index
-- h   = source start bit index
-
--  (obsolete)  extract  Rd,Rs,d_index,s_index,size
-
-- Rd is the destination register
-- d_index (0..15) is the starting bit index in the destination register
-- size (0..15) is the number of bits in the field
-- Rs is the source register (field is obtained from this register)
-- s_index (0..15) is the starting bit index in the source register
-
-#+BEGIN_EXAMPLE
-      lea      R1,$ffff[R0]     ; ffff
-      add      R2,R0,R0         ; 0000
-      extract  R2,R1,11,3,4     ; 0f00  R2.11-8 := R1.3-0
-#+END_EXAMPLE
+- These operations provide useful abstractions for writing
+  interpreters and simulators.
+- When used in an interpreter, bit field operations are executed
+  frequently: they are a crucial part of the "inner loop".  Therefore
+  the efficiency of common bit field operations is important.
+- The bit field instructions are easier to use and more readable than
+  the corresponding logic and shifts.
+- These instructions can be implemented efficiently in a digital
+  circuit and this implementation is an interesting design problem.
 
 The effect of an extract instruction can be described by writing each
 bit assignment individually, so there are /size/ individual bit
@@ -3667,6 +3706,7 @@ following bit assignments:
 | R2.8 := R1.0         |
 |----------------------|
 
+*Relation to other instructions.*
 Although extract performs a number of bit assignments, it is a single
 instruction and its execution time is a small fixed number of clock
 cycles.  The execution time does not depend on the value of the field
@@ -3681,21 +3721,6 @@ another within the register (this is not the same as a shift).  If the
 destination is R0, the result is discarded and the instruction has no
 effect.
 
-The size is a 4-bit field, and its value is between 0 and 15.  Thus an
-extract instruction cannot copy the entire word in one regsiter to
-another register, as a size of 16 cannot be specified.  If size=0 then
-the instruction does nothing.  the source and destination fields
-cannot extend beyond the rightmost bit in a register.
-
-Here is another example:
-
-#+BEGIN_EXAMPLE
-      add      R3,R0,R0
-      extract  R3,R1,13,5,1     ; 2000
-      lea      R4,$ffff[R0]
-      extract  R4,R0,13,5,1     ; dfff
-#+END_EXAMPLE
-
 These instructions can be implemented using a combination of
 logic and shift instructions.  They are included in the architecture
 for several reasons:
@@ -3709,6 +3734,17 @@ for several reasons:
   the corresponding logic and shifts.
 - These instructions can be implemented efficiently in a digital
   circuit and this implementation is an interesting design problem.
+
+# Note on expressability. start-end can give 15-0 (all) or 5-5 (one
+# bit) or 4-5 (nothing) start-size, size can be from 0 to 15 but can't
+# make the field contain all the bits.  So it's slightly more
+# expressive to use start-end rather than start-size.
+
+# The size is a 4-bit field, and its value is between 0 and 15.  Thus
+# an extract instruction cannot copy the entire word in one regsiter
+# to another register, as a size of 16 cannot be specified.  If size=0
+# then the instruction does nothing.  the source and destination
+# fields cannot extend beyond the rightmost bit in a register.
 
 ** System control
 
@@ -3811,13 +3847,11 @@ text. This is some plain text.
 
 All RX instructions apart from testset are in the Core subset.
 
-
 This is some plain text. This is some plain text.  This is some plain
 text. This is some plain text.  This is some plain text. This is some
 plain text.  This is some plain text. This is some plain text.  This
 is some plain text. This is some plain text.  This is some plain
 text. This is some plain text.
-
 
 |---------+---+--------+-----+-------------------------|
 | Name    | P | Args   | Op  | Effect                  |
@@ -3842,58 +3876,50 @@ plain text.  This is some plain text. This is some plain text.  This
 is some plain text. This is some plain text.  This is some plain
 text. This is some plain text.
 
-
 *** EXP format
 
 Rkk D,K,Q
 
 
-This is some plain text. This is some plain text.  This is some plain
-text. This is some plain text.  This is some plain text. This is some
-plain text.  This is some plain text. This is some plain text.  This
-is some plain text. This is some plain text.  This is some plain
-text. This is some plain text.
-
-
-|----------+---+--------------+------+-----------------------------------|
-| Name     | P | Args         | Op   | Effect                            |
-|----------+---+--------------+------+-----------------------------------|
-| brb      |   | x            | e,01 | pc := pc+2-fgh                    |
-| brfc0    |   | d,k,q        | e,02 | !Rd.e => pc += 2+fgh              |
-| brbc0    |   | d,k,q        | e,03 | !Rd.e => pc += 2-fgh              |
-| brfc1    |   | d,k,q        | e,04 | Rd.e  => pc += 2+fgh              |
-| brbc1    |   | d,k,q        | e,05 | Rd.e  => pc += 2-fgh              |
-| brfz     |   | d,x          | e,06 | Rd=0  => pc += 2+fgh              |
-| brbz     |   | d,x          | e,07 | Rd=0  => pc += 2-fgh              |
-| brfnz    |   | d,x          | e,08 | Rd!=0 => pc += 2+fgh              |
-| brbnz    |   | d,x          | e,09 | Rd!=0 => pc += 2-fgh              |
-| dispatch |   | d,x          | e,0a | Rd!=0 => pc += 2-fgh              |
-| save     |   | Rd,e,gh[Rf]  | e,0b | M[ea] := R1,                      |
-|          |   |              |      | ..., M[ea+d-1] := Rd              |
-|          |   |              |      | ..., M[ea+d-1] := Rd              |
-| restore  |   | Rd,e,gh[Rf]  | e,0c | R1 := M[ea],
-|          |   |              |      | ..., Rd := M[ea+d-1]              |
-| push     |   | Rd,E,F       | e,0d | M[ea] := Rd, Rb++                 |
-| pop      |   | D,E,F        | e,0e | Rb--, Rd := M[ea]                 |
-| top      |   | D,E,F        | e,1f | Rb--, Rd := M[ea]                 |
-| shiftl   |   | D,E,L        | e,10 | Rd := Ra shl b                    |
-| shiftr   |   | D,E,L        | e,11 | Rd := Ra shr b                    |
-| logicw   |   | Rd,Re,Rf,h   | e,12 | Rd := Re (lut g) Rf               |
-| logicr   |   | Rd,e,f,g,h   | e,13 | Rd.e := Rd.f (lut h) Rd.g         |
-| logicb   |   | Rd,e,Rf,g,h  | e,14 | Rd.e := Rd.f (lut h) Rd.g         |
-| extract  |   | Rd,E,L,M,N   | e,15 | Rd := extr Rd di sz Rs si         |
-| extracti |   | Rd,E,L,M,N   | e,16 | Rd := extri Rd di sz Rs si        |
-| getctl   | P | Rd,c         | e,17 | Rd := Sc                          |
-| putctl   | P | Rd,c         | e,18 | Sc := Rd                          |
-| resume   | P |              | e,19 | pc := ipc, status := istatus      |
-| timeron  | P | Rd,efgh      | e,1a | timer := efgh, enable := 1        |
-| timeroff | P |              | e,1b | timer := 0, enable := =           |
-|          |   |              | e,1c | reserved                          |
-|          |   |              | ...  | reserved                          |
-|          |   |              | e,ff | reserved                          |
-|----------+---+--------------+------+-----------------------------------|
-|          |   |              |      | <33>                              |
-|----------+---+--------------+------+-----------------------------------|
+|----------+---+-------------+------+------------------------------|
+| Name     | P | Args        | Op   | Effect                       |
+|----------+---+-------------+------+------------------------------|
+| brb      |   | x           | e,01 | pc := pc+2-fgh               |
+| brfc0    |   | d,k,q       | e,02 | !Rd.e => pc += 2+fgh         |
+| brbc0    |   | d,k,q       | e,03 | !Rd.e => pc += 2-fgh         |
+| brfc1    |   | d,k,q       | e,04 | Rd.e  => pc += 2+fgh         |
+| brbc1    |   | d,k,q       | e,05 | Rd.e  => pc += 2-fgh         |
+| brfz     |   | d,x         | e,06 | Rd=0  => pc += 2+fgh         |
+| brbz     |   | d,x         | e,07 | Rd=0  => pc += 2-fgh         |
+| brfnz    |   | d,x         | e,08 | Rd!=0 => pc += 2+fgh         |
+| brbnz    |   | d,x         | e,09 | Rd!=0 => pc += 2-fgh         |
+| dispatch |   | d,x         | e,0a | Rd!=0 => pc += 2-fgh         |
+| save     |   | Rd,e,gh[Rf] | e,0b | M[ea] := R1,                 |
+|          |   |             |      | ..., M[ea+d-1] := Rd         |
+|          |   |             |      | ..., M[ea+d-1] := Rd         |
+| restore  |   | Rd,e,gh[Rf] | e,0c | R1 := M[ea],                 |
+|          |   |             |      | ..., Rd := M[ea+d-1]         |
+| push     |   | Rd,E,F      | e,0d | M[ea] := Rd, Rb++            |
+| pop      |   | D,E,F       | e,0e | Rb--, Rd := M[ea]            |
+| top      |   | D,E,F       | e,1f | Rb--, Rd := M[ea]            |
+| shiftl   |   | D,E,L       | e,10 | Rd := Ra shl b               |
+| shiftr   |   | D,E,L       | e,11 | Rd := Ra shr b               |
+| logicw   |   | Rd,Re,Rf,h  | e,12 | Rd := Re (lut g) Rf          |
+| logicr   |   | Rd,e,f,g,h  | e,13 | Rd.e := Rd.f (lut h) Rd.g    |
+| logicb   |   | Rd,e,Rf,g,h | e,14 | Rd.e := Rd.f (lut h) Rd.g    |
+| extract  |   | Rd,f,g,Re,h | e,15 | Rd.f~g := Re.h~h+g-h+1       |
+| extracti |   | Rd,E,L,M,N  | e,16 | Rd := extri Rd di sz Rs si   |
+| getctl   | P | Rd,c        | e,17 | Rd := Sc                     |
+| putctl   | P | Rd,c        | e,18 | Sc := Rd                     |
+| resume   | P |             | e,19 | pc := ipc, status := istatus |
+| timeron  | P | Rd,efgh     | e,1a | timer := efgh, enable := 1   |
+| timeroff | P |             | e,1b | timer := 0, enable := =      |
+|          |   |             | e,1c | reserved                     |
+|          |   |             | ...  | reserved                     |
+|          |   |             | e,ff | reserved                     |
+|----------+---+-------------+------+------------------------------|
+|          |   |             |      | <33>                         |
+|----------+---+-------------+------+------------------------------|
 
 
 This is some plain text. This is some plain text.  This is some plain
