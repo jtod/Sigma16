@@ -3557,10 +3557,10 @@ rightmost k bits become 0.
 
 The extract and extracti instructions provide access to a field within
 a word.  The extract instruction copies an arbitrary field of bits
-from a source register and inserts those bits into an arbitrary
-position in a destination register. The destination field is
-overwritten, while other bits in the destination register as well as
-all bits in the source register are unchanged.
+from a source register and inserts them into an arbitrary position in
+a destination register. The destination field is overwritten, while
+other bits in the destination register as well as all bits in the
+source register are unchanged.
 
 The extracti instruction is similar, but it inverts the bits in the
 field before they are inserted into the destination.
@@ -3577,8 +3577,8 @@ index 0, and the most significant (leftmost) bit has index 15.
 A bit field is a sequence of bits within a word.  A field is specified
 using a pair of 4-bit natural numbers $L,R$, where $L$ is the index of
 the leftmost bit in the field and $R$ is the index of the rightmost
-bit.  The size of a field is $\max (0, L-R+1)$. Consequently, if $L<R$
-the size is 0. For example:
+bit.  The size of a field is $\max (0, L-R+1)$. Consequently, if $L <
+R$ the size is 0. For example:
 
 - R8.6,4 is the field consisting of R8.6, R8.5, R8.4 and its size
   is 3.
@@ -3604,24 +3604,36 @@ extracti is EXP, with the following fields:
 - g   = destination end index R
 - h   = source start index L
 
-*Effect.* The effect is to overwrite each bit in the destination field
-with the corresponding bit in the source field:
+The instruction specifies the destination field as $f,g$.  The field
+size S and the R index for the source are not specified in the
+instruction: only the leftmost index of the source field is specified
+explicitly as $h$.
 
-- Size of the field = f-g+1
-- In general, $R = L - size + 1$
-- Destination field = Rd.f, Rd.f-1, ..., Rd.g
-- Check that this works for destination: $R = L - size + 1 = f -
-  (f-g+1) + 1 = f - f + g - 1 + 1 = g
+The sizes of the source and destination fields must be the same.  The
+size and right index of the source are calculated as follows.  The
+calculations verify that both the source and destination fields have
+the same size.
+
+- The size $S$ of a field specified by $L,R$ is $\max (0, L-R+1)$.
+- In general, $R = L - S + 1$.
+- Destination field = Rd.f, Rd.f-1, ..., Rd.g.
+- Check that this works for destination: $R = L - S + 1 = f -
+  (f-g+1) + 1 = f - f + g - 1 + 1 = g$.
 - Source field = Re.h, Re.h-1, ..., Re.h-f+g
 - Calculate $R$ for source, which is not specified in the instruction.
-  $R = L - size + 1 = h - (f-g+1) + 1 = h - f + g - 1 + 1 = h - f + g
+  $R = L - S + 1 = h - (f-g+1) + 1 = h - f + g - 1 + 1 = h - f + g$.
 
-The size of a field $L,R$ is $L-R+1$.  The instruction specifies the
-destination field as $f,g$.  Only the leftmost index of the source
-field is specified explicitly; the rightmost index of the source is
-$h+g-f$.  The sizes of the source and destination fields must be the
-same, and we can verify this by calculationt the size of the source
-field = $h - (h+g-f) + 1 = f-g+1$.
+*Assembly language.* The assembly language operand format for extract
+is RkkRk, where R denotes a register number and k denotes a 4-bit
+constant.  The general form of the instruction, in assembly language,
+is
+
+#+BEGIN_EXAMPLE
+   extract Rd,f,g,Re,h
+#+END_EXAMPLE   
+  
+*Effect.* The effect is to overwrite each bit in the destination field
+with the corresponding bit in the source field:
 
 #+BEGIN_EXAMPLE
 Rd.f := Re.h
@@ -3642,22 +3654,6 @@ R14.8 := R13.4
 R14.7 := R13.3
 #+END_EXAMPLE
 
-*Assembly language.* The assembly language operand format for extract
-is RkkRk, where R denotes a register number and k denotes a 4-bit
-constant.  The general form of the instruction, in assembly language,
-is
-
-#+BEGIN_EXAMPLE
-   extract Rd,f,g,Re,h
-#+END_EXAMPLE   
-
-where
-
-- Rd is the destination register
-- f   = destination start bit_index
-- g   = destination end bit_index
-- Re is the source register
-- h   = source start bit index
 
 #+BEGIN_EXAMPLE
 ; Assembly language: extract Rd,f,g,Re,h
