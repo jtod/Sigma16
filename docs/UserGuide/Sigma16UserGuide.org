@@ -1,4 +1,10 @@
-# Usage. cd docs/Userguide; pdflatex --shell-escape Sigma16UserGuide
+# Prepare release
+#   Edit  Sigma16UserGuideText.org
+#   Build VERSION.txt and VersionMacro.org: cd $SIGMA16; make setVersion
+#   Build html: ctl-c ctl-e h h
+#   Build tex: ctl-c ctl-e l l
+#   Build pdf: cd docs/Userguide; pdflatex --shell-escape Sigma16UserGuide
+#   Build VERSION.txt, then both html and pdf for this document
 
 #+INCLUDE: ../VersionMacro.org
 #+TITLE: Sigma16 User Guide

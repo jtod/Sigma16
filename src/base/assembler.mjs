@@ -1360,6 +1360,8 @@ function asmPass2 (ma) {
 
 // Unknown format            
 	} else {
+            // mkErrMsg (ma, s, `ERROR invalid operation or operand`);
+            // change 26-a
 	    com.mode.devlog('pass2 other, noOperation');
 	}
         

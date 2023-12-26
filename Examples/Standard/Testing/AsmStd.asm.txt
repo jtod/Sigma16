@@ -35,7 +35,7 @@ loop   top     R1,R2,R3
        shiftl   R5,R3,7       ; e503 3700
        shiftr   R4,R3,8       ; e404 3800
        logicw   R1,R2,R3,6    ; e105 2306
-       logicb   R1,2,3,6,13   ; e106 236d
+       logicb   R1,2,R3,4,6   ; 6 is the function
        extract  R1,3,5,R6,7   ; e107 3567
        extracti R2,3,5,R6,7   ; e208 3567
 
@@ -46,10 +46,10 @@ loop   top     R1,R2,R3
        orw      R6,R7,R8      ; e605 7807  logicw
        xorw     R6,R7,R8      ; e605 7806  logicw
 
-       invb     R1,3,9        ; e106 390c  logicb
-       andb     R2,3,4,5      ; e206 3451  logicb
-       orb      R15,8,9,10    ; ef06 89a7  logicb
-       xorb     R8,0,13,7     ; e806 0d76  logicb
+;       invb     R1,3,9        ; e106 390c  logicb
+ ;      andb     R2,3,4,5      ; e206 3451  logicb  ; problem statement
+;       orb      R15,8,9,10    ; ef06 89a7  logicb
+;       xorb     R8,0,13,7     ; e806 0d76  logicb
 
 ;       field    R6,3,7        ; e608 3700  extracti
 

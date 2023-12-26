@@ -8,6 +8,8 @@
 # followed by pdflatex Sigma16UserGuideText.  Index items break
 # <p>...</p> for html export, so put them at end of paragraph.
 
+testing Dec 26
+
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
 for experimenting with the architecture.  It includes an editor,

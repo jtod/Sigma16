@@ -1,0 +1,6 @@
+; AsmStdErrors: Test error messages for invalid assembly source
+; Checking that assembler generates correct error messages
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+
+; Bug: Assembler fails and doesn't provide error message...
+;      logicb   R1,2,3,6,13   ; invalid operand format
