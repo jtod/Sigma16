@@ -315,14 +315,17 @@ checkInstallDir:
 
 .PHONY: build
 build:
+	make setVersion
+	node ${S16_CLI}/exidx.mjs
+#	make assemble
+
+.PHONY: copyInstall
+copyInstall:
 	@echo Installing in $(S16_INSTALL_DIR)
 	@echo backup $(S16_INSTALL_VERSION_DIR)
 	touch $(S16_INSTALL_VERSION_DIR)
 	mv -i $(S16_INSTALL_VERSION_DIR) $(S16_INSTALL_VERSION_DIR)-bak
-	make setVersion
-#	make assemble
 	mkdir -p -m700 $(S16_INSTALL_DIR)
-	node ${S16_CLI}/exidx.mjs
 	cp -u *.html $(S16_INSTALL_DIR)
 	cp -u *.txt  $(S16_INSTALL_DIR)
 
@@ -335,7 +338,7 @@ build:
 
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs
 	chmod u+rwx $(S16_INSTALL_DIR)/docs
-	cp -u docs/*.css $(S16_INSTALL_DIR)/docs
+# 	cp -u docs/*.css $(S16_INSTALL_DIR)/docs
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/welcome
 	cp -u docs/welcome/*.html $(S16_INSTALL_DIR)/docs/welcome
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/help

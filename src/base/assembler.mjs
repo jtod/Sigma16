@@ -444,9 +444,11 @@ export function assembler (m) {
     st.displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
-    ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
-        ? new st.ObjMd (m.moduleName, ai.objectText, mdText)
-        : null;
+    ai.objMd = new st.ObjMd (m.moduleName, ai.objectText, mdText)
+    // need to provide this object even if errors have been detected
+//    ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
+//        ? new st.ObjMd (m.moduleName, ai.objectText, mdText)
+//        : null;
     return ai
 }
 //    m.objText = ai.objectText

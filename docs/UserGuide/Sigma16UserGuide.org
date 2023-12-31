@@ -74,8 +74,6 @@
 \tableofcontents
 #+END_EXPORT
 
-test in Sigma16UserGuide.org, about to include text
-
 #+INCLUDE: Sigma16UserGuideText.org
 ** GPL3 license
 #+INCLUDE: LICENSE.txt

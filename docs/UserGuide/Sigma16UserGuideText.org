@@ -1,3 +1,6 @@
+# Sigma16UserGuideText.org
+# To generate html and tex, visit Sigma16UserGuide.org
+
 * Introduction
 
 #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
@@ -7,8 +10,6 @@
 # sections can be typeset with C-c C-e C-s h h or C-c C-e C-s h h
 # followed by pdflatex Sigma16UserGuideText.  Index items break
 # <p>...</p> for html export, so put them at end of paragraph.
-
-testing Dec 26
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
@@ -2203,9 +2204,9 @@ program.
 The interrupt vector register contains the address of an array of
 addresses of interrupt handlers.
 
-*** Segmentation control registers
+*** Memory management registers
 
-Control the memory management unit.
+(Will be implemented in future version)
 
 ** Instruction representation
 
@@ -5490,4 +5491,4 @@ instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
 
-
+(testing 328c)
