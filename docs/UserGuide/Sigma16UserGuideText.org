@@ -1815,14 +1815,118 @@ Assembly directives
 
 * Standard architecture tutorials
 
-The tutorials for the standard architecture will be availabe in a
-future release.  See the Example programs (in the Standard section)
-for examples, and see the full architecture reference for a list of
-the instructions.
+The standard architecture provides additional registers and
+instructions to support systems programming, as well as instructions
+that simplify functions and procedures and logic calculations.
+
+** Logic
+
+#+BEGIN_EXAMPLE
+     lea  R3,$f0f0[R0]  ; R3 = f0f0
+     lea  R4,$ff00[R0]  ; R4 = ff00
+     invw R6,R3         ; R6 := inv R3    = 0f0f
+     andw R7,R3,R4      ; R7 := R3 and R4 = f000
+     orw  R8,R3,R4      ; R8 := R3 or R4  = fff0
+     xorw R9,R3,R4      ; R9 := R7 xor R8 = 0ff0
+#+END_EXAMPLE
+
+See Examples/Standard/Logic.asm.txt
+
+** Shifting
+
+There are two shift instructions, which shift the word in Re by f bits
+(to left or right) and place the result into Rd.  These are logical
+shifts: the bits that are shifted out are discarded, and bits shifted
+into the word are always 0.
+     
+#+BEGIN_EXAMPLE
+  shiftl Rd,Re,f  ; Rd := Re shifted left by f bits
+  shiftr Rd,Re,f  ; Rd := Re shifted right by f bits
+#+END_EXAMPLE
+
+Here are some examples; the comments show the expected result in both
+hexadecimal and as bits.
+
+#+BEGIN_EXAMPLE
+  lea    R1,2[R0]  ; R2 = 0002   0000 0000 0000 0010
+  shiftl R5,R1,4   ; R5 = 0020   0000 0000 0010 0000
+  shiftl R6,R1,13  ; R6 = 4000   0100 0000 0000 0000
+  shiftr R7,R6,3   ; R7 = 0800   0000 1000 0000 0000
+  shiftr R7,R7,11  ; R7 = 0001   0000 0000 0000 0001
+#+END_EXAMPLE
+
+See Examples/Standard/Shift.asm.txt
+
+** Bit fields
+
+#+BEGIN_EXAMPLE
+   lea      R1,$ffff[R0]  ; R1 = ffff
+   add      R2,R0,R0      ; R2 = 0000
+   extract  R2,11,8,R1,3  ; R2 = 0f00  R2.11~8 := R1.3~0
+
+   add      R3,R0,R0      ; R3 = 0000
+   extracti R3,11,8,R0,3  ; R3 = 0f00  R3.11~8 := inv R0.3~0
+#+END_EXAMPLE
+
+The extract instruction modifies only the specified bits in the
+destination register; the other bits remain unchanged.  For example,
+if we put 0606 into a register and then put 1 bits into positions 11
+to 8 (i.e. the second hex digit), the result is 0f06.
+
+#+BEGIN_EXAMPLE
+   lea      R1,$ffff[R0]  ; R1 = ffff
+   lea      R2,$0f0f      ; R2 = 0606
+   extract  R2,11,8,R1,3  ; R2 = 0f06  R2.11~8 := R1.3~0
+#+END_EXAMPLE
+
+| extract  | Rd,f,g,Re,h | e,15 | Rd.f~g := Re.h~h+g-h+1     |
+| extracti | Rd,f,g,Re,h | e,16 | Rd := extri Rd di sz Rs si |
 
 ** Saving registers for procedure call
-** Logic
-** Bit fields and shifting
+
+A common way to implement a procedure call is to save the caller's
+registers on a stack, so the procedure can use those registers without
+destroying the caller's state.  When the procedure is ready to return,
+it needs to load those saved values back into the registers.
+
+On a procedure call, save the registers onto the stack:
+
+#+BEGIN_EXAMPLE
+   save    R3,R5,6[R13]  ; store R3-R5 into memory at 6[R13]
+#+END_EXAMPLE
+
+When the procedure returns, restore the registers from the stack:
+
+#+BEGIN_EXAMPLE
+   restore R3,R5,6[R13]  ; load R3-R5 from memory at 6[R13]
+#+END_EXAMPLE
+
+For an example, showing the contents of the stack and registers, see
+Examples/Standard/Testing/SaveRestore.asm.txt
+
+** Branching to pc-relative address
+
+A branch instruction transfers control to a specified location,
+similar to a jump.  The difference is in how the location to jump to
+is specified: in a jump, the address of the destination is specified
+as the effective address, while in a branch the destination is
+specifed as an offset to be added to (or subtracted from) the value in
+the pc register.
+
+A branch can either go forward, to a higher address, or backward, to a
+lower address.  Furthermore, a branch can be unconditional or
+conditional.
+
+- brf branch forward unconditional
+- brb branch backward unconditional
+- brfc0 branch forward if Rd = 0
+- brfc1 branch forward if Rd /= 0
+- brbc0 branch backward if Rd = 0
+- brbc1 branch backward if Rd /= 0
+
+The unconditional branches take one operand, which is a constant
+called the offset.
+
 ** Stack instructions
 ** Arithmetic on natural numbers
 ** Modules and linking
@@ -1831,6 +1935,7 @@ the instructions.
 # [[./figures/control-block-pc.png]]
 
 ** Interrupts
+
 
 * The Sigma16 architecture
 :PROPERTIES:
@@ -3901,8 +4006,8 @@ Rkk D,K,Q
 | push     |   | Rd,E,F      | e,0d | M[ea] := Rd, Rb++            |
 | pop      |   | D,E,F       | e,0e | Rb--, Rd := M[ea]            |
 | top      |   | D,E,F       | e,1f | Rb--, Rd := M[ea]            |
-| shiftl   |   | D,E,L       | e,10 | Rd := Ra shl b               |
-| shiftr   |   | D,E,L       | e,11 | Rd := Ra shr b               |
+| shiftl   |   | Rd,Re,h     | e,10 | Rd := Re shl h               |
+| shiftr   |   | Rd,Re,h     | e,11 | Rd := Re shr h               |
 | logicw   |   | Rd,Re,Rf,h  | e,12 | Rd := Re (lut g) Rf          |
 | logicr   |   | Rd,e,f,g,h  | e,13 | Rd.e := Rd.f (lut h) Rd.g    |
 | logicb   |   | Rd,e,Rf,g,h | e,14 | Rd.e := Rd.f (lut h) Rd.g    |
@@ -5491,4 +5596,4 @@ instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
 
-(testing 328c)
+(t1-2)

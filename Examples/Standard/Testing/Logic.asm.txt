@@ -1,6 +1,6 @@
 ; Logic: Test the logic instructions and pseudoinstructions.
 ; Instructions logicw, logicr, logicb, and pseudoinstructions.
-; Sigma16 https://jtod.github.io/home/Sigma16 John O'Donnell, 2023
+; Sigma16: https://jtod.github.io/home/Sigma16 John O'Donnell, 2024
   
 ; Logic instructions. Notation: Rd.i is bit at index i in Rd
 ;   logicw Rd,Re,Rf,h    ; Rd := h (Re, Rf)
@@ -21,7 +21,16 @@ nand equ    14
 nor  equ    8
 xnor equ    9
 
-; Examples from User Guide
+; Examples from tutorial
+
+     lea  R3,$f0f0[R0]  ; R3 = f0f0
+     lea  R4,$ff00[R0]  ; R4 = ff00
+     invw R6,R3         ; R6 := inv R3    = 0f0f
+     andw R7,R3,R4      ; R7 := R3 and R4 = f000
+     orw  R8,R3,R4      ; R8 := R3 or R4  = fff0
+     xorw R9,R3,R4      ; R9 := R7 xor R8 = 0ff0
+
+; Testing
 
 ; logicw
    lea     R1,$00ff[R0]  ; R1 := 00ff

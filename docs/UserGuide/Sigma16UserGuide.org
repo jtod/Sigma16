@@ -1,14 +1,10 @@
-# Prepare release
-#   Edit  Sigma16UserGuideText.org
-#   Build VERSION.txt and VersionMacro.org: cd $SIGMA16; make setVersion
-#   Build html: ctl-c ctl-e h h
-#   Build tex: ctl-c ctl-e l l
-#   Build pdf: cd docs/Userguide; pdflatex --shell-escape Sigma16UserGuide
-#   Build VERSION.txt, then both html and pdf for this document
-
 #+INCLUDE: ../VersionMacro.org
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
+#+DATE: {{{S16version()}}}
+
+# Top level document for typesetting Sigma16 User Guide standalone.
+# John T. O'Donnell, 2024
 
 # This file is part of Sigma16: https://github.com/jtod/Sigma16.
 # License: GNU GPL Version 3 or later. See Sigma16/README.md,
@@ -24,6 +20,14 @@
 # License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+# Prepare release
+#   Edit  Sigma16UserGuideText.org
+#   Build VERSION.txt and VersionMacro.org: cd $SIGMA16; make setVersion
+#   Build html: ctl-c ctl-e h h
+#   Build tex: ctl-c ctl-e l l
+#   Build pdf: cd docs/Userguide; pdflatex --shell-escape Sigma16UserGuide
+#   Build VERSION.txt, then both html and pdf for this document
+
 # .emacs.d/init.el configures org-export-filter-options-functions to
 # set different section number formatting for html and latex.  For
 # html, generate contents without section numbers.  For latex,
@@ -31,10 +35,6 @@
 # suppress those when the toc is generated.  The modified contents for
 # latex is in a scope environment; it goes after Title and before
 # Introduction.
-
-#+DATE: {{{S16version()}}}
-# Top level document for typesetting Sigma16 User Guide standalone.
-# John T. O'Donnell, 2023
 
 #+MACRO: S16Version (Version/Date disabled for section export)
 # Redefinition to prevent error/abort on export.
@@ -73,6 +73,8 @@
 #+BEGIN_EXPORT latex
 \tableofcontents
 #+END_EXPORT
+
+{{{S16version()}}}
 
 #+INCLUDE: Sigma16UserGuideText.org
 ** GPL3 license
