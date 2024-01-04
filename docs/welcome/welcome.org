@@ -1,6 +1,6 @@
 #+INCLUDE: ../VersionMacro.org
 
-# Copyright (C) 2023 John T. O'Donnell
+# Copyright (C) 2024 John T. O'Donnell
 # This file is part of Sigma16.  https://jtod.github.io/home/Sigma16
 # License: GNU GPL Version 3
 
@@ -26,6 +26,10 @@ in computer systems.  This application provides a complete environment
 for experimenting with the architecture, including an editor,
 assembler, linker, emulator, and an integrated development
 environment.
+
+Version 3.7 of Sigma16 runs in Chrome, Edge, and Opera (the browsers
+based on Chromium).  It is not currently supported on Safari or
+Firefox, although future versions are planned for those browsers too.
 
 There is also a digital circuit, available separately, that
 implements the architecture.  The circuit is specified using the

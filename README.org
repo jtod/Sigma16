@@ -11,8 +11,7 @@ prior knowledge of computer architecture is required; the only
 prerequisite is some general experience with programming.  But Sigma16
 is not limited to beginners: by following through the documentation
 and examples, you will gain understanding of machine and assembly
-language, as well as intermediate and advanced programming techniques,
-culminating in a simple operating system kernel.
+language, as well as intermediate and advanced programming techniques.
 
 This is free software, available at
 [[https://github.com/jtod/Sigma16]] under the GPL-3 license.
@@ -22,6 +21,10 @@ This is free software, available at
 Sigma16 runs in a web browser: you don't need to download or install
 anything.  To launch the app, just visit the Sigma16 Home Page,
 [[https://jtod.github.io/home/Sigma16/]], and *Click to run Sigma16*.
+
+Version 3.7 of Sigma16 runs in Chrome, Edge, and Opera (the browsers
+based on Chromium).  It is not currently supported on Safari or
+Firefox, although future versions are planned for those browsers too.
 
 It is also possible to download the software and run it locally,
 without Internet access.  There are command line tools for running the

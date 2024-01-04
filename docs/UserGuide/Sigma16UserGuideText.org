@@ -23,6 +23,10 @@ Sigma16 runs in a web browser: you don't need to download or install
 anything.  To run it, click the prominent /Run/ link on the Sigma16
 Home Page: [[https://jtod.github.io/home/Sigma16]].
 
+Version 3.7 of Sigma16 runs in Chrome, Edge, and Opera (the browsers
+based on Chromium).  It does not work fully in Safari or Firefox,
+although future versions are planned for those browsers too.
+
 There are additional command line tools that can run in a shell; see
 the Installation section.  There is also a digital circuit
 (available separately) that implements the architecture.  Using
@@ -5596,4 +5600,4 @@ instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
 
-(t1-2)
+[t1.3]
