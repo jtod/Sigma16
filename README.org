@@ -83,7 +83,7 @@ architecture can run on the circuit as well as the emulator.
 The latest version is available on the Source Repository
 [[https://github.com/jtod/Sigma16]].
 
-The version number is given in the =Version.txt= file in the source
+The version number is given in the =VERSION.txt= file in the source
 directory.  It's also given in the running app on the Welcome page,
 the User Guide, and the Options page.
 
@@ -91,7 +91,7 @@ The architecture, implementation, circuits, documentation, and
 examples are designed and written by John O'Donnell,
 [[https://jtod.github.io/index.html]].
 
-- Copyright (C) 2023 John T. O'Donnell
+- Copyright (C) 2024 John T. O'Donnell
 - License: GNU GPL Version 3.  The full text of the license is given
   in the source repository in Sigma16/LICENSE, as well as at
   [[https://www.gnu.org/licenses][https://www.gnu.org/licenses]].

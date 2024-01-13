@@ -1,5 +1,5 @@
 # Sigma16UserGuideText.org
-# To generate html and tex, visit Sigma16UserGuide.org
+# To generate html and tex, open Sigma16UserGuide.org in emacs
 
 * Introduction
 
@@ -1825,6 +1825,13 @@ that simplify functions and procedures and logic calculations.
 
 ** Logic
 
+The pseudoinstruction =andw R1,R2,R3=  calculates the logical and the
+operands R2 and R3, and places the result in the destination register
+R1.  This is a "bitwise" operation: bit $i$ of the result is the
+logical and of bit $i$ of each operand.  Similarly, there is =orw= to
+calculate the logical or of two words, and =xorw= for exclusive or.
+To invert all the bits in a word, use =invw=.
+
 #+BEGIN_EXAMPLE
      lea  R3,$f0f0[R0]  ; R3 = f0f0
      lea  R4,$ff00[R0]  ; R4 = ff00
@@ -1833,6 +1840,11 @@ that simplify functions and procedures and logic calculations.
      orw  R8,R3,R4      ; R8 := R3 or R4  = fff0
      xorw R9,R3,R4      ; R9 := R7 xor R8 = 0ff0
 #+END_EXAMPLE
+
+These are all pseudoinstructions: there is a single machine language
+instruction =logicw= that can calculate all possible boolean functions
+of up to 2 operands.  These pseudoinstructions generate =logicw=
+instruction.
 
 See Examples/Standard/Logic.asm.txt
 
@@ -1916,6 +1928,11 @@ is specified: in a jump, the address of the destination is specified
 as the effective address, while in a branch the destination is
 specifed as an offset to be added to (or subtracted from) the value in
 the pc register.
+
+There are advantages for both jumps and branches, and many computers
+have both.  One big advantage of a branch is that it makes the machine
+language code independent of the position of the program in memory.
+See the section on the Linker.
 
 A branch can either go forward, to a higher address, or backward, to a
 lower address.  Furthermore, a branch can be unconditional or

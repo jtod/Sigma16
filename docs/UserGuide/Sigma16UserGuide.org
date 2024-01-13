@@ -20,13 +20,15 @@
 # License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-# Prepare release
-#   Edit  Sigma16UserGuideText.org
+# To build User Guide
 #   Build VERSION.txt and VersionMacro.org: cd $SIGMA16; make setVersion
+#   Edit  Sigma16UserGuideText.org
+#   Open Sigma16UserGuide.org in emacs
 #   Build html: ctl-c ctl-e h h
 #   Build tex: ctl-c ctl-e l l
-#   Build pdf: cd docs/Userguide; pdflatex --shell-escape Sigma16UserGuide
-#   Build VERSION.txt, then both html and pdf for this document
+#   Build pdf: either...
+#     cd docs/Userguide; pdflatex --shell-escape Sigma16UserGuide
+#     cd $SIGMA16; make docs/UserGuide/Sigma16UserGuide.pdf
 
 # .emacs.d/init.el configures org-export-filter-options-functions to
 # set different section number formatting for html and latex.  For
