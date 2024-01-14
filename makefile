@@ -56,12 +56,16 @@
 # 1. On development machine:
 #    - update to v3.7.0, as above
 #    - make build
-#    - make installServer
-#    - make buildBuild
-# 2. heroku login
-# 3. On heroku (remotely)
+#    - make installServer only if server has changed, usually it doesn't
+#    - make buildBuild  obsolete
+# 2. Upload to heroku
+#    - cd Sigma/src/server
+#    - heroku login  (need iPhone, open Google Authenticator app)
+#    - heroku config   (show config variables on Heroku)
+#    - git status
 #    - git add .
-#    - git commit -m 'v3.7.0'
+#    - remove 3.7.0.bak if it exists
+#    - git commit -m 'v3.7.0'  (copies old 3.7.0 to 3.7.0.bak)
 #    - git push heroku main
 #    - heroku config:set S16_RELEASE_VERSION=3.7.0
 #        S16_LATEST_RELEASE=3.7.0
