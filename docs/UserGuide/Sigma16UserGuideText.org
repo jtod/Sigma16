@@ -2194,8 +2194,8 @@ automatically loaded into R15, which is the condition code register.
 The description of each instruction states whether R15 is modified,
 and what goes into it.
 
-The bits in R15 are indexed from bit 0 (the most significant, or
-lefttmost bit) to bit 15 (the least significant, or rightmost).  The
+The bits in R15 are indexed from bit 0 (rightmost, or least
+significant) to bit 15 (the lefttmost, or most significant).  The
 condition code bits that have specific meanings are called *flags*.
 
 - Each bit position holds a Boolean value, either False or True,
@@ -2214,11 +2214,12 @@ Another way to use condition code flags is to save them as Boolean
 variables and perform logic operations on them.  This is done using
 the extract and logicr instructions.
 
-There are separate flags for integers (represented as two's complement) and natural
-numbers (represented as binary).  This is necessary because the
-relation between two words sometimes depends on the type of the data.
-For example, consider the word ffff (all 1 bits).  On its own, ffff is
-just a word of bits and has no inherent meaning.
+There are separate flags for integers (represented as two's
+complement) and natural numbers (represented as binary).  This is
+necessary because the relation between two words sometimes depends on
+the type of the data.  For example, consider the word ffff (all 1
+bits).  On its own, ffff is just a word of bits and has no inherent
+meaning.
 - If ffff is interpreted as a natural number (i.e. binary), it is
   positive and has the value 65,535, and ffff > 0000
 - If ffff is interpreted as an integer (i.e. two's complement), then
