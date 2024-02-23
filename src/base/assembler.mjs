@@ -130,13 +130,21 @@ export function displayAsmListing () {
 
 export function displayMetadata () {
     const m = st.env.moduleSet.getSelectedModule ();
+    const mdText = m.asmInfo.objMd.mdText;
+    let txt = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
+    document.getElementById('AsmTextHtml').innerHTML = txt;
+}
+
+/* buggy version
+export function displayMetadata () {
+    const m = st.env.moduleSet.getSelectedModule ();
     const src = m.getAsmText ();
     //    const mdText = m.asmInfo.objMd.mdText;
     const mdText = m.mdText // *************************
     let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = listing;
 }
-
+*/
 
 //----------------------------------------------------------------------
 // Character set
@@ -430,6 +438,7 @@ export function assembler (m) {
     ai.exports = [];
     ai.locationCounter = new st.Value (0, st.Local, st.Relocatable);
     ai.symbolTable.clear();
+    ai.metadata.clear (); // remove md from any previous assembly
     ai.metadata.pushSrc
       ("Line Addr Code Code Source",
        "<span class='ListingHeader'>Line Addr Code Code Source</span>",
