@@ -1,0 +1,1212 @@
+
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="author" content="John T. O’Donnell" />
+<meta name="generator" content="LaTeX Lwarp package" />
+<meta name="description" content="Sigma16 system documentation" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sigma16 User Guide — Registers, constants, and arithmetic</title>
+<link rel="stylesheet" type="text/css" href="lwarp.css" />
+
+<script>
+// Lwarp MathJax emulation code
+//
+// Based on code by Davide P. Cervone.
+// Equation numbering: https://github.com/mathjax/MathJax/issues/2427
+// Starred and ifnextchar macros: https://github.com/mathjax/MathJax/issues/2428
+// \left, \right delimiters: https://github.com/mathjax/MathJax/issues/2535
+//
+// Modified by Brian Dunn to adjust equation numbering and add subequations.
+//
+// LaTeX can use \seteqnumber{subequations?}{section}{number} before each equation.
+// subequations? is 0 usually, 1 if inside subequations.
+// section is a string printed as-is, or empty.
+// number is auto-incremented by MathJax between equations.
+//
+MathJax = {
+    subequations: "0",
+    section: "",
+    loader: {
+        load: ['[tex]/tagformat', '[tex]/textmacros'],
+    },
+    startup: {
+        ready() {
+            //      These would be replaced by import commands if you wanted to make
+            //      a proper extension.
+            const Configuration = MathJax._.input.tex.Configuration.Configuration;
+            const CommandMap = MathJax._.input.tex.SymbolMap.CommandMap;
+            const Macro = MathJax._.input.tex.Symbol.Macro;
+            const TexError = MathJax._.input.tex.TexError.default;
+            const ParseUtil = MathJax._.input.tex.ParseUtil.default;
+            const expandable = MathJax._.util.Options.expandable;
+
+
+            //      Insert the replacement string into the TeX string, and check
+            //      that there haven't been too many maxro substitutions (prevents
+            //      infinite loops).
+            const useArgument = (parser, text) => {
+                parser.string = ParseUtil.addArgs(parser, text, parser.string.slice(parser.i));
+                parser.i = 0;
+                if (++parser.macroCount > parser.configuration.options.maxMacros) {
+                    throw new TexError('MaxMacroSub1',
+                    'MathJax maximum macro substitution count exceeded; ' +
+                    'is there a recursive macro call?');
+                }
+            }
+
+
+            //      Create the command map for:
+            //          \ifstar, \ifnextchar, \ifblank, \ifstrequal, \gsub, \seteqnumber
+            new CommandMap('Lwarp-macros', {
+                ifstar: 'IfstarFunction',
+                ifnextchar: 'IfnextcharFunction',
+                ifblank: 'IfblankFunction',
+                ifstrequal: 'IfstrequalFunction',
+                gsubstitute: 'GsubstituteFunction',
+                seteqnumber: 'SeteqnumberFunction'
+            }, {
+                //      This function implements an ifstar macro.
+                IfstarFunction(parser, name) {
+                    const resultstar = parser.GetArgument(name);
+                    const resultnostar = parser.GetArgument(name);
+                    const star = parser.GetStar();                      // true if there is a *
+                    useArgument(parser, star ? resultstar : resultnostar);
+                },
+
+
+                //      This function implements an ifnextchar macro.
+                IfnextcharFunction(parser, name) {
+                    let whichchar = parser.GetArgument(name);
+                    if (whichchar.match(/^(?:0x[0-9A-F]+|[0-9]+)$/i)) {
+                        // $ syntax highlighting
+                        whichchar = String.fromCodePoint(parseInt(whichchar));
+                    }
+                    const resultnextchar = parser.GetArgument(name);
+                    const resultnotnextchar = parser.GetArgument(name);
+                    const gotchar = (parser.GetNext() === whichchar);
+                    useArgument(parser, gotchar ? resultnextchar : resultnotnextchar);
+                },
+
+
+                // This function implements an ifblank macro.
+                IfblankFunction(parser, name) {
+                    const blankarg = parser.GetArgument(name);
+                    const resultblank = parser.GetArgument(name);
+                    const resultnotblank = parser.GetArgument(name);
+                    const isblank = (blankarg.trim() == "");
+                    useArgument(parser, isblank ? resultblank : resultnotblank);
+                },
+
+
+                // This function implements an ifstrequal macro.
+                IfstrequalFunction(parser, name) {
+                    const strequalfirst = parser.GetArgument(name);
+                    const strequalsecond = parser.GetArgument(name);
+                    const resultequal = parser.GetArgument(name);
+                    const resultnotequal = parser.GetArgument(name);
+                    const isequal = (strequalfirst == strequalsecond);
+                    useArgument(parser, isequal ? resultequal : resultnotequal);
+                },
+
+
+                // This function implements a gsub macro.
+                GsubstituteFunction(parser, name) {
+                    const gsubfirst = parser.GetArgument(name);
+                    const gsubsecond = parser.GetArgument(name);
+                    const gsubthird = parser.GetArgument(name);
+                    let gsubresult=gsubfirst.replace(gsubsecond, gsubthird);
+                    useArgument(parser, gsubresult);
+                },
+
+
+                //      This function modifies the equation numbers.
+                SeteqnumberFunction(parser, name) {
+                        //   Get the macro parameters
+                        const star = parser.GetStar();                    // true if there is a *
+                        const optBrackets = parser.GetBrackets(name);     // contents of optional brackets
+                        const newsubequations = parser.GetArgument(name);    // the subequations argument
+                        const neweqsection = parser.GetArgument(name);    // the eq section argument
+                        const neweqnumber = parser.GetArgument(name);     // the eq number argument
+                        MathJax.config.subequations=newsubequations ;     // a string with boolean meaning
+                        MathJax.config.section=neweqsection ;             // a string with numeric meaning
+                        parser.tags.counter = parser.tags.allCounter = neweqnumber ;
+                }
+
+
+            });
+
+
+            //      Create the Lwarp-macros package
+            Configuration.create('Lwarp-macros', {
+                handler: {macro: ['Lwarp-macros']}
+            });
+
+
+            MathJax.startup.defaultReady();
+
+
+            // For forward references:
+            MathJax.startup.input[0].preFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                        MathJax.config.subequations = math.inputData.recompile.subequations;
+                        MathJax.config.section = math.inputData.recompile.section;
+                }
+            });
+            MathJax.startup.input[0].postFilters.add(({math}) => {
+                if (math.inputData.recompile){
+                        math.inputData.recompile.subequations = MathJax.config.subequations;
+                        math.inputData.recompile.section = MathJax.config.section;
+                }
+            });
+
+
+                // For \left, \right with unicode-math:
+                const {DelimiterMap} = MathJax._.input.tex.SymbolMap;
+                const {Symbol} = MathJax._.input.tex.Symbol;
+                const {MapHandler} = MathJax._.input.tex.MapHandler;
+                const delimiter = MapHandler.getMap('delimiter');
+                delimiter.add('\\lBrack', new Symbol('\\lBrack', '\u27E6'));
+                delimiter.add('\\rBrack', new Symbol('\\rBrack', '\u27E7'));
+                delimiter.add('\\lAngle', new Symbol('\\lAngle', '\u27EA'));
+                delimiter.add('\\rAngle', new Symbol('\\rAngle', '\u27EB'));
+                delimiter.add('\\lbrbrak', new Symbol('\\lbrbrak', '\u2772'));
+                delimiter.add('\\rbrbrak', new Symbol('\\rbrbrak', '\u2773'));
+                delimiter.add('\\lbag', new Symbol('\\lbag', '\u27C5'));
+                delimiter.add('\\rbag', new Symbol('\\rbag', '\u27C6'));
+                delimiter.add('\\llparenthesis', new Symbol('\\llparenthesis', '\u2987'));
+                delimiter.add('\\rrparenthesis', new Symbol('\\rrparenthesis', '\u2988'));
+                delimiter.add('\\llangle', new Symbol('\\llangle', '\u2989'));
+                delimiter.add('\\rrangle', new Symbol('\\rrangle', '\u298A'));
+                delimiter.add('\\Lbrbrak', new Symbol('\\Lbrbrak', '\u27EC'));
+                delimiter.add('\\Rbrbrak', new Symbol('\\Rbrbrak', '\u27ED'));
+                delimiter.add('\\lBrace', new Symbol('\\lBrace', '\u2983'));
+                delimiter.add('\\rBrace', new Symbol('\\rBrace', '\u2984'));
+                delimiter.add('\\lParen', new Symbol('\\lParen', '\u2985'));
+                delimiter.add('\\rParen', new Symbol('\\rParen', '\u2986'));
+                delimiter.add('\\lbrackubar', new Symbol('\\lbrackubar', '\u298B'));
+                delimiter.add('\\rbrackubar', new Symbol('\\rbrackubar', '\u298C'));
+                delimiter.add('\\lbrackultick', new Symbol('\\lbrackultick', '\u298D'));
+                delimiter.add('\\rbracklrtick', new Symbol('\\rbracklrtick', '\u298E'));
+                delimiter.add('\\lbracklltick', new Symbol('\\lbracklltick', '\u298F'));
+                delimiter.add('\\rbrackurtick', new Symbol('\\rbrackurtick', '\u2990'));
+                delimiter.add('\\langledot', new Symbol('\\langledot', '\u2991'));
+                delimiter.add('\\rangledot', new Symbol('\\rangledot', '\u2992'));
+                delimiter.add('\\lparenless', new Symbol('\\lparenless', '\u2993'));
+                delimiter.add('\\rparengtr', new Symbol('\\rparengtr', '\u2994'));
+                delimiter.add('\\Lparengtr', new Symbol('\\Lparengtr', '\u2995'));
+                delimiter.add('\\Rparenless', new Symbol('\\Rparenless', '\u2996'));
+                delimiter.add('\\lblkbrbrak', new Symbol('\\lblkbrbrak', '\u2997'));
+                delimiter.add('\\rblkbrbrak', new Symbol('\\rblkbrbrak', '\u2998'));
+                delimiter.add('\\lvzigzag', new Symbol('\\lvzigzag', '\u29D8'));
+                delimiter.add('\\rvzigzag', new Symbol('\\rvzigzag', '\u29D9'));
+                delimiter.add('\\Lvzigzag', new Symbol('\\Lvzigzag', '\u29DA'));
+                delimiter.add('\\Rvzigzag', new Symbol('\\Rvzigzag', '\u29DB'));
+                delimiter.add('\\lcurvyangle', new Symbol('\\lcurvyangle', '\u29FC'));
+                delimiter.add('\\rcurvyangle', new Symbol('\\rcurvyangle', '\u29FD'));
+                delimiter.add('\\Vvert', new Symbol('\\Vvert', '\u2980'));
+        }        // ready
+    },           // startup
+
+
+    tex: {
+        packages: {'[+]': ['tagformat', 'Lwarp-macros', 'textmacros']},
+        tags: "ams",
+                tagformat: {
+                        number: function (n) {
+                             if(MathJax.config.subequations==0)
+                                 return(MathJax.config.section + n);
+                             else
+                                 return(MathJax.config.section + String.fromCharCode(96+n));
+                        },
+                },
+    }
+}
+</script>
+
+
+<script
+        id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+></script>
+
+</head>
+<body>
+
+
+<a id="Sigma16UserGuide-autopage-11"></a>
+<nav class="topnavigation"><a href="index.html" class="linkhome" >
+Home</a></nav>
+
+
+<div class="bodyandsidetoc">
+<div class="sidetoccontainer">
+
+
+<nav class="sidetoc">
+
+
+<div class="sidetoctitle">
+
+<p>
+<span class="sidetocthetitle">Sigma16 User Guide</span>
+</p>
+
+<p>
+Contents
+</p>
+</div>
+
+
+<div class="sidetoccontents">
+
+<p>
+<a href="index.html" class="linkhome" >
+Home</a>
+</p>
+
+<p>
+<a href="Introduction.html#autosec-5" class="tocsection" >
+<span class="sectionnumber">1</span>&#x2003;Introduction</a>
+</p>
+
+
+<p>
+<a href="Core-architecture-tutorials.html#autosec-7" class="tocsection" >
+<span class="sectionnumber">2</span>&#x2003;Core architecture tutorials</a>
+</p>
+
+
+<p>
+<a href="Core-architecture-tutorials.html#autosec-8" class="tocsubsection" >
+<span class="sectionnumber">2.1</span>&#x2003;Hello, world!</a>
+</p>
+
+
+<p>
+<a href="A-quick-tour.html#autosec-10" class="tocsubsection" >
+<span class="sectionnumber">2.2</span>&#x2003;A quick tour</a>
+</p>
+
+
+<p>
+<a href="Registers-constants-arithmetic.html#autosec-12" class="tocsubsection" >
+<span class="sectionnumber">2.3</span>&#x2003;Registers, constants, and arithmetic</a>
+</p>
+
+
+<p>
+<a href="Keeping-variables-in-memory.html#autosec-27" class="tocsubsection" >
+<span class="sectionnumber">2.4</span>&#x2003;Keeping variables in memory</a>
+</p>
+
+
+<p>
+<a href="Assembly-language.html#autosec-32" class="tocsubsection" >
+<span class="sectionnumber">2.5</span>&#x2003;Assembly language</a>
+</p>
+
+
+<p>
+<a href="Editing-files.html#autosec-41" class="tocsubsection" >
+<span class="sectionnumber">2.6</span>&#x2003;Editing files</a>
+</p>
+
+
+<p>
+<a href="Jumps-conditionals.html#autosec-43" class="tocsubsection" >
+<span class="sectionnumber">2.7</span>&#x2003;Jumps and conditionals</a>
+</p>
+
+
+<p>
+<a href="Loops.html#autosec-58" class="tocsubsection" >
+<span class="sectionnumber">2.8</span>&#x2003;Loops</a>
+</p>
+
+
+<p>
+<a href="Machine-language.html#autosec-65" class="tocsubsection" >
+<span class="sectionnumber">2.9</span>&#x2003;Machine language</a>
+</p>
+
+
+<p>
+<a href="Pseudoinstructions.html#autosec-72" class="tocsubsection" >
+<span class="sectionnumber">2.10</span>&#x2003;Pseudoinstructions</a>
+</p>
+
+
+<p>
+<a href="A-strange-program.html#autosec-76" class="tocsubsection" >
+<span class="sectionnumber">2.11</span>&#x2003;A strange program</a>
+</p>
+
+
+<p>
+<a href="Breakpoints.html#autosec-79" class="tocsubsection" >
+<span class="sectionnumber">2.12</span>&#x2003;Breakpoints</a>
+</p>
+
+
+<p>
+<a href="Summary-core-instruction-formats.html#autosec-86" class="tocsubsection" >
+<span class="sectionnumber">2.13</span>&#x2003;Summary of core instruction formats</a>
+</p>
+
+
+<p>
+<a href="Summary-core-instructions.html#autosec-91" class="tocsubsection" >
+<span class="sectionnumber">2.14</span>&#x2003;Summary of core instructions</a>
+</p>
+
+
+<p>
+<a href="Standard-architecture-tutorials.html#autosec-93" class="tocsection" >
+<span class="sectionnumber">3</span>&#x2003;Standard architecture tutorials</a>
+</p>
+
+
+<p>
+<a href="Standard-architecture-tutorials.html#autosec-94" class="tocsubsection" >
+<span class="sectionnumber">3.1</span>&#x2003;Logic</a>
+</p>
+
+
+<p>
+<a href="Shifting.html#autosec-97" class="tocsubsection" >
+<span class="sectionnumber">3.2</span>&#x2003;Shifting</a>
+</p>
+
+
+<p>
+<a href="Bit-fields.html#autosec-101" class="tocsubsection" >
+<span class="sectionnumber">3.3</span>&#x2003;Bit fields</a>
+</p>
+
+
+<p>
+<a href="Saving-registers-procedure-call.html#autosec-107" class="tocsubsection" >
+<span class="sectionnumber">3.4</span>&#x2003;Saving registers for procedure call</a>
+</p>
+
+
+<p>
+<a href="Branching-pc-relative-address.html#autosec-111" class="tocsubsection" >
+<span class="sectionnumber">3.5</span>&#x2003;Branching to pc-relative address</a>
+</p>
+
+
+<p>
+<a href="Stack-instructions.html#autosec-113" class="tocsubsection" >
+<span class="sectionnumber">3.6</span>&#x2003;Stack instructions</a>
+</p>
+
+
+<p>
+<a href="Arithmetic-on-natural-numbers.html#autosec-115" class="tocsubsection" >
+<span class="sectionnumber">3.7</span>&#x2003;Arithmetic on natural numbers</a>
+</p>
+
+
+<p>
+<a href="Modules-linking.html#autosec-117" class="tocsubsection" >
+<span class="sectionnumber">3.8</span>&#x2003;Modules and linking</a>
+</p>
+
+
+<p>
+<a href="System-control-registers.html#autosec-119" class="tocsubsection" >
+<span class="sectionnumber">3.9</span>&#x2003;System control registers</a>
+</p>
+
+
+<p>
+<a href="Interrupts.html#autosec-121" class="tocsubsection" >
+<span class="sectionnumber">3.10</span>&#x2003;Interrupts</a>
+</p>
+
+
+<p>
+<a href="The-Sigma16-architecture.html#autosec-123" class="tocsection" >
+<span class="sectionnumber">4</span>&#x2003;The Sigma16 architecture</a>
+</p>
+
+
+<p>
+<a href="The-Sigma16-architecture.html#autosec-124" class="tocsubsection" >
+<span class="sectionnumber">4.1</span>&#x2003;Implementations</a>
+</p>
+
+
+<p>
+<a href="Subsystems.html#autosec-126" class="tocsubsection" >
+<span class="sectionnumber">4.2</span>&#x2003;Subsystems</a>
+</p>
+
+
+<p>
+<a href="Words.html#autosec-128" class="tocsubsection" >
+<span class="sectionnumber">4.3</span>&#x2003;Words</a>
+</p>
+
+
+<p>
+<a href="Memory.html#autosec-139" class="tocsubsection" >
+<span class="sectionnumber">4.4</span>&#x2003;Memory</a>
+</p>
+
+
+<p>
+<a href="Registers.html#autosec-141" class="tocsubsection" >
+<span class="sectionnumber">4.5</span>&#x2003;Registers</a>
+</p>
+
+
+<p>
+<a href="Instruction-representation.html#autosec-158" class="tocsubsection" >
+<span class="sectionnumber">4.6</span>&#x2003;Instruction representation</a>
+</p>
+
+
+<p>
+<a href="Instruction-set.html#autosec-182" class="tocsection" >
+<span class="sectionnumber">5</span>&#x2003;Instruction set</a>
+</p>
+
+
+<p>
+<a href="Instruction-set.html#autosec-183" class="tocsubsection" >
+<span class="sectionnumber">5.1</span>&#x2003;Accessing memory</a>
+</p>
+
+
+<p>
+<a href="Arithmetic.html#autosec-213" class="tocsubsection" >
+<span class="sectionnumber">5.2</span>&#x2003;Arithmetic</a>
+</p>
+
+
+<p>
+<a href="Jumps.html#autosec-237" class="tocsubsection" >
+<span class="sectionnumber">5.3</span>&#x2003;Jumps</a>
+</p>
+
+
+<p>
+<a href="Branches.html#autosec-246" class="tocsubsection" >
+<span class="sectionnumber">5.4</span>&#x2003;Branches</a>
+</p>
+
+
+<p>
+<a href="Logic.html#autosec-258" class="tocsubsection" >
+<span class="sectionnumber">5.5</span>&#x2003;Logic</a>
+</p>
+
+
+<p>
+<a href="Bit-manipulation.html#autosec-298" class="tocsubsection" >
+<span class="sectionnumber">5.6</span>&#x2003;Bit manipulation</a>
+</p>
+
+
+<p>
+<a href="System-control.html#autosec-317" class="tocsubsection" >
+<span class="sectionnumber">5.7</span>&#x2003;System control</a>
+</p>
+
+
+<p>
+<a href="Summary-instruction-set.html#autosec-326" class="tocsection" >
+<span class="sectionnumber">6</span>&#x2003;Summary of instruction set</a>
+</p>
+
+
+<p>
+<a href="Assembly-language-2.html#autosec-341" class="tocsection" >
+<span class="sectionnumber">7</span>&#x2003;Assembly language 2</a>
+</p>
+
+
+<p>
+<a href="Assembly-language-2.html#autosec-344" class="tocsubsection" >
+<span class="sectionnumber">7.1</span>&#x2003;Programs, modules, and files</a>
+</p>
+
+
+<p>
+<a href="Fixed-relocatable-values.html#autosec-357" class="tocsubsection" >
+<span class="sectionnumber">7.2</span>&#x2003;Fixed and relocatable values</a>
+</p>
+
+
+<p>
+<a href="Code-generators.html#autosec-366" class="tocsubsection" >
+<span class="sectionnumber">7.3</span>&#x2003;Code generators</a>
+</p>
+
+
+<p>
+<a href="Directives.html#autosec-381" class="tocsubsection" >
+<span class="sectionnumber">7.4</span>&#x2003;Directives</a>
+</p>
+
+
+<p>
+<a href="Object-code-linker.html#autosec-404" class="tocsection" >
+<span class="sectionnumber">8</span>&#x2003;Object code and linker</a>
+</p>
+
+
+<p>
+<a href="Object-code-linker.html#autosec-405" class="tocsubsection" >
+<span class="sectionnumber">8.1</span>&#x2003;Object language</a>
+</p>
+
+
+<p>
+<a href="Module-metadata.html#autosec-425" class="tocsubsection" >
+<span class="sectionnumber">8.2</span>&#x2003;Module metadata</a>
+</p>
+
+
+<p>
+<a href="Linker.html#autosec-428" class="tocsubsection" >
+<span class="sectionnumber">8.3</span>&#x2003;Linker</a>
+</p>
+
+
+<p>
+<a href="Booter.html#autosec-430" class="tocsubsection" >
+<span class="sectionnumber">8.4</span>&#x2003;Booter</a>
+</p>
+
+
+<p>
+<a href="Programming.html#autosec-433" class="tocsection" >
+<span class="sectionnumber">9</span>&#x2003;Programming</a>
+</p>
+
+
+<p>
+<a href="Programming.html#autosec-434" class="tocsubsection" >
+<span class="sectionnumber">9.1</span>&#x2003;Structure of a program</a>
+</p>
+
+
+<p>
+<a href="How-perform-commmon-tasks.html#autosec-437" class="tocsubsection" >
+<span class="sectionnumber">9.2</span>&#x2003;How to perform commmon tasks</a>
+</p>
+
+
+<p>
+<a href="Compilation.html#autosec-444" class="tocsubsection" >
+<span class="sectionnumber">9.3</span>&#x2003;Compilation</a>
+</p>
+
+
+<p>
+<a href="Errors-avoiding-finding-fixing.html#autosec-449" class="tocsubsection" >
+<span class="sectionnumber">9.4</span>&#x2003;Errors: avoiding, finding, and fixing</a>
+</p>
+
+
+<p>
+<a href="Installation.html#autosec-462" class="tocsection" >
+<span class="sectionnumber">10</span>&#x2003;Installation</a>
+</p>
+
+
+<p>
+<a href="Installation.html#autosec-463" class="tocsubsection" >
+<span class="sectionnumber">10.1</span>&#x2003;Command line tools</a>
+</p>
+
+
+<p>
+<a href="About-Sigma16.html#autosec-476" class="tocsection" >
+<span class="sectionnumber">11</span>&#x2003;About Sigma16</a>
+</p>
+
+
+<p>
+<a href="About-Sigma16.html#autosec-477" class="tocsubsection" >
+<span class="sectionnumber">11.1</span>&#x2003;Copyright and license</a>
+</p>
+
+
+<p>
+<a href="In-case-problems.html#autosec-479" class="tocsubsection" >
+<span class="sectionnumber">11.2</span>&#x2003;In case of problems</a>
+</p>
+
+
+<p>
+<a href="Release-notes.html#autosec-481" class="tocsubsection" >
+<span class="sectionnumber">11.3</span>&#x2003;Release notes</a>
+</p>
+
+
+<p>
+<a href="GPL3-license.html#autosec-495" class="tocsubsection" >
+<span class="sectionnumber">11.4</span>&#x2003;GPL3 license</a>
+</p>
+
+
+</div>
+
+</nav>
+
+</div>
+
+
+<main class="bodycontainer">
+
+
+<section class="textbody">
+
+<h1>Sigma16 User Guide</h1>
+
+<!--MathJax customizations:-->
+
+
+<div class="hidden">
+
+\(\newcommand{\footnotename}{footnote}\)
+
+\(\def \LWRfootnote {1}\)
+
+\(\newcommand {\footnote }[2][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\newcommand {\footnotemark }[1][\LWRfootnote ]{{}^{\mathrm {#1}}}\)
+
+\(\let \LWRorighspace \hspace \)
+
+\(\renewcommand {\hspace }{\ifstar \LWRorighspace \LWRorighspace }\)
+
+\(\newcommand {\mathnormal }[1]{{#1}}\)
+
+\(\newcommand \ensuremath [1]{#1}\)
+
+\(\newcommand {\LWRframebox }[2][]{\fbox {#2}} \newcommand {\framebox }[1][]{\LWRframebox } \)
+
+\(\newcommand {\setlength }[2]{}\)
+
+\(\newcommand {\addtolength }[2]{}\)
+
+\(\newcommand {\setcounter }[2]{}\)
+
+\(\newcommand {\addtocounter }[2]{}\)
+
+\(\newcommand {\arabic }[1]{}\)
+
+\(\newcommand {\number }[1]{}\)
+
+\(\newcommand {\noalign }[1]{\text {#1}\notag \\}\)
+
+\(\newcommand {\cline }[1]{}\)
+
+\(\newcommand {\directlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\luatexdirectlua }[1]{\text {(directlua)}}\)
+
+\(\newcommand {\protect }{}\)
+
+\(\def \LWRabsorbnumber #1 {}\)
+
+\(\def \LWRabsorbquotenumber &quot;#1 {}\)
+
+\(\newcommand {\LWRabsorboption }[1][]{}\)
+
+\(\newcommand {\LWRabsorbtwooptions }[1][]{\LWRabsorboption }\)
+
+\(\def \mathchar {\ifnextchar &quot;\LWRabsorbquotenumber \LWRabsorbnumber }\)
+
+\(\def \mathcode #1={\mathchar }\)
+
+\(\let \delcode \mathcode \)
+
+\(\let \delimiter \mathchar \)
+
+\(\def \oe {\unicode {x0153}}\)
+
+\(\def \OE {\unicode {x0152}}\)
+
+\(\def \ae {\unicode {x00E6}}\)
+
+\(\def \AE {\unicode {x00C6}}\)
+
+\(\def \aa {\unicode {x00E5}}\)
+
+\(\def \AA {\unicode {x00C5}}\)
+
+\(\def \o {\unicode {x00F8}}\)
+
+\(\def \O {\unicode {x00D8}}\)
+
+\(\def \l {\unicode {x0142}}\)
+
+\(\def \L {\unicode {x0141}}\)
+
+\(\def \ss {\unicode {x00DF}}\)
+
+\(\def \SS {\unicode {x1E9E}}\)
+
+\(\def \dag {\unicode {x2020}}\)
+
+\(\def \ddag {\unicode {x2021}}\)
+
+\(\def \P {\unicode {x00B6}}\)
+
+\(\def \copyright {\unicode {x00A9}}\)
+
+\(\def \pounds {\unicode {x00A3}}\)
+
+\(\let \LWRref \ref \)
+
+\(\renewcommand {\ref }{\ifstar \LWRref \LWRref }\)
+
+\( \newcommand {\multicolumn }[3]{#3}\)
+
+\(\require {textcomp}\)
+
+</div>
+
+<p>
+<!--
+...... subsection Registers, constants, and arithmetic ......
+-->
+<h5 id="autosec-12"><span class="sectionnumber">2.3&#x2003;</span>Registers, constants, and arithmetic</h5>
+<a id="Sigma16UserGuide-autopage-12"></a>
+<a id="Sigma16UserGuide-autofile-4"></a> <a id="sec:org42b47a7"></a>
+
+<p>
+Programs do most of their work using the <b>register file</b>, which is an array of 16 registers named R0, R1, R2, &#x2026;, R15. The Register File is displayed in a box on the Processor page.
+</p>
+
+<p>
+A register is a circuit that can hold a number, and the elements of the register file can be used to hold variable values. They are analogous to the registers in a calculator: think of each register as a box that can hold a number, and think of the
+register name as a variable name. Two of the registers, R0 and R15, are special and should not be used to hold variables.
+</p>
+
+<p>
+A computer program is a sequence of <b>instructions</b>. Instructions are similar to statements in a programming language, but they are simpler.
+</p>
+
+<p>
+Sigma16 performs arithmetic on data in registers. To do any computation on some numbers, we first need to get those numbers into registers. The <b>lea</b> instruction. can be used to place a constant into a register. For example, to load 42 into
+register 3, write
+</p>
+<pre class="verbatim">
+lea    R3,42   ; R3 := 42
+
+</pre>
+
+<p>
+This is a statement in <b>assembly language</b>, and it describes one instruction. This statement contains three parts:
+</p>
+<ul style="list-style-type:none">
+
+<li>
+<p>
+• The operation is <b>lea</b>. This tells the computer what action to perform, and "lea" says to put a value into a register. Later we will see why this instruction is called "lea".
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• The operands are <b>R2,42</b>
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• Everything after the semicolon is a comment. This comment is a programming language statement that describes what the instruction does: it sets the variable R3 to 42.
+</p>
+</li>
+</ul>
+
+<p>
+The same instruction can be written in a longer form:
+</p>
+<pre class="verbatim">
+lea   R3,42[R0]    ; R3 := 42
+
+</pre>
+
+<p>
+This is the same as above, except <b>[R0]</b> is written after the number. You can write the instruction either way; both are translated to exactly the same machine language, and they execute exactly the same way. The significance of [R0], as well
+as the reason this instruction is named lea, will be explained later when we discuss arrays and pointers. The short form <kbd>lea R3,42</kbd> is just an abbreviation for the long form <kbd>lea R3,42[R0]</kbd>. You will see both forms in the
+example programs.
+</p>
+
+<p>
+The name <b>lea</b> is the <b>operation</b>, i.e. the name of the instruction. The operandd field consists of two operands separated by a comma. The first operand, R2, is called the <b>destination</b>; this is the register where the result will
+be placed. The second operand is a constant 42 followed by [R0]. When the computer executed this instruction, it simply places the constant into the destination. In a higher level language, we could write <b>R2 := 42</b>.
+</p>
+
+<p>
+Most instructions follow a similar pattern: the first operand is the destination where the result is placed, and the subsequent operands are the arguments to the computation. This is the same convention used in assignment statements in many
+programming languages: the registers in add R1,R2,R3 appear in the same order as the variables in R1 := R2 + R3.
+</p>
+
+<p>
+All arithmetic operations take place in the registers, and there is a separate instruction for each operation. For example, the following instruction will add the values in R8 and R1 and then put the result into R4:
+</p>
+<pre class="verbatim">
+add   R4,R8,R1   ; R4 := R8 + R1
+
+</pre>
+
+<p>
+Notice that the operand field doesn’t use operators like := or +; instead it just separates the registers with commas. The first operand (R4 in this example) is the <b>destination</b>, which is where the result will be placed. The last two operands
+(R8 and R1) are the values that will be added.
+</p>
+
+<p>
+To perform a calculation, we need to get the data into registers (using lea) and then perform the calculation (using arithmetic instructions). The following program calculates 3 + 4 and puts the result into R2:
+</p>
+<pre class="verbatim">
+lea   R5,3[R0]     ; R5 := 3
+lea   R8,4[R0]     ; R8 := 4
+add   R2,R5,R8     ; R2 := R5 + R8 = 3+4 = 7
+
+</pre>
+
+<p>
+It’s a good idea to use comments to explain the meaning of an instruction. For now, comments like "R4 := R8 + R1" will be used to show what the instruction does. That’s useful while learning what the instructions do, but later on we will use
+comments to give more meaningful information (for example, what do the values in the registers mean, and why are we adding them?).
+</p>
+
+<p>
+There are three more arithmetic instructions. These follow the same pattern as add: in each case, the arithmetic is performed on the last two registers and the result is placed in the destination (the first register):
+</p>
+<pre class="verbatim">
+add   R4,R11,R0   ; R4 := R11 + R0
+sub   R5,R2,R13   ; R5 := R2 - R13
+mul   R2,R10,R7   ; R2 := R10 * R7
+div   R5,R6,R12   ; R5 := R6 / R12, R15 := R6 rem R12
+
+</pre>
+
+<p>
+The divide instruction is slightly different: it produces two results, the quotient and the remainder. The quotient is placed in the destination, and the remainder is automatically placed into R15, even though the instruction doesn’t mention R15. If
+you write <b>div R15,R1,R2</b>, the quotient is placed in R15 and the remainder is discarded.
+</p>
+
+<p>
+Normally an arithmetic instruction will put a new value into the destination register, but the operand registers are left unchanged. However, what happens if one of the operands is the same as the destination, for example <b>add R7,R7,R8</b>?
+</p>
+
+<p>
+An arithmetic instruction proceeds in three phases: (1) obtain the values in the operand registers; (2) perform the arithmetic on those values; and (3) put the result into the destination, discarding whatever value was previously there. So consider this
+example:
+</p>
+<pre class="verbatim">
+lea     R7,20[R0]   ; R7 := 20
+lea     R8,30[R0]   ; R8 := 30
+add     R7,R7,R8    ; R7 := R7 + R8
+
+</pre>
+
+<p>
+After the two lea instructions have executed, R7 contains 20 and R8 contains 30. The add instruction does the following:
+</p>
+
+<ul style="list-style-type:none">
+
+<li>
+<p>
+1. It fetches the values in R7 and R8, obtaining 20 and 30
+</p>
+
+</li>
+<li>
+
+<p>
+2. It adds the values, obtaining the result 50
+</p>
+
+</li>
+<li>
+
+<p>
+3. It puts the result 50 into the destination R7, discarding the previous value.
+</p>
+</li>
+</ul>
+
+<p>
+The final result is that R7 contains 50.
+</p>
+
+<p>
+Constant data can be specified using either decimal or hexadecimal notation.
+</p>
+
+<ul style="list-style-type:none">
+
+<li>
+<p>
+• Decimal numbers are written as strings of digits, optionally preceded by a minus sign: 3,-19, 42.
+</p>
+</li>
+<li>
+
+
+<p>
+• Hexadecimal numbers are always written as four hex digits, and in assembly language programs they are indicated by putting &#x00024; before the number. Thus &#x00024;00a5 and 0165 both represent the integer 165.
+</p>
+</li>
+</ul>
+<pre class="verbatim">
+lea   R1,13[R0]      ; R1 =   13 (hex 000d)
+lea   R2,$002f[R0]   ; R2 := 47 (hex 002f)
+lea   R3,$0012[R0]   ; R3 := 18 (hex 0012)
+lea   R4,0012[R0]    ; R4 := 12 (hex 000c)
+
+</pre>
+
+<p>
+The processor page shows numbers as hex without the leading &#x00024;, but in an assembly language program the &#x00024; is needed to avoid ambiguity.
+</p>
+
+<p>
+Sigma uses := as the assignment operator; thus we write R7 := R7 + R8 (and we don’t write R7 = R7 + R8). This is because an assignment statement is profoundly different from an equation, and mathematicians have long used the = operator to
+indicate equations. It isn’t just an academic or theoretical point; there have been plenty of occasions where computer programmers get confused between assignment and equality, and using the wrong operator doesn’t help.
+</p>
+
+<p>
+Why does assembly language use a notation like add R5,R2,R3 instead of R5 := R2 + R3? In short, every instruction will use a similar notation: a keyword for the operation, followed by the operands separated by commas. This notation is also
+related closely to the way instructions are represented in memory, which we’ll see later
+</p>
+
+<p>
+An arithmetic instruction performs just one operation. Several instructions are needed to evaluate a larger expression. In general, you’ll need a separate instruction for every operator that appears in an expression.
+</p>
+
+<p>
+Example: calculate 3 + 4 * 5 and put the result into R10. We have to put the numbers into registers, using lea, and then perform the arithmetic. It doesn’t matter which registers are used (as long as we avoid R0 and R15).
+</p>
+<pre class="verbatim">
+lea   R1,3[R0]    ; R1 := 3
+lea   R2,4[R0]    ; R2 := 4
+lea   R3,5[R0]    ; R3 := 5
+mul   R2,R2,R3    ; R2 := R2*R3   = 4*5
+add   R10,R1,R2   ; R10 := R1 + R2 = 3 + 4*5 = 23
+
+</pre>
+
+<p>
+This is nearly enough to constitute a complete program. Only one more thing is needed: a way to terminate the program when it finishes. There is a special instruction to do this: a trap instruction, where the first operand is R0, will stop the program.
+</p>
+<pre class="verbatim">
+trap   R0,R0,R0   ; halt
+
+</pre>
+
+<p>
+Here is a complete program named ConstArith:
+</p>
+<pre class="verbatim">
+; ConstArith: illustrate lea and arithmetic instructions
+; This file is part of Sigma16
+
+
+; Calculate 3 + 4 * 4 and put the result into R10
+; Use lea to put a constant into a register
+; Use mul and add to do arithmetic
+
+
+      lea    R1,3[R0]    ; R1 := 3
+      lea    R2,4[R0]    ; R2 := 4
+      lea    R3,5[R0]    ; R3 := 5
+      mul    R2,R2,R3    ; R2 := R2*R3   = 4*5
+      add    R10,R1,R2   ; R10 := R1 + R2 = 3 + 4*5 = 23
+      trap    R0,R0,R0   ; halt
+
+</pre>
+
+<p>
+You can go to the Editor and type it in, but this program is part of the collection of examples built in to Sigma16. Here’s how to run it:
+</p>
+
+<ul style="list-style-type:none">
+
+<li>
+<p>
+• Go to the Examples page. Click Examples, then Core, then Small and simple programs, then ConstArith. You should see the listing of the program.
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• Click Editor, and you should see the text of the program in the window.
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• Go to the Assembler page. Click Assemble.
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• Go to the Processor page. Click Boot, then Step repeatedly and watch the effect of each instruction by observing how the registers and memory are changed.
+</p>
+</li>
+</ul>
+
+<p>
+The Processor page shows numbers in hexadecimal. The mul instruction puts decimal 20 into R2, and this is displayed as hex 0014 (because 1 * 16 + 4 = 20).
+</p>
+
+<p>
+It’s a good idea to step through the program slowly, rather than running it to completion at full speed. The emulator will show the next instruction to be executed, highlighted in blue. Think about what the instruction should do; in particular what
+changes to the registers will occur? Then click Step and check to see if the right thing happened.
+</p>
+
+<p>
+Generally you can use any register you like, and the choices of registers in the previous examples are arbitrary. Registers R1 through R14 are all the same. However, two of the registers are different:
+</p>
+
+<ul style="list-style-type:none">
+
+<li>
+<p>
+• R0 contains the constant 0 and it will never change. Any time an instruction uses R0, the value it gets will be 0. It is legal for an instruction to attempt to modify R0 (for example, add R0,R3,R4 is legal) but after executing this instruction R0 still
+contains 0. The reason for this is that we frequently need to have access to a register containing 0.
+</p>
+</li>
+<li>
+
+
+<p>
+• R15 is used for two specific purposes. We have already seen the first: the divide instruction places the remainder into R15. The second purpose is that R15 contains the <b>condition code</b>, which is a word that contains a number of bits that
+provide some information about an instruction. For example, if an addition produces a result that is too large to fit in a register, a special flag indicating this is set in R15. Many of the instructions, including all the arithmetic instructions, change the
+value of R15 as well as placing the result in the destination register. For this reason, R15 cannot be used to hold a variable since its value would be destroyed almost immediately.
+</p>
+</li>
+</ul>
+
+<p>
+To summarise, Registers R1 through R14 are all identical and can be used for variables. R0 contains 0 and will never change. R15 changes frequently and can be used to determine various error conditions and other information about an instruction.
+</p>
+
+<p>
+Here is another example:
+</p>
+<ul style="list-style-type:none">
+
+<li>
+<p>
+• Suppose we have variables a, b, c, d
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• Choose a register for each variable: R1=a, R2=b, R3=c, R4=d
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• We wish to compute R5 = (a+b) * (c-d)
+</p>
+</li>
+</ul>
+<pre class="verbatim">
+add     R6,R1,R2   ; R6 := a + b
+sub     R7,R3,R4   ; R7 := c - d
+mul     R5,R6,R7   ; R5 := (a+b) * (c-d)
+
+</pre>
+
+<p>
+Summary.
+</p>
+
+<ul style="list-style-type:none">
+
+<li>
+<p>
+• A lea instruction of the form <b>lea d,const[R0]</b> will put the constant into Rd. It can also be written as <b>lea d,const</b>.
+</p>
+
+
+</li>
+<li>
+
+
+<p>
+• The general form of an arithmetic instruction is <b>op d,a,b</b>. The meaning is <b>R<sub>d</sub> := R<sub>a</sub> op R<sub>b</sub></b>, and the fields are:
+</p>
+</li>
+</ul>
+<div class="center">
+<table>
+
+<tr style="display:none"><th>.</th></tr>
+
+<tr>
+<td class="tdl">op</td>
+<td class="tdl">operation: add, sub, mul,div</td>
+</tr>
+
+<tr>
+<td class="tdl">d</td>
+<td class="tdl">destination register: where the result goes</td>
+</tr>
+
+<tr>
+<td class="tdl">a</td>
+<td class="tdl">first operand register</td>
+</tr>
+
+<tr>
+<td class="tdl">b</td>
+<td class="tdl">second operand register</td>
+</tr>
+
+</table>
+
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<nav class="botnavigation"><a href="index.html" class="linkhome" >
+Home</a></nav>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+\newbool{LWR@warnXe}
+\boolfalse{LWR@warnXe}
+
+\newrobustcmd*{\Xe}
+    {%
+        X\hspace{-.1667em}\raisebox{-.5ex}{E}%
+        \global\booltrue{LWR@warnXe}%
+    }
+
+\AtBeginDocument{
+    \IfPackageLoadedTF{graphics}{
+        \IfPackageLoadedTF{metalogo}{}{
+            \renewrobustcmd*{\Xe}
+                {X\hspace{-.1667em}\raisebox{-.5ex}{\reflectbox{E}}}
+        }
+    }{}
+}
+
+\AtEndDocument{
+    \ifbool{LWR@warnXe}{
+        \PackageNoteNoLine{lwarp}{Load graphicx or graphics
+            for improved XeTeX logo}
+    }{}
+}
+
+\providerobustcmd*{\XeTeX}{\mbox{\Xe\hspace{-.125em}\TeX}}
+\providerobustcmd*{\XeLaTeX}{\mbox{\Xe\hspace{-.125em}\LaTeX}}
+\providerobustcmd*{\AmS}{%
+    \leavevmode\hbox{$\mathcal A\kern-.2em\lower.376ex%
+    \hbox{$\mathcal M$}\kern-.2em\mathcal S$}%
+}
+\newrobustcmd*{\LyX}{\textsf{LyX}}
+\providerobustcmd*{\LuaTeX}{\mbox{Lua\TeX}}
+\providerobustcmd*{\LuaLaTeX}{\mbox{Lua\LaTeX}}
+\providerobustcmd*{\BibTeX}{\mbox{B\textsc{ib}\TeX}}
+\providerobustcmd*{\MakeIndex}{\mbox{\textit{MakeIndex}}}
+\providerobustcmd*{\ConTeXt}{\mbox{Con\TeX{}t}}
+\providerobustcmd*{\MiKTeX}{\mbox{MiK\TeX}}

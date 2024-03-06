@@ -1,0 +1,35 @@
+/* css style for compsys book */
+
+/* Inherit generic lwarp style: uncomment one of the following: */
+@import url("lwarp.css") ;
+/* @import url("lwarp_formal.css") ; */
+/* @import url("lwarp_sagebrush.css") ; */
+
+/* Definitions specifically for the compsys book follow */
+
+body {
+    max-width: 40em;
+    text-align: left;
+}
+
+/* Code blocks */
+.CodeListing {
+    color: red;
+}
+
+.classfoo {
+    color: red;
+}
+
+.title {
+    color: green;
+}
+
+/* Just for testing; inherit h1 defs from lwarp.css */
+h1 {
+    color: red;
+}
+
+tr {
+    color: red;
+}

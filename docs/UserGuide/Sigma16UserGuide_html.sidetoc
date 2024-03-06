@@ -1,0 +1,163 @@
+\contentsline {section}{\numberline {0.1}{\ignorespaces Introduction\relax }}{4}{}
+\contentsline {section}{\numberline {0.2}{\ignorespaces Core architecture tutorials\relax }}{5}{}
+\contentsline {subsection}{\numberline {0.2.1}{\ignorespaces Hello, world!\relax }}{6}{}
+\contentsline {subsection}{\numberline {0.2.2}{\ignorespaces A quick tour\relax }}{7}{}
+\contentsline {subsection}{\numberline {0.2.3}{\ignorespaces Registers, constants, and arithmetic\relax }}{8}{}
+\contentsline {subsection}{\numberline {0.2.4}{\ignorespaces Keeping variables in memory\relax }}{22}{}
+\contentsline {subsection}{\numberline {0.2.5}{\ignorespaces Assembly language\relax }}{26}{}
+\contentsline {subsection}{\numberline {0.2.6}{\ignorespaces Editing files\relax }}{34}{}
+\contentsline {subsection}{\numberline {0.2.7}{\ignorespaces Jumps and conditionals\relax }}{35}{}
+\contentsline {subsection}{\numberline {0.2.8}{\ignorespaces Loops\relax }}{50}{}
+\contentsline {subsection}{\numberline {0.2.9}{\ignorespaces Machine language\relax }}{56}{}
+\contentsline {subsection}{\numberline {0.2.10}{\ignorespaces Pseudoinstructions\relax }}{62}{}
+\contentsline {subsection}{\numberline {0.2.11}{\ignorespaces A strange program\relax }}{65}{}
+\contentsline {subsection}{\numberline {0.2.12}{\ignorespaces Breakpoints\relax }}{67}{}
+\contentsline {subsubsection}{\numberline {0.2.12.1}{\ignorespaces Trap break\relax }}{68}{}
+\contentsline {subsubsection}{\numberline {0.2.12.2}{\ignorespaces External break\relax }}{71}{}
+\contentsline {subsection}{\numberline {0.2.13}{\ignorespaces Summary of core instruction formats\relax }}{72}{}
+\contentsline {subsubsection}{\numberline {0.2.13.1}{\ignorespaces RRR format\relax }}{73}{}
+\contentsline {subsubsection}{\numberline {0.2.13.2}{\ignorespaces RX format\relax }}{74}{}
+\contentsline {subsection}{\numberline {0.2.14}{\ignorespaces Summary of core instructions\relax }}{75}{}
+\contentsline {section}{\numberline {0.3}{\ignorespaces Standard architecture tutorials\relax }}{76}{}
+\contentsline {subsection}{\numberline {0.3.1}{\ignorespaces Logic\relax }}{77}{}
+\contentsline {subsection}{\numberline {0.3.2}{\ignorespaces Shifting\relax }}{79}{}
+\contentsline {subsection}{\numberline {0.3.3}{\ignorespaces Bit fields\relax }}{82}{}
+\contentsline {subsection}{\numberline {0.3.4}{\ignorespaces Saving registers for procedure call\relax }}{87}{}
+\contentsline {subsection}{\numberline {0.3.5}{\ignorespaces Branching to pc-relative address\relax }}{90}{}
+\contentsline {subsection}{\numberline {0.3.6}{\ignorespaces Stack instructions\relax }}{91}{}
+\contentsline {subsection}{\numberline {0.3.7}{\ignorespaces Arithmetic on natural numbers\relax }}{92}{}
+\contentsline {subsection}{\numberline {0.3.8}{\ignorespaces Modules and linking\relax }}{93}{}
+\contentsline {subsection}{\numberline {0.3.9}{\ignorespaces System control registers\relax }}{94}{}
+\contentsline {subsection}{\numberline {0.3.10}{\ignorespaces Interrupts\relax }}{95}{}
+\contentsline {section}{\numberline {0.4}{\ignorespaces The Sigma16 architecture\relax }}{96}{}
+\contentsline {subsection}{\numberline {0.4.1}{\ignorespaces Implementations\relax }}{97}{}
+\contentsline {subsection}{\numberline {0.4.2}{\ignorespaces Subsystems\relax }}{98}{}
+\contentsline {subsection}{\numberline {0.4.3}{\ignorespaces Words\relax }}{99}{}
+\contentsline {subsubsection}{\numberline {0.4.3.1}{\ignorespaces Indexing bits in a word\relax }}{100}{}
+\contentsline {subsubsection}{\numberline {0.4.3.2}{\ignorespaces Fields\relax }}{101}{}
+\contentsline {subsubsection}{\numberline {0.4.3.3}{\ignorespaces Natural numbers\relax }}{102}{}
+\contentsline {subsubsection}{\numberline {0.4.3.4}{\ignorespaces Integers\relax }}{103}{}
+\contentsline {subsubsection}{\numberline {0.4.3.5}{\ignorespaces Notations for a word\relax }}{104}{}
+\contentsline {subsection}{\numberline {0.4.4}{\ignorespaces Memory\relax }}{105}{}
+\contentsline {subsection}{\numberline {0.4.5}{\ignorespaces Registers\relax }}{106}{}
+\contentsline {subsubsection}{\numberline {0.4.5.1}{\ignorespaces Register file\relax }}{107}{}
+\contentsline {subsubsection}{\numberline {0.4.5.2}{\ignorespaces Instruction control registers\relax }}{112}{}
+\contentsline {subsubsection}{\numberline {0.4.5.3}{\ignorespaces Interrupt control registers\relax }}{115}{}
+\contentsline {subsubsection}{\numberline {0.4.5.4}{\ignorespaces Memory management registers\relax }}{118}{}
+\contentsline {subsection}{\numberline {0.4.6}{\ignorespaces Instruction representation\relax }}{119}{}
+\contentsline {subsubsection}{\numberline {0.4.6.1}{\ignorespaces RRR format\relax }}{122}{}
+\contentsline {subsubsection}{\numberline {0.4.6.2}{\ignorespaces RX format 2\relax }}{125}{}
+\contentsline {subsubsection}{\numberline {0.4.6.3}{\ignorespaces EXP format\relax }}{131}{}
+\contentsline {subsubsection}{\numberline {0.4.6.4}{\ignorespaces Notation for machine language\relax }}{136}{}
+\contentsline {section}{\numberline {0.5}{\ignorespaces Instruction set\relax }}{139}{}
+\contentsline {subsection}{\numberline {0.5.1}{\ignorespaces Accessing memory\relax }}{140}{}
+\contentsline {subsubsection}{\numberline {0.5.1.1}{\ignorespaces lea\relax }}{141}{}
+\contentsline {subsubsection}{\numberline {0.5.1.2}{\ignorespaces load\relax }}{142}{}
+\contentsline {subsubsection}{\numberline {0.5.1.3}{\ignorespaces store\relax }}{144}{}
+\contentsline {subsubsection}{\numberline {0.5.1.4}{\ignorespaces Stacks\relax }}{146}{}
+\contentsline {subsubsection}{\numberline {0.5.1.5}{\ignorespaces Stack frames\relax }}{153}{}
+\contentsline {subsection}{\numberline {0.5.2}{\ignorespaces Arithmetic\relax }}{165}{}
+\contentsline {subsubsection}{\numberline {0.5.2.1}{\ignorespaces add\relax }}{166}{}
+\contentsline {subsubsection}{\numberline {0.5.2.2}{\ignorespaces sub\relax }}{170}{}
+\contentsline {subsubsection}{\numberline {0.5.2.3}{\ignorespaces mul\relax }}{171}{}
+\contentsline {subsubsection}{\numberline {0.5.2.4}{\ignorespaces div\relax }}{172}{}
+\contentsline {subsubsection}{\numberline {0.5.2.5}{\ignorespaces cmp\relax }}{174}{}
+\contentsline {subsubsection}{\numberline {0.5.2.6}{\ignorespaces addc\relax }}{176}{}
+\contentsline {subsubsection}{\numberline {0.5.2.7}{\ignorespaces muln\relax }}{177}{}
+\contentsline {subsubsection}{\numberline {0.5.2.8}{\ignorespaces divn\relax }}{179}{}
+\contentsline {subsection}{\numberline {0.5.3}{\ignorespaces Jumps\relax }}{181}{}
+\contentsline {subsubsection}{\numberline {0.5.3.1}{\ignorespaces jump\relax }}{182}{}
+\contentsline {subsubsection}{\numberline {0.5.3.2}{\ignorespaces jumpc0, jumpc1\relax }}{183}{}
+\contentsline {subsubsection}{\numberline {0.5.3.3}{\ignorespaces jumpz, jumpnz\relax }}{184}{}
+\contentsline {subsubsection}{\numberline {0.5.3.4}{\ignorespaces jal\relax }}{185}{}
+\contentsline {subsection}{\numberline {0.5.4}{\ignorespaces Branches\relax }}{186}{}
+\contentsline {subsubsection}{\numberline {0.5.4.1}{\ignorespaces brf, brb\relax }}{187}{}
+\contentsline {subsubsection}{\numberline {0.5.4.2}{\ignorespaces brfc0, brbc0, brfc1, brbc1\relax }}{190}{}
+\contentsline {subsubsection}{\numberline {0.5.4.3}{\ignorespaces brfz, brbz, brfnz, brbnz\relax }}{191}{}
+\contentsline {subsubsection}{\numberline {0.5.4.4}{\ignorespaces dispatch\relax }}{192}{}
+\contentsline {subsection}{\numberline {0.5.5}{\ignorespaces Logic\relax }}{194}{}
+\contentsline {subsubsection}{\numberline {0.5.5.1}{\ignorespaces General logic functions\relax }}{195}{}
+\contentsline {subsubsection}{\numberline {0.5.5.2}{\ignorespaces Word logic: logicw\relax }}{204}{}
+\contentsline {subsubsection}{\numberline {0.5.5.3}{\ignorespaces Pseudoinstructions: invw, andw, orw, xorw\relax }}{207}{}
+\contentsline {subsubsection}{\numberline {0.5.5.4}{\ignorespaces Bit logic within a register: logicr\relax }}{211}{}
+\contentsline {subsubsection}{\numberline {0.5.5.5}{\ignorespaces Pseudoinstructions invr, andr, orr, xorb\relax }}{214}{}
+\contentsline {subsubsection}{\numberline {0.5.5.6}{\ignorespaces Bit logic across registers: logicb\relax }}{216}{}
+\contentsline {subsubsection}{\numberline {0.5.5.7}{\ignorespaces Pseudoinstructions invb, andb, orb, xorb\relax }}{219}{}
+\contentsline {subsubsection}{\numberline {0.5.5.8}{\ignorespaces Pseudoinstructions setb, clearb, moveb, movebi\relax }}{221}{}
+\contentsline {subsection}{\numberline {0.5.6}{\ignorespaces Bit manipulation\relax }}{226}{}
+\contentsline {subsubsection}{\numberline {0.5.6.1}{\ignorespaces Shifting: shiftl, shiftr\relax }}{227}{}
+\contentsline {subsubsection}{\numberline {0.5.6.2}{\ignorespaces Bit fields: extract, extracti\relax }}{233}{}
+\contentsline {subsection}{\numberline {0.5.7}{\ignorespaces System control\relax }}{243}{}
+\contentsline {subsubsection}{\numberline {0.5.7.1}{\ignorespaces Request to OS: trap\relax }}{244}{}
+\contentsline {subsubsection}{\numberline {0.5.7.2}{\ignorespaces Accessing control: getctl, putctl\relax }}{245}{}
+\contentsline {subsubsection}{\numberline {0.5.7.3}{\ignorespaces Context switching: resume\relax }}{246}{}
+\contentsline {subsubsection}{\numberline {0.5.7.4}{\ignorespaces Timer: timeron, timeroff\relax }}{247}{}
+\contentsline {section}{\numberline {0.6}{\ignorespaces Summary of instruction set\relax }}{248}{}
+\contentsline {subsubsection}{\numberline {0.6.0.1}{\ignorespaces RRR format\relax }}{251}{}
+\contentsline {subsubsection}{\numberline {0.6.0.2}{\ignorespaces RX format 3\relax }}{257}{}
+\contentsline {subsubsection}{\numberline {0.6.0.3}{\ignorespaces EXP format 2\relax }}{260}{}
+\contentsline {section}{\numberline {0.7}{\ignorespaces Assembly language 2\relax }}{263}{}
+\contentsline {subsection}{\numberline {0.7.1}{\ignorespaces Programs, modules, and files\relax }}{266}{}
+\contentsline {subsubsection}{\numberline {0.7.1.1}{\ignorespaces Standalone programs\relax }}{267}{}
+\contentsline {subsubsection}{\numberline {0.7.1.2}{\ignorespaces Modules\relax }}{268}{}
+\contentsline {subsubsection}{\numberline {0.7.1.3}{\ignorespaces Modules page\relax }}{269}{}
+\contentsline {subsubsection}{\numberline {0.7.1.4}{\ignorespaces Editor page\relax }}{270}{}
+\contentsline {subsubsection}{\numberline {0.7.1.5}{\ignorespaces Files\relax }}{271}{}
+\contentsline {subsection}{\numberline {0.7.2}{\ignorespaces Fixed and relocatable values\relax }}{274}{}
+\contentsline {subsubsection}{\numberline {0.7.2.1}{\ignorespaces Expressions\relax }}{275}{}
+\contentsline {subsubsection}{\numberline {0.7.2.2}{\ignorespaces Location counter\relax }}{278}{}
+\contentsline {subsubsection}{\numberline {0.7.2.3}{\ignorespaces Attributes\relax }}{279}{}
+\contentsline {subsection}{\numberline {0.7.3}{\ignorespaces Code generators\relax }}{280}{}
+\contentsline {subsubsection}{\numberline {0.7.3.1}{\ignorespaces Instructions\relax }}{281}{}
+\contentsline {subsubsection}{\numberline {0.7.3.2}{\ignorespaces Pseudoinstructions 2\relax }}{288}{}
+\contentsline {subsubsection}{\numberline {0.7.3.3}{\ignorespaces data\relax }}{289}{}
+\contentsline {subsection}{\numberline {0.7.4}{\ignorespaces Directives\relax }}{292}{}
+\contentsline {subsubsection}{\numberline {0.7.4.1}{\ignorespaces module\relax }}{295}{}
+\contentsline {subsubsection}{\numberline {0.7.4.2}{\ignorespaces import\relax }}{297}{}
+\contentsline {subsubsection}{\numberline {0.7.4.3}{\ignorespaces export\relax }}{299}{}
+\contentsline {subsubsection}{\numberline {0.7.4.4}{\ignorespaces equ\relax }}{302}{}
+\contentsline {subsubsection}{\numberline {0.7.4.5}{\ignorespaces reserve\relax }}{305}{}
+\contentsline {subsubsection}{\numberline {0.7.4.6}{\ignorespaces org\relax }}{307}{}
+\contentsline {section}{\numberline {0.8}{\ignorespaces Object code and linker\relax }}{309}{}
+\contentsline {subsection}{\numberline {0.8.1}{\ignorespaces Object language\relax }}{310}{}
+\contentsline {subsubsection}{\numberline {0.8.1.1}{\ignorespaces Object statement syntax\relax }}{311}{}
+\contentsline {subsubsection}{\numberline {0.8.1.2}{\ignorespaces module\relax }}{312}{}
+\contentsline {subsubsection}{\numberline {0.8.1.3}{\ignorespaces org 2\relax }}{313}{}
+\contentsline {subsubsection}{\numberline {0.8.1.4}{\ignorespaces data 2\relax }}{314}{}
+\contentsline {subsubsection}{\numberline {0.8.1.5}{\ignorespaces import 2\relax }}{316}{}
+\contentsline {subsubsection}{\numberline {0.8.1.6}{\ignorespaces export 2\relax }}{319}{}
+\contentsline {subsubsection}{\numberline {0.8.1.7}{\ignorespaces relocate\relax }}{320}{}
+\contentsline {subsection}{\numberline {0.8.2}{\ignorespaces Module metadata\relax }}{323}{}
+\contentsline {subsection}{\numberline {0.8.3}{\ignorespaces Linker\relax }}{325}{}
+\contentsline {subsection}{\numberline {0.8.4}{\ignorespaces Booter\relax }}{326}{}
+\contentsline {subsubsection}{\numberline {0.8.4.1}{\ignorespaces Executable code\relax }}{327}{}
+\contentsline {section}{\numberline {0.9}{\ignorespaces Programming\relax }}{328}{}
+\contentsline {subsection}{\numberline {0.9.1}{\ignorespaces Structure of a program\relax }}{329}{}
+\contentsline {subsection}{\numberline {0.9.2}{\ignorespaces How to perform commmon tasks\relax }}{331}{}
+\contentsline {subsubsection}{\numberline {0.9.2.1}{\ignorespaces Using extract\relax }}{332}{}
+\contentsline {subsubsection}{\numberline {0.9.2.2}{\ignorespaces Copying one register to another\relax }}{334}{}
+\contentsline {subsection}{\numberline {0.9.3}{\ignorespaces Compilation\relax }}{336}{}
+\contentsline {subsection}{\numberline {0.9.4}{\ignorespaces Errors: avoiding, finding, and fixing\relax }}{340}{}
+\contentsline {subsubsection}{\numberline {0.9.4.1}{\ignorespaces Critical regions\relax }}{341}{}
+\contentsline {subsubsection}{\numberline {0.9.4.2}{\ignorespaces Robust programming\relax }}{344}{}
+\contentsline {subsubsection}{\numberline {0.9.4.3}{\ignorespaces Error messages\relax }}{345}{}
+\contentsline {subsubsection}{\numberline {0.9.4.4}{\ignorespaces Runtime debugging\relax }}{346}{}
+\contentsline {subsubsection}{\numberline {0.9.4.5}{\ignorespaces Breakpoints 2\relax }}{347}{}
+\contentsline {section}{\numberline {0.10}{\ignorespaces Installation\relax }}{348}{}
+\contentsline {subsection}{\numberline {0.10.1}{\ignorespaces Command line tools\relax }}{349}{}
+\contentsline {subsubsection}{\numberline {0.10.1.1}{\ignorespaces node and npm\relax }}{350}{}
+\contentsline {subsubsection}{\numberline {0.10.1.2}{\ignorespaces Configuring the shell\relax }}{351}{}
+\contentsline {subsubsection}{\numberline {0.10.1.3}{\ignorespaces Testing the installation\relax }}{353}{}
+\contentsline {subsubsection}{\numberline {0.10.1.4}{\ignorespaces Building Sigma16\relax }}{355}{}
+\contentsline {section}{\numberline {0.11}{\ignorespaces About Sigma16\relax }}{358}{}
+\contentsline {subsection}{\numberline {0.11.1}{\ignorespaces Copyright and license\relax }}{359}{}
+\contentsline {subsection}{\numberline {0.11.2}{\ignorespaces In case of problems\relax }}{360}{}
+\contentsline {subsection}{\numberline {0.11.3}{\ignorespaces Release notes\relax }}{361}{}
+\contentsline {subsubsection}{\numberline {0.11.3.1}{\ignorespaces Version 3.5.0, January 2023\relax }}{362}{}
+\contentsline {subsubsection}{\numberline {0.11.3.2}{\ignorespaces Version 3.4.0\relax }}{363}{}
+\contentsline {subsubsection}{\numberline {0.11.3.3}{\ignorespaces Version 3.3.2, April 2021\relax }}{364}{}
+\contentsline {subsubsection}{\numberline {0.11.3.4}{\ignorespaces Version 3.2.3, development from April 2021\relax }}{365}{}
+\contentsline {subsubsection}{\numberline {0.11.3.5}{\ignorespaces Version 3.2.2, March 2021\relax }}{366}{}
+\contentsline {subsubsection}{\numberline {0.11.3.6}{\ignorespaces Version 3.2.1, February 2021\relax }}{367}{}
+\contentsline {subsection}{\numberline {0.11.4}{\ignorespaces GPL3 license\relax }}{369}{}
+

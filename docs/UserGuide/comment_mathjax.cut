@@ -1,0 +1,3 @@
+\appto\LWR@syncnotenumbers{\LWR@synconenotenumber{LWRpagenote}{\thepagenote}}
+\CustomizeMathJax{\def\LWRpagenote{1}}
+\CustomizeMathJax{\newcommand{\pagenote}[2][\LWRpagenote]{{}^{\mathrm{#1}}}}
