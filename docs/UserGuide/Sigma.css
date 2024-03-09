@@ -1,0 +1,152 @@
+/* css style for compsys book */
+
+/* Inherit generic lwarp style: uncomment one of the following: */
+@import url("lwarp.css") ;
+/* @import url("lwarp_formal.css") ; */
+/* @import url("lwarp_sagebrush.css") ; */
+
+/* Definitions specifically for the compsys book follow */
+
+
+/* notes.  to center?     display: flex;
+    align-items: center;
+    align: center;
+    color: green;
+*/
+
+.bodywithoutsidetoc {
+}
+
+.sectionnumber {
+    display: none;
+}
+
+.bodycontainer {
+    max-width: 43em;
+    text-align: left;
+}
+body {
+    font-family: sans-serif;
+    font-size: 100%;
+    line-height: 140%;
+    margin: 0em;
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+    color: black;
+    background: white;
+}
+/*     margin: auto;
+    background: #FAF7F4;
+    background: white;    font-size: 12pt;
+                    line-height: 1.2;
+   font-family: Verdana, sans-serif; */
+
+/* Code blocks */
+.CodeListing {
+    font-family: 'Cascadia Code', 'Courier New', monospace;
+    font-size: 13pt;
+    color: black;
+    background-color: #e6ffff; /* light blue */
+    padding: 0em;
+}
+
+/* not working, want to indent toc subsection */
+a.tocsubsection span {
+    color: green;
+    font-weight: bold;
+    padding-left: 5em;
+}
+
+/* Omit name and logo header provided by lwarp */
+header {
+    display: none;
+}
+/* Document title at top */
+h1 {
+    font-family:  Verdana, sans-serif;
+    font-size: 22pt;
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+    border: solid;
+    border-width: thin;
+    border-color: red;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
+
+div.author, div.titledate {
+    font-family:  Verdana, sans-serif;
+    font-size: 14pt;
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+    padding-top: 0em;
+    padding-bottom: 0em;
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+
+
+/* lwarp uses h3 for Contents label before toc */
+h3 {
+    font-family:  Verdana, sans-serif;
+    font-size: 14pt;
+    font-weight: bold;
+    font-style: normal;
+    color: #0000ff;
+}
+
+/* Adjust toc section from lwarp.css: font-size was unspecified */
+a.tocsection {display: inline-block ; margin-left: 1em ;
+              font-size:13pt;
+              text-indent: -.5em ; font-weight: bold ; }
+
+/* Increase toc indentation from lwarp.css: margin-left was 2em*/
+a.tocsubsection {display: inline-block ; margin-left: 3em ;
+    text-indent: -.5em ; }
+/* Increase toc indentation from lwarp.css: margin-left was 3em*/
+a.tocsubsubsection {display: inline-block ; margin-left: 5em ;
+    text-indent: -.5em ; }
+/* Increase toc indentation from lwarp.css: margin-left was 4em*/
+a.tocparagraph {display: inline-block ; margin-left: 7em ;
+    text-indent: -.5em ; }
+/* Increase toc indentation from lwarp.css: margin-left was 5em*/
+a.tocsubparagraph {display: inline-block ; margin-left: 9em ;
+    text-indent: -.5em ; }
+
+/* lwarp uses h4 for section headers */
+h4 {
+    font-family:  Verdana, sans-serif;
+    font-size: 18pt;
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+}
+
+/* lwarp uses h5 for subsection headers */
+h5 {
+    font-family:  Verdana, sans-serif;
+    font-size: 16pt;
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+}
+
+/* lwarp uses h6 for subsubsection headers */
+h6 {
+    font-family:  Verdana, sans-serif;
+    font-size: 14pt;
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+}
+
+tr {
+}
+
+/* anchors and links */
+
+A:link    { color: #0000e0; text-decoration: none }
+A:visited { color: #0000a0; text-decoration: none }
+A:hover   { background-color: #e0e0ff; text-decoration: none }

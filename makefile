@@ -204,15 +204,45 @@ showconfig:
 	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
 
 #--------------------------------------------------------------------------
-# Documents
+# User Guide
 #--------------------------------------------------------------------------
 
+# docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex \
+# 	  docs/UserGuide/Sigma16UserGuideText.tex
+# 	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+# 	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+# 	makeindex docs/UserGuide/Sigma16UserGuide
+# 	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+
+CheckGuide :
+	ls -lt \
+            docs/UserGuide/Sigma16UserGuide.pdf \
+            docs/UserGuide/Sigma16UserGuide.html \
+            docs/UserGuide/Sigma16UserGuide.tex \
+            docs/UserGuide/Sigma16UserGuideContent.tex \
+            docs/UserGuide/Sigma.sty \
+            docs/UserGuide/Sigma.css \
+            docs/UserGuide/lwarpmk.conf
+
+# Make dependency on VERSION.txt
+
 docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex \
-	  docs/UserGuide/Sigma16UserGuideText.tex
-	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
-	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
-	makeindex docs/UserGuide/Sigma16UserGuide
-	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+          docs/UserGuide/Sigma16UserGuideContent.tex \
+          docs/UserGuide/Sigma.sty
+	cd docs/UserGuide ; lwarpmk print1
+	cd docs/UserGuide ; lwarpmk printindex
+	cd docs/UserGuide ; lwarpmk print1
+	cd docs/UserGuide ; lwarpmk print1
+
+# html always builds, does it touch Sigma16UserGuide.tex?
+docs/UserGuide/Sigma16UserGuide.html : docs/UserGuide/Sigma16UserGuide.tex \
+          docs/UserGuide/Sigma16UserGuideContent.tex \
+          docs/UserGuide/Sigma16UserGuide.pdf \
+          docs/UserGuide/Sigma.css
+	cd docs/UserGuide ; lwarpmk html1
+	cd docs/UserGuide ; lwarpmk htmlindex
+	cd docs/UserGuide ; lwarpmk html1
+	cd docs/UserGuide ; lwarpmk html1
 
 #--------------------------------------------------------------------------
 # Copy editing
