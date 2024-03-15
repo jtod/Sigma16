@@ -1,28 +1,88 @@
 % compsys.sty
 % load hyperref, cleverref after this file
 
+% added in Sigma16 user guide...
+
 % configure tikz
 \usepackage{tikz}
 % \usepackage{standalone}
 \usetikzlibrary{calc}
 
 % other packages
+\usepackage{verbatim,framed}
 \usepackage[style=alphabetic,sorting=nty]{biblatex}
 \addbibresource{compsys.bib}
 \usepackage{graphicx}
 \usepackage{makeidx} \makeindex
 \usepackage{xcolor}
-
 \usepackage{fancyvrb}
 \usepackage{fvextra}
 
+
+% Typeset title, author, version (more flexible than \maketitle}
+\newcommand{\TitleColor}[0]{black}
+\newenvironment{TitleSection}
+{\centering}
+{}
+\newenvironment{TitleSectionTitle}
+{\par\huge\color{blue}}
+{\vspace{0.5em}}
+\newenvironment{TitleSectionAuthor}
+{\par\large\color{green}}
+{\vspace{0.5em}}
+\newenvironment{TitleSectionVersionDate}
+{\par\large\color{orange}}
+{}
+
+%-----------------------------------------------------------------------
+% Code listings
+%-----------------------------------------------------------------------
+
 % Code listings.  Use Verbatim, set color for pdf, set div for html,
 % and can match for extract program
+
+% This version is specifically for lwarp, it uses BlockClass
 
 \newenvironment{CodeListing}
 {\color{black}\BlockClass{CodeListing}%
   \Verbatim[highlightcolor=blue!5,highlightlines={1-100}]}
 {\endVerbatim\endBlockClass}
+
+% light green color #D2FEE2
+% light blue color #E6FFFF}
+\definecolor{CodeBackgroundColor}{HTML}{E6FFFF}
+
+\renewenvironment{CodeListing}[1][CodeBackgroundColor]%
+{%
+\definecolor{shadecolor}{named}{#1}%
+% supress ugly vertical space which is inserted by
+% environment above and below text:
+\topsep=0ex\relax
+\shaded
+}%
+{%
+\endshaded
+}%
+
+% Deprecated
+\begin{comment}
+\newenvironment{OldCodeListing}
+{\pagecolor{yellow}\bgroup}
+{\egroup\pagecolor{white}}
+\newenvironment{Code}
+{\color{green}}
+{}
+%\renewenvironment{CodeListing}
+%{\color{black}%
+%  \Verbatim[highlightcolor=blue!5,highlightlines={1-100}]}
+%{\endVerbatim}
+\end{comment}
+
+%-----------------------------------------------------------------------
+% Graphics
+%-----------------------------------------------------------------------
+
+% \newcommand{\includesvg}[1]{SVG{#1}}
 
 % Definitions needed for figures/tikz/tikz-book-figures/...
 % Needed for .../fig2.5.tex
@@ -31,10 +91,21 @@
 \newcommand{\sigcode}[1]{\texttt{#1}}
 \newcommand{\codesnippet}[1]{\texttt{#1}}
 
+
+
+%-----------------------------------------------------------------------
+% Asides and notes
+%-----------------------------------------------------------------------
+
 \newcommand{\AsideNote}{{AsideNote}}
 \newenvironment{\AsideNote}
 {}
 {}
+
+%-----------------------------------------------------------------------
+% Exercises and solutions
+%-----------------------------------------------------------------------
+
 
 \newenvironment{exercise}
   {\textbf{Begin exercise.}}
@@ -42,6 +113,10 @@
 \newenvironment{solution}
   {\textbf{Begin solution.}}
   {\textbf{End solution.}}
+
+%-----------------------------------------------------------------------
+% Temporary
+%-----------------------------------------------------------------------
   
 \newenvironment{code}{\textbf{Begin code}}{\textbf{End code}}
 \newenvironment{essay}{\textbf{Begin essay}}{\textbf{End essay}}

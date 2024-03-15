@@ -23,17 +23,22 @@
 
 .bodycontainer {
     max-width: 43em;
+    margin: auto;
     text-align: left;
 }
 body {
-    font-family: sans-serif;
+    font-family: Verdana, sans-serif;
     font-size: 100%;
-    line-height: 140%;
+    line-height: 1.4;
     margin: 0em;
     padding-right: 0.5em;
     padding-left: 0.5em;
     color: black;
     background: white;
+}
+
+html body {
+    line-height: 1.4;
 }
 /*     margin: auto;
     background: #FAF7F4;
@@ -41,13 +46,123 @@ body {
                     line-height: 1.2;
    font-family: Verdana, sans-serif; */
 
-/* Code blocks */
+/* To prevent title appearing twice, don't display the default version
+   of the title.  It will be given by the preamble instead. */
+div.content h1.title {
+    display: none;
+    color: orange;
+}
+
+/* emacs.d/init.el sets the preamble to include title, author, and
+   ate, which will precede the table of contents.  These are formatted
+   with div#preamble ... */
+div#preamble h1.title {
+    font-family:  Verdana, sans-serif;
+    font-size: 175%;
+    color: blue;
+    text-align: center;
+    border: solid;
+    border-width: thin;
+    border-color: red;
+    margin-top: 0.25em;
+    margin-bottom: 0.35em;
+    padding: 0.25em;
+}
+
+div#preamble p.author {
+    font-family:  Verdana, sans-serif;
+    font-size: 115%;
+    color: black;
+    text-align: center;
+    margin-top: 0.35em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+
+div#preamble p.date {
+    font-family:  Verdana, sans-serif;
+    font-size: 115%;
+    color: black;
+    text-align: center;
+    margin-top: 0.15em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+
+.TitleSectionTitle {
+    font-family:  Verdana, sans-serif;
+    font-size: 175%;
+    color: blue;
+    border: solid;
+    border-width: thin;
+    border-color: red;
+    margin-top: 0.25em;
+    margin-bottom: 0.35em;
+    padding: 0.25em;
+}
+
+.TitleSectionAuthor {
+    font-family:  Verdana, sans-serif;
+    font-size: 115%;
+    color:green;
+    margin-top: 0.35em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+
+.TitleSectionVersionDate {
+    font-family:  Verdana, sans-serif;
+    font-size: 115%;
+    color: orange;
+    margin-top: 0.15em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+
+
+
+.EnvTitle p {
+    font-family:  Verdana, sans-serif;
+    font-size: 175%;
+    color: blue;
+    border: solid;
+    border-width: thin;
+    border-color: red;
+    margin-top: 0.25em;
+    margin-bottom: 0.35em;
+    padding: 0.25em;
+}
+.EnvAuthor p {
+    font-family:  Verdana, sans-serif;
+    font-size: 115%;
+    color: black;
+    margin-top: 0.35em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+.EnvVersionDate p {
+    font-family:  Verdana, sans-serif;
+    font-size: 115%;
+    color: black;
+    margin-top: 0.15em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+
 .CodeListing {
+    background-color: #e6ffff; /* light blue */
+}
+/* Code blocks     display: inline;
+    white-space: pre-wrap;
+ */
+.CodeListing pre {
+    background-color: #e6ffff; /* light blue */
     font-family: 'Cascadia Code', 'Courier New', monospace;
     font-size: 13pt;
     color: black;
-    background-color: #e6ffff; /* light blue */
     padding: 0em;
+    margin-top: 0em;
+    margin-bottom: 0em;
 }
 
 /* not working, want to indent toc subsection */
@@ -61,6 +176,11 @@ a.tocsubsection span {
 header {
     display: none;
 }
+
+/* Omit the generated toc, this will be produced after TitleSection
+div #table-of-contents {
+    display: none;
+}  */
 /* Document title at top */
 h1 {
     font-family:  Verdana, sans-serif;

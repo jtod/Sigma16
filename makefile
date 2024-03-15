@@ -1,5 +1,5 @@
 # Sigma16: makefile
-# Copyright (c) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+# Copyright (c) 2024 John T. O'Donnell.  License: GNU GPL Version 3
 # See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 # This file is part of Sigma16.  Sigma16 is free software: you can
@@ -214,6 +214,28 @@ showconfig:
 # 	makeindex docs/UserGuide/Sigma16UserGuide
 # 	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
 
+#-------------------------------------------------------------------------
+# Ensure Sigma.sty and Sigma.css are latest version
+#-------------------------------------------------------------------------
+
+CheckStyle :
+	ls -l docs/UserGuide/*.sty  docs/UserGuide/*.css
+	ls -l ../../../../csbook/compsys/*.sty \
+           ../../../../csbook/compsys/*.css
+
+UpdateStyle : docs/UserGuide/Sigma.sty docs/UserGuide/Sigma.css
+
+docs/UserGuide/Sigma.sty : ../../../../csbook/compsys/Sigma.sty
+	cp -u ../../../../csbook/compsys/Sigma.sty docs/UserGuide
+
+docs/UserGuide/Sigma.css : ../../../../csbook/compsys/Sigma.css
+	cp -u ../../../../csbook/compsys/Sigma.css docs/UserGuide
+
+
+#-------------------------------------------------------------------------
+# User Guide
+#-------------------------------------------------------------------------
+
 CheckGuide :
 	ls -lt \
             docs/UserGuide/Sigma16UserGuide.pdf \
@@ -321,7 +343,7 @@ setVersion:
 	echo "#+MACRO: S16version Version $(VERSION), $(MONTHYEAR)" > docs/VersionMacro.org
 
 #--------------------------------------------------------------------------
-# make assemble
+# make assembe
 #--------------------------------------------------------------------------
 
 .PHONY: assemble

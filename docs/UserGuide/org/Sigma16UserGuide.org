@@ -1,0 +1,105 @@
+#+INCLUDE: ../../VersionMacro.org
+#+TITLE: Sigma16 User Guide
+#+AUTHOR: John T. O'Donnell
+#+DATE: {{{S16version()}}}
+# Copyright John T. O'Donnell, 2024
+
+# This file is part of Sigma16.  See https://github.com/jtod/Sigma16
+# License: GNU GPL Version 3. See Sigma16/README.org and LICENSE.txt.
+
+# Sigma16 is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, Version 3, as
+# published by the Free Software Foundation.  Sigma16 is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.  You should have received a copy of the GNU General Public
+# License along with Sigma16.  If not, see
+# <https://www.gnu.org/licenses/>.
+
+# {{{S16version()}}} is defined by VersionMacro.org.  It gives the
+# version number and date, and is defined by make setVersion
+
+# To build User Guide
+#   Build VERSION.txt and VersionMacro.org: cd $SIGMA16; make setVersion
+#   Edit  Sigma16UserGuideText.org
+#   Open Sigma16UserGuide.org in emacs
+#   Generate html:  ctl-c ctl-e h h
+#   Generate tex:   ctl-c ctl-e l l
+#   Generate pdf:   ctl-c ctl-e l p
+#   pdflatex Sigma16UserGuide
+#   pdflatex --shell-escape Sigma16UserGuide
+#   cd $SIGMA16; make docs/UserGuide/Sigma16UserGuide.pdf
+
+# Does this do anything?  Seems not...
+# Disable the table of contents until after the title section
+#+OPTIONS: toc:nil
+#+TOC: nil
+
+# Obsolete...
+# .emacs.d/init.el configures org-export-filter-options-functions to
+# set different section number formatting for html and latex.  For
+# html, generate contents without section numbers.  For latex,
+# generate contents with section numbers, and redefine \numberline to
+# suppress those when the toc is generated.  The modified contents for
+# latex is in a scope environment; it goes after Title and before
+# Introduction.
+
+#+MACRO: S16Version (Version/Date disabled for section export)
+# Benign redefinition to prevent error/abort on export.
+
+# When the entire document is exported, the redefinition of S16version
+# (which is included at the top of the file) is ignored because of
+# INCLUDING ../VersionMacro.org.  (When a macro is defined twice, the
+# second definition is ignored.)  When only a section is exported, the
+# INCLUDE is skipped, and the second MACRO definition prevents an
+# error message (undefined macro) from aborting the export.
+
+# Is this needed?  Probably not since code is enclosed in BEGIN_EXAMPLE
+# Preserve line breaks
+#+OPTIONS: \n
+
+# html header
+#+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
+#+HTML_HEAD: <link rel="stylesheet" href="UserGuide.css">
+
+# LaTeX preamble
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
+#+LATEX_HEADER: \usepackage{../Sigma}
+#+LATEX_HEADER: \usepackage{UserGuide}
+#+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
+# 12pt text and 3.5cm margins give about 72 characters per line
+#+LATEX_HEADER: \usepackage{hyperref}
+# #+LATEX_HEADER: \usepackage{makeidx}
+
+
+# #+LATEX_HEADER: \usepackage{svg}
+# #+LATEX_HEADER: \svgpath{{figures/svg/}}
+# #+LATEX_HEADER: \makeindex
+
+# For figures, use \includegraphics without extension, for latex it
+# should use .pdf and for html it should use .svg.  There are tools to
+# build both from .tex using tikz
+
+#+BEGIN_EXPORT latex
+\tableofcontents
+#+END_EXPORT
+
+test 9
+
+# Main text of the document
+#+INCLUDE: Sigma16UserGuideText.org
+** GPL3 license
+#+INCLUDE: ../LICENSE.txt
+# Development only...
+#+INCLUDE: typesetting.org
+
+# Deprecated
+
+# Provide appropriate code for svg figure depending on export backend
+# See org-export-global-macros defined in ox.el and changed in init.el  NO
+#  #+MACRO: FIGURES ./figures/ redundant ??
+#  #+MACRO: svgfigHTML [[./figures/svg/$1.svg]]
+#  #+MACRO: svgfigLaTeX \includesvg{$1}
+#  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
