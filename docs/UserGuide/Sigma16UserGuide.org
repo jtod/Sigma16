@@ -1,4 +1,4 @@
-#+INCLUDE: ../../VersionMacro.org
+#+INCLUDE: ../VersionMacro.org
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
 #+DATE: {{{S16version()}}}
@@ -61,12 +61,11 @@
 
 # html header
 #+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
-#+HTML_HEAD: <link rel="stylesheet" href="UserGuide.css">
 
 # LaTeX preamble
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
-#+LATEX_HEADER: \usepackage{../Sigma}
+#+LATEX_HEADER: \usepackage{Sigma}
 #+LATEX_HEADER: \usepackage{UserGuide}
 #+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
 # 12pt text and 3.5cm margins give about 72 characters per line
@@ -86,14 +85,12 @@
 \tableofcontents
 #+END_EXPORT
 
-test 9
-
 # Main text of the document
 #+INCLUDE: Sigma16UserGuideText.org
 ** GPL3 license
-#+INCLUDE: ../LICENSE.txt
+#+INCLUDE: LICENSE.txt
 # Development only...
-#+INCLUDE: typesetting.org
+#   #+INCLUDE: typesetting.org
 
 # Deprecated
 
@@ -103,3 +100,6 @@ test 9
 #  #+MACRO: svgfigHTML [[./figures/svg/$1.svg]]
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
+
+test 10
+

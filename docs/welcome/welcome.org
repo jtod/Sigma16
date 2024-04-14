@@ -16,7 +16,10 @@
 
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
- 
+
+# html header
+#+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
+
 * Sigma16
 
 #+INCLUDE: "../../VERSION.txt" export html

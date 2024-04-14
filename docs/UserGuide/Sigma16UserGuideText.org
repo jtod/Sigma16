@@ -1577,6 +1577,7 @@ Modern computers use a technique called *segmentation* that prevents a
 program from modifying itself.  This leads to increased reliability
 and security.
    
+<<strange execute anchor>>
 Some computers have a facility that allows you to gain the power of
 self modifying code without actually modifying the code in memory.
 The idea is to have an instruction *execute R1,x[R0]* which calculates
@@ -5588,5 +5589,8 @@ There are some new instructions and features, as well as some
 instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
+
+* Typesetting
+
 
 [t1.3]

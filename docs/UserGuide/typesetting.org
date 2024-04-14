@@ -1,5 +1,12 @@
 ** Typesetting
 
+*** Links
+
+- Link to a section: see [[*Core architecture tutorials]]
+- Link to a subsection: see [[** A strange program]]
+- Link to a destination in double angle brackets: the execute
+  instruction is discussed in [[strange execute anchor]]
+
 *** Code listings
 
 The right way to do it.  The BEGIN_example tells org to use a verbatim
