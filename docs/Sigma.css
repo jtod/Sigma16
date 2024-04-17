@@ -270,3 +270,15 @@ tr {
 A:link    { color: #0000e0; text-decoration: none }
 A:visited { color: #0000a0; text-decoration: none }
 A:hover   { background-color: #e0e0ff; text-decoration: none }
+
+div.majornote {
+    margin-top: 0.5em;
+    padding-top: 0em;
+    padding-right: 1em;
+    padding-left: 1em;
+    color: black;
+    font-style: italic;
+    border: solid;
+    border-width: thin;
+    border-color: red;
+}

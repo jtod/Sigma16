@@ -23,6 +23,8 @@ deprecated*
 *.o
 *.exe
 *.tex
+*.bcf
+*.run.xml
 *.log
 *.aux
 *.out
