@@ -180,6 +180,7 @@ import { fileURLToPath } from 'url';
 const S16_LATEST_RELEASE = process.env.S16_LATEST_RELEASE
 const S16_RELEASE_VERSION = process.env.S16_RELEASE_VERSION
 const S16_DEV_VERSION = process.env.S16_DEV_VERSION
+const CSB = process.env.CSB
 
 // Environment variables: Server configuration
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
@@ -220,7 +221,7 @@ express.static.mime.define({'text/css': ['css']});
 express.static.mime.define({'text/html': ['html']});
 
 //-----------------------------------------------------------------------
-// Top index
+// Sigma16
 //-----------------------------------------------------------------------
 
 app.get ('/', (req,res) => {
@@ -475,12 +476,51 @@ export function StartServer (command) {
         console.log (`S16_DEV_VERSION = ${S16_DEV_VERSION}`)
         console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
         console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
+        console.log (`CSB = ${CSB}`)
         app.listen(PORT, () => console.log
                    (`Server is listening on port ${PORT}`));
     }
 }
 
+//-----------------------------------------------------------------------
+// CSB
+//-----------------------------------------------------------------------
+
+app.get ('/csb/csbmain.html', (req,res) => {
+    console.log ('/TOC/html');
+    const loc = path.join (CSB, 'csbmain.html');
+    finish (req, res, loc);
+})
+
+app.get ('/csb/csbgui.mjs', (req,res) => {
+    console.log ('/csbgui.mjs');
+    const loc = path.join (CSB, 'csbgui.mjs');
+    finish (req, res, loc);
+})
+
+app.get ('/csb/csbgui.css', (req,res) => {
+    console.log ('/csbgui.css');
+    const loc = path.join (CSB, 'csbgui.css');
+    finish (req, res, loc);
+})
+
+app.get ('/csb/TOC.html', (req,res) => {
+    console.log ('/TOC/html');
+    const loc = path.join (CSB, 'TOC.html');
+    finish (req, res, loc);
+})
+
+app.get ('/csb/:a/:b', (req,res) => {
+    console.log (`/TOC/html`);
+    const loc = path.join (CSB, req.params.a, req.params.b);
+    console.log (`server: /csb/:a/:b -> ${loc}`);
+    finish (req, res, loc);
+})
+
+
+
 // deprecated
+
 //        S16_BUILD_DIR = S16_LOCAL_BUILD_DIR
 //        S16_BUILD_DIR = path.join (process.env.SIGPART1,
 //                                   process.env.SIGPART2,

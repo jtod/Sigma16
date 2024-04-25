@@ -14,16 +14,14 @@
 # copy of the GNU General Public License along with Sigma16.  If not,
 # see <https://www.gnu.org/licenses/>.
 
+#+HTML_HEAD: <link rel="stylesheet" href="SigmaWelcome.css">
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
-
-# html header
-#+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
 
 * Sigma16
 
 #+INCLUDE: "../../VERSION.txt" export html
-
+xc
 #+BEGIN_majornote
 Sigma16 Version 3.7.x runs on up-to-date (2024) versions of the
 following browsers: Chrome, Opera, Edge.  It does not work fully on
