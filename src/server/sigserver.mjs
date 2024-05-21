@@ -182,6 +182,8 @@ const S16_RELEASE_VERSION = process.env.S16_RELEASE_VERSION
 const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 const CSB = process.env.CSB
 
+const CSBKEY = process.env.CSBKEY
+
 // Environment variables: Server configuration
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
 const S16_RUN_ENV = process.env.S16_RUN_ENV
@@ -311,6 +313,14 @@ function substituteVersion (v) {
 function finish (req, res, loc) {
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+//    console.log (loc)
+    res.sendFile (loc)
+}
+
+function finishCss (req, res, loc) {
+    res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
+    res.set ('Cross-Origin-Opener-Policy', 'same-origin')
+    res.set ('content-type', 'text/css');
 //    console.log (loc)
     res.sendFile (loc)
 }
@@ -477,6 +487,7 @@ export function StartServer (command) {
         console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
         console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
         console.log (`CSB = ${CSB}`)
+        console.log (`CSBKEY = ${CSBKEY}`)
         app.listen(PORT, () => console.log
                    (`Server is listening on port ${PORT}`));
     }
@@ -486,44 +497,75 @@ export function StartServer (command) {
 // CSB
 //-----------------------------------------------------------------------
 
-app.get ('/csb/csbmain.html', (req,res) => {
-    console.log ('/TOC/html');
-    const loc = path.join (CSB, 'csbmain.html');
-    finish (req, res, loc);
+app.get ('/csb/:key/csbmain.html', (req,res) => {
+    let keyval = req.params.key;
+    console.log (`csb server: csbmain.html key=${keyval}`)
+    if (keyval === CSBKEY) {
+        const loc = path.join (CSB, 'full', 'csbmain.html');
+        console.log (`csb server: csbmain.html good key ${keyval}`)
+        console.log (`csb server load: /csb/csbmain.html -> ${loc}`);
+        finish (req, res, loc);
+    } else {
+        console.log (`csb server error: csbmain.html bad key ${keyval}`)
+    }
 })
 
-app.get ('/csb/csbgui.mjs', (req,res) => {
-    console.log ('/csbgui.mjs');
-    const loc = path.join (CSB, 'csbgui.mjs');
-    finish (req, res, loc);
+app.get ('/csb/:key/csbgui.mjs', (req,res) => {
+    let keyval = req.params.key;
+    console.log (`csb server: csbgui.mjs key=${keyval}`)
+    if (keyval === CSBKEY) {
+        const loc = path.join (CSB, 'full', 'csbgui.mjs');
+        console.log (`csb server: csbgui.mjs good key: ${keyval}`)
+        console.log (`csb server load: /csb/csbgui.mjs -> ${loc}`);
+        finish (req, res, loc);
+    } else {
+        console.log (`csb server error: csbgui.mjs bad key: ${keyval}`)
+    }
 })
 
-app.get ('/csb/csbgui.css', (req,res) => {
-    console.log ('/csbgui.css');
-    const loc = path.join (CSB, 'csbgui.css');
-    finish (req, res, loc);
+app.get ('/csb/:key/csbgui.css', (req,res) => {
+    let keyval = req.params.key;
+    console.log (`csb server: csbgui.css key=${keyval}`)
+    if (keyval === CSBKEY) {
+        const loc = path.join (CSB, 'style', 'csbgui.css');
+        console.log (`csb server: csbgui.css good key ${keyval}`)
+        console.log (`csb server load: /csb/csbgui.css -> ${loc}`);
+        finishCss (req, res, loc);
+    } else {
+        console.log (`csb server error: csbgui.css bad key: ${keyval}`)
+    }
 })
 
+// app.get ('/csb/:key/TOC.html', (req,res) => {
 app.get ('/csb/TOC.html', (req,res) => {
-    console.log ('/TOC/html');
-    const loc = path.join (CSB, 'TOC.html');
-    finish (req, res, loc);
+//    let keyval = req.params.key;
+    let keyval = CSBKEY // override specified key, put in valid key
+    console.log (`csb server: TOK key=${keyval}`)
+    if (keyval === CSBKEY) {
+        const loc = path.join (CSB, 'full', 'TOC.html');
+        console.log (`csb server: TOC good key: ${keyval}`)
+        console.log (`csb server load: TOC: /csb/TOC.html -> ${loc}`);
+        finish (req, res, loc);
+    } else {
+        console.log (`csb server error: TOC bad key: ${keyval}`)
+    }
 })
 
-app.get ('/csb/:a/:b', (req,res) => {
-    console.log (`/TOC/html`);
-    const loc = path.join (CSB, req.params.a, req.params.b);
-    console.log (`server: /csb/:a/:b -> ${loc}`);
-    finish (req, res, loc);
+// app.get ('/csb/:a/:b', (req,res) => {
+app.get ('/csb/:key/:a/:b', (req,res) => {
+    console.log ('csb server: ab /csb/:key/:a/:b')
+    let keyval = req.params.key;
+    console.log (`csb server: ab key=${keyval}`)
+    if (keyval === CSBKEY) {
+        const loc = path.join (CSB, req.params.a, req.params.b);
+        console.log (`csb server: ab good key: ${keyval}`)
+        console.log (`csb server load: ab /csb/:a/:b -> ${loc}`);
+        finish (req, res, loc);
+    } else {
+        console.log (`csb server error: ab bad key: ${keyval}`)
+    }
 })
 
-
-
-// deprecated
-
-//        S16_BUILD_DIR = S16_LOCAL_BUILD_DIR
-//        S16_BUILD_DIR = path.join (process.env.SIGPART1,
-//                                   process.env.SIGPART2,
-//                                   process.env.SIGPART3,
-//                                   'Sigma16', 'build')
-//        console.log (`Local build directory = ${S16_LOCAL_BUILD_DIR}`)
+app.get ('/csb/:a'), (req,res) => {
+    console.log (`csb server error: unknown target ${req.params.a}`)
+}
