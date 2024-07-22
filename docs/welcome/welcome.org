@@ -21,7 +21,7 @@
 * Sigma16
 
 #+INCLUDE: "../../VERSION.txt" export html
-xc
+
 #+BEGIN_majornote
 Sigma16 Version 3.7.x runs on up-to-date (2024) versions of the
 following browsers: Chrome, Opera, Edge.  It does not work fully on
@@ -33,10 +33,6 @@ in computer systems.  This application provides a complete environment
 for experimenting with the architecture, including an editor,
 assembler, linker, emulator, and an integrated development
 environment.
-
-Version 3.7 of Sigma16 runs in Chrome, Edge, and Opera (the browsers
-based on Chromium).  It is not currently supported on Safari or
-Firefox, although future versions are planned for those browsers too.
 
 There is also a digital circuit, available separately, that
 implements the architecture.  The circuit is specified using the

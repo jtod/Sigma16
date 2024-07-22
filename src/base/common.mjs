@@ -17,6 +17,13 @@
 // common.js
 //----------------------------------------------------------------------
 
+// Some functions need to know whether the program is running in a
+// browser, so the window and document exist.  If the program is
+// running in node, there is no document.
+
+export const runningBrowser = typeof window !== "undefined"
+
+
 export const S16HOMEPAGEURL = 'https://jtod.github.io/home/Sigma16'
 
 // ES_thread_host indicates which thread this emulator instance is

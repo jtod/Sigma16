@@ -1,0 +1,22 @@
+% Need the --shell-escape option on pdflatex command.  Requires
+% pdflatex because the svg package uses pdf commands.
+% Usage:
+% pdflatex --shell-escape testsvg
+
+\documentclass{article}
+
+\usepackage{svg}
+
+\begin{document}
+
+This is some text.
+
+\includesvg{testRX}
+
+Here is some more text.
+
+\includesvg{EXPformat}
+
+Yet more text.
+
+\end{document}

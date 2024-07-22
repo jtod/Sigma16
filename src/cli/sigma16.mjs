@@ -80,10 +80,10 @@ import { fileURLToPath } from 'url';
 
 // Components of Sigma16
 // import * as cn from "../gui/config.mjs";
-import * as st from "../base//state.mjs";
-import * as smod from "../base//s16module.mjs";
-import * as asm  from "../base//assembler.mjs";
-import * as link from "../base//linker.mjs";
+import * as smod from "../base/s16module.mjs";
+import * as st from "../base/state.mjs";
+import * as asm  from "../base/assembler.mjs";
+import * as link from "../base/linker.mjs";
 import * as serv from '../server/sigserver.mjs'
 
 // Find paths to components of the software, relative to this file
@@ -148,6 +148,8 @@ function main  () {
 // Assembler
 //----------------------------------------------------------------------
 
+// st is a global system state with module set container
+
 // Usage: node Sigma16.mjs assemble Foo
 //   Reads source from Foo.asm.txt
 //   Writes object code to Foo.obj.txt
@@ -158,11 +160,35 @@ function assembleCLI () {
     const baseName = process.argv[3]; // first command argument
     const srcFileName = `${baseName}.asm.txt`
     const srcText = readFile (srcFileName)
-    const ai = asm.assembler (baseName, srcText)
+
+    // set up call to asm.assembler
+    //    let m = ... create new module
+    //    const ai = asm.assembler (baseName, srcText)
+//    let m = new st.Sigma16Module ()
+
+    // create module container and insert the source text
+//    const env = new st.SystemState () defined in state
+//    env.moduleSet = new st.ModuleSet ()
+    // see gui.mjs, selectExample () ...
+    // see gui.mjs initializeGuiElements (gst)
+    st.env.moduleSet = new st.ModuleSet ()
+    let m = st.env.moduleSet.addModule ()
+    m.changeAsmSrc (srcText)
+    m.setModuleName (baseName)
+    st.handleSelect (m)
+//    m.baseName = baseName
+//    m.currentAsmSrc = srcText
+    const ai = asm.assembler (m)
+
+    console.log ('assembleCLI has ai') // testing
     if (ai.nAsmErrors === 0) {
+        console.log ('Successful assembly')
         let obj = ai.objectText
         let md = ai.metadata.toText ()
         let lst = ai.metadata.listingPlain.join("\n")
+        console.log ("\n\n\nobj = ")
+        console.log (obj)
+        console.log ("end obj\n\n\n")
         writeFile (`${baseName}.obj.txt`, obj)
         writeFile (`${baseName}.md.txt`,  md)
         writeFile (`${baseName}.lst.txt`, lst)

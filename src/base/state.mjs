@@ -151,6 +151,7 @@ export class Sigma16Module {
         // identify the module
         this.modKey = newModKey () // Persistent and unique gensym key
         this.modIdx = env.moduleSet.modules.length // Transient array index
+        // Transient array index
         this.moduleName = "Anonymous" // from filename or module stmt
         // possible file associated with module
         this.fileHandle = null
@@ -171,7 +172,15 @@ export class Sigma16Module {
         // executable code
         this.exeCodeOrigin = "none"; // {none, file, linker}
         this.exeObjMd = null; // executable for linked main module
-
+    }
+    ident () { // shortcut for identifying module
+        return `module ${this.modKey}`;
+    }
+    // Whenever addModule is called, and running in browser, then call
+    // setModuleDisplay.  But don't call setModuleDisplay if running
+    // in node.  setModuleDisplay refers to the document, which exists
+    // in the browser but not in node.
+    setModuleDisplay () {
         // display module name (can be changed by assembler)
         this.displayModuleNameElt =
             document.createTextNode (this.moduleName);
@@ -237,56 +246,67 @@ export class Sigma16Module {
         this.containerElt.appendChild (this.modPara)
         this.displayElt = this.modPara
     }
-    ident () { // shortcut for identifying module
-        return `module ${this.modKey}`;
-    }
     setModuleName (txt) {
         console.log (`setModuleName ${txt}`)
         this.moduleName = txt
-        this.displayModuleNameElt.textContent = txt
+        if (com.runningBrowser) {
+            this.displayModuleNameElt.textContent = txt
+        }
         console.log (`${this.ident} setting name=${txt}`)
     }
     staleAsmCode () { // asm src code is stale
         console.log (`${ident} asm src code is stale`)
-        this.asmDisplay.setOrigin ("none")
-        this.asmDisplay.setCode ("")
+        if (com.runningBrowser) {
+            this.asmDisplay.setOrigin ("none")
+            this.asmDisplay.setCode ("")
+        }
     }
     staleObjCode () { // obj code is stale
         console.log (`${this.ident} obj code is stale`)
-        this.objDisplay.setOrigin ("none")
-        this.objDisplay.setCode ("")
+        if (com.runningBrowser) {
+            this.objDisplay.setOrigin ("none")
+            this.objDisplay.setCode ("")
+        }
     }
     staleExeCode () { // exe code is stale
         console.log (`${this.ident} exe code is stale`)
-        this.exeDisplay.setOrigin ("none")
-        this.exeDisplay.setCode ("")
+        if (com.runningBrowser) {
+            this.exeDisplay.setOrigin ("none")
+            this.exeDisplay.setCode ("")
+        }
     }
     setAsmCode (txt, origin) {
         console.log (`${this.ident} setAsmCode ${txt.substring(0,100)}`)
         this.asmSrcCodeOrigin = origin
         this.currentAsmSrc = txt
-        this.asmDisplay.setCode (txt)
-        this.asmDisplay.setOrigin (origin)
-        this.staleObjCode ()
-        this.staleExeCode ()
+        if (com.runningBrowser) {
+            this.staleObjCode ()
+            this.staleExeCode ()
+            this.asmDisplay.setCode (txt)
+            this.asmDisplay.setOrigin (origin)
+        }
     }
     setObjCode (txt) {
         console.log (`${this.ident} setObjCode ${txt.substring(0,100)}`)
         this.asmObjCodeOrigin = origin
         this.currentObjSrc = txt
-        this.objDisplay.setCode (txt)
-        this.objDisplay.setOrigin (origin)
-        this.staleAsmCode ()
-        this.staleExeCode ()
+        if (com.runningBrowser) {
+            this.staleAsmCode ()
+            this.staleExeCode ()
+            this.objDisplay.setCode (txt)
+            this.objDisplay.setOrigin (origin)
+        }
     }
     setExeCode (txt) {
         console.log (`${this.ident} setExeCode ${txt.substring(0,100)}`)
         this.asmExeCodeOrigin = origin
         this.currentExeSrc = txt
-        this.exeDisplay.setCode (txt)
-        this.exeDisplay.setOrigin (origin)
-        this.staleAsmCode ()
-        this.staleObjCode ()
+        if (com.runningBrowser) {
+            this.exeDisplay.setCode (txt)
+            this.exeDisplay.setOrigin (origin)
+            this.staleAsmCode ()
+            this.staleObjCode ()
+        }
     }
     hasMetadata () { // deprecated
         return this.mdText !== ""
@@ -294,7 +314,9 @@ export class Sigma16Module {
     changeAsmSrc (txt) { // new text may not be saved in file
         console.log (`Module ${this.modKey} changeAsmSrc`)
         this.currentAsmSrc = txt
-        document.getElementById("EditorTextArea").value = txt
+        if (com.runningBrowser) {
+            document.getElementById("EditorTextArea").value = txt
+        }
         //        this.setAsmCode (txt.split("\n")[0])
         this.setAsmCode (txt)
     }
@@ -304,8 +326,10 @@ export class Sigma16Module {
     }
     setSelected (b) {
         let selTxt = b ? "Selected " : ""
-        this.selectElt.textContent = selTxt
-        env.moduleSet.previousSelectedIdx = this.modIdx
+        if (com.runningBrowser) {
+            this.selectElt.textContent = selTxt
+            env.moduleSet.previousSelectedIdx = this.modIdx
+        }
     }
     // Use refreshInEditorBuffer when the text is changed from an
     // ourside source, such as reading a file.  Don't use this when
@@ -313,7 +337,9 @@ export class Sigma16Module {
     refreshInEditorBuffer () {
         const xs = this.asmInfo.asmSrcText;
         console.log (`refreshInEditorBuffer xs=${xs}`);
-        document.getElementById("EditorTextArea").value = xs;
+        if (com.runningBrowser) {
+            document.getElementById("EditorTextArea").value = xs;
+        }
     }
     showShort () { // for testing with console.log
         let xs = `Sigma16Module key=${this.modKey} name=${this.moduleName}`
@@ -437,6 +463,12 @@ export class ModuleSet {
         this.modules.push (m)
         this.selectedModuleIdx = this.modules.length - 1
         console.log (`addModule there are $(this.modules.length) modules\n`)
+        if (com.runningBrowser) {
+            console.log ("addModule: running browser, setting module display")
+            m.setModuleDisplay ()
+        } else {
+            console.log ("addModule: running node")
+        }
         return m
     }
     getSelectedModule () {
