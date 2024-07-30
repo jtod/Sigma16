@@ -151,44 +151,35 @@ function main  () {
 // st is a global system state with module set container
 
 // Usage: node Sigma16.mjs assemble Foo
-//   Reads source from Foo.asm.txt
-//   Writes object code to Foo.obj.txt
-//   Writes metadata to Foo.md.txt
-//   Writes listing to Foo.lst.txt
+//   Read source from Foo.asm.txt
+//   Write object code to Foo.obj.txt
+//   Write metadata to Foo.md.txt
+//   Write listing to Foo.lst.txt
 
 function assembleCLI () {
     const baseName = process.argv[3]; // first command argument
+    console.log (`assembleCLI baseName=${baseName}`)
     const srcFileName = `${baseName}.asm.txt`
     const srcText = readFile (srcFileName)
-
-    // set up call to asm.assembler
-    //    let m = ... create new module
-    //    const ai = asm.assembler (baseName, srcText)
-//    let m = new st.Sigma16Module ()
-
-    // create module container and insert the source text
-//    const env = new st.SystemState () defined in state
-//    env.moduleSet = new st.ModuleSet ()
-    // see gui.mjs, selectExample () ...
-    // see gui.mjs initializeGuiElements (gst)
-    st.env.moduleSet = new st.ModuleSet ()
-    let m = st.env.moduleSet.addModule ()
-    m.changeAsmSrc (srcText)
-    m.setModuleName (baseName)
-    st.handleSelect (m)
-//    m.baseName = baseName
-//    m.currentAsmSrc = srcText
-    const ai = asm.assembler (m)
-
+//    st.env.moduleSet = new st.ModuleSet ()
+//    let m = st.env.moduleSet.addModule ()
+//    const ai = new st.AsmInfo (m) // ai points to m
+//    m.asmInfo = ai // m points to ai
+//    m.changeAsmSrc (srcText)
+//    m.setModuleName (baseName)
+    //    let dummy = asm.assembler (m)   // ai
+    const ai = asm.assembler (baseName, srcText)
+    console.log ("assembler finished, object =")
+    let obj = ai.objectText
+    let md = ai.mdText
+    let lst = ai.metadata.listingPlain.join("\n")
     console.log ('assembleCLI has ai') // testing
     if (ai.nAsmErrors === 0) {
         console.log ('Successful assembly')
-        let obj = ai.objectText
-        let md = ai.metadata.toText ()
-        let lst = ai.metadata.listingPlain.join("\n")
         console.log ("\n\n\nobj = ")
         console.log (obj)
         console.log ("end obj\n\n\n")
+        console.log (md)
         writeFile (`${baseName}.obj.txt`, obj)
         writeFile (`${baseName}.md.txt`,  md)
         writeFile (`${baseName}.lst.txt`, lst)
@@ -199,6 +190,24 @@ function assembleCLI () {
         process.exitCode = 1
     }
 }
+// old asm...
+//    console.log (ai.objectText)
+//    m.asmInfo = ai
+//    m.objMd = ai.objMd
+        //        let md = ai.metadata.toText ()
+    // set up call to asm.assembler
+    //    let m = ... create new module
+    //    const ai = asm.assembler (baseName, srcText)
+//    let m = new st.Sigma16Module ()
+
+    // create module container and insert the source text
+//    const env = new st.SystemState () defined in state
+//    env.moduleSet = new st.ModuleSet ()
+    // see gui.mjs, selectExample () ...
+    // see gui.mjs initializeGuiElements (gst)
+//    st.handleSelect (m)
+//    m.baseName = baseName
+//    m.currentAsmSrc = srcText
 
 //----------------------------------------------------------------------
 // Command line interface to linker

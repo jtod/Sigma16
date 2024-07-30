@@ -56,16 +56,21 @@ export function enterAssemblerPage () {
     const m = st.env.moduleSet.getSelectedModule ()
     console.log ("enterAssemblerPage")
     console.log (m.currentAsmSrc)
-    const ai = m.asmInfo
-    ai.asmSrcText = m.currentAsmSrc
-    ai.asmSrcLines = ai.asmSrcText.split("\n")
     mDisplayAsmSource (m)
-    ai.metadata.listingDec = []
+//    const ai = m.asmInfo
+//    ai.asmSrcText = m.currentAsmSrc
+//    ai.asmSrcLines = ai.asmSrcText.split("\n")
+//    ai.metadata.listingDec = []
 }
 
 const notYet = "Listing will be available after assembly"
 
 // Called when user clicks "Assemble" on assembler page
+
+// m/asm module has initial value of null for ai; assembler creates ai
+// and returns it; assembler receives basename and source text as
+// args; not necessary to embed ai inside a module (don't need it for
+// cli)
 
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
@@ -74,7 +79,7 @@ export function assemblerGUI () {
     document.getElementById('AsmTextHtml').innerHTML = "";
     document.getElementById('ProcAsmListing').innerHTML = "";
     com.clearObjectCode (); // clear text in linker pane
-    let ai = assembler (m)
+    let ai = assembler (m.baseName, m.currentAsmSrc)
     m.asmInfo = ai;
     m.objMd = ai.objMd  // ai is result of assembler
     m.objDisplay.setOrigin ("produced by assembler")
@@ -97,7 +102,8 @@ export function displayAsmSource () {
 // Worker function for displayAsmSource, given module m
 
 export function mDisplayAsmSource (m) {
-    let xs = m.asmInfo.asmSrcLines.slice ()
+    //    let xs = m.asmInfo.asmSrcLines.slice ()
+    let xs = m.asmSrcLines.slice ()
     xs.unshift("<pre class='HighlightedTextAsHtml'>");
     xs.push("</pre>");
     document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
@@ -424,21 +430,38 @@ function validateChars (xs) {
 // the assembler.  This function is the main translator, used for both
 // gui and cli.
 
-export function assembler (m) {
-    const ai = m.asmInfo
-    ai.srcText = m.currentAsmSrc
-    ai.srcLines = splitLines (ai.srcText)
-    console.log (`Entering assembler, ${ai.asmSrcLines.length} source lines`)
+// m/asm omir m arg, provide source code
+
+// export function assembler (m) {
+export function assembler (baseName, srcText) {
+    console.log ("*********************")
+    console.log (`assembler baseName = ${baseName}`)
+    console.log ("assembler srcText")
+    console.log (srcText.length)
+    console.log (srcText)
+    console.log ("*********************")
+
+    const ai = new st.AsmInfo (baseName, srcText)
+    console.log ("assembler made ai")
+//    const ai = m.asmInfo
+//    ai.srcText = m.currentAsmSrc
+//    ai.srcLines = splitLines (ai.srcText)
+//    console.log ("$$$$$$$$$$$$$$$$$*********************")
+//    console.log ("assembler ai.srcLines")
+//    console.log (ai.srcLines.length)
+//    console.log (ai.srcLines)
+//    console.log ("$$$$$$$$$$$$$$$$$*********************")
+//    console.log (`Entering assembler, ${ai.srcLines.length} source lines`)
 //    console.log (ai.srcLines)
     
-    ai.nAsmErrors = 0;
-    ai.asmStmt = [];
-    ai.symbols = [];
-    ai.objectCode = [];
-    ai.exports = [];
-    ai.locationCounter = new st.Value (0, st.Local, st.Relocatable);
-    ai.symbolTable.clear();
-    ai.metadata.clear (); // remove md from any previous assembly
+//    ai.nAsmErrors = 0;
+//    ai.asmStmt = [];
+//    ai.symbols = [];
+//    ai.objectCode = [];
+//    ai.exports = [];
+//    ai.locationCounter = new st.Value (0, st.Local, st.Relocatable);
+    ai.symbolTable.clear();  // ????? redundant, s.t = new map
+//    ai.metadata.clear (); // remove md from any previous assembly ?? redundant
     ai.metadata.pushSrc
       ("Line Addr Code Code Source",
        "<span class='ListingHeader'>Line Addr Code Code Source</span>",
@@ -453,11 +476,24 @@ export function assembler (m) {
     st.displaySymbolTableHtml(ai); // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
-    ai.objMd = new st.ObjMd (m.moduleName, ai.objectText, mdText)
+    ai.mdText = mdText
+    //    ai.objMd = new st.ObjMd (m.moduleName, ai.objectText, mdText)
+    ai.objMd = new st.ObjMd (ai.asmModName, ai.objectText, mdText)
+    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    console.log (`assembler modname = ${ai.objMd.modName}`)
+    console.log ("assembler result objText =...")
+    //    console.log (ai.objMd.objText)
+    console.log (ai.objectText)
+    console.log ("assembler result mdText =...")
+    //    console.log (ai.objMd.mdText)
+    console.log (ai.mdText)
+    console.log ("assembler result: end")
+    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     // need to provide this object even if errors have been detected
 //    ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
 //        ? new st.ObjMd (m.moduleName, ai.objectText, mdText)
-//        : null;
+    //        : null;
+    console.log ("assembler returning")
     return ai
 }
 //    m.objText = ai.objectText

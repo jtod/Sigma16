@@ -164,8 +164,10 @@ export class Sigma16Module {
         // assembly source code
         this.asmSrcCodeOrigin = "none"; // {none, file, example, editor}
         this.currentAsmSrc = null; // source code (possibly edited)
+        this.asmSrcLines = []
         this.savedAsmSrc = null; // code as last saved/read to/from file
-        this.asmInfo = new AsmInfo (this); // filled in by assembler
+        //        this.asmInfo = new AsmInfo (this); // filled in by assembler
+        this.asmInfo = null // asmInfo created and returned by assembler
         // object code
         this.objCodeOrigin = "none"; // {none, file, assembler}
         this.objMd = null; // object holding object code and metadata
@@ -279,6 +281,7 @@ export class Sigma16Module {
         console.log (`${this.ident} setAsmCode ${txt.substring(0,100)}`)
         this.asmSrcCodeOrigin = origin
         this.currentAsmSrc = txt
+        this.asmSrcLines = txt.split ("\n")
         if (com.runningBrowser) {
             this.staleObjCode ()
             this.staleExeCode ()
@@ -494,11 +497,16 @@ export class ModuleSet {
 // the text string.
 
 export class AsmInfo {
-    constructor (m) {
-        this.asmSrcText = "; default asm src"; // raw source text
-        this.asmSrcLines = [];               // list of lines of source text
+    //    constructor (m) { // m/asm remove m as parameter
+    constructor (baseName, srcText) {
+        //        this.asmSrcText = "; default asm src"; // raw source text
+        this.baseName = baseName
+        this.asmSrcText = srcText // raw source text        
+        this.asmSrcLines = this.asmSrcText.split ("\n")
+//     this.asmSrcLines = [];               // list of lines of source text
+        //        this.srcLines = splitLines (srcText)
+	this.objectCode = [];                // array of hex strings
         this.objectText = "";       // object code as single string
-	this.objectCode = [];                // string hex representation
         this.mdText = "";
         this.metadata = new Metadata ();  // address-source map
         this.asmListingText = "";
