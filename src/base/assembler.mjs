@@ -1,5 +1,5 @@
 // Sigma16: assembler.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
@@ -55,7 +55,7 @@ let relocationAddressBuffer = [];   // list of relocation addresses
 export function enterAssemblerPage () {
     const m = st.env.moduleSet.getSelectedModule ()
     console.log ("enterAssemblerPage")
-    console.log (m.currentAsmSrc)
+    com.mode.devlog (m.currentAsmSrc)
     mDisplayAsmSource (m)
 //    const ai = m.asmInfo
 //    ai.asmSrcText = m.currentAsmSrc
@@ -75,7 +75,7 @@ const notYet = "Listing will be available after assembly"
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
     const m = st.env.moduleSet.getSelectedModule ();
-    console.log (`assemblerGUI m=${m.modKey}`)
+    com.mode.devlog (`assemblerGUI m=${m.modKey}`)
     document.getElementById('AsmTextHtml').innerHTML = "";
     document.getElementById('ProcAsmListing').innerHTML = "";
     com.clearObjectCode (); // clear text in linker pane
@@ -86,10 +86,10 @@ export function assemblerGUI () {
     m.objDisplay.setCode (m.objMd.objText)
 //    m.objDisplay.setCode (m.objMd, x => {x.objText })
     displayAsmListing ();
-    console.log (m.asmInfo.objecftText)
-    console.log ("++++++++++++++++++++ m.showShort:")
-    console.log (m.showShort())
-    console.log ("++++++++++++++++++++ asm done")
+    com.mode.devlog (m.asmInfo.objecftText)
+    com.mode.devlog ("++++++++++++++++++++ m.showShort:")
+    com.mode.devlog (m.showShort())
+    com.mode.devlog ("++++++++++++++++++++ asm done")
 }
 
 // Called when user clicks "Show Source" on the assembler page
@@ -218,7 +218,7 @@ function findOffset (here, there) {
     const k = there.movability === st.Relocatable
           ? Math.abs (there.word - (here.word + 2))
           : there.word
-    console.log (`findOffset here=${here} there=${there} k=${k}`)
+    com.mode.devlog (`findOffset here=${here} there=${there} k=${k}`)
     return k
 }
 
@@ -434,15 +434,15 @@ function validateChars (xs) {
 
 // export function assembler (m) {
 export function assembler (baseName, srcText) {
-    console.log ("*********************")
-    console.log (`assembler baseName = ${baseName}`)
-    console.log ("assembler srcText")
-    console.log (srcText.length)
-    console.log (srcText)
-    console.log ("*********************")
+//    console.log ("*********************")
+//    console.log (`assembler baseName = ${baseName}`)
+//    console.log ("assembler srcText")
+//    console.log (srcText.length)
+//    console.log (srcText)
+//    console.log ("*********************")
 
     const ai = new st.AsmInfo (baseName, srcText)
-    console.log ("assembler made ai")
+//    console.log ("assembler made ai")
 //    const ai = m.asmInfo
 //    ai.srcText = m.currentAsmSrc
 //    ai.srcLines = splitLines (ai.srcText)
@@ -479,23 +479,23 @@ export function assembler (baseName, srcText) {
     ai.mdText = mdText
     //    ai.objMd = new st.ObjMd (m.moduleName, ai.objectText, mdText)
     ai.objMd = new st.ObjMd (ai.asmModName, ai.objectText, mdText)
-    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    console.log (`assembler modname = ${ai.objMd.modName}`)
-    console.log ("assembler result objText =...")
+//    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+//    console.log (`assembler modname = ${ai.objMd.modName}`)
+//    console.log ("assembler result objText =...")
     //    console.log (ai.objMd.objText)
-    console.log (ai.objectText)
-    console.log ("assembler result mdText =...")
+//    console.log (ai.objectText)
+//    console.log ("assembler result mdText =...")
     //    console.log (ai.objMd.mdText)
-    console.log (ai.mdText)
-    console.log ("assembler result: end")
-    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+//    console.log (ai.mdText)
+//    console.log ("assembler result: end")
+//    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    return ai
+}
     // need to provide this object even if errors have been detected
 //    ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
 //        ? new st.ObjMd (m.moduleName, ai.objectText, mdText)
     //        : null;
-    console.log ("assembler returning")
-    return ai
-}
+//    console.log ("assembler returning")
 //    m.objText = ai.objectText
 //    m.mdText = mdText
     // Handle module name if present
@@ -619,13 +619,13 @@ function requireX (ma, s, field) {
         disp = xr[1]
         const regsrc = xr[2]
         index = requireReg (ma, s, regsrc)  // disp = field
-        console.log (`requireX parse failed`)
+        com.mode.devlog (`requireX parse failed`)
     } else { // allow [R0] to be omitted
         disp = field
         index = 0
     }
     const result = {disp, index}
-    console.log (`requireX field=${field} disp=<${disp}> index=${index}`)
+    com.mode.devlog (`requireX field=${field} disp=<${disp}> index=${index}`)
     return result
 }
 
@@ -721,15 +721,15 @@ function requireReg (ma, s, field) {
 function parseAsmLine (ma,i) {
     com.mode.devlog (`parseAsmLine i=${i}`);
     let s = ma.asmStmt[i];
-    console.log (`parseAsmLine i=${i}`);
-    showAsmStmt(s);
+    com.mode.devlog (`parseAsmLine i=${i}`);
+//    showAsmStmt(s);
 
     let p = parseSplitFields.exec(s.srcLine);
-//    console.log (`parseAsmLine i=${i} srcLine=<${s.srcLine}>  p=${p}`)
+//    com.mode.devlog (`parseAsmLine i=${i} srcLine=<${s.srcLine}>  p=${p}`)
     s.fieldLabel = p[1];
     s.fieldSpacesAfterLabel = p[2];
     s.fieldOperation = p[3];
-//    console.log (`parseAsmLine fieldOperation=${s.fieldOperation}`)
+//    com.mode.devlog (`parseAsmLine fieldOperation=${s.fieldOperation}`)
     s.fieldSpacesAfterOperation = p[4];
     s.fieldOperands = p[5];
     s.fieldComment = p[6];
@@ -823,13 +823,13 @@ function asmPass1 (ma) {
                     + ' source lines');
     for (let i = 0; i < ma.asmSrcLines.length; i++) {
         com.mode.devlog (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
-        console.log (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
+        com.mode.devlog (`Pass 1 i=${i} line=<${ma.asmSrcLines[i]}>`);
 	ma.asmStmt[i] = mkAsmStmt (i, ma.locationCounter.copy(),
                                    ma.asmSrcLines[i]);
 	let s = ma.asmStmt[i];
         let badCharLocs = validateChars (ma.asmSrcLines[i]);
         //        com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
-        console.log (`validateChars: badCharLocs=${badCharLocs}`);
+        com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
 
         if (badCharLocs.length > 0) {
             mkErrMsg (ma,s,`Invalid character at position ${badCharLocs}`);
@@ -887,16 +887,16 @@ function updateLocationCounter (ma,s,i) {
     if (s.operation.ifmt==arch.iDir && s.operation.afmt==arch.aOrg) {
         let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
         ma.locationCounter = v.copy();
-        console.log (`P1 org @${ma.locationCounter.toString()}`);
+        com.mode.devlog (`P1 org @${ma.locationCounter.toString()}`);
         com.mode.devlog (`org ${i} ${ma.locationCounter.toString()}`);
     } else if (s.operation.ifmt==arch.iDir
                && s.operation.afmt==arch.aReserve) {
         let v = evaluate (ma, s, ma.locationCounter, s.fieldOperands);
-        console.log (`P1 reserve0 @<${ma.locationCounter.toString()}>`);
-        console.log (`P1 reservev v=<${v}>`);
+        com.mode.devlog (`P1 reserve0 @<${ma.locationCounter.toString()}>`);
+        com.mode.devlog (`P1 reservev v=<${v}>`);
         ma.locationCounter.add (v);
         s.locCounterUpdate = ma.locationCounter.copy()
-        console.log (`P1 reserve1 @<${ma.locationCounter.toString()}>`);
+        com.mode.devlog (`P1 reserve1 @<${ma.locationCounter.toString()}>`);
         com.mode.devlog (`reserve ${i} ${ma.locationCounter.toString()}`);
     } else {
         com.mode.devlog (`Pass1 code codesize=${s.codeSize.toString()}`);
@@ -963,7 +963,7 @@ function testWd(op,d,a,b) {
 // are handled in Pass2 because they use labels.
 
 function asmPass2 (ma) {
-    com.mode.setTrace()
+//    com.mode.setTrace()
     com.mode.devlog('Assembler Pass 2');
     objectWordBuffer = [];
     relocationAddressBuffer = [];
@@ -1028,9 +1028,9 @@ function asmPass2 (ma) {
             let a = index;
             let b = op.opcode[1];
             let v = evaluate (ma, s, s.address.word+1, disp);
-            console.log (`RX/RX v=${v}`)
+            com.mode.devlog (`RX/RX v=${v}`)
             if (v.evalRel) {
-                console.log ('RX/RX generating relocation')
+                com.mode.devlog ('RX/RX generating relocation')
                 generateRelocation (ma, s, s.address.word+1);
             }
             com.mode.devlog (`pass 2 RX/RX a=${a} b=${b} v=${v.toString()}`);
@@ -1050,9 +1050,9 @@ function asmPass2 (ma) {
             let a = index
             let b = op.opcode[1]
             let v = evaluate (ma, s, s.address.word+1, disp);
-            console.log (`RX/X v=${v}`)
+            com.mode.devlog (`RX/X v=${v}`)
             if (v.evalRel) {
-                console.log ('RX/X generating relocation')
+                com.mode.devlog ('RX/X generating relocation')
                 generateRelocation (ma, s, s.address.word+1);
             }
             com.mode.devlog (`pass 2 RX/X a=${a} b=${b} v=${v.toString()}`)
@@ -1103,11 +1103,11 @@ function asmPass2 (ma) {
 
         } else if (op.ifmt==arch.iEXP && op.afmt==arch.aK) {
 // EXP-K (brf, brb)
-            console.log (`Pass2 EXP/K`)
+            com.mode.devlog (`Pass2 EXP/K`)
             requireNoperands (ma, s, 1)
             const dest = evaluate (ma, s, s.address.word, s.operands[0])
             const offset = findOffset (s.address, dest)
-            console.log (`pc relative offset = ${offset}`)
+            com.mode.devlog (`pc relative offset = ${offset}`)
             s.codeWord1 = mkWord448(op.opcode[0],0,op.opcode[1])
             s.codeWord2 = offset
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
@@ -1145,12 +1145,12 @@ function asmPass2 (ma) {
             
         } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRK) {
 // EXP-RK (brfz, brbz, brfnz, brbnz)
-            console.log (`Pass2 EXP/RK pcr`)
+            com.mode.devlog (`Pass2 EXP/RK pcr`)
             requireNoperands (ma, s, 2)
             const d = requireReg (ma, s, s.operands[0])
             const dest = evaluate (ma, s, s.address.word, s.operands[1])
             const offset = findOffset (s.address, dest)
-            console.log (`pc relative offset = ${offset}`)
+            com.mode.devlog (`pc relative offset = ${offset}`)
             s.codeWord1 = mkWord448(op.opcode[0],d,op.opcode[1])
             s.codeWord2 = offset
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
@@ -1159,7 +1159,7 @@ function asmPass2 (ma) {
         } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkk && op.pseudo) {
             // EXP-Rkk aRkk pseudo: invb Similar to aRkkkk but with
             // operands[3]=0 unspecified and operands[4] = opcode[2]
-            console.log (`Pass2 EXP/Rkk pseudo`)
+            com.mode.devlog (`Pass2 EXP/Rkk pseudo`)
             requireNoperands (ma, s, 3)
             const ab = op.opcode[1]
             const d = requireReg(ma,s,s.operands[0])
@@ -1174,13 +1174,13 @@ function asmPass2 (ma) {
 
         } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkK && !op.pseudo) {
 // EXP-RkK:  brfc0, brbc0, brfc1, brbc1
-            console.log (`Pass2 EXP/RkK pcr`)
+            com.mode.devlog (`Pass2 EXP/RkK pcr`)
             requireNoperands (ma, s, 3)
             const d = requireReg (ma, s, s.operands[0])
             const e = requireK4 (ma, s, Field_e, s.operands[1])
             const dest = evaluate (ma, s, s.address.word, s.operands[2])
             const offset = findOffset (s.address, dest)
-            console.log (`pc relative offset = ${offset}`)
+            com.mode.devlog (`pc relative offset = ${offset}`)
             s.codeWord1 = mkWord448(op.opcode[0],d,op.opcode[1])
             s.codeWord2 = mkWord412 (e, offset)
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
@@ -1267,7 +1267,7 @@ function asmPass2 (ma) {
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRX) {
 // EXP-RRX (save, restor)
-            console.log ("Pass 2 EXP/RRX")
+            com.mode.devlog ("Pass 2 EXP/RRX")
             requireNoperands (ma, s, 3)
             const ab = op.opcode[1]
             const d = requireReg (ma, s, s.operands[0])
@@ -1275,7 +1275,7 @@ function asmPass2 (ma) {
             const {disp,index} = requireX (ma, s, s.operands[2])
             const f = index
             const gh = disp
-            console.log (`sav/rest gh=${gh} f=${f}`)
+            com.mode.devlog (`sav/rest gh=${gh} f=${f}`)
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
             s.codeWord2 = mkWord448 (e, f, gh)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)
@@ -1283,7 +1283,7 @@ function asmPass2 (ma) {
             
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkkRk) {
 // EXP-RkkRk (extrc, extrci)
-	    console.log (`pass2 iEXP/aRkkRk`);
+	    com.mode.devlog (`pass2 iEXP/aRkkRk`);
             requireNoperands (ma, s, 5)
             const ab = op.opcode[1]
             const d = requireReg (ma, s, s.operands[0])
@@ -1291,7 +1291,7 @@ function asmPass2 (ma) {
             const g = requireK4 (ma, s, Field_g, s.operands[2])
             const e = requireReg (ma, s, s.operands[3])
             const h = requireK4 (ma, s, Field_h, s.operands[4])
-            console.log (`extract d=${d} e=${e} f=${f} g=${g} h=${h}`)
+            com.mode.devlog (`extract d=${d} e=${e} f=${f} g=${g} h=${h}`)
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
             s.codeWord2 = mkWord (e, f, g, h)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)
@@ -1550,7 +1550,7 @@ function emitExports (ma) {
             ma.objectCode.push (`export   ${y},${w},${r}`);
         } else {
 //    mkErrMsg (ma, null, `export identifier ${y} is undefined`);
-            console.log (`export identifier ${y} is undefined`)  // use mkErrMsg
+            com.mode.devlog (`export identifier ${y} is undefined`)  // use mkErrMsg
         }
     }
 }

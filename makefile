@@ -433,6 +433,17 @@ installHomepage :
 	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
 #--------------------------------------------------------------------------
+# Assemble examples
+#--------------------------------------------------------------------------
+
+assembleExamples :
+	bash src/tools/asmAll.bash
+
+listExamples :
+	find Examples \( -name '*.asm.txt' \
+	  \) -exec echo {} \;
+
+#--------------------------------------------------------------------------
 # Clean up files
 #--------------------------------------------------------------------------
 

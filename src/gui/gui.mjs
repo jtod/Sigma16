@@ -1,5 +1,5 @@
 // Sigma16: gui.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can

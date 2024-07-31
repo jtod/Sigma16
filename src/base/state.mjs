@@ -1,5 +1,5 @@
 // Sigma16: state.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
@@ -909,7 +909,7 @@ export class ObjMd {
     }
     // return true if this ObjMd is executable (i.e. can be booted)
     checkExecutable () {
-        console.log (`checkExecutalbe ${this.objText}`)
+//        console.log (`checkExecutalbe ${this.objText}`)
         let ok = true;
         ok &= this.objLines.length > 0;
         // If there is an import it isn't executable
@@ -924,7 +924,7 @@ export class ObjMd {
                 ok = false;
             }
         }
-        console.log (`checkExecutable = ${ok}`)
+//        console.log (`checkExecutable = ${ok}`)
         return ok;
     }
     hasObjectCode () {
@@ -959,7 +959,7 @@ export function parseObjLine (xs) {
         operation = splitLine[1];
         operands = splitLine[2].split(',');
     } else if (blankLine) {
-        console.log (`parseObjLine: found blank line <${xs}>`);
+//        console.log (`parseObjLine: found blank line <${xs}>`);
     } else {
         console.log ('linker error: object line has invalid format: ' + xs);
     }

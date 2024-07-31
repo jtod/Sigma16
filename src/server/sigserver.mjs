@@ -1,5 +1,5 @@
 // sigserver.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3 or later
+// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
@@ -191,8 +191,8 @@ const SIGMASYSTEM = process.env.SIGMASYSTEM
 const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
 
 const SIGSERVER_REPOSITORY = `${SIGMASYSTEM}/server`
-console.log (`SIGMASYSTEM = ${SIGMASYSTEM}`)
-console.log (`SIGSERVER_REPOSITORY = ${SIGSERVER_REPOSITORY}`)
+// console.log (`SIGMASYSTEM = ${SIGMASYSTEM}`)
+// console.log (`SIGSERVER_REPOSITORY = ${SIGSERVER_REPOSITORY}`)
 
 let S16_LOCAL_BUILD_DIR  // set by StartServer if running locally
 

@@ -1,5 +1,5 @@
 // Sigma16.mjs
-// Copyright (C) 2023 John T. O'Donnell.  License: GNU GPL Version 3
+// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
@@ -121,13 +121,13 @@ function showParameters () {
 // Decide what operation is being requested, and do it
 function main  () {
     if (process.argv.length < 3 || command === "gui") {
-        console.log ("calling StartServer")
+//        console.log ("calling StartServer")
         serv.StartServer ("gui", "")
     } else if (command === "run") {
-        console.log (`calling StartServer with ${commandArg}`)
+//        console.log (`calling StartServer with ${commandArg}`)
         serv.StartServer ("run", "")
     } else if (command === "version") {
-        console.log (`calling StartServer with ${commandArg}`)
+//        console.log (`calling StartServer with ${commandArg}`)
         serv.StartServer (command, commandArg)
     } else if (command === "assemble") {
         assembleCLI (commandArg);
@@ -148,7 +148,6 @@ function main  () {
 // Assembler
 //----------------------------------------------------------------------
 
-// st is a global system state with module set container
 
 // Usage: node Sigma16.mjs assemble Foo
 //   Read source from Foo.asm.txt
@@ -158,9 +157,37 @@ function main  () {
 
 function assembleCLI () {
     const baseName = process.argv[3]; // first command argument
-    console.log (`assembleCLI baseName=${baseName}`)
     const srcFileName = `${baseName}.asm.txt`
     const srcText = readFile (srcFileName)
+    const ai = asm.assembler (baseName, srcText)
+    let obj = ai.objectText
+    let md = ai.mdText
+    let lst = ai.metadata.listingPlain.join("\n")
+    if (ai.nAsmErrors === 0) {
+        writeFile (`${baseName}.obj.txt`, obj)
+        writeFile (`${baseName}.md.txt`,  md)
+        writeFile (`${baseName}.lst.txt`, lst)
+    } else {
+        console.log (`  *** ${baseName} has ${ai.nAsmErrors} assembly errors`)
+        writeFile (`${baseName}.obj.txt`, "")
+        writeFile (`${baseName}.md.txt`,  "")
+        writeFile (`${baseName}.lst.txt`, lst)
+    }
+}
+// old asm...
+//        console.log (`  ${baseName} ok`)
+//        let lst = ai.asmListingText
+//        writeFile (`${baseName}.lst.txt`, lst.join("\n"))
+//        process.exitCode = 1
+//        console.log (`There were ${ai.nAsmErrors} assembly errors`)
+//    console.log (`assembleCLI baseName=${baseName}`)
+//    console.log ("assembler finished, object =")
+//    console.log ('assembleCLI has ai') // testing
+//        console.log ("\n\n\nobj = ")
+//        console.log (obj)
+//        console.log ("end obj\n\n\n")
+//        console.log (md)
+// st is a global system state with module set container
 //    st.env.moduleSet = new st.ModuleSet ()
 //    let m = st.env.moduleSet.addModule ()
 //    const ai = new st.AsmInfo (m) // ai points to m
@@ -168,29 +195,6 @@ function assembleCLI () {
 //    m.changeAsmSrc (srcText)
 //    m.setModuleName (baseName)
     //    let dummy = asm.assembler (m)   // ai
-    const ai = asm.assembler (baseName, srcText)
-    console.log ("assembler finished, object =")
-    let obj = ai.objectText
-    let md = ai.mdText
-    let lst = ai.metadata.listingPlain.join("\n")
-    console.log ('assembleCLI has ai') // testing
-    if (ai.nAsmErrors === 0) {
-        console.log ('Successful assembly')
-        console.log ("\n\n\nobj = ")
-        console.log (obj)
-        console.log ("end obj\n\n\n")
-        console.log (md)
-        writeFile (`${baseName}.obj.txt`, obj)
-        writeFile (`${baseName}.md.txt`,  md)
-        writeFile (`${baseName}.lst.txt`, lst)
-    } else {
-        console.log (`There were ${ai.nAsmErrors} assembly errors`)
-        let lst = ai.asmListingText
-        writeFile (`${baseName}.lst.txt`, lst.join("\n"))
-        process.exitCode = 1
-    }
-}
-// old asm...
 //    console.log (ai.objectText)
 //    m.asmInfo = ai
 //    m.objMd = ai.objMd
@@ -358,5 +362,5 @@ function runtest () {
 // Run the main program
 //----------------------------------------------------------------------
 
-console.log ("Starting main")
+// console.log ("Starting main")
 main ();
