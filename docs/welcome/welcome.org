@@ -23,7 +23,7 @@
 #+INCLUDE: "../../VERSION.txt" export html
 
 #+BEGIN_majornote
-Sigma16 Version 3.7.x runs on up-to-date (2024) versions of the
+Sigma16 Version 3.8 runs on up-to-date (2024) versions of the
 following browsers: Chrome, Opera, Edge.  It does not work fully on
 Safari or Firefox.
 #+END_majornote

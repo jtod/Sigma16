@@ -327,10 +327,12 @@ function finishCss (req, res, loc) {
 
 // start page
 
+//  2024-08-01.  Move Sigma16.html from Sigma16 to Sigma16/src
 app.get('/sigma16/build/:version/Sigma16/Sigma16.html', (req, res) => {
     const raw_v = req.params.version
     const v = substituteVersion (raw_v)
-    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
+    //    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', "src", 'Sigma16.html')
     console.log (`launching ${raw_v}->${v} at location ${loc}`)
     finish (req, res, loc)
 })

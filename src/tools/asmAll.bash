@@ -1,7 +1,7 @@
 # asmAll.bash: assemble all programs in Examples
-# Usage (in Sigma16 directory): bash src/tools/asmAll.bash
+# Usage (in Sigma16/src directory): bash tools/asmAll.bash
 
-for file in Examples/*/*/*.asm.txt
+for file in ../Examples/*/*/*.asm.txt
 do
     d=$(dirname "$file")
     f=$(basename "$file" ".asm.txt")
