@@ -1,19 +1,4 @@
-/* css style for compsys book */
-
-/* Inherit generic lwarp style: uncomment one of the following: */
-@import url("lwarp.css") ;
-/* @import url("lwarp_formal.css") ; */
-/* @import url("lwarp_sagebrush.css") ; */
-
-/* Definitions specifically for the compsys book follow */
-
-
-/* notes.  to center?     display: flex;
-    align-items: center;
-    align: center;
-    color: green;
-*/
-
+/* css style for welcome page */
 
 /* Generic Sigma style */
 
@@ -280,7 +265,7 @@ div.majornote {
     padding-right: 1em;
     padding-left: 1em;
     color: black;
-    font-style: italic;
+/*     font-style: italic; */
     border: solid;
     border-width: thin;
     border-color: red;

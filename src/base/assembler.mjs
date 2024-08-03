@@ -82,6 +82,8 @@ export function assemblerGUI () {
     let ai = assembler (m.baseName, m.currentAsmSrc)
     m.asmInfo = ai;
     m.objMd = ai.objMd  // ai is result of assembler
+    m.modName = ai.asmModName
+    m.objMd.modName = ai.asmModName
     m.objDisplay.setOrigin ("produced by assembler")
     m.objDisplay.setCode (m.objMd.objText)
 //    m.objDisplay.setCode (m.objMd, x => {x.objText })
@@ -767,6 +769,7 @@ function parseLabel (ma,s) {
 // be used as a Boolean to determine whether the operation exists, as
 // well as the specification of the operation if it exists.
 
+// check ma is ai ?????
 function parseOperation (ma,s) {
     let op = s.fieldOperation;
     com.mode.devlog (`parseOperation line ${s.lineNumber} op=<${op}>`);
@@ -778,7 +781,9 @@ function parseOperation (ma,s) {
             if (s.operation.ifmt==arch.iDir
                 && s.operation.afmt==arch.aModule) {
                 ma.modName = s.fieldLabel;
-                com.mode.devlog (`parseOperation module=${ma.modName}`);
+//                ma.asmInfo.asmModName = s.fieldLabel
+//  ma.asmInfo.objMd.modName = s.fieldLabel     not defined yet
+                com.mode.devlog (`Set module name: ${ma.modName}`);
             } else if (s.operation.ifmt==arch.iData
                        && s.operation.afmt==arch.aData) {
                 s.codeSize = st.One.copy();

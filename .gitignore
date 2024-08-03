@@ -20,6 +20,7 @@ Sigma16UserGuide*.tex
 *old*
 *Spectre*
 *.fdb_latexmk
+*.dvi
 *.fls
 *.hi
 *.o

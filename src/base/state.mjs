@@ -480,8 +480,8 @@ export class ModuleSet {
     refreshDisplay () { // this is used
          for (let i = 0; i < env.moduleSet.modules.length; i++) {
             console.log (`*** ${i} ${env.moduleSet.modules[i].modIdx} `)
-            console.log (env.moduleSet.modules[i]
-                         .asmInfo.asmSrcText.split("\n")[0])
+//            console.log (env.moduleSet.modules[i]
+//                         .asmInfo.asmSrcText.split("\n")[0])
             console.log ('\n')
         }
     }

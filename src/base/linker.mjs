@@ -82,6 +82,7 @@ export function linkerGUI () {
         console.log (`Linker checking ${m.moduleName} key=${m.modKey}`)
         const isSel = m.modKey === selm.modKey
         if (!isSel) {
+            m.objMd.modName = m.moduleName  // ??????? shouldn't be necessary ??
             objMds.push (m.objMd);
         }
         console.log (`linkerGUI ${isSel} ${m.moduleName}`);
