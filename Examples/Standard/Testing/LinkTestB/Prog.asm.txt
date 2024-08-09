@@ -1,0 +1,23 @@
+; Prog: main program for Link_B linker example
+; This is a main program which imports definitions from Mod1 and Mod2
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+
+; The program consists of Prog (main program), Mod1, and Mod2.
+; Assemble the modules, close any other modules, ensure Prog is the
+; first module and select it, and link.
+
+Prog module
+      load   R1,p[R0]      ; R1 := 2 (local variable)
+      load   R2,q[R0]      ; R2 := Mod1.abc = 3 (external variable)
+      load   R3,r[R0]      ; R3 := Mod2.pqr = 4 (external variable)
+      jal    R14,fcn[R0]   ; call f in Mod1
+      load   R1,y[R0]
+      trap   R0,R0,R0
+p     data   2
+y     data   0
+q     import Mod1,abc
+r     import Mod2,pqr
+fcn   import Mod1,f  
+      export p
+      export y
+

@@ -5731,6 +5731,13 @@ existing programs.
 
 xx - Link to a subsection: see x[x[** A strange program]]
 
+** Included org files
+
+This is a test to see if an org file can be included, and will show up
+in the index.
+
+#+INCLUDE: Test.org
+
 ** References and bibliography
 
 - Historical overview [cite:@Dyson-2012-Turings-Cathedral]

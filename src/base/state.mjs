@@ -146,24 +146,28 @@ export function showInitialLines (k,txt) {
     return "<pre class='LiteralCode'>" + ys.join("<br>") + "</pre>";
 }
 
+// Module name and text are supplied when module is created; these can
+// be changed later
 export class Sigma16Module {
-    constructor () {
+    constructor (name,text) {
         // identify the module
         this.modKey = newModKey () // Persistent and unique gensym key
         this.modIdx = env.moduleSet.modules.length // Transient array index
         // Transient array index
-        this.moduleName = "Anonymous" // from filename or module stmt
+        this.moduleName = name // from filename or module stmt
         // possible file associated with module
         this.fileHandle = null
         this.filename = "(no file)"
-        this.baseName = "anonymous"
+//        this.baseName = "anonymous"
         this.fileRecord = null
         this.fileInfo = null // can hold instance of FileInfo
         this.fileType = "none" // {none, asm, obj, exe}
         this.fileText = ""
+
         // assembly source code
         this.asmSrcCodeOrigin = "none"; // {none, file, example, editor}
-        this.currentAsmSrc = null; // source code (possibly edited)
+        //        this.currentAsmSrc = null; // source code (possibly edited)
+        this.currentAsmSrc = text; // source code (possibly edited)
         this.asmSrcLines = []
         this.savedAsmSrc = null; // code as last saved/read to/from file
         //        this.asmInfo = new AsmInfo (this); // filled in by assembler
@@ -461,8 +465,8 @@ export class ModuleSet {
         this.selectedModuleIdx = 0
         this.previousSelectedIdx = 0
     }
-    addModule () {
-        const m = new Sigma16Module ()
+    addModule (name,text) {
+        const m = new Sigma16Module (name,text)
         this.modules.push (m)
         this.selectedModuleIdx = this.modules.length - 1
         console.log (`addModule there are $(this.modules.length) modules\n`)
@@ -500,6 +504,8 @@ export class AsmInfo {
     //    constructor (m) { // m/asm remove m as parameter
     constructor (baseName, srcText) {
         //        this.asmSrcText = "; default asm src"; // raw source text
+  //	this.asmModName = "anonymous";     // may be defined by module stmt
+	this.asmModName = baseName;     // may be defined by module stmt        
         this.baseName = baseName
         this.asmSrcText = srcText // raw source text        
         this.asmSrcLines = this.asmSrcText.split ("\n")
@@ -511,7 +517,6 @@ export class AsmInfo {
         this.metadata = new Metadata ();  // address-source map
         this.asmListingText = "";
 
-	this.asmModName = "anonymous";     // may be defined by module stmt
 	this.asmStmt = [];                 // corresponds to source lines
 	this.symbols = [];                 // symbols used in the source
 	this.symbolTable = new Map ();     // symbol table
@@ -932,6 +937,7 @@ export class ObjMd {
     }
     showShort () {
         let xs = "Object/Metadata:\n"
+            + `object module ${this.modName} with `
             + `${this.objLines.length} lines of object text\n`
             + this.objLines.slice(0,3).join("\n")
             + `\n${this.mdLines.length} lines of metadata text\n`

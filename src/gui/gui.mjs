@@ -1285,10 +1285,11 @@ function selectExample() {
     com.mode.devlog (`skipPreOpen = ${skipPreOpen}`);
     let ys = skipPreClose;
     console.log (`selectExample ys=[${ys}]`);
-    let m = st.env.moduleSet.addModule ();
-    m.changeAsmSrc (ys);
     const modName = getExampleModuleName (ys);
-    m.setModuleName (modName);
+    let m = st.env.moduleSet.addModule (modName, ys);
+    //    let m = st.env.moduleSet.addModule ();
+//    m.changeAsmSrc (ys);
+//    m.setModuleName (modName);
     st.handleSelect (m);
 }
     //    const modName = `[ModName from example first line]`;
@@ -1315,9 +1316,10 @@ window.getExampleModuleName = getExampleModuleName
 
 function insert_example (exampleName, exampleText) {
     com.mode.devlog('Inserting Hello World example into editor text');
-    let m = st.env.moduleSet.addModule ()
-    m.changeAsmSrc (exampleText)
-    m.setModuleName (exampleName)
+//    m.changeAsmSrc (exampleText)
+//    m.setModuleName (exampleName)
+//    let m = st.env.moduleSet.addModule ()
+    let m = st.env.moduleSet.addModule (exampleName,exampleText)
     st.handleSelect (m)
     document.getElementById("EditorTextArea").value = exampleText
 }
@@ -3007,7 +3009,9 @@ function initializeGuiElements (gst) {
     ed.prepareChooseFiles ();  // legacy file handler
     //    st.env.moduleSet = new smod.ModuleSet ()
     st.env.moduleSet = new st.ModuleSet ()
-    let m = st.env.moduleSet.addModule () // initialize with a module
+    //    let m = st.env.moduleSet.addModule () // initialize with a module
+    let m = st.env.moduleSet.addModule ("anonymous", "")
+         // initialize with a module    
     m.changeAsmSrc ("; Enter your program here\n")
 //    m.setHtmlDisplay ()
     st.handleSelect (m)

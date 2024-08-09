@@ -1,0 +1,7 @@
+; Link_A_Mod1: Linker example
+; Define a variable and export it
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 202
+
+LinkAMod1  module
+xyz   data     42
+      export   xyz

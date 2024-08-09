@@ -80,7 +80,9 @@ export function edClear () {
 export function edNew () {
     console.log ("Editor new");
     saveEditorBufferText ()
-    const m = st.env.moduleSet.addModule ()
+    edClear () // remove previous text from display: it has just been saved
+    const m = st.env.moduleSet.addModule ("editor", "")
+    //    const m = st.env.moduleSet.addModule ()
     smod.handleSelect (m)
     document.getElementById("EditorTextArea").value = ""
 }

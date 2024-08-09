@@ -105,7 +105,8 @@ export async function openFile () {
 //            console.log (`openFile lambda xs = ${xs}`)
             const fn = file.name
             const modName = getFileBaseName (fn)
-            const m = st.env.moduleSet.addModule ()
+            //            const m = st.env.moduleSet.addModule ()
+            const m = st.env.moduleSet.addModule (modName,xs)            
             st.handleSelect (m)
             m.changeSavedAsmSrc (xs)
             m.fileHandle = fileHandle
@@ -181,7 +182,10 @@ export async function openDirectory () {
         const file = await fh.getFile ()
         const xs = await file.text ()
         const fn = await file.name
-        const m = st.env.moduleSet.addModule ()
+        //        const m = st.env.moduleSet.addModule ()
+        let basename = getFileBaseName (fn)
+        //        const m = st.env.moduleSet.addModule (fn, xs) // get basename
+        const m = st.env.moduleSet.addModule (basename, xs) // get basename
         st.handleSelect (m)
         document.getElementById ("EditorTextArea").value = xs
         m.fileHandle = fh

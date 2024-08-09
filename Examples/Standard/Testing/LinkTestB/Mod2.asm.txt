@@ -1,0 +1,24 @@
+; Mod2: imported module for Link_B linker example
+; Define some names which can be imported by another module.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+
+Mod2  module
+
+; function g assumes return address is in R13.  It adds an argument
+; passed in R1, a local variable pqr, and returns result in R1
+
+g     load     R8,pqr[R0]   ; R8 := 13 (local variable)
+      load     R9,stu[R0]   ; R9 := 2 (from ProgX)
+      load     R10,vwx[R0]  ; R9 := 12 (from Mod1)
+      add      R8,R8,R9     ; R1 := 13 + 5  = 18
+      store    R8,y[R0]     ; Main.y := 18 (side effect)
+      jump     0[R13]       ; return from g using R13
+pqr   data     13
+xyz   data     6
+      export   xyz
+stu   import   Prog,p
+y     import   Prog,y
+vwx   import   Mod1,def
+      export   g
+      export   pqr
+

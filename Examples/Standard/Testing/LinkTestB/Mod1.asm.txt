@@ -1,0 +1,29 @@
+; Mod1: imported module for Link_B linker example
+; Define some names which can be imported by another module.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+
+Mod1  module
+
+; f assumes return address is in R14
+
+f     load     R4,abc[R0]    ; R4 := 3  (local)
+      load     R5,alpha[R0]  ; R5 := ProgX.p = 2
+      load     R6,beta[R0]   ; R6 := Mod2.xyz = 13
+      store    R6,y[R0]      ; Prog.y := 28
+      add      R6,R5,R6     ; R6 := 28 + 7 = 35
+      store    R6,res[R0]   ; res := 10
+      jal      R13,g[R0]    ; call g in Mod2
+      store    R8,alpha[R0]     ; ProxX.y := 18
+      jump     0[R14]       ; return from f using R14
+abc   data     3
+alpha import   Prog,p
+beta  import   Mod2,xyz
+y     import   Prog,y
+res   data     0
+def   data     12
+g     import   Mod2,g
+      export   f
+      export   abc
+      export   def
+
+

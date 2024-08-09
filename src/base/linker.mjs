@@ -203,6 +203,7 @@ export function testMetadata () {
 // there are no linker errors, the result module can be booted.
 
 export function linker (mainName, objMds) {
+    mainName = "Executable" // use main prog module name?
     console.log (`Entering linker, main module = ${mainName}`);
     const ls = new st.LinkerState (mainName, objMds);
     st.env.linkerState = ls; // record linker state in global environment
@@ -234,6 +235,7 @@ function pass1 (ls) {
         console.log (`Linker pass 1: i=${ls.mcount}`
                      + ` examining ${objMd.modName}`)
         let oi = new st.ObjectInfo (ls.mcount, objMd.modName, objMd);
+        console.log (`$$$$$$ linker pass1 create oi ${ls.mcount} ${objMd.modName}`)
         ls.modMap.set (oi.modName, oi); // support lookup for imports
         console.log (`Linker pass1 modMap set ${oi.modName}`)
         ls.oiList.push (oi); // list keeps the modules in fixed order
@@ -264,7 +266,7 @@ function parseObject (ls, obj) { // obj is an oi providing info about module
     //    ls.modMap.set (obj.omName, obj);
     ls.modMap.set (obj.modName, obj);
     //    console.log (`Lnk-parseObject modMap set ${obtext.moduleName}`)
-    console.log (`Lnk-parseObject modMap set ${obj.modName}`)
+//    console.log (`Lnk-parseObject modMap set ${obj.modName}`)
     obj.asmExportMap = new Map ();
     const relK = obj.startAddress;
     // relocation constant for the object module
@@ -293,14 +295,14 @@ function parseObject (ls, obj) { // obj is an oi providing info about module
             const [name,val,status] = [...fields.operands];
             const valNum = arith.hex4ToWord(val);
             const valExp = status == "relocatable" ? valNum + relK : valNum;
-            console.log ("Building export pass 1 export:");
-            console.log (`name=${name} ${typeof name}`);
-            console.log (`val=${val} ${typeof val}`);
-            console.log (`valNum=${arith.wordToHex4(valNum)}`
-                         + ` ${typeof valNum}`);
-            console.log (`valExp=${arith.wordToHex4(valExp)}`
-                         + ` ${typeof valExp}`);
-            console.log (`status=${status} ${typeof status}`);
+//            console.log ("Building export pass 1 export:");
+//            console.log (`name=${name} ${typeof name}`);
+//            console.log (`val=${val} ${typeof val}`);
+//            console.log (`valNum=${arith.wordToHex4(valNum)}`
+//                         + ` ${typeof valNum}`);
+//            console.log (`valExp=${arith.wordToHex4(valExp)}`
+//                         + ` ${typeof valExp}`);
+//            console.log (`status=${status} ${typeof status}`);
             const x = new st.AsmExport (name, valExp, status);
             obj.asmExportMap.set(fields.operands[0], x);
         } else if (fields.operation == "relocate") {
@@ -320,7 +322,7 @@ function parseObject (ls, obj) { // obj is an oi providing info about module
 // code.
 
 function pass2 (ls) {
-    console.log ("Pass 2");
+    console.log ("Linker Pass 2");
     for (let i = 0; i < ls.oiList.length; i++) {
         let oi = ls.oiList[i];
         //        console.log (`--- pass 2 oi ${i} (${oi.baseName})`);
@@ -336,21 +338,21 @@ function resolveImports (ls, om) {
     //    console.log (`Resolving imports for ${om.baseName}`);
     console.log (`Resolving imports for ${om.moduleName}`);
     for (const x of om.asmImports) {
-        console.log (`  Importing ${x.name} from ${x.mod}`);
+//        console.log (`  Importing ${x.name} from ${x.mod}`);
         if (ls.modMap.has(x.mod)) { // does import module exist?
             const exporter = ls.modMap.get(x.mod);
             if (exporter.asmExportMap.has(x.name)) { // is name exported?
                 const v = exporter.asmExportMap.get(x.name);
-                console.log (`LOOK v status = ${v.status}`);
+//                console.log (`LOOK v status = ${v.status}`);
                 const addrNum = arith.hex4ToWord(x.addr);
                 const valNum = v.val;
-                console.log (`look at resolveImport ${valNum}`
-                             + ` ${typeof valNum}`);
-                console.log (`    Set ${x.addr}.${x.field} := ${v.val}`);
+//                console.log (`look at resolveImport ${valNum}`
+//                             + ` ${typeof valNum}`);
+//                console.log (`    Set ${x.addr}.${x.field} := ${v.val}`);
                 adjust (ls, om, addrNum, (y) => valNum);
             } else {
-                console.log (`Linker error: ${x.name}`
-                             + ` not exported by ${x.mod}`);
+//                console.log (`Linker error: ${x.name}`
+//                             + ` not exported by ${x.mod}`);
             }
         } else {
             console.log (`Linker error: ${x.mod} not found`);

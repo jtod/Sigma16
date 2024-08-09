@@ -1,0 +1,12 @@
+; Link_A_Main: Simple linker example
+; This is a main program which imports definitions from Mod1.
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+
+; Assemble Main, assemble Mod1, select Main, link
+
+LinkAMain  module
+      load   R1,p[R0]   ; R1 := p, p is external
+      add    R2,R1,R2   ; R2 := p + p
+      store  R2,p[R0]   ; p := p + p
+      trap   R0,R0,R0
+p     import LinkAMod1,xyz   ; import p from xyz in Mod1

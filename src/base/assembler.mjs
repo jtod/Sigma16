@@ -92,6 +92,9 @@ export function assemblerGUI () {
     com.mode.devlog ("++++++++++++++++++++ m.showShort:")
     com.mode.devlog (m.showShort())
     com.mode.devlog ("++++++++++++++++++++ asm done")
+    console.log (`****************** ai.objMd.modName = ${ai.objMd.modName}`)
+    ai.objMd.showShort ()
+    console.log (`****************** asmGUI back m.modName=${m.modName}`)
 }
 
 // Called when user clicks "Show Source" on the assembler page
@@ -479,8 +482,11 @@ export function assembler (baseName, srcText) {
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
     ai.mdText = mdText
-    //    ai.objMd = new st.ObjMd (m.moduleName, ai.objectText, mdText)
     ai.objMd = new st.ObjMd (ai.asmModName, ai.objectText, mdText)
+    return ai
+}
+
+//    ai.objMd = new st.ObjMd (m.moduleName, ai.objectText, mdText)
 //    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 //    console.log (`assembler modname = ${ai.objMd.modName}`)
 //    console.log ("assembler result objText =...")
@@ -491,8 +497,6 @@ export function assembler (baseName, srcText) {
 //    console.log (ai.mdText)
 //    console.log ("assembler result: end")
 //    console.log ("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    return ai
-}
     // need to provide this object even if errors have been detected
 //    ai.objMd = ai.nAsmErrors===0      // will replace existing m.objMd
 //        ? new st.ObjMd (m.moduleName, ai.objectText, mdText)
@@ -780,7 +784,8 @@ function parseOperation (ma,s) {
 	    s.operation = x;
             if (s.operation.ifmt==arch.iDir
                 && s.operation.afmt==arch.aModule) {
-                ma.modName = s.fieldLabel;
+                ma.modName = s.fieldLabel; // ???? redundant?
+                ma.asmModName = s.fieldLabel
 //                ma.asmInfo.asmModName = s.fieldLabel
 //  ma.asmInfo.objMd.modName = s.fieldLabel     not defined yet
                 com.mode.devlog (`Set module name: ${ma.modName}`);
