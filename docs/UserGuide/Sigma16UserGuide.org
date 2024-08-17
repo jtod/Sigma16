@@ -3,8 +3,10 @@
 #+AUTHOR: John T. O'Donnell
 #+DATE: {{{S16version()}}}
 # Copyright John T. O'Donnell, 2024
+# Source repository: https://github.com/jtod/Sigma16
 
-# Project C-c C-e P p   build project containing current file
+# Build Sigma16 User Guide: C-c C-e P p --- Build document project
+# containing current file.  Configuration in ~/.emacs.d/init.el
 
 # Build html
 #   C-c C-e h h
@@ -51,6 +53,7 @@
 #+LATEX_HEADER: \usepackage{makeidx}
 #+LATEX_HEADER: \makeindex
 
+# org makeindex appears to work only if there is only one org source file
 #+OPTIONS: makeindex
 
 # Obsolete...
@@ -117,7 +120,7 @@
 #+END_EXPORT
 
 # # Main text of the document
-# #+INCLUDE: Sigma16UserGuideText.org
+#   # #+INCLUDE: Sigma16UserGuideText.org
 
 # Sigma16UserGuideText.org
 # To generate html and tex, open Sigma16UserGuide.org in emacs
@@ -132,12 +135,8 @@
 # followed by pdflatex Sigma16UserGuideText.  Index items break
 # <p>...</p> for html export, so put them at end of paragraph.
 
-42 a The Basic programming language [cite:@Basic-1964]
-#+index: Basic
-
-#+HTML: this is only for html
-#+LATEX: this is only for latex
-
+#   #+HTML: this is only for html
+#   #+LATEX: this is only for latex
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment
@@ -152,9 +151,10 @@ anything.  To run it, click the prominent /Run/ link on the Sigma16
 Home Page: [[https://jtod.github.io/home/Sigma16]].
 
 #+INDEX: browser compatibility
-Version 3.7 of Sigma16 runs in Chrome, Edge, and Opera (the browsers
-based on Chromium).  It does not work fully in Safari or Firefox,
-although future versions are planned for those browsers too.
+#+BEGIN_majornote
+This version of Sigma16 runs in Chrome, Edge, and Opera (the browsers
+based on Chromium).  It does not work fully in Safari or Firefox.
+#+END_majornote
 
 #+INDEX: command line
 There are additional command line tools that can run in a shell; see
@@ -5736,10 +5736,13 @@ xx - Link to a subsection: see x[x[** A strange program]]
 This is a test to see if an org file can be included, and will show up
 in the index.
 
-#+INCLUDE: Test.org
+#   #+INCLUDE: Test.org
 
 ** References and bibliography
 
+#+index: Basic
+#+index: Hydra
+- The Basic programming language [cite:@Basic-1964]
 - Historical overview [cite:@Dyson-2012-Turings-Cathedral]
 - Hydra is a functional hardware description language that provides
   implicit concurrency among digital components
@@ -5796,31 +5799,29 @@ loop  add    R3,R1,R2      ; R3 := a+b
 * License
 #+INCLUDE: ../../LICENSE.txt
 
-* References html
-This is the bibliography for org
+* Bibliography
+
 #+print_bibliography:
+#+LATEX: \printbibliography
 
-The following is the bibliography for latex:
-#   #+LATEX: \printbibliography
+# Index
 
-* Index
-
-The following is the index for latex, using a latex printindex command
 #+LATEX: \printindex
+#+INCLUDE: theindex.org
 
-The following is the index for html.  Maybe don't use include, but
-instead conditionally insert a link?  Don't want this to be included
-in the latex version.
-#+INCLUDE: theindex.inc
-
-End of the index
+# The latex printindex gives page numbers for the indexed keywords.
+# The index produced by org is well suited for html but not latex; it
+# doesn't give page numbers.  Don't want this to be included in the
+# latex version.  Maybe don't use include, but instead conditionally
+# insert a link?
 
 # Deprecated
 
-#   #+INCLUDE: theindex.org
 # Provide appropriate code for svg figure depending on export backend
 # See org-export-global-macros defined in ox.el and changed in init.el  NO
 #  #+MACRO: FIGURES ./figures/ redundant ??
 #  #+MACRO: svgfigHTML [[./figures/svg/$1.svg]]
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
+
+206

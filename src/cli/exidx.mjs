@@ -14,7 +14,7 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-// Usage: must run in Sigma16 source directory
+// Usage: must run in Sigma16/src source directory
 // Launch with bash alias exidx, runs src/cli/exidx.mjs
 
 // Builds index.html in examples directory and all its subdirectories.
@@ -137,11 +137,12 @@ function handleFile (d, topdir, parents, f) {
 }
 
 // Main program: exidx should be launched from the Sigma16 source
-// directory, and it starts with the Examples directory
+// directory, and it starts with the Examples directory.  Run the
+// script in Sigma16/src, so examples are in ../Examples
 
 const sigdir = process.cwd ()            // current directory
 console.log (`exidx starting in ${sigdir}`)
-handleDir (0,  sigdir, '', 'Examples')
+handleDir (0,  sigdir, '', '../Examples')
 console.log (`Found ${nDirectories} directories`
              + ` and ${nSourceFiles} source files.`)
 console.log ('exidx finished')

@@ -559,6 +559,8 @@ export function mainRun (es) {
     instructionLooper (es)
 }
 
+// Instead of variable icount, use an SCB entry
+
 export function instructionLooper (es) {
 //    console.log ("instruction looper starting")
     let icount = 0

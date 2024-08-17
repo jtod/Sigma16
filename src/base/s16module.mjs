@@ -79,12 +79,24 @@ export function showModElts () {
 
 // var base = new String(str).substring(str.lastIndexOf('/') + 1);
 
-function getFileBaseName (fname) {
+// For foo.asm.txt, return "foo".  Treat basename as all characters up
+// the first period
+
+export function getFileBaseName (fname) {
     const i = fname.indexOf (".");
-//    const baseName = `[getFileBaseName ${fname.substring(0,i)}]`;
     const baseName = fname.substring(0,i);
-    console.log (`getFileBaseName ${fname} ${i} ${baseName}`);
+//    console.log (`getFileBaseName ${fname} ${i} ${baseName}`);
     return baseName;
+}
+
+// For foo.asm.txt, return ".asm.txt".  Treat extension as all
+// characters from (and including) the first period
+
+export function getFileExtension (fname) {
+    const i = fname.indexOf (".");
+    const extension = fname.substring(i);
+//    console.log (`getFileExtension ${fname} ${i} ${extension}`);
+    return extension;
 }
 
 export async function openFile () {
@@ -182,17 +194,20 @@ export async function openDirectory () {
         const file = await fh.getFile ()
         const xs = await file.text ()
         const fn = await file.name
-        //        const m = st.env.moduleSet.addModule ()
         let basename = getFileBaseName (fn)
-        //        const m = st.env.moduleSet.addModule (fn, xs) // get basename
-        const m = st.env.moduleSet.addModule (basename, xs) // get basename
-        st.handleSelect (m)
-        document.getElementById ("EditorTextArea").value = xs
-        m.fileHandle = fh
-        m.filename = fn
-        m.changeSavedAsmSrc (xs)
-        console.log (`  file ${fn} of size ${file.size}`)
-        console.log (`  file contents = ${xs}\n******`)
+        let extension = getFileExtension (fn)
+//        console.log (`file basename=${basename} extension=${extension}`)
+        if (extension === ".asm.txt") { // handle a source file
+            const m = st.env.moduleSet.addModule (basename, xs) // get basename
+            st.handleSelect (m)
+            document.getElementById ("EditorTextArea").value = xs
+            m.fileHandle = fh
+            m.filename = fn
+            m.changeSavedAsmSrc (xs)
+//            console.log (`  file ${fn} of size ${file.size}`)
+        } else { // skip file, doesn't end in .asm.txt
+//            console.log (`Skipping ${fn}, not .asm.txt source file`)
+        }
     }
 }
 

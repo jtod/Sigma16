@@ -144,6 +144,7 @@ export const SCB_timer_minor_count =  15 // count down to 0
 export const SCB_timer_major_count =  16 // count down to 0
 export const SCB_timer_resolution  =  17 // number of instructions per tick
 
+
 // Usage examples:
 //   writeSCB (es, SCB_timer_minor_count, x)
 //   x = readSCB (es, SCB_timer_minor_count)

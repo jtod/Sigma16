@@ -371,6 +371,10 @@ checkInstallDir:
 	@echo S16_INSTALL_DIR = $(S16_INSTALL_DIR)
 	cd $(S16_INSTALL_DIR); pwd; ls
 
+.PHONY: ExIdx
+ExIdx:
+	node ${S16_CLI}/exidx.mjs
+
 .PHONY: build
 build:
 	make SetVersion
@@ -438,10 +442,10 @@ installHomepage :
 # Assemble examples
 #--------------------------------------------------------------------------
 
-assembleExamples :
+AssembleExamples :
 	bash tools/asmAll.bash
 
-listExamples :
+ListExamples :
 	find ../Examples \( -name '*.asm.txt' \) -exec echo {} \;
 
 #--------------------------------------------------------------------------

@@ -117,7 +117,7 @@ export function newModKey () {
 //   Returns functions to set the origin and the code
 
 function makeStageDisplay (page,stage) {
-    console.log (`makeStageDisplay ${stage}`)
+//    console.log (`makeStageDisplay ${stage}`)
     const displaySpanElt = document.createElement ("span");
     displaySpanElt.appendChild (document.createTextNode (`${stage} code: `));
     const displayOriginElt = document.createTextNode ("none");
@@ -127,7 +127,7 @@ function makeStageDisplay (page,stage) {
     const displayCodeElt = document.createElement ("div");
     const displayCodeTextElt = document.createElement ("div");
     const setCode = (x) => {  // f extracts some or all of x to display
-        console.log (`makeStageDisplay setCode=${x}`)
+//        console.log (`makeStageDisplay setCode=${x}`)
         displayCodeTextElt.innerHTML =
             showInitialLines (DisplayInitLinesLength, x);
     };
@@ -194,7 +194,7 @@ export class Sigma16Module {
         this.displayModNameb.appendChild (this.displayModuleNameElt)
         this.displayModNameb.appendChild (document.createTextNode (" "));
         const setModName = (x) => {
-            console.log (`Setting module name := ${x}`);
+//            console.log (`Setting module name := ${x}`);
             this.moduleName = x;
             displayModuleNameElt.textContent = x;
         };
@@ -253,36 +253,36 @@ export class Sigma16Module {
         this.displayElt = this.modPara
     }
     setModuleName (txt) {
-        console.log (`setModuleName ${txt}`)
+//        console.log (`setModuleName ${txt}`)
         this.moduleName = txt
         if (com.runningBrowser) {
             this.displayModuleNameElt.textContent = txt
         }
-        console.log (`${this.ident} setting name=${txt}`)
+//        console.log (`${this.ident} setting name=${txt}`)
     }
     staleAsmCode () { // asm src code is stale
-        console.log (`${ident} asm src code is stale`)
+//        console.log (`${ident} asm src code is stale`)
         if (com.runningBrowser) {
             this.asmDisplay.setOrigin ("none")
             this.asmDisplay.setCode ("")
         }
     }
     staleObjCode () { // obj code is stale
-        console.log (`${this.ident} obj code is stale`)
+//        console.log (`${this.ident} obj code is stale`)
         if (com.runningBrowser) {
             this.objDisplay.setOrigin ("none")
             this.objDisplay.setCode ("")
         }
     }
     staleExeCode () { // exe code is stale
-        console.log (`${this.ident} exe code is stale`)
+//        console.log (`${this.ident} exe code is stale`)
         if (com.runningBrowser) {
             this.exeDisplay.setOrigin ("none")
             this.exeDisplay.setCode ("")
         }
     }
     setAsmCode (txt, origin) {
-        console.log (`${this.ident} setAsmCode ${txt.substring(0,100)}`)
+//        console.log (`${this.ident} setAsmCode ${txt.substring(0,100)}`)
         this.asmSrcCodeOrigin = origin
         this.currentAsmSrc = txt
         this.asmSrcLines = txt.split ("\n")
@@ -294,7 +294,7 @@ export class Sigma16Module {
         }
     }
     setObjCode (txt) {
-        console.log (`${this.ident} setObjCode ${txt.substring(0,100)}`)
+//        console.log (`${this.ident} setObjCode ${txt.substring(0,100)}`)
         this.asmObjCodeOrigin = origin
         this.currentObjSrc = txt
         if (com.runningBrowser) {
@@ -305,7 +305,7 @@ export class Sigma16Module {
         }
     }
     setExeCode (txt) {
-        console.log (`${this.ident} setExeCode ${txt.substring(0,100)}`)
+//        console.log (`${this.ident} setExeCode ${txt.substring(0,100)}`)
         this.asmExeCodeOrigin = origin
         this.currentExeSrc = txt
         if (com.runningBrowser) {
@@ -319,7 +319,7 @@ export class Sigma16Module {
         return this.mdText !== ""
     }
     changeAsmSrc (txt) { // new text may not be saved in file
-        console.log (`Module ${this.modKey} changeAsmSrc`)
+//        console.log (`Module ${this.modKey} changeAsmSrc`)
         this.currentAsmSrc = txt
         if (com.runningBrowser) {
             document.getElementById("EditorTextArea").value = txt
@@ -343,7 +343,7 @@ export class Sigma16Module {
     // the user edits the text in the editor.
     refreshInEditorBuffer () {
         const xs = this.asmInfo.asmSrcText;
-        console.log (`refreshInEditorBuffer xs=${xs}`);
+//        console.log (`refreshInEditorBuffer xs=${xs}`);
         if (com.runningBrowser) {
             document.getElementById("EditorTextArea").value = xs;
         }
@@ -373,7 +373,7 @@ export function handleSelect (m) {
     env.moduleSet.modules[oldSelIdx].setSelected (false)
     env.moduleSet.modules[newSelIdx].setSelected (true)
     env.moduleSet.selectedModuleIdx = newSelIdx
-    console.log (`Select module old=${oldSelIdx}, new=${newSelIdx}`)
+//    console.log (`Select module old=${oldSelIdx}, new=${newSelIdx}`)
 }
 
 // Move current module m up in the Module Set list
@@ -469,12 +469,12 @@ export class ModuleSet {
         const m = new Sigma16Module (name,text)
         this.modules.push (m)
         this.selectedModuleIdx = this.modules.length - 1
-        console.log (`addModule there are $(this.modules.length) modules\n`)
+//        console.log (`addModule there are $(this.modules.length) modules\n`)
         if (com.runningBrowser) {
-            console.log ("addModule: running browser, setting module display")
+//            console.log ("addModule: running browser, setting module display")
             m.setModuleDisplay ()
         } else {
-            console.log ("addModule: running node")
+//            console.log ("addModule: running node")
         }
         return m
     }
