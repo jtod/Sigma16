@@ -33,7 +33,7 @@ import * as smod from './s16module.mjs';
 //-----------------------------------------------------------------------
 
 // Number of minor cycles per timer tick
-export const defaultTimerResolution = 1
+export const defaultTimerResolution = 0
 
 //-----------------------------------------------------------------------
 // Access to system control register flags
@@ -464,7 +464,7 @@ export function procReset (es) {
     ab.resetSCB (es)
     resetRegisters (es);
     memClear (es);
-    initializeTimer (es, defaultTimerResolution);
+    timerInitialize (es, defaultTimerResolution);
 }
 
 export function initializeMachineState (es) {
@@ -609,24 +609,39 @@ export function instructionLooper (es) {
 }
 
 //-------------------------------------------------------------------------
-// Check timer when instruction executes
+// Accessing the timer
 
-export function initializeTimer (es, resolution) {
+export function timerInitialize (es, resolution) {
     ab.writeSCB (es, ab.SCB_timer_running, 0)
     ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
     ab.writeSCB (es, ab.SCB_timer_major_count, 0)
     ab.writeSCB (es, ab.SCB_timer_resolution, resolution)
 }
 
+
+export function timerDisplay (es) {
+    const r = ab.readSCB (es, ab.SCB_timer_running)
+    const x = ab.readSCB (es, ab.SCB_timer_minor_count)
+    const y = ab.readSCB (es, ab.SCB_timer_major_count)
+    console.log (`Timer: running=${r} minor=${x} major=${y}`)
+}
+
+// If timer is running return 1, otherwise 0
+export function timerIsRunning (es) {
+    return ab.readSCB (es, ab.SCB_timer_running)
+}
+
 // Start the timer with interval value x
-export function StartTimer (es, x) {
+export function timerStart (es, x) {
+    console.log (`Starting timer (${x})`)
     ab.writeSCB (es, ab.SCB_timer_running, 1)
     ab.writeSCB (es, ab.SCB_timer_major_count, x)
     ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
     SetStatusBit (es, arch.TimerRunningBit, 1)
 }
 
-export function StopTimer (es) {
+export function timerStop (es) {
+    console.log (`Stopping timer`)
     ab.writeSCB (es, ab.SCB_timer_running, 0)
     ab.writeSCB (es, ab.SCB_timer_major_count, 0)
     ab.writeSCB (es, ab.SCB_timer_minor_count, 0)
@@ -634,21 +649,24 @@ export function StopTimer (es) {
 }
 
 export function timerTick (es) {
-    let ticking = ab.readSCB (es, ab.SCB_timer_running)
-    if (ticking==1) {
-        let x = ab.readSCB (es, ab.SCB_timer_minor_count)
+    timerDisplay (es)
+    const timerRunning = ab.readSCB (es, ab.SCB_timer_running)
+    if (timerRunning) {
+        timerDisplay (es)
+        const x = ab.readSCB (es, ab.SCB_timer_minor_count)
         if (x>0) {
             ab.writeSCB (es, ab.SCB_timer_minor_count, x-1)
+            console.log (`timerTick minor count = ${x}`)
         } else {
-            let y = ab.readSCB(es, ab.SCB_timer_major_count)
+            const y = ab.readSCB(es, ab.SCB_timer_major_count)
             if (y>0) {
                 ab.writeSCB (es, ab.SCB_timer_major_count, y-1)
-                let a = ab.readSCB(es, ab.SCB_timer_resolution)
+                const a = ab.readSCB(es, ab.SCB_timer_resolution)
                 ab.writeSCB (es, ab.SCB_timer_minor_count, a)
             } else {
                 ab.writeSCB (es, ab.SCB_timer_running, 0)
-                let reqOld = es.req.get()
-                let reqNew = arith.setBit (reqOld, arch.timerBit, 1)
+                const reqOld = es.req.get()
+                const reqNew = arith.setBit (reqOld, arch.timerBit, 1)
                 es.req.put (reqNew)
                 console.log ('Timer interrupt request')
                 // Set timer interrupt request
@@ -724,7 +742,7 @@ export function executeInstruction (es) {
 	es.statusreg.put (es.statusreg.get()
 		       & arch.maskToClearBitLE(arch.intEnableBit)
 		          & arch.maskToClearBitLE(arch.userStateBit))
-        StopTimer (es)
+        timerStop (es)
 	return
     }
 
@@ -1429,13 +1447,13 @@ function exp2_timeron (es) {
     console.log ('exp2_timeron')
     // check privilege
     const x = es.regfile[es.ir_d].get()
-    StartTimer (es, x)
+    timerStart (es, x)
 }
 
 function exp2_timeroff (es) {
     console.log ('exp2_timeroff')
     // check privilege
-    StopTimer (es)
+    timerStop (es)
 }
 
 function exp2_dispatch (es) {

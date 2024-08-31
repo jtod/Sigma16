@@ -6,16 +6,18 @@
    lea     R13,stack[R0]
 
 ; load some test data into registers
-   lea     R1,17[R0]
-   lea     R2,18[R0]
-   lea     R3,19[R0]
-   lea     R4,20[R0]
-   lea     R5,21[R0]
-   lea     R6,22[R0]
-   lea     R7,23[R0]
+   lea     R1,64[R0]
+   lea     R2,65[R0]
+   lea     R3,66[R0]
+   lea     R4,67[R0]
+   lea     R5,68[R0]
+   lea     R6,69[R0]
+   lea     R7,70[R0]
 
 ; save the registers onto the stack
    save    R3,R5,6[R13]  ; store R3-R5 into memory at 6[R13]
+
+; test equ symbol for save/restore offset
 
 ; clear the registers
    add     R1,R0,R0
@@ -56,4 +58,29 @@
 
    trap    R0,R0,R0
 
-stack data 0              ; the stack area begins here
+; The stack area begins here; initial data will be overwritten by a
+; save instruction
+
+      org  $0040
+stack data   0
+      data   1
+      data   2
+      data   3
+      data   4
+      data   5
+      data   6
+      data   7
+      data   8
+      data   9
+      data  10
+      data  11
+      data  12
+      data  13
+      data  14
+      data  15
+      data  16
+      data  17
+      data  18
+      data  19
+      data  20
+

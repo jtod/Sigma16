@@ -1,0 +1,270 @@
+; SimpleProcesses: Run two concurrent processes
+; Implement process breaks using timer interrupt
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+
+;**********************************************************************
+; Kernel
+;**********************************************************************
+
+;----------------------------------------------------------------------
+; Initialize kernel
+;----------------------------------------------------------------------
+
+; Prepare interrupt vector
+     lea    R1,intVector[R0]      ; address of vector
+     putctl R1,vect               ; initialize vector register
+; Enable timer interrupt
+     lea    R1,timerBit[R0]       ; flag for timer interrupt
+     putctl R1,mask               ; set interrupt mask
+
+; Initialize PCBs
+     load   R3,InitProcStatus[R0] ; initial status for user process
+
+     lea    R1,PCBA[R0]           ; pointer to Process A PCB
+     lea    R2,ProcessA[R0]       ; initial pc
+     store  R2,PCBpc[R1]          ; save initial pc in PCB
+     store  R3,PCBstatus[R1]      ; save initial process status
+
+     lea    R1,PCBB[R0]           ; pointer to Process A PCB
+     lea    R2,ProcessB[R0]       ; initial pc
+     store  R2,PCBpc[R1]          ; save initial pc in PCB
+     store  R3,PCBstatus[R1]      ; save initial process status
+
+     store   R0,SliceCount[R0]    ; initialize SliceCount := 0
+
+; Select Process A as first process to run
+     lea     R1,PCBA[R0]          ; pointer to PCB for Process A
+     store   R1,CurrentPCBptr[R0] ; will run Process A
+
+
+;----------------------------------------------------------------------
+; Give time slice to current process
+;----------------------------------------------------------------------
+
+GiveTimeSlice
+
+; Stop if limit of time slices has been reached
+     load    R1,SliceCount[R0]    ; R1 := SliceCount
+     lea     R2,1[R0]             ; R2 := 1
+     add     R1,R1,R2             ; SliceCount := SliceCount + 1
+     store   R1,SliceCount[R0]    ; save SliceCount
+     load    R3,SliceLimit[R0]    ; R3 := SliceLimit
+     cmp     R1,R3                ; if SliceCount > SliceLimit
+     jumpgt  KernelDone[R0]       ; then goto KernelDone
+
+; Start timer and resume process
+     load    R1,CurrentPCBptr[R0] ;
+     load    R2,PCBpc[R1]         ;
+     putctl  R2,ipc               ;
+     load    R3,PCBstatus[R1]     ;
+     putctl  R3,istat             ;
+     load    R4,interval[R0]      ; timer interval
+     timeron R4                   ;
+     restore R1,R15,5[R1]         ; restore process registers
+     resume                       ; transfer to running process
+
+;----------------------------------------------------------------------
+; Handle timer interrupt
+;----------------------------------------------------------------------
+
+HandleTimerInterrupt
+
+; Save the state of the interrupted process
+     store  R1,PrimarySaveR1[R0]  ; save R1 so handler can use it
+     load   R1,CurrentPCBptr[R0]  ; get address of current PCB
+     save   R2,R15,6[R1]          ; save R2-R15 in current PCB
+     load   R2,PrimarySaveR1[R0]  ; get back the value of R1
+     store  R2,PCBR1[R1]          ; and save it in the PCB
+     getctl R2,ipc                ;
+     store  R2,PCBpc[R1]          ;
+
+; At this point, the full state of the user process is saved in its
+; PCB, and the kernel can use all the registers
+
+; Choose process to run
+     load   R1,CurrentPCBptr[R0]  ;
+     lea    R2,PCBA[R0]           ; R2 := pointer to Process A PCB
+     cmp    R1,R2                 ; if CurrentPCB is Process A
+     jumpeq chooseB[R0]           ; then goto choose Process B
+chooseA
+     lea    R3,PCBA[R0]           ; else choose process A
+     jump   chosen[R0]
+chooseB
+     lea   R3,PCBB[R0]            ; choose process B
+
+chosen
+     store R3,CurrentPCBptr[R0]   ; R3 contains address of chosen PCB
+     jump  GiveTimeSlice[R0]      ; run the chosen process
+
+;----------------------------------------------------------------------
+; Halt
+;----------------------------------------------------------------------
+
+KernelDone
+     trap   R0,R0,R0             ; halt the machine
+
+;----------------------------------------------------------------------
+; Interrupt vector
+;----------------------------------------------------------------------
+
+intVector
+     jump   HandleTimerInterrupt[R0]
+     jump   handleSegFault[R0]
+     jump   handleStackFault[R0]
+     jump   handleUserTrap[R0]
+     jump   handleOverflow[R0]
+     jump   handleZdiv[R0]
+
+; The following exceptions are not expected, and if they occur they
+; will terminate the program
+
+handleSegFault
+handleStackFault
+handleUserTrap
+handleOverflow
+handleZdiv
+     trap    R0,R0,R0
+
+
+;----------------------------------------------------------------------
+; Process Control Block (PCB) format
+;----------------------------------------------------------------------
+
+PCBsize        equ  32
+PCBid          equ   0
+PCBrunning     equ   1
+PCBterminated  equ   2
+PCBpc          equ   3
+PCBstatus      equ   4
+PCBR1          equ   5
+PCBR2_15       equ   6
+
+;----------------------------------------------------------------------
+; Kernel software parameters
+;----------------------------------------------------------------------
+
+; Kernel trap codes
+ReqTerm         equ    $00ff
+
+;----------------------------------------------------------------------
+; Machine hardware parameters
+;----------------------------------------------------------------------
+
+; Status register control bit indices
+userStateBit    equ    $0001   ; bit index 0
+intEnable       equ    $0002   ; bit index 1
+
+; Interrupt control bit indices
+timerBit        equ    $0001   ; bit index 0
+segFaultBit     equ    $0002   ; bit index 1
+stackOverBit    equ    $0004   ; bit index 2
+stackUnderBit   equ    $0008   ; bit index 3
+userTrapBit     equ    $0010   ; bit index 4
+overflowBit     equ    $0020   ; bit index 5
+zDivBit         equ    $0040   ; bit index 6
+
+;----------------------------------------------------------------------
+; Kernel data
+;----------------------------------------------------------------------
+
+; Kernel constants
+InitProcStatus data  $0002  ; user state, interrupts enabled
+
+; Kernel variables
+SliceCount     data    0  ; # time slices granted so far
+SliceLimit     data   50  ; limit on # of time slices
+interval       data  100  ; timer interval
+PrimarySaveR1  data    0  ; temporary save R1 after interrupt
+CurrentPCBptr  data    0  ; ptr to PCB for running process
+
+; Reserve space for process control blocks
+PCBA           reserve  PCBsize
+PCBB           reserve  PCBsize
+
+;**********************************************************************
+; Process A
+;**********************************************************************
+
+ProcessA
+; initialize
+       add    R1,R0,R0        ; R1 := counterA = 0
+       load   R2,limitA       ; maximum number of iterations
+       lea    R3,1[R0]        ; R3 := 1, counter increment
+
+; loop for limitA iterations
+loopA  cmp    R1,R2           ; if counterA > limitA
+       jumpgt doneA           ; then goto doneA
+       lea    R4,2[R0]        ; trap code for write
+       lea    R5,Astring[R0]  ; string to write
+       lea    R6,1[R0]        ; length of string
+       trap   R4,R5,R6        ; print the string
+       add    R1,R1,R3        ; counterA := counterA + 1
+       jump   loopA           ; goto LoopA
+
+doneA  lea    R1,ReqTerm[R0]  ; trap code for terminate process
+       trap R0,R0,R0 ; TEMP
+       trap   R1,R0,R0        ; request kernel to terminate
+
+; Data for Process A
+limitA   data  32000            ; number of iterations for Process A
+Astring  data     97
+
+;**********************************************************************
+; Process B
+;**********************************************************************
+
+ProcessB
+; initialize
+       add    R1,R0,R0        ; R1 := counterB = 0
+       load   R2,limitB       ; maximum number of iterations
+       lea    R3,1[R0]        ; R3 := 1, counter increment
+
+; loop for limitB iterations
+loopB  cmp    R1,R2           ; if counterB > limitB
+       jumpgt doneB           ; then goto doneB
+       lea    R4,2[R0]        ; trap code for write
+       lea    R5,Bstring[R0]  ; string to write
+       lea    R6,1[R0]        ; length of string
+       trap   R4,R5,R6        ; print the string
+       add    R0,R0,R0        ; give B a little more work than A
+       add    R0,R0,R0        ; give B a little more work than A
+       add    R0,R0,R0        ; give B a little more work than A
+       add    R0,R0,R0        ; give B a little more work than A
+       add    R0,R0,R0        ; give B a little more work than A
+       add    R1,R1,R3        ; counterB := counterB + 1
+       jump   loopB           ; goto LoopB
+
+doneB  lea    R1,ReqTerm[R0]  ; trap code for terminate process
+       trap   R1,R0,R0        ; request kernel to terminate
+
+; Data for Process B
+limitB   data   3200              ; number of iterations for Process B
+Bstring  data     98
+
+;----------------------------------------------------------------------
+; deprecated
+
+;handleTimer
+;     store  R1,save1[R0]      ; save state
+;     store  R2,save2[R0]      ; save state
+;     store  R3,save3[R0]      ; save state
+;     lea    R1,2[R0]          ; trap code for write
+;     lea    R2,timerMsg[R0]   ; message: divide by 0
+;     lea    R3,5[R0]          ; length of message
+;     trap   R1,R2,R3          ; print the message
+;     load   R1,save1[R0]      ; restore state
+;     load   R2,save2[R0]      ; restore state
+;     load   R3,save3[R0]      ; restore state
+;     resume                   ; return from interrupt
+; mutex data  0
+
+; limit     data   5000   ; stop eventually even if not interrupted
+; save1           data   0
+; save2           data   0
+; save3           data   0
+; save4           data   0
+; timerMsg        data    98  ; b
+;                data   105  ; i
+;                data   110  ; n
+;                data   103  ; g
+;                data    10  ; newline
