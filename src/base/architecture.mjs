@@ -210,11 +210,13 @@ ctlReg.set ("mask",     {ctlRegIndex:1});
 ctlReg.set ("req",      {ctlRegIndex:2});
 ctlReg.set ("istat",    {ctlRegIndex:3});
 ctlReg.set ("ipc",      {ctlRegIndex:4});
-ctlReg.set ("vect",     {ctlRegIndex:5});
-ctlReg.set ("psegBeg",  {ctlRegIndex:6});
-ctlReg.set ("psegEnd",  {ctlRegIndex:7});
-ctlReg.set ("dsegBeg",  {ctlRegIndex:8});
-ctlReg.set ("dsegEnd",  {ctlRegIndex:9});
+ctlReg.set ("iir",      {ctlRegIndex:5});
+ctlReg.set ("iadr",     {ctlRegIndex:6});
+ctlReg.set ("vect",     {ctlRegIndex:7});
+ctlReg.set ("psegBeg",  {ctlRegIndex:8});
+ctlReg.set ("psegEnd",  {ctlRegIndex:9});
+ctlReg.set ("dsegBeg",  {ctlRegIndex:10});
+ctlReg.set ("dsegEnd",  {ctlRegIndex:11});
 
 //----------------------------------------------------------------------
 // Condition code

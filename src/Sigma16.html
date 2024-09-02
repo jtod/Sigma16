@@ -43,6 +43,9 @@ visiting this file in a browser.
     <script type="module" src="src/base/emulator.mjs"> </script>
     <script type="module" src="./src/gui/gui.mjs"> </script>
     <link rel="stylesheet" href="src/gui/gui.css" type="text/css">
+    <link rel="icon" 
+      type="image/png" 
+      href="./src/graphics/favicon.ico">
   </head>
   <body>
     <div class="FullFrame">
@@ -312,19 +315,23 @@ visiting this file in a browser.
 		      <div class="RegisterValue" id='datElt'></div>
 		      <div class="RegisterName">status</div>
 		      <div class="RegisterValue" id="statusElt"></div>
+		      <div class="RegisterName">mask</div>
+		      <div class="RegisterValue" id="maskElt"></div>
 		    </div>
 		  </div>
 		  <div class="ProcStateSection" id="InterruptRegisters">
 		    <div class="Registers">
 		      <div class="NewRegSecName">Interrupt</div>
-		      <div class="RegisterName">mask</div>
-		      <div class="RegisterValue" id="maskElt"></div>
 		      <div class="RegisterName">req</div>
 		      <div class="RegisterValue" id="reqElt"></div>
 		      <div class="RegisterName">istat</div>
 		      <div class="RegisterValue" id='rstatElt'></div>
 		      <div class="RegisterName">ipc</div>
 		      <div class="RegisterValue" id='rpcElt'></div>
+		      <div class="RegisterName">iir</div>
+		      <div class="RegisterValue" id='iirElt'></div>
+		      <div class="RegisterName">iadr</div>
+		      <div class="RegisterValue" id='iadrElt'></div>
 		      <div class="RegisterName">vect</div>
 		      <div class="RegisterValue" id="vectElt"></div>
 		    </div>

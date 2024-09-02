@@ -499,10 +499,13 @@ export function initializeMachineState (es) {
     // bit 2        trap 3
     // bit 3        
     
-    es.rstat    = new genregister (es, 'rstat',  'rstatElt',  arith.wordToHex4);
-    es.rpc      = new genregister (es, 'rpc',    'rpcElt',    arith.wordToHex4);
-    es.vect     = new genregister (es, 'vect',   'vectElt',   arith.wordToHex4);
+    es.rstat = new genregister (es, 'rstat', 'rstatElt',  arith.wordToHex4);
+    es.rpc   = new genregister (es, 'rpc',   'rpcElt',    arith.wordToHex4);
 
+    es.iir  = new genregister (es, 'iir', 'iirElt',   arith.wordToHex4);
+    es.iadr = new genregister (es, 'iadr', 'iadrElt',   arith.wordToHex4);
+    es.vect  = new genregister (es, 'vect',  'vectElt',   arith.wordToHex4);
+    
 // Segment control registers
     es.bpseg = new genregister (es, 'bpseg',  'bpsegElt',  arith.wordToHex4);
     es.epseg = new genregister (es, 'epseg',  'epsegElt',  arith.wordToHex4);
@@ -514,7 +517,9 @@ export function initializeMachineState (es) {
 	[es.pc, es.ir, es.adr, es.dat,
          // not accessible to getctl/putctl instructions
 	 // the following can be used for getctl/getctl, indexing from 0
-	 es.statusreg, es.mask, es.req, es.rstat, es.rpc, es.vect,
+	 es.statusreg, es.mask, es.req, es.rstat, es.rpc,
+         es.iir, es.iadr,
+         es.vect,
          es.bpseg, es.epseg, es.bdseg, es.edseg
 	]
 
@@ -736,6 +741,8 @@ export function executeInstruction (es) {
 	com.mode.devlog (`\n*** Interrupt ${i} ***`)
 	es.rpc.put(es.pc.get())            // save the pc
 	es.rstat.put(es.statusreg.get())   // save the status register
+        es.iir.put(es.ir.get())            // save the ir register
+        es.iadr.put(es.adr.get())          // save the adr register
 	arch.clearBitInRegLE (es.req,i)    // clear the taken interrupt
 	es.pc.put (limitAddress (es, es.vect.get() + 2*i))  // goto handler
         // Disable interrupts and enter system state
@@ -923,6 +930,14 @@ const cab_dca = (f) => (es) => {
     es.regfile[es.ir_a].put(tertiary)
 }
 
+// Traps with 000 <= code < 00ff are "magic" operations that are
+// handled directly by the emulator.  Their purpose is to make
+// programming easier for beginners.  In effect, they have a code
+// between 00 and fe.  Traps with 00ff <= code <= ffff are genuine
+// trap interrupts, and they trigger the full interrupt mechanism.
+// Their behavior is defined by the programmer.  Their purpose is to
+// enable you to write an interrupt driven operating system kernel.
+
 const op_trap = (es) => {
 //  console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
     switch (es.thread_host) {
@@ -930,7 +945,10 @@ const op_trap = (es) => {
         com.mode.devlog (`handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
         com.mode.devlog (`trap code=${code}`);
-        if (code===0) { // Halt
+        if (code>255) { // user trap handler
+            handleUserTrap (es)
+        }
+        else if (code===0) { // Halt
 	    console.log ("%cTrap: halt", 'color: red');
 	    com.mode.devlog ("Trap: halt");
             ab.writeSCB (es, ab.SCB_status, ab.SCB_halted)
@@ -960,6 +978,35 @@ const op_trap = (es) => {
     default:
         console.log (`system error: trap has bad shm_token ${q}`)
     }
+}
+
+// Similar but not identical to executeInstruction check for interrupt
+function handleUserTrap (es) {
+    console.log (`handleUserTrap`)
+    const code = es.regfile[es.ir_d].get();
+    const aval = es.regfile[es.ir_a].get();
+    const bval = es.regfile[es.ir_b].get();
+    console.log (`d=${es.ir_d} code=${arith.wordToHex4(code)}`)
+    console.log (`a=${es.ir_d} aval=${arith.wordToHex4(aval)}`)
+    console.log (`b=${es.ir_d} bval=${arith.wordToHex4(bval)}`)
+
+    com.mode.devlog (`User trap: interrupt`)
+//	let i = 0; // find interrupt that is taken
+    //	while (i<16 && arch.getBitInWordLE(mr,i) === 0) { i++ }
+    const i = 3 ; // code for User Trap interrupt
+    com.mode.devlog (`\n*** Interrupt ${i} ***`)
+    es.rpc.put(es.pc.get())            // save the pc
+    es.rstat.put(es.statusreg.get())   // save the status register
+    es.iir.put(es.ir.get())            // save the ir register
+    es.iadr.put(es.adr.get())          // save the adr register
+    arch.clearBitInRegLE (es.req,i)    // clear the taken interrupt
+    es.pc.put (limitAddress (es, es.vect.get() + 2*i))  // goto handler
+    // Disable interrupts and enter system state
+    es.statusreg.put (es.statusreg.get()
+		      & arch.maskToClearBitLE(arch.intEnableBit)
+		      & arch.maskToClearBitLE(arch.userStateBit))
+    //    timerStop (es)  
+    return
 }
 
 // trapRead performs in input from the contents of the input buffer: a
@@ -1441,6 +1488,8 @@ function exp2_resume (es) {
     console.log ('exp2_resume')
     es.statusreg.put (es.rstat.get())
     es.pc.put (limitAddress (es, es.rpc.get()))
+    es.ir.put (es.iir.get())
+    es.adr.put (es.iadr.get())
 }
 
 function exp2_timeron (es) {

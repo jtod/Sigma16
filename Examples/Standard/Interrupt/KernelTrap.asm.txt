@@ -1,0 +1,279 @@
+; KernelTrap: Implement some trap operations for user defined kernel
+; Implement process breaks using timer interrupt
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+
+;**********************************************************************
+; Kernel
+;**********************************************************************
+
+;----------------------------------------------------------------------
+; Initialize kernel
+;----------------------------------------------------------------------
+
+; Prepare interrupt vector
+     lea    R1,intVector[R0]      ; address of vector
+     putctl R1,vect               ; initialize vector register
+; Enable timer interrupt
+;     lea    R1,timerBit[R0]       ; flag for timer interrupt
+;     putctl R1,mask               ; set interrupt mask
+
+; Initialize PCB
+     load   R3,InitProcStatus[R0] ; initial status for user process
+     lea    R1,PCBA[R0]           ; pointer to Process A PCB
+     lea    R2,ProcessA[R0]       ; initial pc
+     store  R2,PCBpc[R1]          ; save initial pc in PCB
+     store  R3,PCBstatus[R1]      ; save initial process status
+
+; Select Process A as first process to run
+     lea     R1,PCBA[R0]          ; pointer to PCB for Process A
+     store   R1,CurrentPCBptr[R0] ; will run Process A
+
+;----------------------------------------------------------------------
+; Give time slice to current process
+;----------------------------------------------------------------------
+
+GiveTimeSlice
+; Resume process
+     load    R1,CurrentPCBptr[R0] ;
+     load    R2,PCBpc[R1]         ;
+     putctl  R2,ipc               ;
+     load    R2,PCBir[R1]
+     putctl  R2,iir
+     load    R2,PCBadr[R1]
+     putctl  R2,iadr
+     load    R2,PCBstatus[R1]     ;
+     putctl  R2,istat             ;
+     restore R1,R15,8[R1]         ; restore process registers
+     resume                       ; transfer to running process
+
+;----------------------------------------------------------------------
+; User kernel trap
+;----------------------------------------------------------------------
+
+HandleUserTrap
+
+; Save the state of the interrupted process
+     store  R1,PrimarySaveR1[R0]  ; save R1 so handler can use it
+     load   R1,CurrentPCBptr[R0]  ; get address of current PCB
+     save   R2,R15,9[R1]          ; save R2-R15 in current PCB
+     load   R2,PrimarySaveR1[R0]  ; get back the value of R1
+     store  R2,PCBR1[R1]          ; and save it in the PCB
+     getctl R2,ipc                ;
+     store  R2,PCBpc[R1]          ;
+     getctl R2,iir
+     store  R2,PCBir[R1]
+     getctl R2,iadr
+     store  R2,PCBadr[R1]
+
+; Obtain trap operands
+; get the trap code and use it to index the user trap vector
+;     load    R2,PCBpc[R1]         ; the trap instruction  save ir???
+     load    R2,PCBir[R1]         ; the trap instruction
+     extract R3,3,0,R2,11         ; R4 := ir.d
+     lea     R4,PCBR0[R1]         ; register file array in PCB
+     add     R5,R4,R3             ; PCB index of R[ir.d]
+     load    R6,0[R5]             ; R5 := R[ir.d]
+     shiftr  R7,R6,8              ; R7 = left half of the trap code
+     shiftl  R8,R7,1              ; jump table entries are 2 words
+     jump    UserTrapVector[R8]   ; go to trap handler for code
+
+;----------------------------------------------------------------------
+; Halt
+;----------------------------------------------------------------------
+
+KernelDone
+     trap   R0,R0,R0             ; halt the machine
+
+;----------------------------------------------------------------------
+; Interrupt vector
+;----------------------------------------------------------------------
+
+intVector
+     jump   HandleTimerInterrupt[R0]
+     jump   HandleSegFault[R0]
+     jump   HandleStackFault[R0]
+     jump   HandleUserTrap[R0]
+     jump   HandleOverflow[R0]
+     jump   HandleZdiv[R0]
+
+UserTrapVector
+     jump   HandleTrap00ff
+     jump   HandleTrap01ff
+     jump   HandleTrap02ff
+     jump   HandleTrap03ff
+     jump   HandleTrap04ff
+     jump   HandleTrap05ff
+
+HandleTrap00ff
+     add    R0,R0,R0
+     jump   GiveTimeSlice[R0]
+
+HandleTrap01ff
+     add    R0,R0,R0
+     jump   GiveTimeSlice[R0]
+
+HandleTrap02ff
+     add    R0,R0,R0
+     jump   GiveTimeSlice[R0]
+
+HandleTrap03ff
+     add    R0,R0,R0
+     jump   GiveTimeSlice[R0]
+
+HandleTrap04ff
+     add    R0,R0,R0
+     jump   GiveTimeSlice[R0]
+
+HandleTrap05ff
+     add    R0,R0,R0
+     jump   GiveTimeSlice[R0]
+
+; The following exceptions are not expected, and if they occur they
+; will terminate the program
+
+HandleTimerInterrupt
+HandleSegFault
+HandleStackFault
+HandleOverflow
+HandleZdiv
+     trap    R0,R0,R0
+
+;----------------------------------------------------------------------
+; Process Control Block (PCB) format
+;----------------------------------------------------------------------
+
+PCBsize        equ  32 ; allow space for additional fields
+PCBid          equ   0
+PCBrunning     equ   1
+PCBterminated  equ   2
+PCBpc          equ   3
+PCBir          equ   4
+PCBadr         equ   5
+PCBstatus      equ   6
+PCBR0          equ   7 ; used only for indexing Reg[i]
+PCBR1          equ   8
+PCBR2_15       equ   9 ; 14 words
+
+;----------------------------------------------------------------------
+; Kernel software parameters
+;----------------------------------------------------------------------
+
+; Kernel trap codes
+ReqTerm         equ    $00ff
+
+;----------------------------------------------------------------------
+; Machine hardware parameters
+;----------------------------------------------------------------------
+
+; Status register control bit indices
+userStateBit    equ    $0001   ; bit index 0
+intEnable       equ    $0002   ; bit index 1
+
+; Interrupt control bit indices
+timerBit        equ    $0001   ; bit index 0
+segFaultBit     equ    $0002   ; bit index 1
+stackOverBit    equ    $0004   ; bit index 2
+stackUnderBit   equ    $0008   ; bit index 3
+userTrapBit     equ    $0010   ; bit index 4
+overflowBit     equ    $0020   ; bit index 5
+zDivBit         equ    $0040   ; bit index 6
+
+;----------------------------------------------------------------------
+; Kernel data
+;----------------------------------------------------------------------
+
+; Kernel constants
+InitProcStatus data  $0002  ; user state, interrupts enabled
+
+; Kernel variables
+SliceCount     data    0  ; # time slices granted so far
+SliceLimit     data   50  ; limit on # of time slices
+interval       data  100  ; timer interval
+PrimarySaveR1  data    0  ; temporary save R1 after interrupt
+CurrentPCBptr  data    0  ; ptr to PCB for running process
+
+; Reserve space for process control blocks
+PCBA           reserve  PCBsize
+
+;**********************************************************************
+; Process A
+;**********************************************************************
+
+ProcessA
+     lea   R5,$03ff[R0]  ; user trap code 3
+     lea   R10,24[R0]
+     lea   R8,25[R0]
+     trap  R5,R10,R8
+     add   R0,R0,R0
+     
+     lea   R2,$01ff[R0]  ; user trap code 1
+     lea   R3,80[R0]
+     lea   R4,90[R0]
+     trap  R2,R3,R4
+     add   R0,R0,R0
+
+     trap  R0,R0,R0
+
+; Data for Process A
+limitA   data  16000          ; number of iterations for Process A
+Acount   data      0
+
+
+
+; deprecated
+;----------------------------------------------------------------------
+; Handle timer interrupt
+;----------------------------------------------------------------------
+
+;HandleTimerInterrupt
+
+; Save the state of the interrupted process
+     store  R1,PrimarySaveR1[R0]  ; save R1 so handler can use it
+     load   R1,CurrentPCBptr[R0]  ; get address of current PCB
+     save   R2,R15,9[R1]          ; save R2-R15 in current PCB
+     load   R2,PrimarySaveR1[R0]  ; get back the value of R1
+     store  R2,PCBR1[R1]          ; and save it in the PCB
+     getctl R2,ipc                ;
+     store  R2,PCBpc[R1]          ;
+     getctl R2,iir
+     store  R2,PCBir[R1]
+     getctl R2,iadr
+     store  R2,PCBadr[R1]
+
+; At this point, the full state of the user process is saved in its
+; PCB, and the kernel can use all the registers
+
+; Choose process to run (just Process A in this example)
+; chosen
+     lea    R3,PCBA[R0]           ; else choose process A
+     store R3,CurrentPCBptr[R0]   ; R3 contains address of chosen PCB
+     jump  GiveTimeSlice[R0]      ; run the chosen process
+
+; GiveTimeSlice redundant
+; Stop if limit of time slices has been reached
+     load    R1,SliceCount[R0]    ; R1 := SliceCount
+     lea     R2,1[R0]             ; R2 := 1
+     add     R1,R1,R2             ; SliceCount := SliceCount + 1
+     store   R1,SliceCount[R0]    ; save SliceCount
+     load    R3,SliceLimit[R0]    ; R3 := SliceLimit
+     cmp     R1,R3                ; if SliceCount > SliceLimit
+     jumpgt  KernelDone[R0]       ; then goto KernelDone
+
+; end of HandleUserTrap
+; This code is moot, handler will go to GiveTimeSlice
+; Resume process with new time slice (perhaps be more fair?)
+     load    R1,CurrentPCBptr[R0] ;
+     load    R2,PCBpc[R1]         ;
+     putctl  R2,ipc               ;
+     load    R3,PCBstatus[R1]     ;
+     putctl  R3,istat             ;
+;     load    R4,interval[R0]      ; timer interval
+;     timeron R4                   ;
+     restore R1,R15,8[R1]         ; restore process registers
+     resume                       ; transfer to running process
+
+     store   R0,SliceCount[R0]    ; initialize SliceCount := 0
+
+;     load    R4,interval[R0]      ; timer interval
+;     timeron R4                   ;
+;     timeroff

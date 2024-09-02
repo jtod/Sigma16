@@ -5723,36 +5723,6 @@ existing programs.
 
 * Typesetting
 
-** Links
-
-- Link to a section: see [[*Core architecture tutorials]]
-- Link to a destination in double angle brackets: the execute
-  instruction is discussed in [[strange execute anchor]]
-
-xx - Link to a subsection: see x[x[** A strange program]]
-
-** Included org files
-
-This is a test to see if an org file can be included, and will show up
-in the index.
-
-#   #+INCLUDE: Test.org
-
-** References and bibliography
-
-#+index: Basic
-#+index: Hydra
-- The Basic programming language [cite:@Basic-1964]
-- Historical overview [cite:@Dyson-2012-Turings-Cathedral]
-- Hydra is a functional hardware description language that provides
-  implicit concurrency among digital components
-  [cite:@ODonnell-2002-PDSECA-Hydra]
-- Hydra is well suited for teaching digital circuits
-  [cite:@1995-OD-Hydra-FPLE]
-
-** Index items
-#+INDEX: index
-  
 ** Code listings
 
 #+INDEX: code listing
@@ -5795,6 +5765,40 @@ loop  add    R3,R1,R2      ; R3 := a+b
       add    R5,R3,R4      ; R5 := (a+b) + c
       store  R5,x[R0]      ; x := a+b+c
 #+END_CodeListing
+
+** Links
+
+- Link to a section: see [[*Core architecture tutorials]]
+- Link to a destination in double angle brackets: the execute
+  instruction is discussed in [[strange execute anchor]]
+
+xx - Link to a subsection: see x[x[** A strange program]]
+
+** Included org files
+
+This is a test to see if an org file can be included, and will show up
+in the index.
+
+#   #+INCLUDE: Test.org
+
+** References and bibliography
+
+#+index: Basic
+#+index: Hydra
+- The Basic programming language [cite:@Basic-1964]
+- Historical overview [cite:@Dyson-2012-Turings-Cathedral]
+- Hydra is a functional hardware description language that provides
+  implicit concurrency among digital components
+  [cite:@ODonnell-2002-PDSECA-Hydra]
+- Hydra is well suited for teaching digital circuits
+  [cite:@1995-OD-Hydra-FPLE]
+
+** Index items
+#+INDEX: index
+  
+** favicon
+
+https://www.ionos.com/tools/favicon-generator
 
 * License
 #+INCLUDE: ../../LICENSE.txt
