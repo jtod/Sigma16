@@ -270,7 +270,8 @@ class Options {
         this.memoryIsAllocated = false
         this.bufferType = ArrayBufferLocal
         this.memorySize = InitialMemorySize
-        this.memDisplayMode = ModeMemDisplayHBA
+        //        this.memDisplayMode = ModeMemDisplayHBA
+        this.memDispMode = ModeMemDisplayHBA        
         this.currentMDslidingSize = InitialMDslidingSize
 
         // Emulator settings
@@ -1739,7 +1740,7 @@ function memDisplayFull (gst) { // refactor: abstraction
 function getMemRange (gst, t) {
     let a = 0
     let b = 65535
-    switch (gst.memDispMode) {
+    switch (gst.options.memDispMode) {
     case ModeMemDisplayHBA:
         b = Math.max (gst.highBootAddress, MemDispMinSize)
         break
@@ -1751,7 +1752,7 @@ function getMemRange (gst, t) {
     case ModeMemDisplayFull:
         break
     default:
-        console.log (`getMemRange: invalid memDispMode`)
+        console.log (`getMemRange: invalid memDispMode ${gst.options.memDispMode}`)
     }
     if (a < 0) {
         b += -a
@@ -2265,7 +2266,7 @@ export function procStep (gst) {
     }
     ab.writeSCB (es, ab.SCB_pause_request, 0)
     let q = ab.readSCB (es, ab.SCB_status)
-    console.log (`procStep SCB status = ${q} ${ab.showSCBstatus(es)}`)
+//    console.log (`procStep SCB status = ${q} ${ab.showSCBstatus(es)}`)
     switch (q) {
     case ab.SCB_ready:
     case ab.SCB_paused:
@@ -3026,6 +3027,7 @@ function initializeTracing (gst) {
 function initializeSystem () {
     com.mode.devlog ('Initializing system')
     gst = new GuiState ()  // Create gui state and set global variable
+    setMDhba (gst)
     adjustInitialOptions ()
     initializeGuiElements (gst) // Initialize gui elements
     initializeGuiLayout (gst)   // Initialize gui layout
@@ -3293,5 +3295,6 @@ window.onload = function () {
     initializeSystem ()
     enableKeyboardShortcuts ()
     setModeUser ()
+    setMDhba (gst)
     console.log ('system is now running')
 }

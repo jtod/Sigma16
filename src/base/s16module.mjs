@@ -119,9 +119,9 @@ export async function openFile () {
             const modName = getFileBaseName (fn)
             //            const m = st.env.moduleSet.addModule ()
             const m = st.env.moduleSet.addModule (modName,xs)            
+            m.fileHandle = fileHandle
             st.handleSelect (m)
             m.changeSavedAsmSrc (xs)
-            m.fileHandle = fileHandle
             m.filename = fn
             console.log (`calling m.setModuleName ${modName}`)
             m.setModuleName (modName)
@@ -139,7 +139,9 @@ export async function refreshFile () {
     const m = st.env.moduleSet.getSelectedModule ()
     const fileHandle = m.fileHandle
     if (fileHandle) {
+        console.log ("refreshFile has a fileHandle")
         const file = await fileHandle.getFile()
+        console.log ("refreshFile 2")
         await file.text ()
             .then (xs => {
                 console.log (`refreshFile lambda xs = ${xs}`)

@@ -1,0 +1,9 @@
+; TestSet - Test the TestSet instruction
+
+
+     testset R1,lockvar0[R0]
+     testset R1,lockvar1[R0]
+     trap    R0,R0,R0
+
+lockvar0  data  0
+lockvar1  data  1

@@ -125,8 +125,6 @@
 # Sigma16UserGuideText.org
 # To generate html and tex, open Sigma16UserGuide.org in emacs
 
-* Introduction
-
 # #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
 
 # To typeset, use the top document, Sigma16UserGuide.org.  This file
@@ -137,6 +135,8 @@
 
 #   #+HTML: this is only for html
 #   #+LATEX: this is only for latex
+
+* Introduction
 
 Sigma16 is a computer architecture designed for research and teaching
 in computer systems.  This application provides a complete environment

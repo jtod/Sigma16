@@ -22,7 +22,7 @@ Sigma16 runs in a web browser: you don't need to download or install
 anything.  To launch the app, just visit the Sigma16 Home Page,
 [[https://jtod.github.io/home/Sigma16/]], and *Click to run Sigma16*.
 
-Sigma16 Version 3.7.x runs on current (2024) versions of the following
+Sigma16 Version 3.8.x runs on current (2024) versions of the following
 browsers: Chrome, Edge, and Opera.  It is not currently supported on
 Safari or Firefox.
 

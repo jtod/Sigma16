@@ -231,6 +231,14 @@ export class Sigma16Module {
             "click", event => handleModUp (this))
         this.modPara.appendChild (this.bUp)
 
+        // refresh button 2024-09-07
+        this.bRefresh = document.createElement ("button")
+        this.bRefresh.textContent = "Refresh"
+        this.refresuId = `REFRESH-${this.modKey}`
+        this.bRefresh.addEventListener (
+            "click", event => handleModRefresh (this))
+        this.modPara.appendChild (this.bRefresh)
+
         // close button
         this.bClose = document.createElement ("button")
         this.bClose.textContent = "Close"
@@ -397,6 +405,37 @@ export function handleModUp (m) {
         env.moduleSet.modules[mIdx] = ma
     } else {
         console.log ("handleModUp: nothing to do")
+    }
+}
+
+export async function handleModRefresh (m) {
+    console.log (`Refresh module ${m.modKey}`)
+    const fileHandle = m.fileHandle
+    if (fileHandle) {
+        const file = await fileHandle.getFile ();
+        await file.text ()
+            .then (xs => {
+                //            console.log (`openFile lambda xs = ${xs}`)
+//                const fn = file.name
+//                const modName = getFileBaseName (fn)
+                //            const m = st.env.moduleSet.addModule ()
+  //     const m = st.env.moduleSet.addModule (modName,xs)            
+//                m.fileHandle = fileHandle
+                handleSelect (m)
+                m.changeSavedAsmSrc (xs)
+//                m.filename = fn
+//                console.log (`calling m.setModuleName ${modName}`)
+//                m.setModuleName (modName)
+                console.log (`refresh mod module ${m.moduleName}`)
+//                document.getElementById("EditorTextArea").value = xs
+                console.log ("refresh mod just changed asm src")
+//  console.log (`refresh module received fn=${fn} xs=${xs}`)
+            }, () => {
+                console.log ("failed to read file")
+            })
+        
+    } else {
+        console.log ("Module refresh: no file handle")
     }
 }
 

@@ -626,9 +626,11 @@ export function timerInitialize (es, resolution) {
 
 export function timerDisplay (es) {
     const r = ab.readSCB (es, ab.SCB_timer_running)
-    const x = ab.readSCB (es, ab.SCB_timer_minor_count)
-    const y = ab.readSCB (es, ab.SCB_timer_major_count)
-    console.log (`Timer: running=${r} minor=${x} major=${y}`)
+    if (r) {
+        const x = ab.readSCB (es, ab.SCB_timer_minor_count)
+        const y = ab.readSCB (es, ab.SCB_timer_major_count)
+        console.log (`Timer: running=${r} minor=${x} major=${y}`)
+    }
 }
 
 // If timer is running return 1, otherwise 0
@@ -940,13 +942,15 @@ const cab_dca = (f) => (es) => {
 
 const op_trap = (es) => {
 //  console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
+    console.log ("op_trap")
     switch (es.thread_host) {
     case com.ES_gui_thread:
         com.mode.devlog (`handle trap in main thread`)
         let code = es.regfile[es.ir_d].get();
-        com.mode.devlog (`trap code=${code}`);
-        if (code>255) { // user trap handler
-            handleUserTrap (es)
+        //        com.mode.devlog (`trap code=${code}`);
+        console.log (`trap code=${code}`);
+        if (code >= 255) { // user trap handler
+            handleUserTrap (es, code)
         }
         else if (code===0) { // Halt
 	    console.log ("%cTrap: halt", 'color: red');
@@ -981,9 +985,9 @@ const op_trap = (es) => {
 }
 
 // Similar but not identical to executeInstruction check for interrupt
-function handleUserTrap (es) {
+function handleUserTrap (es, code) {
     console.log (`handleUserTrap`)
-    const code = es.regfile[es.ir_d].get();
+//    const code = es.regfile[es.ir_d].get();
     const aval = es.regfile[es.ir_a].get();
     const bval = es.regfile[es.ir_b].get();
     console.log (`d=${es.ir_d} code=${arith.wordToHex4(code)}`)
@@ -1083,7 +1087,7 @@ const handle_rx = (es) => {
 }
 
 const handle_EXP = (es) => {
-    console.log ("handle_EXP")
+//    console.log ("handle_EXP")
     es.instrFmtStr = "EXP";
     let code = 16*es.ir_a + es.ir_b;
     if (code < limitEXPcode) {
@@ -1347,7 +1351,7 @@ function rx_storel (es) {
 
 function rx_testset (es) {
     com.mode.devlog (`testset`);
-    es.regfile[es.ir_d].put(memFetchData(es.ea));
+    es.regfile[es.ir_d].put(memFetchData(es, es.ea));
     memStore (es, es.ea, 1);
 }
 
@@ -1686,11 +1690,11 @@ function exp2_logicu (es) {
 // EXP format instructions require a second word
 
 const exp2 = (f) => (es) => {
-    console.log (`>>> EXP instruction`)
-    com.mode.devlog (`>>> EXP instruction`)
+//    console.log (`>>> EXP instruction`)
+//    com.mode.devlog (`>>> EXP instruction`)
     let expCode = 16 * es.ir_a + es.ir_b
     es.instrOpStr = arch.mnemonicEXP[expCode]
-    console.log (`EXP instruction, code = ${expCode} ${es.instrOpStr}`)
+//    console.log (`EXP instruction, code = ${expCode} ${es.instrOpStr}`)
     es.instrDisp = memFetchInstr (es, es.pc.get())
     es.adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1)
@@ -1705,8 +1709,8 @@ const exp2 = (f) => (es) => {
     es.field_f = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.field_e = tempinstr & 0x000f;
-    console.log(`>>> EXP code=${expCode} d=${es.ir_d} e=${es.field_e} `
-                + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
+//    console.log(`>>> EXP code=${expCode} d=${es.ir_d} e=${es.field_e} `
+//                + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
     f (es);
 }
 
