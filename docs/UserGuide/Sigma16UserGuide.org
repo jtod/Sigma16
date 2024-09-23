@@ -5,19 +5,6 @@
 # Copyright John T. O'Donnell, 2024
 # Source repository: https://github.com/jtod/Sigma16
 
-# Build Sigma16 User Guide: C-c C-e P p --- Build document project
-# containing current file.  Configuration in ~/.emacs.d/init.el
-
-# Build html
-#   C-c C-e h h
-# Build pdf
-#   C-c C-e l p
-# or
-#   C-c C-e l l
-#   pdflatex Sigma16UserGuide
-#   biber  Sigma16UserGuide
-#   pdflatex Sigma16UserGuide
-
 # This file is part of Sigma16.  See https://github.com/jtod/Sigma16
 # License: GNU GPL Version 3. See Sigma16/README.org and LICENSE.txt.
 
@@ -31,43 +18,62 @@
 # License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-# {{{S16version()}}} is defined by VersionMacro.org.  It gives the
-# version number and date, and is defined by make setVersion
+# ----------------------------------------------------------------------
+# Building html and pdf
+# ----------------------------------------------------------------------
 
-# To build User Guide
-#   Build VERSION.txt and VersionMacro.org: cd $SIGMA16; make setVersion
-#   Edit  Sigma16UserGuideText.org
-#   Open Sigma16UserGuide.org in emacs
-#   Generate html:  ctl-c ctl-e h h
-#   Generate tex:   ctl-c ctl-e l l
-#   Generate pdf:   ctl-c ctl-e l p
+# Build VERSION.txt and VersionMacro.org
+#   cd $SIGMA16
+#   make setVersion
+
+# Build html
+#   C-c C-e h h
+
+# Build pdf via latex
+#   C-c C-e l p
+
+# Build latex source and compile
+#   C-c C-e l l
+#   pdflatex Sigma16UserGuide
+#   biber  Sigma16UserGuide
 #   pdflatex Sigma16UserGuide
 #   pdflatex --shell-escape Sigma16UserGuide
-#   cd $SIGMA16; make docs/UserGuide/Sigma16UserGuide.pdf
 
-# Does this do anything?  Seems not...
-# Disable the table of contents until after the title section
-#+OPTIONS: toc:nil
-#+TOC: nil
+# Build project containing current file
+#   C-c C-e P p
+#   Configuration in ~/.emacs.d/init.el
 
-#+LATEX_HEADER: \usepackage{makeidx}
-#+LATEX_HEADER: \makeindex
+# make
+#   cd $SIGMA16/src; make docs/UserGuide/Sigma16UserGuide.pdf
 
-# org makeindex appears to work only if there is only one org source file
-#+OPTIONS: makeindex
+# To typeset, use the top document, Sigma16UserGuide.org.  This file
+# may also be included in the csbook as an appendix.  Individual
+# sections can be typeset with C-c C-e C-s h h or C-c C-e C-s h h
+# followed by pdflatex Sigma16UserGuideText.
 
-# Obsolete...
-# .emacs.d/init.el configures org-export-filter-options-functions to
-# set different section number formatting for html and latex.  For
-# html, generate contents without section numbers.  For latex,
-# generate contents with section numbers, and redefine \numberline to
-# suppress those when the toc is generated.  The modified contents for
-# latex is in a scope environment; it goes after Title and before
-# Introduction.
+# ----------------------------------------------------------------------
+# Typesetting
+# ----------------------------------------------------------------------
+
+#  #+HTML: this is only for html export
+#  #+LATEX: this is only for latex export
+
+# Blank lines in CodeListing environment don't work for html export,
+# but they do work for latex export
+
+# ----------------------------------------------------------------------
+# General configuration
+# ----------------------------------------------------------------------
+
+# Version
+
+# {{{S16version()}}} is defined by docs/VersionMacro.org, which is
+# generated automatically by make SetVersion.  It gives the version
+# number and date, and is defined by make setVersion
 
 #+MACRO: S16Version (Version/Date disabled for section export)
-# Benign redefinition to prevent error/abort on export.
 
+# This is a benign redefinition to prevent error/abort on export.
 # When the entire document is exported, the redefinition of S16version
 # (which is included at the top of the file) is ignored because of
 # INCLUDING ../VersionMacro.org.  (When a macro is defined twice, the
@@ -75,32 +81,17 @@
 # INCLUDE is skipped, and the second MACRO definition prevents an
 # error message (undefined macro) from aborting the export.
 
-# Is this needed?  Probably not since code is enclosed in BEGIN_EXAMPLE
-# Preserve line breaks
-#+OPTIONS: \n
+# Table of contents
 
-# html header
-#+HTML_HEAD: <link rel="stylesheet" href="Sigma16UserGuide.css">
+# Does this do anything?  Seems not...
+# Disable the table of contents until after the title section
+#+OPTIONS: toc:nil
+#+TOC: nil
 
-# LaTeX preamble
-#+LATEX_CLASS: article
-#+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
-#+LATEX_HEADER: \usepackage{Sigma}
-#     #+LATEX_HEADER: \usepackage{UserGuide}
-#+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
-# 12pt text and 3.5cm margins give about 72 characters per line
-#+LATEX_HEADER: \usepackage{hyperref}
-#+LATEX_HEADER: \usepackage{makeidx}
-# #+LATEX_HEADER: \makeindex
+# Bibliography
 
-# #+LATEX_HEADER: \usepackage{svg}
-# #+LATEX_HEADER: \svgpath{{figures/svg/}}
-
-#+BIBLIOGRAPHY: Sigma16UserGuide.bib
+#  #+BIBLIOGRAPHY: Sigma16UserGuide.bib
 #  #+LATEX_HEADER: # \usepackage[autocite=inline,style=numeric]{biblatex}
-
-#+LATEX_HEADER: \usepackage{biblatex}
-#+LATEX_HEADER: \addbibresource{Sigma16UserGuide.bib}
 
 # See  https://github.com/jkitchin/org-ref
 # See https://github.com/andras-simonyi/citeproc-el
@@ -111,6 +102,45 @@
 
 #+CITE_EXPORT: basic author author-year
 
+# Figures
+
+# #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
+
+# Index
+
+# Index items break <p>...</p> for html export, so put them at end of
+# paragraph.
+
+# org makeindex appears to work only if there is only one org source file
+#+OPTIONS: makeindex
+
+# Is this needed?  Probably not since code is enclosed in BEGIN_EXAMPLE
+# Preserve line breaks
+#  #+OPTIONS: \n
+
+# ----------------------------------------------------------------------
+# LaTeX configuration
+# ----------------------------------------------------------------------
+
+# LaTeX preamble
+
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
+
+#+LATEX_HEADER: \usepackage{./Sigma}
+#+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
+# 12pt text and 3.5cm margins give about 72 characters per line
+#+LATEX_HEADER: \usepackage{hyperref}
+
+# #+LATEX_HEADER: \usepackage{biblatex}
+# #+LATEX_HEADER: \addbibresource{Sigma16UserGuide.bib}
+
+#+LATEX_HEADER: \usepackage{makeidx}
+#+LATEX_HEADER: \makeindex
+
+# #+LATEX_HEADER: \usepackage{svg}
+# #+LATEX_HEADER: \svgpath{{figures/svg/}}
+
 # For figures, use \includegraphics without extension, for latex it
 # should use .pdf and for html it should use .svg.  There are tools to
 # build both from .tex using tikz
@@ -119,22 +149,27 @@
 \tableofcontents
 #+END_EXPORT
 
-# # Main text of the document
-#   # #+INCLUDE: Sigma16UserGuideText.org
+# Obsolete...
+# .emacs.d/init.el configures org-export-filter-options-functions to
+# set different section number formatting for html and latex.  For
+# html, generate contents without section numbers.  For latex,
+# generate contents with section numbers, and redefine \numberline to
+# suppress those when the toc is generated.  The modified contents for
+# latex is in a scope environment; it goes after Title and before
+# Introduction.
+#  #+LATEX_HEADER: \usepackage{Sigma}    # use globel def
+#  #+LATEX_HEADER: \usepackage{UserGuide}
 
-# Sigma16UserGuideText.org
-# To generate html and tex, open Sigma16UserGuide.org in emacs
+# ----------------------------------------------------------------------
+# html configuration
+# ----------------------------------------------------------------------
 
-# #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
+#+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
+#+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico">
 
-# To typeset, use the top document, Sigma16UserGuide.org.  This file
-# may also be included in the csbook as an appendix.  Individual
-# sections can be typeset with C-c C-e C-s h h or C-c C-e C-s h h
-# followed by pdflatex Sigma16UserGuideText.  Index items break
-# <p>...</p> for html export, so put them at end of paragraph.
-
-#   #+HTML: this is only for html
-#   #+LATEX: this is only for latex
+# ----------------------------------------------------------------------
+# Text of the document
+# ----------------------------------------------------------------------
 
 * Introduction
 
@@ -146,14 +181,16 @@ assembler, linker, emulator, and an integrated development environment
 #+INDEX:architecture
 #+INDEX: assembler
 
-Sigma16 runs in a web browser: you don't need to download or install
-anything.  To run it, click the prominent /Run/ link on the Sigma16
-Home Page: [[https://jtod.github.io/home/Sigma16]].
+** Running Sigma16
 
-#+INDEX: browser compatibility
+Sigma16 runs in a web browser: you don't need to download or install
+anything.
+
+#+INDEX: run
 #+BEGIN_majornote
-This version of Sigma16 runs in Chrome, Edge, and Opera (the browsers
-based on Chromium).  It does not work fully in Safari or Firefox.
+To run Sigma16, visit the Sigma16 Home Page at
+[[https://jtod.github.io/home/Sigma16]]
+and click the prominent /Run/ link.
 #+END_majornote
 
 #+INDEX: command line
@@ -162,6 +199,21 @@ the Installation section.  There is also a digital circuit
 (available separately) that implements the architecture.  Using
 these tools, machine language programs can run on both the emulator
 and the circuit.
+
+** Browser compatibility
+
+- /Full compatibility./ This version of Sigma16 runs on *Chrome*,
+  *Edge*, *Opera*, and *DuckDuckGo*.  These browsers are based on the
+  Chromium engine.
+
+- /Partial compatibility./ Most components of the Sigma16 app run on
+  *Safari* and *Firefox*, including the assembler, linker, and
+  emulator.  However, those browsers do not support local file access,
+  so the buttons that read and write files don't work.  However, you
+  can copy and paste assembly language programs between an external
+  editor and the Sigma16 editor.
+
+** Organization
 
 The architecture is organized into subsets to make it easier to learn
 and to use:
@@ -196,7 +248,6 @@ backward compatibility; this can lead to great complexity.
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the examples in the main panel.
-
 
 * Core architecture tutorials
 :PROPERTIES:
@@ -441,6 +492,13 @@ result into R2:
     add   R2,R5,R8    ; R2 := R5 + R8 = 3+4 = 7
 #+END_CodeListing
 
+
+#+BEGIN_EXAMPLE
+    lea   R5,3[R0]    ; R5 := 3
+    lea   R8,4[R0]    ; R8 := 4
+    add   R2,R5,R8    ; R2 := R5 + R8 = 3+4 = 7
+#+END_EXAMPLE
+
 It's a good idea to use comments to explain the meaning of an
 instruction.  For now, comments like "R4 := R8 + R1" will be used to
 show what the instruction does. That's useful while learning what the
@@ -538,7 +596,6 @@ arithmetic.  It doesn't matter which registers are used (as long as we
 avoid R0 and R15).
 
 #+BEGIN_CodeListing
-#+BEGIN_example
     lea  R1,3[R0]   ; R1 := 3
     lea  R2,4[R0]   ; R2 := 4
 testlabel
@@ -546,7 +603,6 @@ testlabel
     lea  R3,5[R0]   ; R3 := 5
     mul  R2,R2,R3   ; R2 := R2*R3  = 4*5
     add  R10,R1,R2  ; R10 := R1 + R2 = 3 + 4*5 = 23
-#+END_example
 #+END_CodeListing
 
 This is nearly enough to constitute a complete program.  Only one more
@@ -562,12 +618,9 @@ Here is a complete program named ConstArith:
 
 #+BEGIN_CodeListing
 ; ConstArith: illustrate lea and arithmetic instructions
-; This file is part of Sigma16
-
 ; Calculate 3 + 4 * 4 and put the result into R10
 ; Use lea to put a constant into a register
 ; Use mul and add to do arithmetic
-
     lea  R1,3[R0]    ; R1 := 3
     lea  R2,4[R0]    ; R2 := 4
     lea  R3,5[R0]    ; R3 := 5
@@ -767,7 +820,7 @@ Here is a simple example of a complete program that uses load, store,
 and data statements:
 
 #+BEGIN_CodeListing
-; Program Add.  See Sigma16/README.md in top folder
+; Program Add.  See README in top Sigma16 folder
 ; A minimal program that adds two integer variables
 
 ; Execution starts at location 0, where the first instruction will be
@@ -1091,6 +1144,7 @@ for example:
 
 #+BEGIN_CodeListing
 if x<y
+
   then statement 1
 statement 2
 #+END_CodeListing
@@ -2093,7 +2147,6 @@ called the offset.
 
 ** Interrupts
 
-
 * The Sigma16 architecture
 :PROPERTIES:
 :CUSTOM_ID: sec-architecture
@@ -2179,9 +2232,9 @@ numbers.
 
 *** Indexing bits in a word
 
-The bits of a word are indexed from right to left, starting with 0.
-The least significant (rightmost) bit has index 0, and the most
-significant bit (leftmost) has index 15.
+The bits of a word are indexed from right to left, starting with
+index 0.  The least significant (rightmost) bit has index 0, and the
+most significant bit (leftmost) has index 15.
 
 The notation $x.i$ means the bit with index $i$ in the word $x$, for
 $0 \leq i \leq 15$.  For example, $x.0$ is the rightmost bit and
@@ -2306,13 +2359,8 @@ combine memory accesses with arithmetic.  All calculations are carried
 out in the register file, and explicit load and store instructions
 must be used to copy data between the memory and the register file.
 
-There are some programming conventions that use certain registers for
-special purposes.  The hardware does not enforce, or even know about,
-these conventions, and you do not have to follow the conventions in
-programming.  However, it is necessary to obey the conventions in
-order to use the standard software libraries in your program.  See the
-section on Programming for a discussion of these standard usage
-conventions.
+R0 and R15 are special.  The other registers, R1 through R14, may be
+used for any purpose.
 
 **** R0 contains the constant 0
 
@@ -2326,13 +2374,15 @@ will simply have no lasting effect.
 
 Several instructions produce status information: the result of a
 comparison, whether there was an overflow, etc.  This information is
-automatically loaded into R15, which is the condition code register.
-The description of each instruction states whether R15 is modified,
-and what goes into it.
+automatically loaded into R15, which is also called the /condition
+code/.  The description of each instruction states whether R15 is
+modified, and what goes into it.
 
-The bits in R15 are indexed from bit 0 (rightmost, or least
-significant) to bit 15 (the lefttmost, or most significant).  The
-condition code bits that have specific meanings are called *flags*.
+Each bit in the condition code (R15) is a Boolean that specifies
+whether a specific condition is true.  The bits are indexed from bit 0
+(rightmost, or least significant) to bit 15 (the leftmost, or most
+significant).  The condition code bits that have specific meanings are
+called *flags*.
 
 - Each bit position holds a Boolean value, either False or True,
   represented by 0 or 1 respectively.
@@ -2356,10 +2406,12 @@ necessary because the relation between two words sometimes depends on
 the type of the data.  For example, consider the word ffff (all 1
 bits).  On its own, ffff is just a word of bits and has no inherent
 meaning.
+
 - If ffff is interpreted as a natural number (i.e. binary), it is
   positive and has the value 65,535, and ffff > 0000
 - If ffff is interpreted as an integer (i.e. two's complement), then
   it is negative and has the value -1, and ffff < 0000.
+
 Each flag has a short 1-character name to enable them to be displayed
 compactly.  A naming convention is that flags for integers (two's
 complement) have lower case letters, while flags for natural numbers
@@ -2373,31 +2425,33 @@ possible type as well.  Therefore there is only one flag for equality,
 and its symbol is =.
 
 The following table lists all the condition code flags.
-- index: Each flag has an index which gives its bit position in the
-  condition code.  Bits are numbered from right to left, starting
+- Bit index: Each flag has an index which gives its bit position in
+  the condition code.  Bits are numbered from right to left, starting
   with 0.
-- meaning: Description using English or mathematical notation
-- symbol: Character that is showin in the processor display when the
+- Meaning: Description using English or mathematical notation
+- Symbol: Character that is showin in the processor display when the
   flag is 1.
-- name: Alphabetical name used as a variable name for the flag.
-
 
 Table: Condition code flags
 
-
-| bit index | Relation               | Symbol |
-|-----------+------------------------+--------|
-|         0 | > Int                  | g      |
-|         1 | > Nat                  | G      |
-|         2 | =                      | =      |
-|         3 | < Nat                  | L      |
-|         4 | < Int                  | <      |
-|         5 | Int overflow           | v      |
-|         6 | Nat overflow           | V      |
-|         7 | Carry                  | C      |
-|         8 | Stack overflow         | S      |
-|         9 | Stack underflow        | s      |
-|        10 | logicc function result | f      |
+| Index | Symbol | Meaning                |  Hex |
+|-------+--------+------------------------+------|
+|     0 | g      | > Int                  | 0001 |
+|     1 | G      | > Nat                  | 0002 |
+|     2 | =      | =                      | 0004 |
+|     3 | L      | < Nat                  | 0008 |
+|     4 | <      | < Int                  | 0010 |
+|     5 | v      | Int overflow           | 0020 |
+|     6 | V      | Nat overflow           | 0040 |
+|     7 | C      | Carry                  | 0080 |
+|     8 | S      | Stack overflow         | 0100 |
+|     9 | s      | Stack underflow        | 0200 |
+|    10 | f      | logicc function result | 0400 |
+|    11 |        | reserved               | 0800 |
+|    12 |        | reserved               | 1000 |
+|    13 |        | reserved               | 2000 |
+|    14 |        | reserved               | 4000 |
+|    15 |        | reserved               | 8000 |
 
 There is an exception for division by zero, but no corresponding flag
 in the condition code.  The reason is that the div instruction places
@@ -2407,7 +2461,26 @@ by 0, and you can test explicity for division by 0 by using jumpz
 specifying the register containing the divisor before execuing the div
 instruction.
 
+**** The other general registers: R1 through R14
+
+Registers R1 through R14 have no special properties defined by the
+machine.  A program can use them for any purpose.
+
+However, there are some programming conventions that use certain
+registers for special purposes.  The hardware does not enforce, or
+even know about, these conventions, and you do not have to follow the
+conventions in programming.  However, it is necessary to obey the
+conventions in order to use the standard software libraries in your
+program.  See the section on Programming for a discussion of these
+standard usage conventions.
+
+The software conventions are:
+- R14 - stack pointer
+- R13 - return address
+- R12
+
 *** Instruction control registers
+
 There are several instruction control registers that enable the
 processor to keep track of the state of the running program.  These
 registers are rarely used directly by the machine language program,
@@ -2423,46 +2496,67 @@ traditional name so we will stick with standard terminology.
 
 **** ir -- instruction register
 
+The IR contains the instruction that is currently executing.  If the
+instruction is RRR format, the entire instruction is in the IR.
+The other instruction formats require two words; the first word is in
+the IR and the second word is in the ADR register.
+
 **** adr -- address register
+
+If the instruction currently executing is RRR format, the ADR register
+is not used (and its content is just whatever was left over from
+previous instructions).
+
+If the instruction currently executing is RX or EXP format, the ADR
+register contains the second word of the instruction.  Furthermore,
+for RX instructions the effective address is calculated and replaces
+the second word of the instruction.
 
 **** status register
 
-| Index | Flag | meaning                        |
-|     0 | U/S  | 0: user state. 1: system state |
-|     1 | E    | 1: interrupts enabled          |
-|       |      |                                |
+| Index | Symbol | Meaning                        |  Hex |
+|-------+--------+--------------------------------+------|
+|     0 | U/S    | 0: user state. 1: system state | 0001 |
+|     1 | E      | 1: interrupts enabled          | 0002 |
+|       |        |                                |      |
+
+**** mask - interrupt mask register
+
+Table: Flags for both mask and req registers
+
+| Index | Symbol | Meaning                 |  Hex |
+|-------+--------+-------------------------+------|
+|     0 | time   | timer interrupt request | 0001 |
+|     1 | sf     | segmentation fault      | 0002 |
+|     2 | sto    | stack overflow          | 0004 |
+|     3 | stu    | stack underflow         | 0008 |
+|     4 | trap   | user trap               | 0010 |
+|     5 | tco    | integer overflow        | 0020 |
+|     6 | bo     | natural overflow        | 0040 |
+|     7 | zdiv   | divide by 0             | 0080 |
+|       |        |                         |      |
 
 *** Interrupt control registers
 
-**** req and mask
+**** req - interrupt request register
 
 The Interrupt request and mask registers contain the same bits.  When
 an interrupt is requested, the corresponding bit is set in the req
 register.  When the next instruction is executed, the interrupt occurs
 if the corresponding mask bit is 1.
 
-| Index | Flag      | meaning                 |
-|     0 | timer     | timer interrupt request |
-|     1 | seg fault | segmentation fault      |
-|     2 | sovfl     | stack overflow          |
-|     3 | sufl      | stack underflow         |
-|     4 | utrap     | user trap               |
-|     5 | tc ovfl   | integer overflow        |
-|     6 | bin ovfl  | natural overflow        |
-|     7 | zdiv      | divide by 0             |
-
-**** rstat
+**** rstat register
 
 When an interrupt occurs, the value of the status register is copied
 into rstat.
 
-**** rpc
+**** rpc register
 
 When an interrupt occurs, the value of pc is copied into rpc.  This is
 necessary to enable the operating system to resume the interrupted
 program.
 
-**** vect
+**** vect register
 
 The interrupt vector register contains the address of an array of
 addresses of interrupt handlers.
@@ -2500,19 +2594,21 @@ calculations in the registers, and the *RX format* for instructions
 that refer to a memory location.
 
 The advanced parts of the architecture provide additional instructions
-which are represented with the EXP format. The name EXP stands
+which are represented with the *EXP format*. The name EXP stands
 simultaneously for *expansion* (because it provides for many
 additional instructions) and *experimental* (because it allows for
 experimentation with the design and implementation of new
 instructions).
 
 Every instruction has a 4-bit field called the opcode (op for short).
-This gives 16 values of the opcode: 14 of them (0 through 13) denote
-the 14 RRR instructions, described later.  If the op field is 14 (hex
-e) the instruction is EXP format and has a secondary opcode in the a
-and b fields.  If the op field contains 15 (hex f) the instruction is
-RX format with a secondary opcode in the b field.  The instruction
-formats are described below.
+This gives 16 values of the opcode:
+
+- If the opcode is between 0 and 13 (hex 0 to hex d), the instruction
+  is RRR format, and there are 14 RRR instructions.
+- If the op field is 14 (hex e) the instruction is EXP format and has
+  a secondary opcode in the a and b fields.
+- If the op field contains 15 (hex f) the instruction is RX format
+  with a secondary opcode in the b field.
 
 The first word of every instruction contains the following fields.
 
@@ -2521,8 +2617,7 @@ The first word of every instruction contains the following fields.
 - a   (bits 8-11) 4-bit operand
 - b   (bits 12-15) 4-bit operand, or expanded opcode for RX
 
-
-The details of each format and its fields are given below, and The
+The details of each format and its fields are given below, and the
 following table gives an overview.
 - Each instruction format has a fixed size, which is the number of
   words used to represent any instruction of that format.
@@ -2652,15 +2747,43 @@ instruction.
 *** Notation for machine language
 
 We usually write instructions in assembly language (sub R3,R12,R9) but
-the computer executes machine langugae (13c9).  When each instruction
-is described below, an example is given showing a typical use of the
-instruction, along with the general form of the assembly language
-instruction.
+the computer executes machine language (13c9).  There is a precise
+relationship between these two notations for an instruction.  By
+writing assembly language, you determine the exact value of every bit
+in every word of a machine language program.  This section explains
+how these two notations for an instruction are related.
+
+When each instruction is described below, an example is given showing
+a typical use of the instruction, along with the general form of the
+assembly language instruction.
 
 The general form uses the machine language field names to show where
 each piece of the instruction goes in the machine code.  The
 instruction format is also given, along with any constant fields.
 
+As an example, the logicu instruction is EXP format, so its machine
+language representation consists of two words with the following
+fields:
+
+|----+---+----+---|
+| op | d | a  | b |
+|----+---+----+---|
+| e  | f | g  | h |
+|----+---+----+---|
+
+The primary opcode is e, which goes in the op field.  The secondary
+opcode is 14, which goes in the ab field.  Thus op=e, a=1, and b=4
+(here, a dollar sign is used before the hex constants to distinguish
+them from the field names).
+
+|----+---+----+----|
+| $e | d | $1 | $4 |
+|----+---+----+----|
+| e  | f | g  | h  |
+|----+---+----+----|
+
+
+and the 
 For example, here is the general form of the logicu instruction:
 
 #+BEGIN_CodeListing
@@ -2668,14 +2791,21 @@ For example, here is the general form of the logicu instruction:
    EXP op=#e ab=$14
 #+END_CodeListing
 
+
+#+BEGIN_CodeListing
+   logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
+   EXP op=#e ab=$14
+#+END_CodeListing
+
 The format is EXP, so the instruction has all the fields of the EXP
-format: op, d, ab, e, f, g, h.  There are two constant fields: op is
-=$e=, and ab is =$14=.  The values of the other fields are given in
-the general form of the assembly language.  The operands Rd and Rf
-refer to registers, and those register numbers go into the d and f
-fields of the instruction.  The e, g, and h fields are given as
-numbers in the assembly language.  (The assembly language convention
-is to give constants in decimal notation, not hexadecimal.)
+format: op, d, ab, e, f, g, h.  There are two constant fields: the
+primary opcode (op) is =$e=, and the secondary opcode (ab) is =$14=.
+The values of the other fields are given in the general form of the
+assembly language.  The operands Rd and Rf refer to registers, and
+those register numbers go into the d and f fields of the instruction.
+The e, g, and h fields are given as numbers in the assembly language.
+(The assembly language convention is to give constants in decimal
+notation, not hexadecimal.)
 
 Example:
 #+BEGIN_CodeListing
@@ -3085,18 +3215,6 @@ registers from memory after a procedure call or a context switch.
 The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
 at consecutive locations beginning with mem[gh+Rf] into registers Re,
 Re+1, ..., Rf.
-
-**** Procedure call and return
-
-A common usage of save and restore is to simplify procedure call and
-return.  When a procedure is called, store the registers onto the
-execution stack when a procedure is called (using save), and then to
-load them back from the stack when the procedure is returned
-(restore).  Normally, the format of a stack frame has a fixed location
-for saving the registers, at a small offset from the beginning of the
-frame.  A register called the /stack pointer/ gives the address of the
-frame, and the offset for saving the registers is normally a small
-value (such as 3 or similar).
 
 ** Arithmetic
 
@@ -3606,7 +3724,7 @@ puts the result into R3.
    logicw  R3,R1,R2,6    ; e312 1206. R3 := 0ff0
 #+END_CodeListing
 
-*** Pseudoinstructions: invw, andw, orw, xorw
+*** Word logic pseudoinstructions: invw, andw, orw, xorw
 
 If you're using one of the most common logic functions, a
 pseudoinstruction is convenient and can make a program more readable.
@@ -4071,7 +4189,7 @@ consist of one of the following:
   constant q (in the fgh fields)
 - 
 
-*** RRR format
+*** RRR instructions
 
 |------+---+-------+----+---------------------------------|
 | Name | P | Args  | Op | Effect                          |
@@ -4093,7 +4211,7 @@ consist of one of the following:
 |      |   |       |  e | escape to EXP format            |
 |      |   |       |  f | escape to RX format             |
 
-*** RX format
+*** RX instructions
 
 All RX instructions apart from testset are in the Core subset.
 
@@ -4113,7 +4231,7 @@ All RX instructions apart from testset are in the Core subset.
 |         |   |        | f,f | nop, reserved           |
 |---------+---+--------+-----+-------------------------|
 
-*** EXP format
+*** EXP instructions
 
 Rkk D,K,Q
 
@@ -4906,7 +5024,7 @@ fcn      add    R1,R1,R1
          jump   0[R12]
 #+END_CodeListing
 
- ** Assembly listing
+** Assembly listing
 
 The first section of the assembly listing shows each line of the
 source program.  The line number appears first, followed by the memory
@@ -5387,6 +5505,19 @@ Register variable
 
 ** Errors: avoiding, finding, and fixing
 
+
+** Procedure call and return
+
+A common usage of save and restore is to simplify procedure call and
+return.  When a procedure is called, store the registers onto the
+execution stack when a procedure is called (using save), and then to
+load them back from the stack when the procedure is returned
+(restore).  Normally, the format of a stack frame has a fixed location
+for saving the registers, at a small offset from the beginning of the
+frame.  A register called the /stack pointer/ gives the address of the
+frame, and the offset for saving the registers is normally a small
+value (such as 3 or similar).
+
 *** Critical regions
 
 A testset instruction is not semantically equivalent to a load
@@ -5721,92 +5852,13 @@ instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
 
-* Typesetting
-
-** Code listings
-
-#+INDEX: code listing
-The right way to do it.  The BEGIN_example tells org to use a verbatim
-environment for latex, and a pre environment for html.  It doesn't put
-in a p environment, which introduces an unwanted blank line at the top
-of the code for html.  The BEGIN_CodeListing introduces a div in html
-and an environment in latex; these allow for formatting to be
-introduced.
-
-#+BEGIN_CodeListing
-#+BEGIN_example
-      load   R1,a[R0]      ; R1 := a
-      load   R2,b[R0]      ; R2 := b
-loop  add    R3,R1,R2      ; R3 := a+b
-      load   R4,c[R0]      ; R4 := c
-      add    R5,R3,R4      ; R5 := (a+b) + c
-      store  R5,x[R0]      ; x := a+b+c
-#+END_example
-#+END_CodeListing
-
-This is some code in BEGIN_EXAMPLE, without the CodeListing:
-
-#+BEGIN_EXAMPLE
-      load   R1,a[R0]      ; R1 := a
-      load   R2,b[R0]      ; R2 := b
-loop  add    R3,R1,R2      ; R3 := a+b
-      load   R4,c[R0]      ; R4 := c
-      add    R5,R3,R4      ; R5 := (a+b) + c
-      store  R5,x[R0]      ; x := a+b+c
-#+END_EXAMPLE
-
-This is some code in CodeListing, without the example environment:
-
-#+BEGIN_CodeListing
-      load   R1,a[R0]      ; R1 := a
-      load   R2,b[R0]      ; R2 := b
-loop  add    R3,R1,R2      ; R3 := a+b
-      load   R4,c[R0]      ; R4 := c
-      add    R5,R3,R4      ; R5 := (a+b) + c
-      store  R5,x[R0]      ; x := a+b+c
-#+END_CodeListing
-
-** Links
-
-- Link to a section: see [[*Core architecture tutorials]]
-- Link to a destination in double angle brackets: the execute
-  instruction is discussed in [[strange execute anchor]]
-
-xx - Link to a subsection: see x[x[** A strange program]]
-
-** Included org files
-
-This is a test to see if an org file can be included, and will show up
-in the index.
-
-#   #+INCLUDE: Test.org
-
-** References and bibliography
-
-#+index: Basic
-#+index: Hydra
-- The Basic programming language [cite:@Basic-1964]
-- Historical overview [cite:@Dyson-2012-Turings-Cathedral]
-- Hydra is a functional hardware description language that provides
-  implicit concurrency among digital components
-  [cite:@ODonnell-2002-PDSECA-Hydra]
-- Hydra is well suited for teaching digital circuits
-  [cite:@1995-OD-Hydra-FPLE]
-
-** Index items
-#+INDEX: index
-  
-** favicon
-
-https://www.ionos.com/tools/favicon-generator
-
 * License
 #+INCLUDE: ../../LICENSE.txt
 
-* Bibliography
+# * Bibliography
 
-#+print_bibliography:
-#+LATEX: \printbibliography
+# #+print_bibliography:
+# #+LATEX: \printbibliography
 
 # Index
 
@@ -5828,4 +5880,11 @@ https://www.ionos.com/tools/favicon-generator
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
 
-206
+# Deprecated
+# # Main text of the document
+#   # #+INCLUDE: Sigma16UserGuideText.org
+# Sigma16UserGuideText.org
+# To generate html and tex, open Sigma16UserGuide.org in emacs
+
+
+212

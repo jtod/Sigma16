@@ -27,10 +27,11 @@
     text-align: left;
 }
 body {
+    max-width: 43em;
     font-family: Verdana, sans-serif;
     font-size: 100%;
     line-height: 1.4;
-    margin: 0em;
+    margin: 1em;
     padding-right: 0.5em;
     padding-left: 0.5em;
     color: black;
@@ -151,11 +152,23 @@ div#preamble p.date {
 
 .CodeListing {
     background-color: #e6ffff; /* light blue */
+    display: flex; /* removes white space before and after the code */
+    font-family: monospace;
+    font-size: 130%;
+    white-space: pre;
 }
+div.CodeListing p { /* remove white space from the <p> element */
+    margin-top: 0em;
+    margin-bottom: 0em;
+    padding-top: 0em;
+    padding-bottom: 0em;
+    white-space: pre;
+}
+
 /* Code blocks     display: inline;
     white-space: pre-wrap;
  */
-.CodeListing pre {
+div.CodeListing pre {
     background-color: #e6ffff; /* light blue */
     font-family: 'Cascadia Code', 'Courier New', monospace;
     font-size: 13pt;
@@ -271,7 +284,7 @@ A:link    { color: #0000e0; text-decoration: none }
 A:visited { color: #0000a0; text-decoration: none }
 A:hover   { background-color: #e0e0ff; text-decoration: none }
 
-div.majornote {
+div.majornote, div.tcolorbox {
     margin-top: 0.5em;
     padding-top: 0em;
     padding-right: 1em;

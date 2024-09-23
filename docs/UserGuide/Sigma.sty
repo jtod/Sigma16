@@ -8,6 +8,8 @@
 % \usepackage{standalone}
 \usetikzlibrary{calc}
 
+\usepackage{tcolorbox}
+
 % other packages
 \usepackage{verbatim,framed}
 % \usepackage[style=alphabetic,sorting=nty]{biblatex}
@@ -17,7 +19,8 @@
 \usepackage{xcolor}
 \usepackage{fancyvrb}
 \usepackage{fvextra}
-
+\usepackage{tcolorbox}
+\tcbuselibrary{listings}
 
 % Typeset title, author, version (more flexible than \maketitle}
 \newcommand{\TitleColor}[0]{black}
@@ -34,6 +37,14 @@
 {\par\large\color{orange}}
 {}
 
+\newenvironment{majornote}
+{\begin{tcolorbox}[colframe=red,colback=green!5!white,boxrule=0.6pt]}
+{\end{tcolorbox}}
+
+% \newenvironment{majornote}
+% {\parbox{4cm}Begin majornote}
+% {End majornote}
+
 %-----------------------------------------------------------------------
 % Code listings
 %-----------------------------------------------------------------------
@@ -43,32 +54,50 @@
 
 % This version is specifically for lwarp, it uses BlockClass
 
-\newenvironment{CodeListing}
-{\color{black}\BlockClass{CodeListing}%
-  \Verbatim[highlightcolor=blue!5,highlightlines={1-100}]}
-{\endVerbatim\endBlockClass}
+\newtcblisting{CodeListing}{%
+  listing only,
+  colback=green!5!white,
+  colframe=green!5!white}
+
+% \newtcblisting{CodeListing}{listing only,
+%   fit,height=5cm,blank, borderline={1pt}{-2pt},nobeforeafter}
+
 
 % light green color #D2FEE2
 % light blue color #E6FFFF}
 \definecolor{CodeBackgroundColor}{HTML}{E6FFFF}
 
-\renewenvironment{CodeListing}[1][CodeBackgroundColor]%
-{%
-\definecolor{shadecolor}{named}{#1}%
-% supress ugly vertical space which is inserted by
-% environment above and below text:
-\topsep=0ex\relax
-\shaded
-}%
-{%
-\endshaded
-}%
+% \newenvironment{CodeListing}
+% {\color{black}\BlockClass{CodeListing}%
+%   \Verbatim[highlightcolor=blue!5,highlightlines={1-100}]}
+% {\endVerbatim\endBlockClass}
+
+% \newenvironment{CodeListing}
+% {\begin{tcolorbox}[colframe=red!50!white]
+%   \begin{verbatim}}
+% {\end{verbatim}
+%  \end{tcolorbox}}
+
+
+
+% \renewenvironment{CodeListing}[1][CodeBackgroundColor]%
+% {%
+% \definecolor{shadecolor}{named}{#1}%
+% % supress ugly vertical space which is inserted by
+% % environment above and below text:
+% \topsep=0ex\relax
+% \shaded
+% }%
+% {%
+% \endshaded
+% }%
 
 % Deprecated
+% \newenvironment{CodeListing}
+% {\pagecolor{yellow}\bgroup}
+% {\egroup\pagecolor{white}}
+
 \begin{comment}
-\newenvironment{OldCodeListing}
-{\pagecolor{yellow}\bgroup}
-{\egroup\pagecolor{white}}
 \newenvironment{Code}
 {\color{green}}
 {}

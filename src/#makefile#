@@ -33,7 +33,7 @@
 #    - edit .bashrc: export S16_DEV_VERSION=3.6.4
 #    - edit src/package.json, update "version": "3.6.4"
 #    - make SetVersion
-#    - edit ../docs/UserGuide/Sigma16UserGuide.org,
+#    - edit docs/UserGuide/Sigma16UserGuide.org,
 #        #+DATE: Version 3.6.4, August 2023
 #          NO LONGER NEEDED, it uses ../VersionMacro.org which is written
 #          by make SetVersion
@@ -42,8 +42,8 @@
 #    - make SetVersion
 #    - edit README.org
 #      - github renders README.org, README.html is only for previewing
-#    - edit ../docs/welcome/welcome.org
-#    - edit ../docs/UserGuide/Sigma16UserGuide.org
+#    - edit docs/welcome/welcome.org
+#    - edit docs/UserGuide/Sigma16UserGuide.org
 #    - Use emacs to build html and pdf
 #      - build html: ctl-c ctl-e h h
 #      - build pdf: ctl-c ctl-e l l, then pdflatex Sigma16UserGuide
@@ -132,7 +132,6 @@
 # emacs org C-c C-e h h  build html from org source, 1st do make SetVersion
 # make showconfig        display the configuration parameters
 # make assemble          assemble wat code
-# make ExIdx             build index html files for examples
 # make build             copy executable from dev source to build/i.j.k
 # make installServer     copy server program to server repository
 # make installBuild      copy dev build to server repository
@@ -210,29 +209,29 @@ ShowConfig:
 # User Guide
 #--------------------------------------------------------------------------
 
-# ../docs/UserGuide/Sigma16UserGuide.pdf : ../docs/UserGuide/Sigma16UserGuide.tex \
-# 	  ../docs/UserGuide/Sigma16UserGuideText.tex
-# 	cd ../docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
-# 	cd ../docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
-# 	makeindex ../docs/UserGuide/Sigma16UserGuide
-# 	cd ../docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+# docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex \
+# 	  docs/UserGuide/Sigma16UserGuideText.tex
+# 	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+# 	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
+# 	makeindex docs/UserGuide/Sigma16UserGuide
+# 	cd docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
 
 #-------------------------------------------------------------------------
 # Ensure Sigma.sty and Sigma.css are latest version
 #-------------------------------------------------------------------------
 
 CheckStyle :
-	ls -l ../docs/UserGuide/*.sty  ../docs/UserGuide/*.css
+	ls -l docs/UserGuide/*.sty  docs/UserGuide/*.css
 	ls -l ../../../../csbook/compsys/*.sty \
            ../../../../csbook/compsys/*.css
 
-UpdateStyle : ../docs/UserGuide/Sigma.sty ../docs/UserGuide/Sigma.css
+UpdateStyle : docs/UserGuide/Sigma.sty docs/UserGuide/Sigma.css
 
-../docs/UserGuide/Sigma.sty : ../../../../csbook/compsys/Sigma.sty
-	cp -u ../../../../csbook/compsys/Sigma.sty ../docs/UserGuide
+docs/UserGuide/Sigma.sty : ../../../../csbook/compsys/Sigma.sty
+	cp -u ../../../../csbook/compsys/Sigma.sty docs/UserGuide
 
-../docs/UserGuide/Sigma.css : ../../../../csbook/compsys/Sigma.css
-	cp -u ../../../../csbook/compsys/Sigma.css ../docs/UserGuide
+docs/UserGuide/Sigma.css : ../../../../csbook/compsys/Sigma.css
+	cp -u ../../../../csbook/compsys/Sigma.css docs/UserGuide
 
 
 #-------------------------------------------------------------------------
@@ -241,33 +240,33 @@ UpdateStyle : ../docs/UserGuide/Sigma.sty ../docs/UserGuide/Sigma.css
 
 CheckGuide :
 	ls -lt \
-            ../docs/UserGuide/Sigma16UserGuide.pdf \
-            ../docs/UserGuide/Sigma16UserGuide.html \
-            ../docs/UserGuide/Sigma16UserGuide.tex \
-            ../docs/UserGuide/Sigma16UserGuideContent.tex \
-            ../docs/UserGuide/Sigma.sty \
-            ../docs/UserGuide/Sigma.css \
-            ../docs/UserGuide/lwarpmk.conf
+            docs/UserGuide/Sigma16UserGuide.pdf \
+            docs/UserGuide/Sigma16UserGuide.html \
+            docs/UserGuide/Sigma16UserGuide.tex \
+            docs/UserGuide/Sigma16UserGuideContent.tex \
+            docs/UserGuide/Sigma.sty \
+            docs/UserGuide/Sigma.css \
+            docs/UserGuide/lwarpmk.conf
 
 # Make dependency on VERSION.txt
 
-../docs/UserGuide/Sigma16UserGuide.pdf : ../docs/UserGuide/Sigma16UserGuide.tex \
-          ../docs/UserGuide/Sigma16UserGuideContent.tex \
-          ../docs/UserGuide/Sigma.sty
-	cd ../docs/UserGuide ; lwarpmk print1
-	cd ../docs/UserGuide ; lwarpmk printindex
-	cd ../docs/UserGuide ; lwarpmk print1
-	cd ../docs/UserGuide ; lwarpmk print1
+docs/UserGuide/Sigma16UserGuide.pdf : docs/UserGuide/Sigma16UserGuide.tex \
+          docs/UserGuide/Sigma16UserGuideContent.tex \
+          docs/UserGuide/Sigma.sty
+	cd docs/UserGuide ; lwarpmk print1
+	cd docs/UserGuide ; lwarpmk printindex
+	cd docs/UserGuide ; lwarpmk print1
+	cd docs/UserGuide ; lwarpmk print1
 
 # html always builds, does it touch Sigma16UserGuide.tex?
-../docs/UserGuide/Sigma16UserGuide.html : ../docs/UserGuide/Sigma16UserGuide.tex \
-          ../docs/UserGuide/Sigma16UserGuideContent.tex \
-          ../docs/UserGuide/Sigma16UserGuide.pdf \
-          ../docs/UserGuide/Sigma.css
-	cd ../docs/UserGuide ; lwarpmk html1
-	cd ../docs/UserGuide ; lwarpmk htmlindex
-	cd ../docs/UserGuide ; lwarpmk html1
-	cd ../docs/UserGuide ; lwarpmk html1
+docs/UserGuide/Sigma16UserGuide.html : docs/UserGuide/Sigma16UserGuide.tex \
+          docs/UserGuide/Sigma16UserGuideContent.tex \
+          docs/UserGuide/Sigma16UserGuide.pdf \
+          docs/UserGuide/Sigma.css
+	cd docs/UserGuide ; lwarpmk html1
+	cd docs/UserGuide ; lwarpmk htmlindex
+	cd docs/UserGuide ; lwarpmk html1
+	cd docs/UserGuide ; lwarpmk html1
 
 #--------------------------------------------------------------------------
 # Copy editing
@@ -275,18 +274,16 @@ CheckGuide :
 
 # Copy draft documents for markup on iPad
 # ANNOTATED_DOCS=/cygdrive/c/Users/johnt/iCloudDrive/Sigma-editing-docs
-# ANNOTATED_DOCS="/cygdrive/g/My Drive/Sigma-editing-docs"
+ANNOTATED_DOCS="/cygdrive/g/My Drive/Sigma-editing-docs"
 # G:\My Drive\Sigma-editing-docs
-ANNOTATED_DOCS="${ICLOUD}/Sigma-editing-docs"
 
-# copyDocs :
-# 	make copyDraftGuide
-# 	make copyListing
+copyDocs :
+	make copyDraftGuide
+	make copyListing
 
-CopyUserGuide : ../docs/UserGuide/Sigma16UserGuide.pdf
+copyDraftGuide : ../docs/UserGuide/Sigma16UserGuide.pdf
 	cp ../docs/UserGuide/Sigma16UserGuide.pdf $(ANNOTATED_DOCS)/$(YEARMONTHDAYTIME)-Sigma16UserGuide.pdf
 	cp ../docs/UserGuide/Sigma16UserGuide.html $(ANNOTATED_DOCS)/$(YEARMONTHDAYTIME)-Sigma16UserGuide.html
-	cp ../docs/UserGuide/Sigma16UserGuide.css $(ANNOTATED_DOCS)
 
 copyListing:
 	cd $(ANNOTATED_DOCS); \
@@ -438,8 +435,8 @@ installServer:
 installHomepage :
 	mkdir -p $(S16_HOMEPAGE_REPOSITORY)/admin
 #	cp -u protected/SIGSERVERURL.txt $(S16_HOMEPAGE_REPOSITORY)/admin
-	cp -u ../docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
-	cp -u ../docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
+	cp -u docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
+	cp -u docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
 #--------------------------------------------------------------------------
 # Assemble examples

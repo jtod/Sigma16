@@ -6,6 +6,8 @@
 ; What the program does
 ;----------------------------------------------------------------------
 
+UseMutex  equ  0
+
 ; Mutex is a common abbreviation for mutual exclusion.  It means that
 ; a process has exclusive access to a shared variable within a small
 ; "critical region".  While it has exclusive access, another proces
@@ -346,7 +348,8 @@ loopA  cmp    R1,R2           ; if counterA > limitA
 ; Use mutual exclusion if the variable UseMutex = 1
 
 ; If UseMutex, start critical region; otherwise skip it
-       load    R8,UseMutex[R0]
+;       load    R8,UseMutex[R0]
+       lea     R8,UseMutex[R0]
        jumpz   R8,skipMutexA[R0]
 
 ; Initiate the critical region (if UseMutex=1)
@@ -409,7 +412,8 @@ loopB  cmp    R1,R2           ; if counterB > limitB
 ; Use mutual exclusion if the variable UseMutex = 1
 
 ; If UseMutex, start critical region; otherwise skip it
-       load    R8,UseMutex[R0]
+;       load    R8,UseMutex[R0]
+       lea     R8,UseMutex[R0]
        jumpz   R8,skipMutexB[R0]
 
 ; Initiate the critical region (if UseMutex=1)
@@ -462,7 +466,7 @@ Bcount   data       0
 
 Shared   data      0
 mutex    data      0
-UseMutex data      0  ; if 1 then use testset; otherwise not
+; UseMutex data      0  ; if 1 then use testset; otherwise not
 
 
 ; temp to ensure mem display shows last real value
