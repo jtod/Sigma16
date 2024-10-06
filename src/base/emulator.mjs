@@ -1237,16 +1237,13 @@ const dispatch_RX =
       rx (rx_jal),       // 6
       rx (rx_jumpz),     // 7
       rx (rx_jumpnz),    // 8
-      rx (rx_brc0),      // 9   x
-      rx (rx_brc1),      // a   x
-      rx (rx_testset),   // b   x
-      rx (rx_leal),      // c   x
-      rx (rx_loadl),     // d   x
-      rx (rx_storel),    // e   x
-      rx (rx_nop) ];     // f   x
+      rx (rx_testset),   // 9   x
+      rx (rx_leal),      // a   x
+      rx (rx_loadl),     // b   x
+      rx (rx_storel),    // c   x
+      rx (rx_nop) ];     // d   x
 
 function rx_lea (es) {
-    com.mode.devlog(`%clea ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');    com.mode.devlog('rx_lea');
     es.regfile[es.ir_d].put(es.ea);
 }
 
@@ -1443,6 +1440,7 @@ function exp2_brfc0 (es) {
         console.log ("brfc0 is not branching")
     }
 }
+
 
 function exp2_brbc0 (es) {
     com.mode.devlog('exp_brbc0')
@@ -1714,35 +1712,98 @@ const exp2 = (f) => (es) => {
     f (es);
 }
 
-const dispatch_EXP =
-      [ exp2 (exp2_brf),      // 00
-        exp2 (exp2_brb),      // 01
-        exp2 (exp2_brfc0),    // 02
-        exp2 (exp2_brbc0),    // 03
-        exp2 (exp2_brfc1),    // 04
-        exp2 (exp2_brbc1),    // 05
-        exp2 (exp2_brfz),     // 06
-        exp2 (exp2_brbz),     // 07
-        exp2 (exp2_brfnz),    // 08
-        exp2 (exp2_brbnz),    // 09
-        exp2 (exp2_dispatch), // 0a
-        exp2 (exp2_save),     // 0b
-        exp2 (exp2_restore),  // 0c
-        exp2 (exp2_push),     // 0d
-        exp2 (exp2_pop),      // 0e
-        exp2 (exp2_top),      // 0f
-        exp2 (exp2_shiftl),   // 10
-        exp2 (exp2_shiftr),   // 11
-        exp2 (exp2_logicw),   // 12
-        exp2 (exp2_logicb),   // 13  b -> r
-        exp2 (exp2_logicu),   // 14  u -> b
-        exp2 (exp2_extract),  // 15
-        exp2 (exp2_extracti), // 16
-        exp2 (exp2_getctl),   // 17
-        exp2 (exp2_putctl),   // 18
-        exp2 (exp2_resume),   // 19
-        exp2 (exp2_timeron),  // 1a
-        exp2 (exp2_timeroff)] // 1b
+function exp2_brc0 (es) { // ??????????????????????????????
+    com.mode.devlog('exp_brc0')
+    const x = es.regfile[es.ir_d].get()
+    const bitidx = es.field_e
+    const b = arch.getBitInWordLE (x, bitidx)
+    const offset = es.instrDisp & 0x0fff
+    console.log (`brfc0 x=${x} bitidx=${bitidx} b=${b}`)
+    if (b === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + offset))
+        console.log ("brfc0 is branching")
+    } else {
+        console.log ("brfc0 is not branching")
+    }
+}
 
+function exp2_brc1 (es) { // ??????????????????????????????
+    com.mode.devlog('exp_brc1')
+    const x = es.regfile[es.ir_d].get()
+    const bitidx = es.field_e
+    const b = arch.getBitInWordLE (x, bitidx)
+    const offset = es.instrDisp & 0x0fff
+    console.log (`brfc0 x=${x} bitidx=${bitidx} b=${b}`)
+    if (b === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + offset))
+        console.log ("brfc0 is branching")
+    } else {
+        console.log ("brfc0 is not branching")
+    }
+}
+
+function exp2_brz (es) { // ??????????????????????????????
+    com.mode.devlog('exp_brz')
+    const x = es.regfile[es.ir_d].get()
+    if (x === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + es.adr.get()))
+        console.log ("brfz is branching")
+    } else {
+        console.log ("brfz is not branching")
+    }
+}
+function exp2_brnz (es) { // ??????????????????????????????
+    com.mode.devlog('exp_brnz')
+    const x = es.regfile[es.ir_d].get()
+    if (x === 0) {
+        es.pc.put (limitAddress (es, es.pc.get() + es.adr.get()))
+        console.log ("brfz is branching")
+    } else {
+        console.log ("brfz is not branching")
+    }
+}
+
+const dispatch_EXP =
+      [ exp2 (exp2_logicw),   // 00
+        exp2 (exp2_logicb),   // 01  b -> r    logicr
+        exp2 (exp2_logicu),   // 02  u -> b    logicb
+        exp2 (exp2_shiftl),   // 03
+        exp2 (exp2_shiftr),   // 04
+        exp2 (exp2_extract),  // 05
+        exp2 (exp2_extracti), // 06
+        exp2 (exp2_push),     // 07
+        exp2 (exp2_pop),      // 08
+        exp2 (exp2_top),      // 09
+        exp2 (exp2_save),     // 0a
+        exp2 (exp2_restore),  // 0b
+        exp2 (exp2_brc0),     // 0c
+        exp2 (exp2_brc1),     // 0d
+        exp2 (exp2_brz),      // 0e
+        exp2 (exp2_brnz),     // 0f
+        exp2 (exp2_dispatch), // 10
+        exp2 (exp2_getctl),   // 11
+        exp2 (exp2_putctl),   // 12
+        exp2 (exp2_resume),   // 13
+        exp2 (exp2_timeron),  // 14
+        exp2 (exp2_timeroff)] // 15
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
+
+// deprecated
+
+//        exp2 (exp2_brf),      // 00
+//        exp2 (exp2_brb),      // 01
+//        exp2 (exp2_brfc0),    // 02
+//        exp2 (exp2_brbc0),    // 03
+//        exp2 (exp2_brfc1),    // 04
+//        exp2 (exp2_brbc1),    // 05
+//        exp2 (exp2_brfz),     // 06
+//        exp2 (exp2_brbz),     // 07
+//        exp2 (exp2_brfnz),    // 08
+//        exp2 (exp2_brbnz),    // 09
+
+// rx_lea
+//    com.mode.devlog(`%clea ir fields `
+//                    + ` ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`,
+//                    'color:red');
+//    com.mode.devlog('rx_lea');

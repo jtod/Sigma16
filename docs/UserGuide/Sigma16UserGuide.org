@@ -1,6 +1,7 @@
 #+INCLUDE: ../VersionMacro.org
 #+TITLE: Sigma16 User Guide
 #+AUTHOR: John T. O'Donnell
+#+EMAIL: john.t.odonnell9@gmail.com
 #+DATE: {{{S16version()}}}
 # Copyright John T. O'Donnell, 2024
 # Source repository: https://github.com/jtod/Sigma16
@@ -17,6 +18,18 @@
 # details.  You should have received a copy of the GNU General Public
 # License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
+
+#+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
+
+# ----------------------------------------------------------------------
+# Notes
+# ----------------------------------------------------------------------
+
+# Insert nonbreakable space (Unicode hard space): C-x 8 space
+
+# Table formatting
+# https://emacs.stackexchange.com/questions/53195/org-mode-table-el-use-org-formatting-inside-cells#:~:text=If%20you%20set%20this%20option%20to%20t%20or%20yes%20table
+# https://table.sourceforge.net/#:~:text=Table.el%20was%20created%20this%20way%20too.%20Table.el%20is%20an%20Emacs
 
 # ----------------------------------------------------------------------
 # Building html and pdf
@@ -127,7 +140,7 @@
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
 
-#+LATEX_HEADER: \usepackage{./Sigma}
+#+LATEX_HEADER: \usepackage{../Sigma}
 #+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
 # 12pt text and 3.5cm margins give about 72 characters per line
 #+LATEX_HEADER: \usepackage{hyperref}
@@ -166,6 +179,9 @@
 
 #+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
 #+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico">
+
+#+HTML_HEAD_EXTRA: <style type="text/css"> td { padding: 4px 5px 4px 5px } </style>
+#+OPTIONS: html-tableel-org:t
 
 # ----------------------------------------------------------------------
 # Text of the document
@@ -425,7 +441,7 @@ registers.  The *lea* instruction. can be used to place a constant
 into a register.  For example, to load 42 into register 3, write
 
 #+BEGIN_CodeListing
-    lea  R3,42    ; R3 := 42
+     lea  R3,42    ; R3 := 42
 #+END_CodeListing
 
 This is a statement in *assembly language*, and it describes one
@@ -440,7 +456,7 @@ instruction.  This statement contains three parts:
 
 The same instruction can be written in a longer form:
 #+BEGIN_CodeListing
-    lea  R3,42[R0]    ; R3 := 42
+     lea  R3,42[R0]    ; R3 := 42
 #+END_CodeListing
 This is the same as above, except *[R0]* is written after the number.
 You can write the instruction either way; both are translated to
@@ -472,7 +488,7 @@ instruction will add the values in R8 and R1 and then put the result
 into R4:
 
 #+BEGIN_CodeListing
-   add   R4,R8,R1  ; R4 := R8 + R1
+    add   R4,R8,R1  ; R4 := R8 + R1
 #+END_CodeListing
 
 Notice that the operand field doesn't use operators like := or +;
@@ -487,9 +503,9 @@ instructions).  The following program calculates 3 + 4 and puts the
 result into R2:
 
 #+BEGIN_CodeListing
-    lea   R5,3[R0]    ; R5 := 3
-    lea   R8,4[R0]    ; R8 := 4
-    add   R2,R5,R8    ; R2 := R5 + R8 = 3+4 = 7
+     lea   R5,3[R0]    ; R5 := 3
+     lea   R8,4[R0]    ; R8 := 4
+     add   R2,R5,R8    ; R2 := R5 + R8 = 3+4 = 7
 #+END_CodeListing
 
 
@@ -512,10 +528,10 @@ two registers and the result is placed in the destination (the first
 register):
 
 #+BEGIN_CodeListing
-  add  R4,R11,R0   ; R4 := R11 + R0
-  sub  R5,R2,R13   ; R5 := R2 - R13
-  mul  R2,R10,R7   ; R2 := R10 * R7
-  div  R5,R6,R12   ; R5 := R6 / R12, R15 := R6 rem R12
+   add  R4,R11,R0   ; R4 := R11 + R0
+   sub  R5,R2,R13   ; R5 := R2 - R13
+   mul  R2,R10,R7   ; R2 := R10 * R7
+   div  R5,R6,R12   ; R5 := R6 / R12, R15 := R6 rem R12
 #+END_CodeListing
 
 The divide instruction is slightly different: it produces two results,
@@ -536,9 +552,9 @@ values; and (3) put the result into the destination, discarding
 whatever value was previously there.  So consider this example:
 
 #+BEGIN_CodeListing
-   lea   R7,20[R0]  ; R7 := 20
-   lea   R8,30[R0]  ; R8 := 30
-   add   R7,R7,R8   ; R7 := R7 + R8
+    lea   R7,20[R0]  ; R7 := 20
+    lea   R8,30[R0]  ; R8 := 30
+    add   R7,R7,R8   ; R7 := R7 + R8
 #+END_CodeListing
 
 After the two lea instructions have executed, R7 contains 20 and R8
@@ -1882,130 +1898,6 @@ As long as the breakpoint is enabled, execution will stop every time
 that location is encountered.  To prevent this, open the breakpoint
 popup again and click Disable.
 
-** Summary of core instruction formats
-
-*** RRR format
-
-RRR instructions are represented in one word comprising four 4-bit
-fields.  Each field contains 4 bits representing a binary number
-between 0 and 15.
-
-# {{{svgfig(../figures/svg/RRRformat)}}}
-
-- op (bits 15 to 12) is the operation code, usually called /opcode/.
-  This determines the operation to be performed.  If the opcode is
-  between 0 and 12 it specifies an RRR instruction.  An opcode greater
-  than 12 indicates an /expanding opcode/: the instruction is not RRR
-  but one of the other formats, and it has a secondary opcode that
-  specifies precisely which instruction it is.  This is explained in
-  the sections on RX and EXP formats.
-- d (bits 11 to 8) is the /destination register/; the register where
-  (in most cases) the result will be loaded.
-- a (bits 7 to 4) is the register containing the first operand.
-- b (bits 3 to 0) is the register containing the second operand.
-
-In most cases, an RRR instruction takes two operands in registers
-specified by the a and b fields and produces a result which is loaded
-into the register specified by the d field.  A typical example of an
-RRR instruction is add R4,R9,R2, which adds the contents of registers
-R9 and R2, and loads the result into R4.  It's equivalent to R4 :=
-R9 + R2.  The opcode for add is 0, so the machinen language code for
-this instruction is 0492.
-
-*** RX format
-
-RX instructions specify a memory location as well as a register
-operand.  The machine language representation is two words:
-
-Here is RX
-# {{{svgfig(RRRformat)}}}
-
-The RX instruction format is used for instructions that use a memory
-address, which is specified by an index register and a displacement.
-The name of the format describes briefly the two operands: a register
-(R) and an indexed memory address (X).
-
-An RX instruction contains two operands: one is a memory address, and
-the other is a register.  Typical RX instructions are loads, stores,
-and jumps.  The instruction consists of two consecutive words.  The
-first has the same format as an RRR instruction, with four fields: op,
-d, sa, sb.  The second word is a single 16-bit binary number, and is
-called the displacement.
-
-An RX instruction is represented by two words, with the following
-fields: op=15, b contains the secondary opcode which specifies which
-RX instruction it is, d is the destination, a is the index register,
-and the second word is a 16 bit constant called the displacement
-(often written disp for short).
-
-- op field (bits 0-3 of ir) is f for all RX instructions
-- d field (bits 4-7 of ir) has several uses
-- a field (bits 8-11 of ir) is index register for effective address
-- b field (bits 12-15 of ir) is secondary opcode
-- disp (displacement) is the second word of the instruction
-- ea (effective address) = displacement + r[a]
-
-The memory address is specified in two parts: an index register and
-the displacement.  The index register is specified in the sa field.
-In assembly language, the notation used is number[reg], where the
-number is the value of the displacement, and the reg is the index
-register.  Thus $20b3[R2] means the address has displacement $20b3 and
-the index register is R2.
-
-When the machine executes an RX instruction, it begins by calculating
-the effective address.  This is abbreviated "ea", and its value is the
-sum of the displacement and the contents of the index register.
-
-RX instructions are represented in two words, and they use an
-"expanding opcode".  That is, the op field of the first word of the
-instruction contains the constant f (the bits 1111) for every RX
-instruction, and the sb field is used to hold a secondary opcode
-indicating which RX instruction it is.
-
-The register operand is specified in the d field.  For several RX
-instructions, this is indeed the destination of the instruction: for
-example, load places data into Rd.  However, a few RX instructions use
-the d field differently (see, for example, the conditional jump
-instructions).
-
-The memory address is specified using the sa field and the
-displacement, which is the entire second word of the instruction.
-
-** Summary of core instructions
-
-The following table summarises the instructions in the Core subset of
-Sigma16.  The columns are:
-- Mnemonic.  The assembly language name of the instruction
-- ISA. The Instruction Set Architecture subset that contains the
-  instruction; for this table all the instructions are Core.
-- P. * indicates that the instruction is privileged, blank indicates
-  that it is not.  All of the Core instructions are unprivileged.  For
-  the meaning of "privileged", see the System section.
-- Fmt. The instruction format.  There are two Core instruction
-  formats: RRR (instruction has three operand fields, each a register)
-  and RX (instruction has a register operand and an X operand
-  consisting of a displacement constant and an index register).
-- Args.  The assembly language argument format.  Usually this is the
-  same as Fmt.  However, some instructions don't use all the fields,
-  and the assembly language statement omits the irrelevant field
-  (e.g. cmp is RRR format but the assembly language statement omits
-  the d field, which is ignored).
-- Code.
-- Effect.  A statement in an imperative programming language which
-  describes what the instruction does.
-
-Pseudoinstructions for comparisons
-
-- jumplt jump if <
-- jumple jump if <=
-- jumpeq jump if =
-- jumpne jump if !=
-- jumpge jump if >-
-- jumpgt jump if >
-
-Assembly directives
-
-- data
 
 * Standard architecture tutorials
 
@@ -2144,8 +2036,6 @@ called the offset.
 ** System control registers
 
 # [[./figures/control-block-pc.png]]
-
-** Interrupts
 
 * The Sigma16 architecture
 :PROPERTIES:
@@ -2300,12 +2190,14 @@ of a word.  If a numeric value is out of range it is truncated.
 - A signed integer between -32,768 and 32,767 (-2^15 and 2^15 - 1)
 - A 4-digit hexadecimal constant, where the digits are 0-9 a-f.
   Sometimes, when the context is clear, this is written as just the
-  hex digits (e.g 3b2f).  In assembly language programs, hex constants
-  are written with a preceding $ sign (e.g. $3b2f).  This is necessary
-  to avoid ambiguity: 1234 is a decimal number and $1234 is a
-  hexadecimal number.  In contexts where there is no ambiguity, the $
-  may be omitted: for example, the user interface shows register and
-  memory contents as hexadecimal without the leading $.
+  hex digits (e.g 3b2f).
+  - In assembly language programs, hex constants are written with a
+    preceding $ sign (e.g. $3b2f).  This is necessary to avoid
+    ambiguity: 1234 is a decimal number and $1234 is a hexadecimal
+    number.
+  - In contexts where there is no ambiguity, the $ may be omitted: for
+    example, the user interface shows register and memory contents as
+    hexadecimal without the leading $.
 
 ** Memory
 
@@ -2379,10 +2271,10 @@ code/.  The description of each instruction states whether R15 is
 modified, and what goes into it.
 
 Each bit in the condition code (R15) is a Boolean that specifies
-whether a specific condition is true.  The bits are indexed from bit 0
-(rightmost, or least significant) to bit 15 (the leftmost, or most
-significant).  The condition code bits that have specific meanings are
-called *flags*.
+whether a specific condition is false (0) or true (1).  The bits are
+indexed from bit 0 (rightmost, or least significant) to bit 15 (the
+leftmost, or most significant).  The condition code bits that have
+specific meanings are called *flags*.
 
 - Each bit position holds a Boolean value, either False or True,
   represented by 0 or 1 respectively.
@@ -2412,25 +2304,38 @@ meaning.
 - If ffff is interpreted as an integer (i.e. two's complement), then
   it is negative and has the value -1, and ffff < 0000.
 
-Each flag has a short 1-character name to enable them to be displayed
-compactly.  A naming convention is that flags for integers (two's
-complement) have lower case letters, while flags for natural numbers
-(binary) have upper case letters.  For example:
+Each flag has a short 1-character name to enable it to be displayed
+compactly in the user interface.  A naming convention is that flags
+for integers (two's complement) have lower case letters, while flags
+for natural numbers (binary) have upper case letters.  For example:
+
 - l means < for integers
-- L means > for integers
-However, equality is the same regardless of type.  If two words
-consist of exactly the same bits, then they have the same value as
-integers, natural numbers, characters, addresses, and for any other
-possible type as well.  Therefore there is only one flag for equality,
-and its symbol is =.
+- L means < for natural numbers
+- g means > for integers
+- G means > for natural numbers
+
+Equality is the same regardless of type.  If two words consist of
+exactly the same bits, then they have the same value as integers,
+natural numbers, characters, addresses, and for any other possible
+type as well.  Therefore there is only one flag for equality, and its
+symbol is =.
 
 The following table lists all the condition code flags.
-- Bit index: Each flag has an index which gives its bit position in
+- Index: Each flag has an index which gives its bit position in
   the condition code.  Bits are numbered from right to left, starting
   with 0.
+- Symbol: the graphical user interface shows the symbol for each bit
+  that is 1.  For example, if G is displayed after a comparison of two
+  words, this means that > holds if the words are interpreted as
+  natural numbers but not if they are interpreted as integers.
 - Meaning: Description using English or mathematical notation
-- Symbol: Character that is showin in the processor display when the
-  flag is 1.
+- Hex: The value of the condition code word assuming the given flag is
+  true and all others are false.  If several flags are true, the
+  condition code register will be the sum of the hex values of the
+  true flags.  For example, suppose the words 00a3 is compared with
+  00c5.  The comparison result is L (less than for naturals) and also
+  l (less than for integers).  So the condition code will contain
+  0008 + 0010 = 0018.
 
 Table: Condition code flags
 
@@ -2458,10 +2363,10 @@ in the condition code.  The reason is that the div instruction places
 the remainder in R15, so the condition code isn't available to
 represent division by 0.  You can use an interrupt to detect division
 by 0, and you can test explicity for division by 0 by using jumpz
-specifying the register containing the divisor before execuing the div
-instruction.
+specifying the register containing the divisor before executing the
+div instruction.
 
-**** The other general registers: R1 through R14
+**** The ordinary general registers: R1 through R14
 
 Registers R1 through R14 have no special properties defined by the
 machine.  A program can use them for any purpose.
@@ -2474,25 +2379,21 @@ conventions in order to use the standard software libraries in your
 program.  See the section on Programming for a discussion of these
 standard usage conventions.
 
-The software conventions are:
-- R14 - stack pointer
-- R13 - return address
-- R12
-
 *** Instruction control registers
 
-There are several instruction control registers that enable the
-processor to keep track of the state of the running program.  These
-registers are rarely used directly by the machine language program,
-but they are essential for keeping track of the execution of the
-program, and some instructions use them directly.
+The instruction control registers enable the processor to keep track
+of the state of the running program.  These registers are rarely used
+directly by the machine language program, but they are essential for
+keeping track of the execution of the program, and some instructions
+use them directly.
 
-**** pc
+**** pc -- program counter
 
-The pc (program counter) register contains the address of the next instruction to be
-executed (/not/ the address of the instruction currently being
-executed).  The name is illogical, but "program counter" is the
-traditional name so we will stick with standard terminology.
+The PC (program counter) register contains the address of the next
+instruction to be executed (/not/ the address of the instruction
+currently being executed).  The name is illogical, but "program
+counter" is the traditional name and Sigma16 sticks with standard
+terminology.
 
 **** ir -- instruction register
 
@@ -2504,15 +2405,18 @@ the IR and the second word is in the ADR register.
 **** adr -- address register
 
 If the instruction currently executing is RRR format, the ADR register
-is not used (and its content is just whatever was left over from
-previous instructions).
+is not used, and its content is just whatever was left over from
+previous instructions.
 
 If the instruction currently executing is RX or EXP format, the ADR
 register contains the second word of the instruction.  Furthermore,
 for RX instructions the effective address is calculated and replaces
 the second word of the instruction.
 
-**** status register
+**** status -- system status register
+
+The status register contains flags that specify the current execution
+mode of the processor.
 
 | Index | Symbol | Meaning                        |  Hex |
 |-------+--------+--------------------------------+------|
@@ -2520,30 +2424,113 @@ the second word of the instruction.
 |     1 | E      | 1: interrupts enabled          | 0002 |
 |       |        |                                |      |
 
-**** mask - interrupt mask register
+If the processor is in system state, any instruction can be executed.
+If it is in user state, executing a privileged instruction causes an
+interrupt.
 
-Table: Flags for both mask and req registers
+When the system is started by booting a program, the status is set to
+system state.  If the program is just a standalone program (such as
+the simple examples), you can ignore the system state.  If an
+operating system has been booted, the OS should put the processor into
+user state when it gives a time slice to a user process.
 
-| Index | Symbol | Meaning                 |  Hex |
-|-------+--------+-------------------------+------|
-|     0 | time   | timer interrupt request | 0001 |
-|     1 | sf     | segmentation fault      | 0002 |
-|     2 | sto    | stack overflow          | 0004 |
-|     3 | stu    | stack underflow         | 0008 |
-|     4 | trap   | user trap               | 0010 |
-|     5 | tco    | integer overflow        | 0020 |
-|     6 | bo     | natural overflow        | 0040 |
-|     7 | zdiv   | divide by 0             | 0080 |
-|       |        |                         |      |
+If the status register indicates that interrupts are enabled, and an
+interrupt request is set in the request register, than an interrupt
+occurs when the current instruction is completed.  If interrupts are
+not enabled, then interrupt requests are ignored.
+
+** Interrupts
+
+An interrupt is a jump performed automatically by the machine in
+response to an event, not by executing a jump instruction.  Interrupts
+are used for error detection and recovery, input/output, concurrency,
+memory protection, and virtual memory.  Most of these features are
+implemented by an operating system kernel.
+
+There are two kinds of event that can trigger an interrupt:
+
+- An error that occurs while executing an instruction.  For example,
+  an arithmetic instruction could produce a result that is too large
+  to represent in a word (this is called overflow).  Sometimes this is
+  called an /exception/, and sometimes it is called an interrupt.
+- An external event that has nothing to do with the running program,
+  but which needs to be handled.  For example, an I/O device may
+  request an interrupt when it has completed an I/O operation.  This
+  is always called an interrupt.
+
+There are several types of interrupt.  Each type has a unique index.
+The interrupt indices serve two purposes: they determine the interrupt
+priority, and they give the bit index for the interrupt type in the
+mask and request registers.  The following table shows each type of
+interrupt and the bit index of its flag.
+
+Table: Interrupt Indices
+
+| Index | Symbol | Meaning            |  Hex |
+|-------+--------+--------------------+------|
+|     0 | time   | timer interrupt    | 0001 |
+|     1 | sf     | segmentation fault | 0002 |
+|     2 | sto    | stack overflow     | 0004 |
+|     3 | stu    | stack underflow    | 0008 |
+|     4 | trap   | user trap          | 0010 |
+|     5 | tco    | integer overflow   | 0020 |
+|     6 | bo     | natural overflow   | 0040 |
+|     7 | zdiv   | divide by 0        | 0080 |
+|       |        |                    |      |
+
+Each type of interrupt has a priority which is determined by its
+index: a lower index indicates higher priority.  Thus the timer
+interrupt has the highest priority, and a stack overflow has higher
+priority than integer overflow.
+
+Interrupts take place only between execution of instructions.  When
+one instruction has finished, the processor checks for interrupts
+before going on to the next instruction.  This consists of the
+following steps:
+
+1. If interrupts are not enabled, the check terminates and the next
+   instruction is executed normally.
+2. If interrupts are enabled, and there is an interrupt request, and
+   the corresponding mask bit is enabled, an interrupt will take
+   place.  If several types of interrupt meet these conditions, the
+   one with highest priority (lowest index) is selected.  Let i be the
+   index of the type of interrupt that was selected.
+3. The processor clears the request bit for the interrupt in the
+   request register, it copies the status register into rstat, and it
+   copies the pc register into the rpc register.  Also, it loads
+   mem[vect+2*i] into the pc register, and it and sets flags in the
+   status register to indicate system state and interrupts disabled.
+4. If the timer is running, it is stopped.
+5. Now the interrupt has completed, and the next instruction is
+   executed normally.  Since the pc has been modified, the machine has
+   jumped to a different location.
+
+This algorithm is performed entirely by the processor; none of it
+involves software.  Although it is described as a sequence of steps,
+many of these steps can be performed in parallel, because digital
+circuits are inherently parallel.  If an interrupt does not take
+place, the time required for the check is minimal (less than one clock
+cycle), so checking for interrupts does not signicantly slow down the
+processor speed.
 
 *** Interrupt control registers
 
-**** req - interrupt request register
+The processor contains several registers to implement interrupts.
 
-The Interrupt request and mask registers contain the same bits.  When
-an interrupt is requested, the corresponding bit is set in the req
-register.  When the next instruction is executed, the interrupt occurs
-if the corresponding mask bit is 1.
+**** mask - interrupt mask register
+
+The mask register specifies which types of interrupt are allowed to
+occur.  It contains a flag for each type of interrupt; if the flag is
+1 then the corresponding type of interrupt can take place.  If the
+mask flag is 0, then that type of interrupt will not occur even if it
+is requested.
+
+**** request - interrupt request register
+
+When an interrupt is requested, the corresponding bit is set in the
+request register.  When the next instruction is executed, the
+interrupt occurs if interrupts are enabled and the corresponding mask
+bit is 1.
 
 **** rstat register
 
@@ -2558,12 +2545,13 @@ program.
 
 **** vect register
 
-The interrupt vector register contains the address of an array of
-addresses of interrupt handlers.
+The interrupt vector register contains the address of a jump table.
+This is an array of jumps to interrupt handlers.
 
-*** Memory management registers
+** Memory management registers
 
 (Will be implemented in future version)
+
 
 ** Instruction representation
 
@@ -2594,14 +2582,31 @@ calculations in the registers, and the *RX format* for instructions
 that refer to a memory location.
 
 The advanced parts of the architecture provide additional instructions
-which are represented with the *EXP format*. The name EXP stands
+that are represented with the *EXP format*. The name EXP stands
 simultaneously for *expansion* (because it provides for many
 additional instructions) and *experimental* (because it allows for
 experimentation with the design and implementation of new
 instructions).
 
-Every instruction has a 4-bit field called the opcode (op for short).
-This gives 16 values of the opcode:
+The first word of every instruction (for all instruction formats)
+contains the following fields:
+
+- op (bits 0-3)   4-bit opcode, determines instruction format
+- d  (bits 4-7)   4-bit destination
+- a  (bits 8-11)  4-bit operand a
+- b  (bits 12-15) 4-bit operand b, or expanded opcode for RX
+
+If an instruction is RX or EXP format, it has a second word that
+contains four 4-bit fields.  The meanings of the fields depend on the
+particular instruction.
+
+- e  (bits 0-3)   4-bit operand
+- f  (bits 4-7)   4-bit operand
+- g  (bits 8-11)  4-bit operand
+- h  (bits 12-15) 4-bit operand
+
+The first word of every instruction has a 4-bit field called the
+opcode (op for short).  This gives 16 values of the opcode:
 
 - If the opcode is between 0 and 13 (hex 0 to hex d), the instruction
   is RRR format, and there are 14 RRR instructions.
@@ -2609,14 +2614,7 @@ This gives 16 values of the opcode:
   a secondary opcode in the a and b fields.
 - If the op field contains 15 (hex f) the instruction is RX format
   with a secondary opcode in the b field.
-
-The first word of every instruction contains the following fields.
-
-- op  (bits 0-3) opcode, determines instruction format
-- d   (bits 4-7) 4-bit destination
-- a   (bits 8-11) 4-bit operand
-- b   (bits 12-15) 4-bit operand, or expanded opcode for RX
-
+  
 The details of each format and its fields are given below, and the
 following table gives an overview.
 - Each instruction format has a fixed size, which is the number of
@@ -2639,13 +2637,13 @@ following table gives an overview.
 | RX     |    2 | op,b   | d,a,disp  | load Rd,disp[Ra]  |
 | EXP    |    2 | op,ab  | d,e,f,g,h | save Rd,Re,gh[Rf] |
 
-There are two kinds of format: the machine instruction formats, and
-the assembly language instruction statement formats.  There are three
-machine instruction formats: RRR, RX, EXP.  However, there is a
-larger set of assembly language statement formats, because there are
-special syntaxes for some instructions, and there are assembler
-directives that aren't instructions at all.  The assembly language
-formats are described later.
+There are three machine instruction formats: RRR, RX, EXP.  However,
+there is a larger set of assembly language statement formats, because
+there are special syntaxes for some instructions, and there are
+assembler directives that aren't instructions at all.  Thus there are
+two kinds of format: the machine instruction formats, and the assembly
+language instruction statement formats.  The assembly language formats
+are described later.
 
 *** RRR format
 
@@ -2653,22 +2651,98 @@ The RRR format is used for instructions that perform calculations in
 the registers, without using memory.
 
 An instruction in RRR format is one word containing four 4-bit fields
-called op, d, a, b.  The op field is the operation code.  If $0 \leq
-op \leq 13$, its value specifies which RRR instruction this is.  If
-$13 < op$, this means the instruction "escapes" to another addressing
-mode.  If $op=15$ the instruction is RX format, and $op=14$ means it
-is EXP format.
+called op, d, a, b.  Each field contains 4 bits representing a binary
+number between 0 and 15.
 
 |----+---+---+---|
 | op | d | a | b |
 |----+---+---+---|
 
-Most RRR instructions have two operand registers specified in the a
-and b fields.  They perform a calculation on the values in these
-registers, and the result is written into the d register (d for
-destination).
+# {{{svgfig(./figures/svg/RRRformat)}}}
+
+- op (bits with index 15 to 12) is the operation code, usually called
+  /opcode/.  This determines the operation to be performed.  If the
+  opcode is between 0 and 12 it specifies an RRR instruction.  An
+  opcode greater than 12 indicates an /expanding opcode/: the
+  instruction is not RRR but one of the other formats, and it has a
+  secondary opcode that specifies precisely which instruction it is.
+  This is explained in the sections on RX and EXP formats.
+- d (bits 11 to 8) is the /destination register/; the register where
+  (in most cases) the result will be loaded.
+- a (bits 7 to 4) is the register containing the first operand.
+- b (bits 3 to 0) is the register containing the second operand.
+
+In most cases, an RRR instruction takes two operands in registers
+specified by the a and b fields and produces a result which is loaded
+into the register specified by the d field.
+
+A typical example of an RRR instruction is add R4,R13,R2, which adds
+the contents of registers R13 and R2, and loads the result into R4.
+It's equivalent to R4 := R13 + R2.  The opcode for add is 0, so the
+machine language code for this instruction is 04d2.
 
 *** RX format
+
+The RX format is used for instructions that use a memory location.
+There are generally two operands: one is a register and the other is a
+word in memory.
+
+RX instructions specify a memory location as well as a register
+operand.  The machine language representation is two words:
+
+Here is RX
+# {{{svgfig(RRRformat)}}}
+
+The RX instruction format is used for instructions that use a memory
+address, which is specified by an index register and a displacement.
+The name of the format describes briefly the two operands: a register
+(R) and an indexed memory address (X).
+
+An RX instruction contains two operands: one is a memory address, and
+the other is a register.  Typical RX instructions are loads, stores,
+and jumps.  The instruction consists of two consecutive words.  The
+first has the same format as an RRR instruction, with four fields: op,
+d, sa, sb.  The second word is a single 16-bit binary number, and is
+called the displacement.
+
+An RX instruction is represented by two words, with the following
+fields: op=15, b contains the secondary opcode which specifies which
+RX instruction it is, d is the destination, a is the index register,
+and the second word is a 16 bit constant called the displacement
+(often written disp for short).
+
+- op field (bits 0-3 of ir) is f for all RX instructions
+- d field (bits 4-7 of ir) has several uses
+- a field (bits 8-11 of ir) is index register for effective address
+- b field (bits 12-15 of ir) is secondary opcode
+- disp (displacement) is the second word of the instruction
+- ea (effective address) = displacement + r[a]
+
+The memory address is specified in two parts: an index register and
+the displacement.  The index register is specified in the sa field.
+In assembly language, the notation used is number[reg], where the
+number is the value of the displacement, and the reg is the index
+register.  Thus $20b3[R2] means the address has displacement $20b3 and
+the index register is R2.
+
+When the machine executes an RX instruction, it begins by calculating
+the effective address.  This is abbreviated "ea", and its value is the
+sum of the displacement and the contents of the index register.
+
+RX instructions are represented in two words, and they use an
+"expanding opcode".  That is, the op field of the first word of the
+instruction contains the constant f (the bits 1111) for every RX
+instruction, and the sb field is used to hold a secondary opcode
+indicating which RX instruction it is.
+
+The register operand is specified in the d field.  For several RX
+instructions, this is indeed the destination of the instruction: for
+example, load places data into Rd.  However, a few RX instructions use
+the d field differently (see, for example, the conditional jump
+instructions).
+
+The memory address is specified using the sa field and the
+displacement, which is the entire second word of the instruction.
 
 The RX format is used for instructions that access the memory.  There
 are two operands: a memory address and a register.  The memory address
@@ -2841,10 +2915,17 @@ effective address is just *a*.
 
 *** lea
 
-The *load effective address* instruction *lea Rd,disp[Rx]* calculates
-the effective address of the operand disp[Rx] and places the result in
+The *load effective address* instruction *lea Rd,disp[Ra]* calculates
+the effective address of the operand disp[Ra] and places the result in
 the destination register Rd.  The effective address is the binary sum
-disp+Rx.
+disp+Ra.
+
+|--------------------+----------------------------|
+| instruction format | RX                         |
+| machine language   | {$f d a $0} {disp}         |
+| effect             | reg[d] := disp+reg[a]      |
+| assembly language  | lea Rd,disp[Ra]            |
+|--------------------+----------------------------|
 
 *** load
 
@@ -2853,13 +2934,13 @@ address of the operand disp[Rx] and copies the word in memory at the
 effective address into the destination register Rd.  The effective
 address is the binary sum disp+Rx.
 
------------------   -----------------------------------------
-general form        load Rd,disp[Ra]
-effect              reg[Rd] := mem[disp+reg[Ra]]
-machine format      RX
-assembly format     RX
------------------   -----------------------------------------
-
+|--------------------+----------------------------|
+| assembly language  | load Rd,disp[Ra]           |
+| instruction format | RX                         |
+| machine language   | {$f d a $1} {disp}         |
+| effect             | reg[d] := mem[disp+reg[a]] |
+|--------------------+----------------------------|
+  
 Examples
 #+BEGIN_CodeListing
    load  R12,count[R0]   ; R12 := count
@@ -2870,16 +2951,15 @@ Examples
 *** store
 
 The *store* instruction *store Rd,disp[Rx]* calculates the effective
-address of the operand disp[Rx] and the value of the destination
-register Rd into memory at the effective address.  The effective
-address is the binary sum disp+Rx.
+address of the operand disp[Rx].  The value of the destination
+register Rd is stored into memory at the effective address.
 
------------------   -----------------------------------------
-general form        store Rd,disp[Ra]
-effect              mem[disp+reg[Ra]] := reg[Rd]
-machine format      RX
-assembly format     RX
------------------   -----------------------------------------
+|--------------------+----------------------------|
+| instruction format | RX                         |
+| machine language   | {$f d a $2} {disp}         |
+| effect             | mem[disp+reg[a]] := reg[d] |
+| assembly language  | store Rd,disp[Ra]          |
+|--------------------+----------------------------|
 
 Store copies the word in the destination register into memory at the
 effective address.  This instruction is unusual in that it treats the
@@ -2941,7 +3021,7 @@ A stack can be created and initialized by allocating a region of
 memory, setting /stack base/ to the first word and /stack limit/ to
 the last word, and setting /stack top/ to /stack base/ - 1.
 
-**** push
+*** push
 
 The push instruction pushes an element onto a stack.  It is RRR
 format, and its general form is:
@@ -2983,7 +3063,7 @@ will occur after the push instruction completes.  There will be no
 interrupt if interrupts are disabled, or the stack fault bit is not
 set in the mask register.
 
-**** pop
+*** pop
 
 The push instruction removes an element onto a stack and returns it.
 The instruction is RRR format, and its general form is:
@@ -3013,7 +3093,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_CodeListing
 
-**** top
+*** top
 
 The top instruction returns the top element on a stack but does not
 remove it.  The instruction is RRR format, and its general form is:
@@ -3092,16 +3172,10 @@ because it is specified in the *gh* field, which is the rightmost 8
 bits of the second word of the instruction.  The secondary opcode is
 9, which is in the ab field of the first word of the instruction.
 
-**** save
+*** save
 
-The general form is
-
-#+BEGIN_CodeListing
-   save Rd,Re,gh[Rf]
-   EXP op=#e ab=$0b
-#+END_CodeListing
-
-The save instruction performs a sequence of stores:
+The save instruction performs a sequence of stores, which copy the
+contents of a sequence of registers into consecutive memory locations.
 
 - $\mathsf{mem}[R_f+gh] := R_d$
 - $\mathsf{mem}[R_f+gh+1] := R_{d+1}$
@@ -3109,14 +3183,26 @@ The save instruction performs a sequence of stores:
 - $\ldots$
 - $\mathsf{mem}[R_f+gh+e-d] := R_e$
 
-For example, the following instruction will save registers R3 through R9
-into memory starting at address 6 + R13:
+|--------------------+------------------------------|
+| instruction format | EXP                          |
+| machine language   | [$e d $0b] [e f gh]          |
+| effect             | mem[reg[f]+gh] := reg[d]     |
+|                    | mem[reg[f]+gh+1] := reg[d+1] |
+|                    | ...                          |
+|                    | mem[reg[f]+gh+e-d] := reg[e] |
+| assembly language  | save Rd,Re,gh[Rf]            |
+|--------------------+------------------------------|
+  
+For example, the following instruction will save registers R3 through
+R9 into memory starting at address 6 + R13.  Its machine language code
+is e30b 9d06.
 
 #+BEGIN_CodeListing
-   save   R3,R9,6[R13]  ; e30b 9d06. store R3-R9 starting at 6[R13]
+   save   R3,R9,6[R13]
 #+END_CodeListing
 
-It is equivalent to a sequence of store instructions:
+This instruction  is equivalent to a sequence of store instructions:
+
 #+BEGIN_CodeListing
    store   R3,6[R13]
    store   R4,7[R13]
@@ -3130,16 +3216,21 @@ It is equivalent to a sequence of store instructions:
 As this example shows, using =save= and =restore= can make procedure
 calls more concise and readable as well as less error-prone.
 
-**** restore
+*** restore
 
-This =restore= instruction has the same operands as the corresponding
-=save=, and it performs a sequence of stores corresponding to the
-loads performed by save.  The general form is
+This =restore= instruction has the same operands as =save=, and it
+performs a sequence of loads corresponding to the stores performed by
+save.
 
-#+BEGIN_CodeListing
-   restore Rd,Re,gh[Rf]
-   EXP op=#e ab=$0c
-#+END_CodeListing
+|--------------------+------------------------------|
+| assembly language  | save Rd,Re,gh[Rf]            |
+| instruction format | EXP                          |
+| machine language   | [$e d $0c] [e f gh]          |
+| effect             | reg[d] := mem[reg[f]+gh]=    |
+|                    | reg[d+1] :- mem[reg[f]+gh+1] |
+|                    | ...                          |
+|                    | reg[e] := mem[reg[f]+gh+e-d] |
+|--------------------+------------------------------|
 
 The restore instruction performs a sequence of loads:
 
@@ -3225,6 +3316,13 @@ destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~, calculates
 the sum ~Ra~ + ~Rb~, and loads the result into the destination ~Rd~.
 The effect is ~Rd := Ra + Rb~.  For example, ~add R5,R12,R2~
 performs ~R5 := R12 + R3~.
+
+|--------------------+---------------------------|
+| instruction format | RRR                       |
+| machine language   | [$0 d a b]                |
+| effect             | reg[d] := reg[a] + reg[b] |
+| assembly language  | add Rd,Ra,Rb              |
+|--------------------+---------------------------|
 
 The add instruction is RRR format with opcode=0.  Given destination Rd
 and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
@@ -3327,6 +3425,14 @@ This instruction is similar to add; the only difference is that it
 calculates R2-R3 and places the result in R1.  The effect on the
 condition code is the same as for add.
 
+
+|--------------------+---------------------------|
+| instruction format | RRR                       |
+| machine language   | [$1 d a b]                |
+| effect             | reg[d] := reg[a] - reg[b] |
+| assembly language  | sub Rd,Ra,Rb              |
+|--------------------+---------------------------|
+
 The instruction sub Rd,Ra,Rb has operands Ra and Rb and destination
 Rd.  It fetches the operands Ra and Rb, calculates the difference Ra -
 Rb, and loads the result into the destination Rd.  The effect is Rd :=
@@ -3363,6 +3469,14 @@ complement) product of the operands Ra and Rb, and places the result
 in the destination register Rd.  The mul instruction does not produce
 the natural (binary) product.
 
+
+|--------------------+---------------------------|
+| instruction format | RRR                       |
+| machine language   | [$2 d a b]                |
+| effect             | reg[d] := reg[a] * reg[b] |
+| assembly language  | mul Rd,Ra,Rb              |
+|--------------------+---------------------------|
+
 If the magnitude of the product is too large to be representable as a
 16 bit two's complement integer, this is an overflow.  If overflow
 occurs, the integer overflow bit is set in the condition code (F15)
@@ -3386,6 +3500,15 @@ Unlike the other arithmetic operations, the divide instruction div
 Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder
 Ra rem Rb.  It loads the quotient into the destination register Rd,
 and the remainder is loaded into R15.
+
+
+|--------------------+------------------------------|
+| instruction format | RRR                          |
+| machine language   | [$3 d a b]                   |
+| effect             | reg[d] := reg[a] / reg[b]    |
+|                    | reg[15] := reg[a] rem reg[b] |
+| assembly language  | div Rd,Ra,Rb                 |
+|--------------------+------------------------------|
 
 If the destination register Rd is actually R15, then the quotient is
 placed in R15, and the remainder is discarded.
@@ -3428,6 +3551,14 @@ complement).  The resulting flags are
 - binary greater than (G) in R15.3
 - two's complement greater than (>) in R15.4
 
+  
+|--------------------+------------------------------|
+| instruction format | RRR                          |
+| machine language   | [$4 d a b]                   |
+| effect             | reg[d] := reg[a] / reg[b]    |
+| assembly language  | cmp Rd,Ra,Rb                 |
+|--------------------+------------------------------|
+
 The result of a cmp instruction can be used to control a conditional
 jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
 and the jumpc1 instruction jumps if a specified bit is 1.
@@ -3462,6 +3593,14 @@ significant part) is loaded into R15, and the rightmost 16 bits (the
 least significant part) is loaded into Rd.  If Rd is R15, the most
 significant part is discarded.
 
+  
+|--------------------+------------------------------|
+| instruction format | RRR                          |
+| machine language   | [$4 d a b]                   |
+| effect             | reg[d] := reg[a] / reg[b]    |
+| assembly language  | cmp Rd,Ra,Rb                 |
+|--------------------+------------------------------|
+
 *** divn
 
 #+BEGIN_CodeListing
@@ -3471,6 +3610,13 @@ significant part is discarded.
 The divn instruction divides two natural numbers: dividend / divisor.
 All the numbers -- numerator, denominator, quotient, remainder -- are
 natural numbers represented in binary.
+
+|--------------------+------------------------------|
+| instruction format | RRR                          |
+| machine language   | [$4 d a b]                   |
+| effect             | reg[d] := reg[a] / reg[b]    |
+| assembly language  | divn Rd,Ra,Rb                |
+|--------------------+------------------------------|
 
 - The dividend is a 32 bit natural number; its leftmost 16 bits are in
   R15 and the rightmost 16 bits are in Ra.  Thedenominator is in Rb.
@@ -3489,10 +3635,86 @@ effective address in the jump instruction.  A jump can be used to
 implement a goto statement.  (See also [[*Branches][Branches]].)
 
 *** jump
+
+|--------------------+----------------------------|
+| instruction format | RX                         |
+| machine language   | {$f d a $3} {disp}         |
+| effect             | pc := disp+R[a]            |
+| assembly language  | jump disp[Ra]              |
+|--------------------+----------------------------|
+
 *** jumpc0, jumpc1
-*** jumpz, jumpnz
+
+jumpc0 is used to jump to a destination if a specified bit in the
+condition code is 0.
+
+|--------------------+------------------------------|
+| assembly language  | jumpc0 d,disp[Ra]            |
+| instruction format | RX                           |
+| opcode             | f,4                          |
+| machine language   | {$f d a $4} {disp}           |
+| privileged         | no                           |
+| effect             | R[15].d=0 -> pc := disp+R[a]  |
+|--------------------+------------------------------|
+
+# M-x insert-character 21D2
+
+jumpc1 is similar: it jumps if the specified bit is 1.
+
+|--------------------+----------------------------|
+| assembly language  | jumpc1 d,disp[Ra]          |
+| instruction format | RX                         |
+| opcode             | f,5                        |
+| machine language   | {$f d a $5} {disp}         |
+| privileged         | no                         |
+| effect             | R15.d=1 => pc := disp+R[a] |
+|--------------------+----------------------------|
 
 *** jal
+
+|--------------------+------------------------------|
+| assembly language  | jal Rd,disp[Ra]              |
+| instruction format | EXP                          |
+| opcode             | f,6                          |
+| machine language   | {$f d a $6} {disp}           |
+| effect             | R[d]:=pc, pc:=disp+R[a]         |
+|--------------------+------------------------------|
+
+*** jumpz, jumpnz
+
+The jumpz instruction jumps to the destination if a specified register
+is 0 (i.e. all the bits in that register are 0).
+
+|--------------------+---------------------------------------|
+| assembly language  | jumpz d,disp[Ra]                      |
+| instruction format | EXP                                   |
+| opcode             | f,7                          |
+| machine language   | {$f d a $7} {disp}                    |
+| effect             | R[15].d=0 -> pc := disp+R[a]          |
+|--------------------+---------------------------------------|
+
+The jumpnz instruction jumps to the destination if a specified register
+is not 0 (i.e. at least one of the bits in that register is 1).
+
+|--------------------+------------------------------|
+| assembly language  | jumpnz d,disp[Ra]            |
+| instruction format | EXP                          |
+| opcode             | f,8                          |
+| machine language   | {$f d a $8} {disp}           |
+| effect             | R[15].d=1 => pc := disp+R[a] |
+|--------------------+------------------------------|
+
+** testset
+
+
+|--------------------+---------------------------------------|
+| assembly language  | testset Rd,disp[Ra]                   |
+| instruction format | EXP                                   |
+| opcode             | f,9                                   |
+| machine language   | {$f d a $9} {disp}                    |
+| effect             | R[d]:=M[disp+R[a], M[disp+R[a]]:=0001 |
+|--------------------+---------------------------------------|
+
 
 ** Branches
 
@@ -3501,11 +3723,6 @@ to the following instruction. The destination address is specified as
 an offset relative to the value of the pc (after the pc has been
 incremented).  A branch can be used to implement a goto statement.
 (See also [[*Jumps][Jumps]].)
-
-*** brf, brb
-
-The brf instruction is Branch forward, and the brb instruction is
-branch backward.
 
 The operand is a 16-bit natural number called the /offset/.  This is
 added to (brf) or subtracted from (brb) the current value of the pc
@@ -3539,17 +3756,29 @@ In order to implement /goto xyz/, use =brf xyz= (branch forward) if
 =xyz= occurs after the branch instruction, and use =brb xyz= (branch
 backward) if =xyz= occurs before the branch.
 
-*** brfc0, brbc0, brfc1, brbc1
+*** brc0, brfc1
 
-There are four conditional branch instructions that perform a branch
-based on the value of a bit in a register.  For example, brfc1
-R7,3,dest is equivalent to "go to dest if bit 3 of R7 is 1".  The
-instructions are:
+There are two conditional branch instructions that perform a branch
+based on the value of a bit in a register.  For example, brc0 R7,3,xyz
+means "if bit 3 of R7 is 0 then go to xyz".
 
-- brfc0 - branch forward if the specified bit is 0
-- brfc1 - branch forward if the specified bit is 1
-- brbc0 - branch backward if the specified bit is 0
-- brbc1 - branch backward if the specified bit is 1
+|--------------------+------------------------|
+| assembly language  | brc0 Rd,e,fgh          |
+| instruction format | EXP                    |
+| opcode             | e,00                   |
+| machine language   | {$e d $00} {e fgh}     |
+| effect             | R[d].e=0 -> pc:=pc+fgh |
+|--------------------+------------------------|
+
+brc1 is similar to brc0, but it branches if the specified bit is 1.
+
+|--------------------+------------------------|
+| assembly language  | brc1 Rd,e,fgh          |
+| instruction format | EXP                    |
+| opcode             | e,01                   |
+| machine language   | {$e d $01} {e fgh}     |
+| effect             | R[d].e=1 -> pc:=pc+fgh |
+|--------------------+------------------------|
 
 These instructions are somewhat similar to jumpc0 and jumpc1, but
 there are two key differences:
@@ -3560,17 +3789,32 @@ there are two key differences:
 - The branch instructions are pc-relative, but the jump instructions
   give the absolute address of the destination.
 
-*** brfz, brbz, brfnz, brbnz
+*** brz, brnz
 
 These instructions perform a branch if a specified register is either
 equal to 0 (z), or not equal to 0 (nz).  Equal to 0 means every bit in
 the register is 0; not equal to 0 means some bit in the register is 1.
-For example, brfnz R3,dest means "if R3 !=0 then goto dest".
 
-- brfz - branch forward if zero
-- brfnz - branch forward if not zero
-- brbz - branch backward if zero
-- brbnz - branch backward if not zero
+|--------------------+--------------------------|
+| assembly language  | brz Rd,efgh              |
+| instruction format | EXP                      |
+| opcode             | e,02                     |
+| machine language   | {$e d $02} {efgh}        |
+| effect             | R[d]=0000 -> pc:=pc+efgh |
+|--------------------+--------------------------|
+
+brnz is similar, but it branches if the register is not zero (i.e. any
+bit in Rd is 1).  For example, brnz R3,dest means "if R3 !=0 then goto
+dest".
+
+|--------------------+---------------------------|
+| assembly language  | brnz Rd,efgh              |
+| instruction format | EXP                       |
+| opcode             | e,03                      |
+| machine language   | {$e d $03} {efgh}         |
+| effect             | R[d]!=0000 -> pc:=pc+efgh |
+|--------------------+---------------------------|
+
 
 *** dispatch
 
@@ -4189,96 +4433,200 @@ consist of one of the following:
   constant q (in the fgh fields)
 - 
 
-*** RRR instructions
-
-|------+---+-------+----+---------------------------------|
-| Name | P | Args  | Op | Effect                          |
-|------+---+-------+----+---------------------------------|
-| add  |   | d,a,b |  0 | Rd := Ra + Rb (cc)              |
-| sub  |   | d,a,b |  1 | Rd := Ra - Rb (cc)              |
-| mul  |   | d,a,b |  2 | Rd := Ra * Rb (cc)              |
-| div  |   | d,a,b |  3 | Rd := Ra / Rb, R15 := Ra rem Rb |
-| cmp  |   | d,a   |  4 | R15 := Ra cmp Rb (cc)           |
-| addc |   | d,a,b |  5 | Rd := Ra + Rb + R15.carry (cc)  |
-| muln |   | d,a,b |  6 | R15++Rd := Ra :*: Rb            |
-| divn |   | d,a,b |  7 | R15++Rd := R15++Ra :/: Rb       |
-|      |   | d,a,b |  8 | nop, reserved                   |
-|      |   | d,a,b |  9 | nop, reserved                   |
-|      |   | d,a,b |  a | nop, reserved                   |
-|      |   | d,a,b |  b | nop, reserved                   |
-| trap |   | d,a,b |  c | user interrupt                  |
-|      |   |       |  d | nop, reserved                   |
-|      |   |       |  e | escape to EXP format            |
-|      |   |       |  f | escape to RX format             |
-
-*** RX instructions
-
-All RX instructions apart from testset are in the Core subset.
-
-|---------+---+--------+-----+-------------------------|
-| Name    | P | Args   | Op  | Effect                  |
-|---------+---+--------+-----+-------------------------|
-| lea     |   | d,a[x] | f,0 | Rd := ea                |
-| load    |   | d,a[x] | f,1 | Rd := M[ea]             |
-| store   |   | d,a[x] | f,2 | M[ea] := Rd             |
-| jump    |   | d,a[x] | f,3 | pc := ea                |
-| jumpc0  |   | j,a[x] | f,4 | R15.k=0 ==> pc := ea    |
-| jumpc1  |   | j,a[x] | f,5 | R15.k=1 ==> pc := ea    |
-| jal     |   | d,a[x] | f,6 | Rd := pc, pc := ea      |
-| testset |   | d,a[x] | f,7 | Rd := M[ea], M[ea] := 1 |
-|         |   |        | f,8 | nop, reserved           |
-|         |   |        | ... | nop, reserved           |
-|         |   |        | f,f | nop, reserved           |
-|---------+---+--------+-----+-------------------------|
-
-*** EXP instructions
-
-Rkk D,K,Q
-
-|----------+---+-------------+------+------------------------------|
-| Name     | P | Args        | Op   | Effect                       |
-|----------+---+-------------+------+------------------------------|
-| brb      |   | x           | e,01 | pc := pc+2-fgh               |
-| brfc0    |   | d,k,q       | e,02 | !Rd.e => pc += 2+fgh         |
-| brbc0    |   | d,k,q       | e,03 | !Rd.e => pc += 2-fgh         |
-| brfc1    |   | d,k,q       | e,04 | Rd.e  => pc += 2+fgh         |
-| brbc1    |   | d,k,q       | e,05 | Rd.e  => pc += 2-fgh         |
-| brfz     |   | d,x         | e,06 | Rd=0  => pc += 2+fgh         |
-| brbz     |   | d,x         | e,07 | Rd=0  => pc += 2-fgh         |
-| brfnz    |   | d,x         | e,08 | Rd!=0 => pc += 2+fgh         |
-| brbnz    |   | d,x         | e,09 | Rd!=0 => pc += 2-fgh         |
-| dispatch |   | d,x         | e,0a | Rd!=0 => pc += 2-fgh         |
-| save     |   | Rd,e,gh[Rf] | e,0b | M[ea] := R1,                 |
-|          |   |             |      | ..., M[ea+d-1] := Rd         |
-|          |   |             |      | ..., M[ea+d-1] := Rd         |
-| restore  |   | Rd,e,gh[Rf] | e,0c | R1 := M[ea],                 |
-|          |   |             |      | ..., Rd := M[ea+d-1]         |
-| push     |   | Rd,E,F      | e,0d | M[ea] := Rd, Rb++            |
-| pop      |   | D,E,F       | e,0e | Rb--, Rd := M[ea]            |
-| top      |   | D,E,F       | e,1f | Rb--, Rd := M[ea]            |
-| shiftl   |   | Rd,Re,h     | e,10 | Rd := Re shl h               |
-| shiftr   |   | Rd,Re,h     | e,11 | Rd := Re shr h               |
-| logicw   |   | Rd,Re,Rf,h  | e,12 | Rd := Re (lut g) Rf          |
-| logicr   |   | Rd,e,f,g,h  | e,13 | Rd.e := Rd.f (lut h) Rd.g    |
-| logicb   |   | Rd,e,Rf,g,h | e,14 | Rd.e := Rd.f (lut h) Rd.g    |
-| extract  |   | Rd,f,g,Re,h | e,15 | Rd.f~g := Re.h~h+g-h+1       |
-| extracti |   | Rd,E,L,M,N  | e,16 | Rd := extri Rd di sz Rs si   |
-| getctl   | P | Rd,c        | e,17 | Rd := Sc                     |
-| putctl   | P | Rd,c        | e,18 | Sc := Rd                     |
-| resume   | P |             | e,19 | pc := ipc, status := istatus |
-| timeron  | P | Rd,efgh     | e,1a | timer := efgh, enable := 1   |
-| timeroff | P |             | e,1b | timer := 0, enable := =      |
-|          |   |             | e,1c | reserved                     |
-|          |   |             | ...  | reserved                     |
-|          |   |             | e,ff | reserved                     |
-|----------+---+-------------+------+------------------------------|
-|          |   |             |      | <33>                         |
-|----------+---+-------------+------+------------------------------|
+The following table summarises the instructions in the Core subset of
+Sigma16.  The columns are:
+- Mnemonic.  The assembly language name of the instruction
+- ISA. The Instruction Set Architecture subset that contains the
+  instruction; for this table all the instructions are Core.
+- P. * indicates that the instruction is privileged, blank indicates
+  that it is not.  All of the Core instructions are unprivileged.  For
+  the meaning of "privileged", see the System section.
+- Fmt. The instruction format.  There are two Core instruction
+  formats: RRR (instruction has three operand fields, each a register)
+  and RX (instruction has a register operand and an X operand
+  consisting of a displacement constant and an index register).
+- Args.  The assembly language argument format.  Usually this is the
+  same as Fmt.  However, some instructions don't use all the fields,
+  and the assembly language statement omits the irrelevant field
+  (e.g. cmp is RRR format but the assembly language statement omits
+  the d field, which is ignored).
+- Code.
+- Effect.  A statement in an imperative programming language which
+  describes what the instruction does.
 
 
-#+BEGIN_EXPORT html
-</div">
-#+END_EXPORT
+Assembly directives
+
+- data
+
+** Table of RRR instructions
+
++---------+-------------+------+-------------+----------------------+
+| Name    |  Operands   | Op   | Code        | Effect               |
++---------+-------------+------+-------------+----------------------+
+| add     |   d,a,b     |   0  | $0 d a b    | R[d] := R[a] + R[g]  |
++---------+-------------+------+-------------+----------------------+
+| sub     |   d,a,b     |   1  | $1 d a b    | R[d] := R[a] - R[b]  |
++---------+-------------+------+-------------+----------------------+
+| mul     |   d,a,b     |   2  | $2 d a b    | R[d] := R[a] * R[b]  |
++---------+-------------+------+-------------+----------------------+
+| div     |   d,a,b     |   3  | $3 d a b    | R[d] := R[a] / R[b]  |
+|         |             |      |             | R[15] := R[a] % R[b] |                     |
++---------+-------------+------+-------------+----------------------+
+| cmp     |   d,a       |   4  | $4 d a b    | R[15] := R[a] cp R[b]|
++---------+-------------+------+-------------+----------------------+
+| addc    |   d,a,b     |   5  | Rd := Ra +  | Rb + R15.carry (cc)  |
++---------+-------------+------+-------------+----------------------+
+| muln    |   d,a,b     |   6  | R15++Rd     |  Ra :*: Rb           |
++---------+-------------+------+-------------+----------------------+
+| divn    |   d,a,b     |   7  | $7 d a b    | R15++Rd := R15++Ra   |
+|         |             |      |             |  :/: Rb              |
++---------+-------------+------+-------------+----------------------+
+|         |   d,a,b     |   8  | reserved    | nop                  |
++---------+-------------+------+-------------+----------------------+
+|         |   d,a,b     |   9  | reserved    | nop                  |
++---------+-------------+------+-------------+----------------------+
+|         |   d,a,b     |   a  | reserved    | nop                  |
++---------+-------------+------+-------------+----------------------+
+|         |   d,a,b     |   b  | reserved    | nop                  |
++---------+-------------+------+-------------+----------------------+
+| trap    |   d,a,b     |   c  | $c d a b    | interrupt            |
++---------+-------------+------+-------------+----------------------+
+|         |             |   d  | reserved    | nop                  |
++---------+-------------+------+-------------+----------------------+
+|         |             |   e  | secondary op| EXP format           |
++---------+-------------+------+-------------+----------------------+
+|         |             |   f  | escape      | RX format            |
++---------+-------------+------+-------------+----------------------+
+|         |             |      |             |                      |
+|         |             |      |             |                      |
+|         |             |      |             |                      |
+|         |             |      |             |                      |
++---------+-------------+------+-------------+----------------------+
+
+** Table of RX instructions
+
++---------+-------------+------+-------------+----------------------+
+| Name    |  Operands   | Op   | Code        | Effect               |
++---------+-------------+------+-------------+----------------------+
+| lea     | Rd,disp[Ra] | f,0  | {$f d a $0} | R[d] := disp+R[a]    |
+|         |             |      | {disp}      |                      |
++---------+-------------+------+-------------+----------------------+
+| load    | Rd,disp[Ra] | f,1  | {$f d a $1} | R[d] := M[disp+R[a]] |
+|         |             |      | {disp}      |                      |
++---------+-------------+------+-------------+----------------------+
+| store   | Rd,disp[Ra] | f,2  | {$f d a $2} | M[disp+R[a]] := R[d] |
+|         |             |      | {disp}      |                      |
++---------+-------------+------+-------------+----------------------+
+| jump    | disp[Ra]    | f,3  | {$f d a $3} | pc := disp+R[a]      |
+|         |             |      | {disp}      |                      |
++---------+-------------+------+-------------+----------------------+
+| jumpc0  | d,disp[Ra]  | f,4  | {$f d a $4} | if R[15].d=0         |
+|         |             |      | {disp}      | then pc := disp+R[a] |
++---------+-------------+------+-------------+----------------------+
+| jumpc1  | d,disp[Ra]  | f,5  | {$f d a $5} | if R[15].d=1         |
+|         |             |      | {disp}      | then pc := disp+R[a] |
++---------+-------------+------+-------------+----------------------+
+| jal     | Rd,disp[Ra] | f,6  | {$f d a $6} | R[d]:=pc,            |
+|         |             |      | {disp}      | pc:=disp+R[a]        |
++---------+-------------+------+-------------+----------------------+
+| jumpz   | Rd,disp[Ra] | f,7  | {$f d a $7} | if R[15].d=0         |
+|         |             |      | {disp}      | then pc := disp+R[a] |
++---------+-------------+------+-------------+----------------------+
+| jumpnz  | Rd,disp[Ra] | f,8  | {$f d a $8} | if R[15].d=1         |
+|         |             |      | {disp}      | then pc := disp+R[a] |
++---------+-------------+------+-------------+----------------------+
+| testset | Rd,disp[Ra] | f,9  | {$f d a $9} | R[d]:=M[disp+R[a]],  |
+|         |             |      | {disp}      | M[disp+R[a]]:=0001   |
++---------+-------------+------+-------------+----------------------+
+|         |             | f,a  |             | nop, reserved        |
+|         |             | ...  |             | ...                  |
+|         |             | f,f  |             | nop, reserved        |
++---------+-------------+------+-------------+----------------------+
+
+** Table of EXP instructions
+
++---------+-------------+------+-------------+----------------------+
+| Name    |  Operands   | Op   | Code        | Effect               |
++---------+-------------+------+-------------+----------------------+
+| logicw  | Rd,Re,Rf,h  | e,00 |             | Rd := Re (lut g) Rf  |
++---------+-------------+------+-------------+----------------------+
+| logicr  | Rd,e,f,g,h  | e,01 |             | Rd.e := Rd.f #h Rd.g |
++---------+-------------+------+-------------+----------------------+
+| logicb  | Rd,e,Rf,g,h | e,02 |             | Rd.e := Rd.f #h Rd.g |
++---------+-------------+------+-------------+----------------------+
+| shiftl  | Rd,Re,h     | e,03 |             | Rd := Re shl h       |
++---------+-------------+------+-------------+----------------------+
+| shiftr  | Rd,Re,h     | e,04 |             | Rd := Re shr h       |
++---------+-------------+------+-------------+----------------------+
+| extract | Rd,f,g,Re,h | e,05 |             | Rd.f~g :=            |
+| extract | Rd,f,g,Re,h | e,05 |             | Re.h~h+g-h+1         |
++---------+-------------+------+-------------+----------------------+
+| extracti| Rd,E,L,M,N  | e,06 |             | Rd := ex Rd di       |
+| extracti| Rd,E,L,M,N  | e,06 |             | sz Rs si             |
++---------+-------------+------+-------------+----------------------+
+| push    | Rd,E,F      | e,07 |             | M[ea] := Rd, Rb++    |
++---------+-------------+------+-------------+----------------------+
+| pop     | D,E,F       | e,08 |             | Rb--, Rd := M[ea]    |
++---------+-------------+------+-------------+----------------------+
+| top     | D,E,F       | e,09 |             | Rb--, Rd := M[ea]    |
++---------+-------------+------+-------------+----------------------+
+| save    | Rd,e,gh[Rf] | e,0a |             | M[ea] := R1,         |
+|         |             |      |             | ..., M[ea+d-1] := Rd |
+|         |             |      |             | ..., M[ea+d-1] := Rd |
++---------+-------------+------+-------------+----------------------+
+| restore | Rd,e,gh[Rf] | e,0b |             | R1 := M[ea],         |
+|         |             |      |             | ..., Rd := M[ea+d-1] |
++---------+-------------+------+-------------+----------------------+
+| brc0    | Rd,e,fgh    | e,0c | {$e d $0c}  | if R[d].e=0          |
+|         |             |      | {e fgh}     | then pc:=pc+fgh      |
++---------+-------------+------+-------------+----------------------+
+| brc1    | Rd,e,fgh    | e,0d | {$e d $0d}  | if R[d].e=1          |
+|         | Rd,e,fgh    | e,0d | {e fgh}     | then pc:=pc+fgh      |
++---------+-------------+------+-------------+----------------------+
+| brz     | Rd,efgh     | e,0e | {$e d $0e}  | if R[d]=0000         |
+|         |             |      | {efgh}      | then pc:=pc+efgh     |
++---------+-------------+------+-------------+----------------------+
+| brnz    | Rd,efgh     | e,0f | {$e d $0f}  | if R[d]!=0000        |
+|         |             |      | {efgh}      | then pc:=pc+efgh     |
++---------+-------------+------+-------------+----------------------+
+| dispatch| d,x         | e,10 |             | if Rd!=0             |
+|         |             |      |             | then pc += 2-fgh     |
++---------+-------------+------+-------------+----------------------+
+| getctl  | Rd,c        | e,11 |             | Rd := Sc             |
+|         |             |      |             | privileged
++---------+-------------+------+-------------+----------------------+
+| putctl  | Rd,c        | e,12 |             | Sc := Rd             |
+|         |             |      |             | privileged
++---------+-------------+------+-------------+----------------------+
+| resume  |             | e,13 |             | pc := ipc,           |
+|         |             |      |             | status := istatus    |
+|         |             |      |             | privileged
++---------+-------------+------+-------------+----------------------+
+| timon   | Rd,efgh     | e,14 |             | timer := efgh,       |
+|         |             |      |             | start timer          |
+|         |             |      |             | privileged
++---------+-------------+------+-------------+----------------------+
+| timoff  | Rd,efgh     | e,15 |             | stop timer           |
+|         |             |      |             | privileged
++---------+-------------+------+-------------+----------------------+
+|         |             | e,16 | reserved    | nop                  |
++---------+-------------+------+-------------+----------------------+
+|         |             | ...  | ...         | ...                  |
++---------+-------------+------+-------------+----------------------+
+|         |             | e,ff | reserved    | nop                  |
++---------+-------------+------+-------------+----------------------+
+
+** Table of pseudoinstructions
+
+Pseudoinstructions for comparisons
+
+- jumplt jump if <
+- jumple jump if <=
+- jumpeq jump if =
+- jumpne jump if !=
+- jumpge jump if >-
+- jumpgt jump if >
 
 
 * Assembly language
@@ -5343,6 +5691,12 @@ This means: allocate a word in memory for x and initialize it to 23.
 The data statements should come after the trap instruction that
 terminates the program
 
+
+The software conventions are:
+- R14 - stack pointer
+- R13 - return address
+- R12
+
 ** How to perform commmon tasks
 
 *** Using extract
@@ -5880,11 +6234,4 @@ existing programs.
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
 
-# Deprecated
-# # Main text of the document
-#   # #+INCLUDE: Sigma16UserGuideText.org
-# Sigma16UserGuideText.org
-# To generate html and tex, open Sigma16UserGuide.org in emacs
-
-
-212
+224

@@ -14,6 +14,11 @@
     color: green;
 */
 
+/* Hide the validate link at end of document; it doesn't work */
+p.validation a {
+    display: none;
+}
+
 .bodywithoutsidetoc {
 }
 
