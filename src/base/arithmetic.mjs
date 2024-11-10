@@ -525,7 +525,8 @@ export function shiftR (x,k) {
 // add, addc, sub.  This is calculated by examining the most
 // significant bit of the result, and the carry output.
 
-export function additionCC (a,b,primary,sum) {
+//export function additionCC (a,b,primary,sum) {
+export function additionCC (c,a,b,primary,sum) {
     const msba = arch.getBitInWordLE (a, 15)
     const msbb = arch.getBitInWordLE (b, 15)
     const msbsum = arch.getBitInWordLE (sum, 15)
@@ -555,16 +556,20 @@ export function additionCC (a,b,primary,sum) {
 */
 }
 
+export function op_nop (a,b) {
+}
+
 // Arithmetic for the add instruction (rrdc).  There is no carry input
 // bit, so the condition code is not needed as an argument.  The
 // primary result is the two's complement sum, and the secondary
 // result is a condition code containing the carry out and indications
 // of binary overflow and integer overflow.
 
-export function op_add (a,b) {
+// export function op_add (a,b) {
+export function op_add (c,a,b) {
     const sum = a + b
     const primary = sum & 0x0000ffff
-    const secondary = additionCC (a,b,primary,sum)
+    const secondary = additionCC (c,a,b,primary,sum)
 // com.mode.devlog (`*** op_add a=${wordToHex4(a)} b=${wordToHex4(b)} p=${wordToHex4(primary)} s=${wordToHex4(secondary)}`)
     return [primary, secondary]
 }
@@ -572,14 +577,17 @@ export function op_add (a,b) {
 export function op_addc (c,a,b) {
     let sum = a + b + arch.getBitInWordLE(c,arch.bit_ccC);
     let primary = sum & 0x0000ffff;
-    const secondary = additionCC (a,b,primary,sum)
+    //    const secondary = additionCC (a,b,primary,sum)
+    const secondary = additionCC (c,a,b,primary,sum)
     return [primary, secondary]
 }
 
-export function op_sub (a,b) {
+//export function op_sub (a,b) {
+export function op_sub (c,a,b) {
     let sum = a + wordInvert (b) + 1;
     let primary = sum & 0x0000ffff;
-    const secondary = additionCC (a,b,primary,sum)
+    //    const secondary = additionCC (a,b,primary,sum)
+    const secondary = additionCC (c,a,b,primary,sum)
     return [primary, secondary]
 }
 
@@ -588,7 +596,8 @@ function representableAsTc (x) {
     return minTc <= x && x <= maxTc
 }
     
-export function op_mul (a,b) {
+//export function op_mul (a,b) {
+export function op_mul (c,a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let p = a * b;
@@ -633,7 +642,8 @@ function test_mul () {
     test_rr ("mul", op_mul, intToWord(-3), intToWord(-10), "30 []");
 }
 
-export function op_div (a,b) {
+//export function op_div (a,b) {
+export function op_div (c,a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let primary = intToWord (Math.floor (aint / bint));  // Knuth quotient
@@ -648,7 +658,7 @@ function test_div () {
     test_rr ("div", op_div, 49, intToWord(-8), "6 1");
 }
 
-export function op_cmp (a,b) {
+export function op_cmp (c,a,b) {
     const aint = wordToInt (a)
     const bint = wordToInt (b)
     const ltTc  = aint < bint
@@ -656,11 +666,13 @@ export function op_cmp (a,b) {
     const eq    = a === b
     const gtTc  = aint > bint
     const gtBin = a > b
-    const cc = (eq ? arch.ccE : 0)
-          | (gtBin ? arch.ccG : 0)
- 	  | (gtTc ? arch.ccg : 0)
- 	  | (ltTc ? arch.ccl : 0)
-          | (ltBin ? arch.ccL : 0)
+    const t1 = arch.putBitInWordLE (16, c,  arch.bit_ccE, eq)
+    const t2 = arch.putBitInWordLE (16, t1, arch.bit_ccG, gtBin)
+    const t3 = arch.putBitInWordLE (16, t2, arch.bit_ccg, gtTc)
+    const t4 = arch.putBitInWordLE (16, t3, arch.bit_ccl, ltTc)
+    const t5 = arch.putBitInWordLE (16, t4, arch.bit_ccL, ltBin)
+    const cc = t5
+
     com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`)
     com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
     com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
@@ -668,6 +680,7 @@ export function op_cmp (a,b) {
     com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`)
     return cc
 }
+
 
 export function op_cmplt (a,b) {
     let aint = wordToInt (a);
@@ -791,10 +804,38 @@ export function testCalculateExport () {
     calculateExtract (16, 5, 0xffff, 3, 7, 9); // 007c = 0000 0000 0111 11000
 }
 
-function test_add () {
-    test_rr ("add", op_add, 2, 3, "5 []");
-    test_rr ("add", op_add, 49, intToWord(-7), "42 []");
-    test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
-    test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
-}
 
+//function test_add () {
+//    test_rr ("add", op_add, 2, 3, "5 []");
+//    test_rr ("add", op_add, 49, intToWord(-7), "42 []");
+//    test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
+//    test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
+//}
+
+/* old version op_cmp
+//    const cc = (eq ? arch.ccE : 0)
+//          | (gtBin ? arch.ccG : 0)
+// 	  | (gtTc ? arch.ccg : 0)
+// 	  | (ltTc ? arch.ccl : 0)
+//          | (ltBin ? arch.ccL : 0)
+export function op_cmp (c,a,b) {
+    const aint = wordToInt (a)
+    const bint = wordToInt (b)
+    const ltTc  = aint < bint
+    const ltBin = a < b
+    const eq    = a === b
+    const gtTc  = aint > bint
+    const gtBin = a > b
+    const cc = (eq ? arch.ccE : 0)
+          | (gtBin ? arch.ccG : 0)
+ 	  | (gtTc ? arch.ccg : 0)
+ 	  | (ltTc ? arch.ccl : 0)
+          | (ltBin ? arch.ccL : 0)
+    com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`)
+    com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
+    com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
+    com.mode.devlog (`op_cmp eq=${eq}`)
+    com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`)
+    return cc
+}
+*/

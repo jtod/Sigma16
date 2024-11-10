@@ -840,14 +840,9 @@ export function executeInstruction (es) {
 // if d=15 the secondary is discarded and the primary is loaded into
 // R15.  The instruction semantics is defined by f.
 
-const ab_dc = (f) => (es) => {
-    com.mode.devlog(`%cab_dc ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
-    let a = es.regfile[es.ir_a].get();
-    let b = es.regfile[es.ir_b].get();
-    let [primary, secondary] = f (a,b);
-    es.regfile[es.ir_d].put(primary);
-    if (es.ir_d<15) { es.regfile[15].put(secondary) }
+const nop = (es) => {
 }
+
 
 // ab_dac instructions (e.g. pop):
 const ab_dac = (f) => (es) => {
@@ -914,6 +909,18 @@ const cab_dc = (f) => (es) => {
     let [primary, secondary] = f (c,a,b);
     es.regfile[es.ir_d].put(primary);
     if (es.ir_d<15) { es.regfile[15].put(secondary) }
+}
+
+// cab_c -- arguments are in c, a, and b.  There is only one result, a
+// condition code which is loaded into R15.  The instruction semantics
+// is defined by f.
+
+const cab_c = (f) => (es) => {
+    let c = es.regfile[15].get();
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
+    let secondary = f (c,a,b);
+    es.regfile[15].put(secondary)
 }
 
 // cab_dca -- arguments are in c, a, and b.  The primary result is
@@ -1176,24 +1183,23 @@ const exp2_top  = (es) => {
 // register has been fetched if it isn't needed for the instruction).
 
 const dispatch_primary_opcode =
-      [ ab_dc (arith.op_add),     // 0
-        ab_dc (arith.op_sub),     // 1
-        ab_dc (arith.op_mul),     // 2
-        ab_dc (arith.op_div),     // 3
-        ab_c  (arith.op_cmp),     // 4
+      [ cab_dc (arith.op_add),    // 0
+        cab_dc (arith.op_sub),    // 1
+        cab_dc (arith.op_mul),    // 2
+        cab_dc (arith.op_div),    // 3
+        cab_c  (arith.op_cmp),    // 4   doesn't change d register
         cab_dc (arith.op_addc),   // 5
         cab_dc (arith.op_muln),   // 6
         cab_dca (arith.op_divn),  // 7
-        ab_dc (arith.op_nop),     // 8 reserved rrr1
-        ab_dc (arith.op_nop),     // 9 reserved rrr2
-        ab_dc (arith.op_nop),     // a reserved rrr3
-        ab_dc (arith.op_nop),     // b reserved rrr4
+        nop,                      // 8 reserved rrr
+        nop,                      // 9 reserved rrr
+        nop,                      // a reserved rrr        
+        nop,                      // b reserved rrr        
         op_trap,                  // c
-        ab_dc (arith.op_nop),     // d escape to EXP3  x
+        nop,                      // d escape reserved
         handle_EXP,               // e escape to EXP
         handle_rx ]               // f escape to RX
-//        dab (op_push),            // 8
-//        dab (op_pop),             // 9
+
 
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
@@ -1807,3 +1813,28 @@ const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 //                    + ` ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`,
 //                    'color:red');
 //    com.mode.devlog('rx_lea');
+
+//        ab_dc (arith.op_nop),     // d escape to EXP3  x
+//        ab_dc (arith.op_nop),     // b reserved rrr4
+//        ab_dc (arith.op_nop),     // a reserved rrr3
+//        ab_dc (arith.op_nop),     // 9 reserved rrr2
+//        ab_dc (arith.op_nop),     // 8 reserved rrr1
+//        ab_dc (arith.op_nop),     // 9 reserved rrr2
+//      [ ab_dc (arith.op_add),     // 0
+        //        ab_dc (arith.op_sub),     // 1
+        //        ab_dc (arith.op_mul),     // 2
+        //        ab_dc (arith.op_div),     // 3
+        //        ab_c  (arith.op_cmp),     // 4
+//        dab (op_push),            // 8
+//        dab (op_pop),             // 9
+
+/*
+const ab_dc = (f) => (es) => {
+    com.mode.devlog(`%cab_dc ir fields ${es.ir_op} ${es.ir_d} ${es.ir_a} ${es.ir_b}`, 'color:red');
+    let a = es.regfile[es.ir_a].get();
+    let b = es.regfile[es.ir_b].get();
+    let [primary, secondary] = f (a,b);
+    es.regfile[es.ir_d].put(primary);
+    if (es.ir_d<15) { es.regfile[15].put(secondary) }
+}
+*/

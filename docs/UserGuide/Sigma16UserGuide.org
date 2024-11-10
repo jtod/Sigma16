@@ -19,6 +19,10 @@
 # License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+# ----------------------------------------------------------------------
+# Macros
+# ----------------------------------------------------------------------
+
 #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
 
 # ----------------------------------------------------------------------
@@ -26,6 +30,8 @@
 # ----------------------------------------------------------------------
 
 # Insert nonbreakable space (Unicode hard space): C-x 8 space
+
+# M-x insert-character 21D2
 
 # Table formatting
 # https://emacs.stackexchange.com/questions/53195/org-mode-table-el-use-org-formatting-inside-cells#:~:text=If%20you%20set%20this%20option%20to%20t%20or%20yes%20table
@@ -181,7 +187,7 @@
 #+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico">
 
 #+HTML_HEAD_EXTRA: <style type="text/css"> td { padding: 4px 5px 4px 5px } </style>
-#+OPTIONS: html-tableel-org:t
+# #+OPTIONS: html-tableel-org:t
 
 # ----------------------------------------------------------------------
 # Text of the document
@@ -203,11 +209,18 @@ Sigma16 runs in a web browser: you don't need to download or install
 anything.
 
 #+INDEX: run
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 #+BEGIN_majornote
 To run Sigma16, visit the Sigma16 Home Page at
 [[https://jtod.github.io/home/Sigma16]]
 and click the prominent /Run/ link.
 #+END_majornote
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 #+INDEX: command line
 There are additional command line tools that can run in a shell; see
@@ -264,6 +277,7 @@ backward compatibility; this can lead to great complexity.
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
 right panel while following along with the examples in the main panel.
+
 
 * Core architecture tutorials
 :PROPERTIES:
@@ -900,9 +914,13 @@ and dashes won't work.
 
 These are the legal characters in an assembly language program:
 
-- letters: _abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+- letters
+  - _abcdefghijk
+  - lmnopqrstuvwxyz
+  - ABCDEFGHIJKLMN
+  - OPQRSTUVWXYZ
 - digits: 0123456789
-- separators: (space) (tab) ,;
+- separators: space tab ,;
 - quotes: " '
 - punctuation: ".$[]()+-*
 - other: ?<=>!%^&{}#~@:|/\'
@@ -1928,7 +1946,7 @@ instruction =logicw= that can calculate all possible boolean functions
 of up to 2 operands.  These pseudoinstructions generate =logicw=
 instruction.
 
-See Examples/Standard/Logic.asm.txt
+See Examples/ Standard/ Logic.asm.txt
 
 ** Shifting
 
@@ -1953,7 +1971,7 @@ hexadecimal and as bits.
   shiftr R7,R7,11  ; R7 = 0001   0000 0000 0000 0001
 #+END_CodeListing
 
-See Examples/Standard/Shift.asm.txt
+See Examples/ Standard/ Shift.asm.txt
 
 ** Bit fields
 
@@ -1977,8 +1995,14 @@ to 8 (i.e. the second hex digit), the result is 0f06.
    extract  R2,11,8,R1,3  ; R2 = 0f06  R2.11~8 := R1.3~0
 #+END_CodeListing
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | extract  | Rd,f,g,Re,h | e,15 | Rd.f~g := Re.h~h+g-h+1     |
 | extracti | Rd,f,g,Re,h | e,16 | Rd := extri Rd di sz Rs si |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 ** Saving registers for procedure call
 
@@ -2000,7 +2024,7 @@ When the procedure returns, restore the registers from the stack:
 #+END_CodeListing
 
 For an example, showing the contents of the stack and registers, see
-Examples/Standard/Testing/SaveRestore.asm.txt
+Examples/ Standard/ Testing/ SaveRestore.asm.txt
 
 ** Branching to pc-relative address
 
@@ -2036,6 +2060,7 @@ called the offset.
 ** System control registers
 
 # [[./figures/control-block-pc.png]]
+
 
 * The Sigma16 architecture
 :PROPERTIES:
@@ -2136,9 +2161,11 @@ The following table shows the indices of all the bits in a word.  The
 vertical bars break the word into groups of 4 bits.  This grouping
 corresponds to the representation of the word in hex notation.
 
+
 $$\fbox{$\ x_{15}\> x_{14}\> x_{13}\> x_{12}
-  \ \vert\ x_{11}\> x_{10}\> x_{9}\> x_{8}
-  \ \vert\ x_{7}\> x_{6}\> x_{5}\> x_{4}
+  \ \vert\ x_{11}\> x_{10}\> x_{9}\> x_{8}$}$$
+
+$$\fbox{$ \ \vert\ x_{7}\> x_{6}\> x_{5}\> x_{4}
   \ \vert\ x_{3}\> x_{2}\> x_{1}\> x_{0}
   \ $}$$
 
@@ -2339,9 +2366,13 @@ The following table lists all the condition code flags.
 
 Table: Condition code flags
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
 | Index | Symbol | Meaning                |  Hex |
 |-------+--------+------------------------+------|
-|     0 | g      | > Int                  | 0001 |
+|     0 | >      | > Int                  | 0001 |
 |     1 | G      | > Nat                  | 0002 |
 |     2 | =      | =                      | 0004 |
 |     3 | L      | < Nat                  | 0008 |
@@ -2357,6 +2388,10 @@ Table: Condition code flags
 |    13 |        | reserved               | 2000 |
 |    14 |        | reserved               | 4000 |
 |    15 |        | reserved               | 8000 |
+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 There is an exception for division by zero, but no corresponding flag
 in the condition code.  The reason is that the div instruction places
@@ -2418,11 +2453,19 @@ the second word of the instruction.
 The status register contains flags that specify the current execution
 mode of the processor.
 
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | Index | Symbol | Meaning                        |  Hex |
 |-------+--------+--------------------------------+------|
 |     0 | U/S    | 0: user state. 1: system state | 0001 |
 |     1 | E      | 1: interrupts enabled          | 0002 |
 |       |        |                                |      |
+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 If the processor is in system state, any instruction can be executed.
 If it is in user state, executing a privileged instruction causes an
@@ -2466,6 +2509,10 @@ interrupt and the bit index of its flag.
 
 Table: Interrupt Indices
 
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | Index | Symbol | Meaning            |  Hex |
 |-------+--------+--------------------+------|
 |     0 | time   | timer interrupt    | 0001 |
@@ -2477,6 +2524,9 @@ Table: Interrupt Indices
 |     6 | bo     | natural overflow   | 0040 |
 |     7 | zdiv   | divide by 0        | 0080 |
 |       |        |                    |      |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 Each type of interrupt has a priority which is determined by its
 index: a lower index indicates higher priority.  Thus the timer
@@ -2513,11 +2563,7 @@ place, the time required for the check is minimal (less than one clock
 cycle), so checking for interrupts does not signicantly slow down the
 processor speed.
 
-*** Interrupt control registers
-
-The processor contains several registers to implement interrupts.
-
-**** mask - interrupt mask register
+*** mask - interrupt mask register
 
 The mask register specifies which types of interrupt are allowed to
 occur.  It contains a flag for each type of interrupt; if the flag is
@@ -2525,25 +2571,25 @@ occur.  It contains a flag for each type of interrupt; if the flag is
 mask flag is 0, then that type of interrupt will not occur even if it
 is requested.
 
-**** request - interrupt request register
+*** request - interrupt request register
 
 When an interrupt is requested, the corresponding bit is set in the
 request register.  When the next instruction is executed, the
 interrupt occurs if interrupts are enabled and the corresponding mask
 bit is 1.
 
-**** rstat register
+*** rstat register
 
 When an interrupt occurs, the value of the status register is copied
 into rstat.
 
-**** rpc register
+*** rpc register
 
 When an interrupt occurs, the value of pc is copied into rpc.  This is
 necessary to enable the operating system to resume the interrupted
 program.
 
-**** vect register
+*** vect register
 
 The interrupt vector register contains the address of a jump table.
 This is an array of jumps to interrupt handlers.
@@ -2552,6 +2598,10 @@ This is an array of jumps to interrupt handlers.
 
 (Will be implemented in future version)
 
+* Instruction set
+:PROPERTIES:
+:CUSTOM_ID: sec-instruction-set
+:END:
 
 ** Instruction representation
 
@@ -2565,9 +2615,10 @@ it is represented as a word of bits is important.
 An instruction specifies several pieces of information.  For example,
 add R1,R2,R3 is an instruction that says four things: it's an
 addition, the operands come from R2 and R3, and the result goes into
-R1.  Therefore to represent instructions we need to organize a word as
-a collection of several *fields*, with each field giving one specific
-piece of information about the instruction.
+R1.  Therefore to represent an instruction we need to organize a word
+as a collection of several *fields*.  A field is a portion of a word
+that contains a small number (for example, a register number). Each
+field gives one specific piece of information about the instruction.
 
 The particular scheme for describing an instruction as a collection of
 fields is called an *instruction format*.  Like most computers,
@@ -2581,35 +2632,59 @@ instruction formats: the *RRR format* for instructions that perform
 calculations in the registers, and the *RX format* for instructions
 that refer to a memory location.
 
-The advanced parts of the architecture provide additional instructions
-that are represented with the *EXP format*. The name EXP stands
-simultaneously for *expansion* (because it provides for many
-additional instructions) and *experimental* (because it allows for
-experimentation with the design and implementation of new
+The advanced parts of the architecture provide additional
+instructions, most of which are represented with the *EXP format*. The
+name EXP stands simultaneously for *expansion* (because it provides
+for many additional instructions) and *experimental* (because it
+allows for experimentation with the design and implementation of new
 instructions).
 
 The first word of every instruction (for all instruction formats)
 contains the following fields:
 
-- op (bits 0-3)   4-bit opcode, determines instruction format
-- d  (bits 4-7)   4-bit destination
-- a  (bits 8-11)  4-bit operand a
-- b  (bits 12-15) 4-bit operand b, or expanded opcode for RX
+- op (bits 15-12) 4-bit opcode, determines instruction format
+- d  (bits 11-8)  4-bit destination
+- a  (bits 7-4)   4-bit operand a
+- b  (bits 3-0)   4-bit operand b, or expanded opcode for RX
+
+  
++-------+------+-----+-----+
+|    op |    d |   a |   b |
++-------+------+-----+-----+
+| 15-12 | 11-8 | 7-4 | 3-0 |
++-------+------+-----+-----+
 
 If an instruction is RX or EXP format, it has a second word that
 contains four 4-bit fields.  The meanings of the fields depend on the
 particular instruction.
 
-- e  (bits 0-3)   4-bit operand
-- f  (bits 4-7)   4-bit operand
-- g  (bits 8-11)  4-bit operand
-- h  (bits 12-15) 4-bit operand
+- e  (bits 15-12) 4-bit operand
+- f  (bits 11-8)  4-bit operand
+- g  (bits 7-4)   4-bit operand
+- h  (bits 3-0)   4-bit operand
 
+
+  
++------+
+| disp |
++------+
+| 15-0 |
++------+
+
++-------+------+-----+-----+
+|     e |    f |   g |   h |
++-------+------+-----+-----+
+| 15-12 | 11-8 | 7-4 | 3-0 |
++-------+------+-----+-----+
+  
 The first word of every instruction has a 4-bit field called the
-opcode (op for short).  This gives 16 values of the opcode:
+operation code.  This is usually abbreviated to opcode (or just op).
+Since the opcode contains 4 bits, it can specify 16 values:
 
-- If the opcode is between 0 and 13 (hex 0 to hex d), the instruction
+- If the opcode is between 0 and 12 (hex 0 to hex c), the instruction
   is RRR format, and there are 14 RRR instructions.
+- An opcode value of 13 is reserved for future expansion of the
+  architecture.
 - If the op field is 14 (hex e) the instruction is EXP format and has
   a secondary opcode in the a and b fields.
 - If the op field contains 15 (hex f) the instruction is RX format
@@ -2631,11 +2706,17 @@ following table gives an overview.
     (only for the EXP format)
   - The g and h fields may be combined to form an 8-bit field called gh
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | Format | Size | Opcode | Operands  | Example           |
 |--------+------+--------+-----------+-------------------|
 | RRR    |    1 | op     | d,a,b     | add Rd,Ra,Rb      |
 | RX     |    2 | op,b   | d,a,disp  | load Rd,disp[Ra]  |
 | EXP    |    2 | op,ab  | d,e,f,g,h | save Rd,Re,gh[Rf] |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 There are three machine instruction formats: RRR, RX, EXP.  However,
 there is a larger set of assembly language statement formats, because
@@ -2888,10 +2969,417 @@ Example:
 #+END_CodeListing
 
 
-* Instruction set
-:PROPERTIES:
-:CUSTOM_ID: sec-instruction-set
-:END:
+** Arithmetic
+*** Condition code
+
+Register R15 is also called the /condition code/.  Some instructions
+modify a bit in the condition code to indicate the results of
+comparisons, overflow, carry, other special data, and various errors.
+Instructions that operate on registers can access R15 as usual. There
+are also some instructions that implicitly access R15 without
+specifying it (for example, jumpc0 and jumpc1).  Since many
+instructions modify the condition code as a side effect, programs
+should not use R15 to hold variables.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|-------+--------+-------+---------------------+-----------|
+| Index | symbol | value | relation            | type      |
+|-------+--------+-------+---------------------+-----------|
+|     0 | g      |  0001 | greater, positive   | integer   |
+|     1 | G      |  0002 | greater, positive   | natural   |
+|     2 | E      |  0004 | equal, zero         | all types |
+|     3 | L      |  0008 | less than           | natural   |
+|     4 | l      |  0010 | less than, negative | integer   |
+|     5 | v      |  0020 | overflow            | integer   |
+|     6 | V      |  0040 | overflow            | natural   |
+|     7 | C      |  0080 | carry               | natural   |
+|     8 | S      |  0100 | stack overflow      |           |
+|     9 | s      |  0200 | stack underflow     |           |
+|    10 | f      |  0400 | logicc result       | bit       |
+|-------+--------+-------+---------------------+-----------|
+# #+TBLFM: $4=, zero
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+*** add
+
+The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
+destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~, calculates
+the sum ~Ra~ + ~Rb~, and loads the result into the destination ~Rd~.
+The effect is ~Rd := Ra + Rb~.  For example, ~add R5,R12,R2~
+performs ~R5 := R12 + R3~.
+
+As well as setting the destination register, the add instruction sets
+or clears the overflow and carry bits in the condition code (which is
+R15).  The other bits in R15 are not changed.
+
+If the destination register is R15, the sum is placed in R15, and the
+overflow and carry flags are discarded.
+
+The add instruction is RRR format with opcode=0.  Given destination Rd
+and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
+reprseented by 0dab.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+---------------------|
+| assembly language  | add Rd,Ra,Rb        |
+| instruction format | RRR                 |
+| opcode             | 0                   |
+| machine language   | $0 d a b            |
+| effect             | R[d] := R[a] + R[b] |
+| condition code     | vVC                 |
+|--------------------+---------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+Examples:
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+| Code | Assembly      | Effect           |
+|------+---------------+------------------|
+| 062c | add R6,R2,R12 | ; R6 := R2 + R12 |
+| 0d13 | add R13,R1,R3 | ; R13 := R1 + R3 |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+
+A field is a consecutiave sequence of bits within a word.  A field is
+specified with the index of the leftmost bit in the field, along with
+the size of the field.  For example, the field in x with index 9 and
+size 3 consists of the bits x.9 x.8 x.7.
+
+#+BEGIN_CodeListing
+    add R1,R2,R3    ; R1 := R2 + R3
+#+END_CodeListing
+
+The instruction add Rd,Ra,Rb has operands Ra and Rb and destination
+Rd.  It fetches the operands Ra and Rb, calculates the sum Ra + Rb,
+and loads the result into the destination Rd.  The effect is Rd :=
+Ra + Rb.  For example, add R5,R12,R2 performs R5 := R12 + R3.
+
+The add instruction is RRR format with opcode=0.  Given destination Rd
+and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
+reprseented by 0dab.
+
+  
+The add instruction can be used for both binary addition (on natural
+numbers) and for two's complement addition (on signed integers).
+
+- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
+  If two natural numbers are added, the result is a natural number
+  (the result cannot be negative).  If the result is 65536 or larger,
+  it cannot be represented as a 16 bit binary number.  If this
+  happens, the destination register is set to the lower 16 bits of the
+  true result, and the binary overflow flag is set in the Condition Code.
+  
+- 16-bit two's complement numbers are signed integers -32999?, ...,
+  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
+  is a signed integer.  If the result is less than -32000 or greater
+  than 32000, then the result cannot be represented as a 16 bit two's
+  complement number.  If this happens, the destination register is set
+  to the lower 16 bits of the true result, and the two's complement
+  overflow flag is set in the Condition Code.  Furthermore, the
+  overflow flag is set in the req register.  If interrupts are enabled
+  and the overflow flag is 1 in the mask register, then an interrupt
+  will occur immediatelhy after the add instruction executes.
+
+The add instruction can be used for both binary addition (on natural
+numbers) and for two's complement addition (on signed integers).
+
+- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
+  If two natural numbers are added, the result is a natural number
+  (the result cannot be negative).  If the result is 65536 or larger,
+  it cannot be represented as a 16 bit binary number.  If this
+  happens, the destination register is set to the lower 16 bits of the
+  true result, and the binary overflow flag is set in the Condition Code.
+  
+- 16-bit two's complement numbers are signed integers -32999?, ...,
+  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
+  is a signed integer.  If the result is less than -32000 or greater
+  than 32000, then the result cannot be represented as a 16 bit two's
+  complement number.  If this happens, the destination register is set
+  to the lower 16 bits of the true result, and the two's complement
+  overflow flag is set in the Condition Code.  Furthermore, the
+  overflow flag is set in the req register.  If interrupts are enabled
+  and the overflow flag is 1 in the mask register, then an interrupt
+  will occur immediatelhy after the add instruction executes.
+
+*** sub
+
+Example: sub R1,R2,R3 ; R1 := R2 - R3
+
+This instruction is similar to add; the only difference is that it
+calculates R2-R3 and places the result in R1.  The effect on the
+condition code is the same as for add.
+
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+---------------------|
+| assembly language  | sub Rd,Ra,Rb        |
+| instruction format | RRR                 |
+| opcode             | 1                   |
+| machine language   | $1 d a b            |
+| effect             | R[d] := R[a] - R[b] |
+|--------------------+---------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+The instruction sub Rd,Ra,Rb has operands Ra and Rb and destination
+Rd.  It fetches the operands Ra and Rb, calculates the difference Ra -
+Rb, and loads the result into the destination Rd.  The effect is Rd :=
+Ra - Rb.  For example, sub R5,R12,R2 performs R5 := R12 - R3.
+
+The sub instruction is RRR format with opcode=1.
+
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+  Code    Assembly          Effect
+  -----   ----------------  ------------------
+  162c    sub R6,R2,R12     ; R6 := R2 - R12
+  1d13    sub R13,R1,R3     ; R13 := R1 - R3
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+  
+In addition to setting the destination register, the sub instruction
+sets several bits in the condition code R15 and may set a bit in the
+req register.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+---------  ---------------------
+ R15.ccG    result > 0 (binary)
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result < 0 (two's complement)
+ R15.ccV    overflow (binary)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+ R15.ccf    logicc instruction function result
+---------  ---------------------
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+*** mul
+
+Example: mul R1,R2,R3 ; R1 := R2 * R3
+
+The multiply instruction mul Rd,Ra,Rb calculates the integer (two's
+complement) product of the operands Ra and Rb, and places the result
+in the destination register Rd.  The mul instruction does not produce
+the natural (binary) product.
+
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+---------------------------|
+| assembly language  | mul Rd,Ra,Rb              |
+| instruction format | RRR                       |
+| machine language   | [$2 d a b]                |
+| effect             | reg[d] := reg[a] * reg[b] |
+|--------------------+---------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+If the magnitude of the product is too large to be representable as a
+16 bit two's complement integer, this is an overflow.  If overflow
+occurs, the integer overflow bit is set in the condition code (F15)
+and the integer overflow bit is also set in the interrupt request
+register (req), and the lower order 16 bits of the product are loaded
+into Rd.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+---------  ---------------------
+ R15.ccg    result > 0 (two's complement)
+ R15.ccE    result = 0
+ R15.ccl    result < 0 (two's complement)
+ R15.CCv    overflow (two's complement)
+ R15.CCc    carry output
+---------  ---------------------
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+*** div
+
+Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
+
+Unlike the other arithmetic operations, the divide instruction div
+Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder
+Ra rem Rb.  It loads the quotient into the destination register Rd,
+and the remainder is loaded into R15.
+
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+------------------------------|
+| assembly language  | div Rd,Ra,Rb                 |
+| instruction format | RRR                          |
+| opcode             | 3                            |
+| machine language   | $3 d a b                     |
+| effect             | reg[d] := reg[a] / reg[b],   |
+|                    | reg[15] := reg[a] rem reg[b] |
+|--------------------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+If the destination register Rd is actually R15, then the quotient is
+placed in R15, and the remainder is discarded.
+
+The divide instruction doesn't set the condition code, since R15 is
+used for the remainder.  Therefore there is no condition code bit to
+indicate division by 0.  However, it is easy for a program to detect a
+division by 0.
+
+- (Explicit test for error) The program can compare the divisor with 0
+  before or after executing the divide instruction, and jump to an
+  error handler if the divisor is 0.  This is similar to testing the
+  condition code after an add, sub, or mul instruction, but it does
+  require two instructions: a compare followed by a conditional jump.
+  For example:
+
+#+BEGIN_CodeListing
+   div    R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
+   cmp    R3,R0       ; Did we divide by 0?
+   jumpeq zeroDivide[R0] ; If yes, handle error
+#+END_CodeListing
+  
+- (Exception) The program can detect division by 0 using an interrupt.
+  To do this, enable interrupts and enable the interrupt mask for
+  division by 0.  See the section on Interrupts.  This approach does
+  not require a compare or jump instruction for each division.
+
+*** cmp
+
+The compare instruction =cmp Ra,Rb= compares the values in the operand
+registers =Ra= and =Rb=, and then sets flags in the condition code
+(R15) to indicate the result. The notation R15.i means bit /i/ in R15;
+thus R15.0 is the leftmost bit of R15.  The instruction performs both
+natural number comparison (binary) and integer comparison (two's
+complement).  The resulting flags are
+
+- binary less than (L) in R15.0
+- two's complement less than (<) in R15.1
+- equal in R15.2
+- binary greater than (G) in R15.3
+- two's complement greater than (>) in R15.4
+
+  
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+---------------------------|
+| assembly language  | cmp Rd,Ra,Rb              |
+| instruction format | RRR                       |
+| opcode             | 4                         |
+| machine language   | $4 d a b                  |
+| effect             | reg[d] := reg[a] / reg[b] |
+|--------------------+---------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+The result of a cmp instruction can be used to control a conditional
+jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
+and the jumpc1 instruction jumps if a specified bit is 1.
+
+Pseudoinstructions provide the most common cases; for example jumple
+jumps if the condition code indicates that a comparison produced
+either integer less-than or equal.  A common pattern is a cmp followed
+by a jump pseudoinstruction, for example:
+
+#+BEGIN_CodeListing
+    cmp     R4,R9      ; compare R4 with R9
+    jumpgt  abc]R0]    ; if R4 > R9 then goto abc
+#+END_CodeListing
+*** addc
+
+The addc instruction performs a binary addition with carry
+propagation.  It adds the two operand registers and the carry bit in
+the condition code register, R15.  The sum is loaded into the
+destination register Rd and the carry output is written back into the
+carry bit, overwriting its previous value.  Overflow is not possible
+with this instruction.
+
+*** muln
+
+#+BEGIN_CodeListing
+     muln   Rd,Ra,Rb
+#+END_CodeListing
+
+The muln instruction calculates the product of two natural numbers in
+Ra and Rb.  The result is 32 bits; the leftmost 16 bits (the most
+significant part) is loaded into R15, and the rightmost 16 bits (the
+least significant part) is loaded into Rd.  If Rd is R15, the most
+significant part is discarded.
+
+  
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+------------------------------|
+| instruction format | RRR                          |
+| machine language   | [$4 d a b]                   |
+| effect             | reg[d] := reg[a] / reg[b]    |
+| assembly language  | cmp Rd,Ra,Rb                 |
+|--------------------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+*** divn
+
+#+BEGIN_CodeListing
+     divn   Rd,Ra,Rb
+#+END_CodeListing
+
+The divn instruction divides two natural numbers: dividend / divisor.
+All the numbers -- numerator, denominator, quotient, remainder -- are
+natural numbers represented in binary.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+------------------------------|
+| instruction format | RRR                          |
+| machine language   | [$4 d a b]                   |
+| effect             | reg[d] := reg[a] / reg[b]    |
+| assembly language  | divn Rd,Ra,Rb                |
+|--------------------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+- The dividend is a 32 bit natural number; its leftmost 16 bits are in
+  R15 and the rightmost 16 bits are in Ra.  Thedenominator is in Rb.
+- Two results are produced: a 32-bit quotient anda 16-bit remainder.
+- The leftmost 16 bits of the quotient are placedin R15 (replacing the
+  leftmost part of the dividend).  The rightmost16 bits of the
+  quotient are placed in Rd.
+- The remainder is placed in Ra, overwriting the least significant
+  half of the dividend operand
 
 ** Accessing memory
 
@@ -2920,12 +3408,19 @@ the effective address of the operand disp[Ra] and places the result in
 the destination register Rd.  The effective address is the binary sum
 disp+Ra.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+----------------------------|
-| instruction format | RX                         |
-| machine language   | {$f d a $0} {disp}         |
-| effect             | reg[d] := disp+reg[a]      |
 | assembly language  | lea Rd,disp[Ra]            |
+| opcode             | f, 0
+| instruction format | RX                         |
+| machine language   | $f d a $0, disp            |
+| effect             | reg[d] := disp+reg[a]      |
 |--------------------+----------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 *** load
 
@@ -2934,12 +3429,19 @@ address of the operand disp[Rx] and copies the word in memory at the
 effective address into the destination register Rd.  The effective
 address is the binary sum disp+Rx.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+----------------------------|
 | assembly language  | load Rd,disp[Ra]           |
 | instruction format | RX                         |
-| machine language   | {$f d a $1} {disp}         |
+| opcode             | f, 1
+| machine language   | $f d a $1, disp            |
 | effect             | reg[d] := mem[disp+reg[a]] |
 |--------------------+----------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
   
 Examples
 #+BEGIN_CodeListing
@@ -2954,12 +3456,19 @@ The *store* instruction *store Rd,disp[Rx]* calculates the effective
 address of the operand disp[Rx].  The value of the destination
 register Rd is stored into memory at the effective address.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+----------------------------|
-| instruction format | RX                         |
-| machine language   | {$f d a $2} {disp}         |
-| effect             | mem[disp+reg[a]] := reg[d] |
 | assembly language  | store Rd,disp[Ra]          |
+| instruction format | RX                         |
+| opcode             | f, 2                       |
+| machine language   | $f d a $2, disp            |
+| effect             | mem[disp+reg[a]] := reg[d] |
 |--------------------+----------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 Store copies the word in the destination register into memory at the
 effective address.  This instruction is unusual in that it treats the
@@ -3183,15 +3692,22 @@ contents of a sequence of registers into consecutive memory locations.
 - $\ldots$
 - $\mathsf{mem}[R_f+gh+e-d] := R_e$
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+------------------------------|
+| assembly language  | save Rd,Re,gh[Rf]            |
 | instruction format | EXP                          |
-| machine language   | [$e d $0b] [e f gh]          |
+| opcode             | e, 0a                        |
+| machine language   | $e d $0a, e f gh             |
 | effect             | mem[reg[f]+gh] := reg[d]     |
 |                    | mem[reg[f]+gh+1] := reg[d+1] |
 |                    | ...                          |
 |                    | mem[reg[f]+gh+e-d] := reg[e] |
-| assembly language  | save Rd,Re,gh[Rf]            |
 |--------------------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
   
 For example, the following instruction will save registers R3 through
 R9 into memory starting at address 6 + R13.  Its machine language code
@@ -3222,27 +3738,25 @@ This =restore= instruction has the same operands as =save=, and it
 performs a sequence of loads corresponding to the stores performed by
 save.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+------------------------------|
-| assembly language  | save Rd,Re,gh[Rf]            |
+| assembly language  | restore Rd,Re,gh[Rf]         |
 | instruction format | EXP                          |
-| machine language   | [$e d $0c] [e f gh]          |
+| opcode             | e, 0b                        |
+| machine language   | $e d $0b, e f gh             |
 | effect             | reg[d] := mem[reg[f]+gh]=    |
 |                    | reg[d+1] :- mem[reg[f]+gh+1] |
 |                    | ...                          |
 |                    | reg[e] := mem[reg[f]+gh+e-d] |
 |--------------------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
-The restore instruction performs a sequence of loads:
+For example, consider this instruction:
 
-\begin{verbatim}
-- $R_d := \mathsf{mem}[R_f+gh] $
-- $R_{d+1} := \mathsf{mem}[R_f+gh+1] $
-- $R_{d+2} := \mathsf{mem}[R_f+gh+2] $
-- $\ldots$
-- $R_e := \mathsf{mem}[R_f+gh+e-d] $
-\end{verbatim}
-
-  For example, consider this instruction:
 #+BEGIN_CodeListing
    restore  R3,R10,4[R14]
 #+END_CodeListing
@@ -3307,326 +3821,6 @@ The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
 at consecutive locations beginning with mem[gh+Rf] into registers Re,
 Re+1, ..., Rf.
 
-** Arithmetic
-
-*** add
-
-The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
-destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~, calculates
-the sum ~Ra~ + ~Rb~, and loads the result into the destination ~Rd~.
-The effect is ~Rd := Ra + Rb~.  For example, ~add R5,R12,R2~
-performs ~R5 := R12 + R3~.
-
-|--------------------+---------------------------|
-| instruction format | RRR                       |
-| machine language   | [$0 d a b]                |
-| effect             | reg[d] := reg[a] + reg[b] |
-| assembly language  | add Rd,Ra,Rb              |
-|--------------------+---------------------------|
-
-The add instruction is RRR format with opcode=0.  Given destination Rd
-and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
-reprseented by 0dab.
-
-  Code    Assembly          Effect
-  -----   ----------------  ------------------
-  062c    add R6,R2,R12     ; R6 := R2 + R12
-  0d13    add R13,R1,R3     ; R13 := R1 + R3
-  
-The add instruction sets both the destination register and the
-condition code.  Flags in the condition code indicate overflow, carry,
-and sign of the result.
-
----------  ---------------------
- R15.ccG    result > 0 (binary)
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result <tc 0 (two's complement)
- R15.ccV    overflow (binary)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
----------  ---------------------
-
-The bits in a word are numbered from right to left, starting at bit
-index 0 in the rightmost (least significant) position, up to index 15
-at the leftmost (most significant) position.  The notation x.n denotes
-the bit in x with index n.
-
-A field is a consecutiave sequence of bits within a word.  A field is
-specified with the index of the leftmost bit in the field, along with
-the size of the field.  For example, the field in x with index 9 and
-size 3 consists of the bits x.9 x.8 x.7.
-
-#+BEGIN_CodeListing
-    add R1,R2,R3    ; R1 := R2 + R3
-#+END_CodeListing
-
-The instruction add Rd,Ra,Rb has operands Ra and Rb and destination
-Rd.  It fetches the operands Ra and Rb, calculates the sum Ra + Rb,
-and loads the result into the destination Rd.  The effect is Rd :=
-Ra + Rb.  For example, add R5,R12,R2 performs R5 := R12 + R3.
-
-The add instruction is RRR format with opcode=0.  Given destination Rd
-and operands Ra and Rb (where d, a, b are hex digits), add Rd,Ra,Rb is
-reprseented by 0dab.
-
-| Code | Assembly      | Effect           |
-|------+---------------+------------------|
-| 062c | add R6,R2,R12 | ; R6 := R2 + R12 |
-| 0d13 | add R13,R1,R3 | ; R13 := R1 + R3 |
-  
-The add instruction can be used for both binary addition (on natural
-numbers) and for two's complement addition (on signed integers).
-
-- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
-  If two natural numbers are added, the result is a natural number
-  (the result cannot be negative).  If the result is 65536 or larger,
-  it cannot be represented as a 16 bit binary number.  If this
-  happens, the destination register is set to the lower 16 bits of the
-  true result, and the binary overflow flag is set in the Condition Code.
-  
-- 16-bit two's complement numbers are signed integers -32999?, ...,
-  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
-  is a signed integer.  If the result is less than -32000 or greater
-  than 32000, then the result cannot be represented as a 16 bit two's
-  complement number.  If this happens, the destination register is set
-  to the lower 16 bits of the true result, and the two's complement
-  overflow flag is set in the Condition Code.  Furthermore, the
-  overflow flag is set in the req register.  If interrupts are enabled
-  and the overflow flag is 1 in the mask register, then an interrupt
-  will occur immediatelhy after the add instruction executes.
-
-The add instruction can be used for both binary addition (on natural
-numbers) and for two's complement addition (on signed integers).
-
-- 16-bit natural numbers are unsigned integers 0, 1, 2, ..., 65535.
-  If two natural numbers are added, the result is a natural number
-  (the result cannot be negative).  If the result is 65536 or larger,
-  it cannot be represented as a 16 bit binary number.  If this
-  happens, the destination register is set to the lower 16 bits of the
-  true result, and the binary overflow flag is set in the Condition Code.
-  
-- 16-bit two's complement numbers are signed integers -32999?, ...,
-  -1, 0, 1, ..., 32???.  If two signed integers are added, the result
-  is a signed integer.  If the result is less than -32000 or greater
-  than 32000, then the result cannot be represented as a 16 bit two's
-  complement number.  If this happens, the destination register is set
-  to the lower 16 bits of the true result, and the two's complement
-  overflow flag is set in the Condition Code.  Furthermore, the
-  overflow flag is set in the req register.  If interrupts are enabled
-  and the overflow flag is 1 in the mask register, then an interrupt
-  will occur immediatelhy after the add instruction executes.
-
-*** sub
-
-Example: sub R1,R2,R3 ; R1 := R2 - R3
-
-This instruction is similar to add; the only difference is that it
-calculates R2-R3 and places the result in R1.  The effect on the
-condition code is the same as for add.
-
-
-|--------------------+---------------------------|
-| instruction format | RRR                       |
-| machine language   | [$1 d a b]                |
-| effect             | reg[d] := reg[a] - reg[b] |
-| assembly language  | sub Rd,Ra,Rb              |
-|--------------------+---------------------------|
-
-The instruction sub Rd,Ra,Rb has operands Ra and Rb and destination
-Rd.  It fetches the operands Ra and Rb, calculates the difference Ra -
-Rb, and loads the result into the destination Rd.  The effect is Rd :=
-Ra - Rb.  For example, sub R5,R12,R2 performs R5 := R12 - R3.
-
-The sub instruction is RRR format with opcode=1.
-
-  Code    Assembly          Effect
-  -----   ----------------  ------------------
-  162c    sub R6,R2,R12     ; R6 := R2 - R12
-  1d13    sub R13,R1,R3     ; R13 := R1 - R3
-  
-In addition to setting the destination register, the sub instruction
-sets several bits in the condition code R15 and may set a bit in the
-req register.
-
----------  ---------------------
- R15.ccG    result > 0 (binary)
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result < 0 (two's complement)
- R15.ccV    overflow (binary)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
- R15.ccf    logicc instruction function result
----------  ---------------------
-
-*** mul
-
-Example: mul R1,R2,R3 ; R1 := R2 * R3
-
-The multiply instruction mul Rd,Ra,Rb calculates the integer (two's
-complement) product of the operands Ra and Rb, and places the result
-in the destination register Rd.  The mul instruction does not produce
-the natural (binary) product.
-
-
-|--------------------+---------------------------|
-| instruction format | RRR                       |
-| machine language   | [$2 d a b]                |
-| effect             | reg[d] := reg[a] * reg[b] |
-| assembly language  | mul Rd,Ra,Rb              |
-|--------------------+---------------------------|
-
-If the magnitude of the product is too large to be representable as a
-16 bit two's complement integer, this is an overflow.  If overflow
-occurs, the integer overflow bit is set in the condition code (F15)
-and the integer overflow bit is also set in the interrupt request
-register (req), and the lower order 16 bits of the product are loaded
-into Rd.
-
----------  ---------------------
- R15.ccg    result > 0 (two's complement)
- R15.ccE    result = 0
- R15.ccl    result < 0 (two's complement)
- R15.CCv    overflow (two's complement)
- R15.CCc    carry output
----------  ---------------------
-
-*** div
-
-Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
-
-Unlike the other arithmetic operations, the divide instruction div
-Rd,Ra,Rb produces two results: the quotient Ra / Rb and the remainder
-Ra rem Rb.  It loads the quotient into the destination register Rd,
-and the remainder is loaded into R15.
-
-
-|--------------------+------------------------------|
-| instruction format | RRR                          |
-| machine language   | [$3 d a b]                   |
-| effect             | reg[d] := reg[a] / reg[b]    |
-|                    | reg[15] := reg[a] rem reg[b] |
-| assembly language  | div Rd,Ra,Rb                 |
-|--------------------+------------------------------|
-
-If the destination register Rd is actually R15, then the quotient is
-placed in R15, and the remainder is discarded.
-
-The divide instruction doesn't set the condition code, since R15 is
-used for the remainder.  Therefore there is no condition code bit to
-indicate division by 0.  However, it is easy for a program to detect a
-division by 0.
-
-- (Explicit test for error) The program can compare the divisor with 0
-  before or after executing the divide instruction, and jump to an
-  error handler if the divisor is 0.  This is similar to testing the
-  condition code after an add, sub, or mul instruction, but it does
-  require two instructions: a compare followed by a conditional jump.
-  For example:
-
-#+BEGIN_CodeListing
-   div    R1,R2,R3       ; R1 := R2/R3, R15 := R2 rem R3
-   cmp    R3,R0       ; Did we divide by 0?
-   jumpeq zeroDivide[R0] ; If yes, handle error
-#+END_CodeListing
-  
-- (Exception) The program can detect division by 0 using an interrupt.
-  To do this, enable interrupts and enable the interrupt mask for
-  division by 0.  See the section on Interrupts.  This approach does
-  not require a compare or jump instruction for each division.
-
-*** cmp
-
-The compare instruction =cmp Ra,Rb= compares the values in the operand
-registers =Ra= and =Rb=, and then sets flags in the condition code
-(R15) to indicate the result. The notation R15.i means bit /i/ in R15;
-thus R15.0 is the leftmost bit of R15.  The instruction performs both
-natural number comparison (binary) and integer comparison (two's
-complement).  The resulting flags are
-
-- binary less than (L) in R15.0
-- two's complement less than (<) in R15.1
-- equal in R15.2
-- binary greater than (G) in R15.3
-- two's complement greater than (>) in R15.4
-
-  
-|--------------------+------------------------------|
-| instruction format | RRR                          |
-| machine language   | [$4 d a b]                   |
-| effect             | reg[d] := reg[a] / reg[b]    |
-| assembly language  | cmp Rd,Ra,Rb                 |
-|--------------------+------------------------------|
-
-The result of a cmp instruction can be used to control a conditional
-jump.  The jumpc0 instruction jumps is a specified bit of R15 is 0,
-and the jumpc1 instruction jumps if a specified bit is 1.
-
-Pseudoinstructions provide the most common cases; for example jumple
-jumps if the condition code indicates that a comparison produced
-either integer less-than or equal.  A common pattern is a cmp followed
-by a jump pseudoinstruction, for example:
-
-#+BEGIN_CodeListing
-    cmp     R4,R9      ; compare R4 with R9
-    jumpgt  abc]R0]    ; if R4 > R9 then goto abc
-#+END_CodeListing
-*** addc
-
-The addc instruction performs a binary addition with carry
-propagation.  It adds the two operand registers and the carry bit in
-the condition code register, R15.  The sum is loaded into the
-destination register Rd and the carry output is written back into the
-carry bit, overwriting its previous value.  Overflow is not possible
-with this instruction.
-
-*** muln
-
-#+BEGIN_CodeListing
-     muln   Rd,Ra,Rb
-#+END_CodeListing
-
-The muln instruction calculates the product of two natural numbers in
-Ra and Rb.  The result is 32 bits; the leftmost 16 bits (the most
-significant part) is loaded into R15, and the rightmost 16 bits (the
-least significant part) is loaded into Rd.  If Rd is R15, the most
-significant part is discarded.
-
-  
-|--------------------+------------------------------|
-| instruction format | RRR                          |
-| machine language   | [$4 d a b]                   |
-| effect             | reg[d] := reg[a] / reg[b]    |
-| assembly language  | cmp Rd,Ra,Rb                 |
-|--------------------+------------------------------|
-
-*** divn
-
-#+BEGIN_CodeListing
-     divn   Rd,Ra,Rb
-#+END_CodeListing
-
-The divn instruction divides two natural numbers: dividend / divisor.
-All the numbers -- numerator, denominator, quotient, remainder -- are
-natural numbers represented in binary.
-
-|--------------------+------------------------------|
-| instruction format | RRR                          |
-| machine language   | [$4 d a b]                   |
-| effect             | reg[d] := reg[a] / reg[b]    |
-| assembly language  | divn Rd,Ra,Rb                |
-|--------------------+------------------------------|
-
-- The dividend is a 32 bit natural number; its leftmost 16 bits are in
-  R15 and the rightmost 16 bits are in Ra.  Thedenominator is in Rb.
-- Two results are produced: a 32-bit quotient anda 16-bit remainder.
-- The leftmost 16 bits of the quotient are placedin R15 (replacing the
-  leftmost part of the dividend).  The rightmost16 bits of the
-  quotient are placed in Rd.
-- The remainder is placed in Ra, overwriting the least significant
-  half of the dividend operand
-
 ** Jumps
 
 A jump is a transfer control to another address, rather than to the
@@ -3636,42 +3830,83 @@ implement a goto statement.  (See also [[*Branches][Branches]].)
 
 *** jump
 
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 |--------------------+----------------------------|
 | instruction format | RX                         |
 | machine language   | {$f d a $3} {disp}         |
 | effect             | pc := disp+R[a]            |
 | assembly language  | jump disp[Ra]              |
 |--------------------+----------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 *** jumpc0, jumpc1
 
-jumpc0 is used to jump to a destination if a specified bit in the
-condition code is 0.
+These instructions jump to a destination if a specified bit in the
+condition code is 0 (for jumpc0) or 1 (for jumpc1).
 
-|--------------------+------------------------------|
-| assembly language  | jumpc0 d,disp[Ra]            |
-| instruction format | RX                           |
-| opcode             | f,4                          |
-| machine language   | {$f d a $4} {disp}           |
-| privileged         | no                           |
-| effect             | R[15].d=0 -> pc := disp+R[a]  |
-|--------------------+------------------------------|
+The first operand of jumpc0 is the index of a bit in R15.  Don't
+specify R15; the condition bit is always in R15.  The index of the
+condition bit must be specified in the d field of the instruction.
+Since this is an index, not a register, it's written as a number.
 
-# M-x insert-character 21D2
+- jumpc0 3,loop[R0]  ; Right
+- jumpc0 R3,loop[R0] ; Wrong - not using R3!
+
+#+BEGIN_CodeListing
+    lea     R1,5[R0]
+    lea     R2,6[R0]
+    cmp     R1,R2
+    jumpc0  0,yes[R0]  ; jump if GT so don't jump
+    jumpc0  4,no[R0]   ; jump if LT so do jump
+#+END_CodeListing
+
+jumpc0 goes to the destination if the specified condition bit is 0.
+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+#+BEGIN_InstructionTable
+|--------------------+----------------------|
+| assembly language  | jumpc0 d,disp[Ra]    |
+| instruction format | RX                   |
+| opcode             | f,4                  |
+| machine language   | $f d a $4            |
+|                    | disp                 |
+| effect             | if R[15].d=0         |
+|                    | then pc := disp+R[a] |
+|--------------------+----------------------|
+#+END_InstructionTable
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 jumpc1 is similar: it jumps if the specified bit is 1.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+----------------------------|
 | assembly language  | jumpc1 d,disp[Ra]          |
 | instruction format | RX                         |
 | opcode             | f,5                        |
-| machine language   | {$f d a $5} {disp}         |
-| privileged         | no                         |
-| effect             | R15.d=1 => pc := disp+R[a] |
+| machine language   | $f d a $5                  |
+|                    | disp                       |
+| effect             | if R15.d=1                 |
+| effect             | then R15.d=1               |
 |--------------------+----------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 *** jal
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+------------------------------|
 | assembly language  | jal Rd,disp[Ra]              |
 | instruction format | EXP                          |
@@ -3679,12 +3914,18 @@ jumpc1 is similar: it jumps if the specified bit is 1.
 | machine language   | {$f d a $6} {disp}           |
 | effect             | R[d]:=pc, pc:=disp+R[a]         |
 |--------------------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 *** jumpz, jumpnz
 
 The jumpz instruction jumps to the destination if a specified register
 is 0 (i.e. all the bits in that register are 0).
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+---------------------------------------|
 | assembly language  | jumpz d,disp[Ra]                      |
 | instruction format | EXP                                   |
@@ -3692,10 +3933,16 @@ is 0 (i.e. all the bits in that register are 0).
 | machine language   | {$f d a $7} {disp}                    |
 | effect             | R[15].d=0 -> pc := disp+R[a]          |
 |--------------------+---------------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 The jumpnz instruction jumps to the destination if a specified register
 is not 0 (i.e. at least one of the bits in that register is 1).
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+------------------------------|
 | assembly language  | jumpnz d,disp[Ra]            |
 | instruction format | EXP                          |
@@ -3703,18 +3950,9 @@ is not 0 (i.e. at least one of the bits in that register is 1).
 | machine language   | {$f d a $8} {disp}           |
 | effect             | R[15].d=1 => pc := disp+R[a] |
 |--------------------+------------------------------|
-
-** testset
-
-
-|--------------------+---------------------------------------|
-| assembly language  | testset Rd,disp[Ra]                   |
-| instruction format | EXP                                   |
-| opcode             | f,9                                   |
-| machine language   | {$f d a $9} {disp}                    |
-| effect             | R[d]:=M[disp+R[a], M[disp+R[a]]:=0001 |
-|--------------------+---------------------------------------|
-
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 ** Branches
 
@@ -3762,6 +4000,9 @@ There are two conditional branch instructions that perform a branch
 based on the value of a bit in a register.  For example, brc0 R7,3,xyz
 means "if bit 3 of R7 is 0 then go to xyz".
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+------------------------|
 | assembly language  | brc0 Rd,e,fgh          |
 | instruction format | EXP                    |
@@ -3769,9 +4010,15 @@ means "if bit 3 of R7 is 0 then go to xyz".
 | machine language   | {$e d $00} {e fgh}     |
 | effect             | R[d].e=0 -> pc:=pc+fgh |
 |--------------------+------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 brc1 is similar to brc0, but it branches if the specified bit is 1.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+------------------------|
 | assembly language  | brc1 Rd,e,fgh          |
 | instruction format | EXP                    |
@@ -3779,6 +4026,9 @@ brc1 is similar to brc0, but it branches if the specified bit is 1.
 | machine language   | {$e d $01} {e fgh}     |
 | effect             | R[d].e=1 -> pc:=pc+fgh |
 |--------------------+------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 These instructions are somewhat similar to jumpc0 and jumpc1, but
 there are two key differences:
@@ -3795,6 +4045,9 @@ These instructions perform a branch if a specified register is either
 equal to 0 (z), or not equal to 0 (nz).  Equal to 0 means every bit in
 the register is 0; not equal to 0 means some bit in the register is 1.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+--------------------------|
 | assembly language  | brz Rd,efgh              |
 | instruction format | EXP                      |
@@ -3802,11 +4055,17 @@ the register is 0; not equal to 0 means some bit in the register is 1.
 | machine language   | {$e d $02} {efgh}        |
 | effect             | R[d]=0000 -> pc:=pc+efgh |
 |--------------------+--------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 brnz is similar, but it branches if the register is not zero (i.e. any
 bit in Rd is 1).  For example, brnz R3,dest means "if R3 !=0 then goto
 dest".
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 |--------------------+---------------------------|
 | assembly language  | brnz Rd,efgh              |
 | instruction format | EXP                       |
@@ -3814,6 +4073,9 @@ dest".
 | machine language   | {$e d $03} {efgh}         |
 | effect             | R[d]!=0000 -> pc:=pc+efgh |
 |--------------------+---------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 
 *** dispatch
@@ -3892,6 +4154,9 @@ The invert function (also called not, logical negation) has one input.
 
 The truth tables for =and=, =or=, =xor= have two inputs.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | x | y | x and y | x or y | x xor y |
 |---+---+---------+--------+---------|
 | 0 | 0 |       0 |      0 |       0 |
@@ -3899,6 +4164,9 @@ The truth tables for =and=, =or=, =xor= have two inputs.
 | 1 | 0 |       0 |      1 |       1 |
 | 1 | 1 |       1 |      1 |       0 |
 |---+---+---------+--------+---------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 These aren't the only logic functions with two inputs.  Every logic
 function with two inputs $x$ and $y$ can be defined by a truth table
@@ -4245,11 +4513,11 @@ the same size.
 - The size $S$ of a field specified by $L,R$ is $\max (0, L-R+1)$.
 - In general, $R = L - S + 1$.
 - Destination field = Rd.f, Rd.f-1, ..., Rd.g.
-- Check that this works for destination: $R = L - S + 1 = f -
-  (f-g+1) + 1 = f - f + g - 1 + 1 = g$.
+- Check that this works for destination: R = L - S + 1 = f -
+  (f-g+1) + 1 = f - f + g - 1 + 1 = g.
 - Source field = Re.h, Re.h-1, ..., Re.h-f+g
 - Calculate $R$ for source, which is not specified in the instruction.
-  $R = L - S + 1 = h - (f-g+1) + 1 = h - f + g - 1 + 1 = h - f + g$.
+  R = L - S + 1 = h - (f-g+1) + 1 = h - f + g - 1 + 1 = h - f + g.
 
 *Assembly language.* The assembly language operand format for extract
 is RkkRk, where R denotes a register number and k denotes a 4-bit
@@ -4281,7 +4549,6 @@ R14.9 := R13.5
 R14.8 := R13.4
 R14.7 := R13.3
 #+END_CodeListing
-
 
 #+BEGIN_CodeListing
 ; Assembly language: extract Rd,f,g,Re,h
@@ -4370,19 +4637,34 @@ for several reasons:
 # then the instruction does nothing.  the source and destination
 # fields cannot extend beyond the rightmost bit in a register.
 
+** User requests
+*** Request to OS: trap 
+*** testset
+
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+---------------------------------------|
+| assembly language  | testset Rd,disp[Ra]                   |
+| instruction format | EXP                                   |
+| opcode             | f,9                                   |
+| machine language   | {$f d a $9} {disp}                    |
+| effect             | R[d]:=M[disp+R[a], M[disp+R[a]]:=0001 |
+|--------------------+---------------------------------------|
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+
 ** System control
 
-*** Request to OS: trap 
-*** Accessing control: getctl, putctl
+*** Accessing control registers: getctl, putctl
 *** Context switching: resume
 
 *** Timer: timeron, timeroff
 
 * Summary of instruction set
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
 
 - The Mnemonic gives the symbolic name of the instruction used in
   assembly language
@@ -4426,6 +4708,7 @@ Fields of the first instruction word:
 The second word of an instruction, for RX and EXP formats:
 
 
+
 Formats for the second word of an instruction.  The second word may
 consist of one of the following:
 - disp - a 16-bit constant
@@ -4459,165 +4742,196 @@ Assembly directives
 
 - data
 
-** Table of RRR instructions
+** RRR instructions
 
-+---------+-------------+------+-------------+----------------------+
-| Name    |  Operands   | Op   | Code        | Effect               |
-+---------+-------------+------+-------------+----------------------+
-| add     |   d,a,b     |   0  | $0 d a b    | R[d] := R[a] + R[g]  |
-+---------+-------------+------+-------------+----------------------+
-| sub     |   d,a,b     |   1  | $1 d a b    | R[d] := R[a] - R[b]  |
-+---------+-------------+------+-------------+----------------------+
-| mul     |   d,a,b     |   2  | $2 d a b    | R[d] := R[a] * R[b]  |
-+---------+-------------+------+-------------+----------------------+
-| div     |   d,a,b     |   3  | $3 d a b    | R[d] := R[a] / R[b]  |
-|         |             |      |             | R[15] := R[a] % R[b] |                     |
-+---------+-------------+------+-------------+----------------------+
-| cmp     |   d,a       |   4  | $4 d a b    | R[15] := R[a] cp R[b]|
-+---------+-------------+------+-------------+----------------------+
-| addc    |   d,a,b     |   5  | Rd := Ra +  | Rb + R15.carry (cc)  |
-+---------+-------------+------+-------------+----------------------+
-| muln    |   d,a,b     |   6  | R15++Rd     |  Ra :*: Rb           |
-+---------+-------------+------+-------------+----------------------+
-| divn    |   d,a,b     |   7  | $7 d a b    | R15++Rd := R15++Ra   |
-|         |             |      |             |  :/: Rb              |
-+---------+-------------+------+-------------+----------------------+
-|         |   d,a,b     |   8  | reserved    | nop                  |
-+---------+-------------+------+-------------+----------------------+
-|         |   d,a,b     |   9  | reserved    | nop                  |
-+---------+-------------+------+-------------+----------------------+
-|         |   d,a,b     |   a  | reserved    | nop                  |
-+---------+-------------+------+-------------+----------------------+
-|         |   d,a,b     |   b  | reserved    | nop                  |
-+---------+-------------+------+-------------+----------------------+
-| trap    |   d,a,b     |   c  | $c d a b    | interrupt            |
-+---------+-------------+------+-------------+----------------------+
-|         |             |   d  | reserved    | nop                  |
-+---------+-------------+------+-------------+----------------------+
-|         |             |   e  | secondary op| EXP format           |
-+---------+-------------+------+-------------+----------------------+
-|         |             |   f  | escape      | RX format            |
-+---------+-------------+------+-------------+----------------------+
-|         |             |      |             |                      |
-|         |             |      |             |                      |
-|         |             |      |             |                      |
-|         |             |      |             |                      |
-+---------+-------------+------+-------------+----------------------+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 
-** Table of RX instructions
++--------------+----+----------+------------------------+---------+
+| Assembly     | Op | Code     | Effect                 | CC      |
++--------------+----+----------+------------------------+---------+
+| add Rd,Ra,Rb |  0 | $0 d a b | R[d] := R[a] + R[g]    | gGElvVC |
++--------------+----+----------+------------------------+---------+
+| sub Rd,Ra,Rb |  1 | $1 d a b | R[d] := R[a] - R[b]    |         |
++--------------+----+----------+------------------------+---------+
+| mul d,a,b    |  2 | $2 d a b | R[d] := R[a] * R[b]    |         |
++--------------+----+----------+------------------------+---------+
+| div d,a,b    |  3 | $3 d a b | R[d] := R[a] / R[b]    |         |
+|              |    |          | R[15] := R[a] % R[b]   |         |
++--------------+----+----------+------------------------+---------+
+| cmp d,a      |  4 | $4 - a b | R[15] := R[a] cp R[b]  |         |
++--------------+----+----------+------------------------+---------+
+| addc d,a,b   |  5 | $5 d a b | Rd := Ra + Rb + R15.C) |         |
++--------------+----+----------+------------------------+---------+
+| muln d,a,b   |  6 | $6 d a b | Rd := Ra :*: Rb        |         |
++--------------+----+----------+------------------------+---------+
+|              |    |          | R15 :=                 |         |
++--------------+----+----------+------------------------+---------+
+| divn d,a,b   |  7 | $7 d a b | R15++Rd := R15++Ra     |         |
++--------------+----+----------+------------------------+---------+
+|              |    |          | :/: Rb                 |         |
++--------------+----+----------+------------------------+---------+
+|              |  8 | $8 - - - | nop                    |         |
++--------------+----+----------+------------------------+---------+
+|              |  9 | $9 - - - | nop                    |         |
++--------------+----+----------+------------------------+---------+
+|              |  a | $a - - - | nop                    |         |
++--------------+----+----------+------------------------+---------+
+|              |  b | $b - - - | nop                    |         |
++--------------+----+----------+------------------------+---------+
+| trap d,a,b   |  c | $c d a b | interrupt              |         |
++--------------+----+----------+------------------------+---------+
+|              |  d | $d d a b | escape reserved        |         |
++--------------+----+----------+------------------------+---------+
+|              |  e | $e d ab  | escape EXP op=ab       |         |
++--------------+----+----------+------------------------+---------+
+|              |  f | $f d a b | escape RX op=b         |         |
++--------------+----+----------+------------------------+---------+
 
-+---------+-------------+------+-------------+----------------------+
-| Name    |  Operands   | Op   | Code        | Effect               |
-+---------+-------------+------+-------------+----------------------+
-| lea     | Rd,disp[Ra] | f,0  | {$f d a $0} | R[d] := disp+R[a]    |
-|         |             |      | {disp}      |                      |
-+---------+-------------+------+-------------+----------------------+
-| load    | Rd,disp[Ra] | f,1  | {$f d a $1} | R[d] := M[disp+R[a]] |
-|         |             |      | {disp}      |                      |
-+---------+-------------+------+-------------+----------------------+
-| store   | Rd,disp[Ra] | f,2  | {$f d a $2} | M[disp+R[a]] := R[d] |
-|         |             |      | {disp}      |                      |
-+---------+-------------+------+-------------+----------------------+
-| jump    | disp[Ra]    | f,3  | {$f d a $3} | pc := disp+R[a]      |
-|         |             |      | {disp}      |                      |
-+---------+-------------+------+-------------+----------------------+
-| jumpc0  | d,disp[Ra]  | f,4  | {$f d a $4} | if R[15].d=0         |
-|         |             |      | {disp}      | then pc := disp+R[a] |
-+---------+-------------+------+-------------+----------------------+
-| jumpc1  | d,disp[Ra]  | f,5  | {$f d a $5} | if R[15].d=1         |
-|         |             |      | {disp}      | then pc := disp+R[a] |
-+---------+-------------+------+-------------+----------------------+
-| jal     | Rd,disp[Ra] | f,6  | {$f d a $6} | R[d]:=pc,            |
-|         |             |      | {disp}      | pc:=disp+R[a]        |
-+---------+-------------+------+-------------+----------------------+
-| jumpz   | Rd,disp[Ra] | f,7  | {$f d a $7} | if R[15].d=0         |
-|         |             |      | {disp}      | then pc := disp+R[a] |
-+---------+-------------+------+-------------+----------------------+
-| jumpnz  | Rd,disp[Ra] | f,8  | {$f d a $8} | if R[15].d=1         |
-|         |             |      | {disp}      | then pc := disp+R[a] |
-+---------+-------------+------+-------------+----------------------+
-| testset | Rd,disp[Ra] | f,9  | {$f d a $9} | R[d]:=M[disp+R[a]],  |
-|         |             |      | {disp}      | M[disp+R[a]]:=0001   |
-+---------+-------------+------+-------------+----------------------+
-|         |             | f,a  |             | nop, reserved        |
-|         |             | ...  |             | ...                  |
-|         |             | f,f  |             | nop, reserved        |
-+---------+-------------+------+-------------+----------------------+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
-** Table of EXP instructions
 
-+---------+-------------+------+-------------+----------------------+
-| Name    |  Operands   | Op   | Code        | Effect               |
-+---------+-------------+------+-------------+----------------------+
-| logicw  | Rd,Re,Rf,h  | e,00 |             | Rd := Re (lut g) Rf  |
-+---------+-------------+------+-------------+----------------------+
-| logicr  | Rd,e,f,g,h  | e,01 |             | Rd.e := Rd.f #h Rd.g |
-+---------+-------------+------+-------------+----------------------+
-| logicb  | Rd,e,Rf,g,h | e,02 |             | Rd.e := Rd.f #h Rd.g |
-+---------+-------------+------+-------------+----------------------+
-| shiftl  | Rd,Re,h     | e,03 |             | Rd := Re shl h       |
-+---------+-------------+------+-------------+----------------------+
-| shiftr  | Rd,Re,h     | e,04 |             | Rd := Re shr h       |
-+---------+-------------+------+-------------+----------------------+
-| extract | Rd,f,g,Re,h | e,05 |             | Rd.f~g :=            |
-| extract | Rd,f,g,Re,h | e,05 |             | Re.h~h+g-h+1         |
-+---------+-------------+------+-------------+----------------------+
-| extracti| Rd,E,L,M,N  | e,06 |             | Rd := ex Rd di       |
-| extracti| Rd,E,L,M,N  | e,06 |             | sz Rs si             |
-+---------+-------------+------+-------------+----------------------+
-| push    | Rd,E,F      | e,07 |             | M[ea] := Rd, Rb++    |
-+---------+-------------+------+-------------+----------------------+
-| pop     | D,E,F       | e,08 |             | Rb--, Rd := M[ea]    |
-+---------+-------------+------+-------------+----------------------+
-| top     | D,E,F       | e,09 |             | Rb--, Rd := M[ea]    |
-+---------+-------------+------+-------------+----------------------+
-| save    | Rd,e,gh[Rf] | e,0a |             | M[ea] := R1,         |
-|         |             |      |             | ..., M[ea+d-1] := Rd |
-|         |             |      |             | ..., M[ea+d-1] := Rd |
-+---------+-------------+------+-------------+----------------------+
-| restore | Rd,e,gh[Rf] | e,0b |             | R1 := M[ea],         |
-|         |             |      |             | ..., Rd := M[ea+d-1] |
-+---------+-------------+------+-------------+----------------------+
-| brc0    | Rd,e,fgh    | e,0c | {$e d $0c}  | if R[d].e=0          |
-|         |             |      | {e fgh}     | then pc:=pc+fgh      |
-+---------+-------------+------+-------------+----------------------+
-| brc1    | Rd,e,fgh    | e,0d | {$e d $0d}  | if R[d].e=1          |
-|         | Rd,e,fgh    | e,0d | {e fgh}     | then pc:=pc+fgh      |
-+---------+-------------+------+-------------+----------------------+
-| brz     | Rd,efgh     | e,0e | {$e d $0e}  | if R[d]=0000         |
-|         |             |      | {efgh}      | then pc:=pc+efgh     |
-+---------+-------------+------+-------------+----------------------+
-| brnz    | Rd,efgh     | e,0f | {$e d $0f}  | if R[d]!=0000        |
-|         |             |      | {efgh}      | then pc:=pc+efgh     |
-+---------+-------------+------+-------------+----------------------+
-| dispatch| d,x         | e,10 |             | if Rd!=0             |
-|         |             |      |             | then pc += 2-fgh     |
-+---------+-------------+------+-------------+----------------------+
-| getctl  | Rd,c        | e,11 |             | Rd := Sc             |
-|         |             |      |             | privileged
-+---------+-------------+------+-------------+----------------------+
-| putctl  | Rd,c        | e,12 |             | Sc := Rd             |
-|         |             |      |             | privileged
-+---------+-------------+------+-------------+----------------------+
-| resume  |             | e,13 |             | pc := ipc,           |
-|         |             |      |             | status := istatus    |
-|         |             |      |             | privileged
-+---------+-------------+------+-------------+----------------------+
-| timon   | Rd,efgh     | e,14 |             | timer := efgh,       |
-|         |             |      |             | start timer          |
-|         |             |      |             | privileged
-+---------+-------------+------+-------------+----------------------+
-| timoff  | Rd,efgh     | e,15 |             | stop timer           |
-|         |             |      |             | privileged
-+---------+-------------+------+-------------+----------------------+
-|         |             | e,16 | reserved    | nop                  |
-+---------+-------------+------+-------------+----------------------+
-|         |             | ...  | ...         | ...                  |
-+---------+-------------+------+-------------+----------------------+
-|         |             | e,ff | reserved    | nop                  |
-+---------+-------------+------+-------------+----------------------+
+** RX instructions
 
-** Table of pseudoinstructions
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
++---------------------+-----+-----------+------------------------+----+
+| Assembly            | Op  | Code      | Effect                 | CC |
++---------------------+-----+-----------+------------------------+----+
+| lea Rd,disp[Ra]     | f,0 | $f d a $0 | R[d] := disp+R[a]      |    |
+|                     |     | disp      |                        |    |
++---------------------+-----+-----------+------------------------+----+
+| load Rd,disp[Ra]    | f,1 | $f d a $1 | R[d] := M[disp+R[a]]   |    |
+|                     |     | disp      |                        |    |
++---------------------+-----+-----------+------------------------+----+
+| store Rd,disp[Ra]   | f,2 | $f d a $2 | M[disp+R[a]] := R[d]   |    |
+|                     |     | disp      |                        |    |
++---------------------+-----+-----------+------------------------+----+
+| jump disp[Ra]       | f,3 | $f d a $3 | pc := disp+R[a]        |    |
+|                     |     | disp      |                        |    |
++---------------------+-----+-----------+------------------------+----+
+| jumpc0 d,disp[Ra]   | f,4 | $f d a $4 | if R[15].d=0           |    |
+|                     |     | disp      | then pc := disp+R[a]   |    |
++---------------------+-----+-----------+------------------------+----+
+| jumpc1 d,disp[Ra]   | f,5 | $f d a $5 | if R[15].d=1           |    |
+|                     |     | disp      | then pc := disp+R[a]   |    |
++---------------------+-----+-----------+------------------------+----+
+| jal Rd,disp[Ra]     | f,6 | $f d a $6 | R[d]:=pc,              |    |
+|                     |     | disp      | pc:=disp+R[a]          |    |
++---------------------+-----+-----------+------------------------+----+
+| jumpz Rd,disp[Ra]   | f,7 | $f d a $7 | if R[15].d=0           |    |
+|                     |     | disp      | then pc := disp+R[a]   |    |
++---------------------+-----+-----------+------------------------+----+
+| jumpnz Rd,disp[Ra]  | f,8 | $f d a $8 | if R[15].d=1           |    |
+|                     |     | disp      | then pc := disp+R[a]   |    |
++---------------------+-----+-----------+------------------------+----+
+| testset Rd,disp[Ra] | f,9 | $f d a $9 | R[d]:=M[disp+R[a]],    |    |
+|                     |     | disp      | M[disp+R[a]]:=0001     |    |
++---------------------+-----+-----------+------------------------+----+
+|                     | f,a | $f d a $a | nop, reserved          |    |
+|                     |     | disp      |                        |    |
++---------------------+-----+-----------+------------------------+----+
+|                     | ... |           | ...                    |    |
++---------------------+-----+-----------+------------------------+----+
+|                     | f,f | $f d a $f | nop, reserved          |    |
+|                     |     | disp      |                        |    |
++---------------------+-----+-----------+------------------------+----+
+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+** EXP instructions
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
++---------------------+------+----------+----------------------+----+
+| Assembly            | Op   | Code     | Effect               | CC |
++---------------------+------+----------+----------------------+----+
+| logicw Rd,Re,Rf,h   | e,00 |          | Rd := Re (lut g) Rf  |    |
++---------------------+------+----------+----------------------+----+
+| logicr Rd,e,f,g,h   | e,01 |          | Rd.e := Rd.f #h Rd.g |    |
++---------------------+------+----------+----------------------+----+
+| logicb Rd,e,Rf,g,h  | e,02 |          | Rd.e := Rd.f #h Rd.g |    |
++---------------------+------+----------+----------------------+----+
+| shiftl Rd,Re,h      | e,03 |          | Rd := Re shl h       |    |
++---------------------+------+----------+----------------------+----+
+| shiftr Rd,Re,h      | e,04 |          | Rd := Re shr h       |    |
++---------------------+------+----------+----------------------+----+
+| extract Rd,f,g,Re,h | e,05 |          | Rd.f~g :=            |    |
++---------------------+------+----------+----------------------+----+
+| extract Rd,f,g,Re,h | e,05 |          | Re.h~h+g-h+1         |    |
++---------------------+------+----------+----------------------+----+
+| extracti Rd,E,L,M,N | e,06 |          | Rd := ex Rd di       |    |
++---------------------+------+----------+----------------------+----+
+| extracti Rd,E,L,M,N | e,06 |          | sz Rs si             |    |
++---------------------+------+----------+----------------------+----+
+| push Rd,E,F         | e,07 |          | M[ea] := Rd, Rb++    |    |
++---------------------+------+----------+----------------------+----+
+| pop D,E,F           | e,08 |          | Rb--, Rd := M[ea]    |    |
++---------------------+------+----------+----------------------+----+
+| top D,E,F           | e,09 |          | Rb--, Rd := M[ea]    |    |
++---------------------+------+----------+----------------------+----+
+| save Rd,e,gh[Rf]    | e,0a |          | M[ea] := R1,         |    |
+|                     |      |          | ..., M[ea+d-1] := Rd |    |
+|                     |      |          | ..., M[ea+d-1] := Rd |    |
++---------------------+------+----------+----------------------+----+
+| restore Rd,e,gh[Rf] | e,0b |          | R1 := M[ea],         |    |
+|                     |      |          | ..., Rd := M[ea+d-1] |    |
++---------------------+------+----------+----------------------+----+
+| brc0 Rd,e,fgh       | e,0c | $e d $0c | if R[d].e=0          |    |
+|                     |      | e fgh    | then pc:=pc+fgh      |    |
++---------------------+------+----------+----------------------+----+
+| brc1 Rd,e,fgh       | e,0d | $e d $0d | if R[d].e=1          |    |
+| Rd,e,fgh            | e,0d | e fgh    | then pc:=pc+fgh      |    |
++---------------------+------+----------+----------------------+----+
+| brz Rd,efgh         | e,0e | $e d $0e | if R[d]=0000         |    |
+|                     |      | efgh     | then pc:=pc+efgh     |    |
++---------------------+------+----------+----------------------+----+
+| brnz Rd,efgh        | e,0f | $e d $0f | if R[d]!=0000        |    |
+|                     |      | efgh     | then pc:=pc+efgh     |    |
++---------------------+------+----------+----------------------+----+
+| dispatch d,x        | e,10 |          | if Rd!=0             |    |
+|                     |      |          | then pc += 2-fgh     |    |
++---------------------+------+----------+----------------------+----+
+| getctl Rd,c         | e,11 |          | Rd := Sc             |    |
+|                     |      |          | privileged           |    |
++---------------------+------+----------+----------------------+----+
+| putctl Rd,c         | e,12 |          | Sc := Rd             |    |
+|                     |      |          | privileged           |    |
++---------------------+------+----------+----------------------+----+
+| resume              | e,13 |          | pc := ipc,           |    |
+|                     |      |          | status := istatus    |    |
+|                     |      |          | privileged           |    |
++---------------------+------+----------+----------------------+----+
+| timon Rd,efgh       | e,14 |          | timer := efgh,       |    |
++---------------------+------+----------+----------------------+----+
+|                     |      |          | start timer          |    |
++---------------------+------+----------+----------------------+----+
+|                     |      |          | privileged           |    |
++---------------------+------+----------+----------------------+----+
+| timoff Rd,efgh      | e,15 |          | stop timer           |    |
+|                     |      |          | privileged           |    |
++---------------------+------+----------+----------------------+----+
+|                     | e,16 | reserved | nop                  |    |
++---------------------+------+----------+----------------------+----+
+|                     | ...  | ...      | ...                  |    |
++---------------------+------+----------+----------------------+----+
+|                     | e,ff | reserved | nop                  |    |
++---------------------+------+----------+----------------------+----+
+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+** Summary of pseudoinstructions
 
 Pseudoinstructions for comparisons
 
@@ -4628,6 +4942,9 @@ Pseudoinstructions for comparisons
 - jumpge jump if >-
 - jumpgt jump if >
 
+
+
+* Dummy section after ISA summary tables
 
 * Assembly language
 
@@ -4889,12 +5206,18 @@ interpret the file as plain text.  If you have a program named
 =MyProgram=, then the files associated with it must be named as
 follows:
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | Description      | Language          | Filename          |
 |------------------+-------------------+-------------------|
 | source code      | assembly language | MyProgram.asm.txt |
 | object code      | object language   | MyProgram.obj.txt |
 | assembly listing | plain text        | MyProgram.lst.txt |
 | metadata         | plain text        | MyProgram.md.txt  |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 The first part of the filename (=MyProgram=) is the /base name/, and
 is the same for all the files for the module.  The last part
@@ -4930,9 +5253,9 @@ value.  A value consists of a word and several attributes:
   - if origin=Local, the value is defined within the module
   - if origin=External, the value is imported from another module
 - movability
-  - If movability=Relocatable, the value must be adjusted by the
+  - If movability = Relocatable, the value must be adjusted by the
     relocation constant when the module is relocated
-  - If movability=Fixed, the value is not affected during relocation
+  - If movability = Fixed, the value is not affected during relocation
 
 *** Expressions
 
@@ -4956,6 +5279,9 @@ Constants can be written in decimal, hexadecimal, or binary:
   #000100000001101
 
 Expressions may contain arithmetic operators + - * /.
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 
 |-------------+----------+-------------+-------------|
 | operand     | operator | operator    | result      |
@@ -4980,6 +5306,9 @@ Expressions may contain arithmetic operators + - * /.
 | relocatable | /        | fixed       | error       |
 | relocatable | /        | relocatable | error       |
 |-------------+----------+-------------+-------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 
 relocatable 
@@ -5116,6 +5445,9 @@ formats, but there is not an exact correspondence for several reasons:
 
 Table: *Assembly language statement formats*
   
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | afmt  | operand general form | example           | notes         |
 |-------+----------------------+-------------------+---------------|
 | RRR   | Rd,Ra,Rb             | add R1,R2,R3      |               |
@@ -5128,8 +5460,14 @@ Table: *Assembly language statement formats*
 | RkkRk | Ra,j,n,Rb,k          | extract           |               |
 | RC    | Rc,Rd                | putctl vect,R4    |               |
 |       |                      |                   |               |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
   
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 
  | Label   | Statement | Operands | Purpose                    |
  |---------+-----------+----------+----------------------------|
@@ -5139,8 +5477,15 @@ Table: *Assembly language statement formats*
  |         | RRop      | r,r      |                            |
  |         | Rop       | r        |                            |
  |         | RRKKop    | r,r,k,k  |                            |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 | Asm   | instruction | operands    | ML formats             |
 |-------+-------------+-------------+------------------------|
 | RRR   | add         | Rd,Ra,Rb    | RRR                    |
@@ -5151,6 +5496,10 @@ Table: *Assembly language statement formats*
 | RRK   | shiftl      | Rd,Ra,k     | EXP                    |
 | RkkRk | extract     | Rd,e,f,Rg,h | EXP                    |
 | RCEXP | getctl      | Re,Cf       | EXP                    |
+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 An EXP instruction may use the fields op, d, ab, e, f, g, h.  The g
 and h fields can be combined into a single 8-bit field gh All EXP
@@ -5287,6 +5636,9 @@ information about how to translate the program to object code and how
 to link the code with other modules.  Directirves specify metadata but
 they don't generate an instruction or constant data.
 
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
 
 | Statement  | Label  | Operands              | Purpose                    |
 |------------+--------+-----------------------+----------------------------|
@@ -5295,6 +5647,9 @@ they don't generate an instruction or constant data.
 | identifier | equ    | expression            | Define value               |
 | identifier | import | identifier,identifier | Import  value  from module |
 |            | export | identifier            | Export values              |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 *** module
 
@@ -5616,7 +5971,7 @@ A metadata file contains two sections: the ASmap followed by the
 source listing text.
 A metadata file must have the following contents:
 
-$a0,s0,a1,s1,a2,s2, ..., a_{n-1},s_{n-1}$
+$a0,s0,a1,s1,$ $a2,s2, ...,$ $a_{n-1},s_{n-1}$
 
 When the pc contains address $a_i$ then the source statement $s_i$
 should be displayed.
@@ -5993,11 +6348,20 @@ examine the state of the machine.
 * Installation
 
 You can run most of Sigma16 in a web browser -- there's nothing to
-download, nothing to install.  Visit the [Sigma16 home
-page](https://jtod.github.io/home/Sigma16/) in your browser and
-click on the link to launch the app.  It will run in your browser;
-you don't have to install anything.  The Home page also contains
-links to the source code and further information about the project.
+download, nothing to install.  Visit the Sigma16 Home Page in your
+browser:
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+[Sigma16 home page](https://jtod.github.io/home/Sigma16/)
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+Click on the link to launch the app.  It will run in your browser; you
+don't have to install anything.  The Home page also contains links to
+the source code and further information about the project.
 
 ** Command line tools
 
@@ -6016,9 +6380,9 @@ Gnu/Linux.
 
 Shell running bash
 
-Add the following to your .bashrc
-file, but replace /Users//yourlogin/Documents/path/to/ with your own file
-location.  In a bash shell running on cygwin, try /Users/yourlogin.
+Add the following to your .bashrc file, but replace /Users/ yourlogin/
+Documents/ path/ to/ with your own file location.  In a bash shell
+running on cygwin, try /Users/ yourlogin.
 
 #+BEGIN_CodeListing
 SIGMA16=/Users/yourlogin/Documents/path/to/SigmaProject/Sigma16
@@ -6051,6 +6415,7 @@ $ npm install -g wabt
 $ wat2wasm emcore.wat --enable-threads
 #+END_CodeListing
 
+
 * About Sigma16
 :PROPERTIES:
 :CUSTOM_ID: sec-about-sigma16
@@ -6075,7 +6440,16 @@ will be useful, but WITHOUT ANY WARRANTY; without even the implied
 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
 the GNU General Public License for more details.  You should have
 received a copy of the GNU General Public License along with Sigma16.
-If not, see <https://www.gnu.org/licenses/>.
+If not, see
+[[https://www.gnu.org/licenses/][www. gnu. org/ licenses]].
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+<https://www.gnu.org/licenses/>.
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 ** In case of problems
 
@@ -6206,6 +6580,7 @@ instructions and features that have been in the architecture for some
 time but weren't documented in the User Gude.  These won't affect
 existing programs.
 
+
 * License
 #+INCLUDE: ../../LICENSE.txt
 
@@ -6234,4 +6609,4 @@ existing programs.
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
 
-224
+225
