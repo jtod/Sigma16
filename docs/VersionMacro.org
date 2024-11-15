@@ -1,1 +1,1 @@
-#+MACRO: S16version Version 3.8.0, October 2024
+#+MACRO: S16version Version 3.8.0, November 2024
