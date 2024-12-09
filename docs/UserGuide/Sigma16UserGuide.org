@@ -1925,12 +1925,27 @@ that simplify functions and procedures and logic calculations.
 
 ** Logic
 
-The pseudoinstruction =andw R1,R2,R3=  calculates the logical and the
-operands R2 and R3, and places the result in the destination register
-R1.  This is a "bitwise" operation: bit $i$ of the result is the
-logical and of bit $i$ of each operand.  Similarly, there is =orw= to
-calculate the logical or of two words, and =xorw= for exclusive or.
-To invert all the bits in a word, use =invw=.
+Sigma16 provides pseudoinstructions for the commonest logic
+operations.  Each instruction takes one or two operands, calculates
+the result, and places the result in the destination register.
+
+These are "bitwise" operations: bit $i$ of the result is
+the logical /and/ of bit $i$ of each operand, and does not depend on
+bits at any other index.
+
+- invw R1,R2 inverts the bits of R2 and places the result in R1
+- andw R1,R2,R3 calculates the logical /and/ of the operands R2 and R3,
+  and places the result in the destination register R1.
+- orw R1,R2,R3 calculates the logical /inclusive or/ of the operands
+  R2 and R3, and places the result in the destination register R1.
+- xorw R1,R2,R3 calculates the logical /exclusive or/ of the operands
+  R2 and R3, and places the result in the destination register R1.
+
+ Similarly, there is
+=orw= to calculate the logical /inclusive or/ of two words, and =xorw=
+for /exclusive or/.  To invert all the bits in a word, use =invw=.
+
+The following examples are in Examples/ Standard/ Logic.asm.txt
 
 #+BEGIN_CodeListing
      lea  R3,$f0f0[R0]  ; R3 = f0f0
@@ -1946,7 +1961,6 @@ instruction =logicw= that can calculate all possible boolean functions
 of up to 2 operands.  These pseudoinstructions generate =logicw=
 instruction.
 
-See Examples/ Standard/ Logic.asm.txt
 
 ** Shifting
 
@@ -2317,7 +2331,7 @@ jumps:
 
 Another way to use condition code flags is to save them as Boolean
 variables and perform logic operations on them.  This is done using
-the extract and logicr instructions.
+the extract and logicb instructions.
 
 There are separate flags for integers (represented as two's
 complement) and natural numbers (represented as binary).  This is
@@ -4116,6 +4130,7 @@ number of bits in the code, and a fixed /offset/ (which is usually 0).
 - The branch table is normally a sequence of unconditional branch
   instructions, either brf or brb.
 
+
 ** Logic
 
 The commonest Boolean operators are =inv=, =and=, =or=, and =xor=.
@@ -4126,18 +4141,15 @@ general instructions that implement all of them.
 
 - =logicw= performs logic on all the corresponding bits in two operand
   registers, and places the word result in a destination register.
-- =logicr= performs logic on two operand bits within a register, and
-  places the result in a destination bit in the same register.
 - =logicb= performs logic on two operand bits that may be in different
   registers.  The result overwrites the first operand bit.
 
-The bit logic instructions =logicr= and =logicb= extract the operand
-bits from registers, calculate the result using a supplied function,
-and put the bit back into a word, leaving the rest of the word
-unchanged.  The word logic instructions update every bit in the
-destination.  The bit logic instructions update only one bit in the
-destination, enabling you to keep many Boolean variables in just one
-register.
+The bit logic instruction =logicb= extracts the operand bits from
+registers, calculate the result using a supplied function, and put the
+bit back into a word, leaving the rest of the word unchanged.  The
+word logic instructions update every bit in the destination.  The bit
+logic instructions update only one bit in the destination, enabling
+you to keep many Boolean variables in just one register.
 
 Logic instructions make it easy to calculate any Boolean expression,
 but they are not the only way.  In some cases it is better to use
@@ -4273,63 +4285,7 @@ xor  equ   6
      logicw R5,R7,R2,xor   ; R5 := R7 xor R2
 #+END_CodeListing
 
-*** Bit logic within a register: logicr
-
-The =logicr= instruction allows you to specify any two operand bits
-and a destination bit, all within the same register.  This is
-convenient when a program has a collection of Boolean flags kept in
-the same word.  The general form is:
-
-#+BEGIN_CodeListing
-   logicr  Rd,e,f,g,h  ; Rd.e := h (Rd.f, Rd.g)
-   EXP op=#e ab=$13
-#+END_CodeListing
-
-- Rd is the destination register, which also contains both source
-  operands bits
-- e is the index of the destination bit
-- f is the index of the first argument bit
-- g is the index of the second argument bit
-- h is the logic function
-- The instruction format is EXP, with primary =e= and secondary opcode
-  =$13=.
-
-Here is an example that performs logic on bits within R1, which is
-initialized to 0002. and calculates the logic or of bit 0 (which is 0)
-and bit 1 (which is 1).  The result goes into bit 10, changing R1 from
-=$0002= to =$0402=.  The logic function or has code 7.  Tthe operands
-are bits 9 and 2, and the result is placed into bit 3.  The
-instruction says: within R1, perform logic function 7 on bits 0 and 1,
-and place the result in bit 10.
-
-#+BEGIN_CodeListing
-  lea     R1,2[R0]     ; R1 := 0002, R1.0 = 0, R1.1 = 1
-  logicr  R1,10,0,1,or ; e113 a017. R1 := 0402, R1.10 = 1  
-#+END_CodeListing
-
-The op field of the first word of the machine language code for this
-example is 14 (hex e), indicating EXP format.  The secondary operation
-code is =$13=, which is stored in the =ab= field.  Since the general
-form is =logicr Rd,e,f,g,h=, we have $d=1$, $e=a$, $f=0$, $g=1$, and
-$h=7$, so the machine language code is =e113 a017=.
-
-If your program keeps a set of Boolean variables in one register, you
-can calculate Boolean expressions in that register with =logicr=.
-
-*** Pseudoinstructions invr, andr, orr, xorb
-
-Pseudoinstructions are provided for the most common bit logic
-functions.  The operands are the same as for =logicr=, except the last
-operand is omitted, as the function is specified by the mnemonic.
-
-#+BEGIN_CodeListing
-      invr    R1,3,9     ; R1.3 := inv R1.9
-      andr    R1,3,9,2   ; R1.3 := R1.9 and R1.2
-      orr     R1,3,9,2   ; R1.3 := R1.9 or R1.2
-      xorr    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
-#+END_CodeListing
-
-*** Bit logic across registers: logicb
+*** Bit logic: logicb
 
 The =logicb= instruction specifies two operand bits that may be in
 different registers.  The result will overwrite the first operand bit.
@@ -4392,6 +4348,7 @@ pseudoinstructions.
 #+BEGIN_CodeListing
     moveb  R4,7,R12,5   ; R4.7 := R12.5
 #+END_CodeListing
+
 
 ** Bit manipulation
 *** Shifting: shiftl, shiftr
@@ -4856,8 +4813,6 @@ Assembly directives
 | Assembly            | Op   | Code     | Effect               | CC |
 +---------------------+------+----------+----------------------+----+
 | logicw Rd,Re,Rf,h   | e,00 |          | Rd := Re (lut g) Rf  |    |
-+---------------------+------+----------+----------------------+----+
-| logicr Rd,e,f,g,h   | e,01 |          | Rd.e := Rd.f #h Rd.g |    |
 +---------------------+------+----------+----------------------+----+
 | logicb Rd,e,Rf,g,h  | e,02 |          | Rd.e := Rd.f #h Rd.g |    |
 +---------------------+------+----------+----------------------+----+
@@ -5456,7 +5411,7 @@ Table: *Assembly language statement formats*
 | kX    | k,disp[Ra]           | jumpc0 6,loop[R2] | 0 <= k <= 15  |
 | RRRk  | Rd,Ra,Rb,K[Re]       | save R1,R5,3[R14] | 0 <= K <= 255 |
 | RRk   | Ra,Rb,k              | shiftl R1,R2,5    | 0 <= k <= 15  |
-| Rkkkk | Rd,e,f,g,h           | logicr R1,        |               |
+| Rkkkk | Rd,e,f,g,h           |                   |               |
 | RkkRk | Ra,j,n,Rb,k          | extract           |               |
 | RC    | Rc,Rd                | putctl vect,R4    |               |
 |       |                      |                   |               |

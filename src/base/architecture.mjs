@@ -149,7 +149,7 @@ export const aRRk     = Symbol ("RRk");     //
 export const aRkk     = Symbol ("Rkk");     // invb, field R1,3,12  ??
 export const aRkK     = Symbol ("RkK");     // brfc0  R2,4,230
 export const aRkkkk   = Symbol ("Rkkkk");   // logicr   R1,3,8,2,xor
-export const aRkRk    = Symbol ("RkRk");    // moveb   R5,4,R9,3
+export const aRkRk    = Symbol ("RkRk");    // andb     R5,4,R9,3
 export const aRkRkk   = Symbol ("RkRkk");   // logicc  R5,4,R9,3,and
 export const aRkkk    = Symbol ("Rkkk");    // xorb     R1,3,8,2
 export const aRRRk    = Symbol ("RRRk");    // logicw   R1,R2,R3,xor
@@ -549,6 +549,17 @@ statementSpec.set("nandr",   {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,14],
 statementSpec.set("norr",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,8],
                               pseudo:true});
 statementSpec.set("xnorr",   {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,9],
+                              pseudo:true});
+
+// Mnemonics for logicb pseudo instructions
+
+statementSpec.set("invb",    {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,12], // ???
+                              pseudo:true});
+statementSpec.set("andb",    {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,1],
+                              pseudo:true});
+statementSpec.set("orb",     {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,7],
+                              pseudo:true});
+statementSpec.set("xorb",    {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,6],
                               pseudo:true});
 
 // Mnemonic for bit field

@@ -1269,7 +1269,7 @@ function asmPass2 (ma) {
             const e = requireK4  (ma, s, Field_e, s.operands[1]) // idx1
             const f = requireReg (ma, s, s.operands[2])          // op2
             const g = requireK4  (ma, s, Field_g, s.operands[3]) // idx2
-            const h = 0
+            const h = op.opcode[2]
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
             s.codeWord2 = mkWord (e, f, g, h)
             generateObjectWord (ma, s, s.address.word, s.codeWord1)
