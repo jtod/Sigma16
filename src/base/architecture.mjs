@@ -134,27 +134,65 @@ export const iDir     = Symbol ("iDir")
 export const iEmpty   = Symbol ("iEmpty")
 
 // Assembly language statement operand formats
+
 export const a0       = Symbol ("");        // resume
-export const aR       = Symbol ("R");       // timeron  R1
-export const aRR      = Symbol ("RR");      // cmp      R1,R2
-export const aRRR     = Symbol ("RRR");     // add      R1,R2,R3
-export const aRC      = Symbol ("RC");      // putctl   R1,status
+// resume timeroff
 export const aK       = Symbol ("K");       // brf      loop
+// ?????? brf brb ?????
 export const aX       = Symbol ("X");       // jump     loop[R0]
-export const aRX      = Symbol ("RX");      // load     R1,xyz[R2]
-export const aRRX     = Symbol ("RRX");     // save     R4,R7,5[R13]
-export const aRK      = Symbol ("RK");      // brfnz    R1,xyz
+// jump
+// pseudo jumple jumpne jumpge jumpnv jumpnco
+// pseudo jumplt jumpeq jumpgt jumpv jumpco
 export const akX      = Symbol ("kX");      // jumpc0   3,next[R0]
-export const aRRk     = Symbol ("RRk");     //
+// jumpc0 jumpc1
+export const aRX      = Symbol ("RX");      // load     R1,xyz[R2]
+// lea load store jal jumpz jumpnz testset
+export const aR       = Symbol ("R");       // timeron  R1
+// timeron
+// pseudo invw
+export const aRK      = Symbol ("RK");      // brfnz    R1,xyz
+// brz brnz dispatch
+export const aRk      = Symbol ("Rk");      // invb     R1,13
+// pseudo invb
+export const aRC      = Symbol ("RC");      // putctl   R1,status
+// getctl putctl
+
 export const aRkk     = Symbol ("Rkk");     // invb, field R1,3,12  ??
+// pseudo invf 
 export const aRkK     = Symbol ("RkK");     // brfc0  R2,4,230
-export const aRkkkk   = Symbol ("Rkkkk");   // logicr   R1,3,8,2,xor
-export const aRkRk    = Symbol ("RkRk");    // andb     R5,4,R9,3
+// brc0 brc1
+
+// export const aRkkk    = Symbol ("Rkkk");    // xorb     R1,3,8,2
+// Rkkk was for andr etc but those are deprecated
+
+// export const aRkkkk   = Symbol ("Rkkkk");   // logicr   R1,3,8,2,xor
+
+export const aRR      = Symbol ("RR");      // cmp      R1,R2
+// cmp
+// pseudo andw orw xorw
+export const aRRk     = Symbol ("RRk");     //
+// shiftl shiftr
+export const aRRkk     = Symbol ("RRkk");     // andw pseudo
+// pseudo andf orf xorf andb orb xorb
+export const aRRkkk   = Symbol ("RRkkk");   // logicf   R1,R2,4,7,and
+// logicf logicb extract extracti
+// export const aRkRk    = Symbol ("RkRk");    // andb     R5,4,R9,3
+export const aRRX     = Symbol ("RRX");     // save     R4,R7,5[R13]
+// save restore
 export const aRkRkk   = Symbol ("RkRkk");   // logicc  R5,4,R9,3,and
-export const aRkkk    = Symbol ("Rkkk");    // xorb     R1,3,8,2
-export const aRRRk    = Symbol ("RRRk");    // logicw   R1,R2,R3,xor
-export const aRkkRk   = Symbol ("RkkRk");   // extract  R1,7,4,R2,12
+
+export const aRRR     = Symbol ("RRR");     // add      R1,R2,R3
+// add sub mul div addc muln divn trap
+// push pop top
+// pseudo andw orw xorw
+
 export const aRRRkk   = Symbol ("RRRkk");   // inject   R1,R2,R3,5,7
+
+// export const aRRkkk   = Symbol ("RRk");      // extract  Rd,Rs,di,si,size
+// export const aRkkRk   = Symbol ("RkkRk");   // extract  R1,7,4,R2,12
+
+// Assembly language directives
+
 export const aData    = Symbol ("data");    // data     34
 export const aModule  = Symbol ("module");  // module
 export const aImport  = Symbol ("import");  // import   Mod1,x
@@ -163,8 +201,6 @@ export const aReserve = Symbol ("reserve"); // reserve  20
 export const aOrg     = Symbol ("org");     // org      $ff00
 export const aEqu     = Symbol ("equ");     // equ      rcd+4
 export const aBlock   = Symbol ("block");   // block    100
-
-// export const aRRkkk   = Symbol ("RRk");      // extract  Rd,Rs,di,si,size
 
 //----------------------------------------------------------------------
 // Instruction mnemonics
@@ -188,8 +224,8 @@ export const mnemonicRX =
    // possible future...
    // "leal",     "loadl",    "storel",    "noprx"]      // c-f
 
-export const mnemonicEXP =
-    ["push",     "pop",      "top",    "save",     // 00-03
+export const mnemonicEXP =  // ????? needs revision
+    ["logicf", "push",     "pop",      "top",    "save",     // 00-03
      "restore",  "brc0",     "brc1",   "brz",      // 04-07
      "brnz",     "dispatch", "shiftl", "shiftr",   // 08-0b
      "loticw",   "logicr",   "logicb", "extract",  // 0c-0f
@@ -433,13 +469,14 @@ statementSpec.set("testset", {ifmt:iRX, afmt:aRX, opcode:[15,9]})
 // brfc0 R5,7,loop      8-bit offset
 // brfz  R3,loop        12-bit offset
 
-statementSpec.set("logicw",   {ifmt:iEXP, afmt:aRRRk,  opcode:[14,0]})
-statementSpec.set("logicr",   {ifmt:iEXP, afmt:aRkkkk, opcode:[14,1]})
-statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRkRkk, opcode:[14,2]})
+statementSpec.set("logicf",   {ifmt:iEXP, afmt:aRRkkk,  opcode:[14,0]})
+statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRRkkk,  opcode:[14,1]})
 statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
 statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,4]})
-statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,5]})
-statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,6]})
+// statementSpec.set("extract",  {ifmt:iEXP, afmt:aRkkRk, opcode:[14,5]})
+// statementSpec.set("extracti", {ifmt:iEXP, afmt:aRkkRk, opcode:[14,6]})
+statementSpec.set("extract",  {ifmt:iEXP, afmt:aRRkkk, opcode:[14,5]})
+statementSpec.set("extracti", {ifmt:iEXP, afmt:aRRkkk, opcode:[14,6]})
 statementSpec.set("push",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,7]})
 statementSpec.set("pop",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,8]})
 statementSpec.set("top",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,9]})
@@ -449,11 +486,11 @@ statementSpec.set("brc0",     {ifmt:iEXP, afmt:aRkK,   opcode:[14,12]})
 statementSpec.set("brc1",     {ifmt:iEXP, afmt:aRkK,   opcode:[14,13]})
 statementSpec.set("brz",      {ifmt:iEXP, afmt:aRK,    opcode:[14,14]})
 statementSpec.set("brnz",     {ifmt:iEXP, afmt:aRK,    opcode:[14,15]})
-statementSpec.set("dispatch", {ifmt:iEXP, afmt:aRkK,   opcode:[14,16]})
+statementSpec.set("dispatch", {ifmt:iEXP, afmt:aRk,    opcode:[14,16]})
 statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,17]})
 statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,18]})
 statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,19]})
-statementSpec.set("timeron",  {ifmt:iEXP, afmt:aR,     opcode:[14,20]})
+statementSpec.set("timeron",  {ifmt:iEXP, afmt:aR,     opcode:[14,20,0]})
 statementSpec.set("timeroff", {ifmt:iEXP, afmt:a0,     opcode:[14,21]})
 
 
@@ -525,42 +562,67 @@ statementSpec.set("jumpco",
 
 // Mnemonics for logic pseudo instructions
 
-statementSpec.set("invw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,0,12],
+statementSpec.set("invw",    {ifmt:iEXP, afmt:aR,     opcode:[14,0,12],
                               pseudo:true});
-statementSpec.set("andw",    {ifmt:iEXP, afmt:aRRR,    opcode:[14,0,1],
+statementSpec.set("andw",    {ifmt:iEXP, afmt:aRR,     opcode:[14,0,1],
                               pseudo:true});
-statementSpec.set("orw",     {ifmt:iEXP, afmt:aRRR,    opcode:[14,0,7],
+statementSpec.set("orw",     {ifmt:iEXP, afmt:aRR,     opcode:[14,0,7],
                               pseudo:true});
-statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRRR, opcode:[14,0,6],
+statementSpec.set("xorw",    {ifmt:iEXP, afmt:aRR,    opcode:[14,0,6],
+                              pseudo:true});
+statementSpec.set("invf",    {ifmt:iEXP, afmt:aRkk,   opcode:[14,0,12],
+                              pseudo:true});
+statementSpec.set("andf",    {ifmt:iEXP, afmt:aRRkk,    opcode:[14,0,1],
+                              pseudo:true});
+statementSpec.set("orf",     {ifmt:iEXP, afmt:aRRkk,    opcode:[14,0,7],
+                              pseudo:true});
+statementSpec.set("xorf",    {ifmt:iEXP, afmt:aRRkk, opcode:[14,0,6],
                               pseudo:true});
 
 // Mnemonics for logicr pseudo instructions
 
-statementSpec.set("invr",    {ifmt:iEXP, afmt:aRkk, opcode:[14,1,12],
-                              pseudo:true});
-statementSpec.set("andr",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,1],
-                              pseudo:true});
-statementSpec.set("orr",     {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,7],
-                              pseudo:true});
-statementSpec.set("xorr",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,6],
-                              pseudo:true});
-statementSpec.set("nandr",   {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,14],
-                              pseudo:true});
-statementSpec.set("norr",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,8],
-                              pseudo:true});
-statementSpec.set("xnorr",   {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,9],
-                              pseudo:true});
+// statementSpec.set("invr",    {ifmt:iEXP, afmt:aRkk, opcode:[14,1,12],
+//                               pseudo:true});
+// statementSpec.set("andr",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,1],
+//                               pseudo:true});
+// statementSpec.set("orr",     {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,7],
+//                               pseudo:true});
+// statementSpec.set("xorr",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,6],
+//                               pseudo:true});
+// statementSpec.set("nandr",   {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,14],
+//                              pseudo:true});
+// statementSpec.set("norr",    {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,8],
+//                               pseudo:true});
+// statementSpec.set("xnorr",   {ifmt:iEXP, afmt:aRkkk, opcode:[14,1,9],
+//                              pseudo:true});
 
 // Mnemonics for logicb pseudo instructions
 
-statementSpec.set("invb",    {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,12], // ???
-                              pseudo:true});
-statementSpec.set("andb",    {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,1],
-                              pseudo:true});
-statementSpec.set("orb",     {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,7],
-                              pseudo:true});
-statementSpec.set("xorb",    {ifmt:iEXP, afmt:aRkRk, opcode:[14,2,6],
-                              pseudo:true});
+statementSpec.set("invb",
+                  {ifmt:iEXP, afmt:aRk,  opcode:[14,1,12], // ???
+                   pseudo:true});
+statementSpec.set ("setb",
+                   {ifmt:iEXP, afmt:aRk,
+                    opcode:[14,1,15], pseudo:true});
+statementSpec.set ("clearb",
+                   {ifmt:iEXP, afmt:aRk,
+                    opcode:[14,1,0], pseudo:true});
+
+statementSpec.set("andb",
+                  {ifmt:iEXP, afmt:aRRkk, opcode:[14,1,1],
+                   pseudo:true});
+statementSpec.set("orb",
+                  {ifmt:iEXP, afmt:aRRkk, opcode:[14,1,7],
+                   pseudo:true});
+statementSpec.set ("xorb",
+                   {ifmt:iEXP, afmt:aRRkk,
+                    opcode:[14,1,6], pseudo:true});
+statementSpec.set ("copyb",
+                   {ifmt:iEXP, afmt:aRRkk,
+                    opcode:[14,1,5], pseudo:true});
+statementSpec.set ("copybi",
+                   {ifmt:iEXP, afmt:aRRkk,
+                    opcode:[14,1,10], pseudo:true});
 
 // Mnemonic for bit field
 

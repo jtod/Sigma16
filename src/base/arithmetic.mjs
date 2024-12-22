@@ -173,6 +173,39 @@ function lut (p,q,r,s,x,y) {
     return x==0 ? (y==0 ? p : q) : (y==0 ? r : s)
 }
 
+export function applyLogicFcnField (fcn, x, y, idx1, idx2) {
+//    console.log (`applyLogicFcnField ${fcn} ${x} ${y} ${idx1} ${idx2}`)
+    const p = arch.getBitInWordLE (fcn,3);
+    const q = arch.getBitInWordLE (fcn,2);
+    const r = arch.getBitInWordLE (fcn,1);
+    const s = arch.getBitInWordLE (fcn,0);
+    let result = 0
+    let b = 0
+    let i = 0
+    while (i < 16 && i < idx1) {
+        b = arch.getBitInWordLE (x,i)
+//        console.log (`part 1: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+    while (i < 16 && i <= idx2) {
+        b = lut (p,q,r,s,
+                 arch.getBitInWordLE(x,i), arch.getBitInWordLE(y,i))
+//        console.log (`part 2: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+    while (i < 16) {
+        b = arch.getBitInWordLE (x,i)
+//        console.log (`part 3: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+//    console.log (`result=${wordToHex4(result)}`)
+    return result
+}
+
+
 export function applyLogicFcnWord (fcn, x, y) {
     com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
     let p = arch.getBitInWordLE (fcn,3);

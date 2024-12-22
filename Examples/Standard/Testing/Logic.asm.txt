@@ -1,6 +1,6 @@
 ; Logic: Test logic operations
 ; Instructions logicw, logicb, and their pseudoinstructions
-; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2025
 
 ;---------------------------------------------------------------------
 ; Instruction format:
@@ -15,8 +15,15 @@
 ; an instruction with operand 3,R4 would place 3 in field e and 4 in
 ; f.
 
+; Machine language notation: a digit 0-9 and an uppercase letter from
+; A to F indicates a constant hex digit value.  A lower case letter
+; (op, d, a, b, e, f, g, h) is a variable giving the value of the
+; corresponding field in the instruction format.  The value is
+; specified by the assembly language statement.
+
 ; Symbolic names for common logic function codes
-inv  equ     12
+
+invx equ     12
 and  equ     1
 or   equ     7
 xor  equ     6
@@ -25,183 +32,175 @@ nor  equ     8
 xnor equ     9
 
 ;---------------------------------------------------------------------
-; logicw - bitwise logic on words
+; logicf - bitwise logic on fields
 
-;    logicw  Rd,Re,Rf,h
-;        EXP. op=#e, ab=$12, g is ignored
-;        Rd := h (Re, Rf)
-     logicw  R3,R9,R5,6     ; e300 9506
+;    logicf  Rd,Re,f,g,h
+;      effect:  Rd.f:g := map2 h (Rd.f:g, Re.f:g)
+;      Rd = first operand register and destination register
+;      Re = second operand register
+;      f = index of rightmost bit in field (in both registers))
+;      g = index of leftmost bit in field (in both registers)
+;      h = logic function
+;      format: EXP
+;      machine language: Ed00 efgh (op=$E, ab=$00)
+     logicf  R3,R9,5,8,xor   ; e300 9586
 
-; Testing logicw
+; Testing logicf
+
+     lea     R1,$3333[R0]   ; R1 := 3333
+     lea     R2,$5555[R0]   ; R2 := 5555
+     logicf  R1,R2,0,3,and  ; R1 := 3331
+     logicf  R1,R2,4,7,or   ; R1 := 3371
+     logicf  R1,R2,8,11,xor ; R1 := 3671
+
+; logicf pseudoinstructions
+;   Pseudoinstructions that end with w operate on entire word
+;   Those that end with f operate on a field
+
+;    invw    Rd            ; logicf Rd,Re,0,15,invx
+;    andw    Rd,Re         ; logicf Rd,Re,0,15,and
+;    orw     Rd,Re         ; logicf Rd,Re,0,15,or
+;    xorw    Rd,Re         ; logicf Rd,Re,0,15,xor
+
+;    invf    Rd,f,g        ; logicf Rd,R0,f,g,invx
+;    andf    Rd,Re,f,g     ; logicf Rd,Re,f,g,and
+;    orf     Rd,Re,f,g     ; logicf Rd,Re,f,g,or
+;    xorf    Rd,Re,f,g     ; logicf Rd,Re,f,g,xor
+
+; Testing logicf pseudoinstructions
+
+     lea   R3,$f0f0[R0]   ; R3 := f0f0
+     invw  R3             ; R3 := 0f0f
+
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     andw  R1,R2          ; R1 := 00f0
+
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     orw   R1,R2          ; R1 := f0ff
+     xorw  R1,R2          ; R1 := f000
 
      lea     R1,$00ff[R0]   ; R1 := 00ff
      lea     R2,$0f0f[R0]   ; R2 := 0f0f
-     logicw  R3,R1,R2,6     ; R3 := 0ff0  e312 1206
 
+     invw    R2             ; R2 := f0f0
+     invw    R2             ; R2 := 0f0f
+     andw    R1,R2          ; R1 := 000f
      lea     R1,$00ff[R0]   ; R1 := 00ff
-     lea     R2,$0f0f[R0]   ; R2 := 0f0f
+     orw     R1,R2          ; R1 := 0fff
+     lea     R1,$00ff[R0]   ; R1 := 00ff
+     xorw    R1,R2          ; R1 := 0ff0
 
-     logicw  R3,R1,R2,and   ; R3 := 000f
-     logicw  R4,R1,R2,or    ; R4 := 0fff
-     logicw  R5,R1,R2,xor   ; R5 := 0ff0
-     logicw  R6,R1,R2,nor   ; R6 := f000
+     lea     R1,$006f[R0]
+     invf    R1,4,7         ; R1 := 009f
+     lea     R1,$005f[R0]
+     andf    R1,R2,4,11      ; R1 := 
+     lea     R1,$00ff[R0]
+     orf     R1,R2,4,7
+     lea     R1,$00ff[R0]
+     xorf    R1,R2,4,7
 
-; logicw pseudoinstructions
+;---------------------------------------------------------------------; logicb - bit logic, overwrites the first operand
 
-;    invw    Rd,Re          ; logicw Rd,Re,R0,1
-;    andw    Rd,Re,Rf       ; logicw Rd,Re,Rf,1
-;    orw     Rd,Re,Rf       ; logicw Rd,Re,Rf,1
-;    xorw    Rd,Re,Rf       ; logicw Rd,Re,Rf,1
+;    logicb  Rd,Re,f,g,h
+;      Rd.f := h (Rd.f, Re.g)
+;      EXP op=$e ab=$01
+     logicb  R7,R9,3,5,6    ; e701 9356
 
-; Testing logicw pseudoinstructions
-
-     lea     R3,$f0f0[R0]   ; R3 = f0f0
-     lea     R4,$ff00[R0]   ; R4 = ff00
-
-     invw    R6,R3          ; R6 := inv R3    = 0f0f
-     andw    R7,R3,R4       ; R7 := R3 and R4 = f000
-     orw     R8,R3,R4       ; R8 := R3 or R4  = fff0
-     xorw    R9,R3,R4       ; R9 := R7 xor R8 = 0ff0
-
-;---------------------------------------------------------------------
-; logicb - bit logic, overwrites the first operand
-
-;    logicb  Rd,e,Rf,g,h
-;      Rd.e := h (Rd.e, Rf.g)
-;      EXP op=$e ab=$02
-     logicb  R7,3,R9,5,6    ; e702 3956
+; Test assembly of EXP/aRRkkk
+     logicb  R7,R9,3,5,6    ; e701 9356
 
 ; Testing logicb
 
+   lea    R2,$0f00[R0]   ; R2 := 0f00 (R2.9 := 1)
+   lea    R7,$2000[R0]   ; R7 := 2000 (R7.13 := 1)
+   logicb R2,R7,9,13,xor ; R2 := 0d00 (R2.9 := R2.9 xor R7.13 = 0)
+
      lea     R1,$00ff[R0]
      lea     R2,$00f0[R0]
-     logicb  R1,8,R2,4,or   ; 01ff
-     logicb  R1,7,R2,4,and  ; 01ff
-     logicb  R1,6,R2,3,and  ; 01bf
+     logicb  R1,R2,8,4,or   ; 01ff
+     logicb  R1,R2,7,4,and  ; 01ff
+     logicb  R1,R2,6,3,and  ; 01bf
 
      lea     R2,$0200[R0]   ; R2.9 := 1
      lea     R7,$0000[R0]   ; R7.13 := 0
-     logicb  R2,9,R7,13,xor ; e214 97d6. R2 := 0200
+     logicb  R2,R7,9,13,xor ; e214 97d6. R2 := 0200
 
      lea     R1,$0030[R0]   ; R1 := 0030
      lea     R2,$0005[R0]   ; R2 := 0005
-     logicb  R1,7,R2,3,and  ; R1.7 := 0 and 0 = 0, R1 := 0030
-     logicb  R1,6,R2,2,and  ; R1.6 := 0 and 1 = 0, R1 := 0030
-     logicb  R1,5,R2,1,and  ; R1.5 := 1 and 0 = 0, R1 := 0010
-     logicb  R1,4,R2,0,and  ; R1.4 := 1 and 1 = 1, R1 := 0010
+     logicb  R1,R2,7,3,and  ; R1.7 := 0 and 0 = 0, R1 := 0030
+     logicb  R1,R2,6,2,and  ; R1.6 := 0 and 1 = 0, R1 := 0030
+     logicb  R1,R2,5,1,and  ; R1.5 := 1 and 0 = 0, R1 := 0010
+     logicb  R1,R2,4,0,and  ; R1.4 := 1 and 1 = 1, R1 := 0010
 
      lea     R1,$0030[R0]   ; R1 := 0030
      lea     R2,$0005[R0]   ; R2 := 0005
-     logicb  R1,7,R2,3,or   ; R1.7 := 0 or 0 = 0, R1 := 0030
-     logicb  R1,6,R2,2,or   ; R1.6 := 0 or 1 = 1, R1 := 0070
-     logicb  R1,5,R2,1,or   ; R1.5 := 1 or 0 = 1, R1 := 0070
-     logicb  R1,4,R2,0,or   ; R1.4 := 1 or 1 = 1, R1 := 0070
+     logicb  R1,R2,7,3,or   ; R1.7 := 0 or 0 = 0, R1 := 0030
+     logicb  R1,R2,6,2,or   ; R1.6 := 0 or 1 = 1, R1 := 0070
+     logicb  R1,R2,5,1,or   ; R1.5 := 1 or 0 = 1, R1 := 0070
+     logicb  R1,R2,4,0,or   ; R1.4 := 1 or 1 = 1, R1 := 0070
 
      lea     R1,$0030[R0]   ; R1 := 0030
      lea     R2,$0005[R0]   ; R2 := 0005
-     logicb  R1,7,R2,3,xor  ; R1.7 := 0 xor 0 = 0, R1 := 0030
-     logicb  R1,6,R2,2,xor  ; R1.6 := 0 xor 1 = 1, R1 := 0070
-     logicb  R1,5,R2,1,xor  ; R1.5 := 1 xor 0 = 1, R1 := 0070
-     logicb  R1,4,R2,0,xor  ; R1.4 := 1 xor 1 = 0, R1 := 0060
+     logicb  R1,R2,7,3,xor  ; R1.7 := 0 xor 0 = 0, R1 := 0030
+     logicb  R1,R2,6,2,xor  ; R1.6 := 0 xor 1 = 1, R1 := 0070
+     logicb  R1,R2,5,1,xor  ; R1.5 := 1 xor 0 = 1, R1 := 0070
+     logicb  R1,R2,4,0,xor  ; R1.4 := 1 xor 1 = 0, R1 := 0060
 
 ;     logicb  R1,3,0,0,inv   ; R1 := 176a  R1.3 = 1
 ;     logicb  R1,2,1,0,inv   ; R1 := 176a  R1.2 = 0
 
 ; logicb pseudoinstructions
-;    invb    Rd,e,          ; logicb Rd,e,R0,0,7
+
+;    invb    Rd,e           ; logicb Rd,e,R0,0,7
 ;    andb    Rd,e,Rf,g      ; logicb Rd,e,Rf,g,and
 ;    orb     Rd,e,Rf,g      ; logicb Rd,e,Rf,g,or
 ;    xorb    Rd,e,Rf,g      ; logicb Rd,e,Rf,g,xor
 
+; Test assembly of EXP/aRk pseudo
+     invb    R3,5           ; e301 050c (logicb R3,R0,6,0,12)
+     setb    R4,7           ; e401 070f (logicb R4,R0,7,0,15)
+     clearb  R5,8           ; e501 0800 ( logicb R5,R0,8,0,0)
+
+     add     R4,R0,R0       ; R4 := 0000
+     setb    R4,7           ; R4 := 0080 (R4.7 := 1)
+
+     lea     R4,$ffff[R0]   ; R4 := ffff
+     clearb  R4,7           ; R4 := ff7f (R4.7 := 0)
+
+     add     R4,R0,R0       ; R4 := 0000
+     lea     R12,$0020[R0]  : R12 = 0020
+     copyb   R4,R12,7,5     ; R4 := 0080 (R4.7 := R12.5)
+
+     add     R4,R0,R0       ; R4 := 0
+     copybi  R4,R0,6,5      ; R4 := 0040 (R4.6 := inv R0.5)
+
 ; Testing logicb pseudoinstructions
 
+     lea     R1,$0050[R0]   ; R1 := 0050
+ ;    invb    R1,4           ; R1 := 0040
+     
      lea     R1,$0030[R0]   ; R1 := 0030
      lea     R2,$0005[R0]   ; R2 := 0005
-     andb    R1,7,R2,3      ; R1.7 := 0 and 0 = 0, R1 := 0030
-     andb    R1,6,R2,2      ; R1.6 := 0 and 1 = 0, R1 := 0030
-     andb    R1,5,R2,1      ; R1.5 := 1 and 0 = 0, R1 := 0010
-     andb    R1,4,R2,0      ; R1.4 := 1 and 1 = 1, R1 := 0010
-
-     lea     R1,$0030[R0]   ; R1 := 0030
-     lea     R2,$0005[R0]   ; R2 := 0005
-     orb     R1,7,R2,3      ; R1.7 := 0 or 0 = 0, R1 := 0030
-     orb     R1,6,R2,2      ; R1.6 := 0 or 1 = 1, R1 := 0070
-     orb     R1,5,R2,1      ; R1.5 := 1 or 0 = 1, R1 := 0070
-     orb     R1,4,R2,0      ; R1.4 := 1 or 1 = 1, R1 := 0070
+     andb    R1,R2,7,3      ; R1.7 := 0 and 0 = 0, R1 := 0030
+     andb    R1,R2,6,2      ; R1.6 := 0 and 1 = 0, R1 := 0030
+     andb    R1,R2,5,1      ; R1.5 := 1 and 0 = 0, R1 := 0010
+     andb    R1,R2,4,0      ; R1.4 := 1 and 1 = 1, R1 := 0010
 
      lea     R1,$0030[R0]   ; R1 := 0030
      lea     R2,$0005[R0]   ; R2 := 0005
-     xorb    R1,7,R2,3      ; R1.7 := 0 xor 0 = 0, R1 := 0030
-     xorb    R1,6,R2,2      ; R1.6 := 0 xor 1 = 1, R1 := 0070
-     xorb    R1,5,R2,1      ; R1.5 := 1 xor 0 = 1, R1 := 0070
-     xorb    R1,4,R2,0      ; R1.4 := 1 xor 1 = 0, R1 := 0060
+     orb     R1,R2,7,3      ; R1.7 := 0 or 0 = 0, R1 := 0030
+     orb     R1,R2,6,2      ; R1.6 := 0 or 1 = 1, R1 := 0070
+     orb     R1,R2,5,1      ; R1.5 := 1 or 0 = 1, R1 := 0070
+     orb     R1,R2,4,0      ; R1.4 := 1 or 1 = 1, R1 := 0070
 
-;---------------------------------------------------------------------
-; DEPRECATED - the logicr instruction will be removed
-; logicr - bit logic within one word
-;    logicr  Rd,e,f,g,h
-;      Rd.e := h (Rd.f, Rd.g)
-;      EXP op=$e ab=$01
-     logicr  R2,5,6,7,8     ; e201 5678
+     lea     R1,$0030[R0]   ; R1 := 0030
+     lea     R2,$0005[R0]   ; R2 := 0005
+     xorb    R1,R2,7,3      ; R1.7 := 0 xor 0 = 0, R1 := 0030
+     xorb    R1,R2,6,2      ; R1.6 := 0 xor 1 = 1, R1 := 0070
+     xorb    R1,R2,5,1      ; R1.5 := 1 xor 0 = 1, R1 := 0070
+     xorb    R1,R2,4,0      ; R1.4 := 1 xor 1 = 0, R1 := 0060
 
-; Example
-     lea     R1,2[R0]       ; R1 := 0002
-     logicr  R1,10,0,1,or   ; e113 a017. R1 := 0402
+     trap    R0,R0,R0
 
-; logicr pseudoinstructions
-;    invr    Rd,e
-;    andr    Rd,e,f,g
-;    orr     Rd,e,f,g
-;    xorr    Rd,e,f,g
-
-; Testing logicr pseudoinstructions
-
-     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
-
-     andr    R1,15,0,0      ; R1 := 0002  R1.15 = 0
-     andr    R1,14,0,1      ; R1 := 0002  R1.14 = 0
-     andr    R1,13,1,0      ; R1 := 0002  R1.13 = 0
-     andr    R1,12,1,1      ; R1 := 1002  R1.12 = 1
-
-     orr     R1,11,0,0      ; R1 := 1002  R1.11 = 0
-     orr     R1,10,0,1      ; R1 := 1402  R1.10 = 1
-     orr     R1,9,1,0       ; R1 := 1602  R1.9 = 1
-     orr     R1,8,1,1       ; R1 := 1702  R1.8 = 1
-
-     xorr    R1,7,0,0       ; R1 := 1702  R1.7 = 0
-     xorr    R1,6,0,1       ; R1 := 1742  R1.6 = 1
-     xorr    R1,5,1,0       ; R1 := 1762  R1.5 = 1
-     xorr    R1,4,1,1       ; R1 := 1762  R1.4 = 0
-
-     invr    R1,3,0         ; R1 := 176a  R1.3 = 1
-     invr    R1,2,1         ; R1 := 176a  R1.2 = 0
-;     invr    R1,3            ; R1 := 176a  R1.3 = 1
-;     invr    R1,2            ; R1 := 176a  R1.2 = 0
-
-     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
-
-     nandr   R1,15,0,0      ; R1 := 8002  R1.15 = 1
-     nandr   R1,14,0,1      ; R1 := c002  R1.14 = 1
-     nandr   R1,13,1,0      ; R1 := e002  R1.13 = 1
-     nandr   R1,12,1,1      ; R1 := e002  R1.12 = 0
-
-     trap    R0,R0,R0       ; terminate
-
-; deprecated
-     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
-     nandr   R1,15,0,0      ; R1 := 8002  R1.15 = 1
-     nandr   R1,14,0,1      ; R1 := c002  R1.14 = 1
-     nandr   R1,13,1,0      ; R1 := e002  R1.13 = 1
-     nandr   R1,12,1,1      ; R1 := e002  R1.12 = 0
-
-;--------------------------------------------------------------------
-; deprecated: wrong and don't need them
-     norr    R1,15,0,0      ; R1 := e802  R1.15 = 1     wrong
-     norr    R1,14,0,1      ; R1 := e802  R1.14 = 0     wrong
-     norr    R1,13,1,0      ; R1 := e802  R1.13 = 0     wrong
-     norr    R1,12,1,1      ; R1 := e802  R1.12 = 0     wrong
-
-     xnorr   R1,15,0,0      ; R1 := e882  R1.15 = 1     wrong
-     xnorr   R1,14,0,1      ; R1 := e882  R1.14 = 0     wrong
-     xnorr   R1,13,1,0      ; R1 := e882  R1.13 = 0     wrong
-     xnorr   R1,12,1,1      ; R1 := e892  R1.12 = 1     wrong

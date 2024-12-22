@@ -1,8 +1,28 @@
 ; Shift: Test the shift instructions.
-; Expected results are given in comments.
-; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+; Instructions shiftl, shiftr
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2025
 
-; Examples from tutorial
+;    shiftl Rd,Re,h
+;      effect:  Rd := Re shl h
+;      Rd = first operand register and destination register
+;      Re = second operand register
+;      f = unused
+;      g = unused
+;      h = constant shift distance
+;      format: EXP/RRk
+;      machine language: Ed04 efgh (op=$E, ab=$03)
+     lea    R1,2[R0]   ;           R2 = 0002  0000 0000 0000 0010
+     shiftl R5,R1,4    ; E503 1004 R5 = 0020  0000 0000 0010 0000
+
+;    shiftr Rd,Re,h
+;      effect:  Rd := Re shr h
+;      Rd = first operand register and destination register
+;      Re = second operand register
+;      f = unused
+;      g = unused
+;      h = constant shift distance
+;      format: EXP/RRk
+;      machine language: Ed04 efgh (op=$E, ab=$04)
 
   lea    R1,2[R0]   ; R2 = 0002   0000 0000 0000 0010
   shiftl R5,R1,4    ; R5 = 0020   0000 0000 0010 0000

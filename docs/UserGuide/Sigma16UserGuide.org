@@ -179,9 +179,9 @@
 #  #+LATEX_HEADER: \usepackage{Sigma}    # use globel def
 #  #+LATEX_HEADER: \usepackage{UserGuide}
 
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # html configuration
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
 #+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
 #+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico">
@@ -189,17 +189,17 @@
 #+HTML_HEAD_EXTRA: <style type="text/css"> td { padding: 4px 5px 4px 5px } </style>
 # #+OPTIONS: html-tableel-org:t
 
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # Text of the document
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
 * Introduction
 
-Sigma16 is a computer architecture designed for research and teaching
-in computer systems.  This application provides a complete environment
-for experimenting with the architecture.  It includes an editor,
-assembler, linker, emulator, and an integrated development environment
-(IDE) with a graphical user interface.
+Sigma16 is a computer architecture designed for research and
+teaching in computer systems.  This application provides a complete
+environment for experimenting with the architecture.  It includes an
+editor, assembler, linker, emulator, and an integrated development
+environment (IDE) with a graphical user interface.
 #+INDEX:architecture
 #+INDEX: assembler
 
@@ -231,16 +231,11 @@ and the circuit.
 
 ** Browser compatibility
 
-- /Full compatibility./ This version of Sigma16 runs on *Chrome*,
-  *Edge*, *Opera*, and *DuckDuckGo*.  These browsers are based on the
-  Chromium engine.
-
-- /Partial compatibility./ Most components of the Sigma16 app run on
-  *Safari* and *Firefox*, including the assembler, linker, and
-  emulator.  However, those browsers do not support local file access,
-  so the buttons that read and write files don't work.  However, you
-  can copy and paste assembly language programs between an external
-  editor and the Sigma16 editor.
+#+BEGIN_majornote
+Sigma16 Version 3.8 runs on up-to-date versions of the following
+browsers: Chrome, Edge, Opera, DuckDuckGo.  It does not work on Safari
+or Firefox.
+#+END_majornote
 
 ** Organization
 
@@ -276,7 +271,8 @@ backward compatibility; this can lead to great complexity.
 
 The following short tutorials introduce the system; full details
 appear in later sections.  You can keep the tutorials visible in the
-right panel while following along with the examples in the main panel.
+right panel while following along with the examples in the main
+panel.
 
 
 * Core architecture tutorials
@@ -332,16 +328,16 @@ or install anything.
   program will not boot until you fix the errors.
 
 - Click *Step*.  The processor executes a single instruction and
-  displays the effects on the registers and memory: blue for /using/ a
-  value, and red for /modifying/ it.  The assembly listing shows the
-  instruction that just executed by highlighting it in red.  It also
-  shows the instruction that will execute next by highlighting it in
-  blue.  This is just to make it easier to follow what is happening;
-  the machine executes the machine language program, which is in
-  memory, and it ignores the assembly language listing which is just a
-  convenience to help you follow the program.  The machine relies only
-  on the registers and memory, and doesn't even "know" that the
-  assembly listing exists.
+  displays the effects on the registers and memory: blue for /using/
+  a value, and red for /modifying/ it.  The assembly listing shows
+  the instruction that just executed by highlighting it in red.  It
+  also shows the instruction that will execute next by highlighting
+  it in blue.  This is just to make it easier to follow what is
+  happening; the machine executes the machine language program,
+  which is in memory, and it ignores the assembly language listing
+  which is just a convenience to help you follow the program.  The
+  machine relies only on the registers and memory, and doesn't even
+  "know" that the assembly listing exists.
 
   There is a keyboard shortcut: after you have clicked Step once, you
   can press the space bar to execute the next instruction.  Thus you
@@ -1923,44 +1919,53 @@ The standard architecture provides additional registers and
 instructions to support systems programming, as well as instructions
 that simplify functions and procedures and logic calculations.
 
-** Logic
+** Common logic operations
 
-Sigma16 provides pseudoinstructions for the commonest logic
-operations.  Each instruction takes one or two operands, calculates
-the result, and places the result in the destination register.
+Sigma16 provides pseudoinstructions for the commonest logic operations
+on words.  These are "bitwise" operations: bit $i$ of the result
+depends on bit $i$ of each operand, and does not depend on bits at any
+other index.
 
-These are "bitwise" operations: bit $i$ of the result is
-the logical /and/ of bit $i$ of each operand, and does not depend on
-bits at any other index.
+These instructions take one or two operands, calculate the result, and
+place the result in the first operand register.  There is not a
+separate destination register, as in the add instruction; instead, the
+first operand register is overwritten.
 
-- invw R1,R2 inverts the bits of R2 and places the result in R1
-- andw R1,R2,R3 calculates the logical /and/ of the operands R2 and R3,
-  and places the result in the destination register R1.
-- orw R1,R2,R3 calculates the logical /inclusive or/ of the operands
-  R2 and R3, and places the result in the destination register R1.
-- xorw R1,R2,R3 calculates the logical /exclusive or/ of the operands
-  R2 and R3, and places the result in the destination register R1.
-
- Similarly, there is
-=orw= to calculate the logical /inclusive or/ of two words, and =xorw=
-for /exclusive or/.  To invert all the bits in a word, use =invw=.
-
-The following examples are in Examples/ Standard/ Logic.asm.txt
+invw R3 inverts the bits in R3:
 
 #+BEGIN_CodeListing
-     lea  R3,$f0f0[R0]  ; R3 = f0f0
-     lea  R4,$ff00[R0]  ; R4 = ff00
-     invw R6,R3         ; R6 := inv R3    = 0f0f
-     andw R7,R3,R4      ; R7 := R3 and R4 = f000
-     orw  R8,R3,R4      ; R8 := R3 or R4  = fff0
-     xorw R9,R3,R4      ; R9 := R7 xor R8 = 0ff0
+     lea   R3,$f0f0[R0]   ; R3 := f0f0
+     invw  R3             ; R3 := 0f0f
 #+END_CodeListing
 
-These are all pseudoinstructions: there is a single machine language
-instruction =logicw= that can calculate all possible boolean functions
-of up to 2 operands.  These pseudoinstructions generate =logicw=
-instruction.
+andw R1,R2 calculates the logical /and/ of R1 and R2, and places the
+result in the destination register R1.
 
+#+BEGIN_CodeListing
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     andw  R1,R2          ; R1 := 00f0
+#+END_CodeListing
+
+The orw (logical inclusive or) and xorw (logical exclusive or)
+instructions are similar.
+
+#+BEGIN_CodeListing
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     orw   R1,R2          ; R1 := f0ff
+     xorw  R1,R2          ; R1 := f000
+#+END_CodeListing
+
+The invw, andw, orw, and xorw instructions are common special cases.
+The architecture provides two general instructions, logicf and logicb,
+which can operate on fields within a word, or on individual bits.
+Furthermore, those two general instructions implement all possible
+logic functions on two operands, not just inv, and, or, xor.  The
+instructions described in this section are actually
+pseudoinstructions: the assembler generates an equivalent logicf
+instruction.  See the section below on Logic for a complete
+description.
 
 ** Shifting
 
@@ -3835,6 +3840,7 @@ The instruction *restore Re,Rf,gh[Rd]* copies the contents of memory
 at consecutive locations beginning with mem[gh+Rf] into registers Re,
 Re+1, ..., Rf.
 
+
 ** Jumps
 
 A jump is a transfer control to another address, rather than to the
@@ -4091,7 +4097,6 @@ dest".
 </div>
 #+END_EXPORT
 
-
 *** dispatch
 
 The /dispatch/ instruction implements a branch table.  It provides an
@@ -4130,67 +4135,87 @@ number of bits in the code, and a fixed /offset/ (which is usually 0).
 - The branch table is normally a sequence of unconditional branch
   instructions, either brf or brb.
 
-
 ** Logic
 
-The commonest Boolean operators are =inv=, =and=, =or=, and =xor=.
-However, these aren't the only useful operations: there are 16 logic
-functions of two arguments.  Instead of providing specialised
-instructions for a few of the logic functions, Sigma16 provides three
-general instructions that implement all of them.
+Sigma16 provides two logic instructions that can evaluate arbitrary
+Boolean expressions.  They implement all possible logic functions, not
+just the most common ones.  You can perform logic on individual bits,
+on a field within words, or on all the bits in a word.
 
-- =logicw= performs logic on all the corresponding bits in two operand
-  registers, and places the word result in a destination register.
-- =logicb= performs logic on two operand bits that may be in different
-  registers.  The result overwrites the first operand bit.
+- =logicf= performs bitwise logic on corresponding fields within two
+  operand registers; the result overwrites the field in the first
+  operand.
+- =logicb= performs logic on two operand bits that may be at arbitrary
+  indices within arbitrary registers.  The result overwrites the first
+  operand bit.
 
-The bit logic instruction =logicb= extracts the operand bits from
-registers, calculate the result using a supplied function, and put the
-bit back into a word, leaving the rest of the word unchanged.  The
-word logic instructions update every bit in the destination.  The bit
-logic instructions update only one bit in the destination, enabling
-you to keep many Boolean variables in just one register.
+The assembly language provides a group of pseudoinstructions for the
+most common operations. Some of these (invw, andw, orw, xorw) are
+introduced in the tutorial section on logic.  It is often more
+convenient and readable to use the pseudoinstructions, rather than the
+general =logicf= and =logicb=.
 
-Logic instructions make it easy to calculate any Boolean expression,
-but they are not the only way.  In some cases it is better to use
-"short circuit evaluation".
-  
+When translating a high level language program into assembly language,
+there are two ways to implement a Boolean expression: using logic
+instructions, or using a sequence of conditional jumps ("short circuit
+evaluation").  It's good practice to understand both methods and to
+use whichever is more appropriate in a specific situation.  Just
+because an AND or OR operator appears in a program, that doesn't
+necessarily mean that a logic instruction should be used.  The logic
+instructions are important, and have many applications in practical
+programming, but it is sometimes better to use "short circuit
+evaluation" instead.
+
+The next section explains how logic functions are represented, and the
+following sections describe each logic instruction followed by its
+pseudoinstructions.
+
 *** General logic functions
 
-The invert function (also called not, logical negation) has one input.
+The commonest Boolean operators are =inv=, =and2=, =or2=, and =xor2=.
+The =inv= function (also called invert, not, logical negation) has one
+input and produces one output, as defined by the truth table:
 
 | x | inv x |
 |---+-------|
 | 0 |     1 |
 | 1 |     0 |
 
-The truth tables for =and=, =or=, =xor= have two inputs.
+The =and2=, =or2=, =xor2= functions have two inputs, so their truth
+tables have four lines.  There are also functions with more inputs,
+such as =and3= with 3 inputs, =and4= with 4 inputs, and so on.
+Sigma16 doesn't have instructions for those, but you can replace them
+with multiple uses of =and2=, =or2=, etc.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
-| x | y | x and y | x or y | x xor y |
-|---+---+---------+--------+---------|
-| 0 | 0 |       0 |      0 |       0 |
-| 0 | 1 |       0 |      1 |       1 |
-| 1 | 0 |       0 |      1 |       1 |
-| 1 | 1 |       1 |      1 |       0 |
-|---+---+---------+--------+---------|
+| x | y | x and2 y | x or2 y | x xor2 y |
+|---+---+----------+---------+----------|
+| 0 | 0 |        0 |       0 |        0 |
+| 0 | 1 |        0 |       1 |        1 |
+| 1 | 0 |        0 |       1 |        1 |
+| 1 | 1 |        1 |       1 |        0 |
+|---+---+----------+---------+----------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
 
-These aren't the only logic functions with two inputs.  Every logic
-function with two inputs $x$ and $y$ can be defined by a truth table
-where we list all possible values for the inputs and give the
-corresponding result.  Each input could be either 0 or 1.  Since there
-are 2, there are $2^2 = 4$ lines in the truth table.
+These aren't the only useful operations: there are 16 logic functions
+that take two arguments.  Instead of providing specialised
+instructions for a few of the logic functions, Sigma16 provides
+general instructions that implement all of them.
 
-The tables above give specific values, either 0 or 1, for each result.
-For example, the result column for the =and= function is (reading from
-top to bottom) 0001, while =xor= is 0110.  For an arbitrary function,
-we can write the result column as $abcd$ where each variable is either
-0 or 1.
+Every logic function with two inputs $x$ and $y$ can be defined by a
+truth table where we list all possible values for the inputs and give
+the corresponding result.  Each input could be either 0 or 1.  Since
+there are 2 inputs, there are $2^2 = 4$ lines in the truth table.
+
+The tables above for and2, or2, xor2 give specific values, either 0 or
+1, for each result.  For example, the result column for the =and2=
+function is (reading from top to bottom) 0001, while =xor2= is 0110.
+For an arbitrary function, we can write the result column as $abcd$
+where each variable is either 0 or 1.
 
 | x | y | result |
 |---+---+--------|
@@ -4199,81 +4224,144 @@ we can write the result column as $abcd$ where each variable is either
 | 1 | 0 | c      |
 | 1 | 1 | d      |
 
-Since there are 4 variables, there are $2^4$ possible settings of
-$(a,b,c,d)$ and consequently there are 16 Boolean logic functions that
-take two arguments.  For example, if $(a,b,c,d) = (0,0,0,1)$ this is
-the truth table for /and/.  if $(a,b,c,d) = (0,1,1,0)$ this is the
-truth table for /xor/.
+If $(a,b,c,d) = (0,0,0,1)$ this is the truth table for =and2=.  if
+$(a,b,c,d) = (0,1,1,0)$ it is the truth table for =xor2=.  Since there
+are 4 variables, there are $2^4=16$ possible settings of $(a,b,c,d)$
+and consequently there are 16 Boolean logic functions that take two
+arguments.
 
-The Sigma16 logic instructions take a 4-bit code that specifies the
-logic function by giving the values of $(a,b,c,d)$.  In assembly
-language, the code is given as a decimal number between 0 and 15.
-The codes for the most common functions are:
+The Sigma16 logic instructions provide all 16 of these functions;
+taking a 4-bit code that specifies the logic function by giving the
+values of $(a,b,c,d)$.  In assembly language, the code is given as the
+decimal number represented by the bits $(a,b,c,d)$, which is between 0
+and 15.  The codes for  a few of the functions are:
 
-| abcd | code | name     |
-|------+------+----------|
-| 0001 |    1 | x and y  |
-| 0110 |    6 | x xor y  |
-| 0111 |    7 | x or y   |
-| 1000 |    8 | x nor y  |
-| 1110 |   14 | x nand y |
+| abcd | code | name      |
+|------+------+-----------|
+| 0001 |    1 | x and2 y  |
+| 0111 |    7 | x or2 y   |
+| 0110 |    6 | x xor2 y  |
+| 1110 |   14 | x nand2 y |
+| 1000 |    8 | x nor2 y  |
 
-Furthermore, the =inv= function can be treated as a 2-input function
-where the second argument is ignored.
+The =inv= function can be treated as a 2-input function where the
+second argument is ignored.
 
-*** Word logic: logicw
-
-The logicw instruction performs a bitwise logic operation on two
-operands: each bit of the result is obtained by performing the logic
-function on the corresponding bits of the two operands.  The
-instruction allows an arbitrary logic function on two bits.
-
-An arbitrary logic function of two variables is applied to the two
-operand registers Re and Rf, and the result is loaded into the
-destination register Rd.  The function $h$ is specified as described
-above; for example, 6 is the code for exclusive or.  The general form
-is
+Instead of writing the numeric code, we can define symbolic names for
+the logic functions we need:
 
 #+BEGIN_CodeListing
-   logicw  Rd,Re,Rf,h     ; Rd := h (Re, Rf)
-   EXP. op=#e, ab=$12, g is ignored
+and  equ     1
+or   equ     7
+xor  equ     6
 #+END_CodeListing
 
-The following example computes the =xor= of registers R1 and R2, and
-puts the result into R3.
+Now, instead of specifying a logic function as (for example) 6, we can
+write it as =xor=.
+
+*** Logic on fields: logicf
+
+The logicf instruction performs a bitwise logic operation on fields
+within two words.  The fields may be in different registers, but each
+field must be at the same position: their start and end indices must
+be the same.  Each bit of the result is obtained by performing a
+specified logic function on the corresponding bits of the two fields.
+The result overwrites the field in the first operand register. The
+function $h$ is specified as described above; for example, 6 is the
+code for exclusive or.
+
+The field is specified as a pair of 4-bit constants f, g, where f is
+the index of the rightmost bit in the field and g is the index of the
+leftmost bit.  Since the rightmost bit has a lower index, g should be
+greater than f.  If $f=g$ then the field consists of just one bit.  If
+$g<f$ then the field is empty, and the instruction will not change the
+destination register.  The notation Rd.f:g means bits f through g in
+register Rd.
+
+#+BEGIN_EXAMPLE
+;    logicf  Rd,Re,f,g,h
+;      Rd = first operand register and destination register
+;      Re = second operand register
+;      f = index of rightmost bit in field (in both registers))
+;      g = index of leftmost bit in field (in both registers)
+;      h = logic function
+;      effect:  Rd.f:g := map2 h (Rd.f:g, Re.f:g)
+;      format: EXP
+;      machine language: Ed00 efgh (op=$E, ab=$00)
+     logicf  R3,R9,5,8,xor   ; e300 9586
+#+END_EXAMPLE
+
+The following examples use the definitions of and, or, xor given
+above.
 
 #+BEGIN_CodeListing
-   lea     R1,$00ff[R0]  ; R1 := 00ff
-   lea     R2,$0f0f[R0]  ; R2 := 0f0f
-   logicw  R3,R1,R2,6    ; e312 1206. R3 := 0ff0
+     lea     R1,$3333[R0]   ; R1 := 3333
+     lea     R2,$5555[R0]   ; R2 := 5555
+     logicf  R1,R2,0,3,and  ; R1 := 3331
+     logicf  R1,R2,4,7,or   ; R1 := 3371
+     logicf  R1,R2,8,11,xor ; R1 := 3671
 #+END_CodeListing
 
 *** Word logic pseudoinstructions: invw, andw, orw, xorw
 
-If you're using one of the most common logic functions, a
-pseudoinstruction is convenient and can make a program more readable.
-There are pseudoinstructions =invw=, =andw=, =orw=, =xorw= which have
-the same form as =logicw= except the function is specified by the
-pseudo operation and the function operand is omitted.
+Several special cases of =logicf= appear frequently.  There are
+special pseudoinstructions that simplify these special cases by
+allowing some of the operands to be omitted.
+
+The first simplification is to omit the operand that specifies the
+logic function, and instead to indicate the function in the mnemonic.
+For example, suppose you want to calculate the logical /and/ of two
+fields.  This can be done with the general logicf instruction:
+
+#+BEGIN_example
+     logicf Rd,Re,f,g,1
+#+END_example
+
+Alternatively, you can indicate the logic function in the mnemonic and
+omit the function operand:
+
+#+BEGIN_example
+     andf Rd,Re,f,g
+#+END_example
+
+This simplification can be used with the following four functions (the
+comment shows the actual machine instruction generated by the
+assembler):
+
+#+BEGIN_example
+;    invf   Rd,f,g        ; logicf Rd,R0,f,g,12
+;    andf   Rd,Re,f,g     ; logicf Rd,Re,f,g,1
+;    orf    Rd,Re,f,g     ; logicf Rd,Re,f,g,2
+;    xorf   Rd,Re,f,g     ; logicf Rd,Re,f,g,6
+#+END_example
+
+The second simplification is to perform logic on an entire word,
+rather than a field within the word.  This is achieved by specifying
+$f=0$ and $g=15$.  The instruction =logicf Rd,Re,0,15,h= applies h
+bitwise to the entire regisers Rd and Re, and the result overwrites
+Rd.  There are pseudoinstructions to simplify this (which were
+introduced in a tutorial section above):
 
 #+BEGIN_CodeListing
-    invw  R3,R4     ; R3 := invert R4
-    andw  R3,R4,R5  ; R3 := R4 and R5
-    or w  R3,R4,R5  ; R3 := R4 or R5
-    xorw  R3,R4,R5  ; R3 := R4 xor R5
+    invw  R3      ; R3 := invert R3
+    andw  R3,R4   ; R3 := R3 and R4
+    orw   R3,R4   ; R3 := R3 or R4
+    xorw  R3,R4   ; R3 := R3 xor R4
 #+END_CodeListing
 
 A pseudoinstruction is not a machine instruction: the Sigma16
 processor does not have an =andw= instruction.  Instead, the assembler
-generates the =logicw= instruction corresponding to any of =invw=,
+generates the =logicf= instruction corresponding to any of =invw=,
 =andw=, =orw=, =xorw=.  The following assembly language statements
 generate exactly the same machine language:
 
 #+BEGIN_CodeListing
-     logicw R5,R7,R2,1     ; R5 := R7 and R2
-     andw   R5,R7,R2       ; R5 := R7 and R2
+     andw    R5,R7          ; R5 := R5 and R7
+     logicf  R5,R7,0,15,1   ; R5 := R5 and R7
 #+END_CodeListing
 
+If you're using one of the most common logic functions, a
+pseudoinstruction is convenient and can make a program more readable.
 If you prefer to use the actual machine instruction, rather than a
 pseudoinstruction, you can define a symbol for the logic function
 using an =equ= assembly directive.  The symbol can then be used
@@ -4282,28 +4370,49 @@ instead of the numeric code:
 #+BEGIN_CodeListing
 xor  equ   6
      ...
-     logicw R5,R7,R2,xor   ; R5 := R7 xor R2
+     logicf R5,R7,R2,xor   ; R5 := R7 xor R2
 #+END_CodeListing
 
 *** Bit logic: logicb
 
-The =logicb= instruction specifies two operand bits that may be in
-different registers.  The result will overwrite the first operand bit.
+The bit logic instruction =logicb= specifies two operand bits, which
+may be in any register at any index.  It applies a specified logic
+function to these bits and puts the result bit back into the first
+operand, overwriting the previous value of that bit.  The other bits
+in the first operand register remain unchanged.  As this instruction
+modifies only one bit in the first operand, it enables you to keep
+many Boolean variables in just one register.
+
 The general form is:
 
+#+BEGIN_example
+;    logicb  Rd,Re,f,g,h
+;      effect: Rd.f := h (Rd.f, Re.g)
+;      format: EXP
+;      machine language: Ed01 efgh (op=E ab=01)
+     logicb  R7,R9,3,5,6    ; e701 9356
+#+END_example
+
+Suppose you want to calculate the logical xor of the bit in R3 at
+index 12 and the bit in R7 at index 14.  This instruction will do it
+(provided that the symbol xor is defined to be 6), The result will
+overwrite the bit in R3 at index 12:
+
 #+BEGIN_CodeListing
-   logicb  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
-   EXP op=$e ab=$14
+     logicb  R3,R7,12,14,xor  ; R3.12 := R3.12 xor R7.14
 #+END_CodeListing
 
 Example:
+
 #+BEGIN_CodeListing
-   lea    R2,$0200[R0]   ; R2.9 := 1
-   lea    R7,$0000[R0]   ; R7.13 := 0
-   logicb R2,9,R7,13,xor ; e214 97d6. R2 := 0200, R2.9 := R2.9 xor R7.13
+   lea    R2,$0f00[R0]   ; R2.9 := 1
+   lea    R7,$2000[R0]   ; R7.13 := 1
+   logicb R2,R7,9,13,xor ; R2 := 0b00 (R2.9 := R2.9 xor R7.13 = 0)
 #+END_CodeListing
 
 *** Pseudoinstructions invb, andb, orb, xorb
+
+There are pseudoinstructions for the commonest logic functions:
 
 #+BEGIN_CodeListing
       invb    R1,3,R2,9   ; R1.3 := inv R2.9
@@ -4312,43 +4421,33 @@ Example:
       xorb    R1,3,R2,9   ; R1.3 := R1.3 xor R2.9
 #+END_CodeListing
 
-The =invb= pseudoinstruction is more flexible than =invr=, as it
-allows the operands to come from different registers.  However, if
-you're doing logic operations in a word of Booleans, it may be clearer
-to write =invb R9,3,7= than to write the equivalent =invbr R9,3,R9,7=.
+The =logicf= instruction and its pseudoinstructions (=andf=, etc.) can
+operate on fields of any size, including 1-bit fields.  However,
+=logicb= and its pseudoinstructions are more flexible than =logicf= on
+a 1-bit field, because =logicb= allows the operands to have different
+bit indices.
 
-*** Pseudoinstructions setb, clearb, moveb, movebi
+*** Pseudoinstructions setb, clearb, copyb, copybi
 
 The bit logic instructions have some useful special cases that don't
 appear to involve logic at all.  These are supported by
 pseudoinstructions.
 
-- =setb Rd,e= puts 1 into a specified bit: =Rd.e := 1=.
+- =setb Rd,f= puts 1 into a specified bit: =Rd.f := 1=.
+- =clearb Rd,f= puts 0 into the specified bit.
+- =copyb Rd,Re,f,g= copies a bit from register Re at index g into
+  register Rd at index f.
+- =copybi Rd,Re,f,g= is similar to copyb, except that it inverts the
+  bit as it is written into the destination.
+
+Here are some examples:  
 
 #+BEGIN_CodeListing
     setb   R4,7         ; R4.7 := 1
-#+END_CodeListing
-
-- =clearb Rd,e= puts 0 into the specified bit.
-
-#+BEGIN_CodeListing
     clearb R4,7         ; R4.7 := 0
+    copyb  R4,R12,7,5   ; R4.7 := R12.5
+    copybi R4,R12,7,5   ; R4.7 := inv R12.5
 #+END_CodeListing
-
-- =moveb Rd,e,Rf,g= copies a bit from one register into a specified
-  position in another register.
-
-#+BEGIN_CodeListing
-    moveb  R4,7,R12,5   ; R4.7 := R12.5
-#+END_CodeListing
-
-- =movebi Rd,e,Rf,g= inverts a bit and copies it from one register
-  into a specified position in another register.
-
-#+BEGIN_CodeListing
-    moveb  R4,7,R12,5   ; R4.7 := R12.5
-#+END_CodeListing
-
 
 ** Bit manipulation
 *** Shifting: shiftl, shiftr
@@ -4356,27 +4455,43 @@ pseudoinstructions.
 The shift instructions treat the operand as a string of bits, and move
 each bit a fixed distance to the left or right.
 
-The instruction shiftl =Rd,Ra,k= shifts the value in the operand
+The instruction shiftl =Rd,Re,h= shifts the value in the operand
 register Ra by h bits to the left, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  The
-leftmost k bits of the operand are discarded and the rightmost k bits
+destination register Rd.  The operand Re is not modified.  The
+leftmost h bits of the operand are discarded and the rightmost h bits
 of the result become 0.  The general form is
 
-#+BEGIN_CodeListing
-   shiftl Rd,Re,h
-   EXP op=$e, ab=$10, f,g are ignored
-#+END_CodeListing
+#+BEGIN_example
+;    shiftl Rd,Re,h
+;      effect:  Rd := Re shl h
+;      Rd = first operand register and destination register
+;      Re = second operand register
+;      f = unused
+;      g = unused
+;      h = constant shift distance
+;      format: EXP/RRk
+;      machine language: Ed04 efgh (op=$E, ab=$03)
+     lea    R1,2[R0]   ;           R2 = 0002  0000 0000 0000 0010
+     shiftl R5,R1,4    ; E503 1004 R5 = 0020  0000 0000 0010 0000
+#+END_example
 
-The instruction =shiftr Rd,Re,k= shifts the value in the operand
-register Ra by k bits to the right, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
+The instruction =shiftr Rd,Re,h= shifts the value in the operand
+register Re by h bits to the right, and the result is placed in the
+destination register Rd.  The operand Re is not modified.  During the
 shift, the rightmost k bits of the value are discarded and the
 leftmost k bits become 0.  The general form is
 
-#+BEGIN_CodeListing
-   shiftr Rd,Re,h
-   EXP op=$e, ab=$11, f,g are ignored
-#+END_CodeListing
+#+BEGIN_example
+;    shiftr Rd,Re,h
+;      effect:  Rd := Re shr h
+;      Rd = first operand register and destination register
+;      Re = second operand register
+;      f = unused
+;      g = unused
+;      h = constant shift distance
+;      format: EXP/RRk
+;      machine language: Ed04 efgh (op=$E, ab=$04)
+#+END_example
 
 The following instruction shifts the value in R3 to the right by 5
 bits and place the result in R2.  The operand register R3 is not
@@ -4384,26 +4499,6 @@ changed.
 
 #+BEGIN_CodeListing
    shiftr  R2,R3,5
-#+END_CodeListing
-
-The instruction format is EXP, and the assembly language statement format
-is RRKEXP
-
-The instruction shiftl Rd,Ra,k shifts the value in the operand
-register Ra by k bits to the left, and the result is placed in the
-destination register Rd.  The operand Ra is not modified.  During the
-shift, the leftmost k bits of the value are discarded and the
-rightmost k bits become 0.
-
-#+BEGIN_CodeListing
-    moveb  R4,7,R12,5   ; R4.7 := R12.5
-#+END_CodeListing
-
-- =movebi Rd,e,Rf,g= inverts a bit and copies it from one register
-  into a specified position in another register.
-
-#+BEGIN_CodeListing
-    moveb  R4,7,R12,5   ; R4.7 := R12.5
 #+END_CodeListing
 
 *** Bit fields: extract, extracti
@@ -4594,6 +4689,7 @@ for several reasons:
 # then the instruction does nothing.  the source and destination
 # fields cannot extend beyond the rightmost bit in a register.
 
+
 ** User requests
 *** Request to OS: trap 
 *** testset
@@ -4705,51 +4801,51 @@ Assembly directives
 <div style="overflow-x: auto">
 #+END_EXPORT
 
-+--------------+----+----------+------------------------+---------+
-| Assembly     | Op | Code     | Effect                 | CC      |
-+--------------+----+----------+------------------------+---------+
-| add Rd,Ra,Rb |  0 | $0 d a b | R[d] := R[a] + R[g]    | gGElvVC |
-+--------------+----+----------+------------------------+---------+
-| sub Rd,Ra,Rb |  1 | $1 d a b | R[d] := R[a] - R[b]    |         |
-+--------------+----+----------+------------------------+---------+
-| mul d,a,b    |  2 | $2 d a b | R[d] := R[a] * R[b]    |         |
-+--------------+----+----------+------------------------+---------+
-| div d,a,b    |  3 | $3 d a b | R[d] := R[a] / R[b]    |         |
-|              |    |          | R[15] := R[a] % R[b]   |         |
-+--------------+----+----------+------------------------+---------+
-| cmp d,a      |  4 | $4 - a b | R[15] := R[a] cp R[b]  |         |
-+--------------+----+----------+------------------------+---------+
-| addc d,a,b   |  5 | $5 d a b | Rd := Ra + Rb + R15.C) |         |
-+--------------+----+----------+------------------------+---------+
-| muln d,a,b   |  6 | $6 d a b | Rd := Ra :*: Rb        |         |
-+--------------+----+----------+------------------------+---------+
-|              |    |          | R15 :=                 |         |
-+--------------+----+----------+------------------------+---------+
-| divn d,a,b   |  7 | $7 d a b | R15++Rd := R15++Ra     |         |
-+--------------+----+----------+------------------------+---------+
-|              |    |          | :/: Rb                 |         |
-+--------------+----+----------+------------------------+---------+
-|              |  8 | $8 - - - | nop                    |         |
-+--------------+----+----------+------------------------+---------+
-|              |  9 | $9 - - - | nop                    |         |
-+--------------+----+----------+------------------------+---------+
-|              |  a | $a - - - | nop                    |         |
-+--------------+----+----------+------------------------+---------+
-|              |  b | $b - - - | nop                    |         |
-+--------------+----+----------+------------------------+---------+
-| trap d,a,b   |  c | $c d a b | interrupt              |         |
-+--------------+----+----------+------------------------+---------+
-|              |  d | $d d a b | escape reserved        |         |
-+--------------+----+----------+------------------------+---------+
-|              |  e | $e d ab  | escape EXP op=ab       |         |
-+--------------+----+----------+------------------------+---------+
-|              |  f | $f d a b | escape RX op=b         |         |
-+--------------+----+----------+------------------------+---------+
++--------------+----+----------+------------------------+
+| Assembly     | Op | Code     | Effect                 |
++--------------+----+----------+------------------------+
+| add Rd,Ra,Rb |  0 | $0 d a b | R[d] := R[a] + R[g]    |
+|              |    |          | R15 ~=  gGElvVC        |
++--------------+----+----------+------------------------+
+| sub Rd,Ra,Rb |  1 | $1 d a b | R[d] := R[a] - R[b]    |
++--------------+----+----------+------------------------+
+| mul d,a,b    |  2 | $2 d a b | R[d] := R[a] * R[b]    |
++--------------+----+----------+------------------------+
+| div d,a,b    |  3 | $3 d a b | R[d] := R[a] / R[b]    |
+|              |    |          | R[15] := R[a] % R[b]   |
++--------------+----+----------+------------------------+
+| cmp d,a      |  4 | $4 - a b | R[15] := R[a] cp R[b]  |
++--------------+----+----------+------------------------+
+| addc d,a,b   |  5 | $5 d a b | Rd := Ra + Rb + R15.C) |
++--------------+----+----------+------------------------+
+| muln d,a,b   |  6 | $6 d a b | Rd := Ra :*: Rb        |
++--------------+----+----------+------------------------+
+|              |    |          | R15 :=                 |
++--------------+----+----------+------------------------+
+| divn d,a,b   |  7 | $7 d a b | R15++Rd := R15++Ra     |
++--------------+----+----------+------------------------+
+|              |    |          | :/: Rb                 |
++--------------+----+----------+------------------------+
+|              |  8 | $8 - - - | nop                    |
++--------------+----+----------+------------------------+
+|              |  9 | $9 - - - | nop                    |
++--------------+----+----------+------------------------+
+|              |  a | $a - - - | nop                    |
++--------------+----+----------+------------------------+
+|              |  b | $b - - - | nop                    |
++--------------+----+----------+------------------------+
+| trap d,a,b   |  c | $c d a b | interrupt              |
++--------------+----+----------+------------------------+
+|              |  d | $d d a b | escape reserved        |
++--------------+----+----------+------------------------+
+|              |  e | $e d ab  | escape EXP op=ab       |
++--------------+----+----------+------------------------+
+|              |  f | $f d a b | escape RX op=b         |
++--------------+----+----------+------------------------+
 
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
-
 
 ** RX instructions
 
@@ -4805,82 +4901,141 @@ Assembly directives
 
 ** EXP instructions
 
+Instructions and pseudoinstructions in each format:
+- EXP/: resume
+- EXP/R pseudo: invf
+- EXP/Rk: dispatch  (k is efgh)
+- EXP/RR pseudo
+  - andw, orw, xorw, andf, orf, xorf
+  - Rd = first operand register and destination register
+  - Re = second operand register
+  - f = unused
+  - g = unused
+  - h = generated by pseudo expansion
+- EXP/RRk: shiftl, shiftr
+- EXP/RRkR: save, restore
+- EXP/RRkk pseudo: andb, orb, xorb, invb, orb, xorb
+- EXP/RRkkk: logicf, logicb, extract, extracti
+
+
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
 
-+---------------------+------+----------+----------------------+----+
-| Assembly            | Op   | Code     | Effect               | CC |
-+---------------------+------+----------+----------------------+----+
-| logicw Rd,Re,Rf,h   | e,00 |          | Rd := Re (lut g) Rf  |    |
-+---------------------+------+----------+----------------------+----+
-| logicb Rd,e,Rf,g,h  | e,02 |          | Rd.e := Rd.f #h Rd.g |    |
-+---------------------+------+----------+----------------------+----+
-| shiftl Rd,Re,h      | e,03 |          | Rd := Re shl h       |    |
-+---------------------+------+----------+----------------------+----+
-| shiftr Rd,Re,h      | e,04 |          | Rd := Re shr h       |    |
-+---------------------+------+----------+----------------------+----+
-| extract Rd,f,g,Re,h | e,05 |          | Rd.f~g :=            |    |
-+---------------------+------+----------+----------------------+----+
-| extract Rd,f,g,Re,h | e,05 |          | Re.h~h+g-h+1         |    |
-+---------------------+------+----------+----------------------+----+
-| extracti Rd,E,L,M,N | e,06 |          | Rd := ex Rd di       |    |
-+---------------------+------+----------+----------------------+----+
-| extracti Rd,E,L,M,N | e,06 |          | sz Rs si             |    |
-+---------------------+------+----------+----------------------+----+
-| push Rd,E,F         | e,07 |          | M[ea] := Rd, Rb++    |    |
-+---------------------+------+----------+----------------------+----+
-| pop D,E,F           | e,08 |          | Rb--, Rd := M[ea]    |    |
-+---------------------+------+----------+----------------------+----+
-| top D,E,F           | e,09 |          | Rb--, Rd := M[ea]    |    |
-+---------------------+------+----------+----------------------+----+
-| save Rd,e,gh[Rf]    | e,0a |          | M[ea] := R1,         |    |
-|                     |      |          | ..., M[ea+d-1] := Rd |    |
-|                     |      |          | ..., M[ea+d-1] := Rd |    |
-+---------------------+------+----------+----------------------+----+
-| restore Rd,e,gh[Rf] | e,0b |          | R1 := M[ea],         |    |
-|                     |      |          | ..., Rd := M[ea+d-1] |    |
-+---------------------+------+----------+----------------------+----+
-| brc0 Rd,e,fgh       | e,0c | $e d $0c | if R[d].e=0          |    |
-|                     |      | e fgh    | then pc:=pc+fgh      |    |
-+---------------------+------+----------+----------------------+----+
-| brc1 Rd,e,fgh       | e,0d | $e d $0d | if R[d].e=1          |    |
-| Rd,e,fgh            | e,0d | e fgh    | then pc:=pc+fgh      |    |
-+---------------------+------+----------+----------------------+----+
-| brz Rd,efgh         | e,0e | $e d $0e | if R[d]=0000         |    |
-|                     |      | efgh     | then pc:=pc+efgh     |    |
-+---------------------+------+----------+----------------------+----+
-| brnz Rd,efgh        | e,0f | $e d $0f | if R[d]!=0000        |    |
-|                     |      | efgh     | then pc:=pc+efgh     |    |
-+---------------------+------+----------+----------------------+----+
-| dispatch d,x        | e,10 |          | if Rd!=0             |    |
-|                     |      |          | then pc += 2-fgh     |    |
-+---------------------+------+----------+----------------------+----+
-| getctl Rd,c         | e,11 |          | Rd := Sc             |    |
-|                     |      |          | privileged           |    |
-+---------------------+------+----------+----------------------+----+
-| putctl Rd,c         | e,12 |          | Sc := Rd             |    |
-|                     |      |          | privileged           |    |
-+---------------------+------+----------+----------------------+----+
-| resume              | e,13 |          | pc := ipc,           |    |
-|                     |      |          | status := istatus    |    |
-|                     |      |          | privileged           |    |
-+---------------------+------+----------+----------------------+----+
-| timon Rd,efgh       | e,14 |          | timer := efgh,       |    |
-+---------------------+------+----------+----------------------+----+
-|                     |      |          | start timer          |    |
-+---------------------+------+----------+----------------------+----+
-|                     |      |          | privileged           |    |
-+---------------------+------+----------+----------------------+----+
-| timoff Rd,efgh      | e,15 |          | stop timer           |    |
-|                     |      |          | privileged           |    |
-+---------------------+------+----------+----------------------+----+
-|                     | e,16 | reserved | nop                  |    |
-+---------------------+------+----------+----------------------+----+
-|                     | ...  | ...      | ...                  |    |
-+---------------------+------+----------+----------------------+----+
-|                     | e,ff | reserved | nop                  |    |
-+---------------------+------+----------+----------------------+----+
++--------------------+----+------+-----+---------------------------+
+| Assembly           | Op |Format|Code |Effect                     |
++--------------------+----+------+-----+---------------------------+
+|logicf Rd,Re,f,g,h  |e,00|EXP   |Ed00 |Rd.f:g := h#(Rd.f:g,Re.f:g)|
+|                    |    |RRkkk |efgh |                           |
++--------------------+----+------+-----+---------------------------+
+|invw Rd             |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |R     |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|andw Rd,Re          |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |RR    |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|orw Rd,Re           |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |RR    |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|xorw Rd,Re          |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |RR    |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|invf Rd,f,g         |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |R     |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|andf Rd,Re,f,g      |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |RR    |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|orf Rd,Re,f,g       |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |RR    |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|xorf Rd,Re,f,g      |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |RR    |e0F1 |                           |
++--------------------+----+------+-----+---------------------------+
+|logicb Rd,Re,f,g,h  |e,01|EXP   |Ed01 |Rd.f := h(Rd.f,Re.g)       |
+|                    |    |RRkkk |efgh |                           |
++--------------------+----+------+-----+---------------------------+
+|invb Rd,Re,f,g      |    |pseudo|Ed01 |logicb Rd,Re,f,g,1         |
+|                    |    |RRkk  |efg1 |                           |
++--------------------+----+------+-----+---------------------------+
+|andb Rd,Re,f,g      |    |pseudo|Ed01 |logicb Rd,Re,f,g,1         |
+|                    |    |RRkk  |efg1 |                           |
++--------------------+----+------+-----+---------------------------+
+|orb Rd,Re,f,g       |    |pseudo|Ed01 |logicb Rd,Re,f,g,1         |
+|                    |    |RRkk  |efg1 |                           |
++--------------------+----+------+-----+---------------------------+
+|xorb Rd,Re,f,g      |    |pseudo|Ed01 |logicb Rd,Re,f,g,1         |
+|                    |    |RRkk  |efg1 |                           |
++--------------------+----+------+-----+---------------------------+
+|shiftl Rd,Re,h      |e,03|EXP   |     |Rd := Re shl h             |
+|                    |    |RRk   |     |                           |
++--------------------+----+------+-----+---------------------------+
+|shiftr Rd,Re,h      |e,04|EXP   |     |Rd := Re shr h             |
+|                    |    |RRk   |     |                           |
++--------------------+----+------+-----+---------------------------+
+|extract Rd,Re,f,g,h |e,05|EXP   |     |Rd.f~g :=                  |
+|                    |    |RRkkk |     |                           |
++--------------------+----+------+-----+---------------------------+
+|extracti Rd,Re,f,g,h|e,06|EXP   |     |Rd := ex Rd di             |
+|                    |    |RRkkk |     |                           |
++--------------------+----+------+-----+---------------------------+
+|push Rd,Re,Rf       |e,07|EXP   |     |M[ea] := Rd, Rb++          |
+|                    |    |RRR   |     |                           |
++--------------------+----+------+-----+---------------------------+
+|pop Rd,Re,Rf        |e,08|EXP   |     |Rb--, Rd := M[ea]          |
+|                    |    |RRR   |     |                           |
++--------------------+----+------+-----+---------------------------+
+|top Rd,Re,Rf        |e,09|EXP   |     |Rb--, Rd := M[ea]          |
+|                    |    |RRR   |     |                           |
++--------------------+----+------+-----+---------------------------+
+|save Rd,Re,gh[Rf]   |e,0a|EXP   |     |M[Rf+gh] := Rd             |
+|                    |    |RRkR  |     |M[Rf+gh+1] := Rd+1         |
+|                    |    |      |     | ...                       |
+|                    |    |      |     |M[Rf+gh+e-d] := Re         |
++--------------------+----+------+-----+---------------------------+
+|restore Rd,Re,gh[Rf]|e,0b|EXP   |     |Rd := M[Rf+gh]             |
+|                    |    |RRkR  |     |Rd+1 := M[Rf+gh+1]         |
+|                    |    |      |     | ...                       |
+|                    |    |      |     |Re := M[Rf+gh+e-d]         |
++--------------------+----+------+-----+---------------------------+
+|brc0 Rd,e,fgh       |e,0c|EXP   |Ed0C |if R[d].e=0                |
+|                    |    |Rkk   |efgh | then pc:=pc+fgh           |
++--------------------+----+------+-----+---------------------------+
+|brc1 Rd,e,fgh       |e,0d|EXP   |Ed0D |if R[d].e=1                |
+|                    |e,0d|Rkk   |efgh | then pc:=pc+fgh           |
++--------------------+----+------+-----+---------------------------+
+|brz Rd,efgh         |e,0e|EXP   |Ed0E |if R[d]=0000               |
+|                    |    |Rk    |efgh | then pc:=pc+efgh          |
++--------------------+----+------+-----+---------------------------+
+|brnz Rd,efgh        |e,0f|EXP   |Ed0F |if R[d]!=0000              |
+|                    |    |Rk    |efgh | then pc:=pc+efgh          |
++--------------------+----+------+-----+---------------------------+
+|dispatch Rd,efgh    |e,10|EXP   |Ed10 |pc := M[pc+min(Rd,efgh)]]  |
+|                    |    |Rk    |efgh |                           |
++--------------------+----+------+-----+---------------------------+
+|getctl Rd,c         |e,11|EXP   |     |Rd := Sc privileged        |
+|                    |    |RC    |     |                           |
++--------------------+----+------+-----+---------------------------+
+|putctl Rd,c         |e,12|EXP   |     |Sc := Rd privileged        |
+|                    |    |RC    |     |                           |
++--------------------+----+------+-----+---------------------------+
+|resume              |e,13|EXP   |     |pc := ipc, (privileged)    |
+|                    |    |      |     | status := istatus         |
+|                    |    |      |     |                           |
++--------------------+----+------+-----+---------------------------+
+|timon Rd,efgh       |e,14|EXP   |     |timer := efgh,             |
+|                    |    |R     |     |start timer                |
++--------------------+----+------+-----+---------------------------+
+|timoff Rd,efgh      |e,15|EXP   |     |stop timer                 |
+|                    |    |R     |     |                           |
++--------------------+----+------+-----+---------------------------+
+|                    |e,16|      |     | reserved: nop             |
++--------------------+----+------+-----+---------------------------+
+|                    |... |      | ... | ...                       |
++--------------------+----+------+-----+---------------------------+
+|                    |e,ff|      |     | reserved: nop             |
++--------------------+----+------+-----+---------------------------+
+
 
 #+BEGIN_EXPORT html
 </div>
@@ -5395,7 +5550,7 @@ formats, but there is not an exact correspondence for several reasons:
   
 - Some assembly language statements are *pseudoinstructions*.  These
   are special cases of more general instructions.  For example, *and*
-  is a pseudoinstruction which generates a *logicw* instruction
+  is a pseudoinstruction which generates a *logicf* instruction
   specialised to perform a logical and.
 
 Table: *Assembly language statement formats*
@@ -6526,7 +6681,7 @@ assembly language programs.
   reassembled.
 
 - The word logic instructions =inv=, =and=, =or=, =xor= are now
-  pseudoinstructions that generate the =logicw= instruction.  The
+  pseudoinstructions that generate the =logicf= instruction.  The
   assembly language syntax is the same as before; only the underlying
   machine language representation is different
 

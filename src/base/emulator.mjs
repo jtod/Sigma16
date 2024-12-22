@@ -1516,14 +1516,21 @@ function exp2_timeroff (es) {
 function exp2_dispatch (es) {
     com.mode.devlog('exp_dsptch')
     const code = es.regfile[es.ir_d].get()  // code
-    const size = es.field_e                 // field size
-    const k = es.instrDisp & 0x0fff         // fixed offset
-    const mask = (1 << size) - 1
-    const safecode = (code & mask)
-    const offset = safecode << 1 + k        // variable offset
-    const dest =  es.pc.get() + offset      // destination address
-    console.log (`code=${code} size=${size} k=${k} mask=${mask} safecode=${safecode} offset=${offset} dest=${dest}`)
-    es.pc.put (limitAddress (es, dest))
+    const limit = es.adr.get()
+    const here = es.pc.get()
+    const offset = code < limit ? code : limit  // use min
+    const loc = here + offset
+    const dest = memFetchData(es,loc)
+    es.pc.put (limitAddress (es,dest))
+    
+//    const size = es.field_e                 // field size
+//    const k = es.instrDisp & 0x0fff         // fixed offset
+//    const mask = (1 << size) - 1
+//    const safecode = (code & mask)
+//    const offset = safecode << 1 + k        // variable offset
+//    const dest =  es.pc.get() + offset      // destination address
+//    console.log (`code=${code} size=${size} k=${k} mask=${mask} safecode=${safecode} offset=${offset} dest=${dest}`)
+//    es.pc.put (limitAddress (es, dest))
 }
 
 function exp2_save (es) {
@@ -1653,6 +1660,7 @@ function exp2_extracti (es) {
 }
 
 
+// logicw is deprecated, replaced by logicf
 function exp2_logicw (es) {
     com.mode.devlog ('EXP logicw')
     const x = es.regfile[es.field_e].get()              // operand 1
@@ -1664,15 +1672,30 @@ function exp2_logicw (es) {
     es.regfile[es.ir_d].put(result);
 }
 
+function exp2_logicf (es) {
+    com.mode.devlog ('EXP logicf')
+    console.log ("************* logicf")
+    const x = es.regfile[es.ir_d].get()              // operand 1
+    const y = es.regfile[es.field_e].get()              // operand 2
+    const idx1 = es.field_f                             // lowest bit index
+    const idx2 = es.field_g                             // highest bit index
+    const fcn = es.field_h                              // logic function
+    const result = arith.applyLogicFcnField (fcn,x,y,idx1,idx2)
+    console.log (`logicf x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)}`
+                 + ` result=${arith.wordToHex4(result)}`);
+    es.regfile[es.ir_d].put(result);
+}
+
 function exp2_logicb (es) {
     com.mode.devlog (`EXP logicb`);
-    const w = es.regfile[es.ir_d].get()                      // operand word
-    const x = arch.getBitInWordLE (w, es.field_f)            // operand bit x
-    const y = arch.getBitInWordLE (w, es.field_g)            // operand bit y
+    const w1 = es.regfile[es.ir_d].get()                     // operand word 1
+    const w2 = es.regfile[es.field_e].get()                  // operand word 2
+    const x = arch.getBitInWordLE (w1, es.field_f)            // operand bit x
+    const y = arch.getBitInWordLE (w2, es.field_g)            // operand bit y
     const fcn = es.field_h                                   // logic function
     const bresult = arith.applyLogicFcnBit (fcn, x, y)       // bit result
-    const wresult = arch.putBitInWordLE (16, w, es.field_e, bresult) // word
-    console.log (`logicb w=${arith.wordToHex4(w)} x=${x} y=${y}`
+    const wresult = arch.putBitInWordLE (16, w1, es.field_f, bresult) // word
+    console.log (`logicb w1=${arith.wordToHex4(w1)} x=${x} y=${y}`
                      + ` fcn=${fcn} bresult=${bresult}`
                      + ` wresult=${arith.wordToHex4(wresult)}`)
     es.regfile[es.ir_d].put(wresult)
@@ -1770,9 +1793,10 @@ function exp2_brnz (es) { // ??????????????????????????????
 }
 
 const dispatch_EXP =
-      [ exp2 (exp2_logicw),   // 00
+      //      [ exp2 (exp2_logicw),   // 00    logicw replaced by logicf
+      [ exp2 (exp2_logicf),   // 00
         exp2 (exp2_logicb),   // 01  b -> r    logicr
-        exp2 (exp2_logicu),   // 02  u -> b    logicb
+        exp2 (exp2_logicu),   // 02  u -> b    logicb   deprecated
         exp2 (exp2_shiftl),   // 03
         exp2 (exp2_shiftr),   // 04
         exp2 (exp2_extract),  // 05

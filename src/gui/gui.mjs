@@ -39,6 +39,7 @@ import * as ct    from './consoletest.mjs';
 // To make exported functions executable in the console, enter
 // exposeConsole().  Then enter, for example, arith.setBit(6,11,1)
 
+window.applyLogicFcnField = arith.applyLogicFcnField
 window.exposeConsole = ct.exposeConsole
 
 // See window.getExampleModuleName = getExampleModuleName below; this
