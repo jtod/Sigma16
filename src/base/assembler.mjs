@@ -1,5 +1,5 @@
 // Sigma16: assembler.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
+// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
@@ -13,18 +13,18 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 // assembler.mjs translates assembly language to machine language
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as st from './state.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 // Global
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 
 // Buffers to hold generated object code
 
@@ -1161,26 +1161,23 @@ function asmPass2 (ma) {
             generateObjectWord (ma, s, s.address.word, s.codeWord1);
             generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
             
-        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRK
-                  && ! op.pseudo) {
-// EXP-RK brfz brbz brfnz brbnz -- brz brnz
-            com.mode.devlog (`Pass2 EXP/RK pcr`)
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRk
+                  && !op.pseudo) {
+            // EXP-RK dispatch  brfz brbz brfnz brbnz -- brz brnz
+            com.mode.devlog (`Pass2 EXP/RK not pseudo`)
             requireNoperands (ma, s, 2)
             const d = requireReg (ma, s, s.operands[0])
-            const dest = evaluate (ma, s, s.address.word, s.operands[1])
-            const offset = findOffset (s.address, dest)
-            com.mode.devlog (`pc relative offset = ${offset}`)
+            const efgh = s.operands[1]
             s.codeWord1 = mkWord448(op.opcode[0],d,op.opcode[1])
-            s.codeWord2 = offset
+            s.codeWord2 = efgh
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
-            
-        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRk
+
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRK
                   && op.pseudo) {
-            // EXP-Rk dispatch   // efgh is constant - no
-            // pseudo invb setb clearb
+            // EXP/Rk-pseudo invb setb clearb ??????
             com.mode.devlog (`Pass2 EXP/Rk`)
-            console.log ("***** EXP/aRk pseudo ***** ")
+            console.log ("***** EXP/Rk-pseudo (invb setb clearb)")
             requireNoperands (ma, s, 2)
             const ab = op.opcode[1]
             const d = requireReg(ma,s,s.operands[0])
@@ -1188,14 +1185,12 @@ function asmPass2 (ma) {
             const f = requireK4 (ma, s, Field_f, s.operands[1])
             const g = 0
             const h = op.opcode[2]
-            console.log (`***** d=${d} e=${e} f=${f} g=${g} h=${h}`)
-//            const efgh = s.operands[1]
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, ab)
             //            s.codeWord2 = efgh
             s.codeWord2 = mkWord (e,f,g,h)
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
-            
+
         } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRkk
                    && op.pseudo) {
             // EXP-Rkk aRkk pseudo: invb
@@ -1650,3 +1645,10 @@ function showOperation (op) {
     }
 }
 
+// deprecated
+            //            s.codeWord2 = offset
+
+//            console.log ("***** EXP aRK non pseudo (dispatch)*****")
+//       const dest = evaluate (ma, s, s.address.word, s.operands[1])
+//            const offset = findOffset (s.address, dest)
+//            com.mode.devlog (`pc relative offset = ${offset}`)

@@ -3,7 +3,7 @@
 #+AUTHOR: John T. O'Donnell
 #+EMAIL: john.t.odonnell9@gmail.com
 #+DATE: {{{S16version()}}}
-# Copyright John T. O'Donnell, 2024
+# Copyright John T. O'Donnell, 2025
 # Source repository: https://github.com/jtod/Sigma16
 
 # This file is part of Sigma16.  See https://github.com/jtod/Sigma16
@@ -19,15 +19,15 @@
 # License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 # Macros
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
 
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 # Notes
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 # Insert nonbreakable space (Unicode hard space): C-x 8 space
 
@@ -37,9 +37,9 @@
 # https://emacs.stackexchange.com/questions/53195/org-mode-table-el-use-org-formatting-inside-cells#:~:text=If%20you%20set%20this%20option%20to%20t%20or%20yes%20table
 # https://table.sourceforge.net/#:~:text=Table.el%20was%20created%20this%20way%20too.%20Table.el%20is%20an%20Emacs
 
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 # Building html and pdf
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 # Build VERSION.txt and VersionMacro.org
 #   cd $SIGMA16
@@ -70,9 +70,9 @@
 # sections can be typeset with C-c C-e C-s h h or C-c C-e C-s h h
 # followed by pdflatex Sigma16UserGuideText.
 
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 # Typesetting
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 #  #+HTML: this is only for html export
 #  #+LATEX: this is only for latex export
@@ -80,9 +80,9 @@
 # Blank lines in CodeListing environment don't work for html export,
 # but they do work for latex export
 
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 # General configuration
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 # Version
 
@@ -137,9 +137,9 @@
 # Preserve line breaks
 #  #+OPTIONS: \n
 
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # LaTeX configuration
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
 # LaTeX preamble
 
@@ -179,9 +179,9 @@
 #  #+LATEX_HEADER: \usepackage{Sigma}    # use globel def
 #  #+LATEX_HEADER: \usepackage{UserGuide}
 
-# ---------------------------------------------------------------------
+# --------------------------------------------------------------------
 # html configuration
-# ---------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 #+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css">
 #+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico">
@@ -189,9 +189,9 @@
 #+HTML_HEAD_EXTRA: <style type="text/css"> td { padding: 4px 5px 4px 5px } </style>
 # #+OPTIONS: html-tableel-org:t
 
-# ---------------------------------------------------------------------
+# --------------------------------------------------------------------
 # Text of the document
-# ---------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 * Introduction
 
@@ -1916,30 +1916,39 @@ popup again and click Disable.
 * Standard architecture tutorials
 
 The standard architecture provides additional registers and
-instructions to support systems programming, as well as instructions
-that simplify functions and procedures and logic calculations.
+instructions that simplify many programming tasks, such as logic,
+functions, and procedures.  They also support systems programming,
+including emulators, interpreters, and operating system kernels.
+
+Some of the instructions in the standard architecture are under
+development and may be changed in future versions.
 
 ** Common logic operations
 
 Sigma16 provides pseudoinstructions for the commonest logic operations
-on words.  These are "bitwise" operations: bit $i$ of the result
-depends on bit $i$ of each operand, and does not depend on bits at any
-other index.
+on words and bits.  This section introduces a few of the logic
+instructions, which are adequate for many applications.  There are
+additional instructions that are more general and flexible.  See the
+section on logic instructions below.
 
-These instructions take one or two operands, calculate the result, and
-place the result in the first operand register.  There is not a
-separate destination register, as in the add instruction; instead, the
-first operand register is overwritten.
+The word logic operations are invw, andw, orw, xorw.  These are
+"bitwise" operations: bit $i$ of the result depends on bit $i$ of each
+operand, and does not depend on bits at any other index.
 
-invw R3 inverts the bits in R3:
+The invw pseudoinstruction inverts all the bits in a register:
 
 #+BEGIN_CodeListing
      lea   R3,$f0f0[R0]   ; R3 := f0f0
      invw  R3             ; R3 := 0f0f
 #+END_CodeListing
 
-andw R1,R2 calculates the logical /and/ of R1 and R2, and places the
-result in the destination register R1.
+The other word logic pseudoinstructions take two register operands.
+They calculate the result and place the result in the first operand
+register, overwriting its previous value.  There is not a separate
+destination register, as in the add instruction.
+
+For example, andw R1,R2 calculates the logical /and/ of R1 and R2, and
+places the result in the destination register R1.
 
 #+BEGIN_CodeListing
      lea   R1,$f0f0[R0]   ; R1 := f0f0
@@ -1957,14 +1966,30 @@ instructions are similar.
      xorw  R1,R2          ; R1 := f000
 #+END_CodeListing
 
-The invw, andw, orw, and xorw instructions are common special cases.
-The architecture provides two general instructions, logicf and logicb,
+There are also pseudoinstructions that perform logic on two individual
+bits, which may be at any index in any register.  For example, andb
+R1,R2,3,9 calculates R1.3 and R2.9 and stores the result in R1.3.
+Here are some examples:
+
+#+BEGIN_CodeListing
+   lea     R1,$00ff[R0]   ; R1 := 00ff
+   lea     R2,$00f0[R0]   ; R2 := 00f0
+   andb  R1,R2,3,9        ; R1 := 00f7
+;       (R1.3 := R1.3 and R2.9 = 1 and 0 = 0)
+   orb  R1,R2,11,5        ; R1 := 08f7
+;       (R1.11 := R1.11 or R2.5 = 0 or 1 = 1)
+   xorb  R1,R2,4,6        ; R1 := 08e7
+;       (R1.4 := R1.4 xor R2.6 = 1 xor 1 = 0)
+#+END_CodeListing
+
+The pseudoinstructions shown above are common special cases.  The
+architecture provides two general instructions, logicf and logicb,
 which can operate on fields within a word, or on individual bits.
 Furthermore, those two general instructions implement all possible
 logic functions on two operands, not just inv, and, or, xor.  The
 instructions described in this section are actually
-pseudoinstructions: the assembler generates an equivalent logicf
-instruction.  See the section below on Logic for a complete
+pseudoinstructions: the assembler generates an equivalent logicf or
+logicb instruction.  See the section below on Logic for a complete
 description.
 
 ** Shifting
@@ -1990,38 +2015,94 @@ hexadecimal and as bits.
   shiftr R7,R7,11  ; R7 = 0001   0000 0000 0000 0001
 #+END_CodeListing
 
-See Examples/ Standard/ Shift.asm.txt
+** Bit manipulation
 
-** Bit fields
+There are instructions that operate on individual bits in a word, or
+on a field of bits within a word, without changing any of the other
+bits in the word.
+
+You can set an individual bit in a register at a specified index to 0
+using clearb.  The first operand is a register, and the second operand
+is the index of the bit.  All other bits in the register remain
+unchanged.  So clearb R3,2 makes R3.2 zero (that is, the bit at index
+2 in R3).  All the other bits in R3 remain unchanged.
 
 #+BEGIN_CodeListing
-   lea      R1,$ffff[R0]  ; R1 = ffff
-   add      R2,R0,R0      ; R2 = 0000
-   extract  R2,11,8,R1,3  ; R2 = 0f00  R2.11~8 := R1.3~0
-
-   add      R3,R0,R0      ; R3 = 0000
-   extracti R3,11,8,R0,3  ; R3 = 0f00  R3.11~8 := inv R0.3~0
+   lea     R3,$ffff[R0]  ; R3 := ffff
+   clearb  R3,2          ; R3 := fffb  (R3.2 := 0)
 #+END_CodeListing
+
+setb is similar, but it makes the specified bit 1.
+
+#+BEGIN_CodeListing
+   lea     R3,$ffff[R0]  ; R3 := ffff
+   clearb  R3,2          ; R3 := fffb  (R3.2 := 0)
+   add     R4,R0,R0      ; R4 := 0000
+   setb    R4,6          ; R4 := 0040  (R4.6 := 1)
+#+END_CodeListing
+
+A common situation, especially in systems programming, is that you
+have a word that contains several fields.  A machine language
+instruction is like that; also a network packet contains a number of
+fields.  The sizes of the fields, and their positions within a word,
+can be anything.  Software, especially systems programming, often
+needs to be able to extract a field from a word and put it somwhere
+else so it can be used.
+
+It's possible to obtain any field from a register, and put it
+somewhere in another register, using a sequence of shift and logic
+instructions (particularly shiftl, shiftr, andw, orw).  However, these
+sequences of instructions are error prone, hard to read, and they
+execute frequently in the inner loop of many systems programs.
+
+Sigma16 provides an instruction /extract/ which solves this problem
+with just one instruction.  It allows you to extract an arbitrary
+field from a register and put it into an arbitrary location in another
+register.
+
+The extract instruction takes operands that specify the source
+register (which contains the field you're interested in), the
+destination register (where it will put the field), the location of
+the field in the source register (specifed as the index of the
+rightmost and leftmost bits in the field), and the location where you
+want to put the field in the destination register.
+
+This instruction copies 4 bits from R1.4:7 to R2:8:11:
+
+#+BEGIN_CodeListing
+   extract  R2,R1,8,4,7   ; R2.8:11 := R1.4:7
+#+END_CodeListing
+
+In this example, the operands are:
+- R2 is the destination register
+- R1 is the source register
+- 8 is the index of the rightmost bit in the destination where the
+  field will be placed at ascending bit indices
+- 4 is the index of the rightmost bit of the field in the source
+  register
+- 7 is the index of the leftmost bit of the field in the source
+  register
+
+This instruction is equivalent to the following (although it is just
+one instruction, not four instructions):
+
+#+BEGIN_EXAMPLE
+   R2.8  :=  R1.4
+   R2.9  :=  R1.5
+   R2.10 :=  R1.6
+   R2.11 :=  R1.7 
+#+END_EXAMPLE
 
 The extract instruction modifies only the specified bits in the
-destination register; the other bits remain unchanged.  For example,
-if we put 0606 into a register and then put 1 bits into positions 11
-to 8 (i.e. the second hex digit), the result is 0f06.
+destination register; the other bits remain unchanged.
+
+Here is an executable example:
 
 #+BEGIN_CodeListing
-   lea      R1,$ffff[R0]  ; R1 = ffff
-   lea      R2,$0f0f      ; R2 = 0606
-   extract  R2,11,8,R1,3  ; R2 = 0f06  R2.11~8 := R1.3~0
+   lea      R1,$00f0[R0]  ; R1 = 00f0
+   add      R2,R0,R0      ; R2 = 0000   
+   extract  R2,R1,8,4,7   ; R2 = 0f00  R2.8:11 := R1.4:7
 #+END_CodeListing
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-| extract  | Rd,f,g,Re,h | e,15 | Rd.f~g := Re.h~h+g-h+1     |
-| extracti | Rd,f,g,Re,h | e,16 | Rd := extri Rd di sz Rs si |
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
 
 ** Saving registers for procedure call
 
@@ -2045,7 +2126,7 @@ When the procedure returns, restore the registers from the stack:
 For an example, showing the contents of the stack and registers, see
 Examples/ Standard/ Testing/ SaveRestore.asm.txt
 
-** Branching to pc-relative address
+** Branching to pc-relative address :noexport:
 
 A branch instruction transfers control to a specified location,
 similar to a jump.  The difference is in how the location to jump to
@@ -3846,7 +3927,8 @@ Re+1, ..., Rf.
 A jump is a transfer control to another address, rather than to the
 following instruction. The destination address is specified as the
 effective address in the jump instruction.  A jump can be used to
-implement a goto statement.  (See also [[*Branches][Branches]].)
+implement a goto statement.
+
 
 *** jump
 
@@ -3974,7 +4056,7 @@ is not 0 (i.e. at least one of the bits in that register is 1).
 </div>
 #+END_EXPORT
 
-** Branches
+** Branches :noexport:
 
 A branch instruction transfers control to another address, rather than
 to the following instruction. The destination address is specified as
@@ -4501,17 +4583,14 @@ changed.
    shiftr  R2,R3,5
 #+END_CodeListing
 
-*** Bit fields: extract, extracti
+*** Bit fields: extract
 
-The extract and extracti instructions provide access to a field within
-a word.  The extract instruction copies an arbitrary field of bits
+The extract instruction copies a field within a register to another
+register.  The extract instruction copies an arbitrary field of bits
 from a source register and inserts them into an arbitrary position in
 a destination register. The destination field is overwritten, while
 other bits in the destination register as well as all bits in the
 source register are unchanged.
-
-The extracti instruction is similar, but it inverts the bits in the
-field before they are inserted into the destination.
 
 These instructions are useful for systems programming.  Emulators need
 to access instruction fields, software implementing floating point
@@ -4535,8 +4614,8 @@ R$ the size is 0. For example:
   size is 16.
 - R8.5,7 is an empty field containing no bits; its size is 0
 
-*Machine language.* The machine language format of extract and
-extracti is EXP, with the following fields:
+*Machine language.* The machine language format of extract is EXP,
+with the following fields:
 
 |----+---+---+---|
 | op | d | a | b |
@@ -4546,7 +4625,7 @@ extracti is EXP, with the following fields:
 
 - op  = $e (escape to EXP)
 - Rd  = destination register
-- ab  = secondary opcode: $15 for extract and $16 for extracti
+- ab  = secondary opcode: $05 for extract
 - Re  = source register
 - f   = destination start index L
 - g   = destination end index R
@@ -4621,18 +4700,18 @@ R2.5 := R3.18
 R2.4 := R3.17
 #+END_CodeListing   
 
-The extract and extracti instructions can be implemented using a
-combination of logic and shift instructions.  They are included in the
+The extract instruction can be implemented using a
+combination of logic and shift instructions. It is included in the
 architecture for several reasons:
 
-- These operations provide useful abstractions for writing
+- extract provides useful abstractions for writing
   interpreters and simulators.
 - When used in an interpreter, bit field operations are executed
   frequently: they are a crucial part of the "inner loop".  Therefore
   the efficiency of common bit field operations is important.
 - The bit field instructions are easier to use and more readable than
   the corresponding logic and shifts.
-- These instructions can be implemented efficiently in a digital
+- This instruction can be implemented efficiently in a digital
   circuit and this implementation is an interesting design problem.
 
 The effect of an extract instruction can be described by writing each
@@ -4915,7 +4994,7 @@ Instructions and pseudoinstructions in each format:
 - EXP/RRk: shiftl, shiftr
 - EXP/RRkR: save, restore
 - EXP/RRkk pseudo: andb, orb, xorb, invb, orb, xorb
-- EXP/RRkkk: logicf, logicb, extract, extracti
+- EXP/RRkkk: logicf, logicb, extract
 
 
 #+BEGIN_EXPORT html
@@ -4974,9 +5053,6 @@ Instructions and pseudoinstructions in each format:
 |                    |    |RRk   |     |                           |
 +--------------------+----+------+-----+---------------------------+
 |extract Rd,Re,f,g,h |e,05|EXP   |     |Rd.f~g :=                  |
-|                    |    |RRkkk |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|extracti Rd,Re,f,g,h|e,06|EXP   |     |Rd := ex Rd di             |
 |                    |    |RRkkk |     |                           |
 +--------------------+----+------+-----+---------------------------+
 |push Rd,Re,Rf       |e,07|EXP   |     |M[ea] := Rd, Rb++          |
@@ -5051,10 +5127,6 @@ Pseudoinstructions for comparisons
 - jumpne jump if !=
 - jumpge jump if >-
 - jumpgt jump if >
-
-
-
-* Dummy section after ISA summary tables
 
 * Assembly language
 
@@ -6719,4 +6791,247 @@ existing programs.
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
 
-225
+* Development notes :noexport:
+
+** Status of Examples/Standard/Testing
+
+*** AsmStd
+  - 
+*** AsmStdErrors
+- uses old logicw, old syntax for logicb and extract
+- Should include logicf, new syntax for logicb, and new
+  pseudoinstructions for logicf and logicb
+*** BitField
+- extract
+- Extract seemed to work, check
+*** Branch
+- needs redesign, the test program is no longer consistent with the
+  program
+*** Ctl.asm.txt
+- check execution
+*** Dispatch
+  - 
+*** Jump
+  - 
+*** LinkTestA directory
+  - 
+*** LinkTestB directory
+  - 
+*** Logic
+*** Relocatable
+*** SaveRestore
+*** Shift
+*** Stack
+*** StdArithmetic
+*** TestSet
+*** Timer
+
+** file deprecated.org
+
+------------------------------------------------------
+
+logicr instruction is deprecated
+
+| logicr Rd,e,f,g,h   | e,01 |          | Rd.e := Rd.f #h Rd.g |    |
++---------------------+------+----------+----------------------+----+
+
+| Rkkkk | Rd,e,f,g,h           | logicr R1,        |               |
+
+- =logicr= performs logic on two operand bits within a register, and
+  places the result in a destination bit in the same register.
+
+*** Deprecated: extracti
+- Probably won't be used very often; can always do invf after an
+  extract to get the same effect
+  
++--------------------+----+------+-----+---------------------------+
+|extracti Rd,Re,f,g,h|e,06|EXP   |     |Rd := ex Rd di             |
+|                    |    |RRkkk |     |                           |
+
+
+
+   add      R3,R0,R0      ; R3 = 0000
+   extracti R3,11,8,R0,3  ; R3 = 0f00  R3.11~8 := inv R0.3~0
+
+| extracti | Rd,f,g,Re,h | e,16 | Rd := extri Rd di sz Rs si |
+
+The extracti instruction is similar, but it inverts the bits in the
+field before they are inserted into the destination.
+
+;    extracti  Rd,Re,f,g,h
+;        EXP. op=#e, ab=$06, g is ignored
+;      format: EXP/RRkkk
+     extract  R3,R9,5,7,8     ; e306 9578
+
+*** DEPRECATED: Bit logic within a register: logicr
+
+The =logicr= instruction allows you to specify any two operand bits
+and a destination bit, all within the same register.  This is
+convenient when a program has a collection of Boolean flags kept in
+the same word.  The general form is:
+
+#+BEGIN_CodeListing
+;    logicr  Rd,e,f,g,h
+;        EXP op=#e ab=$13
+;        Rd.e := h (Rd.f, Rd.g)
+     logicr  R2,5,6,7,8     ; e213 5678
+#+END_CodeListing
+
+- Rd is the destination register, which also contains both source
+  operands bits
+- e is the index of the destination bit
+- f is the index of the first argument bit
+- g is the index of the second argument bit
+- h is the logic function
+- The instruction format is EXP, with primary =e= and secondary opcode
+  =$13=.
+
+Here is an example that performs logic on bits within R1, which is
+initialized to 0002. and calculates the logic or of bit 0 (which is 0)
+and bit 1 (which is 1).  The result goes into bit 10, changing R1 from
+=$0002= to =$0402=.  The logic function or has code 7.  Tthe operands
+are bits 9 and 2, and the result is placed into bit 3.  The
+instruction says: within R1, perform logic function 7 on bits 0 and 1,
+and place the result in bit 10.
+
+#+BEGIN_CodeListing
+  lea     R1,2[R0]     ; R1 := 0002, R1.0 = 0, R1.1 = 1
+  logicr  R1,10,0,1,or ; e113 a017. R1 := 0402, R1.10 = 1  
+#+END_CodeListing
+
+The op field of the first word of the machine language code for this
+example is 14 (hex e), indicating EXP format.  The secondary operation
+code is =$13=, which is stored in the =ab= field.  Since the general
+form is =logicr Rd,e,f,g,h=, we have $d=1$, $e=a$, $f=0$, $g=1$, and
+$h=7$, so the machine language code is =e113 a017=.
+
+If your program keeps a set of Boolean variables in one register, you
+can calculate Boolean expressions in that register with =logicr=.
+
+**** Pseudoinstructions invr, andr, orr, xorb
+
+Pseudoinstructions are provided for the most common bit logic
+functions.  The operands are the same as for =logicr=, except the last
+operand is omitted, as the function is specified by the mnemonic.
+
+#+BEGIN_CodeListing
+      invr    R1,3,9     ; R1.3 := inv R1.9
+      andr    R1,3,9,2   ; R1.3 := R1.9 and R1.2
+      orr     R1,3,9,2   ; R1.3 := R1.9 or R1.2
+      xorr    R1,3,9,2   ; R1.3 := R1.9 xor R1.2
+#+END_CodeListing
+
+Logic.asm.txt
+
+#+BEGIN_CodeListing
+;---------------------------------------------------------------------
+; DEPRECATED - the logicr instruction will be removed
+; logicr - bit logic within one word
+;    logicr  Rd,e,f,g,h
+;      Rd.e := h (Rd.f, Rd.g)
+;      EXP op=$e ab=$01
+     logicr  R2,5,6,7,8     ; e201 5678
+
+; Example
+     lea     R1,2[R0]       ; R1 := 0002
+     logicr  R1,10,0,1,or   ; e113 a017. R1 := 0402
+
+; logicr pseudoinstructions
+;    invr    Rd,e
+;    andr    Rd,e,f,g
+;    orr     Rd,e,f,g
+;    xorr    Rd,e,f,g
+
+; Testing logicr pseudoinstructions
+
+     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+
+     andr    R1,15,0,0      ; R1 := 0002  R1.15 = 0
+     andr    R1,14,0,1      ; R1 := 0002  R1.14 = 0
+     andr    R1,13,1,0      ; R1 := 0002  R1.13 = 0
+     andr    R1,12,1,1      ; R1 := 1002  R1.12 = 1
+
+     orr     R1,11,0,0      ; R1 := 1002  R1.11 = 0
+     orr     R1,10,0,1      ; R1 := 1402  R1.10 = 1
+     orr     R1,9,1,0       ; R1 := 1602  R1.9 = 1
+     orr     R1,8,1,1       ; R1 := 1702  R1.8 = 1
+
+     xorr    R1,7,0,0       ; R1 := 1702  R1.7 = 0
+     xorr    R1,6,0,1       ; R1 := 1742  R1.6 = 1
+     xorr    R1,5,1,0       ; R1 := 1762  R1.5 = 1
+     xorr    R1,4,1,1       ; R1 := 1762  R1.4 = 0
+
+     invr    R1,3,0         ; R1 := 176a  R1.3 = 1
+     invr    R1,2,1         ; R1 := 176a  R1.2 = 0
+;     invr    R1,3            ; R1 := 176a  R1.3 = 1
+;     invr    R1,2            ; R1 := 176a  R1.2 = 0
+
+     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+
+     nandr   R1,15,0,0      ; R1 := 8002  R1.15 = 1
+     nandr   R1,14,0,1      ; R1 := c002  R1.14 = 1
+     nandr   R1,13,1,0      ; R1 := e002  R1.13 = 1
+     nandr   R1,12,1,1      ; R1 := e002  R1.12 = 0
+
+     trap    R0,R0,R0       ; terminate
+
+; deprecated
+     lea     R1,2[R0]       ; R1 := 0002, R1.0 = 0, R1.1 = 1
+     nandr   R1,15,0,0      ; R1 := 8002  R1.15 = 1
+     nandr   R1,14,0,1      ; R1 := c002  R1.14 = 1
+     nandr   R1,13,1,0      ; R1 := e002  R1.13 = 1
+     nandr   R1,12,1,1      ; R1 := e002  R1.12 = 0
+
+;--------------------------------------------------------------------
+; deprecated: wrong and don't need them
+     norr    R1,15,0,0      ; R1 := e802  R1.15 = 1     wrong
+     norr    R1,14,0,1      ; R1 := e802  R1.14 = 0     wrong
+     norr    R1,13,1,0      ; R1 := e802  R1.13 = 0     wrong
+     norr    R1,12,1,1      ; R1 := e802  R1.12 = 0     wrong
+
+     xnorr   R1,15,0,0      ; R1 := e882  R1.15 = 1     wrong
+     xnorr   R1,14,0,1      ; R1 := e882  R1.14 = 0     wrong
+     xnorr   R1,13,1,0      ; R1 := e882  R1.13 = 0     wrong
+     xnorr   R1,12,1,1      ; R1 := e892  R1.12 = 1     wrong
+#+END_CodeListing
+
+---------------------------------------------------------------
+
+- /Partial compatibility./ Most components of the Sigma16 app run on
+  *Safari* and *Firefox*, including the assembler, linker, and
+  emulator.  However, those browsers do not support local file access,
+  so the buttons that read and write files don't work.  However, you
+  can copy and paste assembly language programs between an external
+  editor and the Sigma16 editor.
+- /Full compatibility./ This version of Sigma16 runs on *Chrome*,
+  *Edge*, *Opera*, and *DuckDuckGo*.  These browsers are based on the
+  Chromium engine.
+
+** Deprecated text
+
+#+BEGIN_EXAMPLE
+;     logicc R1,1,R2,3,and    ; R15=0000    0 and 0 = 0
+;     logicc R1,1,R2,1,and    ; R15=0000    0 and 1 = 0
+;     logicc R1,0,R2,3,and    ; R15=0000    1 and 0 = 0
+;     logicc R1,0,R2,1,and    ; R15=0400    1 and 1 = 1
+
+;     logicc R1,1,R2,3,or     ; R15=0000    0 or 0 = 0
+;     logicc R1,1,R2,1,or     ; R15=0400    0 or 1 = 1
+;     logicc R1,0,R2,3,or     ; R15=0400    1 or 0 = 1
+;     logicc R1,0,R2,1,or     ; R15=0400    1 or 1 = 1
+
+;     logicc R1,1,R2,3,6      ; R15=0000    0 xor 0 = 0
+;     logicc R1,1,R2,1,6      ; R15=0400    0 xor 1 = 1
+;     logicc R1,0,R2,3,6      ; R15=0400    1 xor 0 = 1
+;     logicc R1,0,R2,1,6      ; R15=0000    1 xor 1 = 0
+
+; old
+; Assembly language: extract Rd,f,g,Re,h
+; Effect:            Rd.f..g := Re.h..(h+g-f)
+; EXP opcode:        e,15
+
+
+
+#+END_EXAMPLE
+
+226

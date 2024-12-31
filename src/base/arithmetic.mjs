@@ -756,8 +756,103 @@ export function op_xor (a,b) {
 
 // These constants provide a faster way to set or clear the flags
 
-// calculateExtract is used for both the extract and extracti instructions
+// calculateExtract is used for the extract instruction
 
+export function calculateExtract (wsize, wmask, dest, src,
+                                  dest_right,
+                                  src_right, src_left) {
+// dmask contains 1 bits in the destination field
+    // dclear is dest with 0s in destination field
+    let field_size = src_left - src_right + 1
+    let dest_left = dest_right + field_size - 1
+    const dmask = fieldMask (wsize, wmask, dest_left, field_size)
+    // dmask has 1s in destination field bits
+    const dmaski = (~dmask) & wmask
+    // dmaski has 1s everywhere except destination field bits
+    const dclear = dest & dmaski
+    // put 0s in dest field bits, leave other bits unchanged
+// smask contains 1 bits in the source field    
+    // sclear is src with 0s in source field
+    const smask = fieldMask (wsize, wmask, src_left, field_size)
+    const sclear = src & smask
+    // sclear is src with non-field bits cleared to 0
+// p is src field shifted to righthand position
+    //    const p = sclear >>> (srci - field_size + 1)
+    const p = sclear >>> (src_left - field_size + 1)
+// q is src field shifted to destination position
+    //    const q = p << (desti - field_size + 1)
+    const q = p << (dest_left - field_size + 1)    
+    const r = dclear | q
+    console.log (`calculateExtract wsize=${wsize} wmask=${wordToHex4(wmask)}`
+                 + ` dest=${wordToHex4(dest)}`
+                 + ` src=${wordToHex4(src)}`
+                 + ` dest_right=${dest_right}`
+                 + ` dest_left=${dest_left}`
+                 + ` src_right=${src_right}`
+                 + ` src_left=${src_left}`
+                 + ` field_size=${field_size}`
+                 + ` dmask=${wordToHex4(dmask)}`
+                 + ` dmaski=${wordToHex4(dmaski)}`
+                 + ` dclear=${wordToHex4(dclear)}`
+                 + ` smask=${wordToHex4(smask)}`
+                 + ` sclear=${wordToHex4(sclear)}`
+                 + ` p=${wordToHex4(p)}`
+                 + ` q=${wordToHex4(q)}`
+                 + ` r=${wordToHex4(q)}`)
+    return r
+}
+
+// version where dest_right and dest_left are specifed
+/*
+//    let src_left = src_right + field_size - 1
+
+export function calculateExtract (wsize, wmask, dest, src,
+                                  dest_right, dest_left,
+                                  src_right) {
+// dmask contains 1 bits in the destination field
+    // dclear is dest with 0s in destination field
+    let field_size = dest_left - dest_right + 1
+    const dmask = fieldMask (wsize, wmask, dest_left, field_size)
+    // dmask has 1s in destination field bits
+    const dmaski = (~dmask) & wmask
+    // dmaski has 1s everywhere except destination field bits
+    const dclear = dest & dmaski
+    // put 0s in dest field bits, leave other bits unchanged
+// smask contains 1 bits in the source field    
+    // sclear is src with 0s in source field
+    let src_left = src_right + field_size - 1
+    const smask = fieldMask (wsize, wmask, src_left, field_size)
+    const sclear = src & smask
+    // sclear is src with non-field bits cleared to 0
+// p is src field shifted to righthand position
+    //    const p = sclear >>> (srci - field_size + 1)
+    const p = sclear >>> (src_left - field_size + 1)
+// q is src field shifted to destination position
+    //    const q = p << (desti - field_size + 1)
+    const q = p << (dest_left - field_size + 1)    
+    const r = dclear | q
+    console.log (`calculateExtract wsize=${wsize} wmask=${wordToHex4(wmask)}`
+                 + ` dest=${wordToHex4(dest)}`
+                 + ` src=${wordToHex4(src)}`
+                 + ` dest_right=${dest_right}`
+                 + ` dest_left=${dest_left}`
+                 + ` src_right=${src_right}`
+                 + ` src_left=${src_left}`
+                 + ` field_size=${field_size}`
+                 + ` dmask=${wordToHex4(dmask)}`
+                 + ` dmaski=${wordToHex4(dmaski)}`
+                 + ` dclear=${wordToHex4(dclear)}`
+                 + ` smask=${wordToHex4(smask)}`
+                 + ` sclear=${wordToHex4(sclear)}`
+                 + ` p=${wordToHex4(p)}`
+                 + ` q=${wordToHex4(q)}`
+                 + ` r=${wordToHex4(q)}`)
+    return r
+}
+*/
+
+/* previous version using field size rather than left/right indices for destinaiton
+   
 export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
 // dmask contains 1 bits in the destination field
 // dclear is dest with 0s in destination field    
@@ -788,6 +883,8 @@ export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
                  + ` r=${wordToHex4(q)}`)
     return r
 }
+
+*/
 
 // p = source field (surrounded by 0) shifted to destination position
     // destination mask has 1 bits where field will be inserted

@@ -1,5 +1,5 @@
 ; BitField: Test instructions that operate on bit fields.
-; Instructions: extract, extracti.
+; Instructions: extract
 ; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2025
 
 ; Extracting bit fields.  Bit positions are numbered from right to
@@ -14,44 +14,74 @@
 ; |----------------|---------------|---------------|---------------|
 
 ; The machine language format is EXP, and the assembly language
-; format is RkkRk
+; format is RRkkk
 
-; old
-; Assembly language: extract Rd,f,g,Re,h
-; Effect:            Rd.f..g := Re.h..(h+g-f)
-; EXP opcode:        e,15
-
-;    extract  Rd,Re,f,g,h
-;        EXP. op=#e, ab=$12, g is ignored
-;      format: EXP/RRkkk
-     extract  R3,R9,5,7,8     ; e305 9578
-
-; Example:           extract R2,R1,11,8,3
-; Machine language:  e215 1b83
-
-; Instruction fields
-; op  = e (escape to EXP)
-; d   = Rd (destination register)
-; e   = Re (source register)
-; f   = destination start bit_index
-; g   = field size
-; h   = source start bit index
-   
 ;   +----+----+----+----+
 ;   | op |  d |  a |  b |
 ;   +----+----+----+----+
 ;   |  e |  f | g  |  h |
 ;   +----+----+----+----+
-  
-   lea      R1,$ffff[R0]  ; R1 = ffff
-   add      R2,R0,R0      ; R2 = 0000
-   extract  R2,R1,11,8,3  ; R2 = 0f00  R2.11-8 := R1.3-0
 
-   add      R3,R0,R0      ; R3 = 0000
-   extracti R3,R0,8,3,2   ; R3 = 0f00  R3.11-8 := inv R0.3-0
+     jump   test[R0]      ; skip assembly test, goto emulator test
+
+;  extract  Rd,Re,f,g,h
+;    format: EXP/RRkkk  op=E, ab=05
+;    d   = Rd (destination register)
+;    e   = Re (source register)
+;    f   = destination right (small) bit_index
+;    g   = source right (small) bit index
+;    h   = source left (large) bit index
+;    notes: fsize = h-g+1 = field size: number of bits in field
+;           wsize = word size = 16
+;           normally g<h and f+fsize-1<wsize
+; Example:
+    extract  R3,R9,5,8,10     ; e305 958a
+;       "extract R9.8:10 to F3:5:7"
+;       "copy 3 bits from R9.8:10 to R3:5:7"
+;       "extract 3 bits from R9.8 to R3:5"
+;         R3.5 := R9.8
+;         R3.6 := R9.9
+;         R3.7 := R9.10
+
+test
+   lea      R1,$00f0[R0]  ; R1 = 00f0
+   add      R2,R0,R0      ; R2 = 0000   
+   extract  R2,R1,8,4,7   ; R2 = 0f00  R2.8:11 := R1.4:7
+;       R2.8  :=  R1.4
+;       R2.9  :=  R1.5
+;       R2.10 :=  R1.6
+;       R2.11 :=  R1.7 
+
 
    lea      R1,$ffff[R0]  ; R1 = ffff
    lea      R2,$0f0f      ; R2 = 0606
-   extract  R2,R1,11,8,3  ; R2 = 0f06  R2.11~8 := R1.3~0
+   extract  R2,R1,8,11,3  ; R2 = 0f06  R2.11~8 := R1.3~0
+
+; from BitManipulation
+
+
+; Demonstrate how to use the extract instruction to copy Booleans, and
+; the xorb instruction to perform logic on them (you can do any logic
+; function on the bits, not just xor).
+
+; Each bit in a word is identified by its index.  Bit 0 is the
+; rightmost (least significant), and Bit 15 is the leftmost (most
+; significant).  The notation R3.5 means bit 5 in R3, where bit 0 is
+; the rightmost (least significant) bit of the word.
+
+    lea     R1,23[R0]        ; R1 := 23
+    lea     R2,17[R0]        ; R2 := 17
+    cmp     R1,R2            ; compare 23 with 17
+;    extract R3,R15,8,1,1     ; R5.12 := 23 > 17
+;    extract R3,15,1,R15,2   ; R5.15 := 23 = 17
+
+    lea     R4,23           ; R4 := 23
+    lea     R5,23           ; R4 := 23
+    cmp     R4,R5           ; compare 23 with 23
+;    extract R3,5,1,R15,4    ; R3.5 := 23 > 23
+;    extract R3,6,1,R15,2    ; R3.6 := 23 = 23
 
    trap     R0,R0,R0
+;   add      R3,R0,R0      ; R3 = 0000
+;   extracti R3,R0,8,3,2   ; R3 = 0f00  R3.11-8 := inv R0.3-0
+

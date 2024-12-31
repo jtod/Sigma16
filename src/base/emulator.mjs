@@ -1623,22 +1623,26 @@ function exp2_extract (es) {
     console.log ('exp2_extract')
     const d_old = es.regfile[es.ir_d].get()
     const src = es.regfile[es.field_e].get()
-    const d_left = es.field_f
-    const d_right = es.field_g
-    const s_left = es.field_h
-    const size = d_left - d_right + 1
-    const d_new = arith.calculateExtract (16, 0xffff, d_old,
-                                          src, d_left, s_left, size)
+    const dest_right = es.field_f
+    const src_right = es.field_g
+    const src_left = es.field_h
+    const d_new = arith.calculateExtract (16, 0xffff, d_old, src,
+                                          dest_right,
+                                          src_right, src_left)
     console.log (`extract `
                      + ` d_old = ${arith.wordToHex4(d_old)}`
                      + ` src = ${arith.wordToHex4(src)}`
-                     + ` d_left = ${d_left}`
-                     + ` s_left = ${s_left}`
-                     + ` size = ${size}`
+                     + ` dest_right = ${dest_right}`
+                     + ` src_right = ${src_right}`
+                     + ` src_left = ${src_left}`
                      + ` d_new = ${arith.wordToHex4(d_new)}`)
     es.regfile[es.ir_d].put(d_new);
 }
 
+//                     + ` size = ${size}`
+//    const size = d_left - d_right + 1
+
+/* deprecated
 function exp2_extracti (es) {
     console.log ('exp2_extracti')
     const d_old = es.regfile[es.ir_d].get()
@@ -1658,9 +1662,10 @@ function exp2_extracti (es) {
                      + ` d_new = ${arith.wordToHex4(d_new)}`)
     es.regfile[es.ir_d].put(d_new);
 }
-
+*/
 
 // logicw is deprecated, replaced by logicf
+/*
 function exp2_logicw (es) {
     com.mode.devlog ('EXP logicw')
     const x = es.regfile[es.field_e].get()              // operand 1
@@ -1671,15 +1676,16 @@ function exp2_logicw (es) {
                  + ` result=${arith.wordToHex4(result)}`);
     es.regfile[es.ir_d].put(result);
 }
+*/
 
 function exp2_logicf (es) {
     com.mode.devlog ('EXP logicf')
     console.log ("************* logicf")
-    const x = es.regfile[es.ir_d].get()              // operand 1
-    const y = es.regfile[es.field_e].get()              // operand 2
-    const idx1 = es.field_f                             // lowest bit index
-    const idx2 = es.field_g                             // highest bit index
-    const fcn = es.field_h                              // logic function
+    const x = es.regfile[es.ir_d].get()    // operand 1
+    const y = es.regfile[es.field_e].get() // operand 2
+    const idx1 = es.field_f                // rightmost (lowe) bit index
+    const idx2 = es.field_g                // leftmost (high bit index
+    const fcn = es.field_h                 // logic function
     const result = arith.applyLogicFcnField (fcn,x,y,idx1,idx2)
     console.log (`logicf x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)}`
                  + ` result=${arith.wordToHex4(result)}`);
@@ -1800,7 +1806,8 @@ const dispatch_EXP =
         exp2 (exp2_shiftl),   // 03
         exp2 (exp2_shiftr),   // 04
         exp2 (exp2_extract),  // 05
-        exp2 (exp2_extracti), // 06
+        //        exp2 (exp2_extracti), // 06
+        exp2 (exp2_nop),      // 06, was extracti, deprecated
         exp2 (exp2_push),     // 07
         exp2 (exp2_pop),      // 08
         exp2 (exp2_top),      // 09

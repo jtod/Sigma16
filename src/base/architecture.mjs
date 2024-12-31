@@ -486,7 +486,9 @@ statementSpec.set("brc0",     {ifmt:iEXP, afmt:aRkK,   opcode:[14,12]})
 statementSpec.set("brc1",     {ifmt:iEXP, afmt:aRkK,   opcode:[14,13]})
 statementSpec.set("brz",      {ifmt:iEXP, afmt:aRK,    opcode:[14,14]})
 statementSpec.set("brnz",     {ifmt:iEXP, afmt:aRK,    opcode:[14,15]})
-statementSpec.set("dispatch", {ifmt:iEXP, afmt:aRk,    opcode:[14,16]})
+statementSpec.set("dispatch",
+                  {ifmt:iEXP, afmt:aRk,
+                   opcode:[14,16], pseudo: false})
 statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,17]})
 statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,18]})
 statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,19]})

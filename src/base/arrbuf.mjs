@@ -21,9 +21,9 @@ import * as com from './common.mjs'
 import * as arith from './arithmetic.mjs'
 import * as arch from './architecture.mjs'
 
-//-------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Memory map of the emulator state array
-//-------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // There is an emulator state object which is accessible as env.es.
 
@@ -64,9 +64,14 @@ import * as arch from './architecture.mjs'
 
 export const SCBsize   =   512 / 2   // emulator variables
 export const BPsize    =   512 / 2   // abstract syntax tree
-export const RegSize   =    32 / 2   // 16 general and 16 system registers
+export const RegSize   =    32 / 2   // 16 gen and 16 sys registers
 export const MemSize   = 65536 / 4   // each location is 16 bits
-export const Mem32Size = MemSize * 4 // make this a changeable option >= MemSize
+
+// export const Mem32Size = MemSize * 4
+// make this a changeable option >= MemSize
+export let Mem32Size = MemSize * 4 + 0
+// Mem32Size is the number of bytes for memory (S16 or S32)
+// Mem32Size = 4 * 256000000 * 5 //
 
 // The array buffers are allocated with a specified size in bytes
 export const StateVecSizeBytes = 8 * (SCBsize + BPsize + RegSize + Mem32Size)
@@ -88,9 +93,9 @@ export const BPoffset16   = 2 * BPoffset32
 export const RegOffset16  = 2 * RegOffset32
 export const MemOffset16  = 2 * MemOffset32
 
-//-----------------------------------------------------------------------------
+//---------------------------------------------------------------------
 // General access functions
-//-----------------------------------------------------------------------------
+//---------------------------------------------------------------------
 
 // Each section consists of elemens of a specific word size, except
 // the SCB which contains some 64-bit elements but is mostly 32-bit
@@ -117,9 +122,9 @@ export function write64 (es, a, k, x) { es.vec64 [a+k] = x }
 // In Web Assembly, the index for accessing an element is the byte
 // index.  Thus read16 i in wa must push 2*i and then fetch.
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // System control block
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // The system control block is stored in shared memory and contains
 // information that pertains to the entire system, including all

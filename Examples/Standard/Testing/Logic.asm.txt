@@ -38,8 +38,8 @@ xnor equ     9
 ;      effect:  Rd.f:g := map2 h (Rd.f:g, Re.f:g)
 ;      Rd = first operand register and destination register
 ;      Re = second operand register
-;      f = index of rightmost bit in field (in both registers))
-;      g = index of leftmost bit in field (in both registers)
+;      f = right (smaller) bit index (in both registers))
+;      g = left (larger) bit index (in both registers)
 ;      h = logic function
 ;      format: EXP
 ;      machine language: Ed00 efgh (op=$E, ab=$00)
@@ -117,11 +117,23 @@ xnor equ     9
    lea    R7,$2000[R0]   ; R7 := 2000 (R7.13 := 1)
    logicb R2,R7,9,13,xor ; R2 := 0d00 (R2.9 := R2.9 xor R7.13 = 0)
 
-     lea     R1,$00ff[R0]
-     lea     R2,$00f0[R0]
-     logicb  R1,R2,8,4,or   ; 01ff
-     logicb  R1,R2,7,4,and  ; 01ff
-     logicb  R1,R2,6,3,and  ; 01bf
+   lea     R1,$00ff[R0]   ; R1 := 00ff
+   lea     R2,$00f0[R0]   ; R2 := 00f0
+   logicb  R1,R2,3,9,and  ; R1 := 00f7
+;       (R1.3 := R1.3 and R2.9 = 1 and 0 = 0)
+   logicb  R1,R2,11,5,or  ; R1 := 08f7
+;       (R1.11 := R1.11 or R2.5 = 0 or 1 = 1)
+   logicb  R1,R2,4,6,xor  ; R1 := 08e7
+;       (R1.4 := R1.4 xor R2.6 = 1 xor 1 = 0)
+
+   lea     R1,$00ff[R0]   ; R1 := 00ff
+   lea     R2,$00f0[R0]   ; R2 := 00f0
+   andb  R1,R2,3,9        ; R1 := 00f7
+;       (R1.3 := R1.3 and R2.9 = 1 and 0 = 0)
+   orb  R1,R2,11,5        ; R1 := 08f7
+;       (R1.11 := R1.11 or R2.5 = 0 or 1 = 1)
+   xorb  R1,R2,4,6        ; R1 := 08e7
+;       (R1.4 := R1.4 xor R2.6 = 1 xor 1 = 0)
 
      lea     R2,$0200[R0]   ; R2.9 := 1
      lea     R7,$0000[R0]   ; R7.13 := 0
@@ -201,6 +213,119 @@ xnor equ     9
      xorb    R1,R2,6,2      ; R1.6 := 0 xor 1 = 1, R1 := 0070
      xorb    R1,R2,5,1      ; R1.5 := 1 xor 0 = 1, R1 := 0070
      xorb    R1,R2,4,0      ; R1.4 := 1 xor 1 = 0, R1 := 0060
+
+; from BitManipulation
+
+
+
+
+    trap    R0,R0,R0     ; terminate
+
+;    xorb    R3,0,12,5       ; R3.0 := R3.12 xor R3.5
+
+; logicb operates on arbitrary bits within one register
+;     logicb R1,15,1,0,and    ; 0006 = 0000 0000 0000 0110
+                             ;   R1.15 := R1.1 and R1.0 = 0
+;     logicb R1,14,1,0,or     ; 4006 = 0100 0000 0000 0110
+                             ;   R1.14 := R1.1 or R1.0 = 1
+;     logicb R1,13,1,0,xor    ; 6006 = 0110 0000 0000 0110
+                             ;   R1.13 := R1.1 xor R1.0 = 1
+;     logicb R1,12,1,0,nor    ; 6006 = 0110 0000 0000 0110
+                             ;   R1.12 := R1.1 nor R1.0 = 0
+
+; Test ability to set and clear for bit logic
+;      logicb  R3,R1,R2,7,15 ; or changes 0 to 1 .15 = 0001
+      lea     R4,$ffff[R0]  ; put 1 into destination
+;      logicb  R4,R1,R2,7,0  ; or changes 1 to 0  .0 = 7fff
+ 
+
+; inv R1 = 12
+      add     R3,R0,R0
+;      logicb  R3,R1,R2,12,0  ; inv R1  .0 = 00ff = 8000
+      add     R4,R0,R0
+;      logicb  R4,R1,R2,12,15 ; inv R1 .15 = 00ff = 0000
+
+; and = 1
+      add     R3,R0,R0
+;      logicb  R3,R1,R2,1,0    ; 00ff and 0f0f  .0 = 0000
+      add     R4,R0,R0
+;      logicb  R4,R1,R2,1,4    ; 00ff and 0f0f  .4 = 0000
+      add     R5,R0,R0
+;      logicb  R5,R1,R2,1,8    ; 00ff and 0f0f  .8 = 0000
+      add     R6,R0,R0
+ ;      logicb  R6,R1,R2,1,12   ; 00ff and 0f0f .12 = 0008
+
+; or = 7
+      add     R3,R0,R0
+;      logicb  R3,R1,R2,7,0    ; 00ff or 0f0f   .0 = 0000
+      add     R4,R0,R0
+;      logicb  R4,R1,R2,7,4    ; 00ff or 0f0f   .4 = 0800
+      add     R5,R0,R0
+;      logicb  R5,R1,R2,7,8    ; 00ff or 0f0f   .8 = 0080
+      add     R6,R0,R0
+;      logicb  R6,R1,R2,7,12   ; 00ff or 0f0f .12 = 0008
+
+; xor = 6
+      add     R3,R0,R0
+;      logicb  R3,R1,R2,6,0    ; 00ff xor 0f0f   .0 = 0000
+      add     R4,R0,R0
+;      logicb  R4,R1,R2,6,4    ; 00ff xor 0f0f   .4 = 0800
+      add     R5,R0,R0
+;      logicb  R5,R1,R2,6,8    ; 00ff xor 0f0f   .8 = 0080
+      add     R6,R0,R0
+;      logicb  R6,R1,R2,6,12   ; 00ff xor 0f0f  .12 = 0000
+
+; Pseudoinstructions for logicb
+
+; invb R1 = 12
+      add     R3,R0,R0
+      invb    R3,R1,0         ; inv R1  .0 = 00ff = 8000
+      add     R4,R0,R0
+;      invb    R4,R1,15        ; inv R1 .15 = 00ff = 0000
+
+; andb = 1
+      add     R3,R0,R0
+;      andb    R3,R1,R2,0      ; 00ff and 0f0f  .0 = 0000
+      add     R4,R0,R0
+;      andb    R4,R1,R2,4      ; 00ff and 0f0f  .4 = 0000
+      add     R5,R0,R0
+;      andb    R5,R1,R2,8      ; 00ff and 0f0f  .8 = 0000
+      add     R6,R0,R0
+;      andb    R6,R1,R2,12     ; 00ff and 0f0f .12 = 0008
+
+; orb = 7
+      add     R3,R0,R0
+;      orb     R3,R1,R2,0      ; 00ff or 0f0f   .0 = 0000
+      add     R4,R0,R0
+;      orb     R4,R1,R2,4      ; 00ff or 0f0f   .4 = 0800
+      add     R5,R0,R0
+;      orb     R5,R1,R2,8      ; 00ff or 0f0f   .8 = 0080
+      add     R6,R0,R0
+;      orb     R6,R1,R2,12     ; 00ff or 0f0f .12 = 0008
+
+; xorb = 6
+      add     R3,R0,R0
+;      xorb    R3,R1,R2,0      ; 00ff xor 0f0f   .0 = 0000
+      add     R4,R0,R0
+;      xorb    R4,R1,R2,4      ; 00ff xor 0f0f   .4 = 0800
+      add     R5,R0,R0
+;      xorb    R5,R1,R2,8      ; 00ff xor 0f0f   .8 = 0080
+      add     R6,R0,R0
+;      xorb    R6,R1,R2,12     ; 00ff xor 0f0f  .12 = 0000
+
+     trap  R0,R0,R0          ; terminate
+
+
+; deprecated
+
+     lea    R1,$0f96[R0]     ; 0f96 = 0000 1111 1001 0110
+     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
+;     andw   R3,R1,R2         ; 0302 = 0000 0011 0000 0010
+     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
+;     orw    R3,R1,R2         ; 3fb6 = 0011 1111 1011 0110
+     lea    R2,$3322[R0]     ; 3322 = 0011 0011 0010 0010
+;     xorw   R3,R1,R2         ; 3cb4 = 0011 1100 1011 0100
+
 
      trap    R0,R0,R0
 

@@ -295,7 +295,7 @@ div.majornote, div.tcolorbox {
     padding-right: 1em;
     padding-left: 1em;
     color: black;
-    font-style: italic;
+/*     font-style: italic; */
     border: solid;
     border-width: thin;
     border-color: red;
