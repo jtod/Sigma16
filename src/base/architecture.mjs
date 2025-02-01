@@ -1,5 +1,5 @@
 // Sigma16: architecture.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
+// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
@@ -13,17 +13,17 @@
 // a copy of the GNU General Public License along with Sigma16.  If
 // not, see <https://www.gnu.org/licenses/>.
 
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 // architecture.mjs defines global constants and tables specifying
 // formats, opcodes, mnemonics, and flag bits
-// ---------------------------------------------------------------------
+//-------------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as smod from './s16module.mjs';
 
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 // Bit indexing
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 // There are two conventions for indexing bits in a word that contains
 // k bits. Then
@@ -91,9 +91,9 @@ export function extractBoolLE (x,i) {
     return getBitInWordLE (x,i) === 1
 }
 
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 // Architecture constants
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 // Should make memSize adjustable in settings, with default = 65536
 
@@ -119,9 +119,9 @@ export function formatSize (ifmt) {
         : 0
 }
 
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 // Assembly language statement formats
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 // Statement formats include directives as well as syntax for
 // instructions.  R is a general register, C is a system control
@@ -202,9 +202,9 @@ export const aOrg     = Symbol ("org");     // org      $ff00
 export const aEqu     = Symbol ("equ");     // equ      rcd+4
 export const aBlock   = Symbol ("block");   // block    100
 
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 // Instruction mnemonics
-//----------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 // These arrays are indexed by an opcode to give the corresponding
 // mnemonic
@@ -225,13 +225,17 @@ export const mnemonicRX =
    // "leal",     "loadl",    "storel",    "noprx"]      // c-f
 
 export const mnemonicEXP =  // ????? needs revision
-    ["logicf", "push",     "pop",      "top",    "save",     // 00-03
-     "restore",  "brc0",     "brc1",   "brz",      // 04-07
-     "brnz",     "dispatch", "shiftl", "shiftr",   // 08-0b
-     "loticw",   "logicr",   "logicb", "extract",  // 0c-0f
-     "extracti", "getctl",   "putctl", "resume",   // 10-13
-     "timeron",  "timeroff"]                       // 14-15
+    ["logicf",   "logicb",  "nop",    "shiftl",     // 00-03
+     "shiftr",   "extract", "nop",    "push",       // 04-07
+     "pop",      "top",     "save",   "restore",    // 08-0b
+     "nop",      "nop",     "nop",    "nop",        // 0c-0f (br)
+     "dispatch", "getctl",  "putctl", "resume",     // 10-13
+     "timeron",  "timeroff"]                        // 14-15
 
+//     "brc0",     "brc1",   "brz",   
+//     "brnz",    
+//     "loticw",   "logicr",
+//     "extracti", 
 // export const mnemonicEXP =
 //     ["brf",     "brb",      "brfc0",    "brbc0",    // 00-03
 //      "brfc1",   "brbc1",    "brfz",     "brbz",     // 04-07

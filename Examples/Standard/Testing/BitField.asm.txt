@@ -52,13 +52,14 @@ test
 ;       R2.10 :=  R1.6
 ;       R2.11 :=  R1.7 
 
+   trap   R0,R0,R0
 
+; deprecated
    lea      R1,$ffff[R0]  ; R1 = ffff
    lea      R2,$0f0f      ; R2 = 0606
    extract  R2,R1,8,11,3  ; R2 = 0f06  R2.11~8 := R1.3~0
 
-; from BitManipulation
-
+; from BitManipulation deprecated
 
 ; Demonstrate how to use the extract instruction to copy Booleans, and
 ; the xorb instruction to perform logic on them (you can do any logic

@@ -22,7 +22,6 @@
 ; specified by the assembly language statement.
 
 ; Symbolic names for common logic function codes
-
 invx equ     12
 and  equ     1
 or   equ     7
@@ -30,6 +29,54 @@ xor  equ     6
 nand equ     14
 nor  equ     8
 xnor equ     9
+
+; duplicate tests
+     add     R4,R0,R0       ; R4 := 0000
+     lea     R12,$0020[R0]  : R12 = 0020
+     copyb   R4,R12,7,5     ; R4 := 0080 (R4.7 := R12.5)
+     add     R4,R0,R0       ; R4 := 0
+     copybi  R4,R0,6,5      ; R4 := 0040 (R4.6 := inv R0.5)
+   lea     R3,$ffff[R0]  ; R3 := ffff
+   clearb  R3,2          ; R3 := fffb  (R3.2 := 0)
+   add     R4,R0,R0      ; R4 := 0000
+   setb    R4,6          ; R4 := 0040  (R4.6 := 1)
+
+  lea   R3,$f0f0[R0]   ; R3 := f0f0
+  invw  R3             ; R3 := 0f0f
+
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     andw  R1,R2          ; R1 := 00f0
+
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     orw   R1,R2          ; R1 := f0ff
+     xorw  R1,R2          ; R1 := f000
+
+   lea     R1,$00f0[R0]   ; R1 := 00ff
+   invb    R1,5           ; R1 := 00df
+
+   lea     R1,$00ff[R0]   ; R1 := 00ff
+   lea     R2,$00f0[R0]   ; R2 := 00f0
+   andb  R1,R2,3,9        ; R1 := 00f7
+;       (R1.3 := R1.3 and R2.9 = 1 and 0 = 0)
+   orb  R1,R2,11,5        ; R1 := 08f7
+;       (R1.11 := R1.11 or R2.5 = 0 or 1 = 1)
+   xorb  R1,R2,4,6        ; R1 := 08e7
+;       (R1.4 := R1.4 xor R2.6 = 1 xor 1 = 0)
+
+   lea    R2,$0f00[R0]   ; R2.9 := 1
+   lea    R7,$2000[R0]   ; R7.13 := 1
+   logicb R2,R7,9,13,xor ; R2 := 0d00 (R2.9 := R2.9 xor R7.13 = 0)
+
+   lea     R3,$ffff[R0]  ; R3 := ffff
+   clearb  R3,2          ; R3 := fffb  (R3.2 := 0)
+
+   lea     R3,$ffff[R0]  ; R3 := ffff
+   clearb  R3,2          ; R3 := fffb  (R3.2 := 0)
+   add     R4,R0,R0      ; R4 := 0000
+   setb    R4,6          ; R4 := 0040  (R4.6 := 1)
+
 
 ;---------------------------------------------------------------------
 ; logicf - bitwise logic on fields
@@ -279,9 +326,7 @@ xnor equ     9
 
 ; invb R1 = 12
       add     R3,R0,R0
-      invb    R3,R1,0         ; inv R1  .0 = 00ff = 8000
-      add     R4,R0,R0
-;      invb    R4,R1,15        ; inv R1 .15 = 00ff = 0000
+      invb    R3,0         ; R3 := 0001
 
 ; andb = 1
       add     R3,R0,R0

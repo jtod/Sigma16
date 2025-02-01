@@ -158,6 +158,8 @@ import { fileURLToPath } from 'url';
 // Configuration
 //-----------------------------------------------------------------------
 
+console.log ("sigserver.mjs is running")
+
 // On the local server, the environment variables are set in .bashrc.
 // On Heroku, they are set using heroku config
 
@@ -328,11 +330,12 @@ function finishCss (req, res, loc) {
 // start page
 
 //  2024-08-01.  Move Sigma16.html from Sigma16 to Sigma16/src
+// 2025-01-26 move it back, for compatibility with older versions
 app.get('/sigma16/build/:version/Sigma16/Sigma16.html', (req, res) => {
     const raw_v = req.params.version
     const v = substituteVersion (raw_v)
-    //    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
-    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', "src", 'Sigma16.html')
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
+// const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', "src", 'Sigma16.html')
     console.log (`launching ${raw_v}->${v} at location ${loc}`)
     finish (req, res, loc)
 })

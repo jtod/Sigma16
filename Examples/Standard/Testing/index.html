@@ -20,10 +20,7 @@ ul { line-height: 1em; }
  Checking that assembler generates correct error messages
 </li>
 <li> <a href="./BitField.asm.txt">BitField.asm.txt</a>  Test instructions that operate on bit fields.
- Examples of extract and extracti.
-</li>
-<li> <a href="./BitManipulation.asm.txt">BitManipulation.asm.txt</a>  Demonstrate calculations with bits.
- Programming techniques extract, logic, and related instructions.
+ Instructions: extract
 </li>
 <li> <a href="./Branch.asm.txt">Branch.asm.txt</a>  Test the pc relative branch instructions.
  The numbers in comments indicate expected order of execution.
@@ -31,22 +28,25 @@ ul { line-height: 1em; }
 <li> <a href="./Ctl.asm.txt">Ctl.asm.txt</a>  test system control registers and instructions.
  Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 </li>
+<li> <a href="./Dispatch.asm.txt">Dispatch.asm.txt</a>  Test activation record operations
+ Instruction: dispatch
+</li>
 <li> <a href="./Jump.asm.txt">Jump.asm.txt</a>  test conditional and unconditional transfer of control
  Sigma16  https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
 </li>
 <li> <a href="./LinkTestA/index.html">LinkTestA</a></li>
 <li> <a href="./LinkTestB/index.html">LinkTestB</a></li>
-<li> <a href="./Logic.asm.txt">Logic.asm.txt</a>  Test the logic instructions and pseudoinstructions.
- Instructions logicw, logicr, logicb, and pseudoinstructions.
+<li> <a href="./Logic.asm.txt">Logic.asm.txt</a>  Test logic operations
+ Instructions logicw, logicb, and their pseudoinstructions
 </li>
 <li> <a href="./Relocatable.asm.txt">Relocatable.asm.txt</a>  Test assembly of relocatable and nonrelocatable addresses.
  Contains some names that are relocatable, others that are fixed.
 </li>
-<li> <a href="./SaveRestore.asm.txt">SaveRestore.asm.txt</a>  Test save and restore instructions.
- These instructions simplify procedure call and return.
+<li> <a href="./SaveRestore.asm.txt">SaveRestore.asm.txt</a>  Test activation record stack
+ Instructions save, restore
 </li>
 <li> <a href="./Shift.asm.txt">Shift.asm.txt</a>  Test the shift instructions.
- Expected results are given in comments.
+ Instructions shiftl, shiftr
 </li>
 <li> <a href="./Stack.asm.txt">Stack.asm.txt</a>  Test the stack instructions: push, pop, top.
  Put test data in registers, then perform stack operations.

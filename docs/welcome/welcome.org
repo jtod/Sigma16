@@ -1,6 +1,6 @@
 #+INCLUDE: ../VersionMacro.org
 
-# Copyright (C) 2024 John T. O'Donnell
+# Copyright (C) 2025 John T. O'Donnell
 # This file is part of Sigma16.  https://jtod.github.io/home/Sigma16
 # License: GNU GPL Version 3
 
@@ -23,9 +23,9 @@
 #+INCLUDE: "../../VERSION.txt" export html
 
 #+BEGIN_majornote
-Sigma16 Version 3.8 runs on up-to-date versions of the following
-browsers: Chrome, Edge, Opera, DuckDuckGo.  It does not work on Safari
-or Firefox.
+Sigma16 Version 3.9 runs on up-to-date versions of browsers based on
+Chromium, including Opera, Chrome, Edge, DuckDuckGo.  It does not work
+on Safari or Firefox.
 #+END_majornote
 
 Sigma16 is a computer architecture designed for research and teaching

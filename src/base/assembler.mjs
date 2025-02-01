@@ -1165,6 +1165,7 @@ function asmPass2 (ma) {
                   && !op.pseudo) {
             // EXP-RK dispatch  brfz brbz brfnz brbnz -- brz brnz
             com.mode.devlog (`Pass2 EXP/RK not pseudo`)
+//            console.log (`Pass2 EXP/RK not pseudo`)
             requireNoperands (ma, s, 2)
             const d = requireReg (ma, s, s.operands[0])
             const efgh = s.operands[1]
@@ -1173,7 +1174,7 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1)
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
-        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRK
+        } else if (op.ifmt==arch.iEXP && op.afmt==arch.aRk
                   && op.pseudo) {
             // EXP/Rk-pseudo invb setb clearb ??????
             com.mode.devlog (`Pass2 EXP/Rk`)

@@ -1,5 +1,5 @@
 # Sigma16: makefile
-# Copyright (c) 2024 John T. O'Donnell.  License: GNU GPL Version 3
+# Copyright (c) 2025 John T. O'Donnell.  License: GNU GPL Version 3
 # See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
 # This file is part of Sigma16.  Sigma16 is free software: you can
@@ -15,9 +15,9 @@
 # 2024-08-01 moved makefile from Sigma16 to Sigma16/src.  This
 # requires changes to paths but simplifies the top directory.
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # How to build, install, and run
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # Show dev tools in browser: ctl-shift-j
 
@@ -28,7 +28,8 @@
 #    - git commit -m 'what is new here'
 #    - git push
 #    - git tag -a v3.6.3 -m 'v3.6.3'
-#    - git push --tags
+#    - git push --tags   (not recommended)
+#    - git push origin tag v3.8.1
 # 2. Start new version, e.g. 3.6.4
 #    - edit .bashrc: export S16_DEV_VERSION=3.6.4
 #    - edit src/package.json, update "version": "3.6.4"
@@ -86,9 +87,9 @@
 #    - git commit -m 'v3.7.0'
 #    - git push heroku main
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Environment variables
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # S16_LOCAL_BUILD_DIR is the path to a directory that contains the
 # source, which is xxx/build/dev/Sigma16.  The Sigma16 source is
@@ -104,9 +105,9 @@
 # particular version will have a path
 # ${S16_SERVER_SRC_BUILD_DIR}/sigma16/build/VERSION/Sigma16
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Resources on the Internet
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # You can run Sigma16 online, without downloading or installing
 # anything: visit the Sigma16 home page and click the link:
@@ -124,9 +125,9 @@
 #    https://github.com/jtod/Sigma16
 #    https://github.com/jtod/Hydra
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Usage
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # make SetVersion    update VERSION.txt, COPYRIGHT.txt, src/base/version.mjs
 # emacs org C-c C-e h h  build html from org source, 1st do make SetVersion
@@ -145,9 +146,9 @@
 # push, and then update the heroku environment variables.  See
 # above.
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Configuration
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # Environment variables defined on Heroko
 #  PAPERTRAIL_API_TOKEN
@@ -166,7 +167,7 @@
 # package.json file, on the line consisting of "version: : "1.2.3".
 # VERSION is used for building the top level index and the user guide.
 
-VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat src/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 # Define the date in several formats for inclusion in the app and user guide
 
@@ -206,17 +207,17 @@ ShowConfig:
 	@echo "  S16_HOMEPAGE_REPOSITORY = $(S16_HOMEPAGE_REPOSITORY)"
 	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Check style files are the same
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 CheckCss :
 	diff ../docs/Sigma.css \
 	  ../../../../../compsys/build/dev/compsys/src/style/Sigma.css
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # User Guide
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # ../docs/UserGuide/Sigma16UserGuide.pdf : ../docs/UserGuide/Sigma16UserGuide.tex \
 # 	  ../docs/UserGuide/Sigma16UserGuideText.tex
@@ -225,9 +226,9 @@ CheckCss :
 # 	makeindex ../docs/UserGuide/Sigma16UserGuide
 # 	cd ../docs/UserGuide ; pdflatex --shell-escape Sigma16UserGuide
 
-#-------------------------------------------------------------------------
+#--------------------------------------------------------------------
 # Ensure Sigma.sty and Sigma.css are latest version
-#-------------------------------------------------------------------------
+#--------------------------------------------------------------------
 
 CheckStyle :
 	ls -l ../docs/UserGuide/*.sty  ../docs/UserGuide/*.css
@@ -243,9 +244,9 @@ UpdateStyle : ../docs/UserGuide/Sigma.sty ../docs/UserGuide/Sigma.css
 	cp -u ../../../../csbook/compsys/Sigma.css ../docs/UserGuide
 
 
-#-------------------------------------------------------------------------
+#--------------------------------------------------------------------
 # User Guide
-#-------------------------------------------------------------------------
+#--------------------------------------------------------------------
 
 CheckGuide :
 	ls -lt \
@@ -277,9 +278,9 @@ CheckGuide :
 	cd ../docs/UserGuide ; lwarpmk html1
 	cd ../docs/UserGuide ; lwarpmk html1
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Copy editing
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # Copy draft documents for markup on iPad
 # ANNOTATED_DOCS=/cygdrive/c/Users/johnt/iCloudDrive/Sigma-editing-docs
@@ -321,9 +322,9 @@ copyListing:
 	     $(YEARMONTHDAYTIME)-Sigma16-listing.pdf ; \
 	  rm $(YEARMONTHDAYTIME)-Sigma16-listing.ps
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Preparing a release
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # make SetVersion
 
@@ -335,9 +336,9 @@ copyListing:
 # $ git tag -a v3.4.3 -m "version 3.4.3"
 # $ git push --tags
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # make SetVersion -- find version and define Version files
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # make SetVersion --- The version number is defined in
 # src/gui/package.json; this makefile finds the number there and
@@ -350,22 +351,22 @@ copyListing:
 
 .PHONY: SetVersion
 SetVersion:
-	echo "export const s16version = \"$(VERSION)\";" > base/version.mjs
-	echo "Version $(VERSION), $(MONTHYEAR)" > ../VERSION.txt
-	echo "Copyright (c) $(YEAR) John T. O'Donnell" > ../COPYRIGHT.txt
-	echo "#+MACRO: S16version Version $(VERSION), $(MONTHYEAR)" > ../docs/VersionMacro.org
+	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
+	echo "Version $(VERSION), $(MONTHYEAR)" > VERSION.txt
+	echo "Copyright (c) $(YEAR) John T. O'Donnell" > COPYRIGHT.txt
+	echo "#+MACRO: S16version Version $(VERSION), $(MONTHYEAR)" > docs/VersionMacro.org
 
-#--------------------------------------------------------------------------
-# make assembe
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
+# make assemble
+#---------------------------------------------------------------------
 
 .PHONY: assemble
 assemble:
 	wat2wasm src/base/emcore.wat -o src/base/emcore.wasm
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # make compile -- compile in src directory
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 .PHONY: compile
 compile:
@@ -373,9 +374,9 @@ compile:
 	make SetVersion
 	make assemble
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # make build -- compile and install into local server repository
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 checkInstallDir:
 	@echo S16_INSTALL_VERSION_DIR = $(S16_INSTALL_VERSION_DIR)
@@ -402,6 +403,8 @@ copyInstall:
 	cp -u *.html $(S16_INSTALL_DIR)
 	cp -u *.txt  $(S16_INSTALL_DIR)
 
+	mkdir -p -m700 $(S16_INSTALL_DIR)/src
+
 	mkdir -p -m700 $(S16_INSTALL_DIR)/src/gui
 	cp -u src/gui/*.mjs $(S16_INSTALL_DIR)/src/gui
 	cp -u src/gui/*.css $(S16_INSTALL_DIR)/src/gui
@@ -409,11 +412,16 @@ copyInstall:
 	mkdir -p -m700 $(S16_INSTALL_DIR)/src/base
 	cp -u src/base/*.mjs $(S16_INSTALL_DIR)/src/base
 
+	mkdir -p -m700 $(S16_INSTALL_DIR)/src/graphics
+	cp -u src/graphics/favicon.ico $(S16_INSTALL_DIR)/src/graphics
+
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs
 	chmod u+rwx $(S16_INSTALL_DIR)/docs
+	cp docs/*.css $(S16_INSTALL_DIR)/docs
 # 	cp -u docs/*.css $(S16_INSTALL_DIR)/docs
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/welcome
 	cp -u docs/welcome/*.html $(S16_INSTALL_DIR)/docs/welcome
+	cp -u docs/welcome/*.css $(S16_INSTALL_DIR)/docs/welcome
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/help
 	cp -u docs/help/*.html $(S16_INSTALL_DIR)/docs/help
 	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/UserGuide
@@ -423,9 +431,9 @@ copyInstall:
 	mkdir -p -m700 $(S16_INSTALL_DIR)/examples
 	cp -ur examples/* $(S16_INSTALL_DIR)/examples
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Install server
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # Copy server to Heroku github source directory.  Using quotes around
 # $(SIGSERVER_REPOSITORY) in case it contains spaces
@@ -435,9 +443,9 @@ installServer:
 	cp -u src/server/runserver.mjs $(SIGSERVER_REPOSITORY)/src/server
 	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Install home page
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 # Copy the home page index and style from dev source to the Sigma16
 # home page repository.  From there it can be pushed to github.
@@ -449,9 +457,9 @@ installHomepage :
 	cp -u ../docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u ../docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Assemble examples
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 AssembleExamples :
 	bash tools/asmAll.bash
@@ -459,9 +467,9 @@ AssembleExamples :
 ListExamples :
 	find ../Examples \( -name '*.asm.txt' \) -exec echo {} \;
 
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 # Clean up files
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 clean :
 	find ../ \( -name '*~' \
