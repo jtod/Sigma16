@@ -193,6 +193,9 @@
 # Text of the document
 # --------------------------------------------------------------------
 
+- To run: [[https://jtod.github.io/home/Sigma16]]
+- Source code: [[https://github.com/jtod/Sigma16]]
+
 * Introduction
 
 Sigma16 is a computer architecture designed for research and teaching
