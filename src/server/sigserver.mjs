@@ -81,7 +81,7 @@
 
 // Index page with general information
 //    xxx/
-
+ 
 // Return version number of the latest release of Sigma16, where
 // i.j.k is the version number of the build making the request
 //   xxx/sigma16/status/latest/i.j.k     used in newer versions

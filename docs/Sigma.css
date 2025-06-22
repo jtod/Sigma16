@@ -14,7 +14,17 @@
     color: green;
 */
 
-/* Hide the validate link at end of document; it doesn't work */
+/* postamble */
+div#postamble {
+    color: blue;
+}
+
+div#postamble p {
+    margin: 0em;
+    padding: 0em;
+}
+
+/* Hide the validate link in postamble */
 p.validation a {
     display: none;
 }
@@ -253,24 +263,33 @@ div #table-of-contents {
     display: none;
 }  */
 /* Document title at top */
-h1 {
+
+div.vspace {
+    margin-top: 0.8em;
+}
+
+div.title, h1 {
     font-family:  Verdana, sans-serif;
     font-size: 22pt;
     font-weight: normal;
     font-style: normal;
+    text-align: center;
     color: #0000ff;
+/*    
     border: solid;
     border-width: thin;
     border-color: red;
+*/
     padding-top: 0.3em;
     padding-bottom: 0.3em;
 }
 
-div.author, div.titledate {
+div.author, div.date, div.titledate {
     font-family:  Verdana, sans-serif;
     font-size: 14pt;
     font-weight: normal;
     font-style: normal;
+    text-align: center;
     color: #0000ff;
     padding-top: 0em;
     padding-bottom: 0em;
