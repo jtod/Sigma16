@@ -264,6 +264,10 @@ div #table-of-contents {
 }  */
 /* Document title at top */
 
+div.vspaceSmall {
+    margin-top: 0.3em;
+}
+
 div.vspace {
     margin-top: 0.8em;
 }

@@ -146,7 +146,7 @@
 
 # org makeindex appears to work only if there is only one org
 # source file
-#+OPTIONS: makeindex
+# #+OPTIONS: makeindex
 
 # Is this needed?  Probably not since code is enclosed in
 # BEGIN_EXAMPLE Preserve line breaks #+OPTIONS: \n
@@ -161,16 +161,16 @@
 #+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
 
 #+LATEX_HEADER: \usepackage{../Sigma}
-#+LATEX_HEADER: \usepackage{enumitem}
-#+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
+# #+LATEX_HEADER: \usepackage{enumitem}
+# #+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
 # 12pt text and 3.5cm margins give about 72 characters per line
-#+LATEX_HEADER: \usepackage{hyperref}
+# #+LATEX_HEADER: \usepackage{hyperref}
 
 # #+LATEX_HEADER: \usepackage{biblatex}
 # #+LATEX_HEADER: \addbibresource{Sigma16UserGuide.bib}
 
-#+LATEX_HEADER: \usepackage{makeidx}
-#+LATEX_HEADER: \makeindex
+# #+LATEX_HEADER: \usepackage{makeidx}
+# #+LATEX_HEADER: \makeindex
 
 # #+LATEX_HEADER: \usepackage{svg}
 # #+LATEX_HEADER: \svgpath{{figures/svg/}}
@@ -181,11 +181,12 @@
 
 #+BEGIN_EXPORT latex
 \begin{center}
-Run in browser: \url{https://jtod.github.io/home/Sigma16}\\
-Source code: \url{https://github.com/jtod/Sigma16}
+\url{https://jtod.github.io/home/Sigma16}
 \end{center}
 \tableofcontents
 #+END_EXPORT
+
+# Source code: \url{https://github.com/jtod/Sigma16}
 
 # Obsolete...  .emacs.d/init.el configures
 # org-export-filter-options-functions to set different
@@ -203,7 +204,7 @@ Source code: \url{https://github.com/jtod/Sigma16}
 # html configuration
 # -------------------------------------------------------------
 
-#+HTML_HEAD: <link rel="stylesheet" href="Sigma.css"/>
+#+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css"/>
 #+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico"/>
 
 #+HTML_HEAD_EXTRA: <style type="text/css"> td { padding: 4px 5px 4px 5px } </style>
@@ -234,6 +235,7 @@ It includes an editor, assembler, linker, emulator, a
 collection of examples, a user guide with tutorials, and an
 integrated development environment (IDE) with a graphical
 user interface.
+
 
 ** Running Sigma16
 
@@ -3406,27 +3408,27 @@ logic gates, and the specific way it is represented as a word
 of bits is important.
 
 An instruction specifies several pieces of information.  For
-example, add R1,R2,R3 is an instruction that says four
-things: it's an addition, the operands come from R2 and R3,
-and the result goes into R1.  Therefore to represent an
-instruction we need to organize a word as a collection of
-several *fields*.  A field is a portion of a word that
-contains a small number (for example, a register
-number). Each field gives one specific piece of information
-about the instruction.
+example, the instruction =add R1,R2,R3= says four things:
+it's an addition, the operands come from R2 and R3, and the
+result goes into R1.  Therefore to represent an instruction
+we need to organize a word as a collection of several
+*fields*.  A field is a portion of a word that contains a
+small number (for example, a register number). Each field
+gives one specific piece of information about the
+instruction.
 
 The particular scheme for describing an instruction as a
 collection of fields is called an *instruction format*.  Like
 most computers, Sigma16 has a small number of instruction
-formats and a larger number of instructions.  The key to
-understanding the interface between machine language and
-digital circuit design is to master the instruction formats.
+formats and a larger number of instructions.  Instruction
+representation is key to both system software (compilers
+generate instructions) and computer hardware (a processor is
+a digital circuit that decodes and executes instructions).
 
 The core architecture (the simplest part of the system) uses
-just two instruction formats: the *RRR format* for
-instructions that perform calculations in the registers, and
-the *RX format* for instructions that refer to a memory
-location.
+two instruction formats: the *RRR format* for instructions
+that perform calculations in the registers, and the *RX
+format* for instructions that refer to a memory location.
 
 The advanced parts of the architecture provide additional
 instructions, most of which are represented with the *EXP
@@ -3434,6 +3436,12 @@ format*. The name EXP stands simultaneously for *expansion*
 (because it provides for many additional instructions) and
 *experimental* (because it allows for experimentation with
 the design and implementation of new instructions).
+
+Each instruction format has a fixed size, which is the number
+of words used to represent any instruction of that format:
+- RRR instructions are one word
+- RX instructions are two words
+- EXP instructions are two words
 
 The first word of every instruction (for all instruction
 formats) contains the following fields:
@@ -3449,80 +3457,28 @@ formats) contains the following fields:
 | 15-12 | 11-8 | 7-4 | 3-0 |
 +-------+------+-----+-----+
 
-If an instruction is RX or EXP format, it has a second word
-that contains four 4-bit fields.  The meanings of the fields
-depend on the particular instruction.
 
-- e  (bits 15-12) 4-bit operand
-- f  (bits 11-8)  4-bit operand
-- g  (bits 7-4)   4-bit operand
-- h  (bits 3-0)   4-bit operand
-  
-+------+
-| disp |
-+------+
-| 15-0 |
-+------+
+The format of every instruction is determined by the op
+field.  Since this field contains 4 bits, it can specify 16
+values:
 
-+-------+------+-----+-----+
-|     e |    f |   g |   h |
-+-------+------+-----+-----+
-| 15-12 | 11-8 | 7-4 | 3-0 |
-+-------+------+-----+-----+
-  
-The first word of every instruction has a 4-bit field called
-the operation code.  This is usually abbreviated to opcode
-(or just op).  Since the opcode contains 4 bits, it can
-specify 16 values:
-
-- If the opcode is between 0 and 12 (hex 0 to hex c), the
-  instruction is RRR format, and there are 14 RRR
+- $RRR.$ If the op field is between 0 and 12 (hex 0 to hex
+  c), the instruction is RRR format, and there are 13 RRR
   instructions.
-- An opcode value of 13 is reserved for future expansion of
-  the architecture.
-- If the op field is 14 (hex e) the instruction is EXP format
-  and has a secondary opcode in the a and b fields.
-- If the op field contains 15 (hex f) the instruction is RX
-  format with a secondary opcode in the b field.
-  
-The details of each format and its fields are given below,
-and the following table gives an overview.
-- Each instruction format has a fixed size, which is the
-  number of words used to represent any instruction of that
-  format.
-- These words are subdivided into 4-bit fields, each with a
-  unique name: op, d, a, b, etc.
-- The type of instruction is specified by the opcode, which
-  is the op field for RRR instructions, and which consists of
-  several fields for the other formats.
-- The instruction operands are specified by further fields.
-- Some instructions combine two 4-bit fields into a single
-  8-bit field.
-  - The a and b fields may be combined to form an 8-bit field
-    called ab (only for the EXP format)
-  - The g and h fields may be combined to form an 8-bit field
-    called gh
 
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-| Format | Size | Opcode | Operands  | Example           |
-|--------+------+--------+-----------+-------------------|
-| RRR    |    1 | op     | d,a,b     | add Rd,Ra,Rb      |
-| RX     |    2 | op,b   | d,a,disp  | load Rd,disp[Ra]  |
-| EXP    |    2 | op,ab  | d,e,f,g,h | save Rd,Re,gh[Rf] |
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
+- *Reserved.* An op field value of 13 is reserved for future
+  expansion of the architecture.
 
-There are three machine instruction formats: RRR, RX, EXP.
-However, there is a larger set of assembly language statement
-formats, because there are special syntaxes for some
-instructions, and there are assembler directives that aren't
-instructions at all.  Thus there are two kinds of format: the
-machine instruction formats, and the assembly language
-instruction statement formats.  The assembly language formats
-are described later.
+- *EXP.* If the op field is 14 (hex e) the instruction is EXP
+  format and has a secondary opcode in the a and b fields.
+
+- *RX.* If the op field contains 15 (hex f) the instruction
+  is RX format with a secondary opcode in the b field.
+ 
+Since an RRR instruction is one word, it contains just the
+op, d, a, b fields.  If an instruction is RX or EXP format,
+it has a second word whose format is described below in the
+sections on RX and EXP.
 
 *** RRR format
 
@@ -3570,45 +3526,54 @@ instruction is 04d2.
 
 *** RX format
 
+
 The RX format is used for instructions that use a memory
-location.  There are generally two operands: one is a
-register and the other is a word in memory.
+location.  There are two operands: one is a register and the
+other is the address of a word in memory.  Typical RX
+instructions are loads, stores, and jumps.  For example, a
+load has an address operand and a destination register
+operand; it loads the word in memory at the specified address
+into the destination register.
 
-RX instructions specify a memory location as well as a
-register operand.  The machine language representation is two
-words:
+A memory address is just a natural number.  However, the
+second operand of an RX instruction, a memory address, is
+specified by two pieces: an index register and a
+natural number called the displacement.
 
-Here is RX
-# {{{svgfig(RRRformat)}}}
-
-The RX instruction format is used for instructions that use a
-memory address, which is specified by an index register and a
-displacement.  The name of the format describes briefly the
-two operands: a register (R) and an indexed memory address
+The name of the format describes briefly these
+two pieces: a register (R) and an indexed memory address
 (X).
 
-An RX instruction contains two operands: one is a memory
-address, and the other is a register.  Typical RX
-instructions are loads, stores, and jumps.  The instruction
-consists of two consecutive words.  The first has the same
-format as an RRR instruction, with four fields: op, d, sa,
-sb.  The second word is a single 16-bit binary number, and is
-called the displacement.
+The instruction consists of two consecutive words.  The first
+has the same format as an RRR instruction, with four fields:
+op, d, sa, sb.  The second word is a single 16-bit binary
+number, and is called the displacement.
 
-An RX instruction is represented by two words, with the
-following fields: op=15, b contains the secondary opcode
-which specifies which RX instruction it is, d is the
-destination, a is the index register, and the second word is
-a 16 bit constant called the displacement (often written disp
-for short).
+An RX instruction is represented by two words.
+The first word has the same fields as an RRR instruction:
 
-- op field (bits 0-3 of ir) is f for all RX instructions
-- d field (bits 4-7 of ir) has several uses
-- a field (bits 8-11 of ir) is index register for effective
-  address
-- b field (bits 12-15 of ir) is secondary opcode
+- The op field (bits 15-12) is 15 (hex f).  This indicates
+  that the instruction has format
+- The d field (bits 11-8) is the first operand, the
+  destination register.
+- The a field (bits 7-4) is called the index register, and is
+  part of the specification of the effective address.
+- The b field (bits 3-0) is the secondary opcode.
+
+The second word contains one field, the 16 bit displacement.
+
 - disp (displacement) is the second word of the instruction
-- ea (effective address) = displacement + r[a]
+
++------+
+| disp |
++------+
+| 15-0 |
++------+
+
+ea (effective address) = displacement + r[a]
+
+
+
 
 The memory address is specified in two parts: an index
 register and the displacement.  The index register is
@@ -3718,6 +3683,42 @@ depending on the instruction.
 |---+---+---+---|
 | e | f | g | h |
 |---+---+---+---|
+
+
+- e  (bits 15-12) 4-bit operand
+- f  (bits 11-8)  4-bit operand
+- g  (bits 7-4)   4-bit operand
+- h  (bits 3-0)   4-bit operand
+  
+
++-------+------+-----+-----+
+|     e |    f |   g |   h |
++-------+------+-----+-----+
+| 15-12 | 11-8 | 7-4 | 3-0 |
++-------+------+-----+-----+
+
+*** Summary of instruction formats
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+| Format | Size | Opcode | Operands  | Example           |
+|--------+------+--------+-----------+-------------------|
+| RRR    |    1 | op     | d,a,b     | add Rd,Ra,Rb      |
+| RX     |    2 | op,b   | d,a,disp  | load Rd,disp[Ra]  |
+| EXP    |    2 | op,ab  | d,e,f,g,h | save Rd,Re,gh[Rf] |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+Although there are three machine language instruction formats
+(RRR, RX, EXP), there is a larger set of assembly language
+statement formats, because there are special syntaxes for
+some instructions, and there are assembler directives that
+aren't instructions at all.  Thus there are two kinds of
+format: the machine instruction formats, and the assembly
+language instruction statement formats.  The assembly
+language formats are described later.
 
 *** Notation for machine language
 
@@ -5800,11 +5801,164 @@ Instructions and pseudoinstructions in each format:
 <div style="overflow-x: auto">
 #+END_EXPORT
 
++----------------------+------+------+-----------------------------+
+| Assembly             | Op   | Code | Effect                      |
++----------------------+------+------+-----------------------------+
+| logicf Rd,Re,f,g,h   | e,00 | Ed00 | Rd.f:g := h#(Rd.f:g,Re.f:g) |
++----------------------+------+------+-----------------------------+
+|                      |      | efgh |                             |
++----------------------+------+------+-----------------------------+
+| logicb Rd,Re,f,g,h   | e,01 | Ed01 | Rd.f := h(Rd.f,Re.g)        |
++----------------------+------+------+-----------------------------+
+|                      |      | efgh |                             |
++----------------------+------+------+-----------------------------+
+| shiftl Rd,Re,h       | e,03 |      | Rd := Re shl h              |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| shiftr Rd,Re,h       | e,04 |      | Rd := Re shr h              |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| extract Rd,Re,f,g,h  | e,05 |      | Rd.f~g :=                   |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| push Rd,Re,Rf        | e,07 |      | M[ea] := Rd, Rb++           |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| pop Rd,Re,Rf         | e,08 |      | Rb--, Rd := M[ea]           |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| top Rd,Re,Rf         | e,09 |      | Rb--, Rd := M[ea]           |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| save Rd,Re,gh[Rf]    | e,0a |      | M[Rf+gh] := Rd              |
++----------------------+------+------+-----------------------------+
+|                      |      |      | M[Rf+gh+1] := Rd+1          |
++----------------------+------+------+-----------------------------+
+|                      |      |      | ...                         |
++----------------------+------+------+-----------------------------+
+|                      |      |      | M[Rf+gh+e-d] := Re          |
++----------------------+------+------+-----------------------------+
+| restore Rd,Re,gh[Rf] | e,0b |      | Rd := M[Rf+gh]              |
++----------------------+------+------+-----------------------------+
+|                      |      |      | Rd+1 := M[Rf+gh+1]          |
++----------------------+------+------+-----------------------------+
+|                      |      |      | ...                         |
++----------------------+------+------+-----------------------------+
+|                      |      |      | Re := M[Rf+gh+e-d]          |
++----------------------+------+------+-----------------------------+
+| brc0 Rd,e,fgh        | e,0c | Ed0C | if R[d].e=0                 |
++----------------------+------+------+-----------------------------+
+|                      |      | efgh | then pc:=pc+fgh             |
++----------------------+------+------+-----------------------------+
+| brc1 Rd,e,fgh        | e,0d | Ed0D | if R[d].e=1                 |
++----------------------+------+------+-----------------------------+
+|                      | e,0d | efgh | then pc:=pc+fgh             |
++----------------------+------+------+-----------------------------+
+| brz Rd,efgh          | e,0e | Ed0E | if R[d]=0000                |
++----------------------+------+------+-----------------------------+
+|                      |      | efgh | then pc:=pc+efgh            |
++----------------------+------+------+-----------------------------+
+| brnz Rd,efgh         | e,0f | Ed0F | if R[d]!=0000               |
++----------------------+------+------+-----------------------------+
+|                      |      | efgh | then pc:=pc+efgh            |
++----------------------+------+------+-----------------------------+
+| dispatch Rd,efgh     | e,10 | Ed10 | pc := M[pc+min(Rd,efgh)]]   |
++----------------------+------+------+-----------------------------+
+|                      |      | efgh |                             |
++----------------------+------+------+-----------------------------+
+| getctl Rd,c          | e,11 |      | Rd := Sc privileged         |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| putctl Rd,c          | e,12 |      | Sc := Rd privileged         |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| resume               | e,13 |      | pc := ipc, (privileged)     |
++----------------------+------+------+-----------------------------+
+|                      |      |      | status := istatus           |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+| timon Rd,efgh        | e,14 |      | timer := efgh,              |
++----------------------+------+------+-----------------------------+
+|                      |      |      | start timer                 |
++----------------------+------+------+-----------------------------+
+| timoff Rd,efgh       | e,15 |      | stop timer                  |
++----------------------+------+------+-----------------------------+
+|                      |      |      |                             |
++----------------------+------+------+-----------------------------+
+|                      | e,16 |      | reserved: nop               |
++----------------------+------+------+-----------------------------+
+|                      | ...  | ...  | ...                         |
++----------------------+------+------+-----------------------------+
+|                      | e,ff |      | reserved: nop               |
++----------------------+------+------+-----------------------------+
+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+** Sigma32  EXP
+
+101
+|   |   |   |   |   |
+|---+---+---+---+---|
+|   |   |   |   |   |
+
++----------------------+------+--------+------------+-----------------------------+
+| Assembly             | Op   | Format | Code       | Effect                      |
++----------------------+------+--------+------------+-----------------------------+
+| addl Rd,Re,Rf        | e,16 | EXP    | Ed16; ef00 | Rd := Re+rf                 |
++----------------------+------+--------+------------+-----------------------------+
+| subl Rd,Re,Rf        | e,17 | EXP    | Ed17; ef00 | Rd := Re+rf                 |
++----------------------+------+--------+------------+-----------------------------+
+| mull Rd,Ra,Rb        | e,16 | EXP    | Ed16       | Rd := Re+rf                 |
++----------------------+------+--------+------------+-----------------------------+
+| divl Rd,Ra,Rb        | e,16 | EXP    | Ed16       | Rd := Re+rf                 |
++----------------------+------+--------+------------+-----------------------------+
+| cmpl Rd,Ra,Rb        | e,16 | EXP    | Ed16       | Rd := Re+rf                 |
++----------------------+------+--------+------------+-----------------------------+
+| leal Rd,disp[Ra]     | f,0  |        | $f d a $0  | R[d] := disp+R[a]           |
++----------------------+------+--------+------------+-----------------------------+
+| loadl Rd,disp[Ra]    | f,1  |        | $f d a $1  | R[d] := M[disp+R[a]]        |
++----------------------+------+--------+------------+-----------------------------+
+| storel Rd,disp[Ra]   | f,2  |        | $f d a $2  | M[disp+R[a]] := R[d]        |
++----------------------+------+--------+------------+-----------------------------+
+| logicfl Rd,Re,f,g,h  | e,00 | EXP    | Ed00       | Rd.f:g := h#(Rd.f:g,Re.f:g) |
++----------------------+------+--------+------------+-----------------------------+
+| logicbl Rd,Re,f,g,h  | e,01 | EXP    | Ed01       | Rd.f := h(Rd.f,Re.g)        |
++----------------------+------+--------+------------+-----------------------------+
+| shiftll Rd,Re,h      | e,03 | EXP    |            | Rd := Re shl h              |
++----------------------+------+--------+------------+-----------------------------+
+| shiftrl Rd,Re,h      | e,04 | EXP    |            | Rd := Re shr h              |
++----------------------+------+--------+------------+-----------------------------+
+| extractl Rd,Re,f,g,h | e,05 | EXP    |            | Rd.f~g :=                   |
++----------------------+------+--------+------------+-----------------------------+
+
+** Summary of pseudoinstructions
+
+Pseudoinstructions for comparisons
+
+- jumplt jump if <
+- jumple jump if <=
+- jumpeq jump if =
+- jumpne jump if !=
+- jumpge jump if >-
+- jumpgt jump if >
+
+
 +--------------------+----+------+-----+---------------------------+
 | Assembly           | Op |Format|Code |Effect                     |
 +--------------------+----+------+-----+---------------------------+
-|logicf Rd,Re,f,g,h  |e,00|EXP   |Ed00 |Rd.f:g := h#(Rd.f:g,Re.f:g)|
-|                    |    |RRkkk |efgh |                           |
+|invw Rd             |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
+|                    |    |R     |e0F1 |                           |
 +--------------------+----+------+-----+---------------------------+
 |invw Rd             |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
 |                    |    |R     |e0F1 |                           |
@@ -5830,9 +5984,6 @@ Instructions and pseudoinstructions in each format:
 |xorf Rd,Re,f,g      |    |pseudo|Ed01 |logicf Rd,Re,0,15,1        |
 |                    |    |RR    |e0F1 |                           |
 +--------------------+----+------+-----+---------------------------+
-|logicb Rd,Re,f,g,h  |e,01|EXP   |Ed01 |Rd.f := h(Rd.f,Re.g)       |
-|                    |    |RRkkk |efgh |                           |
-+--------------------+----+------+-----+---------------------------+
 |invb Rd,Re,f,g      |    |pseudo|Ed01 |logicb Rd,Re,f,g,1         |
 |                    |    |RRkk  |efg1 |                           |
 +--------------------+----+------+-----+---------------------------+
@@ -5845,87 +5996,8 @@ Instructions and pseudoinstructions in each format:
 |xorb Rd,Re,f,g      |    |pseudo|Ed01 |logicb Rd,Re,f,g,1         |
 |                    |    |RRkk  |efg1 |                           |
 +--------------------+----+------+-----+---------------------------+
-|shiftl Rd,Re,h      |e,03|EXP   |     |Rd := Re shl h             |
-|                    |    |RRk   |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|shiftr Rd,Re,h      |e,04|EXP   |     |Rd := Re shr h             |
-|                    |    |RRk   |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|extract Rd,Re,f,g,h |e,05|EXP   |     |Rd.f~g :=                  |
-|                    |    |RRkkk |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|push Rd,Re,Rf       |e,07|EXP   |     |M[ea] := Rd, Rb++          |
-|                    |    |RRR   |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|pop Rd,Re,Rf        |e,08|EXP   |     |Rb--, Rd := M[ea]          |
-|                    |    |RRR   |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|top Rd,Re,Rf        |e,09|EXP   |     |Rb--, Rd := M[ea]          |
-|                    |    |RRR   |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|save Rd,Re,gh[Rf]   |e,0a|EXP   |     |M[Rf+gh] := Rd             |
-|                    |    |RRkR  |     |M[Rf+gh+1] := Rd+1         |
-|                    |    |      |     | ...                       |
-|                    |    |      |     |M[Rf+gh+e-d] := Re         |
-+--------------------+----+------+-----+---------------------------+
-|restore Rd,Re,gh[Rf]|e,0b|EXP   |     |Rd := M[Rf+gh]             |
-|                    |    |RRkR  |     |Rd+1 := M[Rf+gh+1]         |
-|                    |    |      |     | ...                       |
-|                    |    |      |     |Re := M[Rf+gh+e-d]         |
-+--------------------+----+------+-----+---------------------------+
-|brc0 Rd,e,fgh       |e,0c|EXP   |Ed0C |if R[d].e=0                |
-|                    |    |Rkk   |efgh | then pc:=pc+fgh           |
-+--------------------+----+------+-----+---------------------------+
-|brc1 Rd,e,fgh       |e,0d|EXP   |Ed0D |if R[d].e=1                |
-|                    |e,0d|Rkk   |efgh | then pc:=pc+fgh           |
-+--------------------+----+------+-----+---------------------------+
-|brz Rd,efgh         |e,0e|EXP   |Ed0E |if R[d]=0000               |
-|                    |    |Rk    |efgh | then pc:=pc+efgh          |
-+--------------------+----+------+-----+---------------------------+
-|brnz Rd,efgh        |e,0f|EXP   |Ed0F |if R[d]!=0000              |
-|                    |    |Rk    |efgh | then pc:=pc+efgh          |
-+--------------------+----+------+-----+---------------------------+
-|dispatch Rd,efgh    |e,10|EXP   |Ed10 |pc := M[pc+min(Rd,efgh)]]  |
-|                    |    |Rk    |efgh |                           |
-+--------------------+----+------+-----+---------------------------+
-|getctl Rd,c         |e,11|EXP   |     |Rd := Sc privileged        |
-|                    |    |RC    |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|putctl Rd,c         |e,12|EXP   |     |Sc := Rd privileged        |
-|                    |    |RC    |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|resume              |e,13|EXP   |     |pc := ipc, (privileged)    |
-|                    |    |      |     | status := istatus         |
-|                    |    |      |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|timon Rd,efgh       |e,14|EXP   |     |timer := efgh,             |
-|                    |    |R     |     |start timer                |
-+--------------------+----+------+-----+---------------------------+
-|timoff Rd,efgh      |e,15|EXP   |     |stop timer                 |
-|                    |    |R     |     |                           |
-+--------------------+----+------+-----+---------------------------+
-|                    |e,16|      |     | reserved: nop             |
-+--------------------+----+------+-----+---------------------------+
-|                    |... |      | ... | ...                       |
-+--------------------+----+------+-----+---------------------------+
-|                    |e,ff|      |     | reserved: nop             |
-+--------------------+----+------+-----+---------------------------+
 
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-** Summary of pseudoinstructions
-
-Pseudoinstructions for comparisons
-
-- jumplt jump if <
-- jumple jump if <=
-- jumpeq jump if =
-- jumpne jump if !=
-- jumpge jump if >-
-- jumpgt jump if >
-
+  
 * Assembly language
 
 :PROPERTIES:
@@ -7686,8 +7758,8 @@ won't affect existing programs.
 
 # Index
 
-#+LATEX: \printindex
-#+INCLUDE: theindex.org
+# #+LATEX: \printindex
+# #+INCLUDE: theindex.org
 
 # The latex printindex gives page numbers for the indexed
 # keywords.  The index produced by org is well suited for
@@ -7706,8 +7778,25 @@ won't affect existing programs.
 #  #+MACRO: svgfigLaTeX \includesvg{$1}
 #  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
 
-* Development notes :noexport:
+110
 
+* Development notes                                                :noexport:
+
+** Figures
+
+Here is an svg figure RRRformat.  ok for html, gives latex
+error \includesvg undefined
+
+{{{svgfig(RRRformat)}}}
+
+** Configuration
+- setArch16()
+- setArch32()
+  
+** To do
+*** GUI
+*** Arch
+*** ISA
 ** Typesetting
 
 This example has no leading spaces:
@@ -7768,7 +7857,8 @@ the html output won't ignore the leading spaces:
 *** TestSet
 *** Timer
 
-** file deprecated.org
+** Deprecated
+*** file deprecated.org
 
 ------------------------------------------------------
 
@@ -7954,7 +8044,7 @@ Logic.asm.txt
   *Chrome*, *Edge*, *Opera*, and *DuckDuckGo*.  These
   browsers are based on the Chromium engine.
 
-** Deprecated text
+*** Deprecated text
 
 #+BEGIN_EXAMPLE
 ;     logicc R1,1,R2,3,and    ; R15=0000    0 and 0 = 0
@@ -7977,4 +8067,3 @@ Logic.asm.txt
 ; Effect:            Rd.f..g := Re.h..(h+g-f)
 ; EXP opcode:        e,15
 #+END_EXAMPLE
-

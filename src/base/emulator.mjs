@@ -17,6 +17,7 @@
 // emulator.mjs defines the machine language semantics
 //-------------------------------------------------------------------------
 
+import * as ct from '../gui/consoletest.mjs'
 import * as com from './common.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
@@ -313,6 +314,12 @@ export class genregister {
         let x = ab.readReg16 (this.es, this.regStIndex)
         return x
     }
+    get32 () {
+// ????? 32
+        this.es.copyable.regFetched.push (this.regNumber)
+        let x = ab.readReg16 (this.es, this.regStIndex)
+        return x
+    }
     display (xs) {
 //        let i = ab.EmRegBlockOffset + this.regStIndex
         //        this.es.shm[i] = xs
@@ -323,13 +330,22 @@ export class genregister {
         this.es.copyable.regStored.push (this.regNumber)
         ab.writeReg16 (this.es, this.regNumber, x)
         if (this.regIdx < 16) { // register file
-            instrEffect.push (["R", this.regNumber, x, this.regName]);
-        }
+            instrEffect.push
+              (["R", this.regNumber, x, this.regName]);
+        }}
+        put32 (x) {
+//        console.log (`register put ${this.regName} ${x}`)
+        this.es.copyable.regStored.push (this.regNumber)
+        ab.writeReg32 (this.es, this.regNumber, x)
+        if (this.regIdx < 16) { // register file
+            instrEffect.push
+              (["R", this.regNumber, x, this.regName]);
+        }}
 //        let i = ab.EmRegBlockOffset + this.regStIndex
 //        this.es.shm[i] = x
 //        com.mode.devlog (`--- reg put ${this.regName} :=`
 //                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
-    }
+
     highlight (key) {
 //        com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
         if (this.es.thread_host === com.ES_gui_thread) {
@@ -939,13 +955,35 @@ const cab_dca = (f) => (es) => {
     es.regfile[es.ir_a].put(tertiary)
 }
 
-// Traps with 000 <= code < 00ff are "magic" operations that are
-// handled directly by the emulator.  Their purpose is to make
-// programming easier for beginners.  In effect, they have a code
-// between 00 and fe.  Traps with 00ff <= code <= ffff are genuine
-// trap interrupts, and they trigger the full interrupt mechanism.
-// Their behavior is defined by the programmer.  Their purpose is to
-// enable you to write an interrupt driven operating system kernel.
+// arch32
+// exp Rd :=  restrict32 (Re + Rf)
+// op d a b
+// e f g h
+// op=14, Rd, $16
+// Re, Rf, 0, 0
+// add32 R2,R2,R2 -- e216 2200
+// setArch32(); test32.asm.txt
+
+const exp2_add32 = (es) => {
+    console.log ("exp2_add32 start")
+    let x = es.regfile[es.field_e].get32()
+    console.log (`exp2_add32 x = ${x}`)
+    let y = es.regfile[es.field_f].get32()
+    console.log (`exp2_add32 y = ${y}`)
+    let result = truncateWord32 (x+y) // restrict to 32 bits
+    console.log (`exp2_add32 result = ${result}`)
+    es.regfile[es.ir_d].put32(result)
+    console.log ("exp2_add32 end")
+}
+
+// Traps with 000 <= code < 00ff are "magic" operations that
+// are handled directly by the emulator.  Their purpose is to
+// make programming easier for beginners.  In effect, they
+// have a code between 00 and fe.  Traps with 00ff <= code <=
+// ffff are genuine trap interrupts, and they trigger the
+// full interrupt mechanism.  Their behavior is defined by
+// the programmer.  Their purpose is to enable you to write
+// an interrupt driven operating system kernel.
 
 const op_trap = (es) => {
 //  console.log (`%c*** op_trap es.thread_host=${es.thread_host}`, 'color: red')
@@ -1160,27 +1198,32 @@ const exp2_top  = (es) => {
 }
 
 
-// Use the opcode to dispatch to the corresponding instruction.  If
-// the opcode is 14/15 the instruction representation escapes to
-// EXP/RX format.  Otherwise the instruction is RRR.  There are
-// several patterns of register usage for RRR instructions; each
-// pattern has a pattern function (e.g. ab_dc) that is applied to a
-// specific instruction semantics function (e.g. arith.op_add).  There
-// is a naming convention for the pattern functions: the name consists
-// of the source registers, underscore, and the result registers.  The
-// normal pattern for RRR instructions is ab_dc, where the arguments
-// are in Ra and Rb, and the primary result goes into Rd with the
-// condition code set.  Several RRR instructions use the registers
-// differently, so they have different pattern functions.
+// Use the opcode to dispatch to the corresponding
+// instruction.  If the opcode is 14/15 the instruction
+// representation escapes to EXP/RX format.  Otherwise the
+// instruction is RRR.  There are several patterns of
+// register usage for RRR instructions; each pattern has a
+// pattern function (e.g. ab_dc) that is applied to a
+// specific instruction semantics function
+// (e.g. arith.op_add).  There is a naming convention for the
+// pattern functions: the name consists of the source
+// registers, underscore, and the result registers.  The
+// normal pattern for RRR instructions is ab_dc, where the
+// arguments are in Ra and Rb, and the primary result goes
+// into Rd with the condition code set.  Several RRR
+// instructions use the registers differently, so they have
+// different pattern functions.
 
-// There are two reasons for introducing the instruction pattern
-// functions. They abstract the common behaviors and allow the
-// specific instruction calculations to be separated out, and they
-// avoid fetching registers that will not be used in an instruction (a
-// circuit implementing the architecture would likely fetch all the
-// register operands, but for a student learning architecture, it
-// would be confusing for the register highlighting to indicate that a
-// register has been fetched if it isn't needed for the instruction).
+// There are two reasons for introducing the instruction
+// pattern functions. They abstract the common behaviors and
+// allow the specific instruction calculations to be
+// separated out, and they avoid fetching registers that will
+// not be used in an instruction (a circuit implementing the
+// architecture would likely fetch all the register operands,
+// but for a student learning architecture, it would be
+// confusing for the register highlighting to indicate that a
+// register has been fetched if it isn't needed for the
+// instruction).
 
 const dispatch_primary_opcode =
       [ cab_dc (arith.op_add),    // 0
@@ -1822,7 +1865,9 @@ const dispatch_EXP =
         exp2 (exp2_putctl),   // 12
         exp2 (exp2_resume),   // 13
         exp2 (exp2_timeron),  // 14
-        exp2 (exp2_timeroff)] // 15
+        exp2 (exp2_timeroff), // 15
+        exp2 (exp2_add32)     // 16
+      ]
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 

@@ -109,6 +109,12 @@ export function truncateWord (x) {
     return r;
 }
 
+export function truncateWord32 (x) {
+    const r = (x < 0) ? 0 : (x & 0xffffffff);
+//    com.mode.devlog (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
+    return r;
+}
+
 // Determine whether a JavaScript number is a valid Sigma16 integer
 // (which is represented using two's complement).  If not, print an
 // error message and treat the number as 0.
