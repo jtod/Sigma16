@@ -121,10 +121,18 @@ export const MemOffset16  = 2 * MemOffset32
 // The SCB contains mostly 32-bit elements, but the count of
 // instructions executed is 64 bits.
 
-export function read16 (es, a, k) { return arith.limit16 (es.vec16 [a + k]) }
-export function write16 (es, a, k, x) { es.vec16 [a+k] = arith.limit16(x) }
-export function read32 (es, a, k) { return arith.limit32 (es.vec32 [a + k]) }
-export function write32 (es, a, k, x) { es.vec32 [a+k] = arith.limit32(x) }
+export function read16 (es, a, k) {
+    return arith.limit16 (es.vec16 [a + k])
+}
+export function write16 (es, a, k, x) {
+    es.vec16 [a+k] = arith.limit16(x)
+}
+export function read32 (es, a, k) {
+    return arith.limit32 (es.vec32 [a + k])
+}
+export function write32 (es, a, k, x) {
+    es.vec32 [a+k] = arith.limit32(x)
+}
 export function read64  (es, a, k) { return es.vec64 [a + k] }
 export function write64 (es, a, k, x) { es.vec64 [a+k] = x }
 

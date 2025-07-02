@@ -2471,7 +2471,7 @@ function logShmStatus (es) {
 
 
 function mkMainEmulatorState () {
-    console.log ("mkMainEmulatorState")
+    console.log ("mkMainEmulatorState setting gst.es")
     gst.es = new em.EmulatorState (
         com.ES_gui_thread,
         () => initRun (gst),
@@ -2519,7 +2519,8 @@ function allocateStateVector () {
     es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
     es.emRunThread = gst.options.currentThreadSelection
     initializeMainEmulator ()   // Create emulator state
-    setArch16 ()
+    console.log ("allocate state vector, initialized main emulator, will set arch")
+//    setArch16 ()
     memDisplay (gst)
     procReset (gst)
 //    ab.testSysStateVec (es)  // keep this: important testing tool
@@ -3031,14 +3032,18 @@ function initializeTracing (gst) {
 
 function initializeSystem () {
     com.mode.devlog ('Initializing system')
-    gst = new GuiState ()  // Create gui state and set global variable
+    // Create gui state and set global variable
+    gst = new GuiState ()
+    console.log ("Created gst")
     setMDhba (gst)
     adjustInitialOptions ()
     initializeGuiElements (gst) // Initialize gui elements
     initializeGuiLayout (gst)   // Initialize gui layout
     initializeButtons (gst)
     refreshOptionsDisplay ()
+//    setArch16()
     findLatestRelease (gst)
+    console.log ("System is initialized")
 }
 
 //-----------------------------------------------------------------------------
@@ -3047,9 +3052,11 @@ function initializeSystem () {
 
 function setArch16 () {
     console.log ('Setting mode to S16')
+//    return // first call is too soon, before gst.es set
     const es = gst.es
+    console.log ("skipping es.addressMask 16")
     es.addressMask = arith.word16mask
-//    console.log (`addressMask (S16) = ${es.addressMask}`)
+    console.log (`addressMask (S16) = ${es.addressMask}`)
     setRegisterSize (16)
         highlightArchButton('Arch16button')
         unhighlightArchButton('Arch32button')
@@ -3062,8 +3069,9 @@ window.setArch16 = setArch16;
 function setArch32 () {
     console.log ('Setting mode to S32')
     const es = gst.es
-// es.addressMask = arith.word32mask // ??? es.addressMask???
-//    console.log (`addressMask (S32) = ${es.addressMask}`)
+    console.log ("skipping es.addressMask 32")
+    es.addressMask = arith.word32mask // ??? es.addressMask???
+    console.log (`addressMask (S32) = ${es.addressMask}`)
     setRegisterSize (32)
         highlightArchButton('Arch32button')
         unhighlightArchButton('Arch16button')
@@ -3303,5 +3311,6 @@ window.onload = function () {
     enableKeyboardShortcuts ()
     setModeUser ()
     setMDhba (gst)
+//    setArch16()
     console.log ('system is now running')
 }

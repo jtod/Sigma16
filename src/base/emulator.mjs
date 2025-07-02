@@ -142,6 +142,7 @@ export function showCopyable (x) {
 
 export class EmulatorState {
     constructor (thread_host, f, g, h) {
+        console.log (`new EmulatorState host=${thread_host}`)
         this.thread_host = thread_host // which thread runs this instance
         console.log (`%cCreating ES thread_host = ${this.thread_host}`,
                      'color:red')
@@ -334,7 +335,7 @@ export class genregister {
               (["R", this.regNumber, x, this.regName]);
         }}
         put32 (x) {
-//        console.log (`register put ${this.regName} ${x}`)
+        console.log (`register put32 ${this.regName} ${x}`)
         this.es.copyable.regStored.push (this.regNumber)
         ab.writeReg32 (this.es, this.regNumber, x)
         if (this.regIdx < 16) { // register file
@@ -970,7 +971,8 @@ const exp2_add32 = (es) => {
     console.log (`exp2_add32 x = ${x}`)
     let y = es.regfile[es.field_f].get32()
     console.log (`exp2_add32 y = ${y}`)
-    let result = truncateWord32 (x+y) // restrict to 32 bits
+  // let result = arith.truncateWord32 (x+y) // restrict to 32
+    let result =  (x+y) // restrict to 32 bits
     console.log (`exp2_add32 result = ${result}`)
     es.regfile[es.ir_d].put32(result)
     console.log ("exp2_add32 end")
