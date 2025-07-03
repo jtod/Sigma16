@@ -1,14 +1,13 @@
-// Sigma16: arrbuf.mjs
+// Sigma16: arrbuf.mjs: system state vector, shared array
 
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL
-// Version 3 See Sigma16/README, LICENSE, and
+// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL
+// Version 3.  See Sigma16/README, LICENSE, and
 // https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software:
 // you can redistribute it and/or modify it under the terms
 // of the GNU General Public License as published by the Free
-// Software Foundation, either version 3 of the License, or
-// (at your option) any later version.  Sigma16 is
+// Software Foundation, Version 3 of the License.  Sigma16 is
 // distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -17,9 +16,9 @@
 // License along with Sigma16.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-// arrbuf.mjs defines the system state vector, comprising
-// views at word sizes 16, 32, and 64 of the array buffer
-// (which may be shared if the platform supports this).
+// arrbuf.mjs defines the system state vector, an array
+// buffer with views at word sizes 16, 32, and 64 bits.  The
+// array buffer may be shared if the platform supports this.
 
 import * as com from './common.mjs'
 import * as arith from './arithmetic.mjs'
@@ -40,9 +39,9 @@ import * as arch from './architecture.mjs'
 
 // The system state vector is a flat array buffer, so it
 // requires calculating numerical indices to access the
-// individual values, which is more complicated than just
-// accessing them by name in a JavaScript object.  However,
-// the system state vector has several advantages: it can be
+// individual values.  This is more complicated than just
+// accessing them by name in a JavaScript object, but the
+// system state vector has several advantages: it can be
 // stored in a shared array buffer which is accessible from
 // both the main gui thread and a worker thread, and it is
 // accessible to both the JavaScript emulator and the Web
@@ -75,15 +74,16 @@ export const BPsize    =   512 / 2  // abstract syntax tree
 export const RegSize   =    32 / 2  // 16 gen, 16 sys registers
 export const MemSize   = 65536 / 4  // each location is 16 bits
 
-// export const Mem32Size = MemSize * 4
 // make this a changeable option >= MemSize
-export let Mem32Size = MemSize * 4 + 0
+
 // Mem32Size is the number of bytes for memory (S16 or S32)
 // Mem32Size = 4 * 256000000 * 5 //
+export let Mem32Size = MemSize * 4 + 0
 
 // The array buffers are allocated with a specified size in
 // bytes
-export const StateVecSizeBytes = 8 * (SCBsize + BPsize + RegSize + Mem32Size)
+export const StateVecSizeBytes =
+    8 * (SCBsize + BPsize + RegSize + Mem32Size)
 
 // Offsets of state vector sections
 
@@ -304,8 +304,12 @@ export function writeReg32 (es, r, x) {
 
 // access Mem16 uses address of 16-bit word
 
-export function readMem16 (es, a)      { return read16 (es, a, MemOffset16) }
-export function writeMem16 (es, a, x) { write16 (es, a, MemOffset16, x) }
+export function readMem16 (es, a) {
+    return read16 (es, a, MemOffset16)
+}
+export function writeMem16 (es, a, x) {
+    write16 (es, a, MemOffset16, x)
+}
 
 // access Mem32 uses big end representation: the value of the
 // word at address a is mem[a] * 2^16 + mem[a+1].  The
@@ -338,9 +342,9 @@ export function writeMem32 (es, a, x) {
                  + ` z = ${z} (${arith.wordToHex4(z)})`)
 }
 
-//-------------------------------------------------------------------------------
+//--------------------------------------------------------------
 // Testing
-//-------------------------------------------------------------------------------
+//--------------------------------------------------------------
 
 export function testSysStateVec (es) {
     console.log (`%cTESTING: testSysStateVec starting in thread ${es.thread_host}`,
@@ -358,7 +362,7 @@ export function testSysStateVec (es) {
     for (let i = 0; i < n; i++) es.vec16[i] = i
     for (let i = 0; i < n; i++) es.vec16[i] += 100
     for (let i = 0;  i < n; i++) xs += ` ${i}->${es.vec16[i]}`
-    console.log (`thread host ${es.thread_host}: ${xs} finished`)
+    console.log (`thread host ${es.thread_host}: ${xs} done`)
 
     console.log (`es.vec16[25] = ${es.vec16[25]}`)
     es.vec16[25] = 25
@@ -369,7 +373,6 @@ export function testSysStateVec (es) {
     es.vec32[45] = 85
     es.vec32[45] = es.vec32[45] * 2
     console.log (`es.vec32[45] (expect 170) = ${es.vec32[45]}`)
-
 
     console.log ('%caccess vec16', 'color:blue')
     es.vec16[7] = 423
