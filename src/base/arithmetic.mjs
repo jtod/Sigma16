@@ -405,7 +405,8 @@ export function wordToHex4 (x) {
 
 export function wordToHex8 (x) { 
     // a,b,c,d, e,f,g,h
-    let y = limit32 (x);
+    //    let y = limit32 (x);
+    let y = x;
     let h = y & 0x000f;
     y = y >>> 4;
     let g = y & 0x000f;
@@ -421,9 +422,11 @@ export function wordToHex8 (x) {
     let b = y & 0x000f;
     y = y >>> 4;
     let a = y & 0x000f;
-    return hexDigit[a] + hexDigit[b] + hexDigit[c] + hexDigit[d]
+    return hexDigit[a] + hexDigit[b]
+        + hexDigit[c] + hexDigit[d]
         + ' '
-        +  hexDigit[e] + hexDigit[f] + hexDigit[g] + hexDigit[h]
+        +  hexDigit[e] + hexDigit[f]
+        + hexDigit[g] + hexDigit[h]
 }
 
 function showBit (b) {

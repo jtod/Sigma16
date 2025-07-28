@@ -232,10 +232,9 @@ Sigma16 is a computer architecture designed for research and
 teaching in computer systems.  This application provides a
 complete environment for experimenting with the architecture.
 It includes an editor, assembler, linker, emulator, a
-collection of examples, a user guide with tutorials, and an
-integrated development environment (IDE) with a graphical
-user interface.
-
+collection of examples, an integrated development environment
+(IDE) with a graphical user interface, and a user guide with
+tutorials.
 
 ** Running Sigma16
 
@@ -260,9 +259,13 @@ and click the prominent /Run/ link.
 There are additional command line tools that can run in a
 shell; see the Installation section.  There is also a digital
 circuit (available separately) that implements the
-architecture.  Using these tools, machine language programs
-can run on both the emulator and the circuit.
+architecture, as well as a functional hardware description
+language, Hydra, that simulates circuits.  Using these tools,
+machine language programs can run on both the emulator and
+the circuit.
 
+This is free software, and the source code is available at
+[[https://github.com/jtod/Sigma16]].
 ** Browser compatibility
 
 #+BEGIN_majornote
@@ -297,17 +300,13 @@ explain the machine, show how to program it, and demonstrate
 how to enter and run a program and how to use the programming
 environment.  A reference section follows the tutorials.
 
-Our focus is on fundamental concepts, ideas and principles.
-Sigma16 illustrates the basic ideas of computer systems but
-it avoids unnecessary complexity.  For example, Sigma16 has
-just one word size (16 bits) while most commercial machines
-provide a variety.  That variety is useful for practical
-applications but it complicates many of the details while not
-adding new fundamental ideas.  Most commercial computers that
-achieve success in the marketplace evolve through updates and
-extensions, and eventually become encrusted with
-complications that help support backward compatibility,
-leading to complexity.
+The architecture focuses on fundamental concepts and
+principles.  Sigma16 illustrates the basic ideas of computer
+systems while avoiding unnecessary complexity. Most
+commercial computers that achieve success in the marketplace
+evolve through updates and extensions, and eventually become
+encrusted with complications that help support backward
+compatibility but that lead to complexity.
 
 * Core architecture tutorials
 :PROPERTIES:
@@ -1746,7 +1745,7 @@ all have the same form as these do.
 | sub      |      1 |
 | mul      |      2 |
 | div      |      3 |
-| trap     |      b |
+| trap     |      c |
 
 Don't memorise this table: you just need to understand how
 it's used.  For example, let's translate this assembly
@@ -3244,6 +3243,7 @@ execution mode of the processor.
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
+
 | Index | Symbol | Meaning                        |  Hex |
 |-------+--------+--------------------------------+------|
 |     0 | U/S    | 0: user state. 1: system state | 0001 |
@@ -3304,6 +3304,7 @@ Table: Interrupt Indices
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
+
 | Index | Symbol | Meaning            |  Hex |
 |-------+--------+--------------------+------|
 |     0 | time   | timer interrupt    | 0001 |
@@ -3572,9 +3573,6 @@ The second word contains one field, the 16 bit displacement.
 
 ea (effective address) = displacement + r[a]
 
-
-
-
 The memory address is specified in two parts: an index
 register and the displacement.  The index register is
 specified in the sa field.  In assembly language, the
@@ -3684,12 +3682,10 @@ depending on the instruction.
 | e | f | g | h |
 |---+---+---+---|
 
-
 - e  (bits 15-12) 4-bit operand
 - f  (bits 11-8)  4-bit operand
 - g  (bits 7-4)   4-bit operand
 - h  (bits 3-0)   4-bit operand
-  
 
 +-------+------+-----+-----+
 |     e |    f |   g |   h |
@@ -3767,7 +3763,6 @@ instruction:
    logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
    EXP op=#e ab=$14
 #+END_CodeListing
-
 
 #+BEGIN_CodeListing
    logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
@@ -4085,7 +4080,6 @@ resulting flags are
 - equal in R15.2
 - binary greater than (G) in R15.3
 - two's complement greater than (>) in R15.4
-
   
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -4136,7 +4130,6 @@ numbers in Ra and Rb.  The result is 32 bits; the leftmost 16
 bits (the most significant part) is loaded into R15, and the
 rightmost 16 bits (the least significant part) is loaded into
 Rd.  If Rd is R15, the most significant part is discarded.
-
   
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -5751,6 +5744,7 @@ Assembly directives
 </div>
 #+END_EXPORT
 
+
 ** EXP instructions
 
 Instructions and pseudoinstructions in each format:
@@ -5860,7 +5854,45 @@ Instructions and pseudoinstructions in each format:
 </div>
 #+END_EXPORT
 
-** Sigma32  EXP
+** Sigma32 /(experimental)/
+
+Sigma32 is an extension of Sigma16 to 32 bit words.  It
+provides 32 bit arithmetic, and addresses are 32 bits so it
+has a much larger memory.
+
+/Sigma32 is experimental and under development.  It is only
+partially implemented, and many details in this section are
+likely to change in the future./
+
+Sigma32 is backwards compatible with Sigma16: every Sigma16
+program executes on Sigma32 exactly the same as on Sigma16.
+Sigma32 extends the Sigma16 registers to 32 bits; the Sigma16
+instructions operate on the rightmost 16 bits of the
+registers.  The Sigma32 instructions are similar to their 16
+bit counterparts, so learning how to use them is
+straightforward.
+
+In Sigma32, addresses are 32 bits.  The Sigma16 memory has
+$2^{16}$ words (i.e. 65,536 words).  Sigma32 can address
+$2^{32}$ words (i.e 4,294,967,296 words).  In practice, the
+actual memory size supported by the app will be much less
+than that, as it depends on the browser and the primary
+memory of your computer.
+
+The Sigma16 app supports both architectures.  In 16 bit mode,
+the registers are 16 bits, and execytubg a 32 bit instruction
+triggers an invalid instruction interrupt.  In 32 bit mode,
+the registers are 32 bits and all instructions can be used.
+
+When launched, the app starts out in 16 bit mode.
+- To switch the system to 32 bit mode, open the browser
+  console.  In Chrome and Edge, enter *Ctrl Shift J*.  In the
+  console, enter *setArch32()*.
+- To go back to the default 16 bit mode, enter *setArch16()*.
+- In the future, the GUI will provide buttons to switch
+  modes.
+
+The 32 bit instructions are represened in EXP format.
 
 +----------------------+------+------+-----------------------------+
 | Assembly             | Op   | Code | Effect                      |
@@ -5897,15 +5929,15 @@ Instructions and pseudoinstructions in each format:
 +----------------------+------+------+-----------------------------+
 | lextract Rd,Re,f,g,h | e,05 |      | Rd.f~g :=                   |
 +----------------------+------+------+-----------------------------+
-| lpush Rd,Re,Rf       | e,05 |      | Rd.f~g := |
+| lpush Rd,Re,Rf       | e,05 |      | Rd.f~g :=                   |
 +----------------------+------+------+-----------------------------+
-| lpop Rd,Re,Rf        | e,05 |      | Rd.f~g := |
+| lpop Rd,Re,Rf        | e,05 |      | Rd.f~g :=                   |
 +----------------------+------+------+-----------------------------+
-| ltop Rd,Re,Rf        | e,05 |      | Rd.f~g := |
+| ltop Rd,Re,Rf        | e,05 |      | Rd.f~g :=                   |
 +----------------------+------+------+-----------------------------+
-| lsave Rd,Re,gh[Rf]   | e,05 |      | Rd.f~g := |
+| lsave Rd,Re,gh[Rf]   | e,05 |      | Rd.f~g :=                   |
 +----------------------+------+------+-----------------------------+
-| lrest Rd,Re,gh[Rf]   | e,05 |      | Rd.f~g := |
+| lrest Rd,Re,gh[Rf]   | e,05 |      | Rd.f~g :=                   |
 +----------------------+------+------+-----------------------------+
 
 ** Summary of pseudoinstructions
@@ -5918,7 +5950,6 @@ Pseudoinstructions for comparisons
 - jumpne jump if !=
 - jumpge jump if >-
 - jumpgt jump if >
-
 
 +--------------------+----+------+-----+---------------------------+
 | Assembly           | Op |Format|Code |Effect                     |
@@ -5962,7 +5993,6 @@ Pseudoinstructions for comparisons
 |xorb Rd,Re,f,g      |    |pseudo|Ed01 |logicb Rd,Re,f,g,1         |
 |                    |    |RRkk  |efg1 |                           |
 +--------------------+----+------+-----+---------------------------+
-
   
 * Assembly language
 
@@ -7717,36 +7747,9 @@ for some time but weren't documented in the User Gude.  These
 won't affect existing programs.
 
 
-# * Bibliography
-
-# #+print_bibliography:
-# #+LATEX: \printbibliography
-
-# Index
-
-# #+LATEX: \printindex
-# #+INCLUDE: theindex.org
-
-# The latex printindex gives page numbers for the indexed
-# keywords.  The index produced by org is well suited for
-# html but not latex; it doesn't give page numbers.  Don't
-# want this to be included in the latex version.  Maybe don't
-# use include, but instead conditionally insert a link?
-
-# Deprecated
-
-# Provide appropriate code for svg figure depending on export
-# backend See org-export-global-macros defined in ox.el and
-# changed in init.el NO
-
-#  #+MACRO: FIGURES ./figures/ redundant ??
-#  #+MACRO: svgfigHTML [[./figures/svg/$1.svg]]
-#  #+MACRO: svgfigLaTeX \includesvg{$1}
-#  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
-
-110
-
-* Development notes                                                :noexport:
+* Development notes
+# :noexport:
+103
 
 ** Figures
 
@@ -7760,9 +7763,9 @@ error \includesvg undefined
 - setArch32()
   
 ** To do
-*** GUI
-*** Arch
-*** ISA
+** GUI
+** Arch
+** ISA
 ** Typesetting
 
 This example has no leading spaces:
@@ -7788,10 +7791,9 @@ the html output won't ignore the leading spaces:
 #+END_CodeListing
 
 ** Read through <2025-01-02 Thu>
-*** 
+** misc 
 
-** Status of Examples/Standard/Testing
-
+** Testing status of Examples/Standard/Testing
 *** AsmStd
   - 
 *** AsmStdErrors
@@ -7823,8 +7825,9 @@ the html output won't ignore the leading spaces:
 *** TestSet
 *** Timer
 
-** Deprecated
-*** file deprecated.org
+
+* Deprecated
+** file deprecated.org
 
 ------------------------------------------------------
 
@@ -7839,14 +7842,13 @@ logicr instruction is deprecated
   register, and places the result in a destination bit in the
   same register.
 
-*** Deprecated: extracti
+** extracti
 - Probably won't be used very often; can always do invf after
   an extract to get the same effect
   
 +--------------------+----+------+-----+---------------------------+
 |extracti Rd,Re,f,g,h|e,06|EXP   |     |Rd := ex Rd di             |
 |                    |    |RRkkk |     |                           |
-
 
    add      R3,R0,R0      ; R3 = 0000
    extracti R3,11,8,R0,3  ; R3 = 0f00  R3.11~8 := inv R0.3~0
@@ -7861,7 +7863,7 @@ in the field before they are inserted into the destination.
 ;      format: EXP/RRkkk
      extract  R3,R9,5,7,8     ; e306 9578
 
-*** DEPRECATED: Bit logic within a register: logicr
+** Bit logic within a register: logicr
 
 The =logicr= instruction allows you to specify any two
 operand bits and a destination bit, all within the same
@@ -7909,7 +7911,7 @@ If your program keeps a set of Boolean variables in one
 register, you can calculate Boolean expressions in that
 register with =logicr=.
 
-**** Pseudoinstructions invr, andr, orr, xorb
+** Pseudoinstructions invr, andr, orr, xorb
 
 Pseudoinstructions are provided for the most common bit logic
 functions.  The operands are the same as for =logicr=, except
@@ -8010,7 +8012,7 @@ Logic.asm.txt
   *Chrome*, *Edge*, *Opera*, and *DuckDuckGo*.  These
   browsers are based on the Chromium engine.
 
-*** Deprecated text
+** Deprecated text
 
 #+BEGIN_EXAMPLE
 ;     logicc R1,1,R2,3,and    ; R15=0000    0 and 0 = 0
@@ -8033,3 +8035,32 @@ Logic.asm.txt
 ; Effect:            Rd.f..g := Re.h..(h+g-f)
 ; EXP opcode:        e,15
 #+END_EXAMPLE
+
+# Deprecated
+
+# Provide appropriate code for svg figure depending on export
+# backend See org-export-global-macros defined in ox.el and
+# changed in init.el NO
+
+#  #+MACRO: FIGURES ./figures/ redundant ??
+#  #+MACRO: svgfigHTML [[./figures/svg/$1.svg]]
+#  #+MACRO: svgfigLaTeX \includesvg{$1}
+#  #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}")  (concat "[[./figures/svg/" $1 ".svg]]")))
+
+
+# * Bibliography
+
+# #+print_bibliography:
+# #+LATEX: \printbibliography
+
+# Index
+
+# #+LATEX: \printindex
+# #+INCLUDE: theindex.org
+
+# The latex printindex gives page numbers for the indexed
+# keywords.  The index produced by org is well suited for
+# html but not latex; it doesn't give page numbers.  Don't
+# want this to be included in the latex version.  Maybe don't
+# use include, but instead conditionally insert a link?
+

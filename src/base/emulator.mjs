@@ -140,6 +140,7 @@ export function showCopyable (x) {
     console.log (`memStoreLog = ${x.memStoreLog.join(',')}`)
 }
 
+
 export class EmulatorState {
     constructor (thread_host, f, g, h) {
         console.log (`new EmulatorState host=${thread_host}`)
@@ -308,17 +309,16 @@ export class genregister {
             : null
         es.register.push (this)
     }
-    get () {
+    get () { // read 16 bit register
         this.es.copyable.regFetched.push (this.regNumber)
-//        let i = ab.EmRegBlockOffset + this.regStIndex
-        //        let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+// let i = ab.EmRegBlockOffset + this.regStIndex
+// let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
         let x = ab.readReg16 (this.es, this.regStIndex)
         return x
     }
-    get32 () {
-// ????? 32
+    get32 () { // read 32 bit register
         this.es.copyable.regFetched.push (this.regNumber)
-        let x = ab.readReg16 (this.es, this.regStIndex)
+        let x = ab.readReg32 (this.es, this.regStIndex)
         return x
     }
     display (xs) {
@@ -334,7 +334,7 @@ export class genregister {
             instrEffect.push
               (["R", this.regNumber, x, this.regName]);
         }}
-        put32 (x) {
+    put32 (x) {
         console.log (`register put32 ${this.regName} ${x}`)
         this.es.copyable.regStored.push (this.regNumber)
         ab.writeReg32 (this.es, this.regNumber, x)
@@ -362,9 +362,16 @@ export class genregister {
         if (this.es.thread_host === com.ES_gui_thread) {
 //            let i = ab.EmRegBlockOffset + this.regStIndex
 //            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-            let x = ab.readReg16 (this.es, this.regStIndex)
-            let xs = this.show (x)
+//            let x = ab.readReg16 (this.es, this.regStIndex)
+            const x = ab.readReg32 (this.es, this.regStIndex)
+            const xs = arith.wordToHex8 (x)  // TEMP!!!
+            console.log (`reg refresh ${this.regName} x=${x}`)
+            console.log (`reg refresh ${this.regName} xs=${xs}`)
             this.elt.innerHTML = xs
+
+// ????? x and xs are ok, but elt is only showing last 4 digits
+
+//            let xs = this.show (x)  TEMP????????????
         }
     }
 }
@@ -484,6 +491,7 @@ export function procReset (es) {
     timerInitialize (es, defaultTimerResolution);
 }
 
+
 export function initializeMachineState (es) {
     com.mode.devlog (`%cem.initializeMachineState thread=${es.thread_host}`,
                     'color:red')
@@ -491,8 +499,10 @@ export function initializeMachineState (es) {
     // Build the register file; sysStateVec index = reg number
     for (let i = 0; i < 16; i++) {
 	let regname = 'R' + i; // also the id for element name
-        es.regfile[i] = new genregister (es, regname, regname,
-                                         arith.wordToHex4)
+//        es.regfile[i] = new genregister (es, regname, regname,
+//                                         arith.wordToHex4)
+        es.regfile[i] = new genregister (
+            es, regname, regname, arith.wordToHex4)
     }
 
     // Instruction control registers
@@ -975,6 +985,8 @@ const exp2_add32 = (es) => {
     let result =  (x+y) // restrict to 32 bits
     console.log (`exp2_add32 result = ${result}`)
     es.regfile[es.ir_d].put32(result)
+    let loadedresult = es.regfile[es.ir_d].get32()
+    console.log (`exp2_add32 loadedresulty = ${loadedresult}`)
     console.log ("exp2_add32 end")
 }
 
@@ -1683,6 +1695,7 @@ function exp2_extract (es) {
                      + ` d_new = ${arith.wordToHex4(d_new)}`)
     es.regfile[es.ir_d].put(d_new);
 }
+
 
 //                     + ` size = ${size}`
 //    const size = d_left - d_right + 1

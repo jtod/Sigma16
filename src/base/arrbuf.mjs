@@ -56,8 +56,12 @@ import * as arch from './architecture.mjs'
 //   REG   Registers              32
 //   MEM   Memory                 16
 
-// Notation: W8 = byte, W16 = word, W32 = full word, W64 =
-// extended word.
+// Notation: Wn means a word of n bits.  Thus W8 = byte, W16
+// = word, W32 = full word, W64 = extended word.
+
+//-------------------------------------------------------------
+// Parameters
+//-------------------------------------------------------------
 
 // Sizes of state vector sections are specified in W64
 // (64-bit words), ensuring that each section begins at an
@@ -103,7 +107,7 @@ export const RegOffset16  = 2 * RegOffset32
 export const MemOffset16  = 2 * MemOffset32
 
 //-------------------------------------------------------------
-// General access functions
+// Accessing words from the arrbuf
 //-------------------------------------------------------------
 
 // Each section consists of elemens of a specific word size,
@@ -121,6 +125,9 @@ export const MemOffset16  = 2 * MemOffset32
 // The SCB contains mostly 32-bit elements, but the count of
 // instructions executed is 64 bits.
 
+// es is the emulator state
+// a is the address of a word16
+
 export function read16 (es, a, k) {
     return arith.limit16 (es.vec16 [a + k])
 }
@@ -133,8 +140,12 @@ export function read32 (es, a, k) {
 export function write32 (es, a, k, x) {
     es.vec32 [a+k] = arith.limit32(x)
 }
-export function read64  (es, a, k) { return es.vec64 [a + k] }
-export function write64 (es, a, k, x) { es.vec64 [a+k] = x }
+export function read64  (es, a, k) {
+    return es.vec64 [a + k]
+}
+export function write64 (es, a, k, x) {
+    es.vec64 [a+k] = x
+}
 
 // In Web Assembly, the index for accessing an element is the
 // byte index.  Thus read16 i in wa must push 2*i and then
@@ -283,7 +294,11 @@ export function decrInstrCount (es)
 // W32 index    0               1               1               2
 
 export function readReg16 (es, r) {
-    return r===0 ? 0 : read16 (es, r << 1, RegOffset16) }
+    return r===0 ? 0 : read16 (es, r << 1, RegOffset16)
+}
+
+export function writeReg16 (es, r, x) {
+    if (r!==0) write16 (es, r << 1, RegOffset16, x) }
 
 // ????? 32
 // export function readReg32 (es, r) {
@@ -292,8 +307,6 @@ export function readReg16 (es, r) {
 export function readReg32 (es, r) {
     return r===0 ? 0 : read32 (es, r , RegOffset32) }
 
-export function writeReg16 (es, r, x) {
-    if (r!==0) write16 (es, r << 1, RegOffset16, x) }
 
 export function writeReg32 (es, r, x) {
     if (r!==0) write32 (es, r, RegOffset32, x) }
@@ -326,12 +339,13 @@ export function readMem32 (es, a) {
     console.log (`...readMem32 b=${b}`
                  + ` x = ${x} (${arith.wordToHex4(x)})`
                  + ` y = $(y} (${arith.wordToHex4(y)})`
-                 + ` result = ${result} (${arith.wordToHex8(result)})`)
+                 + ` result = ${result}`
+                 + ` (${arith.wordToHex8(result)})`)
     return result
 }
 
 export function writeMem32 (es, a, x) {
-    console.log (`writeMem32 a=${a} x=${arith.wordToHex8(x)}...`)
+    console.log (`writeMem32 a=${a} x=${arith.wordToHex8(x)}`)
     const b = a & 0xfffffffe
     const y = x >>> 16
     const z = x & 0x0000ffff
@@ -342,12 +356,13 @@ export function writeMem32 (es, a, x) {
                  + ` z = ${z} (${arith.wordToHex4(z)})`)
 }
 
-//--------------------------------------------------------------
+//-------------------------------------------------------------
 // Testing
-//--------------------------------------------------------------
+//-------------------------------------------------------------
 
 export function testSysStateVec (es) {
-    console.log (`%cTESTING: testSysStateVec starting in thread ${es.thread_host}`,
+    console.log (`%cTESTING: testSysStateVec`
+                 + ` starting in thread ${es.thread_host}`,
                  'color:red')
     console.log (`es.arch = ${es.arch.description}`)
     console.log (`es.emRunThread = ${es.emRunThread}`)
@@ -401,7 +416,9 @@ export function testSysStateVec (es) {
 
     console.log ('%cwriteSCB and readSCB ', 'color:blue')
     x = readSCB (es, SCB_cur_instr_addr)
-    console.log (`SCB_cur_instr_addr= ${SCB_cur_instr_addr} => ${x} init expect 0`)
+    console.log (`SCB_cur_instr_addr=`
+                 + ` ${SCB_cur_instr_addr} => ${x}`
+                 + ` init expect 0`)
     writeSCB (es, SCB_cur_instr_addr, 34)
     y = readSCB (es, SCB_cur_instr_addr)
     console.log (`SCB_cur_instr_addr=${y} expect 34`)
@@ -447,17 +464,20 @@ export function testSysStateVec (es) {
     writeMem32 (es, 6, 0xf0f000ff)
     x = readMem32 (es, 6)
     y = readMem32 (es, 7)
-    console.log (`x=${arith.wordToHex8(x)} y=${arith.wordToHex8(y)}`
+    console.log (`x=${arith.wordToHex8(x)}`
+                 + ` y=${arith.wordToHex8(y)}`
                  + ' expect f0f000ff both times')
     
-    console.log ('%cwriteMem16 (odd address) / readMem32', 'color:blue')
+    console.log ('%cwriteMem16 (odd address) / readMem32',
+                 'color:blue')
     writeMem16 (es, 9, 34)
     x = readMem16 (es, 8)
     y = readMem16 (es, 9)
     z = readMem32 (es, 9)
     console.log (`x=${x} y=${y} z=${z} expect 0 34 34`)
 
-    console.log ('%cwriteMem16 (even address) / readMem32', 'color:blue')
+    console.log ('%cwriteMem16 (even address) / readMem32',
+                 'color:blue')
     writeMem16 (es, 12, 1)
     x = readMem16 (es, 12)
     y = readMem32 (es, 13)  // locations 6,7
@@ -472,13 +492,16 @@ export function testSysStateVec (es) {
     }
 
     console.log ('%cMemory snapshot', 'color:blue')
-    console.log ('Expect m[3] = 42, m[6] = f0f0, m[7] =  00ff,')
+    console.log (`Expect m[3] = 42, m[6] = f0f0,`
+                 + ` m[7] =  00ff,`)
     console.log ('Expect m[9] = 34, m[12] = 1')
     for (let i = 0; i < 16; i++) {
         let x = readMem16 (es, i)
-        console.log (`mem[${i}] = ${x} ${arith.wordToHex4(x)} `)
+        console.log (`mem[${i}] =`
+                     + ` ${x} ${arith.wordToHex4(x)} `)
     }
     
-    console.log (`%cTESTING: testSysStateVec finished`, 'color:red')
+    console.log (`%cTESTING: testSysStateVec finished`,
+                 'color:red')
 }
 
