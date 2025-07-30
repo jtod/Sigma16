@@ -3052,16 +3052,17 @@ function initializeSystem () {
 
 function setArch16 () {
     console.log ('Setting mode to S16')
-//    return // first call is too soon, before gst.es set
     const es = gst.es
+    es.arch = arch.S16
+    document.documentElement.style
+        .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
+//    return // first call is too soon, before gst.es set
     console.log ("skipping es.addressMask 16")
     es.addressMask = arith.word16mask
     console.log (`addressMask (S16) = ${es.addressMask}`)
     setRegisterSize (16)
         highlightArchButton('Arch16button')
         unhighlightArchButton('Arch32button')
-    document.documentElement.style
-        .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
     procReset (gst)
 }
 window.setArch16 = setArch16;
@@ -3069,6 +3070,9 @@ window.setArch16 = setArch16;
 function setArch32 () {
     console.log ('Setting mode to S32')
     const es = gst.es
+    es.arch = arch.arch32
+    document.documentElement.style
+        .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
     console.log ("skipping es.addressMask 32")
     es.addressMask = arith.word32mask // ??? es.addressMask???
     console.log (`addressMask (S32) = ${es.addressMask}`)
@@ -3076,16 +3080,16 @@ function setArch32 () {
         highlightArchButton('Arch32button')
         unhighlightArchButton('Arch16button')
     gst.es.pc.show = arith.wordToHex8
-    document.documentElement.style
-        .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
     procReset (gst)
 }
 window.setArch32 = setArch32;
 
 function setRegisterSize (size) {
+    //    return // disable, taking different approach...
+    // no longer using register.show, this is moot
     const f = size===16 ? arith.wordToHex4 : arith.wordToHex8
     for (let i = 0; i < gst.es.nRegisters; i++) {
-        gst.es.register[i].show = f
+//        gst.es.register[i].show = f
     }
 }
 

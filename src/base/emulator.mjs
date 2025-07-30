@@ -1,21 +1,23 @@
 // Sigma16: emulator.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (C) 2024 John T. O'Donnell
+// License: GNU GPL Version 3. See Sigma16/README, LICENSE
+// https://jtod.github.io/home/Sigma16
 
-// This file is part of Sigma16.  Sigma16 is free software: you can
-// redistribute it and/or modify it under the terms of the GNU General
-// Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
-// Sigma16 is distributed in the hope that it will be useful, but
+// This file is part of Sigma16.  Sigma16 is free software:
+// you can redistribute it and/or modify it under the terms
+// of Version 3 of the GNU General Public License as
+// published by the Free Software Foundation.  Sigma16 is
+// distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.  You should have received
-// a copy of the GNU General Public License along with Sigma16.  If
-// not, see <https://www.gnu.org/licenses/>.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// the GNU General Public License for more details.  You
+// should have received a copy of the GNU General Public
+// License along with Sigma16.  If not, see
+// <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // emulator.mjs defines the machine language semantics
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 import * as ct from '../gui/consoletest.mjs'
 import * as com from './common.mjs';
@@ -23,22 +25,20 @@ import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 import * as ab from './arrbuf.mjs';
 import * as st from './state.mjs';
-
 import * as asm from './assembler.mjs';
 import * as link from './linker.mjs';
-
 import * as smod from './s16module.mjs';
 
-//-----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Default parameters
-//-----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Number of minor cycles per timer tick
 export const defaultTimerResolution = 0
 
-//-----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Access to system control register flags
-//-----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // e.g. x = GetStatusBit (es, arch.userStateBit)
 function GetStatusBit (es,i) {
@@ -54,18 +54,20 @@ function SetStatusBit (es,i,x) {
     es.statusreg.put(y)
 }
 
-//-----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Interface to emulator
-//-----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // See also arith.limit16 and arith.limit32
-export function limitAddress (es, x) { return x & es.addressMask }
+export function limitAddress (es, x) {
+  return x & es.addressMask
+    }
 
-// initializeMachineState (es)    - create registers and memory
-// procReset (es)                 - set registers and memory to 0
-// boot (es)                      - load executable into memory
-// mainThreadLooper (es)          - run main until stopping condition
-// executeInstruction (es)        - execute one instruction in either thread
+// initializeMachineState (es) - create registers and memory
+// procReset (es)              - set registers and memory to 0
+// boot (es)                   - load executable into memory
+// mainThreadLooper (es)       - run until stopping condition
+// executeInstruction (es)     - execute in either thread
 
 // look up these...
 
@@ -77,20 +79,19 @@ export function limitAddress (es, x) { return x & es.addressMask }
 // execInstrPostDisplay (es)
 // setting breakpoints
 
-
 // Show key information stored in emulator state
 export function showEsInfo (es) {
 //    const rfet = es.regFetched.map(r=>r.regName) 
 //    const rsto = es.regStored.map(r=>r.regName) 
-    return `showEsInfo thread=${es.thread_host}\n`
-        + `  regFetched = ${es.copyable.regFetched}\n`
-        + `  regStored = ${es.copyable.regStored}\n`
-        + `  memFetchInstrLog = ${es.copyable.memFetchInstrLog}\n`
-        + `  memFetchDataLog = ${es.copyable.memFetchDataLog}\n`
-        + `  memStoreLog = ${es.copyable.memStoreLog}\n`
+  return `showEsInfo thread=${es.thread_host}\n`
+    + `  regFetched = ${es.copyable.regFetched}\n`
+    + `  regStored = ${es.copyable.regStored}\n`
+    + `  memFetchInstrLog = ${es.copyable.memFetchInstrLog}\n`
+    + `  memFetchDataLog = ${es.copyable.memFetchDataLog}\n`
+    + `  memStoreLog = ${es.copyable.memStoreLog}\n`
 }
-//        + `  regFetched = ${es.copyable.regFetched.map(r=>r.regName)}\n`
-//        + `  regStored = ${es.copyable.regStored.map(r=>r.regName)}\n`
+// + `  regFetched = ${es.copyable.regFetched.map(r=>r.regName)}\n`
+// + `  regStored = ${es.copyable.regStored.map(r=>r.regName)}\n`
 
 export let modeHighlightAccess = true;
 
@@ -102,19 +103,20 @@ export function initRegHighlighting (es) {
     es.regStored = []
 }
 
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Emulator state
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The emulator state contains the variables needed to interpret the
-// machine language.  It's passed as needed to functions; the
-// convention is that the parameter name is 'es'.
+// The emulator state contains the variables needed to
+// interpret the machine language.  It's passed as needed to
+// functions; the convention is that the parameter name is
+// 'es'.
 
-// The mode determines how much output the emulator provides and where
-// it goes.  The mode values are: 100: gui display, 200: console
-// display, 300: fast and quiet.  initialMode is provided when the
-// state is created, and mode is the current value, which might change
-// during execution.
+// The mode determines how much output the emulator provides
+// and where it goes.  The mode values are: 100: gui display,
+// 200: console display, 300: fast and quiet.  initialMode is
+// provided when the state is created, and mode is the
+// current value, which might change during execution.
 
 export const initEsCopyable = {
     breakPCvalue : 0,
@@ -135,19 +137,22 @@ export function showCopyable (x) {
     console.log (`breakPCvalue = ${x.breakPCvalue}`)
     console.log (`regFetched = ${x.regFetched.join(',')}`)
     console.log (`regStored = ${x.regStored.join(',')}`)
-    console.log (`memFetchInstrLog = ${x.memFetchInstrLog.join(',')}`)
-    console.log (`memFetchDataLog = ${x.memFetchDataLog.join(',')}`)
+    console.log (`memFetchInstrLog =
+                   ${x.memFetchInstrLog.join(',')}`)
+    console.log (`memFetchDataLog =
+                   ${x.memFetchDataLog.join(',')}`)
     console.log (`memStoreLog = ${x.memStoreLog.join(',')}`)
 }
-
 
 export class EmulatorState {
     constructor (thread_host, f, g, h) {
         console.log (`new EmulatorState host=${thread_host}`)
-        this.thread_host = thread_host // which thread runs this instance
-        console.log (`%cCreating ES thread_host = ${this.thread_host}`,
-                     'color:red')
-        this.arch = arch.S16
+        this.thread_host = thread_host
+           // which thread runs this instance
+        console.log (`%cCreating ES thread_host =
+                       ${this.thread_host}`,
+                       'color:red')
+        this.arch = arch.S16 // default
         
         // Display functions provided by user interface
         this.clearProcessorDisplay = null
@@ -161,12 +166,17 @@ export class EmulatorState {
         this.vec16            = null
         this.vec32            = null
         this.vec64            = null
-        this.emRunCapability  = com.ES_gui_thread // default use main thread
-        this.emRunThread      = com.ES_gui_thread // default use main thread
+        this.emRunCapability  = com.ES_gui_thread
+           // default use main thread
+        this.emRunThread      = com.ES_gui_thread
+           // default use main thread
         this.startTime        = null
-        this.eventTimer       = null  // returned by setInterval
-        this.emInstrSliceSize = 500 // n instructions before looper yields
-        this.sliceUnlimited   = true // if F, enforce emInstrSliceSize
+        this.eventTimer       = null
+          // returned by setInterval
+        this.emInstrSliceSize = 500
+          // n instructions before looper yields
+        this.sliceUnlimited   = true
+          // if F, enforce emInstrSliceSize
 	this.instrLooperDelay = 1000
 	this.instrLooperShow  = false
 	this.breakEnabled     = false
@@ -225,29 +235,33 @@ export class EmulatorState {
     }
 }
 
-// The system control registers are specified in the instruction by an
-// index starting from i=0..., but the actual emulator data structures
-// for these registers are held in the register[] array at index
+// The system control registers are specified in the
+// instruction by an index starting from i=0..., but the
+// actual emulator data structures for these registers are
+// held in the register[] array at index
 // i+ctlRegIndexOffset...  It's useful to have a single array
-// containing all the registers, so the emulator can refresh them all
-// together.
+// containing all the registers, so the emulator can refresh
+// them all together.
 
-export const ctlRegIndexOffset = 20;  // add to ctl reg number
-                                      //   to get register[] index
-export let sysCtlRegIdx = 0;          // index of first system control reg
-export let registerIndex = 0;         // unique index for each reg
+export const ctlRegIndexOffset = 20;
+  // add to ctl reg number to get register[] index
+export let sysCtlRegIdx = 0;
+  // index of first system control reg
+export let registerIndex = 0;
+  // unique index for each reg
 
-// Instructions refer to the system control registers by a 4-bit
-// index, but the system control register that has instruction index 0
-// will actually have a higher index (16) in the emulator's array of
-// registers.  To refer to sysctl reg i, it can be accessed as
-// register [sysCtlRegIdx + i].
+// Instructions refer to the system control registers by a
+// 4-bit index, but the system control register that has
+// instruction index 0 will actually have a higher index (16)
+// in the emulator's array of registers.  To refer to sysctl
+// reg i, it can be accessed as register [sysCtlRegIdx + i].
 
-// Each register is represented by an object that contains its current
-// value, as well as methods to get and set the value, and to refresh
-// the display.
+// Each register is represented by an object that contains
+// its current value, as well as methods to get and set the
+// value, and to refresh the display.
 
-// Textual representation of system status, for the emulator display
+// Textual representation of system status, for the emulator
+// display
 
 function showSysStat (s) {
     return s===0 ? 'Usr' : 'Sys'
@@ -271,28 +285,32 @@ function testReg2 () {
 //    regShowAccesses();
 }
 
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Registers
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// genregister creates and returns an object representing a register.
-// The registers are created in gui.js in the window.onload function,
-// because they need the gui display elements to be created first.
-// Arguments to the constructor are:
+// genregister creates and returns an object representing a
+// register.  The registers are created in gui.js in the
+// window.onload function, because they need the gui display
+// elements to be created first.  Arguments to the
+// constructor are:
 
 //   - regNumber is index in a reg file (0 if irrelevant);
 //       e.g. for R5 it's 5
 //   - regName is string representation; e.g. for R5 it's "R5"
-//   - eltName is the html id of the gui element that displays the register
+//   - eltName is the html id of the gui element that
+//       displays the register
 //   - showFcn converts the value to a string
 
-// The actual value of a register is kept in the system state vector,
-// where its index is regStIndex.  As registers are created, the
-// number of existing registers (nRegisters) is used as the value of
-// regStIndex.  So it's important to create the registers in a
-// sensible order, with the register file first.
+// The actual value of a register is kept in the system state
+// vector, where its index is regStIndex.  As registers are
+// created, the number of existing registers (nRegisters) is
+// used as the value of regStIndex.  So it's important to
+// create the registers in a sensible order, with the
+// register file first.
 
-//let nRegisters = 0  // number of registers that have been defined
+//let nRegisters = 0
+  // number of registers that have been defined
 
 export class genregister {
     constructor (es, regName, eltName, showFcn) {
@@ -345,56 +363,71 @@ export class genregister {
 //        let i = ab.EmRegBlockOffset + this.regStIndex
 //        this.es.shm[i] = x
 //        com.mode.devlog (`--- reg put ${this.regName} :=`
-//                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
+//            + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
 
     highlight (key) {
-//        com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
+//     com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
         if (this.es.thread_host === com.ES_gui_thread) {
-//            let i = ab.EmRegBlockOffset + this.regStIndex
-//            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-            let x = ab.readReg16 (this.es, this.regStIndex)
-            let xs = com.highlightText (this.show(x), key)
+//           let i = ab.EmRegBlockOffset + this.regStIndex
+//           let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+//            let x = ab.readReg16 (this.es, this.regStIndex)
+//            let xs = com.highlightText (this.show(x), key)
+            let xs = com.highlightText (this.showVal(), key)
             this.elt.innerHTML = xs
-        } else {
+        } else { // do nothing if not in gui_thread
         }
+    }
+    showVal () {
+        let xs;
+        if (this.es.arch == arch.S16) {
+            const x = ab.readReg16 (this.es, this.regStIndex)
+            xs = arith.wordToHex4 (x)
+            console.log (`shval ${this.regName} x=${x}`)
+            console.log (`shval ${this.regName} xs=${xs}`)
+        } else { // S32
+            const x = ab.readReg32 (this.es, this.regStIndex)
+            xs = arith.wordToHex8 (x)  // TEMP!!!
+            console.log (`shval ${this.regName} x=${x}`)
+            console.log (`shval ${this.regName} xs=${xs}`)
+        }
+        return xs
     }
     refresh () {
         if (this.es.thread_host === com.ES_gui_thread) {
-//            let i = ab.EmRegBlockOffset + this.regStIndex
-//            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-//            let x = ab.readReg16 (this.es, this.regStIndex)
-            const x = ab.readReg32 (this.es, this.regStIndex)
-            const xs = arith.wordToHex8 (x)  // TEMP!!!
-            console.log (`reg refresh ${this.regName} x=${x}`)
-            console.log (`reg refresh ${this.regName} xs=${xs}`)
+//          let i = ab.EmRegBlockOffset + this.regStIndex
+//          let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+//          let x = ab.readReg16 (this.es, this.regStIndex)
+            const xs = this.showVal ()
             this.elt.innerHTML = xs
-
-// ????? x and xs are ok, but elt is only showing last 4 digits
-
-//            let xs = this.show (x)  TEMP????????????
+          }
         }
-    }
 }
+
+// ????? x and xs are ok, but elt is only showing last 4
+// digits
+//            let xs = this.show (x)  TEMP????????????
 
 // Reset every register to 0
 
 export function resetRegisters (es) {
-    com.mode.devlog (`Resetting registers ${es.thread_host} ${es.nRegisters}`)
+    com.mode.devlog (`Resetting registers `
+                     + `${es.thread_host} ${es.nRegisters}`)
     for (let i = 0; i < es.nRegisters; i++) {
         es.register[i].put (0)
     }
 //    console.log ('resetting registers finished')
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 //  Memory representation and access
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Usage
 //   General operations
-//     memInitialize              get html elements, clear refresh, display
-//     memClear ()                set each location to 0
-//     memRefresh ()              recalculate the memory strings
+//     memInitialize
+//        get html elements, clear refresh, display
+//     memClear ()              set each location to 0
+//     memRefresh ()            recalculate the memory strings
 
 //   During instruction execution
 //     memClearAccesses ()        remove get/put highligting
@@ -404,38 +437,43 @@ export function resetRegisters (es) {
 //     memShowAccesses ()         update array of hex strings
 //     memDisplayFast ()          render html elements showing
 //                                  only accessed area
-//     memDisplayFull ()          render html elements showing full memory
-//     memDisplay ()              use display mode to select fast or full
+//     memDisplayFull ()          render html elements
+//                                   showing full memory
+//     memDisplay ()              use display mode
+//                                   to select fast or full
 
-// The memory is represented as array of words (represented as an
-// integer between 0 and 2^16-q) and a corresponding array of strings
-// showing each word as a hex number.  There are html elements for
-// displaying the memory contents, and two arrays to track memory
-// accesses (fetches and stores) in order to generate the displays.
+// The memory is represented as array of words (represented
+// as an integer between 0 and 2^16-q) and a corresponding
+// array of strings showing each word as a hex number.  There
+// are html elements for displaying the memory contents, and
+// two arrays to track memory accesses (fetches and stores)
+// in order to generate the displays.
 
 let memory = [];  // the memory contents, indexed by address
 
+// There are two primary memory accesses: fetch and store.
+// These functions record the operation to enable the user
+// interface to show the access by using colors to highlight
+// the accessed location.
 
-// There are two primary memory accesses: fetch and store.  These
-// functions record the operation to enable the user interface to show
-// the access by using colors to highlight the accessed location.
+// There is just one memory, but the gui contains two windows
+// into the memory: by convention, display 1 shows
+// instruction fetches and display 2 shows data fetches and
+// stores.  In the hardware (the digital circuit that
+// implements the processor) there may be no distinction
+// between memory and data accesses (although there could be
+// if the machine has separate instruction and data caches).
 
-// There is just one memory, but the gui contains two windows into the
-// memory: by convention, display 1 shows instruction fetches and
-// display 2 shows data fetches and stores.  In the hardware (the
-// digital circuit that implements the processor) there may be no
-// distinction between memory and data accesses (although there could
-// be if the machine has separate instruction and data caches).
+// All memory stores are considered to be data stores.
+// Howver, there are two variants of fetch: instruction fetch
+// and data fetch.  Both of these record the operation in the
+// array memFetchInstrLog, but they record the address in
+// separate scalar vairables to enable the gui to scroll the
+// two displays to show the instruction access in disply 1
+// and the data access in display 2.
 
-// All memory stores are considered to be data stores.  Howver, there
-// are two variants of fetch: instruction fetch and data fetch.  Both
-// of these record the operation in the array memFetchInstrLog, but
-// they record the address in separate scalar vairables to enable the
-// gui to scroll the two displays to show the instruction access in
-// disply 1 and the data access in display 2.
-
-// Set all memory locations to 0.  These memory stores are not logged,
-// so writeMem16 is used instead of memStore.
+// Set all memory locations to 0.  These memory stores are
+// not logged, so writeMem16 is used instead of memStore.
 
 export function memClear (es) {
 //    console.log ('memClear')
@@ -444,8 +482,8 @@ export function memClear (es) {
     }
 }
 
-// Fetch and return a word from memory at address a, and record the
-// address so the display can show this access.
+// Fetch and return a word from memory at address a, and
+// record the address so the display can show this access.
 
 export function memFetchInstr (es, a) {
     es.copyable.memFetchInstrLog.push(a);
@@ -465,8 +503,8 @@ export function memFetchData (es, a) {
     return x
 }
 
-// Store a word x into memory at address a, and record the address so
-// the display can show this access.
+// Store a word x into memory at address a, and record the
+// address so the display can show this access.
 
 export function memStore (es, a, x) {
 //    console.log (`memStore a=${a} x=${x}`)
@@ -477,9 +515,9 @@ export function memStore (es, a, x) {
 //    es.shm[ab.EmMemOffset + a] = x
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Initialize machine state
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Separate clearing state from refreshing display
 export function procReset (es) {
@@ -491,59 +529,88 @@ export function procReset (es) {
     timerInitialize (es, defaultTimerResolution);
 }
 
+// convert x to hex corresponding to current arch mode (16 or
+// 32)
+
+// export function wordToHexK (x) {
+export const wordToHexK = (x) => {
+    console.log ("DEPRECATED wordToHexK")
+ const xs =
+    gst.es.arch == arch.S16
+    ? arith.wordToHex4 (x)
+    : arith.wordToHex8 (x)
+  console.log (`wordToHexK x=${x} xs=${xs}`)
+  return xs
+}
 
 export function initializeMachineState (es) {
-    com.mode.devlog (`%cem.initializeMachineState thread=${es.thread_host}`,
+    com.mode.devlog (`%cem.initializeMachineState `
+                       + `thread=${es.thread_host}`,
                     'color:red')
 
-    // Build the register file; sysStateVec index = reg number
+// Build the register file; sysStateVec index = reg number
     for (let i = 0; i < 16; i++) {
 	let regname = 'R' + i; // also the id for element name
-//        es.regfile[i] = new genregister (es, regname, regname,
-//                                         arith.wordToHex4)
+//       es.regfile[i] = new genregister (es, regname, regname,
+//                                        arith.wordToHex4)
         es.regfile[i] = new genregister (
-            es, regname, regname, arith.wordToHex4)
+            es, regname, regname, wordToHexK)
     }
 
     // Instruction control registers
-    es.pc   = new genregister (es, 'pc',   'pcElt',    arith.wordToHex4);
-    es.ir   = new genregister (es, 'ir',   'irElt',    arith.wordToHex4);
-    es.adr  = new genregister (es, 'adr',  'adrElt',   arith.wordToHex4);
-    es.dat  = new genregister (es, 'dat',  'datElt',   arith.wordToHex4);
+    es.pc = new genregister (
+              es, 'pc', 'pcElt', wordToHexK);
+    es.ir = new genregister (
+              es, 'ir', 'irElt', arith.wordToHex4);
+    es.adr = new genregister (
+              es, 'adr', 'adrElt', wordToHexK);
+    es.dat= new genregister (
+              es, 'dat', 'datElt', wordToHexK);
 
     // Interrupt control registers
-    es.statusreg  = new genregister (es, 'statusreg', 'statusElt',
-                                     arith.wordToHex4);
-    // bit 0 (lsb) :  0 = User state, 1 = System state
-    // bit 1       :  0 = interrupts disabled, 1 = interrupts enabled
-    // bit 2       :  0 = segmentation disabled, 1 = segmentation enabled
+    es.statusreg  = new genregister (
+              es, 'statusreg', 'statusElt', arith.wordToHex4);
+// bit 0 (lsb) :  0 = User state, 1 = System state
+// bit 1:  0 = interrupts disabled, 1 = interrupts enabled
+// bit 2 :  0 = segmentation disabled, 1 = segmentation enabled
 
-    es.mask  = new genregister (es, 'mask', 'maskElt',  arith.wordToHex4);
-    es.req   = new genregister (es, 'req',  'reqElt',   arith.wordToHex4);
+    es.mask = new genregister (
+                es, 'mask', 'maskElt', arith.wordToHex4);
+    es.req  = new genregister (
+                es, 'req',  'reqElt',   arith.wordToHex4);
     // mask and request use the same bit positions for flags
     // bit 0 (lsb)  overflow
     // bit 1        divide by 0
     // bit 2        trap 3
     // bit 3        
     
-    es.rstat = new genregister (es, 'rstat', 'rstatElt',  arith.wordToHex4);
-    es.rpc   = new genregister (es, 'rpc',   'rpcElt',    arith.wordToHex4);
-
-    es.iir  = new genregister (es, 'iir', 'iirElt',   arith.wordToHex4);
-    es.iadr = new genregister (es, 'iadr', 'iadrElt',   arith.wordToHex4);
-    es.vect  = new genregister (es, 'vect',  'vectElt',   arith.wordToHex4);
+    es.rstat = new genregister (
+                 es, 'rstat','rstatElt', arith.wordToHex4);
+    es.rpc = new genregister (
+               es, 'rpc',  'rpcElt', arith.wordToHex4);
+    es.iir = new genregister (
+                es, 'iir', 'iirElt', arith.wordToHex4);
+    es.iadr = new genregister (
+                es, 'iadr', 'iadrElt', arith.wordToHex4);
+    es.vect = new genregister (
+                es, 'vect', 'vectElt', arith.wordToHex4);
     
 // Segment control registers
-    es.bpseg = new genregister (es, 'bpseg',  'bpsegElt',  arith.wordToHex4);
-    es.epseg = new genregister (es, 'epseg',  'epsegElt',  arith.wordToHex4);
-    es.bdseg = new genregister (es, 'bdseg',  'bdsegElt',  arith.wordToHex4);
-    es.edseg = new genregister (es, 'edseg',  'edsegElt',  arith.wordToHex4);
+    es.bpseg = new genregister (
+                 es, 'bpseg',  'bpsegElt',  arith.wordToHex4);
+    es.epseg = new genregister (
+                 es, 'epseg',  'epsegElt',  arith.wordToHex4);
+    es.bdseg = new genregister (
+                 es, 'bdseg',  'bdsegElt',  arith.wordToHex4);
+    es.edseg = new genregister (
+                 es, 'edseg',  'edsegElt',  arith.wordToHex4);
 
 // Record the control registers    
     es.controlRegisters =
 	[es.pc, es.ir, es.adr, es.dat,
          // not accessible to getctl/putctl instructions
-	 // the following can be used for getctl/getctl, indexing from 0
+	 // the following can be used for
+         //   getctl/getctl, indexing from 0
 	 es.statusreg, es.mask, es.req, es.rstat, es.rpc,
          es.iir, es.iadr,
          es.vect,
@@ -562,29 +629,33 @@ function memInitialize (es) {
     }
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Decode instruction
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 export function showInstrDecode (es) {
-    es.instrCodeStr = (es.instrCode ? arith.wordToHex4 (es.instrCode) : "")
-	+ " " + (es.instrDisp ? arith.wordToHex4 (es.instrDisp) : "");
-    es.instrEAStr = es.instrEA ? arith.wordToHex4 (es.instrEA) : "";
-    com.mode.devlog (`showInstrDecode fmt = ${es.instrFmtStr}`);
+  es.instrCodeStr = (
+      es.instrCode ? arith.wordToHex4 (es.instrCode) : "")
+      + " "
+      + (es.instrDisp ? arith.wordToHex4 (es.instrDisp) : "");
+  es.instrEAStr = es.instrEA ?
+      arith.wordToHex4 (es.instrEA) : "";
+  com.mode.devlog (`showInstrDecode fmt = ${es.instrFmtStr}`);
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Controlling instruction execution
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Using the main gui thread, run instructions repeatedly until a
-// stopping condition arises.  Yield control each iteration to avoid
-// blocking the user interface, particularly the manual timer
-// interrupt button.
+// Using the main gui thread, run instructions repeatedly
+// until a stopping condition arises.  Yield control each
+// iteration to avoid blocking the user interface,
+// particularly the manual timer interrupt button.
 
-// Run instructions in the main gui thread.  Caller should check the
-// system status before calling the looper; it's assumed that it is ok
-// to execute an instruction in the gui thread.
+// Run instructions in the main gui thread.  Caller should
+// check the system status before calling the looper; it's
+// assumed that it is ok to execute an instruction in the gui
+// thread.
 
 export function mainRun (es) {
     es.sliceUnlimited = false
@@ -606,7 +677,8 @@ export function instructionLooper (es) {
         executeInstruction (es)
         icount++
         status = ab.readSCB (es, ab.SCB_status)
-        com.mode.devlog (`looper after instruction, status=${status}`)
+        com.mode.devlog (
+          `looper after instruction, status=${status}`)
         switch (status) {
         case ab.SCB_halted:
         case ab.SCB_paused:
@@ -620,7 +692,8 @@ export function instructionLooper (es) {
             && (es.pc.get() === es.copyable.breakPCvalue)
         if (externalBreak) finished = true
         pauseReq = ab.readSCB (es, ab.SCB_pause_request) != 0
-        countOK = es.sliceUnlimited || icount < es.emInstrSliceSize
+        countOK = es.sliceUnlimited
+                   || icount < es.emInstrSliceSize
         continueRunning = !finished  && !pauseReq && countOK
     }
     com.mode.devlog ('discontinue instruction looper')
@@ -640,8 +713,9 @@ export function instructionLooper (es) {
     }
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Accessing the timer
+//-------------------------------------------------------------
 
 export function timerInitialize (es, resolution) {
     ab.writeSCB (es, ab.SCB_timer_running, 0)
@@ -650,13 +724,13 @@ export function timerInitialize (es, resolution) {
     ab.writeSCB (es, ab.SCB_timer_resolution, resolution)
 }
 
-
 export function timerDisplay (es) {
     const r = ab.readSCB (es, ab.SCB_timer_running)
     if (r) {
         const x = ab.readSCB (es, ab.SCB_timer_minor_count)
         const y = ab.readSCB (es, ab.SCB_timer_major_count)
-        console.log (`Timer: running=${r} minor=${x} major=${y}`)
+        console.log (`
+          Timer: running=${r} minor=${x} major=${y}`)
     }
 }
 
@@ -695,27 +769,29 @@ export function timerTick (es) {
             const y = ab.readSCB(es, ab.SCB_timer_major_count)
             if (y>0) {
                 ab.writeSCB (es, ab.SCB_timer_major_count, y-1)
-                const a = ab.readSCB(es, ab.SCB_timer_resolution)
+                const a = ab.readSCB(
+                            es, ab.SCB_timer_resolution)
                 ab.writeSCB (es, ab.SCB_timer_minor_count, a)
             } else {
                 ab.writeSCB (es, ab.SCB_timer_running, 0)
                 const reqOld = es.req.get()
-                const reqNew = arith.setBit (reqOld, arch.timerBit, 1)
+                const reqNew = arith.setBit (
+                                 reqOld, arch.timerBit, 1)
                 es.req.put (reqNew)
                 console.log ('Timer interrupt request')
-                // Set timer interrupt request
-                // Get interrupt request register, set timer bit
+              // Set timer interrupt request
+              // Get interrupt request register, set timer bit
             }
         }
     }
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Wrapper around instruction execution
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// When running, the logging data isn't needed.  The worker thread
-// needs to clear it to prevent a space leak.
+// When running, the logging data isn't needed.  The worker
+// thread needs to clear it to prevent a space leak.
 
 export function clearMemLogging (es) {
     es.copyable.memFetchInstrLog = []
@@ -731,10 +807,9 @@ export function clearRegLogging (es) {
     es.copyable.regStored = []
 }
 
-
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Machine language semantics
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 export function clearInstrDecode (es) {
     es.instrOpCode = null
@@ -750,8 +825,8 @@ export function clearInstrDecode (es) {
     es.instrEffect = []
 }
 
-// Execute one instruction; runs in either in any thread.  The choice
-// of thread is determined by es.
+// Execute one instruction; runs in either in any thread.
+// The choice of thread is determined by es.
 
 export function executeInstruction (es) {
     com.mode.devlog (`%cem.executeInstruction starting`, 'color:blue')
