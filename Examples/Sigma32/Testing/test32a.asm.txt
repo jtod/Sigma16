@@ -3,6 +3,10 @@
    data  $2200
    data  $e216   ; ladd R2,R2,R2
    data  $2200
+
+   ladd  R1,R2,R3
+   ladd  R5,R1,R2
+
    data  $e216   ; ladd R2,R2,R2
    data  $2200
    data  $e216   ; ladd R2,R2,R2

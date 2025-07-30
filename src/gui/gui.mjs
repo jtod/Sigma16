@@ -926,8 +926,10 @@ function prepareButton (bid,fcn) {
 // Pane buttons; initialization must occur after emulator state is defined
 
 function initializeButtons () {
-    prepareButton ('Arch16button', setArch16)
-    prepareButton ('Arch32button', setArch32)
+//    prepareButton ('Arch16button', setArch(16))
+//    prepareButton ('Arch32button', setArch(32))
+//    prepareButton ('Arch16button', setArch16)
+//    prepareButton ('Arch32button', setArch32)
     prepareButton ('Welcome_Pane_Button',   () => showPane (gst) (WelcomePane));
     prepareButton ('Examples_Pane_Button',  () => showPane (gst) (ExamplesPane));
     prepareButton ('Modules_Pane_Button',   () => showPane (gst) (ModulesPane));
@@ -3050,39 +3052,34 @@ function initializeSystem () {
 // Instruction set architecture selection
 //-----------------------------------------------------------------------------
 
-function setArch16 () {
-    console.log ('Setting mode to S16')
-    const es = gst.es
-    es.arch = arch.S16
-    document.documentElement.style
-        .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
-//    return // first call is too soon, before gst.es set
-    console.log ("skipping es.addressMask 16")
-    es.addressMask = arith.word16mask
-    console.log (`addressMask (S16) = ${es.addressMask}`)
-    setRegisterSize (16)
-        highlightArchButton('Arch16button')
-        unhighlightArchButton('Arch32button')
-    procReset (gst)
-}
-window.setArch16 = setArch16;
+// Set architecture mode to k bit words; k should be 16 or
+// 32.  If k has any other value, the mode will be set to 16.
 
-function setArch32 () {
-    console.log ('Setting mode to S32')
+function setArch (x) {
+    const k = x==32 ? 32 : 16 // make sure it's 16 or 32
+    const notk = k==32 ? 16 : 32 // the other word size
     const es = gst.es
-    es.arch = arch.arch32
-    document.documentElement.style
-        .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
-    console.log ("skipping es.addressMask 32")
-    es.addressMask = arith.word32mask // ??? es.addressMask???
-    console.log (`addressMask (S32) = ${es.addressMask}`)
-    setRegisterSize (32)
-        highlightArchButton('Arch32button')
-        unhighlightArchButton('Arch16button')
-    gst.es.pc.show = arith.wordToHex8
+    console.log (`Setting arch mode to ${k}`)
+    es.arch = k==32 ? arch.S32 : arch.S16
+    const w = k==32 ? '32' : '16'
+    document.documentElement.style.setProperty
+      ('--RegValWidth', `var(--RegValWidth${w})`)
+    es.addressMask = k==32 ?
+        arith.word32mask : arith.word16mask
+    console.log (`addressMask = ${es.addressMask}`)
+    setRegisterSize (k)
+    //    highlightArchButton(`Arch{k}button`)
+    // are the buttons defiled?
+//    unhighlightArchButton(`Arch{notk}button`)
     procReset (gst)
 }
-window.setArch32 = setArch32;
+window.setArch = setArch;
+//    const prop =  `var(--RegValWidth${w})`
+//    console.log (`setArch prop = xx${prop}xx`)
+//      ('--RegValWidth', prop)
+//    gst.es.pc.show = arith.wordToHex8
+//    console.log ("skipping es.addressMask 32")
+// ??? es.addressMask???
 
 function setRegisterSize (size) {
     //    return // disable, taking different approach...
@@ -3315,6 +3312,44 @@ window.onload = function () {
     enableKeyboardShortcuts ()
     setModeUser ()
     setMDhba (gst)
-//    setArch16()
+//     setArch(16) can't do it yet
     console.log ('system is now running')
 }
+
+// Deprecated
+
+/* replaced by setArch(k)
+function setArch16 () {
+    console.log ('Setting mode to S16')
+    const es = gst.es
+    es.arch = arch.S16
+    document.documentElement.style
+        .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
+//    return // first call is too soon, before gst.es set
+    console.log ("skipping es.addressMask 16")
+    es.addressMask = arith.word16mask
+    console.log (`addressMask (S16) = ${es.addressMask}`)
+    setRegisterSize (16)
+        highlightArchButton('Arch16button')
+        unhighlightArchButton('Arch32button')
+    procReset (gst)
+}
+window.setArch16 = setArch16;
+
+function setArch32 () {
+    console.log ('Setting mode to S32')
+    const es = gst.es
+    es.arch = arch.S32
+    document.documentElement.style
+        .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
+    console.log ("skipping es.addressMask 32")
+    es.addressMask = arith.word32mask // ??? es.addressMask???
+    console.log (`addressMask (S32) = ${es.addressMask}`)
+    setRegisterSize (32)
+        highlightArchButton('Arch32button')
+        unhighlightArchButton('Arch16button')
+    gst.es.pc.show = arith.wordToHex8
+    procReset (gst)
+}
+window.setArch32 = setArch32;
+*/

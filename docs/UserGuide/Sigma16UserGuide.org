@@ -5856,13 +5856,13 @@ Instructions and pseudoinstructions in each format:
 
 ** Sigma32 /(experimental)/
 
-Sigma32 is an extension of Sigma16 to 32 bit words.  It
-provides 32 bit arithmetic, and addresses are 32 bits so it
-has a much larger memory.
-
 /Sigma32 is experimental and under development.  It is only
 partially implemented, and many details in this section are
 likely to change in the future./
+
+Sigma32 is an extension of Sigma16 to use 32 bit words.  It
+provides 32 bit arithmetic, and addresses are 32 bits so it
+has a much larger memory.
 
 Sigma32 is backwards compatible with Sigma16: every Sigma16
 program executes on Sigma32 exactly the same as on Sigma16.
@@ -5870,7 +5870,8 @@ Sigma32 extends the Sigma16 registers to 32 bits; the Sigma16
 instructions operate on the rightmost 16 bits of the
 registers.  The Sigma32 instructions are similar to their 16
 bit counterparts, so learning how to use them is
-straightforward.
+straightforward.  Programs can mix 16 bit and 32 bit
+instructions freely.
 
 In Sigma32, addresses are 32 bits.  The Sigma16 memory has
 $2^{16}$ words (i.e. 65,536 words).  Sigma32 can address
@@ -5887,12 +5888,12 @@ the registers are 32 bits and all instructions can be used.
 When launched, the app starts out in 16 bit mode.
 - To switch the system to 32 bit mode, open the browser
   console.  In Chrome and Edge, enter *Ctrl Shift J*.  In the
-  console, enter *setArch32()*.
-- To go back to the default 16 bit mode, enter *setArch16()*.
+  console, enter *setArch(32)*.
+- To go back to the default 16 bit mode, enter *setArch(16)*.
 - In the future, the GUI will provide buttons to switch
   modes.
 
-The 32 bit instructions are represened in EXP format.
+The 32 bit instructions are represented in EXP format.
 
 +----------------------+------+------+-----------------------------+
 | Assembly             | Op   | Code | Effect                      |
@@ -5903,17 +5904,17 @@ The 32 bit instructions are represened in EXP format.
 | lsub Rd,Re,Rf        | e,17 | Ed17 | Rd := Re+rf                 |
 |                      |      | ef00 | Rd := Re+rf                 |
 +----------------------+------+------+-----------------------------+
-| lmul Rd,Ra,Rb        | e,16 | Ed16 | Rd := Re+rf                 |
+| lmul Rd,Ra,Rb        | e,18 | Ed18 | Rd := Re+rf                 |
 +----------------------+------+------+-----------------------------+
-| ldiv Rd,Ra,Rb        | e,16 | Ed16 | Rd := Re+rf                 |
+| ldiv Rd,Ra,Rb        | e,19 | Ed19 | Rd := Re+rf                 |
 +----------------------+------+------+-----------------------------+
-| lcmp Rd,Ra,Rb        | e,16 | Ed16 | Rd := Re+rf                 |
+| lcmp Rd,Ra,Rb        | e,1a | Ed1A | Rd := Re+rf                 |
 +----------------------+------+------+-----------------------------+
-| llea Rd,disp[Ra]     | f,0  |      | R[d] := disp+R[a]           |
+| llea Rd,fgh[Re]      | e,1b | Ed1B | Rd := fgh+Re                |
++----------------------+------+------+------------------ ----------+
+| lload Rd,fgh[Re]     | e,1c | Ed1C | Rd := M[fgh+Re]             |
 +----------------------+------+------+-----------------------------+
-| lload Rd,disp[Ra]    | f,1  |      | R[d] := M[disp+R[a]]        |
-+----------------------+------+------+-----------------------------+
-| lstore Rd,disp[Ra]   | f,2  |      | M[disp+R[a]] := R[d]        |
+| lstore Rd,fgh[Ra]    | e,1d | Ed1D | M[fgh+Re] := Rd             |
 +----------------------+------+------+-----------------------------+
 | ljumpz Rd,disp[Ra]   | e,00 | Ed00 | Rd.f:g := h#(Rd.f:g,Re.f:g) |
 +----------------------+------+------+-----------------------------+

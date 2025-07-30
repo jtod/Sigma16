@@ -1424,6 +1424,27 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2);
 */
+	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRX) {
+            console.log ("pass2 EXP/ARX -- 32 bit")
+            // EXP-RX llea, lload, lstore
+            // llea Rd,fgh[Re]  Ed1B efgh
+            requireNoperands (ma, s, 2);
+            const d = requireReg (ma, s, s.operands[0]);
+            const {disp,index} = requireX(ma,s,s.operands[1]);
+//            let v = evaulate (ma, s, s.address.word+1, disp)
+            let v = disp
+            // handle relocation
+// nwws object to specify relocation for 12 bit displacement,
+// and possibly for 8 bit displacement?  ?????
+	    s.codeWord1 = mkWord448 (
+                op.opcode[0], d, op.opcode[1]);
+            s.codeWord2 = v // v..word // use e field for reg
+            generateObjectWord (
+                ma, s, s.address.word, s.codeWord1);
+	    generateObjectWord (
+                ma, s, s.address.word+1, s.codeWord2)
+            // handleVal for relocation
+               
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRRX) {
             // EXP-RRX save, restore
