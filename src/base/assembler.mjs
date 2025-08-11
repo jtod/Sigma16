@@ -1,56 +1,64 @@
 // Sigma16: assembler.mjs
-// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
+// Copyright (C) 2025 John T. O'Donnell.
+// License: GNU GPL Version 3. See Sigma16/README, LICENSE
+// https://jtod.github.io/home/Sigma16
 
-// This file is part of Sigma16.  Sigma16 is free software: you can
-// redistribute it and/or modify it under the terms of the GNU General
-// Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
-// Sigma16 is distributed in the hope that it will be useful, but
+// This file is part of Sigma16.  Sigma16 is free software:
+// you can redistribute it and/or modify it under the terms
+// of Version 3 of the GNU General Public License as
+// published by the Free Software Foundation.  Sigma16 is
+// distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.  You should have received
-// a copy of the GNU General Public License along with Sigma16.  If
-// not, see <https://www.gnu.org/licenses/>.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// the GNU General Public License for more details.  You
+// should have received a copy of the GNU General Public
+// License along with Sigma16.  If not, see
+// <https://www.gnu.org/licenses/>.
 
-//---------------------------------------------------------------------
-// assembler.mjs translates assembly language to machine language
-//---------------------------------------------------------------------
+//-------------------------------------------------------------
+// assembler.mjs translates assembly language to machine
+// language, including object code, metadata, and assembly
+// listing
+// ------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as st from './state.mjs';
 import * as arch from './architecture.mjs';
 import * as arith from './arithmetic.mjs';
 
-//---------------------------------------------------------------------
+//-------------------------------------------------------------
 // Global
-//---------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Buffers to hold generated object code
 
-let objBufferLimit = 8;             // how many code items to allow per line
-let objectWordBuffer = [];          // list of object code words
-let relocationAddressBuffer = [];   // list of relocation addresses
+let objBufferLimit = 8;
+  // how many code items to allow per line
+let objectWordBuffer = [];
+  // list of object code words
+let relocationAddressBuffer = [];
+  // list of relocation addresses
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // GUI interface to the assembler
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The assembler finds the currently selected module m, and then picks
-// up the source text from m.currentAsmSrc.  It leaves its results in
-// m.asmInfo.  If it finds the name of the module being assembled from
-// a module statement, it updates the module's record in
-// st.env.moduleSet.
+// The assembler finds the currently selected module m, and
+// then picks up the source text from m.currentAsmSrc.  It
+// leaves its results in m.asmInfo.  If it finds the name of
+// the module being assembled from a module statement, it
+// updates the module's record in st.env.moduleSet.
 
-// Main functions in the assembler API:
-// enterAssemblerPage ()   -- when the user goes to the Assembler page
-// assemblerGUI ()         -- when "Assemble" button is clicked
-// setSource ()            -- when "Show Source" button is clicked
-// displayObjectListing () -- when "Show Object" button is clicked
-// displayAsmListing ()    -- when "Show Listing" button is clicked
-// displayMetadata ()      -- when "Show Metadata" button is clicked
+// Main functions in the assembler API: when...
+// enterAssemblerPage ()   -- user goes to the Assembler page
+// assemblerGUI ()         -- "Assemble" button is clicked
+// setSource ()            --  "Show Source" button is clicked
+// displayObjectListing () -- "Show Object" button is clicked
+// displayAsmListing ()    -- "Show Listing" button is clicked
+// displayMetadata ()      -- "Show Metadata" button is clicked
 
-// Called when user goes to the Assembler page
+// enterAssemblerPage is called when user goes to the
+// Assembler page
 
 export function enterAssemblerPage () {
     const m = st.env.moduleSet.getSelectedModule ()
@@ -67,10 +75,10 @@ const notYet = "Listing will be available after assembly"
 
 // Called when user clicks "Assemble" on assembler page
 
-// m/asm module has initial value of null for ai; assembler creates ai
-// and returns it; assembler receives basename and source text as
-// args; not necessary to embed ai inside a module (don't need it for
-// cli)
+// m/asm module has initial value of null for ai; assembler
+// creates ai and returns it; assembler receives basename and
+// source text as args; not necessary to embed ai inside a
+// module (don't need it for cli)
 
 export function assemblerGUI () {
     com.mode.devlog ("assemblerGUI starting");
@@ -92,9 +100,9 @@ export function assemblerGUI () {
     com.mode.devlog ("++++++++++++++++++++ m.showShort:")
     com.mode.devlog (m.showShort())
     com.mode.devlog ("++++++++++++++++++++ asm done")
-    console.log (`****************** ai.objMd.modName = ${ai.objMd.modName}`)
+    console.log (`*** ai.objMd.modName = ${ai.objMd.modName}`)
     ai.objMd.showShort ()
-    console.log (`****************** asmGUI back m.modName=${m.modName}`)
+    console.log (`*** asmGUI back m.modName=${m.modName}`)
 }
 
 // Called when user clicks "Show Source" on the assembler page
@@ -111,16 +119,20 @@ export function mDisplayAsmSource (m) {
     let xs = m.asmSrcLines.slice ()
     xs.unshift("<pre class='HighlightedTextAsHtml'>");
     xs.push("</pre>");
-    document.getElementById('AsmTextHtml').innerHTML = xs.join("\n");
+    document.getElementById('AsmTextHtml').innerHTML =
+      xs.join("\n");
 }
 
 // Called when user clicks "Show Object" on the assembler page
 
 export function displayObjectListing () {
     const m = st.env.moduleSet.getSelectedModule ();
-    const codeText = m.objMd ? m.objMd.objText : "no object code";
-    let listing = "<pre class='VerbatimText'>" + codeText + "</pre>";
-    document.getElementById('AsmTextHtml').innerHTML = listing;
+    const codeText = m.objMd ?
+      m.objMd.objText : "no object code";
+    let listing = "<pre class='VerbatimText'>"
+      + codeText + "</pre>";
+    document.getElementById('AsmTextHtml').innerHTML =
+      listing;
 }
 //    const codeText = m.asmInfo.objMd.objText;
 //    const codeText = m.objText // ***********************
@@ -134,43 +146,47 @@ export function displayAsmListing () {
     let lst = ai.metadata.listingDec; // array of listing lines
     lst.unshift("<pre class='HighlightedTextAsHtml'>")
     lst.push("</pre>")
-    document.getElementById('AsmTextHtml').innerHTML = lst.join("\n")
+    document.getElementById('AsmTextHtml').innerHTML =
+      lst.join("\n")
 }
 
-// Called when user clicks "Show Metadata" on the assembler page
+// Called when user clicks "Show Metadata" on the assembler
+// page
 
 export function displayMetadata () {
     const m = st.env.moduleSet.getSelectedModule ();
     const mdText = m.asmInfo.objMd.mdText;
-    let txt = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
+    let txt = "<pre class='HighlightedTextAsHtml'>"
+      + mdText + "</pre>";
     document.getElementById('AsmTextHtml').innerHTML = txt;
 }
 
-/* buggy version
-export function displayMetadata () {
-    const m = st.env.moduleSet.getSelectedModule ();
-    const src = m.getAsmText ();
-    //    const mdText = m.asmInfo.objMd.mdText;
-    const mdText = m.mdText // *************************
-    let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
-    document.getElementById('AsmTextHtml').innerHTML = listing;
-}
-*/
-
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Character set
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// CharSet is a string containing all the characters that may appear
-// in a valid Sigma16 assembly language source program.  It's always
-// best to edit source programs using a text editor, not a word
-// processor.  Word processors are likely to make character
-// substitutions, for example en-dash for minus, typeset quote marks
-// for typewriter quote marks, and so on.  Spaces rather than tabs
-// should be used for indentation and layout.
+// If random special characters (especially unprintable ones)
+// appera in a source program, the assembler will be unable
+// to provide useful error messages, and the programmer can
+// be seriously confused.  Therefore Sigma16 defines the set
+// of characters that may appear in an assembly language
+// program, and it gives an error message if any character
+// not in that set is encountered.
+
+// CharSet is a string containing all the characters that may
+// appear in a valid Sigma16 assembly language source
+// program.
+
+// It's always best to edit source programs using a text
+// editor, not a word processor.  Word processors are likely
+// to make character substitutions, for example en-dash for
+// minus, typeset quote marks for typewriter quote marks, and
+// so on.  Spaces rather than tabs should be used for
+// indentation and layout.
 
 const CharSet =
-      "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // letters
+      "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+          // letters
       + "0123456789"              // digits
       + " \t,;\r\n"               // separators
       + '"'                       // quotes
@@ -178,10 +194,9 @@ const CharSet =
       + ".$[]()+-*"               // punctuation
       + "?¬£`<=>!%^&{}#~@:|/\\";  // other
 
-
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Instruction fields
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 export const Field_op = Symbol ("op");
 export const Field_d = Symbol ("d");
@@ -239,46 +254,48 @@ function wrapWord (x) {
 }
 
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Evaluation of expressions
-//----------------------------------------------------------------------
+//--------------------------------------------------------------
 
-// An expression is assembly language syntax that specifies a value.
-// The assembler evaluates expressions to calculate the corresponding
-// value.
+// An expression is assembly language syntax that specifies a
+// value.  The assembler evaluates expressions to calculate
+// the corresponding value.
 
-// Expressions are assembly language syntax to define values that
-// appear in the machine language code.  Expression evaluation occurs
-// at assembly time.  The object code contains only words, but cannot
-// contain expressions.
+// Expressions are assembly language syntax to define values
+// that appear in the machine language code.  Expression
+// evaluation occurs at assembly time.  The object code
+// contains only words, but cannot contain expressions.
 
-//   nonnegative decimal integer:   0, 34       fixed
-//   negative decimal integer:      -103        fixed
-//   identifier:                    xyz, loop   fixed or relocatable
+// nonnegative decimal integer:  0, 34      fixed
+// negative decimal integer:     -103       fixed
+// identifier:                   xyz, loop  fixed or relocatable
 //   Later, will allow limited arithmetic on expressions
 
-// The evaluator takes an expression and environment and returns a
-// value, which may be either fixed or relocatable.
+// The evaluator takes an expression and environment and
+// returns a value, which may be either fixed or relocatable.
 
-// Arguments: m is module, s is statement, a is address where the
-// value will be placed (the address a is passed in because the word
-// being evaluated could appear in the second word of an instruction
-// (for RX etc), or any word (in the case of a data statement)).
+// Arguments: m is module, s is statement, a is address where
+// the value will be placed (the address a is passed in
+// because the word being evaluated could appear in the
+// second word of an instruction (for RX etc), or any word
+// (in the case of a data statement)).
 
-// Evaluate returns a word which will be inserted into the object code
-// during pass 2.  This could be the actual final value (if it's a
-// relocatable label) or a placeholder value of 0 (if it's an import).
-// Evaluate also records additional information about any symbols that
-// appear in the expression: the definition line (used for printing
-// the symbol table in the assembly listing) and the (relocatable)
-// address where the symbol appears (to enable the linker to insert
-// the values of imports).  If an imported name appears in an
-// expression, the expression must consist entirely of that name: for
-// example, x+1 is legal if x is a local name but not if x is an
-// import.
+// Evaluate returns a word which will be inserted into the
+// object code during pass 2.  This could be the actual final
+// value (if it's a relocatable label) or a placeholder value
+// of 0 (if it's an import).  Evaluate also records
+// additional information about any symbols that appear in
+// the expression: the definition line (used for printing the
+// symbol table in the assembly listing) and the
+// (relocatable) address where the symbol appears (to enable
+// the linker to insert the values of imports).  If an
+// imported name appears in an expression, the expression
+// must consist entirely of that name: for example, x+1 is
+// legal if x is a local name but not if x is an import.
 
-// s and a are needed to record the usage line of any identifiers that
-// occur in x.
+// s and a are needed to record the usage line of any
+// identifiers that occur in x.
 
 function evaluate (ma, s, a, x) {
     com.mode.devlog(`Enter evaluate ${typeof(x)} <${x}>`);
@@ -306,15 +323,16 @@ function evaluate (ma, s, a, x) {
     return result;
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Assembly language statement
-//----------------------------------------------------------------------
+//--------------------------------------------------------------
 
-// Each statement has a listing line which contains the line number,
-// object code, and source code.  There are two versions of this:
-// listingLinePlain just contains the text of the listing line, while
-// listingLineHighlightedFields contains <span> elements to enable the
-// various fields to be highlighted with colors.
+// Each statement has a listing line which contains the line
+// number, object code, and source code.  There are two
+// versions of this: listingLinePlain just contains the text
+// of the listing line, while listingLineHighlightedFields
+// contains <span> elements to enable the various fields to
+// be highlighted with colors.
 
 function showAsmStmt (s) {
     com.mode.devlog (`*** showAsmStmt line=${s.lineNumber}`);
@@ -329,27 +347,29 @@ function showAsmStmt (s) {
 
 function mkAsmStmt (lineNumber, address, srcLine) {
     com.mode.devlog (`@@@@@@@@ mkAsmStmt ${address.toString()}`);
-    return {lineNumber,                        // array index of statement
-	    address,                           // address where code goes
-	    srcLine,                           // source line
-	    listingLinePlain: "",              // object and source text
-	    listingLineHighlightedFields : "", // listing with field spans
-	    fieldLabel : '',                   // label
-	    fieldSpacesAfterLabel : '',        // white space
-	    fieldOperation : '',               // operation mnemonic
-	    fieldSpacesAfterOperation : '',    // white space
-	    fieldOperands : '',                // operands
-	    fieldComment : '',                 // comments after operand or ;
-	    hasLabel : false,                  // statement has a valid label
-            operation : null,                  // operation spec if it exists
-            operands : [],                     // individual operands
-	    codeSize : st.Zero,                // number of words generated
-	    orgAddr : -1,                      // addr specified by org/block
+    return {lineNumber,              // array index of statement
+	    address,                 // address where code goes
+	    srcLine,                 // source line
+	    listingLinePlain: "",    // object and source text
+	    listingLineHighlightedFields : "",
+                                     // listing with field spans
+	    fieldLabel : '',         // label
+	    fieldSpacesAfterLabel : '',  // white space
+	    fieldOperation : '',     // operation mnemonic
+	    fieldSpacesAfterOperation : '',  // white space
+	    fieldOperands : '',      // operands
+	    fieldComment : '',    // comments after operand or ;
+	    hasLabel : false,     // statement has a valid label
+            operation : null,     // operation spec if it exists
+            operands : [],        // individual operands
+	    codeSize : st.Zero,   // number of words generated
+	    orgAddr : -1,         // addr specified by org/block
             reserveSize : st.Zero,
-            locCounterUpdate : st.Zero,    // new LC after reserve directive
-	    codeWord1 : null,                  // first word of object
-	    codeWord2 : null,                  // second word of object
-	    errors : []                        // lines of error messages
+            locCounterUpdate : st.Zero,
+                               // new LC after reserve directive
+	    codeWord1 : null,  // first word of object code
+	    codeWord2 : null,  // second word of object code
+	    errors : []        // lines of error messages
 	   }
 }
 
@@ -378,12 +398,12 @@ function printAsmStmt (ma,x) {
     }
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 //  Error messages
-//----------------------------------------------------------------------
+//--------------------------------------------------------------
 
-// Report an assembly error: s is an assembly source line, err is an
-// error message
+// Report an assembly error: s is an assembly source line,
+// err is an error message
 
 function mkErrMsg (ma,s,err) {
     com.mode.devlog (err);
@@ -403,9 +423,9 @@ function removeCR (xs) {
     return xs.split("").filter (c => c.charCodeAt(0) != 13).join("");
     }
 
-// Check that the source code contains only valid characters (defined
-// to be characters in CharSet).  Do this check after removing \r
-// (carriage return) characters.
+// Check that the source code contains only valid characters
+// (defined to be characters in CharSet).  Do this check
+// after removing \r (carriage return) characters.
 
 function validateChars (xs) {
     com.mode.devlog (`validateChars`);
@@ -422,18 +442,19 @@ function validateChars (xs) {
     return badlocs
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 //  Assembler
-//----------------------------------------------------------------------
+//--------------------------------------------------------------
 
-// Translate assembly language source code to object code, also
-// producing an assembly listing and metadata.  The argument m is an
-// s16module which contains the source code in m.currentAsmSrc.  The
-// assembler obtains an existing asmInfo from m, names it ai, and
-// fills in the fields of ai.  This approach enables bidirectional
-// transfer of information about the module between the ModuleSet and
-// the assembler.  This function is the main translator, used for both
-// gui and cli.
+// Translate assembly language source code to object code,
+// also producing an assembly listing and metadata.  The
+// argument m is an s16module which contains the source code
+// in m.currentAsmSrc.  The assembler obtains an existing
+// asmInfo from m, names it ai, and fills in the fields of
+// ai.  This approach enables bidirectional transfer of
+// information about the module between the ModuleSet and the
+// assembler.  This function is the main translator, used for
+// both gui and cli.
 
 // m/asm omir m arg, provide source code
 
@@ -478,11 +499,13 @@ export function assembler (baseName, srcText) {
         let y = com.highlightField (x, 'ERR');
         ai.metadata.unshiftSrc (x, y, y);
     }
-    st.displaySymbolTableHtml(ai); // add symbol table to listing
+    st.displaySymbolTableHtml(ai);
+      // add symbol table to listing
     const mdText = ai.metadata.toText ();
     ai.objectText = ai.objectCode.join("\n");
     ai.mdText = mdText
-    ai.objMd = new st.ObjMd (ai.asmModName, ai.objectText, mdText)
+    ai.objMd = new st.ObjMd (ai.asmModName,
+                             ai.objectText, mdText)
     return ai
 }
 
@@ -508,9 +531,9 @@ export function assembler (baseName, srcText) {
 //    console.log (`Assembler creating ObjMd:\n${ai.objMd.showShort()}`);
 //    com.mode.devlog (ai.objectText);
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 //  Regular expressions for the parser
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Syntax of assembly language
 
@@ -549,52 +572,61 @@ const rrxParser =
 const rrParser =
     /^R([0-9a-f]|(?:1[0-5])),R([0-9a-f]|(?:1[0-5]))$/;
 
-// A register is R followed by register number, which must be either
-// a 1 or 2 digit decimal number between 0 and 15, or a hex digit.
-// An aRRR operand consists of three registers, separated by comma
-// An RRRR operand consists of four registers, separated by comma
+// A register is R followed by register number, which must be
+// either a 1 or 2 digit decimal number between 0 and 15, or
+// a hex digit.  An aRRR operand consists of three registers,
+// separated by comma An RRRR operand consists of four
+// registers, separated by comma
 
-      
-// A string literal consists of arbitrary text enclosed in "...", for
-// example "hello".  String literals are most commonly used in data
-// statements, but a string literal containing just one character can
-// also be used in a lea instruction.  If a string literal contains a
-// double quote ", this must be preceded by a backslash to escape it.
+// A string literal consists of arbitrary text enclosed in
+// "...", for example "hello".  String literals are most
+// commonly used in data statements, but a string literal
+// containing just one character can also be used in a lea
+// instruction.  If a string literal contains a double quote
+// ", this must be preceded by a backslash to escape it.
 
-// parseString: match " followed by any number of (\" or ^") followed
-// by ".  It's important to check for the 2-character sequence \"
-// before checking for the single character ^" --- otherwise the \
-// will match the ^" so the following " will end the string
-// prematurely.
-// a quoted character is \x where x is any character; backslash is \\
+// parseString: match " followed by any number of (\" or ^")
+// followed by ".  It's important to check for the
+// 2-character sequence \" before checking for the single
+// character ^" --- otherwise the \ will match the ^" so the
+// following " will end the string prematurely.  a quoted
+// character is \x where x is any character; backslash is \\
 
 const parseString = /"((\\")|[^"])*"/;
 
-// Split into line fields: non-space characters but space can appear in string
+// Split into line fields: non-space characters but space can
+// appear in string
+
 // A field is (non-whitespace | string) *
 // String is " (non" | \" )* "
 
-// name: may contain letters, digits, underscore; must begin with letter
+// name: may contain letters, digits, underscore; must begin
+// with letter
+
 // decimal number: optional - followed by digits
 // hex number: $ followed by four hex digits (a/A are both ok)
-// character: 'x' where x is any character. a quote is '\''. ',' is ok
+// character: 'x' where x is any character. a quote is
+//   '\''. ',' is ok
 
-// field: continguous non-space characters, separated from other
-// fields by white space.  The first field must begin in the first
-// column, i.e. cannot follow any white space.  A field may contain a
-// string literal, which might contain one or more white space
-// characters.
+// field: continguous non-space characters, separated from
+// other fields by white space.  The first field must begin
+// in the first column, i.e. cannot follow any white space.
+// A field may contain a string literal, which might contain
+// one or more white space characters.
 
-// The rrxParser accepts any string that contains the characters that
-// are legal for the displacement field, but the field needs to be
-// checked for validity (e.g. 23xy is not a valid displacement).
+// The rrxParser accepts any string that contains the
+// characters that are legal for the displacement field, but
+// the field needs to be checked for validity (e.g. 23xy is
+// not a valid displacement).
 
 const regExpField = '((?:(?:(?:"(?:(?:\\")|[^"])*")|[^\\s";])+)?)';
 
-// A field may contain non-space characters, and may contain a string
-// literal, but cannot contain a space or ; (unless those appear in a
-// string literal).  The field terminates as soon as a space or ; or
-// end of the line is encountered.
+// A field may contain non-space characters, and may contain
+// a string
+
+// literal, but cannot contain a space or ; (unless those
+// appear in a string literal).  The field terminates as soon
+// as a space or ; or end of the line is encountered.
 
 // Simplified version of field: don't allow string literals
 const regexpFieldNoStringLit =  '((?:[^\\s";]*)?)'
@@ -604,14 +636,13 @@ const regExpComment = '((?:.*))';
 
 // No need to anchor to end of line; a trailing \r is ok
 const regexpSplitFields =
-      '^'                             // anchor to beginning of line
-      + regexpFieldNoStringLit        // label
-      + regExpWhiteSpace              // separator
-      + regexpFieldNoStringLit        // operation
-      + regExpWhiteSpace              // separator
-      + regexpFieldNoStringLit        // operands
-      + regExpComment                 // comment
-
+      '^'                        // anchor to beginning of line
+      + regexpFieldNoStringLit   // label
+      + regExpWhiteSpace         // separator
+      + regexpFieldNoStringLit   // operation
+      + regExpWhiteSpace         // separator
+      + regexpFieldNoStringLit   // operands
+      + regExpComment            // comment
 
 const parseField = new RegExp(regExpField);
 const parseSplitFields = new RegExp(regexpSplitFields);
@@ -635,9 +666,9 @@ function requireX (ma, s, field) {
     return result
 }
 
-// requireNoperands checks whether the instruction contains the
-// correct number of operands, and if there aren't enough it defiles
-// sufficient dummy ones.
+// requireNoperands checks whether the instruction contains
+// the correct number of operands, and if there aren't enough
+// it defiles sufficient dummy ones.
 
 function requireNoperands (ma, s, n) {
     let k = s.operands.length
@@ -651,11 +682,12 @@ function requireNoperands (ma, s, n) {
     }
 }
 
-// requireK4: obtain a 4-bit word from source.  The context is ma and
-// statement s.  xs is a text field from assembly language source; it
-// should evaluate to a 4-bit constant and be placed in "field" in the
-// object code word at address a.  The value will not be relocated,
-// but it could be imported.
+// requireK4: obtain a 4-bit word from source.  The context
+// is ma and statement s.  xs is a text field from assembly
+// language source; it should evaluate to a 4-bit constant
+// and be placed in "field" in the object code word at
+// address a.  The value will not be relocated, but it could
+// be imported.
 
 // ??? todo  Generate import if necessary
 // ??? todo  give message if result>15
@@ -677,12 +709,14 @@ function requireK4 (ma, s, field, xs) {
     return result;
 }
 
-// k8 is always fixed, never relocatable, and is always in the gh field
+// k8 is always fixed, never relocatable, and is always in
+// the gh field
 
-// ma is assembler context, s is statement, a is address where the k8
-// field will be inserted, field is the name of the field where it
-// will be inserted (currently this will always be gh field), and xs
-// is the source string specifying the value.
+// ma is assembler context, s is statement, a is address
+// where the k8 field will be inserted, field is the name of
+// the field where it will be inserted (currently this will
+// always be gh field), and xs is the source string
+// specifying the value.
 
 function requireK8 (ma, s, a, field, xs) {
     com.mode.devlog (`requireK8 ${xs}`);
@@ -691,9 +725,9 @@ function requireK8 (ma, s, a, field, xs) {
     return result;
 }
 
-// field should be a register, e.g. R3 or r12.  Return the number (3,
-// 12) but if the syntax is invalid, add an error message to the
-// statement s and return 0.
+// field should be a register, e.g. R3 or r12.  Return the
+// number (3, 12) but if the syntax is invalid, add an error
+// message to the statement s and return 0.
 
 function requireReg (ma, s, field) {
     let result = 0
@@ -713,16 +747,17 @@ function requireReg (ma, s, field) {
     return result;
 }
 
-//----------------------------------------------------------------------
-//  Parser
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
+// Parser
+//--------------------------------------------------------------
 
-// Parse the source for line i and update the object with the results.
-// Each source line is a statement; a statement consists of a sequence
-// of fields and whitespace-fields.  Each is optional.  The structure
-// is:
+// Parse the source for line i and update the object with the
+// results.  Each source line is a statement; a statement
+// consists of a sequence of fields and whitespace-fields.
+// Each is optional.  The structure is:
 
-// label, whitespace, operation, whitespace, operands, whitespace
+// label, whitespace, operation, whitespace, operands,
+// whitespace
 
 function parseAsmLine (ma,i) {
     com.mode.devlog (`parseAsmLine i=${i}`);
@@ -751,10 +786,10 @@ function parseAsmLine (ma,i) {
     com.mode.devlog (`  fieldComment = /${s.fieldComment}/`);
 }
 
-// Set hasLabel to true iff there is a syntactically valid label.  If
-// the label field isn't blank but is not syntactically valid
-// (i.e. doesn't match the regular expression for names), then
-// generate an error message.
+// Set hasLabel to true iff there is a syntactically valid
+// label.  If the label field isn't blank but is not
+// syntactically valid (i.e. doesn't match the regular
+// expression for names), then generate an error message.
 
 function parseLabel (ma,s) {
     if (s.fieldLabel == '') {
@@ -769,9 +804,10 @@ function parseLabel (ma,s) {
 
 // Set operation to the instruction set object describing the
 // operation, if the operation field is defined in the map of
-// operations.  Otherwise leave operation=null.  Thus s.operation can
-// be used as a Boolean to determine whether the operation exists, as
-// well as the specification of the operation if it exists.
+// operations.  Otherwise leave operation=null.  Thus
+// s.operation can be used as a Boolean to determine whether
+// the operation exists, as well as the specification of the
+// operation if it exists.
 
 // check ma is ai ?????
 function parseOperation (ma,s) {
@@ -788,7 +824,7 @@ function parseOperation (ma,s) {
                 ma.asmModName = s.fieldLabel
 //                ma.asmInfo.asmModName = s.fieldLabel
 //  ma.asmInfo.objMd.modName = s.fieldLabel     not defined yet
-                com.mode.devlog (`Set module name: ${ma.modName}`);
+                com.mode.devlog (`Set mod name: ${ma.modName}`);
             } else if (s.operation.ifmt==arch.iData
                        && s.operation.afmt==arch.aData) {
                 s.codeSize = st.One.copy();
@@ -798,16 +834,18 @@ function parseOperation (ma,s) {
                                   s.fieldOperands);
                 //                s.reserveAddr = y.word;
                 s.reserveSize = y;
-                com.mode.devlog (`parse Operation reserveSize=${s.reserveSize}`);
+                com.mode.devlog (
+                  `parse Op res.Size=${s.reserveSize}`);
             } else if (s.operation.ifmt==arch.iDir
                        && s.operation.afmt==arch.aOrg) {
                 let y = evaluate (ma, s, ma.locationCounter,
                                   s.fieldOperands);
                 //                s.orgAddr = y.word;
                 s.orgAddr = y
-                com.mode.devlog (`parse Operation orgAddr=${s.orgAddr}`);
+                com.mode.devlog (`parse Op orgAd=${s.orgAddr}`);
             } else {
-	        s.codeSize = st.mkConstVal(arch.formatSize(x.ifmt));
+	        s.codeSize = st.mkConstVal(
+                              arch.formatSize(x.ifmt));
             }
 	} else {
             s.operation = arch.emptyOperation;
@@ -819,14 +857,14 @@ function parseOperation (ma,s) {
     }
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 //  Assembler Pass 1
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Pass 1 parses the source, calculates the code size for each
-// statement, defines labels, and maintains the location counter.
-// Requires that asmSrcLines has been set to the source code, split
-// into an array of lines of text.
+// Pass 1 parses the source, calculates the code size for
+// each statement, defines labels, and maintains the location
+// counter.  Requires that asmSrcLines has been set to the
+// source code, split into an array of lines of text.
 
 function asmPass1 (ma) {
     com.mode.devlog('Assembler Pass 1: ' + ma.asmSrcLines.length
@@ -838,18 +876,20 @@ function asmPass1 (ma) {
                                    ma.asmSrcLines[i]);
 	let s = ma.asmStmt[i];
         let badCharLocs = validateChars (ma.asmSrcLines[i]);
-        //        com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
+// com.mode.devlog (`valChars: badCharLocs=${badCharLocs}`);
         com.mode.devlog (`validateChars: badCharLocs=${badCharLocs}`);
 
         if (badCharLocs.length > 0) {
-            mkErrMsg (ma,s,`Invalid character at position ${badCharLocs}`);
-            mkErrMsg (ma,s, "See User Guide for list of valid characters");
+            mkErrMsg (ma,s,
+             `Invalid character at position ${badCharLocs}`);
+            mkErrMsg (ma,s,
+              "See User Guide for list of valid characters");
             mkErrMsg (ma,s, "(Word processors often insert"
                             + " invalid characters)");
         }
         parseAsmLine (ma,i);
         com.mode.devlog (`Pass 1 ${i} /${s.srcLine}/`
-                         + ` address=${s.address} codeSize=${s.codeSize}`);
+              + ` address=${s.address} codeSize=${s.codeSize}`);
         handleLabel (ma,s);
         updateLocationCounter (ma,s,i);
     }
@@ -921,9 +961,9 @@ function printAsmStmts (ma) {
     }
 }
 
-// Given a string xs, either return the control register index for it
-// if xs is indeed a valid control register name; otherwise generate
-// an error message.
+// Given a string xs, either return the control register
+// index for it if xs is indeed a valid control register
+// name; otherwise generate an error message.
 
 function findCtlIdx (ma,s,xs) {
     let c = arch.ctlReg.get(xs);
@@ -937,18 +977,20 @@ function findCtlIdx (ma,s,xs) {
     return i;
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 //  Pass 2
-//----------------------------------------------------------------------
+//--------------------------------------------------------------
 
 // Make a code word from four 4-bit fields
 
 function mkWord (op,d,a,b) {
     let clear = 0x000f;
-    return ((op&clear)<<12) | ((d&clear)<<8) | ((a&clear)<<4) | (b&clear);
+    return ((op&clear)<<12) | ((d&clear)<<8)
+      | ((a&clear)<<4) | (b&clear);
 }
 
-// Make a code word from two 4-bit fields and an 8 bit field (EXP format)
+// Make a code word from two 4-bit fields and an 8 bit field
+// (EXP format)
 
 function mkWord448 (x,y,k8) {
     let clear4 = 0x000f;
@@ -969,8 +1011,8 @@ function testWd(op,d,a,b) {
     console.log(arith.wordToHex4(mkWord(op,d,a,b)));
 }
 
-// imports are handled in Pass 1 because they define labels; exports
-// are handled in Pass2 because they use labels.
+// imports are handled in Pass 1 because they define labels;
+// exports are handled in Pass2 because they use labels.
 
 function asmPass2 (ma) {
 //    com.mode.setTrace()
@@ -980,10 +1022,12 @@ function asmPass2 (ma) {
     ma.objectCode.push (`module   ${ma.modName}`);
     for (let i = 0; i < ma.asmStmt.length; i++) {
 	let s = ma.asmStmt[i];
-	com.mode.devlog(`Pass2 line ${s.lineNumber} = /${s.srcLine}/`);
+	com.mode.devlog(
+           `Pass2 line ${s.lineNumber} = /${s.srcLine}/`);
         com.mode.devlog (`>>> pass2 operands = ${s.operands}`);
         let op = s.operation;
-        com.mode.devlog (`Pass2 op ${s.fieldOperation} ${showOperation(op)}`)
+        com.mode.devlog (
+          `Pass2 op ${s.fieldOperation} ${showOperation(op)}`)
         com.mode.devlog (`Pass2 op ifmt=${op.ifmt.description}`
                          + ` afmt=${op.afmt.description}`
                          + ` pseudo=${op.pseudo}`);
@@ -995,15 +1039,15 @@ function asmPass2 (ma) {
             const ahex = arith.wordToHex4 (a.word);
             let stmt = `org      ${ahex}`
             ma.objectCode.push (stmt);
-        } else if (op.ifmt==arch.iDir && op.afmt==arch.aReserve) {
+        } else if (op.ifmt==arch.iDir
+                   && op.afmt==arch.aReserve) {
             emitObjectWords (ma);
             const size = s.reserveSize;
-            //            const xhex = arith.wordToHex4 (ma.locationCounter.word)
-            const xhex = arith.wordToHex4 (s.locCounterUpdate.word)
+//   const xhex = arith.wordToHex4 (ma.locationCounter.word)
+            const xhex = arith.wordToHex4
+              (s.locCounterUpdate.word)
             let stmt = `org      ${xhex}`
             ma.objectCode.push (stmt);
-
-            
             
 // RRR-RRR
         } else if (op.ifmt==arch.iRRR && op.afmt==arch.aRRR) {
@@ -1438,7 +1482,8 @@ function asmPass2 (ma) {
 // and possibly for 8 bit displacement?  ?????
 	    s.codeWord1 = mkWord448 (
                 op.opcode[0], d, op.opcode[1]);
-            s.codeWord2 = v // v..word // use e field for reg
+//    s.codeWord2 = v // v..word // use e field for reg
+            s.codeWord2 = mkWord412 (index,v)
             generateObjectWord (
                 ma, s, s.address.word, s.codeWord1);
 	    generateObjectWord (
@@ -1674,3 +1719,15 @@ function showOperation (op) {
 //       const dest = evaluate (ma, s, s.address.word, s.operands[1])
 //            const offset = findOffset (s.address, dest)
 //            com.mode.devlog (`pc relative offset = ${offset}`)
+
+/* buggy version
+export function displayMetadata () {
+    const m = st.env.moduleSet.getSelectedModule ();
+    const src = m.getAsmText ();
+    //    const mdText = m.asmInfo.objMd.mdText;
+    const mdText = m.mdText // *************************
+    let listing = "<pre class='HighlightedTextAsHtml'>" + mdText + "</pre>";
+    document.getElementById('AsmTextHtml').innerHTML = listing;
+}
+*/
+                                      

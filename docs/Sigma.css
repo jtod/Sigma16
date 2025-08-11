@@ -37,12 +37,12 @@ p.validation a {
 }
 
 .bodycontainer {
-    max-width: 43em;
     margin: auto;
-    text-align: left;
+    text-align: center;
 }
+
 body {
-    max-width: 43em;
+    max-width: 36em;
     font-family: Verdana, sans-serif;
     font-size: 100%;
     line-height: 1.4;
@@ -72,6 +72,11 @@ div.content h1.title {
 /* emacs.d/init.el sets the preamble to include title, author, and
    ate, which will precede the table of contents.  These are formatted
    with div#preamble ... */
+
+code {
+    font-size: 135%;
+    color: red;
+}
 
 div#preamble h1.title {
     font-family:  Verdana, sans-serif;
@@ -187,6 +192,12 @@ div#preamble p.date {
     padding: 0em;
 }
 
+div.InstrTable table {
+    background-color: #e6ffff;
+    overflow-x: scroll;
+    line-height: 1.0;
+}
+
 
 
 
@@ -218,26 +229,63 @@ div#preamble p.date {
     padding: 0em;
 }
 
-.CodeListing {
-    background-color: #e6ffff; /* light blue */
-    display: flex; /* removes white space before and after the code */
+/*    background-color: #e6ffff;  light blue */
+/* flex remove white space before/after code */
+
+pre.src-Sigma16 {
+    background-color: #e6ffff;
+    font-size: 130%;
+    overflow-x: scroll;
+}
+
+pre.example {
+    background-color: #C5F9B0;
+    font-size: 130%;
+    overflow-x: scroll;
+}
+
+/*
+    font-family: monospace;
+    margin: 0em;
+    white-space: pre;
+    display: flex;
+div.CodeListing {
+    background-color: pink;
+    display: flex;
+    overflow-x: scroll;
     font-family: monospace;
     font-size: 130%;
     white-space: pre;
+    margin: 0em;
 }
-div.CodeListing p { /* remove white space from the <p> element */
-    margin-top: 0em;
-    margin-bottom: 0em;
+
+div.CodeListing p {
+    margin: 0em;
     padding-top: 0em;
     padding-bottom: 0em;
     white-space: pre;
 }
+*/
 
-/* Code blocks     display: inline;
-    white-space: pre-wrap;
- */
+/*
+div.CodeListing p:first-letter {
+    color: red;
+}
+*/
+/*
+div.CodeListing p#text {
+    color: red;
+}
+*/
+
+/*
+    margin-top: 0em;
+    margin-bottom: 0em;
+*/
+/* light blue */
+/*
 div.CodeListing pre {
-    background-color: #e6ffff; /* light blue */
+    background-color: #e6ffff;
     font-family: 'Cascadia Code', 'Courier New', monospace;
     font-size: 13pt;
     color: black;
@@ -245,6 +293,25 @@ div.CodeListing pre {
     margin-top: 0em;
     margin-bottom: 0em;
 }
+*/
+
+/*
+.CodeListing {
+    background-color: #e6ffff;  light blue 
+    display: flex;  removes white space before and after the code 
+    font-family: monospace;
+    font-size: 130%;
+    white-space: pre;
+    syle: "overflow-x: auto";
+}
+*/
+
+ /* remove white space from the <p> element */ 
+
+
+/* Code blocks     display: inline;
+    white-space: pre-wrap;
+ */
 
 /* not working, want to indent toc subsection */
 a.tocsubsection span {

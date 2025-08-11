@@ -86,8 +86,13 @@ export let Mem32Size = MemSize * 4 + 0
 
 // The array buffers are allocated with a specified size in
 // bytes
+export const Megabyte = 2 ^ 20
+export const ExtraVecSizeBytes = 20 * Megabyte
+    // some extra padding to experiment with capacity of
+    // browsers
 export const StateVecSizeBytes =
     8 * (SCBsize + BPsize + RegSize + Mem32Size)
+    + ExtraVecSizeBytes
 
 // Offsets of state vector sections
 

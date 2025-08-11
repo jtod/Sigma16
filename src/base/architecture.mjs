@@ -572,6 +572,27 @@ statementSpec.set("lload",  // lload Rd,fgh[Re]
 statementSpec.set("lstore",  // lstore Rd,fgh[Re]
    {ifmt:iEXP, afmt:aRX,    opcode:[14,29]})
 
+statementSpec.set("ljumpz",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRX,    opcode:[14,30]})
+statementSpec.set("ljumpnz",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRX,    opcode:[14,31]})
+statementSpec.set("lsave",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRRX,    opcode:[14,32]})
+statementSpec.set("lrestore",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRRX,    opcode:[14,33]})
+statementSpec.set("lstore",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRX,    opcode:[14,34]})
+statementSpec.set("lshiftl",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRRk,    opcode:[14,35]})
+statementSpec.set("lshiftr",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRRk,    opcode:[14,36]})
+statementSpec.set("lpush",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,37]})
+statementSpec.set("lpop",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,38]})
+statementSpec.set("ltop",  // lstore Rd,fgh[Re]
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,39]})
+
 
 // statementSpec.set("brf",      {ifmt:iEXP, afmt:aK,     opcode:[14,0]})
 // statementSpec.set("brb",      {ifmt:iEXP, afmt:aK,     opcode:[14,1]})
