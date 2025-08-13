@@ -1,0 +1,59 @@
+; Dispatch: Test activation record operations
+; Instruction: dispatch
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2025
+
+;    dispatch Rd,efgh
+;      effect:  pc := Mem[pc + min(Rd,efgh)]
+;      Rd = operand register
+;      efgh = maximum dispatch offset
+;      format: EXP/Rk
+;      machine language: Ed10 efgh (op=E, ab=$10)
+
+     add       R9,R0,R0
+     invw      R9
+;     invb      R9,10
+
+; Test assembly of dispatch
+     jump      test1[R0]
+     dispatch  R3,6    ; e310 0006
+
+test1
+     lea   R3,3[R0]
+     dispatch R3,9      ; should go to yes1
+     data  no1   ; 00
+     data  no1   ; 01
+     data  no1   ; 02
+     data  yes1  ; 03   
+     data  no1   ; 04
+     data  no1   ; 05
+     data  bad1  ; 06
+
+yes1 lea   R1,1[R0]   ; dispatch should jump here
+     jump  test2[R0]
+no1  lea   R1,2[R0]   ; not target: should not jump here
+     jump  test2[R0]
+bad1 lea   R1,3[R0]   ; invalid dispatch code (>5)
+
+test2
+     lea   R3,25[R0]  ; code is too big, so goto bad2
+     dispatch R3,9
+     data  no2   ; 00
+     data  no2   ; 01
+     data  no2   ; 02
+     data  no2   ; 03
+     data  no2   ; 04
+     data  no2   ; 05
+     data  no2   ; 06
+     data  no2   ; 07
+     data  no2   ; 08
+     data  bad2  ; 09
+
+yes2 lea   R1,1[R0]
+     jump  test2[R0]
+no2  lea   R1,2[R0]
+     jump  test2[R0]
+bad2 lea   R1,3[R0]
+
+     trap  R0,R0,R0
+
+

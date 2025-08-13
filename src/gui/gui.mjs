@@ -1,23 +1,26 @@
 // Sigma16: gui.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://github.com/jtod/Sigma16
 
-// This file is part of Sigma16.  Sigma16 is free software: you can
-// redistribute it and/or modify it under the terms of the GNU General
-// Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
-// Sigma16 is distributed in the hope that it will be useful, but
+// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL
+// Version 3.  See Sigma16/README, LICENSE, and
+// https://github.com/jtod/Sigma16
+
+// This file is part of Sigma16.  Sigma16 is free software:
+// you can redistribute it and/or modify it under the terms
+// of the GNU General Public License as published by the Free
+// Software Foundation, Version 3 of the License.  Sigma16 is
+// distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.  You should have received
-// a copy of the GNU General Public License along with Sigma16.  If
-// not, see <https://www.gnu.org/licenses/>.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// the GNU General Public License for more details.  You
+// should have received a copy of the GNU General Public
+// License along with Sigma16.  If not, see
+// <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------
-// gui.mjs is the main program for the browser interface.  It is
-// launched by Sigma16.html and is the last JavaScript file to be
-// loaded
-//-------------------------------------------------------------------------
+//--------------------------------------------------------------
+// gui.mjs is the main program for the browser interface.  It
+// is launched by Sigma16.html and is the last JavaScript
+// file to be loaded
+//--------------------------------------------------------------
 
 import * as ver   from '../base/version.mjs';
 import * as com   from '../base/common.mjs';
@@ -32,21 +35,23 @@ import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 import * as ct    from './consoletest.mjs';
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Debugging tools
-//-------------------------------------------------------------------------
+//--------------------------------------------------------------
 
-// To make exported functions executable in the console, enter
-// exposeConsole().  Then enter, for example, arith.setBit(6,11,1)
+// To make exported functions executable in the console,
+// enter exposeConsole().  Then enter, for example,
+// arith.setBit(6,11,1)
 
+window.applyLogicFcnField = arith.applyLogicFcnField
 window.exposeConsole = ct.exposeConsole
 
-// See window.getExampleModuleName = getExampleModuleName below; this
-// should not be necessary.
+// See window.getExampleModuleName = getExampleModuleName
+// below; this should not be necessary.
 
-// Normally runs in user mode, which is the default.  For development
-// and experimentation, set Dev mode.  In console, enter setModeDev()
-// or setModeUser().
+// Normally runs in user mode, which is the default.  For
+// development and experimentation, set Dev mode.  In
+// console, enter setModeDev() or setModeUser().
 
 //-------------------------------------------------------------------------
 //Constant parameters
@@ -264,7 +269,7 @@ class Options {
         this.supportWorker = !!window.Worker
         this.supportSharedMem = !!window.SharedArrayBuffer
         this.crossOriginIsolated = !!window.crossOriginIsolated
-//        this.crossOriginIsolated = true // temp test ????????????
+        //        this.crossOriginIsolated = true // temp test ????????????
 
         // Memory settings
         this.memoryIsAllocated = false
@@ -921,8 +926,10 @@ function prepareButton (bid,fcn) {
 // Pane buttons; initialization must occur after emulator state is defined
 
 function initializeButtons () {
-    prepareButton ('Arch16button', setArch16)
-    prepareButton ('Arch32button', setArch32)
+//    prepareButton ('Arch16button', setArch(16))
+//    prepareButton ('Arch32button', setArch(32))
+//    prepareButton ('Arch16button', setArch16)
+//    prepareButton ('Arch32button', setArch32)
     prepareButton ('Welcome_Pane_Button',   () => showPane (gst) (WelcomePane));
     prepareButton ('Examples_Pane_Button',  () => showPane (gst) (ExamplesPane));
     prepareButton ('Modules_Pane_Button',   () => showPane (gst) (ModulesPane));
@@ -2466,7 +2473,7 @@ function logShmStatus (es) {
 
 
 function mkMainEmulatorState () {
-    console.log ("mkMainEmulatorState")
+    console.log ("mkMainEmulatorState setting gst.es")
     gst.es = new em.EmulatorState (
         com.ES_gui_thread,
         () => initRun (gst),
@@ -2514,7 +2521,8 @@ function allocateStateVector () {
     es.shm = gst.es.vec16  // change usages of es.shm to es.vec16
     es.emRunThread = gst.options.currentThreadSelection
     initializeMainEmulator ()   // Create emulator state
-    setArch16 ()
+    console.log ("allocate state vector, initialized main emulator, will set arch")
+//    setArch16 ()
     memDisplay (gst)
     procReset (gst)
 //    ab.testSysStateVec (es)  // keep this: important testing tool
@@ -3026,51 +3034,59 @@ function initializeTracing (gst) {
 
 function initializeSystem () {
     com.mode.devlog ('Initializing system')
-    gst = new GuiState ()  // Create gui state and set global variable
+    // Create gui state and set global variable
+    gst = new GuiState ()
+    console.log ("Created gst")
     setMDhba (gst)
     adjustInitialOptions ()
     initializeGuiElements (gst) // Initialize gui elements
     initializeGuiLayout (gst)   // Initialize gui layout
     initializeButtons (gst)
     refreshOptionsDisplay ()
+//    setArch16()
     findLatestRelease (gst)
+    console.log ("System is initialized")
 }
 
 //-----------------------------------------------------------------------------
 // Instruction set architecture selection
 //-----------------------------------------------------------------------------
 
-function setArch16 () {
-    console.log ('Setting mode to S16')
-    const es = gst.es
-    es.addressMask = arith.word16mask
-//    console.log (`addressMask (S16) = ${es.addressMask}`)
-    setRegisterSize (16)
-        highlightArchButton('Arch16button')
-        unhighlightArchButton('Arch32button')
-    document.documentElement.style
-        .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
-    procReset (gst)
-}
+// Set architecture mode to k bit words; k should be 16 or
+// 32.  If k has any other value, the mode will be set to 16.
 
-function setArch32 () {
-    console.log ('Setting mode to S32')
+function setArch (x) {
+    const k = x==32 ? 32 : 16 // make sure it's 16 or 32
+    const notk = k==32 ? 16 : 32 // the other word size
     const es = gst.es
-    es.addressMask = arith.word32mask
-    console.log (`addressMask (S32) = ${es.addressMask}`)
-    setRegisterSize (32)
-        highlightArchButton('Arch32button')
-        unhighlightArchButton('Arch16button')
-    gst.es.pc.show = arith.wordToHex8
-    document.documentElement.style
-        .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
+    console.log (`Setting arch mode to ${k}`)
+    es.arch = k==32 ? arch.S32 : arch.S16
+    const w = k==32 ? '32' : '16'
+    document.documentElement.style.setProperty
+      ('--RegValWidth', `var(--RegValWidth${w})`)
+    es.addressMask = k==32 ?
+        arith.word32mask : arith.word16mask
+    console.log (`addressMask = ${es.addressMask}`)
+    setRegisterSize (k)
+    //    highlightArchButton(`Arch{k}button`)
+    // are the buttons defiled?
+//    unhighlightArchButton(`Arch{notk}button`)
     procReset (gst)
 }
+window.setArch = setArch;
+//    const prop =  `var(--RegValWidth${w})`
+//    console.log (`setArch prop = xx${prop}xx`)
+//      ('--RegValWidth', prop)
+//    gst.es.pc.show = arith.wordToHex8
+//    console.log ("skipping es.addressMask 32")
+// ??? es.addressMask???
 
 function setRegisterSize (size) {
+    //    return // disable, taking different approach...
+    // no longer using register.show, this is moot
     const f = size===16 ? arith.wordToHex4 : arith.wordToHex8
     for (let i = 0; i < gst.es.nRegisters; i++) {
-        gst.es.register[i].show = f
+//        gst.es.register[i].show = f
     }
 }
 
@@ -3296,5 +3312,44 @@ window.onload = function () {
     enableKeyboardShortcuts ()
     setModeUser ()
     setMDhba (gst)
+//     setArch(16) can't do it yet
     console.log ('system is now running')
 }
+
+// Deprecated
+
+/* replaced by setArch(k)
+function setArch16 () {
+    console.log ('Setting mode to S16')
+    const es = gst.es
+    es.arch = arch.S16
+    document.documentElement.style
+        .setProperty ('--RegValWidth', 'var(--RegValWidth16)')
+//    return // first call is too soon, before gst.es set
+    console.log ("skipping es.addressMask 16")
+    es.addressMask = arith.word16mask
+    console.log (`addressMask (S16) = ${es.addressMask}`)
+    setRegisterSize (16)
+        highlightArchButton('Arch16button')
+        unhighlightArchButton('Arch32button')
+    procReset (gst)
+}
+window.setArch16 = setArch16;
+
+function setArch32 () {
+    console.log ('Setting mode to S32')
+    const es = gst.es
+    es.arch = arch.S32
+    document.documentElement.style
+        .setProperty ('--RegValWidth', 'var(--RegValWidth32)')
+    console.log ("skipping es.addressMask 32")
+    es.addressMask = arith.word32mask // ??? es.addressMask???
+    console.log (`addressMask (S32) = ${es.addressMask}`)
+    setRegisterSize (32)
+        highlightArchButton('Arch32button')
+        unhighlightArchButton('Arch16button')
+    gst.es.pc.show = arith.wordToHex8
+    procReset (gst)
+}
+window.setArch32 = setArch32;
+*/

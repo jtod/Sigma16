@@ -1,6 +1,22 @@
-; SaveRestore: Test save and restore instructions.
-; These instructions simplify procedure call and return.
-; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
+; SaveRestore: Test activation record stack
+; Instructions save, restore
+; Sigma16: https://jtod.github.io/home/Sigma16  John O'Donnell, 2025
+
+;    save    Rd,Re,gh,Rf
+;      effect:  
+;      Rd = first register in group of registers
+;      Re = last register in group of registers
+;      Rf = base address
+;      gh = offset from base address
+;      format: EXP/RRkR
+;      machine language: Ed00 efgh (op=$E, ab=$0a)
+     jump    test[R0]      ; next instruction for testing assembly
+     save    R3,R5,6[R13]  ; e30a 5d06
+;      store  R3,6[R13]
+;      store  R4,7[R13]
+;      store  R5,8[R13]
+
+test
 
 ; R13 points to stack
    lea     R13,stack[R0]

@@ -1,4 +1,5 @@
 // Sigma16: exidx.mjs
+
 // Build html index of directory of asm.txt examples
 // Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
@@ -142,7 +143,7 @@ function handleFile (d, topdir, parents, f) {
 
 const sigdir = process.cwd ()            // current directory
 console.log (`exidx starting in ${sigdir}`)
-handleDir (0,  sigdir, '', '../Examples')
+handleDir (0,  sigdir, '', 'Examples')
 console.log (`Found ${nDirectories} directories`
              + ` and ${nSourceFiles} source files.`)
 console.log ('exidx finished')

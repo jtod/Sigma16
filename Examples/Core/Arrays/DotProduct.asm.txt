@@ -39,8 +39,8 @@
 
 loop
 ; if not (i<n) then goto done
-     cmplt  R5,R2,R3      ; R5 = (i<n)
-     jumpf  R5,done[R0]   ; if not (i<n) then goto done
+     cmp    R2,R3         ; compare i with n
+     jumpge done[R0]      ; if i >= n then goto done
 
 ; p = p + x[i] * y[i]
      load   R5,x[R2]      ; R5 = x[i]

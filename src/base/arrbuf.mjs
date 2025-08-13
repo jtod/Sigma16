@@ -1,75 +1,98 @@
-// Sigma16: arrbuf.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Sigma16: arrbuf.mjs: system state vector, shared array
 
-// This file is part of Sigma16.  Sigma16 is free software: you can
-// redistribute it and/or modify it under the terms of the GNU General
-// Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
-// Sigma16 is distributed in the hope that it will be useful, but
+// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL
+// Version 3.  See Sigma16/README, LICENSE, and
+// https://jtod.github.io/home/Sigma16
+
+// This file is part of Sigma16.  Sigma16 is free software:
+// you can redistribute it and/or modify it under the terms
+// of the GNU General Public License as published by the Free
+// Software Foundation, Version 3 of the License.  Sigma16 is
+// distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.  You should have received
-// a copy of the GNU General Public License along with Sigma16.  If
-// not, see <https://www.gnu.org/licenses/>.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// the GNU General Public License for more details.  You
+// should have received a copy of the GNU General Public
+// License along with Sigma16.  If not, see
+// <https://www.gnu.org/licenses/>.
 
-// arrbuf.mjs defines the system state vector, comprising views at
-// word sizes 16, 32, and 64 of the array buffer (which may be shared
-// if the platform supports this).
+// arrbuf.mjs defines the system state vector, an array
+// buffer with views at word sizes 16, 32, and 64 bits.  The
+// array buffer may be shared if the platform supports this.
 
 import * as com from './common.mjs'
 import * as arith from './arithmetic.mjs'
 import * as arch from './architecture.mjs'
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Memory map of the emulator state array
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// There is an emulator state object which is accessible as env.es.
+// There is an emulator state object which is accessible as
+// env.es.
 
-// Most of the emulator's variables are stored in a system state
-// vector, which is an element of env.es.  The system state vector
-// contains several arrays (breakpoint, registers, memory) as well as
-// individual variables (instruction count, ir fields, etc.).
+// Most of the emulator's variables are stored in a system
+// state vector, which is an element of env.es.  The system
+// state vector contains several arrays (breakpoint,
+// registers, memory) as well as individual variables
+// (instruction count, ir fields, etc.).
 
-// The system state vector is a flat array buffer, so it requires
-// calculating numerical indices to access the individual values,
-// which is more complicated than just accessing them by name in a
-// JavaScript object.  However, the system state vector has several
-// advantages: it can be stored in a shared array buffer which is
-// accessible from both the main gui thread and a worker thread, and
-// it is accessible to both the JavaScript emulator and the Web
+// The system state vector is a flat array buffer, so it
+// requires calculating numerical indices to access the
+// individual values.  This is more complicated than just
+// accessing them by name in a JavaScript object, but the
+// system state vector has several advantages: it can be
+// stored in a shared array buffer which is accessible from
+// both the main gui thread and a worker thread, and it is
+// accessible to both the JavaScript emulator and the Web
 // Assembly emulator.
 
-// The system state vector consists of several sections.  The memory
-// section comes last so its size can be adjusted without changing the
-// offsets of any of the sections.
+// The system state vector consists of several sections.  The
+// memory section comes last so its size can be adjusted
+// without changing the offsets of any of the sections.
 
 //   SCB   System control block   32 and 64
 //   BP    Breakpoint             32
 //   REG   Registers              32
 //   MEM   Memory                 16
 
-// Notation: W8 = byte, W16 = word, W32 = full word, W64 = extended
-// word.
+// Notation: Wn means a word of n bits.  Thus W8 = byte, W16
+// = word, W32 = full word, W64 = extended word.
 
-// Sizes of state vector sections are specified in W64 (64-bit words),
-// ensuring that each section begins at an aligned location regardless
-// of its element word size.  The section sizes are defined as the
-// preferred logical number of elements divided by the number of
-// elements per extended word.  Each register is allocated a full
-// word, to allow for both S16 and S32 architectures.  Each memory
-// location is a short word (16 bits), although S32 memory operations
+//-------------------------------------------------------------
+// Parameters
+//-------------------------------------------------------------
+
+// Sizes of state vector sections are specified in W64
+// (64-bit words), ensuring that each section begins at an
+// aligned location regardless of its element word size.  The
+// section sizes are defined as the preferred logical number
+// of elements divided by the number of elements per extended
+// word.  Each register is allocated a full word, to allow
+// for both S16 and S32 architectures.  Each memory location
+// is a short word (16 bits), although S32 memory operations
 // can load or store a full word.
 
-export const SCBsize   =   512 / 2   // emulator variables
-export const BPsize    =   512 / 2   // abstract syntax tree
-export const RegSize   =    32 / 2   // 16 general and 16 system registers
-export const MemSize   = 65536 / 4   // each location is 16 bits
-export const Mem32Size = MemSize * 4 // make this a changeable option >= MemSize
+export const SCBsize   =   512 / 2  // emulator variables
+export const BPsize    =   512 / 2  // abstract syntax tree
+export const RegSize   =    32 / 2  // 16 gen, 16 sys registers
+export const MemSize   = 65536 / 4  // each location is 16 bits
 
-// The array buffers are allocated with a specified size in bytes
-export const StateVecSizeBytes = 8 * (SCBsize + BPsize + RegSize + Mem32Size)
+// make this a changeable option >= MemSize
+
+// Mem32Size is the number of bytes for memory (S16 or S32)
+// Mem32Size = 4 * 256000000 * 5 //
+export let Mem32Size = MemSize * 4 + 0
+
+// The array buffers are allocated with a specified size in
+// bytes
+export const Megabyte = 2 ^ 20
+export const ExtraVecSizeBytes = 20 * Megabyte
+    // some extra padding to experiment with capacity of
+    // browsers
+export const StateVecSizeBytes =
+    8 * (SCBsize + BPsize + RegSize + Mem32Size)
+    + ExtraVecSizeBytes
 
 // Offsets of state vector sections
 
@@ -88,61 +111,78 @@ export const BPoffset16   = 2 * BPoffset32
 export const RegOffset16  = 2 * RegOffset32
 export const MemOffset16  = 2 * MemOffset32
 
-//-----------------------------------------------------------------------------
-// General access functions
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
+// Accessing words from the arrbuf
+//-------------------------------------------------------------
 
-// Each section consists of elemens of a specific word size, except
-// the SCB which contains some 64-bit elements but is mostly 32-bit
-// elements.  To access an element of size k bits in JavaScript, the
-// entire state vector is treated as an array of k-bit words.  Thus
-// x[i] with word size k in Section is accessed as vec_k [i +
-// SectionOffset_k].
+// Each section consists of elemens of a specific word size,
+// except the SCB which contains some 64-bit elements but is
+// mostly 32-bit elements.  To access an element of size k
+// bits in JavaScript, the entire state vector is treated as
+// an array of k-bit words.  Thus x[i] with word size k in
+// Section is accessed as vec_k [i + SectionOffset_k].
 
-// Raw access functions read or write a word of size k in the state
-// vector.  These are read16, write16, read32, write32, read64,
-// wite64.
+// Raw access functions read or write a word of size k in the
+// state vector.  These are read16, write16, read32, write32,
+// read64, wite64.
 
-// A section may contain elements of different word sizes.  The SCB
-// contains mostly 32-bit elements, but the count of instructions
-// executed is 64 bits.
+// A section may contain elements of different word sizes.
+// The SCB contains mostly 32-bit elements, but the count of
+// instructions executed is 64 bits.
 
-export function read16 (es, a, k) { return arith.limit16 (es.vec16 [a + k]) }
-export function write16 (es, a, k, x) { es.vec16 [a+k] = arith.limit16(x) }
-export function read32 (es, a, k) { return arith.limit32 (es.vec32 [a + k]) }
-export function write32 (es, a, k, x) { es.vec32 [a+k] = arith.limit32(x) }
-export function read64  (es, a, k) { return es.vec64 [a + k] }
-export function write64 (es, a, k, x) { es.vec64 [a+k] = x }
+// es is the emulator state
+// a is the address of a word16
 
-// In Web Assembly, the index for accessing an element is the byte
-// index.  Thus read16 i in wa must push 2*i and then fetch.
+export function read16 (es, a, k) {
+    return arith.limit16 (es.vec16 [a + k])
+}
+export function write16 (es, a, k, x) {
+    es.vec16 [a+k] = arith.limit16(x)
+}
+export function read32 (es, a, k) {
+    return arith.limit32 (es.vec32 [a + k])
+}
+export function write32 (es, a, k, x) {
+    es.vec32 [a+k] = arith.limit32(x)
+}
+export function read64  (es, a, k) {
+    return es.vec64 [a + k]
+}
+export function write64 (es, a, k, x) {
+    es.vec64 [a+k] = x
+}
 
-//-----------------------------------------------------------------------------
+// In Web Assembly, the index for accessing an element is the
+// byte index.  Thus read16 i in wa must push 2*i and then
+// fetch.
+
+//-------------------------------------------------------------
 // System control block
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The system control block is stored in shared memory and contains
-// information that pertains to the entire system, including all
-// running emulators.  Any information that is specific to a
-// particular emulator (either the main gui thread or a worker thread)
-// is kept in the EmulatorState belonging to that thread.  Each
-// element of the block has an index which is used relative to the
-// element's word size
+// The system control block is stored in shared memory and
+// contains information that pertains to the entire system,
+// including all running emulators.  Any information that is
+// specific to a particular emulator (either the main gui
+// thread or a worker thread) is kept in the EmulatorState
+// belonging to that thread.  Each element of the block has
+// an index which is used relative to the element's word size
 
 // Indices for 64-bit elements
-export const SCB_nInstrExecuted   =   0  // count instructions executed
+export const SCB_nInstrExecuted = 0  // count instr executed
 
-// Indices for 32-bit elements, which follow the 64-bit elements
-export const SCB_status            =   8 // condition of the entire system
-export const SCB_cur_instr_addr    =   9 // address of executing instruction
-export const SCB_next_instr_addr   =  10 // address of next instruction
-export const SCB_emwt_run_mode     =  11
-export const SCB_emwt_trap         =  12
-export const SCB_pause_request     =  13 // pause request is pending
-export const SCB_timer_running     =  14 // 1 after timeron, 0 after timeroff
-export const SCB_timer_minor_count =  15 // count down to 0
-export const SCB_timer_major_count =  16 // count down to 0
-export const SCB_timer_resolution  =  17 // number of instructions per tick
+// Indices for 32-bit elements, which follow the 64-bit
+// elements
+export const SCB_status            =  8 // status of system
+export const SCB_cur_instr_addr    =  9 // addr current instr
+export const SCB_next_instr_addr   = 10 // address next instr
+export const SCB_emwt_run_mode     = 11
+export const SCB_emwt_trap         = 12
+export const SCB_pause_request     = 13 // pause req pending
+export const SCB_timer_running     = 14 // timer is on
+export const SCB_timer_minor_count = 15 // count down to 0
+export const SCB_timer_major_count = 16 // count down to 0
+export const SCB_timer_resolution  = 17 // instr per tick
 
 
 // Usage examples:
@@ -151,20 +191,22 @@ export const SCB_timer_resolution  =  17 // number of instructions per tick
 
 // SCB access functions
 
-export function writeSCB (es, elt, x) { write32 (es, elt, SCBoffset32, x) }
-export function readSCB (es, elt) { return read32 (es, elt, SCBoffset32) }
+export function writeSCB (es, elt, x)
+  { write32 (es, elt, SCBoffset32, x) }
+export function readSCB (es, elt)
+  { return read32 (es, elt, SCBoffset32) }
 
 // SCB_status codes specify the condition of the processor
 
-export const SCB_reset             = 0 // after initialization or Reset command
-export const SCB_ready             = 1 // after boot
-export const SCB_running_gui       = 2 // running in main gui thread
-export const SCB_running_emwt      = 3 // running in emulator worker thread
-export const SCB_paused            = 4 // after Pause command
-export const SCB_break             = 5 // after Pause command
-export const SCB_halted            = 6 // after trap 0
-export const SCB_blocked           = 7 // during blocking read trap
-export const SCB_relinquish        = 8 // emwt relinquished control temporarily
+export const SCB_reset        = 0 // after init or Reset
+export const SCB_ready        = 1 // after boot
+export const SCB_running_gui  = 2 // running in main gui thread
+export const SCB_running_emwt = 3 // running in worker thread
+export const SCB_paused       = 4 // after Pause command
+export const SCB_break        = 5 // after Pause command
+export const SCB_halted       = 6 // after trap 0
+export const SCB_blocked      = 7 // during blocking read
+export const SCB_relinquish   = 8 // emwt relinquished control
 
 // Clear the SCB, putting the system into initial state
 
@@ -179,8 +221,8 @@ export function resetSCB (es) {
     writeSCB (es, SCB_pause_request, 0)
 }
 
-// Convert the numeric status to a descriptive string; this is shown
-// in the processor display
+// Convert the numeric status to a descriptive string; this
+// is shown in the processor display
 
 export function showSCBstatus (es) {
     switch (readSCB (es, SCB_status)) {
@@ -197,53 +239,56 @@ export function showSCBstatus (es) {
     }
 }
 
-// The instruction count is a 32 bit integer. It is cleared when a
-// program starts and is incremented when an instruction is executed.
-// Furthermore, decrInstrCount is needed because of interaction
-// between the worker thread and the main thread.  If an instruction
-// has been relinquished, the instruction count was incremented
-// already, and reexecution of the instruction in the main thread
-// causes it to be counted twice.  When this happens, the count is
-// decremented.  (Non-urgent plan for the future: represent the
-// instruction count using the full range of integer representations
-// allowed by JavaScript, to avoid overflow for long running
-// programs.)
+// The instruction count is a 32 bit integer. It is cleared
+// when a program starts and is incremented when an
+// instruction is executed.  Furthermore, decrInstrCount is
+// needed because of interaction between the worker thread
+// and the main thread.  If an instruction has been
+// relinquished, the instruction count was incremented
+// already, and reexecution of the instruction in the main
+// thread causes it to be counted twice.  When this happens,
+// the count is decremented.  (Non-urgent plan for the
+// future: represent the instruction count using the full
+// range of integer representations allowed by JavaScript, to
+// avoid overflow for long running programs.)
 
-function writeInstrCount (es, n)     { write32 (es, 0, SCBoffset32, n) }
-export function readInstrCount (es)  { return read32 (es, 0, SCBoffset32) }
-export function clearInstrCount (es) { writeInstrCount (es, 0) }
-export function incrInstrCount (es) {
-    writeInstrCount (es, readInstrCount(es) + 1)
-}
-export function decrInstrCount (es) {
-    writeInstrCount (es, readInstrCount(es) - 1)
-}
+function writeInstrCount (es, n)
+  { write32 (es, 0, SCBoffset32, n) }
+export function readInstrCount (es)
+  { return read32 (es, 0, SCBoffset32) }
+export function clearInstrCount (es)
+  { writeInstrCount (es, 0) }
+export function incrInstrCount (es)
+  { writeInstrCount (es, readInstrCount(es) + 1) }
+export function decrInstrCount (es)
+  { writeInstrCount (es, readInstrCount(es) - 1) }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Registers
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// In S16, all registers contain 16 bits.  In S32 all registers
-// contain 32 bits (apart from the 16-bit ir), and the 16-bit
-// load/store instructions operate on the least signifcant half of a
-// 32 bit register.
+// In S16, all registers contain 16 bits.  In S32 all
+// registers contain 32 bits (apart from the 16-bit ir), and
+// the 16-bit load/store instructions operate on the least
+// signifcant half of a 32 bit register.
                                          
-// Sigma16 uses a 32-bit representation of all registers to simplify
-// the transition from S16 to S32 instructions.  The representation of
-// registers needs to take into account both S16 and S32 instructions.
-// Every register is stored in the state vector as a 32 bit word.
-// Instructions that access 16-bit registers mus ensure that they put
-// a valid 16-bit word, and similar for 32 bit registers.  The
+// Sigma16 uses a 32-bit representation of all registers to
+// simplify the transition from S16 to S32 instructions.  The
+// representation of registers needs to take into account
+// both S16 and S32 instructions.  Every register is stored
+// in the state vector as a 32 bit word.  Instructions that
+// access 16-bit registers mus ensure that they put a valid
+// 16-bit word, and similar for 32 bit registers.  The
 // constraints may be checked by assert16 and assert32.
 
-// Each byte should be accessed using only one word size, because
-// JavaScript uses the byte endianness of the platform it's running
-// on.  This affects the representation of registers and memory, as
-// noted below.
+// Each byte should be accessed using only one word size,
+// because JavaScript uses the byte endianness of the
+// platform it's running on.  This affects the representation
+// of registers and memory, as noted below.
 
-// Therefore every register is accessed as a 32-bit element, for both
-// the S16 and S32 instruction sets, even if it is being accessed
-// using a 16-bit instruction.
+// Therefore every register is accessed as a 32-bit element,
+// for both the S16 and S32 instruction sets, even if it is
+// being accessed using a 16-bit instruction.
 
 // Layout of registers in array buffer:
 
@@ -253,33 +298,42 @@ export function decrInstrCount (es) {
 // W16 index    0       1       2       3       4       5       6       7
 // W32 index    0               1               1               2
 
-
 export function readReg16 (es, r) {
-    return r===0 ? 0 : read16 (es, r << 1, RegOffset16) }
+    return r===0 ? 0 : read16 (es, r << 1, RegOffset16)
+}
 
 export function writeReg16 (es, r, x) {
     if (r!==0) write16 (es, r << 1, RegOffset16, x) }
 
+// ????? 32
+// export function readReg32 (es, r) {
+//     return r===0 ? 0 : read32 (es, r << 1, RegOffset32) }
+
 export function readReg32 (es, r) {
     return r===0 ? 0 : read32 (es, r , RegOffset32) }
+
 
 export function writeReg32 (es, r, x) {
     if (r!==0) write32 (es, r, RegOffset32, x) }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Memory
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // access Mem16 uses address of 16-bit word
 
-export function readMem16 (es, a)      { return read16 (es, a, MemOffset16) }
-export function writeMem16 (es, a, x) { write16 (es, a, MemOffset16, x) }
+export function readMem16 (es, a) {
+    return read16 (es, a, MemOffset16)
+}
+export function writeMem16 (es, a, x) {
+    write16 (es, a, MemOffset16, x)
+}
 
-// access Mem32 uses big end representation: the value of the word at
-// address a is mem[a] * 2^16 + mem[a+1].  The emulator accesses the
-// two words independently in order to guarantee Sigma16 semantics,
-// regardless of whether the host computer uses big end or little end
-// representation.
+// access Mem32 uses big end representation: the value of the
+// word at address a is mem[a] * 2^16 + mem[a+1].  The
+// emulator accesses the two words independently in order to
+// guarantee Sigma16 semantics, regardless of whether the
+// host computer uses big end or little end representation.
 
 export function readMem32 (es, a) {
     console.log (`readMem32 a=${a}...`)
@@ -290,12 +344,13 @@ export function readMem32 (es, a) {
     console.log (`...readMem32 b=${b}`
                  + ` x = ${x} (${arith.wordToHex4(x)})`
                  + ` y = $(y} (${arith.wordToHex4(y)})`
-                 + ` result = ${result} (${arith.wordToHex8(result)})`)
+                 + ` result = ${result}`
+                 + ` (${arith.wordToHex8(result)})`)
     return result
 }
 
 export function writeMem32 (es, a, x) {
-    console.log (`writeMem32 a=${a} x=${arith.wordToHex8(x)}...`)
+    console.log (`writeMem32 a=${a} x=${arith.wordToHex8(x)}`)
     const b = a & 0xfffffffe
     const y = x >>> 16
     const z = x & 0x0000ffff
@@ -306,12 +361,13 @@ export function writeMem32 (es, a, x) {
                  + ` z = ${z} (${arith.wordToHex4(z)})`)
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Testing
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 export function testSysStateVec (es) {
-    console.log (`%cTESTING: testSysStateVec starting in thread ${es.thread_host}`,
+    console.log (`%cTESTING: testSysStateVec`
+                 + ` starting in thread ${es.thread_host}`,
                  'color:red')
     console.log (`es.arch = ${es.arch.description}`)
     console.log (`es.emRunThread = ${es.emRunThread}`)
@@ -326,7 +382,7 @@ export function testSysStateVec (es) {
     for (let i = 0; i < n; i++) es.vec16[i] = i
     for (let i = 0; i < n; i++) es.vec16[i] += 100
     for (let i = 0;  i < n; i++) xs += ` ${i}->${es.vec16[i]}`
-    console.log (`thread host ${es.thread_host}: ${xs} finished`)
+    console.log (`thread host ${es.thread_host}: ${xs} done`)
 
     console.log (`es.vec16[25] = ${es.vec16[25]}`)
     es.vec16[25] = 25
@@ -337,7 +393,6 @@ export function testSysStateVec (es) {
     es.vec32[45] = 85
     es.vec32[45] = es.vec32[45] * 2
     console.log (`es.vec32[45] (expect 170) = ${es.vec32[45]}`)
-
 
     console.log ('%caccess vec16', 'color:blue')
     es.vec16[7] = 423
@@ -366,7 +421,9 @@ export function testSysStateVec (es) {
 
     console.log ('%cwriteSCB and readSCB ', 'color:blue')
     x = readSCB (es, SCB_cur_instr_addr)
-    console.log (`SCB_cur_instr_addr= ${SCB_cur_instr_addr} => ${x} init expect 0`)
+    console.log (`SCB_cur_instr_addr=`
+                 + ` ${SCB_cur_instr_addr} => ${x}`
+                 + ` init expect 0`)
     writeSCB (es, SCB_cur_instr_addr, 34)
     y = readSCB (es, SCB_cur_instr_addr)
     console.log (`SCB_cur_instr_addr=${y} expect 34`)
@@ -412,17 +469,20 @@ export function testSysStateVec (es) {
     writeMem32 (es, 6, 0xf0f000ff)
     x = readMem32 (es, 6)
     y = readMem32 (es, 7)
-    console.log (`x=${arith.wordToHex8(x)} y=${arith.wordToHex8(y)}`
+    console.log (`x=${arith.wordToHex8(x)}`
+                 + ` y=${arith.wordToHex8(y)}`
                  + ' expect f0f000ff both times')
     
-    console.log ('%cwriteMem16 (odd address) / readMem32', 'color:blue')
+    console.log ('%cwriteMem16 (odd address) / readMem32',
+                 'color:blue')
     writeMem16 (es, 9, 34)
     x = readMem16 (es, 8)
     y = readMem16 (es, 9)
     z = readMem32 (es, 9)
     console.log (`x=${x} y=${y} z=${z} expect 0 34 34`)
 
-    console.log ('%cwriteMem16 (even address) / readMem32', 'color:blue')
+    console.log ('%cwriteMem16 (even address) / readMem32',
+                 'color:blue')
     writeMem16 (es, 12, 1)
     x = readMem16 (es, 12)
     y = readMem32 (es, 13)  // locations 6,7
@@ -437,13 +497,16 @@ export function testSysStateVec (es) {
     }
 
     console.log ('%cMemory snapshot', 'color:blue')
-    console.log ('Expect m[3] = 42, m[6] = f0f0, m[7] =  00ff,')
+    console.log (`Expect m[3] = 42, m[6] = f0f0,`
+                 + ` m[7] =  00ff,`)
     console.log ('Expect m[9] = 34, m[12] = 1')
     for (let i = 0; i < 16; i++) {
         let x = readMem16 (es, i)
-        console.log (`mem[${i}] = ${x} ${arith.wordToHex4(x)} `)
+        console.log (`mem[${i}] =`
+                     + ` ${x} ${arith.wordToHex4(x)} `)
     }
     
-    console.log (`%cTESTING: testSysStateVec finished`, 'color:red')
+    console.log (`%cTESTING: testSysStateVec finished`,
+                 'color:red')
 }
 

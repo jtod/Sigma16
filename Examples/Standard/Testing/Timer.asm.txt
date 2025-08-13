@@ -1,6 +1,6 @@
 ; Timer: Test the timeron and timeroff instructions.
 ; Step through the loop, and check timer interrupt
-; Sigma16  https://jtod.github.io/home/Sigma16  John O'Donnell, 2023
+; Sigma16  https://jtod.github.io/home/Sigma16  John O'Donnell, 2024
 
       load    R5,interval[R0]
       lea     R1,1[R0]

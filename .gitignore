@@ -28,6 +28,7 @@ Sigma16UserGuide*.tex
 *.bcf
 *.run.xml
 *.log
+*.blg
 *.aux
 *.out
 *.toc

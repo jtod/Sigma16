@@ -1,6 +1,0 @@
-** Test.org file
-
-#+index: typesetting
-#+index: index
-#+index: experiment
-This is an experiment for typesetting and index generation.

@@ -109,6 +109,12 @@ export function truncateWord (x) {
     return r;
 }
 
+export function truncateWord32 (x) {
+    const r = (x < 0) ? 0 : (x & 0xffffffff);
+//    com.mode.devlog (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
+    return r;
+}
+
 // Determine whether a JavaScript number is a valid Sigma16 integer
 // (which is represented using two's complement).  If not, print an
 // error message and treat the number as 0.
@@ -172,6 +178,39 @@ export function applyLogicFcnBit (fcn, x, y) {
 function lut (p,q,r,s,x,y) {
     return x==0 ? (y==0 ? p : q) : (y==0 ? r : s)
 }
+
+export function applyLogicFcnField (fcn, x, y, idx1, idx2) {
+//    console.log (`applyLogicFcnField ${fcn} ${x} ${y} ${idx1} ${idx2}`)
+    const p = arch.getBitInWordLE (fcn,3);
+    const q = arch.getBitInWordLE (fcn,2);
+    const r = arch.getBitInWordLE (fcn,1);
+    const s = arch.getBitInWordLE (fcn,0);
+    let result = 0
+    let b = 0
+    let i = 0
+    while (i < 16 && i < idx1) {
+        b = arch.getBitInWordLE (x,i)
+//        console.log (`part 1: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+    while (i < 16 && i <= idx2) {
+        b = lut (p,q,r,s,
+                 arch.getBitInWordLE(x,i), arch.getBitInWordLE(y,i))
+//        console.log (`part 2: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+    while (i < 16) {
+        b = arch.getBitInWordLE (x,i)
+//        console.log (`part 3: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+//    console.log (`result=${wordToHex4(result)}`)
+    return result
+}
+
 
 export function applyLogicFcnWord (fcn, x, y) {
     com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
@@ -366,7 +405,8 @@ export function wordToHex4 (x) {
 
 export function wordToHex8 (x) { 
     // a,b,c,d, e,f,g,h
-    let y = limit32 (x);
+    //    let y = limit32 (x);
+    let y = x;
     let h = y & 0x000f;
     y = y >>> 4;
     let g = y & 0x000f;
@@ -382,9 +422,11 @@ export function wordToHex8 (x) {
     let b = y & 0x000f;
     y = y >>> 4;
     let a = y & 0x000f;
-    return hexDigit[a] + hexDigit[b] + hexDigit[c] + hexDigit[d]
+    return hexDigit[a] + hexDigit[b]
+        + hexDigit[c] + hexDigit[d]
         + ' '
-        +  hexDigit[e] + hexDigit[f] + hexDigit[g] + hexDigit[h]
+        +  hexDigit[e] + hexDigit[f]
+        + hexDigit[g] + hexDigit[h]
 }
 
 function showBit (b) {
@@ -525,7 +567,8 @@ export function shiftR (x,k) {
 // add, addc, sub.  This is calculated by examining the most
 // significant bit of the result, and the carry output.
 
-export function additionCC (a,b,primary,sum) {
+//export function additionCC (a,b,primary,sum) {
+export function additionCC (c,a,b,primary,sum) {
     const msba = arch.getBitInWordLE (a, 15)
     const msbb = arch.getBitInWordLE (b, 15)
     const msbsum = arch.getBitInWordLE (sum, 15)
@@ -555,16 +598,20 @@ export function additionCC (a,b,primary,sum) {
 */
 }
 
+export function op_nop (a,b) {
+}
+
 // Arithmetic for the add instruction (rrdc).  There is no carry input
 // bit, so the condition code is not needed as an argument.  The
 // primary result is the two's complement sum, and the secondary
 // result is a condition code containing the carry out and indications
 // of binary overflow and integer overflow.
 
-export function op_add (a,b) {
+// export function op_add (a,b) {
+export function op_add (c,a,b) {
     const sum = a + b
     const primary = sum & 0x0000ffff
-    const secondary = additionCC (a,b,primary,sum)
+    const secondary = additionCC (c,a,b,primary,sum)
 // com.mode.devlog (`*** op_add a=${wordToHex4(a)} b=${wordToHex4(b)} p=${wordToHex4(primary)} s=${wordToHex4(secondary)}`)
     return [primary, secondary]
 }
@@ -572,14 +619,17 @@ export function op_add (a,b) {
 export function op_addc (c,a,b) {
     let sum = a + b + arch.getBitInWordLE(c,arch.bit_ccC);
     let primary = sum & 0x0000ffff;
-    const secondary = additionCC (a,b,primary,sum)
+    //    const secondary = additionCC (a,b,primary,sum)
+    const secondary = additionCC (c,a,b,primary,sum)
     return [primary, secondary]
 }
 
-export function op_sub (a,b) {
+//export function op_sub (a,b) {
+export function op_sub (c,a,b) {
     let sum = a + wordInvert (b) + 1;
     let primary = sum & 0x0000ffff;
-    const secondary = additionCC (a,b,primary,sum)
+    //    const secondary = additionCC (a,b,primary,sum)
+    const secondary = additionCC (c,a,b,primary,sum)
     return [primary, secondary]
 }
 
@@ -588,7 +638,8 @@ function representableAsTc (x) {
     return minTc <= x && x <= maxTc
 }
     
-export function op_mul (a,b) {
+//export function op_mul (a,b) {
+export function op_mul (c,a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let p = a * b;
@@ -633,7 +684,8 @@ function test_mul () {
     test_rr ("mul", op_mul, intToWord(-3), intToWord(-10), "30 []");
 }
 
-export function op_div (a,b) {
+//export function op_div (a,b) {
+export function op_div (c,a,b) {
     let aint = wordToInt (a);
     let bint = wordToInt (b);
     let primary = intToWord (Math.floor (aint / bint));  // Knuth quotient
@@ -648,7 +700,7 @@ function test_div () {
     test_rr ("div", op_div, 49, intToWord(-8), "6 1");
 }
 
-export function op_cmp (a,b) {
+export function op_cmp (c,a,b) {
     const aint = wordToInt (a)
     const bint = wordToInt (b)
     const ltTc  = aint < bint
@@ -656,11 +708,13 @@ export function op_cmp (a,b) {
     const eq    = a === b
     const gtTc  = aint > bint
     const gtBin = a > b
-    const cc = (eq ? arch.ccE : 0)
-          | (gtBin ? arch.ccG : 0)
- 	  | (gtTc ? arch.ccg : 0)
- 	  | (ltTc ? arch.ccl : 0)
-          | (ltBin ? arch.ccL : 0)
+    const t1 = arch.putBitInWordLE (16, c,  arch.bit_ccE, eq)
+    const t2 = arch.putBitInWordLE (16, t1, arch.bit_ccG, gtBin)
+    const t3 = arch.putBitInWordLE (16, t2, arch.bit_ccg, gtTc)
+    const t4 = arch.putBitInWordLE (16, t3, arch.bit_ccl, ltTc)
+    const t5 = arch.putBitInWordLE (16, t4, arch.bit_ccL, ltBin)
+    const cc = t5
+
     com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`)
     com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
     com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
@@ -668,6 +722,7 @@ export function op_cmp (a,b) {
     com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`)
     return cc
 }
+
 
 export function op_cmplt (a,b) {
     let aint = wordToInt (a);
@@ -710,8 +765,103 @@ export function op_xor (a,b) {
 
 // These constants provide a faster way to set or clear the flags
 
-// calculateExtract is used for both the extract and extracti instructions
+// calculateExtract is used for the extract instruction
 
+export function calculateExtract (wsize, wmask, dest, src,
+                                  dest_right,
+                                  src_right, src_left) {
+// dmask contains 1 bits in the destination field
+    // dclear is dest with 0s in destination field
+    let field_size = src_left - src_right + 1
+    let dest_left = dest_right + field_size - 1
+    const dmask = fieldMask (wsize, wmask, dest_left, field_size)
+    // dmask has 1s in destination field bits
+    const dmaski = (~dmask) & wmask
+    // dmaski has 1s everywhere except destination field bits
+    const dclear = dest & dmaski
+    // put 0s in dest field bits, leave other bits unchanged
+// smask contains 1 bits in the source field    
+    // sclear is src with 0s in source field
+    const smask = fieldMask (wsize, wmask, src_left, field_size)
+    const sclear = src & smask
+    // sclear is src with non-field bits cleared to 0
+// p is src field shifted to righthand position
+    //    const p = sclear >>> (srci - field_size + 1)
+    const p = sclear >>> (src_left - field_size + 1)
+// q is src field shifted to destination position
+    //    const q = p << (desti - field_size + 1)
+    const q = p << (dest_left - field_size + 1)    
+    const r = dclear | q
+    console.log (`calculateExtract wsize=${wsize} wmask=${wordToHex4(wmask)}`
+                 + ` dest=${wordToHex4(dest)}`
+                 + ` src=${wordToHex4(src)}`
+                 + ` dest_right=${dest_right}`
+                 + ` dest_left=${dest_left}`
+                 + ` src_right=${src_right}`
+                 + ` src_left=${src_left}`
+                 + ` field_size=${field_size}`
+                 + ` dmask=${wordToHex4(dmask)}`
+                 + ` dmaski=${wordToHex4(dmaski)}`
+                 + ` dclear=${wordToHex4(dclear)}`
+                 + ` smask=${wordToHex4(smask)}`
+                 + ` sclear=${wordToHex4(sclear)}`
+                 + ` p=${wordToHex4(p)}`
+                 + ` q=${wordToHex4(q)}`
+                 + ` r=${wordToHex4(q)}`)
+    return r
+}
+
+// version where dest_right and dest_left are specifed
+/*
+//    let src_left = src_right + field_size - 1
+
+export function calculateExtract (wsize, wmask, dest, src,
+                                  dest_right, dest_left,
+                                  src_right) {
+// dmask contains 1 bits in the destination field
+    // dclear is dest with 0s in destination field
+    let field_size = dest_left - dest_right + 1
+    const dmask = fieldMask (wsize, wmask, dest_left, field_size)
+    // dmask has 1s in destination field bits
+    const dmaski = (~dmask) & wmask
+    // dmaski has 1s everywhere except destination field bits
+    const dclear = dest & dmaski
+    // put 0s in dest field bits, leave other bits unchanged
+// smask contains 1 bits in the source field    
+    // sclear is src with 0s in source field
+    let src_left = src_right + field_size - 1
+    const smask = fieldMask (wsize, wmask, src_left, field_size)
+    const sclear = src & smask
+    // sclear is src with non-field bits cleared to 0
+// p is src field shifted to righthand position
+    //    const p = sclear >>> (srci - field_size + 1)
+    const p = sclear >>> (src_left - field_size + 1)
+// q is src field shifted to destination position
+    //    const q = p << (desti - field_size + 1)
+    const q = p << (dest_left - field_size + 1)    
+    const r = dclear | q
+    console.log (`calculateExtract wsize=${wsize} wmask=${wordToHex4(wmask)}`
+                 + ` dest=${wordToHex4(dest)}`
+                 + ` src=${wordToHex4(src)}`
+                 + ` dest_right=${dest_right}`
+                 + ` dest_left=${dest_left}`
+                 + ` src_right=${src_right}`
+                 + ` src_left=${src_left}`
+                 + ` field_size=${field_size}`
+                 + ` dmask=${wordToHex4(dmask)}`
+                 + ` dmaski=${wordToHex4(dmaski)}`
+                 + ` dclear=${wordToHex4(dclear)}`
+                 + ` smask=${wordToHex4(smask)}`
+                 + ` sclear=${wordToHex4(sclear)}`
+                 + ` p=${wordToHex4(p)}`
+                 + ` q=${wordToHex4(q)}`
+                 + ` r=${wordToHex4(q)}`)
+    return r
+}
+*/
+
+/* previous version using field size rather than left/right indices for destinaiton
+   
 export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
 // dmask contains 1 bits in the destination field
 // dclear is dest with 0s in destination field    
@@ -742,6 +892,8 @@ export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
                  + ` r=${wordToHex4(q)}`)
     return r
 }
+
+*/
 
 // p = source field (surrounded by 0) shifted to destination position
     // destination mask has 1 bits where field will be inserted
@@ -791,10 +943,38 @@ export function testCalculateExport () {
     calculateExtract (16, 5, 0xffff, 3, 7, 9); // 007c = 0000 0000 0111 11000
 }
 
-function test_add () {
-    test_rr ("add", op_add, 2, 3, "5 []");
-    test_rr ("add", op_add, 49, intToWord(-7), "42 []");
-    test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
-    test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
-}
 
+//function test_add () {
+//    test_rr ("add", op_add, 2, 3, "5 []");
+//    test_rr ("add", op_add, 49, intToWord(-7), "42 []");
+//    test_rr ("add", op_add, intToWord(-3), intToWord(-10), "-17 []");
+//    test_rr ("add", op_add, 20000, 30000, "bin 50000 [v]");
+//}
+
+/* old version op_cmp
+//    const cc = (eq ? arch.ccE : 0)
+//          | (gtBin ? arch.ccG : 0)
+// 	  | (gtTc ? arch.ccg : 0)
+// 	  | (ltTc ? arch.ccl : 0)
+//          | (ltBin ? arch.ccL : 0)
+export function op_cmp (c,a,b) {
+    const aint = wordToInt (a)
+    const bint = wordToInt (b)
+    const ltTc  = aint < bint
+    const ltBin = a < b
+    const eq    = a === b
+    const gtTc  = aint > bint
+    const gtBin = a > b
+    const cc = (eq ? arch.ccE : 0)
+          | (gtBin ? arch.ccG : 0)
+ 	  | (gtTc ? arch.ccg : 0)
+ 	  | (ltTc ? arch.ccl : 0)
+          | (ltBin ? arch.ccL : 0)
+    com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`)
+    com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
+    com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
+    com.mode.devlog (`op_cmp eq=${eq}`)
+    com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`)
+    return cc
+}
+*/
