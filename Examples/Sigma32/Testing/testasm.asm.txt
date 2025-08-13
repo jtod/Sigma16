@@ -1,0 +1,43 @@
+; testasm - test assembly of instructions
+
+   lea   R2,1[R0]
+   data  $e216   ; ladd R2,R2,R2
+   data  $2200
+
+   ladd  R1,R2,R3
+   lsub  R5,R1,R2
+   lmul  R10,R11,R12
+   ldiv  R13,R14,R15
+   lcmp  R13,R14,R15
+
+   llea   R8,13[R9]  ; e81b 900d
+   lload  R8,13[R9]  ; e81c 900d
+   lstore R8,13[R9]  ; e81d 900d
+
+   ljumpz   R4,3000[R5]
+   ljumpnz  R6,4000[R7]
+
+   lsave    R3,R8,45[R12]
+   lrestore R3,R8,45[R12]
+
+   lshiftl  R1,R2,5
+   lshiftr  R6,R7,13
+   lpush    R1,R2,R3
+   lpop     R1,R2,R3
+   ltop     R1,R2,R3
+
+; problems
+; for logic instructions, f,g are bit indices in registers
+; This would require 3*4 + 2*5 = 22 bits
+; Exp format allows 20 bits total for operands
+; If we go to 3 word instruction (need a new instruction
+; format), we could have another register: logicf
+;   Rd,Re,Rf,idx1, idx2, h   This would require 3*4 + 4 + 2*5
+;   = 26 bits and we would have 4 + 2*16 = 36 bits available
+
+   llogicf  R1,R2,13,4,6
+   llogicb  R1,R2,13,4,6
+
+   lextract Rd,Re,f,g,h
+
+   trap  R0,R0,R0

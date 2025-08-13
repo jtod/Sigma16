@@ -14,7 +14,17 @@
     color: green;
 */
 
-/* Hide the validate link at end of document; it doesn't work */
+/* postamble */
+div#postamble {
+    color: blue;
+}
+
+div#postamble p {
+    margin: 0em;
+    padding: 0em;
+}
+
+/* Hide the validate link in postamble */
 p.validation a {
     display: none;
 }
@@ -27,12 +37,12 @@ p.validation a {
 }
 
 .bodycontainer {
-    max-width: 43em;
     margin: auto;
-    text-align: left;
+    text-align: center;
 }
+
 body {
-    max-width: 43em;
+    max-width: 36em;
     font-family: Verdana, sans-serif;
     font-size: 100%;
     line-height: 1.4;
@@ -62,9 +72,15 @@ div.content h1.title {
 /* emacs.d/init.el sets the preamble to include title, author, and
    ate, which will precede the table of contents.  These are formatted
    with div#preamble ... */
+
+code {
+    font-size: 135%;
+    color: red;
+}
+
 div#preamble h1.title {
     font-family:  Verdana, sans-serif;
-    font-size: 175%;
+    font-size: 185%;
     color: blue;
     text-align: center;
     border: solid;
@@ -74,6 +90,57 @@ div#preamble h1.title {
     margin-bottom: 0.35em;
     padding: 0.25em;
 }
+
+/* lwarp uses h3 for Contents label before toc */
+h2 {
+    font-family:  Verdana, sans-serif;
+    font-size: 160%;
+    font-style: normal;
+    font-weight: normal;
+    color: #0000ff;
+}
+    /*     font-size: 14pt; */
+/*    font-weight: bold; */
+
+h3 {
+    font-family:  Verdana, sans-serif;
+    font-size: 140%;
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+}
+/*    font-size: 14pt; */
+
+/* lwarp uses h4 for section headers */
+h4 {
+    font-family:  Verdana, sans-serif;
+    font-size: 120%;
+/*    font-size: 18pt; */
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+}
+
+/* lwarp uses h5 for subsection headers */
+h5 {
+    font-family:  Verdana, sans-serif;
+    font-size: 115%;
+/*    font-size: 16pt; */
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+}
+
+/* lwarp uses h6 for subsubsection headers */
+h6 {
+    font-family:  Verdana, sans-serif;
+    font-size: 105%;
+/*    font-size: 14pt; */
+    font-weight: normal;
+    font-style: normal;
+    color: #0000ff;
+}
+
 
 div#preamble p.author {
     font-family:  Verdana, sans-serif;
@@ -125,6 +192,13 @@ div#preamble p.date {
     padding: 0em;
 }
 
+div.InstrTable table {
+    background-color: #e6ffff;
+    overflow-x: scroll;
+    line-height: 1.0;
+}
+
+
 
 
 .EnvTitle p {
@@ -155,26 +229,63 @@ div#preamble p.date {
     padding: 0em;
 }
 
-.CodeListing {
-    background-color: #e6ffff; /* light blue */
-    display: flex; /* removes white space before and after the code */
+/*    background-color: #e6ffff;  light blue */
+/* flex remove white space before/after code */
+
+pre.src-Sigma16 {
+    background-color: #e6ffff;
+    font-size: 130%;
+    overflow-x: scroll;
+}
+
+pre.example {
+    background-color: #C5F9B0;
+    font-size: 130%;
+    overflow-x: scroll;
+}
+
+/*
+    font-family: monospace;
+    margin: 0em;
+    white-space: pre;
+    display: flex;
+div.CodeListing {
+    background-color: pink;
+    display: flex;
+    overflow-x: scroll;
     font-family: monospace;
     font-size: 130%;
     white-space: pre;
+    margin: 0em;
 }
-div.CodeListing p { /* remove white space from the <p> element */
-    margin-top: 0em;
-    margin-bottom: 0em;
+
+div.CodeListing p {
+    margin: 0em;
     padding-top: 0em;
     padding-bottom: 0em;
     white-space: pre;
 }
+*/
 
-/* Code blocks     display: inline;
-    white-space: pre-wrap;
- */
+/*
+div.CodeListing p:first-letter {
+    color: red;
+}
+*/
+/*
+div.CodeListing p#text {
+    color: red;
+}
+*/
+
+/*
+    margin-top: 0em;
+    margin-bottom: 0em;
+*/
+/* light blue */
+/*
 div.CodeListing pre {
-    background-color: #e6ffff; /* light blue */
+    background-color: #e6ffff;
     font-family: 'Cascadia Code', 'Courier New', monospace;
     font-size: 13pt;
     color: black;
@@ -182,6 +293,25 @@ div.CodeListing pre {
     margin-top: 0em;
     margin-bottom: 0em;
 }
+*/
+
+/*
+.CodeListing {
+    background-color: #e6ffff;  light blue 
+    display: flex;  removes white space before and after the code 
+    font-family: monospace;
+    font-size: 130%;
+    white-space: pre;
+    syle: "overflow-x: auto";
+}
+*/
+
+ /* remove white space from the <p> element */ 
+
+
+/* Code blocks     display: inline;
+    white-space: pre-wrap;
+ */
 
 /* not working, want to indent toc subsection */
 a.tocsubsection span {
@@ -200,24 +330,37 @@ div #table-of-contents {
     display: none;
 }  */
 /* Document title at top */
-h1 {
+
+div.vspaceSmall {
+    margin-top: 0.3em;
+}
+
+div.vspace {
+    margin-top: 0.8em;
+}
+
+div.title, h1 {
     font-family:  Verdana, sans-serif;
     font-size: 22pt;
     font-weight: normal;
     font-style: normal;
+    text-align: center;
     color: #0000ff;
+/*    
     border: solid;
     border-width: thin;
     border-color: red;
+*/
     padding-top: 0.3em;
     padding-bottom: 0.3em;
 }
 
-div.author, div.titledate {
+div.author, div.date, div.titledate {
     font-family:  Verdana, sans-serif;
     font-size: 14pt;
     font-weight: normal;
     font-style: normal;
+    text-align: center;
     color: #0000ff;
     padding-top: 0em;
     padding-bottom: 0em;
@@ -226,14 +369,6 @@ div.author, div.titledate {
 }
 
 
-/* lwarp uses h3 for Contents label before toc */
-h3 {
-    font-family:  Verdana, sans-serif;
-    font-size: 14pt;
-    font-weight: bold;
-    font-style: normal;
-    color: #0000ff;
-}
 
 /* Adjust toc section from lwarp.css: font-size was unspecified */
 a.tocsection {display: inline-block ; margin-left: 1em ;
@@ -253,32 +388,6 @@ a.tocparagraph {display: inline-block ; margin-left: 7em ;
 a.tocsubparagraph {display: inline-block ; margin-left: 9em ;
     text-indent: -.5em ; }
 
-/* lwarp uses h4 for section headers */
-h4 {
-    font-family:  Verdana, sans-serif;
-    font-size: 18pt;
-    font-weight: normal;
-    font-style: normal;
-    color: #0000ff;
-}
-
-/* lwarp uses h5 for subsection headers */
-h5 {
-    font-family:  Verdana, sans-serif;
-    font-size: 16pt;
-    font-weight: normal;
-    font-style: normal;
-    color: #0000ff;
-}
-
-/* lwarp uses h6 for subsubsection headers */
-h6 {
-    font-family:  Verdana, sans-serif;
-    font-size: 14pt;
-    font-weight: normal;
-    font-style: normal;
-    color: #0000ff;
-}
 
 tr {
 }
@@ -295,7 +404,7 @@ div.majornote, div.tcolorbox {
     padding-right: 1em;
     padding-left: 1em;
     color: black;
-    font-style: italic;
+/*     font-style: italic; */
     border: solid;
     border-width: thin;
     border-color: red;

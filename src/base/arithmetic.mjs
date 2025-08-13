@@ -109,6 +109,12 @@ export function truncateWord (x) {
     return r;
 }
 
+export function truncateWord32 (x) {
+    const r = (x < 0) ? 0 : (x & 0xffffffff);
+//    com.mode.devlog (`truncateWord x${wordToHex4(x)} r=${wordToHex4(r)}`);
+    return r;
+}
+
 // Determine whether a JavaScript number is a valid Sigma16 integer
 // (which is represented using two's complement).  If not, print an
 // error message and treat the number as 0.
@@ -172,6 +178,39 @@ export function applyLogicFcnBit (fcn, x, y) {
 function lut (p,q,r,s,x,y) {
     return x==0 ? (y==0 ? p : q) : (y==0 ? r : s)
 }
+
+export function applyLogicFcnField (fcn, x, y, idx1, idx2) {
+//    console.log (`applyLogicFcnField ${fcn} ${x} ${y} ${idx1} ${idx2}`)
+    const p = arch.getBitInWordLE (fcn,3);
+    const q = arch.getBitInWordLE (fcn,2);
+    const r = arch.getBitInWordLE (fcn,1);
+    const s = arch.getBitInWordLE (fcn,0);
+    let result = 0
+    let b = 0
+    let i = 0
+    while (i < 16 && i < idx1) {
+        b = arch.getBitInWordLE (x,i)
+//        console.log (`part 1: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+    while (i < 16 && i <= idx2) {
+        b = lut (p,q,r,s,
+                 arch.getBitInWordLE(x,i), arch.getBitInWordLE(y,i))
+//        console.log (`part 2: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+    while (i < 16) {
+        b = arch.getBitInWordLE (x,i)
+//        console.log (`part 3: i=${i} b=${b}`)
+        result = arch.putBitInWordLE (16, result, i, b)
+        i++
+    }
+//    console.log (`result=${wordToHex4(result)}`)
+    return result
+}
+
 
 export function applyLogicFcnWord (fcn, x, y) {
     com.mode.devlog (`applyLogicFcnWord fcn=${fcn} x=${wordToHex4(x)} y=${wordToHex4(y)}`);
@@ -366,7 +405,8 @@ export function wordToHex4 (x) {
 
 export function wordToHex8 (x) { 
     // a,b,c,d, e,f,g,h
-    let y = limit32 (x);
+    //    let y = limit32 (x);
+    let y = x;
     let h = y & 0x000f;
     y = y >>> 4;
     let g = y & 0x000f;
@@ -382,9 +422,11 @@ export function wordToHex8 (x) {
     let b = y & 0x000f;
     y = y >>> 4;
     let a = y & 0x000f;
-    return hexDigit[a] + hexDigit[b] + hexDigit[c] + hexDigit[d]
+    return hexDigit[a] + hexDigit[b]
+        + hexDigit[c] + hexDigit[d]
         + ' '
-        +  hexDigit[e] + hexDigit[f] + hexDigit[g] + hexDigit[h]
+        +  hexDigit[e] + hexDigit[f]
+        + hexDigit[g] + hexDigit[h]
 }
 
 function showBit (b) {
@@ -723,8 +765,103 @@ export function op_xor (a,b) {
 
 // These constants provide a faster way to set or clear the flags
 
-// calculateExtract is used for both the extract and extracti instructions
+// calculateExtract is used for the extract instruction
 
+export function calculateExtract (wsize, wmask, dest, src,
+                                  dest_right,
+                                  src_right, src_left) {
+// dmask contains 1 bits in the destination field
+    // dclear is dest with 0s in destination field
+    let field_size = src_left - src_right + 1
+    let dest_left = dest_right + field_size - 1
+    const dmask = fieldMask (wsize, wmask, dest_left, field_size)
+    // dmask has 1s in destination field bits
+    const dmaski = (~dmask) & wmask
+    // dmaski has 1s everywhere except destination field bits
+    const dclear = dest & dmaski
+    // put 0s in dest field bits, leave other bits unchanged
+// smask contains 1 bits in the source field    
+    // sclear is src with 0s in source field
+    const smask = fieldMask (wsize, wmask, src_left, field_size)
+    const sclear = src & smask
+    // sclear is src with non-field bits cleared to 0
+// p is src field shifted to righthand position
+    //    const p = sclear >>> (srci - field_size + 1)
+    const p = sclear >>> (src_left - field_size + 1)
+// q is src field shifted to destination position
+    //    const q = p << (desti - field_size + 1)
+    const q = p << (dest_left - field_size + 1)    
+    const r = dclear | q
+    console.log (`calculateExtract wsize=${wsize} wmask=${wordToHex4(wmask)}`
+                 + ` dest=${wordToHex4(dest)}`
+                 + ` src=${wordToHex4(src)}`
+                 + ` dest_right=${dest_right}`
+                 + ` dest_left=${dest_left}`
+                 + ` src_right=${src_right}`
+                 + ` src_left=${src_left}`
+                 + ` field_size=${field_size}`
+                 + ` dmask=${wordToHex4(dmask)}`
+                 + ` dmaski=${wordToHex4(dmaski)}`
+                 + ` dclear=${wordToHex4(dclear)}`
+                 + ` smask=${wordToHex4(smask)}`
+                 + ` sclear=${wordToHex4(sclear)}`
+                 + ` p=${wordToHex4(p)}`
+                 + ` q=${wordToHex4(q)}`
+                 + ` r=${wordToHex4(q)}`)
+    return r
+}
+
+// version where dest_right and dest_left are specifed
+/*
+//    let src_left = src_right + field_size - 1
+
+export function calculateExtract (wsize, wmask, dest, src,
+                                  dest_right, dest_left,
+                                  src_right) {
+// dmask contains 1 bits in the destination field
+    // dclear is dest with 0s in destination field
+    let field_size = dest_left - dest_right + 1
+    const dmask = fieldMask (wsize, wmask, dest_left, field_size)
+    // dmask has 1s in destination field bits
+    const dmaski = (~dmask) & wmask
+    // dmaski has 1s everywhere except destination field bits
+    const dclear = dest & dmaski
+    // put 0s in dest field bits, leave other bits unchanged
+// smask contains 1 bits in the source field    
+    // sclear is src with 0s in source field
+    let src_left = src_right + field_size - 1
+    const smask = fieldMask (wsize, wmask, src_left, field_size)
+    const sclear = src & smask
+    // sclear is src with non-field bits cleared to 0
+// p is src field shifted to righthand position
+    //    const p = sclear >>> (srci - field_size + 1)
+    const p = sclear >>> (src_left - field_size + 1)
+// q is src field shifted to destination position
+    //    const q = p << (desti - field_size + 1)
+    const q = p << (dest_left - field_size + 1)    
+    const r = dclear | q
+    console.log (`calculateExtract wsize=${wsize} wmask=${wordToHex4(wmask)}`
+                 + ` dest=${wordToHex4(dest)}`
+                 + ` src=${wordToHex4(src)}`
+                 + ` dest_right=${dest_right}`
+                 + ` dest_left=${dest_left}`
+                 + ` src_right=${src_right}`
+                 + ` src_left=${src_left}`
+                 + ` field_size=${field_size}`
+                 + ` dmask=${wordToHex4(dmask)}`
+                 + ` dmaski=${wordToHex4(dmaski)}`
+                 + ` dclear=${wordToHex4(dclear)}`
+                 + ` smask=${wordToHex4(smask)}`
+                 + ` sclear=${wordToHex4(sclear)}`
+                 + ` p=${wordToHex4(p)}`
+                 + ` q=${wordToHex4(q)}`
+                 + ` r=${wordToHex4(q)}`)
+    return r
+}
+*/
+
+/* previous version using field size rather than left/right indices for destinaiton
+   
 export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
 // dmask contains 1 bits in the destination field
 // dclear is dest with 0s in destination field    
@@ -755,6 +892,8 @@ export function calculateExtract (wsize, wmask, dest, src, desti, srci, fsize) {
                  + ` r=${wordToHex4(q)}`)
     return r
 }
+
+*/
 
 // p = source field (surrounded by 0) shifted to destination position
     // destination mask has 1 bits where field will be inserted
