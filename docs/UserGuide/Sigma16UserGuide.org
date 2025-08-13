@@ -5760,13 +5760,13 @@ Assembly directives
 |                     | F,C | F..C | nop                |
 |                     |     | .... |                    |
 +---------------------+-----+------+--------------------+
-|                     | F,D | F..D | nop / Sigma32      |
-|                     |     | .... |                    |
+| xxea Rd,disp[Ra]    | F,D | FdaD | Sigma32            |
+| (Sigma32)           |     | disp |                    |
 +---------------------+-----+------+--------------------+
-|                     | F,E | F..E | nop / Sigma32      |
-|                     |     | .... |                    |
+| xxoad Rd,disp[Ra]   | F,E | FdaE | Sigma32            |
+| (Sigma32)           |     | disp |                    |
 +---------------------+-----+------+--------------------+
-|                     | F,F | F..F | nop / Sigma32      |
+| xxtore Rd,disp[Ra]  | F,F | F..F | nop / Sigma32      |
 |                     |     | .... |                    |
 +---------------------+-----+------+--------------------+
 #+BEGIN_EXPORT html
@@ -5807,66 +5807,67 @@ Instructions and pseudoinstructions in each format:
 +----------------------+------+------+----------------------+
 | Assembly             |      | Code | Effect               |
 +----------------------+------+------+----------------------+
-| logicf Rd,Re,f,g,h   | e,00 | Ed00 | Rd.f:g :=            |
+| logicf Rd,Re,f,g,h   | E,00 | Ed00 | Rd.f:g :=            |
 |                      |      | efgh |   h(Rd.f:g,Re.f:g)   |
 +----------------------+------+------+----------------------+
-| logicb Rd,Re,f,g,h   | e,01 | Ed01 | Rd.f := h(Rd.f,Re.g) |
+| logicb Rd,Re,f,g,h   | E,01 | Ed01 | Rd.f := h(Rd.f,Re.g) |
 |                      |      | efgh |                      |
 +----------------------+------+------+----------------------+
-| shiftl Rd,Re,h       | e,03 |      | Rd := Re shl h       |
+| shiftl Rd,Re,h       | E,02 | Ed02 | Rd := Re shl h       |
+|                      |      | e..h |                      |
++----------------------+------+------+----------------------+
+| shiftr Rd,Re,h       | E,03 | Ed03 | Rd := Re shr h       |
+|                      |      | e..h |                      |
++----------------------+------+------+----------------------+
+| extract Rd,Re,f,g,h  | E,04 |      | Rd.f~g :=            |
 |                      |      |      |                      |
 +----------------------+------+------+----------------------+
-| shiftr Rd,Re,h       | e,04 |      | Rd := Re shr h       |
-|                      |      |      |                      |
+| push Rd,Re,Rf        | E,05 |      | M[ea] := Rd, Rb++    |
+|                      | ef.. |      |                      |
 +----------------------+------+------+----------------------+
-| extr Rd,Re,f,g,h     | e,05 |      | Rd.f~g :=            |
-|                      |      |      |                      |
+| pop Rd,Re,Rf         | E,06 |      | Rb--, Rd := M[ea]    |
+|                      | ef.. |      |                      |
 +----------------------+------+------+----------------------+
-| push Rd,Re,Rf        | e,07 |      | M[ea] := Rd, Rb++    |
-|                      |      |      |                      |
+| top Rd,Re,Rf         | E,07 |      | Rb--, Rd := M[ea]    |
+|                      | ef.. |      |                      |
 +----------------------+------+------+----------------------+
-| pop Rd,Re,Rf         | e,08 |      | Rb--, Rd := M[ea]    |
-|                      |      |      |                      |
-+----------------------+------+------+----------------------+
-| top Rd,Re,Rf         | e,09 |      | Rb--, Rd := M[ea]    |
-|                      |      |      |                      |
-+----------------------+------+------+----------------------+
-| save Rd,Re,gh[Rf]    | e,0a |      | M[Rf+gh] := Rd,      |
-|                      |      |      | M[Rf+gh+1] := R{d+1} |
+| save Rd,Re,gh[Rf]    | E,08 |      | M[Rf+gh] := Rd,      |
+|                      | efgh |      | M[Rf+gh+1] := R{d+1} |
 |                      |      |      | M[Rf+gh+e-d] := Re   |
 +----------------------+------+------+----------------------+
-| restore Rd,Re,gh[Rf] | e,0b |      | Rd := M[Rf+gh],      |
-|                      |      |      | ...,                 |
+| restore Rd,Re,gh[Rf] | E,09 |      | Rd := M[Rf+gh],      |
+|                      | efgh |      | ...,                 |
 |                      |      |      | Re := M[Rf+gh+e-d]   |
 +----------------------+------+------+----------------------+
-| brc0 Rd,e,fgh        | e,0c | Ed0C | if R[d].e=0          |
-|                      |      |      | then pc:=pc+fgh      |
+| brc0 Rd,e,fgh        | E,0A | Ed0A | if R[d].e=0          |
+|                      | efgh |      | then pc:=pc+fgh      |
 +----------------------+------+------+----------------------+
-| brc1 Rd,e,fgh        | e,0d | Ed0D | if R[d].e=1          |
-|                      |      |      | then pc:=pc+fgh      |
+| brc1 Rd,e,fgh        | E,0B | Ed0B | if R[d].e=1          |
+|                      | efgh |      | then pc:=pc+fgh      |
 +----------------------+------+------+----------------------+
-| brz Rd,efgh          | e,0e | Ed0E | if R[d]=0000         |
+| brz Rd,efgh          | E,0C | Ed0C | if R[d]=0000         |
 |                      |      |      | then pc:=pc+efgh     |
 +----------------------+------+------+----------------------+
-| brnz Rd,efgh         | e,0f | Ed0F | if R[d]!=0000        |
+| brnz Rd,efgh         | E,0D | Ed0D | if R[d]!=0000        |
 |                      |      |      | then pc:=pc+efgh     |
 +----------------------+------+------+----------------------+
-| dispatch Rd,efgh     | e,10 | Ed10 | pc :=                |
-|                      |      |      |   M[pc+min(Rd,efgh)]]|
-| getctl Rd,c          | e,11 |      | Rd := Sc privileged  |
-|                      |      |      |                      |
+| dispatch Rd,efgh     | E,0E | Ed0E | pc :=                |
+|                      |      | efgh |   M[pc+min(Rd,efgh)]]|
 +----------------------+------+------+----------------------+
-| putctl Rd,c          | e,12 |      | Sc := Rd privileged  |
-|                      |      |      |                      |
+| getctl Rd,e          | E,0F | Ed0F | Rd := Sc privileged  |
+| (privileged)         | e... | e... |                      |
 +----------------------+------+------+----------------------+
-| resume               | e,13 |      | pc := ipc,           |
-| (privileged)         |      |      | status := istatus    |
+| putctl Rd,e          | E,10 | Ed10 | Sc := Rd privileged  |
+| (privileged)         | e... | e... |                      |
 +----------------------+------+------+----------------------+
-| timon Rd,efgh        | e,14 |      | timer := efgh,       |
-|                      |      |      | start timer          |
+| resume               | E,11 | Ed11 | pc := ipc,           |
+| (privileged)         | .... |      | status := istatus    |
 +----------------------+------+------+----------------------+
-| timoff Rd,efgh       | e,15 |      | stop timer           |
-|                      |      |      |                      |
+| timeron Rd,efgh      | E,12 | Ed12 | timer := efgh,       |
+| (privileged)         |      | efgh | start timer          |
++----------------------+------+------+----------------------+
+| timeroff Rd,efgh     | E,13 | Ed13 | stop timer           |
+| (privileged)         |      | efgh |                      |
 +----------------------+------+------+----------------------+
 #+BEGIN_EXPORT html
 </div>
@@ -5992,13 +5993,13 @@ Sigma32 instructions represented in RX format
 +----------------------+------+----------+----------------------+
 | Assembly             | Op   | Code     | Effect               |
 +----------------------+------+----------+----------------------+
-| llogicf Rd,Rb,p,q,h  | e,00 | FdbD,mnh | Rd.m:n :=            |
+| llogicf Rd,Rb,p,q,h  | F,D  | FdbD     | Rd.m:n :=            |
 |                      |      | mnh      |   h(Rd.m:n,Rb.m:n)   |
 +----------------------+------+----------+----------------------+
-| llogicb Rd,Re,p,q,h  | e,01 | FdeE,mnh | Rd.f := h(Rd.f,Re.g) |
+| llogicb Rd,Rb,m,n,h  | F,E  | FdbE     | Rd.f := h(Rd.f,Re.g) |
 |                      |      | mnh      |                      |
 +----------------------+------+----------+----------------------+
-| lextract Rd,Re,p,q,h | e,05 | FdeF,mnh | Rd.f~g :=            |
+| lextract Rd,Rb,m,n,h | F,F  | FdvF     | Rd.f~g :=            |
 |                      |      | mnh      |                      |
 +----------------------+------+----------+----------------------+
 #+BEGIN_EXPORT html

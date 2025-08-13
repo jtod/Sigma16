@@ -235,29 +235,12 @@ export const mnemonicRX =
    "jumpnz",   "testset",  "noprx",     "noprx",      // 8-11
    "noprx",    "noprx",    "noprx",     "noprx"]      // 12-15
 
-   // possible future...
-   // "leal",     "loadl",    "storel",    "noprx"]   // c-f
-
 export const mnemonicEXP =  // ????? needs revision
-    ["logicf",   "logicb",  "nop",    "shiftl",     // 00-03
-     "shiftr",   "extract", "nop",    "push",       // 04-07
-     "pop",      "top",     "save",   "restore",    // 08-0b
-     "nop",      "nop",     "nop",    "nop",        // 0c-0f (br)
-     "dispatch", "getctl",  "putctl", "resume",     // 10-13
-     "timeron",  "timeroff"]                        // 14-15
-
-//     "brc0",     "brc1",   "brz",   
-//     "brnz",    
-//     "loticw",   "logicr",
-//     "extracti", 
-// export const mnemonicEXP =
-//     ["brf",     "brb",      "brfc0",    "brbc0",    // 00-03
-//      "brfc1",   "brbc1",    "brfz",     "brbz",     // 04-07
-//      "brfnz",   "brbnz",    "dispatch", "save",     // 08-0b
-//      "restore", "push",     "pop",      "top",      // 0c-0f
-//      "shiftl",  "shiftr",   "logicw",   "logicr",   // 10-13
-//      "logicb",  "extract",  "extracti", "getctl",   // 14-17
-//      "putctl",  "resume",   "timeron",  "timeroff"] // 18-1b
+  ["logicf",  "logicb",  "shiftl",   "shiftr",   // 00-03
+   "extract", "push",    "pop",      "top",      // 04-07
+   "save",    "restore", "bvc0",     "brc1",     // 08-0b
+   "brz",     "brnz",    "dispatch", "getctl",   // 0c-0f
+   "putctl",  "resume",  "timon",    "timoff"]   // 10-13
 
 //-------------------------------------
 // Mnemonics for control registers
@@ -511,47 +494,47 @@ statementSpec.set("logicf",
 statementSpec.set("logicb",
    {ifmt:iEXP, afmt:aRRkkk,  opcode:[14,1]})
 statementSpec.set("shiftl",
-   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
+   {ifmt:iEXP, afmt:aRRk,   opcode:[14,2]})
 statementSpec.set("shiftr",
-   {ifmt:iEXP, afmt:aRRk,   opcode:[14,4]})
+   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
 // statementSpec.set("extract",
 //    {ifmt:iEXP, afmt:aRkkRk, opcode:[14,5]})
 // statementSpec.set("extracti",
 //    {ifmt:iEXP, afmt:aRkkRk, opcode:[14,6]})
 statementSpec.set("extract",
-   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,5]})
-statementSpec.set("extracti",
-   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,6]})
+   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,4]})
+//statementSpec.set("extracti",
+//   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,6]})
 statementSpec.set("push",
-   {ifmt:iEXP, afmt:aRRR,   opcode:[14,7]})
+   {ifmt:iEXP, afmt:aRRR,   opcode:[14,5]})
 statementSpec.set("pop",
-   {ifmt:iEXP, afmt:aRRR,   opcode:[14,8]})
+   {ifmt:iEXP, afmt:aRRR,   opcode:[14,6]})
 statementSpec.set("top",
-   {ifmt:iEXP, afmt:aRRR,   opcode:[14,9]})
+   {ifmt:iEXP, afmt:aRRR,   opcode:[14,7]})
 statementSpec.set("save",
-   {ifmt:iEXP, afmt:aRRX,   opcode:[14,10]})
+   {ifmt:iEXP, afmt:aRRX,   opcode:[14,8]})
 statementSpec.set("restore",
-   {ifmt:iEXP, afmt:aRRX,   opcode:[14,11]})
+   {ifmt:iEXP, afmt:aRRX,   opcode:[14,9]})
 statementSpec.set("brc0",
-   {ifmt:iEXP, afmt:aRkK,   opcode:[14,12]})
+   {ifmt:iEXP, afmt:aRkK,   opcode:[14,10]})
 statementSpec.set("brc1",
-   {ifmt:iEXP, afmt:aRkK,   opcode:[14,13]})
+   {ifmt:iEXP, afmt:aRkK,   opcode:[14,11]})
 statementSpec.set("brz",
-   {ifmt:iEXP, afmt:aRK,    opcode:[14,14]})
+   {ifmt:iEXP, afmt:aRK,    opcode:[14,12]})
 statementSpec.set("brnz",
-   {ifmt:iEXP, afmt:aRK,    opcode:[14,15]})
+   {ifmt:iEXP, afmt:aRK,    opcode:[14,13]})
 statementSpec.set("dispatch",
-   {ifmt:iEXP, afmt:aRk, opcode:[14,16], pseudo: false})
+   {ifmt:iEXP, afmt:aRk, opcode:[14,14], pseudo: false})
 statementSpec.set("getctl",
-   {ifmt:iEXP, afmt:aRC,    opcode:[14,17]})
+   {ifmt:iEXP, afmt:aRC,    opcode:[14,15]})
 statementSpec.set("putctl",
-   {ifmt:iEXP, afmt:aRC,    opcode:[14,18]})
+   {ifmt:iEXP, afmt:aRC,    opcode:[14,16]})
 statementSpec.set("resume",
-   {ifmt:iEXP, afmt:a0,     opcode:[14,19]})
+   {ifmt:iEXP, afmt:a0,     opcode:[14,17]})
 statementSpec.set("timeron",
-   {ifmt:iEXP, afmt:aR,     opcode:[14,20,0]})
+   {ifmt:iEXP, afmt:aR,     opcode:[14,18,0]})
 statementSpec.set("timeroff",
-   {ifmt:iEXP, afmt:a0,     opcode:[14,21]})
+   {ifmt:iEXP, afmt:a0,     opcode:[14,19]})
 
 // Sigma32 instructions
 

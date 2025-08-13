@@ -36,6 +36,13 @@ import * as smod from './s16module.mjs';
 // Number of minor cycles per timer tick
 export const defaultTimerResolution = 0
 
+// Create these variables now, they will be set toward end of
+// file
+
+let dispatch_primary_opcode;
+let dispatch_RX;
+let dispatch_EXP;
+
 //-------------------------------------------------------------
 // Access to system control register flags
 //-------------------------------------------------------------
@@ -1314,25 +1321,6 @@ const exp2_top  = (es) => {
 // register has been fetched if it isn't needed for the
 // instruction).
 
-const dispatch_primary_opcode =
-      [ cab_dc (arith.op_add),    // 0
-        cab_dc (arith.op_sub),    // 1
-        cab_dc (arith.op_mul),    // 2
-        cab_dc (arith.op_div),    // 3
-        cab_c  (arith.op_cmp),    // 4   doesn't change d register
-        cab_dc (arith.op_addc),   // 5
-        cab_dc (arith.op_muln),   // 6
-        cab_dca (arith.op_divn),  // 7
-        nop,                      // 8 reserved rrr
-        nop,                      // 9 reserved rrr
-        nop,                      // a reserved rrr        
-        nop,                      // b reserved rrr        
-        op_trap,                  // c
-        nop,                      // d escape reserved
-        handle_EXP,               // e escape to EXP
-        handle_rx ]               // f escape to RX
-
-
 // Some instructions load the primary result into rd and the secondary
 // into cc (which is R15).  If the d field of the instruction is 15,
 // the primary result is loaded into rd and the secondary result is
@@ -1365,21 +1353,6 @@ const rx = (f) => (es) => {
     f (es);
 }
 
-const dispatch_RX =
-    [ rx (rx_lea),       // 0
-      rx (rx_load),      // 1
-      rx (rx_store),     // 2
-      rx (rx_jump),      // 3
-      rx (rx_jumpc0),    // 4
-      rx (rx_jumpc1),    // 5
-      rx (rx_jal),       // 6
-      rx (rx_jumpz),     // 7
-      rx (rx_jumpnz),    // 8
-      rx (rx_testset),   // 9   x
-      rx (rx_leal),      // a   x
-      rx (rx_loadl),     // b   x
-      rx (rx_storel),    // c   x
-      rx (rx_nop) ];     // d   x
 
 function rx_lea (es) {
     es.regfile[es.ir_d].put(es.ea);
@@ -1654,15 +1627,6 @@ function exp2_dispatch (es) {
     const loc = here + offset
     const dest = memFetchData(es,loc)
     es.pc.put (limitAddress (es,dest))
-    
-//    const size = es.field_e                 // field size
-//    const k = es.instrDisp & 0x0fff         // fixed offset
-//    const mask = (1 << size) - 1
-//    const safecode = (code & mask)
-//    const offset = safecode << 1 + k        // variable offset
-//    const dest =  es.pc.get() + offset      // destination address
-//    console.log (`code=${code} size=${size} k=${k} mask=${mask} safecode=${safecode} offset=${offset} dest=${dest}`)
-//    es.pc.put (limitAddress (es, dest))
 }
 
 function exp2_save (es) {
@@ -1771,45 +1735,6 @@ function exp2_extract (es) {
     es.regfile[es.ir_d].put(d_new);
 }
 
-
-//                     + ` size = ${size}`
-//    const size = d_left - d_right + 1
-
-/* deprecated
-function exp2_extracti (es) {
-    console.log ('exp2_extracti')
-    const d_old = es.regfile[es.ir_d].get()
-    const src = (~ es.regfile[es.field_e].get()) & 0xffff
-    const d_left = es.field_f
-    const d_right = es.field_g
-    const s_left = es.field_h
-    const size = d_left - d_right + 1
-    const d_new = arith.calculateExtract (16, 0xffff, d_old,
-                                          src, d_left, s_left, size)
-    console.log (`extracti `
-                     + ` d_old = ${arith.wordToHex4(d_old)}`
-                     + ` src = ${arith.wordToHex4(src)}`
-                     + ` d_left = ${d_left}`
-                     + ` s_left = ${s_left}`
-                     + ` size = ${size}`
-                     + ` d_new = ${arith.wordToHex4(d_new)}`)
-    es.regfile[es.ir_d].put(d_new);
-}
-*/
-
-// logicw is deprecated, replaced by logicf
-/*
-function exp2_logicw (es) {
-    com.mode.devlog ('EXP logicw')
-    const x = es.regfile[es.field_e].get()              // operand 1
-    const y = es.regfile[es.field_f].get()              // operand 2
-    const fcn = es.field_h                              // logic function
-    const result = arith.applyLogicFcnWord (fcn,x,y)    // fcn x y
-    console.log (`logicw x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)}`
-                 + ` result=${arith.wordToHex4(result)}`);
-    es.regfile[es.ir_d].put(result);
-}
-*/
 
 function exp2_logicf (es) {
     com.mode.devlog ('EXP logicf')
@@ -1920,6 +1845,7 @@ function exp2_brz (es) { // ??????????????????????????????
         console.log ("brfz is not branching")
     }
 }
+
 function exp2_brnz (es) { // ??????????????????????????????
     com.mode.devlog('exp_brnz')
     const x = es.regfile[es.ir_d].get()
@@ -1931,36 +1857,72 @@ function exp2_brnz (es) { // ??????????????????????????????
     }
 }
 
-const dispatch_EXP =
-      //      [ exp2 (exp2_logicw),   // 00    logicw replaced by logicf
+// const dispatch_primary_opcode =
+dispatch_primary_opcode =
+      [ cab_dc (arith.op_add),    // 0
+        cab_dc (arith.op_sub),    // 1
+        cab_dc (arith.op_mul),    // 2
+        cab_dc (arith.op_div),    // 3
+        cab_c  (arith.op_cmp),    // 4
+        cab_dc (arith.op_addc),   // 5
+        cab_dc (arith.op_muln),   // 6
+        cab_dca (arith.op_divn),  // 7
+        nop,                      // 8 reserved rrr
+        nop,                      // 9 reserved rrr
+        nop,                      // a reserved rrr        
+        nop,                      // b reserved rrr        
+        op_trap,                  // c
+        nop,                      // d escape reserved
+        handle_EXP,               // e escape to EXP
+        handle_rx ]               // f escape to RX
+
+// const dispatch_RX =
+dispatch_RX =
+    [ rx (rx_lea),          // 0
+      rx (rx_load),         // 1
+      rx (rx_store),        // 2
+      rx (rx_jump),         // 3
+      rx (rx_jumpc0),       // 4
+      rx (rx_jumpc1),       // 5
+      rx (rx_jal),          // 6
+      rx (rx_jumpz),        // 7
+      rx (rx_jumpnz),       // 8
+      rx (rx_testset),      // 9
+      rx (rx_nop),          // A
+      rx (rx_nop),          // B
+      rx (rx_nop),          // C
+      rx (rx_llogicf),      // D
+      rx (rx_llogicb),      // E
+      rx (rx_lextract) ];   // F
+
+// const dispatch_EXP =
+dispatch_EXP =
       [ exp2 (exp2_logicf),   // 00
-        exp2 (exp2_logicb),   // 01  b -> r    logicr
-        exp2 (exp2_logicu),   // 02  u -> b    logicb   deprecated
-        exp2 (exp2_shiftl),   // 03
-        exp2 (exp2_shiftr),   // 04
-        exp2 (exp2_extract),  // 05
-        //        exp2 (exp2_extracti), // 06
-        exp2 (exp2_nop),      // 06, was extracti, deprecated
-        exp2 (exp2_push),     // 07
-        exp2 (exp2_pop),      // 08
-        exp2 (exp2_top),      // 09
-        exp2 (exp2_save),     // 0a
-        exp2 (exp2_restore),  // 0b
-        exp2 (exp2_brc0),     // 0c
-        exp2 (exp2_brc1),     // 0d
-        exp2 (exp2_brz),      // 0e
-        exp2 (exp2_brnz),     // 0f
-        exp2 (exp2_dispatch), // 10
-        exp2 (exp2_getctl),   // 11
-        exp2 (exp2_putctl),   // 12
-        exp2 (exp2_resume),   // 13
-        exp2 (exp2_timeron),  // 14
-        exp2 (exp2_timeroff), // 15
-        exp2 (exp2_add32)     // 16
+        exp2 (exp2_logicb),   // 01
+        exp2 (exp2_shiftl),   // 02
+        exp2 (exp2_shiftr),   // 03
+        exp2 (exp2_extract),  // 04
+        exp2 (exp2_push),     // 05
+        exp2 (exp2_pop),      // 06
+        exp2 (exp2_top),      // 07
+        exp2 (exp2_save),     // 08
+        exp2 (exp2_restore),  // 09
+        exp2 (exp2_brc0),     // 0A
+        exp2 (exp2_brc1),     // 0B
+        exp2 (exp2_brz),      // 0C
+        exp2 (exp2_brnz),     // 0D
+        exp2 (exp2_dispatch), // 0E
+        exp2 (exp2_getctl),   // 0F
+        exp2 (exp2_putctl),   // 10
+        exp2 (exp2_resume),   // 11
+        exp2 (exp2_timeron),  // 12
+        exp2 (exp2_timeroff)  // 13
       ]
 
-const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
+const limitEXPcode = dispatch_EXP.length;
+// any code above this is nop
 
+    
 // deprecated
 
 //        exp2 (exp2_brf),      // 00
@@ -2002,5 +1964,58 @@ const ab_dc = (f) => (es) => {
     let [primary, secondary] = f (a,b);
     es.regfile[es.ir_d].put(primary);
     if (es.ir_d<15) { es.regfile[15].put(secondary) }
+}
+*/
+
+    // exp2_dispatch    
+//    const size = es.field_e                 // field size
+//    const k = es.instrDisp & 0x0fff         // fixed offset
+//    const mask = (1 << size) - 1
+//    const safecode = (code & mask)
+//    const offset = safecode << 1 + k        // variable offset
+//    const dest =  es.pc.get() + offset      // destination address
+//    console.log (`code=${code} size=${size} k=${k} mask=${mask} safecode=${safecode} offset=${offset} dest=${dest}`)
+//    es.pc.put (limitAddress (es, dest))
+
+
+
+    // Deprecated
+    
+//                     + ` size = ${size}`
+//    const size = d_left - d_right + 1
+
+/* deprecated
+function exp2_extracti (es) {
+    console.log ('exp2_extracti')
+    const d_old = es.regfile[es.ir_d].get()
+    const src = (~ es.regfile[es.field_e].get()) & 0xffff
+    const d_left = es.field_f
+    const d_right = es.field_g
+    const s_left = es.field_h
+    const size = d_left - d_right + 1
+    const d_new = arith.calculateExtract (16, 0xffff, d_old,
+                                          src, d_left, s_left, size)
+    console.log (`extracti `
+                     + ` d_old = ${arith.wordToHex4(d_old)}`
+                     + ` src = ${arith.wordToHex4(src)}`
+                     + ` d_left = ${d_left}`
+                     + ` s_left = ${s_left}`
+                     + ` size = ${size}`
+                     + ` d_new = ${arith.wordToHex4(d_new)}`)
+    es.regfile[es.ir_d].put(d_new);
+}
+*/
+
+// logicw is deprecated, replaced by logicf
+/*
+function exp2_logicw (es) {
+    com.mode.devlog ('EXP logicw')
+    const x = es.regfile[es.field_e].get()              // operand 1
+    const y = es.regfile[es.field_f].get()              // operand 2
+    const fcn = es.field_h                              // logic function
+    const result = arith.applyLogicFcnWord (fcn,x,y)    // fcn x y
+    console.log (`logicw x=${arith.wordToHex4(x)} y=${arith.wordToHex4(y)}`
+                 + ` result=${arith.wordToHex4(result)}`);
+    es.regfile[es.ir_d].put(result);
 }
 */
