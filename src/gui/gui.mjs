@@ -16,11 +16,11 @@
 // License along with Sigma16.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-//--------------------------------------------------------------
+//-------------------------------------------------------------
 // gui.mjs is the main program for the browser interface.  It
 // is launched by Sigma16.html and is the last JavaScript
 // file to be loaded
-//--------------------------------------------------------------
+//-------------------------------------------------------------
 
 import * as ver   from '../base/version.mjs';
 import * as com   from '../base/common.mjs';
@@ -35,9 +35,15 @@ import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 import * as ct    from './consoletest.mjs';
 
+// import * as emwt  from '../base/emwt.mjs';
+  // make syntax errors visible
+
+// Not importing base/emwt.mjs, this is read when
+// gst.emwThread is defined to be a new Worker
+
 //-------------------------------------------------------------
 // Debugging tools
-//--------------------------------------------------------------
+//-------------------------------------------------------------
 
 // To make exported functions executable in the console,
 // enter exposeConsole().  Then enter, for example,
@@ -1392,20 +1398,28 @@ function enterProcessor () {
     console.log ('enterProcessor')
     if (gst.options.processorIsUninitialized) {
         initializeProcessor ()
-1    }
+    }
 }
 
 function initializeProcessor () {
-    console.log ('Initializing processor')
+    //    console.log ('Initializing processor')
+    com.log_emph ('Initializing processor')    
     mkMainEmulatorState ()
     allocateStateVector ()
     refreshOptionsDisplay ()
     if (gst.options.bufferType === ArrayBufferShared
        || gst.options.bufferType === ArrayBufferWebAssembly) {
-        console.log ('initializeProcessor: worker for emwt')
-        gst.emwThread = new Worker ("./emwt.mjs", {type: "module"});
-        console.log (`gst.emwThread = ${gst.emwThread}`)
-        console.log ("call initializeEmwtProtocol")
+        // console.log ('initializeProcessor: worker for emwt')
+        com.log_emph ('initializeProcessor: new emwt worker');
+        gst.emwThread = new Worker ("./emwt.mjs",
+                                    {type: "module"});
+//        console.log (`gst.emwThread = ${gst.emwThread}`)
+        com.log_emph (`gst.emwThread = ${gst.emwThread}`) 
+        //        console.log ("call initializeEmwtProtocol")
+        com.log_emph ("call initializeEmwtProtocol")
+
+        // The following should not be done too
+        // soon... init1,init2
         initializeEmwtProtocol (gst.es)
         emwtInit (gst.es)
         com.mode.devlog ("gui.mjs has started emwt")
@@ -2306,19 +2320,21 @@ export function procStep (gst) {
 // which to use.
 
 function runMain () {
-    gst.options.currentThreadSelection = com.ES_gui_thread
-    procRun ()
+    com.log_emph ("runMain");
+    gst.options.currentThreadSelection = com.ES_gui_thread;
+    procRun ();
 }
 
 function runWorker () {
-    gst.es.emRunThread = com.ES_worker_thread
-    procRun ()
+    com.log_emph ("runWorker");
+    gst.es.emRunThread = com.ES_worker_thread;
+    procRun ();
 }
 
 function runGeneric () {
+    com.log_emph ("runGeneric");
     procRun ()
 }
-
 
 // Perform any operations on the gui display to prepare for a run
 
@@ -2327,6 +2343,7 @@ function initRun (gst) {
 }
 
 function finishRun (gst) {
+    com.log_emph("finishRun")
     stopClock (gst)
     execInstrPostDisplay (gst)
 }
@@ -2569,9 +2586,12 @@ function allocateStateVector () {
 // window.onload event handler.
 
 
-function emwtInit (es) { // called by onload initializer, request 100
+// function emwtInit (es) { // called by onload initializer, request 100
+function emwtInit () { // called by onload initializer, request 100
+    const es = gst.es
     //    com.mode.devlog ("main gui: emwtInit")
-    console.log ("main thread: emwtInit")
+    //    console.log ("main thread: emwtInit")
+   com.log_emph ("main thread: emwtInit")    
     //    let msg = {code: 100, payload: es.shm}
     //    let msg = {code: 100, payload: sysStateBuf}
     //    let msg = {code: 100, payload: es.vecbuf}
@@ -2579,13 +2599,14 @@ function emwtInit (es) { // called by onload initializer, request 100
     let msg = {code: 100, payload: es.vecbuf} // provide the es to emwt
     gst.emwThread.postMessage (msg)
     //    com.mode.devlog ("main gui: posted init message 100 to emwt")
-    console.log ("main gui: posted init message 100 to emwt")
+    com.log_emph ("main gui: posted init message 100 to emwt")
 }
     //    let msg = {code: 100, payload: st.sysStateVec}
     //    let msg = {code: 100, payload: guiEmulatorState.shm}
 
 function handleEmwtInitResponse (p) {
-    com.mode.devlog (`main gui: received response to emwt init ${p}`)
+    //    com.mode.devlog (`main gui: received response to emwt init ${p}`)
+    com.log_emph (`main gui: received response to emwt init ${p}`)    
 }
 
 //----------------------------------------
@@ -2621,28 +2642,35 @@ function handleEmwtStepResponse (p) {
 // relinquish control to the main thread on a trap.
 
 function emwtRun (es) {
-    console.log ("main thread initiating emwt run");
-    let instrLimit = 0 // disabled; stop after this many instructions
-    em.showCopyable (es.copyable)
-    let msg = {code: 102, payload: es.copyable}
-    gst.emwThread.postMessage (msg)
-    com.mode.devlog ("main thread posted start message run to emwt");
+    //    console.log ("main thread initiating emwt run");
+    com.log_emph ("main thread initiating emwt run");    
+    let instrLimit = 0;
+    // disabled; stop after this many instructions
+    em.showCopyable (es.copyable);
+    let msg = {code: 102, payload: es.copyable};
+    gst.emwThread.postMessage (msg);
+    //    com.mode.devlog ("main thread posted start message run to emwt");
+    com.log_emph ("main thread posted start message run to emwt");    
 }
 
 function handleEmwtRunResponse (p) { // run when emwt sends 202
-    console.log (`handleEmwtRunResponse`)
+    //    console.log (`handleEmwtRunResponse`)
+    com.log_emph (`handleEmwtRunResponse`)
     let status = ab.readSCB (gst.es, ab.SCB_status)
     gst.es.copyable = p
     em.showCopyable (gst.es.copyable)
     let  msg = {code: 0, payload: 0}
-    com.mode.devlog (`main: handle emwt run response: p=${p} status=${status}`)
+    //    com.mode.devlog (`main: handle emwt run response: p=${p} status=${status}`)
+    com.log_emph (`main: handle emwt run response: p=${p} status=${status}`)
     switch (status) {
     case ab.SCB_halted:
-        com.mode.devlog (`*** main: handle emwt halt`)
+        //        com.mode.devlog (`*** main: handle emwt halt`)
+        com.log_emph (`*** main: handle emwt halt`)
         finishRun (gst)
         break
     case ab.SCB_paused:
-        com.mode.devlog (`*** main: handle emwt pause`)
+        //        com.mode.devlog (`*** main: handle emwt pause`)
+        com.log_emph (`*** main: handle emwt pause`)
         ab.showSCBstatus (gst.es)
         ab.writeSCB (gst.es, ab.SCB_pause_request, 0)
         ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_ready)
@@ -2650,17 +2678,20 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
         com.mode.devlog (`*** main: finished handle emwt pause`)
         break
     case ab.SCB_break:
-        com.mode.devlog (`*** main: handle emwt break`)
+        //        com.mode.devlog (`*** main: handle emwt break`)
+        com.log_emph (`*** main: handle emwt break`)
         console.log (`*** main: handle emwt break`)
         ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_ready)
         finishRun (gst)
         com.mode.devlog (`*** main: finished handle emwt break`)
         break
     case ab.SCB_blocked:
-        com.mode.devlog (`*** main: handle emwt blocked`)
+        //        com.mode.devlog (`*** main: handle emwt blocked`)
+        com.log_emph (`*** main: handle emwt blocked`)
         break
     case ab.SCB_relinquish: // emwt halt signals halt, not relinquish
-        com.mode.devlog (`*** main: handle emwt relinquish`)
+        //        com.mode.devlog (`*** main: handle emwt relinquish`)
+        com.log_emph (`*** main: handle emwt relinquish`)
         ab.showSCBstatus (gst.es)
         ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_running_gui)
         em.executeInstruction (gst.es)
@@ -2672,7 +2703,8 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
             console.log ("main: handle emwt relinquish: trap break")
             finishRun (gst)
         } else {
-            console.log (`main: handle emwt relinquish: resuming`)
+//       console.log (`main: handle emwt relinquish: resuming`)
+            com.log_emph (`main: handle emwt relinquish: resuming`)            
             ab.writeSCB (gst.es, ab.SCB_status, ab.SCB_running_emwt)
 //            msg = {code: 102, payload: 0}
             msg = {code: 102, payload: gst.es.copyable}
@@ -2685,9 +2717,11 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
     case ab.SCB_running_gui:
     case ab.SCB_running_emwt:
     default:
-        com.mode.devlog (`main:handleEmwtRunResponse unknown status = ${status}`)
+        //        com.mode.devlog (`main:handleEmwtRunResponse unknown status = ${status}`)
+        com.log_emph (`main:handleEmwtRunResponse unknown status = ${status}`)
     }
-    com.mode.devlog ("main: handleEmwtRunResponse finished")
+    //    com.mode.devlog ("main: handleEmwtRunResponse finished")
+    com.log_emph ("main: handleEmwtRunResponse finished")
 }
 
 //----------------------------------------
@@ -2737,8 +2771,11 @@ function handleEmwtTest2Response (p) { //
 // Handle responses from emwt
 //----------------------------------------
 
-function initializeEmwtProtocol (es) {
-    console.log ("main initializeEmwtProtocol")
+//function initializeEmwtProtocol (es) {
+function initializeEmwtProtocol () {
+    const es = gst.es
+    //    console.log ("main initializeEmwtProtocol")
+    com.log_emph ("main initializeEmwtProtocol")    
     gst.emwThread.addEventListener ("message", e => {
         com.mode.devlog ("main has received a message")
         if (e.data) {
@@ -2776,6 +2813,10 @@ function initializeEmwtProtocol (es) {
         }
     })
 }
+
+window.gst = gst
+window.init1 = initializeEmwtProtocol // init1()
+window.init2 = emwtInit // emwtInit()
 
 //------------------------------------------------------------------------
 // Dev tools
@@ -3033,10 +3074,12 @@ function initializeTracing (gst) {
 }
 
 function initializeSystem () {
-    com.mode.devlog ('Initializing system')
+    //    com.mode.devlog ('Initializing system')
+    com.log_emph ('Initializing system')    
     // Create gui state and set global variable
     gst = new GuiState ()
-    console.log ("Created gst")
+    //    console.log ("Created gst")
+    com.log_emph ("Created gst")    
     setMDhba (gst)
     adjustInitialOptions ()
     initializeGuiElements (gst) // Initialize gui elements
@@ -3045,12 +3088,13 @@ function initializeSystem () {
     refreshOptionsDisplay ()
 //    setArch16()
     findLatestRelease (gst)
-    console.log ("System is initialized")
+    //    console.log ("System is initialized")
+    com.log_emph ("System is initialized")    
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Instruction set architecture selection
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Set architecture mode to k bit words; k should be 16 or
 // 32.  If k has any other value, the mode will be set to 16.
@@ -3101,9 +3145,9 @@ function unhighlightArchButton (a) {
     s.border = '2px solid gray'
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Functions called by EmCore
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 function printnum (x) {
     console.log (`printnum: ${x}`)
@@ -3117,17 +3161,18 @@ function barprint (x) {
     console.log (`barprint: ${x}`)
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // EmCore
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Most of the source modules can be loaded by the main html file,
-// using ./ to find the file location.  However, the actual URL of the
-// wasm file is needed, and Sigma16.html doesn't know its own URL.
-// The following definitions work out EmCoreURL which is used by
-// initEmCore to fetch the web assembly binary code.  This allows both
-// for reading a local file from build/dev for running locally, as
-// well as fetching a release over the Internet.
+// Most of the source modules can be loaded by the main html
+// file, using ./ to find the file location.  However, the
+// actual URL of the wasm file is needed, and Sigma16.html
+// doesn't know its own URL.  The following definitions work
+// out EmCoreURL which is used by initEmCore to fetch the web
+// assembly binary code.  This allows both for reading a
+// local file from build/dev for running locally, as well as
+// fetching a release over the Internet.
 
 const URL_protocol = window.location.protocol
 const URL_host = window.location.host
@@ -3161,11 +3206,12 @@ const emcImports = {
 
 // Exports from Wasm to JS
 
-// emc is an object containing functions exported by emulator core.
-// The functions are defined by initEmCore; after that you can call,
-// for example, emc.f1 (123).  The functions f1, f1 etc are for
-// testing an ddevelopment.  Make emc accessible to the console for
-// testing the web assembly functions.  E.g. enter emc.f1 (3)
+// emc is an object containing functions exported by emulator
+// core.  The functions are defined by initEmCore; after that
+// you can call, for example, emc.f1 (123).  The functions
+// f1, f1 etc are for testing an ddevelopment.  Make emc
+// accessible to the console for testing the web assembly
+// functions.  E.g. enter emc.f1 (3)
 
 const emc = {
     addplus1 : null,
@@ -3182,10 +3228,10 @@ const emc = {
 }
 window.emc = emc
 
-// Initialize the core emulator.  Read the web assembly code and make
-// its functions accessible to the main JavaScript program.
-// WebAssembly memory must be initialized by calling
-// allocateStateVector before calling initEmCore.
+// Initialize the core emulator.  Read the web assembly code
+// and make its functions accessible to the main JavaScript
+// program.  WebAssembly memory must be initialized by
+// calling allocateStateVector before calling initEmCore.
 
 function initEmCore () {
     console.log ('initEmCore')
@@ -3215,7 +3261,8 @@ function test_t1 () {
 }
 //    ab.testSysStateVec (gst.es)  // testing
 //    ab.testSysStateVec (gst.es)  // testing
-//    console.log ('stopping after testSysStateVec') // testing only  ?????
+//    console.log ('stopping after testSysStateVec')
+// testing only  ?????
 //    return // testing only - skip the following ?????
 
 function test_t2 () {
@@ -3244,9 +3291,9 @@ function testEmCore () {
 }
 window.testEmCore = testEmCore
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Testing
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 function runtests () {
     console.log ("runtests starting")
@@ -3297,23 +3344,25 @@ function showCChex () {
     foo ('ccs', arch.ccs)
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Run initializers after program has been loaded
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // The initializers require the DOM elements to exist and the
 // functions to be defined, so they are performed after all the
 // modules have been loaded.
 
 window.onload = function () {
-    console.log("starting initializers")
+    com.log_emph ("starting initializers")
     com.mode.trace = false
     initializeSystem ()
     enableKeyboardShortcuts ()
     setModeUser ()
     setMDhba (gst)
 //     setArch(16) can't do it yet
-    console.log ('system is now running')
+//    console.log ('system is now running')
+    initializeProcessor () //  ??? leaves regs undefined...
+    com.log_emph ('system is now running')
 }
 
 // Deprecated

@@ -1,43 +1,51 @@
-// Sigma16: common.js
-// Copyright (c) 2024 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Sigma16: emulator.mjs
+// Copyright (C) 2025 John T. O'Donnell
+// License: GNU GPL Version 3. See Sigma16/README, LICENSE
+// https://jtod.github.io/home/Sigma16
 
-// This file is part of Sigma16.  Sigma16 is free software: you can
-// redistribute it and/or modify it under the terms of the GNU General
-// Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
-// Sigma16 is distributed in the hope that it will be useful, but
+// This file is part of Sigma16.  Sigma16 is free software:
+// you can redistribute it and/or modify it under the terms
+// of the GNU General Public License, version 3.  Sigma16 is
+// distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.  You should have received
-// a copy of the GNU General Public License along with Sigma16.  If
-// not, see <https://www.gnu.org/licenses/>.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// the GNU General Public License for more details.  You
+// should have received a copy of the GNU General Public
+// License along with Sigma16.  If not, see
+// <https://www.gnu.org/licenses/>.
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // common.js
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Some functions need to know whether the program is running in a
-// browser, so the window and document exist.  If the program is
-// running in node, there is no document.
+// Some functions need to know whether the program is running
+// in a browser, so the window and document exist.  If the
+// program is running in node, there is no document.
 
-export const runningBrowser = typeof window !== "undefined"
+export const runningBrowser = typeof window !== "undefined";
 
+export const S16HOMEPAGEURL =
+  "https://jtod.github.io/home/Sigma16";
 
-export const S16HOMEPAGEURL = 'https://jtod.github.io/home/Sigma16'
+// ES_thread_host indicates which thread this emulator
+// instance is running in.  This is represented with an
+// unsigned int, not a symbol, so it can be stored in the
+// system state vector.
 
-// ES_thread_host indicates which thread this emulator instance is
-// running in.  This is represented with an unsigned int, not a
-// symbol, so it can be stored in the system state vector.
-
-export const ES_gui_thread      = 0
-export const ES_worker_thread   = 1
+export const ES_gui_thread      = 0;
+export const ES_worker_thread   = 1;
 
 export function showThread (x) {
-    return x==0 ? "main"
-        : x==1 ? "worker"
-        : "?"
+  return x==0 ? "main"
+    : x==1 ? "worker"
+    : "?";
 }
+
+// Display x in console with red text
+export function log_emph (x) {
+  console.log (`%c${x}`,
+               "color: red;, background-color:yellow;");
+  }
 
 export function stacktrace () { console.trace () }
 
@@ -69,38 +77,40 @@ export let mode = {
     }
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Logging error message
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 export function indicateError (xs) {
     console.log (`%c${xs}`, 'color:red; font-weight:bold')
     console.trace ()
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 // Dialogues with the user
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 
 export function modalWarning (msg) {
     alert (msg);
 }
 
-// The innerHTML
-// string is <pre ...>text of example</pre>.  The pre and pre tags
-// need to be removed: they would confuse the assembler.
+// The innerHTML string is <pre ...>text of example</pre>.
+// The pre and pre tags need to be removed: they would
+// confuse the assembler.
 
-export const openingPreTag = /^<[^>]*>/;   // <pre...> at beginning
-export const closingPreTag = /<[^>]*>$/;   // ...</pre> at end
+export const openingPreTag = /^<[^>]*>/;
+  // <pre...> at beginning
+export const closingPreTag = /<[^>]*>$/;
+  // ...</pre> at end
 
 // Clear the display of the object code in the linker pane
 
 export function clearObjectCode () {
     let listing = "<pre class='HighlightedTextAsHtml'>"
         + "</pre>"
-//    document.getElementById('LinkerText').innerHTML = listing;
+//  document.getElementById('LinkerText').innerHTML = listing;
     document.getElementById('LP_Body').innerHTML = listing;
-//    console.log ("clearObjectCode skipping clear LinkerText");
+//  console.log ("clearObjectCode skipping clear LinkerText");
 }
 
 // Similar to highlightListingLine in emulator
@@ -110,7 +120,8 @@ export function highlightField (xs,highlight) {
 }
 
 
-// scrolling doesn't work if it just uses <pre> but not <code>
+// scrolling doesn't work if it just uses <pre> but not
+// <code>
 
 export let editorBufferTextArea; /* set when window.onload */
 export let textFile = null; /* for save download */

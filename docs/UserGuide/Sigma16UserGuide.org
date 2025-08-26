@@ -7826,7 +7826,7 @@ latex/pdf it is automatically resized and looks good.
 
 #+attr_html: :width 500px
 #  #+attr_latex: :width 500px
-[[./figures/png/2025-08-08_16-32.png]]
+#  [[./figures/png/2025-08-08_16-32.png]]
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
 do eiusmod tempor incididunt ut labore et dolore magna
@@ -7841,7 +7841,7 @@ This figure was resized manually with imagemagick.  It is the
 right size but it's a little fuzzy compared to the original.
 It has a good size in both html and latex export.
 
-[[./figures/png/2025-08-08_16-32-resized.png]]
+#  [[./figures/png/2025-08-08_16-32-resized.png]]
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
 do eiusmod tempor incididunt ut labore et dolore magna
