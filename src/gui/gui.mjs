@@ -1,5 +1,4 @@
 // Sigma16: gui.mjs
-
 // Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL
 // Version 3.  See Sigma16/README, LICENSE, and
 // https://github.com/jtod/Sigma16
@@ -929,14 +928,35 @@ function prepareButton (bid,fcn) {
         .addEventListener('click', event => {fcn()});
 }
 
+function showHelp () {
+  console.log ("showHelp");
+  document.getElementById("AssemblerHelpNew").show();
+}
+
+const dialogueAssemblerHelp =
+  document.getElementById("AssemblerHelpNew")
+
 // Pane buttons; initialization must occur after emulator state is defined
+
 
 function initializeButtons () {
 //    prepareButton ('Arch16button', setArch(16))
 //    prepareButton ('Arch32button', setArch(32))
 //    prepareButton ('Arch16button', setArch16)
 //    prepareButton ('Arch32button', setArch32)
-    prepareButton ('Welcome_Pane_Button',   () => showPane (gst) (WelcomePane));
+    prepareButton ('Welcome_Pane_Button',   () =>
+                   showPane (gst) (WelcomePane));
+
+    //    prepareButton ("HelpButton", () => showHelp (gst));
+//    prepareButton ("HelpButton", () => {
+//        console.log ("Help clicked");
+//        document.getElementById('FOOBARBAZ').show();
+//      })
+
+//    prepareButton ("CloseAssemblerHelp", () => {
+//        console.log ("CloseAssemblerHelp clicked");
+//        document.getElementById("AssemblerHelpNew").close();
+//      })
     prepareButton ('Examples_Pane_Button',  () => showPane (gst) (ExamplesPane));
     prepareButton ('Modules_Pane_Button',   () => showPane (gst) (ModulesPane));
     prepareButton ('Editor_Pane_Button',    () => showPane (gst) (EditorPane));
@@ -962,11 +982,13 @@ function initializeButtons () {
                    () => user_guide_resize(-UGRLARGE));
 
     // Help boxes
+/*
     prepareButton ('WP_Help',              () => toggleWelcomeHelp ());
     prepareButton ('WelcomeHelpClose',     () => toggleWelcomeHelp ());
     prepareButton ('EXP_Help',             () => toggleExamplesHelp ());
     prepareButton ('ExamplesHelpClose',    () => toggleExamplesHelp ());
     prepareButton ('MP_Help',              () => toggleModulesHelp ());
+
     prepareButton ('ModulesHelpClose',     () => toggleModulesHelp ());
     prepareButton ('EDP_Help',             () => toggleEditorHelp ());
     prepareButton ('EditorHelpClose',      () => toggleEditorHelp ());
@@ -976,7 +998,7 @@ function initializeButtons () {
     prepareButton ('LinkerHelpClose',      () => toggleLinkerHelp ());
     prepareButton ('PP_Help',              () => toggleProcHelp ())
     prepareButton ('ProcHelpClose',        () => toggleProcHelp ())
-    
+*/    
     // Welcome pane (WP)
     // prepareButton ('WP_Guide_Top', jumpToGuideTop);
     prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
@@ -1046,6 +1068,14 @@ function initializeButtons () {
     prepareButton ("BreakDisable", () => breakDisable(gst));
     prepareButton ("BreakClose",   () => breakClose(gst));
 
+
+      /*      document.getElementById('RandomHelpButton')
+      .addEventListener ('click', () => {
+          dialogue.open();
+        })
+      */
+
+      
     // Options pane
     prepareButton ('UpdateMemSize',         () => updateMemSize (gst))
     prepareButton ('UpdateMDslidingSize',   () => updateMDslidingSize (gst))
@@ -3084,10 +3114,9 @@ function initializeSystem () {
     adjustInitialOptions ()
     initializeGuiElements (gst) // Initialize gui elements
     initializeGuiLayout (gst)   // Initialize gui layout
-    initializeButtons (gst)
-    refreshOptionsDisplay ()
+      refreshOptionsDisplay ();
 //    setArch16()
-    findLatestRelease (gst)
+      findLatestRelease (gst);
     //    console.log ("System is initialized")
     com.log_emph ("System is initialized")    
 }
@@ -3352,8 +3381,106 @@ function showCChex () {
 // functions to be defined, so they are performed after all the
 // modules have been loaded.
 
+const dialog = document.querySelector('#myDialog');
+const btnClose = document.querySelector('#closeDialog');
+
+// const btnOpen = document.querySelector('#openHelpDialogue');
+const OpenHelpButton =
+      document.querySelector('#openHelpDialogue');
+
+
+const HelpOneDialog = document.querySelector('#HelpOneDialog');
+const HelpOneClose = document.querySelector('#HelpOneClose');
+
+const HelpWelcomeDialog = document.querySelector('#HelpWelcomeDialog');
+const HelpWelcomeClose = document.querySelector('#HelpWelcomeClose');
+const HelpEditorDialog = document.querySelector('#HelpEditorDialog');
+const HelpEditorClose = document.querySelector('#HelpEditorClose');
+
+const HelpAssemblerDialog = document.querySelector('#HelpAssemblerDialog');
+const HelpAssemblerClose = document.querySelector('#HelpAssemblerClose');
+const HelpLinkerDialog = document.querySelector('#HelpLinkerDialog');
+const HelpLinkerClose = document.querySelector('#HelpLinkerClose');
+const HelpProcessorDialog = document.querySelector('#HelpProcessorDialog');
+const HelpProcessorClose = document.querySelector('#HelpProcessorClose');
+
+const HelpOptionsDialog = document.querySelector('#HelpOptionsDialog');
+const HelpOptionsClose = document.querySelector('#HelpOptionsClose');
+
 window.onload = function () {
     com.log_emph ("starting initializers")
+
+    OpenHelpButton.addEventListener('click', () => {
+        console.log (`Help ${currentPane.description}`);
+        switch (currentPane) {
+        case WelcomePane:
+            HelpWelcomeDialog.showModal();
+            break;
+        case ExamplesPane: ;
+            HelpExamplesDialog.showModal();
+            break;
+        case ModulesPane: ;
+            HelpModulesDialog.showModal();
+            break;
+        case EditorPane :
+            HelpEditorDialog.showModal();
+            break;
+        case AssemblerPane:
+            HelpAssemblerDialog.showModal();
+            break;
+        case LinkerPane:
+            HelpLinkerDialog.showModal();
+            break;
+        case ProcessorPane:
+            HelpProcessorDialog.showModal();
+            break;
+        case OptionsPane:
+            HelpOptionsDialog.showModal();
+            break;
+        }
+        console.log ("help shown")
+      });
+    //      btnOpen.addEventListener('click', () => {
+//        dialog.showModal(); // default help page
+          // dialog.show(); // doesn't work, why???
+
+    
+      btnClose.addEventListener('click', () => {
+          dialog.close();
+      });
+
+      HelpWelcomeClose.addEventListener('click', () => {
+          HelpWelcomeDialog.close();
+      });
+
+      HelpExamplesClose.addEventListener('click', () => {
+          HelpExamplesDialog.close();
+      });
+
+    HelpModulesClose.addEventListener('click', () => {
+          HelpModulesDialog.close();
+      });
+
+      HelpEditorClose.addEventListener('click', () => {
+          HelpEditorDialog.close();
+      });
+
+      HelpAssemblerClose.addEventListener('click', () => {
+          HelpAssemblerDialog.close();
+      });
+      HelpLinkerClose.addEventListener('click', () => {
+          HelpLinkerDialog.close();
+      });
+
+      HelpProcessorClose.addEventListener('click', () => {
+          HelpProcessorDialog.close();
+      });
+
+      HelpOptionsClose.addEventListener('click', () => {
+          HelpOptionsDialog.close();
+      });
+    
+    
     com.mode.trace = false
     initializeSystem ()
     enableKeyboardShortcuts ()
@@ -3363,8 +3490,12 @@ window.onload = function () {
 //    console.log ('system is now running')
     initializeProcessor () //  ??? leaves regs undefined...
     com.log_emph ('system is now running')
-}
 
+    initializeButtons (gst);
+
+
+}
+  
 // Deprecated
 
 /* replaced by setArch(k)

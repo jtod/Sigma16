@@ -4,21 +4,22 @@ Copyright (C) 2024 John T. O'Donnell
 email: john.t.odonnell9@gmail.com
 License: GNU GPL Version 3. See Sigma16/README.md, LICENSE.txt
 
-This file is part of Sigma16.  Sigma16 is free software: you can
-redistribute it and/or modify it under the terms of the GNU General
-Public License as published by the Free Software Foundation, either
-version 3 of the License, or (at your option) any later version.
-Sigma16 is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.  You should have received a copy of the GNU General
-Public License along with Sigma16.  If not, see
-<https://www.gnu.org/licenses/>.
+This file is part of Sigma16.  Sigma16 is free software: you
+can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your
+option) any later version.  Sigma16 is distributed in the
+hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.  You should have received a copy of
+the GNU General Public License along with Sigma16.  If not,
+see <https://www.gnu.org/licenses/>.
 
--------------------------------------------------------------------------------
-Sigma16.html is the top level html file; the system is launched by
-visiting this file in a browser.
--------------------------------------------------------------------------------
+---------------------------------------------------------------
+Sigma16.html is the top level html file; the system is
+launched by visiting this file in a browser.
+---------------------------------------------------------------
 -->
 
 <!doctype html>
@@ -48,8 +49,101 @@ visiting this file in a browser.
       href="src/graphics/favicon.ico">
   </head>
   <body>
+    <!-- dialogue test -->
+    <dialog id="myDialog">
+      <p>This is a dialog.  Here is some helpful information.
+        Here is some helpful information.  Here is some
+        helpful information.  Here is some helpful
+        information.  Here is some helpful information.
+      </p>
+      <ul>
+        <li> An idea </li>
+        <li> Another idea </li>
+        <li> More ideas </li>
+        <button id="closeDialog">Close</button>
+    </dialog>
+
+    <dialog id="HelpWelcomeDialog">
+      <p>This is a help  welcome one.
+      </p>
+      <button id="HelpWelcomeClose">Close</button>
+
+    </dialog>
+    <dialog id="HelpExamplesDialog">
+      <p>This examples is a help one.
+      </p>
+      <button id="HelpExamplesClose">Close</button>
+
+    </dialog>
+    <dialog id="HelpModulesDialog">
+      <p>This is a help modules one.
+      </p>
+      <button id="HelpModulesClose">Close</button>
+    </dialog>
+
+    <dialog id="HelpEditorDialog">
+      <p>This is a help for the editor two.
+      </p>
+      <button id="HelpEditorClose">Close</button>
+    </dialog>
+
+    <dialog id="HelpAssemblerDialog">
+      <p>This is a help assembler  three.
+      </p>
+      <button id="HelpAssemblerClose">Close</button>
+    </dialog>
+
+    <dialog id="HelpLinkerDialog">
+      <p>This is a help linker three.
+      </p>
+      <button id="HelpLinkerClose">Close</button>
+    </dialog>
+
+    <dialog id="HelpProcessorDialog">
+      <p>This is a help processor three.
+      </p>
+      <button id="HelpProcessorClose">Close</button>
+    </dialog>
+
+    <dialog id="HelpOptionsDialog">
+      <p>This is a help options  three.
+      </p>
+      <button id="HelpOptionsClose">Close</button>
+    </dialog>
+
+    <dialog id="myDialog">
+      <p>This is a dialog.  Here is some helpful information.
+        Here is some helpful information.  Here is some
+        helpful information.  Here is some helpful
+        information.  Here is some helpful information.
+      </p>
+      <ul>
+        <li> An idea </li>
+        <li> Another idea </li>
+        <li> More ideas </li>
+        <button id="closeDialog">Close</button>
+    </dialog>
+    
+      <dialogue id='FOOBARBAZ'>
+        <p>
+        This is asdfasdf some useful help about the assembler.
+        This is some useful help about the assembler.
+        This is some useful help about the assembler.
+        This is some useful help about the assembler.
+        This is some useful help about the assembler.
+        <ul>
+          <li> Foo. This is a foo. </li>
+          <li> Bar. This is where the foo goes for a
+            drink.</li>
+        </ul>
+        <button id="CloseAssemblerHelp" type="button">
+          Close </button>
+      </dialogue>
+
     <div class="FullFrame">
 
+
+      
       <div class="DialoguePopup" id="BreakDialogue">
 	<div class="PaneButtons">
 	  <button id="BreakRefresh">Refresh</button>
@@ -59,6 +153,7 @@ visiting this file in a browser.
 	</div>
 	<textarea class="Editor" spellcheck="false" id="BreakTextArea"></textarea>
       </div>
+<!--
 
       <div class="DialoguePopup" id="WelcomeHelpDialogue">
 	<div class="PaneButtons">
@@ -111,6 +206,7 @@ visiting this file in a browser.
 	</iframe>
       </div>
 
+      
       <div class="DialoguePopup" id="LinkerHelpDialogue">
 	<div class="PaneButtons">
 	  <button id="LinkerHelpClose">Close</button>
@@ -131,8 +227,13 @@ visiting this file in a browser.
 	</iframe>
       </div>
 
+-->            
       <div class="TopSection">
-	<button class="PaneButton" id="Welcome_Pane_Button"> Welcome </button>
+        <button type="button" id="openHelpDialogue">Help
+        </button>        
+	<button class="PaneButton" id="Welcome_Pane_Button">
+	  Welcome </button>
+
 	<button class="PaneButton" id="Examples_Pane_Button"> Examples </button>
 	<button class="PaneButton" id="Modules_Pane_Button"> Modules </button>
 	<button class="PaneButton" id="Editor_Pane_Button"> Editor </button>
@@ -140,7 +241,8 @@ visiting this file in a browser.
 	<button class="PaneButton" id="Linker_Pane_Button"> Linker </button>
 	<button class="PaneButton" id="Processor_Pane_Button"> Processor </button>
 	<button class="PaneButton" id="Options_Pane_Button"> Options </button>
-	<button class="PaneButton" id="About_Button"> About </button>
+	<button class="PaneButton" id="About_Button">
+	  About </button>
 	<button class="PaneButton" id="Toggle_UserGuide"> Hide User Guide </button>
 	<button class="RightButton" id="UG_Resize_Right_Large_Button">
           &#x27f9;
@@ -157,15 +259,18 @@ visiting this file in a browser.
 	<button class="Hidden" id="DevTools_Pane_Button"> DevTools </button>
       </div>
       <div class="MiddleSection" id="MiddleSection">
-	<div class="MidMainSection">
+
+        <div class="MidMainSection">
 	  <div class="MidMainLeft" id="MidMainLeft">
 
-	    <div class="Pane" id="WelcomePane">
+
+
+      <div class="Pane" id="WelcomePane">
 	      <div class="PaneButtons">
 <!--
 		<button id="WP_Guide_Top"> Top </button>
 -->
-		<button id="WP_Help"> Help </button>
+<!--		<button id="WP_Help"> Help </button> -->
 		<button id="WP_TOC"> Contents </button>
 		<button id="WP_Tutorials"> Tutorials </button>
 		<button id="WP_Architecture"> Architecture </button>
@@ -187,7 +292,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="ExamplesPane">
 	      <div class="PaneButtons">
-		<button id="EXP_Help"> Help </button>
+<!--		<button id="EXP_Help"> Help </button> -->
 		<button id="EXP_Examples_Home"> Examples </button>
 		<button id="EXP_Back"> Back </button>
 	      </div>
@@ -201,7 +306,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="ModulesPane">
 	      <div class="PaneButtons">
-		<button id="MP_Help"> Help </button>
+<!--		<button id="MP_Help"> Help </button> -->
 		<button id="MP_OpenDirectory"> Open directory </button>
 <!--		<button id="MP_Test1"> Test 1 </button>
 		<button id="MP_Test2"> Test 2 </button>
@@ -218,7 +323,7 @@ visiting this file in a browser.
 	    
 	    <div class="Pane" id="EditorPane">
 	      <div class="PaneButtons">
-		<button id="EDP_Help"> Help </button>
+<!--		<button id="EDP_Help"> Help </button> -->
 		<button id="EDP_New"> New </button>
 		<button id="EDP_OpenFile"> Open file </button>
 		<button id="EDP_RefreshFile"> Refresh file </button>
@@ -249,7 +354,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="AssemblerPane">
 	      <div class="PaneButtons">
-		<button id="AP_Help"> Help </button>
+<!--		<button id="AP_Help"> Help </button> -->
 		<button id="AP_Assemble"> Assemble </button>
 		<button id="AP_Show_Source"> Show source </button>
 		<button id="AP_Show_Object"> Show object </button>
@@ -263,7 +368,7 @@ visiting this file in a browser.
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
-		<button id="LP_Help"> Help </button>
+<!--		<button id="LP_Help"> Help </button> -->
 		<button id="LP_Link"> Link </button>
                 <button id="LP_Show_Object"> Show object </button>
                 <button id="LP_Show_Executable"> Show executable </button>
@@ -283,7 +388,7 @@ visiting this file in a browser.
 	    
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
-		<button id="PP_Help"> <u>H</u>elp </button>
+<!--		<button id="PP_Help"> <u>H</u>elp </button> -->
 		<button id="PP_Reset"> Rese<u>t</u> </button>
 		<button id="PP_Boot"> <u>B</u>oot </button>
 		<button id="PP_Step"> <u>S</u>tep </button>

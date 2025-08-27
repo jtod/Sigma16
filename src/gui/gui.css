@@ -19,6 +19,20 @@ gui.css defines the style for the Sigma16 GUI
 -------------------------------------------------------------------------------
 */
 
+dialog {
+    border: solid;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background: #f9f9f9;
+  max-width: 50%;
+  text-align: left;
+  font-family: Arial, sans-serif;
+}
+/*   width: 300px;
+  text-align: center;
+*/
+
 /* Define symbolic names for colors and dimensions */
 /* Heights of elements from top to bottom add up to the viewport height
 
