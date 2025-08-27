@@ -852,6 +852,7 @@ const showPane = (gst) => (p) => {
         asm.enterAssemblerPage ();
         break;
     case LinkerPane:
+        console.log ("showPane linker")
         gst.currentKeyMap = linkerKeyMap
         highlightPaneButton (gst, "Linker_Pane_Button")
         break;
@@ -870,6 +871,7 @@ const showPane = (gst) => (p) => {
     }
     document.getElementById(paneIdString(p)).style.display = "block";
     com.mode.devlog(`Show pane ${p.description}`);
+    console.log (`showPane disolay=block ${paneIdString(p)}`)
 }
 
 function highlightPaneButton (gst, bid) {
@@ -2086,8 +2088,9 @@ export function procBoot (gst) {
 //            + "<span class='ExecutableStatus'>"
 //            + "Boot failed: module is not executable"
 //            + "</span><br>"
-//            + "</pre>";
-//        document.getElementById('LinkerText').innerHTML = xs;
+        //            + "</pre>";
+        // the following was commented out...
+        document.getElementById('LinkerText').innerHTML = xs;
         ab.writeSCB (es, ab.SCB_status, ab.SCB_reset)
         console.log ("boot failed");
         return;
@@ -3489,6 +3492,8 @@ window.onload = function () {
 //     setArch(16) can't do it yet
 //    console.log ('system is now running')
     initializeProcessor () //  ??? leaves regs undefined...
+    document.getElementById('LP_Body').innerHTML =
+        "Linker text";    
     com.log_emph ('system is now running')
 
     initializeButtons (gst);

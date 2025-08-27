@@ -1,7 +1,7 @@
 <!--
 Sigma16: Sigma16.html
-Copyright (C) 2024 John T. O'Donnell
-email: john.t.odonnell9@gmail.com
+Copyright (c) 2025
+John T. O'Donnell, email: john.t.odonnell9@gmail.com
 License: GNU GPL Version 3. See Sigma16/README.md, LICENSE.txt
 
 This file is part of Sigma16.  Sigma16 is free software: you
@@ -28,14 +28,19 @@ launched by visiting this file in a browser.
 
     <meta charset="utf-8">
     <meta name="author" content="John O'Donnell">
-    <meta name="description" content="computer architecture emulator">
-    <meta name="keywords" content="machine language, assembly language,
-				   computer architecture, assembler,
-				   emulator, application">
+    <meta name="description"
+          content="computer architecture emulator">
+    <meta name="keywords"
+          content="machine language, assembly language,
+		   computer architecture, assembler,
+		   emulator, application">
     <title>Sigma16</title>
-    <script type="module" src="src/base/version.mjs"> </script>
-    <script type="module" src="src/base/s16module.mjs"> </script>
-    <script type="module" src="src/base/architecture.mjs"> </script>
+    <script type="module"
+            src="src/base/version.mjs"> </script>
+    <script type="module"
+            src="src/base/s16module.mjs"> </script>
+    <script type="module"
+            src="src/base/architecture.mjs"> </script>
     <script type="module" src="src/base/arithmetic.mjs"> </script>
     <script type="module" src="src/base/state.mjs"> </script>
     <script type="module" src="src/gui/editor.mjs"> </script>
@@ -368,23 +373,26 @@ launched by visiting this file in a browser.
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
-<!--		<button id="LP_Help"> Help </button> -->
 		<button id="LP_Link"> Link </button>
                 <button id="LP_Show_Object"> Show object </button>
-                <button id="LP_Show_Executable"> Show executable </button>
-                <button id="LP_Show_Metadata"> Show metadata </button>
-                <button id="LP_Read_Object"> Read object </button>
+                <button id="LP_Show_Executable">
+                  Show executable </button>
+                <button id="LP_Show_Metadata">
+                  Show metadata </button>
+                <button id="LP_Read_Object">
+                  Read object </button>
 	      </div>
 	      <div class="PaneBody" id="LP_Body">
-<!--
-	      <div class="PaneBody" id="LinkerPaneBody">
-	        <div class="HighlightedTextAsHtml" id="LinkerBody">
-	        <div class="HighlightedTextAsHtml" id="LinkerBody">
-		  <div id="LinkerText"></div>
-                </div>
--->
 	      </div>
 	    </div>
+<!--
+        <div class="HighlightedTextAsHtml"
+                id="LinkerBody">
+        </div>
+    <div id="LinkerText"></div>
+    <div class="PaneBody" id="LinkerPaneBody">
+     <div class="HighlightedTextAsHtml" id="LinkerBody">
+-->
 	    
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
@@ -773,20 +781,19 @@ launched by visiting this file in a browser.
   </body>
 </html>
 
-<!--
+<!-- deprecated
     <button id="EDP_Selected"> selected </button>
-                <button id="EDP_Save"> Save </button>
-		<button id="EDP_Asm"> Asm </button>
-		<button id="EDP_Obj"> Obj </button>
-		<button id="EDP_Exe"> Exe </button>
-		<button id="EDP_Link"> Link </button>
-		<button id="EDP_Test"> Test </button>
+        <button id="EDP_Save"> Save </button>
+	<button id="EDP_Asm"> Asm </button>
+	<button id="EDP_Obj"> Obj </button>
+	<button id="EDP_Exe"> Exe </button>
+	<button id="EDP_Link"> Link </button>
+	<button id="EDP_Test"> Test </button>
 
-		<button id="MP_Refresh"> Refresh </button>
-		<button id="MP_New"> New </button>
-		<button id="MP_Hello_world"> Hello, world! </button>
+	<button id="MP_Refresh"> Refresh </button>
+	<button id="MP_New"> New </button>
+  <button id="MP_Hello_world"> Hello, world! </button>
 
-                -->
-
-
+-->
                 
+<!--	<button id="LP_Help"> Help </button> -->
