@@ -803,11 +803,14 @@ let currentPane = WelcomePane; // The current pane is displayed; others are hidd
 // Return the string Id for a Pane symbol; needed for getElementById
 function paneIdString (p) { return p.description }
 
-// When the program starts, show the Welcome page and hide the others
+// When the program starts, show the Welcome page and hide
+// the others
 
 function initializePane () {
     currentPane = WelcomePane;
-    let f = (p,x) => document.getElementById(paneIdString(p)).style.display = x;
+    let f = (p,x) =>
+        document.getElementById(paneIdString(p)).style.display
+          = x;
     f (WelcomePane, "block");
     f (ExamplesPane, "none");
     f (ModulesPane, "none");
@@ -819,8 +822,9 @@ function initializePane () {
     f (DevToolsPane, "none");
 }
 
-// Leave the current pane and switch to p; run showInitializer if the
-// pane has one.  Provide for possible hooks.
+// Leave the current pane and switch to p; run
+// showInitializer if the pane has one.  Provide for possible
+// hooks.
 
 const showPane = (gst) => (p) => {
     com.mode.devlog (`showPane ${p.description}`);
@@ -869,7 +873,8 @@ const showPane = (gst) => (p) => {
         gst.currentKeyMap = defaultKeyMap
         break;
     }
-    document.getElementById(paneIdString(p)).style.display = "block";
+    document.getElementById(paneIdString(p)).style.display
+    = "block";
     com.mode.devlog(`Show pane ${p.description}`);
     console.log (`showPane disolay=block ${paneIdString(p)}`)
 }
@@ -1036,17 +1041,23 @@ function initializeButtons () {
     // Assembler pane (AP)
     prepareButton ('AP_Assemble',        asm.assemblerGUI);
     prepareButton ('AP_Show_Source',     asm.displayAsmSource);
-    prepareButton ('AP_Show_Object',     asm.displayObjectListing);
+    prepareButton ('AP_Show_Object',
+                   asm.displayObjectListing);
     prepareButton ('AP_Show_Listing',    asm.displayAsmListing);
     prepareButton ('AP_Show_Metadata',   asm.displayMetadata);
     
     // Linker pane (LP)
     prepareButton ('LP_Link',            link.linkerGUI);
-    prepareButton ('LP_Show_Object',     link.linkShowObject);
-    prepareButton ('LP_Show_Executable', link.linkShowExecutable);
+    prepareButton ('LP_Show_Executable',
+                   link.linkShowExecutable);
     prepareButton ('LP_Show_Metadata',   link.linkShowMetadata);
-    prepareButton ('LP_Read_Object',     link.getLinkerModules);
 
+// linker...
+// prepareButton ('LP_Show_Object',     link.linkShowObject);
+// prepareButton ('LP_Read_Object',     link.getLinkerModules);
+// deprecated
+
+    
     // Processor pane (PP)
     prepareButton ('PP_Boot',       () => procBoot (gst))
     prepareButton ('PP_Step',       () => procStep (gst))
@@ -3490,18 +3501,18 @@ window.onload = function () {
     setModeUser ()
     setMDhba (gst)
 //     setArch(16) can't do it yet
-//    console.log ('system is now running')
     initializeProcessor () //  ??? leaves regs undefined...
-    document.getElementById('LP_Body').innerHTML =
-        "Linker text";    
-    com.log_emph ('system is now running')
-
+    com.clearObjectCode () // clear linker page text
     initializeButtons (gst);
-
-
+    com.log_emph ('system is now running')
 }
   
 // Deprecated
+
+// on loaded...
+//    document.getElementById('LP_Body').innerHTML =
+//        "<p>Linker text</p>";
+//    console.log ('system is now running')
 
 /* replaced by setArch(k)
 function setArch16 () {
