@@ -1,44 +1,53 @@
 // Sigma16: state.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL
+// Version 3.  See Sigma16/README, LICENSE, and
+// https://github.com/jtod/Sigma16
 
-// This file is part of Sigma16.  Sigma16 is free software: you can
-// redistribute it and/or modify it under the terms of the GNU General
-// Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
-// Sigma16 is distributed in the hope that it will be useful, but
+// This file is part of Sigma16.  Sigma16 is free software:
+// you can redistribute it and/or modify it under the terms
+// of the Version 3 of the GNU General Public License as
+// published by the Free Software Foundation.  Sigma16 is
+// distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.  You should have received
-// a copy of the GNU General Public License along with Sigma16.  If
-// not, see <https://www.gnu.org/licenses/>.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// the GNU General Public License for more details.  You
+// should have received a copy of the GNU General Public
+// License along with Sigma16.  If not, see
+// <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------
-// state.mjs defines global state for the system, IDE, modules, and
-// emulator, including key data structures.
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
+// state.mjs defines global state for the system, IDE,
+// modules, and emulator, including key data structures.
+//-------------------------------------------------------------
 
-// The main components of the program avoid using global variables;
-// instead the necessary state is organized into records and passed as
-// needed to the functions.  This module defines those records.  The
-// gui operations, defined in Sigma16.html, call the emulator's
-// interface functios with the state, for example boot(emulatorState).
+// The main components of the program avoid using global
+// variables; instead the necessary state is organized into
+// records and passed as needed to the functions.  This
+// module defines those records.  The gui operations, defined
+// in Sigma16.html, call the emulator's interface functios
+// with the state, for example boot(emulatorState).
 
 import * as com from './common.mjs'
 import * as arith from './arithmetic.mjs';
 import * as arch from './architecture.mjs'
 import * as ab from './arrbuf.mjs'
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Stages
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-export const StageAsm = Symbol ("Asm");   // .asm.   assembly language source
-export const StageObj = Symbol ("Obj");   // .obj.   object code
-export const StageOmd = Symbol ("Omd");   // .omd.   metadata for obj
-export const StageLnk = Symbol ("Lnk");   // .lnk.   link command
-export const StageExe = Symbol ("Exe");   //.xmd.    metadata for exe
-export const StageXmd = Symbol ("Xmd");   //.xmd.    metadata for exe
+export const StageAsm = Symbol ("Asm");
+  // .asm.   assembly language source
+export const StageObj = Symbol ("Obj");
+  // .obj.   object code
+export const StageOmd = Symbol ("Omd");
+  // .omd.   metadata for obj
+export const StageLnk = Symbol ("Lnk");
+  // .lnk.   link command
+export const StageExe = Symbol ("Exe");
+  //.xmd.    metadata for exe
+export const StageXmd = Symbol ("Xmd");
+  //.xmd.    metadata for exe
 
 // Convert a string from filename into symbolic stage
 
@@ -52,12 +61,12 @@ export function getStageSym (xs) {
         : null
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // System state
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The system state contains separate components for the ModuleSet,
-// the emulator state, and the linker state.
+// The system state contains separate components for the
+// ModuleSet, the emulator state, and the linker state.
 
 export class SystemState {
     constructor () {
@@ -67,9 +76,9 @@ export class SystemState {
     }
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Global state variable
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // The environment is a global variable that contains all the system
 // state.

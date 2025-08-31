@@ -5,8 +5,8 @@
 
 // This file is part of Sigma16.  Sigma16 is free software:
 // you can redistribute it and/or modify it under the terms
-// of the GNU General Public License as published by the Free
-// Software Foundation, Version 3 of the License.  Sigma16 is
+// of Version 3 of the GNU General Public License as
+// published by the Free Software Foundation.  Sigma16 is
 // distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
@@ -34,11 +34,8 @@ import * as link  from '../base/linker.mjs';
 import * as em    from '../base/emulator.mjs';
 import * as ct    from './consoletest.mjs';
 
-// import * as emwt  from '../base/emwt.mjs';
-  // make syntax errors visible
-
-// Not importing base/emwt.mjs, this is read when
-// gst.emwThread is defined to be a new Worker
+// ../ base/emwt.mjs is not imported: it is read when a new
+// Worker is created and assigned to gst.emwThread
 
 //-------------------------------------------------------------
 // Debugging tools
@@ -285,7 +282,6 @@ class Options {
         this.currentMDslidingSize = InitialMDslidingSize
 
         // Emulator settings
-        this.processorIsUninitialized = true
         this.currentThreadSelection = com.ES_gui_thread
         this.mainSliceSize = InitialMainSliceSize
         this.workerRefreshInterval = InitialWorkerRefreshInterval
@@ -863,7 +859,7 @@ const showPane = (gst) => (p) => {
     case ProcessorPane:
         gst.currentKeyMap = procKeyMap
         highlightPaneButton (gst, "Processor_Pane_Button")
-        enterProcessor ()
+//        enterProcessor ()
         break;
     case OptionsPane:
         gst.currentKeyMap = defaultKeyMap
@@ -1437,13 +1433,6 @@ export function initializeProcessorElements (gst) {
     gst.instrEffect2Elt = document.getElementById("InstrEffect2");
 }
 
-function enterProcessor () {
-    console.log ('enterProcessor')
-    if (gst.options.processorIsUninitialized) {
-        initializeProcessor ()
-    }
-}
-
 function initializeProcessor () {
     //    console.log ('Initializing processor')
     com.log_emph ('Initializing processor')    
@@ -1467,7 +1456,6 @@ function initializeProcessor () {
         emwtInit (gst.es)
         com.mode.devlog ("gui.mjs has started emwt")
     }
-    gst.options.processorIsUninitialized = false
 }
 //        gst.emwThread = new Worker ("./dummyworker.mjs", {type: "module"});
 
@@ -3141,12 +3129,15 @@ function initializeSystem () {
 
 // Set architecture mode to k bit words; k should be 16 or
 // 32.  If k has any other value, the mode will be set to 16.
+// In the console (ctl-shft-J), enter setArch(32) or
+// setArch(16)
 
 function setArch (x) {
     const k = x==32 ? 32 : 16 // make sure it's 16 or 32
     const notk = k==32 ? 16 : 32 // the other word size
     const es = gst.es
-    console.log (`Setting arch mode to ${k}`)
+      //    console.log (`Setting arch mode to ${k}`)
+    com.log_emph (`Setting arch mode to ${k}`)      
     es.arch = k==32 ? arch.S32 : arch.S16
     const w = k==32 ? '32' : '16'
     document.documentElement.style.setProperty
@@ -3155,9 +3146,6 @@ function setArch (x) {
         arith.word32mask : arith.word16mask
     console.log (`addressMask = ${es.addressMask}`)
     setRegisterSize (k)
-    //    highlightArchButton(`Arch{k}button`)
-    // are the buttons defiled?
-//    unhighlightArchButton(`Arch{notk}button`)
     procReset (gst)
 }
 window.setArch = setArch;
@@ -3167,6 +3155,9 @@ window.setArch = setArch;
 //    gst.es.pc.show = arith.wordToHex8
 //    console.log ("skipping es.addressMask 32")
 // ??? es.addressMask???
+    //    highlightArchButton(`Arch{k}button`)
+    // are the buttons defiled?
+//    unhighlightArchButton(`Arch{notk}button`)
 
 function setRegisterSize (size) {
     //    return // disable, taking different approach...
@@ -3421,9 +3412,7 @@ const HelpProcessorClose = document.querySelector('#HelpProcessorClose');
 const HelpOptionsDialog = document.querySelector('#HelpOptionsDialog');
 const HelpOptionsClose = document.querySelector('#HelpOptionsClose');
 
-window.onload = function () {
-    com.log_emph ("starting initializers")
-
+function initialiseHelp () {
     OpenHelpButton.addEventListener('click', () => {
         console.log (`Help ${currentPane.description}`);
         switch (currentPane) {
@@ -3494,20 +3483,26 @@ window.onload = function () {
           HelpOptionsDialog.close();
       });
     
-    
+}
+
+window.onload = function () {
     com.mode.trace = false
+    com.log_emph ("starting initializers")
     initializeSystem ()
-    enableKeyboardShortcuts ()
     setModeUser ()
     setMDhba (gst)
-//     setArch(16) can't do it yet
-    initializeProcessor () //  ??? leaves regs undefined...
+    initializeProcessor () //  ??? leaves regs undefined...ok
     com.clearObjectCode () // clear linker page text
+    enableKeyboardShortcuts ()
     initializeButtons (gst);
+    initialiseHelp ();
+    setArch(16);
     com.log_emph ('system is now running')
 }
-  
+
 // Deprecated
+
+//     setArch(16) can't do it yet
 
 // on loaded...
 //    document.getElementById('LP_Body').innerHTML =
@@ -3549,3 +3544,18 @@ function setArch32 () {
 }
 window.setArch32 = setArch32;
 */
+
+
+//        this.processorIsUninitialized = true
+
+// function enterProcessor () {
+//    return
+//    console.log ('enterProcessor')
+//    if (gst.options.processorIsUninitialized) {
+//        initializeProcessor ()
+//    }
+// }
+//    gst.options.processorIsUninitialized = false
+
+  // import * as emwt  from '../base/emwt.mjs';
+  // make syntax errors visible
