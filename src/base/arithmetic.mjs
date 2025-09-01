@@ -402,36 +402,32 @@ export function wordToHex4 (x) {
 //    console.log (`&&&&& wordToHex4 x=${x} result=${result}`)
     return result
 }
-window.wordToHex4 = wordToHex4;
 
 export function wordToHex8 (x) { 
     // a,b,c,d, e,f,g,h
     //    let y = limit32 (x);
     let y = x;
-    let h = y & 0x0000000f;
+    let h = y & 0x000f;
     y = y >>> 4;
-    let g = y & 0x0000000f;
+    let g = y & 0x000f;
     y = y >>> 4;
-    let f = y & 0x0000000f;
+    let f = y & 0x000f;
     y = y >>> 4;
-    let e = y & 0x0000000f;
+    let e = y & 0x000f;
     y = y >>> 4;
-    let d = y & 0x0000000f;
+    let d = y & 0x000f;
     y = y >>> 4;
-    let c = y & 0x0000000f;
+    let c = y & 0x000f;
     y = y >>> 4;
-    let b = y & 0x0000000f;
+    let b = y & 0x000f;
     y = y >>> 4;
-    let a = y & 0x0000000f;
-    let result =
-        hexDigit[a] + hexDigit[b]
+    let a = y & 0x000f;
+    return hexDigit[a] + hexDigit[b]
         + hexDigit[c] + hexDigit[d]
         + ' '
         +  hexDigit[e] + hexDigit[f]
-        + hexDigit[g] + hexDigit[h];
-    return result;
+        + hexDigit[g] + hexDigit[h]
 }
-window.wordToHex8 = wordToHex8;
 
 function showBit (b) {
     return b==0 ? '0' : 1
