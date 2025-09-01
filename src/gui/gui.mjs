@@ -55,9 +55,9 @@ window.exposeConsole = ct.exposeConsole
 // development and experimentation, set Dev mode.  In
 // console, enter setModeDev() or setModeUser().
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 //Constant parameters
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Window layout
 const InitMidLRratio = 0.6  // initial width ratio midMainLeft/midMainRight
@@ -76,9 +76,9 @@ const MemDispMinSize = 20 // always display at least this many locations
 const InitialMemorySizeStr = '64KW'
 const InitialMemorySize = 65536
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Initialization
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // The program runs in a main thread and optionally a worker thread.
 // The program starts in the main thread; a worker thread is created
@@ -174,23 +174,23 @@ const InitialMemorySize = 65536
 //                      array buffer, making them accessible to both
 //                      the main thread and the worker thread.
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Global state variable
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The gui state is an instance of the GuiState class.  It's retained
-// in a global variable gst, which is defined here to get it into
-// scope, and initialized later when the onload event occurs.  The
-// onload function runs in the main gui thread but not in a worker
-// thread.  The gui state contains an emulator state for the main
-// thread.  If there is a worker, it has an emulator state but not a
-// GuiState.
+// The gui state is an instance of the GuiState class.  It's
+// retained in a global variable gst, which is defined here
+// to get it into scope, and initialized later when the
+// onload event occurs.  The onload function runs in the main
+// gui thread but not in a worker thread.  The gui state
+// contains an emulator state for the main thread.  If there
+// is a worker, it has an emulator state but not a GuiState.
 
 let gst = null
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Gui state class
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // The global gui state gst is an instance of GuiState
 
@@ -214,13 +214,15 @@ class GuiState {
         this.toggleGuideSaveRatio = InitMidLRratio
 
         // Emulator state
-        this.es = null   // emulator state for main thread (worker has its own)
+        this.es = null
+        // emulator state for main thread (worker has its own)
         this.currentPaneButton = "Welcome_Pane_Button"
-        //        this.emRunThread = com.ES_gui_thread  part of es
-        //        this.emRunThread = com.ES_worker_thread
+        // this.emRunThread = com.ES_gui_thread  part of es
+        // this.emRunThread = com.ES_worker_thread
 
         // Worker thread
-        this.emwThread = null // may be set by initializeWorkerThread
+        this.emwThread = null
+        // may be set by initializeWorkerThread
         
         // Processor display
         this.MemDispMode = ModeMemDisplayHBA
@@ -254,9 +256,9 @@ class GuiState {
     }
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Configuration options
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 class Options {
     constructor () {
@@ -264,14 +266,15 @@ class Options {
 
         // Version
         this.thisVersion = ver.s16version
-        this.latestRelease = 'see Sigma16 Home Page' // update after server query
+        this.latestRelease = 'see Sigma16 Home Page'
+          // update after server query
         
         // Platform capabilities
         this.supportLocalStorage = !!window.localStorage
         this.supportWorker = !!window.Worker
         this.supportSharedMem = !!window.SharedArrayBuffer
         this.crossOriginIsolated = !!window.crossOriginIsolated
-        //        this.crossOriginIsolated = true // temp test ????????????
+//     this.crossOriginIsolated = true // temp test ????????????
 
         // Memory settings
         this.memoryIsAllocated = false
@@ -303,7 +306,6 @@ function adjustInitialOptions () {
     }
 }
 
-
 const warningChangeAfterAllocation =
       'This memory option cannot be changed after memory has been allocated.'
       + ' This happens when you first enter the Processor page.  To adjust'
@@ -323,7 +325,8 @@ const warningRequireSharedMemory =
       + ' If memory is not yet allocated, you can select shared memory'
       + ' and try again.'
 
-// Are requirements satisfied for selecting local typed array buffer?
+// Are requirements satisfied for selecting local typed array
+// buffer?
 
 function isSetBufferLocalOk (warn) {
     const opt = gst.options
@@ -336,7 +339,8 @@ function isSetBufferLocalOk (warn) {
     return ok
 }
 
-// Are requirements satisfied for selecting shared array buffer?
+// Are requirements satisfied for selecting shared array
+// buffer?
 
 function isSetBufferSharedOk (warn) {
     const opt = gst.options
@@ -425,8 +429,8 @@ function setThreadWorker (warn) {
     }
 }
 
-// Set memory display mode according to radio buttons
-//have ids MDhba, MDsliding, MDfull
+// Set memory display mode according to radio buttons have
+// ids MDhba, MDsliding, MDfull
 
 const setMDhba = (gst) => (e) => {
     com.mode.devlog ('setMDhba')
@@ -546,11 +550,12 @@ function showMemDisplayOptions () {
     }
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Query SigServer for latest version
-//-----------------------------------------------------------------------------
-// Query Sigma16 home page on github pages for the SigServer location,
-// then query server for the latest version number
+//-------------------------------------------------------------
+
+//  Query Sigma16 home page on github pages for the SigServer
+// location, then query server for the latest version number
 
 function findLatestRelease (gst) {
     console.log ('Looking up the latest release')
@@ -577,9 +582,9 @@ function findLatestRelease (gst) {
     com.mode.devlog ("*** findLatestRelease started actions, now returning")
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Utilities
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // If warn then display msg in an alert
 
@@ -602,20 +607,20 @@ function updateWhileRunning (gst) {
     refreshRFdisplay (gst)
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Window sizing: adjust relative size of system and user guide
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// For the window resizing: relative size of system and user guide
-// sections.  All the code implementing feature appears here, apart
-// from a one line call to the initialization function within the
-// onload event handler
+// For the window resizing: relative size of system and user
+// guide sections.  All the code implementing feature appears
+// here, apart from a one line call to the initialization
+// function within the onload event handler
 
 // Commented out the div class="MiddleSectionResizeHandle" in
-// Sigma16.html.  Any mentions of this in the css file should be
-// ignorable.  When this was commented out, the system and doc
-// sections run up right against each other, but should be possible
-// later to get some space between them.
+// Sigma16.html.  Any mentions of this in the css file should
+// be ignorable.  When this was commented out, the system and
+// doc sections run up right against each other, but should
+// be possible later to get some space between them.
 
 // windowWidthb = 498.5
 // full frame width = 997.2
@@ -624,9 +629,9 @@ function updateWhileRunning (gst) {
 // mid main rigth width = 393.35
 //   left + right width = 965.2
 
-// Initialize the variables (middleSection, midMainLeft, midMainRight)
-// in the onload event, because the DOI elements must exist before the
-// variables are assigned.
+// Initialize the variables (middleSection, midMainLeft,
+// midMainRight) in the onload event, because the DOI
+// elements must exist before the variables are assigned.
 
 function initialize_mid_main_resizing (gst) {
     com.mode.devlog ('initializing mid-main resizing')
@@ -642,7 +647,8 @@ function setMidMainLRratio (r) {
     gst.midLRratio = r;
 }
 
-// Readjust the widths of left and right sections to match ratio r
+// Readjust the widths of left and right sections to match
+// ratio r
 function adjustToMidMainLRratio () {
     com.mode.devlog ('adjustToMidMainLRratio:  midLRratio = ' + gst.midLRratio)
     let ww =  window.innerWidth - gst.midSecExtraWidth;
@@ -705,10 +711,10 @@ function showSizeParameters () {
     com.mode.devlog ('  midLRratio = ' + gst.midLRratio);
 }
 
-// Resize the system (midMainLeft) and user guide (midMainRight)
-// sections.  When the - or + button is clicked in the GUI,
-// user_guide_resize (x) is called: x>0 means expand the user guide by
-// x px; x<0 means shrink it.
+// Resize the system (midMainLeft) and user guide
+// (midMainRight) sections.  When the - or + button is
+// clicked in the GUI, user_guide_resize (x) is called: x>0
+// means expand the user guide by x px; x<0 means shrink it.
 
 function user_guide_resize(x) {
     com.mode.devlog ('user_guide_resize ' + x);
@@ -733,9 +739,9 @@ function rememberCurrentMidMainLeftWidth () {
 
 // let currentMidMainWidth = midMainLeft.style.width
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 //  Handle window events
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 window.onbeforeunload = function(event) {
     event.returnValue = "Write something clever here..";
@@ -749,9 +755,9 @@ window.onresize = function () {
     com.mode.devlog ('window.onresize finished');
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // User guide
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 function toggleUserGuide () {
     let xs
@@ -778,9 +784,9 @@ function hideUserGuide () {
     setMidMainLeftWidth (window.innerWidth)
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Tabbed panes
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Symbols identify the panes that can be displayed
 
@@ -796,7 +802,8 @@ export const DevToolsPane  = Symbol ("DevToolsPane");
 
 let currentPane = WelcomePane; // The current pane is displayed; others are hidden
 
-// Return the string Id for a Pane symbol; needed for getElementById
+// Return the string Id for a Pane symbol; needed for
+// getElementById
 function paneIdString (p) { return p.description }
 
 // When the program starts, show the Welcome page and hide
@@ -920,9 +927,9 @@ export function finalizeLeaveCurrentPane () {
     document.getElementById(paneIdString(currentPane)).style.display = "none";
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Define actions for buttons
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Connect a button in the html with its corresponding function
 
@@ -950,16 +957,6 @@ function initializeButtons () {
     prepareButton ('Welcome_Pane_Button',   () =>
                    showPane (gst) (WelcomePane));
 
-    //    prepareButton ("HelpButton", () => showHelp (gst));
-//    prepareButton ("HelpButton", () => {
-//        console.log ("Help clicked");
-//        document.getElementById('FOOBARBAZ').show();
-//      })
-
-//    prepareButton ("CloseAssemblerHelp", () => {
-//        console.log ("CloseAssemblerHelp clicked");
-//        document.getElementById("AssemblerHelpNew").close();
-//      })
     prepareButton ('Examples_Pane_Button',  () => showPane (gst) (ExamplesPane));
     prepareButton ('Modules_Pane_Button',   () => showPane (gst) (ModulesPane));
     prepareButton ('Editor_Pane_Button',    () => showPane (gst) (EditorPane));
@@ -972,8 +969,8 @@ function initializeButtons () {
                    () => showGuideSection('sec-about-sigma16'));  
     prepareButton ('Toggle_UserGuide', toggleUserGuide)
 
-    // User guide resize (UGR) buttons.  UGR Distance (px) to move
-    // boundary between gui and userguide on resize
+// User guide resize (UGR) buttons.  UGR Distance (px) to move
+// boundary between gui and userguide on resize
 
     prepareButton ('UG_Resize_Right_Large_Button',
                    () => user_guide_resize(UGRLARGE));
@@ -984,26 +981,6 @@ function initializeButtons () {
     prepareButton ('UG_Resize_Left_Large_Button',
                    () => user_guide_resize(-UGRLARGE));
 
-    // Help boxes
-/*
-    prepareButton ('WP_Help',              () => toggleWelcomeHelp ());
-    prepareButton ('WelcomeHelpClose',     () => toggleWelcomeHelp ());
-    prepareButton ('EXP_Help',             () => toggleExamplesHelp ());
-    prepareButton ('ExamplesHelpClose',    () => toggleExamplesHelp ());
-    prepareButton ('MP_Help',              () => toggleModulesHelp ());
-
-    prepareButton ('ModulesHelpClose',     () => toggleModulesHelp ());
-    prepareButton ('EDP_Help',             () => toggleEditorHelp ());
-    prepareButton ('EditorHelpClose',      () => toggleEditorHelp ());
-    prepareButton ('AP_Help',              () => toggleAssemblerHelp ());
-    prepareButton ('AssemblerHelpClose',   () => toggleAssemblerHelp ());
-    prepareButton ('LP_Help',              () => toggleLinkerHelp ());
-    prepareButton ('LinkerHelpClose',      () => toggleLinkerHelp ());
-    prepareButton ('PP_Help',              () => toggleProcHelp ())
-    prepareButton ('ProcHelpClose',        () => toggleProcHelp ())
-*/    
-    // Welcome pane (WP)
-    // prepareButton ('WP_Guide_Top', jumpToGuideTop);
     prepareButton ('WP_TOC', () => showGuideSection('table-of-contents'));
     prepareButton ('WP_Tutorials', () => showGuideSection('sec-tutorial'));
     prepareButton ('WP_Architecture', () => showGuideSection('sec-architecture'));
@@ -1125,9 +1102,9 @@ function initializeButtons () {
 //    prepareButton ('DisableDev',     setModeUser);
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Key maps
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 const defaultKeyMap = new Map ([
     ["KeyH",  toggleWelcomeHelp],
@@ -1179,9 +1156,9 @@ const procKeyMap = new Map ([
     ["KeyI",  () => procInterrupt (gst)],
 ])
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Help popups
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // You can open or close a help box by pressing h
 
@@ -1239,9 +1216,9 @@ export function toggleProcHelp () {
     procHelpDialogueVisible = !procHelpDialogueVisible;
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Keyboard
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 function handleKeyDown (e) {
     com.mode.devlog (`handleKeyDown code=${e.code} keyCode=${e.keyCode}`)
@@ -1276,13 +1253,13 @@ function handleTextBufferKeyDown (e) {
     e.stopPropagation () // inhibit using key as keyboard shortcut command
 }
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Example programs
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// This file is Sigma16/src/gui/gui.mjs
-// The examples directory is Sigma16/examples
-// The index for the examples directory is ../../examples/index.html
+// This file is Sigma16/src/gui/gui.mjs The examples
+// directory is Sigma16/examples The index for the examples
+// directory is ../../examples/index.html
 
 function examplesHome() {
     com.mode.devlog ("examplesHome");
@@ -1315,18 +1292,18 @@ function checkExample () {
 //    com.mode.devlog (`checkExample <${xs}>\n<${ys}>`)
 }
 
-// A collection of example programs is part of the Sigma16 app, in
-// Sigma16/Examples.  When the user navigates through the indices and
-// selects an example, this program creates a new module and inserts
-// the example text into it.  The text of the example is obtained as
-// follows: (1) the user clicks a link in the Examples page; (2) the
-// browser fetches the file and displays it; (3) the selectExample
-// function obtains the example text using innerHTML; and (4) the
-// function strips off the html tags.  The function obtains the module
-// name from the first line of the example text.  It is required that
-// every example begins with a first line of the form "; EXAMPLENAME:
-// what the example is\n..."
-
+// A collection of example programs is part of the Sigma16
+// app, in Sigma16/Examples.  When the user navigates through
+// the indices and selects an example, this program creates a
+// new module and inserts the example text into it.  The text
+// of the example is obtained as follows: (1) the user clicks
+// a link in the Examples page; (2) the browser fetches the
+// file and displays it; (3) the selectExample function
+// obtains the example text using innerHTML; and (4) the
+// function strips off the html tags.  The function obtains
+// the module name from the first line of the example text.
+// It is required that every example begins with a first line
+// of the form "; EXAMPLENAME: what the example is\n..."
 
 function selectExample() {
     console.log ('selectExample')
@@ -1347,13 +1324,14 @@ function selectExample() {
 }
     //    const modName = `[ModName from example first line]`;
 
-// Obtain module name from first line of example, which must be of the
-// form "; ModuleName ...".  Standard practice is to put a colon after
-// the module name, like this: "; ModuleName: the is an example...".
-// If the first line of the example doesn't match the standard form, a
-// dummy module name "ExampleModule" is returned.  Any number of
-// spaces may follow the initial ; but good style is to use exactly
-// one space.
+// Obtain module name from first line of example, which must
+// be of the form "; ModuleName ...".  Standard practice is
+// to put a colon after the module name, like this: ";
+// ModuleName: the is an example...".  If the first line of
+// the example doesn't match the standard form, a dummy
+// module name "ExampleModule" is returned.  Any number of
+// spaces may follow the initial ; but good style is to use
+// exactly one space.
 
 export function getExampleModuleName (txt) {
     let p =/^\;\s*(\w+)/;
@@ -1364,8 +1342,8 @@ export function getExampleModuleName (txt) {
 }
 window.getExampleModuleName = getExampleModuleName
 
-// Hello World is an example program that's defined as a string in the
-// JS program, so no file needs to be read.
+// Hello World is an example program that's defined as a
+// string in the JS program, so no file needs to be read.
 
 function insert_example (exampleName, exampleText) {
     com.mode.devlog('Inserting Hello World example into editor text');
@@ -1411,13 +1389,13 @@ x         data   7         ; initial value of x = 7
 result    data   0         ; initial value of result = 0
 `;
 
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Editor pane
-//-------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Processor
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Processor elements: html elements for displaying instruction decode
 
@@ -1471,9 +1449,9 @@ function procReset (gst) {
 
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Processor display
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // The mode determines the quantity and destination of output
 
@@ -1481,7 +1459,8 @@ export const Mode_GuiDisplay = 100
 export const Mode_Console    = 200
 export const Mode_Quiet      = 300
 
-// Number of header lines in the listing before the source lines begin
+// Number of header lines in the listing before the source
+// lines begin
 const listingLineInitialOffset = 1;
 
 // export function refreshDisplay (es) {
@@ -1496,8 +1475,8 @@ export function refreshDisplay (gst) {
     st.showSCBstatus (gst.es)
 }
 
-// These functions display information on the gui; they abstract the
-// document DOM out of the emulator
+// These functions display information on the gui; they
+// abstract the document DOM out of the emulator
 
 export function guiDisplayNinstr (gst) {
     let n = gst.es.vec32[0]
@@ -1512,19 +1491,20 @@ export function guiDisplayMem (gst, elt, xs) {
 
 // Displaying processor
 
-// For single stepping, we want to keep display of registers and
-// memory up to date and show access by highlighting the fetched and
-// updated locations.  For Run mode, we want to avoid updating the
-// memory continuosly, although it may be useful to keep the register
-// displays updated.
+// For single stepping, we want to keep display of registers
+// and memory up to date and show access by highlighting the
+// fetched and updated locations.  For Run mode, we want to
+// avoid updating the memory continuosly, although it may be
+// useful to keep the register displays updated.
 
-// The strategy is: (1) for stepping, there is a function to prepare
-// before executing an instruction, and another to update the displays
-// after execution, with the expectation that the user will spend some
-// time looking at the displays before steppign again.  (2) For Run,
+// The strategy is: (1) for stepping, there is a function to
+// prepare before executing an instruction, and another to
+// update the displays after execution, with the expectation
+// that the user will spend some time looking at the displays
+// before steppign again.  (2) For Run,
 
-// (for running) Prepare the displays before running sequence of
-// instructions (the Run button).
+// (for running) Prepare the displays before running sequence
+// of instructions (the Run button).
 
 // After this, either updateRegisters or refreshRegisters
 
@@ -1576,22 +1556,23 @@ function displayProcAsmListing (gst) {
     elt.scroll (0, y)
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Emulator Interface to gui
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The functions receive a parameter 'es' which carries the current
-// emulator state.  The gui, when it calls one of the main interface
-// functions, passes the global emulatorState.
+// The functions receive a parameter 'es' which carries the
+// current emulator state.  The gui, when it calls one of the
+// main interface functions, passes the global emulatorState.
 
-// The machine state (registers and memory) are global and initialized
-// by gui.  The emulator state is a global variable named
-// emulatorState, defined in state.js.
+// The machine state (registers and memory) are global and
+// initialized by gui.  The emulator state is a global
+// variable named emulatorState, defined in state.js.
 
-// The interface to the emulator consists of the following functions,
-// which are called directly by the gui. When they call other
-// functions, es is passed as a parameter.  Thus only the following
-// interface functions access a global variable.
+// The interface to the emulator consists of the following
+// functions, which are called directly by the gui. When they
+// call other functions, es is passed as a parameter.  Thus
+// only the following interface functions access a global
+// variable.
 
 // Called by ?
 //   parseCopyObjectModuleToMemory (es)
@@ -1627,13 +1608,14 @@ export function displayFullState (gst) {
 //    memDisplayFull (gst);
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Instruction decoding
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Use instruction fields to display the decoded instruction
 
-// Emulator state contains numeric fields, gui state contains strings
+// Emulator state contains numeric fields, gui state contains
+// strings
 
 export function updateInstrDecode (gst) {
     com.mode.devlog ("updateInstrDecode");
@@ -1674,19 +1656,20 @@ function showEffect (es,i) {
     } else { return ""; }
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Register display
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Highlighting registers to indicate accesses
 
-// When a register is accessed, its display in the gui is highlighted
-// by setting the text color.  If the register has not been used it
-// has the default color black, if it has been read but not written
-// its color is READ, and if it has been written its color is WRITE.
-// The meanings of the tags for syntax highlighting are defined in
-// Sigma16gui.css.  Normally we would use blue for READ and red for
-// WRITE.
+// When a register is accessed, its display in the gui is
+// highlighted by setting the text color.  If the register
+// has not been used it has the default color black, if it
+// has been read but not written its color is READ, and if it
+// has been written its color is WRITE.  The meanings of the
+// tags for syntax highlighting are defined in
+// Sigma16gui.css.  Normally we would use blue for READ and
+// red for WRITE.
 
 let modeHighlight = true;  // indicate get/put by setting text color
 
@@ -1702,8 +1685,8 @@ function setModeHighlight (x) {
     }
 }
 
-// Refresh the registers, removing any existing highlighting, and
-// highlight the current accesses
+// Refresh the registers, removing any existing highlighting,
+// and highlight the current accesses
 
 function newUpdateRegisters (gst) {
     const es = gst.es
@@ -1721,9 +1704,9 @@ function newUpdateRegisters (gst) {
     }
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Memory display
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Choose a range of memory locations and display them
 
@@ -1825,16 +1808,17 @@ function setMemString (gst, a) {
     gst.memString[a] = arith.wordToHex4(a) + ' ' + arith.wordToHex4(x)
 }
 
-// Highlight memory location string to indicate fetch or store access
+// Highlight memory location string to indicate fetch or
+// store access
 
 function memHighlight (gst, a, highlight) {
     gst.memString[a] =
 	"<span class='" + highlight + "'>" + gst.memString[a] + "</span>"
 }
 
-// Scroll element displaying xs to make target line visible, leaving
-// visibleAboveTarget lines visible in the window above the target
-// line.
+// Scroll element displaying xs to make target line visible,
+// leaving visibleAboveTarget lines visible in the window
+// above the target line.
 
 function scrollToTarget (elt, range, visibleAboveTarget) {
     const htLinePx = elt.scrollHeight / range.n
@@ -1843,24 +1827,26 @@ function scrollToTarget (elt, range, visibleAboveTarget) {
     elt.scroll (0, y)
 }
 
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Assembly listing
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The assembler provides an array of source lines, which it passes on
-// to the linker and thence to the emulator.  There are two strings
-// for each source line: one contains <span> elements to enable the
-// fields to be highlighted, just as in the assembly listing.  The
-// other omits these elements, so the entire line can be highlighted
-// to indicate (with just one color for the line) the instruction that
-// has just executed and the instruction that will be executed next.
+// The assembler provides an array of source lines, which it
+// passes on to the linker and thence to the emulator.  There
+// are two strings for each source line: one contains <span>
+// elements to enable the fields to be highlighted, just as
+// in the assembly listing.  The other omits these elements,
+// so the entire line can be highlighted to indicate (with
+// just one color for the line) the instruction that has just
+// executed and the instruction that will be executed next.
 
-// The assembler produces listing lines with <span> elements to allow
-// the fields of the line to be highlighted. These are stored in
-// listingHighlightedFields.  However, the emulator highlights an
-// entire listing line to indicate the instruction that is currently
-// executing, or that will execute next.  In order to prevent the
-// highlighting of fields from overriding the highlighting of the
+// The assembler produces listing lines with <span> elements
+// to allow the fields of the line to be highlighted. These
+// are stored in listingHighlightedFields.  However, the
+// emulator highlights an entire listing line to indicate the
+// instruction that is currently executing, or that will
+// execute next.  In order to prevent the highlighting of
+// fields from overriding the highlighting of the
 // current/next instruction, that is done using listingPlain.
 
 // Prepare assembly listing when executable is booted
@@ -1876,13 +1862,15 @@ export function initListing (gst) {
     displayProcAsmListing (gst)
 }
 
-// Highlighting current and next instruction in processor assembly listing
+// Highlighting current and next instruction in processor
+// assembly listing
 
-// As it executes an instruction, the emulator sets curInstrAddr and
-// nextInstrAddr.  After the instruction has finished, these
-// instructions are highlighted in the listing.  Any existing
-// highlighting is removed, the line numbers of the current and next
-// instruction are calculated, and the highlighting is applied.
+// As it executes an instruction, the emulator sets
+// curInstrAddr and nextInstrAddr.  After the instruction has
+// finished, these instructions are highlighted in the
+// listing.  Any existing highlighting is removed, the line
+// numbers of the current and next instruction are
+// calculated, and the highlighting is applied.
 
 function highlightListingAfterInstr (gst) {
 //    com.mode.trace = true;
@@ -1930,7 +1918,8 @@ function revertListingLine (gst, i) {
     }
 }
 
-// Given address a, the corresponding source statement is found using metadata
+// Given address a, the corresponding source statement is
+// found using metadata
 
 function showListingParameters (gst) {
     com.mode.devlog ('Proc asm listing parameters')
@@ -1940,42 +1929,46 @@ function showListingParameters (gst) {
     com.mode.devlog ('  gst.nextInstrLineNo  = ' + gst.es.nextInstrLineNo)
 }
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Emulator gui
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Calculate the value of pxPerChar, which is needed to control the
-// scrolling to make the current line visible.  The calculated value
-// overrides the initialized value.  The method is to measure the
-// height of the listing in pixels and divide by the number of lines
-// in the listing.  Some other geometric parameters are also obtained,
-// but aren't currently used.
+// Calculate the value of pxPerChar, which is needed to
+// control the scrolling to make the current line visible.
+// The calculated value overrides the initialized value.  The
+// method is to measure the height of the listing in pixels
+// and divide by the number of lines in the listing.  Some
+// other geometric parameters are also obtained, but aren't
+// currently used.
 
 function getListingDims (gst) {
     const es = gst.es
     let e = document.getElementById('ProcAsmListing');
     let x = e.getBoundingClientRect(); // dimensions of visible listing area
     let w = e.scrollWidth; // width of the content, not used
-    let h = e.scrollHeight; // height of content (not of the window)
+    let h = e.scrollHeight;
+      // height of content (not of the window)
     es.asmListingHeight = h; // save in emulator state
     com.mode.devlog (`h=${h} w=${w}`);
     let n = gst.metadata.listingPlain.length;
     com.mode.devlog(`getListingDims: n=${n}`);
-    pxPerChar = n ? h/n : 10; // update this global variable, used for scrolling
+    pxPerChar = n ? h/n : 10;
+      // update this global variable, used for scrolling
     com.mode.devlog (`getListingDims: pxPerChar = ${pxPerChar}`);
 }
 
-// asmScrollOffsetAbove specifies the preferred number of lines that
-// should appear above the scroll target in the processor assembly
-// listing
+// asmScrollOffsetAbove specifies the preferred number of
+// lines that should appear above the scroll target in the
+// processor assembly listing
 
 const asmScrollOffsetAbove = 8;
 
-// pxPerChar is the height of characters used in the processor
-// assembly listing.  This is needed to scroll the listing to keep the
-// current line visible.  There doesn't appear to be a good way to
-// measure this; the value is found by trial and error.  Measuring it
-// or extracting it from font metadata would be far better.
+// pxPerChar is the height of characters used in the
+// processor assembly listing.  This is needed to scroll the
+// listing to keep the current line visible.  There doesn't
+// appear to be a good way to measure this; the value is
+// found by trial and error.  Measuring it or extracting it
+// from font metadata would be far better.
 
 let pxPerChar = 13.05;
 
@@ -1983,18 +1976,20 @@ let pxPerChar = 13.05;
 // export const procAsmListingElt = document.getElementById('ProcAsmListing');
 // export let procAsmListingElt; // global variables for emulator
 
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Assembly listing
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Global variables for handling listing display as program runs.
+// Global variables for handling listing display as program
+// runs.
 
 let srcLine;        // copy of source statements
 
-// Keep track of the address of the currently executing instruction,
-// the address of the next instruction, and the line numbers where
-// these instructions appear in the assembly listing.  -1 indicates no
-// line has been highlighted
+// Keep track of the address of the currently executing
+// instruction, the address of the next instruction, and the
+// line numbers where these instructions appear in the
+// assembly listing.  -1 indicates no line has been
+// highlighted
 
 // let curInstrAddr, curInstrLineNo, saveCurSrcLine;
 // let nextInstrAddr, nextInstrLineNo, saveNextSrcLine;
@@ -2014,13 +2009,13 @@ export function toggleFullDisplay () {
 	 }  // loses info but makes tab switching faster
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Find executable
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// If there is a linked main, use that; otherwise try for an object
-// module.  Check that it is executable.  Return objMd if found and
-// executable; otherwise return null.
+// If there is a linked main, use that; otherwise try for an
+// object module.  Check that it is executable.  Return objMd
+// if found and executable; otherwise return null.
 
 function findExecutable () {
     const m = st.env.moduleSet.getSelectedModule ();
@@ -2064,9 +2059,9 @@ function findExecutable () {
 }
 */
     
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Booter
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 export function procBoot (gst) {
     const es = gst.es
@@ -2105,7 +2100,8 @@ export function procBoot (gst) {
     let objectCode = objectCodeText.split("\n");
     let xs = "";
     let fields = null;
-    let isExecutable = true; // will set to false if module isn't bootable
+    let isExecutable = true;
+      // will set to false if module isn't bootable
     let location = 0; // address where next word will be stored
     document.getElementById('ProcAsmListing').innerHTML = "";
     ab.clearInstrCount
@@ -2212,9 +2208,9 @@ export function procBoot (gst) {
     com.mode.devlog ("boot returning");
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Emulator control from the gui
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 function procInterrupt (gst) {
     console.log ('*** procInterrupt')
@@ -2239,9 +2235,9 @@ export function procPause (gst) {
     com.mode.devlog ("em wrote procPause request")
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Elapsed time clock
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 const ClockWidth = 7 // number of characters to display
 
@@ -2277,8 +2273,8 @@ export function updateClock (gst) {
 }
 
 // To keep the display alive during a long run, call the
-// duringRunRefresher from time to time.  It can be triggered either by
-// the interval timer or by a trap.
+// duringRunRefresher from time to time.  It can be triggered
+// either by the interval timer or by a trap.
 
 const duringRunRefresher = (gst) => () => {
     updateClock (gst)
@@ -2286,7 +2282,8 @@ const duringRunRefresher = (gst) => () => {
     guiDisplayNinstr (gst)
 }
 
-// Show the current values of the register file without highlighting
+// Show the current values of the register file without
+// highlighting
 
 export function refreshRFdisplay (gst) {
     const es = gst.es
@@ -2303,9 +2300,9 @@ export function test1 (es) {
     refreshRFdiysplay (es)
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Running the emulator
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // Main interface function to step one instruction; runs in main gui
 // thread
@@ -2346,10 +2343,10 @@ export function procStep (gst) {
     com.mode.devlog ("procStep finished")
 }
 
-// The runMain and runWorker functions set the preferred thread and
-// then call procRun, so they set the thread choice persistently.
-// runGeneric checks the emRunThread field in the gui state to decide
-// which to use.
+// The runMain and runWorker functions set the preferred
+// thread and then call procRun, so they set the thread
+// choice persistently.  runGeneric checks the emRunThread
+// field in the gui state to decide which to use.
 
 function runMain () {
     com.log_emph ("runMain");
@@ -2368,7 +2365,8 @@ function runGeneric () {
     procRun ()
 }
 
-// Perform any operations on the gui display to prepare for a run
+// Perform any operations on the gui display to prepare for a
+// run
 
 function initRun (gst) {
     startClock (gst)
@@ -2380,17 +2378,18 @@ function finishRun (gst) {
     execInstrPostDisplay (gst)
 }
 
-// Run instructions until stopping condition is reached.  This will be
-// performed using either the main gui thread or on the worker thread.
-// First decide whether to go aheead with the run; if so, decide which
-// thread to run it in.
+// Run instructions until stopping condition is reached.
+// This will be performed using either the main gui thread or
+// on the worker thread.  First decide whether to go aheead
+// with the run; if so, decide which thread to run it in.
 
 function procRun () {
     const es = gst.es
     gst.es.emRunThread = gst.options.currentThreadSelection
     const q = ab.readSCB (es, ab.SCB_status)
-//    console.log (`procRun, status=${q} thread=${es.emRunThread}`)
-    es.copyable = em.initEsCopyable // does this clear data from main?????
+    com.log_emph (`procRun stat=${q} thread=${es.emRunThread}`)
+    es.copyable = em.initEsCopyable
+      // does this clear data from main?????
     switch (q) {
     case ab.SCB_ready:
     case ab.SCB_paused:
@@ -2417,30 +2416,32 @@ function procRun () {
         }
         break
     default: // State is not appropriate for run, so don't do it
-        com.mode.devlog (`procRun skipping because SCB_status=${q}`)
+        com.mode.devlog
+          (`procRun skipping because SCB_status=${q}`)
     }
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Breakpoint
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Sigma16 used to have a rich facility for setting breakpoints, and
-// this will be reinstated (probably summer 2021).  (The flexible
-// breakpoints were omitted during the conversion of Sigma16 from
-// Haskell to JavaScript.)
+// Sigma16 used to have a rich facility for setting
+// breakpoints, and this will be reinstated (probably summer
+// 2021).  (The flexible breakpoints were omitted during the
+// conversion of Sigma16 from Haskell to JavaScript.)
 
-// Meanhile see the trap breakpoint; for simple testing and debugging
-// this will be the must useful form.
+// Meanhile see the trap breakpoint; for simple testing and
+// debugging this will be the must useful form.
 
-// For the time being, there is a limited external breakpoint facility
-// described below.
+// For the time being, there is a limited external breakpoint
+// facility described below.
 
-// Temporary: enter a hex constant e.g. $02c9 into the text area and
-// click Refresh.  The emulator will break when the pc reaches this
-// value.  Spaces before the constant are not allowed, and the $ is
-// required.  Later this will be replaced by a richer language for
-// specifying the break condition.
+// Temporary: enter a hex constant e.g. $02c9 into the text
+// area and click Refresh.  The emulator will break when the
+// pc reaches this value.  Spaces before the constant are not
+// allowed, and the $ is required.  Later this will be
+// replaced by a richer language for specifying the break
+// condition.
 
 export let breakDialogueVisible = false;
 
@@ -2493,9 +2494,9 @@ function breakClose (gst) {
     hideBreakDialogue ();
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Emulator thread
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 function logShmStatus (es) {
     let status = ab.showSCBstatus (es)
@@ -2516,9 +2517,9 @@ function logShmStatus (es) {
     return xs
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Emulator state
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 
 function mkMainEmulatorState () {
@@ -2530,14 +2531,15 @@ function mkMainEmulatorState () {
         () => finishRun (gst) )
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // System state vector
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Memory is allocated in the main thread and made available to the
-// emulator in the main thread by saving it in gst.es.vecbuf.  If
-// there is a worker thread, vecbuf must be a shared array buffer, and
-// it's also sent to the worker.
+// Memory is allocated in the main thread and made available
+// to the emulator in the main thread by saving it in
+// gst.es.vecbuf.  If there is a worker thread, vecbuf must
+// be a shared array buffer, and it's also sent to the
+// worker.
 
 // to do: change es.shm to es.vec16 in emulator
 
@@ -2574,29 +2576,32 @@ function allocateStateVector () {
 //    setArch16 ()
     memDisplay (gst)
     procReset (gst)
-//    ab.testSysStateVec (es)  // keep this: important testing tool
+//    ab.testSysStateVec (es)
+      // keep this: important testing tool
 }
 
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 // EMWT communications protocol
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// The main gui thread and emulator thread communicate through two
-// mechanisms: message passing and shared memory.  A consistent
-// protocol is used for the message passing.
+// The main gui thread and emulator thread communicate
+// through two mechanisms: message passing and shared memory.
+// A consistent protocol is used for the message passing.
 
-// The emulator state object cannot be shared between threads; only
-// the shared array buffers are accessible to both.  The main thread
-// creates its own emulator state, and populates it with the shared
-// state array.  A reference to the shared array is sent to the worker
-// thread on initialization.
+// The emulator state object cannot be shared between
+// threads; only the shared array buffers are accessible to
+// both.  The main thread creates its own emulator state, and
+// populates it with the shared state array.  A reference to
+// the shared array is sent to the worker thread on
+// initialization.
 
-// Messages are oranized into pairs: a request sent by the main gui to
-// the emulator thread, and a response sent by the emulator thread
-// back to the main gui.  A message is an object of the form {code:
-// ..., payload: ...}.  The gui main thread uses codes 100, 101,
-// ... and the emulator thread uses codes 200, 201, ...  If a request
-// has code x, the response has code x+100.  The codes are:
+// Messages are oranized into pairs: a request sent by the
+// main gui to the emulator thread, and a response sent by
+// the emulator thread back to the main gui.  A message is an
+// object of the form {code: ..., payload: ...}.  The gui
+// main thread uses codes 100, 101, ... and the emulator
+// thread uses codes 200, 201, ...  If a request has code x,
+// the response has code x+100.  The codes are:
 
 //   100 initialize: emwt receives shared memory and builds emulator state
 //   101 step: emwt executes one instruction
@@ -2609,13 +2614,14 @@ function allocateStateVector () {
 // emwt 100: initialize
 //----------------------------------------
 
-// The main process sends the shared system state vector to the
-// emulator worker thread, which saves it in a local object.  The
-// worker also creates an emulator state which points to the shared
-// system state vector, and initializes the emulator state.
+// The main process sends the shared system state vector to
+// the emulator worker thread, which saves it in a local
+// object.  The worker also creates an emulator state which
+// points to the shared system state vector, and initializes
+// the emulator state.
 
-// This action is essential and it's performed automatically in the
-// window.onload event handler.
+// This action is essential and it's performed automatically
+// in the window.onload event handler.
 
 
 // function emwtInit (es) { // called by onload initializer, request 100
@@ -2749,10 +2755,12 @@ function handleEmwtRunResponse (p) { // run when emwt sends 202
     case ab.SCB_running_gui:
     case ab.SCB_running_emwt:
     default:
-        //        com.mode.devlog (`main:handleEmwtRunResponse unknown status = ${status}`)
-        com.log_emph (`main:handleEmwtRunResponse unknown status = ${status}`)
+// com.mode.devlog (`main:handleEmwtRunResponse unknown status
+// = ${status}`)
+        com.log_emph
+       (`main:handleEmwtRunResponse unknown status = ${status}`)
     }
-    //    com.mode.devlog ("main: handleEmwtRunResponse finished")
+//    com.mode.devlog ("main: handleEmwtRunResponse finished")
     com.log_emph ("main: handleEmwtRunResponse finished")
 }
 
@@ -2811,15 +2819,18 @@ function initializeEmwtProtocol () {
     gst.emwThread.addEventListener ("message", e => {
         com.mode.devlog ("main has received a message")
         if (e.data) {
-            com.mode.devlog ("main has received data from message")
+            com.mode.devlog
+                ("main has received data from message")
             let p = e.data.payload
             switch (e.data.code) {
             case 200: // initialize
-                com.mode.devlog (`main: received 200 init response`)
+                com.mode.devlog
+                  (`main: received 200 init response`)
                 handleEmwtInitResponse (p)
                 break
             case 201: // emwt step
-                com.mode.devlog (`main: received 201 step response`)
+                com.mode.devlog
+                  (`main: received 201 step response`)
                 handleEmwtStepResponse (p)
                 break
             case 202: // emwt run
@@ -2827,19 +2838,23 @@ function initializeEmwtProtocol () {
                 handleEmwtRunResponse (p)
                 break
             case 203: // emwt show
-                com.mode.devlog (`main: rec 203 emwt show response`)
+                com.mode.devlog
+                  (`main: rec 203 emwt show response`)
                 handleEmwtShowResponse (p)
                 break
             case 204: // emwt test 1
-                com.mode.devlog (`main: rec 204 emwt test 1 response`)
+                com.mode.devlog
+                  (`main: rec 204 emwt test 1 response`)
                 handleEmwtTest1Response (p)
                 break
             case 205: // emwt test 2
-                com.mode.devlog (`main: rec 205 emwt test 2 response`)
+                com.mode.devlog
+                  (`main: rec 205 emwt test 2 response`)
                 handleEmwtTest2Response (p)
                 break
             default:
-                com.mode.devlog (`main: received unknown code = ${e.data.code}`)
+                com.mode.devlog
+                (`main: received unknown code = ${e.data.code}`)
             }
             com.mode.devlog (`main event handler returning`)
         }
@@ -2850,36 +2865,39 @@ window.gst = gst
 window.init1 = initializeEmwtProtocol // init1()
 window.init2 = emwtInit // emwtInit()
 
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Dev tools
-//------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Needed only for console debugging; otherwise can be deleted or
-// commented out
+// Needed only for console debugging; otherwise can be
+// deleted or commented out
 
 window.test_op_add = (x,y) => {
     let [p,s] = arith.op_add (x,y)
     return (`primary: ${arith.wordToHex4(p)} = ${p}`
-            + ` cc: ${arith.wordToHex4(s)} ccflags=${arith.showCC(s)}`)
+            + ` cc: ${arith.wordToHex4(s)} ccflags`
+            + `=${arith.showCC(s)}`)
 }
 
-// These are experimental tools that are normally disabled.  They
-// aren't documented, aren't intended for users, and aren't stable.
-// To use them, press F12 to display the browser console, then enter
-// setModeDev() which will make the tools' buttons visible; to
-// hide them again enter setModeUser().
+// These are experimental tools that are normally disabled.
+// They aren't documented, aren't intended for users, and
+// aren't stable.  To use them, press F12 to display the
+// browser console, then enter setModeDev() which will make
+// the tools' buttons visible; to hide them again enter
+// setModeUser().
 
-// DevElts is list of ids of elements to be shown or hidden.  To
-// ensure they are hidden by default, they should have class="Hidden"
-// specified in their html element: the css for .Hidden specifies
-// visibility: "hidden".
+// DevElts is list of ids of elements to be shown or hidden.
+// To ensure they are hidden by default, they should have
+// class="Hidden" specified in their html element: the css
+// for .Hidden specifies visibility: "hidden".
 
 const DevElts = [ DevTools_Pane_Button,
                  Arch16button, Arch32button]
 //  ,  "PP_RunGui",  "PP_Test1", "PP_Test2"]
 
 // Define functions that show/hide the DevElts and attach the
-// functions to the window to put them into scope at the top level
+// functions to the window to put them into scope at the top
+// level
 
 function setModeUser () {
     console.log ('setModeUser')
@@ -2894,17 +2912,17 @@ function setModeDev ()  {
 window.setModeDev = setModeDev;
 window.setModeUser = setModeUser;
 
-//function showElement (eltName) {
 function showElement (elt) {
-//    document.getElementById(eltName).style.visibility = "visible";
     elt.style.visibility = "visible";
 }
+//    document.getElementById(eltName).style.visibility =
+//       "visible";
 
-//function hideElement (eltName) {
 function hideElement (elt) {
-    //    document.getElementById(eltName).style.visibility = "hidden";
     elt.style.visibility = "hidden";
 }
+    //    document.getElementById(eltName)
+    //      .style.visibility = "hidden";
 
 function devTools100 () {
     console.log ("DevTools100 clicked");
@@ -2935,18 +2953,20 @@ function devTools106 () {
     action106 ()
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Debug, testing, and experiments
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
-// Each field controls debug/test output for one aspect of the
-// program.  The output will be produced iff the field is set to true.
-// This can be done interactively in the browser console, which is
-// toggled by shift-control-I.  For example, to give more information
-// in the Modules list, enter developer.files = true in the console.
+// Each field controls debug/test output for one aspect of
+// the program.  The output will be produced iff the field is
+// set to true.  This can be done interactively in the
+// browser console, which is toggled by shift-control-I.  For
+// example, to give more information in the Modules list,
+// enter developer.files = true in the console.
 
 let developer = {
-    files : null,   // give full file information in Modules list
+    files : null,
+    // give full file information in Modules list
     assembler : null
 }
 
@@ -2965,7 +2985,8 @@ function tryfoobar () {
 /*
     let midmainright = document.getElementById('MidMainRight');
     console.log ('midmainright = ' + midmainright);
-    usrguidecontent = document.getElementById("WelcomeHtml").innerHTML;
+    usrguidecontent =
+      document.getElementById("WelcomeHtml").innerHTML;
     console.log ('usrguidecontent = ' + usrguidecontent);
  */
     let e = document.getElementById("THISISIT");
@@ -2983,11 +3004,13 @@ function jumpToAnchor (target){
     elt.location.hash=target;
 }
 
-/* onclick="jumpToAnchor('itemAttributes');jumpToAnchor('x')"> */
+/* onclick="jumpToAnchor('itemAttributes');jumpToAnchor('x')">
+ */
 
-// find out how slow it is to refresh a register
-// is it worthwhile avoiding refreshing a register if it will also be highlighted?
-// For n=10000 the time is about 88ms, fine for interactive use
+// find out how slow it is to refresh a register is it
+// worthwhile avoiding refreshing a register if it will also
+// be highlighted?  For n=10000 the time is about 88ms, fine
+// for interactive use
 
 // measure time for n register put operations
 function measureRegPut (n) {
@@ -3001,25 +3024,33 @@ function measureRegPut (n) {
 }
 
 // function springen(anker) { 
-//    let childWindow =  document.getElementById("UserGuideIframeId").contentWindow;
-//     childWindow.scrollTo(0,childWindow.document.getElementById(anker).offsetTop);
+
+//    let childWindow =
+//      document.getElementById("UserGuideIframeId")
+//        .contentWindow;
+//     childWindow.scrollTo(0,childWindow.document
+//        .getElementById(anker).offsetTop);
 // }
 
 // Scroll user guide to an anchor
 function showGuideSection (anchor) {
-    let elt = document.getElementById("UserGuideIframeId").contentWindow;
-    elt.scrollTo(0,elt.document.getElementById(anchor).offsetTop);
+    let elt = document.getElementById("UserGuideIframeId")
+      .contentWindow;
+    elt.scrollTo(0,elt.document.getElementById(anchor)
+                 .offsetTop);
 }
 
 // Scroll user guide to top
 function jumpToGuideTop () {
-    let elt = document.getElementById("UserGuideIframeId").contentWindow;
+    let elt = document.getElementById("UserGuideIframeId")
+      .contentWindow;
     elt.scrollTo(0,0);
 }
 
-// Want to make Editor button 1 go to an anchor in the User Guide
-// Doesn't work yet
-// I put this manually into the user guide: <a href="HREFTESTING">dummy href</a>
+// Want to make Editor button 1 go to an anchor in the User
+// Guide.  Doesn't work yet.  I put this manually into the
+// user guide: <a href="HREFTESTING">dummy href</a>
+
 function editorButton1() {
     com.mode.devlog("Editor button 1 clicked");
     // Try to visit <a  href="file:Readme"> in the user guide
@@ -3028,23 +3059,25 @@ function editorButton1() {
     window.location.hash = "#HREFTESTING";
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Test pane
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 // From emulator.js
 
-// In the mem display, the formatting is ok when the container
-// specifies the style class.  However, when <pre> ... </pre> are
-// added around the text, the font and size are wrong and the
-// specified style is ignored.  Perhaps <pre> has an inappropriate
-// default style that overrides the existing font.  Solution is to use
-// <pre class="HighlightedTextAsHtml"> but don't put it inside a div
-// with HighlightedTExtAsHtml
+// In the mem display, the formatting is ok when the
+// container specifies the style class.  However, when <pre>
+// ... </pre> are added around the text, the font and size
+// are wrong and the specified style is ignored.  Perhaps
+// <pre> has an inappropriate default style that overrides
+// the existing font.  Solution is to use <pre
+// class="HighlightedTextAsHtml"> but don't put it inside a
+// div with HighlightedTExtAsHtml
 
 function testpane1() {
     com.mode.devlog ('testpane 1 clicked')
-    let xs = ["<pre class='HighlightedTextAsHtml'>", 'line 1 text',
+    let xs = ["<pre class='HighlightedTextAsHtml'>",
+              'line 1 text',
 	      "<span class='CUR'>this is line 2 text</span>",
 	      'and finally line 3', '</pre>'];
     com.mode.devlog ('xs = ' + xs);
@@ -3064,9 +3097,9 @@ function testpane3 () {
     com.mode.devlog ('testpane 3 clicked');
 }
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // Initialization
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 function initializeMainEmulator () {
     em.initializeMachineState (gst.es)
@@ -3079,7 +3112,8 @@ function initializeMainEmulator () {
 function initializeGuiLayout (gst) {
     gst.showingUserGuide = true
     initialize_mid_main_resizing (gst)
-    setMidMainLRratio(0.65);  // useful for dev to keep mem display visible
+    setMidMainLRratio(0.65);
+      // useful for dev to keep mem display visible
     gst.toggleGuideSaveRatio = gst.midLRratio
     adjustToMidMainLRratio();
     initializePane (gst);
@@ -3089,37 +3123,35 @@ function initializeGuiElements (gst) {
     hideBreakDialogue ();
     document.getElementById('LP_Body').innerHTML = "";    
     ed.prepareChooseFiles ();  // legacy file handler
-    //    st.env.moduleSet = new smod.ModuleSet ()
     st.env.moduleSet = new st.ModuleSet ()
-    //    let m = st.env.moduleSet.addModule () // initialize with a module
     let m = st.env.moduleSet.addModule ("anonymous", "")
          // initialize with a module    
     m.changeAsmSrc ("; Enter your program here\n")
-//    m.setHtmlDisplay ()
     st.handleSelect (m)
     window.mode = com.mode;
     prepareExampleText (gst)
 }
+//    st.env.moduleSet = new smod.ModuleSet ()
+//    m.setHtmlDisplay ()
+//    let m = st.env.moduleSet.addModule ()
+  // initialize with a module
 
 function initializeTracing (gst) {
-    com.mode.devlog (`Thread ${gst.es.mode} initialization complete`)
+    com.mode.devlog
+      (`Thread ${gst.es.mode} initialization complete`)
 }
 
 function initializeSystem () {
-    //    com.mode.devlog ('Initializing system')
     com.log_emph ('Initializing system')    
     // Create gui state and set global variable
     gst = new GuiState ()
-    //    console.log ("Created gst")
     com.log_emph ("Created gst")    
     setMDhba (gst)
     adjustInitialOptions ()
     initializeGuiElements (gst) // Initialize gui elements
     initializeGuiLayout (gst)   // Initialize gui layout
       refreshOptionsDisplay ();
-//    setArch16()
       findLatestRelease (gst);
-    //    console.log ("System is initialized")
     com.log_emph ("System is initialized")    
 }
 
@@ -3136,8 +3168,7 @@ function setArch (x) {
     const k = x==32 ? 32 : 16 // make sure it's 16 or 32
     const notk = k==32 ? 16 : 32 // the other word size
     const es = gst.es
-      //    console.log (`Setting arch mode to ${k}`)
-    com.log_emph (`Setting arch mode to ${k}`)      
+    com.log_emph (`Setting architecture to Sigma${k}`)      
     es.arch = k==32 ? arch.S32 : arch.S16
     const w = k==32 ? '32' : '16'
     document.documentElement.style.setProperty
@@ -3149,6 +3180,8 @@ function setArch (x) {
     procReset (gst)
 }
 window.setArch = setArch;
+// Make setArch accessible in the devtools console
+
 //    const prop =  `var(--RegValWidth${w})`
 //    console.log (`setArch prop = xx${prop}xx`)
 //      ('--RegValWidth', prop)
@@ -3210,10 +3243,14 @@ function barprint (x) {
 
 const URL_protocol = window.location.protocol
 const URL_host = window.location.host
-// If running on local build machine, use dev; otherwise use version number
-const BUILDVERSION = URL_host === 'localhost:3000' ? 'dev' : ver.s16version
-const EmCorePath = `build/${BUILDVERSION}/Sigma16/emcore.wasm`
-const EmCoreURL = `${URL_protocol}//${URL_host}/${EmCorePath}`
+// If running on local build machine, use dev; otherwise use
+// version number
+const BUILDVERSION =
+  URL_host === 'localhost:3000' ? 'dev' : ver.s16version
+const EmCorePath =
+  `build/${BUILDVERSION}/Sigma16/emcore.wasm`
+const EmCoreURL =
+  `${URL_protocol}//${URL_host}/${EmCorePath}`
 
 function showEmcURL () {
     console.log (`URL_protocol = ${URL_protocol}`)
@@ -3383,70 +3420,79 @@ function showCChex () {
 //-------------------------------------------------------------
 
 // The initializers require the DOM elements to exist and the
-// functions to be defined, so they are performed after all the
-// modules have been loaded.
+// functions to be defined, so they are performed after all
+// the modules have been loaded.
 
 const dialog = document.querySelector('#myDialog');
 const btnClose = document.querySelector('#closeDialog');
 
-// const btnOpen = document.querySelector('#openHelpDialogue');
 const OpenHelpButton =
       document.querySelector('#openHelpDialogue');
 
 
-const HelpOneDialog = document.querySelector('#HelpOneDialog');
-const HelpOneClose = document.querySelector('#HelpOneClose');
+const HelpOneDialog =
+  document.querySelector('#HelpOneDialog');
+const HelpOneClose =
+  document.querySelector('#HelpOneClose');
 
-const HelpWelcomeDialog = document.querySelector('#HelpWelcomeDialog');
-const HelpWelcomeClose = document.querySelector('#HelpWelcomeClose');
-const HelpEditorDialog = document.querySelector('#HelpEditorDialog');
-const HelpEditorClose = document.querySelector('#HelpEditorClose');
+const HelpWelcomeDialog =
+  document.querySelector('#HelpWelcomeDialog');
+const HelpWelcomeClose =
+  document.querySelector('#HelpWelcomeClose');
+const HelpEditorDialog =
+  document.querySelector('#HelpEditorDialog');
+const HelpEditorClose =
+  document.querySelector('#HelpEditorClose');
 
-const HelpAssemblerDialog = document.querySelector('#HelpAssemblerDialog');
-const HelpAssemblerClose = document.querySelector('#HelpAssemblerClose');
-const HelpLinkerDialog = document.querySelector('#HelpLinkerDialog');
-const HelpLinkerClose = document.querySelector('#HelpLinkerClose');
-const HelpProcessorDialog = document.querySelector('#HelpProcessorDialog');
-const HelpProcessorClose = document.querySelector('#HelpProcessorClose');
+const HelpAssemblerDialog =
+  document.querySelector('#HelpAssemblerDialog');
+const HelpAssemblerClose =
+  document.querySelector('#HelpAssemblerClose');
+const HelpLinkerDialog =
+  document.querySelector('#HelpLinkerDialog');
+const HelpLinkerClose =
+  document.querySelector('#HelpLinkerClose');
+const HelpProcessorDialog =
+  document.querySelector('#HelpProcessorDialog');
+const HelpProcessorClose =
+  document.querySelector('#HelpProcessorClose');
 
-const HelpOptionsDialog = document.querySelector('#HelpOptionsDialog');
-const HelpOptionsClose = document.querySelector('#HelpOptionsClose');
+const HelpOptionsDialog =
+  document.querySelector('#HelpOptionsDialog');
+const HelpOptionsClose =
+  document.querySelector('#HelpOptionsClose');
 
 function initialiseHelp () {
-    OpenHelpButton.addEventListener('click', () => {
-        console.log (`Help ${currentPane.description}`);
-        switch (currentPane) {
-        case WelcomePane:
-            HelpWelcomeDialog.showModal();
-            break;
-        case ExamplesPane: ;
-            HelpExamplesDialog.showModal();
-            break;
-        case ModulesPane: ;
-            HelpModulesDialog.showModal();
-            break;
-        case EditorPane :
-            HelpEditorDialog.showModal();
-            break;
-        case AssemblerPane:
-            HelpAssemblerDialog.showModal();
-            break;
-        case LinkerPane:
-            HelpLinkerDialog.showModal();
-            break;
-        case ProcessorPane:
-            HelpProcessorDialog.showModal();
-            break;
-        case OptionsPane:
-            HelpOptionsDialog.showModal();
-            break;
-        }
-        console.log ("help shown")
-      });
-    //      btnOpen.addEventListener('click', () => {
-//        dialog.showModal(); // default help page
-          // dialog.show(); // doesn't work, why???
-
+  OpenHelpButton.addEventListener('click', () => {
+      console.log (`Help ${currentPane.description}`);
+      switch (currentPane) {
+      case WelcomePane:
+        HelpWelcomeDialog.showModal();
+        break;
+      case ExamplesPane: ;
+        HelpExamplesDialog.showModal();
+        break;
+      case ModulesPane: ;
+        HelpModulesDialog.showModal();
+        break;
+      case EditorPane :
+        HelpEditorDialog.showModal();
+        break;
+      case AssemblerPane:
+        HelpAssemblerDialog.showModal();
+        break;
+      case LinkerPane:
+        HelpLinkerDialog.showModal();
+        break;
+      case ProcessorPane:
+        HelpProcessorDialog.showModal();
+        break;
+      case OptionsPane:
+        HelpOptionsDialog.showModal();
+        break;
+      }
+      console.log ("help shown")
+        });
     
       btnClose.addEventListener('click', () => {
           dialog.close();
@@ -3482,28 +3528,27 @@ function initialiseHelp () {
       HelpOptionsClose.addEventListener('click', () => {
           HelpOptionsDialog.close();
       });
-    
 }
 
 window.onload = function () {
     com.mode.trace = false
-    com.log_emph ("starting initializers")
+    com.log_emph ("Starting initializers")
     initializeSystem ()
     setModeUser ()
     setMDhba (gst)
-    initializeProcessor () //  ??? leaves regs undefined...ok
+    initializeProcessor ()
     com.clearObjectCode () // clear linker page text
     enableKeyboardShortcuts ()
     initializeButtons (gst);
     initialiseHelp ();
     setArch(16);
-    com.log_emph ('system is now running')
+    com.log_emph ('System is running')
 }
 
 // Deprecated
 
 //     setArch(16) can't do it yet
-
+ //  ??? leaves regs undefined...ok
 // on loaded...
 //    document.getElementById('LP_Body').innerHTML =
 //        "<p>Linker text</p>";
@@ -3545,7 +3590,6 @@ function setArch32 () {
 window.setArch32 = setArch32;
 */
 
-
 //        this.processorIsUninitialized = true
 
 // function enterProcessor () {
@@ -3559,3 +3603,52 @@ window.setArch32 = setArch32;
 
   // import * as emwt  from '../base/emwt.mjs';
   // make syntax errors visible
+
+    //    com.mode.devlog ('Initializing system')
+    //    console.log ("Created gst")
+//    setArch16()
+    //    console.log ("System is initialized")
+
+    //      btnOpen.addEventListener('click', () => {
+//        dialog.showModal(); // default help page
+          // dialog.show(); // doesn't work, why???
+
+// const btnOpen = document.querySelector('#openHelpDialogue');
+
+      //    console.log (`Setting arch mode to ${k}`)
+  
+//function hideElement (eltName) {
+//function showElement (eltName) {
+
+    // Help boxes
+/*
+    prepareButton ('WP_Help',              () => toggleWelcomeHelp ());
+    prepareButton ('WelcomeHelpClose',     () => toggleWelcomeHelp ());
+    prepareButton ('EXP_Help',             () => toggleExamplesHelp ());
+    prepareButton ('ExamplesHelpClose',    () => toggleExamplesHelp ());
+    prepareButton ('MP_Help',              () => toggleModulesHelp ());
+
+    prepareButton ('ModulesHelpClose',     () => toggleModulesHelp ());
+    prepareButton ('EDP_Help',             () => toggleEditorHelp ());
+    prepareButton ('EditorHelpClose',      () => toggleEditorHelp ());
+    prepareButton ('AP_Help',              () => toggleAssemblerHelp ());
+    prepareButton ('AssemblerHelpClose',   () => toggleAssemblerHelp ());
+    prepareButton ('LP_Help',              () => toggleLinkerHelp ());
+    prepareButton ('LinkerHelpClose',      () => toggleLinkerHelp ());
+    prepareButton ('PP_Help',              () => toggleProcHelp ())
+    prepareButton ('ProcHelpClose',        () => toggleProcHelp ())
+*/    
+    // Welcome pane (WP)
+    // prepareButton ('WP_Guide_Top', jumpToGuideTop);
+
+    //    prepareButton ("HelpButton", () => showHelp (gst));
+//    prepareButton ("HelpButton", () => {
+//        console.log ("Help clicked");
+//        document.getElementById('FOOBARBAZ').show();
+//      })
+
+//    prepareButton ("CloseAssemblerHelp", () => {
+//        console.log ("CloseAssemblerHelp clicked");
+//        document.getElementById("AssemblerHelpNew").close();
+//      })
+  
