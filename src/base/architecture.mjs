@@ -538,7 +538,7 @@ statementSpec.set("timeroff",
 
 // Sigma32 instructions
 
-statementSpec.set("ladd",  // ladd Rd,Re,Rf
+statementSpec.set("xadd",  // xadd Rd,Re,Rf
    {ifmt:iEXP, afmt:aRRR,    opcode:[14,22]})
 statementSpec.set("lsub",  // lsub Rd,Re,Rf
    {ifmt:iEXP, afmt:aRRR,    opcode:[14,23]})

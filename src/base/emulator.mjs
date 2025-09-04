@@ -313,6 +313,12 @@ export class genregister {
         let x = ab.readReg16 (this.es, this.regStIndex)
         return x
     }
+    // 32 new
+    get32 () { // read 32 bit register
+        this.es.copyable.regFetched.push (this.regNumber)
+        let x = ab.readReg32 (this.es, this.regStIndex)
+        return x
+    }
     display (xs) {
 //        let i = ab.EmRegBlockOffset + this.regStIndex
         //        this.es.shm[i] = xs
@@ -324,29 +330,55 @@ export class genregister {
         ab.writeReg16 (this.es, this.regNumber, x)
         if (this.regIdx < 16) { // register file
             instrEffect.push (["R", this.regNumber, x, this.regName]);
-        }
+        }}
+    put32 (x) {
+        console.log (`register put32 ${this.regName} ${x}`)
+        this.es.copyable.regStored.push (this.regNumber)
+        ab.writeReg32 (this.es, this.regNumber, x)
+        if (this.regIdx < 16) { // register file
+            instrEffect.push
+            (["R", this.regNumber, x, this.regName]);
+        }}
 //        let i = ab.EmRegBlockOffset + this.regStIndex
 //        this.es.shm[i] = x
 //        com.mode.devlog (`--- reg put ${this.regName} :=`
 //                     + ` ${arith.wordToHex4(x)} = ${x} (idx=${i})`)
-    }
+
     highlight (key) {
-//        com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
+//    com.mode.devlog (`reg-highlight ${this.regName} ${key}`)
         if (this.es.thread_host === com.ES_gui_thread) {
-//            let i = ab.EmRegBlockOffset + this.regStIndex
-//            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-            let x = ab.readReg16 (this.es, this.regStIndex)
-            let xs = com.highlightText (this.show(x), key)
+//           let i = ab.EmRegBlockOffset + this.regStIndex
+//           let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
+//           let x = ab.readReg16 (this.es, this.regStIndex)
+//           let xs = com.highlightText (this.show(x), key)
+            let xs = com.highlightText (this.showVal(), key)
             this.elt.innerHTML = xs
         } else {
         }
     }
-    refresh () {
+// new 32
+    showVal () {
+        let xs;
+        if (this.es.arch == arch.S16) {
+            const x = ab.readReg16 (this.es, this.regStIndex)
+            xs = arith.wordToHex4 (x)
+            console.log (`shval ${this.regName} x=${x}`)
+            console.log (`shval ${this.regName} xs=${xs}`)
+        } else { // S32
+            const x = ab.readReg32 (this.es, this.regStIndex)
+            xs = arith.wordToHex8 (x)  // TEMP!!!
+            console.log (`shval ${this.regName} x=${x}`)
+            console.log (`shval ${this.regName} xs=${xs}`)
+        }
+        return xs
+    }
+    refresh () {  // 32 changed
         if (this.es.thread_host === com.ES_gui_thread) {
 //            let i = ab.EmRegBlockOffset + this.regStIndex
 //            let x = this.regStIndex === 0 ? 0 : this.es.shm[i]
-            let x = ab.readReg16 (this.es, this.regStIndex)
-            let xs = this.show (x)
+//            let x = ab.readReg16 (this.es, this.regStIndex)
+            //            let xs = this.show (x)
+            let xs = this.showVal ()
             this.elt.innerHTML = xs
         }
     }
@@ -1243,29 +1275,35 @@ const dispatch_RX =
       rx (rx_jal),       // 6
       rx (rx_jumpz),     // 7
       rx (rx_jumpnz),    // 8
-      rx (rx_testset),   // 9   x
-      rx (rx_leal),      // a   x
-      rx (rx_loadl),     // b   x
-      rx (rx_storel),    // c   x
-      rx (rx_nop) ];     // d   x
+      rx (rx_testset),   // 9
+      rx (rx_nop),       // A
+      rx (rx_nop),       // B
+      rx (rx_nop),       // C
+      rx (rx_xlea),      // D  Sigma32
+      rx (rx_xload),     // E  Sigma32
+      rx (rx_xstore)     // F  Sigma32
+    ]
+
 
 function rx_lea (es) {
     es.regfile[es.ir_d].put(es.ea);
 }
 
-function rx_lead (es) {
-    com.mode.devlog('rx_lead');
+function rx_xlea (es) {
+    com.mode.devlog('rx_xlea');
     es.regfile[es.ir_d].put(es.ea);
 }
 
 function rx_load (es) {
-    com.mode.devlog('rx_load');
-    es.regfile[es.ir_d].put (arith.limit16 (memFetchData(es,es.ea)))
+    com.mode.devlog('rx_xload');
+    es.regfile[es.ir_d].put
+      (arith.limit16 (memFetchData(es,es.ea)))
 }
 
-function rx_loadd (es) {
+function rx_xload (es) {
     com.mode.devlog('rx_loadd');
-    const a = es.ea & 0xfffffffe // ignore lsb of 32-bit address
+    const a = es.ea & 0xfffffffe
+      // ignore lsb of 32-bit address
     const x = memFetchData (es, a)
     const y = memFetchData (es, limit32 (a+1))
     const z = x << 16 | y
@@ -1277,6 +1315,24 @@ function rx_store (es) {
     const x = es.regfile[es.ir_d].get()
     memStore (es, es.ea, arith.limit16 (x))
 }
+
+// handle alignment
+function rx_xstore (es) {
+    com.mode.devlog('rx_xstore');
+    const x = es.regfile[es.ir_d].get32();
+    const p = x >> 16;  // high order 16 bits
+    const q = x && 0x0000ffff;  // low order 16 bits
+    memStore (es, es.ea, p);
+    memStore (es, es.ea+1, q);
+}
+
+
+/* ?????
+function rx_storel (es) {
+    console.log ("storel is not implemented")
+}
+*/
+
 
 // The register being stored contains 32 bits, which must be split
 // into two 16-bit words and stored separately.  This ensures that the
@@ -1347,9 +1403,6 @@ function rx_leal (es) {
 }
 function rx_loadl (es) {
     console.log ("loadl is not implemented")
-}
-function rx_storel (es) {
-    console.log ("storel is not implemented")
 }
 
 function rx_testset (es) {

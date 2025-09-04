@@ -1,45 +1,45 @@
    lea   R2,1[R0]
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
 
-   ladd  R1,R2,R3
-   ladd  R5,R1,R2
+   xadd  R1,R2,R3
+   xadd  R5,R1,R2
 
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
-   data  $e216   ; ladd R2,R2,R2
+   data  $e216   ; xadd R2,R2,R2
    data  $2200
 
    trap  R0,R0,R0

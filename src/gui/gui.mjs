@@ -972,6 +972,10 @@ function initializeButtons () {
                    () => showGuideSection('sec-about-sigma16'));  
     prepareButton ('Toggle_UserGuide', toggleUserGuide)
 
+    prepareButton ('HelpAsmGuide',
+                   () => { showGuideSection ('sec-assembler');
+                           HelpAssemblerDialog.close (); })
+                   
     // User guide resize (UGR) buttons.  UGR Distance (px) to move
     // boundary between gui and userguide on resize
 

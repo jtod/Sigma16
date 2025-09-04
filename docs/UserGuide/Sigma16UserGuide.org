@@ -5760,14 +5760,14 @@ Assembly directives
 |                     | F,C | F..C | nop                |
 |                     |     | .... |                    |
 +---------------------+-----+------+--------------------+
-| xxea Rd,disp[Ra]    | F,D | FdaD | Sigma32            |
+| xlea Rd,disp[Ra]    | F,D | FdaD | Sigma32            |
 | (Sigma32)           |     | disp |                    |
 +---------------------+-----+------+--------------------+
-| xxoad Rd,disp[Ra]   | F,E | FdaE | Sigma32            |
+| xload Rd,disp[Ra]   | F,E | FdaE | Sigma32            |
 | (Sigma32)           |     | disp |                    |
 +---------------------+-----+------+--------------------+
-| xxtore Rd,disp[Ra]  | F,F | F..F | nop / Sigma32      |
-|                     |     | .... |                    |
+| xstore Rd,disp[Ra]  | F,F | FdaF | Sigma32            |
+|                     |     | disp |                    |
 +---------------------+-----+------+--------------------+
 #+BEGIN_EXPORT html
 </div>
@@ -7541,6 +7541,15 @@ Click Refresh, then Enable, then Close.  Then click Run, and
 the emulator will run at full speed until the pc reaches the
 specified value; then it will stop so you can examine the
 state of the machine.
+
+* Graphical User Interface
+
+** Assembler
+:PROPERTIES:
+:CUSTOM_ID: sec-assembler
+:END:
+
+How to use the assembler page.
 
 * Installation
 

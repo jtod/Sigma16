@@ -93,8 +93,53 @@ launched by visiting this file in a browser.
     </dialog>
 
     <dialog id="HelpAssemblerDialog">
-      <p>This is a help assembler  three.
-      </p>
+      <button id="HelpAsmGuide">Assembler documentation
+      </button>
+      <p> The assembler translates a /source program/ from
+      assembly language to an /object program/ in machine
+      language. </p>
+
+      <p> First put an assembly language program into the
+      editor (loading a file puts it into the editor
+      automatically, or you can click /editor/ and enter or
+      change the program manually.  Then click the
+      Assembler tab and click /assemble/. </p>
+
+      <ul>
+        <li> *assemble* translates the source code from
+          assembly language to machine language.  The source
+          code is obtained from the editor page.  When you
+          click assemble, the listing is displayed
+          automatically. </li>
+
+        <li> *show source* displays the assembly language
+          source code </li>
+
+        <li> *show object* displays the object code produced
+          by the assembler.  This contains =data= statements
+          giving the machine language code, as well as other
+          statements that give further information required
+          by the linker (including =org=, =relocat=,
+          =import=) </li>
+
+        <li> *show listing* displays the assembly listing.
+          Each line of the listing contains a line of source
+          code, as well as the machine language object code
+          and the address where the object code will be
+          placed. </li>
+
+        <li> *show metadata* displays some additional
+          information produced by the assembler.  The
+          metadata is used by the emulator to help show how
+          the program is executed.  For example, the emulator
+          highlights the line of source code corresponding to
+          an instruction being executed; the metadata helps
+          the emulator to figure out which line of source
+          corresponds to an instruction address.  The
+          metadata is not part of the program, and does not
+          affect the execution of the program.  Normally you
+          won't need to look at the metadata. </li>
+
       <button id="HelpAssemblerClose">Close</button>
     </dialog>
 
@@ -105,9 +150,30 @@ launched by visiting this file in a browser.
     </dialog>
 
     <dialog id="HelpProcessorDialog">
-      <p>This is a help processor three.
-      </p>
       <button id="HelpProcessorClose">Close</button>
+      <h3>Processor</h3>
+      <p> The processor page displays the state of the machine:
+      the registers and memory.  The top left section shows
+      the control registers, the register file, and the
+      memory.  There are two views into the memory, which is
+      useful for decoding linked data structures.  The top
+      right contains a small text box for typeing input, and
+      a log of all the input/output.  The bottom section
+      shows the assembly language code. </p>
+      <ul>
+        <li> Help (key h) Show or hide the help panel </li>
+        <li> Boot (key b) If the assembler or linker has
+          produced an executable machine language program,
+          load that into the memory and set the Processor
+          Status to Ready.  If there isn't an executable
+          program, boot does nothing. </li>
+        <li> Step (key s) Execute one instruction. </li>
+        <li> Run (key r) Run the program until a stopping
+          condition (halt, pause, breakpoint) </li>
+        <li> Pause (key p) Stop execution of the program and
+          display the registers and memory; leave the machine
+          in the Ready state.  Execution can be resumed by
+          either Step or Run. </li>
     </dialog>
 
     <dialog id="HelpOptionsDialog">
