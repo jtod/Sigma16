@@ -54,47 +54,68 @@ launched by visiting this file in a browser.
       href="src/graphics/favicon.ico">
   </head>
   <body>
-    <!-- dialogue test -->
-    <dialog id="myDialog">
-      <p>This is a dialog.  Here is some helpful information.
-        Here is some helpful information.  Here is some
-        helpful information.  Here is some helpful
-        information.  Here is some helpful information.
-      </p>
-      <ul>
-        <li> An idea </li>
-        <li> Another idea </li>
-        <li> More ideas </li>
-        <button id="closeDialog">Close</button>
-    </dialog>
+
+    <!-- Help popup dialogues -->
 
     <dialog id="HelpWelcomeDialog">
-      <p>This is a help  welcome one.
+      <h3>Getting started</h3>
+      <p>
+        <button id="HelpWelcomeClose">Close</button>
+        <button id="HelpWelcomeGuide">
+          Tutorials in User Guide
+        </button>
       </p>
-      <button id="HelpWelcomeClose">Close</button>
-
+      <p> General description of Sigma16, and tutorials that
+      introduce the system.
+      </p>
     </dialog>
+
     <dialog id="HelpExamplesDialog">
-      <p>This examples is a help one.
+      <p>
+        <button class='HelpButton'
+                id="HelpExamplesClose">Close</button>
+        <button class='HelpButton' id="HelpExamplesGuide">
+          Examples in User Guide
+        </button>
       </p>
-      <button id="HelpExamplesClose">Close</button>
-
+      <p> About the collection of examples
+      </p>
     </dialog>
+
     <dialog id="HelpModulesDialog">
-      <p>This is a help modules one.
+      <p>
+        <button class='HelpButton'
+                id="HelpModulesClose">Close</button>
+        <button class='HelpButton' id="HelpModulesGuide">
+          Modules in User Guide
+        </button>
       </p>
-      <button id="HelpModulesClose">Close</button>
+      <p> About modules
+      </p>
     </dialog>
 
     <dialog id="HelpEditorDialog">
-      <p>This is a help for the editor two.
+      <p>
+        <button class='HelpButton'
+                id="HelpEditorClose">Close</button>
+        <button class='HelpButton' id="HelpEditorGuide">
+          Editor section in User Guide
+        </button>
       </p>
-      <button id="HelpEditorClose">Close</button>
+      <p> About the editor
+      </p>
     </dialog>
 
-    <dialog id="HelpAssemblerDialog">
-      <button id="HelpAsmGuide">Assembler documentation
-      </button>
+    <dialog id="HelpAsmDialog">
+      <h3>Assembler</h3>
+      <p>
+        <button class='HelpButton'
+                id="HelpAsmClose">Close</button>
+        <button class='HelpButton' id="HelpAsmGuide">
+          Assembler section in User Guide
+        </button>
+      </p>
+
       <p> The assembler translates a /source program/ from
       assembly language to an /object program/ in machine
       language. </p>
@@ -139,19 +160,29 @@ launched by visiting this file in a browser.
           metadata is not part of the program, and does not
           affect the execution of the program.  Normally you
           won't need to look at the metadata. </li>
-
-      <button id="HelpAssemblerClose">Close</button>
     </dialog>
 
     <dialog id="HelpLinkerDialog">
-      <p>This is a help linker three.
+  
+      <p>
+        <button class='HelpButton'
+                id="HelpLinkerClose">Close</button>
+        <button class='HelpButton' id="HelpLinkerGuide">
+          Linker section in User Guide
+        </button>
       </p>
-      <button id="HelpLinkerClose">Close</button>
     </dialog>
 
     <dialog id="HelpProcessorDialog">
-      <button id="HelpProcessorClose">Close</button>
-      <h3>Processor</h3>
+      <h3> Processor </h3>
+      <p>
+        <button class='HelpButton'
+                id="HelpProcessorClose">Close</button>
+        <button class='HelpButton' id="HelpProcessorGuide">
+          Processor section in User Guide
+        </button>
+      </p>
+      
       <p> The processor page displays the state of the machine:
       the registers and memory.  The top left section shows
       the control registers, the register file, and the
@@ -176,40 +207,17 @@ launched by visiting this file in a browser.
           either Step or Run. </li>
     </dialog>
 
-    <dialog id="HelpOptionsDialog">
-      <p>This is a help options  three.
+    <dialog id="HelpSettingsDialog">
+      <p>
+        <button class='HelpButton'
+                id="HelpSettingsClose">Close</button>
+        <button class='HelpButton' id="HelpSettingsGuide">
+          Settings section in User Guide
+        </button>
+      <p> About the options
       </p>
-      <button id="HelpOptionsClose">Close</button>
     </dialog>
 
-    <dialog id="myDialog">
-      <p>This is a dialog.  Here is some helpful information.
-        Here is some helpful information.  Here is some
-        helpful information.  Here is some helpful
-        information.  Here is some helpful information.
-      </p>
-      <ul>
-        <li> An idea </li>
-        <li> Another idea </li>
-        <li> More ideas </li>
-        <button id="closeDialog">Close</button>
-    </dialog>
-    
-      <dialogue id='FOOBARBAZ'>
-        <p>
-        This is asdfasdf some useful help about the assembler.
-        This is some useful help about the assembler.
-        This is some useful help about the assembler.
-        This is some useful help about the assembler.
-        This is some useful help about the assembler.
-        <ul>
-          <li> Foo. This is a foo. </li>
-          <li> Bar. This is where the foo goes for a
-            drink.</li>
-        </ul>
-        <button id="CloseAssemblerHelp" type="button">
-          Close </button>
-      </dialogue>
 
     <div class="FullFrame">
 
@@ -299,9 +307,15 @@ launched by visiting this file in a browser.
       </div>
 
 -->            
-      <div class="TopSection">
-        <button type="button" id="openHelpDialogue">Help
-        </button>        
+            <div class="TopSection">
+
+<!--              
+              <button class="TopHelpButton"
+                      type="button" id="openHelpDialogue">
+                Help
+              </button>
+              -->
+              
 	<button class="PaneButton" id="Welcome_Pane_Button">
 	  Welcome </button>
 
@@ -311,7 +325,7 @@ launched by visiting this file in a browser.
 	<button class="PaneButton" id="Assembler_Pane_Button"> Assembler </button>
 	<button class="PaneButton" id="Linker_Pane_Button"> Linker </button>
 	<button class="PaneButton" id="Processor_Pane_Button"> Processor </button>
-	<button class="PaneButton" id="Options_Pane_Button"> Options </button>
+	<button class="PaneButton" id="Settings_Pane_Button"> Settings </button>
 	<button class="PaneButton" id="About_Button">
 	  About </button>
 	<button class="PaneButton" id="Toggle_UserGuide"> Hide User Guide </button>
@@ -341,7 +355,8 @@ launched by visiting this file in a browser.
 <!--
 		<button id="WP_Guide_Top"> Top </button>
 -->
-<!--		<button id="WP_Help"> Help </button> -->
+		<button class="HelpButton"
+                        id="WP_Help"> Help </button>
 		<button id="WP_TOC"> Contents </button>
 		<button id="WP_Tutorials"> Tutorials </button>
 		<button id="WP_Architecture"> Architecture </button>
@@ -363,8 +378,10 @@ launched by visiting this file in a browser.
 
 	    <div class="Pane" id="ExamplesPane">
 	      <div class="PaneButtons">
-<!--		<button id="EXP_Help"> Help </button> -->
-		<button id="EXP_Examples_Home"> Examples </button>
+	        <button class="HelpButton"
+                        id="EXP_Help"> Help </button>
+		<button id="EXP_Examples_Home"> Examples
+                </button>
 		<button id="EXP_Back"> Back </button>
 	      </div>
 	      <div class="PaneBody" id="ExamplesPane">
@@ -377,7 +394,8 @@ launched by visiting this file in a browser.
 
 	    <div class="Pane" id="ModulesPane">
 	      <div class="PaneButtons">
-<!--		<button id="MP_Help"> Help </button> -->
+	        <button class="HelpButton"
+                        id="MP_Help"> Help </button>
 		<button id="MP_OpenDirectory"> Open directory </button>
 <!--		<button id="MP_Test1"> Test 1 </button>
 		<button id="MP_Test2"> Test 2 </button>
@@ -394,7 +412,8 @@ launched by visiting this file in a browser.
 	    
 	    <div class="Pane" id="EditorPane">
 	      <div class="PaneButtons">
-<!--		<button id="EDP_Help"> Help </button> -->
+	        <button class="HelpButton"
+                        id="EDP_Help"> Help </button>
 		<button id="EDP_New"> New </button>
 		<button id="EDP_OpenFile"> Open file </button>
 		<button id="EDP_RefreshFile"> Refresh file </button>
@@ -403,9 +422,9 @@ launched by visiting this file in a browser.
 <!--		<button id="EDP_Clear"> Clear </button> -->
 <!--		<button id="EDP_Revert"> Revert </button> -->
 		<button id="EDP_Hello_world"> Hello, world! </button>
-                <!-- version 3.5.0 and before used <a download...> to
-                read file; this is replaced by File System Access API
-                in version 3.6.3 -->
+  <!-- version 3.5.0 and before used <a download...> to
+      read file; this is replaced by File System Access API
+      in version 3.6.3 -->
                   <button>Legacy...</button>
 		<input type="file" multiple id="FileInput"
                        accept=".asm.txt, .obj.txt, .md.txt, .lnk.txt"
@@ -425,7 +444,8 @@ launched by visiting this file in a browser.
 
 	    <div class="Pane" id="AssemblerPane">
 	      <div class="PaneButtons">
-<!--		<button id="AP_Help"> Help </button> -->
+	        <button class="HelpButton"
+                        id="AP_Help"> Help </button>
 		<button id="AP_Assemble"> Assemble </button>
 		<button id="AP_Show_Source"> Show source </button>
 		<button id="AP_Show_Object"> Show object </button>
@@ -439,6 +459,8 @@ launched by visiting this file in a browser.
 
 	    <div class="Pane" id="LinkerPane">
 	      <div class="PaneButtons">
+	        <button class="HelpButton"
+                        id="LP_Help"> Help </button>
 		<button id="LP_Link"> Link </button>
                 <button id="LP_Show_Executable">
                   Show executable </button>
@@ -448,18 +470,11 @@ launched by visiting this file in a browser.
 	      <div class="PaneBody" id="LP_Body">
 	      </div>
 	    </div>
-<!--
-        <div class="HighlightedTextAsHtml"
-                id="LinkerBody">
-        </div>
-    <div id="LinkerText"></div>
-    <div class="PaneBody" id="LinkerPaneBody">
-     <div class="HighlightedTextAsHtml" id="LinkerBody">
--->
 	    
 	    <div class="Pane" id="ProcessorPane">
 	      <div class="PaneButtons">
-<!--		<button id="PP_Help"> <u>H</u>elp </button> -->
+		<button class="HelpButton"
+                        id="PP_Help"> <u>H</u>elp </button>
 		<button id="PP_Reset"> Rese<u>t</u> </button>
 		<button id="PP_Boot"> <u>B</u>oot </button>
 		<button id="PP_Step"> <u>S</u>tep </button>
@@ -643,9 +658,13 @@ launched by visiting this file in a browser.
 	      </div>
 	    </div>
 
-	    <div class="Pane" id="OptionsPane">
+	    <div class="Pane" id="SettingsPane">
+              <div class="PaneButtons">
+		<button class="HelpButton"
+                        id="OPT_Help"> <u>H</u>elp </button>
+              </div>
               <div class="HighlightedTextAsHtml">
-                <h3> Options </h3>
+                <h3> Settings </h3>
                 <h3> Version </h3>
                 <ul>
                   <li> This version:
@@ -866,3 +885,58 @@ launched by visiting this file in a browser.
   
 <!--      <button id="LP_Show_Object"> Show --
   --           object </button> -->
+
+  <!--
+    <dialog id="myDialog">
+      <p>This is a dialog.  Here is some helpful information.
+        Here is some helpful information.  Here is some
+        helpful information.  Here is some helpful
+        information.  Here is some helpful information.
+      </p>
+      <ul>
+        <li> An idea </li>
+        <li> Another idea </li>
+        <li> More ideas </li>
+        <button id="closeDialog">Close</button>
+    </dialog>
+    
+      <dialogue id='FOOBARBAZ'>
+        <p>
+        This is asdfasdf some useful help about the assembler.
+        This is some useful help about the assembler.
+        This is some useful help about the assembler.
+        This is some useful help about the assembler.
+        This is some useful help about the assembler.
+        <ul>
+          <li> Foo. This is a foo. </li>
+          <li> Bar. This is where the foo goes for a
+            drink.</li>
+        </ul>
+        <button id="CloseAssemblerHelp" type="button">
+          Close </button>
+      </dialogue>
+
+    <dialog id="myDialog">
+      <p>This is a dialog.  Here is some helpful information.
+        Here is some helpful information.  Here is some
+        helpful information.  Here is some helpful
+        information.  Here is some helpful information.
+      </p>
+      <ul>
+        <li> An idea </li>
+        <li> Another idea </li>
+        <li> More ideas </li>
+        <button id="closeDialog">Close</button>
+    </dialog>
+
+
+      -->
+      
+<!-- linker
+        <div class="HighlightedTextAsHtml"
+                id="LinkerBody">
+        </div>
+    <div id="LinkerText"></div>
+    <div class="PaneBody" id="LinkerPaneBody">
+     <div class="HighlightedTextAsHtml" id="LinkerBody">
+-->

@@ -59,6 +59,23 @@ window.exposeConsole = ct.exposeConsole
 //Constant parameters
 //-------------------------------------------------------------------------
 
+const HelpWelcomeDialog =
+      document.getElementById('HelpWelcomeDialog');
+const HelpExamplesDialog =
+      document.getElementById('HelpExamplesDialog');
+const HelpModulesDialog =
+      document.getElementById('HelpModulesDialog');
+const HelpEditorDialog =
+      document.getElementById('HelpEditorDialog');
+const HelpAsmDialog =
+      document.getElementById('HelpAsmDialog');
+const HelpLinkerDialog =
+      document.getElementById('HelpLinkerDialog');
+const HelpProcessorDialog =
+      document.getElementById('HelpProcessorDialog');
+const HelpSettingsDialog =
+      document.getElementById('HelpSettingsDialog');
+
 // Window layout
 const InitMidLRratio = 0.6  // initial width ratio midMainLeft/midMainRight
 const UGRSMALL = 1  // small number of pixels to move for guide resizing
@@ -66,7 +83,9 @@ const UGRLARGE = 20 // large number of pixels to move for guide resizing
 
 // Colors
 const DefaultPaneButtonBackground = "#f8f8f8"
-const HighlightedPaneButtonBackground = "#e0fde0"
+const HighlightedPaneButtonBackground = "#85ff337f"
+/* const HighlightedPaneButtonBackground = "#b0ddb0" */
+/* const HighlightedPaneButtonBackground = "#e0fde0" */
 
 // Initial options
 const InitialMainSliceSize = 500 // user can override on options page
@@ -94,7 +113,7 @@ const InitialMemorySize = 65536
 // the processor pane; this gives the user a chance to change the
 // settings in the options page.
 
-// The user can examine and change settings in the Options page.  The
+// The user can examine and change settings in the Settings page.  The
 // defaults settings are not fixed; they are calculated based on the
 // platform's capabilities in order to give a good environment.  This
 // means users don't need to understand the internal workings of the
@@ -115,7 +134,7 @@ const InitialMemorySize = 65536
 //    1.b initializeSystem calls functions that set up the gui layout
 //        and the event listeners.
 
-//    1.c initialize system calls refreshOptionsDisplay, which queries
+//    1.c initialize system calls refreshSettingsDisplay, which queries
 //        the platform and sets the initial options according to the
 //        platform's capabilities.  The user can change the settings,
 //        as long as they are compatible with the capabilities.
@@ -124,7 +143,7 @@ const InitialMemorySize = 65536
 //        http request to query the SigServer (running on heroku) for
 //        the number of the latest release.  Later, when (and if) the
 //        response to this query is received, the display on the
-//        Options page is updated to show the latest release number.
+//        Settings page is updated to show the latest release number.
 
 // 2. When the user selects the Processor tab, the main thread calls
 //    enterProcessor.  The first time this is invoked it calls
@@ -197,7 +216,7 @@ let gst = null
 class GuiState {
     constructor () {
         // Configuration parameters
-        this.options = new Options ()
+        this.options = new Settings ()
         this.guiMode = 'User'
         
         // Keyboard
@@ -258,7 +277,7 @@ class GuiState {
 // Configuration options
 //-----------------------------------------------------------------------------
 
-class Options {
+class Settings {
     constructor () {
         com.mode.devlog ('Creating options record')
 
@@ -288,8 +307,8 @@ class Options {
     }
 }
 
-function adjustInitialOptions () {
-    com.mode.devlog ('new Options, adjusting initial settings')
+function adjustInitialSettings () {
+    com.mode.devlog ('new Settings, adjusting initial settings')
     const opt = gst.options
     if (isSetBufferSharedOk (false)) {
         setArrayBufferShared (false)
@@ -375,7 +394,7 @@ function setArrayBufferLocal (warn) {
         gst.options.bufferType = ArrayBufferLocal
         document.getElementById('ArrayBufferLocal').checked = true
         setThreadMain (gst)
-        refreshOptionsDisplay ()
+        refreshSettingsDisplay ()
     }}
 
 function setArrayBufferShared (warn) {
@@ -384,7 +403,7 @@ function setArrayBufferShared (warn) {
     if (isSetBufferSharedOk (warn)) {
         opt.bufferType = ArrayBufferShared
         document.getElementById('ArrayBufferShared').checked = true
-        refreshOptionsDisplay ()
+        refreshSettingsDisplay ()
     }
 }
 //    com.mode.devlog ('setArrayBufferShared - revert to wasm mem')
@@ -401,7 +420,7 @@ com.mode.devlog ('setArrayBufferWebAssembly')
     if (isSetBufferSharedOk (warn)) {
         opt.bufferType = ArrayBufferWebAssembly
         document.getElementById('ArrayBufferShared').checked = true
-        refreshOptionsDisplay ()
+        refreshSettingsDisplay ()
     }
 */
 
@@ -410,7 +429,7 @@ function setThreadMain (warn) {
     const opt = gst.options
     opt.currentThreadSelection = com.ES_gui_thread
     document.getElementById('RTmain').checked = true
-    refreshOptionsDisplay ()
+    refreshSettingsDisplay ()
 }
 
 function setThreadWorker (warn) {
@@ -419,7 +438,7 @@ function setThreadWorker (warn) {
     if (isSetThreadWorkerOk (warn)) {
         opt.currentThreadSelection = com.ES_worker_thread
         document.getElementById('RTworker').checked = true
-        refreshOptionsDisplay ()
+        refreshSettingsDisplay ()
     } else {
         setThreadMain (warn)
     }
@@ -456,7 +475,7 @@ function updateMemSize () {
         let x = parseInt (xs)
         if (!isNaN (x)) {
             opt.memorySize = x
-            refreshOptionsDisplay ()
+            refreshSettingsDisplay ()
         }
     }
 }
@@ -481,7 +500,7 @@ function updateMainSliceSize () {
     if (!isNaN(x)) {
         document.getElementById("MainSliceSize").innerHTML = x
         gst.options.mainSliceSize = x
-        refreshOptionsDisplay ()
+        refreshSettingsDisplay ()
     }
 }
 
@@ -493,14 +512,14 @@ function updateWorkerRefreshInterval () {
     if (!isNaN(x)) {
         document.getElementById("WorkerRefreshInterval").innerHTML = x
         gst.options.workerRefreshInterval = x
-        refreshOptionsDisplay ()
+        refreshSettingsDisplay ()
     }
 }
 
 // Display current options in gui
 
-function refreshOptionsDisplay () {
-//    com.mode.devlog ('displayOptions')
+function refreshSettingsDisplay () {
+//    com.mode.devlog ('displaySettings')
     const opt = gst.options
 //    com.mode.devlog (`LR = ${opt.latestRelease}`)
     setHtml ('ThisVersion', opt.thisVersion)
@@ -529,7 +548,7 @@ const ModeMemDisplayHBA = Symbol ("MD HBA")          // 0 to highest booted addr
 const ModeMemDisplaySliding = Symbol ("MD sliding")  // sliding window
 const ModeMemDisplayFull = Symbol ("MD full")         // full memory
 
-function showMemDisplayOptions () {
+function showMemDisplaySettings () {
     const s = gst
     switch (s.memDispMode) {
     case ModeMemDisplayHBA:
@@ -568,7 +587,7 @@ function findLatestRelease (gst) {
         }).then (latest => {
             console.log (`Latest release is ${latest}`)
             gst.options.latestRelease = latest
-            refreshOptionsDisplay ()
+            refreshSettingsDisplay ()
 //          document.getElementById('LatestRelease').innerHTML = latest
         })
         .catch (error => {
@@ -791,7 +810,7 @@ export const EditorPane    = Symbol ("EditorPane");
 export const AssemblerPane = Symbol ("AssemblerPane");
 export const LinkerPane    = Symbol ("LinkerPane");
 export const ProcessorPane = Symbol ("ProcessorPane");
-export const OptionsPane   = Symbol ("OptionsPane");
+export const SettingsPane   = Symbol ("SettingsPane");
 export const DevToolsPane  = Symbol ("DevToolsPane");
 
 let currentPane = WelcomePane; // The current pane is displayed; others are hidden
@@ -814,7 +833,7 @@ function initializePane () {
     f (AssemblerPane, "none");
     f (LinkerPane, "none");
     f (ProcessorPane, "none");
-    f (OptionsPane, "none");
+    f (SettingsPane, "none");
     f (DevToolsPane, "none");
 }
 
@@ -861,9 +880,9 @@ const showPane = (gst) => (p) => {
         highlightPaneButton (gst, "Processor_Pane_Button")
 //        enterProcessor ()
         break;
-    case OptionsPane:
+    case SettingsPane:
         gst.currentKeyMap = defaultKeyMap
-        highlightPaneButton (gst, "Options_Pane_Button")
+        highlightPaneButton (gst, "Settings_Pane_Button")
         break;
     case DevToolsPane:
         gst.currentKeyMap = defaultKeyMap
@@ -877,8 +896,10 @@ const showPane = (gst) => (p) => {
 
 function highlightPaneButton (gst, bid) {
     com.mode.devlog (`highlightPaneButton ${bid}`)
-    document.getElementById(bid).style.background = HighlightedPaneButtonBackground
-    gst.currentPaneButton = bid
+    const button = document.getElementById(bid);
+    button.style.background = HighlightedPaneButtonBackground;
+    button.style.border = "2px solid red";
+    gst.currentPaneButton = bid;
 }
 
 function unhighlightPaneButton (gst) {
@@ -886,7 +907,9 @@ function unhighlightPaneButton (gst) {
     const b = gst.currentPaneButton
     let oldbackground = document.getElementById(b).style.background
     com.mode.devlog (`oldbackground = ${oldbackground}`)
-    document.getElementById(b).style.background = DefaultPaneButtonBackground
+    document.getElementById(b).style.background =
+        DefaultPaneButtonBackground
+    document.getElementById(b).style.border = "none"
 }
 
 // Provide a finalizer to save state when pane is hidden
@@ -909,7 +932,7 @@ export function finalizeLeaveCurrentPane () {
         break;
     case ProcessorPane:
         break;
-    case OptionsPane:
+    case SettingsPane:
         break;
     case DevToolsPane:
         break;
@@ -942,40 +965,134 @@ const dialogueAssemblerHelp =
 // Pane buttons; initialization must occur after emulator state is defined
 
 
+
 function initializeButtons () {
-//    prepareButton ('Arch16button', setArch(16))
-//    prepareButton ('Arch32button', setArch(32))
-//    prepareButton ('Arch16button', setArch16)
-//    prepareButton ('Arch32button', setArch32)
     prepareButton ('Welcome_Pane_Button',   () =>
                    showPane (gst) (WelcomePane));
 
-    //    prepareButton ("HelpButton", () => showHelp (gst));
-//    prepareButton ("HelpButton", () => {
-//        console.log ("Help clicked");
-//        document.getElementById('FOOBARBAZ').show();
-//      })
-
-//    prepareButton ("CloseAssemblerHelp", () => {
-//        console.log ("CloseAssemblerHelp clicked");
-//        document.getElementById("AssemblerHelpNew").close();
-//      })
     prepareButton ('Examples_Pane_Button',  () => showPane (gst) (ExamplesPane));
     prepareButton ('Modules_Pane_Button',   () => showPane (gst) (ModulesPane));
     prepareButton ('Editor_Pane_Button',    () => showPane (gst) (EditorPane));
     prepareButton ('Assembler_Pane_Button', () => showPane (gst) (AssemblerPane));
     prepareButton ('Linker_Pane_Button',    () => showPane (gst) (LinkerPane));
     prepareButton ('Processor_Pane_Button', () => showPane (gst) (ProcessorPane));
-    prepareButton ('Options_Pane_Button'  , () => showPane (gst) (OptionsPane));
+    prepareButton ('Settings_Pane_Button'  , () => showPane (gst) (SettingsPane));
     prepareButton ('DevTools_Pane_Button', () => showPane (gst) (DevToolsPane));
     prepareButton ('About_Button',
                    () => showGuideSection('sec-about-sigma16'));  
-    prepareButton ('Toggle_UserGuide', toggleUserGuide)
+    prepareButton ('Toggle_UserGuide', toggleUserGuide);
 
-    prepareButton ('HelpAsmGuide',
-                   () => { showGuideSection ('sec-assembler');
-                           HelpAssemblerDialog.close (); })
-                   
+    // Help buttons
+
+    // Help Welcome
+    prepareButton (
+        'WP_Help',
+        () => { console.log ('WP_Help: Welcome help clicked');
+                HelpWelcomeDialog.showModal();
+              })
+    prepareButton (
+        'HelpWelcomeGuide',
+        () => { showGuideSection ('sec-welcome');
+                           HelpWelcomeDialog.close (); })
+    HelpWelcomeClose.addEventListener('click', () => {
+        HelpWelcomeDialog.close(); });
+
+    // Help Examples
+    prepareButton (
+        'EXP_Help',
+        () => {
+                HelpExamplesDialog.showModal();
+              })
+    prepareButton (
+        'HelpExamplesGuide',
+        () => { showGuideSection ('sec-examples');
+                           HelpExamplesDialog.close (); })
+    HelpExamplesClose.addEventListener('click', () => {
+        HelpExamplesDialog.close(); });
+
+    // Help Modules
+    prepareButton (
+        'MP_Help',
+        () => {
+                HelpModulesDialog.showModal();
+              })
+
+    prepareButton (
+        'HelpModulesGuide',
+        () => { showGuideSection ('sec-modules');
+                           HelpModulesDialog.close (); })
+    HelpModulesClose.addEventListener('click', () => {
+        HelpModulesDialog.close(); });
+    
+    // Help Editor
+    prepareButton (
+        'EDP_Help',
+        () => {
+                HelpEditorDialog.showModal();
+              })
+
+    prepareButton (
+        'HelpEditorGuide',
+        () => { showGuideSection ('sec-editor');
+                           HelpEditorDialog.close (); })
+    HelpEditorClose.addEventListener('click', () => {
+        HelpEditorDialog.close(); });
+
+    // Help Assembler    
+    prepareButton (
+        'AP_Help',
+        () => { 
+                HelpAsmDialog.showModal();
+              })
+
+    prepareButton (
+        'HelpAsmGuide',
+        () => { showGuideSection ('sec-assembler');
+                           HelpAsmDialog.close (); })
+    HelpAsmClose.addEventListener('click', () => {
+        HelpAsmDialog.close(); });
+
+    // Help Linker
+    prepareButton (
+        'LP_Help',
+        () => { 
+                HelpLinkerDialog.showModal();
+              })
+    prepareButton (
+        'HelpLinkerGuide',
+        () => { showGuideSection ('sec-linker');
+                           HelpLinkerDialog.close (); })
+    HelpLinkerClose.addEventListener('click', () => {
+        HelpLinkerDialog.close(); });
+
+    // Help Processor
+    prepareButton (
+        'PP_Help',
+        () => { 
+                HelpProcessorDialog.showModal();
+              })
+    prepareButton (
+        'HelpProcessorGuide',
+        () => { showGuideSection ('sec-processor');
+                console.log ('proc guide sec')
+                HelpProcessorDialog.close (); })
+    HelpProcessorClose.addEventListener('click', () => {
+        HelpProcessorDialog.close(); });
+
+    // Help Settings
+    prepareButton (
+        'OPT_Help',
+        () => { 
+                HelpSettingsDialog.showModal();
+              })
+    prepareButton (
+        'HelpSettingsGuide',
+        () => { showGuideSection ('sec-settings');
+                           HelpSettingsDialog.close (); })
+    HelpSettingsClose.addEventListener('click', () => {
+        HelpSettingsDialog.close(); });
+
+    
     // User guide resize (UGR) buttons.  UGR Distance (px) to move
     // boundary between gui and userguide on resize
 
@@ -1089,7 +1206,7 @@ function initializeButtons () {
       */
 
       
-    // Options pane
+    // Settings pane
     prepareButton ('UpdateMemSize',         () => updateMemSize (gst))
     prepareButton ('UpdateMDslidingSize',   () => updateMDslidingSize (gst))
     prepareButton ('UpdateMainSliceSize',   () => updateMainSliceSize (gst))
@@ -1442,7 +1559,7 @@ function initializeProcessor () {
     com.log_emph ('Initializing processor')    
     mkMainEmulatorState ()
     allocateStateVector ()
-    refreshOptionsDisplay ()
+    refreshSettingsDisplay ()
     if (gst.options.bufferType === ArrayBufferShared
        || gst.options.bufferType === ArrayBufferWebAssembly) {
         // console.log ('initializeProcessor: worker for emwt')
@@ -3014,7 +3131,6 @@ function showGuideSection (anchor) {
     let elt = document.getElementById("UserGuideIframeId").contentWindow;
     elt.scrollTo(0,elt.document.getElementById(anchor).offsetTop);
 }
-
 // Scroll user guide to top
 function jumpToGuideTop () {
     let elt = document.getElementById("UserGuideIframeId").contentWindow;
@@ -3117,10 +3233,10 @@ function initializeSystem () {
     //    console.log ("Created gst")
     com.log_emph ("Created gst")    
     setMDhba (gst)
-    adjustInitialOptions ()
+    adjustInitialSettings ()
     initializeGuiElements (gst) // Initialize gui elements
     initializeGuiLayout (gst)   // Initialize gui layout
-      refreshOptionsDisplay ();
+      refreshSettingsDisplay ();
 //    setArch16()
       findLatestRelease (gst);
     //    console.log ("System is initialized")
@@ -3385,110 +3501,7 @@ function showCChex () {
 //-------------------------------------------------------------
 // Run initializers after program has been loaded
 //-------------------------------------------------------------
-
-// The initializers require the DOM elements to exist and the
-// functions to be defined, so they are performed after all the
-// modules have been loaded.
-
-const dialog = document.querySelector('#myDialog');
-const btnClose = document.querySelector('#closeDialog');
-
-// const btnOpen = document.querySelector('#openHelpDialogue');
-const OpenHelpButton =
-      document.querySelector('#openHelpDialogue');
-
-
-const HelpOneDialog = document.querySelector('#HelpOneDialog');
-const HelpOneClose = document.querySelector('#HelpOneClose');
-
-const HelpWelcomeDialog = document.querySelector('#HelpWelcomeDialog');
-const HelpWelcomeClose = document.querySelector('#HelpWelcomeClose');
-const HelpEditorDialog = document.querySelector('#HelpEditorDialog');
-const HelpEditorClose = document.querySelector('#HelpEditorClose');
-
-const HelpAssemblerDialog = document.querySelector('#HelpAssemblerDialog');
-const HelpAssemblerClose = document.querySelector('#HelpAssemblerClose');
-const HelpLinkerDialog = document.querySelector('#HelpLinkerDialog');
-const HelpLinkerClose = document.querySelector('#HelpLinkerClose');
-const HelpProcessorDialog = document.querySelector('#HelpProcessorDialog');
-const HelpProcessorClose = document.querySelector('#HelpProcessorClose');
-
-const HelpOptionsDialog = document.querySelector('#HelpOptionsDialog');
-const HelpOptionsClose = document.querySelector('#HelpOptionsClose');
-
-function initialiseHelp () {
-    OpenHelpButton.addEventListener('click', () => {
-        console.log (`Help ${currentPane.description}`);
-        switch (currentPane) {
-        case WelcomePane:
-            HelpWelcomeDialog.showModal();
-            break;
-        case ExamplesPane: ;
-            HelpExamplesDialog.showModal();
-            break;
-        case ModulesPane: ;
-            HelpModulesDialog.showModal();
-            break;
-        case EditorPane :
-            HelpEditorDialog.showModal();
-            break;
-        case AssemblerPane:
-            HelpAssemblerDialog.showModal();
-            break;
-        case LinkerPane:
-            HelpLinkerDialog.showModal();
-            break;
-        case ProcessorPane:
-            HelpProcessorDialog.showModal();
-            break;
-        case OptionsPane:
-            HelpOptionsDialog.showModal();
-            break;
-        }
-        console.log ("help shown")
-      });
-    //      btnOpen.addEventListener('click', () => {
-//        dialog.showModal(); // default help page
-          // dialog.show(); // doesn't work, why???
-
     
-      btnClose.addEventListener('click', () => {
-          dialog.close();
-      });
-
-      HelpWelcomeClose.addEventListener('click', () => {
-          HelpWelcomeDialog.close();
-      });
-
-      HelpExamplesClose.addEventListener('click', () => {
-          HelpExamplesDialog.close();
-      });
-
-    HelpModulesClose.addEventListener('click', () => {
-          HelpModulesDialog.close();
-      });
-
-      HelpEditorClose.addEventListener('click', () => {
-          HelpEditorDialog.close();
-      });
-
-      HelpAssemblerClose.addEventListener('click', () => {
-          HelpAssemblerDialog.close();
-      });
-      HelpLinkerClose.addEventListener('click', () => {
-          HelpLinkerDialog.close();
-      });
-
-      HelpProcessorClose.addEventListener('click', () => {
-          HelpProcessorDialog.close();
-      });
-
-      HelpOptionsClose.addEventListener('click', () => {
-          HelpOptionsDialog.close();
-      });
-    
-}
-
 window.onload = function () {
     com.mode.trace = false
     com.log_emph ("starting initializers")
@@ -3499,7 +3512,6 @@ window.onload = function () {
     com.clearObjectCode () // clear linker page text
     enableKeyboardShortcuts ()
     initializeButtons (gst);
-    initialiseHelp ();
     setArch(16);
     com.log_emph ('system is now running')
 }
@@ -3563,3 +3575,130 @@ window.setArch32 = setArch32;
 
   // import * as emwt  from '../base/emwt.mjs';
   // make syntax errors visible
+
+
+//    initialiseHelp ();
+
+/*    
+function initialiseHelp () {
+    return;
+
+    OpenHelpButton.addEventListener('click', () => {
+        console.log (`Help ${currentPane.description}`);
+        switch (currentPane) {
+        case WelcomePane:
+            HelpWelcome.showModal();
+            break;
+        case ExamplesPane: ;
+            HelpExamplesDialog.showModal();
+            break;
+        case ModulesPane: ;
+            HelpModulesDialog.showModal();
+            break;
+        case EditorPane :
+            HelpEditorDialog.showModal();
+            break;
+        case AssemblerPane:
+            HelpAsmDialog.showModal();
+            break;
+        case LinkerPane:
+            HelpLinkerDialog.showModal();
+            break;
+        case ProcessorPane:
+            HelpProcessorDialog.showModal();
+            break;
+        case SettingsPane:
+            HelpSettingsDialog.showModal();
+            break;
+        }
+        console.log ("help shown")
+        });
+
+    //      btnOpen.addEventListener('click', () => {
+//        dialog.showModal(); // default help page
+          // dialog.show(); // doesn't work, why???
+
+    
+    btnClose.addEventListener('click', () => {
+          dialog.close();
+      });
+
+      HelpWelcomeClose.addEventListener('click', () => {
+          HelpWelcomeDialog.close();
+      });
+
+      HelpExamplesClose.addEventListener('click', () => {
+          HelpExamplesDialog.close();
+      });
+
+    HelpModulesClose.addEventListener('click', () => {
+          HelpModulesDialog.close();
+      });
+
+      HelpEditorClose.addEventListener('click', () => {
+          HelpEditorDialog.close();
+      });
+
+      HelpLinkerClose.addEventListener('click', () => {
+          HelpLinkerDialog.close();
+      });
+
+      HelpProcessorClose.addEventListener('click', () => {
+          HelpProcessorDialog.close();
+      });
+
+      HelpSettingsClose.addEventListener('click', () => {
+          HelpSettingsDialog.close();
+      });
+} // end initialiseHelp
+*/    
+
+
+// initializeButtons
+//    prepareButton ('Arch16button', setArch(16))
+//    prepareButton ('Arch32button', setArch(32))
+//    prepareButton ('Arch16button', setArch16)
+//    prepareButton ('Arch32button', setArch32)
+    //    prepareButton ("HelpButton", () => showHelp (gst));
+//    prepareButton ("HelpButton", () => {
+//        console.log ("Help clicked");
+//        document.getElementById('FOOBARBAZ').show();
+//      })
+
+//    prepareButton ("CloseAssemblerHelp", () => {
+//        console.log ("CloseAssemblerHelp clicked");
+//        document.getElementById("AssemblerHelpNew").close();
+//      })
+
+
+// The initializers require the DOM elements to exist and the
+// functions to be defined, so they are performed after all the
+// modules have been loaded.
+
+/*
+const dialog = document.querySelector('#myDialog');
+const btnClose = document.querySelector('#closeDialog');
+
+// const btnOpen = document.querySelector('#openHelpDialogue');
+const OpenHelpButton =
+      document.querySelector('#openHelpDialogue');
+
+
+const HelpOneDialog = document.querySelector('#HelpOneDialog');
+const HelpOneClose = document.querySelector('#HelpOneClose');
+
+const HelpWelcomeDialog = document.querySelector('#HelpWelcomeDialog');
+const HelpWelcomeClose = document.querySelector('#HelpWelcomeClose');
+const HelpEditorDialog = document.querySelector('#HelpEditorDialog');
+const HelpEditorClose = document.querySelector('#HelpEditorClose');
+
+const HelpAssemblerDialog = document.querySelector('#HelpAssemblerDialog');
+const HelpAssemblerClose = document.querySelector('#HelpAssemblerClose');
+const HelpLinkerDialog = document.querySelector('#HelpLinkerDialog');
+const HelpLinkerClose = document.querySelector('#HelpLinkerClose');
+const HelpProcessorDialog = document.querySelector('#HelpProcessorDialog');
+const HelpProcessorClose = document.querySelector('#HelpProcessorClose');
+
+const HelpOptionsDialog = document.querySelector('#HelpOptionsDialog');
+const HelpOptionsClose = document.querySelector('#HelpOptionsClose');
+*/

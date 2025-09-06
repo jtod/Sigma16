@@ -19,6 +19,20 @@ gui.css defines the style for the Sigma16 GUI
 -------------------------------------------------------------------------------
 */
 
+
+button.HelpButton {
+    background-color: #a0ffa0;
+    color: black;
+    border: solid;
+    font-weight: bold;
+    }
+
+button.TopHelpButton {
+    background-color: #a0ffa0;
+    color: black;
+    font-weight: bold;
+    }
+
 dialog {
     border: solid;
   border-radius: 10px;

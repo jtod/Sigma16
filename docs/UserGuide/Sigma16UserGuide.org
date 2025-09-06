@@ -181,6 +181,7 @@
 # it goes after Title and before Introduction.
 
 #+OPTIONS: toc:4
+#+OPTIONS: num: nil
 
 # To run: [[https://jtod.github.io/home/Sigma16]]
 # - Source code: [[https://github.com/jtod/Sigma16]]
@@ -238,11 +239,15 @@
 # Not in use...
 # #+OPTIONS: html-tableel-org:t
 
+
 # --------------------------------------------------------------
 # Beginning of the document
 # --------------------------------------------------------------
 
 * Introduction
+:PROPERTIES:
+:CUSTOM_ID: sec-welcome
+:END:
 
 Sigma16 is a computer architecture designed for research and
 teaching in computer systems.  This application provides a
@@ -323,6 +328,7 @@ commercial computers that achieve success in the marketplace
 evolve through updates and extensions, and eventually become
 encrusted with complications that help support backward
 compatibility but that lead to complexity.
+
 
 * Core architecture tutorials
 :PROPERTIES:
@@ -740,6 +746,9 @@ Here is a complete program named ConstArith.  It consists of
 #+END_SRC
 
 *** Running an example program
+:PROPERTIES:
+:CUSTOM_ID: sec-examples
+:END:
 
 You can go to the Editor, and type it in (or copy and paste
 it in), but this program is part of the collection of
@@ -2647,6 +2656,11 @@ constant called the offset.
 ** Arithmetic on natural numbers :noexport:
 
 ** Modules and linking
+:PROPERTIES:
+:CUSTOM_ID: sec-modules
+:END:
+
+
 
 A *module* is a section of a program; it may be the complete
 program or just a part of it.  A module may be saved in a
@@ -2730,9 +2744,9 @@ in the list contains an extra *Refresh* button.  Clicking
 this will reread the file and you won't need to use the file
 chooser dialogue box again.
 
-* The Sigma16 architecture
+* The Sigma16 processor architecture
 :PROPERTIES:
-:CUSTOM_ID: sec-architecture
+:CUSTOM_ID: sec-processor
 :END:
 
 Sigma16 contains a set of registers, an arithmetic logic unit
@@ -5874,7 +5888,7 @@ Instructions and pseudoinstructions in each format:
 #+END_EXPORT
 ----------
 
-** Sigma32 /(experimental)/
+** Sigma32 /(experimental)/ :noexport:
 
 /Sigma32 is experimental and under development.  It is only
 partially implemented, and many details in this section are
@@ -5925,55 +5939,55 @@ Sigma32 instructions represented in EXP format
 +---------------------+------+------+-----------------+
 | Assembly            | Op   | Code | Effect          |
 +---------------------+------+------+-----------------+
-| ladd Rd,Re,Rf       | e,16 | Ed16 | Rd := Re+rf     |
+| xadd Rd,Re,Rf       | e,16 | Ed16 | Rd := Re+rf     |
 |                     |      | ef00 | Rd := Re+rf     |
 +---------------------+------+------+-----------------+
-| lsub Rd,Re,Rf       | e,17 | Ed17 | Rd := Re+rf     |
+| xsub Rd,Re,Rf       | e,17 | Ed17 | Rd := Re+rf     |
 |                     |      | ef00 | Rd := Re+rf     |
 +---------------------+------+------+-----------------+
-| lmul Rd,Ra,Rb       | e,18 | Ed18 | Rd := Re+rf     |
+| xmul Rd,Ra,Rb       | e,18 | Ed18 | Rd := Re+rf     |
 |                     |      | ef00 | Rd := Re+rf     |
 +---------------------+------+------+-----------------+
-| ldiv Rd,Ra,Rb       | e,19 | Ed19 | Rd := Re+rf     |
+| xdiv Rd,Ra,Rb       | e,19 | Ed19 | Rd := Re+rf     |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lcmp Rd,Ra,Rb       | e,1a | Ed1A | Rd := Re+rf     |
+| xcmp Rd,Ra,Rb       | e,1a | Ed1A | Rd := Re+rf     |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| llea Rd,fgh[Re]     | e,1b | Ed1B | Rd := fgh+Re    |
+| xlea Rd,fgh[Re]     | e,1b | Ed1B | Rd := fgh+Re    |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lload Rd,fgh[Re]    | e,1c | Ed1C | Rd := M[fgh+Re] |
+| xload Rd,fgh[Re]    | e,1c | Ed1C | Rd := M[fgh+Re] |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lstore Rd,fgh[Ra]   | e,1d | Ed1D | M[fgh+Re] := Rd |
+| xstore Rd,fgh[Ra]   | e,1d | Ed1D | M[fgh+Re] := Rd |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| ljumpz Rd,disp[Ra]  | e,00 | Ed00 |                 |
+| xjumpz Rd,disp[Ra]  | e,00 | Ed00 |                 |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| ljumpnz Rd,disp[Ra] | e,00 | Ed00 |                 |
+| xjumpnz Rd,disp[Ra] | e,00 | Ed00 |                 |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lshiftl Rd,Re,h     | e,03 |      | Rd := Re shl h  |
+| xshiftl Rd,Re,h     | e,03 |      | Rd := Re shl h  |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lshiftr Rd,Re,h     | e,04 |      | Rd := Re shr h  |
+| xshiftr Rd,Re,h     | e,04 |      | Rd := Re shr h  |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lpush Rd,Re,Rf      | e,05 |      | Rd.f~g :=       |
+| xpush Rd,Re,Rf      | e,05 |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lpop Rd,Re,Rf       | e,05 |      | Rd.f~g :=       |
+| xpop Rd,Re,Rf       | e,05 |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| ltop Rd,Re,Rf       | e,05 |      | Rd.f~g :=       |
+| xtop Rd,Re,Rf       | e,05 |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lsave Rd,Re,gh[Rf]  | e,05 |      | Rd.f~g :=       |
+| xsave Rd,Re,gh[Rf]  | e,05 |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| lrest Rd,Re,gh[Rf]  | e,05 |      | Rd.f~g :=       |
+| xrest Rd,Re,gh[Rf]  | e,05 |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
 #+BEGIN_EXPORT html
@@ -6050,7 +6064,6 @@ Pseudoinstructions for comparisons
 ----------
 
 * Assembly language
-
 :PROPERTIES:
 :CUSTOM_ID: sec-assembly-language
 :END:
@@ -6271,6 +6284,9 @@ and its source text is visible if you go to the Editor page.
   - Click Open (or cancel)
 
 *** Editor page
+:PROPERTIES:
+:CUSTOM_ID: sec-editor
+:END:
 
 Editor operations on files and modules
 
@@ -7194,6 +7210,11 @@ source 32
 #+END_SRC
 
 ** Linker
+:PROPERTIES:
+:CUSTOM_ID: sec-linker
+:END:
+
+
 
 - GUI: selected module is main program and also receives the
   executable.  All other modules are linked, and their object
@@ -7550,6 +7571,13 @@ state of the machine.
 :END:
 
 How to use the assembler page.
+
+** Settings
+:PROPERTIES:
+:CUSTOM_ID: sec-settings
+:END:
+
+About the settings
 
 * Installation
 
