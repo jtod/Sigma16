@@ -943,6 +943,15 @@ const cab_dc = (f) => (es) => {
     if (es.ir_d<15) { es.regfile[15].put(secondary) }
 }
 
+const cab_dc32 = (f) => (es) => {
+    let c = es.regfile[15].get32();
+    let a = es.regfile[es.ir_a].get32();
+    let b = es.regfile[es.ir_b].get32();
+    let [primary, secondary] = f (c,a,b);
+    es.regfile[es.ir_d].put32(primary);
+    if (es.ir_d<15) { es.regfile[15].put32(secondary) }
+}
+
 // cab_c -- arguments are in c, a, and b.  There is only one result, a
 // condition code which is loaded into R15.  The instruction semantics
 // is defined by f.
@@ -1776,11 +1785,8 @@ function exp2_logicu (es) {
 // EXP format instructions require a second word
 
 const exp2 = (f) => (es) => {
-//    console.log (`>>> EXP instruction`)
-//    com.mode.devlog (`>>> EXP instruction`)
     let expCode = 16 * es.ir_a + es.ir_b
     es.instrOpStr = arch.mnemonicEXP[expCode]
-//    console.log (`EXP instruction, code = ${expCode} ${es.instrOpStr}`)
     es.instrDisp = memFetchInstr (es, es.pc.get())
     es.adr.put (es.instrDisp);
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1)
@@ -1795,9 +1801,42 @@ const exp2 = (f) => (es) => {
     es.field_f = tempinstr & 0x000f;
     tempinstr = tempinstr >>> 4;
     es.field_e = tempinstr & 0x000f;
-//    console.log(`>>> EXP code=${expCode} d=${es.ir_d} e=${es.field_e} `
-//                + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
     f (es);
+}
+//    console.log (`EXP instruction,
+//        code = ${expCode} ${es.instrOpStr}`)
+//    console.log (`>>> EXP instruction`)
+//    com.mode.devlog (`>>> EXP instruction`)
+//   console.log(`>>> EXP code=${expCode} d=${es.ir_d}
+//        e=${es.field_e} `
+//        + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
+
+// Handle exp instruction for Sigma32
+const exp2_32 = (f) => (es) => {
+    let expCode = 16 * es.ir_a + es.ir_b
+    es.instrOpStr = arch.mnemonicEXP[expCode]
+    es.instrDisp = memFetchInstr (es, es.pc.get())
+    es.adr.put (es.instrDisp);
+    es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1)
+    es.pc.put (limitAddress (es, es.nextInstrAddr))
+    ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
+    let tempinstr = es.instrDisp;
+    es.field_gh = tempinstr & 0x00ff;
+    es.field_h = tempinstr & 0x000f;
+    tempinstr = tempinstr >>> 4;
+    es.field_g = tempinstr & 0x000f;
+    tempinstr = tempinstr >>> 4;
+    es.field_f = tempinstr & 0x000f;
+    tempinstr = tempinstr >>> 4;
+    es.field_e = tempinstr & 0x000f;
+    f (es);
+}
+
+function exp_xadd (es) {
+    console.log ('exp_xadd');
+}
+function exp_xsub (es) {
+    console.log ('exp_xsub');
 }
 
 function exp2_brc0 (es) { // ??????????????????????????????
@@ -1875,7 +1914,19 @@ const dispatch_EXP =
         exp2 (exp2_putctl),   // 12
         exp2 (exp2_resume),   // 13
         exp2 (exp2_timeron),  // 14
-        exp2 (exp2_timeroff)] // 15
+        exp2 (exp2_timeroff), // 15
+        exp2 (exp2_nop),      // 16
+        exp2 (exp2_nop),      // 17
+        exp2 (exp2_nop),      // 18
+        exp2 (exp2_nop),      // 19
+        exp2 (exp2_nop),      // 1A
+        exp2 (exp2_nop),      // 1B
+        exp2 (exp2_nop),      // 1C
+        exp2 (exp2_nop),      // 1D
+        exp2 (exp2_nop),      // 1E
+        exp2 (exp2_nop),       // 1F
+        exp2_32 (exp_xadd),   // 20
+        exp2_32 (exp_xsub) ]  // 21
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 

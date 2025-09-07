@@ -1,0 +1,23 @@
+; test1: xadd, xstore
+
+   lea    R2,1[R0]
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xstore R2,result1[R0]
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xadd   R2,R2,R2
+   xstore R2,result2[R0]
+   trap   R0,R0,R0
+
+result1 data 0
+        data 0
+result2 data 0
+        data 0

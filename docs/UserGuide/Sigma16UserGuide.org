@@ -5765,22 +5765,22 @@ Assembly directives
 | testset Rd,disp[Ra] | F,9 | Fda9 | Rd:=M[disp+Ra],    |
 |                     |     | disp | M[disp+Ra]:=0001   |
 +---------------------+-----+------+--------------------+
-|                     | F,A | F..A | nop                |
-|                     |     | .... |                    |
+|                     | F,A | FdaA | nop                |
+|                     |     | disp |                    |
 +---------------------+-----+------+--------------------+
-|                     | F,B | F..B | nop                |
-|                     |     | .... |                    |
+|                     | F,B | FdaB | nop                |
+|                     |     | disp |                    |
 +---------------------+-----+------+--------------------+
-|                     | F,C | F..C | nop                |
-|                     |     | .... |                    |
+|                     | F,C | FdaC | nop                |
+|                     |     | disp |                    |
 +---------------------+-----+------+--------------------+
-| xlea Rd,disp[Ra]    | F,D | FdaD | Sigma32            |
-| (Sigma32)           |     | disp |                    |
+|                     | F,D | FdaD | reserved           |
+|                     |     | disp |                    |
 +---------------------+-----+------+--------------------+
-| xload Rd,disp[Ra]   | F,E | FdaE | Sigma32            |
-| (Sigma32)           |     | disp |                    |
+|                     | F,E | FdaE | reserved           |
+|                     |     | disp |                    |
 +---------------------+-----+------+--------------------+
-| xstore Rd,disp[Ra]  | F,F | FdaF | Sigma32            |
+|                     | F,F | FdaF | reserved           |
 |                     |     | disp |                    |
 +---------------------+-----+------+--------------------+
 #+BEGIN_EXPORT html
@@ -5930,7 +5930,29 @@ When launched, the app starts out in 16 bit mode.
 Most 32 bit instructions are represented in EXP format,
 although a few are in RX format.
 
-Sigma32 instructions represented in EXP format
+A few Sigma32 instructions are represented in RX format.
+
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
++---------------------+-----+------+--------------------+
+| Assembly            | Op  | Code | Effect             |
++---------------------+-----+------+--------------------+
+| xlea Rd,disp[Ra]    | F,D | FdaD | Sigma32            |
+| (Sigma32)           |     | disp |                    |
++---------------------+-----+------+--------------------+
+| xload Rd,disp[Ra]   | F,E | FdaE | Sigma32            |
+| (Sigma32)           |     | disp |                    |
++---------------------+-----+------+--------------------+
+| xstore Rd,disp[Ra]  | F,F | FdaF | Sigma32            |
+|                     |     | disp |                    |
++---------------------+-----+------+--------------------+
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+Most Sigma32 instructions represented in EXP format
 
 ----------
 #+BEGIN_EXPORT html
@@ -5939,55 +5961,55 @@ Sigma32 instructions represented in EXP format
 +---------------------+------+------+-----------------+
 | Assembly            | Op   | Code | Effect          |
 +---------------------+------+------+-----------------+
-| xadd Rd,Re,Rf       | e,16 | Ed16 | Rd := Re+rf     |
+| xadd Rd,Re,Rf       | e,20 | Ed20 | Rd := Re+Rf     |
+|                     |      | ef00 |                 |
++---------------------+------+------+-----------------+
+| xsub Rd,Re,Rf       | e,21 | Ed21 | Rd := Re+rf     |
 |                     |      | ef00 | Rd := Re+rf     |
 +---------------------+------+------+-----------------+
-| xsub Rd,Re,Rf       | e,17 | Ed17 | Rd := Re+rf     |
+| xmul Rd,Ra,Rb       | e,22 | Ed22 | Rd := Re+rf     |
 |                     |      | ef00 | Rd := Re+rf     |
 +---------------------+------+------+-----------------+
-| xmul Rd,Ra,Rb       | e,18 | Ed18 | Rd := Re+rf     |
-|                     |      | ef00 | Rd := Re+rf     |
-+---------------------+------+------+-----------------+
-| xdiv Rd,Ra,Rb       | e,19 | Ed19 | Rd := Re+rf     |
+| xdiv Rd,Ra,Rb       | e,23 | Ed23 | Rd := Re+rf     |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xcmp Rd,Ra,Rb       | e,1a | Ed1A | Rd := Re+rf     |
+| xcmp Rd,Ra,Rb       | e,24 | Ed24 | Rd := Re+rf     |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xlea Rd,fgh[Re]     | e,1b | Ed1B | Rd := fgh+Re    |
+| xaddc Rd,Ra,Rb      | e,25 | Ed1A | Rd := Re+rf     |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xload Rd,fgh[Re]    | e,1c | Ed1C | Rd := M[fgh+Re] |
+| xmuln Rd,Ra,Rb      | e,26 | Ed1A | Rd := Re+rf     |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xstore Rd,fgh[Ra]   | e,1d | Ed1D | M[fgh+Re] := Rd |
+| xdivn Rd,fgh[Re]    | e,27 | Ed1B | Rd := fgh+Re    |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xjumpz Rd,disp[Ra]  | e,00 | Ed00 |                 |
+| xjumpz Rd,disp[Ra]  | e,28 | Ed00 |                 |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xjumpnz Rd,disp[Ra] | e,00 | Ed00 |                 |
+| xjumpnz Rd,disp[Ra] | e,29 | Ed00 |                 |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xshiftl Rd,Re,h     | e,03 |      | Rd := Re shl h  |
+| xshiftl Rd,Re,h     | e,2A |      | Rd := Re shl h  |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xshiftr Rd,Re,h     | e,04 |      | Rd := Re shr h  |
+| xshiftr Rd,Re,h     | e,2B |      | Rd := Re shr h  |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xpush Rd,Re,Rf      | e,05 |      | Rd.f~g :=       |
+| xpush Rd,Re,Rf      | e,2C |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xpop Rd,Re,Rf       | e,05 |      | Rd.f~g :=       |
+| xpop Rd,Re,Rf       | e,2D |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xtop Rd,Re,Rf       | e,05 |      | Rd.f~g :=       |
+| xtop Rd,Re,Rf       | e,2E |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xsave Rd,Re,gh[Rf]  | e,05 |      | Rd.f~g :=       |
+| xsave Rd,Re,gh[Rf]  | e,2F |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
-| xrest Rd,Re,gh[Rf]  | e,05 |      | Rd.f~g :=       |
+| xrest Rd,Re,gh[Rf]  | e,30 |      | Rd.f~g :=       |
 |                     |      |      |                 |
 +---------------------+------+------+-----------------+
 #+BEGIN_EXPORT html

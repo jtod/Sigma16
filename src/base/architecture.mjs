@@ -233,14 +233,22 @@ export const mnemonicRX =
   ["lea",      "load",     "store",     "jump",       // 0-3
    "jumpc0",   "jumpc1",   "jal",       "jumpz",      // 4-7
    "jumpnz",   "testset",  "noprx",     "noprx",      // 8-11
-   "noprx",    "noprx",    "noprx",     "noprx"]      // 12-15
+   "noprx",    "xlea",     "xload",     "xstore"]     // 12-15
 
 export const mnemonicEXP =  // ????? needs revision
   ["logicf",  "logicb",  "shiftl",   "shiftr",   // 00-03
    "extract", "push",    "pop",      "top",      // 04-07
    "save",    "restore", "bvc0",     "brc1",     // 08-0b
    "brz",     "brnz",    "dispatch", "getctl",   // 0c-0f
-   "putctl",  "resume",  "timon",    "timoff"]   // 10-13
+   "putctl",  "resume",  "timon",    "timoff",   // 10-13
+   "nop",     "nop",     "nop",      "nop",      // 14-17
+   "nop",     "nop",     "nop",      "nop",      // 18-1b
+   "nop",     "nop",     "nop",      "nop",      // 1c-1f
+   "xadd",    "xsub",    "xmul",     "xdiv",     // 20-23
+   "nop",     "nop",     "nop",      "nop",      // 24-27
+   "nop",     "nop",     "nop",      "nop",      // 28-2b
+   "nop",     "nop",     "nop",      "nop",      // 2c-2f
+   "nop",     "nop",     "nop",      "nop"]      // 30-33
 
 //-------------------------------------
 // Mnemonics for control registers
@@ -471,7 +479,16 @@ statementSpec.set("jumpc1", {ifmt:iRX, afmt:akX, opcode:[15,5]})
 statementSpec.set("jal",    {ifmt:iRX, afmt:aRX, opcode:[15,6]})
 statementSpec.set("jumpz",  {ifmt:iRX, afmt:aRX, opcode:[15,7]})
 statementSpec.set("jumpnz", {ifmt:iRX, afmt:aRX, opcode:[15,8]})
-statementSpec.set("testset",{ifmt:iRX, afmt:aRX, opcode:[15,9]})
+statementSpec.set("testset",
+                  {ifmt:iRX, afmt:aRX, opcode:[15,9]})
+statementSpec.set("xlea",
+                  {ifmt:iRX, afmt:aRX, opcode:[15,13]})
+statementSpec.set("xload",
+                  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
+statementSpec.set("xstore",
+                  {ifmt:iRX, afmt:aRX, opcode:[15,15]})
+
+
 
 // EXP1 instructions are represented in 1 word, with primary
 // opcode e and an 8-bit secondary opcode in the ab field.
@@ -539,21 +556,15 @@ statementSpec.set("timeroff",
 // Sigma32 instructions
 
 statementSpec.set("xadd",  // xadd Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,22]})
-statementSpec.set("lsub",  // lsub Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,23]})
-statementSpec.set("lmul",  // lmul Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,24]})
-statementSpec.set("ldiv",  // ldiv Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,25]})
-statementSpec.set("lcmp",  // lcmp Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,26]})
-statementSpec.set("llea",  // llea Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRX,    opcode:[14,27]})
-statementSpec.set("lload",  // lload Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRX,    opcode:[14,28]})
-statementSpec.set("lstore",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRX,    opcode:[14,29]})
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,32]})
+statementSpec.set("xsub",  // lsub Rd,Re,Rf
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,33]})
+statementSpec.set("xmul",  // lmul Rd,Re,Rf
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,34]})
+statementSpec.set("xdiv",  // ldiv Rd,Re,Rf
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,35]})
+statementSpec.set("xcmp",  // lcmp Rd,Re,Rf
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,36]})
 
 statementSpec.set("ljumpz",  // lstore Rd,fgh[Re]
    {ifmt:iEXP, afmt:aRX,    opcode:[14,30]})
