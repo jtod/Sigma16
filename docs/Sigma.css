@@ -14,6 +14,15 @@
     color: green;
 */
 
+/* omits section numbers in section heads, but not in table
+ of contents; need to get num:nil to work */
+/*
+span.section-number-1, span.section-number-2,
+span.section-number-3,span.section-number-4 {
+    display: none;
+}
+*/
+
 /* postamble */
 div#postamble {
     color: blue;

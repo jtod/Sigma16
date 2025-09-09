@@ -136,12 +136,18 @@
 # General configuration
 # --------------------------------------------------------------
 
+#+OPTIONS: toc:4
+#+OPTIONS: num: nil
+
+# deprecated
+# #+OPTIONS: toc:nil
+# #+TOC: nil
+
 # Table of contents
 
 # Does this do anything?  Seems not...
 # Disable the table of contents until after the title section
-#+OPTIONS: toc:nil
-#+TOC: nil
+
 
 # Bibliography
 
@@ -179,9 +185,6 @@
 # \numberline to suppress those when the toc is generated.
 # The modified contents for latex is in a scope environment;
 # it goes after Title and before Introduction.
-
-#+OPTIONS: toc:4
-#+OPTIONS: num: nil
 
 # To run: [[https://jtod.github.io/home/Sigma16]]
 # - Source code: [[https://github.com/jtod/Sigma16]]
@@ -248,6 +251,8 @@
 :PROPERTIES:
 :CUSTOM_ID: sec-welcome
 :END:
+
+402
 
 Sigma16 is a computer architecture designed for research and
 teaching in computer systems.  This application provides a

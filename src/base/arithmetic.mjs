@@ -612,9 +612,14 @@ export function op_add (c,a,b) {
     const sum = a + b
     const primary = sum & 0x0000ffff
     const secondary = additionCC (c,a,b,primary,sum)
-// com.mode.devlog (`*** op_add a=${wordToHex4(a)} b=${wordToHex4(b)} p=${wordToHex4(primary)} s=${wordToHex4(secondary)}`)
     return [primary, secondary]
 }
+    // com.mode.devlog (`*** op_add a=${wordToHex4(a)}
+    // b=${wordToHex4(b)} p=${wordToHex4(primary)}
+    // s=${wordToHex4(secondary)}`)
+
+// 32 bit add instruction (EXP format, called by exp32)
+// xadd Rd,Re,Rf
 
 export function op_addc (c,a,b) {
     let sum = a + b + arch.getBitInWordLE(c,arch.bit_ccC);

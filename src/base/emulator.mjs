@@ -1,21 +1,23 @@
 // Sigma16: emulator.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (C) 2025 John T. O'Donnell.
+// License: GNU GPL Version 3. See Sigma16/README, LICENSE
+// https://jtod.github.io/home/Sigma16
 
-// This file is part of Sigma16.  Sigma16 is free software: you can
-// redistribute it and/or modify it under the terms of the GNU General
-// Public License as published by the Free Software Foundation, either
-// version 3 of the License, or (at your option) any later version.
-// Sigma16 is distributed in the hope that it will be useful, but
+// This file is part of Sigma16.  Sigma16 is free software:
+// you can redistribute it and/or modify it under the terms
+// of Version 3 of the GNU General Public License as
+// published by the Free Software Foundation.  Sigma16 is
+// distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.  You should have received
-// a copy of the GNU General Public License along with Sigma16.  If
-// not, see <https://www.gnu.org/licenses/>.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// the GNU General Public License for more details.  You
+// should have received a copy of the GNU General Public
+// License along with Sigma16.  If not, see
+// <https://www.gnu.org/licenses/>.
 
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 // emulator.mjs defines the machine language semantics
-//-------------------------------------------------------------------------
+//-------------------------------------------------------------
 
 import * as com from './common.mjs';
 import * as arch from './architecture.mjs';
@@ -362,13 +364,13 @@ export class genregister {
         if (this.es.arch == arch.S16) {
             const x = ab.readReg16 (this.es, this.regStIndex)
             xs = arith.wordToHex4 (x)
-            console.log (`shval ${this.regName} x=${x}`)
-            console.log (`shval ${this.regName} xs=${xs}`)
+//            console.log (`shval ${this.regName} x=${x}`)
+//            console.log (`shval ${this.regName} xs=${xs}`)
         } else { // S32
             const x = ab.readReg32 (this.es, this.regStIndex)
             xs = arith.wordToHex8 (x)  // TEMP!!!
-            console.log (`shval ${this.regName} x=${x}`)
-            console.log (`shval ${this.regName} xs=${xs}`)
+//            console.log (`shval ${this.regName} x=${x}`)
+//            console.log (`shval ${this.regName} xs=${xs}`)
         }
         return xs
     }
@@ -952,9 +954,9 @@ const cab_dc32 = (f) => (es) => {
     if (es.ir_d<15) { es.regfile[15].put32(secondary) }
 }
 
-// cab_c -- arguments are in c, a, and b.  There is only one result, a
-// condition code which is loaded into R15.  The instruction semantics
-// is defined by f.
+// cab_c -- arguments are in c, a, and b.  There is only one
+// result, a condition code which is loaded into R15.  The
+// instruction semantics is defined by f.
 
 const cab_c = (f) => (es) => {
     let c = es.regfile[15].get();
@@ -1141,6 +1143,7 @@ const handle_EXP = (es) => {
     if (code < limitEXPcode) {
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
 	com.mode.devlog (`>>> dispatching EXP code=${code} d=${es.ir_d}`);
+        console.log (`>>> dispatching EXP code=${code} d=${es.ir_d}`);        
 	dispatch_EXP [code] (es);
     } else {
 	com.mode.devlog (`EXP bad code ${arith.wordToHex4(code)}`);
@@ -1325,12 +1328,13 @@ function rx_store (es) {
     memStore (es, es.ea, arith.limit16 (x))
 }
 
-// handle alignment
+// need to handle alignment
 function rx_xstore (es) {
-    com.mode.devlog('rx_xstore');
+    console.log ('rx_xstore');
     const x = es.regfile[es.ir_d].get32();
-    const p = x >> 16;  // high order 16 bits
-    const q = x && 0x0000ffff;  // low order 16 bits
+    const q = x & 0x0000ffff;  // low order 16 bits
+    const p = x >>> 16;  // high order 16 bits, binary shif
+    console.log (`xstore x=${x} p=${p} q=${q}`);
     memStore (es, es.ea, p);
     memStore (es, es.ea+1, q);
 }
@@ -1812,7 +1816,8 @@ const exp2 = (f) => (es) => {
 //        + `f=${es.field_f} g=${es.field_g} h=${es.field_h}`);
 
 // Handle exp instruction for Sigma32
-const exp2_32 = (f) => (es) => {
+const exp32 = (f) => (es) => {
+  console.log ('exp32');
     let expCode = 16 * es.ir_a + es.ir_b
     es.instrOpStr = arch.mnemonicEXP[expCode]
     es.instrDisp = memFetchInstr (es, es.pc.get())
@@ -1832,9 +1837,19 @@ const exp2_32 = (f) => (es) => {
     f (es);
 }
 
-function exp_xadd (es) {
-    console.log ('exp_xadd');
+
+export function exp_xadd (es) {
+  console.log ('exp_xadd');
+    const p = es.regfile[es.field_e].get32();
+    const q = es.regfile[es.field_f].get32();
+    const r = p + q
+    console.log (`op_xadd p=${p} q=${q} r=${r}`)
+    const primary = r & 0xffffffff
+    es.regfile[es.ir_d].put32 (primary);
+    // const secondary = additionCC (c,a,b,primary,sum)
+    // const secondary = 0 // need 32 bit additionCC function
 }
+
 function exp_xsub (es) {
     console.log ('exp_xsub');
 }
@@ -1891,30 +1906,28 @@ function exp2_brnz (es) { // ??????????????????????????????
 }
 
 const dispatch_EXP =
-      //      [ exp2 (exp2_logicw),   // 00    logicw replaced by logicf
       [ exp2 (exp2_logicf),   // 00
         exp2 (exp2_logicb),   // 01  b -> r    logicr
-        exp2 (exp2_logicu),   // 02  u -> b    logicb   deprecated
-        exp2 (exp2_shiftl),   // 03
-        exp2 (exp2_shiftr),   // 04
-        exp2 (exp2_extract),  // 05
-        //        exp2 (exp2_extracti), // 06
-        exp2 (exp2_nop),      // 06, was extracti, deprecated
-        exp2 (exp2_push),     // 07
-        exp2 (exp2_pop),      // 08
-        exp2 (exp2_top),      // 09
-        exp2 (exp2_save),     // 0a
-        exp2 (exp2_restore),  // 0b
-        exp2 (exp2_brc0),     // 0c
-        exp2 (exp2_brc1),     // 0d
-        exp2 (exp2_brz),      // 0e
-        exp2 (exp2_brnz),     // 0f
-        exp2 (exp2_dispatch), // 10
-        exp2 (exp2_getctl),   // 11
-        exp2 (exp2_putctl),   // 12
-        exp2 (exp2_resume),   // 13
-        exp2 (exp2_timeron),  // 14
-        exp2 (exp2_timeroff), // 15
+        exp2 (exp2_shiftl),   // 02
+        exp2 (exp2_shiftr),   // 03
+        exp2 (exp2_extract),  // 04
+        exp2 (exp2_push),     // 05
+        exp2 (exp2_pop),      // 06
+        exp2 (exp2_top),      // 07
+        exp2 (exp2_save),     // 08
+        exp2 (exp2_restore),  // 09
+        exp2 (exp2_brc0),     // 0A
+        exp2 (exp2_brc1),     // 0B
+        exp2 (exp2_brz),      // 0C
+        exp2 (exp2_brnz),     // 0D
+        exp2 (exp2_dispatch), // 0E
+        exp2 (exp2_getctl),   // 0F
+        exp2 (exp2_putctl),   // 10
+        exp2 (exp2_resume),   // 11
+        exp2 (exp2_timeron),  // 12
+        exp2 (exp2_timeroff), // 13
+        exp2 (exp2_nop),      // 14
+        exp2 (exp2_nop),      // 15
         exp2 (exp2_nop),      // 16
         exp2 (exp2_nop),      // 17
         exp2 (exp2_nop),      // 18
@@ -1924,9 +1937,14 @@ const dispatch_EXP =
         exp2 (exp2_nop),      // 1C
         exp2 (exp2_nop),      // 1D
         exp2 (exp2_nop),      // 1E
-        exp2 (exp2_nop),       // 1F
-        exp2_32 (exp_xadd),   // 20
-        exp2_32 (exp_xsub) ]  // 21
+        exp2 (exp2_nop),      // 1F
+        exp32 (exp_xadd),     // 20
+        exp32 (exp_xsub) ]    // 21
+
+// exp2 (exp2_logicu),   // 02  u -> b    logicb   deprecated
+//        exp2 (exp2_extracti), // 06
+//  [ exp2 (exp2_logicw),   // 00    logicw replaced by logicf
+//      exp2 (exp2_nop),      // 06, was extracti, deprecated
 
 const limitEXPcode = dispatch_EXP.length;  // any code above this is nop
 
