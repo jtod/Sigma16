@@ -3,38 +3,57 @@
 #+AUTHOR: John T. O'Donnell
 #+EMAIL: john.t.odonnell9@gmail.com
 #+DATE: {{{S16version()}}}
+
 # Copyright John T. O'Donnell, 2025
 # Source repository: https://github.com/jtod/Sigma16
 
 # This file is part of Sigma16.  License: GNU GPL Version 3;
-# available in Sigma16/LICENSE.txt.  Further information is
-# in Sigma16/README.org. The Source repository is available
-# online at https://github.com/jtod/Sigma16.
+# available in Sigma16/LICENSE.txt.  Further information is in
+# Sigma16/README.org. The Source repository is available online at
+# https://github.com/jtod/Sigma16.
 
-# Sigma16 is free software: you can redistribute it and/or
-# modify it under the terms of the GNU General Public
-# License, Version 3, as published by the Free Software
-# Foundation.  Sigma16 is distributed in the hope that it
-# will be useful, but WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE.  See the GNU General Public License for
-# more details.  You should have received a copy of the GNU
-# General Public License along with Sigma16.  If not, see
+# Sigma16 is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, Version 3,
+# as published by the Free Software Foundation.  Sigma16 is
+# distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+# License for more details.  You should have received a copy of
+# the GNU General Public License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
+# Initialising (essential because el file is required):
+#   load Sigma16.el and visit directory:  M-x Sigma16
+# Building:
+#   update dynamic blocks, including BUILD_ID:  C-u C-c C-x C-u
+#   save file:  C-x s  (y)
+#   export html:  C-c C-e h h
+#   export pdf via latex:  C-c C-e l p
+#   export tex:  C-c C-e l l
+# ----------------------------------------------------------------
+
+
+# ----------------------------------------------------------------
 # Editing source
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------------
+
+# Limit line size to 66 characters.  This keeps code fragments to
+# a horizontal size that's suitable for book publication.
+
+# html validator:  https://validator.w3.org
 
 # Code environment
-# #+BEGIN_SRC Sigma16 exports: code
-# #+END_SRC
+#   #+BEGIN_SRC Sigma16 exports: code
+#   #+END_SRC
 
-# Insert nonbreakable space (Unicode hard space): C-x 8 space
-# M-x insert-character 21D2
-
-# html validator
-# https://validator.w3.org/check
+# A code listing won't be indented properly if the first character
+# is a space, which is usually the case.  To get proper
+# indentation, begin each code fragment with a non-space
+# character, which could be a letter (e.g. from a label) or a
+# nonbreakable space.  To insert nonbreakable space (Unicode hard
+# space), enter: C-x 8 space M-x.  Alternatively, insert-character
+# 21D2
 
 # --------------------------------------------------------------
 # Building html and pdf
@@ -136,8 +155,6 @@
 # General configuration
 # --------------------------------------------------------------
 
-#+OPTIONS: toc:4
-#+OPTIONS: num: nil
 
 # deprecated
 # #+OPTIONS: toc:nil
@@ -198,7 +215,7 @@
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
 
-#+LATEX_HEADER: \usepackage{../Sigma}
+#+LATEX_HEADER: \usepackage{../Sigma16}
 #+LATEX_HEADER: \usepackage{svg}
 
 # Not in use...
@@ -231,9 +248,11 @@
 # html configuration
 # --------------------------------------------------------------
 
-#+HTML_HEAD: <link rel="stylesheet" href="../Sigma.css"/>
+
+#+HTML_HEAD: <link rel="stylesheet" href="../Sigma16.css"/>
 #+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico"/>
 #+HTML_HEAD_EXTRA: <style type="text/css"> td { padding: 4px 5px 4px 5px } </style>
+
 
 # Including raw html
 #  #+BEGIN_EXPORT html
@@ -247,12 +266,13 @@
 # Beginning of the document
 # --------------------------------------------------------------
 
+#+OPTIONS: toc:4
+#+OPTIONS: num: nil
+
 * Introduction
 :PROPERTIES:
 :CUSTOM_ID: sec-welcome
 :END:
-
-402
 
 Sigma16 is a computer architecture designed for research and
 teaching in computer systems.  This application provides a
@@ -7868,8 +7888,6 @@ won't affect existing programs.
 
 * Development notes
 
-105
-
 ** Figures
 
 *** png images
@@ -8042,4 +8060,20 @@ the html output won't ignore the leading spaces:
 *** TestSet
 *** Timer
 
+# Update dynamic blocks: C-u C-c C-x C-u
+# This will automatically put build timestamp at end
+#+BEGIN_BUILD_ID
+#+BEGIN: update-build-id :format "%Y-%m-%d at %H:%M"
+Build: 2025-11-28 at 12:26
+#+END
+#+END_BUILD_ID
 
+# ----------------------------------------------------------------
+# Deprecated
+
+# The following doesn't seem to do anything...
+# #+HTML_PREAMBLE: "<h1 class=\"title\">%t</h1> <p class=\"author\">%a</p> <p class=\"date\">%d</p>"
+
+# #+OPTIONS: HTML_PREAMBLE: "This is my super preamble"
+#  #+HTML_PREAMBLE: <div class="preamble">Welcome to my custom
+# preamble!</div>

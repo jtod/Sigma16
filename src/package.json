@@ -1,6 +1,6 @@
 {
     "name": "sigma16",
-    "version": "3.10.0",
+    "version": "3.11.0",
     "description": "Computer architecture for research and teaching",
     "repository": {
         "type": "git",
@@ -25,8 +25,8 @@
     "license": "GPL-3.0",
     "dependencies": {
         "cors": "^2.8.5",
-        "ejs": "^3.1.8",
-        "express": "^4.21.2",
-        "wabt": "^1.0.20"
+        "ejs": "^3.1.10",
+        "express": "^5.1.0",
+        "wabt": "^1.0.39"
     }
 }

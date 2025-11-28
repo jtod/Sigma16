@@ -1,6 +1,0 @@
-; Old style -- these instructions have been removed
-     cmplt   R1,R2,R3      ; R1 := R2 < R3
-     jumpt   R1,loop[R0]   ; if R2 < R3 then goto loop
-; New style -- use the following instead
-     cmp     R2,R3         ; compare R2 with R3
-     jumplt  loop[R0]      ; if R2 < R3 then goto loop

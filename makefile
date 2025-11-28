@@ -1,5 +1,4 @@
 # Sigma16: makefile
-
 # Copyright (c) 2025 John T. O'Donnell.  License: GNU GPL
 # Version 3. See Sigma16/README, LICENSE, and
 # https://github.com/jtod/Sigma16
@@ -15,9 +14,41 @@
 # a copy of the GNU General Public License along with
 # Sigma16.  If not, see <https://www.gnu.org/licenses/>.
 
-#--------------------------------------------------------------
+# ----------------------------------------------------------------
+# Check src/package.json, update version if necessary
+# make SetVersion  (this reads version from package.json)
+# Visit User Guide, update/export as shown in leading comments
+# visit docs/welcome/welcome.org, generate html
+# visit docs/help, generate html files from org sources
+# ----------------------------------------------------------------
+
+# ----------------------------------------------------------------
+# Software tools
+# 2025-11-28:
+#   $ node --version
+#   v16.16.0
+#   $ npm --version
+#   8.13.2
+# 2025-11-28:
+#   $ npm update -g npm
+#   $ npm --version
+#   11.6.4
+# 2025-11-28
+#   Tried installing nvm but it doesn't work on Windows
+#     (same as a few years ago when I tried it)
+#   Uninstalled Node using windows settings app
+#   Installed node from scratch
+#   $ node -v
+#   v24.11.1
+#   $ npm -v
+#   11.6.2
+
+# ----------------------------------------------------------------
+
+
+#-----------------------------------------------------------------
 # How to build, install, and run
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 # Show dev tools in browser: ctl-shift-j
 
@@ -94,52 +125,49 @@
 #    - git commit -m 'v3.7.0'
 #    - git push heroku main
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Environment variables
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
-# S16_LOCAL_BUILD_DIR is the path to a directory that
-# contains the source, which is xxx/build/dev/Sigma16.  The
-# Sigma16 source is contained within xxx/build/dev so the
-# server can assume that any version being executed, either
-# locally or on the server, has a path of the form
-# xxx/build/VERSIONNUMBER/Sigma16.  The source git directory
-# is ${S16_LOCAL_BUILD_DIR}/dev/Sigma16, so it can be
-# accessed using a "version" of "dev".
+# S16_LOCAL_BUILD_DIR is the path to a directory that contains the
+# source, which is xxx/build/dev/Sigma16.  The Sigma16 source is
+# contained within xxx/build/dev so the server can assume that any
+# version being executed, either locally or on the server, has a
+# path of the form xxx/build/VERSIONNUMBER/Sigma16.  The source
+# git directory is ${S16_LOCAL_BUILD_DIR}/dev/Sigma16, so it can
+# be accessed using a "version" of "dev".
 
-# S16_SERVER_SRC_BUILD_DIR is the target build directory
-# where "make install-build" will put the files.  This is
-# within the SigServer/Sigma16 directory, and will be
-# uploaded to the server.  A particular version will have a
-# path
+# S16_SERVER_SRC_BUILD_DIR is the target build directory where
+# "make install-build" will put the files.  This is within the
+# SigServer/Sigma16 directory, and will be uploaded to the server.
+# A particular version will have a path
 # ${S16_SERVER_SRC_BUILD_DIR}/sigma16/build/VERSION/Sigma16
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Resources on the Internet
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
-# You can run Sigma16 online, without downloading or
-# installing anything: visit the Sigma16 home page and click
-# the link:
+# You can run Sigma16 online, without downloading or installing
+# anything: visit the Sigma16 home page and click the link:
 
 #    https://jtod.github.io/home/Sigma16/
 
-# The app won't run directly in the github source repository
-# page: that will display the source code but won't render
-# it.  Therefore, to run Sigma16 from the web, you need to
-# use the homepage above.
+# The app won't run directly in the github source repository page:
+# that will display the source code but won't render it.
+# Therefore, to run Sigma16 from the web, you need to use the
+# homepage above.
 
-# For additional tools, including the command line interface
-# and circuit simulator, download from the source
-# repositories and build the software.  See the Installation
-# section in the User Guide
+# For additional tools, including the command line interface and
+# circuit simulator, download from the source repositories and
+# build the software.  See the Installation section in the User
+# Guide
 
 #    https://github.com/jtod/Sigma16
 #    https://github.com/jtod/Hydra
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Usage
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 # make SetVersion   update VERSION.txt, COPYRIGHT.txt,
 #                          src/base/version.mjs
@@ -158,14 +186,14 @@
 
 # The install* actions copy the build from
 # Sigma/src/Sigma16/build/dev/Sigma16 to
-# Sigma/src/jtod.github.io/home/Sigma16.  To make the build live on
-# the Internet, log in to heroku and use git add, git commit, git
-# push, and then update the heroku environment variables.  See
+# Sigma/src/jtod.github.io/home/Sigma16.  To make the build live
+# on the Internet, log in to heroku and use git add, git commit,
+# git push, and then update the heroku environment variables.  See
 # above.
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Configuration
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 # Environment variables defined on Heroko
 #  PAPERTRAIL_API_TOKEN
@@ -181,12 +209,14 @@
 #   SIGMASYSTEM         path to sources
 
 # VERSION, the current version number, is extracted from the
-# package.json file, on the line consisting of "version: : "1.2.3".
-# VERSION is used for building the top level index and the user guide.
+# package.json file, on the line consisting of "version: :
+# "1.2.3".  VERSION is used for building the top level index and
+# the user guide.
 
 VERSION:=$(shell cat src/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
-# Define the date in several formats for inclusion in the app and user guide
+# Define the date in several formats for inclusion in the app and
+# user guide
 
 YEAR=$(shell date +"%Y")
 MONTHYEAR=$(shell date +"%B %Y")
@@ -224,17 +254,24 @@ ShowConfig:
 	@echo "  S16_HOMEPAGE_REPOSITORY = $(S16_HOMEPAGE_REPOSITORY)"
 	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Check style files are the same
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 CheckCss :
 	diff ../docs/Sigma.css \
 	  ../../../../../compsys/build/dev/compsys/src/style/Sigma.css
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # User Guide
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
+
+# from  makefile for user guide... need to fix up
+
+userguide-clean :
+	rm *.aux *.bbl *.dvi *.toc *.idx *.ilg *listing
+	rm *.log *.out *.ind *.tex
+
 
 # ../docs/UserGuide/Sigma16UserGuide.pdf : ../docs/UserGuide/Sigma16UserGuide.tex \
 # 	  ../docs/UserGuide/Sigma16UserGuideText.tex
@@ -261,9 +298,9 @@ UpdateStyle : ../docs/UserGuide/Sigma.sty ../docs/UserGuide/Sigma.css
 	cp -u ../../../../csbook/compsys/Sigma.css ../docs/UserGuide
 
 
-#-------------------------------------------------------------
+#-----------------------------------------------------------------
 # User Guide
-#-------------------------------------------------------------
+#-----------------------------------------------------------------
 
 CheckGuide :
 	ls -lt \
@@ -295,9 +332,9 @@ CheckGuide :
 	cd ../docs/UserGuide ; lwarpmk html1
 	cd ../docs/UserGuide ; lwarpmk html1
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Copy editing
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 # Copy draft documents for markup on iPad
 ANNOTATED_DOCS="${ICLOUD}/Sigma/doc-drafts"
@@ -349,9 +386,9 @@ copyListing:
 	     $(YEARMONTHDAYTIME)-Sigma16-listing.pdf ; \
 	  rm $(YEARMONTHDAYTIME)-Sigma16-listing.ps
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Preparing a release
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 # make SetVersion
 
@@ -363,18 +400,18 @@ copyListing:
 # $ git tag -a v3.4.3 -m "version 3.4.3"
 # $ git push --tags
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # make SetVersion -- find version and define Version files
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 # make SetVersion --- The version number is defined in
 # src/gui/package.json; this makefile finds the number there and
-# defines a make variable $(VERSION).  This is used in several places,
-# including writing a VERSION file in the top directory (used in the
-# Welcome page and the User Guide) and src/gui/version.js (which makes
-# the version number available to the JavaScript program).  make
-# SetVersion should be invoked when the version or the Month/Year
-# changes.
+# defines a make variable $(VERSION).  This is used in several
+# places, including writing a VERSION file in the top directory
+# (used in the Welcome page and the User Guide) and
+# src/gui/version.js (which makes the version number available to
+# the JavaScript program).  make SetVersion should be invoked when
+# the version or the Month/Year changes.
 
 .PHONY: SetVersion
 SetVersion:
@@ -383,17 +420,17 @@ SetVersion:
 	echo "Copyright (c) $(YEAR) John T. O'Donnell" > COPYRIGHT.txt
 	echo "#+MACRO: S16version Version $(VERSION), $(MONTHYEAR)" > docs/VersionMacro.org
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # make assemble
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 .PHONY: assemble
 assemble:
 	wat2wasm src/base/emcore.wat -o src/base/emcore.wasm
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # make compile -- compile in src directory
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 .PHONY: compile
 compile:
@@ -401,9 +438,9 @@ compile:
 	make SetVersion
 	make assemble
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # make build -- compile and install into local server repository
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 checkInstallDir:
 	@echo S16_INSTALL_VERSION_DIR = $(S16_INSTALL_VERSION_DIR)
@@ -458,21 +495,21 @@ CopyInstall:
 	mkdir -p -m700 $(S16_INSTALL_DIR)/examples
 	cp -ur examples/* $(S16_INSTALL_DIR)/examples
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Install server
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
-# Copy server to Heroku github source directory.  Using quotes around
-# $(SIGSERVER_REPOSITORY) in case it contains spaces
+# Copy server to Heroku github source directory.  Using quotes
+# around $(SIGSERVER_REPOSITORY) in case it contains spaces
 
 .PHONY: installServer
 installServer:
 	cp -u src/server/runserver.mjs $(SIGSERVER_REPOSITORY)/src/server
 	cp -u src/server/sigserver.mjs $(SIGSERVER_REPOSITORY)/src/server
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Install home page
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 # Copy the home page index and style from dev source to the Sigma16
 # home page repository.  From there it can be pushed to github.
@@ -484,9 +521,9 @@ installHomepage :
 	cp -u ../docs/S16homepage/index.html $(S16_HOMEPAGE_REPOSITORY)
 	cp -u ../docs/docstyle.css  $(S16_HOMEPAGE_REPOSITORY)
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Assemble examples
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 AssembleExamples :
 	bash tools/asmAll.bash
@@ -494,9 +531,9 @@ AssembleExamples :
 ListExamples :
 	find ../Examples \( -name '*.asm.txt' \) -exec echo {} \;
 
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 # Clean up files
-#--------------------------------------------------------------
+#-----------------------------------------------------------------
 
 clean :
 	find ../ \( -name '*~' \
