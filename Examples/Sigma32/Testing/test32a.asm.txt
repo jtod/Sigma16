@@ -1,3 +1,6 @@
+; test32a: xadd instruction, asm and data statements
+; xadd instruction inserted in machine language
+
    lea   R2,1[R0]
    data  $e216   ; xadd R2,R2,R2
    data  $2200

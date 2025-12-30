@@ -1,4 +1,6 @@
-; testasm - test assembly of instructions
+; testasm:  test assembly of instructions
+; assembly languge for S32
+; 
 
    lea   R2,1[R0]
    data  $e216   ; ladd R2,R2,R2

@@ -479,14 +479,18 @@ statementSpec.set("jumpc1", {ifmt:iRX, afmt:akX, opcode:[15,5]})
 statementSpec.set("jal",    {ifmt:iRX, afmt:aRX, opcode:[15,6]})
 statementSpec.set("jumpz",  {ifmt:iRX, afmt:aRX, opcode:[15,7]})
 statementSpec.set("jumpnz", {ifmt:iRX, afmt:aRX, opcode:[15,8]})
-statementSpec.set("testset",
-                  {ifmt:iRX, afmt:aRX, opcode:[15,9]})
-statementSpec.set("xlea",
-                  {ifmt:iRX, afmt:aRX, opcode:[15,13]})
-statementSpec.set("xload",
-                  {ifmt:iRX, afmt:aRX, opcode:[15,14]})
-statementSpec.set("xstore",
-                  {ifmt:iRX, afmt:aRX, opcode:[15,15]})
+statementSpec.set(
+    "testset",
+    {ifmt:iRX, afmt:aRX, opcode:[15,9]})
+statementSpec.set(
+    "xlea",
+    {ifmt:iRX, afmt:aRX, opcode:[15,13]})
+statementSpec.set(
+    "xload",
+    {ifmt:iRX, afmt:aRX, opcode:[15,14]})
+statementSpec.set(
+    "xstore",
+    {ifmt:iRX, afmt:aRX, opcode:[15,15]})
 
 
 
@@ -557,16 +561,21 @@ statementSpec.set("timeroff",
 
 statementSpec.set("xadd",  // xadd Rd,Re,Rf
    {ifmt:iEXP, afmt:aRRR,    opcode:[14,32]})
-statementSpec.set("xsub",  // lsub Rd,Re,Rf
+statementSpec.set("xsub",  // xsub Rd,Re,Rf
    {ifmt:iEXP, afmt:aRRR,    opcode:[14,33]})
-statementSpec.set("xmul",  // lmul Rd,Re,Rf
+statementSpec.set("xmul",  // xmul Rd,Re,Rf
    {ifmt:iEXP, afmt:aRRR,    opcode:[14,34]})
-statementSpec.set("xdiv",  // ldiv Rd,Re,Rf
+statementSpec.set("xdiv",  // xdiv Rd,Re,Rf
    {ifmt:iEXP, afmt:aRRR,    opcode:[14,35]})
-statementSpec.set("xcmp",  // lcmp Rd,Re,Rf
+statementSpec.set("xcmp",  // xcmp Rd,Re,Rf
    {ifmt:iEXP, afmt:aRRR,    opcode:[14,36]})
-
-statementSpec.set("ljumpz",  // lstore Rd,fgh[Re]
+statementSpec.set("xaddc",  // xaddc Rd,Re,Rf
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,37]})
+statementSpec.set("xmuln",  // xmuln Rd,Re,Rf
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,38]})
+statementSpec.set("xdivn",  // xdivn Rd,Re,Rf
+   {ifmt:iEXP, afmt:aRRR,    opcode:[14,39]})
+statementSpec.set("xjumpz",  // xjumpz Rd,fgh[Re]
    {ifmt:iEXP, afmt:aRX,    opcode:[14,30]})
 statementSpec.set("ljumpnz",  // lstore Rd,fgh[Re]
    {ifmt:iEXP, afmt:aRX,    opcode:[14,31]})

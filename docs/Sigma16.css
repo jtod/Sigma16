@@ -23,6 +23,14 @@ span.section-number-3,span.section-number-4 {
 }
 */
 
+
+/* Hide section numbers in section headers */
+
+span.section-number-1, span.section-number-2,
+span.section-number-3, span.section-number-4 {
+    display: none;
+}
+
 /* postamble */
 div#postamble {
     color: blue;
@@ -167,6 +175,26 @@ div#preamble p.date {
     color: black;
     text-align: center;
     margin-top: 0.15em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+
+div#preamble p.runlink {
+    font-family:  Verdana, sans-serif;
+    font-size: 50%;
+    color:black;
+    text-align: center;
+    margin-top: 0.9em;
+    margin-bottom: 0em;
+    padding: 0em;
+}
+
+div#preamble p.sourcelink {
+    font-family:  Verdana, sans-serif;
+    font-size: 50%;
+    color:black;
+    text-align: center;
+    margin-top: 0em;
     margin-bottom: 0em;
     padding: 0em;
 }
@@ -367,6 +395,19 @@ div.title, h1 {
 div.author, div.date, div.titledate {
     font-family:  Verdana, sans-serif;
     font-size: 14pt;
+    font-weight: normal;
+    font-style: normal;
+    text-align: center;
+    color: #0000ff;
+    padding-top: 0em;
+    padding-bottom: 0em;
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+
+div.author, div.date, div.titledate {
+    font-family:  Verdana, sans-serif;
+    font-size: 11pt;
     font-weight: normal;
     font-style: normal;
     text-align: center;

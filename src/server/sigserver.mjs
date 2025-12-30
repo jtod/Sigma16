@@ -1,4 +1,5 @@
 // sigserver.mjs
+
 // This file is part of Sigma16: https://jtod.github.io/home/Sigma16/
 // License: GNU GPL Version 3.  See Sigma16/README and LICENSE
 // Copyright (c) 2022 John T. O'Donnell
@@ -14,9 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Sigma16.  If not, see <https://www.gnu.org/licenses/>.
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Sigma Server
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 // Sigma16 can run either in a browser which provides a graphical user
 // interface (GUI), or in a shell which provides a text interface.
@@ -51,17 +52,18 @@
 //    - visit https://sigma16.herokuapp.com
 //        /Sigma16/build/release/Sigma16/Sigma16.html
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Directories and files
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
-// $(SIGMASYSTEM)/src/Sigma16/build/dev/Sigma16           development
-// $(SIGMASYSTEM)/src/server/Sigma16/build/3.4.2/Sigma16  local repository
-// /app/build/3.4.2/Sigma16                               Heroku server
+// $(SIGMASYSTEM)/                             development
+//    /src/Sigma16/build/dev/Sigma16           development
+//    /src/server/Sigma16/build/3.4.2/Sigma16  local repository
+// /app/build/3.4.2/Sigma16                    Heroku server
 
 // All executable versions are stored in a build directory, with a
-// path of the form .../build/VERSION/Sigma16 where VERSION can be a
-// specific version number (e.g. "3.4.2") or "release" or "dev".
+// path of the form .../build/VERSION/Sigma16 where VERSION can be
+// a specific version number (e.g. "3.4.2") or "release" or "dev".
 
 // The server accesses the files in two steps:
 //   1. When the server launches, it sets S16_BUILD_DIR to the
@@ -72,9 +74,9 @@
 //   2. When a client makes a request, the URL cam specify release,
 //      dev, or a specific version
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // URLs
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 // The server supports the following URLs, where xxx is either
 //    https://sigma16.herokuapp.com/
@@ -124,9 +126,9 @@
 //    xxx/build/dev/Sigma16/Sigma16.html         *** deprecated
 //    xxx/build/3.4.0/Sigma16/Sigma16.html       *** deprecated
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Translating URL to file
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 // The Sigma16 Home Page uses the following URL for the "Click to
 // launch Sigma16" link:
@@ -143,9 +145,9 @@
 // to build/release and the server translates them all to build/3.4.2
 // (or whatever the current release version is).
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Packages
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 import express from 'express';
 import * as http from 'http'
@@ -154,13 +156,43 @@ import * as cors from 'cors'
 import * as ejs from 'ejs'
 import * as fs from "fs";
 import { fileURLToPath } from 'url';
+import * as mime from 'mime';
+import { dirname } from 'path';
 
-//-----------------------------------------------------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+console.log(__dirname); // Outputs the directory path
+console.log(__filename); // Outputs the full file path
+
+//----------------------------------------------------------------
+// Server
+//----------------------------------------------------------------
+
+const app = express();
+
+app.set ('view engine', 'ejs')
+
+// express.static.mime.define({'application/javascript': ['js']});
+// express.static.mime.define({'text/css': ['css']});
+// express.static.mime.define({'text/html': ['html']});
+
+// Define or override MIME type for .js files
+// mime.define({ 'application/javascript': ['js'] }, true);
+
+// Serve static files from "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.listen(3000, () => {
+    console.log('Server running at http://localhost:3000');
+});
+
+//----------------------------------------------------------------
 // Configuration
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
-// On the local server, the environment variables are set in .bashrc.
-// On Heroku, they are set using heroku config
+// On the local server, the environment variables are set in
+// .bashrc.  On Heroku, they are set using heroku config
 
 // Query
 //   S16_LATEST_RELEASE is reported as response to status/latest query
@@ -210,19 +242,11 @@ let S16_BUILD_DIR
 
 const PORT = process.env.PORT || S16_LOCAL_PORT
 
-//-----------------------------------------------------------------------
-// Server
-//-----------------------------------------------------------------------
-
-const app = express();
-app.set ('view engine', 'ejs')
-express.static.mime.define({'application/javascript': ['js']});
-express.static.mime.define({'text/css': ['css']});
-express.static.mime.define({'text/html': ['html']});
-
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Top index
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
+
+console.log ('Reached top index section')
 
 app.get ('/', (req,res) => {
     console.log (`responding-/`)
@@ -244,19 +268,23 @@ app.get ('/docstyle.css', (req,res) => {
     res.sendFile (path.join ('/app', 'docstyle.css'))
 })
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Provide latest version on request
 // URL path: /sigma16/status/latest/i.j.k
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 // When Sigma16 initializes, it makes an http fetch to
-// /status/latest/i.j.k, where i.j.k identifies the running version.
-// The server logs the request and responds with a string giving the
-// latest release; the value of the string is S16_LATEST_RELEASE.
-// That value is displayed on the Options page, enabling the user to
-// see whether they are running the latest release.
+// /status/latest/i.j.k, where i.j.k identifies the running
+// version.  The server logs the request and responds with a
+// string giving the latest release; the value of the string is
+// S16_LATEST_RELEASE.  That value is displayed on the Options
+// page, enabling the user to see whether they are running the
+// latest release.
 
 // Older versions use this form; keep for backward compatibility
+
+console.log ('about to do abb.get status/latest/:callerversion');
+
 app.get ('/status/latest/:callerversion', (req,res) => {
     const reqInfo = {
         date: new Date (),
@@ -272,8 +300,11 @@ app.get ('/status/latest/:callerversion', (req,res) => {
     res.send (reply)
 })
 
+console.log ('just did abb.get status/latest/:callerversion');
+
 // Starting URL with /sigma16 allows for status request for future
 // programs
+
 app.get ('/sigma16/status/latest/:callerversion', (req,res) => {
     const reqInfo = {
         date: new Date (),
@@ -289,10 +320,10 @@ app.get ('/sigma16/status/latest/:callerversion', (req,res) => {
     res.send (reply)
 })
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Request to launch Sigma16
 // URL path: sigma16/build/:version/Sigma16/Sigma16.html
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 // Calculate actual version number.  The http request may ask for a
 // specific version (1.2.3) or a symbolically named version (release,
@@ -311,7 +342,7 @@ function substituteVersion (v) {
 function finish (req, res, loc) {
     res.set ('Cross-Origin-Embedder-Policy', 'require-corp')
     res.set ('Cross-Origin-Opener-Policy', 'same-origin')
-//    console.log (loc)
+    //    console.log (loc)
     res.sendFile (loc)
 }
 
@@ -351,7 +382,9 @@ app.get('/sigma16/build/:version/Sigma16/emcore.wasm', (req, res) => {
 
 // generic file paths
 
-app.get('/sigma16/build/:version/Sigma16/:a/:b/:c/*', (req, res) => {
+console.log ('Reached generic file paths section')
+
+app.get('/sigma16/build/:version/Sigma16/:a/:b/:c/:d', (req, res) => {
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
@@ -361,7 +394,9 @@ app.get('/sigma16/build/:version/Sigma16/:a/:b/:c/*', (req, res) => {
     finish (req, res, loc)
 })
 
-app.get('/sigma16/build/:version/Sigma16/:a/:b/*', (req, res) => {
+console.log ('Reached after app.get at  generic file paths section')
+
+app.get('/sigma16/build/:version/Sigma16/:a/:b/:c', (req, res) => {
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
@@ -370,7 +405,7 @@ app.get('/sigma16/build/:version/Sigma16/:a/:b/*', (req, res) => {
     finish (req, res, loc)
 })
 
-app.get('/sigma16/build/:version/Sigma16/:a/*', (req, res) => {
+app.get('/sigma16/build/:version/Sigma16/:a/:b', (req, res) => {
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
@@ -384,31 +419,31 @@ app.get('/sigma16/build/:version/Sigma16/:a/*', (req, res) => {
 // Sigma16/src/base).  They are provided by this rule, which must come
 // after the rules that match src/gui/* and src/base/*
 
-app.get('/sigma16/build/:version/Sigma16/*.mjs', (req, res) => {
+app.get('/sigma16/build/:version/Sigma16/:a.mjs', (req, res) => {
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            'src', 'base', path.basename (req.path))
     finish (req, res, loc)
 })
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Cross origin isolation
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 // app.use (cors ())
 // app.use (express.static ('public'))
 
 // Without the res.set statements for Cross-Origin, Chrome gives a
 // deprecation warning (April 2021) because shared memory requires
-// cross origin isolation.  It is expected that Chrome 91 (May 2021)
-// will refuse to create the shared array.
+// cross origin isolation.  It is expected that Chrome 91 (May
+// 2021) will refuse to create the shared array.
 
 // https://developer.chrome.com/blog/enabling-shared-array-buffer/
 
 // SharedArrayBuffer is currently available in Desktop Chrome, but
-// from Chrome 91 it will be limited to cross-origin isolated pages.
-// You can make a page cross-origin isolated by serving the page with
-// these headers:
+// from Chrome 91 it will be limited to cross-origin isolated
+// pages.  You can make a page cross-origin isolated by serving
+// the page with these headers:
 
 //   Cross-Origin-Embedder-Policy: require-corp
 //   Cross-Origin-Opener-Policy: same-origin
@@ -418,11 +453,11 @@ app.get('/sigma16/build/:version/Sigma16/*.mjs', (req, res) => {
 // Cross-Origin-Resource-Policy header or CORS headers
 // (Access-Control-Allow-* and so forth).
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Testing the server
 // URL path: hello.html
 // URL path: world.html
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
 app.get ('/hello.html', (req,res) => {
     res.render ('hello')
@@ -432,19 +467,21 @@ app.get ('/world.html', (req,res) => {
     res.render ('world')
 })
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 // Launch the server
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------
 
-// The build directory contains a set of subdirectories, one for each
-// build that can be launched.  The subdirectories are named with the
-// version number.  The server recognises two virtual versions:
-// release and dev.  If either of these is launched, the server uses
-// the specific version as defined in the environment variables
-// S16_RELEASE_VERSION and S16_DEV_VERSION.  A comment at the
-// beginning of this file gives the URLs needed to launch any version.
+// The build directory contains a set of subdirectories, one for
+// each build that can be launched.  The subdirectories are named
+// with the version number.  The server recognises two virtual
+// versions: release and dev.  If either of these is launched, the
+// server uses the specific version as defined in the environment
+// variables S16_RELEASE_VERSION and S16_DEV_VERSION.  A comment
+// at the beginning of this file gives the URLs needed to launch
+// any version.
 
 // if run env is Local, arg is the BUILD_DIR to use
+
 export function StartServer (command) {
     console.log ('StartServer')
     let ok = true
@@ -488,3 +525,11 @@ export function StartServer (command) {
 //                                   process.env.SIGPART3,
 //                                   'Sigma16', 'build')
 //        console.log (`Local build directory = ${S16_LOCAL_BUILD_DIR}`)
+
+// const http = require('http') // new
+// const path = require('path');
+// const mime = require('mime'); // Install with: npm install mime
+
+// const cors = require('cors') // new
+// const ejs = require('ejs') // new
+// const fs = require('fs') // new

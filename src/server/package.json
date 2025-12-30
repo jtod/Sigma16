@@ -1,24 +1,21 @@
 {
-    "name": "sigma16",
-    "version": "3.10.1",
-    "description": "Computer architecture for research and teaching",
+    "name": "sigserver",
+    "version": "3.11.0",
+    "type" : "module",
+    "description": "Server for Sigma16",
     "repository": {
         "type": "git",
         "url": "https://github.com/jtod/Sigma16"
     },
     "homepage": "https://jtod.github.io/home/Sigma16/",
-    "main": "src/cli/Sigma16.mjs",
+    "main": "sigserver.mjs",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "asm": "node wa/assemble.js"
     },
     "keywords": [
         "Sigma16",
         "computer architecture",
         "machine language",
-        "assembly language",
-        "assembler",
-        "linker",
         "emulator"
     ],
     "author": "John T. O'Donnell",

@@ -4,7 +4,7 @@
 #+EMAIL: john.t.odonnell9@gmail.com
 #+DATE: {{{S16version()}}}
 
-# Copyright John T. O'Donnell, 2025
+# Copyright John T. O'Donnell, 2010-2025
 # Source repository: https://github.com/jtod/Sigma16
 
 # This file is part of Sigma16.  License: GNU GPL Version 3;
@@ -23,16 +23,51 @@
 # <https://www.gnu.org/licenses/>.
 
 # ----------------------------------------------------------------
-# Initialising (essential because el file is required):
-#   load Sigma16.el and visit directory:  M-x Sigma16
-# Building:
-#   update dynamic blocks, including BUILD_ID:  C-u C-c C-x C-u
-#   save file:  C-x s  (y)
-#   export html:  C-c C-e h h
-#   export pdf via latex:  C-c C-e l p
-#   export tex:  C-c C-e l l
+# Quick reference: how to build this document
+# ----------------------------------------------------------------
+#   1. M-x Sigma16 - first load Sigma.el, which is required
+#   2. C-u C-c C-x C-u - org-update-all-blocks, update build date
+#   3. C-x s (y) - save file
+#   4. C-e h h -  export to html
+#   5. C-e l l - export to html and tex
 # ----------------------------------------------------------------
 
+# ----------------------------------------------------------------
+# Building html and pdf
+# ----------------------------------------------------------------
+
+# Load Sigma.el.  Before building html, be sure to do M-x Sigma16.
+# This will visit the sigma16 source directory and also load
+# Sigma.el.
+
+# Update the build date.  This is shown at the very end of the
+# document, for both html and latex.  Do C-u C-c C-x C-u which
+# updates dynamic blocks.  Then save the file, as the update
+# modifies the source org file.
+
+# Build VERSION.txt and VersionMacro.org.
+#   cd $SIGMA16
+#   make SetVersion
+
+# Build html -  C-c C-e h h
+# Build tex  -  C-c C-e l l
+# Build pdf via latex -  C-c C-e l p
+
+# Build latex source and compile
+#   C-c C-e l l
+#   pdflatex Sigma16UserGuide
+#   biber  Sigma16UserGuide
+#   pdflatex Sigma16UserGuide
+#   pdflatex --shell-escape Sigma16UserGuide
+
+# make
+#   cd $SIGMA16/src; make docs/UserGuide/Sigma16UserGuide.pdf
+
+# To typeset, use the top document, Sigma16UserGuide.org.
+# This file may also be included in the csbook as an
+# appendix.  Individual sections can be typeset with C-c C-e
+# C-s h h or C-c C-e C-s h h followed by pdflatex
+# Sigma16UserGuideText.
 
 # ----------------------------------------------------------------
 # Editing source
@@ -47,51 +82,17 @@
 #   #+BEGIN_SRC Sigma16 exports: code
 #   #+END_SRC
 
-# A code listing won't be indented properly if the first character
-# is a space, which is usually the case.  To get proper
-# indentation, begin each code fragment with a non-space
-# character, which could be a letter (e.g. from a label) or a
-# nonbreakable space.  To insert nonbreakable space (Unicode hard
-# space), enter: C-x 8 space M-x.  Alternatively, insert-character
-# 21D2
+# Leading space in code.  A code listing won't be indented
+# properly if the first character is a space, which is usually the
+# case.  To get proper indentation, begin each code fragment with
+# a non-space character, which could be a letter (e.g. from a
+# label) or a nonbreakable space.  To insert nonbreakable space
+# (Unicode hard space), enter: C-x 8 space M-x.  Alternatively,
+# insert-character 21D2
 
-# --------------------------------------------------------------
-# Building html and pdf
-# --------------------------------------------------------------
-
-# Build VERSION.txt and VersionMacro.org
-#   cd $SIGMA16
-#   make SetVersion
-
-# Build html
-#   C-c C-e h h
-
-# Build pdf via latex
-#   C-c C-e l p
-
-# Build latex source and compile
-#   C-c C-e l l
-#   pdflatex Sigma16UserGuide
-#   biber  Sigma16UserGuide
-#   pdflatex Sigma16UserGuide
-#   pdflatex --shell-escape Sigma16UserGuide
-
-# Build project containing current file
-#   C-c C-e P p
-#   Configuration in ~/.emacs.d/init.el
-
-# make
-#   cd $SIGMA16/src; make docs/UserGuide/Sigma16UserGuide.pdf
-
-# To typeset, use the top document, Sigma16UserGuide.org.
-# This file may also be included in the csbook as an
-# appendix.  Individual sections can be typeset with C-c C-e
-# C-s h h or C-c C-e C-s h h followed by pdflatex
-# Sigma16UserGuideText.
-
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
 # Typesetting
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
 
 #  #+HTML: this is only for html export
 #  #+LATEX: this is only for latex export
@@ -123,8 +124,38 @@
 # https://emacs.stackexchange.com/questions/45191/how-to-place-author-and-date-under-title
 
 # --------------------------------------------------------------
-# Macros
+# Table of Contents
 # --------------------------------------------------------------
+
+# For html, section numbers are distracting, and can be omitted
+# with +OPTIONS: num:nil.  For latex, num:nil turns off the table
+# of contents.  Is there a way to keep the toc but omit the
+# section numbers?
+
+# This turns off section numbering (good) but it also turns off
+# the table of contents for tex export (bad, and it isn't supposed
+# to do that):
+
+# This numbers levels 1 and 2; html uses bullets for deeper levels
+# and latex omits deeper levels from toc
+# #+OPTIONS: num:2
+
+# #+OPTIONS: num:nil
+# #+OPTIONS: UNNUMBERED:t
+
+# This should keep toc but omit section numbers, but it doesn't work:
+#   #+OPTIONS: toc:t num:nil
+
+# Strtegy: <2025-12-20 Sat>
+#  - don't use num:nil
+#  - For latex, keep section numbering
+#  - For html, use css to hide section numbers, and use
+#    Sigma16.el to inhibit inclusion of section numbers in
+#    the table of contents
+
+# ----------------------------------------------------------------
+# Macros
+# ----------------------------------------------------------------
 
 #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
 
@@ -147,24 +178,15 @@
 # definition prevents an error message (undefined macro) from
 # aborting the export.
 
-# Figures
 
-# #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
-
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
 # General configuration
-# --------------------------------------------------------------
-
-
-# deprecated
-# #+OPTIONS: toc:nil
-# #+TOC: nil
+# ----------------------------------------------------------------
 
 # Table of contents
 
 # Does this do anything?  Seems not...
 # Disable the table of contents until after the title section
-
 
 # Bibliography
 
@@ -206,19 +228,39 @@
 # To run: [[https://jtod.github.io/home/Sigma16]]
 # - Source code: [[https://github.com/jtod/Sigma16]]
 
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
 # LaTeX configuration
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
 
-# LaTeX preamble
+# How to insert raw latex commands
+#  #+BEGIN_EXPORT latex
+#  #+END_EXPORT
 
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [letterpaper,12pt]
-
 #+LATEX_HEADER: \usepackage{../Sigma16}
 #+LATEX_HEADER: \usepackage{svg}
 
-# Not in use...
+# I want to have two active URL links just below title, author,
+# and date.  This is done differently for html and latex export.
+# For latex, the following will insert links to run Sigma16 (on
+# the Sigma16 Home Page), and to the github source code.  These
+# links are placed after the date in the title block.
+
+#+LATEX_HEADER: \usepackage{titling}
+#+LATEX_HEADER: \predate{\begin{center}}
+#+LATEX_HEADER: \postdate{\vspace{0.5em}\par Run: \url{https://jtod.github.io/home/Sigma16} \par Source code: \url{https://github.com/jtod/Sigma16}\end{center}}
+
+
+# Deprecated, or Not in use...
+
+# #+LATEX_HEADER: \postdate{\par abc}
+# #+LATEX_HEADER: \postdate{\par def}
+# #+LATEX_HEADER: \postdate{\end{center}}
+
+#  #+LATEX_HEADER: \usepackage{Sigma}    # use globel def
+#  #+LATEX_HEADER: \usepackage{UserGuide}
+
 # #+LATEX_HEADER: \usepackage{enumitem}
 # #+LATEX_HEADER: \usepackage[margin=3.5cm]{geometry}
 # 12pt text and 3.5cm margins give about 72 characters per line
@@ -230,44 +272,36 @@
 # #+LATEX_HEADER: \usepackage{svg}
 # #+LATEX_HEADER: \svgpath{{figures/svg/}}
 
-# For figures, use \includegraphics without extension, for
-# latex it should use .pdf and for html it should use .svg.
-# There are tools to build both from .tex using tikz
-
-#+BEGIN_EXPORT latex
-\begin{center}
-\url{https://jtod.github.io/home/Sigma16}
-\end{center}
-\tableofcontents
-#+END_EXPORT
-
-#  #+LATEX_HEADER: \usepackage{Sigma}    # use globel def
-#  #+LATEX_HEADER: \usepackage{UserGuide}
-
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
 # html configuration
-# --------------------------------------------------------------
+# ----------------------------------------------------------------
 
+# How to insert raw html commands
+#  #+BEGIN_EXPORT html
+#  #+END_EXPORT
 
 #+HTML_HEAD: <link rel="stylesheet" href="../Sigma16.css"/>
 #+HTML_HEAD: <link rel="icon" type="image/png" href="../../src/graphics/favicon.ico"/>
 #+HTML_HEAD_EXTRA: <style type="text/css"> td { padding: 4px 5px 4px 5px } </style>
 
+# I want to have two active URL links just below title, author,
+# and date.  This is done differently for html and latex export.
+# For html, the links are defined in the html preamble, which is
+# defined in src/tools/Sigma.el.
 
-# Including raw html
-#  #+BEGIN_EXPORT html
-#  #+END_EXPORT
+# ----------------------------------------------------------------
+# Figures
+# ----------------------------------------------------------------
 
-# Not in use...
-# #+OPTIONS: html-tableel-org:t
+# For figures, use \includegraphics without extension, for
+# latex it should use .pdf and for html it should use .svg.
+# There are tools to build both from .tex using tikz
 
+# #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
 
 # --------------------------------------------------------------
 # Beginning of the document
 # --------------------------------------------------------------
-
-#+OPTIONS: toc:4
-#+OPTIONS: num: nil
 
 * Introduction
 :PROPERTIES:
@@ -514,106 +548,102 @@ the top to switch between them:
   machine language, and shows the assembly listing as well as
   the object code.
 
-- *Linker* is used to combine a collection of object code
-  modules into a single executable program.  It also performs
-  external name resolution and relocation.  Programs that
-  consist of just one module do not need the linker, and you
-  can skip it.
+- *Linker* is used to combine a collection of object code modules
+  into a single executable program.  It also performs external
+  name resolution and relocation.  Programs that consist of just
+  one module do not need the linker, and you can skip it.
 
 - *Processor* shows the components of the architecture and
   executes machine language programs.
 
 - *Options* allows you to configure how the system operates.
 
-- *About* gives general information about the software,
-  including the version.
+- *About* gives general information about the software, including
+  the version.
 
-- *Hide User Guide* makes the entire window available to the
-  main working area.  It is a toggle that changes to *Show
-  User Guide*.
+- *Hide User Guide* makes the entire window available to the main
+  working area.  It is a toggle that changes to *Show User Guide*.
   
 ** Registers, constants, and arithmetic
 
 #+INDEX: register file
-Programs do most of their work using the *register file*,
-which is an array of 16 registers named R0, R1, R2, ..., R15.
-The Register File is displayed in a box on the Processor
-page.
+Programs do most of their work using the *register file*, which is
+an array of 16 registers named R0, R1, R2, ..., R15.  The Register
+File is displayed in a box on the Processor page.
 
-A register is a circuit that can hold a number, and the
-elements of the register file can be used to hold variable
-values.  They are analogous to the registers in a calculator:
-think of each register as a box that can hold a number, and
-think of the register name as a variable name.  Two of the
-registers, R0 and R15, are special and should not be used to
-hold variables.
+A register is a circuit that can hold a number, and the elements
+of the register file can be used to hold variable values.  They
+are analogous to the registers in a calculator: think of each
+register as a box that can hold a number, and think of the
+register name as a variable name.  Two of the registers, R0 and
+R15, are special and should not be used to hold variables.
 
-A computer program is a sequence of *instructions*.
-Instructions are similar to statements in a programming
-language, but they are simpler.
+A computer program is a sequence of *instructions*.  Instructions
+are similar to statements in a programming language, but they are
+simpler.
 
 Sigma16 performs arithmetic on data in registers.  To do any
-computation on some numbers, we first need to get those
-numbers into registers.  The *lea* instruction. can be used
-to place a constant into a register.  For example, to load 42
-into register 3, write
+computation on some numbers, we first need to get those numbers
+into registers.  The *lea* instruction. can be used to place a
+constant into a register.  For example, to load 42 into register
+3, write
 
 #+BEGIN_SRC Sigma16 exports: code
      lea  R3,42[R0]     ; R3 := 42
 #+END_SRC
 
-This is a statement in *assembly language*, and it describes
-one instruction.  This statement contains three parts:
+This is a statement in *assembly language*, and it describes one
+instruction.  This statement contains three parts:
 
-- The *operation* is *lea*.  This tells the computer what action to
-  perform, and "lea" says to put a value into a register.  Later we
-  will see why this instruction is called "lea".
-- The *operands* are *R2,42[R0]*.  R2 is the /destination/,
-  where the value will be placed.  The value to be put into
-  the destination is 42.  For now, ignore the *[R0]*; its
-  purpose will be described later.
+- The *operation* is *lea*.  This tells the computer what action
+  to perform, and "lea" says to put a value into a register.
+  Later we will see why this instruction is called "lea".
+- The *operands* are *R2,42[R0]*.  R2 is the /destination/, where
+  the value will be placed.  The value to be put into the
+  destination is 42.  For now, ignore the *[R0]*; its purpose will
+  be described later.
 
-- Everything after the semicolon is a *comment*.  This
-  comment is a programming language statement that describes
-  what the instruction does: it sets the variable R3 to 42.
+- Everything after the semicolon is a *comment*.  This comment is
+  a programming language statement that describes what the
+  instruction does: it sets the variable R3 to 42.
 
 The name *lea* is the *operation*, i.e. the name of the
-instruction.  The operand field consists of two operands
-separated by a comma.  The first operand, R2, is called the
-*destination*; this is the register where the result will be
-placed.  The second operand is a constant 42 followed by
-[R0].  When the computer executes this instruction, it simply
-places the constant into the destination.  In a higher level
-language, we could write *R2 := 42*.
+instruction.  The operand field consists of two operands separated
+by a comma.  The first operand, R2, is called the *destination*;
+this is the register where the result will be placed.  The second
+operand is a constant 42 followed by [R0].  When the computer
+executes this instruction, it simply places the constant into the
+destination.  In a higher level language, we could write *R2 :=
+42*.
 
-Most instructions follow a similar pattern: the first operand
-is the destination where the result is placed, and the
-subsequent operands are the arguments to the computation.
-This is the same convention used in assignment statements in
-many programming languages: the registers in add R1,R2,R3
-appear in the same order as the variables in R1 := R2 + R3.
+Most instructions follow a similar pattern: the first operand is
+the destination where the result is placed, and the subsequent
+operands are the arguments to the computation.  This is the same
+convention used in assignment statements in many programming
+languages: the registers in add R1,R2,R3 appear in the same order
+as the variables in R1 := R2 + R3.
 
-All arithmetic operations take place in the registers, and
-there is a separate instruction for each operation.  For
-example, the following instruction will add the values in R8
-and R1 and then put the result into R4:
+All arithmetic operations take place in the registers, and there
+is a separate instruction for each operation.  For example, the
+following instruction will add the values in R8 and R1 and then
+put the result into R4:
 
 #+BEGIN_SRC Sigma16 exports: code
     add   R4,R8,R1  ; R4 := R8 + R1
 #+END_SRC
 
-Notice that the operand field doesn't use operators like :=
-or +; those are specified by the operation field (lea, add).
-Each instruction performs only one operation.  The operand
-field just separates the operands with commas.  The first
-operand (R4 in this example) is the *destination*, which is
-where the result will be placed.  The last two operands (R8
-and R1) are the values that will be added.
+Notice that the operand field doesn't use operators like := or +;
+those are specified by the operation field (lea, add).  Each
+instruction performs only one operation.  The operand field just
+separates the operands with commas.  The first operand (R4 in this
+example) is the *destination*, which is where the result will be
+placed.  The last two operands (R8 and R1) are the values that
+will be added.
 
-To perform a calculation, we need to get the data into
-registers (using lea) and then perform the calculation (using
-arithmetic instructions).  The following program calculates
-3 + 4 and puts the result into R2:
+To perform a calculation, we need to get the data into registers
+(using lea) and then perform the calculation (using arithmetic
+instructions).  The following program calculates 3 + 4 and puts
+the result into R2:
 
 #+BEGIN_SRC Sigma16 exports: code
      lea   R5,3[R0]    ; R5 := 3
@@ -622,17 +652,16 @@ arithmetic instructions).  The following program calculates
 #+END_SRC
 
 It's a good idea to use comments to explain the meaning of an
-instruction.  For now, comments like "R4 := R8 + R1" will be
-used to show what the instruction does. That's useful while
-learning what the instructions do, but later on we will use
-comments to give more meaningful information (for example,
-what do the values in the registers mean, and why are we
-adding them?).
+instruction.  For now, comments like "R4 := R8 + R1" will be used
+to show what the instruction does. That's useful while learning
+what the instructions do, but later on we will use comments to
+give more meaningful information (for example, what do the values
+in the registers mean, and why are we adding them?).
 
-There are three more arithmetic instructions.  These follow
-the same pattern as add: in each case, the arithmetic is
-performed on the last two registers and the result is placed
-in the destination (the first register):
+There are three more arithmetic instructions.  These follow the
+same pattern as add: in each case, the arithmetic is performed on
+the last two registers and the result is placed in the destination
+(the first register):
 
 #+BEGIN_SRC Sigma16 exports: code
      add  R4,R11,R6   ; R4 := R11 + R6
@@ -642,22 +671,22 @@ in the destination (the first register):
 #+END_SRC
 
 The divide instruction is slightly different: it produces two
-results, the quotient and the remainder.  The quotient is
-placed in the destination, and the remainder is automatically
-placed into R15, even though the instruction doesn't mention
-R15.  If you write *div R15,R1,R2*, the quotient is placed in
-R15 and the remainder is discarded.
+results, the quotient and the remainder.  The quotient is placed
+in the destination, and the remainder is automatically placed into
+R15, even though the instruction doesn't mention R15.  If you
+write *div R15,R1,R2*, the quotient is placed in R15 and the
+remainder is discarded.
 
-Normally an arithmetic instruction will put a new value into
-the destination register, but the operand registers are left
-unchanged.  However, what happens if one of the operands is
-the same as the destination, for example *add R7,R7,R8*?
+Normally an arithmetic instruction will put a new value into the
+destination register, but the operand registers are left
+unchanged.  However, what happens if one of the operands is the
+same as the destination, for example *add R7,R7,R8*?
 
-An arithmetic instruction proceeds in three phases: (1)
-obtain the values in the operand registers; (2) perform the
-arithmetic on those values; and (3) put the result into the
-destination, discarding whatever value was previously there.
-So consider this example:
+An arithmetic instruction proceeds in three phases: (1) obtain the
+values in the operand registers; (2) perform the arithmetic on
+those values; and (3) put the result into the destination,
+discarding whatever value was previously there.  So consider this
+example:
 
 #+BEGIN_SRC Sigma16 exports: code
     lea   R7,20[R0]  ; R7 := 20
@@ -665,23 +694,22 @@ So consider this example:
     add   R7,R7,R8   ; R7 := R7 + R8
 #+END_SRC
 
-After the two lea instructions have executed, R7 contains 20
-and R8 contains 30.  The add instruction does the following:
+After the two lea instructions have executed, R7 contains 20 and
+R8 contains 30.  The add instruction does the following:
 
 1. It fetches the values in R7 and R8, obtaining 20 and 30
 2. It adds the values, obtaining the result 50
-3. It puts the result 50 into the destination R7, discarding
-   the previous value.
+3. It puts the result 50 into the destination R7, discarding the
+   previous value.
    
 The final result is that R7 contains 50.
 
-Constant data can be specified using either decimal or
-hexadecimal notation.
+Constant data can be specified using either decimal or hexadecimal
+notation.
 
-- Decimal numbers are written as strings of digits,
-  optionally preceded by a minus sign: 3,-19, 42.  Leading
-  zeros are optional, so 23 and 0023 both mean the same
-  (twenty three).
+- Decimal numbers are written as strings of digits, optionally
+  preceded by a minus sign: 3,-19, 42.  Leading zeros are
+  optional, so 23 and 0023 both mean the same (twenty three).
 
 - Hexadecimal numbers are written as four hex digits, and in
   assembly language programs they are indicated by putting $
@@ -695,37 +723,36 @@ hexadecimal notation.
      lea   R4,0012[R0]   ; R4 := 12 (hex 000c)
 #+END_SRC
 
-The processor page shows numbers as hex without the leading
-$, but in an assembly language program the $ is needed to
-avoid ambiguity.
+The processor page shows numbers as hex without the leading $, but
+in an assembly language program the $ is needed to avoid
+ambiguity.
 
-Sigma uses := as the assignment operator; thus we write R7 :=
-R7 + R8 (and we don't write R7 = R7 + R8).  This is because
-an assignment statement is profoundly different from an
-equation, and mathematicians have long used the = operator to
-indicate equations.  It isn't just an academic or theoretical
-point; there have been plenty of occasions where computer
-programmers get confused between assignment and equality, and
-using the wrong operator leads to serious bugs.  (A major
-security breach occurred because a C programmer forgot that
-in C, = does not mean equals.)
+Sigma uses := as the assignment operator; thus we write R7 := R7 +
+R8 (and we don't write R7 = R7 + R8).  This is because an
+assignment statement is profoundly different from an equation, and
+mathematicians have long used the = operator to indicate
+equations.  It isn't just an academic or theoretical point; there
+have been plenty of occasions where computer programmers get
+confused between assignment and equality, and using the wrong
+operator leads to serious bugs.  (A major security breach occurred
+because a C programmer forgot that in C, = does not mean equals.)
 
 Why does assembly language use a notation like add R5,R2,R3
-instead of R5 := R2 + R3?  In short, every instruction will
-use a similar notation: a keyword for the operation, followed
-by the operands separated by commas.  This notation is also
-related closely to the way instructions are represented in
-memory, which we'll see later.
+instead of R5 := R2 + R3?  In short, every instruction will use a
+similar notation: a keyword for the operation, followed by the
+operands separated by commas.  This notation is also related
+closely to the way instructions are represented in memory, which
+we'll see later.
 
-An arithmetic instruction performs just one operation.
-Several instructions are needed to evaluate a larger
-expression.  In general, you'll need a separate instruction
-for every operator that appears in an expression.
+An arithmetic instruction performs just one operation.  Several
+instructions are needed to evaluate a larger expression.  In
+general, you'll need a separate instruction for every operator
+that appears in an expression.
 
-Example: calculate 6 + 2 * 4 and put the result into R10.  We
-have to put the numbers into registers, using lea, and then
-perform the arithmetic.  It doesn't matter which registers
-are used (as long as we avoid R0 and R15).
+Example: calculate 6 + 2 * 4 and put the result into R10.  We have
+to put the numbers into registers, using lea, and then perform the
+arithmetic.  It doesn't matter which registers are used (as long
+as we avoid R0 and R15).
 
 #+BEGIN_SRC Sigma16 exports: code
     lea   R1,6[R0]    ; R1 := 6
@@ -736,11 +763,10 @@ are used (as long as we avoid R0 and R15).
     trap  R0,R0,R0    ; halt
 #+END_SRC
 
-This is nearly enough to constitute a complete program.  Only
-one more thing is needed: a way to terminate the program when
-it finishes.  There is a special instruction to do this: a
-trap instruction, where the first operand is R0, will stop
-the program.
+This is nearly enough to constitute a complete program.  Only one
+more thing is needed: a way to terminate the program when it
+finishes.  There is a special instruction to do this: a trap
+instruction, where the first operand is R0, will stop the program.
 
 #+BEGIN_SRC Sigma16 exports: code
     trap  R0,R0,R0   ; halt
@@ -775,68 +801,65 @@ Here is a complete program named ConstArith.  It consists of
 :CUSTOM_ID: sec-examples
 :END:
 
-You can go to the Editor, and type it in (or copy and paste
-it in), but this program is part of the collection of
-examples built in to Sigma16.  Here's how to run it:
+You can go to the Editor, and type it in (or copy and paste it
+in), but this program is part of the collection of examples built
+in to Sigma16.  Here's how to run it:
 
-- Go to the *Examples* page.  Click *Examples*, then *Core*,
-  then *Simple*.  This brings up a list of small and simple
-  example programs.  Click *ConstArith.asm.txt*.  You should
-  see the listing of the program.  The file name has an
-  extension *.asm.txt* that identifies the file as an
-  assembly language source program.
+- Go to the *Examples* page.  Click *Examples*, then *Core*, then
+  *Simple*.  This brings up a list of small and simple example
+  programs.  Click *ConstArith.asm.txt*.  You should see the
+  listing of the program.  The file name has an extension
+  *.asm.txt* that identifies the file as an assembly language
+  source program.
 
-- Click *Editor*, and you should see the text of the program
-  in the window.
+- Click *Editor*, and you should see the text of the program in
+  the window.
 
 - Go to the *Assembler* page and click *Assemble*.
 
 - Go to the *Processor* page.  Click *Boot*, then *Step*
-  repeatedly and watch the effect of each instruction by
-  observing how the registers are changed.
+  repeatedly and watch the effect of each instruction by observing
+  how the registers are changed.
 
 The Processor page shows numbers in hexadecimal.  The add
-instruction puts 14 into R10, and this is displayed as hex
-000e.
+instruction puts 14 into R10, and this is displayed as hex 000e.
 
-It's a good idea to step through the program slowly, rather
-than running it to completion at full speed.  The emulator
-will show the next instruction to be executed, highlighted in
-blue.  Think about what the instruction should do; in
-particular what changes to the registers will occur?  Then
-click Step and check to see if the right thing happened.
+It's a good idea to step through the program slowly, rather than
+running it to completion at full speed.  The emulator will show
+the next instruction to be executed, highlighted in blue.  Think
+about what the instruction should do; in particular what changes
+to the registers will occur?  Then click Step and check to see if
+the right thing happened.
 
-Generally you can use any register you like (apart from R0
-and R15), and the choices of registers in the previous
-examples are arbitrary.  Registers R1 through R14 behave the
-same.  However, two of the registers are different:
+Generally you can use any register you like (apart from R0 and
+R15), and the choices of registers in the previous examples are
+arbitrary.  Registers R1 through R14 behave the same.  However,
+two of the registers are different:
 
-- *R0* contains the constant 0 and it will never change.  Any
-  time an instruction uses R0, the value it gets will be 0.
-  It is legal for an instruction to attempt to modify R0 (for
-  example, add R0,R3,R4 is legal) but after executing this
-  instruction R0 still contains 0.  The reason for this is
-  that we frequently need to have access to a register
-  containing 0.
+- *R0* contains the constant 0 and it will never change.  Any time
+  an instruction uses R0, the value it gets will be 0.  It is
+  legal for an instruction to attempt to modify R0 (for example,
+  add R0,R3,R4 is legal) but after executing this instruction R0
+  still contains 0.  The reason for this is that we frequently
+  need to have access to a register containing 0.
   
-- *R15* is used for two specific purposes.  We have already
-  seen the first: the divide instruction places the remainder
-  into R15.  The second purpose is that R15 contains the
-  *condition code*, which is a word that contains a number of
-  bits that provide some information about an instruction.
-  For example, if an addition produces a result that is too
-  large to fit in a register, a special flag indicating this
-  is set in R15.  Several of the instructions, particularly
-  the arithmetic instructions, change the value of R15 as
-  well as placing the result in the destination register.
-  For this reason, R15 cannot be used to hold a variable
-  since its value would be destroyed almost immediately.
+- *R15* is used for two specific purposes.  We have already seen
+  the first: the divide instruction places the remainder into R15.
+  The second purpose is that R15 contains the *condition code*,
+  which is a word that contains a number of bits that provide some
+  information about an instruction.  For example, if an addition
+  produces a result that is too large to fit in a register, a
+  special flag indicating this is set in R15.  Several of the
+  instructions, particularly the arithmetic instructions, change
+  the value of R15 as well as placing the result in the
+  destination register.  For this reason, R15 cannot be used to
+  hold a variable since its value would be destroyed almost
+  immediately.
   
-To summarise, Registers R1 through R14 are all identical and
-can be used for variables.  R0 contains 0 and will never
-change.  R15 changes frequently and can be used to detect
-various error conditions and other information about an
-instruction.
+To summarise, Registers R1 through R14 are all identical and can
+be used for variables.  R0 contains 0 and will never change.  R15
+changes frequently and can be used to detect various error
+conditions and other information about an instruction.
 
 Here is another example:
 
@@ -856,13 +879,11 @@ Here is another example:
 
 Summary.
 
-- A lea instruction of the form *lea Rd,const[R0]* will put
-  the constant into Rd.  It can also be written as *lea
-  Rd,const*.
+- A lea instruction of the form *lea Rd,const[R0]* will put the
+  constant into Rd.  It can also be written as *lea Rd,const*.
 
-- The general form of an arithmetic instruction is *op
-  d,a,b*.  The meaning is *R_d := R_a op R_b*, and the fields
-  are:
+- The general form of an arithmetic instruction is *op d,a,b*.
+  The meaning is *R_d := R_a op R_b*, and the fields are:
   - op is one of add, sub, mul, div
   - Rd is the destination register (where the result goes)
   - Ra is the register containing the first operand
@@ -872,74 +893,68 @@ Summary.
 
 So far we have used registers in the register file to hold
 variables.  However, there are only 16 of these, and two have
-special purposes (R0 and R15).  That leaves only 14 registers
-for general use, and most programs need more than 14
-variables.
+special purposes (R0 and R15).  That leaves only 14 registers for
+general use, and most programs need more than 14 variables.
 
-To solve this problem, the computer contains another
-subsystem called the *memory*.  The memory contains a
-sequence of *memory locations*, each of which can hold a word
-(16 bits).  Each location is identifed by an *address*, which
-is a natural number $0, 1, 2, 3, \ldots, 65535$.  The
-notation *M[a]* denotes the value stored in the memory
-location with address a.
+To solve this problem, the computer contains another subsystem
+called the *memory*.  The memory contains a sequence of *memory
+locations*, each of which can hold a word (16 bits).  Each
+location is identifed by an *address*, which is a natural number
+$0, 1, 2, 3, \ldots, 65535$.  The notation *M[a]* denotes the
+value stored in the memory location with address a.
 
 The register file and the memory serve different purposes:
 
-- The register file is used to perform calculations.  In
-  computing something like x := (2*a + 3*b) / (x-1), all the
-  arithmetic must be done using the register file.  For
-  example, the instruction add R1,R5,R3 has both operands and
-  destination in registers, and this is true for all
-  arithmetic instructions.  The purpose of the registers is
-  to provide fast access to a small number of variables while
-  they are needed for calculations.
+- The register file is used to perform calculations.  In computing
+  something like x := (2*a + 3*b) / (x-1), all the arithmetic must
+  be done using the register file.  For example, the instruction
+  add R1,R5,R3 has both operands and destination in registers, and
+  this is true for all arithmetic instructions.  The purpose of
+  the registers is to provide fast access to a small number of
+  variables while they are needed for calculations.
  
-- There are only a few registers available, so we can't keep
-  all the variables permanently in registers.  The memory is
-  much larger: it contains 65,536 locations so it can hold
-  all the variables in a program.  But the memory is slow,
-  and it has a limitation: there is no instruction that can
-  do arithmetic on data in the memory.  The purpose of the
-  memory is to hold large amounts of data for future use.
+- There are only a few registers available, so we can't keep all
+  the variables permanently in registers.  The memory is much
+  larger: it contains 65,536 locations so it can hold all the
+  variables in a program.  But the memory is slow, and it has a
+  limitation: there is no instruction that can do arithmetic on
+  data in the memory.  The purpose of the memory is to hold large
+  amounts of data for future use.
   
-Normally, a program keeps its variables in memory, so a
-variable name refers to a memory location.  The variable name
-just stands for the /address/ of the location that contains
-the variable.  This allows you to refer to a variable by a
-name (x, sum, count) rather than an address (003c, 0104,
-00d7).
+Normally, a program keeps its variables in memory, so a variable
+name refers to a memory location.  The variable name just stands
+for the /address/ of the location that contains the variable.
+This allows you to refer to a variable by a name (x, sum, count)
+rather than an address (003c, 0104, 00d7).
 
 *** load and store
 
-Since we need a lot of variables, they need to be kept in
-memory.  But since we need to do arithmetic, and arithmetic
-can be performed only on data in registers, we adopt the
-following strategy:
+Since we need a lot of variables, they need to be kept in memory.
+But since we need to do arithmetic, and arithmetic can be
+performed only on data in registers, we adopt the following
+strategy:
 
 - Keep variables permanently in memory.
-- When you need to do arithmetic on some variables, copy them
-  from memory to registers.
-- When finished, copy the results from registers back to
-  memory.
+- When you need to do arithmetic on some variables, copy them from
+  memory to registers.
+- When finished, copy the results from registers back to memory.
 
 Two instructions are needed to do this:
 
-- *load* copies a word from a memory location into a
-  register.  Suppose *xyz* is a variable in memory; then to
-  copy its value into R2 we write *load R2,xyz[R0]*.
+- *load* copies a word from a memory location into a register.
+  Suppose *xyz* is a variable in memory; then to copy its value
+  into R2 we write *load R2,xyz[R0]*.
 
-- *store* copies a word from a register into a memory
-  location.  If R3 contains the result of some calculations,
-  and we want to put it back into memory in a variable named
-  result, we would write *store R3,result[R0]*.
+- *store* copies a word from a register into a memory location.
+  If R3 contains the result of some calculations, and we want to
+  put it back into memory in a variable named result, we would
+  write *store R3,result[R0]*.
   
-At this point we have enough instructions to write an
-assignment statement in assembly language.  Typically we will
-first write an algorithm using higher level language
-notation, and then translate it into instructions.
-Translating from a high level language to assembly language
-is called "compiling".
+At this point we have enough instructions to write an assignment
+statement in assembly language.  Typically we will first write an
+algorithm using higher level language notation, and then translate
+it into instructions.  Translating from a high level language to
+assembly language is called "compiling".
 
 Example: translate *x := a+b+c* into assembly language.
 
@@ -956,16 +971,16 @@ Solution:
 
 *** The data statement
 
-The variables used in a program need to be defined and given
-an initial value.  This is done with the *data* statement.
-The variable name comes first, and it must start at the
-beginning of the line (no space before it).  Then comes the
-keyword *data*, followed by the initial value, which may be
-written in either decimal or hexadecimal.  These pieces of
-the statement must be separated by white space.
+The variables used in a program need to be defined and given an
+initial value.  This is done with the *data* statement.  The
+variable name comes first, and it must start at the beginning of
+the line (no space before it).  Then comes the keyword *data*,
+followed by the initial value, which may be written in either
+decimal or hexadecimal.  These pieces of the statement must be
+separated by white space.
 
-For example, to define variables x, y, z and give them
-initial values:
+For example, to define variables x, y, z and give them initial
+values:
 
 #+BEGIN_SRC Sigma16 exports: code
 x    data   34    ; x is a variable with initial value 34
@@ -974,15 +989,15 @@ z    data    0    ; z is initially 0
 abc  data  $02c6  ; specify initial value as hex
 #+END_SRC
 
-The data statements should come *after* all the instructions
-in the program.  This may look surprising: in some
-programming languages you have to declare your variables at
-the beginning, before using them.  There is a good reason why
-we will put the instructions first, and the data statements
-after; but the reason will come later.
+The data statements should come *after* all the instructions in
+the program.  This may look surprising: in some programming
+languages you have to declare your variables at the beginning,
+before using them.  There is a good reason why we will put the
+instructions first, and the data statements after; but the reason
+will come later.
 
-Here is a simple example of a complete program that uses
-load, store, and data statements, to implement z := x + y.
+Here is a simple example of a complete program that uses load,
+store, and data statements, to implement z := x + y.
 
 #+BEGIN_SRC Sigma16 exports: code
 ; Program Add.  See README in top Sigma16 folder A minimal
@@ -2258,6 +2273,50 @@ As long as the breakpoint is enabled, execution will stop
 every time that location is encountered.  To prevent this,
 open the breakpoint popup again and click Disable.
 
+** Review of Core instructions
+
+- RRR instructions
+  - add R1,R2,R3
+  - sub R1,R2,R3
+  - mul R1,R2,R3
+  - div R1,R2,R3
+  - cmp R1,R2
+  - trap R1,R2,R3
+- RX instructions
+  - lea R1,const[Ra]
+  - load R1,const[Ra]
+  - store R1,const[R1]
+  - jump const[Ra]
+  - jumpc0 const[Ra]
+  - jumpc1 const[Ra]
+  - jal R1,const[Ra]
+
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: Core Instruction Set
+|--------------------+-----------------------------------|
+| add R1,R2,R3       | R1 := R2 + R3                     |
+| sub R1,R2,R3       | R1 := R2 - R3                     |
+| mul R1,R2,R3       | R1 := R2 * R3                     |
+| div R1,R2,R3       | R1 := R2 / R3                     |
+| cmp R1,R2          | compare R1,R2                     |
+| trap R1,R2,R3      | if R1=0 then halt                 |
+|                    |                                   |
+| lea R1,const[Ra]   | R1 := const + Ra                  |
+| load R1,const[Ra]  | R1 := M [const+Ra]                |
+| store R1,const[R1] | M [const+Ra] := R1                |
+| jump const[Ra]     | goto const+Ra                     |
+| jumpc0 k,const[Ra] | if R15.k=0 then goto M[[const+Ra] |
+| jumpc1 k,const[Ra] | if R15.k=1 then goto M[[const+Ra] |
+| jal R1,const[Ra]   | R1 := pc, goto const+Ra           |
+|--------------------+-----------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+  
 * Standard architecture tutorials
 
 The standard architecture provides additional instructions
@@ -2648,7 +2707,7 @@ Using save and restore makes the code shorter and more
 readable, and it's easier to check that the save an restore
 match each other.
 
-** Branching to pc-relative address :noexport:
+** Branching to pc-relative address (???)
 
 A branch instruction transfers control to a specified
 location, similar to a jump.  The difference is in how the
@@ -2677,8 +2736,8 @@ unconditional or conditional.
 The unconditional branches take one operand, which is a
 constant called the offset.
 
-** Stack instructions :noexport:
-** Arithmetic on natural numbers :noexport:
+** Stack instructions  (???)
+** Arithmetic on natural numbers (???)
 
 ** Modules and linking
 :PROPERTIES:
@@ -2768,6 +2827,7 @@ If a module was created by reading it from a file, its entry
 in the list contains an extra *Refresh* button.  Clicking
 this will reread the file and you won't need to use the file
 chooser dialogue box again.
+
 
 * The Sigma16 processor architecture
 :PROPERTIES:
@@ -3430,59 +3490,112 @@ table.  This is an array of jumps to interrupt handlers.
 
 (Will be implemented in future version)
 
+
+* Sigma32
+
+/Sigma32 is experimental and under development.  It is only
+partially implemented, and many details in this section are
+likely to change in the future./
+
+Sigma32 is a backward-compatible extension of Sigma16 to use 32
+bit words.  It provides 32 bit arithmetic, and addresses are 32
+bits so it has a much larger memory address space.
+
+Sigma32 is backward compatible with Sigma16: every Sigma16 program
+executes on Sigma32 exactly the same as on Sigma16.  Sigma32
+extends the Sigma16 registers to 32 bits; the Sigma16 instructions
+operate on the rightmost 16 bits of the registers.  The Sigma32
+instructions are similar to their 16 bit counterparts, so learning
+how to use them is straightforward.  Programs can mix 16 bit and
+32 bit instructions freely.
+
+In Sigma32, addresses are 32 bits.  Instructions from the Sigma16
+instruction set, such as lea and load, generate 16-bit addresses
+which are extended to 32 bits by padding on the left.
+
+The Sigma16 memory has $2^{16}$ words (i.e. 65,536 words).
+Sigma32 can address $2^{32}$ words (i.e 4,294,967,296 words).  In
+practice, the actual memory size supported by an implementation of
+Sigma32 will normally be much smaller than that, as it depends on
+the platform running the emulator and the primary memory size of
+your computer.
+
+The Sigma16 app supports both architectures.  It runs in two
+modes:
+- In 16 bit mode, the registers are 16 bits.  Execting a 32 bit
+  instruction triggers an invalid instruction interrupt.
+- In 32 bit mode, the registers are 32 bits and all instructions
+  can be used.
+
+When launched, the app starts out in 16 bit mode.
+- To switch the system to 32 bit mode, open the browser console.
+  In Edge, Chrome, Opera, and some other browsers, enter *Ctrl
+  Shift J*.  In the console, enter *setArch(32)*.
+- To go back to the default 16 bit mode, enter *setArch(16)*.
+- In the future, the GUI will provide buttons to switch
+  modes.
+
+Sigma32 instructions are represented using three formats:
+- Some use RX format.
+- Most 32 bit instructions are represented in EXP format
+- Some Sigma32 instructions need several 5-bit fields, in order to
+  index a bit within a 32 bit register. These instructions use
+  EXP32 format.
+
+
 * Instruction set
-:PROPERTIES:
-:CUSTOM_ID: sec-instruction-set
-:END:
+
+A note on terminology: the Sigma16 system contains a Core subset,
+a full 16-bit Standard subset, and an optional 32-bit extension
+called Sigma32.  The entire system, including the app which runs
+in a browser or in a shell using node, is called Sigma16.
 
 ** Instruction representation
 
-Instructions are represented in the memory of the computer
-using words, just like all other kinds of data.  From the
-programmer's perspective, an instruction is like a simple
-statement in a programming language.  From the circuit
-designer's perspective, instructions must be executed using
-logic gates, and the specific way it is represented as a word
-of bits is important.
+Instructions are represented in the memory of the computer using
+words, just like all other kinds of data.  From the programmer's
+perspective, an instruction is like a simple statement in a
+programming language.  From the circuit designer's perspective,
+instructions must be executed using logic gates, and the specific
+way it is represented as a word of bits is important.
 
 An instruction specifies several pieces of information.  For
-example, the instruction =add R1,R2,R3= says four things:
-it's an addition, the operands come from R2 and R3, and the
-result goes into R1.  Therefore to represent an instruction
-we need to organize a word as a collection of several
-*fields*.  A field is a portion of a word that contains a
-small number (for example, a register number). Each field
-gives one specific piece of information about the
-instruction.
+example, the instruction =add R1,R2,R3= says four things: it's an
+addition, the operands come from R2 and R3, and the result goes
+into R1.  Therefore to represent an instruction we need to
+organize a word as a collection of several *fields*.  A field is a
+portion of a word that contains a small number (for example, a
+register number). Each field gives one specific piece of
+information about the instruction.
 
 The particular scheme for describing an instruction as a
-collection of fields is called an *instruction format*.  Like
-most computers, Sigma16 has a small number of instruction
-formats and a larger number of instructions.  Instruction
-representation is key to both system software (compilers
-generate instructions) and computer hardware (a processor is
-a digital circuit that decodes and executes instructions).
+collection of fields is called an *instruction format*.  Like most
+computers, Sigma16 has a small number of instruction formats and a
+larger number of instructions.  Instruction representation is key
+to both system software (compilers generate instructions) and
+computer hardware (a processor is a digital circuit that decodes
+and executes instructions).
 
-The core architecture (the simplest part of the system) uses
-two instruction formats: the *RRR format* for instructions
-that perform calculations in the registers, and the *RX
-format* for instructions that refer to a memory location.
+The core architecture (the simplest part of the system) uses two
+instruction formats: the *RRR format* for instructions that
+perform calculations in the registers, and the *RX format* for
+instructions that refer to a memory location.
 
 The advanced parts of the architecture provide additional
 instructions, most of which are represented with the *EXP
 format*. The name EXP stands simultaneously for *expansion*
 (because it provides for many additional instructions) and
-*experimental* (because it allows for experimentation with
-the design and implementation of new instructions).
+*experimental* (because it allows for experimentation with the
+design and implementation of new instructions).
 
-Each instruction format has a fixed size, which is the number
-of words used to represent any instruction of that format:
+Each instruction format has a fixed size, which is the number of
+words used to represent any instruction of that format:
 - RRR instructions are one word
 - RX instructions are two words
 - EXP instructions are two words
 
-The first word of every instruction (for all instruction
-formats) contains the following fields:
+The first word of every instruction (for all instruction formats)
+contains the following fields:
 
 - op (bits 15-12) 4-bit opcode, determines instruction format
 - d  (bits 11-8)  4-bit destination
@@ -3495,35 +3608,276 @@ formats) contains the following fields:
 | 15-12 | 11-8 | 7-4 | 3-0 |
 +-------+------+-----+-----+
 
-The format of every instruction is determined by the op
-field.  Since this field contains 4 bits, it can specify 16
-values:
+The format of every instruction is determined by the op field.
+Since this field contains 4 bits, it can specify 16 values:
 
-- $RRR.$ If the op field is between 0 and 12 (hex 0 to hex
-  c), the instruction is RRR format, and there are 13 RRR
-  instructions.
+- $RRR.$ If the op field is between 0 and 12 (hex 0 to hex c), the
+  instruction is RRR format, and there are 13 RRR instructions.
 
-- *Reserved.* An op field value of 13 is reserved for future
-  expansion of the architecture.
+- *Reserved.* An op field value of 13 (hex d) is reserved for
+  future expansion of the architecture.
 
 - *EXP.* If the op field is 14 (hex e) the instruction is EXP
-  format and has a secondary opcode in the a and b fields.
+  format and has a secondary 8-bit opcode in the a and b fields.
 
-- *RX.* If the op field contains 15 (hex f) the instruction
-  is RX format with a secondary opcode in the b field.
+- *RX.* If the op field contains 15 (hex f) the instruction is RX
+  format with a secondary 4-bit opcode in the b field.
  
-Since an RRR instruction is one word, it contains just the
-op, d, a, b fields.  If an instruction is RX or EXP format,
-it has a second word whose format is described below in the
-sections on RX and EXP.
+Since an RRR instruction is one word, it contains just the op, d,
+a, b fields.  If an instruction is RX or EXP format, it has a
+second word whose format is described below in the sections on RX
+and EXP.
+
+** Instruction formats
+
+Sigma16 uses expanding opcodes.  This allows for a small number of
+compact 1-word instructions, as well as a larger number of
+instructions that require two or more words, where more bits are
+available for secondary operation codes.  The 1-word format is
+RRR, and the formats that use more than one word to represent an
+instruction are RX, EXP, and EXP3.
+
+Sigma16 is designed to support projects that extend the
+architecture.  For this reason, a number of opcodes in each format
+are nop (no operation).  You can modify the archtecture by turning
+any nop into whatever new instruction you like, and the programs
+in the Examples directory will continue to run just as before.
+This also means that some instructions aren't represented as
+compactly as possible.  For example, the RRR nops and the RX nops
+could be used for simpler representations of some of the EXP
+instructions, but then it would be harder to carry out projects
+that could have used RRR or RX format.  In particular, some of the
+simplest extensions to the system would be to introduce a new RRR
+instruction, so it's valuable to have some RRR opcodes available.
+
+
+The instruction formats are:
+- *RRR*
+  - There are 13 RRR instructions: 0--C
+  - 9 of these are defined instructions.  The rest are
+    nop, and available for projects.
+  - 1 word
+  - first word: op,d,a,b
+  - op: bits 15-12 (4 bits)
+  - d: bits 11-8 (4 bits)
+  - a: bits 7-4 (4 bits)
+  - b: bits 3-0 (4 bits)
+  - operation: op
+  - primary operation code is op field.  If 0 <= op <= C, the
+    instruction is RRR format and there are 13 possible RRR
+    instructions.  If D <= op <= F, the instruction has a
+    different format and the full operation is determined by an
+    expanding opcode specified by b or ab.
+- *RX*
+  - There are 16 RX instructions: F,0--F,F
+  - 2 words
+  - operation: F,b
+  - op field is always F; secondary operation code is b field
+  - op,d,a,b ; disp
+  - first word is same as for RRR
+  - second word: disp (16 bits)
+- *EXP*
+  - There are up to 192 EXP instructions: E,00--E,BF
+  - 2 words
+  - operation: E,ab
+  - op field is always E; secondary operation code is ab (8 bits)
+    where 0 <= ab < F6
+  - op,d,ab ; e,f,g,h
+  - first word is same as for RRR, but a,b treated as a single
+    8-bit field called ab
+  - second word: e,f,g,h
+  - e: bits 15-12 (4 bits)
+  - f: bits 11-8 (4 bits)
+  - g: bits 7-4 (4 bits)
+  - h: bits 3-0 (4 bits)
+- *EXP3*
+  - There are up to 64 EXP3 instructions: E,C0--E,FF
+  - 3 words
+  - Not used for 16 bit instructions.  In Sigma32, used to provide
+    5-bit fields for indexing a bit in a register.
+  - op field is always E; secondary operation code is ab (8 bits)
+    where F6 < ab <= FF
+  - op,d,ab ; e,f,g,h
+  - op,d,ab ; e,f,g,h ; p,q,r,s
+  - first word is same as for EXP
+  - second word is same as for EXP
+  - third word: p,q,r,s
+  - p: bits 15-11 (5 bits)
+  - q: bits 10-6 (5 bits)
+  - r: bits 5-1 (5 bits)
+  - s: bit 0 (1 bit)
+
+Given the first word of an instruction, the following algorithm
+determines which instruction this is.  This algorithm is not
+software; it is implemented directly by the processor hardware.
+In other words, the algorithm is implemented as a digital circuit.
+The Sigma16 app contains adA software emulator for the
+architecture, which also implements the algorithm, but this is a
+simulation of the processor circuit, not an ordinary software
+program.
+
+#+BEGIN_EXAMPLE
+Fetch an instruction word
+Check op field
+Case 0 <= op <= C
+   this is an RRR instruction  (there are 13)
+Case op=D
+   This is reserved for experimentation and
+   projects that define a new instruction format.
+   In the current architecture, the instruction is
+   1 word and is interpreted as nop
+Case op=E
+   Fetch a second instruction word.
+   Check secondary opcode, which is ab field.
+   Case 00 <= ab < C0
+      This is an EXP instruction.
+   Case C0 <= ab <= FF
+      This is an EXP3 instruction.
+      Fetch third instruction word.
+Case op=F
+   This is an RX instruction, determined by
+   the b field.  There are 16 RX instructions.
+#+END_EXAMPLE
+- Upper case letters are Hex digits
+- Lower case letters are instruction fields.
+
+
+# Rd.f:g := h#(Rd.f:g,Re.f:g) |
+#  Rd.f:g := h#(Rd.f:g,Re.f:g) |
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: Summary of instruction formats
+| Format | Size | Opcode | Operands  | Example           |
+|--------+------+--------+-----------+-------------------|
+| RRR    |    1 | op     | d,a,b     | add Rd,Ra,Rb      |
+| RX     |    2 | op,b   | d,a,disp  | load Rd,disp[Ra]  |
+| EXP    |    2 | op,ab  | d,e,f,g,h | save Rd,Re,gh[Rf] |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+Although there are three machine language instruction formats
+(RRR, RX, EXP), there is a larger set of assembly language
+statement formats, because there are special syntaxes for
+pseudoinstructions, and there are assembler directives that aren't
+instructions at all (such as equ).  Thus there are two kinds of
+format: the machine /instruction formats/, and the assembly
+language instruction /statement formats/.  The assembly language
+formats are described later.
+
+*** put later and edit - Summary of Sigma16 instruction set
+
+- The Mnemonic gives the symbolic name of the instruction
+  used in assembly language
+
+- The ISA specifies the smallest subset of the instruction
+  set architecture that allows this instruction.  The Core
+  subset is a minimal architecture; the Standard subset
+  contains a full range of instructions
+
+- The R15 entry indicates how the instruction uses R15: cc
+  indicates the instruction sets the condition code in R15,
+  and x indicates the instruction places data in R15.  A
+  blank entry means the instruction does not change R15.
+
+- The P entry indicates whether the instruction is Privileged
+  (P) or not (blank)
+
+The Args column shows the assembly language statement format.
+
+- R is a register, e.g. R4 or R15
+
+- D is an expression denoting the displacement, which must be
+  representable in 16 bits
+
+- k is a small constant representable in 4 bits, so 0 <= k <
+  16
+
+- K is a large constant representable in 12 bits, so 0 <=k <
+  4096
+
+The first word of an instruction:
+
+|----+---+---+---|
+| Op | D | A | B |
+|    | J |   |   |
+|----+---+---+---|
+
+Fields of the first instruction word:
+
+- Op = bits 15..12.  Used in all instructions as the primary
+  operation code
+
+- D = bits 11,10,9,8.  Destination register (e.g. R5)
+
+- A = bits 7..4.  First operand register (e.g. R12)
+
+- B = bits 3..0.  is either second operand register (e.g. R7)
+  or secondary opcode (4-bit constant)
+
+- k is a 4-bit constant in the d field, (e.g. 5)
+
+- ab is 8-bit secondary opcode for EXP format (e.g. $c3)
+
+- C is a control register specified by 4 bits
+
+- A "don't care" field is indicated with a dash
+
+The second word of an instruction, for RX and EXP formats:
+
+Formats for the second word of an instruction.  The second
+word may consist of one of the following:
+
+- disp - a 16-bit constant
+
+- kq - a 4-bit constant k (in the e field), followed by a
+  12-bit constant q (in the fgh fields)
+
+The following table summarises the instructions in the Core
+subset of Sigma16.  The columns are:
+
+- Mnemonic.  The assembly language name of the instruction
+
+- ISA. The Instruction Set Architecture subset that contains
+  the instruction; for this table all the instructions are
+  Core.
+
+- P. * indicates that the instruction is privileged, blank
+  indicates that it is not.  All of the Core instructions are
+  unprivileged.  For the meaning of "privileged", see the
+  System section.
+
+- Fmt. The instruction format.  There are two Core
+  instruction formats: RRR (instruction has three operand
+  fields, each a register) and RX (instruction has a register
+  operand and an X operand consisting of a displacement
+  constant and an index register).
+
+- Args.  The assembly language argument format.  Usually this
+  is the same as Fmt.  However, some instructions don't use
+  all the fields, and the assembly language statement omits
+  the irrelevant field (e.g. cmp is RRR format but the
+  assembly language statement omits the d field, which is
+  ignored).
+
+- Code.
+
+- Effect.  A statement in an imperative programming language
+  which describes what the instruction does.
+
+Assembly directives
+
+- data
 
 *** RRR format
 
-The RRR format is used for instructions that perform
-calculations in the registers, without using memory.
+The RRR format is used for instructions that perform calculations
+in the registers, without using memory.
 
-An instruction in RRR format is one word containing four
-4-bit fields called op, d, a, b.  Each field contains 4 bits
+An instruction in RRR format is one word containing four 4-bit
+fields called op, d, a, b.  Each field contains 4 bits
 representing a binary number between 0 and 15.
 
 |----+---+---+---|
@@ -3532,116 +3886,178 @@ representing a binary number between 0 and 15.
 
 # {{{svgfig(./figures/svg/RRRformat)}}}
 
-- op (bits with index 15 to 12) is the operation code,
-  usually called /opcode/.  This determines the operation to
-  be performed.  If the opcode is between 0 and 12 it
-  specifies an RRR instruction.  An opcode greater than 12
-  indicates an /expanding opcode/: the instruction is not RRR
-  but one of the other formats, and it has a secondary opcode
-  that specifies precisely which instruction it is.  This is
-  explained in the sections on RX and EXP formats.
+- op (bits with index 15 to 12) is the operation code, often
+  called /opcode/.  This determines the operation to be performed.
+  If the opcode is between 0 and 12 it specifies an RRR
+  instruction.  An opcode greater than 12 indicates an /expanding
+  opcode/: the instruction is not RRR but one of the other
+  formats, and it has a secondary opcode that specifies precisely
+  which instruction it is.  This is explained in the sections on
+  RX and EXP formats.
 
-- d (bits 11 to 8) is the /destination register/; the
-  register where (in most cases) the result will be loaded.
+- d (bits 11 to 8) is the /destination register/; the register
+  where (in most cases) the result will be loaded.
 
-- a (bits 7 to 4) is the register containing the first
-  operand.
+- a (bits 7 to 4) is the register containing the first operand.
 
-- b (bits 3 to 0) is the register containing the second
-  operand.
+- b (bits 3 to 0) is the register containing the second operand.
 
-In most cases, an RRR instruction takes two operands in
-registers specified by the a and b fields and produces a
-result which is loaded into the register specified by the d
-field.
+In most cases, an RRR instruction takes two operands in registers
+specified by the a and b fields and produces a result which is
+loaded into the register specified by the d field.
 
-A typical example of an RRR instruction is add R4,R13,R2,
-which adds the contents of registers R13 and R2, and loads
-the result into R4.  It's equivalent to R4 := R13 + R2.  The
-opcode for add is 0, so the machine language code for this
-instruction is 04d2.
+A typical example of an RRR instruction is add R4,R13,R2, which
+adds the contents of registers R13 and R2, and loads the result
+into R4.  It's equivalent to R4 := R13 + R2.  The opcode for add
+is 0, so the machine language code for this instruction is 04d2.
+
+Most of the RRR instructions provide the core arithmetic
+operations.  The trap instruction is also RRR format.  The RRR
+instructions with opcode from 8 through B all behave as nop (no
+operation).  These are available for experimentation and projects.
+
+The opcodes of D, E, F indicate that the instruction uses another
+format, and is at least two words long.  D is reserved for
+experimentation and projects.  E indicates EXP format, and F
+indicates RX format.  For these three cases, the op field merely
+indicates the instruction format, and there is a secondary
+operation code that specifies which instruction it is.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 16-bit RRR instructions
+
+| *Assembly*   | *Code* | *Effect*                  |
+|--------------+--------+---------------------------|
+| add Rd,Ra,Rb | 0dab   | R[d] := R[a]+R[g]         |
+| 0 / aRRR     |        | R15 := (cc flags)         |
+|--------------+--------+---------------------------|
+| sub Rd,Ra,Rb | 1dab   | R[d] := R[a]-R[b]         |
+| 1 / aRRR     |        | R15 := (cc flags)         |
+|--------------+--------+---------------------------|
+| mul d,a,b    | 2dab   | R[d] := R[a]*R[b]         |
+| 2 / aRRR     |        | R15 := (cc flags)         |
+|--------------+--------+---------------------------|
+| div d,a,b    | 3dab   | R[d] := Ra / Rb,          |
+| 3 / aRRR     |        | R[15] := Ra % Rb          |
+|--------------+--------+---------------------------|
+| cmp d,a      | 4da_   | R[15] := R[a] cp R[b]     |
+| 4 / aRR      |        | R15 := (cc flags)         |
+|--------------+--------+---------------------------|
+| addc d,a,b   | 5dab   | Rd := Ra + Rb + R15.C)    |
+| 5 / aRRR     |        | R15 := (cc flags)         |
+|--------------+--------+---------------------------|
+| muln d,a,b   | 6dab   | Rd := Ra :*: Rb, R15 :=   |
+| 6 / aRRR     |        |                           |
+|--------------+--------+---------------------------|
+| divn d,a,b   | 7dab   | R15++Rd := R15++Ra :/: Rb |
+| 7 / aRRR     |        | nop                       |
+|--------------+--------+---------------------------|
+|              | 8___   | nop -- available          |
+| 8 /          |        | for experimentation       |
+|--------------+--------+---------------------------|
+|              | 9___   | nop -- available          |
+| 9 /          |        | for experimentation       |
+|--------------+--------+---------------------------|
+|              | A___   | nop -- available          |
+| A /          |        | for experimentation       |
+|--------------+--------+---------------------------|
+|              | B___   | nop -- available          |
+| B /          |        | for experimentation       |
+|--------------+--------+---------------------------|
+| trap d,a,b   | Cdab   | interrupt                 |
+| C / aRRR     |        |                           |
+|--------------+--------+---------------------------|
+|              | D___   | reserved -- available     |
+| D /          |        | for experimentation       |
+|--------------+--------+---------------------------|
+|              | Edab   | escape to EXP             |
+| E / (EXP)    |        | secondary opcode = ab     |
+|--------------+--------+---------------------------|
+|              | Fdab   | escape to RX              |
+| F / (RX)     |        | secondary opcode = b      |
+|--------------+--------+---------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+----------
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
 
 *** RX format
 
-The RX format is used for instructions that use a memory
-location.  There are two operands: one is a register and the
-other is the address of a word in memory.  Typical RX
-instructions are loads, stores, and jumps.  For example, a
-load has an address operand and a destination register
-operand; it loads the word in memory at the specified address
-into the destination register.
+The RX format is used for instructions that refer to a memory
+address.  There are two operands: one is a register and the other
+is the address of a word in memory.  Typical RX instructions are
+loads, stores, and jumps.  For example, a load has an address
+operand and a destination register operand; it loads the word in
+memory at the specified address into the destination register.
 
-A memory address is just a natural number.  However, the
-second operand of an RX instruction, a memory address, is
-specified by two pieces: an index register and a
-natural number called the displacement.
-
-The name of the format describes briefly these
-two pieces: a register (R) and an indexed memory address
+A memory address is just a natural number.  However, the second
+operand of an RX instruction, a memory address, is specified by
+two pieces: an /index register/ and a natural number called the
+/displacement/.  The name of the format, RX, describes briefly
+these two pieces: a register (R) and an indexed memory address
 (X).
 
-The instruction consists of two consecutive words.  The first
-has the same format as an RRR instruction, with four fields:
-op, d, sa, sb.  The second word is a single 16-bit binary
-number, and is called the displacement.
+The instruction consists of two consecutive words.  The first word
+has the same format as an RRR instruction, with four fields: op,
+d, a, b.  The second word is a single 16-bit binary number, and is
+called the displacement.
 
-An RX instruction is represented by two words.
-The first word has the same fields as an RRR instruction:
+- The first word contains the op, d, a, b fields:
+  - The op field (bits 15-12) is 15 (hex f).  This indicates that
+    the instruction has the RX format.
+  - The d field (bits 11-8) is the first operand, the destination
+    register.  Some RX instructions place the result into the
+    destination register, but some others use d in other ways.
+  - The a field (bits 7-4) is called the index register, and is
+    part of the specification of the effective address.
+  - The b field (bits 3-0) is the secondary opcode.  This
+    specifies which RX instruction this one is (there are up to 16
+    RX instructions possible).
+- The second word contains one field:
+  - The 16 bit displacement, often abbreviated as disp.
 
-- The op field (bits 15-12) is 15 (hex f).  This indicates
-  that the instruction has format
-- The d field (bits 11-8) is the first operand, the
-  destination register.
-- The a field (bits 7-4) is called the index register, and is
-  part of the specification of the effective address.
-- The b field (bits 3-0) is the secondary opcode.
+The value of the second operand (the memory address) is Ra + disp;
+that is, the sum of the index register and the displacement.  This
+sum is called the /effective address/.
 
-The second word contains one field, the 16 bit displacement.
+In assembly language, the notation used for the effective address
+is /disp[Ra]/.  For example, =3[R8]= means "3 + contents of R8".
+The displacement can be written as either decimal or hex,
+whichever is more convenient.  Thus $20b3[R2] means the effective
+address has displacement $20b3 and the index register is R2.
 
-- disp (displacement) is the second word of the instruction
+When the machine executes an RX instruction, it begins by adding
+the displacement and index to obtain the effective address.  This
+is abbreviated "ea".
 
-+------+
-| disp |
-+------+
-| 15-0 |
-+------+
+An important point is that the displacement is constant (it's a
+field in the machine language instruction), but the value of the
+index register can change.  So the effective address is
+"constant + variable".  This fact underlies a number of essential
+programming techniques.
 
-ea (effective address) = displacement + r[a]
-
-The memory address is specified in two parts: an index
-register and the displacement.  The index register is
-specified in the sa field.  In assembly language, the
-notation used is number[reg], where the number is the value
-of the displacement, and the reg is the index register.  Thus
-$20b3[R2] means the address has displacement $20b3 and the
-index register is R2.
-
-When the machine executes an RX instruction, it begins by
-calculating the effective address.  This is abbreviated "ea",
-and its value is the sum of the displacement and the contents
-of the index register.
-
-RX instructions are represented in two words, and they use an
-"expanding opcode".  That is, the op field of the first word
-of the instruction contains the constant f (the bits 1111)
-for every RX instruction, and the sb field is used to hold a
-secondary opcode indicating which RX instruction it is.
+RX instructions use an /expanding opcode/.  The op field of the
+first word of the instruction contains the constant f (the
+bits 1111) for every RX instruction, and the sb field is used to
+hold a secondary opcode indicating which RX instruction it is.  In
+effect, RX instructions require 8 bits to specify which
+instruction it is (op and a).
 
 The register operand is specified in the d field.  For
 several RX instructions, this is indeed the destination of
 the instruction: for example, load places data into Rd.
 However, a few RX instructions use the d field differently
 (see, for example, the conditional jump instructions).
-
-The memory address is specified using the sa field and the
-displacement, which is the entire second word of the
-instruction.
-
-The RX format is used for instructions that access the
-memory.  There are two operands: a memory address and a
-register.  The memory address is specified using two fields:
-a constant (called the displacement) and a register (called
-the index register).
 
 An RX instruction consists of two words.  The first has the
 same format as RRR.  The op field is 15, which means "this
@@ -3682,26 +4098,130 @@ The displacement is a constant given in the instruction, but
 the index register is variable.  Since R0 always contains 0,
 the effective address for =disp[R0]= is the value of =disp=.
 
-The displacement is represented in binary, and the effective
-address is calculated in binary, not in two's complement.
-Thus the effective address of =ffff[R0]= is the (positive)
-address of the last word in memory -- it isn't a negative
-number.
+The displacement is a word of bits; the machine doesn't know
+whether the programmer intends the word to be a binary number, a
+two's complement number, or a unicode character.  The effective
+address is calculated in binary.  Thus the effective address of
+=ffff[R0]= is the (positive) address of the last word in memory --
+it isn't a negative number.  However, if you use the lea
+instruction to put the effective address into a register, you can
+do signed integer arithmetic, and =ffff= will act as -1.  You can
+specify the displacement in assembly language using a negative
+number, and that can often be useful.  For example, =lea
+R5,-2[R0]= will put hex fffe, the two's complement representatin
+of -2, into R5.
+
+
+The RX instructions with opcodes from 0 through 7 are essential
+Core instructions.  A few more are part of the Standard
+instruction set.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 16-bit RX instructions
+
+| *Assembly*          | *Code* | *Effect*             |
+|---------------------+--------+----------------------|
+| lea Rd,disp[Ra]     | Fda0   | Rd := disp+Ra        |
+| F,0 / aRX           | disp   |                      |
+|---------------------+--------+----------------------|
+| load Rd,disp[Ra]    | Fda1   | Rd := M[disp+Ra]     |
+| F,1 / aRX           |        |                      |
+|---------------------+--------+----------------------|
+| store Rd,disp[Ra]   | Fda2   | M[disp+Ra] := Rd     |
+| F,2 / aRX           | disp   |                      |
+|---------------------+--------+----------------------|
+| jump disp[Ra]       | Fda3   | pc := disp+Ra        |
+| F,3 /aX             | disp   |                      |
+|---------------------+--------+----------------------|
+| jumpc0 d,disp[Ra]   | Fda4   | *if* R15.d=0         |
+| F,4 / akX           | disp   | *then* pc := disp+Ra |
+|---------------------+--------+----------------------|
+| jumpc1 d,disp[Ra]   | Fda5   | if R15.d=1           |
+| F,5 / akX           | disp   | then pc := disp+Ra   |
+|---------------------+--------+----------------------|
+| jal Rd,disp[Ra]     | Fda6   | Rd:=pc,              |
+| F,6 / aRX           | disp   | pc:=disp+Ra          |
+|---------------------+--------+----------------------|
+| jumpz Rd,disp[Ra]   | Fda7   | if R15.d=0           |
+| F,7 / aRX           | disp   | then pc := disp+Ra   |
+|---------------------+--------+----------------------|
+| jumpnz Rd,disp[Ra]  | Fda8   | if R15.d=1           |
+| F,8 / aRX           | disp   | then pc := disp+Ra   |
+|---------------------+--------+----------------------|
+| testset Rd,disp[Ra] | Fda9   | Rd:=M[disp+Ra],      |
+| F,9 / aRX           | disp   | M[disp+Ra]:=0001     |
+|---------------------+--------+----------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+Three key 32-bit instructions have RX format: xlea, xload, xstore.
+Three Rx instructions, with opcodes from F,D through F,F, are
+reserved for experimentation and projects.  In the standard
+architecture, these are all nop (no operation).
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 32-bit RX instructions
+
+|--------------------+--------+----------------------------------|
+| *Assembly*         | *Code* | *Effect*                         |
+|--------------------+--------+----------------------------------|
+| *xlea* Rd,disp[Ra] | FdaA   | $R_d,R_{d+1} := disp \oplus R_a$ |
+| F,A / aRX          | disp   |                                  |
+|--------------------+--------+----------------------------------|
+| xload Rd,disp[Ra]  | FdaB   | $R_d,R_{d+1} := M[ea],mem[ea+1]$ |
+| F,B / aRX          | disp   |                                  |
+|--------------------+--------+----------------------------------|
+| xstore Rd,disp[Ra] | FdaC   | M[ea],M[ea+1] := R_d,R_{d+1}$'   |
+| F,C / aRX          | disp   |                                  |
+|--------------------+--------+----------------------------------|
+|                    | FdaC   | nop -- available                 |
+| F,D /              | disp   | for experimentation              |
+|--------------------+--------+----------------------------------|
+|                    | FdaC   | nop -- available                 |
+| F,E /              | disp   | for experimentation              |
+|--------------------+--------+----------------------------------|
+|                    | FdaC   | nop -- available                 |
+| F,F /              | disp   | for experimentation              |
+|--------------------+--------+----------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+----------
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
 
 *** EXP format
 
-The EXP instructions provide more complex operations, and
-they belong to the Standard architecture.  (The Core
-architecture uses only RRR and RX).  An EXP instruction
-consists of two words.
+The EXP instructions provide more complex operations, and they
+belong to the Standard architecture.  (The Core architecture uses
+only RRR and RX).  An EXP instruction consists of two words.
 
-The first word has the same op and d fields as RRR and RX.
-The op field contains 14 (hex e), which indicates that the
-instruction is EXP format.  The a and b fields are treated as
-one 8-bit natural number, which is the secondary operation
-code.  This provides for the possibility of up to 256 EXP
-format instructions, which enables new experimental
-instructions to be defined.
+The first word has the same op and d fields as RRR and RX.  The op
+field contains 14 (hex e), which indicates that the instruction is
+EXP format.  The a and b fields are treated as one 8-bit natural
+number, which is the secondary operation code.  This provides for
+the possibility of up to 256 EXP format instructions, which
+enables new experimental instructions to be defined.
 
 # {{{svgfig(EXPformat)}}}
 
@@ -3709,7 +4229,7 @@ instructions to be defined.
 | op | d | ab |
 |----+---+----|
 
-The second word contains for 4-bit fields.  Each of these may
+The second word contains four 4-bit fields.  Each of these may
 contain either a register number or a short 4-bit number,
 depending on the instruction.
 
@@ -3728,32 +4248,272 @@ depending on the instruction.
 | 15-12 | 11-8 | 7-4 | 3-0 |
 +-------+------+-----+-----+
 
-*** Summary of instruction formats
+The first group of EXP instructions provide operations including
+logic, bit manipulation.  These are standard instructions, but not
+part of the Core, which provides only a minimal set of
+instructions.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
 
-| Format | Size | Opcode | Operands  | Example           |
-|--------+------+--------+-----------+-------------------|
-| RRR    |    1 | op     | d,a,b     | add Rd,Ra,Rb      |
-| RX     |    2 | op,b   | d,a,disp  | load Rd,disp[Ra]  |
-| EXP    |    2 | op,ab  | d,e,f,g,h | save Rd,Re,gh[Rf] |
+#+CAPTION: 16-bit EXP instructions
 
+|----------------------+--------+----------------------|
+| *Assembly*           | *Code* | *Effect*             |
+|----------------------+--------+----------------------|
+| logicf Rd,Re,f,g,h   | Ed00   | Rd.f:g :=            |
+| E,00 / aRRkkk        | efgh   | h(Rd.f:g,Re.f:g)     |
+|----------------------+--------+----------------------|
+| logicb Rd,Re,f,g,h   | Ed01   | Rd.f := h(Rd.f,Re.g) |
+| E,01 / aRRkkk        | efgh   |                      |
+|----------------------+--------+----------------------|
+| shiftl Rd,Re,h       | Ed02   | Rd := Re shl h       |
+| E,02 / aRRk          | e..h   |                      |
+|----------------------+--------+----------------------|
+| shiftr Rd,Re,h       | Ed03   | Rd := Re shr h       |
+| E,03 / aRRk          | e..h   |                      |
+|----------------------+--------+----------------------|
+| extract Rd,Re,f,g,h  |        | Rd.f~g :=            |
+| E,04 / aRRkkk        |        |                      |
+|----------------------+--------+----------------------|
+| push Rd,Re,Rf        |        | M[ea] := Rd, Rb++    |
+| E,05 /aRRR           |        |                      |
+|----------------------+--------+----------------------|
+| pop Rd,Re,Rf         |        | Rb--, Rd := M[ea]    |
+| E,06 /aRRR           |        |                      |
+|----------------------+--------+----------------------|
+| top Rd,Re,Rf         |        | Rb--, Rd := M[ea]    |
+| E,07 / aRRR          |        |                      |
+|----------------------+--------+----------------------|
+| save Rd,Re,gh[Rf]    |        | M[Rf+gh] := Rd,      |
+| E,08 / aRRX          |        | M[Rf+gh+1] := R{d+1} |
+|                      |        | M[Rf+gh+e-d] := Re   |
+|----------------------+--------+----------------------|
+| restore Rd,Re,gh[Rf] |        | Rd := M[Rf+gh],      |
+| E,09 / aRRX          |        | ...,                 |
+|                      |        | Re := M[Rf+gh+e-d]   |
+|----------------------+--------+----------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
 
-Although there are three machine language instruction formats
-(RRR, RX, EXP), there is a larger set of assembly language
-statement formats, because there are special syntaxes for
-some instructions, and there are assembler directives that
-aren't instructions at all.  Thus there are two kinds of
-format: the machine instruction formats, and the assembly
-language instruction statement formats.  The assembly
-language formats are described later.
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
 
-*** Notation for machine language
+More 16-bit EXP instructions include forther control flow
+operations.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 16-bit EXP instructions (continued)
+
+|------------------+--------+---------------------|
+| *Assembly*       | *Code* | *Effect*            |
+|------------------+--------+---------------------|
+| brc0 Rd,e,fgh    | Ed0A   | if R[d].e=0         |
+| E,0A             |        | then pc:=pc+fgh     |
+|------------------+--------+---------------------|
+| brc1 Rd,e,fgh    | Ed0B   | if R[d].e=1         |
+| E,0B             |        | then pc:=pc+fgh     |
+|------------------+--------+---------------------|
+| brz Rd,efgh      | Ed0C   | if R[d]=0000        |
+| E,0C             |        | then pc:=pc+efgh    |
+|------------------+--------+---------------------|
+| brnz Rd,efgh     | Ed0D   | if R[d]!=0000       |
+| E,0D             |        | then pc:=pc+efgh    |
+|------------------+--------+---------------------|
+| dispatch Rd,efgh | Ed0E   | pc :=               |
+| E,0E             | efgh   | M[pc+min(Rd,efgh)]] |
+|------------------+--------+---------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+The 16-bit privileged instructions all have EXP format.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 16-bit privileged EXP instructions
+
+|------------------+--------+---------------------|
+| *Assembly*       | *Code* | *Effect*            |
+|------------------+--------+---------------------|
+| getctl Rd,e      | Ed0F   | Rd := Sc privileged |
+| E,0F             | e...   |                     |
+|------------------+--------+---------------------|
+| putctl Rd,e      | Ed10   | Sc := Rd privileged |
+| E,10             | e...   |                     |
+|------------------+--------+---------------------|
+| resume           | Ed11   | pc := ipc,          |
+| E,11             |        | status := istatus   |
+|------------------+--------+---------------------|
+| timeron Rd,efgh  | Ed12   | timer := efgh,      |
+| E,12             | efgh   | start timer         |
+|------------------+--------+---------------------|
+| timeroff Rd,efgh | Ed13   | stop timer          |
+| E,13             | efgh   |                     |
+|------------------+--------+---------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+Most of the 32-bit instructions are represented in EXP format.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 32-bit EXP instructions
+
+|---------------------+--------+-------------------------------|
+| *Assembly*          | *Code* | *Effect*                      |
+|---------------------+--------+-------------------------------|
+| xadd Rd,Re,Rf       |        | Rd := Re+Rf                   |
+| E,20 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xsub Rd,Re,Rf       |        | Rd := Re+rf                   |
+| E,21 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xmul Rd,Ra,Rb       |        | Rd := Re+rf                   |
+| E,22 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xdiv Rd,Ra,Rb       |        |                               |
+| E,23 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xcmp Rd,Ra,Rb       |        |                               |
+| E,24 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xaddc Rd,Ra,Rb      |        |                               |
+| E,25 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xmuln Rd,Ra,Rb      |        |                               |
+| E,26 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xdivn Rd,Re,Rf      |        |                               |
+| E,27 / aRRR         |        |                               |
+|---------------------+--------+-------------------------------|
+| xjumpz Rd,disp[Ra]  | FdaD   | if $R_d=0$ then pc := ea      |
+| E,28 / aRX          | disp   |                               |
+|---------------------+--------+-------------------------------|
+| xjumpnz Rd,disp[Ra] | FdaE   | if $R_d \neq 0$ then pc := ea |
+| E,29 / aRX          | disp   |                               |
+|---------------------+--------+-------------------------------|
+| xjal Rd,disp[Ra]    | FdaF   | $R_d := pc, pc := ea$         |
+| E,2A / aRX          | disp   |                               |
+|---------------------+--------+-------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+Here are further 32-bit EXP instructions.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 32-bit EXP instructions (continued)
+
+|-----------------------+--------+-----------|
+| *Assembly*            | *Code* | *Effect*  |
+|-----------------------+--------+-----------|
+| xsave Rd,Re,gh[Rf]    |        | Rd.f~g := |
+| E,2B / aRRX           |        |           |
+|-----------------------+--------+-----------|
+| xrestore Rd,Re,gh[Rf] |        | Rd.f~g := |
+| E,2C / aRRX           |        |           |
+|-----------------------+--------+-----------|
+| xpush Rd,Re,Rf        |        | Rd.f~g := |
+| E,2D / aRRR           |        |           |
+|-----------------------+--------+-----------|
+| xpop Rd,Re,Rf         |        | Rd.f~g := |
+| E,2E / aRRR           |        |           |
+|-----------------------+--------+-----------|
+| xtop Rd,Re,Rf         |        | Rd.f~g := |
+| E,2F / aRRR           |        |           |
+|-----------------------+--------+-----------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+----------
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+*** EXP3 format
+
+Several 32-bit instructions require some 5-bit fields in order to
+index an arbitrary bit in a 32 bit register.  These use a variant
+of the EXP format, called EXP32.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+
+#+CAPTION: 32-bit EXP32 instructions
+|-----------------------+--------+------------------------------|
+| *Assembly*            | *Code* | *Effect*                     |
+|-----------------------+--------+------------------------------|
+| xlogicf Rd,Rb,m,n,h   | FdbD   | Rd.m:n := aaaaaaaabbbbbaxxxx |
+| E,40 / aRRmmk            | mnh    | h(Rd.m:n,Rb.m:n)             |
+|-----------------------+--------+------------------------------|
+| xlogicb Rd,Rb,m,n,h   | FdbE   | Rd.f :=                      |
+| E,41 / aRRmmk            | mnh    | h(Rd.f,Re.g)                 |
+|-----------------------+--------+------------------------------|
+| xshiftl Rd,Re,m      | FdvF   | Rd.f~g :=                    |
+| E,42 / aRRmmk            | mnh    |                              |
+|-----------------------+--------+------------------------------|
+| xshiftr Rd,Re,m      | FdvF   | Rd.f~g :=                    |
+| E,43 / aRRmmk            | mnh    |                              |
+|-----------------------+--------+------------------------------|
+| xextract Rd,Re,m,n    | FdvF   | Rd.f~g :=                    |
+| E,44 / aRRmmk            | mnh    |                              |
+|-----------------------+--------+------------------------------|
+| xjumpc0 m,disp[Ra]    | Ed00   | if Rd==0 then pc := ea       |
+| E,45 / amX            |        |                              |
+|-----------------------+--------+------------------------------|
+| xjumpc1 m,disp[Ra]    | Ed00   | if Rd==0 then pc := ea       |
+| E,46 / amX            |        |                              |
+|-----------------------+--------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+----------
+
+** Notation for machine language
 
 We usually write instructions in assembly language (sub
 R3,R12,R9) but the computer executes machine language (13c9).
@@ -3825,7 +4585,8 @@ Example:
 
 ** Arithmetic
 
-*** add
+*** Addition and subtraction: add, sub
+**** add
 
 The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
 destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~,
@@ -3943,7 +4704,7 @@ integers).
   mask register, then an interrupt will occur immediatelhy
   after the add instruction executes.
 
-*** sub
+**** sub
 
 Example: sub R1,R2,R3 ; R1 := R2 - R3
 
@@ -4005,7 +4766,8 @@ may set a bit in the req register.
 </div>
 #+END_EXPORT
 
-*** mul
+*** Multiplication and division: mul, div
+**** mul
 
 Example: mul R1,R2,R3 ; R1 := R2 * R3
 
@@ -4049,7 +4811,7 @@ lower order 16 bits of the product are loaded into Rd.
 </div>
 #+END_EXPORT
 
-*** div
+**** div
 
 Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
 
@@ -4102,7 +4864,8 @@ easy for a program to detect a division by 0.
   Interrupts.  This approach does not require a compare or
   jump instruction for each division.
 
-*** cmp
+*** Comparison: cmp
+**** cmp
 
 The compare instruction =cmp Ra,Rb= compares the values in
 the operand registers =Ra= and =Rb=, and then sets flags in
@@ -4148,7 +4911,8 @@ for example:
     jumpgt  abc]R0]    ; if R4 > R9 then goto abc
 #+END_SRC
 
-*** addc
+*** Natural numbers: addc, muln, divn
+**** addc
 
 The addc instruction performs a binary addition with carry
 propagation.  It adds the two operand registers and the carry
@@ -4157,7 +4921,7 @@ into the destination register Rd and the carry output is
 written back into the carry bit, overwriting its previous
 value.  Overflow is not possible with this instruction.
 
-*** muln
+**** muln
 
 #+BEGIN_SRC Sigma16 exports: code
      muln   Rd,Ra,Rb
@@ -4182,7 +4946,7 @@ Rd.  If Rd is R15, the most significant part is discarded.
 </div>
 #+END_EXPORT
 
-*** divn
+**** divn
 
 #+BEGIN_SRC Sigma16 exports: code
      divn   Rd,Ra,Rb
@@ -4239,7 +5003,8 @@ If you just want to specify an address *a* in an instruction,
 this can be written as "a[R0]".  Since R0 contains the
 constant 0, the effective address is just *a*.
 
-*** lea
+
+*** Effective address: lea
 
 The *load effective address* instruction *lea Rd,disp[Ra]*
 calculates the effective address of the operand disp[Ra] and
@@ -4260,7 +5025,8 @@ effective address is the binary sum disp+Ra.
 </div>
 #+END_EXPORT
 
-*** load
+*** Copying between register and memory: load, store
+**** load
 
 The *load* instruction *load Rd,disp[Rx]* calculates the
 effective address of the operand disp[Rx] and copies the word
@@ -4290,7 +5056,7 @@ Examples
    load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
 #+END_SRC
 
-*** store
+**** store
 
 The *store* instruction *store Rd,disp[Rx]* calculates the
 effective address of the operand disp[Rx].  The value of the
@@ -4335,7 +5101,7 @@ Examples
    store  R6,arrayX[R2]
 #+END_SRC
 
-*** Stacks
+*** Stacks: push, pop, top
 
 Three instructions (push, pop, top) support operations on a
 stack represented as an array of contiguous elements, where
@@ -4377,7 +5143,7 @@ of memory, setting /stack base/ to the first word and /stack
 limit/ to the last word, and setting /stack top/ to /stack
 base/ - 1.
 
-*** push
+**** push
 
 The push instruction pushes an element onto a stack.  It is
 RRR format, and its general form is:
@@ -4422,7 +5188,7 @@ completes.  There will be no interrupt if interrupts are
 disabled, or the stack fault bit is not set in the mask
 register.
 
-*** pop
+**** pop
 
 The push instruction removes an element onto a stack and
 returns it.  The instruction is RRR format, and its general
@@ -4454,7 +5220,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_SRC
 
-*** top
+**** top
 
 The top instruction returns the top element on a stack but
 does not remove it.  The instruction is RRR format, and its
@@ -4484,7 +5250,7 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_SRC
 
-*** Stack frames
+*** Stack frames: save, restore
 
 When a program calls a procedure it is usually necessary to
 save the state of the caller in a data structure called a
@@ -4538,7 +5304,7 @@ rightmost 8 bits of the second word of the instruction.  The
 secondary opcode is 9, which is in the ab field of the first
 word of the instruction.
 
-*** save
+**** save
 
 The save instruction performs a sequence of stores, which
 copy the contents of a sequence of registers into consecutive
@@ -4590,7 +5356,7 @@ concise and readable.  Even more importantly, they are less
 error prone: it's easy to make a typo in sequences of store
 instructions as in the example.
 
-*** restore
+**** restore
 
 This =restore= instruction has the same operands as =save=,
 and it performs a sequence of loads corresponding to the
@@ -4676,14 +5442,15 @@ The instruction *restore Re,Rf,gh[Rd]* copies the contents of
 memory at consecutive locations beginning with mem[gh+Rf]
 into registers Re, Re+1, ..., Rf.
 
-** Jumps
+** Control flow
+*** Jumps
 
 A jump is a transfer control to another address, rather than
 to the following instruction. The destination address is
 specified as the effective address in the jump instruction.
 A jump can be used to implement a goto statement.
 
-*** jump
+**** jump
 
 #+BEGIN_EXPORT html
 </div>
@@ -4698,7 +5465,7 @@ A jump can be used to implement a goto statement.
 </div>
 #+END_EXPORT
 
-*** jumpc0, jumpc1
+**** jumpc0, jumpc1
 
 These instructions jump to a destination if a specified bit
 in the condition code is 0 (for jumpc0) or 1 (for jumpc1).
@@ -4760,7 +5527,7 @@ jumpc1 is similar: it jumps if the specified bit is 1.
 </div>
 #+END_EXPORT
 
-*** jal
+**** jal
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -4776,7 +5543,7 @@ jumpc1 is similar: it jumps if the specified bit is 1.
 </div>
 #+END_EXPORT
 
-*** jumpz, jumpnz
+**** jumpz, jumpnz
 
 The jumpz instruction jumps to the destination if a specified
 register is 0 (i.e. all the bits in that register are 0).
@@ -4813,7 +5580,7 @@ that register is 1).
 </div>
 #+END_EXPORT
 
-** Branches :noexport:
+*** Branches (???)
 
 A branch instruction transfers control to another address,
 rather than to the following instruction. The destination
@@ -4857,7 +5624,7 @@ forward) if =xyz= occurs after the branch instruction, and
 use =brb xyz= (branch backward) if =xyz= occurs before the
 branch.
 
-*** brc0, brfc1
+**** brc0, brfc1
 
 There are two conditional branch instructions that perform a
 branch based on the value of a bit in a register.  For
@@ -4905,7 +5672,7 @@ but there are two key differences:
 - The branch instructions are pc-relative, but the jump
   instructions give the absolute address of the destination.
 
-*** brz, brnz
+**** brz, brnz
 
 These instructions perform a branch if a specified register
 is either equal to 0 (z), or not equal to 0 (nz).  Equal to 0
@@ -4944,7 +5711,7 @@ brnz is similar, but it branches if the register is not zero
 </div>
 #+END_EXPORT
 
-*** dispatch
+**** dispatch
 
 The /dispatch/ instruction implements a branch table.  It
 provides an efficient way to implement a case statement using
@@ -4984,7 +5751,7 @@ The =dispatch= instruction has three operands: a register
 - The branch table is normally a sequence of unconditional
   branch instructions, either brf or brb.
 
-** Logic
+*** Logic
 
 Sigma16 provides two logic instructions that can evaluate
 arbitrary Boolean expressions.  They implement all possible
@@ -5022,7 +5789,7 @@ The next section explains how logic functions are
 represented, and the following sections describe each logic
 instruction followed by its pseudoinstructions.
 
-*** General logic functions
+**** General logic functions
 
 The commonest Boolean operators are =inv=, =and2=, =or2=, and
 =xor2=.  The =inv= function (also called invert, not, logical
@@ -5117,7 +5884,7 @@ xor  equ     6
 Now, instead of specifying a logic function as (for example)
 6, we can write it as =xor=.
 
-*** Logic on fields: logicf
+**** Logic on fields: logicf
 
 The logicf instruction performs a bitwise logic operation on
 fields within two words.  The fields may be in different
@@ -5162,7 +5929,7 @@ given above.
      logicf  R1,R2,8,11,xor ; R1 := 3671
 #+END_SRC
 
-*** Word logic pseudoinstructions: invw, andw, orw, xorw
+**** Word logic pseudoinstructions: invw, andw, orw, xorw
 
 Several special cases of =logicf= appear frequently.  There
 are special pseudoinstructions that simplify these special
@@ -5237,7 +6004,7 @@ xor  equ   6
      logicf R5,R7,R2,xor   ; R5 := R7 xor R2
 #+END_SRC
 
-*** Bit logic: logicb
+**** Bit logic: logicb
 
 The bit logic instruction =logicb= specifies two operand
 bits, which may be in any register at any index.  It applies
@@ -5276,7 +6043,7 @@ Example:
    logicb R2,R7,9,13,xor ; R2 := 0b00 (R2.9 := R2.9 xor R7.13 = 0)
 #+END_SRC
 
-*** Pseudoinstructions invb, andb, orb, xorb
+**** Pseudoinstructions: bit logic invb, andb, orb, xorb
 
 There are pseudoinstructions for the commonest logic
 functions:
@@ -5293,28 +6060,6 @@ operate on fields of any size, including 1-bit fields.  However,
 =logicb= and its pseudoinstructions are more flexible than =logicf= on
 a 1-bit field, because =logicb= allows the operands to have different
 bit indices.
-
-*** Pseudoinstructions setb, clearb, copyb, copybi
-
-The bit logic instructions have some useful special cases that don't
-appear to involve logic at all.  These are supported by
-pseudoinstructions.
-
-- =setb Rd,f= puts 1 into a specified bit: =Rd.f := 1=.
-- =clearb Rd,f= puts 0 into the specified bit.
-- =copyb Rd,Re,f,g= copies a bit from register Re at index g
-  into register Rd at index f.
-- =copybi Rd,Re,f,g= is similar to copyb, except that it
-  inverts the bit as it is written into the destination.
-
-Here are some examples:  
-
-#+BEGIN_SRC Sigma16 exports: code
-    setb   R4,7         ; R4.7 := 1
-    clearb R4,7         ; R4.7 := 0
-    copyb  R4,R12,7,5   ; R4.7 := R12.5
-    copybi R4,R12,7,5   ; R4.7 := inv R12.5
-#+END_SRC
 
 ** Bit manipulation
 *** Shifting: shiftl, shiftr
@@ -5568,6 +6313,28 @@ architecture for several reasons:
 # nothing.  the source and destination fields cannot extend
 # beyond the rightmost bit in a register.
 
+*** Pseudoinstructions: bit manipulation setb, clearb, copyb, copybi
+
+The bit logic instructions have some useful special cases that don't
+appear to involve logic at all.  These are supported by
+pseudoinstructions.
+
+- =setb Rd,f= puts 1 into a specified bit: =Rd.f := 1=.
+- =clearb Rd,f= puts 0 into the specified bit.
+- =copyb Rd,Re,f,g= copies a bit from register Re at index g
+  into register Rd at index f.
+- =copybi Rd,Re,f,g= is similar to copyb, except that it
+  inverts the bit as it is written into the destination.
+
+Here are some examples:  
+
+#+BEGIN_SRC Sigma16 exports: code
+    setb   R4,7         ; R4.7 := 1
+    clearb R4,7         ; R4.7 := 0
+    copyb  R4,R12,7,5   ; R4.7 := R12.5
+    copybi R4,R12,7,5   ; R4.7 := inv R12.5
+#+END_SRC
+
 ** User requests
 *** Request to OS: trap 
 *** testset
@@ -5593,522 +6360,90 @@ architecture for several reasons:
 
 *** Timer: timeron, timeroff
 
-* Summary of instruction set
 
-- The Mnemonic gives the symbolic name of the instruction
-  used in assembly language
+** Pseudoinstructions
 
-- The ISA specifies the smallest subset of the instruction
-  set architecture that allows this instruction.  The Core
-  subset is a minimal architecture; the Standard subset
-  contains a full range of instructions
+The pseudoinstructions provide operations commonly used in
+programming, although they are implemented using more general
+machine instructions.  For example, andw performs a bitwise
+logical and2 on two registers, but this is not a machine
+instruction; the assembler converts it into the corresponding
+logicf instruction.
 
-- The R15 entry indicates how the instruction uses R15: cc
-  indicates the instruction sets the condition code in R15,
-  and x indicates the instruction places data in R15.  A
-  blank entry means the instruction does not change R15.
-
-- The P entry indicates whether the instruction is Privileged
-  (P) or not (blank)
-
-The Args column shows the assembly language statement format.
-
-- R is a register, e.g. R4 or R15
-
-- D is an expression denoting the displacement, which must be
-  representable in 16 bits
-
-- k is a small constant representable in 4 bits, so 0 <= k <
-  16
-
-- K is a large constant representable in 12 bits, so 0 <=k <
-  4096
-
-The first word of an instruction:
-
-|----+---+---+---|
-| Op | D | A | B |
-|    | J |   |   |
-|----+---+---+---|
-
-Fields of the first instruction word:
-
-- Op = bits 15..12.  Used in all instructions as the primary
-  operation code
-
-- D = bits 11,10,9,8.  Destination register (e.g. R5)
-
-- A = bits 7..4.  First operand register (e.g. R12)
-
-- B = bits 3..0.  is either second operand register (e.g. R7)
-  or secondary opcode (4-bit constant)
-
-- k is a 4-bit constant in the d field, (e.g. 5)
-
-- ab is 8-bit secondary opcode for EXP format (e.g. $c3)
-
-- C is a control register specified by 4 bits
-
-- A "don't care" field is indicated with a dash
-
-The second word of an instruction, for RX and EXP formats:
-
-Formats for the second word of an instruction.  The second
-word may consist of one of the following:
-
-- disp - a 16-bit constant
-
-- kq - a 4-bit constant k (in the e field), followed by a
-  12-bit constant q (in the fgh fields)
-
-The following table summarises the instructions in the Core
-subset of Sigma16.  The columns are:
-
-- Mnemonic.  The assembly language name of the instruction
-
-- ISA. The Instruction Set Architecture subset that contains
-  the instruction; for this table all the instructions are
-  Core.
-
-- P. * indicates that the instruction is privileged, blank
-  indicates that it is not.  All of the Core instructions are
-  unprivileged.  For the meaning of "privileged", see the
-  System section.
-
-- Fmt. The instruction format.  There are two Core
-  instruction formats: RRR (instruction has three operand
-  fields, each a register) and RX (instruction has a register
-  operand and an X operand consisting of a displacement
-  constant and an index register).
-
-- Args.  The assembly language argument format.  Usually this
-  is the same as Fmt.  However, some instructions don't use
-  all the fields, and the assembly language statement omits
-  the irrelevant field (e.g. cmp is RRR format but the
-  assembly language statement omits the d field, which is
-  ignored).
-
-- Code.
-
-- Effect.  A statement in an imperative programming language
-  which describes what the instruction does.
-
-Assembly directives
-
-- data
-
-** RRR instructions
-
-# R15 ~=  gGElvVC   add effect on cc
-
-----------
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
-+--------------+----+------+----------------------------+
-| Assembly     | Op | Code | Effect                     |
-+--------------+----+------+----------------------------+
-| add Rd,Ra,Rb | 0  | 0dab | R[d] := R[a]+R[g]          |
-|              |    |      | R15 := (cc flags)          |
-+--------------+----+------+----------------------------+
-| sub Rd,Ra,Rb | 1  | 1dab | R[d] := R[a]-R[b]          |
-|              |    |      | R15 := (cc flags)          |
-+--------------+----+------+----------------------------+
-| mul d,a,b    | 2  | 2dab | R[d] := R[a]*R[b]          |
-|              |    |      | R15 := (cc flags)          |
-+--------------+----+------+----------------------------+
-| div d,a,b    | 3  | 3dab | R[d] := Ra / Rb,           |
-|              |    |      | R[15] := Ra % Rb           |
-+--------------+----+------+----------------------------+
-| cmp d,a      | 4  | 4da_ | R[15] := R[a] cp R[b]      |
-|              |    |      | R15 := (cc flags)          |
-+--------------+----+------+----------------------------+
-| addc d,a,b   | 5  | 5dab | Rd := Ra + Rb + R15.C)     |
-|              |    |      | R15 := (cc flags)          |
-+--------------+----+------+----------------------------+
-| muln d,a,b   | 6  | 6dab | Rd := Ra :*: Rb, R15 :=    |
-+--------------+----+------+----------------------------+
-| divn d,a,b   | 7  | 7dab | R15++Rd := R15++Ra :/: Rb  |
-+--------------+----+------+----------------------------+
-|              | 8  | 8___ | nop                        |
-+--------------+----+------+----------------------------+
-|              | 9  | 9___ | nop                        |
-+--------------+----+------+----------------------------+
-|              | A  | A___ | nop                        |
-+--------------+----+------+----------------------------+
-|              | B  | B___ | nop                        |
-+--------------+----+------+----------------------------+
-| trap d,a,b   | C  | Cdab | interrupt                  |
-+--------------+----+------+----------------------------+
-|              | D  | D___ | reserved                   |
-+--------------+----+------+----------------------------+
-|              | E  | Edab | escape EXP op=ab           |
-+--------------+----+------+----------------------------+
-|              | F  | Fdab | escape RX op=b             |
-+--------------+----+------+----------------------------+
+
+#+CAPTION: 16-bit {seudoinstructions
+
+|-----------------+---------------------+-----------+----------------------|
+| Assembly        | Instruction         | Code      | Effect               |
+|-----------------+---------------------+-----------+----------------------|
+| jumplt disp[Ra] |                     |           | jump if $<$          |
+| jumple disp[Ra] |                     |           | jump if $\leq$       |
+| jumpeq disp[Ra] |                     |           | jump if $=$          |
+| jumpne disp[Ra] |                     |           | jump if $\neq$       |
+| jumpge disp[Ra] |                     |           | jump if $>$          |
+| jumpgt disp[Ra] |                     |           | jump if $\geq$       |
+|                 |                     |           |                      |
+| invw Rd         | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert Rd            |
+| andw Rd,Re      | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\wedge$ Re |
+| orw Rd,Re       | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\vee$ Re   |
+| xorw Rd,Re      | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd xor Re      |
+| invf Rd,f,g     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert field         |
+| andf Rd,Re,f,g  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | and field            |
+| orf Rd,Re,f,g   | logicf Rd,Re,0,15,1 | Ed01,e0F1 | or field             |
+| xorf Rd,Re,f,g  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | xor field            |
+| invb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | invert bit           |
+| andb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | and bit              |
+| orb Rd,Re,f,g   | logicb Rd,Re,f,g,1  | Ed01,e0F1 | or bit               |
+| xorb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | xor bit              |
+|-----------------+---------------------+-----------+----------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
 ----------
 
-** RX instructions
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
 
-----------
+There are also 32 bit pseudoinstructions, which are similar to
+their 16 bit counterparts.  Note that xorw is a 16-bit exclusive
+or, while xxorw is a 32-bit exclusive or.
+
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
-+---------------------+-----+------+--------------------+
-| Assembly            | Op  | Code | Effect             |
-+---------------------+-----+------+--------------------+
-| lea Rd,disp[Ra]     | F,0 | Fda0 | Rd := disp+Ra      |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-| load Rd,disp[Ra]    | F,1 | Fda1 | Rd := M[disp+Ra]   |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-| store Rd,disp[Ra]   | F,2 | Fda2 | M[disp+Ra] := Rd   |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-| jump disp[Ra]       | F,3 | Fda3 | pc := disp+Ra      |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-| jumpc0 d,disp[Ra]   | F,4 | Fda4 | if R15.d=0         |
-|                     |     | disp | then pc := disp+Ra |
-+---------------------+-----+------+--------------------+
-| jumpc1 d,disp[Ra]   | F,5 | Fda5 | if R15.d=1         |
-|                     |     | disp | then pc := disp+Ra |
-+---------------------+-----+------+--------------------+
-| jal Rd,disp[Ra]     | F,6 | Fda6 | Rd:=pc,            |
-|                     |     | disp | pc:=disp+Ra        |
-+---------------------+-----+------+--------------------+
-| jumpz Rd,disp[Ra]   | F,7 | Fda7 | if R15.d=0         |
-|                     |     | disp | then pc := disp+Ra |
-+---------------------+-----+------+--------------------+
-| jumpnz Rd,disp[Ra]  | F,8 | Fda8 | if R15.d=1         |
-|                     |     | disp | then pc := disp+Ra |
-+---------------------+-----+------+--------------------+
-| testset Rd,disp[Ra] | F,9 | Fda9 | Rd:=M[disp+Ra],    |
-|                     |     | disp | M[disp+Ra]:=0001   |
-+---------------------+-----+------+--------------------+
-|                     | F,A | FdaA | nop                |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-|                     | F,B | FdaB | nop                |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-|                     | F,C | FdaC | nop                |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-|                     | F,D | FdaD | reserved           |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-|                     | F,E | FdaE | reserved           |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-|                     | F,F | FdaF | reserved           |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
+
+#+CAPTION: 32-bit {seudoinstructions
+
+|-----------------+---------------------+-----------+----------------------|
+| Assembly        | Instruction         | Code      | Effect               |
+|-----------------+---------------------+-----------+----------------------|
+| xinvw Rd        | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert Rd            |
+| xandw Rd,Re     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\wedge$ Re |
+| xorw Rd,Re      | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\vee$ Re   |
+| xxorw Rd,Re     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd xor Re      |
+| xinvf Rd,f,g    | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert field         |
+| xandf Rd,Re,f,g | logicf Rd,Re,0,15,1 | Ed01,e0F1 | and field            |
+| xorf Rd,Re,f,g  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | or field             |
+| xxorf Rd,Re,f,g | logicf Rd,Re,0,15,1 | Ed01,e0F1 | xor field            |
+| xinvb Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | invert bit           |
+| xandb Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | and bit              |
+| xorb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | or bit               |
+| xxorb Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | xor bit              |
+|-----------------+---------------------+-----------+----------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
 ----------
 
-** EXP instructions
-
-Instructions and pseudoinstructions in each format:
-
-- EXP/: resume
-
-- EXP/R pseudo: invf
-
-- EXP/Rk: dispatch  (k is efgh)
-
-- EXP/RR pseudo
-  - andw, orw, xorw, andf, orf, xorf
-  - Rd = first operand register and destination register
-  - Re = second operand register
-  - f = unused
-  - g = unused
-  - h = generated by pseudo expansion
-
-- EXP/RRk: shiftl, shiftr
-
-- EXP/RRkR: save, restore
-
-- EXP/RRkk pseudo: andb, orb, xorb, invb, orb, xorb
-
-- EXP/RRkkk: logicf, logicb, extract
-
-----------
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-+----------------------+------+------+----------------------+
-| Assembly             |      | Code | Effect               |
-+----------------------+------+------+----------------------+
-| logicf Rd,Re,f,g,h   | E,00 | Ed00 | Rd.f:g :=            |
-|                      |      | efgh |   h(Rd.f:g,Re.f:g)   |
-+----------------------+------+------+----------------------+
-| logicb Rd,Re,f,g,h   | E,01 | Ed01 | Rd.f := h(Rd.f,Re.g) |
-|                      |      | efgh |                      |
-+----------------------+------+------+----------------------+
-| shiftl Rd,Re,h       | E,02 | Ed02 | Rd := Re shl h       |
-|                      |      | e..h |                      |
-+----------------------+------+------+----------------------+
-| shiftr Rd,Re,h       | E,03 | Ed03 | Rd := Re shr h       |
-|                      |      | e..h |                      |
-+----------------------+------+------+----------------------+
-| extract Rd,Re,f,g,h  | E,04 |      | Rd.f~g :=            |
-|                      |      |      |                      |
-+----------------------+------+------+----------------------+
-| push Rd,Re,Rf        | E,05 |      | M[ea] := Rd, Rb++    |
-|                      | ef.. |      |                      |
-+----------------------+------+------+----------------------+
-| pop Rd,Re,Rf         | E,06 |      | Rb--, Rd := M[ea]    |
-|                      | ef.. |      |                      |
-+----------------------+------+------+----------------------+
-| top Rd,Re,Rf         | E,07 |      | Rb--, Rd := M[ea]    |
-|                      | ef.. |      |                      |
-+----------------------+------+------+----------------------+
-| save Rd,Re,gh[Rf]    | E,08 |      | M[Rf+gh] := Rd,      |
-|                      | efgh |      | M[Rf+gh+1] := R{d+1} |
-|                      |      |      | M[Rf+gh+e-d] := Re   |
-+----------------------+------+------+----------------------+
-| restore Rd,Re,gh[Rf] | E,09 |      | Rd := M[Rf+gh],      |
-|                      | efgh |      | ...,                 |
-|                      |      |      | Re := M[Rf+gh+e-d]   |
-+----------------------+------+------+----------------------+
-| brc0 Rd,e,fgh        | E,0A | Ed0A | if R[d].e=0          |
-|                      | efgh |      | then pc:=pc+fgh      |
-+----------------------+------+------+----------------------+
-| brc1 Rd,e,fgh        | E,0B | Ed0B | if R[d].e=1          |
-|                      | efgh |      | then pc:=pc+fgh      |
-+----------------------+------+------+----------------------+
-| brz Rd,efgh          | E,0C | Ed0C | if R[d]=0000         |
-|                      |      |      | then pc:=pc+efgh     |
-+----------------------+------+------+----------------------+
-| brnz Rd,efgh         | E,0D | Ed0D | if R[d]!=0000        |
-|                      |      |      | then pc:=pc+efgh     |
-+----------------------+------+------+----------------------+
-| dispatch Rd,efgh     | E,0E | Ed0E | pc :=                |
-|                      |      | efgh |   M[pc+min(Rd,efgh)]]|
-+----------------------+------+------+----------------------+
-| getctl Rd,e          | E,0F | Ed0F | Rd := Sc privileged  |
-| (privileged)         | e... | e... |                      |
-+----------------------+------+------+----------------------+
-| putctl Rd,e          | E,10 | Ed10 | Sc := Rd privileged  |
-| (privileged)         | e... | e... |                      |
-+----------------------+------+------+----------------------+
-| resume               | E,11 | Ed11 | pc := ipc,           |
-| (privileged)         | .... |      | status := istatus    |
-+----------------------+------+------+----------------------+
-| timeron Rd,efgh      | E,12 | Ed12 | timer := efgh,       |
-| (privileged)         |      | efgh | start timer          |
-+----------------------+------+------+----------------------+
-| timeroff Rd,efgh     | E,13 | Ed13 | stop timer           |
-| (privileged)         |      | efgh |                      |
-+----------------------+------+------+----------------------+
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
-
-** Sigma32 /(experimental)/ :noexport:
-
-/Sigma32 is experimental and under development.  It is only
-partially implemented, and many details in this section are
-likely to change in the future./
-
-Sigma32 is an extension of Sigma16 to use 32 bit words.  It
-provides 32 bit arithmetic, and addresses are 32 bits so it
-has a much larger memory.
-
-Sigma32 is backwards compatible with Sigma16: every Sigma16
-program executes on Sigma32 exactly the same as on Sigma16.
-Sigma32 extends the Sigma16 registers to 32 bits; the Sigma16
-instructions operate on the rightmost 16 bits of the
-registers.  The Sigma32 instructions are similar to their 16
-bit counterparts, so learning how to use them is
-straightforward.  Programs can mix 16 bit and 32 bit
-instructions freely.
-
-In Sigma32, addresses are 32 bits.  The Sigma16 memory has
-$2^{16}$ words (i.e. 65,536 words).  Sigma32 can address
-$2^{32}$ words (i.e 4,294,967,296 words).  In practice, the
-actual memory size supported by the app will be much less
-hhlp than that, as it depends on the browser and the primary
-memory of your computer.
-
-The Sigma16 app supports both architectures.  In 16 bit mode,
-the registers are 16 bits, and execytubg a 32 bit instruction
-triggers an invalid instruction interrupt.  In 32 bit mode,
-the registers are 32 bits and all instructions can be used.
-
-When launched, the app starts out in 16 bit mode.
-- To switch the system to 32 bit mode, open the browser
-  console.  In Chrome and Edge, enter *Ctrl Shift J*.  In the
-  console, enter *setArch(32)*.
-- To go back to the default 16 bit mode, enter *setArch(16)*.
-- In the future, the GUI will provide buttons to switch
-  modes.
-
-Most 32 bit instructions are represented in EXP format,
-although a few are in RX format.
-
-A few Sigma32 instructions are represented in RX format.
 
 
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-+---------------------+-----+------+--------------------+
-| Assembly            | Op  | Code | Effect             |
-+---------------------+-----+------+--------------------+
-| xlea Rd,disp[Ra]    | F,D | FdaD | Sigma32            |
-| (Sigma32)           |     | disp |                    |
-+---------------------+-----+------+--------------------+
-| xload Rd,disp[Ra]   | F,E | FdaE | Sigma32            |
-| (Sigma32)           |     | disp |                    |
-+---------------------+-----+------+--------------------+
-| xstore Rd,disp[Ra]  | F,F | FdaF | Sigma32            |
-|                     |     | disp |                    |
-+---------------------+-----+------+--------------------+
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-Most Sigma32 instructions represented in EXP format
-
-----------
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-+---------------------+------+------+-----------------+
-| Assembly            | Op   | Code | Effect          |
-+---------------------+------+------+-----------------+
-| xadd Rd,Re,Rf       | e,20 | Ed20 | Rd := Re+Rf     |
-|                     |      | ef00 |                 |
-+---------------------+------+------+-----------------+
-| xsub Rd,Re,Rf       | e,21 | Ed21 | Rd := Re+rf     |
-|                     |      | ef00 | Rd := Re+rf     |
-+---------------------+------+------+-----------------+
-| xmul Rd,Ra,Rb       | e,22 | Ed22 | Rd := Re+rf     |
-|                     |      | ef00 | Rd := Re+rf     |
-+---------------------+------+------+-----------------+
-| xdiv Rd,Ra,Rb       | e,23 | Ed23 | Rd := Re+rf     |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xcmp Rd,Ra,Rb       | e,24 | Ed24 | Rd := Re+rf     |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xaddc Rd,Ra,Rb      | e,25 | Ed1A | Rd := Re+rf     |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xmuln Rd,Ra,Rb      | e,26 | Ed1A | Rd := Re+rf     |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xdivn Rd,fgh[Re]    | e,27 | Ed1B | Rd := fgh+Re    |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xjumpz Rd,disp[Ra]  | e,28 | Ed00 |                 |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xjumpnz Rd,disp[Ra] | e,29 | Ed00 |                 |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xshiftl Rd,Re,h     | e,2A |      | Rd := Re shl h  |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xshiftr Rd,Re,h     | e,2B |      | Rd := Re shr h  |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xpush Rd,Re,Rf      | e,2C |      | Rd.f~g :=       |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xpop Rd,Re,Rf       | e,2D |      | Rd.f~g :=       |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xtop Rd,Re,Rf       | e,2E |      | Rd.f~g :=       |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xsave Rd,Re,gh[Rf]  | e,2F |      | Rd.f~g :=       |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-| xrest Rd,Re,gh[Rf]  | e,30 |      | Rd.f~g :=       |
-|                     |      |      |                 |
-+---------------------+------+------+-----------------+
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
-
-# Rd.f:g := h#(Rd.f:g,Re.f:g) |
-#  Rd.f:g := h#(Rd.f:g,Re.f:g) |
-
-Sigma32 instructions represented in RX format
-
-----------
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-+----------------------+------+----------+----------------------+
-| Assembly             | Op   | Code     | Effect               |
-+----------------------+------+----------+----------------------+
-| llogicf Rd,Rb,p,q,h  | F,D  | FdbD     | Rd.m:n :=            |
-|                      |      | mnh      |   h(Rd.m:n,Rb.m:n)   |
-+----------------------+------+----------+----------------------+
-| llogicb Rd,Rb,m,n,h  | F,E  | FdbE     | Rd.f := h(Rd.f,Re.g) |
-|                      |      | mnh      |                      |
-+----------------------+------+----------+----------------------+
-| lextract Rd,Rb,m,n,h | F,F  | FdvF     | Rd.f~g :=            |
-|                      |      | mnh      |                      |
-+----------------------+------+----------+----------------------+
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
-
-This is a reference line
-
-----------
-
-That was a reference line
-
-** Summary of pseudoinstructions
-
-Pseudoinstructions for comparisons
-
-- jumplt jump if <
-- jumple jump if <=
-- jumpeq jump if =
-- jumpne jump if !=
-- jumpge jump if >-
-- jumpgt jump if >
-
-----------
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-+----------------------+------+----------+----------------------+
-| Assembly       | Code      | Effect              |
-|----------------+-----------+---------------------|
-| invw Rd        | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| invw Rd        | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| andw Rd,Re     | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| orw Rd,Re      | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| xorw Rd,Re     | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| invf Rd,f,g    | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| andf Rd,Re,f,g | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| orf Rd,Re,f,g  | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| xorf Rd,Re,f,g | Ed01,e0F1 | logicf Rd,Re,0,15,1 |
-| invb Rd,Re,f,g | Ed01,e0F1 | logicb Rd,Re,f,g,1  |
-| andb Rd,Re,f,g | Ed01,e0F1 | logicb Rd,Re,f,g,1  |
-| orb Rd,Re,f,g  | Ed01,e0F1 | logicb Rd,Re,f,g,1  |
-| xorb Rd,Re,f,g | Ed01,e0F1 | logicb Rd,Re,f,g,1  |
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
 
 * Assembly language
 :PROPERTIES:
@@ -6824,8 +7159,6 @@ are useful in finding the right instruction to use.  (From
 the perspective of designing a digital circuit to impleemnt
 the architecture, the format is essential.)
 
-*** Pseudoinstructions
-
 *** data
 
 The data statement specifies a sequence of constants to be
@@ -7048,6 +7381,7 @@ begins implicitly with org 0.
 # attribute, as well as the numeric value of the location
 # counter, to the value of the operand.  org @+50 ; skip 50
 # words (Relocatable)
+
 
 * Object code and linker
 :PROPERTIES:
@@ -7291,6 +7625,7 @@ source 32
   checks to see whether it is a valid executable module.  If
   so, it loads the code into the memory.  If not, it
   indicates that the program cannot be booted.
+
 
 * Programming
 :PROPERTIES:
@@ -7610,6 +7945,7 @@ the emulator will run at full speed until the pc reaches the
 specified value; then it will stop so you can examine the
 state of the machine.
 
+
 * Graphical User Interface
 
 ** Assembler
@@ -7625,6 +7961,34 @@ How to use the assembler page.
 :END:
 
 About the settings
+
+
+
+* Command line tools
+
+Several components of the app can be used by issuing commands in a
+shell.  To use them, you need to install them (see /Installation/
+beloe).  There is one command, /sigma16/, which takes zero or more
+optional arguments.  If present, the first argument specifies what
+to do (e.g. assemble or link) and the second argument specifies
+what files to use.
+
+Suppose your shell is in a directory that contains an assembly
+language file, =ArrayMax.asm.txt=.  To asssemble it, enter the
+following command.  Use just the base name of the file
+(=ArrayMax=), and omit the extensions (=.asm.txt=).
+
+#+BEGIN_EXAMPLE
+sigma16 assemble ArrayMax
+#+END_EXAMPLE
+
+This will produce an object code file (=ArrayMax.obj.txt=), an
+assembly listing file (=ArrayMax.lst.txt=), and a metadata file
+(=ArrayMax.md.txt=).
+
+
+* FAQ: Frequently Asked Questions
+
 
 * Installation
 
@@ -7723,168 +8087,6 @@ following information.
   photos are fine.  Try to show the processor display,
   including the registers.
 
-* About Sigma16
-:PROPERTIES:
-:CUSTOM_ID: sec-about-sigma16
-:END:
-
-** Copyright and license
-
-The architecture, software tools, and documentation were
-designed, implemented, and written by John O'Donnell.
-Contact email: john.t.odonnell9@gmail.com.
-Copyright (C) 2019-2025 John T. O'Donnell
-
-#+BEGIN_EXPORT html
-Sigma16 is available under the GPL-3 license.  The license
-text is available
-<ul>
-<li> in the Sigma16 folder at
-<a href="../../LICENSE.txt" target="_blank">Sigma16/LICENSE.txt</a>
-<li> online at
-<a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="blank">https://www.gnu.org/licenses/gpl-3.0.en.html</a>
-</ul>
-#+END_EXPORT
-
-#+BEGIN_EXPORT latex
-Sigma16 is available under the GPL-3 license.  The license
-text is available
-\begin{itemize}
-\item in the Sigma16 folder at
-\href{../../LICENSE.txt}{Sigma16/LICENSE.txt}
-\item online at
-\href{https://www.gnu.org/licenses/gpl-3.0.en.html}{https://www.gnu.org/licenses/gpl-3.0.en.html}
-\end{itemize}
-#+END_EXPORT
-
-Sigma16 is free software: you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation, Version 3 of
-the License.  Sigma16 is distributed in the hope that it will
-be useful, but WITHOUT ANY WARRANTY; without even the implied
-warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the GNU General Public License for more
-details.  You should have received a copy of the GNU General
-Public License along with Sigma16.  If not, see
-[[https://www.gnu.org/licenses/][www. gnu. org/ licenses]].
-
-** Release notes
-
-*** Version 3.5.0, January 2023
-- No change to the Core instruction set
-- revised the Standard instructions, some changes to
-  representation
-- added family of branch instructions
-*** Version 3.4.0
-- Bit indexing is changed to "little end" style.  The least
-  significant bit has index 0, and the most significant bit
-  has index 15.
-- The architecture is organized into precisely defined
-  subsets: Core and Standard
-*** Version 3.3.2, April 2021
-- There is no change in the architecture
-- The software is modified to enable it to continue working
-  when a planned change to web browsers occurs in May 2021.
-  The program runs on a hosted web server that enables it to
-  work fully with cross origin isolation.
-*** Version 3.2.3, development from April 2021
-*** Version 3.2.2, March 2021
-
-- A bug in breakpoints is fixed
-- In addition, there is a new way to specify breakpoings
-  using trap
-- When the emulator stops, the memory display is correct; you
-  no longer need to refresh it
-
-*** Version 3.2.1, February 2021
-
-Version 3.2 brings several changes that will be visible to
-users of previous versions of Sigma16:
-
-- /cmplt, cmpeq, cmpgt are removed./ Instead, use the =cmp=
-  instruction, which sets the condition code (=R15=), and
-  then use any of the conditional jump instructions =jumplt=,
-  =jumple=, =jumpeq=, =jumpne=, =jumpge=, =jumpgt=.
-  (Rationale: There are more Booleans in the condition code
-  than just less-than, equal, and greater-than.  The new
-  style accomodates all the conditions in a uniform manner,
-  but the old style does not.  Version 3.1 already supported
-  =cmp= and the conditional jumps.)  Here's an example:
-
-#+BEGIN_SRC Sigma16 exports: code
-; Old style -- these instructions have been removed
-     cmplt   R1,R2,R3      ; R1 := R2 < R3
-     jumpt   R1,loop[R0]   ; if R2 < R3 then goto loop
-; New style -- use the following instead
-     cmp     R2,R3         ; compare R2 with R3
-     jumplt  loop[R0]      ; if R2 < R3 then goto loop
-#+END_SRC
-
-- /jumpf is renamed to jumpz, and jumpt is renamed to
-  jumpnz./ The new names stand for /jump if zero/ and /jump
-  if not zero/.  Most old programs will use =jumpf= or
-  =jumpt= only after =cmplt=, =cmpeq=, or =cmpgt=, but
-  following =cmp= you should use one of the conditional jumps
-  listed above. (Rationale: The new names reflect more
-  accurately what the instructions do.  The decision about
-  whether to jump depends on whether the entire register
-  contains 0; it isn't a decision based on checking just a
-  single bit.)
-
-The following changes do not require modifying old programs;
-they just relax the syntax rules so some programs would no
-longer give an error message.
-
-- /[R0] is optional./ In previous versions of Sigma16, every
-  displacement requires the index register to be stated
-  explicitly, even if it's =R0=: for example, =load
-  R3,xyz[R0]=.  Now, the =[R0]= can be omitted, although you
-  can include it if you wish.  Thus =load R3,xyz= and =load
-  R3,xyz[R0]= are equivalent.  (Rationale: The reason for
-  requiring =[R0]= in the past was to emphasise the
-  regularity of the instruction representation.  However, a
-  primary aim of the design of Sigma16 is to provide
-  subsetting of the architecture, which supports a spiral
-  approach to learning computer architecture.  Another aim is
-  to provide a good platform for schools or other students
-  who will just learn a little of the system.  Removing the
-  requirement for =[R0]= simplifies the language for a
-  beginner.  Furthermore, for an experienced expert
-  programmer it's more readable to omit the =[R0]= as this
-  reduces the amount of clutter in the code.)
-
-- /Allow lower case "r" in register names./ In previous
-  versions, elements of the register file required an upper
-  case =R=: for example, =R8=.  Now you can write =r8= as
-  well as =R8=, and both names refer to the same register.
-  (Of course the same holds for the rest of the register
-  file.)  This is a trivial syntax issue.  There's no
-  technical reason to prefer =r8= or =R8=; it's just a matter
-  of personal preference.  It may be easier to read =r8=
-  because the lower case =r= is shorter than the digits.
-  It's good style to use either the =Rn= or =rn= form
-  consistently, but the assembly language doesn't enforce
-  that. Labels are case sensitive but registers are not.
-  Labels are case-sensitive, so =xyz= and =XYZ= are distinct
-  names, but registers are not labels, and registers are not
-  case sensitive.
-
-There are some changes to the machine language that don't
-affect assembly language programs.
-
-- Some of the opcodes have changed, so programs need to be
-  reassembled.
-
-- The word logic instructions =inv=, =and=, =or=, =xor= are
-  now pseudoinstructions that generate the =logicf=
-  instruction.  The assembly language syntax is the same as
-  before; only the underlying machine language representation
-  is different
-
-There are some new instructions and features, as well as some
-instructions and features that have been in the architecture
-for some time but weren't documented in the User Gude.  These
-won't affect existing programs.
 
 * Development notes
 
@@ -8001,79 +8203,357 @@ error slash includesvg undefined
 - setArch(32)
   
 ** To do
-GUI, Arch, ISA, Typesetting
-
-This example has no leading spaces:
+- GUI, Arch, ISA, Typesetting
+- This example has no leading spaces:
 
 #+BEGIN_SRC Sigma16 exports: code
 loop  lea  R3,42     ; R3 := 42
 #+END_SRC
 
-This example starts with ordinary spaces, and all but one are
-ignored by the exporter, so this instruction won't be
-properly indented:
+- This example starts with ordinary spaces, and all but one are
+  ignored by the exporter, so this instruction won't be properly
+  indented:
 
 #+BEGIN_SRC Sigma16 exports: code
      lea  R3,42     ; R3 := 42
 #+END_SRC
 
-This example has a special space character at the beginning.
-It isn't obtrusive in the text editor, bnt it ensures that
-the html output won't ignore the leading spaces:
+- This example has a special space character at the beginning. It
+  isn't obtrusive in the text editor, bnt it ensures that the html
+  output won't ignore the leading spaces:
 
 #+BEGIN_SRC Sigma16 exports: code
      lea  R3,42     ; R3 := 42
 #+END_SRC
 
-** Read through <2025-01-02 Thu>
-** misc 
-
-** Testing status of Examples/Standard/Testing
-*** AsmStd
-  - 
-*** AsmStdErrors
-- uses old logicw, old syntax for logicb and extract
-- Should include logicf, new syntax for logicb, and new
-  pseudoinstructions for logicf and logicb
-*** BitField
-- extract
-- Extract seemed to work, check
-*** Branch
-- needs redesign, the test program is no longer consistent
+- AsmStdErrors uses old logicw, old syntax for logicb and extract
+  - Should include logicf, new syntax for logicb, and new
+    pseudoinstructions for logicf and logicb
+- Branch needs redesign, the test program is no longer consistent
   with the program
-*** Ctl.asm.txt
-- check execution
-*** Dispatch
-  - 
-*** Jump
-  - 
-*** LinkTestA directory
-  - 
-*** LinkTestB directory
-  - 
-*** Logic
-*** Relocatable
-*** SaveRestore
-*** Shift
-*** Stack
-*** StdArithmetic
-*** TestSet
-*** Timer
+- Ctl.asm.txt check execution
 
-# Update dynamic blocks: C-u C-c C-x C-u
-# This will automatically put build timestamp at end
+
+* About Sigma16
+:PROPERTIES:
+:CUSTOM_ID: sec-about-sigma16
+:END:
+
+** Copyright and license
+
+The architecture, software tools, and documentation were
+designed, implemented, and written by John O'Donnell.
+Contact email: john.t.odonnell9@gmail.com.
+Copyright (C) 2019-2025 John T. O'Donnell
+
+#+BEGIN_EXPORT html
+Sigma16 is available under the GPL-3 license.  The license
+text is available
+<ul>
+<li> in the Sigma16 folder at
+<a href="../../LICENSE.txt" target="_blank">Sigma16/LICENSE.txt</a>
+<li> online at
+<a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="blank">https://www.gnu.org/licenses/gpl-3.0.en.html</a>
+</ul>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+Sigma16 is available under the GPL-3 license.  The license
+text is available
+\begin{itemize}
+\item in the Sigma16 folder at
+\href{../../LICENSE.txt}{Sigma16/LICENSE.txt}
+\item online at
+\href{https://www.gnu.org/licenses/gpl-3.0.en.html}{https://www.gnu.org/licenses/gpl-3.0.en.html}
+\end{itemize}
+#+END_EXPORT
+
+Sigma16 is free software: you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation, Version 3 of
+the License.  Sigma16 is distributed in the hope that it will
+be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.  See the GNU General Public License for more
+details.  You should have received a copy of the GNU General
+Public License along with Sigma16.  If not, see
+[[https://www.gnu.org/licenses/][www. gnu. org/ licenses]].
+
+** Release notes
+
+- Permalink to the latest live release
+  - The following permalink to the Sigma16 Home Page will always
+    give you the latest release:
+    [[https://jtod.github.io/home/Sigma16/]].
+  - The github page for Sigma16 contains the current development
+    code, which changes frequently and is not stable.  The github
+    page also contains links to versions that were released
+    since 2019.
+
+- v3.9.0, February 2025
+  - Refinements to user guide and user interface
+  - Further development of EXP instructions
+  - Used in CS1 Spring 2025, CA Autumn 2025, CS1 Spring 2025
+
+- v3.7.1, February 2024
+  - Fix bug with highlighting current source statement after a
+    program has been re-edited and re-assembled
+
+- v3.7.0, January 2024
+
+- v3.5.0, January 2023
+  - No change to the Core instruction set
+  - revised the Standard instructions, some changes to
+    representation of standard instructions
+  - added family of branch instructions
+
+- v3.4.3, August 2022
+
+- v3.4.2, January 2022
+
+- v3.4.1, January 2022
+  - Organise architecture into Core and Standard subsets
+
+- v3.4.0
+  - Bit indexing is changed to "little end" style.  The least
+    significant bit has index 0, and the most significant bit
+    has index 15.
+  - The architecture is organized into precisely defined
+    subsets: Core and Standard
+
+- v3.3.2, April 2021
+  - There is no change in the architecture
+  - The software is modified to enable it to continue working
+    when a planned change to web browsers occurs in May 2021.
+    The program runs on a hosted web server that enables it to
+    work fully with cross origin isolation.
+
+- v3.2.3, development from April 2021
+
+- v3.2.2, March 2021
+  - A bug in breakpoints is fixed
+  - In addition, there is a new way to specify breakpoings
+    using trap
+  - When the emulator stops, the memory display is correct; you
+    no longer need to refresh it
+
+- v3.2.1, February 2021
+  - v3.2 brings several changes that will be visible to users
+    of previous versions of Sigma16.
+  - /cmplt, cmpeq, cmpgt are removed./
+  - Instead, use the =cmp= instruction, which sets the condition
+    code (=R15=), and then use any of the conditional jump
+    instructions =jumplt=, =jumple=, =jumpeq=, =jumpne=, =jumpge=,
+    =jumpgt=.
+  - Rationale: There are more Booleans in the condition code than
+    just less-than, equal, and greater-than.  The new style
+    accomodates all the conditions in a uniform manner, but the old
+    style does not.  v3.1 already supported =cmp= and the
+    conditional jumps.  Here's an example:
+#+BEGIN_SRC Sigma16 exports: code
+; Old style -- these instructions have been removed
+     cmplt   R1,R2,R3      ; R1 := R2 < R3
+     jumpt   R1,loop[R0]   ; if R2 < R3 then goto loop
+; New style -- use the following instead
+     cmp     R2,R3         ; compare R2 with R3
+     jumplt  loop[R0]      ; if R2 < R3 then goto loop
+#+END_SRC
+  - /jumpf is renamed to jumpz, and jumpt is renamed to jumpnz./ The
+    new names stand for /jump if zero/ and /jump if not zero/.  Most
+    old programs will use =jumpf= or =jumpt= only after =cmplt=,
+    =cmpeq=, or =cmpgt=, but following =cmp= you should use one of
+    the conditional jumps listed above.
+     - Rationale: The new names reflect more accurately what the
+       instructions do.  The decision about whether to jump depends on
+       whether the entire register contains 0; it isn't a decision
+       based on checking just a single bit.
+  - The following changes do not require modifying old programs;
+    they just relax the syntax rules so some programs would no
+    longer give an error message.
+    - /[R0] is optional./ In previous versions of Sigma16, every
+      displacement requires the index register to be stated
+      explicitly, even if it's =R0=: for example, =load R3,xyz[R0]=.
+      Now, the =[R0]= can be omitted, although you can include it if
+      you wish.  Thus =load R3,xyz= and =load R3,xyz[R0]= are
+      equivalent.  (Rationale: The reason for requiring =[R0]= in
+      the past was to emphasise the regularity of the instruction
+      representation.  However, a primary aim of the design of
+      Sigma16 is to provide subsetting of the architecture, which
+      supports a spiral approach to learning computer architecture.
+      Another aim is to provide a good platform for schools or other
+      students who will just learn a little of the system.  Removing
+      the requirement for =[R0]= simplifies the language for a
+      beginner.  Furthermore, for an experienced expert programmer
+      it's more readable to omit the =[R0]= as this reduces the
+      amount of clutter in the code.)
+    - /Allow lower case "r" in register names./ In previous
+      versions, elements of the register file required an upper case
+      =R=: for example, =R8=.  Now you can write =r8= as well as
+      =R8=, and both names refer to the same register.  (Of course
+      the same holds for the rest of the register file.)  This is a
+      trivial syntax issue.  There's no technical reason to prefer
+      =r8= or =R8=; it's just a matter of personal preference.  It
+      may be easier to read =r8= because the lower case =r= is
+      shorter than the digits.  It's good style to use either the
+      =Rn= or =rn= form consistently, but the assembly language
+      doesn't enforce that. Labels are case sensitive but registers
+      are not.  Labels are case-sensitive, so =xyz= and =XYZ= are
+      distinct names, but registers are not labels, and registers
+      are not case sensitive.
+  - There are some changes to the machine language that don't affect
+    assembly language programs.
+    - Some of the opcodes have changed, so programs need to be
+      reassembled.
+    - The word logic instructions =inv=, =and=, =or=, =xor= are
+      now pseudoinstructions that generate the =logicf=
+      instruction.  The assembly language syntax is the same as
+      before; only the underlying machine language representation
+      is different
+    - There are some new instructions and features, as well as some
+      instructions and features that have been in the architecture
+      for some time but weren't documented in the User Gude.  These
+      won't affect existing programs.
+
+- v3.1.3, March 2020
+
+- v3.1.2, March 2020
+
+- v3.1.1, Febrary 2020
+  - Give error message on invalid characters, refresh memory display
+    on pause or halt, logic instructions
+
+- v3.1.0, February 2020
+
+- v3.0.34, January 2020
+
+- v3.0.26, December 2019
+
+- v3.0.25, December 2019
+
+- v3.0.24, December 2019
+  - emulator working, emu listing highlighting
+
+- v3.0.18, December 2025
+
+- v3.0.0, March 2019
+  - Beginning of a complete rewrite of the system in JavaScript.
+  - It became clear, after extensive work, that Haskell is not ideal
+    for software that needs a nontrivial graphical user interface.
+    (Haskell is elegant and efficient for the assembler and
+    emulator, and for a text user interface, but not for a
+    graphicsal user interface.)
+  - Furthermore, there were serious problems in gtk3.
+  - Since portability is essential for Sigma16, I decided to
+    redesign and reimplement it in JavaScript, so it would run in
+    modern web browsers with no software installation.
+
+- v2.4.7, February 2019
+  - Improvements to commands and user interface
+
+- v2.3.65, January 2019
+  - Used in CS1S course at Glasgow through Spring 2019
+
+- v2.3.7
+  - Modified the Haskell program to support the GUI by communicating
+    with a web browser, in order to avoid using any of the Haskell
+    gui tools.
+  - To run Sigma16, you need to download the Haskell app and launch
+    it, and open a specific link in a running browser.
+  - Haskell, using a browser for the GUI
+  - The main program runs as a Haskell app, and it communicates with
+    the browser, sending commands to display information and
+    receiving responses to control the program.
+
+- v1.4.4, February 2016
+  - Standalone Haskell
+  - User interface defined by gtk calls, without glade dependency
+
+- v0.1.7, October 2011
+  - User interface implemented in gtk2 using glade to specify layout
+    of graphical interface
+  - Used for many years in several introductory sysems courses at
+    Glasgow.  Used in level 1 systems though 20216
+  - Used in the IT Systems & Networks course at Glasgow
+    through at least 2025.
+  - However, this version is obsolete and it's recommended to use
+    the current release, available on github at
+    [[https://jtod.github.io/home/Sigma16/]].  The current release has
+    an improved architecture, is portable, has extensive
+    documentation, is much faster, includes better software tools,
+    and has a better user interface.
+
+- v0.1.0, October 2010
+  - Standalone program implemented in Haskell, using gtk for the
+    user interface
+  - User inteface defined using glade
+  - Contains assembler and emulator
+  - Used in CS2, level 2 computer systems course, starting in
+    2010-11
+
+# ----------------------------------------------------------------
+# Generating the BUILD_ID requires updating dynamic blocks:
+#   1. M-x Sigma16 (this will load Sigma.el, which is required)
+#   2. C-u C-c C-x C-u (org-update-all-blocks, update build date)
+#   3. C-e h h, C-e l l (export to html and tex)
+# The Build timestamp in the block below is left over from
+# the last time C-u C-c C-x C-u was issued, and it will be
+# replaced by the current time.
+
 #+BEGIN_BUILD_ID
 #+BEGIN: update-build-id :format "%Y-%m-%d at %H:%M"
-Build: 2025-11-28 at 12:26
+Build: 2025-12-30 at 22:08
 #+END
 #+END_BUILD_ID
 
 # ----------------------------------------------------------------
+# deprecated
+# ----------------------------------------------------------------
+
+# #+OPTIONS: toc:nil
+# #+TOC: nil
+
+# Build project containing current file
+#   C-c C-e P p
+#   Configuration in ~/.emacs.d/init.el
+
 # Deprecated
+# Not in use...
+# #+OPTIONS: html-tableel-org:t
 
-# The following doesn't seem to do anything...
-# #+HTML_PREAMBLE: "<h1 class=\"title\">%t</h1> <p class=\"author\">%a</p> <p class=\"date\">%d</p>"
 
-# #+OPTIONS: HTML_PREAMBLE: "This is my super preamble"
-#  #+HTML_PREAMBLE: <div class="preamble">Welcome to my custom
-# preamble!</div>
+# 
+# Instructions and pseudoinstructions in each format:
+#     
+# - EXP/: resume
+# 
+# - EXP/R pseudo: invf
+# 
+# - EXP/Rk: dispatch  (k is efgh)
+# 
+# - EXP/RR pseudo
+#   - andw, orw, xorw, andf, orf, xorf
+#   - Rd = first operand register and destination register
+#   - Re = second operand register
+#   - f = unused
+#   - g = unused
+#   - h = generated by pseudo expansion
+# 
+# - EXP/RRk: shiftl, shiftr
+# 
+# - EXP/RRkR: save, restore
+# 
+# - EXP/RRkk pseudo: andb, orb, xorb, invb, orb, xorb
+# 
+# - EXP/RRkkk: logicf, logicb, extract
+# 
+# # R15 ~=  gGElvVC   add effect on cc
+# 
+# In EXP32 format the second instruction word is organized as four
+# fields:
+# 
+# - m: 5 bits, indices 15-11
+# - n: 5 bits, indices 10-6
+# - h: 5 bits, indices 5-1
+# - z: 1 bit, index 0
+# 
+# 

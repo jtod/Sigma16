@@ -14,6 +14,10 @@
 # a copy of the GNU General Public License along with
 # Sigma16.  If not, see <https://www.gnu.org/licenses/>.
 
+# Quick notes
+#   make SetVersion
+#   make ExIdx
+
 # ----------------------------------------------------------------
 # Check src/package.json, update version if necessary
 # make SetVersion  (this reads version from package.json)

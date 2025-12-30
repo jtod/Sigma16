@@ -1,4 +1,5 @@
-; test_xadd_xstore
+; test_xadd_xstore:
+; 
 
    lea    R2,1[R0]
    xadd   R2,R2,R2
