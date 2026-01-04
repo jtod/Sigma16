@@ -1,1 +1,1 @@
-#+MACRO: S16version Version 3.10.1, December 2025
+#+MACRO: S16version Version 4.0.0, January 2026
