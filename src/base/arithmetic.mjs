@@ -1,6 +1,7 @@
 // Sigma16: arithmetic.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
-// See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
+// Copyright (c) 2026 John T. O'Donnell.  All rights reserved.
+// License: GNU GPL Version 3. See Sigma16/README, LICENSE
+// Source repository: https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
 // redistribute it and/or modify it under the terms of the GNU General
@@ -39,13 +40,17 @@ export const word32mask = 0xffffffff
 // a value and output an error message to the console if it is not
 // valid.
 
-// Addresses are limited to either 16 bits for S16 or 32 bits for S32.
-// If an address exceeds this range it wraps around.  This is
-// implemented by anding its value with addressMask.
+// ---------------------------------------------------------------
+// Addresses
+// ---------------------------------------------------------------
+
+// Addresses are natural numbers limited to either 16 bits for S16
+// or 32 bits for S32.  If an address exceeds this range it wraps
+// around.  This is implemented by anding its value with
+// addressMask.
 
 export function limit16 (x) { return x & word16mask }
-// export function limit32 (x) { return x & word32mask }
-export function limit32 (x) { return x } // ????? temp
+export function limit32 (x) { return x & word32mask }
 
 // See also em.limitAddress
 
@@ -67,12 +72,6 @@ export function assert32 (x) {
     }
 }
 
-// Only integers representable exactly in 53 bits are representable
-// exactly, so assert64 doesn't really do anything.  Consider bigint.
-
-export function assert64 (x) {
-        return x
-}
 
 // Determine whether a JavaScript number is a valid Sigma16 word
 // (which is represented using binary).  If not, print an error
@@ -88,19 +87,6 @@ function validateWord (x) {
     return y
 }
 
-/* old version
-// Determine whether a JavaScript number is a valid Sigma16 word
-// (which is represented using binary).  If not, print an error
-// message and treat the number as 0.
-function validateWord (x) {
-    if (x < minBin || x > maxBin) {
-	com.mode.devlog (`validateWord: ${x} is not a valid word (out of range)`);
-	return 0;
-    } else {
-	return x;
-    }
-}
-*/
 // Restrict word to the 16 bit integer part; no error if there are extra 1 bits
 
 export function truncateWord (x) {
@@ -304,13 +290,6 @@ export function setBit (w,i,b) {
     return result
 }
 
-// function extractBit (w,i) {
-//    let foo = 1 << i;
-//    let bar = foo & w;
-//    com.mode.devlog (`foo = ${foo}`);
-//    return bar===0 ? 0 : 1;
-//}
-
 
 //------------------------------------------------------------------------
 // Converting between binary words and two's complement integers
@@ -374,15 +353,17 @@ export function splitWord (x) {
 // Hexadecimal notation
 //------------------------------------------------------------------------
 
-// The assembly language allows hex numbers to be written with either
-// lower case a-f or upper case A-F.  When it outputs hex numbers, the
-// system always uses the lower case form.  There are conversion
-// functions between hex strings (which must be four characters
-// limited to valid hex digits) and words.
+// The assembly language allows hex numbers to be written with
+// either lower case a-f or upper case A-F.  When it outputs hex
+// numbers, the system always uses the lower case form.  There are
+// conversion functions between hex strings (which must be four
+// characters limited to valid hex digits) and words.
 
 // Invariants.  For valid x and str:
-//   hex4ToWord (wordToHex4 (x)) = x       e.g. hex4ToWord (wordToHex4 (52309))
-//   wordToHex4 (hex4ToWord (str)) = str   e.g. wordToHex4 (hex4ToWord ("5c7e"))
+//   hex4ToWord (wordToHex4 (x)) = x
+//       e.g. hex4ToWord (wordToHex4 (52309))
+//   wordToHex4 (hex4ToWord (str)) = str
+//       e.g. wordToHex4 (hex4ToWord ("5c7e"))
 
 // Character code constants for useful hex characters
 const charCode0 = '0'.charCodeAt(0);
@@ -428,6 +409,12 @@ export function wordToHex8 (x) {
         +  hexDigit[e] + hexDigit[f]
         + hexDigit[g] + hexDigit[h]
 }
+
+// Show x with both decimal and hex notation
+export function showGen (x) {
+    return 'dec: ' + x + ' hex: ' + wordToHex8 (x)
+}
+window.showGen = showGen
 
 function showBit (b) {
     return b==0 ? '0' : 1
@@ -983,3 +970,33 @@ export function op_cmp (c,a,b) {
     return cc
 }
 */
+
+/*
+// Only integers representable exactly in 53 bits are representable
+// exactly, so assert64 doesn't really do anything.  Consider bigint.
+
+export function assert64 (x) {
+        return x
+}
+*/
+
+/* old version
+// Determine whether a JavaScript number is a valid Sigma16 word
+// (which is represented using binary).  If not, print an error
+// message and treat the number as 0.
+function validateWord (x) {
+    if (x < minBin || x > maxBin) {
+	com.mode.devlog (`validateWord: ${x} is not a valid word (out of range)`);
+	return 0;
+    } else {
+	return x;
+    }
+}
+*/
+
+// function extractBit (w,i) {
+//    let foo = 1 << i;
+//    let bar = foo & w;
+//    com.mode.devlog (`foo = ${foo}`);
+//    return bar===0 ? 0 : 1;
+//}

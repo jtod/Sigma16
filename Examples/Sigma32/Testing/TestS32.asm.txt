@@ -1,0 +1,21 @@
+; TestS32:  Test 32-bit instructions
+; Assembly languge for Sigma16 and Sigma32
+; See https://github.com/jtod/Sigma16
+
+   xlea    R1,$0abc[R0]  ; R1 = 0000 0abc
+   xload   R2,x[R0]      ; R2 = 0002 0030
+   xload   R3,y[R0]      ; R3 = 0400 0000
+   xadd    R4,R2,R3      ; R4 = 0402 0030
+   xstore  R4,z[R0]      ; z  = 0402 0030
+   xlea    R5,$2000[R4]  ; R4 = 0402 2030
+
+   trap    R0,R0,R0
+
+x   data   $0002
+    data   $0030
+y   data   $0400
+    data   $0000
+z   data   $0000
+    data   $0000
+    
+

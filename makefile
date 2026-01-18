@@ -1,6 +1,6 @@
 # Sigma16: makefile
-# Copyright (c) 2025 John T. O'Donnell.  License: GNU GPL
-# Version 3. See Sigma16/README, LICENSE, and
+# Copyright (c) 2026 John T. O'Donnell.  All rights reserved.
+# License: GNU GPL Version 3.  See Sigma16/README, LICENSE, and
 # https://github.com/jtod/Sigma16
 
 # This file is part of Sigma16.  Sigma16 is free software:
@@ -237,6 +237,7 @@ S16_INSTALL_DIR=$(S16_INSTALL_VERSION_DIR)/Sigma16
 
 # Homepage repository
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
+
 
 .PHONY: ShowConfig
 ShowConfig:

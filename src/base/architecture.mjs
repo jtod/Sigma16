@@ -1,7 +1,7 @@
 // Sigma16: architecture.mjs
-// Copyright (C) 2025 John T. O'Donnell.
+// Copyright (c) 2026 John T. O'Donnell.  All rights reserved.
 // License: GNU GPL Version 3. See Sigma16/README, LICENSE
-// https://jtod.github.io/home/Sigma16
+// Source repository: https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software:
 // you can redistribute it and/or modify it under the terms
@@ -192,14 +192,14 @@ export const aRRkkk = Symbol ("RRkkk");
 // andb     R5,4,R9,3
 export const aRRX = Symbol ("RRX");  // save R4,R7,5[R13]
 // save restore
-export const aRkRkk = Symbol ("RkRkk"); // logicc R5,4,R9,3,and
+// export const aRkRkk = Symbol ("RkRkk"); // logicc R5,4,R9,3,and
 
 export const aRRR     = Symbol ("RRR");     // add      R1,R2,R3
 // add sub mul div addc muln divn trap
 // push pop top
 // pseudo andw orw xorw
 
-export const aRRRkk = Symbol ("RRRkk"); // inject R1,R2,R3,5,7
+// export const aRRRkk = Symbol ("RRRkk"); // inject R1,R2,R3,5,7
 
 // export const aRRkkk = Symbol ("RRk"); // extract  Rd,Rs,di,si,size
 // export const aRkkRk = Symbol ("RkkRk");
@@ -221,34 +221,35 @@ export const aBlock   = Symbol ("block");   // block    100
 //-------------------------------------------------------------
 
 // These arrays are indexed by an opcode to give the
-// corresponding mnemonic
+// corresponding mnemonic.  The emulator uses them to
+// provide the name of the instruction being executed.
 
 export const mnemonicRRR =
-  ["add",      "sub",      "mul",       "div",        // 0-3
-   "cmp",      "addc",     "muln",      "divn",       // 4-7
-   "rrr1",     "rrr2",     "rrr3",      "rrr4",       // 8-11
-   "trap",     "EXP3",     "EXP2",      "RX"]         // 12-15
+  ["add",      "sub",     "mul",      "div",      // 0-3
+   "cmp",      "addc",    "muln",     "divn",     // 4-7
+   "nop",      "nop",     "nop",      "nop",      // 8-b
+   "trap",     "nop",     "EXP",      "RX"]       // c-f
 
 export const mnemonicRX =
-  ["lea",      "load",     "store",     "jump",       // 0-3
-   "jumpc0",   "jumpc1",   "jal",       "jumpz",      // 4-7
-   "jumpnz",   "testset",  "noprx",     "noprx",      // 8-11
-   "noprx",    "xlea",     "xload",     "xstore"]     // 12-15
+  ["lea",      "load",    "store",    "jump",     // 0-3
+   "jumpc0",   "jumpc1",  "jal",      "jumpz",    // 4-7
+   "jumpnz",   "testset", "xlea",     "xload",    // 8-b
+   "xstore",   "nop",     "nop",      "nop"]      // c-f
 
-export const mnemonicEXP =  // ????? needs revision
-  ["logicf",  "logicb",  "shiftl",   "shiftr",   // 00-03
-   "extract", "push",    "pop",      "top",      // 04-07
-   "save",    "restore", "bvc0",     "brc1",     // 08-0b
-   "brz",     "brnz",    "dispatch", "getctl",   // 0c-0f
-   "putctl",  "resume",  "timon",    "timoff",   // 10-13
-   "nop",     "nop",     "nop",      "nop",      // 14-17
-   "nop",     "nop",     "nop",      "nop",      // 18-1b
-   "nop",     "nop",     "nop",      "nop",      // 1c-1f
-   "xadd",    "xsub",    "xmul",     "xdiv",     // 20-23
-   "nop",     "nop",     "nop",      "nop",      // 24-27
-   "nop",     "nop",     "nop",      "nop",      // 28-2b
-   "nop",     "nop",     "nop",      "nop",      // 2c-2f
-   "nop",     "nop",     "nop",      "nop"]      // 30-33
+export const mnemonicEXP =
+  ["logicf",  "logicb",   "shiftl",   "shiftr",   // 00-03
+   "extract", "save",     "restore",  "push",     // 04-07
+   "pop",     "top",      "brc0",     "brc1",     // 08-0b
+   "brz",     "brnz",     "dispatch", "getctl",   // 0c-0f
+   "putctl",  "resume",   "timeron",  "timeroff", // 10-13
+   "nop",     "nop",      "nop",      "nop",      // 14-17
+   "nop",     "nop",      "nop",      "nop",      // 18-1b
+   "nop",     "nop",      "nop",      "nop",      // 1c-1f
+   "xadd",    "xsub",     "xmul",     "xdiv",     // 20-23
+   "xcmp",    "xaddc",    "xmuln",    "xdivn",    // 24-27
+   "xjump",   "xjal",     "xjumpz",   "xjumpnz",  // 28-2b
+   "xsave",   "xrestore", "xpush",    "xpop",     // 2c-2f
+   "xtop",    "nop",      "nop",      "nop"]      // 30-33
 
 //-------------------------------------
 // Mnemonics for control registers
@@ -389,17 +390,14 @@ export const TimerRunningBit = 2;
 // Interrupt request and mask bits
 //--------------------------------------------------------------
 
-export const timerBit            = 0;   // timer has gone off
-export const segFaultBit         = 1;
-  // access invalid virtual address
-export const stackOverflowBit    = 2;
-  // invalid memory virtual address
-export const stackUnderflowBit   = 3;
-  // invalid memory virtual address
-export const userTrapBit         = 4;   // user trap
-export const overflowBit         = 5;   // overflow occurred
-export const binoverflowBi       = 6;   // overflow occurred
-export const zDivBit             = 7;   // division by 0
+export const timerBit           = 0;  // timer has gone off
+export const segFaultBit        = 1;  // access invalid virtual address
+export const stackOverflowBit   = 2;  // invalid memory virtual address
+export const stackUnderflowBit  = 3;  // invalid memory virtual address
+export const userTrapBit        = 4;  // user trap
+export const overflowBit        = 5;  // overflow occurred
+export const binoverflowBi      = 6;  // overflow occurred
+export const zDivBit            = 7;  // division by 0
 
 //-------------------------------------------------------------
 // Assembly language data definitions for control bits
@@ -452,149 +450,73 @@ statementSpec.set("rrr2",  {ifmt:iRRR, afmt:aRRR, opcode:[9]})
 statementSpec.set("rrr3",  {ifmt:iRRR, afmt:aRRR, opcode:[10]})
 statementSpec.set("rrr4",  {ifmt:iRRR, afmt:aRRR, opcode:[11]})
 statementSpec.set("trap",  {ifmt:iRRR, afmt:aRRR, opcode:[12]})
+// opcode [13,...] is reserved for experimental new format
+// opcode [14,...] is expansion to EXP format
+// opcode [15,x] is expansion to RX format
 
-// statementSpec.set("push",
-    //  {ifmt:iRRR, afmt:aRRR, opcode:[8]})
-// statementSpec.set("pop",
-    // {ifmt:iRRR, afmt:aRRR, opcode:[9]})
-// statementSpec.set("top",
-    //{ifmt:iRRR, afmt:aRRR, opcode:[10]})
+// RX instructions have primary opcode f and a secondary opcode in
+// the B field
 
-// The following primary opcodes do not indicate RRR
-// instructions:
-
-//   13: escape to EXP3
-//   14: escape to EXP
-//   15: escape to RX
-
-// RX instructions have primary opcode f and secondary opcode
-// in b field
-
-statementSpec.set("lea",  {ifmt:iRX, afmt:aRX, opcode:[15,0]})
-statementSpec.set("load", {ifmt:iRX, afmt:aRX, opcode:[15,1]})
-statementSpec.set("store",{ifmt:iRX, afmt:aRX, opcode:[15,2]})
-statementSpec.set("jump", {ifmt:iRX, afmt:aX,  opcode:[15,3]})
-statementSpec.set("jumpc0",{ifmt:iRX, afmt:akX, opcode:[15,4]})
-statementSpec.set("jumpc1", {ifmt:iRX, afmt:akX, opcode:[15,5]})
-statementSpec.set("jal",    {ifmt:iRX, afmt:aRX, opcode:[15,6]})
-statementSpec.set("jumpz",  {ifmt:iRX, afmt:aRX, opcode:[15,7]})
-statementSpec.set("jumpnz", {ifmt:iRX, afmt:aRX, opcode:[15,8]})
-statementSpec.set(
-    "testset",
-    {ifmt:iRX, afmt:aRX, opcode:[15,9]})
-statementSpec.set(
-    "xlea",
-    {ifmt:iRX, afmt:aRX, opcode:[15,13]})
-statementSpec.set(
-    "xload",
-    {ifmt:iRX, afmt:aRX, opcode:[15,14]})
-statementSpec.set(
-    "xstore",
-    {ifmt:iRX, afmt:aRX, opcode:[15,15]})
-
-
-
-// EXP1 instructions are represented in 1 word, with primary
-// opcode e and an 8-bit secondary opcode in the ab field.
-// The secondary opcode ab is between 0 and 7.  (If 8 <= ab
-// then the instruction is EXP format.)  [Considering
-// abandoning EXP1; no harm in wasting a word by using EXP
-// for the resume instruction.]
-   
+statementSpec.set("lea",     {ifmt:iRX, afmt:aRX, opcode:[15,0]})
+statementSpec.set("load",    {ifmt:iRX, afmt:aRX, opcode:[15,1]})
+statementSpec.set("store",   {ifmt:iRX, afmt:aRX, opcode:[15,2]})
+statementSpec.set("jump",    {ifmt:iRX, afmt:aX,  opcode:[15,3]})
+statementSpec.set("jumpc0",  {ifmt:iRX, afmt:akX, opcode:[15,4]})
+statementSpec.set("jumpc1",  {ifmt:iRX, afmt:akX, opcode:[15,5]})
+statementSpec.set("jal",     {ifmt:iRX, afmt:aRX, opcode:[15,6]})
+statementSpec.set("jumpz",   {ifmt:iRX, afmt:aRX, opcode:[15,7]})
+statementSpec.set("jumpnz",  {ifmt:iRX, afmt:aRX, opcode:[15,8]})
+statementSpec.set("testset", {ifmt:iRX, afmt:aRX, opcode:[15,9]})
+statementSpec.set("xlea",    {ifmt:iRX, afmt:aRX, opcode:[15,13]})
+statementSpec.set("xload",   {ifmt:iRX, afmt:aRX, opcode:[15,14]})
+statementSpec.set("xstore",  {ifmt:iRX, afmt:aRX, opcode:[15,15]})
+// RX opcodes [15,13], [15,14], [15,15] are reserved and act as nop
+  
 // EXP instructions are represented in 2 words, with primary
-// opcode e and an 8-bit secondary opcode in the ab field,
-// where ab >= 8.  (If 0 <= ab <8 then the instruction is
-// EXP1 format.)
+// opcode e and an 8-bit secondary opcode in the ab field, where
+// ab < 40.  If ab > 40 then the instruction is EXP3 format.
 
-// brf  loop            16-bit offset
-// brfc0 R5,7,loop      8-bit offset
-// brfz  R3,loop        12-bit offset
+statementSpec.set("logicf",   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,0]})
+statementSpec.set("logicb",   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,1]})
+statementSpec.set("shiftl",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,2]})
+statementSpec.set("shiftr",   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
+statementSpec.set("extract",  {ifmt:iEXP, afmt:aRRkkk, opcode:[14,4]})
+statementSpec.set("save",     {ifmt:iEXP, afmt:aRRX,   opcode:[14,5]})
+statementSpec.set("restore",  {ifmt:iEXP, afmt:aRRX,   opcode:[14,6]})
+statementSpec.set("push",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,7]})
+statementSpec.set("pop",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,8]})
+statementSpec.set("top",      {ifmt:iEXP, afmt:aRRR,   opcode:[14,9]})
+statementSpec.set("brc0",     {ifmt:iEXP, afmt:aRkK,   opcode:[14,10]})
+statementSpec.set("brc1",     {ifmt:iEXP, afmt:aRkK,   opcode:[14,11]})
+statementSpec.set("brz",      {ifmt:iEXP, afmt:aRK,    opcode:[14,12]})
+statementSpec.set("brnz",     {ifmt:iEXP, afmt:aRK,    opcode:[14,13]})
+statementSpec.set("dispatch", {ifmt:iEXP, afmt:aRk,    opcode:[14,14]})
+statementSpec.set("getctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,15]})
+statementSpec.set("putctl",   {ifmt:iEXP, afmt:aRC,    opcode:[14,16]})
+statementSpec.set("resume",   {ifmt:iEXP, afmt:a0,     opcode:[14,17]})
+statementSpec.set("timeron",  {ifmt:iEXP, afmt:aR,     opcode:[14,18,0]})
+statementSpec.set("timeroff", {ifmt:iEXP, afmt:a0,     opcode:[14,19]})
 
-statementSpec.set("logicf",
-   {ifmt:iEXP, afmt:aRRkkk,  opcode:[14,0]})
-statementSpec.set("logicb",
-   {ifmt:iEXP, afmt:aRRkkk,  opcode:[14,1]})
-statementSpec.set("shiftl",
-   {ifmt:iEXP, afmt:aRRk,   opcode:[14,2]})
-statementSpec.set("shiftr",
-   {ifmt:iEXP, afmt:aRRk,   opcode:[14,3]})
-// statementSpec.set("extract",
-//    {ifmt:iEXP, afmt:aRkkRk, opcode:[14,5]})
-// statementSpec.set("extracti",
-//    {ifmt:iEXP, afmt:aRkkRk, opcode:[14,6]})
-statementSpec.set("extract",
-   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,4]})
-//statementSpec.set("extracti",
-//   {ifmt:iEXP, afmt:aRRkkk, opcode:[14,6]})
-statementSpec.set("push",
-   {ifmt:iEXP, afmt:aRRR,   opcode:[14,5]})
-statementSpec.set("pop",
-   {ifmt:iEXP, afmt:aRRR,   opcode:[14,6]})
-statementSpec.set("top",
-   {ifmt:iEXP, afmt:aRRR,   opcode:[14,7]})
-statementSpec.set("save",
-   {ifmt:iEXP, afmt:aRRX,   opcode:[14,8]})
-statementSpec.set("restore",
-   {ifmt:iEXP, afmt:aRRX,   opcode:[14,9]})
-statementSpec.set("brc0",
-   {ifmt:iEXP, afmt:aRkK,   opcode:[14,10]})
-statementSpec.set("brc1",
-   {ifmt:iEXP, afmt:aRkK,   opcode:[14,11]})
-statementSpec.set("brz",
-   {ifmt:iEXP, afmt:aRK,    opcode:[14,12]})
-statementSpec.set("brnz",
-   {ifmt:iEXP, afmt:aRK,    opcode:[14,13]})
-statementSpec.set("dispatch",
-   {ifmt:iEXP, afmt:aRk, opcode:[14,14], pseudo: false})
-statementSpec.set("getctl",
-   {ifmt:iEXP, afmt:aRC,    opcode:[14,15]})
-statementSpec.set("putctl",
-   {ifmt:iEXP, afmt:aRC,    opcode:[14,16]})
-statementSpec.set("resume",
-   {ifmt:iEXP, afmt:a0,     opcode:[14,17]})
-statementSpec.set("timeron",
-   {ifmt:iEXP, afmt:aR,     opcode:[14,18,0]})
-statementSpec.set("timeroff",
-   {ifmt:iEXP, afmt:a0,     opcode:[14,19]})
+// Sigma32 instructions: EXP and EXP3 forat
 
-// Sigma32 instructions
-
-statementSpec.set("xadd",  // xadd Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,32]})
-statementSpec.set("xsub",  // xsub Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,33]})
-statementSpec.set("xmul",  // xmul Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,34]})
-statementSpec.set("xdiv",  // xdiv Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,35]})
-statementSpec.set("xcmp",  // xcmp Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,36]})
-statementSpec.set("xaddc",  // xaddc Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,37]})
-statementSpec.set("xmuln",  // xmuln Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,38]})
-statementSpec.set("xdivn",  // xdivn Rd,Re,Rf
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,39]})
-statementSpec.set("xjumpz",  // xjumpz Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRX,    opcode:[14,30]})
-statementSpec.set("ljumpnz",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRX,    opcode:[14,31]})
-statementSpec.set("lsave",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRRX,    opcode:[14,32]})
-statementSpec.set("lrestore",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRRX,    opcode:[14,33]})
-statementSpec.set("lstore",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRX,    opcode:[14,34]})
-statementSpec.set("lshiftl",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRRk,    opcode:[14,35]})
-statementSpec.set("lshiftr",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRRk,    opcode:[14,36]})
-statementSpec.set("lpush",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,37]})
-statementSpec.set("lpop",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,38]})
-statementSpec.set("ltop",  // lstore Rd,fgh[Re]
-   {ifmt:iEXP, afmt:aRRR,    opcode:[14,39]})
+statementSpec.set("xadd",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,32]})
+statementSpec.set("xsub",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,33]})
+statementSpec.set("xmul",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,34]})
+statementSpec.set("xdiv",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,35]})
+statementSpec.set("xcmp",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,36]})
+statementSpec.set("xaddc",    {ifmt:iEXP, afmt:aRRR,   opcode:[14,37]})
+statementSpec.set("xmuln",    {ifmt:iEXP, afmt:aRRR,   opcode:[14,38]})
+statementSpec.set("xdivn",    {ifmt:iEXP, afmt:aRRR,   opcode:[14,39]})
+statementSpec.set("xjumpz",   {ifmt:iEXP, afmt:aRX,    opcode:[14,30]})
+statementSpec.set("xjumpnz",  {ifmt:iEXP, afmt:aRX,    opcode:[14,31]})
+statementSpec.set("xsave",    {ifmt:iEXP, afmt:aRRX,   opcode:[14,32]})
+statementSpec.set("xrestore", {ifmt:iEXP, afmt:aRRX,   opcode:[14,33]})
+statementSpec.set("xshiftl",  {ifmt:iEXP, afmt:aRRk,   opcode:[14,35]})
+statementSpec.set("xshiftr",  {ifmt:iEXP, afmt:aRRk,   opcode:[14,36]})
+statementSpec.set("xpush",    {ifmt:iEXP, afmt:aRRR,   opcode:[14,37]})
+statementSpec.set("xpop",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,38]})
+statementSpec.set("xtop",     {ifmt:iEXP, afmt:aRRR,   opcode:[14,39]})
+   
 
 
 // statementSpec.set("brf",      {ifmt:iEXP, afmt:aK,     opcode:[14,0]})
@@ -610,26 +532,15 @@ statementSpec.set("ltop",  // lstore Rd,fgh[Re]
 
 // Assembler directives
 
-statementSpec.set("data",
-   {ifmt:iData, afmt:aData,    opcode:[]})
-statementSpec.set("module",
-   {ifmt:iDir,  afmt:aModule,  opcode:[]})
-statementSpec.set("import",
-   {ifmt:iDir,  afmt:aImport,  opcode:[]})
-statementSpec.set("export",
-   {ifmt:iDir,  afmt:aExport,  opcode:[]})
-statementSpec.set("reserve",
-   {ifmt:iDir,  afmt:aReserve, opcode:[]})
-statementSpec.set("org",
-   {ifmt:iDir,  afmt:aOrg,     opcode:[]})
-statementSpec.set("equ",
-   {ifmt:iDir,  afmt:aEqu,     opcode:[]})
-statementSpec.set("block",
-   {ifmt:iDir,  afmt:aBlock,   opcode:[]})
-
-// Possible additional instructions...
-// statementSpec.set("execute",
-//    {ifmt:iEXP, afmt:aRR,  opcode:[14,12]});
+statementSpec.set("data",     {ifmt:iData, afmt:aData,    opcode:[]})
+statementSpec.set("module",   {ifmt:iDir,  afmt:aModule,  opcode:[]})
+statementSpec.set("import",   {ifmt:iDir,  afmt:aImport,  opcode:[]})
+statementSpec.set("export",   {ifmt:iDir,  afmt:aExport,  opcode:[]})
+statementSpec.set("reserve",  {ifmt:iDir,  afmt:aReserve, opcode:[]})
+statementSpec.set("org",      {ifmt:iDir,  afmt:aOrg,     opcode:[]})
+statementSpec.set("equ",      {ifmt:iDir,  afmt:aEqu,     opcode:[]})
+statementSpec.set("block",    {ifmt:iDir,  afmt:aBlock,   opcode:[]})
+   
 
 // -------------------------------------
 // Pseudoinstructions
@@ -759,3 +670,20 @@ export const setSystemState = maskToClearBitBE (userStateBit);
 // statementSpec.set("mull",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,19]})
 // statementSpec.set("divl",     {ifmt:iEXP,  afmt:aRRR,  opcode:[14,20]})
 // statementSpec.set("cmpl",     {ifmt:iEXP,  afmt:aRR,   opcode:[14,21]})
+
+// ?????? EXP1 instructions are represented in 1 word, with primary
+// opcode e and an 8-bit secondary opcode in the ab field.
+// The secondary opcode ab is between 0 and 7.  (If 8 <= ab
+// then the instruction is EXP format.)  [Considering
+// abandoning EXP1; no harm in wasting a word by using EXP
+// for the resume instruction.]
+
+
+// brf  loop            16-bit offset
+// brfc0 R5,7,loop      8-bit offset
+// brfz  R3,loop        12-bit offset
+
+
+// Possible additional instructions...
+// statementSpec.set("execute",
+//    {ifmt:iEXP, afmt:aRR,  opcode:[14,12]});

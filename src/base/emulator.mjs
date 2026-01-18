@@ -1,7 +1,7 @@
 // Sigma16: emulator.mjs
-// Copyright (C) 2025 John T. O'Donnell.
+// Copyright (c) 2026 John T. O'Donnell.  All rights reserved.
 // License: GNU GPL Version 3. See Sigma16/README, LICENSE
-// https://jtod.github.io/home/Sigma16
+// Source repository: https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software:
 // you can redistribute it and/or modify it under the terms
@@ -484,6 +484,29 @@ export function memStore (es, a, x) {
     es.instrEffect.push(["M", a, x])
 //    console.log (`memStore a=${a} x=${x}`)
     ab.writeMem16 (es, a, x)
+//    es.shm[ab.EmMemOffset + a] = x
+}
+
+// Used for Sigma32.  Alignment is not currently enforced;
+// consider doing that.
+// a is 32-bit address, returns a 32-bit data word
+export function memFetch32 (es, a) {
+    // possible alignment check: a must be even
+    es.copyable.memFetchDataLog.push(a);
+    es.copyable.memFetchDataLog.push(a+1);
+    let x = ab.readMem32 (es, a)
+    return x
+}
+
+// a is 32-bit address, x is 32-bit data word
+export function memStore32 (es, a, x) {
+    // possible alignment check: a must be even
+    // console.log (`memStore32 a=${a} x=${x}`)
+    es.copyable.memStoreLog.push(a)
+    es.copyable.memStoreLog.push(a+1)
+    es.instrEffect.push(["M", a, x])
+//    console.log (`memStore a=${a} x=${x}`)
+    ab.writeMem32 (es, a, x)
 //    es.shm[ab.EmMemOffset + a] = x
 }
 
@@ -1267,7 +1290,8 @@ const rx = (f) => (es) => {
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.pc.put (limitAddress (es, es.nextInstrAddr))
     ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
-    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp)
+//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp)
+    es.ea = arith.binAdd (es.regfile[es.ir_a].get32(), es.instrDisp)
     es.instrEA = es.ea;
     es.adr.put (es.instrEA);
     com.mode.devlog (`rx ea, disp=${arith.wordToHex4(es.instrDisp)}`);
@@ -1288,12 +1312,12 @@ const dispatch_RX =
       rx (rx_jumpz),     // 7
       rx (rx_jumpnz),    // 8
       rx (rx_testset),   // 9
-      rx (rx_nop),       // A
-      rx (rx_nop),       // B
-      rx (rx_nop),       // C
-      rx (rx_xlea),      // D  Sigma32
-      rx (rx_xload),     // E  Sigma32
-      rx (rx_xstore)     // F  Sigma32
+      rx (rx_nop),       // a
+      rx (rx_nop),       // b
+      rx (rx_nop),       // c
+      rx (rx_xlea),      // d  Sigma32
+      rx (rx_xload),     // e  Sigma32
+      rx (rx_xstore)     // f  Sigma32
     ]
 
 
@@ -1303,23 +1327,26 @@ function rx_lea (es) {
 
 function rx_xlea (es) {
     com.mode.devlog('rx_xlea');
-    es.regfile[es.ir_d].put(es.ea);
+    console.log ('xlea')
+    es.regfile[es.ir_d].put32(es.ea);
 }
 
 function rx_load (es) {
-    com.mode.devlog('rx_xload');
+    com.mode.devlog('rx_load');
     es.regfile[es.ir_d].put
       (arith.limit16 (memFetchData(es,es.ea)))
 }
 
 function rx_xload (es) {
-    com.mode.devlog('rx_loadd');
-    const a = es.ea & 0xfffffffe
+    console.log ('xload')
+    com.mode.devlog('rx_xload');
+    const a = es.ea //  & 0xfffffffe
       // ignore lsb of 32-bit address
-    const x = memFetchData (es, a)
-    const y = memFetchData (es, limit32 (a+1))
-    const z = x << 16 | y
-    es.regfile[es.ir_d].put (limit32 (z))
+//    const x = memFetchData (es, a)
+//    const y = memFetchData (es, limit32 (a+1))
+    //    const z = x << 16 | y
+    const x = memFetch32 (es, a)
+    es.regfile[es.ir_d].put32 (x)
 }
 
 function rx_store (es) {
@@ -1330,14 +1357,17 @@ function rx_store (es) {
 
 // need to handle alignment
 function rx_xstore (es) {
+    console.log ('xstore')
     console.log ('rx_xstore');
+    const a = es.ea //  & 0xfffffffe
     const x = es.regfile[es.ir_d].get32();
-    const q = x & 0x0000ffff;  // low order 16 bits
-    const p = x >>> 16;  // high order 16 bits, binary shif
-    console.log (`xstore x=${x} p=${p} q=${q}`);
-    memStore (es, es.ea, p);
-    memStore (es, es.ea+1, q);
+    console.log (`xstore x=${x} a=${a}`);
+    memStore32 (es, a, x)
 }
+//    const q = x & 0x0000ffff;  // low order 16 bits
+//    const p = x >>> 16;  // high order 16 bits, binary shif
+//    memStore (es, es.ea, p);
+    //    memStore (es, es.ea+1, q);
 
 
 /* ?????

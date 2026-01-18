@@ -1,8 +1,7 @@
-// Sigma16: arrbuf.mjs: system state vector, shared array
-
-// Copyright (C) 2025 John T. O'Donnell.  License: GNU GPL
-// Version 3.  See Sigma16/README, LICENSE, and
-// https://jtod.github.io/home/Sigma16
+// Sigma16: arrbuf.mjs
+// Copyright (c) 2026 John T. O'Donnell.  All rights reserved.
+// License: GNU GPL Version 3. See Sigma16/README, LICENSE
+// Source repository: https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software:
 // you can redistribute it and/or modify it under the terms
@@ -88,8 +87,8 @@ export let Mem32Size = MemSize * 4 + 0
 // bytes
 export const Megabyte = 2 ^ 20
 export const ExtraVecSizeBytes = 20 * Megabyte
-    // some extra padding to experiment with capacity of
-    // browsers
+// some extra padding to experiment with capacity of
+// browsers
 export const StateVecSizeBytes =
     8 * (SCBsize + BPsize + RegSize + Mem32Size)
     + ExtraVecSizeBytes

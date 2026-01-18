@@ -1,32 +1,77 @@
-; testasm:  test assembly of instructions
-; assembly languge for S32
+; TestAsm:  Test assembler on full instruction set
+; Assembly languge for Sigma16 and Sigma32
+; See https://github.com/jtod/Sigma16
+
+; A test case is provided for every instruction in each
+; instruction format.  This includes CORE, Standard, and S32.  The
+; machine language code for each instruction is shown in a
+; comment.
+
+; RRR instructions
+
+   add    R8,R12,R5   ; 08c5
+   sub    R8,R12,R5   ; 18c5
+   mul    R8,R12,R5   ; 28c5
+   div    R8,R12,R5   ; 38c5
+   cmp    R12,R5      ; 40c5
+   addc   R8,R12,R5   ; 58c5
+   muln   R8,R12,R5   ; 68c5
+   divn   R8,R12,R5   ; 78c5
+   trap   R8,R12,R5   ; c8c5
+
+; RX instructions
+
+   lea      R4,$0e3a[R14]   ; f4e0 0e3a
+   load     R4,$0e3a[R14]   ; f4e1 0e3a
+   store    R4,$0e3a[R14]   ; f4e2 0e3a
+   jump     $0e3a[R14]      ; f0e3 0e3a
+   jumpc0   3,$0e3a[R14]    ; f3e4 0e3a
+   jumpc1   9,$0e3a[R14]    ; f9e5 0e3a
+   jal      R4,$0e3a[R14]   ; f4e6 0e3a
+   jumpz    R4,$0e3a[R14]   ; f4e7 0e3a
+   jumpnz   R4,$0e3a[R14]   ; f4e8 0e3a
+   testset  R4,$0e3a[R14]   ; f4e9 0e3a
+   xlea     R4,$0e3a[R14]   ; f4ed 0e3a
+   xload    R4,$0e3a[R14]   ; f4ee 0e3a
+   xstore   R4,$0e3a[R14]   ; f4ef 0e3a
+
+; EXP instructions
+
+   logicf R9,R3,7,15,2      ; e900 37f2  
+   logicb R9,R3,7,15,2      ; e900 37f2  xxx
+   shiftl R6,R7,2           ; e602 7002
+   shiftr R6,R7,2           ; e603 7002
+
+; EXP3 instructions
+
+
+
 ; 
-
-   lea   R2,1[R0]
-   data  $e216   ; ladd R2,R2,R2
-   data  $2200
-
-   ladd  R1,R2,R3
-   lsub  R5,R1,R2
-   lmul  R10,R11,R12
-   ldiv  R13,R14,R15
-   lcmp  R13,R14,R15
-
-   llea   R8,13[R9]  ; e81b 900d
-   lload  R8,13[R9]  ; e81c 900d
-   lstore R8,13[R9]  ; e81d 900d
-
-   ljumpz   R4,3000[R5]
-   ljumpnz  R6,4000[R7]
-
-   lsave    R3,R8,45[R12]
-   lrestore R3,R8,45[R12]
-
-   lshiftl  R1,R2,5
-   lshiftr  R6,R7,13
-   lpush    R1,R2,R3
-   lpop     R1,R2,R3
-   ltop     R1,R2,R3
+;    lea   R2,1[R0]
+;    data  $e216   ; ladd R2,R2,R2
+;    data  $2200
+; 
+;    xadd  R1,R2,R3
+;    xsub  R5,R1,R2
+;    xmul  R10,R11,R12
+;    xdiv  R13,R14,R15
+;    xcmp  R13,R14
+; 
+;    xlea   R8,13[R9]  ; e81b 900d
+;    xload  R8,13[R9]  ; e81c 900d
+;    xstore R8,13[R9]  ; e81d 900d
+; 
+;    xjumpz   R4,3000[R5]
+;    xjumpnz  R6,4000[R7]
+; 
+;    xsave    R3,R8,45[R12]
+;    xrestore R3,R8,45[R12]
+; 
+;    xshiftl  R1,R2,5
+;    xshiftr  R6,R7,13
+;    xpush    R1,R2,R3
+;    xpop     R1,R2,R3
+;    xtop     R1,R2,R3
 
 ; problems
 ; for logic instructions, f,g are bit indices in registers
@@ -37,9 +82,9 @@
 ;   Rd,Re,Rf,idx1, idx2, h   This would require 3*4 + 4 + 2*5
 ;   = 26 bits and we would have 4 + 2*16 = 36 bits available
 
-   llogicf  R1,R2,13,4,6
-   llogicb  R1,R2,13,4,6
+;    llogicf  R1,R2,13,4,6
+;    llogicb  R1,R2,13,4,6
+; 
+;    lextract Rd,Re,f,g,h
 
-   lextract Rd,Re,f,g,h
 
-   trap  R0,R0,R0

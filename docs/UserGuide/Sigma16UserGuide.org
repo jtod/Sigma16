@@ -3,14 +3,13 @@
 #+AUTHOR: John T. O'Donnell
 #+EMAIL: john.t.odonnell9@gmail.com
 #+DATE: {{{S16version()}}}
-
-# Copyright John T. O'Donnell, 2010-2025
+# Copyright 2010-2026 John T. O'Donnell.  All rights reserved.
 # Source repository: https://github.com/jtod/Sigma16
 
 # This file is part of Sigma16.  License: GNU GPL Version 3;
-# available in Sigma16/LICENSE.txt.  Further information is in
-# Sigma16/README.org. The Source repository is available online at
-# https://github.com/jtod/Sigma16.
+# available in Sigma16/LICENSE.txt and online at
+# <https://www.gnu.org/licenses/>.  Further information is in
+# Sigma16/README.org.
 
 # Sigma16 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, Version 3,
@@ -23,7 +22,7 @@
 # <https://www.gnu.org/licenses/>.
 
 # ----------------------------------------------------------------
-# Quick reference: how to build this document
+# Quick reference: how to build this document (requires emacs org)
 # ----------------------------------------------------------------
 #   1. M-x Sigma16 - first load Sigma.el, which is required
 #   2. C-u C-c C-x C-u - org-update-all-blocks, update build date
@@ -126,6 +125,10 @@
 # --------------------------------------------------------------
 # Table of Contents
 # --------------------------------------------------------------
+
+#+OPTIONS: H:5
+# #+OPTIONS: toc:5
+#+TOC: headlines 2
 
 # For html, section numbers are distracting, and can be omitted
 # with +OPTIONS: num:nil.  For latex, num:nil turns off the table
@@ -232,6 +235,10 @@
 # LaTeX configuration
 # ----------------------------------------------------------------
 
+#+BEGIN_EXPORT latex
+\renewcommand{\paragraph}[1]{\medskip\noindent\textbf{\large#1}\smallskip}
+#+END_EXPORT
+
 # How to insert raw latex commands
 #  #+BEGIN_EXPORT latex
 #  #+END_EXPORT
@@ -304,6 +311,18 @@
 
 # #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
 
+# ----------------------------------------------------------------
+# Links
+# ----------------------------------------------------------------
+
+# Each instruction has a level 4 section (subsubsubsection, or
+# paragraph), describing the instruction.  There is an anchor for
+# the section e.g. <<add-d>>.  Each instruction also has an entry
+# in the Table of Instructions, and there is an anchor <<add-t>>
+# for the table entry.
+
+# <<add-d>> is for description; <<add-t>> is for table entry
+
 # --------------------------------------------------------------
 # Beginning of the document
 # --------------------------------------------------------------
@@ -358,12 +377,52 @@ DuckDuckGo.  Currently, it does not work on Safari or
 Firefox.
 #+END_majornote
 
+** Copyright and license
+
+The architecture, software tools, and documentation were designed,
+implemented, and written by John O'Donnell.  Copyright (C)
+2010-2026 John T. O'Donnell.  Contact email://
+john.t.odonnell9@gmail.com//
+
+#+BEGIN_EXPORT html
+Sigma16 is available under the GPL-3 license.  The license
+text is available
+<ul>
+<li> in the Sigma16 folder at
+<a href="../../LICENSE.txt" target="_blank">Sigma16/LICENSE.txt</a>
+<li> online at
+<a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="blank">https://www.gnu.org/licenses/gpl-3.0.en.html</a>
+</ul>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+Sigma16 is available under the GPL-3 license.  The license
+text is available
+\begin{itemize}
+\item in the Sigma16 folder at
+\href{../../LICENSE.txt}{Sigma16/LICENSE.txt}
+\item online at
+\href{https://www.gnu.org/licenses/gpl-3.0.en.html}{https://www.gnu.org/licenses/gpl-3.0.en.html}
+\end{itemize}
+#+END_EXPORT
+
+Sigma16 is free software: you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation, Version 3 of
+the License.  Sigma16 is distributed in the hope that it will
+be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.  See the GNU General Public License for more
+details.  You should have received a copy of the GNU General
+Public License along with Sigma16.  If not, see
+[[https://www.gnu.org/licenses/][www. gnu. org/ licenses]].
+
 ** Organization
 
 The architecture is organized into subsets to make it easier
 to learn and to use:
 
-- The *Core* subset has a small instruction set which is a
+- The Core subset has a small instruction set which is a
   good starting point for learning about computer
   architecture.  Although simple, Core is powerful enough to
   support realistic programming.
@@ -1018,14 +1077,14 @@ z     data   0
 
 Now you can run the program:
 
-- Go to the Examples page.  Click Core, then Simple, then
-  Add.
-- Click Editor, and you should see the text of the program in
+- Go to the *Examples* page.  Click *Core*, then *Simple*, then
+  *Add*.
+- Click *Editor*, and you should see the text of the program in
   the window.
-- Go to the Assembler page.  Click Assemble.
-- Go to the Processor page.  Click Boot, then Step repeatedly
-  and watch the effect of each instruction by observing how
-  the registers and memory are changed.
+- Go to the *Assembler* page.  Click *Assemble*.
+- Go to the *Processor* page.  Click *Boot*, then *Step*
+  repeatedly and watch the effect of each instruction by observing
+  how the registers and memory are changed.
 
 The processor page shows the contents of the memory.  For
 each memory location, the address is shown followed by the
@@ -2270,48 +2329,74 @@ open the breakpoint popup again and click Disable.
 
 ** Review of Core instructions
 
-- RRR instructions
-  - add R1,R2,R3
-  - sub R1,R2,R3
-  - mul R1,R2,R3
-  - div R1,R2,R3
-  - cmp R1,R2
-  - trap R1,R2,R3
-- RX instructions
-  - lea R1,const[Ra]
-  - load R1,const[Ra]
-  - store R1,const[R1]
-  - jump const[Ra]
-  - jumpc0 const[Ra]
-  - jumpc1 const[Ra]
-  - jal R1,const[Ra]
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: Core Instruction Set
+|---------------------+-----------------------------------|
+| add R1,R2,R3        | R1 := R2 + R3                     |
+| sub R1,R2,R3        | R1 := R2 - R3                     |
+| mul R1,R2,R3        | R1 := R2 * R3                     |
+| div R1,R2,R3        | R1 := R2 / R3, R15 := remainder   |
+| cmp R1,R2           | compare R1,R2, set R15            |
+| trap R1,R2,R3       | if R1=0 then halt                 |
+|                     |                                   |
+| lea R1,const[R12]   | R1 := const+R1                    |
+| load R1,const[R12]  | R1 := Mem[const+R12]              |
+| store R1,const[R12] | M[const+R12] := R1                |
+| jump const[R12]     | goto const+R12                    |
+| jal R11,const[R12]  | R11 := pc, goto const+R12         |
+|---------------------+-----------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+
+#+BEGIN_EXPORT latex
+\bigskip
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: Core Instructions, normally use pseudoinstruction instead
+|---------------------+-----------------------------------|
+| jumpc0 3,const[R12] | if R15.3=0 then goto M[const+R12] |
+| jumpc1 3,const[R12] | if R15.3=1 then goto M[const+R12] |
+|---------------------+-----------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+
+#+BEGIN_EXPORT latex
+\bigskip
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
 
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
-#+CAPTION: Core Instruction Set
-|--------------------+-----------------------------------|
-| add R1,R2,R3       | R1 := R2 + R3                     |
-| sub R1,R2,R3       | R1 := R2 - R3                     |
-| mul R1,R2,R3       | R1 := R2 * R3                     |
-| div R1,R2,R3       | R1 := R2 / R3                     |
-| cmp R1,R2          | compare R1,R2                     |
-| trap R1,R2,R3      | if R1=0 then halt                 |
-|                    |                                   |
-| lea R1,const[Ra]   | R1 := const + Ra                  |
-| load R1,const[Ra]  | R1 := M [const+Ra]                |
-| store R1,const[R1] | M [const+Ra] := R1                |
-| jump const[Ra]     | goto const+Ra                     |
-| jumpc0 k,const[Ra] | if R15.k=0 then goto M[[const+Ra] |
-| jumpc1 k,const[Ra] | if R15.k=1 then goto M[[const+Ra] |
-| jal R1,const[Ra]   | R1 := pc, goto const+Ra           |
-|--------------------+-----------------------------------|
+#+CAPTION: Core Pseudoinstructions
+|-----------------+--------------------------|
+| jumplt loop[R0] | if $<$ then goto loop    |
+| jumple loop[R0] | if $\leq$ then goto loop |
+| jumpeq loop[R0] | if $=$ then goto loop    |
+| jumpne loop[R0] | if $\neq$ then goto loop |
+| jumpge loop[R0] | if $\geq$ then goto loop |
+| jumpgt loop[R0] | if $>$ then goto loop    |
+|-----------------+--------------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
 
-  
+
 * Standard architecture tutorials
 
 The standard architecture provides additional instructions that
@@ -2325,6 +2410,261 @@ modules, linking, and relocation.
 
 /Some of the instructions in the standard architecture are
 under development and may be changed in future versions./
+
+** Common logic operations
+
+The Sigma16 architecture provides two general logic
+instructions: logicf operates on fields within a word, and
+logicb operates on individual bits.  Those two general
+instructions implement all possible logic functions on two
+operands, not just inv, and, or, xor.  See the Architecture
+section below for an explanation of logicf and logicb.
+
+To simplify programming, Sigma16 also provides
+pseudoinstructions for commonly used logic operations on
+words and bits.  These are described below, and they are
+sufficient for many applications.  For each
+pseudoinstruction, the assembler generates an equivalent
+logicf or logicb instruction.
+
+*** Word logic
+
+Word logic operations are "bitwise": bit $i$ of the result
+depends on bit $i$ of each operand, and does not depend on
+bits at any other index.  There are pseudoinstructions for
+the most common word logic operations: invw, andw, orw, xorw.
+
+The invw pseudoinstruction inverts all the bits in a
+register:
+
+#+BEGIN_SRC Sigma16 exports: code
+     lea   R3,$f0f0[R0]   ; R3 := f0f0
+     invw  R3             ; R3 := 0f0f
+#+END_SRC
+
+The other word logic pseudoinstructions take two register
+operands.  They calculate the result and place the result in
+the first operand register, overwriting its previous value.
+There is not a separate destination register, as in the add
+instruction.
+
+For example, andw R1,R2 calculates the logical /and/ of R1
+and R2, and places the result in the destination register R1.
+
+#+BEGIN_SRC Sigma16 exports: code
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     andw  R1,R2          ; R1 := 00f0
+#+END_SRC
+
+The orw (logical inclusive or) and xorw (logical exclusive
+or) instructions are similar.
+
+#+BEGIN_SRC Sigma16 exports: code
+     lea   R1,$f0f0[R0]   ; R1 := f0f0
+     lea   R2,$00ff[R0]   ; R2 := 00ff
+     orw   R1,R2          ; R1 := f0ff
+     xorw  R1,R2          ; R1 := f000
+#+END_SRC
+
+*** Bit logic
+
+**** Bit logic
+
+[[logicb-t][logicb]]
+
+There are also pseudoinstructions that perform logic on two
+individual bits, which may be at any index in any register.
+The result overwrites the first operand.  For example, andb
+R1,R2,3,9 calculates R1.3 and R2.9 and stores the result in
+R1.3.  Here are some examples:
+
+#+BEGIN_SRC Sigma16 exports: code
+   lea     R1,$00ff[R0]   ; R1 := 00ff
+   lea     R2,$00f0[R0]   ; R2 := 00f0
+   andb  R1,R2,3,9        ; R1 := 00f7
+;       (R1.3 := R1.3 and R2.9 = 1 and 0 = 0)
+   orb  R1,R2,11,5        ; R1 := 08f7
+;       (R1.11 := R1.11 or R2.5 = 0 or 1 = 1)
+   xorb  R1,R2,4,6        ; R1 := 08e7
+;       (R1.4 := R1.4 xor R2.6 = 1 xor 1 = 0)
+#+END_SRC
+
+** Bit manipulation
+
+There are several instructions that treat a word as just a
+string of bits, not as a number.  Some of these operate on
+individual bits in a word, some operate on fields within a
+word, and some operate on the entire word.
+
+*** Accessing individual bits
+
+You can set an individual bit in a register at a specified
+index to 0 using clearb.  The first operand is a register,
+and the second operand is the index of the bit.  All other
+bits in the register remain unchanged.  So clearb R3,2 makes
+R3.2 zero (that is, the bit at index 2 in R3).  All the other
+bits in R3 remain unchanged.
+
+#+BEGIN_SRC Sigma16 exports: code
+   lea     R3,$ffff[R0]  ; R3 := ffff
+   clearb  R3,2          ; R3 := fffb  (R3.2 := 0)
+#+END_SRC
+
+The setb pseudoinstruction is similar, but it makes the
+specified bit 1.
+
+#+BEGIN_SRC Sigma16 exports: code
+   add     R4,R0,R0      ; R4 := 0000
+   setb    R4,6          ; R4 := 0040  (R4.6 := 1)
+#+END_SRC
+
+*** Shifting
+
+There are two shift instructions:
+[[shiftl-t][shiftl]] and [[shiftr-t][shiftr]].
+They shift the word in Re
+by f bits (to left or right) and place the result into Rd.
+These are logical shifts: the bits that are shifted out are
+discarded, and bits shifted into the word are always 0.
+     
+#+BEGIN_SRC Sigma16 exports: code
+  shiftl Rd,Re,f  ; Rd := Re shifted left by f bits
+  shiftr Rd,Re,f  ; Rd := Re shifted right by f bits
+#+END_SRC
+
+Here are some examples; the comments show the expected result
+in both hexadecimal and as bits.
+
+#+BEGIN_SRC Sigma16 exports: code
+  lea    R1,2[R0]  ; R2 = 0002   0000 0000 0000 0010
+  shiftl R5,R1,4   ; R5 = 0020   0000 0000 0010 0000
+  shiftl R6,R1,13  ; R6 = 4000   0100 0000 0000 0000
+  shiftr R7,R6,3   ; R7 = 0800   0000 1000 0000 0000
+  shiftr R7,R7,11  ; R7 = 0001   0000 0000 0000 0001
+#+END_SRC
+
+*** Extracting fields
+
+A common situation, especially in systems programming, is
+that you have a word that contains several fields.  A machine
+language instruction is like that; also a network packet
+contains a number of fields.  The sizes of the fields, and
+their positions within a word, can be anything.  Software,
+especially systems programming, often needs to be able to
+extract a field from a word and put it somwhere else so it
+can be used.
+
+It's possible to obtain any field from a register, and put it
+somewhere in another register, using a sequence of shift and
+logic instructions (particularly shiftl, shiftr, andw, orw).
+However, these sequences of instructions are error prone,
+hard to read, and they execute frequently in the inner loop
+of many systems programs.
+
+
+Sigma16 provides an instruction [[extract-t][extract]] which solves this
+problem with just one instruction.  It allows you to extract
+an arbitrary field from a register and put it into an
+arbitrary location in another register.
+
+The extract instruction takes operands that specify the
+source register (which contains the field you're interested
+in), the destination register (where it will put the field),
+the location of the field in the source register (specifed as
+the index of the rightmost and leftmost bits in the field),
+and the location where you want to put the field in the
+destination register.
+
+This instruction copies 4 bits from R1.4:7 to R2:8:11:
+
+#+BEGIN_SRC Sigma16 exports: code
+   extract  R2,R1,8,4,7   ; R2.8:11 := R1.4:7
+#+END_SRC
+
+In this example, the operands are:
+- R2 is the destination register
+- R1 is the source register
+- 8 is the index of the rightmost bit in the destination
+  where the field will be placed at ascending bit indices
+- 4 is the index of the rightmost bit of the field in the
+  source register
+- 7 is the index of the leftmost bit of the field in the
+  source register
+
+This instruction is equivalent to the following (although it
+is just one instruction, not four instructions):
+
+#+BEGIN_EXAMPLE
+   R2.8  :=  R1.4
+   R2.9  :=  R1.5
+   R2.10 :=  R1.6
+   R2.11 :=  R1.7 
+#+END_EXAMPLE
+
+The [[extract-t][extract]] instruction modifies only the specified bits in
+the destination register; the other bits remain unchanged.
+Here is an example:
+
+#+BEGIN_SRC Sigma16 exports: code
+   lea      R1,$00f0[R0]  ; R1 = 00f0
+   add      R2,R0,R0      ; R2 = 0000   
+   extract  R2,R1,8,4,7   ; R2 = 0f00  R2.8:11 := R1.4:7
+#+END_SRC
+
+** Saving and restoring contiguous registers
+
+There are several situations where a program needs to store a
+sequence of registers into consecutive memory
+locations. Later the registers must be reloaded from the
+block of memory.  One example is a procedure call; another
+example is gaining access to all the fields of a record.
+These operations are supported by the save and restore
+instructions.
+
+The following save instruction stores R3, R4, ..., R9 into
+consecutive memory locations, starting at 5[R14]:
+
+#+BEGIN_SRC Sigma16 exports: code
+    save    R3,R9,5[R14]   ; save R3 to R9
+#+END_SRC
+
+The save is equivalent to a sequence of individual store
+instructions:
+
+#+BEGIN_SRC Sigma16 exports: code
+    store   R3,5[R14]
+    store   R4,6[R14]
+    store   R5,7[R14]
+    store   R6,8[R14]
+    store   R7,9[R14]
+    store   R8,10[R14]
+    store   R9,11[R14]
+#+END_SRC
+
+To get the values from memory back into the registers, use
+this restore instruction:
+
+#+BEGIN_SRC Sigma16 exports: code
+     restore R3,R9,5[R14]  ; restore R3 to R9
+#+END_SRC
+
+The restore is equivalent to a sequence of individual load
+instructions:
+
+#+BEGIN_SRC Sigma16 exports: code
+    load    R3,5[R14]
+    load    R4,6[R14]
+    load    R5,7[R14]
+    load    R6,8[R14]
+    load    R7,9[R14]
+    load    R8,10[R14]
+    load    R9,11[R14]
+#+END_SRC
+
+Using save and restore makes the code shorter and more
+readable, and it's easier to check that the save an restore
+match each other.
 
 ** Defining symbols with equ
 
@@ -2453,254 +2793,6 @@ exactly the same way.  These are also equivalent:
      jumplt loop[R0]  ; if < then goto loop
      jumplt loop      ; if < then goto loop
 #+END_SRC
-
-** Common logic operations
-
-The Sigma16 architecture provides two general logic
-instructions: logicf operates on fields within a word, and
-logicb operates on individual bits.  Those two general
-instructions implement all possible logic functions on two
-operands, not just inv, and, or, xor.  See the Architecture
-section below for an explanation of logicf and logicb.
-
-To simplify programming, Sigma16 also provides
-pseudoinstructions for commonly used logic operations on
-words and bits.  These are described below, and they are
-sufficient for many applications.  For each
-pseudoinstruction, the assembler generates an equivalent
-logicf or logicb instruction.
-
-*** Word logic
-
-Word logic operations are "bitwise": bit $i$ of the result
-depends on bit $i$ of each operand, and does not depend on
-bits at any other index.  There are pseudoinstructions for
-the most common word logic operations: invw, andw, orw, xorw.
-
-The invw pseudoinstruction inverts all the bits in a
-register:
-
-#+BEGIN_SRC Sigma16 exports: code
-     lea   R3,$f0f0[R0]   ; R3 := f0f0
-     invw  R3             ; R3 := 0f0f
-#+END_SRC
-
-The other word logic pseudoinstructions take two register
-operands.  They calculate the result and place the result in
-the first operand register, overwriting its previous value.
-There is not a separate destination register, as in the add
-instruction.
-
-For example, andw R1,R2 calculates the logical /and/ of R1
-and R2, and places the result in the destination register R1.
-
-#+BEGIN_SRC Sigma16 exports: code
-     lea   R1,$f0f0[R0]   ; R1 := f0f0
-     lea   R2,$00ff[R0]   ; R2 := 00ff
-     andw  R1,R2          ; R1 := 00f0
-#+END_SRC
-
-The orw (logical inclusive or) and xorw (logical exclusive
-or) instructions are similar.
-
-#+BEGIN_SRC Sigma16 exports: code
-     lea   R1,$f0f0[R0]   ; R1 := f0f0
-     lea   R2,$00ff[R0]   ; R2 := 00ff
-     orw   R1,R2          ; R1 := f0ff
-     xorw  R1,R2          ; R1 := f000
-#+END_SRC
-
-*** Bit logic
-
-There are also pseudoinstructions that perform logic on two
-individual bits, which may be at any index in any register.
-The result overwrites the first operand.  For example, andb
-R1,R2,3,9 calculates R1.3 and R2.9 and stores the result in
-R1.3.  Here are some examples:
-
-#+BEGIN_SRC Sigma16 exports: code
-   lea     R1,$00ff[R0]   ; R1 := 00ff
-   lea     R2,$00f0[R0]   ; R2 := 00f0
-   andb  R1,R2,3,9        ; R1 := 00f7
-;       (R1.3 := R1.3 and R2.9 = 1 and 0 = 0)
-   orb  R1,R2,11,5        ; R1 := 08f7
-;       (R1.11 := R1.11 or R2.5 = 0 or 1 = 1)
-   xorb  R1,R2,4,6        ; R1 := 08e7
-;       (R1.4 := R1.4 xor R2.6 = 1 xor 1 = 0)
-#+END_SRC
-
-** Bit manipulation
-
-There are several instructions that treat a word as just a
-string of bits, not as a number.  Some of these operate on
-individual bits in a word, some operate on fields within a
-word, and some operate on the entire word.
-
-*** Accessing individual bits
-
-You can set an individual bit in a register at a specified
-index to 0 using clearb.  The first operand is a register,
-and the second operand is the index of the bit.  All other
-bits in the register remain unchanged.  So clearb R3,2 makes
-R3.2 zero (that is, the bit at index 2 in R3).  All the other
-bits in R3 remain unchanged.
-
-#+BEGIN_SRC Sigma16 exports: code
-   lea     R3,$ffff[R0]  ; R3 := ffff
-   clearb  R3,2          ; R3 := fffb  (R3.2 := 0)
-#+END_SRC
-
-The setb pseudoinstruction is similar, but it makes the
-specified bit 1.
-
-#+BEGIN_SRC Sigma16 exports: code
-   add     R4,R0,R0      ; R4 := 0000
-   setb    R4,6          ; R4 := 0040  (R4.6 := 1)
-#+END_SRC
-
-*** Shifting
-
-There are two shift instructions, which shift the word in Re
-by f bits (to left or right) and place the result into Rd.
-These are logical shifts: the bits that are shifted out are
-discarded, and bits shifted into the word are always 0.
-     
-#+BEGIN_SRC Sigma16 exports: code
-  shiftl Rd,Re,f  ; Rd := Re shifted left by f bits
-  shiftr Rd,Re,f  ; Rd := Re shifted right by f bits
-#+END_SRC
-
-Here are some examples; the comments show the expected result
-in both hexadecimal and as bits.
-
-#+BEGIN_SRC Sigma16 exports: code
-  lea    R1,2[R0]  ; R2 = 0002   0000 0000 0000 0010
-  shiftl R5,R1,4   ; R5 = 0020   0000 0000 0010 0000
-  shiftl R6,R1,13  ; R6 = 4000   0100 0000 0000 0000
-  shiftr R7,R6,3   ; R7 = 0800   0000 1000 0000 0000
-  shiftr R7,R7,11  ; R7 = 0001   0000 0000 0000 0001
-#+END_SRC
-
-*** Extracting fields
-
-A common situation, especially in systems programming, is
-that you have a word that contains several fields.  A machine
-language instruction is like that; also a network packet
-contains a number of fields.  The sizes of the fields, and
-their positions within a word, can be anything.  Software,
-especially systems programming, often needs to be able to
-extract a field from a word and put it somwhere else so it
-can be used.
-
-It's possible to obtain any field from a register, and put it
-somewhere in another register, using a sequence of shift and
-logic instructions (particularly shiftl, shiftr, andw, orw).
-However, these sequences of instructions are error prone,
-hard to read, and they execute frequently in the inner loop
-of many systems programs.
-
-Sigma16 provides an instruction /extract/ which solves this
-problem with just one instruction.  It allows you to extract
-an arbitrary field from a register and put it into an
-arbitrary location in another register.
-
-The extract instruction takes operands that specify the
-source register (which contains the field you're interested
-in), the destination register (where it will put the field),
-the location of the field in the source register (specifed as
-the index of the rightmost and leftmost bits in the field),
-and the location where you want to put the field in the
-destination register.
-
-This instruction copies 4 bits from R1.4:7 to R2:8:11:
-
-#+BEGIN_SRC Sigma16 exports: code
-   extract  R2,R1,8,4,7   ; R2.8:11 := R1.4:7
-#+END_SRC
-
-In this example, the operands are:
-- R2 is the destination register
-- R1 is the source register
-- 8 is the index of the rightmost bit in the destination
-  where the field will be placed at ascending bit indices
-- 4 is the index of the rightmost bit of the field in the
-  source register
-- 7 is the index of the leftmost bit of the field in the
-  source register
-
-This instruction is equivalent to the following (although it
-is just one instruction, not four instructions):
-
-#+BEGIN_EXAMPLE
-   R2.8  :=  R1.4
-   R2.9  :=  R1.5
-   R2.10 :=  R1.6
-   R2.11 :=  R1.7 
-#+END_EXAMPLE
-
-The extract instruction modifies only the specified bits in
-the destination register; the other bits remain unchanged.
-Here is an example:
-
-#+BEGIN_SRC Sigma16 exports: code
-   lea      R1,$00f0[R0]  ; R1 = 00f0
-   add      R2,R0,R0      ; R2 = 0000   
-   extract  R2,R1,8,4,7   ; R2 = 0f00  R2.8:11 := R1.4:7
-#+END_SRC
-
-** Saving and restoring contiguous registers
-
-There are several situations where a program needs to store a
-sequence of registers into consecutive memory
-locations. Later the registers must be reloaded from the
-block of memory.  One example is a procedure call; another
-example is gaining access to all the fields of a record.
-These operations are supported by the save and restore
-instructions.
-
-The following save instruction stores R3, R4, ..., R9 into
-consecutive memory locations, starting at 5[R14]:
-
-#+BEGIN_SRC Sigma16 exports: code
-    save    R3,R9,5[R14]   ; save R3 to R9
-#+END_SRC
-
-The save is equivalent to a sequence of individual store
-instructions:
-
-#+BEGIN_SRC Sigma16 exports: code
-    store   R3,5[R14]
-    store   R4,6[R14]
-    store   R5,7[R14]
-    store   R6,8[R14]
-    store   R7,9[R14]
-    store   R8,10[R14]
-    store   R9,11[R14]
-#+END_SRC
-
-To get the values from memory back into the registers, use
-this restore instruction:
-
-#+BEGIN_SRC Sigma16 exports: code
-     restore R3,R9,5[R14]  ; restore R3 to R9
-#+END_SRC
-
-The restore is equivalent to a sequence of individual load
-instructions:
-
-#+BEGIN_SRC Sigma16 exports: code
-    load    R3,5[R14]
-    load    R4,6[R14]
-    load    R5,7[R14]
-    load    R6,8[R14]
-    load    R7,9[R14]
-    load    R8,10[R14]
-    load    R9,11[R14]
-#+END_SRC
-
-Using save and restore makes the code shorter and more
-readable, and it's easier to check that the save an restore
-match each other.
 
 ** Branching to pc-relative address (???)
 
@@ -2912,7 +3004,30 @@ represented as words.  It also supports Booleans, which are
 represented as a bit within a word.  Addresses and characters
 are represented as natural numbers.
 
-*** Indexing bits in a word
+Assembly language provides several notations for expressing
+the value of a word.
+# If a numeric value is out of range it is truncated.
+
+- A natural number between 0 and 65,535 (2^16 - 1)
+- An integer between -32,768 and 32,767 (-2^15 and 2^15 - 1)
+- A 4-digit hexadecimal constant, where the digits are 0-9
+  a-f.  The constant is preceded by $, for example $3e8c.
+
+In assembly language programs, hexadecimal constants are
+written with a preceding $ sign (e.g. $3b2f).  This is
+necessary to avoid ambiguity: 1234 is a decimal number and
+$1234 is a hexadecimal number, and they denote different
+words.
+
+Assembly language always requires a $ before a hexadecimal
+constant.  For displays of the machine state, in contexts
+where there is no ambiguity, the $ may be omitted.  For
+example, the user interface displays register and memory
+contents as hexadecimal without the leading $.  However, the
+$ is always required for hex constants in assembly language
+programs.
+
+*** Bits and fields
 
 The bits of a word are indexed from right to left, starting
 with index 0.  The least significant (rightmost) bit has
@@ -2936,8 +3051,6 @@ $$\fbox{$\ x_{15}\> x_{14}\> x_{13}\> x_{12}
 $$\fbox{$ \ \vert\ x_{7}\> x_{6}\> x_{5}\> x_{4}
   \ \vert\ x_{3}\> x_{2}\> x_{1}\> x_{0}
   \ $}$$
-
-*** Fields  
 
 A bit field is a contiguous sequence of bits in a word.  It
 is specified by two numbers: the indices of the rightmost and
@@ -2983,31 +3096,6 @@ For example, consider $x$ = 1111 1010.  Since the leftmost
 bit is 1, we know that $x < 0$.  We can negate $x$ by
 inverting the bits, obtaining 0000 0101.  Adding 1 gives 0000
 0110 which is 6.  Since $-x = 6$, we conclude that $x = -6$.
-
-*** Notations for a word
-
-Assembly language provides several notations for expressing
-the value of a word.
-# If a numeric value is out of range it is truncated.
-
-- A natural number between 0 and 65,535 (2^16 - 1)
-- An integer between -32,768 and 32,767 (-2^15 and 2^15 - 1)
-- A 4-digit hexadecimal constant, where the digits are 0-9
-  a-f.  The constant is preceded by $, for example $3e8c.
-
-In assembly language programs, hexadecimal constants are
-written with a preceding $ sign (e.g. $3b2f).  This is
-necessary to avoid ambiguity: 1234 is a decimal number and
-$1234 is a hexadecimal number, and they denote different
-words.
-
-Assembly language always requires a $ before a hexadecimal
-constant.  For displays of the machine state, in contexts
-where there is no ambiguity, the $ may be omitted.  For
-example, the user interface displays register and memory
-contents as hexadecimal without the leading $.  However, the
-$ is always required for hex constants in assembly language
-programs.
 
 ** Memory
 
@@ -3234,7 +3322,7 @@ The following table lists all the condition code flags.
   comparison result is L (less than for naturals) and also l
   (less than for integers).  So the condition code will
   contain 0008 + 0010 = 0018.
-
+  
 Table: Condition code flags
 
 #+BEGIN_EXPORT html
@@ -3244,11 +3332,11 @@ Table: Condition code flags
 
 | Index | Symbol | Meaning         |  Hex |
 |-------+--------+-----------------+------|
-|     0 | > g    | > Int           | 0001 |
+|     0 | >      | > Int           | 0001 |
 |     1 | G      | > Nat           | 0002 |
 |     2 | =      | =               | 0004 |
 |     3 | L      | < Nat           | 0008 |
-|     4 | < l    | < Int           | 0010 |
+|     4 | <      | < Int           | 0010 |
 |     5 | v      | Int overflow    | 0020 |
 |     6 | V      | Nat overflow    | 0040 |
 |     7 | C      | Carry           | 0080 |
@@ -3483,13 +3571,36 @@ table.  This is an array of jumps to interrupt handlers.
 
 * Sigma16 Instruction set
 
-The Sigma16 system contains a Core subset, and a full 16-bit
-Standard architecture.  The Core is sufficient for beginners and
-for a short course on computer systems.  The full Standard
-architecture is useful for large scale programming.  The tutorials
-are separated into Core and Standard parts.  The system hardware doesn't treat
-the Core differently; the hardware doesn't know or care whether an
-instruction is part of the Core.
+The Sigma16 system contains a full 16-bit Standard architecture
+which supports advanced programming techniques.  This section
+describes the full Standard architecture
+
+A subset of the Standard architecture is called the Core
+architecture.  This is sufficient for beginners and for a short
+course on computer systems.  The tutorials are separated into Core
+and Standard parts.
+
+There are 12 Core instructions:
+- [[add-d][add]], [[sub-d][sub]], [[mul-d][mul]], [[div-d][div]]
+- [[lea-d][lea]], [[load-d][load]], [[store-d][store]]
+- [[cmp-d][cmp]], [[jump-d][jump]], [[jumpc0-d][jumpc0]],
+  [[jumpc1-d][jumpc1]]
+- [[trap-d][trap]]
+There are also 6 Core pseudoinstructions to make conditionals
+easier:
+
+- [[jumplt-d][jumplt]], [[jumple-d][jumple]],
+  [[jumpeq-d][jumpeq]], [[jumpne-d][jumpne]],
+  [[jumpge-d][jumpge]], [[jumpgt-d][jumpgt]]
+
+The system hardware doesn't treat the Core differently; the
+hardware doesn't know or care whether an instruction is part of
+the Core.  The purpose of the Core subset is to have a combination
+of tutorials, documentation, and examples that are self contained,
+and don't require knowing about the reset of the system.
+
+All the other instructions described below are in the Standard
+architecture.
 
 ** Instruction representation
 
@@ -3535,16 +3646,24 @@ words used to represent any instruction of that format:
 - RX instructions are two words
 - EXP instructions are two words
 
+We will refer both to fields of instructions, and the actual hex
+values of fields.  The notation is case sensitive: a is not the
+same as A.
+- Upper case letters are instruction field names.
+- Lower case letters are hex digits.
+Thus A is a fields name, while a is the value 1010 and any field
+might have that value.
+  
 The first word of every instruction (for all instruction formats)
 contains the following fields:
 
-- op (bits 15-12) 4-bit opcode, determines instruction format
-- d  (bits 11-8)  4-bit destination
-- a  (bits 7-4)   4-bit operand a
-- b  (bits 3-0)   4-bit operand b, or expanded opcode for RX
+- OP (bits 15-12) 4-bit opcode, determines instruction format
+- D  (bits 11-8)  4-bit destination
+- A  (bits 7-4)   4-bit operand a
+- B  (bits 3-0)   4-bit operand b, or expanded opcode for RX
   
 +-------+------+-----+-----+
-|    op |    d |   a |   b |
+|    OP |    D |   A |   B |
 +-------+------+-----+-----+
 | 15-12 | 11-8 | 7-4 | 3-0 |
 +-------+------+-----+-----+
@@ -3569,6 +3688,7 @@ a, b fields.  If an instruction is RX or EXP format, it has a
 second word whose format is described below in the sections on RX
 and EXP.
 
+<<expanding-opcode>>
 Sigma16 uses expanding opcodes.  This allows for a small number of
 compact 1-word instructions, as well as a larger number of
 instructions that require two or more words, where more bits are
@@ -3589,7 +3709,6 @@ that could have used RRR or RX format.  In particular, some of the
 simplest extensions to the system would be to introduce a new RRR
 instruction, so it's valuable to have some RRR opcodes available.
 
-
 The instruction formats are:
 - *RRR*
   - There are 13 RRR instructions: 0--C
@@ -3597,38 +3716,38 @@ The instruction formats are:
     nop, and available for projects.
   - 1 word
   - first word: op,d,a,b
-  - op: bits 15-12 (4 bits)
-  - d: bits 11-8 (4 bits)
-  - a: bits 7-4 (4 bits)
-  - b: bits 3-0 (4 bits)
-  - operation: op
-  - primary operation code is op field.  If 0 <= op <= C, the
+  - OP: bits 15-12 (4 bits)
+  - D: bits 11-8 (4 bits)
+  - A: bits 7-4 (4 bits)
+  - B: bits 3-0 (4 bits)
+  - operation: OP
+  - primary operation code is OP field.  If 0 <= OP <= c, the
     instruction is RRR format and there are 13 possible RRR
-    instructions.  If D <= op <= F, the instruction has a
+    instructions.  If d <= OP <= f, the instruction has a
     different format and the full operation is determined by an
-    expanding opcode specified by b or ab.
+    expanding opcode specified by B or AB.
 - *RX*
-  - There are 16 RX instructions: F,0--F,F
+  - There are 16 RX instructions: f,0--f
   - 2 words
-  - operation: F,b
-  - op field is always F; secondary operation code is b field
-  - op,d,a,b ; disp
+  - operation: f,B
+  - OP field is always f; secondary operation code is B field
+  - OP,D,A,B ; disp
   - first word is same as for RRR
   - second word: disp (16 bits)
 - *EXP*
-  - There are up to 192 EXP instructions: E,00--E,BF
+  - There are up to 192 EXP instructions: e,00--bf
   - 2 words
-  - operation: E,ab
-  - op field is always E; secondary operation code is ab (8 bits)
-    where 0 <= ab < F6
-  - op,d,ab ; e,f,g,h
-  - first word is same as for RRR, but a,b treated as a single
-    8-bit field called ab
-  - second word: e,f,g,h
-  - e: bits 15-12 (4 bits)
-  - f: bits 11-8 (4 bits)
-  - g: bits 7-4 (4 bits)
-  - h: bits 3-0 (4 bits)
+  - operation: e,AB
+  - OP field is always e; secondary operation code is AB (8 bits)
+    where 0 <= AB < f6
+  - OP,D,AB ; E,F,G,H
+  - first word is same as for RRR, but A,B treated as a single
+    8-bit field called AB
+  - second word: E,F,G,H
+  - E: bits 15-12 (4 bits)
+  - F: bits 11-8 (4 bits)
+  - G: bits 7-4 (4 bits)
+  - H: bits 3-0 (4 bits)
 
 Given the first word of an instruction, the following algorithm
 determines which instruction this is.  This algorithm is not
@@ -3641,28 +3760,27 @@ program.
 
 #+BEGIN_EXAMPLE
 Fetch an instruction word
-Check op field
-Case 0 <= op <= C
+Check OP field
+Case 0 <= OP <= c
    this is an RRR instruction  (there are 13)
-Case op=D
+Case OP=d
    This is reserved for experimentation and
    projects that define a new instruction format.
    In the current architecture, the instruction is
    1 word and is interpreted as nop
-Case op=E
+Case op=e
    Fetch a second instruction word.
-   Check secondary opcode, which is ab field.
-   Case 00 <= ab < C0
+   Check secondary opcode, which is AB field.
+   Case 00 <= AB < c0
       This is an EXP instruction.
-   Case C0 <= ab <= FF
+   Case c0 <= AB <= ff
       This is an EXP3 instruction.
       Fetch third instruction word.
-Case op=F
+Case op=f
    This is an RX instruction, determined by
-   the b field.  There are 16 RX instructions.
+   the B field.  There are 16 RX instructions.
 #+END_EXAMPLE
-- Upper case letters are Hex digits
-- Lower case letters are instruction fields.
+
 
 
 # Rd.f:g := h#(Rd.f:g,Re.f:g) |
@@ -3674,9 +3792,9 @@ Case op=F
 #+CAPTION: Summary of instruction formats
 | Format | Size | Opcode | Operands  | Example           |
 |--------+------+--------+-----------+-------------------|
-| RRR    |    1 | op     | d,a,b     | add Rd,Ra,Rb      |
-| RX     |    2 | op,b   | d,a,disp  | load Rd,disp[Ra]  |
-| EXP    |    2 | op,ab  | d,e,f,g,h | save Rd,Re,gh[Rf] |
+| RRR    |    1 | OP     | D,A,B     | add RD,RA,RB      |
+| RX     |    2 | OP,B   | D,A,DISP  | load RD,DISP[RA]  |
+| EXP    |    2 | OP,AB  | D,E,F,G,H | save RD,RE,GH[RF] |
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
@@ -3689,6 +3807,76 @@ instructions at all (such as equ).  Thus there are two kinds of
 format: the machine /instruction formats/, and the assembly
 language instruction /statement formats/.  The assembly language
 formats are described later.
+
+*** Notation for machine language
+
+We usually write instructions in assembly language (sub
+R3,R12,R9) but the computer executes machine language (13c9).
+There is a precise relationship between these two notations
+for an instruction.  By writing assembly language, you
+determine the exact value of every bit in every word of a
+machine language program.  This section explains how these
+two notations for an instruction are related.
+
+When each instruction is described below, an example is given
+showing a typical use of the instruction, along with the
+general form of the assembly language instruction.
+
+The general form uses the machine language field names to
+show where each piece of the instruction goes in the machine
+code.  The instruction format is also given, along with any
+constant fields.
+
+As an example, the logicu instruction is EXP format, so its
+machine language representation consists of two words with
+the following fields:
+
+|----+---+---+---|
+| OP | D | A | B |
+|----+---+---+---|
+| E  | F | G | H |
+|----+---+---+---|
+
+The primary opcode is e, which goes in the op field.  The
+secondary opcode is 14, which goes in the ab field.  Thus
+op=e, a=1, and b=4 (here, a dollar sign is used before the
+hex constants to distinguish them from the field names).
+
+|----+---+----+----|
+| $e | d | $1 | $4 |
+|----+---+----+----|
+| e  | f | g  | h  |
+|----+---+----+----|
+
+and the For example, here is the general form of the logicu
+instruction:
+
+#+BEGIN_SRC Sigma16 exports: code
+   logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
+   EXP op=#e ab=$14
+#+END_SRC
+
+#+BEGIN_SRC Sigma16 exports: code
+   logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
+   EXP op=#e ab=$14
+#+END_SRC
+
+The format is EXP, so the instruction has all the fields of
+the EXP format: op, d, ab, e, f, g, h.  There are two
+constant fields: the primary opcode (op) is =$e=, and the
+secondary opcode (ab) is =$14=.  The values of the other
+fields are given in the general form of the assembly
+language.  The operands Rd and Rf refer to registers, and
+those register numbers go into the d and f fields of the
+instruction.  The e, g, and h fields are given as numbers in
+the assembly language.  (The assembly language convention is
+to give constants in decimal notation, not hexadecimal.)
+
+Example:
+#+BEGIN_SRC Sigma16 exports: code
+   logicu  R7,5,R2,13,xor ; R7.5 := R7.5 xor R2.13
+   e714 52d6
+#+END_SRC
 
 *** put later and edit - Summary of Sigma16 instruction set
 
@@ -3846,75 +4034,6 @@ indicates RX format.  For these three cases, the op field merely
 indicates the instruction format, and there is a secondary
 operation code that specifies which instruction it is.
 
-*** RRR instructions
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 16-bit RRR instructions
-
-| *Assembly*            | *Code* | *Effect*                  |
-|-----------------------+--------+---------------------------|
-| [[add][add]] Rd,Ra,Rb | 0dab   | R[d] := R[a]+R[g]         |
-| 0 / aRRR              |        | R15 := (cc flags)         |
-|-----------------------+--------+---------------------------|
-| [[sub][sub]] Rd,Ra,Rb | 1dab   | R[d] := R[a]-R[b]         |
-| 1 / aRRR              |        | R15 := (cc flags)         |
-|-----------------------+--------+---------------------------|
-| [[mul][mul]] d,a,b    | 2dab   | R[d] := R[a]*R[b]         |
-| 2 / aRRR              |        | R15 := (cc flags)         |
-|-----------------------+--------+---------------------------|
-| [[div][div]] d,a,b    | 3dab   | R[d] := Ra / Rb,          |
-| 3 / aRRR              |        | R[15] := Ra % Rb          |
-|-----------------------+--------+---------------------------|
-| [[cmp][cmp]] d,a      | 4da_   | R[15] := R[a] cp R[b]     |
-| 4 / aRR               |        | R15 := (cc flags)         |
-|-----------------------+--------+---------------------------|
-| [[addc][addc]] d,a,b  | 5dab   | Rd := Ra + Rb + R15.C)    |
-| 5 / aRRR              |        | R15 := (cc flags)         |
-|-----------------------+--------+---------------------------|
-| [[muln][muln]] d,a,b  | 6dab   | Rd := Ra :*: Rb, R15 :=   |
-| 6 / aRRR              |        |                           |
-|-----------------------+--------+---------------------------|
-| [[divn][divn]] d,a,b  | 7dab   | R15++Rd := R15++Ra :/: Rb |
-| 7 / aRRR              |        | nop                       |
-|-----------------------+--------+---------------------------|
-|                       | 8___   | nop -- available          |
-| 8 /                   |        | for experimentation       |
-|-----------------------+--------+---------------------------|
-|                       | 9___   | nop -- available          |
-| 9 /                   |        | for experimentation       |
-|-----------------------+--------+---------------------------|
-|                       | A___   | nop -- available          |
-| A /                   |        | for experimentation       |
-|-----------------------+--------+---------------------------|
-|                       | B___   | nop -- available          |
-| B /                   |        | for experimentation       |
-|-----------------------+--------+---------------------------|
-| [[trap][trap]] d,a,b  | Cdab   | interrupt                 |
-| C / aRRR              |        |                           |
-|-----------------------+--------+---------------------------|
-|                       | D___   | reserved -- available     |
-| D /                   |        | for experimentation       |
-|-----------------------+--------+---------------------------|
-|                       | Edab   | escape to EXP             |
-| E / (EXP)             |        | secondary opcode = ab     |
-|-----------------------+--------+---------------------------|
-|                       | Fdab   | escape to RX              |
-| F / (RX)              |        | secondary opcode = b      |
-|-----------------------+--------+---------------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
 
 *** RX format
 
@@ -4036,61 +4155,6 @@ number, and that can often be useful.  For example, =lea
 R5,-2[R0]= will put hex fffe, the two's complement representatin
 of -2, into R5.
 
-*** RX instructions
-
-The RX instructions with opcodes from 0 through 7 are essential
-Core instructions.  A few more are part of the Standard
-instruction set.
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 16-bit RX instructions
-
-| *Assembly*                       | *Code* | *Effect*             |
-|----------------------------------+--------+----------------------|
-| [[lea][lea]] Rd,disp[Ra]         | Fda0   | Rd := disp+Ra        |
-| F,0 / aRX                        | disp   |                      |
-|----------------------------------+--------+----------------------|
-| [[load][load]] Rd,disp[Ra]       | Fda1   | Rd := M[disp+Ra]     |
-| F,1 / aRX                        |        |                      |
-|----------------------------------+--------+----------------------|
-| [[store][store]] Rd,disp[Ra]     | Fda2   | M[disp+Ra] := Rd     |
-| F,2 / aRX                        | disp   |                      |
-|----------------------------------+--------+----------------------|
-| [[jump][jump]] disp[Ra]          | Fda3   | pc := disp+Ra        |
-| F,3 /aX                          | disp   |                      |
-|----------------------------------+--------+----------------------|
-| [[jumpc0][jumpc0]] d,disp[Ra]    | Fda4   | *if* R15.d=0         |
-| F,4 / akX                        | disp   | *then* pc := disp+Ra |
-|----------------------------------+--------+----------------------|
-| [[jumpc1][jumpc1]] d,disp[Ra]    | Fda5   | if R15.d=1           |
-| F,5 / akX                        | disp   | then pc := disp+Ra   |
-|----------------------------------+--------+----------------------|
-| [[jal][jal]] Rd,disp[Ra]         | Fda6   | Rd:=pc,              |
-| F,6 / aRX                        | disp   | pc:=disp+Ra          |
-|----------------------------------+--------+----------------------|
-| [[jumpz][jumpz]] Rd,disp[Ra]     | Fda7   | if R15.d=0           |
-| F,7 / aRX                        | disp   | then pc := disp+Ra   |
-|----------------------------------+--------+----------------------|
-| [[jumpnz][jumpnz]] Rd,disp[Ra]   | Fda8   | if R15.d=1           |
-| F,8 / aRX                        | disp   | then pc := disp+Ra   |
-|----------------------------------+--------+----------------------|
-| [[testset][testset]] Rd,disp[Ra] | Fda9   | Rd:=M[disp+Ra],      |
-| F,9 / aRX                        | disp   | M[disp+Ra]:=0001     |
-|----------------------------------+--------+----------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
-
 
 *** EXP format
 
@@ -4130,222 +4194,29 @@ depending on the instruction.
 | 15-12 | 11-8 | 7-4 | 3-0 |
 +-------+------+-----+-----+
 
-*** EXP instructions
 
-The first group of EXP instructions provide operations including
-logic, bit manipulation.  These are standard instructions, but not
-part of the Core, which provides only a minimal set of
-instructions.
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 16-bit EXP instructions
-
-|----------------------+--------+----------------------|
-| *Assembly*           | *Code* | *Effect*             |
-|----------------------+--------+----------------------|
-| logicf Rd,Re,f,g,h   | Ed00   | Rd.f:g :=            |
-| E,00 / aRRkkk        | efgh   | h(Rd.f:g,Re.f:g)     |
-|----------------------+--------+----------------------|
-| logicb Rd,Re,f,g,h   | Ed01   | Rd.f := h(Rd.f,Re.g) |
-| E,01 / aRRkkk        | efgh   |                      |
-|----------------------+--------+----------------------|
-| shiftl Rd,Re,h       | Ed02   | Rd := Re shl h       |
-| E,02 / aRRk          | e..h   |                      |
-|----------------------+--------+----------------------|
-| shiftr Rd,Re,h       | Ed03   | Rd := Re shr h       |
-| E,03 / aRRk          | e..h   |                      |
-|----------------------+--------+----------------------|
-| extract Rd,Re,f,g,h  |        | Rd.f~g :=            |
-| E,04 / aRRkkk        |        |                      |
-|----------------------+--------+----------------------|
-| push Rd,Re,Rf        |        | M[ea] := Rd, Rb++    |
-| E,05 /aRRR           |        |                      |
-|----------------------+--------+----------------------|
-| pop Rd,Re,Rf         |        | Rb--, Rd := M[ea]    |
-| E,06 /aRRR           |        |                      |
-|----------------------+--------+----------------------|
-| top Rd,Re,Rf         |        | Rb--, Rd := M[ea]    |
-| E,07 / aRRR          |        |                      |
-|----------------------+--------+----------------------|
-| save Rd,Re,gh[Rf]    |        | M[Rf+gh] := Rd,      |
-| E,08 / aRRX          |        | M[Rf+gh+1] := R{d+1} |
-|                      |        | M[Rf+gh+e-d] := Re   |
-|----------------------+--------+----------------------|
-| restore Rd,Re,gh[Rf] |        | Rd := M[Rf+gh],      |
-| E,09 / aRRX          |        | ...,                 |
-|                      |        | Re := M[Rf+gh+e-d]   |
-|----------------------+--------+----------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
-
-More 16-bit EXP instructions include forther control flow
-operations.
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 16-bit EXP instructions (continued)
-
-|------------------+--------+---------------------|
-| *Assembly*       | *Code* | *Effect*            |
-|------------------+--------+---------------------|
-| brc0 Rd,e,fgh    | Ed0A   | if R[d].e=0         |
-| E,0A             |        | then pc:=pc+fgh     |
-|------------------+--------+---------------------|
-| brc1 Rd,e,fgh    | Ed0B   | if R[d].e=1         |
-| E,0B             |        | then pc:=pc+fgh     |
-|------------------+--------+---------------------|
-| brz Rd,efgh      | Ed0C   | if R[d]=0000        |
-| E,0C             |        | then pc:=pc+efgh    |
-|------------------+--------+---------------------|
-| brnz Rd,efgh     | Ed0D   | if R[d]!=0000       |
-| E,0D             |        | then pc:=pc+efgh    |
-|------------------+--------+---------------------|
-| dispatch Rd,efgh | Ed0E   | pc :=               |
-| E,0E             | efgh   | M[pc+min(Rd,efgh)]] |
-|------------------+--------+---------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
-
-The 16-bit privileged instructions all have EXP format.
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 16-bit privileged EXP instructions
-
-|------------------+--------+---------------------|
-| *Assembly*       | *Code* | *Effect*            |
-|------------------+--------+---------------------|
-| getctl Rd,e      | Ed0F   | Rd := Sc privileged |
-| E,0F             | e...   |                     |
-|------------------+--------+---------------------|
-| putctl Rd,e      | Ed10   | Sc := Rd privileged |
-| E,10             | e...   |                     |
-|------------------+--------+---------------------|
-| resume           | Ed11   | pc := ipc,          |
-| E,11             |        | status := istatus   |
-|------------------+--------+---------------------|
-| timeron Rd,efgh  | Ed12   | timer := efgh,      |
-| E,12             | efgh   | start timer         |
-|------------------+--------+---------------------|
-| timeroff Rd,efgh | Ed13   | stop timer          |
-| E,13             | efgh   |                     |
-|------------------+--------+---------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
-
-
-** Notation for machine language
-
-
-We usually write instructions in assembly language (sub
-R3,R12,R9) but the computer executes machine language (13c9).
-There is a precise relationship between these two notations
-for an instruction.  By writing assembly language, you
-determine the exact value of every bit in every word of a
-machine language program.  This section explains how these
-two notations for an instruction are related.
-
-When each instruction is described below, an example is given
-showing a typical use of the instruction, along with the
-general form of the assembly language instruction.
-
-The general form uses the machine language field names to
-show where each piece of the instruction goes in the machine
-code.  The instruction format is also given, along with any
-constant fields.
-
-As an example, the logicu instruction is EXP format, so its
-machine language representation consists of two words with
-the following fields:
-
-|----+---+----+---|
-| op | d | a  | b |
-|----+---+----+---|
-| e  | f | g  | h |
-|----+---+----+---|
-
-The primary opcode is e, which goes in the op field.  The
-secondary opcode is 14, which goes in the ab field.  Thus
-op=e, a=1, and b=4 (here, a dollar sign is used before the
-hex constants to distinguish them from the field names).
-
-|----+---+----+----|
-| $e | d | $1 | $4 |
-|----+---+----+----|
-| e  | f | g  | h  |
-|----+---+----+----|
-
-and the For example, here is the general form of the logicu
-instruction:
-
-#+BEGIN_SRC Sigma16 exports: code
-   logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
-   EXP op=#e ab=$14
-#+END_SRC
-
-#+BEGIN_SRC Sigma16 exports: code
-   logicu  Rd,e,Rf,g,h     ; Rd.e := h (Rd.e, Rf.g)
-   EXP op=#e ab=$14
-#+END_SRC
-
-The format is EXP, so the instruction has all the fields of
-the EXP format: op, d, ab, e, f, g, h.  There are two
-constant fields: the primary opcode (op) is =$e=, and the
-secondary opcode (ab) is =$14=.  The values of the other
-fields are given in the general form of the assembly
-language.  The operands Rd and Rf refer to registers, and
-those register numbers go into the d and f fields of the
-instruction.  The e, g, and h fields are given as numbers in
-the assembly language.  (The assembly language convention is
-to give constants in decimal notation, not hexadecimal.)
-
-Example:
-#+BEGIN_SRC Sigma16 exports: code
-   logicu  R7,5,R2,13,xor ; R7.5 := R7.5 xor R2.13
-   e714 52d6
-#+END_SRC
 
 ** Arithmetic
 
-*** Addition and subtraction: add, sub
+*** Addition and subtraction
+
+- Instructions: [[add-d][add]], [[sub-d][sub]]
+
+The addition and subtraction instructions can be used on both
+integers and natural numbers.  If both operands are integers
+(two's complement) then the result is also an integer.  If both
+operands are natural numbers (binary) then the result is also a
+natural number.  The condition code has separate flags to indicate
+overflow for integers and natural numbers.
+
+<<add-d>>
 **** add
 
-The instruction ~add Rd,Ra,Rb~ has operands ~Ra~ and ~Rb~ and
-destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~,
+The instruction [[add-t][_add_]]  has operands ~Ra~ and ~Rb~
+and destination ~Rd~.  It fetches the operands ~Ra~ and ~Rb~,
 calculates the sum ~Ra~ + ~Rb~, and loads the result into the
-destination ~Rd~.  The effect is ~Rd := Ra + Rb~.  For
-example, ~add R5,R12,R2~ performs ~R5 := R12 + R3~.
+destination ~Rd~.  The effect is ~Rd := Ra + Rb~.  For example,
+~add R5,R12,R2~ performs ~R5 := R12 + R3~.
 
 As well as setting the destination register, the add
 instruction sets or clears the overflow and carry bits in the
@@ -4459,14 +4330,14 @@ integers).
   mask register, then an interrupt will occur immediatelhy
   after the add instruction executes.
 
-<<sub>>
+<<sub-d>>
 **** sub
 
-Example: sub R1,R2,R3 ; R1 := R2 - R3
+The [[sub-t][_sub_]] instruction is similar to add; it calculates R2-R3
+and places the result in R1.  The effect on the condition code is
+the same as for add.
 
-This instruction is similar to add; the only difference is
-that it calculates R2-R3 and places the result in R1.  The
-effect on the condition code is the same as for add.
+Example: sub R1,R2,R3 ; R1 := R2 - R3
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -4507,17 +4378,23 @@ In addition to setting the destination register, the sub
 instruction sets several bits in the condition code R15 and
 may set a bit in the req register.
 
-*** Multiplication and division: mul, div
+*** Multiplication and division
 
-<<mul>>
+- Instructions: [[mul-d][mul]], [[div-d][div]]
+
+The mul and div instructions operate on integer operands.  For
+multiplication and division of natural numbers, use the [[muln-d][muln]] and
+[[divn-d][divn]].
+
+<<mul-d>>
 **** mul
 
-Example: mul R1,R2,R3 ; R1 := R2 * R3
+The [[mul-t][_mul_]] instruction multiplies two integers.  mul Rd,Ra,Rb
+calculates the integer (two's complement) product of the operands
+Ra and Rb, and places the result in the destination register Rd.
+The mul instruction does not produce the natural (binary) product.
 
-The multiply instruction mul Rd,Ra,Rb calculates the integer
-(two's complement) product of the operands Ra and Rb, and
-places the result in the destination register Rd.  The mul
-instruction does not produce the natural (binary) product.
+Example: mul R1,R2,R3 ; R1 := R2 * R3
 
 
 #+BEGIN_EXPORT html
@@ -4540,22 +4417,13 @@ set in the condition code (F15) and the integer overflow bit
 is also set in the interrupt request register (req), and the
 lower order 16 bits of the product are loaded into Rd.
 
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-|---------+-------------------------------|
-| R15.ccg | result > 0 (two's complement) |
-| R15.ccE | result = 0                    |
-| R15.ccl | result < 0 (two's complement) |
-| R15.CCv | overflow (two's complement)   |
-| R15.CCc | carry output                  |
-|---------+-------------------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-<<div>>
+<<div-d>>
 **** div
+
+The [[div-t][_div_]] instruction performs a division and produces the
+
+quotient and remainder.
+
 
 Example: div R1,R2,R3 ; R1 := R2 / R3, R15 := R2 rem R3
 
@@ -4606,18 +4474,19 @@ easy for a program to detect a division by 0.
   Interrupts.  This approach does not require a compare or
   jump instruction for each division.
 
-*** Comparison: cmp
+*** Comparison
 
-<<cmp>>
+- Instruction: [[cmp-d][cmp]]
+  
+<<cmp-d>>
 **** cmp
 
-The compare instruction =cmp Ra,Rb= compares the values in
-the operand registers =Ra= and =Rb=, and then sets flags in
-the condition code (R15) to indicate the result. The notation
-R15.i means bit /i/ in R15; thus R15.0 is the leftmost bit of
-R15.  The instruction performs both natural number comparison
-(binary) and integer comparison (two's complement).  The
-resulting flags are
+The [[cmp-t][_cmp_]] instruction =cmp Ra,Rb= compares the values
+in the operand registers =Ra= and =Rb=, and then sets flags in the
+condition code (R15) to indicate the result. The notation R15.i
+means bit /i/ in R15; thus R15.0 is the leftmost bit of R15.  The
+instruction performs both natural number comparison (binary) and
+integer comparison (two's complement).  The resulting flags are
 
 - binary less than (L) in R15.0
 - two's complement less than (<) in R15.1
@@ -4655,31 +4524,34 @@ for example:
     jumpgt  abc]R0]    ; if R4 > R9 then goto abc
 #+END_SRC
 
-*** Natural numbers: addc, muln, divn
+*** Extensible natural arithmetic
 
-<<addc>>
+- Instructions: [[addc-d][addc]], [[muln-d][muln]], [[divn-d][divn]]
+  
+<<addc-d>>
 **** addc
 
-The addc instruction performs a binary addition with carry
-propagation.  It adds the two operand registers and the carry
-bit in the condition code register, R15.  The sum is loaded
-into the destination register Rd and the carry output is
-written back into the carry bit, overwriting its previous
-value.  Overflow is not possible with this instruction.
+The [[addc-t][_addc_]] instruction performs a binary addition with
+carry propagation.  It adds the two operand registers and the
+carry bit in the condition code register, R15.  The sum is loaded
+into the destination register Rd and the carry output is written
+back into the carry bit, overwriting its previous value.  Overflow
+is not possible with this instruction.
 
-<<muln>>
+<<muln-d>>
 **** muln
+
+The [[muln-t][_muln_]] instruction calculates the product of two
+natural numbers in Ra and Rb.  The result is 32 bits; the leftmost
+16 bits (the most significant part) is loaded into R15, and the
+rightmost 16 bits (the least significant part) is loaded into Rd.
+If Rd is R15, the most significant part is discarded.
 
 #+BEGIN_SRC Sigma16 exports: code
      muln   Rd,Ra,Rb
 #+END_SRC
 
-The muln instruction calculates the product of two natural
-numbers in Ra and Rb.  The result is 32 bits; the leftmost 16
-bits (the most significant part) is loaded into R15, and the
-rightmost 16 bits (the least significant part) is loaded into
-Rd.  If Rd is R15, the most significant part is discarded.
-  
+
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
@@ -4693,17 +4565,16 @@ Rd.  If Rd is R15, the most significant part is discarded.
 </div>
 #+END_EXPORT
 
-<<divn>>
+<<divn-d>>
 **** divn
+
+The [[divn-t][_divn_]] instruction divides two natural numbers:
+dividend / divisor.  All the numbers -- numerator, denominator,
+quotient, remainder -- are natural numbers represented in binary.
 
 #+BEGIN_SRC Sigma16 exports: code
      divn   Rd,Ra,Rb
 #+END_SRC
-
-The divn instruction divides two natural numbers: dividend /
-divisor.  All the numbers -- numerator, denominator,
-quotient, remainder -- are natural numbers represented in
-binary.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -4729,6 +4600,7 @@ binary.
 - The remainder is placed in Ra, overwriting the least
   significant half of the dividend operand
 
+
 ** Accessing memory
 
 A memory address is a 16-bit binary number.  Instructions
@@ -4751,13 +4623,18 @@ If you just want to specify an address *a* in an instruction,
 this can be written as "a[R0]".  Since R0 contains the
 constant 0, the effective address is just *a*.
 
-<<lea>>
-*** Effective address: lea
+*** Effective address
 
-The *load effective address* instruction *lea Rd,disp[Ra]*
+- Instruction: [[lea-d][lea]]
+  
+<<lea-d>>
+**** lea
+
+The [[lea-t][lea]] instruction stands for "load effective
+address".   *lea Rd,disp[Ra]*
 calculates the effective address of the operand disp[Ra] and
-places the result in the destination register Rd.  The
-effective address is the binary sum disp+Ra.
+places the result in the destination register Rd.  The effective
+address is the binary sum disp+Ra.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -4773,16 +4650,17 @@ effective address is the binary sum disp+Ra.
 </div>
 #+END_EXPORT
 
-*** Copying between register and memory: load, store
+*** Copying between register and memory
 
-<<load>>
+- Instructions: [[load-d][load]], [[store-d][store]]
+
+<<load-d>>
 **** load
 
-The *load* instruction *load Rd,disp[Rx]* calculates the
-effective address of the operand disp[Rx] and copies the word
-in memory at the effective address into the destination
-register Rd.  The effective address is the binary sum
-disp+Rx.
+The [[load-t][load]] instruction *load Rd,disp[Rx]* calculates the
+effective address of the operand disp[Rx] and copies the word in
+memory at the effective address into the destination register Rd.
+The effective address is the binary sum disp+Rx.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -4806,13 +4684,13 @@ Examples
    load  R3,$2b8e[R5]    ; R3 := mem[2b8e+R5]
 #+END_SRC
 
-<<store>>
+<<store-d>>
 **** store
 
-The *store* instruction *store Rd,disp[Rx]* calculates the
-effective address of the operand disp[Rx].  The value of the
-destination register Rd is stored into memory at the
-effective address.
+The [[store-t][store]] instruction *store Rd,disp[Rx]* calculates
+the effective address of the operand disp[Rx].  The value of the
+destination register Rd is stored into memory at the effective
+address.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -4852,8 +4730,11 @@ Examples
    store  R6,arrayX[R2]
 #+END_SRC
 
-*** Stacks: push, pop, top
 
+*** Stacks
+
+- Instructions: [[push-d][push]], [[pop-d][pop]], [[top-d][top]]
+  
 Three instructions (push, pop, top) support operations on a
 stack represented as an array of contiguous elements, where
 the stack grows from lower to higher addresses.  These
@@ -4894,10 +4775,10 @@ of memory, setting /stack base/ to the first word and /stack
 limit/ to the last word, and setting /stack top/ to /stack
 base/ - 1.
 
-<<push>>
+<<push-d>>
 **** push
 
-The push instruction pushes an element onto a stack.  It is
+The [[push-t][push]] instruction pushes an element onto a stack.  It is
 RRR format, and its general form is:
 
 #+BEGIN_SRC Sigma16 exports: code
@@ -4940,10 +4821,10 @@ completes.  There will be no interrupt if interrupts are
 disabled, or the stack fault bit is not set in the mask
 register.
 
-<<pop>>
+<<pop-d>>
 **** pop
 
-The push instruction removes an element onto a stack and
+The [[pop-t][pop]] instruction removes an element onto a stack and
 returns it.  The instruction is RRR format, and its general
 form is:
 
@@ -4973,10 +4854,10 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_SRC
 
-<<top>>
+<<top-d>>
 **** top
 
-The top instruction returns the top element on a stack but
+The [[top-t][top]] instruction returns the top element on a stack but
 does not remove it.  The instruction is RRR format, and its
 general form is:
 
@@ -5004,7 +4885,9 @@ if Ra >= Rb
   else R15.suvfl := 1, req.suvfl := 1
 #+END_SRC
 
-*** Stack frames: save, restore
+*** Stack frames
+
+- Instructions: [[save-d][save]], [[restore-d][restore]]
 
 When a program calls a procedure it is usually necessary to
 save the state of the caller in a data structure called a
@@ -5058,10 +4941,10 @@ rightmost 8 bits of the second word of the instruction.  The
 secondary opcode is 9, which is in the ab field of the first
 word of the instruction.
 
-<<save>>
+<<save-d>>
 **** save
 
-The save instruction performs a sequence of stores, which
+The [[save-t][save]] instruction performs a sequence of stores, which
 copy the contents of a sequence of registers into consecutive
 memory locations.  It is useful for saving registers on a
 procedure call or interrupt, as well as storing a record from
@@ -5111,11 +4994,11 @@ concise and readable.  Even more importantly, they are less
 error prone: it's easy to make a typo in sequences of store
 instructions as in the example.
 
-<<restore>>
+<<restore-d>>
 **** restore
 
-This =restore= instruction has the same operands as =save=,
-and it performs a sequence of loads corresponding to the
+This [[restore-t][restore]] instruction has the same operands as
+=save=, and it performs a sequence of loads corresponding to the
 stores performed by save.
 
 #+BEGIN_EXPORT html
@@ -5203,13 +5086,22 @@ into registers Re, Re+1, ..., Rf.
 ** Control flow
 *** Jumps
 
-A jump is a transfer control to another address, rather than
-to the following instruction. The destination address is
-specified as the effective address in the jump instruction.
-A jump can be used to implement a goto statement.
+- Instructions
+  - Unconditional: [[jump-d][jump]]
+  - Conditional: [[jumpc0-d][jumpc0]], [[jumpc1-d][jumpc1]],
+    [[jumpz-d][jumpz]], [[jumpnz-d][jumpnz]]
+- Pseudoinstructions:
 
-<<jump>>
+- [[jumplt-d][jumplt]], [[jumple-d][jumple]], [[jumpeq-d][jumpeq]],
+  [[jumpne-d][jumpne]], [[jumpge-d][jumpge]], [[jumpgt-d][jumpgt]]
+
+<<jump-d>>
 **** jump
+
+A [[jump-t][jump]] is a transfer control to another address, rather
+than to the following instruction. The destination address is
+specified as the effective address in the jump instruction.  A
+jump can be used to implement a goto statement.
 
 #+BEGIN_EXPORT html
 </div>
@@ -5224,18 +5116,18 @@ A jump can be used to implement a goto statement.
 </div>
 #+END_EXPORT
 
-<<jumpc0>>
-<<jumpc1>>
-**** jumpc0, jumpc1
+A conditional jump goes to a destination if a condition is true;
+otherwise it does nothing.  The condition can either be a specified bit
+in the condition code is 0 (for jumpc0) or 1 (for jumpc1), or the value
 
-These instructions jump to a destination if a specified bit
-in the condition code is 0 (for jumpc0) or 1 (for jumpc1).
+<<jumpc0-d>>
+**** jumpc0
 
-The first operand of jumpc0 is the index of a bit in R15.
-Don't specify R15; the condition bit is always in R15.  The
-index of the condition bit must be specified in the d field
-of the instruction.  Since this is an index, not a register,
-it's written as a number.
+[[jumpc0-t][jumpc0]] jumps if a specified bit in R15 is 0.  The first
+operand is the index of that bit.  Don't specify R15; the
+condition code bit is always in R15.  The index of the condition
+bit must be specified in the d field of the instruction.  Since
+this is an index, not a register, it's written as a number.
 
 - jumpc0 3,loop[R0]  ; Right
 - jumpc0 R3,loop[R0] ; Wrong - not using R3!
@@ -5270,7 +5162,10 @@ jumpc0 goes to the destination if the specified condition bit is 0.
 </div>
 #+END_EXPORT
 
-jumpc1 is similar: it jumps if the specified bit is 1.
+<<jumpc1-d>>
+**** jumpc1
+
+[[jumpc1-t][jumpc1]] is similar to jumpc0: it jumps if the specified bit is 1.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -5288,29 +5183,16 @@ jumpc1 is similar: it jumps if the specified bit is 1.
 </div>
 #+END_EXPORT
 
-<<jal>>
-**** jal
 
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-|--------------------+-------------------------|
-| assembly language  | jal Rd,disp[Ra]         |
-| instruction format | EXP                     |
-| opcode             | f,6                     |
-| machine language   | {$f d a $6} {disp}      |
-| effect             | R[d]:=pc, pc:=disp+R[a] |
-|--------------------+-------------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-<<jumpz>>
-<<jumpnz>>
+<<jumpz-d>>
+<<jumpnz-d>>
 **** jumpz, jumpnz
 
-The jumpz instruction jumps to the destination if a specified
+The [[jumpz-t][jumpz]] instruction jumps to the destination if a specified
 register is 0 (i.e. all the bits in that register are 0).
+
+[[jumpnz-t][jumpnz]] is similar, but it jumps if the register does
+not contain 0.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -5340,6 +5222,52 @@ that register is 1).
 | machine language   | {$f d a $8} {disp}           |
 | effect             | R[15].d=1 => pc := disp+R[a] |
 |--------------------+------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+<<jumplt-d>> <<jumple-d>> <<jumpeq-d>> <<jumpne-d>> <<jumpge-d>>
+<<jumpgt-d>>
+**** Conditional jump after comparisons
+
+There are pseudoinstructions for common cases of conditional
+jumps, after a comparison between two integers has been made.
+
+| Pseudo          | Real instruction  | Meaning        |
+|-----------------+-------------------+----------------|
+| jumplt disp[Ra] | jumpc1 k,disp[Ra] | jump if $<$    |
+| jumple disp[Ra] | jumpc0 k,disp[Ra] | jump if $\leq$ |
+| jumpeq disp[Ra] | jumpc1 k,disp[Ra] | jump if $=$    |
+| jumpne disp[Ra] | jumpc0 k,disp[Ra] | jump if $\neq$ |
+| jumpge disp[Ra] | jumpc0 k,disp[Ra] | jump if $>$    |
+| jumpgt disp[Ra] | jumpc1 k,disp[Ra] | jump if $\geq$ |
+
+These pseudoinstructions cover only the possible conditionals
+based on 3 of the condition code bits, but the condition code
+contains many more bits (for example, comparisons between natural
+numbers, presence of overflow, and more).  A conditional jump
+based on these other bits requires using the appropriate jumpc0 or
+jumpc1.
+
+**** Jump and link
+
+<<jal-d>>
+**** jal
+
+The [[jal-t][jal]] instruction jumps to a destination, and also
+records the location it jumped from.  This is needed for most
+function and procedure calls.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+|--------------------+-------------------------|
+| assembly language  | jal Rd,disp[Ra]         |
+| instruction format | EXP                     |
+| opcode             | f,6                     |
+| machine language   | {$f d a $6} {disp}      |
+| effect             | R[d]:=pc, pc:=disp+R[a] |
+|--------------------+-------------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
@@ -5388,14 +5316,14 @@ forward) if =xyz= occurs after the branch instruction, and
 use =brb xyz= (branch backward) if =xyz= occurs before the
 branch.
 
-<<brc0>>
-<<brc1>>
+<<brc0-d>>
+<<brc1-d>>
 **** brc0, brc1
 
-There are two conditional branch instructions that perform a
-branch based on the value of a bit in a register.  For
-example, brc0 R7,3,xyz means "if bit 3 of R7 is 0 then go to
-xyz".
+[[brc0-t][brc0]] and [[brc1-t][brc1]] There are two conditional
+branch instructions that perform a branch based on the value of a
+bit in a register.  For example, brc0 R7,3,xyz means "if bit 3 of
+R7 is 0 then go to xyz".
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -5438,11 +5366,11 @@ but there are two key differences:
 - The branch instructions are pc-relative, but the jump
   instructions give the absolute address of the destination.
 
-<<brz>>
-<<brnz>>
+<<brz-d>>
+<<brnz-d>>
 **** brz, brnz
 
-These instructions perform a branch if a specified register
+These [[brz-t][brz]] and [[brnz-t][brnz]] instructions perform a branch if a specified register
 is either equal to 0 (z), or not equal to 0 (nz).  Equal to 0
 means every bit in the register is 0; not equal to 0 means
 some bit in the register is 1.
@@ -5479,17 +5407,17 @@ brnz is similar, but it branches if the register is not zero
 </div>
 #+END_EXPORT
 
-<<dispatch>>
+<<dispatch-d>>
 **** dispatch
 
-The /dispatch/ instruction implements a branch table.  It
+The [[dispatch-t][dispatch]] instruction implements a branch table.  It
 provides an efficient way to implement a case statement using
 a binary code.
 
-Suppose =code= is a variable that contains an integer, such
-that $0 \leq code < 8$.  The following set of instructions
-will branch to a specific destination depending on the value
-of the code.
+Suppose =code= is a variable that contains a natural number, such
+that $0 \leq code < 8$.  The following set of instructions will
+branch to a specific destination depending on the value of the
+code.
 
 #+BEGIN_SRC Sigma16 exports: code
    dispatch R8,3,0       ; 38 dispatch 3-bit code
@@ -5654,18 +5582,17 @@ xor  equ     6
 Now, instead of specifying a logic function as (for example)
 6, we can write it as =xor=.
 
-<<logicf>>
-*** Logic on fields: logicf
+<<logicf-d>>
+**** Field logic
 
-The logicf instruction performs a bitwise logic operation on
-fields within two words.  The fields may be in different
-registers, but each field must be at the same position: their
-start and end indices must be the same.  Each bit of the
-result is obtained by performing a specified logic function
-on the corresponding bits of the two fields.  The result
-overwrites the field in the first operand register. The
-function $h$ is specified as described above; for example, 6
-is the code for exclusive or.
+The [[logicf-t][logicf]] instruction performs a bitwise logic
+operation on fields within two words.  The fields may be in
+different registers, but each field must be at the same position:
+their start and end indices must be the same.  Each bit of the
+result is obtained by performing a specified logic function on the
+corresponding bits of the two fields.  The result overwrites the
+field in the first operand register. The function $h$ is specified
+as described above; for example, 6 is the code for exclusive or.
 
 The field is specified as a pair of 4-bit constants f, g,
 where f is the index of the rightmost bit in the field and g
@@ -5700,15 +5627,17 @@ given above.
      logicf  R1,R2,8,11,xor ; R1 := 3671
 #+END_SRC
 
-<<invw>>
-<<andw>>
-<<orw>>
-<<xorw>>
-*** Word logic pseudoinstructions: invw, andw, orw, xorw
+<<invw-d>>
+<<andw-d>>
+<<orw-d>>
+<<xorw-d>>
+*** Word logic
 
-Several special cases of =logicf= appear frequently.  There
-are special pseudoinstructions that simplify these special
-cases by allowing some of the operands to be omitted.
+A field can comprise all the bits in a word, so logic on words can
+be performed using the field logic instruction.  Several special
+cases of =logicf= appear frequently.  There are special
+pseudoinstructions that simplify these special cases by allowing
+some of the operands to be omitted.
 
 The first simplification is to omit the operand that
 specifies the logic function, and instead to indicate the
@@ -5779,17 +5708,17 @@ xor  equ   6
      logicf R5,R7,R2,xor   ; R5 := R7 xor R2
 #+END_SRC
 
-<<logicb>>
-*** Bit logic: logicb
+<<logicb-d>>
+*** Bit logic
 
-The bit logic instruction =logicb= specifies two operand
-bits, which may be in any register at any index.  It applies
-a specified logic function to these bits and puts the result
-bit back into the first operand, overwriting the previous
-value of that bit.  The other bits in the first operand
-register remain unchanged.  As this instruction modifies only
-one bit in the first operand, it enables you to keep many
-Boolean variables in just one register.
+The bit logic instruction [[logicb-t][logicb]] specifies two
+operand bits, which may be in any register at any index.  It
+applies a specified logic function to these bits and puts the
+result bit back into the first operand, overwriting the previous
+value of that bit.  The other bits in the first operand register
+remain unchanged.  As this instruction modifies only one bit in
+the first operand, it enables you to keep many Boolean variables
+in just one register.
 
 The general form is:
 
@@ -5820,14 +5749,13 @@ Example:
                          ; (R2.9 := R2.9 xor R7.13 = 0)
 #+END_SRC
 
-<<invb>>
-<<andb>>
-<<orb>>
-<<xorb>>
-*** Pseudoinstructions: bit logic
+<<invb-d>>
+<<andb-d>>
+<<orb-d>>
+<<xorb-d>>
 
-There are pseudoinstructions for the commonest logic
-functions:
+<<bit logic pseudoinstructions>>
+There are pseudoinstructions for the commonest logic functions:
 
 #+BEGIN_SRC Sigma16 exports: code
       invb    R1,3,R2,9   ; R1.3 := inv R2.9
@@ -5842,16 +5770,15 @@ operate on fields of any size, including 1-bit fields.  However,
 a 1-bit field, because =logicb= allows the operands to have different
 bit indices.
 
-** Bit manipulation
+** Operations on bits
 
-<<shiftl>>
-<<shiftr>>
-*** Shifting: shiftl, shiftr
+*** Shifting
 
 The shift instructions treat the operand as a string of bits,
 and move each bit a fixed distance to the left or right.
 
-The instruction shiftl =Rd,Re,h= shifts the value in the
+<<shiftl-d>>
+The instruction [[shiftl-t][shiftl]] =Rd,Re,h= shifts the value in the
 operand register Ra by h bits to the left, and the result is
 placed in the destination register Rd.  The operand Re is not
 modified.  The leftmost h bits of the operand are discarded
@@ -5872,7 +5799,8 @@ form is
  shiftl R5,R1,4  ; E503 1004 R5 = 0020  0000 0000 0010 0000
 #+END_example
 
-The instruction =shiftr Rd,Re,h= shifts the value in the
+<<shiftr-d>>
+The instruction [[shiftr-t][shiftr]] =Rd,Re,h= shifts the value in the
 operand register Re by h bits to the right, and the result is
 placed in the destination register Rd.  The operand Re is not
 modified.  During the shift, the rightmost k bits of the
@@ -5899,10 +5827,12 @@ R3 is not changed.
    shiftr  R2,R3,5
 #+END_SRC
 
-<<extract>>
-*** Bit fields: extract
+*** Bit fields
 
-The extract instruction copies a field within a register to
+<<extract-d>>
+**** extract
+
+The [[extract-t][extract]] instruction copies a field within a register to
 another register.  The extract instruction copies an
 arbitrary field of bits from a source register and inserts
 them into an arbitrary position in a destination
@@ -6098,11 +6028,11 @@ architecture for several reasons:
 # nothing.  the source and destination fields cannot extend
 # beyond the rightmost bit in a register.
 
-<<setb>>
-<<clearb>>
-<<copyb>>
-<<copybi>>
-*** Pseudoinstructions: bit manipulation
+<<setb-d>>
+<<clearb-d>>
+<<copyb-d>>
+<<copybi-d>>
+*** Bit manipulation
 
 The bit logic instructions have some useful special cases that don't
 appear to involve logic at all.  These are supported by
@@ -6127,13 +6057,33 @@ Here are some examples:
 
 ** System control
 
-<<getctl>>
-<<putctl>>
-<<trap>>
-*** Request to OS: trap 
+- Instructions: [[trap-d][trap]], [[getctl-d][getctl]],
+  [[putctl-d][putctl]]
 
-<<testset>>
-*** testset
+<<trap-d>>
+**** trap
+
+The [[trap-t][_trap_]] instruction provides a way for a user program
+to make a request to the operating system.
+  
+<<getctl-d>>
+**** getctl
+
+The [[getctl-t][getctl]] instruction
+
+<<putctl-d>>
+**** putctl
+
+The [[putctl-t][putctl]] instruction
+
+*** Mutual exclusion
+
+- Instruction [[testset-d][testset]]
+
+<<testset-d>>
+**** testset
+
+The [[testset-t][testset]] instruction supports mutual exclusion.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -6149,96 +6099,38 @@ Here are some examples:
 <div style="overflow-x: auto">
 #+END_EXPORT
 
-*** Accessing control registers: getctl, putctl
+*** Accessing control registers
 
-<<resume>>
-*** Context switching: resume
+- [[getctl][getctl]], [[putctl][putctl]]
 
-<<timeron>>
-<<timeroff>>
-*** Timer: timeron, timeroff
+<<getctl-d>>
+<<putctl-d>>
+**** getctl, putctl
 
+The [[getctl-t][getctl]] instruction
 
-** Pseudoinstructions
+The [[putctl-t][putctl]] instruction
 
-The pseudoinstructions provide operations commonly used in
-programming, although they are implemented using more general
-machine instructions.  For example, andw performs a bitwise
-logical and2 on two registers, but this is not a machine
-instruction; the assembler converts it into the corresponding
-logicf instruction.
+*** Context switching
 
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
+- Instruction: [[resume-d][resume]]
 
-#+CAPTION: 16-bit {seudoinstructions
+<<resume-d>>
+**** resume
 
-|-----------------+---------------------+-----------+----------------------|
-| Assembly        | Instruction         | Code      | Effect               |
-|-----------------+---------------------+-----------+----------------------|
-| jumplt disp[Ra] |                     |           | jump if $<$          |
-| jumple disp[Ra] |                     |           | jump if $\leq$       |
-| jumpeq disp[Ra] |                     |           | jump if $=$          |
-| jumpne disp[Ra] |                     |           | jump if $\neq$       |
-| jumpge disp[Ra] |                     |           | jump if $>$          |
-| jumpgt disp[Ra] |                     |           | jump if $\geq$       |
-|                 |                     |           |                      |
-| invw Rd         | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert Rd            |
-| andw Rd,Re      | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\wedge$ Re |
-| orw Rd,Re       | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\vee$ Re   |
-| xorw Rd,Re      | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd xor Re      |
-| invf Rd,f,g     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert field         |
-| andf Rd,Re,f,g  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | and field            |
-| orf Rd,Re,f,g   | logicf Rd,Re,0,15,1 | Ed01,e0F1 | or field             |
-| xorf Rd,Re,f,g  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | xor field            |
-| invb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | invert bit           |
-| andb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | and bit              |
-| orb Rd,Re,f,g   | logicb Rd,Re,f,g,1  | Ed01,e0F1 | or bit               |
-| xorb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | xor bit              |
-|-----------------+---------------------+-----------+----------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
+The [[resume-t][resume]] instruction
 
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
+*** Timer
 
-There are also 32 bit pseudoinstructions, which are similar to
-their 16 bit counterparts.  Note that xorw is a 16-bit exclusive
-or, while xxorw is a 32-bit exclusive or.
+- Instructions [[timeron-d][timeron]], [[timeroff-d][timeroff]]
 
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
+<<timeron-d>>
+<<timeroff-d>>
+**** timeron, timeroff
 
-#+CAPTION: 32-bit {seudoinstructions
+The [[timeron-t][timeron]] instruction
 
-|-----------------+---------------------+-----------+----------------------|
-| Assembly        | Instruction         | Code      | Effect               |
-|-----------------+---------------------+-----------+----------------------|
-| xinvw Rd        | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert Rd            |
-| xandw Rd,Re     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\wedge$ Re |
-| xorw Rd,Re      | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\vee$ Re   |
-| xxorw Rd,Re     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd xor Re      |
-| xinvf Rd,f,g    | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert field         |
-| xandf Rd,Re,f,g | logicf Rd,Re,0,15,1 | Ed01,e0F1 | and field            |
-| xorf Rd,Re,f,g  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | or field             |
-| xxorf Rd,Re,f,g | logicf Rd,Re,0,15,1 | Ed01,e0F1 | xor field            |
-| xinvb Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | invert bit           |
-| xandb Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | and bit              |
-| xorb Rd,Re,f,g  | logicb Rd,Re,f,g,1  | Ed01,e0F1 | or bit               |
-| xxorb Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | xor bit              |
-|-----------------+---------------------+-----------+----------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
+The [[timeroff-t][timeroff]] instruction
 
 
 * Sigma32
@@ -6296,6 +6188,18 @@ Sigma32 instructions are represented using three formats:
 
 Sigma32 extends the Sigma16 architecture to support 32-bit words.  
 
+Most 16-bit instructions have a 32-bit counterpart: add/xadd,
+sub/xsub, and so on.  These instructions are exceptions, as they
+have no corresponding 32 bit instruction.
+- testset - no need for 32 bit operands
+- dispatch - no need for 32-bit operands
+- getctl, putctl, resume - can use 32 bit registers; they just
+  operate on 32 bits
+- timeron, timeroff -  want to reconsider these anyway.  Use just
+  one instruction with an operand
+- jump (should it exist for 32?  can use xjumpc0 R0,...)
+- br family
+
 The entire system, including the app which runs
 in a browser or in a shell using node, is called Sigma16.
 
@@ -6323,141 +6227,10 @@ Three key 32-bit instructions have RX format: xlea, xload, xstore.
 Three Rx instructions, with opcodes from F,D through F,F, are
 reserved for experimentation and projects.  In the standard
 architecture, these are all nop (no operation).
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 32-bit RX instructions
-
-|--------------------+--------+----------------------------------|
-| *Assembly*         | *Code* | *Effect*                         |
-|--------------------+--------+----------------------------------|
-| *xlea* Rd,disp[Ra] | FdaA   | $R_d,R_{d+1} := disp \oplus R_a$ |
-| F,A / aRX          | disp   |                                  |
-|--------------------+--------+----------------------------------|
-| xload Rd,disp[Ra]  | FdaB   | $R_d,R_{d+1} := M[ea],mem[ea+1]$ |
-| F,B / aRX          | disp   |                                  |
-|--------------------+--------+----------------------------------|
-| xstore Rd,disp[Ra] | FdaC   | M[ea],M[ea+1] := R_d,R_{d+1}$'   |
-| F,C / aRX          | disp   |                                  |
-|--------------------+--------+----------------------------------|
-|                    | FdaC   | nop -- available                 |
-| F,D /              | disp   | for experimentation              |
-|--------------------+--------+----------------------------------|
-|                    | FdaC   | nop -- available                 |
-| F,E /              | disp   | for experimentation              |
-|--------------------+--------+----------------------------------|
-|                    | FdaC   | nop -- available                 |
-| F,F /              | disp   | for experimentation              |
-|--------------------+--------+----------------------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-----------
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
     
 *** 32-bit EXP instructions
 
 Most of the 32-bit instructions are represented in EXP format.
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 32-bit EXP instructions
-
-|---------------------+--------+-------------------------------|
-| *Assembly*          | *Code* | *Effect*                      |
-|---------------------+--------+-------------------------------|
-| xadd Rd,Re,Rf       |        | Rd := Re+Rf                   |
-| E,20 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xsub Rd,Re,Rf       |        | Rd := Re+rf                   |
-| E,21 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xmul Rd,Ra,Rb       |        | Rd := Re+rf                   |
-| E,22 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xdiv Rd,Ra,Rb       |        |                               |
-| E,23 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xcmp Rd,Ra,Rb       |        |                               |
-| E,24 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xaddc Rd,Ra,Rb      |        |                               |
-| E,25 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xmuln Rd,Ra,Rb      |        |                               |
-| E,26 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xdivn Rd,Re,Rf      |        |                               |
-| E,27 / aRRR         |        |                               |
-|---------------------+--------+-------------------------------|
-| xjumpz Rd,disp[Ra]  | FdaD   | if $R_d=0$ then pc := ea      |
-| E,28 / aRX          | disp   |                               |
-|---------------------+--------+-------------------------------|
-| xjumpnz Rd,disp[Ra] | FdaE   | if $R_d \neq 0$ then pc := ea |
-| E,29 / aRX          | disp   |                               |
-|---------------------+--------+-------------------------------|
-| xjal Rd,disp[Ra]    | FdaF   | $R_d := pc, pc := ea$         |
-| E,2A / aRX          | disp   |                               |
-|---------------------+--------+-------------------------------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
-
-Here are further 32-bit EXP instructions.
-
-#+BEGIN_EXPORT html
-<div style="overflow-x: auto">
-#+END_EXPORT
-
-#+CAPTION: 32-bit EXP instructions (continued)
-
-|-----------------------+--------+-----------|
-| *Assembly*            | *Code* | *Effect*  |
-|-----------------------+--------+-----------|
-| xsave Rd,Re,gh[Rf]    |        | Rd.f~g := |
-| E,2B / aRRX           |        |           |
-|-----------------------+--------+-----------|
-| xrestore Rd,Re,gh[Rf] |        | Rd.f~g := |
-| E,2C / aRRX           |        |           |
-|-----------------------+--------+-----------|
-| xpush Rd,Re,Rf        |        | Rd.f~g := |
-| E,2D / aRRR           |        |           |
-|-----------------------+--------+-----------|
-| xpop Rd,Re,Rf         |        | Rd.f~g := |
-| E,2E / aRRR           |        |           |
-|-----------------------+--------+-----------|
-| xtop Rd,Re,Rf         |        | Rd.f~g := |
-| E,2F / aRRR           |        |           |
-|-----------------------+--------+-----------|
-#+BEGIN_EXPORT html
-</div>
-#+END_EXPORT
-----------
-
-#+BEGIN_EXPORT latex
-\clearpage
-#+END_EXPORT
-#+BEGIN_EXPORT html
-<br>
-#+END_EXPORT
 
 *** EXP3 format
 
@@ -6467,41 +6240,603 @@ of the EXP format, called EXP32.
 
 *** 32-bit EXP3 instructions
 
+EXP3 is a subformat of EXP.
+
+** Sigma32 instructions
+
+<<xlea-d>>
+*** Accessing memory
+**** xlea
+
+[[xlea-t][xlea]]
+
+
+<<xload-d>>
+**** xload
+[[xload-t][xload]]
+
+<<xstore-d>>
+**** xstore
+[[xstore-t][xtore]]
+
+<<xadd-d>>
+**** xsave
+[[xsave-t][xsave]]
+
+<<xrestore-d>>
+**** xrestore
+[[xrestore-t][xrestore]]
+
+<<xpush-d>>
+**** xpush
+[[xpush-t][xpush]]
+
+<<xpop-d>>
+**** xpop
+[[xpop-t][xpop]]
+
+<<xtop-d>>
+**** xtop
+[[xtop-t][xtop]]
+
+
+<<xtrap-d>>
+*** Arithmetic
+**** xadd
+[[xadd-t][xadd]]
+
+<<xsub-d>>
+**** xsub
+[[xsub-t][xsub]]
+
+<<xmul-d>>
+**** xmul
+[[xmul-t][xmul]]
+
+
+<<xdiv-d>>
+**** xdiv
+[[xdiv-t][xdiv]]
+
+<<xcmp-d>>
+**** xcmp
+[[xcmp-t][xcmp]]
+
+<<xaddc-d>>
+**** xaddc
+[[xaddc-t][xaddc]]
+
+<<xmuln-d>>
+**** xmuln
+[[xmuln-t][xmuln]]
+
+<<xdivn-d>>
+**** xdivn
+[[xdivn-t][xdivn]]
+
+<<xjumpz-d>>
+*** Flow of control
+**** xjumpz
+[[xjumpz-t][xjumpz]]
+
+<<xjumpnz-d>>
+**** xjumpnz
+[[xjumpnz-t][xjumpnz]]
+
+<<xjal-d>>
+**** xjal
+[[xjal-t][xjal]]
+
+<<xjump-d>>
+**** xjump
+[[xjump-t][xjump]]
+
+<<xsave-d>>
+**** xtrap
+[[xtrap-t][xtrap]]
+
+|------------------------------------------------------+-----------+-------------------------------|
+| <<xtrap-t>> [[xtrap-d][xtrap]] Rd,Re,Rf              |           | Rd.f~g :=                     |
+| [e,28] iEXP/aRRR *S32*                               |           |                               |
+| xtrap R4,R13,R8                                      | e900 37f2 |                               |
+
+
+<<xlogicf-d>>
+**** xjumpc0
+[[xjumpc0-t][xjumpc0]]
+
+<<xjumpc1-d>>
+**** xjumpc10
+[[xjumpc1-t][xjumpc1]]
+
+*** Logic
+**** xlogicf
+[[xlogicf-t][xlogicf]]
+
+<<xlogicb-d>>
+**** xlogicb
+[[xlogicb-t][xlogicb]]
+
+<<xshiftl-d>>
+**** xshiftl
+[[xshiftl-t][xshiftl]]
+
+<<xshiftr-d>>
+**** xshiftr
+[[xshiftr-t][xshiftr]]
+
+<<xextract-d>>
+**** xextract
+[[xextract-t][xextract]]
+
+<<xjumpc0-d>>
+
+* Instruction reference tables
+
+This section gives the complete instruction set, including Core,
+Standard, and Sigma32.  If an instruction is not marked as Core or
+S32, it is a standard 16-bit instruction.  There are separate
+tables for RRR, RX, EXP, and EXP3 instructions.  Each instruction
+entry contains several lines:
+
+1. General form of assembly language statement, general form of
+   the machine language, and the instruction's effect.  Field
+   names are upper case and specific hex numbers are lower case.
+   Thus the general form of the load instruction is load
+   RD,DISP[RA], and its object code is fDA1 DISP (the OP field is
+   the hex number f, and the values of the D and A fields are
+   specified in the assembly instruction).
+2. Indication if the instruction is Core or S32, followed by the
+   [[expanding-opcode][full expanded operation code]] and the
+   [[assembly-format][assembly language statement format]].
+3. An example assembly language statement, with specific operands,
+   and the corresponding machine language.  These examples also
+   appear in Examples/Sigma32/testasm.asm.txt.
+
+<<RRR instruction reference>>
+** RRR instruction reference
+
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
 #+END_EXPORT
+#+CAPTION: RRR instructions
+#+ATTR_LATEX: :environment longtable :align l|l|l
+| *Assembly*                                | *Code* | *Effect*                  |
+|-------------------------------------------+--------+---------------------------|
+| *Core* <<add-t>>[[add-d][_add_]] RD,RA,RB | 0DAB   | R[d] := R[a]+R[g]         |
+| [0] iRRR/aRRR                             |        | R15 := (cc flags)         |
+| add R8,R12,R5                             | 08c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| *Core* <<sub-t>>[[sub-d][_sub_]] RD,RA,RB | 1DAB   | R[d] := R[a]-R[b]         |
+| [1] iRRR/aRRR                             |        | R15 := (cc flags)         |
+| sub R8,R12,R5                             | 18c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| *Core* <<mul-t>> [[mul-d][_mul_]] D,A,B   | 2DAB   | R[d] := R[a]*R[b]         |
+| [2] iRRR/aRRR                             |        | R15 := (cc flags)         |
+| mul R8,R12,R5                             | 28c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| *Core* <<div-t>> [[div-d][_div_]] D,A,B   | 3DAB   | R[d] := Ra / Rb,          |
+| [3] iRRR/aRRR                             |        | R[15] := Ra % Rb          |
+| div R8,R12,R5                             | 38c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| *Core* <<cmp-t>> [[cmp-d][_cmp_]] A,B     | 40AB   | R[15] := R[a] cp R[b]     |
+| [4] iRRR/aRR                              |        | R15 := (cc flags)         |
+| cmp R12,R5                                | 48c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| <<addc-t>> [[addc-d][_addc_]] D,A,B       | 5DAB   | Rd := Ra + Rb + R15.C)    |
+| [5] iRRR/aRRR                             |        | R15 := (cc flags)         |
+| addc R8,R12,R5                            | 58c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| <<muln-t>> [[muln-d][_muln_]] D,A,B       | 6DAB   | Rd := Ra :*: Rb, R15 :=   |
+| [6] iRRR/aRRR                             |        |                           |
+| muln R8,R12,R5                            | 68c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| <<divn-t>> [[divn-d][_divn_]] D,A,B       | 7DAB   | R15++Rd := R15++Ra :/: Rb |
+| [7] iRRR/aRRR                             |        |                           |
+| divn R8,R12,R5                            | 78c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| [8]                                       | 8___   | nop -- available          |
+|-------------------------------------------+--------+---------------------------|
+| [9]                                       | 9___   | nop -- available          |
+|-------------------------------------------+--------+---------------------------|
+| [a]                                       | a___   | nop -- available          |
+|-------------------------------------------+--------+---------------------------|
+| [b]                                       | b___   | nop -- available          |
+|-------------------------------------------+--------+---------------------------|
+| *Core* <<trap-t>>[[trap-d][_trap_]] D,A,B | cDAB   | interrupt                 |
+| [c] iRRR/aRRR                             |        |                           |
+| trap R8,R12,R5                            | c8c5   |                           |
+|-------------------------------------------+--------+---------------------------|
+| [d]                                       | d___   | reserved -- available     |
+|-------------------------------------------+--------+---------------------------|
+| [e,AB] *EXP*                              | eDAB   | escape to EXP             |
+|                                           |        | secondary opcode = AB     |
+|-------------------------------------------+--------+---------------------------|
+| [f,B] *RX*                                | fDAB   | escape to RX              |
+| f / (RX)                                  |        | secondary opcode = B      |
+|-------------------------------------------+--------+---------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+  
+<<RX instruction reference>>
+** RX instruction reference
 
-#+CAPTION: 32-bit EXP32 instructions
-|---------------------+--------+------------------------------|
-| *Assembly*          | *Code* | *Effect*                     |
-|---------------------+--------+------------------------------|
-| xlogicf Rd,Rb,m,n,h | FdbD   | Rd.m:n := aaaaaaaabbbbbaxxxx |
-| E,40 / aRRmmk       | mnh    | h(Rd.m:n,Rb.m:n)             |
-|---------------------+--------+------------------------------|
-| xlogicb Rd,Rb,m,n,h | FdbE   | Rd.f :=                      |
-| E,41 / aRRmmk       | mnh    | h(Rd.f,Re.g)                 |
-|---------------------+--------+------------------------------|
-| xshiftl Rd,Re,m     | FdvF   | Rd.f~g :=                    |
-| E,42 / aRRmmk       | mnh    |                              |
-|---------------------+--------+------------------------------|
-| xshiftr Rd,Re,m     | FdvF   | Rd.f~g :=                    |
-| E,43 / aRRmmk       | mnh    |                              |
-|---------------------+--------+------------------------------|
-| xextract Rd,Re,m,n  | FdvF   | Rd.f~g :=                    |
-| E,44 / aRRmmk       | mnh    |                              |
-|---------------------+--------+------------------------------|
-| xjumpc0 m,disp[Ra]  | Ed00   | if Rd==0 then pc := ea       |
-| E,45 / amX          |        |                              |
-|---------------------+--------+------------------------------|
-| xjumpc1 m,disp[Ra]  | Ed00   | if Rd==0 then pc := ea       |
-| E,46 / amX          |        |                              |
-|---------------------+--------+------------------------------|
+The RX instructions with opcodes from 0 through 7 are essential
+Core instructions.  A few more are part of the Standard
+instruction set.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: RX instructions
+#+ATTR_LATEX: :environment longtable :align l|l|l
+| *Assembly*                                            | *Code*    | *Effect*                       |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *Core* <<lea-t>>[[lea-d][_lea_]] RD,DISP[RA]          | fDA0 DISP | Rd := disp+Ra                  |
+| [f,0] iRX/aRX                                         |           |                                |
+| lea R4,$0e3a[R14]                                     | f4e0 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *Core* <<load-t>>[[load-d][_load_]] RD,DISP[RA]       | fDA1 DISP | Rd := M[disp+Ra]               |
+| [f,1] iRX/aRX*                                        |           |                                |
+| load R4,$0e3a[R14]                                    | f4e1 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *Core* <<store-t>>[[store-d][_store_]] RD,DISP[RA]    | fDA2 DISP | M[disp+Ra] := Rd               |
+| [f,2[ iRX/aRX                                         |           |                                |
+| store R4,$0e3a[R14]                                   | f4e2 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *Core* <<jump-t>>[[jump-d][_jump_]] DISP[RA]          | fDA3 DISP | pc := disp+Ra                  |
+| [f,3] iRX/aX                                          |           |                                |
+| jump $0e3a[R14]                                       | f0e3 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *Core* <<jumpc0-t>>[[jumpc0-d][_jumpc0_]] D,DISP[RA]  | fDA4 DISP | *if* R15.d=0                   |
+| [f,4] iRX/akX                                         |           | *then* pc := disp+Ra           |
+| jumpc0 4,$0e3a[R14]                                   | f4e4 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *Core* <<jumpc1-t>>[[jumpc1-d][_jumpc1_]] D,DISP[RA]  | fDA5 DISP | if R15.d=1                     |
+| [f,5] iRX/akX                                         |           | then pc := disp+Ra             |
+| jumpc1 4,$0e3a[R14]                                   | f4e5 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *Core* <<jal-t>>[[jal-d][_jal_]] RD,DISP[RA]          | fDA6 DISP | Rd:=pc,                        |
+| [f,6] iRX/aRX                                         |           | pc:=disp+Ra                    |
+| jal R4,$0e3a[R14]                                     | f4e6 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| <<jumpz-t>> [[jumpz-d][_jumpz_]] RD,DISP[RA]          | fDA7 DISP | if R15.d=0                     |
+| [f,7] iRX/aRX                                         |           | then pc := disp+Ra             |
+| jumpz R4,$0e3a[R14]                                   | f4e7 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| <<jumpnz-t>> [[jumpnz-d][_jumpnz_]] RD,DISP[RA]       | fDA8 DISP | if R15.d=1                     |
+| [f,8] iRX/aRX                                         |           | then pc := disp+Ra             |
+| jumpnz R4,$0e3a[R14]                                  | f4e8 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| <<testset-t>> [[testset-d][_testset_]] RD,DISP[RA]    | fDA9 DISP | Rd:=M[disp+Ra],                |
+| [f,9] iRX/aRX                                         |           | M[disp+Ra]:=0001               |
+| testset R4,$0e3a[R14]                                 | f4e9 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+|-------------------------------------------------------+-----------+--------------------------------|
+| *S32* <<xlea-t>> [[xlea-d][_xlea_]] RD,DISP[RA]       | fDAa DISP | R_d,R_{d+1} :=                 |
+| [f,a] iRX/aRX                                         |           | disp \oplus R_a                |
+| xlea R4,$0e3a[R14]                                    | f4ea 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *S32* <<xload-t>> [[xload-d][_xload_]] RD,DISP[RA]    | fDAb DISP | R_d,R_{d+1} :=                 |
+| [f,b] iRX/aRX                                         |           | M[ea],mem[ea+1]                |
+| xload R4,$0e3a[R14]                                   | f4e9 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+| *S32* <<xstore-t>> [[xstore-d][_xstore_]] RD,DISP[RA] | fDAc DISP | M[ea],M[ea+1] := R_d,R_{d+1}$' |
+| [f,c] iRX/aRX                                         |           |                                |
+| xstore R4,$0e3a[R14]                                  | f4e9 0e3a |                                |
+|-------------------------------------------------------+-----------+--------------------------------|
+|                                                       | fDAd DISP | nop -- available               |
+| [f,d] iRX/                                            |           | for experimentation            |
+|-------------------------------------------------------+-----------+--------------------------------|
+|                                                       | fDAc DISP | nop -- available               |
+| [f,e] iRX/                                            |           | for experimentation            |
+|-------------------------------------------------------+-----------+--------------------------------|
+|                                                       | fDAc DISP | nop -- available               |
+| [f,f] iRX/                                            |           | for experimentation            |
+|-------------------------------------------------------+-----------+--------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+<<EXP instruction reference>>
+** EXP instructions
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: EXP instruction reference
+#+ATTR_LATEX: :environment longtable :align l|c|l
+|------------------------------------------------------------+-----------+-------------------------------|
+| *Assembly*                                                 | *Code*    | *Effect*                      |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<logicf-t>> [[logicf-d][_logicf_]] RD,RE,F,G,H            | ed00 EFGH | Rd.f:g :=                     |
+| [e,00] iEXP/aRRkkk                                         |           | h(Rd.f:g,Re.f:g)              |
+| logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<logicb-t>> [[logicb-d][_logicb_]] Rd,Re,f,g,h            | eD01 EFGH | Rd.f := h(Rd.f,Re.g)          |
+| [e,01] iEXP/aRRkkk                                         |           |                               |
+| logicb R9,R3,7,15,2                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<shiftl-t>> [[shiftl-d][_shiftl_]] Rd,Re,h                | eD02 E00H | Rd := Re shl h                |
+| [e,02] iEXP/aRRk                                           |           |                               |
+| shiftl R6,R7,2                                             | e602 7002 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<shiftr-t>> [[shiftr-d][_shiftr_]] Rd,Re,h                | Ed03 E..H | Rd := Re shr h                |
+| [e,03] iEXP/aRRk                                           |           |                               |
+| shiftr R6,R7,2                                             | e603 7002 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<extract-t>> [[extract-d][_extract_]] Rd,Re,f,g,h         |           | Rd.f~g :=                     |
+| [e,04] iEXP/aRRkkk                                         |           |                               |
+| extract R6,R7,5,15,2                                       | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<save-t>> [[save-d][_save_]] Rd,Re,gh[Rf]                 |           | M[Rf+gh] := Rd,               |
+| [e,05] iEXP/aRRX                                           |           | M[Rf+gh+1] := R{d+1}          |
+|                                                            |           | M[Rf+gh+e-d] := Re            |
+| save R3,R9,50[R13]                                         | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<restore-t>> [[restore-d][_restore_]] Rd,Re,gh[Rf]        |           | Rd := M[Rf+gh],               |
+| [e,06] iEXP/aRRX                                           |           | ...,                          |
+|                                                            |           | Re := M[Rf+gh+e-d]            |
+| restore R3,R9,50[R13]                                      | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<push-t>> [[push-d][_push_]] Rd,Re,Rf                     |           | M[ea] := Rd, Rb++             |
+| [e,07] iEXP/aRRR                                           |           |                               |
+| push R4,R13,R8                                             | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<pop-t>> [[pop-d][_pop_]] Rd,Re,Rf                        |           | Rb--, Rd := M[ea]             |
+| [e,08] /aRRR                                               |           |                               |
+| pop R4,R13,R8                                              | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<top-t>> [[top-d][_top_]] Rd,Re,Rf                        |           | Rb--, Rd := M[ea]             |
+| [e,09] iEXP/aRRR                                           |           |                               |
+| top R4,R13,R8                                              | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<brc0-t>> [[brc0-d][_brc0_]] brc0 Rd,e,fgh                | Ed0A      | if R[d].e=0                   |
+| [e,0a] iEXP/ ??                                            |           | then pc:=pc+fgh               |
+| logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<brc1-t>> [[brc1-d][_brc1_]] Rd,e,fgh                     | Ed0B      | if R[d].e=1                   |
+| [e,0b] ???                                                 |           | then pc:=pc+fgh               |
+| logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<brz-t>> [[brz-d][_brz_]] Rd,efgh                         | Ed0C      | if R[d]=0000                  |
+| [e,0c] ???                                                 |           | then pc:=pc+efgh              |
+| logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<brnz-t>> [[brnz-d][_brnz_]] Rd,efgh                      | Ed0D      | if R[d]!=0000                 |
+| [e,0d] ???                                                 |           | then pc:=pc+efgh              |
+| logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| <<dispatch-t>> [[dispatch-d][_dispatch_]] Rd,efgh          | Ed0E      | pc :=                         |
+| [e,0e] iEXP/?????                                          | efgh      | M[pc+min(Rd,efgh)]]           |
+| dispatch bla                                               | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *PRIV* <<getctl-t>> [[getctl-d][_getctl_]] Rd,e            | Ed0F      | Rd := Sc privileged           |
+| [e,0f] iEXP/axxxxx                                         | e...      |                               |
+| getctl bla                                                 | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *PRIV* <<putctl-t>> [[putctl-d][_putctl_]] Rd,e            | Ed10      | Sc := Rd privileged           |
+| [e,10] iEXP/axxxx                                          | e...      |                               |
+| putctl bla                                                 | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *PRIV* <<resume-t>> [[resume-d][_resume_]]                 | Ed11      | pc := ipc,                    |
+| [e,11] iEXP/axxxx                                          |           | status := istatus             |
+| resume bla                                                 | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *PRIV* <<timeron-t>> [[timeron-d][_timeron_]] Rd,efgh      | Ed12      | timer := efgh,                |
+| [e,12]                                                     | efgh      | start timer                   |
+| timeron bla                                                | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *PRIV* <<timeroff-t>> [[timeroff-d][_timeroff_]] Rd,efgh   | Ed13      | stop timer                    |
+| [e,13]                                                     | efgh      |                               |
+| timeroff bla                                               | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| [e,14]...[e,1f] reserved                                   |           |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xadd-t>> [[xadd-d][xadd]] Rd,Re,Rf                 |           | Rd := Re+Rf                   |
+| [e,20] iEXP/aRRR                                           |           |                               |
+| xadd R8,R12,R5                                             | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xsub-t>> [[xsub-d][xsub]] Rd,Re,Rf                 |           | Rd := Re+rf                   |
+| [e,21] iEXP/aRRR                                           |           |                               |
+| xsub R8,R12,R5                                             | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xmul-t>> [[xmul-d][xmul]] Rd,Ra,Rb                 |           | Rd := Re+rf                   |
+| [e,22] iEXP/aRRR                                           |           |                               |
+| xmul R8,R12,R5                                             | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xdiv-t>> [[xdiv-d][xdiv]] Rd,Ra,Rb                 |           |                               |
+| [e,23] iEXP/aRRR                                           |           |                               |
+| xdiv R8,R12,R5                                             | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xcmp-t>> [[xcmp-d][xcmp]] Rd,Ra,Rb                 |           |                               |
+| [e,24] iEXP/aRR                                            |           |                               |
+| xcmp R12,R5                                                | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xaddc-t>> [[xaddc-d][xaddc]] Rd,Ra,Rb              |           |                               |
+| [e,25] iEXP/aRRR                                           |           |                               |
+| xaddc R8,R12,R5                                            | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xmuln-t>> [[xmuln-d][xmuln]] Rd,Ra,Rb              |           |                               |
+| [e,26] iEXP/aRRR                                           |           |                               |
+| xmuln R8,R12,R5                                            | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xdivn-t>> [[xdivn-d][xdivn]] Rd,Re,Rf              |           |                               |
+| [e,27] iEXP/aRRR                                           |           |                               |
+| xdivn R8,R12,R5                                            | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xjump-t>> [[xjump-d][xjump]] Rd,disp[Ra]           | FdaD      | if $R_d=0$ then pc := ea      |
+| [e,28] iEXP/aRX                                            | disp      |                               |
+| xjump R4,$0e3a[R14]                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xjal-t>> [[xjal-d][xjal]] Rd,disp[Ra]              | FdaF      | $R_d := pc, pc := ea$         |
+| [e,29] iEXP/aRX                                            | disp      |                               |
+| xjal R4,$0e3a[R14]                                         | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xjumpz-t>> [[xjumpz-d][xjumpz]] Rd,disp[Ra]        | FdaD      | if $R_d=0$ then pc := ea      |
+| [e,2a] iEXP/aRX                                            | disp      |                               |
+| xjumpz R4,$0e3a[R14]                                       | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xjumpnz-t>> [[xjumpnz-d][xjumpnz]] Rd,disp[Ra]     | FdaE      | if $R_d \neq 0$ then pc := ea |
+| [e,2b] iEXP/aRX                                            | disp      |                               |
+| xjumpnz R4,$0e3a[R14]                                      | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xsave-t>> [[xsave-d][xsave]] Rd,Re,gh[Rf]          |           | Rd.f~g :=                     |
+| [e,2c] iEXP/aRRX                                           |           |                               |
+| xsave R3,R9,50[R13]                                        | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xrestore-t>> [[xrestore-d][xrestore]] Rd,Re,gh[Rf] |           | Rd.f~g :=                     |
+| [e,2d] iEXP/aRRX                                           |           |                               |
+| xrestore R3,R9,50[R13]                                     | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xpush-t>> [[xpush-d][xpush]] Rd,Re,Rf              |           | Rd.f~g :=                     |
+| [e,2e] iEXP/aRRR                                           |           |                               |
+| xpush R4,R13,R8                                            | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xpop-t>> [[xpop-d][xpop]] Rd,Re,Rf                 |           | Rd.f~g :=                     |
+| [e,2f] iEXP/aRRR                                           |           |                               |
+| xpop R4,R13,R8                                             | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+| *S32* <<xtop-t>> [[xtop-d][xtop]] Rd,Re,Rf                 |           | Rd.f~g :=                     |
+| [e,30] iEXP/aRRR                                           |           |                               |
+| xtop R4,R13,R8                                             | e900 37f2 |                               |
+|------------------------------------------------------------+-----------+-------------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\clearpage
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+<<EXP3 instruction reference>>
+** EXP3 instructions
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: EXP3 instruction reference
+#+ATTR_LATEX: :environment longtable :align l|l|l
+| *Assembly*                                              | *Code*         | *Effect*               |
+|---------------------------------------------------------+----------------+------------------------|
+| *S32* <<xjumpc0-t>> [[xjumpc0-d][xjumpc0]] m,disp[Ra]   | eD40 EFGH pqrs | if Rd==0 then pc := ea |
+| [e,40] iEXP3/amX                                        |                |                        |
+| xjumpc0 25,$0ea3a[R14]                                  | eD00 37f2 pqrs |                        |
+|---------------------------------------------------------+----------------+------------------------|
+| *S32* <<xjumpc1-t>> [[xjumpc1-d][xjumpc1]] m,disp[Ra]   | Ed00 abcd aabc | if Rd==0 then pc := ea |
+| [e,41] iEXP3/amX                                        |                |                        |
+| xjumpc1 25,$0ea3a[R14]                                  | e900 37f2      |                        |
+|---------------------------------------------------------+----------------+------------------------|
+| *S32* <<xlogicf-t>> [[xlogicf-d][xlogicf]] Rd,Rb,m,n,h  | FdbD abcd efgh | Rd.m:n := aaaaaaaaxx   |
+| [e,42] iEXP3/aRRmmk                                     |                | h(Rd.m:n,Rb.m:n)       |
+| xlogicf R9,R3,7,25,20                                   | e900 37f2      |                        |
+|---------------------------------------------------------+----------------+------------------------|
+| *S32* <<xlogicb-t>> [[xlogicb-d][xlogicb]] Rd,Rb,m,n,h  | FdbE efgh pqrd | Rd.f :=                |
+| [e,43] iEXP3/aRRmmk                                     |                | h(Rd.f,Re.g)           |
+| xlogicb R9,R3,7,25,20                                   | e900 37f2 abcd |                        |
+|---------------------------------------------------------+----------------+------------------------|
+| *S32* <<xshiftl-t>> [[xshiftl-d][xshiftl]] Rd,Re,m      | FdvF EFGH PQRS | Rd.f~g :=              |
+| [e,44] iEXP3/aRRmmk                                     |                |                        |
+| xshiftl R6,R7,17                                        | e900 37f2 abcd |                        |
+|---------------------------------------------------------+----------------+------------------------|
+| *S32* <<xshiftr-t>> [[xshiftr-d][xshiftr]] Rd,Re,m      | FdvF abcd abcd | Rd.f~g :=              |
+| [e,45] iEXP3/aRRmmk                                     |                |                        |
+| xshiftr R6,R7,27                                        | e900 37f2 abcd |                        |
+|---------------------------------------------------------+----------------+------------------------|
+| *S32* <<xextract-t>> [[xextract-d][xextract]] Rd,Re,m,n | FdvF ABCD ABCD | Rd.f~g :=              |
+| [e,46] iEXP3/aRRmmk                                     |                |                        |
+| xextract R6,R7,18,20,16                                 | e900 37f2 abcd |                        |
+|---------------------------------------------------------+----------------+------------------------|
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
+#+BEGIN_EXPORT html
+<br>
+#+END_EXPORT
+
+<<Pseudoinstruction reference>>
+** Pseudoinstructions
+
+The pseudoinstructions provide operations commonly used in
+programming, although they are implemented using more general
+machine instructions.  For example, andw performs a bitwise
+logical and2 on two registers, but this is not a machine
+instruction; the assembler converts it into the corresponding
+logicf instruction.
+
+The 32 bit pseudoinstructions are similar to their 16 bit
+counterparts.  Note that xorw is a 16-bit exclusive or, while
+xxorw is a 32-bit exclusive or.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: Pseudoinstructions
+|-----------------------------+---------------------+-----------+----------------------|
+| Pseudo                      | Instruction         | Code      | Effect               |
+|-----------------------------+---------------------+-----------+----------------------|
+| jumplt disp[Ra]             |                     |           | jump if $<$          |
+| jumple disp[Ra]             |                     |           | jump if $\leq$       |
+| jumpeq disp[Ra]             |                     |           | jump if $=$          |
+| jumpne disp[Ra]             |                     |           | jump if $\neq$       |
+| jumpge disp[Ra]             |                     |           | jump if $>$          |
+| jumpgt disp[Ra]             |                     |           | jump if $\geq$       |
+|                             |                     |           |                      |
+| invw Rd                     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert Rd            |
+| andw Rd,Re                  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\wedge$ Re |
+| orw Rd,Re                   | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\vee$ Re   |
+| xorw Rd,Re                  | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd xor Re      |
+| invf Rd,f,g                 | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert field         |
+| andf Rd,Re,f,g              | logicf Rd,Re,0,15,1 | Ed01,e0F1 | and field            |
+| orf Rd,Re,f,g               | logicf Rd,Re,0,15,1 | Ed01,e0F1 | or field             |
+| xorf Rd,Re,f,g              | logicf Rd,Re,0,15,1 | Ed01,e0F1 | xor field            |
+| invb Rd,Re,f,g              | logicb Rd,Re,f,g,1  | Ed01,e0F1 | invert bit           |
+| andb Rd,Re,f,g              | logicb Rd,Re,f,g,1  | Ed01,e0F1 | and bit              |
+| orb Rd,Re,f,g               | logicb Rd,Re,f,g,1  | Ed01,e0F1 | or bit               |
+| xorb Rd,Re,f,g              | logicb Rd,Re,f,g,1  | Ed01,e0F1 | xor bit              |
+|-----------------------------+---------------------+-----------+----------------------|
+| <<xinvw-t>> [[xinvw-d][xinvw]] Rd        | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert Rd            |
+| <<xandw-t>> [[xandw-d][xandw]] Rd,Re     | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\wedge$ Re |
+| <<xorw-t>> [[xorw-d][xorw]] Rd,Re       | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd $\vee$ Re   |
+| <<xorw-t>> [[xorw-d][xxorw]] Rd,Re      | logicf Rd,Re,0,15,1 | Ed01,e0F1 | Rd := Rd xor Re      |
+| <<xinvf-t>> [[xinvf-d][xinvf]]n Rd,f,g   | logicf Rd,Re,0,15,1 | Ed01,e0F1 | invert field         |
+| <<xandf-t>> [[xandf-d][xandf]] Rd,Re,f,g | logicf Rd,Re,0,15,1 | Ed01,e0F1 | and field            |
+| <<xorf-t>> [[xorf-d][xorf]] Rd,Re,f,g   | logicf Rd,Re,0,15,1 | Ed01,e0F1 | or field             |
+| <<xxorf-t>> [[xxorf-d][xxorf]] Rd,Re,f,g | logicf Rd,Re,0,15,1 | Ed01,e0F1 | xor field            |
+| <<xinvb-t>> [[xinvb-d][xinvb]] Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | invert bit           |
+| <<xandb-t>> [[xandb-d][xandb]] Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | and bit              |
+| <<xorb-t>> [[xorb-d][xorb]] Rd,Re,f,g   | logicb Rd,Re,f,g,1  | Ed01,e0F1 | or bit               |
+| <<xxorb-t>> [[xxorb-d][xxorb]] Rd,Re,f,g | logicb Rd,Re,f,g,1  | Ed01,e0F1 | xor bit              |
+|-----------------------------+---------------------+-----------+----------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
 ----------
 
-** Sigma32 instructions
+<<xinvw-d>>
+<<xandw-d>>
+<<xorw-d>>
+<<xxorw-d>>
+<<xinvf-d>>
+<<xandf-d>>
+<<xorf-d>>
+<<xxorf-d>>
+<<xinvb-d>>
+<<xandb-d>>
+<<xorb-d>>
+<<xxorb-d>>
+Descriptions for 32-bit pseudoinstructions
 
 
 * Assembly language
@@ -6560,6 +6895,59 @@ Machine language
     1423
     219a
 #+END_SRC
+
+<<assembly-format>>
+** Assembly language statement format
+
+There are four machine language formats: RRR, RX, EXP, and EXP3.
+However, there is a larger number of assembly language statement
+formats.
+- The =add= instruction is =RRR= format, and its assembly language
+  format is =aRRR=.
+- The =cmp= instruction is also =RRR= format, but the machine
+  ignores the first operand (the D field).  That field is omitted
+  in the assembly language statement, so to compare R2 and R3 you
+  write =cmp R2,R3=.  This statement has assembly format =aRR= and
+  it generates a =RRR= machine language instruction.
+- Assembler directives are not instructions at all; they just give
+  additional information to the assembler.  Some of these have
+  assembler formats that don't correspond to any instruction.
+
+#+BEGIN_EXPORT html
+<div style="overflow-x: auto">
+#+END_EXPORT
+#+CAPTION: Assembly Language Statement Formats
+| Asm Format | Example             |
+|------------+---------------------|
+| aRRR       | add R1,R2,R3        |
+| aRR        | cmp R2,R3           |
+|------------+---------------------|
+| aRX        | load R2,x[R13]      |
+| aX         | jump loop[R0]       |
+| akX        | jumpc0 loop[R0]     |
+|------------+---------------------|
+| aRRk       | shiftl R2,R3,5      |
+| aRRkk      | andf R3,R4,8,3      |
+| aRRkkk     | logicf R2,R3,8,3,5  |
+| aRRX       | save R2,R9,100[R14] |
+| aRkK       | brc0                |
+| aRK        | brz                 |
+| aRk        | dispatch            |
+| aRC        | getctl              |
+| a0         | resume              |
+| aR         | timer               |
+|------------+---------------------|
+| aData      | data $0ca4          |
+| aModule    |                     |
+| aImport    |                     |
+| aExport    |                     |
+| aReserve   |                     |
+| aOrg       |                     |
+| aEqu       |                     |
+| aBlock     |                     |
+#+BEGIN_EXPORT html
+</div>
+#+END_EXPORT
 
 ** Programs, modules, and files
 
@@ -8122,227 +8510,67 @@ following information.
   including the registers.
 
 
-* Development notes
 
+* Software and hardware projects
 
-** Org notations
-
-- verbatim =equals=
-- bold *stars*
-- code ~lea R3,$0b3a[R14]~
-- math $\sqrt{\pi}$
-- italic /slashes/
-- underlined _underline_
-- 2strike-through +strike through+
-- C-c C-x C-f x put marker around region  =abcd=
-
-** Links
-
-See the [[mul][mul]] instruction.  This is an internal reference
-to mul, and the target is defined by ~<<mul>>~, which is placed
-immediately before the place you want the link to go to.
-
-Also see [[mul]].  And there is a section on [[*div][the divide
-instruction]].
-
-** Figures
-
-*** png images
-
-Inserting a png image.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-do eiusmod tempor incididunt ut labore et dolore magna
-aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
-aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint
-occaecat cupidatat non proident, sunt in culpa qui officia
-deserunt mollit anim id est laborum.
-
-This png is large.  In html export it's way too big, but for
-latex/pdf it is automatically resized and looks good.
-
-#+attr_html: :width 500px
-#  #+attr_latex: :width 500px
-#  [[./figures/png/2025-08-08_16-32.png]]
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-do eiusmod tempor incididunt ut labore et dolore magna
-aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
-aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint
-occaecat cupidatat non proident, sunt in culpa qui officia
-deserunt mollit anim id est laborum.
-
-This figure was resized manually with imagemagick.  It is the
-right size but it's a little fuzzy compared to the original.
-It has a good size in both html and latex export.
-
-#  [[./figures/png/2025-08-08_16-32-resized.png]]
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-do eiusmod tempor incididunt ut labore et dolore magna
-aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
-aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint
-occaecat cupidatat non proident, sunt in culpa qui officia
-deserunt mollit anim id est laborum.
-
-*** pdf figures
-
-----------
-Include pdf figure (skipped)
-
-#  [[./figures/circuitTikzExamplePDF.pdf]]
-
-That was a pdf figure
-----------
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-do eiusmod tempor incididunt ut labore et dolore magna
-aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
-aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint
-occaecat cupidatat non proident, sunt in culpa qui officia
-deserunt mollit anim id est laborum.
-
-Include pdf as object
-
-The figure below will appear in html but not in pdf (skipped)
-
-----------
-# #+BEGIN_EXPORT html
-# <object data="./figures/png/2025-08-08_16-32-resized.png"
-#   type="application/pdf"
-#   width="100%" height="500px">
-#   border="1"
-# <p>Unable to display PDF file. <a href="/path/to/your/file.pdf">Download</a> instead.</p>
-# </object>
-# #+END_EXPORT
-----------
-
-That was a a pdf object for html
-
-  width="100%" height="500px">
-
-----------
-Include svg figure skipped
-
-# [[./figures/circuitTikzExampleSVG.svg]]
-
-That was an svg figure
-----------
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-do eiusmod tempor incididunt ut labore et dolore magna
-aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
-aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint
-occaecat cupidatat non proident, sunt in culpa qui officia
-deserunt mollit anim id est laborum.
-
-Include svg figure
-
-Here is an svg figure RRRformat.  ok for html, gives latex
-error slash includesvg undefined
-
-# {{{svgfig(RRRformat)}}}
-
-** Configuration
-- setArch(16)
-- setArch(32)
-  
-** To do
-- GUI, Arch, ISA, Typesetting
-- This example has no leading spaces:
-
-#+BEGIN_SRC Sigma16 exports: code
-loop  lea  R3,42     ; R3 := 42
-#+END_SRC
-
-- This example starts with ordinary spaces, and all but one are
-  ignored by the exporter, so this instruction won't be properly
-  indented:
-
-#+BEGIN_SRC Sigma16 exports: code
-     lea  R3,42     ; R3 := 42
-#+END_SRC
-
-- This example has a special space character at the beginning. It
-  isn't obtrusive in the text editor, bnt it ensures that the html
-  output won't ignore the leading spaces:
-
-#+BEGIN_SRC Sigma16 exports: code
-     lea  R3,42     ; R3 := 42
-#+END_SRC
-
-- AsmStdErrors uses old logicw, old syntax for logicb and extract
-  - Should include logicf, new syntax for logicb, and new
-    pseudoinstructions for logicf and logicb
-- Branch needs redesign, the test program is no longer consistent
-  with the program
-- Ctl.asm.txt check execution
-
+- Sigma16 is intended for use in teaching, self-learning, and
+  research
+- Projects involving Sigma16 are encouraged
+- These may involve using the existing sofware, modifying the
+  existing software, or writing new software from scratch
+- It's important to cite Sigma16 properly, and to adhere to the
+  sofware license
+- Documentation
+  - There needs to be some documentation.  At a minimum, this can
+    be a short README file in your source directory.  Ideally
+    there should be a user guide for your project.
+  - In the documentation for your project, you need to cite
+    Sigma16.
+  - State clearly what you have used from Sigma16, and state what
+    is your own code.  When you are finishing your project, you
+    may realise that these points differ from what you intended at
+    the outset.
+- License
+  - Sigma16 is currently licensed under the GPL3 license.
+  - This is free software, but if you incorporate any of the code
+    or text from Sigma16 in your project, you must abide by the
+    requirements of the GPL3 license.  That means you must cite
+    the original code, and you must release your software
+    publically under the GPL3 license (so others can copy and
+    modify your code too).
+  - If your code contains anything from Sigma16, you cannot
+    release your code without a license.
+- Some tips for student projects
+  - State clearly what the aim of your project is.  It's quite
+    reasonable to implement a new version of something already
+    provided by the Sigma16 software; for example you might want
+    to write your own assembler.  It isn't necessary to pick on
+    some small feature and focuse exclusively on that.
+  - Toward the end of your project, revisit the goals.  You may
+    find that the initial goals are no longer quite right.
+  - If you say that Sigma16 doesn't provide feature x, and you do
+    provide it, check that Sigma16 doesn't actually provide x, and
+    also check that you do.
+- 
 
 * About Sigma16
 
 ** Copyright and license
-
-The architecture, software tools, and documentation were designed,
-implemented, and written by John O'Donnell.  Copyright (C)
-2019-2025 John T. O'Donnell.  Contact email://
-john.t.odonnell9@gmail.com//
-
-#+BEGIN_EXPORT html
-Sigma16 is available under the GPL-3 license.  The license
-text is available
-<ul>
-<li> in the Sigma16 folder at
-<a href="../../LICENSE.txt" target="_blank">Sigma16/LICENSE.txt</a>
-<li> online at
-<a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="blank">https://www.gnu.org/licenses/gpl-3.0.en.html</a>
-</ul>
-#+END_EXPORT
-
-#+BEGIN_EXPORT latex
-Sigma16 is available under the GPL-3 license.  The license
-text is available
-\begin{itemize}
-\item in the Sigma16 folder at
-\href{../../LICENSE.txt}{Sigma16/LICENSE.txt}
-\item online at
-\href{https://www.gnu.org/licenses/gpl-3.0.en.html}{https://www.gnu.org/licenses/gpl-3.0.en.html}
-\end{itemize}
-#+END_EXPORT
-
-Sigma16 is free software: you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation, Version 3 of
-the License.  Sigma16 is distributed in the hope that it will
-be useful, but WITHOUT ANY WARRANTY; without even the implied
-warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the GNU General Public License for more
-details.  You should have received a copy of the GNU General
-Public License along with Sigma16.  If not, see
-[[https://www.gnu.org/licenses/][www. gnu. org/ licenses]].
-
 ** Release notes
 
-- Permalink to the latest live release
-  - The following permalink to the Sigma16 Home Page will always
-    give you the latest release:\\
+- *Permalink to the latest live release*
+  - This permalink to the Sigma16 Home Page will always give you
+    the latest release:\\
     [[https://jtod.github.io/home/Sigma16]]
   - The github page for Sigma16 contains the current development
     code, which changes frequently and is not stable.\\
     https://github.com/jtod/Sigma16\\
-    The github page also contains links to versions that were
-    released since 2019.
-
+  - The github page also contains links to versions that were
+    released since 2019.  Versions of Sigma16 from the first
+    release in 2010 up to 2018 are not available online.
+  - All releases prior to the latest live release are obsolete.
+    They are not supported: always use the latest live release.
+  
 - v3.9.0, February 2025
   - Refinements to user guide and user interface
   - Further development of EXP instructions
@@ -8557,7 +8785,7 @@ Public License along with Sigma16.  If not, see
 
 #+BEGIN_BUILD_ID
 #+BEGIN: update-build-id :format "%Y-%m-%d at %H:%M"
-Build: 2026-01-04 at 11:53
+Build: 2026-01-18 at 19:42
 #+END
 #+END_BUILD_ID
 
@@ -8613,3 +8841,206 @@ Build: 2026-01-04 at 11:53
 # - z: 1 bit, index 0
 # 
 # 
+
+
+* Development notes
+
+** Design Rationale for Sigma16
+
+Goals
+- Small but realistic instruction set
+- Tiny core that supports ordinary programming
+- Full architecture supports operating system kernel
+- Digital circuit that fullly implements the core
+- Understandable and readable machine language
+- Modules, lining, relocation, booting
+- Emphasise connections between levels of abstraction
+- Software tools: assembler, linker, emulator, IDE
+- Software tools should run in browser, without downloading or
+  installing anything
+- Clear relationship between assembly language and machine
+  language (especially for the core)
+- System should make crystal clear the distinction between
+  assembly language and machine language
+- Show clearly that the machine executes machine language, not
+  assembly language
+- User Guide always available in the browser app, and it is always
+  visible when the app launches
+
+Non-goals
+- Full commercial architecture (too complicated to cover in depth
+  in reasonable time for beginners)
+- Large set of word sizes and primitive data types
+- 
+
+** Arithmetic
+
+** Implementation notes
+
+** Org notations
+
+- verbatim =equals=
+- bold *stars*
+- code ~lea R3,$0b3a[R14]~
+- math $\sqrt{\pi}$
+- italic /slashes/
+- underlined _underline_
+- 2strike-through +strike through+
+- C-c C-x C-f x put marker around region  =abcd=
+
+** Links
+
+See the [[mul-d][mul]] instruction.  This is an internal reference
+to mul, and the target is defined by ~<<mul>>~, which is placed
+immediately before the place you want the link to go to.
+
+Also see [[mul-d]].  And there is a section on [[div-d][div]].
+
+** Figures
+
+*** png images
+
+Inserting a png image.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+do eiusmod tempor incididunt ut labore et dolore magna
+aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
+aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia
+deserunt mollit anim id est laborum.
+
+This png is large.  In html export it's way too big, but for
+latex/pdf it is automatically resized and looks good.
+
+#+attr_html: :width 500px
+#  #+attr_latex: :width 500px
+#  [[./figures/png/2025-08-08_16-32.png]]
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+do eiusmod tempor incididunt ut labore et dolore magna
+aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
+aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia
+deserunt mollit anim id est laborum.
+
+This figure was resized manually with imagemagick.  It is the
+right size but it's a little fuzzy compared to the original.
+It has a good size in both html and latex export.
+
+#  [[./figures/png/2025-08-08_16-32-resized.png]]
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+do eiusmod tempor incididunt ut labore et dolore magna
+aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
+aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia
+deserunt mollit anim id est laborum.
+
+*** pdf figures
+
+----------
+Include pdf figure (skipped)
+
+#  [[./figures/circuitTikzExamplePDF.pdf]]
+
+That was a pdf figure
+----------
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+do eiusmod tempor incididunt ut labore et dolore magna
+aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
+aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia
+deserunt mollit anim id est laborum.
+
+Include pdf as object
+
+The figure below will appear in html but not in pdf (skipped)
+
+----------
+# #+BEGIN_EXPORT html
+# <object data="./figures/png/2025-08-08_16-32-resized.png"
+#   type="application/pdf"
+#   width="100%" height="500px">
+#   border="1"
+# <p>Unable to display PDF file. <a href="/path/to/your/file.pdf">Download</a> instead.</p>
+# </object>
+# #+END_EXPORT
+----------
+
+That was a a pdf object for html
+
+  width="100%" height="500px">
+
+----------
+Include svg figure skipped
+
+# [[./figures/circuitTikzExampleSVG.svg]]
+
+That was an svg figure
+----------
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+do eiusmod tempor incididunt ut labore et dolore magna
+aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
+aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia
+deserunt mollit anim id est laborum.
+
+Include svg figure
+
+Here is an svg figure RRRformat.  ok for html, gives latex
+error slash includesvg undefined
+
+# {{{svgfig(RRRformat)}}}
+
+** Configuration
+- setArch(16)
+- setArch(32)
+  
+** To do
+- GUI, Arch, ISA, Typesetting
+- This example has no leading spaces:
+
+#+BEGIN_SRC Sigma16 exports: code
+loop  lea  R3,42     ; R3 := 42
+#+END_SRC
+
+- This example starts with ordinary spaces, and all but one are
+  ignored by the exporter, so this instruction won't be properly
+  indented:
+
+#+BEGIN_SRC Sigma16 exports: code
+     lea  R3,42     ; R3 := 42
+#+END_SRC
+
+- This example has a special space character at the beginning. It
+  isn't obtrusive in the text editor, bnt it ensures that the html
+  output won't ignore the leading spaces:
+
+#+BEGIN_SRC Sigma16 exports: code
+     lea  R3,42     ; R3 := 42
+#+END_SRC
+
+- AsmStdErrors uses old logicw, old syntax for logicb and extract
+  - Should include logicf, new syntax for logicb, and new
+    pseudoinstructions for logicf and logicb
+- Branch needs redesign, the test program is no longer consistent
+  with the program
+- Ctl.asm.txt check execution
+
+** Heroku and papertrail
+
+- M-x json-pretty-print-buffer
+
+  

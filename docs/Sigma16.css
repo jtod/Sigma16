@@ -24,6 +24,11 @@ span.section-number-3,span.section-number-4 {
 */
 
 
+b {
+    font-weight: bold;
+    color: red;
+}
+
 /* Hide section numbers in section headers */
 
 span.section-number-1, span.section-number-2,
@@ -442,11 +447,25 @@ a.tocsubparagraph {display: inline-block ; margin-left: 9em ;
 tr {
 }
 
-/* anchors and links */
+/* Anchors and links */
 
-A:link    { color: #0000e0; text-decoration: none }
-A:visited { color: #0000a0; text-decoration: none }
-A:hover   { background-color: #e0e0ff; text-decoration: none }
+a:link {
+    color: #0000ff;
+    text-decoration: none;
+}
+a:visited {
+    color: #6666ff;
+}
+a:hover {
+    background-color: #33cc33;
+    color: black;
+    text-decoration: none;
+}
+a:active {
+    color: black;
+    background-color: yellow;
+    text-decoration: none;
+}
 
 div.majornote, div.tcolorbox {
     margin-top: 0.5em;
