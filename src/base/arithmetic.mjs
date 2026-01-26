@@ -310,6 +310,7 @@ export function wordToInt (w) {
     return x < const8000 ? x : x - const10000;
 }
 
+
 // An Int is represented using two's complement.  return [w, ovfl]
 // where w is a word representing the two's complement int, and ovfl
 // is a boolean.  If ovfl is true then x is not representable in a 16
@@ -414,7 +415,7 @@ export function wordToHex8 (x) {
 export function showGen (x) {
     return 'dec: ' + x + ' hex: ' + wordToHex8 (x)
 }
-window.showGen = showGen
+globalThis.showGen = showGen
 
 function showBit (b) {
     return b==0 ? '0' : 1
@@ -517,6 +518,12 @@ const g_crr = (op,c,a,b) => op (c,a,b);
 export function binAdd (x, y) {
     let r = validateWord (x) + validateWord (y);
     return r & 0x0000ffff;
+}
+
+// add two integers and truncate result to 32 bits
+export function binAdd32 (x, y) {
+    let r = x + y
+    return r & 0xffffffff;
 }
 
 
@@ -692,9 +699,11 @@ function test_div () {
     test_rr ("div", op_div, 49, intToWord(-8), "6 1");
 }
 
-export function op_cmp (c,a,b) {
-    const aint = wordToInt (a)
-    const bint = wordToInt (b)
+// 16-bit comparison; generalise to handle both 16 and 32 bit
+export function op_cmp (es,c,a,b) {
+    const aint = (es.arch==arch.S32) ? limit32(a) : wordToInt(a);
+    const bint = (es.arch==arch.S32) ? limit32(b) : wordToInt(b);
+    console.log (`op_cmp starting a=${showGen(a)} b=${showGen(b)} aint=${showGen(aint)} bint=${showGen(bint)}`)
     const ltTc  = aint < bint
     const ltBin = a < b
     const eq    = a === b
@@ -707,13 +716,33 @@ export function op_cmp (c,a,b) {
     const t5 = arch.putBitInWordLE (16, t4, arch.bit_ccL, ltBin)
     const cc = t5
 
-    com.mode.devlog (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`)
-    com.mode.devlog (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
-    com.mode.devlog (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
-    com.mode.devlog (`op_cmp eq=${eq}`)
-    com.mode.devlog (`op_cmp cc=${cc} showCC(cc)`)
+    console.log (`op_cmp a=${a} b=${b} aint=${aint} bint=${bint}`)
+    console.log (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
+    console.log (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
+    console.log (`op_cmp eq=${eq}`)
+    console.log (`op_cmp cc=${cc} showCC(cc)`)
+
+
+    console.log (`op_cmp a=${showGen(a)} b=${showGen(b)} aint=${showGen(aint)} bint=${showGen(bint)}`)
+    console.log (`op_cmp ltBin=${ltBin} gtBin${gtBin}`)
+    console.log (`op_cmp ltTc=${ltTc} gtTc${gtTc}`)
+    console.log (`op_cmp eq=${eq}`)
+    console.log (`op_cmp cc=${cc} showCC(cc)`)
+    
     return cc
 }
+//    let aint
+//    let bint
+    //    console.log (`op_cmp ${es.arch}`)
+//    if (es.arch == arch.S32) {
+//        aint = limit32 (a)
+//        bint = limit32 (b)
+//        console.log ('op_cmp limit32')
+//    } else {
+//        aint = wordToInt (a)  // limit16?
+//        bint = wordToInt (b)
+//        console.log ('op_cmp limit16')
+//    }
 
 
 export function op_cmplt (a,b) {

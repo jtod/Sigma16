@@ -7,7 +7,16 @@
    xload   R3,y[R0]      ; R3 = 0400 0000
    xadd    R4,R2,R3      ; R4 = 0402 0030
    xstore  R4,z[R0]      ; z  = 0402 0030
-   xlea    R5,$2000[R4]  ; R4 = 0402 2030
+   xcmp    R2,R3         ; R15 = <L
+   xlea    R5,$2000[R4]  ; R5 = 0402 2030
+   xload   R6,p[R0]      ; R6 = 8000 0400
+   xload   R7,q[R0]      ; R7 = 0000 0020
+   cmp     R6,R7         ; G>
+   xcmp    R6,R7         ; <G    ????
+   andw    R8,R9
+   orw     R8,R9
+   xandw   R8,R9
+   xorw    R8,R9
 
    trap    R0,R0,R0
 
@@ -17,5 +26,12 @@ y   data   $0400
     data   $0000
 z   data   $0000
     data   $0000
+p   data   $8000
+    data   $0400
+q   data   $0000
+    data   $0020
+
+    data   0
+
     
 

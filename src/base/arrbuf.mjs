@@ -336,7 +336,7 @@ export function writeMem16 (es, a, x) {
 
 export function readMem32 (es, a) {
     console.log (`readMem32 a=${a}...`)
-    const b = a & 0xfffffffe
+    const b = a //  & 0xfffffffe  enforce alignment
     const x = read16 (es, b, MemOffset16)
     const y = read16 (es, b+1, MemOffset16)
     const result = x << 16 | y
@@ -350,7 +350,7 @@ export function readMem32 (es, a) {
 
 export function writeMem32 (es, a, x) {
     console.log (`writeMem32 a=${a} x=${arith.wordToHex8(x)}`)
-    const b = a & 0xfffffffe
+    const b = a //  & 0xfffffffe  force alignment 
     const y = x >>> 16
     const z = x & 0x0000ffff
     write16 (es, b, MemOffset16, y)

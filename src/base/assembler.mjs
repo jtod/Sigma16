@@ -1174,14 +1174,14 @@ function asmPass2 (ma) {
 	    generateObjectWord (ma, s, s.address.word+1, s.codeWord2)
 
 	} else if (op.ifmt==arch.iEXP && op.afmt==arch.aRR) {
-            // EXP-RR pseudo:  andw orw xorw
+            // EXP-RR xcmp  pseudo:  andw orw xorw
 	    com.mode.devlog (`pass2 EXP-RR pseudo`);
             requireNoperands (ma, s, 2)
             const addr = s.address.word;
             const d = requireReg (ma, s, s.operands[0]);
             const e = requireReg (ma, s, s.operands[1]);
             const f = 0
-            const g = 15
+            const g = 0 // 15 why 15?
             const h = op.pseudo ? op.opcode[2] : 0
 	    s.codeWord1 = mkWord448 (op.opcode[0], d, op.opcode[1]);
             s.codeWord2 = mkWord (e, f, g, h);

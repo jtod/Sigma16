@@ -21,6 +21,9 @@
 # the GNU General Public License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+# If you are doing a project with Sigma16, or experimenting with
+# it, please see the section "* Projects with Sigma16"
+
 # ----------------------------------------------------------------
 # Quick reference: how to build this document (requires emacs org)
 # ----------------------------------------------------------------
@@ -30,6 +33,13 @@
 #   4. C-e h h -  export to html
 #   5. C-e l l - export to html and tex
 # ----------------------------------------------------------------
+
+# Macro definitions must be entirely on one line
+
+#+MACRO: BeginGraphics (eval (if (eq org-export-current-backend 'html) "#+BEGIN_EXPORT html" "#+BEGIN_EXPORT latex"))
+#+MACRO: EndGraphics (eval (if (eq org-export-current-backend 'html) "#+END_EXPORT" "#+END_EXPORT"))
+#+MACRO: GraphicsCmd (eval (if (eq org-export-current-backend 'html) "<img src=\"./figures/tikz/" "\\includegraphics{./figures/tikz/"))
+#+MACRO: GraphicsExt (eval (if (eq org-export-current-backend 'html) ".svg\">" ".pdf}"))
 
 # ----------------------------------------------------------------
 # Building html and pdf
@@ -181,6 +191,18 @@
 # definition prevents an error message (undefined macro) from
 # aborting the export.
 
+# Macro definitions must be entirely on one line
+
+#+MACRO: BeginGraphics (eval (if (eq org-export-current-backend 'html) "#+BEGIN_EXPORT html" "#+BEGIN_EXPORT latex"))
+#+MACRO: EndGraphics (eval (if (eq org-export-current-backend 'html) "#+END_EXPORT" "#+END_EXPORT"))
+#+MACRO: GraphicsCmd (eval (if (eq org-export-current-backend 'html) "<img src=\"../../figures/tikz/" "\\includegraphics{../../figures/tikz/"))
+#+MACRO: GraphicsExt (eval (if (eq org-export-current-backend 'html) ".svg\">" ".pdf}"))
+
+# Macro definitions must be entirely on one line
+#  #+MACRO: BeginGraphics (eval (if (eq org-export-current-backend 'html) "#+BEGIN_EXPORT html" "#+BEGIN_EXPORT latex"))
+#  #+MACRO: EndGraphics (eval (if (eq org-export-current-backend 'html) "#+END_EXPORT" "#+END_EXPORT"))
+#  #+MACRO: GraphicsCmd (eval (if (eq org-export-current-backend 'html) "<img src=\"figures/tikz/" "\\includegraphics{figures/tikz/"))
+#  #+MACRO: GraphicsExt (eval (if (eq org-export-current-backend 'html) ".svg\">" ".pdf}"))
 
 # ----------------------------------------------------------------
 # General configuration
@@ -336,6 +358,11 @@ It includes an editor, assembler, linker, emulator, a
 collection of examples, an integrated development environment
 (IDE) with a graphical user interface, and a user guide with
 tutorials.
+
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 ** Running Sigma16
 
@@ -1254,6 +1281,10 @@ loop1  store x[R0],R5  ; wrong order: should be R5,x[R0]
 If you forget some detail, look at one of the example
 programs.
 
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+
 When the assembler is translating a program, it begins by
 looking at the spaces in order to split each statement into
 the four fields.  This happens before it looks at the
@@ -2053,6 +2084,7 @@ the following:
    think about what it will do.  Then click Step and look at the
    registers to see if you were right.
 
+
 Here are the different variations:
 1. Run the program in its original form, with *y data 0*
 2. Change the last line to *y data 1* and run it again
@@ -2270,6 +2302,11 @@ first instruction loads the break code into some register
 instruction is a trap which performs the break.  The first
 operand is the register that contains the break code, and the
 other two operands are ignored, so we can just use R0.
+
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 #+BEGIN_SRC Sigma16 exports: code
     ...
@@ -2614,6 +2651,11 @@ Here is an example:
 
 ** Saving and restoring contiguous registers
 
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
 There are several situations where a program needs to store a
 sequence of registers into consecutive memory
 locations. Later the registers must be reloaded from the
@@ -2667,6 +2709,10 @@ readable, and it's easier to check that the save an restore
 match each other.
 
 ** Defining symbols with equ
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
 
 Sometimes a program needs to use a constant.  For example,
 you may need to use an unusual logic function that doesn't
@@ -2747,6 +2793,10 @@ register, use lea:
 
 ** Some notations for convenience
 
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
 There are several shortcuts that can be useful for
 experienced programmers, especially when working on large
 programs.  But when you're starting out, it's better not to
@@ -2770,6 +2820,15 @@ required to indicate a comment.
 
 It's good style to use a semicolon consistently to indicate a
 comment, even where it wouldn't be required.
+
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 *** [R0] is assumed if it's omitted
 
@@ -2796,6 +2855,10 @@ exactly the same way.  These are also equivalent:
 
 ** Branching to pc-relative address (???)
 
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
 A branch instruction transfers control to a specified
 location, similar to a jump.  The difference is in how the
 location to jump to is specified: in a jump, the address of
@@ -2820,6 +2883,11 @@ unconditional or conditional.
 - brbc0 branch backward if Rd = 0
 - brbc1 branch backward if Rd /= 0
 
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+  
 The unconditional branches take one operand, which is a
 constant called the offset.
 
@@ -2828,6 +2896,10 @@ constant called the offset.
 
 ** Modules and linking
 
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 A *module* is a section of a program; it may be the complete
 program or just a part of it.  A module may be saved in a
@@ -2844,6 +2916,11 @@ button will translate the text in the editor buffer to
 machine language, which you can execute on the Processor
 page.
 
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
 After entering a program in the editor buffer, you should
 save it to a file.  Click Save and the text in the editor
 buffer will be written to a file on your computer.  Depending
@@ -2851,6 +2928,9 @@ on how the system is configured, there may be a dialogue box
 asking you for a file name, or a generic default file name
 may be used (for example, "S16DownloadFile (2).txt" or
 something similar).
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 # This file will be saved in the default Downloads directory as
 # configured in your browser.
@@ -2863,6 +2943,10 @@ something similar).
 # to start reading, deleting, or corrupting your files -- but
 # it does make it inconvenient to save your edited assembly
 # programs.
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 Another approach is to use a separate text editor, and to
 copy/paste text between the external editor and the Editor
@@ -2886,6 +2970,9 @@ module are shown.  If you follow good programming style,
 where the first rew lines of each module identify the
 program, you'll be able to see at a glance what each module
 is without visiting it in the editor.
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 Several buttons appear for each module in the list.  At any
 time, one of the modules is *selected*. Click the Select
@@ -2895,6 +2982,11 @@ Editor page the text of the selected module appears in the
 editor buffer.  This means you can have several programs open
 at the same time, and just switch from one to the other using
 the Select buttons in the Modules page.
+
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
 
 You can also get rid of a module by clicking its Close
 button.  This will delete its text, so it may be a good idea
@@ -2920,8 +3012,8 @@ memory, a memory management unit that provides virtual
 memory, an interrupt system, and an Input/Output controller
 using direct memory access (DMA).
 
-# ** System control registers
-# [[./figures/control-block-pc.png]]
+** System control registers
+
 
 ** Implementations
 
@@ -2933,6 +3025,12 @@ provides Input/Output and secondary storage.  The software
 runs in a web browser, and does not require any installation.
 There are also command line tools which can be installed on a
 local computer, but they are not necessary.
+
+
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 There is also a digital circuit, specified in a functional
 hardware description language, which implements the Core
@@ -3006,7 +3104,13 @@ are represented as natural numbers.
 
 Assembly language provides several notations for expressing
 the value of a word.
-# If a numeric value is out of range it is truncated.
+
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+
+ If a numeric value is out of range it is truncated.
 
 - A natural number between 0 and 65,535 (2^16 - 1)
 - An integer between -32,768 and 32,767 (-2^15 and 2^15 - 1)
@@ -3019,6 +3123,11 @@ necessary to avoid ambiguity: 1234 is a decimal number and
 $1234 is a hexadecimal number, and they denote different
 words.
 
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+
 Assembly language always requires a $ before a hexadecimal
 constant.  For displays of the machine state, in contexts
 where there is no ambiguity, the $ may be omitted.  For
@@ -3028,6 +3137,11 @@ $ is always required for hex constants in assembly language
 programs.
 
 *** Bits and fields
+
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 The bits of a word are indexed from right to left, starting
 with index 0.  The least significant (rightmost) bit has
@@ -3052,6 +3166,10 @@ $$\fbox{$ \ \vert\ x_{7}\> x_{6}\> x_{5}\> x_{4}
   \ \vert\ x_{3}\> x_{2}\> x_{1}\> x_{0}
   \ $}$$
 
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+  
 A bit field is a contiguous sequence of bits in a word.  It
 is specified by two numbers: the indices of the rightmost and
 leftmost bits in the field.
@@ -3078,6 +3196,9 @@ instructions in Sigma16 operate on integers, but address
 arithmetic is performed in binary.
 
 *** Integers
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 Integers are represented using two's complement notation.  If
 the leftmost (most significant) bit of a word is 0, its two's
@@ -3097,6 +3218,11 @@ bit is 1, we know that $x < 0$.  We can negate $x$ by
 inverting the bits, obtaining 0000 0101.  Adding 1 gives 0000
 0110 which is 6.  Since $-x = 6$, we conclude that $x = -6$.
 
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+
+   
 ** Memory
 
 The memory is a hardware array of words that are accessed by
@@ -3109,13 +3235,13 @@ Instructions specify memory addresses in two parts: the
 *displacement*, which is a word representing a binary number,
 and the *index*, which is one of the registers in the
 register file.  For example, a memory address could be
-specified as $003c[R5]; the displacement is 003c and the
+specified as 003c[R5]; the displacement is 003c and the
 index is R5.
 
 When the instruction is executed, the computer calculates the
 *effective address* by adding the value of the displacement
 and the value in the index register.  If R5 contains 2, then
-the effective address of $003c[R5] is 003e.
+the effective address of 003c[R5] is 003e.
 
 This scheme may seem more complicated than simply specifying
 the address directly, but it is flexible.  If the machine
@@ -3128,9 +3254,39 @@ variables, records, arrays, pointers and linked data
 structures, jump tables, and more.  These techniques are
 described later.
 
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
+ok
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
 ** Registers
 
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
 *** Register file
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
+Here is where it goes bad.  The begin example above works, the
+macro below doesn't work. bad
+
+
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
 
 The *register file* is a set of 16 general registers, each of
 which holds a 16 bit word.  A register is referenced by a
@@ -3138,6 +3294,8 @@ which holds a 16 bit word.  A register is referenced by a
 notations R0, R1, R2, ..., R9, R10, R11, R12, R13, R14, R15
 to refer to the registers.  The state of the register file
 can be written as a table showing the value of each register:
+
+macro-was-here
 
 | Register | Contents |
 |----------+----------|
@@ -3148,6 +3306,8 @@ can be written as a table showing the value of each register:
 | R14      | 03c8     |
 | R15      | 0020     |
 
+macro-was-here
+
 Sigma16 is a load/store style architecture.  All calculations
 are carried out in the register file, and explicit load and
 store instructions must be used to copy data between the
@@ -3156,16 +3316,20 @@ memory and the register file.
 R0 and R15 are special.  The other registers, R1 through R14,
 may be used for any purpose.
 
-- R0 always contains the constant 0.
+macro-was-here
 
-It is legal to perform an instruction that attempts to load
-some other value into R0, but the register will still contain
-0 after executing such an instruction.  Such an instruction
-will simply have no lasting effect.
+Problematical.  R0 always contains the constant 0.  It is legal to
+perform an instruction that attempts to load some other value into
+R0, but the register will still contain 0 after executing such an
+instruction.  Such an instruction will have no lasting effect.
+R15 is the condition code register.
 
-- R15 is the condition code register.
+macro was here
 
-*** Condition code
+
+
+This subsubsection is about the cc
+
   
 Several instructions produce status information: the result
 of a comparison, whether there was an overflow, etc.  This
@@ -3173,6 +3337,9 @@ information is automatically loaded into R15, which is also
 called the /condition code/.  The description of each
 instruction states whether R15 is modified, and what goes
 into it.
+
+macro was here
+
 
 Each bit in the condition code (R15) is a Boolean that
 specifies whether a specific condition is false (0) or true
@@ -3183,6 +3350,14 @@ gives the status of a relation or event.  If the flag is True
 (1) the relation holds or the event has occurred.  If the
 flag is False (0) the relation does not hold, or the event
 has not occurred.
+
+macro was here
+
+
+bad
+
+macro was here
+
 
 One way to use flags in the condition code is to control
 conditional jumps.  The jumpc0 and jumpc1 instructions are
@@ -3197,6 +3372,9 @@ in the condition code.  The second is an address to jump to,
 specified as displacement[index].  The indices of the flags
 are given below.
 
+macro was here
+
+
 The two conditional jumps (jumpc0 and jumpc1) let you jump
 depending on either the truth or falsity of a condition.  For
 example, the flag at index 4 denotes integer less than.  The
@@ -3205,6 +3383,10 @@ condition holds, and the second pair jumps if the less than
 condition is false.  This is equivalent to jumping if the
 "greater than or equal" condition holds.
 
+#+BEGIN_EXAMPLE
+Testing aardvark
+#+END_EXAMPLE
+
 #+BEGIN_SRC Sigma16 exports: code
    cmp     R8,R9
    jumpc1  4,xyz[R0] ; if R8 < R9 then goto xyz
@@ -3212,6 +3394,8 @@ condition is false.  This is equivalent to jumping if the
    cmp     R8,R9
    jumpc0  4,xyz[R0] ; if R8 >= R9 then goto xyz
 #+END_SRC
+
+
 
 Programs usually use pseudoinstructions rather than the
 actual machine instructions jumpc0 and jumpc1.  For example,
@@ -3236,6 +3420,8 @@ andb, orb, xorb, and logicb.  It isn't a good idea to keep
 Boolean variables in R15 for a long time, because many
 instructions will modify it.
 
+
+
 Before doing logic operations on condition code bits,
 consider whether "short circuit" evaluation, with a separate
 comparison followed by conditional jump for each relation, is
@@ -3256,6 +3442,7 @@ meaning.
   complement), then it is negative and has the value -1, and
   ffff < 0000.
 
+
 The cmp instruction compares two words, and evaluates five
 relations between the words: equality, less than for both
 natural and integer, and greater than for both natural and
@@ -3271,9 +3458,14 @@ is recorded in the corresponding flag in the condition code.
     jumpc1 4,LessInt[R0]  ; if R7 <Int R8 then goto lessInt
 #+END_SRC
 
+
+
 Thus you don't specify the types of the operands in the cmp
 instruction.  Instead, you select the condition code flag
 that corresponds to the types.
+
+fails
+
 
 Each flag has a short 1-character name to enable it to be
 displayed compactly in the user interface.  A naming
@@ -3668,6 +3860,9 @@ contains the following fields:
 | 15-12 | 11-8 | 7-4 | 3-0 |
 +-------+------+-----+-----+
 
+
+
+
 The format of every instruction is determined by the op field.
 Since this field contains 4 bits, it can specify 16 values:
 
@@ -3688,7 +3883,8 @@ a, b fields.  If an instruction is RX or EXP format, it has a
 second word whose format is described below in the sections on RX
 and EXP.
 
-<<expanding-opcode>>
+
+
 Sigma16 uses expanding opcodes.  This allows for a small number of
 compact 1-word instructions, as well as a larger number of
 instructions that require two or more words, where more bits are
@@ -3995,13 +4191,20 @@ representing a binary number between 0 and 15.
 | op | d | a | b |
 |----+---+---+---|
 
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
+
+
+
 # {{{svgfig(./figures/svg/RRRformat)}}}
 
 - op (bits with index 15 to 12) is the operation code, often
   called /opcode/.  This determines the operation to be performed.
   If the opcode is between 0 and 12 it specifies an RRR
-  instruction.  An opcode greater than 12 indicates an /expanding
-  opcode/: the instruction is not RRR but one of the other
+  instruction.  An opcode greater than 12 indicates an expanding
+  opcode: the instruction is not RRR but one of the other
   formats, and it has a secondary opcode that specifies precisely
   which instruction it is.  This is explained in the sections on
   RX and EXP formats.
@@ -4035,6 +4238,7 @@ indicates the instruction format, and there is a secondary
 operation code that specifies which instruction it is.
 
 
+
 *** RX format
 
 The RX format is used for instructions that refer to a memory
@@ -4055,6 +4259,9 @@ The instruction consists of two consecutive words.  The first word
 has the same format as an RRR instruction, with four fields: op,
 d, a, b.  The second word is a single 16-bit binary number, and is
 called the displacement.
+
+
+
 
 - The first word contains the op, d, a, b fields:
   - The op field (bits 15-12) is 15 (hex f).  This indicates that
@@ -4090,7 +4297,7 @@ index register can change.  So the effective address is
 "constant + variable".  This fact underlies a number of essential
 programming techniques.
 
-RX instructions use an /expanding opcode/.  The op field of the
+RX instructions use an expanding opcode.  The op field of the
 first word of the instruction contains the constant f (the
 bits 1111) for every RX instruction, and the sb field is used to
 hold a secondary opcode indicating which RX instruction it is.  In
@@ -4187,6 +4394,9 @@ depending on the instruction.
 - f  (bits 11-8)  4-bit operand
 - g  (bits 7-4)   4-bit operand
 - h  (bits 3-0)   4-bit operand
+
+
+
 
 +-------+------+-----+-----+
 |     e |    f |   g |   h |
@@ -6221,14 +6431,14 @@ in a browser or in a shell using node, is called Sigma16.
   - s: bit 0 (1 bit)
 
 ** Representation of 32-hit instructions
-*** R32-bit RX instructions
+*** S32 RX instructions
 
 Three key 32-bit instructions have RX format: xlea, xload, xstore.
 Three Rx instructions, with opcodes from F,D through F,F, are
 reserved for experimentation and projects.  In the standard
 architecture, these are all nop (no operation).
     
-*** 32-bit EXP instructions
+*** S32 EXP instructions
 
 Most of the 32-bit instructions are represented in EXP format.
 
@@ -6238,7 +6448,7 @@ Several 32-bit instructions require some 5-bit fields in order to
 index an arbitrary bit in a 32 bit register.  These use a variant
 of the EXP format, called EXP32.
 
-*** 32-bit EXP3 instructions
+*** S32 EXP3 instructions
 
 EXP3 is a subformat of EXP.
 
@@ -6386,9 +6596,9 @@ entry contains several lines:
    RD,DISP[RA], and its object code is fDA1 DISP (the OP field is
    the hex number f, and the values of the D and A fields are
    specified in the assembly instruction).
-2. Indication if the instruction is Core or S32, followed by the
-   [[expanding-opcode][full expanded operation code]] and the
-   [[assembly-format][assembly language statement format]].
+2. Indication if the instruction is Core or S32, followed by the ?????
+   blabla ref    expanding opcode full expanded operation code and the
+    assembly-format assembly language statement format]
 3. An example assembly language statement, with specific operands,
    and the corresponding machine language.  These examples also
    appear in Examples/Sigma32/testasm.asm.txt.
@@ -6657,9 +6867,9 @@ instruction set.
 | [e,23] iEXP/aRRR                                           |           |                               |
 | xdiv R8,R12,R5                                             | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xcmp-t>> [[xcmp-d][xcmp]] Rd,Ra,Rb                 |           |                               |
+| *S32* <<xcmp-t>> [[xcmp-d][xcmp]] RD,RE                    | eD24 E000 |                               |
 | [e,24] iEXP/aRR                                            |           |                               |
-| xcmp R12,R5                                                | e900 37f2 |                               |
+| xcmp R12,R5                                                | ec24 5000 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | *S32* <<xaddc-t>> [[xaddc-d][xaddc]] Rd,Ra,Rb              |           |                               |
 | [e,25] iEXP/aRRR                                           |           |                               |
@@ -6948,6 +7158,7 @@ formats.
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
+
 
 ** Programs, modules, and files
 
@@ -7420,7 +7631,7 @@ for several reasons:
   *push* uses the EXP instruction format.  The reason for
   this is that there are not enough bits in the op field to
   accommodate all the instructions with three register
-  operands, so an *expanding opcode* is used.  Thus push is
+  operands, so an expanding opcode is used.  Thus push is
   represented with op=14, indicating EXP format, and the EXP
   variant is used for this instruction.
   
@@ -8511,15 +8722,23 @@ following information.
 
 
 
-* Software and hardware projects
+<<projects>>
+* Projects with Sigma16
 
 - Sigma16 is intended for use in teaching, self-learning, and
   research
 - Projects involving Sigma16 are encouraged
-- These may involve using the existing sofware, modifying the
-  existing software, or writing new software from scratch
-- It's important to cite Sigma16 properly, and to adhere to the
-  sofware license
+- These may involve
+  - Writing assembly language programs,using the existing sofware
+  - Modifying the existing software, for example you might add some
+    new instructions
+  - Writing new software from scratch, for example writing a new
+    emulator
+- In all cases, it's important to cite Sigma16 properly, and to
+  adhere to the sofware license
+- One important topic in software engineering, which sometimes
+  doesn't get the attention it deserves in courses, is software
+  licensing and copyright.
 - Documentation
   - There needs to be some documentation.  At a minimum, this can
     be a short README file in your source directory.  Ideally
@@ -8551,7 +8770,10 @@ following information.
   - If you say that Sigma16 doesn't provide feature x, and you do
     provide it, check that Sigma16 doesn't actually provide x, and
     also check that you do.
-- 
+
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 * About Sigma16
 
@@ -8785,7 +9007,7 @@ following information.
 
 #+BEGIN_BUILD_ID
 #+BEGIN: update-build-id :format "%Y-%m-%d at %H:%M"
-Build: 2026-01-18 at 19:42
+Build: 2026-01-26 at 11:00
 #+END
 #+END_BUILD_ID
 
@@ -8843,7 +9065,7 @@ Build: 2026-01-18 at 19:42
 # 
 
 
-* Development notes
+* Development notes :noexport:
 
 ** Design Rationale for Sigma16
 
@@ -8876,6 +9098,8 @@ Non-goals
 ** Arithmetic
 
 ** Implementation notes
+
+globalThis.showGen = showGen
 
 ** Org notations
 

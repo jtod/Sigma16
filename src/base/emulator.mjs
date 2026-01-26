@@ -499,8 +499,8 @@ export function memFetch32 (es, a) {
 }
 
 // a is 32-bit address, x is 32-bit data word
+// possible alignment check: a must be even
 export function memStore32 (es, a, x) {
-    // possible alignment check: a must be even
     // console.log (`memStore32 a=${a} x=${x}`)
     es.copyable.memStoreLog.push(a)
     es.copyable.memStoreLog.push(a+1)
@@ -985,7 +985,7 @@ const cab_c = (f) => (es) => {
     let c = es.regfile[15].get();
     let a = es.regfile[es.ir_a].get();
     let b = es.regfile[es.ir_b].get();
-    let secondary = f (c,a,b);
+    let secondary = f (es,c,a,b);
     es.regfile[15].put(secondary)
 }
 
@@ -1290,8 +1290,11 @@ const rx = (f) => (es) => {
     es.nextInstrAddr = arith.binAdd (es.nextInstrAddr, 1);
     es.pc.put (limitAddress (es, es.nextInstrAddr))
     ab.writeSCB (es, ab.SCB_next_instr_addr, es.nextInstrAddr)
-//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp)
-    es.ea = arith.binAdd (es.regfile[es.ir_a].get32(), es.instrDisp)
+    es.ea = arith.binAdd32 (es.regfile[es.ir_a].get32(), es.instrDisp)
+    const indexreg = es.regfile[es.ir_a].get32()
+    console.log (`calculate es.ea index = ${arith.showGen(indexreg)}`)
+    console.log (`calculate es.ea disp = ${arith.showGen(es.instrDisp)}`)
+    console.log (`calculate es.ea ea = ${arith.showGen(es.ea)}`)
     es.instrEA = es.ea;
     es.adr.put (es.instrEA);
     com.mode.devlog (`rx ea, disp=${arith.wordToHex4(es.instrDisp)}`);
@@ -1300,6 +1303,7 @@ const rx = (f) => (es) => {
     com.mode.devlog('rx ea = ' + arith.wordToHex4(es.ea));
     f (es);
 }
+//    es.ea = arith.binAdd (es.regfile[es.ir_a].get(), es.instrDisp)
 
 const dispatch_RX =
     [ rx (rx_lea),       // 0
@@ -1327,9 +1331,11 @@ function rx_lea (es) {
 
 function rx_xlea (es) {
     com.mode.devlog('rx_xlea');
-    console.log ('xlea')
     es.regfile[es.ir_d].put32(es.ea);
 }
+//    console.log ('entering xlea')
+//    console.log ("lea ea = ${showGen(es.ea)}")
+//    console.log ('finished xlea')
 
 function rx_load (es) {
     com.mode.devlog('rx_load');
@@ -1440,12 +1446,6 @@ function rx_brc0 (es) {
 
 function rx_brc1 (es) {
     console.log ("brc1 is not implemented")
-}
-function rx_leal (es) {
-    console.log ("leal is not implemented")
-}
-function rx_loadl (es) {
-    console.log ("loadl is not implemented")
 }
 
 function rx_testset (es) {
@@ -1883,6 +1883,59 @@ export function exp_xadd (es) {
 function exp_xsub (es) {
     console.log ('exp_xsub');
 }
+function exp_xmul (es) {
+    console.log ('exp_xsub');
+}
+function exp_xdiv (es) {
+    console.log ('exp_xsub');
+}
+function exp_xcmp (es) {
+    console.log ('exp_xcmp');
+    // RRR uses cab_c (arith_op_cmp)
+    const c = es.regfile[15].get32();
+    const a = es.regfile[es.ir_a].get32();
+    const b = es.regfile[es.field_e].get32();  // arg b in E field
+    console.log (`em exp_xcmp a = ${showGen(a)} b = ${showGen(b)}`)
+    const secondary = arith.op_cmp (es,c,a,b);
+    es.regfile[15].put32(secondary)
+    
+}
+function exp_xaddc (es) {
+    console.log ('exp_xsub');
+}
+function exp_xmuln (es) {
+    console.log ('exp_xsub');
+}
+function exp_xdivn (es) {
+    console.log ('exp_xsub');
+}
+function exp_xjump (es) {
+    console.log ('exp_xsub');
+}
+function exp_xjal (es) {
+    console.log ('exp_xsub');
+}
+function exp_xjumpz (es) {
+    console.log ('exp_xsub');
+}
+function exp_xjumpnz (es) {
+    console.log ('exp_xsub');
+}
+function exp_xsave (es) {
+    console.log ('exp_xsub');
+}
+function exp_xrestore (es) {
+    console.log ('exp_xsub');
+}
+function exp_xpush (es) {
+    console.log ('exp_xsub');
+}
+function exp_xpop (es) {
+    console.log ('exp_xsub');
+}
+function exp_xtop (es) {
+    console.log ('exp_xsub');
+}
 
 function exp2_brc0 (es) { // ??????????????????????????????
     com.mode.devlog('exp_brc0')
@@ -1937,21 +1990,21 @@ function exp2_brnz (es) { // ??????????????????????????????
 
 const dispatch_EXP =
       [ exp2 (exp2_logicf),   // 00
-        exp2 (exp2_logicb),   // 01  b -> r    logicr
+        exp2 (exp2_logicb),   // 01
         exp2 (exp2_shiftl),   // 02
         exp2 (exp2_shiftr),   // 03
         exp2 (exp2_extract),  // 04
+        exp2 (exp2_save),     // 08
+        exp2 (exp2_restore),  // 09
         exp2 (exp2_push),     // 05
         exp2 (exp2_pop),      // 06
         exp2 (exp2_top),      // 07
-        exp2 (exp2_save),     // 08
-        exp2 (exp2_restore),  // 09
-        exp2 (exp2_brc0),     // 0A
-        exp2 (exp2_brc1),     // 0B
-        exp2 (exp2_brz),      // 0C
-        exp2 (exp2_brnz),     // 0D
-        exp2 (exp2_dispatch), // 0E
-        exp2 (exp2_getctl),   // 0F
+        exp2 (exp2_brc0),     // 0a
+        exp2 (exp2_brc1),     // 0b
+        exp2 (exp2_brz),      // 0c
+        exp2 (exp2_brnz),     // 0d
+        exp2 (exp2_dispatch), // 0e
+        exp2 (exp2_getctl),   // 0f
         exp2 (exp2_putctl),   // 10
         exp2 (exp2_resume),   // 11
         exp2 (exp2_timeron),  // 12
@@ -1962,14 +2015,30 @@ const dispatch_EXP =
         exp2 (exp2_nop),      // 17
         exp2 (exp2_nop),      // 18
         exp2 (exp2_nop),      // 19
-        exp2 (exp2_nop),      // 1A
-        exp2 (exp2_nop),      // 1B
-        exp2 (exp2_nop),      // 1C
-        exp2 (exp2_nop),      // 1D
-        exp2 (exp2_nop),      // 1E
-        exp2 (exp2_nop),      // 1F
-        exp32 (exp_xadd),     // 20
-        exp32 (exp_xsub) ]    // 21
+        exp2 (exp2_nop),      // 1a
+        exp2 (exp2_nop),      // 1b
+        exp2 (exp2_nop),      // 1c
+        exp2 (exp2_nop),      // 1d
+        exp2 (exp2_nop),      // 1e
+        exp2 (exp2_nop),      // 1f
+        exp2 (exp_xadd),      // 20
+        exp2 (exp_xsub),      // 21
+        exp2 (exp_xmul),      // 22
+        exp2 (exp_xdiv),      // 23
+        exp2 (exp_xcmp),      // 24
+        exp2 (exp_xaddc),     // 25
+        exp2 (exp_xmuln),     // 26
+        exp2 (exp_xdivn),     // 27
+        exp2 (exp_xjump),     // 28
+        exp2 (exp_xjal),      // 29
+        exp2 (exp_xjumpz),    // 2a
+        exp2 (exp_xjumpnz),   // 2b
+        exp2 (exp_xsave),     // 2c
+        exp2 (exp_xrestore),  // 2d
+        exp2 (exp_xpush),     // 2e
+        exp2 (exp_xpop),      // 2f
+        exp2 (exp_xtop)  ]    // 30
+
 
 // exp2 (exp2_logicu),   // 02  u -> b    logicb   deprecated
 //        exp2 (exp2_extracti), // 06
