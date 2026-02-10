@@ -1,11 +1,10 @@
-; TestAsm:  Test assembler on full instruction set
-; Assembly languge for Sigma16 and Sigma32
-; See https://github.com/jtod/Sigma16
+; TestAsm:  Test assembler on Sigma16/32 instruction set
+; Copyright John T. O'Donnell. https://github.com/jtod/Sigma16
 
-; A test case is provided for every instruction in each
-; instruction format.  This includes CORE, Standard, and S32.  The
-; machine language code for each instruction is shown in a
-; comment.
+; A test case is provided for every instruction in the full
+; Sigma16 and Sigma32 instruction sets.  Sigma16 is a subset of
+; Sigma32.  This includes CORE, Standard, and S32.  The machine
+; language code for each instruction is shown in a comment.
 
 ; RRR instructions
 
@@ -31,9 +30,9 @@
    jumpz    R4,$0e3a[R14]   ; f4e7 0e3a
    jumpnz   R4,$0e3a[R14]   ; f4e8 0e3a
    testset  R4,$0e3a[R14]   ; f4e9 0e3a
-   xlea     R4,$0e3a[R14]   ; f4ed 0e3a
-   xload    R4,$0e3a[R14]   ; f4ee 0e3a
-   xstore   R4,$0e3a[R14]   ; f4ef 0e3a
+   xlea     R4,$0e3a[R14]   ; f4ea 0e3a
+   xload    R4,$0e3a[R14]   ; f4eb 0e3a
+   xstore   R4,$0e3a[R14]   ; f4ec 0e3a
 
 ; EXP instructions
 
@@ -41,10 +40,57 @@
    logicb R9,R3,7,15,2      ; e900 37f2  xxx
    shiftl R6,R7,2           ; e602 7002
    shiftr R6,R7,2           ; e603 7002
+   extract R6,R7,5,15,2     ; e900 37f2
+   save R3,R9,50[R13]       ; e900 37f2
+   restore R3,R9,50[R13]    ; e900 37f2
+   push R4,R13,R8           ; e900 37f2
+   pop R4,R13,R8            ; e900 37f2
+   top R4,R13,R8            ; e900 37f2
+   logicf R9,R3,7,15,2      ; e900 37f2
+   
+
+
 
 ; EXP3 instructions
 
+; misc
 
+   xlea    R1,$0abc[R0]  ; R1 = 0000 0abc
+   xload   R2,x[R0]      ; R2 = 0002 0030
+   xload   R3,y[R0]      ; R3 = 0400 0000
+   xadd    R4,R2,R3      ; R4 = 0402 0030
+   xstore  R4,z[R0]      ; z  = 0402 0030
+   xcmp    R2,R3         ; R15 = <L
+   xlea    R5,$2000[R4]  ; R5 = 0402 2030
+   xload   R6,p[R0]      ; R6 = 8000 0400
+   xload   R7,q[R0]      ; R7 = 0000 0020
+   cmp     R6,R7         ; G>
+   xcmp    R6,R7         ; <G    ????
+   andw    R8,R9
+   orw     R8,R9
+   xandw   R8,R9
+   xorw    R8,R9
+
+   xlea    R4,$0e3a[R14]  ; f4ea 0e3a
+
+   trap    R0,R0,R0
+
+; Data for testing
+
+x   data   $0002
+    data   $0030
+y   data   $0400
+    data   $0000
+z   data   $0000
+    data   $0000
+p   data   $8000
+    data   $0400
+q   data   $0000
+    data   $0020
+
+    data   0
+
+; Deprecated or to rework    
 
 ; 
 ;    lea   R2,1[R0]

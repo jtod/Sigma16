@@ -3,23 +3,28 @@
 #+AUTHOR: John T. O'Donnell
 #+EMAIL: john.t.odonnell9@gmail.com
 #+DATE: {{{S16version()}}}
+
 # Copyright 2010-2026 John T. O'Donnell.  All rights reserved.
 # Source repository: https://github.com/jtod/Sigma16
 
-# This file is part of Sigma16.  License: GNU GPL Version 3;
-# available in Sigma16/LICENSE.txt and online at
-# <https://www.gnu.org/licenses/>.  Further information is in
-# Sigma16/README.org.
+# License: GNU GPL Version 3, available in Sigma16/LICENSE.txt and
+# online at <https://www.gnu.org/licenses/>.  Further information
+# is in Sigma16/README.org.
 
-# Sigma16 is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License, Version 3,
-# as published by the Free Software Foundation.  Sigma16 is
-# distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-# License for more details.  You should have received a copy of
-# the GNU General Public License along with Sigma16.  If not, see
+# This file is part of Sigma16.  Sigma16 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU
+# General Public License, Version 3, as published by the Free
+# Software Foundation.  Sigma16 is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public
+# License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
+
+# ----------------------------------------------------------------
+# Projects
+# ----------------------------------------------------------------
 
 # If you are doing a project with Sigma16, or experimenting with
 # it, please see the section "* Projects with Sigma16"
@@ -34,7 +39,34 @@
 #   5. C-e l l - export to html and tex
 # ----------------------------------------------------------------
 
-# Macro definitions must be entirely on one line
+# ----------------------------------------------------------------
+# Macros
+# ----------------------------------------------------------------
+
+# S16version.  {{{S16version()}}} is used to define the DATE
+# attribute.  It is defined by docs/VersionMacro.org, which is
+# generated automatically by make SetVersion.  It gives the
+# version number and date, and is defined by make SetVersion
+
+# The following  is a benign redefinition to prevent error/abort on
+# export.  When the entire document is exported, the
+# redefinition of S16version (which is included at the top of
+# the file) is ignored because of INCLUDING
+# ../VersionMacro.org.  (When a macro is defined twice, the
+# second definition is ignored.)  When only a section is
+# exported, the INCLUDE is skipped, and the second MACRO
+# definition prevents an error message (undefined macro) from
+# aborting the export.
+
+#+MACRO: S16Version (Version/Date disabled for section export)
+
+# Macros for importing figures.  Macro definitions must be
+# entirely on one line, so these definitions are rediculously
+# long.  To import ./figures/tikz/RRR.{svg,pdf}:
+
+#   {{{BeginGraphics}}}
+#   {{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
+#   {{{EndGraphics}}}
 
 #+MACRO: BeginGraphics (eval (if (eq org-export-current-backend 'html) "#+BEGIN_EXPORT html" "#+BEGIN_EXPORT latex"))
 #+MACRO: EndGraphics (eval (if (eq org-export-current-backend 'html) "#+END_EXPORT" "#+END_EXPORT"))
@@ -79,7 +111,7 @@
 # Sigma16UserGuideText.
 
 # ----------------------------------------------------------------
-# Editing source
+# Typesetting and editing source
 # ----------------------------------------------------------------
 
 # Limit line size to 66 characters.  This keeps code fragments to
@@ -98,10 +130,6 @@
 # label) or a nonbreakable space.  To insert nonbreakable space
 # (Unicode hard space), enter: C-x 8 space M-x.  Alternatively,
 # insert-character 21D2
-
-# ----------------------------------------------------------------
-# Typesetting
-# ----------------------------------------------------------------
 
 #  #+HTML: this is only for html export
 #  #+LATEX: this is only for latex export
@@ -159,7 +187,7 @@
 # This should keep toc but omit section numbers, but it doesn't work:
 #   #+OPTIONS: toc:t num:nil
 
-# Strtegy: <2025-12-20 Sat>
+# Strategy: <2025-12-20 Sat>
 #  - don't use num:nil
 #  - For latex, keep section numbering
 #  - For html, use css to hide section numbers, and use
@@ -167,53 +195,8 @@
 #    the table of contents
 
 # ----------------------------------------------------------------
-# Macros
-# ----------------------------------------------------------------
-
-#+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
-
-# Version
-
-# {{{S16version()}}} is defined by docs/VersionMacro.org,
-# which is generated automatically by make SetVersion.  It
-# gives the version number and date, and is defined by make
-# SetVersion
-
-#+MACRO: S16Version (Version/Date disabled for section export)
-
-# This is a benign redefinition to prevent error/abort on
-# export.  When the entire document is exported, the
-# redefinition of S16version (which is included at the top of
-# the file) is ignored because of INCLUDING
-# ../VersionMacro.org.  (When a macro is defined twice, the
-# second definition is ignored.)  When only a section is
-# exported, the INCLUDE is skipped, and the second MACRO
-# definition prevents an error message (undefined macro) from
-# aborting the export.
-
-# Macro definitions must be entirely on one line
-
-#+MACRO: BeginGraphics (eval (if (eq org-export-current-backend 'html) "#+BEGIN_EXPORT html" "#+BEGIN_EXPORT latex"))
-#+MACRO: EndGraphics (eval (if (eq org-export-current-backend 'html) "#+END_EXPORT" "#+END_EXPORT"))
-#+MACRO: GraphicsCmd (eval (if (eq org-export-current-backend 'html) "<img src=\"../../figures/tikz/" "\\includegraphics{../../figures/tikz/"))
-#+MACRO: GraphicsExt (eval (if (eq org-export-current-backend 'html) ".svg\">" ".pdf}"))
-
-# Macro definitions must be entirely on one line
-#  #+MACRO: BeginGraphics (eval (if (eq org-export-current-backend 'html) "#+BEGIN_EXPORT html" "#+BEGIN_EXPORT latex"))
-#  #+MACRO: EndGraphics (eval (if (eq org-export-current-backend 'html) "#+END_EXPORT" "#+END_EXPORT"))
-#  #+MACRO: GraphicsCmd (eval (if (eq org-export-current-backend 'html) "<img src=\"figures/tikz/" "\\includegraphics{figures/tikz/"))
-#  #+MACRO: GraphicsExt (eval (if (eq org-export-current-backend 'html) ".svg\">" ".pdf}"))
-
-# ----------------------------------------------------------------
-# General configuration
-# ----------------------------------------------------------------
-
-# Table of contents
-
-# Does this do anything?  Seems not...
-# Disable the table of contents until after the title section
-
 # Bibliography
+# ----------------------------------------------------------------
 
 #  #+BIBLIOGRAPHY: Sigma16UserGuide.bib
 #  #+LATEX_HEADER: # \usepackage[autocite=inline,style=numeric]{biblatex}
@@ -227,7 +210,9 @@
 
 #+CITE_EXPORT: basic author author-year
 
+# ----------------------------------------------------------------
 # Index
+# ----------------------------------------------------------------
 
 # Index items break <p>...</p> for html export, so put them
 # at end of paragraph.
@@ -257,10 +242,6 @@
 # LaTeX configuration
 # ----------------------------------------------------------------
 
-#+BEGIN_EXPORT latex
-\renewcommand{\paragraph}[1]{\medskip\noindent\textbf{\large#1}\smallskip}
-#+END_EXPORT
-
 # How to insert raw latex commands
 #  #+BEGIN_EXPORT latex
 #  #+END_EXPORT
@@ -275,6 +256,10 @@
 #   #+LATEX_CLASS: svmono
 #   #+LATEX_CLASS_OPTIONS: []
 #   #+LATEX_HEADER: \usepackage{../compsys}
+
+#+BEGIN_EXPORT latex
+\renewcommand{\paragraph}[1]{\medskip\noindent\textbf{\large#1}\smallskip}
+#+END_EXPORT
 
 # I want to have two active URL links just below title, author,
 # and date.  This is done differently for html and latex export.
@@ -324,16 +309,6 @@
 # defined in src/tools/Sigma.el.
 
 # ----------------------------------------------------------------
-# Figures
-# ----------------------------------------------------------------
-
-# For figures, use \includegraphics without extension, for
-# latex it should use .pdf and for html it should use .svg.
-# There are tools to build both from .tex using tikz
-
-# #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
-
-# ----------------------------------------------------------------
 # Links
 # ----------------------------------------------------------------
 
@@ -359,10 +334,6 @@ collection of examples, an integrated development environment
 (IDE) with a graphical user interface, and a user guide with
 tutorials.
 
-
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 ** Running Sigma16
 
@@ -1281,9 +1252,6 @@ loop1  store x[R0],R5  ; wrong order: should be R5,x[R0]
 If you forget some detail, look at one of the example
 programs.
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 When the assembler is translating a program, it begins by
 looking at the spaces in order to split each statement into
@@ -2304,10 +2272,6 @@ operand is the register that contains the break code, and the
 other two operands are ignored, so we can just use R0.
 
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
-
 #+BEGIN_SRC Sigma16 exports: code
     ...
     add    R1,R2,R3
@@ -2826,10 +2790,6 @@ comment, even where it wouldn't be required.
 Testing aardvark
 #+END_EXAMPLE
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
-
 *** [R0] is assumed if it's omitted
 
 In an RX instruction, if you omit the [Reg] after the
@@ -2883,10 +2843,6 @@ unconditional or conditional.
 - brbc0 branch backward if Rd = 0
 - brbc1 branch backward if Rd /= 0
 
-
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
   
 The unconditional branches take one operand, which is a
 constant called the offset.
@@ -2896,10 +2852,6 @@ constant called the offset.
 
 ** Modules and linking
 
-
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 A *module* is a section of a program; it may be the complete
 program or just a part of it.  A module may be saved in a
@@ -2928,9 +2880,6 @@ on how the system is configured, there may be a dialogue box
 asking you for a file name, or a generic default file name
 may be used (for example, "S16DownloadFile (2).txt" or
 something similar).
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 # This file will be saved in the default Downloads directory as
 # configured in your browser.
@@ -2944,9 +2893,6 @@ something similar).
 # it does make it inconvenient to save your edited assembly
 # programs.
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 Another approach is to use a separate text editor, and to
 copy/paste text between the external editor and the Editor
@@ -2970,9 +2916,6 @@ module are shown.  If you follow good programming style,
 where the first rew lines of each module identify the
 program, you'll be able to see at a glance what each module
 is without visiting it in the editor.
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 Several buttons appear for each module in the list.  At any
 time, one of the modules is *selected*. Click the Select
@@ -3028,9 +2971,6 @@ local computer, but they are not necessary.
 
 
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 There is also a digital circuit, specified in a functional
 hardware description language, which implements the Core
@@ -3106,9 +3046,6 @@ Assembly language provides several notations for expressing
 the value of a word.
 
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
  If a numeric value is out of range it is truncated.
 
@@ -3124,9 +3061,6 @@ $1234 is a hexadecimal number, and they denote different
 words.
 
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 Assembly language always requires a $ before a hexadecimal
 constant.  For displays of the machine state, in contexts
@@ -3139,9 +3073,6 @@ programs.
 *** Bits and fields
 
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 The bits of a word are indexed from right to left, starting
 with index 0.  The least significant (rightmost) bit has
@@ -3166,9 +3097,6 @@ $$\fbox{$ \ \vert\ x_{7}\> x_{6}\> x_{5}\> x_{4}
   \ \vert\ x_{3}\> x_{2}\> x_{1}\> x_{0}
   \ $}$$
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
   
 A bit field is a contiguous sequence of bits in a word.  It
 is specified by two numbers: the indices of the rightmost and
@@ -3196,9 +3124,6 @@ instructions in Sigma16 operate on integers, but address
 arithmetic is performed in binary.
 
 *** Integers
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 Integers are represented using two's complement notation.  If
 the leftmost (most significant) bit of a word is 0, its two's
@@ -3218,9 +3143,6 @@ bit is 1, we know that $x < 0$.  We can negate $x$ by
 inverting the bits, obtaining 0000 0101.  Adding 1 gives 0000
 0110 which is 6.  Since $-x = 6$, we conclude that $x = -6$.
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
    
 ** Memory
@@ -3260,9 +3182,6 @@ Testing aardvark
 #+END_EXAMPLE
 
 ok
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 #+BEGIN_EXAMPLE
 Testing aardvark
@@ -4191,14 +4110,9 @@ representing a binary number between 0 and 15.
 | op | d | a | b |
 |----+---+---+---|
 
-
 {{{BeginGraphics}}}
 {{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
 {{{EndGraphics}}}
-
-
-
-# {{{svgfig(./figures/svg/RRRformat)}}}
 
 - op (bits with index 15 to 12) is the operation code, often
   called /opcode/.  This determines the operation to be performed.
@@ -4260,8 +4174,9 @@ has the same format as an RRR instruction, with four fields: op,
 d, a, b.  The second word is a single 16-bit binary number, and is
 called the displacement.
 
-
-
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}RX{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
 - The first word contains the op, d, a, b fields:
   - The op field (bits 15-12) is 15 (hex f).  This indicates that
@@ -4369,42 +4284,26 @@ The EXP instructions provide more complex operations, and they
 belong to the Standard architecture.  (The Core architecture uses
 only RRR and RX).  An EXP instruction consists of two words.
 
-The first word has the same op and d fields as RRR and RX.  The op
-field contains 14 (hex e), which indicates that the instruction is
-EXP format.  The a and b fields are treated as one 8-bit natural
-number, which is the secondary operation code.  This provides for
-the possibility of up to 256 EXP format instructions, which
-enables new experimental instructions to be defined.
+- The first word has the same op and d fields as RRR and RX.  The
+  op field contains 14 (hex e), which indicates that the
+  instruction is EXP format.  The a and b fields are treated as
+  one 8-bit natural number, which is the secondary operation code.
+  This provides for the possibility of up to 256 EXP format
+  instructions, which enables new experimental instructions to be
+  defined.
 
-# {{{svgfig(EXPformat)}}}
+- The second word contains four 4-bit fields.  Each of these may
+  contain either a register number or a short 4-bit number,
+  depending on the instruction.
 
-|----+---+----|
-| op | d | ab |
-|----+---+----|
+{{{BeginGraphics}}}
+{{{GraphicsCmd}}}EXP{{{GraphicsExt}}}
+{{{EndGraphics}}}
 
-The second word contains four 4-bit fields.  Each of these may
-contain either a register number or a short 4-bit number,
-depending on the instruction.
-
-|---+---+---+---|
-| e | f | g | h |
-|---+---+---+---|
-
-- e  (bits 15-12) 4-bit operand
-- f  (bits 11-8)  4-bit operand
-- g  (bits 7-4)   4-bit operand
-- h  (bits 3-0)   4-bit operand
-
-
-
-
-+-------+------+-----+-----+
-|     e |    f |   g |   h |
-+-------+------+-----+-----+
-| 15-12 | 11-8 | 7-4 | 3-0 |
-+-------+------+-----+-----+
-
-
+- E  (bits 15-12) 4-bit operand
+- F  (bits 11-8)  4-bit operand
+- G  (bits 7-4)   4-bit operand
+- J  (bits 3-0)   4-bit operand
 
 ** Arithmetic
 
@@ -6581,6 +6480,7 @@ EXP3 is a subformat of EXP.
 
 <<xjumpc0-d>>
 
+
 * Instruction reference tables
 
 This section gives the complete instruction set, including Core,
@@ -6730,19 +6630,19 @@ instruction set.
 |-------------------------------------------------------+-----------+--------------------------------|
 | *S32* <<xload-t>> [[xload-d][_xload_]] RD,DISP[RA]    | fDAb DISP | R_d,R_{d+1} :=                 |
 | [f,b] iRX/aRX                                         |           | M[ea],mem[ea+1]                |
-| xload R4,$0e3a[R14]                                   | f4e9 0e3a |                                |
+| xload R4,$0e3a[R14]                                   | f4eb 0e3a |                                |
 |-------------------------------------------------------+-----------+--------------------------------|
 | *S32* <<xstore-t>> [[xstore-d][_xstore_]] RD,DISP[RA] | fDAc DISP | M[ea],M[ea+1] := R_d,R_{d+1}$' |
 | [f,c] iRX/aRX                                         |           |                                |
-| xstore R4,$0e3a[R14]                                  | f4e9 0e3a |                                |
+| xstore R4,$0e3a[R14]                                  | f4ec 0e3a |                                |
 |-------------------------------------------------------+-----------+--------------------------------|
 |                                                       | fDAd DISP | nop -- available               |
 | [f,d] iRX/                                            |           | for experimentation            |
 |-------------------------------------------------------+-----------+--------------------------------|
-|                                                       | fDAc DISP | nop -- available               |
+|                                                       | fDAe DISP | nop -- available               |
 | [f,e] iRX/                                            |           | for experimentation            |
 |-------------------------------------------------------+-----------+--------------------------------|
-|                                                       | fDAc DISP | nop -- available               |
+|                                                       | fDAf DISP | nop -- available               |
 | [f,f] iRX/                                            |           | for experimentation            |
 |-------------------------------------------------------+-----------+--------------------------------|
 #+BEGIN_EXPORT html
@@ -6767,7 +6667,7 @@ instruction set.
 |------------------------------------------------------------+-----------+-------------------------------|
 | *Assembly*                                                 | *Code*    | *Effect*                      |
 |------------------------------------------------------------+-----------+-------------------------------|
-| <<logicf-t>> [[logicf-d][_logicf_]] RD,RE,F,G,H            | ed00 EFGH | Rd.f:g :=                     |
+| <<logicf-t>> [[logicf-d][_logicf_]] RD,RE,F,G,H            | eD00 EFGH | Rd.f:g :=                     |
 | [e,00] iEXP/aRRkkk                                         |           | h(Rd.f:g,Re.f:g)              |
 | logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
@@ -6779,91 +6679,91 @@ instruction set.
 | [e,02] iEXP/aRRk                                           |           |                               |
 | shiftl R6,R7,2                                             | e602 7002 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| <<shiftr-t>> [[shiftr-d][_shiftr_]] Rd,Re,h                | Ed03 E..H | Rd := Re shr h                |
+| <<shiftr-t>> [[shiftr-d][_shiftr_]] Rd,Re,h                | eD03 E..H | Rd := Re shr h                |
 | [e,03] iEXP/aRRk                                           |           |                               |
 | shiftr R6,R7,2                                             | e603 7002 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | <<extract-t>> [[extract-d][_extract_]] Rd,Re,f,g,h         |           | Rd.f~g :=                     |
 | [e,04] iEXP/aRRkkk                                         |           |                               |
-| extract R6,R7,5,15,2                                       | e900 37f2 |                               |
+| extract R6,R7,5,15,2                                       | eD04 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | <<save-t>> [[save-d][_save_]] Rd,Re,gh[Rf]                 |           | M[Rf+gh] := Rd,               |
 | [e,05] iEXP/aRRX                                           |           | M[Rf+gh+1] := R{d+1}          |
 |                                                            |           | M[Rf+gh+e-d] := Re            |
-| save R3,R9,50[R13]                                         | e900 37f2 |                               |
+| save R3,R9,50[R13]                                         | eD05 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | <<restore-t>> [[restore-d][_restore_]] Rd,Re,gh[Rf]        |           | Rd := M[Rf+gh],               |
 | [e,06] iEXP/aRRX                                           |           | ...,                          |
 |                                                            |           | Re := M[Rf+gh+e-d]            |
-| restore R3,R9,50[R13]                                      | e900 37f2 |                               |
+| restore R3,R9,50[R13]                                      | eD06 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | <<push-t>> [[push-d][_push_]] Rd,Re,Rf                     |           | M[ea] := Rd, Rb++             |
 | [e,07] iEXP/aRRR                                           |           |                               |
-| push R4,R13,R8                                             | e900 37f2 |                               |
+| push R4,R13,R8                                             | eD07 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | <<pop-t>> [[pop-d][_pop_]] Rd,Re,Rf                        |           | Rb--, Rd := M[ea]             |
 | [e,08] /aRRR                                               |           |                               |
-| pop R4,R13,R8                                              | e900 37f2 |                               |
+| pop R4,R13,R8                                              | eD08 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | <<top-t>> [[top-d][_top_]] Rd,Re,Rf                        |           | Rb--, Rd := M[ea]             |
 | [e,09] iEXP/aRRR                                           |           |                               |
-| top R4,R13,R8                                              | e900 37f2 |                               |
+| top R4,R13,R8                                              | eD09 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| <<brc0-t>> [[brc0-d][_brc0_]] brc0 Rd,e,fgh                | Ed0A      | if R[d].e=0                   |
+| <<brc0-t>> [[brc0-d][_brc0_]] brc0 Rd,e,fgh                | eD0aA     | if R[d].e=0                   |
 | [e,0a] iEXP/ ??                                            |           | then pc:=pc+fgh               |
-| logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
+| logicf R9,R3,7,15,2                                        | eD0a 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| <<brc1-t>> [[brc1-d][_brc1_]] Rd,e,fgh                     | Ed0B      | if R[d].e=1                   |
+| <<brc1-t>> [[brc1-d][_brc1_]] Rd,e,fgh                     | eD0b      | if R[d].e=1                   |
 | [e,0b] ???                                                 |           | then pc:=pc+fgh               |
-| logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
+| logicf R9,R3,7,15,2                                        | eD0b 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| <<brz-t>> [[brz-d][_brz_]] Rd,efgh                         | Ed0C      | if R[d]=0000                  |
+| <<brz-t>> [[brz-d][_brz_]] Rd,efgh                         | eD0c      | if R[d]=0000                  |
 | [e,0c] ???                                                 |           | then pc:=pc+efgh              |
 | logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| <<brnz-t>> [[brnz-d][_brnz_]] Rd,efgh                      | Ed0D      | if R[d]!=0000                 |
+| <<brnz-t>> [[brnz-d][_brnz_]] Rd,efgh                      | eD0d      | if R[d]!=0000                 |
 | [e,0d] ???                                                 |           | then pc:=pc+efgh              |
 | logicf R9,R3,7,15,2                                        | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| <<dispatch-t>> [[dispatch-d][_dispatch_]] Rd,efgh          | Ed0E      | pc :=                         |
+| <<dispatch-t>> [[dispatch-d][_dispatch_]] Rd,efgh          | eD0e      | pc :=                         |
 | [e,0e] iEXP/?????                                          | efgh      | M[pc+min(Rd,efgh)]]           |
 | dispatch bla                                               | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *PRIV* <<getctl-t>> [[getctl-d][_getctl_]] Rd,e            | Ed0F      | Rd := Sc privileged           |
+| *PRIV* <<getctl-t>> [[getctl-d][_getctl_]] Rd,e            | eD0f      | Rd := Sc privileged           |
 | [e,0f] iEXP/axxxxx                                         | e...      |                               |
 | getctl bla                                                 | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *PRIV* <<putctl-t>> [[putctl-d][_putctl_]] Rd,e            | Ed10      | Sc := Rd privileged           |
+| *PRIV* <<putctl-t>> [[putctl-d][_putctl_]] Rd,e            | eD10      | Sc := Rd privileged           |
 | [e,10] iEXP/axxxx                                          | e...      |                               |
 | putctl bla                                                 | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *PRIV* <<resume-t>> [[resume-d][_resume_]]                 | Ed11      | pc := ipc,                    |
+| *PRIV* <<resume-t>> [[resume-d][_resume_]]                 | eD11      | pc := ipc,                    |
 | [e,11] iEXP/axxxx                                          |           | status := istatus             |
 | resume bla                                                 | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *PRIV* <<timeron-t>> [[timeron-d][_timeron_]] Rd,efgh      | Ed12      | timer := efgh,                |
+| *PRIV* <<timeron-t>> [[timeron-d][_timeron_]] Rd,efgh      | eD12      | timer := efgh,                |
 | [e,12]                                                     | efgh      | start timer                   |
 | timeron bla                                                | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *PRIV* <<timeroff-t>> [[timeroff-d][_timeroff_]] Rd,efgh   | Ed13      | stop timer                    |
+| *PRIV* <<timeroff-t>> [[timeroff-d][_timeroff_]] Rd,efgh   | eD13      | stop timer                    |
 | [e,13]                                                     | efgh      |                               |
 | timeroff bla                                               | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
 | [e,14]...[e,1f] reserved                                   |           |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xadd-t>> [[xadd-d][xadd]] Rd,Re,Rf                 |           | Rd := Re+Rf                   |
+| *S32* <<xadd-t>> [[xadd-d][xadd]] Rd,Re,Rf                 | eD20      | Rd := Re+Rf                   |
 | [e,20] iEXP/aRRR                                           |           |                               |
 | xadd R8,R12,R5                                             | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xsub-t>> [[xsub-d][xsub]] Rd,Re,Rf                 |           | Rd := Re+rf                   |
+| *S32* <<xsub-t>> [[xsub-d][xsub]] Rd,Re,Rf                 | eD21      | Rd := Re+rf                   |
 | [e,21] iEXP/aRRR                                           |           |                               |
 | xsub R8,R12,R5                                             | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xmul-t>> [[xmul-d][xmul]] Rd,Ra,Rb                 |           | Rd := Re+rf                   |
+| *S32* <<xmul-t>> [[xmul-d][xmul]] Rd,Ra,Rb                 | eD22      | Rd := Re+rf                   |
 | [e,22] iEXP/aRRR                                           |           |                               |
 | xmul R8,R12,R5                                             | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xdiv-t>> [[xdiv-d][xdiv]] Rd,Ra,Rb                 |           |                               |
+| *S32* <<xdiv-t>> [[xdiv-d][xdiv]] Rd,Ra,Rb                 | eD23      |                               |
 | [e,23] iEXP/aRRR                                           |           |                               |
 | xdiv R8,R12,R5                                             | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
@@ -6871,11 +6771,11 @@ instruction set.
 | [e,24] iEXP/aRR                                            |           |                               |
 | xcmp R12,R5                                                | ec24 5000 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xaddc-t>> [[xaddc-d][xaddc]] Rd,Ra,Rb              |           |                               |
+| *S32* <<xaddc-t>> [[xaddc-d][xaddc]] Rd,Ra,Rb              | eD25      |                               |
 | [e,25] iEXP/aRRR                                           |           |                               |
 | xaddc R8,R12,R5                                            | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xmuln-t>> [[xmuln-d][xmuln]] Rd,Ra,Rb              |           |                               |
+| *S32* <<xmuln-t>> [[xmuln-d][xmuln]] Rd,Ra,Rb              | eD26      |                               |
 | [e,26] iEXP/aRRR                                           |           |                               |
 | xmuln R8,R12,R5                                            | e900 37f2 |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
@@ -6938,36 +6838,36 @@ instruction set.
 #+END_EXPORT
 #+CAPTION: EXP3 instruction reference
 #+ATTR_LATEX: :environment longtable :align l|l|l
-| *Assembly*                                              | *Code*         | *Effect*               |
-|---------------------------------------------------------+----------------+------------------------|
-| *S32* <<xjumpc0-t>> [[xjumpc0-d][xjumpc0]] m,disp[Ra]   | eD40 EFGH pqrs | if Rd==0 then pc := ea |
-| [e,40] iEXP3/amX                                        |                |                        |
-| xjumpc0 25,$0ea3a[R14]                                  | eD00 37f2 pqrs |                        |
-|---------------------------------------------------------+----------------+------------------------|
-| *S32* <<xjumpc1-t>> [[xjumpc1-d][xjumpc1]] m,disp[Ra]   | Ed00 abcd aabc | if Rd==0 then pc := ea |
-| [e,41] iEXP3/amX                                        |                |                        |
-| xjumpc1 25,$0ea3a[R14]                                  | e900 37f2      |                        |
-|---------------------------------------------------------+----------------+------------------------|
-| *S32* <<xlogicf-t>> [[xlogicf-d][xlogicf]] Rd,Rb,m,n,h  | FdbD abcd efgh | Rd.m:n := aaaaaaaaxx   |
-| [e,42] iEXP3/aRRmmk                                     |                | h(Rd.m:n,Rb.m:n)       |
-| xlogicf R9,R3,7,25,20                                   | e900 37f2      |                        |
-|---------------------------------------------------------+----------------+------------------------|
-| *S32* <<xlogicb-t>> [[xlogicb-d][xlogicb]] Rd,Rb,m,n,h  | FdbE efgh pqrd | Rd.f :=                |
-| [e,43] iEXP3/aRRmmk                                     |                | h(Rd.f,Re.g)           |
-| xlogicb R9,R3,7,25,20                                   | e900 37f2 abcd |                        |
-|---------------------------------------------------------+----------------+------------------------|
-| *S32* <<xshiftl-t>> [[xshiftl-d][xshiftl]] Rd,Re,m      | FdvF EFGH PQRS | Rd.f~g :=              |
-| [e,44] iEXP3/aRRmmk                                     |                |                        |
-| xshiftl R6,R7,17                                        | e900 37f2 abcd |                        |
-|---------------------------------------------------------+----------------+------------------------|
-| *S32* <<xshiftr-t>> [[xshiftr-d][xshiftr]] Rd,Re,m      | FdvF abcd abcd | Rd.f~g :=              |
-| [e,45] iEXP3/aRRmmk                                     |                |                        |
-| xshiftr R6,R7,27                                        | e900 37f2 abcd |                        |
-|---------------------------------------------------------+----------------+------------------------|
-| *S32* <<xextract-t>> [[xextract-d][xextract]] Rd,Re,m,n | FdvF ABCD ABCD | Rd.f~g :=              |
-| [e,46] iEXP3/aRRmmk                                     |                |                        |
-| xextract R6,R7,18,20,16                                 | e900 37f2 abcd |                        |
-|---------------------------------------------------------+----------------+------------------------|
+| *Assembly*                                              | *Code*         | *Effect*         |
+|---------------------------------------------------------+----------------+------------------|
+| *S32* <<xjumpc0-t>> [[xjumpc0-d][xjumpc0]] m,disp[Ra]   | eD40 EFGH pqrs | if Rd==0         |
+| [e,40] iEXP3/amX                                        |                | then pc := ea    |
+| xjumpc0 25,$0ea3a[R14]                                  | eD00 37f2 pqrs |                  |
+|---------------------------------------------------------+----------------+------------------|
+| *S32* <<xjumpc1-t>> [[xjumpc1-d][xjumpc1]] m,disp[Ra]   | Ed00 abcd aabc | if Rd==0         |
+| [e,41] iEXP3/amX                                        |                | then pc := ea    |
+| xjumpc1 25,$0ea3a[R14]                                  | e900 37f2      |                  |
+|---------------------------------------------------------+----------------+------------------|
+| *S32* <<xlogicf-t>> [[xlogicf-d][xlogicf]] Rd,Rb,m,n,h  | FdbD abcd efgh | Rd.m:n :=        |
+| [e,42] iEXP3/aRRmmk                                     |                | h(Rd.m:n,Rb.m:n) |
+| xlogicf R9,R3,7,25,20                                   | e900 37f2      |                  |
+|---------------------------------------------------------+----------------+------------------|
+| *S32* <<xlogicb-t>> [[xlogicb-d][xlogicb]] Rd,Rb,m,n,h  | FdbE efgh pqrd | Rd.f :=          |
+| [e,43] iEXP3/aRRmmk                                     |                | h(Rd.f,Re.g)     |
+| xlogicb R9,R3,7,25,20                                   | e900 37f2 abcd |                  |
+|---------------------------------------------------------+----------------+------------------|
+| *S32* <<xshiftl-t>> [[xshiftl-d][xshiftl]] Rd,Re,m      | FdvF EFGH PQRS | Rd.f~g :=        |
+| [e,44] iEXP3/aRRmmk                                     |                |                  |
+| xshiftl R6,R7,17                                        | e900 37f2 abcd |                  |
+|---------------------------------------------------------+----------------+------------------|
+| *S32* <<xshiftr-t>> [[xshiftr-d][xshiftr]] Rd,Re,m      | FdvF abcd abcd | Rd.f~g :=        |
+| [e,45] iEXP3/aRRmmk                                     |                |                  |
+| xshiftr R6,R7,27                                        | e900 37f2 abcd |                  |
+|---------------------------------------------------------+----------------+------------------|
+| *S32* <<xextract-t>> [[xextract-d][xextract]] Rd,Re,m,n | FdvF ABCD ABCD | Rd.f~g :=        |
+| [e,46] iEXP3/aRRmmk                                     |                |                  |
+| xextract R6,R7,18,20,16                                 | e900 37f2 abcd |                  |
+|---------------------------------------------------------+----------------+------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
@@ -8720,9 +8620,9 @@ following information.
   photos are fine.  Try to show the processor display,
   including the registers.
 
-
-
 <<projects>>
+
+
 * Projects with Sigma16
 
 - Sigma16 is intended for use in teaching, self-learning, and
@@ -8733,7 +8633,7 @@ following information.
   - Modifying the existing software, for example you might add some
     new instructions
   - Writing new software from scratch, for example writing a new
-    emulator
+    emulator, or a complete new system
 - In all cases, it's important to cite Sigma16 properly, and to
   adhere to the sofware license
 - One important topic in software engineering, which sometimes
@@ -8771,9 +8671,6 @@ following information.
     provide it, check that Sigma16 doesn't actually provide x, and
     also check that you do.
 
-{{{BeginGraphics}}}
-{{{GraphicsCmd}}}RRR{{{GraphicsExt}}}
-{{{EndGraphics}}}
 
 * About Sigma16
 
@@ -8786,7 +8683,7 @@ following information.
     [[https://jtod.github.io/home/Sigma16]]
   - The github page for Sigma16 contains the current development
     code, which changes frequently and is not stable.\\
-    https://github.com/jtod/Sigma16\\
+    https://github.com/jtod/Sigma16
   - The github page also contains links to versions that were
     released since 2019.  Versions of Sigma16 from the first
     release in 2010 up to 2018 are not available online.
@@ -9007,7 +8904,7 @@ following information.
 
 #+BEGIN_BUILD_ID
 #+BEGIN: update-build-id :format "%Y-%m-%d at %H:%M"
-Build: 2026-01-26 at 11:00
+Build: 2026-02-06 at 13:33
 #+END
 #+END_BUILD_ID
 
@@ -9226,8 +9123,6 @@ Include svg figure
 Here is an svg figure RRRformat.  ok for html, gives latex
 error slash includesvg undefined
 
-# {{{svgfig(RRRformat)}}}
-
 ** Configuration
 - setArch(16)
 - setArch(32)
@@ -9267,4 +9162,19 @@ loop  lea  R3,42     ; R3 := 42
 
 - M-x json-pretty-print-buffer
 
-  
+
+# Deprecated
+
+#+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
+# ----------------------------------------------------------------
+# Figures
+# ----------------------------------------------------------------
+# For figures, use \includegraphics without extension, for
+# latex it should use .pdf and for html it should use .svg.
+# There are tools to build both from .tex using tikz
+
+# #+MACRO: svgfig (eval (if (eq org-export-current-backend 'latex) (concat "\\includesvg\{" $1 "\}") (concat "[[./figures/svg/" $1 ".svg]]")))
+
+# {{{svgfig(./figures/svg/RRRformat)}}}
+# {{{svgfig(RRRformat)}}}
+
