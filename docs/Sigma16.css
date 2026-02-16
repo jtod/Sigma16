@@ -196,7 +196,7 @@ div#preamble p.date {
 
 div#preamble p.runlink {
     font-family:  Verdana, sans-serif;
-    font-size: 50%;
+    font-size: 100%;
     color:black;
     text-align: center;
     margin-top: 0.9em;
@@ -206,7 +206,7 @@ div#preamble p.runlink {
 
 div#preamble p.sourcelink {
     font-family:  Verdana, sans-serif;
-    font-size: 50%;
+    font-size: 100%;
     color:black;
     text-align: center;
     margin-top: 0em;
@@ -216,7 +216,7 @@ div#preamble p.sourcelink {
 
 .TitleSectionTitle {
     font-family:  Verdana, sans-serif;
-    font-size: 175%;
+    font-size: 100%;
     color: blue;
     border: solid;
     border-width: thin;

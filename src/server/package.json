@@ -10,7 +10,6 @@
     "homepage": "https://jtod.github.io/home/Sigma16/",
     "main": "sigserver.mjs",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
     },
     "keywords": [
         "Sigma16",
