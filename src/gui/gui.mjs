@@ -1915,7 +1915,11 @@ function getMemRange (gst, t) {
     let b = 65535
     switch (gst.options.memDispMode) {
     case ModeMemDisplayHBA:
-        b = Math.max (gst.highBootAddress, MemDispMinSize)
+        // (MEMDISPLAY) Add a small constant to b in order to show
+        // some extra words at end of active range.  If the
+        // constant is 0, the last word won't be shown.
+        b = Math.max (gst.highBootAddress, MemDispMinSize) + 4
+        // b = Math.max (gst.highBootAddress, MemDispMinSize)
         break
     case ModeMemDisplaySliding:
         const x = Math.round (gst.currentMDslidingSize / 2)
@@ -1934,7 +1938,7 @@ function getMemRange (gst, t) {
     const n = b - a
     const scrollto = t - a
     const result = {a, b, n, scrollto}
-//    com.mode.devlog (`getMemRange a=${a} b=${b} n=${n} t=${scrollto}`)
+    //    com.mode.devlog (`getMemRange a=${a} b=${b} n=${n} t=${scrollto}`)
     return result
 }
 
