@@ -6242,7 +6242,7 @@ The [[timeron-t][timeron]] instruction
 The [[timeroff-t][timeroff]] instruction
 
 
-* Sigma32
+* Sigma32 :noexport:
 
 /Sigma32 is experimental and under development.  It is only
 partially implemented, and many details in this section are
@@ -6483,10 +6483,8 @@ EXP3 is a subformat of EXP.
 
 * Instruction reference tables
 
-This section gives the complete instruction set, including Core,
-Standard, and Sigma32.  If an instruction is not marked as Core or
-S32, it is a standard 16-bit instruction.  There are separate
-tables for RRR, RX, EXP, and EXP3 instructions.  Each instruction
+This section gives the complete instruction set.  There are
+separate tables for each instruction format.  Each instruction
 entry contains several lines:
 
 1. General form of assembly language statement, general form of
@@ -6496,12 +6494,10 @@ entry contains several lines:
    RD,DISP[RA], and its object code is fDA1 DISP (the OP field is
    the hex number f, and the values of the D and A fields are
    specified in the assembly instruction).
-2. Indication if the instruction is Core or S32, followed by the ?????
-   blabla ref    expanding opcode full expanded operation code and the
-    assembly-format assembly language statement format]
+2. Indication if the instruction is Core, followed by the full
+   expanded operation code and the language statement format.
 3. An example assembly language statement, with specific operands,
-   and the corresponding machine language.  These examples also
-   appear in Examples/Sigma32/testasm.asm.txt.
+   and the corresponding machine language.
 
 <<RRR instruction reference>>
 ** RRR instruction reference
@@ -6581,73 +6577,76 @@ instruction set.
 #+END_EXPORT
 #+CAPTION: RX instructions
 #+ATTR_LATEX: :environment longtable :align l|l|l
-| *Assembly*                                            | *Code*    | *Effect*                       |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *Core* <<lea-t>>[[lea-d][_lea_]] RD,DISP[RA]          | fDA0 DISP | Rd := disp+Ra                  |
-| [f,0] iRX/aRX                                         |           |                                |
-| lea R4,$0e3a[R14]                                     | f4e0 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *Core* <<load-t>>[[load-d][_load_]] RD,DISP[RA]       | fDA1 DISP | Rd := M[disp+Ra]               |
-| [f,1] iRX/aRX*                                        |           |                                |
-| load R4,$0e3a[R14]                                    | f4e1 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *Core* <<store-t>>[[store-d][_store_]] RD,DISP[RA]    | fDA2 DISP | M[disp+Ra] := Rd               |
-| [f,2[ iRX/aRX                                         |           |                                |
-| store R4,$0e3a[R14]                                   | f4e2 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *Core* <<jump-t>>[[jump-d][_jump_]] DISP[RA]          | fDA3 DISP | pc := disp+Ra                  |
-| [f,3] iRX/aX                                          |           |                                |
-| jump $0e3a[R14]                                       | f0e3 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *Core* <<jumpc0-t>>[[jumpc0-d][_jumpc0_]] D,DISP[RA]  | fDA4 DISP | *if* R15.d=0                   |
-| [f,4] iRX/akX                                         |           | *then* pc := disp+Ra           |
-| jumpc0 4,$0e3a[R14]                                   | f4e4 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *Core* <<jumpc1-t>>[[jumpc1-d][_jumpc1_]] D,DISP[RA]  | fDA5 DISP | if R15.d=1                     |
-| [f,5] iRX/akX                                         |           | then pc := disp+Ra             |
-| jumpc1 4,$0e3a[R14]                                   | f4e5 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *Core* <<jal-t>>[[jal-d][_jal_]] RD,DISP[RA]          | fDA6 DISP | Rd:=pc,                        |
-| [f,6] iRX/aRX                                         |           | pc:=disp+Ra                    |
-| jal R4,$0e3a[R14]                                     | f4e6 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| <<jumpz-t>> [[jumpz-d][_jumpz_]] RD,DISP[RA]          | fDA7 DISP | if R15.d=0                     |
-| [f,7] iRX/aRX                                         |           | then pc := disp+Ra             |
-| jumpz R4,$0e3a[R14]                                   | f4e7 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| <<jumpnz-t>> [[jumpnz-d][_jumpnz_]] RD,DISP[RA]       | fDA8 DISP | if R15.d=1                     |
-| [f,8] iRX/aRX                                         |           | then pc := disp+Ra             |
-| jumpnz R4,$0e3a[R14]                                  | f4e8 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| <<testset-t>> [[testset-d][_testset_]] RD,DISP[RA]    | fDA9 DISP | Rd:=M[disp+Ra],                |
-| [f,9] iRX/aRX                                         |           | M[disp+Ra]:=0001               |
-| testset R4,$0e3a[R14]                                 | f4e9 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-|-------------------------------------------------------+-----------+--------------------------------|
-| *S32* <<xlea-t>> [[xlea-d][_xlea_]] RD,DISP[RA]       | fDAa DISP | R_d,R_{d+1} :=                 |
-| [f,a] iRX/aRX                                         |           | disp \oplus R_a                |
-| xlea R4,$0e3a[R14]                                    | f4ea 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *S32* <<xload-t>> [[xload-d][_xload_]] RD,DISP[RA]    | fDAb DISP | R_d,R_{d+1} :=                 |
-| [f,b] iRX/aRX                                         |           | M[ea],mem[ea+1]                |
-| xload R4,$0e3a[R14]                                   | f4eb 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-| *S32* <<xstore-t>> [[xstore-d][_xstore_]] RD,DISP[RA] | fDAc DISP | M[ea],M[ea+1] := R_d,R_{d+1}$' |
-| [f,c] iRX/aRX                                         |           |                                |
-| xstore R4,$0e3a[R14]                                  | f4ec 0e3a |                                |
-|-------------------------------------------------------+-----------+--------------------------------|
-|                                                       | fDAd DISP | nop -- available               |
-| [f,d] iRX/                                            |           | for experimentation            |
-|-------------------------------------------------------+-----------+--------------------------------|
-|                                                       | fDAe DISP | nop -- available               |
-| [f,e] iRX/                                            |           | for experimentation            |
-|-------------------------------------------------------+-----------+--------------------------------|
-|                                                       | fDAf DISP | nop -- available               |
-| [f,f] iRX/                                            |           | for experimentation            |
-|-------------------------------------------------------+-----------+--------------------------------|
+| *Assembly*                                           | *Code*    | *Effect*             |
+|------------------------------------------------------+-----------+----------------------|
+| *Core* <<lea-t>>[[lea-d][_lea_]] RD,DISP[RA]         | fDA0 DISP | Rd := disp+Ra        |
+| [f,0] iRX/aRX                                        |           |                      |
+| lea R4,$0e3a[R14]                                    | f4e0 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| *Core* <<load-t>>[[load-d][_load_]] RD,DISP[RA]      | fDA1 DISP | Rd := M[disp+Ra]     |
+| [f,1] iRX/aRX*                                       |           |                      |
+| load R4,$0e3a[R14]                                   | f4e1 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| *Core* <<store-t>>[[store-d][_store_]] RD,DISP[RA]   | fDA2 DISP | M[disp+Ra] := Rd     |
+| [f,2[ iRX/aRX                                        |           |                      |
+| store R4,$0e3a[R14]                                  | f4e2 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| *Core* <<jump-t>>[[jump-d][_jump_]] DISP[RA]         | fDA3 DISP | pc := disp+Ra        |
+| [f,3] iRX/aX                                         |           |                      |
+| jump $0e3a[R14]                                      | f0e3 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| *Core* <<jumpc0-t>>[[jumpc0-d][_jumpc0_]] D,DISP[RA] | fDA4 DISP | *if* R15.d=0         |
+| [f,4] iRX/akX                                        |           | *then* pc := disp+Ra |
+| jumpc0 4,$0e3a[R14]                                  | f4e4 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| *Core* <<jumpc1-t>>[[jumpc1-d][_jumpc1_]] D,DISP[RA] | fDA5 DISP | if R15.d=1           |
+| [f,5] iRX/akX                                        |           | then pc := disp+Ra   |
+| jumpc1 4,$0e3a[R14]                                  | f4e5 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| *Core* <<jal-t>>[[jal-d][_jal_]] RD,DISP[RA]         | fDA6 DISP | Rd:=pc,              |
+| [f,6] iRX/aRX                                        |           | pc:=disp+Ra          |
+| jal R4,$0e3a[R14]                                    | f4e6 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| <<jumpz-t>> [[jumpz-d][_jumpz_]] RD,DISP[RA]         | fDA7 DISP | if R15.d=0           |
+| [f,7] iRX/aRX                                        |           | then pc := disp+Ra   |
+| jumpz R4,$0e3a[R14]                                  | f4e7 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| <<jumpnz-t>> [[jumpnz-d][_jumpnz_]] RD,DISP[RA]      | fDA8 DISP | if R15.d=1           |
+| [f,8] iRX/aRX                                        |           | then pc := disp+Ra   |
+| jumpnz R4,$0e3a[R14]                                 | f4e8 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+| <<testset-t>> [[testset-d][_testset_]] RD,DISP[RA]   | fDA9 DISP | Rd:=M[disp+Ra],      |
+| [f,9] iRX/aRX                                        |           | M[disp+Ra]:=0001     |
+| testset R4,$0e3a[R14]                                | f4e9 0e3a |                      |
+|------------------------------------------------------+-----------+----------------------|
+|                                                      | fDAd DISP | nop -- available     |
+| [f,d] iRX/                                           |           | for experimentation  |
+|------------------------------------------------------+-----------+----------------------|
+|                                                      | fDAe DISP | nop -- available     |
+| [f,e] iRX/                                           |           | for experimentation  |
+|------------------------------------------------------+-----------+----------------------|
+|                                                      | fDAf DISP | nop -- available     |
+| [f,f] iRX/                                           |           | for experimentation  |
+|------------------------------------------------------+-----------+----------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
+
+# S32 hidden...
+<<xlea-t>> <<xload-t>> <<xstore-t>>
+# |-------------------------------------------------------+-----------+--------------------------------|
+# | *S32* <<xlea-t>> [[xlea-d][_xlea_]] RD,DISP[RA]       | fDAa DISP | R_d,R_{d+1} :=                 |
+# | [f,a] iRX/aRX                                         |           | disp \oplus R_a                |
+# | xlea R4,$0e3a[R14]                                    | f4ea 0e3a |                                |
+# |-------------------------------------------------------+-----------+--------------------------------|
+# | *S32* <<xload-t>> [[xload-d][_xload_]] RD,DISP[RA]    | fDAb DISP | R_d,R_{d+1} :=                 |
+# | [f,b] iRX/aRX                                         |           | M[ea],mem[ea+1]                |
+# | xload R4,$0e3a[R14]                                   | f4eb 0e3a |                                |
+# |-------------------------------------------------------+-----------+--------------------------------|
+# | *S32* <<xstore-t>> [[xstore-d][_xstore_]] RD,DISP[RA] | fDAc DISP | M[ea],M[ea+1] := R_d,R_{d+1}$' |
+# | [f,c] iRX/aRX                                         |           |                                |
+# | xstore R4,$0e3a[R14]                                  | f4ec 0e3a |                                |
+# |-------------------------------------------------------+-----------+--------------------------------|
 
 #+BEGIN_EXPORT latex
 \clearpage
@@ -6751,77 +6750,83 @@ instruction set.
 |------------------------------------------------------------+-----------+-------------------------------|
 | [e,14]...[e,1f] reserved                                   |           |                               |
 |------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xadd-t>> [[xadd-d][xadd]] Rd,Re,Rf                 | eD20      | Rd := Re+Rf                   |
-| [e,20] iEXP/aRRR                                           |           |                               |
-| xadd R8,R12,R5                                             | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xsub-t>> [[xsub-d][xsub]] Rd,Re,Rf                 | eD21      | Rd := Re+rf                   |
-| [e,21] iEXP/aRRR                                           |           |                               |
-| xsub R8,R12,R5                                             | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xmul-t>> [[xmul-d][xmul]] Rd,Ra,Rb                 | eD22      | Rd := Re+rf                   |
-| [e,22] iEXP/aRRR                                           |           |                               |
-| xmul R8,R12,R5                                             | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xdiv-t>> [[xdiv-d][xdiv]] Rd,Ra,Rb                 | eD23      |                               |
-| [e,23] iEXP/aRRR                                           |           |                               |
-| xdiv R8,R12,R5                                             | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xcmp-t>> [[xcmp-d][xcmp]] RD,RE                    | eD24 E000 |                               |
-| [e,24] iEXP/aRR                                            |           |                               |
-| xcmp R12,R5                                                | ec24 5000 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xaddc-t>> [[xaddc-d][xaddc]] Rd,Ra,Rb              | eD25      |                               |
-| [e,25] iEXP/aRRR                                           |           |                               |
-| xaddc R8,R12,R5                                            | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xmuln-t>> [[xmuln-d][xmuln]] Rd,Ra,Rb              | eD26      |                               |
-| [e,26] iEXP/aRRR                                           |           |                               |
-| xmuln R8,R12,R5                                            | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xdivn-t>> [[xdivn-d][xdivn]] Rd,Re,Rf              |           |                               |
-| [e,27] iEXP/aRRR                                           |           |                               |
-| xdivn R8,R12,R5                                            | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xjump-t>> [[xjump-d][xjump]] Rd,disp[Ra]           | FdaD      | if $R_d=0$ then pc := ea      |
-| [e,28] iEXP/aRX                                            | disp      |                               |
-| xjump R4,$0e3a[R14]                                        | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xjal-t>> [[xjal-d][xjal]] Rd,disp[Ra]              | FdaF      | $R_d := pc, pc := ea$         |
-| [e,29] iEXP/aRX                                            | disp      |                               |
-| xjal R4,$0e3a[R14]                                         | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xjumpz-t>> [[xjumpz-d][xjumpz]] Rd,disp[Ra]        | FdaD      | if $R_d=0$ then pc := ea      |
-| [e,2a] iEXP/aRX                                            | disp      |                               |
-| xjumpz R4,$0e3a[R14]                                       | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xjumpnz-t>> [[xjumpnz-d][xjumpnz]] Rd,disp[Ra]     | FdaE      | if $R_d \neq 0$ then pc := ea |
-| [e,2b] iEXP/aRX                                            | disp      |                               |
-| xjumpnz R4,$0e3a[R14]                                      | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xsave-t>> [[xsave-d][xsave]] Rd,Re,gh[Rf]          |           | Rd.f~g :=                     |
-| [e,2c] iEXP/aRRX                                           |           |                               |
-| xsave R3,R9,50[R13]                                        | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xrestore-t>> [[xrestore-d][xrestore]] Rd,Re,gh[Rf] |           | Rd.f~g :=                     |
-| [e,2d] iEXP/aRRX                                           |           |                               |
-| xrestore R3,R9,50[R13]                                     | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xpush-t>> [[xpush-d][xpush]] Rd,Re,Rf              |           | Rd.f~g :=                     |
-| [e,2e] iEXP/aRRR                                           |           |                               |
-| xpush R4,R13,R8                                            | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xpop-t>> [[xpop-d][xpop]] Rd,Re,Rf                 |           | Rd.f~g :=                     |
-| [e,2f] iEXP/aRRR                                           |           |                               |
-| xpop R4,R13,R8                                             | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
-| *S32* <<xtop-t>> [[xtop-d][xtop]] Rd,Re,Rf                 |           | Rd.f~g :=                     |
-| [e,30] iEXP/aRRR                                           |           |                               |
-| xtop R4,R13,R8                                             | e900 37f2 |                               |
-|------------------------------------------------------------+-----------+-------------------------------|
 #+BEGIN_EXPORT html
 </div>
 #+END_EXPORT
+
+# S32 hidden
+<<xadd-t>> <<xsub-t>> <<xmul-t>> <<xdiv-t>> <<xcmp-t>> <<xaddc-t>>
+<<xmuln-t>> <<xdivn-t>> <<xjump-t>> <<xjal-t>> <<xjumpz-t>>
+<<xjumpnz-t>> <<xsave-t>> <<xrestore-t>> <<xpush-t>> <<xpop-t>>
+<<xtop-t>>
+# | *S32* <<xadd-t>> [[xadd-d][xadd]] Rd,Re,Rf                 | eD20      | Rd := Re+Rf                   |
+# | [e,20] iEXP/aRRR                                           |           |                               |
+# | xadd R8,R12,R5                                             | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xsub-t>> [[xsub-d][xsub]] Rd,Re,Rf                 | eD21      | Rd := Re+rf                   |
+# | [e,21] iEXP/aRRR                                           |           |                               |
+# | xsub R8,R12,R5                                             | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xmul-t>> [[xmul-d][xmul]] Rd,Ra,Rb                 | eD22      | Rd := Re+rf                   |
+# | [e,22] iEXP/aRRR                                           |           |                               |
+# | xmul R8,R12,R5                                             | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xdiv-t>> [[xdiv-d][xdiv]] Rd,Ra,Rb                 | eD23      |                               |
+# | [e,23] iEXP/aRRR                                           |           |                               |
+# | xdiv R8,R12,R5                                             | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xcmp-t>> [[xcmp-d][xcmp]] RD,RE                    | eD24 E000 |                               |
+# | [e,24] iEXP/aRR                                            |           |                               |
+# | xcmp R12,R5                                                | ec24 5000 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xaddc-t>> [[xaddc-d][xaddc]] Rd,Ra,Rb              | eD25      |                               |
+# | [e,25] iEXP/aRRR                                           |           |                               |
+# | xaddc R8,R12,R5                                            | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xmuln-t>> [[xmuln-d][xmuln]] Rd,Ra,Rb              | eD26      |                               |
+# | [e,26] iEXP/aRRR                                           |           |                               |
+# | xmuln R8,R12,R5                                            | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xdivn-t>> [[xdivn-d][xdivn]] Rd,Re,Rf              |           |                               |
+# | [e,27] iEXP/aRRR                                           |           |                               |
+# | xdivn R8,R12,R5                                            | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xjump-t>> [[xjump-d][xjump]] Rd,disp[Ra]           | FdaD      | if $R_d=0$ then pc := ea      |
+# | [e,28] iEXP/aRX                                            | disp      |                               |
+# | xjump R4,$0e3a[R14]                                        | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xjal-t>> [[xjal-d][xjal]] Rd,disp[Ra]              | FdaF      | $R_d := pc, pc := ea$         |
+# | [e,29] iEXP/aRX                                            | disp      |                               |
+# | xjal R4,$0e3a[R14]                                         | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xjumpz-t>> [[xjumpz-d][xjumpz]] Rd,disp[Ra]        | FdaD      | if $R_d=0$ then pc := ea      |
+# | [e,2a] iEXP/aRX                                            | disp      |                               |
+# | xjumpz R4,$0e3a[R14]                                       | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xjumpnz-t>> [[xjumpnz-d][xjumpnz]] Rd,disp[Ra]     | FdaE      | if $R_d \neq 0$ then pc := ea |
+# | [e,2b] iEXP/aRX                                            | disp      |                               |
+# | xjumpnz R4,$0e3a[R14]                                      | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xsave-t>> [[xsave-d][xsave]] Rd,Re,gh[Rf]          |           | Rd.f~g :=                     |
+# | [e,2c] iEXP/aRRX                                           |           |                               |
+# | xsave R3,R9,50[R13]                                        | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xrestore-t>> [[xrestore-d][xrestore]] Rd,Re,gh[Rf] |           | Rd.f~g :=                     |
+# | [e,2d] iEXP/aRRX                                           |           |                               |
+# | xrestore R3,R9,50[R13]                                     | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xpush-t>> [[xpush-d][xpush]] Rd,Re,Rf              |           | Rd.f~g :=                     |
+# | [e,2e] iEXP/aRRR                                           |           |                               |
+# | xpush R4,R13,R8                                            | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xpop-t>> [[xpop-d][xpop]] Rd,Re,Rf                 |           | Rd.f~g :=                     |
+# | [e,2f] iEXP/aRRR                                           |           |                               |
+# | xpop R4,R13,R8                                             | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
+# | *S32* <<xtop-t>> [[xtop-d][xtop]] Rd,Re,Rf                 |           | Rd.f~g :=                     |
+# | [e,30] iEXP/aRRR                                           |           |                               |
+# | xtop R4,R13,R8                                             | e900 37f2 |                               |
+# |------------------------------------------------------------+-----------+-------------------------------|
 
 #+BEGIN_EXPORT latex
 \clearpage
@@ -6831,7 +6836,7 @@ instruction set.
 #+END_EXPORT
 
 <<EXP3 instruction reference>>
-** EXP3 instructions
+** EXP3 instructions :noexport:
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -6885,9 +6890,9 @@ logical and2 on two registers, but this is not a machine
 instruction; the assembler converts it into the corresponding
 logicf instruction.
 
-The 32 bit pseudoinstructions are similar to their 16 bit
-counterparts.  Note that xorw is a 16-bit exclusive or, while
-xxorw is a 32-bit exclusive or.
+# The 32 bit pseudoinstructions are similar to their 16 bit
+# counterparts.  Note that xorw is a 16-bit exclusive or, while
+# xxorw is a 32-bit exclusive or.
 
 #+BEGIN_EXPORT html
 <div style="overflow-x: auto">
@@ -6946,7 +6951,7 @@ xxorw is a 32-bit exclusive or.
 <<xandb-d>>
 <<xorb-d>>
 <<xxorb-d>>
-Descriptions for 32-bit pseudoinstructions
+# Descriptions for 32-bit pseudoinstructions
 
 
 * Assembly language
