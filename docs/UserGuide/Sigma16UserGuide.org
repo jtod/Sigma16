@@ -39,6 +39,7 @@
 #   5. C-e l l - export to html and tex
 # ----------------------------------------------------------------
 
+
 # ----------------------------------------------------------------
 # Macros
 # ----------------------------------------------------------------
@@ -8909,7 +8910,7 @@ following information.
 
 #+BEGIN_BUILD_ID
 #+BEGIN: update-build-id :format "%Y-%m-%d at %H:%M"
-Build: 2026-02-17 at 16:46
+Build: 2026-05-02 at 10:20
 #+END
 #+END_BUILD_ID
 
@@ -8969,35 +8970,10 @@ Build: 2026-02-17 at 16:46
 
 * Development notes :noexport:
 
-** Design Rationale for Sigma16
+** Instructions
 
-Goals
-- Small but realistic instruction set
-- Tiny core that supports ordinary programming
-- Full architecture supports operating system kernel
-- Digital circuit that fullly implements the core
-- Understandable and readable machine language
-- Modules, lining, relocation, booting
-- Emphasise connections between levels of abstraction
-- Software tools: assembler, linker, emulator, IDE
-- Software tools should run in browser, without downloading or
-  installing anything
-- Clear relationship between assembly language and machine
-  language (especially for the core)
-- System should make crystal clear the distinction between
-  assembly language and machine language
-- Show clearly that the machine executes machine language, not
-  assembly language
-- User Guide always available in the browser app, and it is always
-  visible when the app launches
-
-Non-goals
-- Full commercial architecture (too complicated to cover in depth
-  in reasonable time for beginners)
-- Large set of word sizes and primitive data types
-- 
-
-** Arithmetic
+*** TODO save/restore
+- both should  wrap around to R0, but restore doesn't
 
 ** Implementation notes
 

@@ -7,10 +7,11 @@
 
 % added in Sigma16 user guide...
 
+% deprecated: produce separate pdf files for tikz figures
 % configure tikz
-\usepackage{tikz}
+% \usepackage{tikz}
 % \usepackage{standalone}
-\usetikzlibrary{calc}
+%\usetikzlibrary{calc}
 
 \usepackage{tcolorbox}
 
@@ -180,4 +181,8 @@
 \newcommand{\wassubbottom}[1]{{#1}}
 \newcommand{\wasincludegraphics}[1]{\textbf{#1}}
 
+% load hyperref after the other commands above
+% \usepackage[colorlinks=true]{hyperref}
+% don't need this, use hypersetup
+\hypersetup{colorlinks=true,linkcolor=blue}
 
