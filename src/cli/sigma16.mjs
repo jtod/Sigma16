@@ -72,6 +72,9 @@ alias sigma16="node ${SIGMA16}/src/Sigma16/cli/Sigma16.mjs"
 // Initialization
 //----------------------------------------------------------------------
 
+console.log (`*** Loading sigma16.mjs 301`);
+console.log(`Working directory is ${process.cwd()}`);
+
 // Standard packages
 // import express from 'express';
 import path from 'path';
@@ -84,7 +87,20 @@ import * as smod from "../base/s16module.mjs";
 import * as st from "../base/state.mjs";
 import * as asm  from "../base/assembler.mjs";
 import * as link from "../base/linker.mjs";
+
+// sigserver.mjs: As of May 2026: Previously, the source for
+// sigserver.mjs was in ../server/sigserver.mjs.  From May 2026,
+// the primary source is SigServer/src/server/sigserver.mjs.  Only
+// that primary source should be edited.  After editing it, enter
+// CopyServer (an alias defined in .bashrc) on the command line.
+// That copies SigServer/src/server/sigserver.mjs to
+// ../server/sigserver.mjs, where the sigma16 program will access
+// it.  This may be a temporary approach, or it could be
+// permanent.  We'll see...
+
+console.log ('sigma16: About to load server...')
 import * as serv from '../server/sigserver.mjs'
+console.log ('sigma16: Finshed loading server...')
 
 // Find paths to components of the software, relative to this file
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
@@ -120,8 +136,10 @@ function showParameters () {
 
 // Decide what operation is being requested, and do it
 function main  () {
+    console.log ('sigma16.mjs: main')
     if (process.argv.length < 3 || command === "gui") {
 //        console.log ("calling StartServer")
+        console.log ('*** sigma16.mjs is calling serv.StartServer')
         serv.StartServer ("gui", "")
     } else if (command === "run") {
 //        console.log (`calling StartServer with ${commandArg}`)
@@ -362,5 +380,6 @@ function runtest () {
 // Run the main program
 //----------------------------------------------------------------------
 
-// console.log ("Starting main")
+console.log ("sigma16.mjs: starting main")
 main ();
+console.log (`*** Finished loading sigma16.mjs`);
