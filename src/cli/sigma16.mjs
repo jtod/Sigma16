@@ -98,9 +98,6 @@ import * as link from "../base/linker.mjs";
 // it.  This may be a temporary approach, or it could be
 // permanent.  We'll see...
 
-console.log ('sigma16: About to load server...')
-import * as serv from '../server/sigserver.mjs'
-console.log ('sigma16: Finshed loading server...')
 
 // Find paths to components of the software, relative to this file
 const cliDir = path.dirname (fileURLToPath (import.meta.url));
@@ -138,9 +135,11 @@ function showParameters () {
 function main  () {
     console.log ('sigma16.mjs: main')
     if (process.argv.length < 3 || command === "gui") {
-//        console.log ("calling StartServer")
-        console.log ('*** sigma16.mjs is calling serv.StartServer')
-        serv.StartServer ("gui", "")
+        console.log ("Starting the server")
+        console.log ('sigma16: About to load server...')
+        import * as serv from '../server/sigserver.mjs'
+        console.log ('sigma16: Finshed loading server...')
+//        serv.StartServer ("gui", "")
     } else if (command === "run") {
 //        console.log (`calling StartServer with ${commandArg}`)
         serv.StartServer ("run", "")

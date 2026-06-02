@@ -22,7 +22,7 @@
 
 //-----------------------------------------------------------------------
 console.log ('***** Loading sigserver.mjs in SigServer repository')
-console.log ('202')
+console.log ('209')
 let S16_BUILD_DIR
 
 //-----------------------------------------------------------------------
@@ -168,126 +168,27 @@ import * as ejs from 'ejs'
 import * as fs from "fs";
 import { fileURLToPath } from 'url';
 
-
-// ------------------------------------------------------------------------
-// Persistent files
-// ------------------------------------------------------------------------
-
-const diskMountPath = '/usr/data';
-const persistentFileName = 'foobarfile';
-
-// pfp is persistent file path
-const pfp = path.join (diskMountPath, persistentFileName)
-
-console.log (`pfp = ${pfp}`);
-
-const sillydata = 'Hello, this is a file created with Node.js! (2)\n';
-
-console.log ('start file test')
-
-// Testing... Write file asynchronously
-function testWrite (txt) {
-    fs.writeFile(pfp, txt, 'utf8', (err) => {
-        if (err) {
-            console.error('Error writing file:', err);
-            return;
-        }
-        console.log('File written successfully!');
-    });
-}
-
-// Write txt as a line of html into persistent file pfp
-function logPersistent (txt) {
-    if (S16_RUN_ENV === 'Render') {
-        const date = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        const lbl = `${date.getFullYear()}-${pad(date.getMonth() + 1)}`
-              + `-${pad(date.getDate())} `
-              + `${pad(date.getHours())}:${pad(date.getMinutes())}`
-              + `:${pad(date.getSeconds())} `;
-        try {
-            const txtHtml = lbl + txt + '<br>';
-            fs.appendFileSync (pfp, txtHtml, {encoding: 'utf8', flag: 'a'});
-        } catch (err) {
-            console.error (`logPersistent failed: ${txt}`)
-        }
-    }
-}
-
-// Delete contents of persistent file
-function clearPersistent () {
-    console.log ('clearPersistent');
-    fs.writeFile(pfp, '', 'utf8', (err) => {
-        if (err) {
-            console.error('Error writing file:', err);
-            return;
-        }
-        console.log('File written successfully!');
-    });
-}
-
-//-----------------------------------------------------------------------
-// Console messages and logging
-//-----------------------------------------------------------------------
-
-export function logMsg (txt) {
-    console.log (txt);
-    logPersistent (txt);
-}
-//    const dt = new Date();
-//    const dateStamp = dt.getFullYear() + '-' + (dt.getMonth()+1)
-//          + '-' + (dt.getDate());
-//    const txt2 = 'dateStamp' + ' ' + txt + '\r\n' ;
-    //    logPersistent (txt2);
-
-
-// Here’s a complete, runnable Node.js example showing how to
-// append to a file using Promises with the fs/promises API.
-
-// Javascript// Import the promises API from the 'fs' module
-// const fs = require('fs').promises;
-
-async function appendToFile(filePath, data) {
-    try {
-        // Append data to the file (creates file if it doesn't exist)
-        await fs.appendFile(filePath, data, { encoding: 'utf8' });
-        console.log(`Data successfully appended to ${filePath}`);
-    } catch (err) {
-        // Handle errors (e.g., permission issues, invalid path)
-        console.error(`Error appending to file: ${err.message}`);
-    }
-}
-
-// Example usage
-// (async () => {
-//    const filePath = 'example.txt';
-//    const contentToAppend = '\nThis is a new line of text.';
-//
-//    await appendToFile(filePath, contentToAppend);
-// })();
-// If you want, I can also show you a version that appends
-// multiple times in sequence without race conditions using await
-// properly.
-
-//-----------------------------------------------------------------------
-// Startup
-//-----------------------------------------------------------------------
-
-console.log (`This is sigma16.mjs`);
+// This is from 2025 version of server; probably don't need it now
+import * as mime from 'mime';
+const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
 //-----------------------------------------------------------------------
 // Configuration and environment variables
 //-----------------------------------------------------------------------
+
+// Configure persistent files
+const diskMountPath = '/usr/data';  // for Render server
+const persistentFileName = 'foobarfile';  // for testing on Render
+// pfp is persistent file path
+const pfp = path.join (diskMountPath, persistentFileName)
+console.log (`pfp = ${pfp}`);
 
 // appRoot is the home directory for the server; this is obtained
 // from Express
 
 const appRoot = process.cwd();
 console.log(`appRoot = ${appRoot}`)
-
-// console.log('CWD:', process.cwd());
-// const appRoot = app.path()   doesn't work
-// console.log (`appRoot = ${appRoot}`)
 
 // Environment variables are used to configure the server.  This
 // allows version numbers, file paths, etc., to be specified on
@@ -337,13 +238,9 @@ const SIGMASYSTEM = process.env.SIGMASYSTEM
 
 const S16_SERVER_DIR = path.dirname (fileURLToPath (import.meta.url))
 
-
-
-
 const SIGSERVER_REPOSITORY = `${SIGMASYSTEM}/server`
 console.log (`SIGMASYSTEM = ${SIGMASYSTEM}`)
 console.log (`SIGSERVER_REPOSITORY = ${SIGSERVER_REPOSITORY}`)
-
 
 // The build directory contains a directory for each version.  The
 // directory name may be a version number 3.3.1 or dev.  All versions
@@ -351,11 +248,17 @@ console.log (`SIGSERVER_REPOSITORY = ${SIGSERVER_REPOSITORY}`)
 // depends on whether the server is running on a local development
 // machine or the Heroku Internet server.
 
-
+console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
+console.log (`S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
+console.log (`S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
+console.log (`S16_DEV_VERSION = ${S16_DEV_VERSION}`)
+console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
+console.log (`S16_LOCAL_BUILD_DIR = ${S16_LOCAL_BUILD_DIR}`)
+// console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 
 // Temp for testing...
-S16_BUILD_DIR = path.join (appRoot, 'data', 'Sigma16', 'build')
-console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
+// S16_BUILD_DIR = path.join (appRoot, 'data', 'Sigma16', 'build')
+// console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 
 // If the environment defines an http port (e.g. on the Heroku server)
 // that is used; otherwise the default S16_LOCAL_PORT is used.  The
@@ -363,21 +266,61 @@ console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 // defined in an environment variable, and can be changed to avoid
 // clash with any other application.
 
-const PORT = process.env.PORT || S16_LOCAL_PORT
-console.log (`sigserver.mjs: PORT = ${PORT}`)
-
 //-----------------------------------------------------------------------
 // Server
 //-----------------------------------------------------------------------
 
 const app = express();
 app.set ('view engine', 'ejs')
+// express.statis.mime.define doesn't work on local server
 // express.static.mime.define({'application/javascript': ['js']});
-//express.static.mime.define({'text/css': ['css']});
-// express.static.mime.
-// define({'text/html': ['html']});
+// express.static.mime.define({'text/css': ['css']});
+// express.static.mime.define({'text/html': ['html']});
+
+// from 2025 version ????
+// app.use (express.static(path.join(__dirname, 'public')))
+
+const PORT = process.env.PORT || S16_LOCAL_PORT
+console.log (`sigserver.mjs: PORT = ${PORT}`)
 
 
+//-----------------------------------------------------------------------
+// Configure for platform
+//-----------------------------------------------------------------------
+
+let platform = 'unknown' // for logging, set below
+let logPrefix = ' ' // for logging, set at launch when version known
+
+if (S16_RUN_ENV === 'Heroku') {
+    console.log ('Running on Heroku Internet platform')
+    platform = 'Heroku'
+    express.static.mime.define({'application/javascript': ['js']});
+    express.static.mime.define({'text/css': ['css']});
+    express.static.mime.define({'text/html': ['html']});
+    // Find the directory this program is running in and use that to
+    // find the build directory
+    S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..',
+                               'Sigma16', 'build')
+} else if (S16_RUN_ENV === 'Render') {
+    console.log ('Running on Render Internet platform')
+    platform = 'Render'
+    S16_BUILD_DIR = path.join (appRoot, 'data', 'Sigma16', 'build')
+    express.static.mime.define({'application/javascript': ['js']});
+    express.static.mime.define({'text/css': ['css']});
+    express.static.mime.define({'text/html': ['html']});
+    console.log (`Render S16_BUILD_DIR = ${S16_BUILD_DIR}`)
+} else if (S16_RUN_ENV === 'Local') {
+    console.log ('Running on local platform')
+    platform = 'Local'
+    // express.static.mime.define doesn't work on local platform
+//        S16_BUILD_DIR = command === "version"
+//            ? `${SIGSERVER_REPOSITORY}/Sigma16/build`
+//            : S16_LOCAL_BUILD_DIR
+//        S16_BUILD_DIR = `${S16_LOCAL_BUILD_DIR}/data/Sigma16/build`
+    S16_BUILD_DIR = S16_LOCAL_BUILD_DIR
+    console.log (`S16_LOCAL_BUILD_DIR = ${S16_LOCAL_BUILD_DIR}`)
+    console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
+}
 
 //-----------------------------------------------------------------------
 // Launch the server
@@ -393,67 +336,27 @@ app.set ('view engine', 'ejs')
 
 // if run env is Local, arg is the BUILD_DIR to use
 
-export function StartServer (command) {
-    console.log ('*** StartServer')
-    console.log (`*** StartServer: S16_RUN_ENV = ${S16_RUN_ENV}`)
-    let ok = true
-    if (S16_RUN_ENV === 'Heroku') {
-        console.log ('Running on Heroku Internet platform')
-        // Find the directory this program is running in and use that to
-        // find the build directory
-        S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..',
-                                   'Sigma16', 'build')
-    } else if (S16_RUN_ENV === 'Render') {
-        console.log ('Running on Render Internet platform')
-        S16_BUILD_DIR = path.join (appRoot, 'data', 'Sigma16', 'build')
-        console.log (`Render S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-    } else if (S16_RUN_ENV === 'Local') {
-        console.log ('StartServer: running on local platform')
-//        S16_BUILD_DIR = command === "version"
-//            ? `${SIGSERVER_REPOSITORY}/Sigma16/build`
-        //            : S16_LOCAL_BUILD_DIR
-        //        S16_BUILD_DIR = `${S16_LOCAL_BUILD_DIR}/data/Sigma16/build`
-        S16_BUILD_DIR = S16_LOCAL_BUILD_DIR
-        console.log (`S16_LOCAL_BUILD_DIR = ${S16_LOCAL_BUILD_DIR}`)
-        console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-    } else {
-        console.log (`Server error: cannot find build directory for `
-                     + `${S16_RUN_ENV}`)
-        ok = false
-    }
-    if (1) {  // if (ok)
-        console.log ("Starting Sigma16 server")
-        console.log ("Starting Sigma16 server")
-//        console.log (`command = ${command}`)
-        console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
-        console.log (`S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
-        console.log (`S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
-        console.log (`S16_DEV_VERSION = ${S16_DEV_VERSION}`)
-        console.log (`S16_SERVER_DIR = ${S16_SERVER_DIR}`)
-        console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-        console.log (`startup ok = ${ok}`)
-        app.listen(PORT, () => console.log
-                   (`Server is listening on port ${PORT}`));
-    } else {
-        console.log ('StartServer: failed')
-    }
-    console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-    
-}
-
-StartServer()
+console.log (`*** StartServer: S16_RUN_ENV = ${S16_RUN_ENV}`)
+console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
+app.listen(PORT, '0.0.0.0', () => console.log
+           (`Server is listening on port ${PORT}`));
 
 //-----------------------------------------------------------------------
-// Startup, testing, and development
+// Requests and responses
 //-----------------------------------------------------------------------
-
-console.log(`Working directory is ${process.cwd()}`);
-console.log ('Starting Sigma/src/SigServer/src/sigserver.mjs (5)');
-
 
 app.get('/', function (req, res) {
-  res.send('Hello from Group 2!!')
+  res.send('Hello')
 })
+
+app.get ('/', (req,res) => {
+//    console.log (`responding to /`)
+    console.log (`responding to /`)
+//    res.sendFile (path.join ('/app', 'topindex.html'))
+    //    res.sendFile (path.join ('', './topindex.html'))})
+    res.send('<html><body>Hello there</body></html>')
+})
+
 
 app.get('/a', function (req, res) {
     res.send('alpha')
@@ -483,6 +386,24 @@ app.get('/testUG', function (req, res) {
 })
 
 
+// not fixed up yet...
+
+
+
+app.get ('/index.html', (req,res) => {
+    console.log (`responding-/-index.html`)
+    res.sendFile (path.join ('/app', 'topindex.html'))
+})
+
+app.get ('/default.html', (req,res) => {
+    console.log (`responding-/-default.html`)
+    res.sendFile (path.join ('/app', 'topindex.html'))
+})
+
+//-----------------------------------------------------------------------
+// Persistent file operations
+//-----------------------------------------------------------------------
+
 // run file test only on Render platform
 // const temptext = fs.readFileSync (pfp, 'utf8')
 // console.log (`temptext = ${temptext}`)
@@ -493,7 +414,7 @@ app.get ('/ReportPersistentFile', function (req,res) {
     console.log ('responding to reportPersistentFile');
     const text = fs.readFileSync (pfp, 'utf8')
     res.send(text);
-    console.log(text);
+//    console.log(text);
 })
 
 app.get ('/ClearPersistentFile', (req,res) => {
@@ -512,30 +433,8 @@ app.get ('/ClearPersistentFile', (req,res) => {
 //}
 
 
-// not fixed up yet...
-
-app.get ('/', (req,res) => {
-//    console.log (`responding to /`)
-    console.log (`responding to /`)
-//    res.sendFile (path.join ('/app', 'topindex.html'))
-    //    res.sendFile (path.join ('', './topindex.html'))})
-    res.send('<html><body>Hello there</body></html>')
-})
-
-
-
-app.get ('/index.html', (req,res) => {
-    console.log (`responding-/-index.html`)
-    res.sendFile (path.join ('/app', 'topindex.html'))
-})
-
-app.get ('/default.html', (req,res) => {
-    console.log (`responding-/-default.html`)
-    res.sendFile (path.join ('/app', 'topindex.html'))
-})
-
 app.get ('/docstyle.css', (req,res) => {
-    console.log (`responding-/`)
+    console.log (`/docstyle.css`)
     res.sendFile (path.join (appRoot, 'docstyle.css'))
 })
 
@@ -617,6 +516,8 @@ app.get('/sigma16/build/:version/Sigma16/Sigma16.html', (req, res) => {
     console.log ('Responding to /sigma16/build/v/Sigma16/Sigma16.html')
     const raw_v = req.params.version
     const v = substituteVersion (raw_v)
+    logPrefix = platform + ' ' + v + ' '; // update for logging
+    console.log (`set logPrefix = ${logPrefix}`)
     console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16', 'Sigma16.html')
     logMsg (`launching ${raw_v}->${v} at location ${loc}`)
@@ -626,6 +527,7 @@ app.get('/sigma16/build/:version/Sigma16/Sigma16.html', (req, res) => {
 // emwt
 
 app.get('/sigma16/build/:version/Sigma16/emwt.mjs', (req, res) => {
+    console.log ('Sigma16/emwt.mjs')
     const raw_v = req.params.version
     const v = substituteVersion (raw_v)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
@@ -651,60 +553,115 @@ app.get('/sigma16/build/:version/Sigma16/emcore.wasm', (req, res) => {
 
 console.log ('Reached generic file paths section')
 
+// ????? For the patterns that were actually used, I needed to
+// remove path.basename from def of loc.  Check this for all the
+// patterns.
 
-app.get('/sigma16/build/:version/Sigma16/:a/:b/:c/:d/*splat', (req, res) => {
+app.get('/sigma16/build/:version/Sigma16/:a/:b/:c/:d/:e', (req, res) => {
+    console.log ('Sigma16/:a/:b/:c/:d/:e')
+    const a = req.params.a;
+    const b = req.params.b;
+    const c = req.params.c;
+    const d = req.params.d;
+    const e = req.params.e;
+    const bn = path.basename (req.path) // don't use this?
+    const v = substituteVersion (req.params.version)
+    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+                           req.params.a,
+                           req.params.b,
+                           req.params.c,
+                           req.params.d,
+                           req.params.e);
+//                           req.params.e,
+//                           path.basename (req.path))
+    console.log (`a=${a} b=${b} c=${c} d=${d} e = ${e} bn=${bn} v=${v} loc=${loc}`)
+    finish (req, res, loc)
+})
+app.get('/sigma16/build/:version/Sigma16/:a/:b/:c/:d', (req, res) => {
     console.log ('Sigma16/:a/:b/:c/:d')
+    const a = req.params.a;
+    const b = req.params.b;
+    const c = req.params.c;
+    const d = req.params.d;
+    const bn = path.basename (req.path) // don't use this
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
                            req.params.b,
                            req.params.c,
-                           path.basename (req.path))
+                           req.params.d);                           
+//                           req.params.d,
+//                           path.basename (req.path))
+    console.log (`a=${a} b=${b} c=${c} d=${d} bn=${bn} v=${v} loc=${loc}`)
     finish (req, res, loc)
 })
 
-app.get('/sigma16/build/:version/Sigma16/:a/:b/:c/*splat', (req, res) => {
-    console.log ('Sigma16/:a/:b/:c/*')
+app.get('/sigma16/build/:version/Sigma16/:a/:b/:c', (req, res) => {
+    console.log ('Sigma16/:a/:b/:c')
+    const a = req.params.a;
+    const b = req.params.b;
+    const c = req.params.c;
+    const bn = path.basename (req.path) // don't use this
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
                            req.params.b,
-                           req.params.c,
-                           path.basename (req.path))
+                           req.params.c);
+//                           req.params.c,
+//                           path.basename (req.path))
+    console.log (`a=${a} b=${b} c=${c} bn=${bn} v=${v} loc=${loc}`)
     finish (req, res, loc)
 })
 
-app.get('/sigma16/build/:version/Sigma16/:a/:b/*splat', (req, res) => {
-    console.log ('Sigma16/:a/:b/*')
+app.get('/sigma16/build/:version/Sigma16/:a/:b', (req, res) => {
+    console.log ('Sigma16/:a/:b')
+    const a = req.params.a;
+    const b = req.params.b;
+    const bn = path.basename (req.path) // don't use this
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
                            req.params.a,
-                           req.params.b,
-                           path.basename (req.path))
+                           req.params.b);
+//                           req.params.b,
+//                           path.basename (req.path))
+    console.log (`a=${a} b=${b} bn=${bn} v=${v} loc=${loc}`)
     finish (req, res, loc)
 })
 
-app.get('/sigma16/build/:version/Sigma16/:a/*splat', (req, res) => {
-    console.log ('Sigma16/:a/*')
+// There are no mjs files in the Sigma16 directory.  However, the
+// base emulator files are loaded by emwt when the processor is
+// entered, and they are accessed by URL paths in the Sigma16
+// directory (not in Sigma16/src/base).  They are provided by the
+// following rules, which must come after the rules that match
+// src/gui/* and src/base/*
+
+// :a will be common.mjs, emulator.mjs, arrbuf.mjs
+
+app.get('/sigma16/build/:version/Sigma16/:a', (req, res) => {
+    console.log ('For emwt: Sigma16/:a')
+    const a = req.params.a;
+    const bn = path.basename (req.path) // don't use this
     const v = substituteVersion (req.params.version)
     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
-                           req.params.a,
-                           path.basename (req.path))
+                           'src', 'base',
+                           req.params.a);
+    console.log (`For emwt: a=${a} bn=${bn} v=${v} loc=${loc}`)
     finish (req, res, loc)
 })
 
-// There are no mjs files in the Sigma16 directory.  However, the base
-// emulator files are loaded by emwt when the processor is entered,
-// and they are accessed by URL paths in the Sigma16 directory (not in
-// Sigma16/src/base).  They are provided by this rule, which must come
-// after the rules that match src/gui/* and src/base/*
 
-app.get('/sigma16/build/:version/Sigma16/*splat.mjs', (req, res) => {
-    const v = substituteVersion (req.params.version)
-    const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
-                           'src', 'base', path.basename (req.path))
-    finish (req, res, loc)
-})
+// app.get('/sigma16/build/:version/Sigma16.mjs', (req, res) => {
+//     console.log ('build/:version/Sigma16.mjs')
+//     const v = substituteVersion (req.params.version)
+//     const loc = path.join (S16_BUILD_DIR, v, 'Sigma16',
+//                            'src', 'base', path.basename (req.path))
+//     finish (req, res, loc)
+// })
+
+// app.get ('/sigma16/build/:version/:a', (req,res) => {
+//     console.log (`***** Catch all: request is /sigma16/build/:v/:a`)
+//     console.log (`a = ${a}`)
+// })
 
 //-----------------------------------------------------------------------
 // Cross origin isolation
@@ -747,8 +704,102 @@ app.get ('/world.html', (req,res) => {
     res.render ('world')
 })
 
+// ------------------------------------------------------------------------
+// Persistent files
+// ------------------------------------------------------------------------
+
+
+const sillydata = 'Hello, this is a file created with Node.js! (2)\n';
+
+console.log ('start file test')
+
+// Testing... Write file asynchronously
+function testWrite (txt) {
+    fs.writeFile(pfp, txt, 'utf8', (err) => {
+        if (err) {
+            console.error('Error writing file:', err);
+            return;
+        }
+        console.log('File written successfully!');
+    });
+}
+
+// Write txt as a line of html into persistent file pfp
+function logPersistent (txt) {
+    if (S16_RUN_ENV === 'Render') {
+        const date = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const lbl = `${date.getFullYear()}-${pad(date.getMonth() + 1)}`
+              + `-${pad(date.getDate())} `
+              + `${pad(date.getHours())}:${pad(date.getMinutes())}`
+              + `:${pad(date.getSeconds())} `;
+        try {
+            const txtHtml = lbl + txt + '<br>';
+            fs.appendFileSync (pfp, txtHtml, {encoding: 'utf8', flag: 'a'});
+        } catch (err) {
+            console.error (`logPersistent failed: ${txt}`)
+        }
+    }
+}
+
+// Delete contents of persistent file
+function clearPersistent () {
+    console.log ('clearPersistent');
+    fs.writeFile(pfp, '', 'utf8', (err) => {
+        if (err) {
+            console.error('Error writing file:', err);
+            return;
+        }
+        console.log('File written successfully!');
+    });
+}
+
 //-----------------------------------------------------------------------
-console.log ('***** Finished loading sigserver.mjs in SigServer repository')
+// Console messages and logging
+//-----------------------------------------------------------------------
+
+export function logMsg (txt) {
+    console.log (txt);
+    logPersistent (logPrefix + txt);
+}
+//    const dt = new Date();
+//    const dateStamp = dt.getFullYear() + '-' + (dt.getMonth()+1)
+//          + '-' + (dt.getDate());
+//    const txt2 = 'dateStamp' + ' ' + txt + '\r\n' ;
+    //    logPersistent (txt2);
+
+
+// Here’s a complete, runnable Node.js example showing how to
+// append to a file using Promises with the fs/promises API.
+
+// Javascript// Import the promises API from the 'fs' module
+// const fs = require('fs').promises;
+
+async function appendToFile(filePath, data) {
+    try {
+        // Append data to the file (creates file if it doesn't exist)
+        await fs.appendFile(filePath, data, { encoding: 'utf8' });
+        console.log(`Data successfully appended to ${filePath}`);
+    } catch (err) {
+        // Handle errors (e.g., permission issues, invalid path)
+        console.error(`Error appending to file: ${err.message}`);
+    }
+}
+
+// Example usage
+// (async () => {
+//    const filePath = 'example.txt';
+//    const contentToAppend = '\nThis is a new line of text.';
+//
+//    await appendToFile(filePath, contentToAppend);
+// })();
+// If you want, I can also show you a version that appends
+// multiple times in sequence without race conditions using await
+// properly.
+
+//-----------------------------------------------------------------------
+
+console.log ('***** Finished loading sigserver.mjs')
 //-----------------------------------------------------------------------
 
 // deprecated
