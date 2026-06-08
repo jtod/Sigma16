@@ -14,20 +14,35 @@
 # a copy of the GNU General Public License along with
 # Sigma16.  If not, see <https://www.gnu.org/licenses/>.
 
-# Quick notes
-#   make SetVersion
-#   make ExIdx
-
 # ----------------------------------------------------------------
+# Quick start
+# ----------------------------------------------------------------
+
+# In Sigma16:
+#   make SetVersion    read version from json and update
+#   make ExIdx         traverse Examples and generate indices
+#   make CopyInstall   copy essential files into SigServer Dev
+#   git add .
+#   git commit -m 'what this commit is for'
+#   git push
+# In SigServer:
+#   git add .
+#   git commit -m 'version, purpose'
+#   git push           upload to Render, deploy, and restart
+
+# Additional tools
+#   make showConfig     display the env and devinitions
+
 # Check src/package.json, update version if necessary
 # make SetVersion  (this reads version from package.json)
 # Visit User Guide, update/export as shown in leading comments
 # visit docs/welcome/welcome.org, generate html
 # visit docs/help, generate html files from org sources
-# ----------------------------------------------------------------
 
 # ----------------------------------------------------------------
 # Software tools
+# ----------------------------------------------------------------
+
 # 2025-11-28:
 #   $ node --version
 #   v16.16.0
@@ -46,9 +61,6 @@
 #   v24.11.1
 #   $ npm -v
 #   11.6.2
-
-# ----------------------------------------------------------------
-
 
 #-----------------------------------------------------------------
 # How to build, install, and run
@@ -129,23 +141,6 @@
 #    - git commit -m 'v3.7.0'
 #    - git push heroku main
 
-#-----------------------------------------------------------------
-# Environment variables
-#-----------------------------------------------------------------
-
-# S16_LOCAL_BUILD_DIR is the path to a directory that contains the
-# source, which is xxx/build/dev/Sigma16.  The Sigma16 source is
-# contained within xxx/build/dev so the server can assume that any
-# version being executed, either locally or on the server, has a
-# path of the form xxx/build/VERSIONNUMBER/Sigma16.  The source
-# git directory is ${S16_LOCAL_BUILD_DIR}/dev/Sigma16, so it can
-# be accessed using a "version" of "dev".
-
-# S16_SERVER_SRC_BUILD_DIR is the target build directory where
-# "make install-build" will put the files.  This is within the
-# SigServer/Sigma16 directory, and will be uploaded to the server.
-# A particular version will have a path
-# ${S16_SERVER_SRC_BUILD_DIR}/sigma16/build/VERSION/Sigma16
 
 #-----------------------------------------------------------------
 # Resources on the Internet
@@ -196,21 +191,40 @@
 # above.
 
 #-----------------------------------------------------------------
-# Configuration
+# Configuration and environment variables
 #-----------------------------------------------------------------
+
+# S16_LOCAL_BUILD_DIR is the path to a directory that contains the
+# source, which is xxx/build/dev/Sigma16.  The Sigma16 source is
+# contained within xxx/build/dev so the server can assume that any
+# version being executed, either locally or on the server, has a
+# path of the form xxx/build/VERSIONNUMBER/Sigma16.  The source
+# git directory is ${S16_LOCAL_BUILD_DIR}/dev/Sigma16, so it can
+# be accessed using a "version" of "dev".
+
+# S16_SERVER_SRC_BUILD_DIR is the target build directory where
+# "make install-build" will put the files.  This is within the
+# SigServer/Sigma16 directory, and will be uploaded to the server.
+# A particular version will have a path
+# ${S16_SERVER_SRC_BUILD_DIR}/sigma16/build/VERSION/Sigma16
 
 # Environment variables defined on Heroko
 #  PAPERTRAIL_API_TOKEN
 
-# Environment variables defined on both Heroko and local build machine:
-#   S16_RUN_ENV           Heroku or Local
+# Environment variables
 #   S16_LATEST_RELEASE    version number of latest official release
 #   S16_RELEASE_VERSION   version number to use on request for 'release'
 #   S16_DEV_VERSION       version number to use on request for 'dev'
+#   SIGMASYSTEM           contains Sigma16, Hydra, SigServer, and more
+#   SIGMA16               git repository: working directory for development
+#   COMPSYS               git repository: book on computer systems
+#   SIGSERVER             git repository: Web server
+#   S16_RUN_ENV           Local, Render, or Heroku
+#   S16_LOCAL_PORT        server port if running Local
+#   S16_LOCAL_BUILD_DIR   build directory in repository
+#   S16_LOCAL_DEV         dev source directory in repository
 
-# Environment variables defined on local build machine:
-#   S16_LOCAL_PORT      port for local server
-#   SIGMASYSTEM         path to sources
+# Calculated constants
 
 # VERSION, the current version number, is extracted from the
 # package.json file, on the line consisting of "version: :
@@ -231,33 +245,113 @@ YEARMONTHDAYTIME=$(shell date +"%F-at-%H-%M")
 S16_DEV_SRC_DIR=$(S16_LOCAL_BUILD_DIR)/Sigma16
 
 # Server repository, makefile copies a build to this location
-SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/server
-S16_INSTALL_VERSION_DIR=$(SIGSERVER_REPOSITORY)/Sigma16/build/$(VERSION)
-S16_INSTALL_DIR=$(S16_INSTALL_VERSION_DIR)/Sigma16
+# SIGSERVER_REPOSITORY=$(SIGMASYSTEM)/server
 
 # Homepage repository
 S16_HOMEPAGE_REPOSITORY=$(SIGMASYSTEM)/jtod.github.io/home/Sigma16
 
+#-----------------------------------------------------------------
+# make ShowConfig -- display configuration and environment variables
+#-----------------------------------------------------------------
 
 .PHONY: ShowConfig
 ShowConfig:
 	@echo "Environment variables"
-	@echo "  S16_RUN_ENV = $(S16_RUN_ENV)"
 	@echo "  S16_LATEST_RELEASE = $(S16_LATEST_RELEASE)"
 	@echo "  S16_RELEASE_VERSION = $(S16_RELEASE_VERSION)"
 	@echo "  S16_DEV_VERSION = $(S16_DEV_VERSION)"
-	@echo "  S16_LOCAL_PORT = $(S16_LOCAL_PORT)"
 	@echo "  SIGMASYSTEM = $(SIGMASYSTEM)"
-	@echo "  S16_LOCAL_BUILD_DIR = $(S16_LOCAL_BUILD_DIR)"
-	@echo "  S16_SERVER_SRC_BUILD_DIR = $(S16_SERVER_SRC_BUILD_DIR)"
+	@echo "  COMPSYS = $(COMPSYS)"
+	@echo "  SIGMA16 = $(SIGMA16)"
+	@echo "  SIGSERVER = $(SIGSERVER)"
+	@echo "  S16_RUN_ENV = $(S16_RUN_ENV)"
+	@echo "  S16_LOCAL_PORT = $(S16_LOCAL_PORT)"
+	@echo "  S16_DEV_SRC = $(S16_DEV_SRC)"
+	@echo "  S16_SERVER_BUILD_DIR = $(S16_SERVER_BUILD_DIR)"
+	@echo "  S16_INSTALL_DIR = $(S16_INSTALL_DIR)"
 	@echo "Calculated variables"
 	@echo "  VERSION = $(VERSION)"
 	@echo "  MONTHYEAR = $(MONTHYEAR)"
 	@echo "  YEARMONTHDAY = $(YEARMONTHDAY)"
-	@echo "  S16_DEV_SRC_DIR = $(S16_DEV_SRC_DIR)"
-	@echo "  S16_INSTALL_DIR = $(S16_INSTALL_DIR)"
 	@echo "  S16_HOMEPAGE_REPOSITORY = $(S16_HOMEPAGE_REPOSITORY)"
-	@echo "  SIGSERVER_REPOSITORY = $(SIGSERVER_REPOSITORY)"
+
+#-----------------------------------------------------------------
+# make SetVersion -- find version and define Version files
+#-----------------------------------------------------------------
+
+# make SetVersion --- The version number is defined in
+# src/gui/package.json; this makefile finds the number there and
+# defines a make variable $(VERSION).  This is used in several
+# places, including writing a VERSION file in the top directory
+# (used in the Welcome page and the User Guide) and
+# src/gui/version.js (which makes the version number available to
+# the JavaScript program).  make SetVersion should be invoked when
+# the version or the Month/Year changes.
+
+.PHONY: SetVersion
+SetVersion:
+	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
+	echo "Version $(VERSION), $(MONTHYEAR)" > VERSION.txt
+	echo "Copyright (c) $(YEAR) John T. O'Donnell" > COPYRIGHT.txt
+	echo "#+MACRO: S16version Version $(VERSION), $(MONTHYEAR)" > docs/VersionMacro.org
+
+
+#----------------------------------------------------------------------
+# make CopyInstall
+#----------------------------------------------------------------------
+
+#	@echo backup $(S16_INSTALL_VERSION_DIR)
+
+# Install Sigma16 by copying the essential files from the source
+# repository into SigServer at S16_INSTALL_DIR.  From that
+# location, they can be served locally or pushed to the github
+# repository which will make them available online at the Render
+# server.  The destination, S16_INSTALL_DIR is, for example,
+# .../Sigma/src/SigServer/data/Sigma16/build/4.0.3/
+
+.PHONY: CopyInstall
+CopyInstall:
+#	ls $(S16_SERVER_BUILD_DIR)
+	@echo "Copying source from $(S16_DEV_SRC)"
+	@echo "Installing in $(S16_INSTALL_DIR)"
+#	mv -f $(S16_INSTALL_DIR) $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
+	@echo backup $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/src
+	cp -u *.html $(S16_INSTALL_DIR)/Sigma16
+	cp -u *.txt  $(S16_INSTALL_DIR)/Sigma16
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/src/gui
+	cp -u src/gui/*.mjs $(S16_INSTALL_DIR)/Sigma16/src/gui
+	cp -u src/gui/*.css $(S16_INSTALL_DIR)/Sigma16/src/gui
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/src/base
+	cp -u src/base/*.mjs $(S16_INSTALL_DIR)/Sigma16/src/base
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/src/cli
+	cp -u src/cli/*.mjs $(S16_INSTALL_DIR)/Sigma16/src/cli
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/src/graphics
+	cp -u src/graphics/favicon.ico $(S16_INSTALL_DIR)/Sigma16/src/graphics
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/docs
+	chmod u+rwx $(S16_INSTALL_DIR)/Sigma16/docs
+	cp docs/*.css $(S16_INSTALL_DIR)/Sigma16/docs
+# 	cp -u docs/*.css $(S16_INSTALL_DIR)/Sigma16/docs
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/docs/welcome
+	cp -u docs/welcome/*.html $(S16_INSTALL_DIR)/Sigma16/docs/welcome
+	cp -u docs/welcome/*.css $(S16_INSTALL_DIR)/Sigma16/docs/welcome
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/docs/help
+	cp -u docs/help/*.html $(S16_INSTALL_DIR)/Sigma16/docs/help
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/docs/UserGuide
+	cp -u docs/UserGuide/*.html $(S16_INSTALL_DIR)/Sigma16/docs/UserGuide
+	cp -u docs/UserGuide/*.pdf $(S16_INSTALL_DIR)/Sigma16/docs/UserGuide
+
+	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/examples
+	cp -ur examples/* $(S16_INSTALL_DIR)/Sigma16/examples
+
+#	touch $(S16_INSTALL_DIR)
 
 #-----------------------------------------------------------------
 # Check style files are the same
@@ -406,26 +500,6 @@ copyListing:
 # $ git push --tags
 
 #-----------------------------------------------------------------
-# make SetVersion -- find version and define Version files
-#-----------------------------------------------------------------
-
-# make SetVersion --- The version number is defined in
-# src/gui/package.json; this makefile finds the number there and
-# defines a make variable $(VERSION).  This is used in several
-# places, including writing a VERSION file in the top directory
-# (used in the Welcome page and the User Guide) and
-# src/gui/version.js (which makes the version number available to
-# the JavaScript program).  make SetVersion should be invoked when
-# the version or the Month/Year changes.
-
-.PHONY: SetVersion
-SetVersion:
-	echo "export const s16version = \"$(VERSION)\";" > src/base/version.mjs
-	echo "Version $(VERSION), $(MONTHYEAR)" > VERSION.txt
-	echo "Copyright (c) $(YEAR) John T. O'Donnell" > COPYRIGHT.txt
-	echo "#+MACRO: S16version Version $(VERSION), $(MONTHYEAR)" > docs/VersionMacro.org
-
-#-----------------------------------------------------------------
 # make assemble
 #-----------------------------------------------------------------
 
@@ -461,44 +535,6 @@ build:
 	make SetVersion
 	node ${S16_CLI}/exidx.mjs
 #	make assemble
-
-.PHONY: CopyInstall
-CopyInstall:
-	@echo Installing in $(S16_INSTALL_DIR)
-	@echo backup $(S16_INSTALL_VERSION_DIR)
-	touch $(S16_INSTALL_VERSION_DIR)
-	mv -i $(S16_INSTALL_VERSION_DIR) $(S16_INSTALL_VERSION_DIR)-bak
-	mkdir -p -m700 $(S16_INSTALL_DIR)
-	cp -u *.html $(S16_INSTALL_DIR)
-	cp -u *.txt  $(S16_INSTALL_DIR)
-
-	mkdir -p -m700 $(S16_INSTALL_DIR)/src
-
-	mkdir -p -m700 $(S16_INSTALL_DIR)/src/gui
-	cp -u src/gui/*.mjs $(S16_INSTALL_DIR)/src/gui
-	cp -u src/gui/*.css $(S16_INSTALL_DIR)/src/gui
-
-	mkdir -p -m700 $(S16_INSTALL_DIR)/src/base
-	cp -u src/base/*.mjs $(S16_INSTALL_DIR)/src/base
-
-	mkdir -p -m700 $(S16_INSTALL_DIR)/src/graphics
-	cp -u src/graphics/favicon.ico $(S16_INSTALL_DIR)/src/graphics
-
-	mkdir -p -m700 $(S16_INSTALL_DIR)/docs
-	chmod u+rwx $(S16_INSTALL_DIR)/docs
-	cp docs/*.css $(S16_INSTALL_DIR)/docs
-# 	cp -u docs/*.css $(S16_INSTALL_DIR)/docs
-	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/welcome
-	cp -u docs/welcome/*.html $(S16_INSTALL_DIR)/docs/welcome
-	cp -u docs/welcome/*.css $(S16_INSTALL_DIR)/docs/welcome
-	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/help
-	cp -u docs/help/*.html $(S16_INSTALL_DIR)/docs/help
-	mkdir -p -m700 $(S16_INSTALL_DIR)/docs/UserGuide
-	cp -u docs/UserGuide/*.html $(S16_INSTALL_DIR)/docs/UserGuide
-	cp -u docs/UserGuide/*.pdf $(S16_INSTALL_DIR)/docs/UserGuide
-
-	mkdir -p -m700 $(S16_INSTALL_DIR)/examples
-	cp -ur examples/* $(S16_INSTALL_DIR)/examples
 
 #-----------------------------------------------------------------
 # Install server

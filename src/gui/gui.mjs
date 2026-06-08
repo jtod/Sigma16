@@ -578,7 +578,7 @@ function findLatestRelease (gst) {
         .then (repositoryResponse => {
             return repositoryResponse.text()
         }).then (serverURL => {
-            const latestURL = `${serverURL}/status/latest/${ver.s16version}`
+            const latestURL = `${serverURL}/sigma16/status/latest/${ver.s16version}`
             com.mode.devlog (`*** findLatestRelease server= ${serverURL}`)
             com.mode.devlog (`*** findLatestRelease latestURL= ${latestURL}`)
             return fetch (latestURL)

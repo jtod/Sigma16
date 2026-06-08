@@ -22,6 +22,8 @@
 
 #+INCLUDE: "../../VERSION.txt" export html
 
+402
+ 
 #+BEGIN_majornote
 Sigma16 runs on up-to-date versions of browsers based on
 Chromium, including Opera, Chrome, Edge, DuckDuckGo.  It does
