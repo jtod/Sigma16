@@ -1,5 +1,5 @@
 // Sigma16.mjs
-// Copyright (C) 2024 John T. O'Donnell.  License: GNU GPL Version 3
+// Copyright (C) 2026 John T. O'Donnell.  License: GNU GPL Version 3
 // See Sigma16/README, LICENSE, and https://jtod.github.io/home/Sigma16
 
 // This file is part of Sigma16.  Sigma16 is free software: you can
@@ -137,12 +137,14 @@ function main  () {
     if (process.argv.length < 3 || command === "gui") {
         console.log ("Starting the server")
         console.log ('sigma16: About to load server...')
-        import * as serv from '../server/sigserver.mjs'
-        console.log ('sigma16: Finshed loading server...')
+        console.log ('START SIGSERVER SEPARATELY, Stopping')
+//        import * as serv from '../server/sigserver.mjs'
+//        console.log ('sigma16: Finshed loading server...')
 //        serv.StartServer ("gui", "")
     } else if (command === "run") {
+        console.log ('START SIGSERVER SEPARATELY, Stopping')
 //        console.log (`calling StartServer with ${commandArg}`)
-        serv.StartServer ("run", "")
+//        serv.StartServer ("run", "")
     } else if (command === "version") {
 //        console.log (`calling StartServer with ${commandArg}`)
         serv.StartServer (command, commandArg)

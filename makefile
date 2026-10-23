@@ -314,7 +314,8 @@ CopyInstall:
 #	ls $(S16_SERVER_BUILD_DIR)
 	@echo "Copying source from $(S16_DEV_SRC)"
 	@echo "Installing in $(S16_INSTALL_DIR)"
-#	mv -f $(S16_INSTALL_DIR) $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
+	rm -rf $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
+	mv -f $(S16_INSTALL_DIR) $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
 	@echo backup $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
 	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16
 
