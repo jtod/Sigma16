@@ -19,15 +19,8 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public
-# License along with Sigma16.  If not, see
+ # License along with Sigma16.  If not, see
 # <https://www.gnu.org/licenses/>.
-
-# ----------------------------------------------------------------
-# Projects
-# ----------------------------------------------------------------
-
-# If you are doing a project with Sigma16, or experimenting with
-# it, please see the section "* Projects with Sigma16"
 
 # ----------------------------------------------------------------
 # Quick reference: how to build this document (requires emacs org)
@@ -37,8 +30,16 @@
 #   3. C-x s (y) - save file
 #   4. C-e h h -  export to html
 #   5. C-e l l - export to html and tex
+#      alternative: C-e l p  export to pdf via .tex and pdflatex
+#   6. pdflatex Sigma16UserGuide (twice)
 # ----------------------------------------------------------------
 
+# ----------------------------------------------------------------
+# Projects
+# ----------------------------------------------------------------
+
+# If you are doing a project with Sigma16, or experimenting with
+# it, please see the section "* Projects with Sigma16"
 
 # ----------------------------------------------------------------
 # Macros
@@ -2814,7 +2815,7 @@ exactly the same way.  These are also equivalent:
      jumplt loop      ; if < then goto loop
 #+END_SRC
 
-** Branching to pc-relative address (???)
+** Branching to pc-relative address (???) :noexport:
 
 #+BEGIN_EXAMPLE
 Testing aardvark
@@ -2848,11 +2849,10 @@ unconditional or conditional.
 The unconditional branches take one operand, which is a
 constant called the offset.
 
-** Stack instructions  (???)
-** Arithmetic on natural numbers (???)
+** Stack instructions  (???) :noexport:
+** Arithmetic on natural numbers (???) :noexport:
 
 ** Modules and linking
-
 
 A *module* is a section of a program; it may be the complete
 program or just a part of it.  A module may be saved in a
@@ -8910,7 +8910,7 @@ following information.
 
 #+BEGIN_BUILD_ID
 #+BEGIN: update-build-id :format "%Y-%m-%d at %H:%M"
-Build: 2026-05-02 at 10:20
+Build: 2026-11-01 at 11:26
 #+END
 #+END_BUILD_ID
 
@@ -9142,6 +9142,21 @@ loop  lea  R3,42     ; R3 := 42
 ** Heroku and papertrail
 
 - M-x json-pretty-print-buffer
+
+** How to support Sigma16 :noexport:
+
+- From https://www.theatlantic.com/technology/2026/10/man-who-saved-internet-php-vulnerability/689123/
+
+- Surý: When I started doing open-source, it was fun. And it kind
+  of still is. But the environment has shifted. Open-source
+  sometimes feels like exploitation. What I would like to see is
+  to find a new model where people working on open-source would be
+  awarded for their work and the hours and hours they put into it
+  from the people who most benefit from their work. I would like
+  companies to realize that this is exploitation. Any exploitation
+  is not sustainable. And it will end up badly if this continues,
+  because the people doing the open-source will stop being
+  motivated to actually do anything in the end.
 
 
 # Deprecated

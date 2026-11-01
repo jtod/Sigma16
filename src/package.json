@@ -1,6 +1,6 @@
 {
     "name": "sigma16",
-    "version": "4.0.5",
+    "version": "4.0.7",
     "description": "Computer architecture for research and teaching",
     "repository": {
         "type": "git",
@@ -28,6 +28,8 @@
         "ejs": "^6.0.1",
         "express": "^5.2.0",
         "mime": "^4.1.0",
+        "brace-expansion": "^2.1.4",
+        "bytes": "^3.1.2",
         "wabt": "^1.0.39"
     }
 }

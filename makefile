@@ -18,17 +18,32 @@
 # Quick start
 # ----------------------------------------------------------------
 
-# In Sigma16:
-#   make SetVersion    read version from json and update
+# See also ~/docs/Sigma/src/SigServer/notes.org
+
+# To change version
+#   1. visit Sigma16/src/package.json and edit the "version" line
+#   2. make SetVersion (reads version from json and updates)
+#   3. visit Sigma16/docs/welcome.org and rebuild html (C-c C-e h h)
+#   4. visit Sigma16/docs/UserGuide/Sigma16UserGuide.org and rebuild
+#      both html (C-c C-e h h) and pdf (C-c C-e l p)
+
+# To install:
+# cd Sigma/src/Sigma16/build/dev/Sigma16
 #   make ExIdx         traverse Examples and generate indices
+#     (Install version goes into Sigma/src/SigServer/data/Sigma16/build)
 #   make CopyInstall   copy essential files into SigServer Dev
 #   git add .
 #   git commit -m 'what this commit is for'
-#   git push
-# In SigServer:
+#   git push           update on github source repository
+# cd Sigma/src/SigServer
 #   git add .
 #   git commit -m 'version, purpose'
 #   git push           upload to Render, deploy, and restart
+
+
+# To run on Render server, visit:
+#   URL name: Render: Launch Sigma16 release on Render
+#   URL: https://sigserver-da04.onrender.com/Sigma16/build/release/Sigma16/Sigma16.html
 
 # Additional tools
 #   make showConfig     display the env and devinitions
@@ -314,8 +329,14 @@ CopyInstall:
 #	ls $(S16_SERVER_BUILD_DIR)
 	@echo "Copying source from $(S16_DEV_SRC)"
 	@echo "Installing in $(S16_INSTALL_DIR)"
-#	mv -f $(S16_INSTALL_DIR) $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
+	@echo Remove .bak if it exists
+	rm -rf $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
+	@echo Ensure build directory exists
+	touch $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION)
+	@echo Make build directory a .bak
+	mv -f $(S16_INSTALL_DIR) $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
 	@echo backup $(S16_SERVER_BUILD_DIR)/$(S16_DEV_VERSION).bak
+	@echo Make build directory for this version
 	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16
 
 	mkdir -p -m700 $(S16_INSTALL_DIR)/Sigma16/src
@@ -528,7 +549,7 @@ checkInstallDir:
 
 .PHONY: ExIdx
 ExIdx:
-	node ${S16_CLI}/exidx.mjs
+	node ${SIGMA16}/src/cli/exidx.mjs
 
 .PHONY: build
 build:

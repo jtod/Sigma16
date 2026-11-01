@@ -572,20 +572,28 @@ function showMemDisplaySettings () {
 // then query server for the latest version number
 
 function findLatestRelease (gst) {
-    console.log ('Looking up the latest release')
+    console.log ('gui.findLatestRelease: looking up the latest release')
     const serverAddressLoc = `${com.S16HOMEPAGEURL}/admin/SIGSERVERURL.txt`
+    console.log (`gui.findLatestRelease: querying ${serverAddressLoc}`)
     fetch (serverAddressLoc)
         .then (repositoryResponse => {
             return repositoryResponse.text()
         }).then (serverURL => {
-            const latestURL = `${serverURL}/sigma16/status/latest/${ver.s16version}`
+            let S16_RUN_ENV = process.env.S16_RUN_ENV
+            console.log (`gui.findLatestRelease: S16_RUN_ENV = ${S16_RUN_ENV}`)
+            const latestURL = `${serverURL}/sigma16/status/latest/${ver.s16version}/${S16_RUN_ENV}`
+            console.log (`gui.findLatestRelease: version=${ver.s16version}`)
+            console.log (`gui.findLatestRelease: S16_RUN_ENV=${S16_RUN_ENV}`)
+            console.log (`gui.findLatestRelease: serverURL=${serverURL}`)
+            console.log (`gui.findLatestRelease: latestURL=${latestURL}`)
             com.mode.devlog (`*** findLatestRelease server= ${serverURL}`)
             com.mode.devlog (`*** findLatestRelease latestURL= ${latestURL}`)
             return fetch (latestURL)
         }).then (serverResponse => {
+            console.log (`gui.findLatestRelease serverResponse=${serverResponse}`)
             return serverResponse.text()
         }).then (latest => {
-            console.log (`Latest release is ${latest}`)
+            console.log (`gui.findLatestRelease: latest release is ${latest}`)
             gst.options.latestRelease = latest
             refreshSettingsDisplay ()
 //          document.getElementById('LatestRelease').innerHTML = latest
@@ -3241,7 +3249,8 @@ function initializeSystem () {
     initializeGuiElements (gst) // Initialize gui elements
     initializeGuiLayout (gst)   // Initialize gui layout
       refreshSettingsDisplay ();
-//    setArch16()
+    //    setArch16()
+    console.log ('calling findLatestRelease')
       findLatestRelease (gst);
     //    console.log ("System is initialized")
     com.log_emph ("System is initialized")    
