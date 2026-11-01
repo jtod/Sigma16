@@ -23,6 +23,12 @@ span.section-number-3,span.section-number-4 {
 }
 */
 
+
+/* Remove bullets from toc but not from lists in main body */
+div#text-table-of-contents  ul {
+    list-style-type: none;
+}
+
 /* html export produces two copies of the table of contents.  This
    suppresses the first one. */
 
