@@ -197,6 +197,8 @@ const S16_DEV_VERSION = process.env.S16_DEV_VERSION
 console.log (`process.env.S16_RUN_ENV = ${process.env.S16_RUN_ENV}`)
 
 const S16_platform = process.env.S16_platform ? process.env.S16_platform : 'Local'
+const S16_RUN_ENV = process.env.S16_RUN_ENV ? process.env.S16_RUN_ENV : 'Local'
+console.log (`S16_RUN_ENV = ${S16_RUN_ENV}`)
 console.log (`S16_platform = ${S16_platform}`)
 
 const S16_LOCAL_PORT = process.env.S16_LOCAL_PORT
