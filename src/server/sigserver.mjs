@@ -423,8 +423,9 @@ function findBuild (v) {
             loc = path.join (appRoot, 'data', 'Sigma16',
                              'build', S16_RELEASE_VERSION, 'Sigma16')
         } else if (v === 'dev') {
-            loc = path.join (appRoot, 'data', 'Sigma16',
-                             'build', S16_DEV_VERSION, 'Sigma16')
+            loc = appRoot;
+//            loc = path.join (appRoot, 'data', 'Sigma16',
+//                             'build', S16_DEV_VERSION, 'Sigma16')
         } else {
             console.log (`findBuild error ${S16_RUN_ENV} v=${v}`)
         }
