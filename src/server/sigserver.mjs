@@ -115,6 +115,8 @@ let S16_BUILD_DIR
 // relative to build/release and the server translates them all to
 // build/3.4.2 (or whatever the current release version is).
 
+console.log ('301');
+
 //------------------------------------------------------------------
 // Packages
 //------------------------------------------------------------------
