@@ -229,25 +229,25 @@ app.set('trust proxy', true); // get real ip, not proxy ip
 
 
 //------------------------------------------------------------------
-// Configure for S16_platform
+// Configure for S16_RUN_ENV
 //------------------------------------------------------------------
 
 // let logPrefix = ' ' // for logging, set at launch when version known
 
 const PORT = process.env.PORT || S16_LOCAL_PORT
 
-console.log (`platform=${S16_platform} appRoot=${appRoot}`);
+console.log (`platform=${S16_RUN_ENV} appRoot=${appRoot}`);
 
-if (S16_platform === 'Render') {    
+if (S16_RUN_ENV === 'Render') {    
     console.log ('Configure Render')
     //    S16_BUILD_DIR = path.join (appRoot, 'data', 'Sigma16', 'build')
     S16_BUILD_DIR = path.join (appRoot)
     console.log (`Render S16_BUILD_DIR = ${S16_BUILD_DIR}`)
-} else if (S16_platform === 'Local') {
+} else if (S16_RUN_ENV === 'Local') {
     console.log ('Configure Local')
-    S16_BUILD_DIR = S16_platform;
+    S16_BUILD_DIR = S16_RUN_ENV;
 } else {
-    console.log (`Unknown platform ${S16_platform}`)
+    console.log (`Unknown platform ${S16_RUN_ENV}`)
 }
 
 //------------------------------------------------------------------
@@ -269,7 +269,7 @@ console.log ('Configuration')
 console.log (`  S16_LATEST_RELEASE = ${S16_LATEST_RELEASE}`)
 console.log (`  S16_RELEASE_VERSION = ${S16_RELEASE_VERSION}`)
 console.log (`  S16_DEV_VERSION = ${S16_DEV_VERSION}`)
-console.log (`  platform = ${S16_platform}`)
+console.log (`  platform = ${S16_RUN_ENV}`)
 console.log (`  sigserver.mjs: PORT = ${PORT}`)
 console.log (`  appRoot = ${appRoot}`);
 console.log (`  S16_BUILD_DIR = ${S16_BUILD_DIR}`)
@@ -384,7 +384,7 @@ app.get ('/sigma16/status/latest/:callerversion/:callerplatform', (req,res) => {
         app: 'Sigma16',
         action: 'report-latest-release',
         URL: req.path,
-        platform: S16_platform,
+        platform: S16_RUN_ENV,
         callerPlatform: req.params.callerplatform,
         callerVersion: req.params.callerversion
     }
@@ -409,16 +409,16 @@ app.get ('/sigma16/status/latest/:callerversion/:callerplatform', (req,res) => {
 // files.
 
 // To run Sigma16, we need to find the Sigma16 directory on the
-// machine that's running the server (called the 'S16_platform').  The
-// location depends on the S16_platform and the version field in
-// theURL used to launch the app.  findBuild maps the S16_platform and
+// machine that's running the server (called the 'S16_RUN_ENV').  The
+// location depends on the S16_RUN_ENV and the version field in
+// theURL used to launch the app.  findBuild maps the S16_RUN_ENV and
 // version to the file path.
 
 function findBuild (v) {
     //    console.log (`this is findBuild v=${v}`)
 
     let loc = 'findBuild error: Unknown_build_path'
-    if (S16_platform === 'Render') {
+    if (S16_RUN_ENV === 'Render') {
         if (v === 'release') {
             loc = path.join (appRoot, 'data', 'Sigma16',
                              'build', S16_RELEASE_VERSION, 'Sigma16')
@@ -426,9 +426,9 @@ function findBuild (v) {
             loc = path.join (appRoot, 'data', 'Sigma16',
                              'build', S16_DEV_VERSION, 'Sigma16')
         } else {
-            console.log (`findBuild error ${S16_platform} v=${v}`)
+            console.log (`findBuild error ${S16_RUN_ENV} v=${v}`)
         }
-    } else if (S16_platform === 'Local') { // Source on local machine
+    } else if (S16_RUN_ENV === 'Local') { // Source on local machine
         if (v === 'src') { // use current source development
             //            loc = path.join (SIGMASYSTEM, 'Sigma16',
             loc = path.join (appRoot,"src",
@@ -448,9 +448,9 @@ function findBuild (v) {
 //                             v, 'Sigma16')
         }
     }  else {
-        console.log (`findBuild S16_platform error ${S16_platform} v=${v}`)
+        console.log (`findBuild S16_RUN_ENV error ${S16_RUN_ENV} v=${v}`)
     }
-    console.log (`findBuild RUN_ENV=${S16_platform} v=${v} loc=${loc}`)
+    console.log (`findBuild RUN_ENV=${S16_RUN_ENV} v=${v} loc=${loc}`)
     return loc;
 }
 
@@ -486,7 +486,7 @@ app.get('/sigma16/build/:version/Sigma16/Sigma16.html', (req, res) => {
         raw_v: raw_v,
         v: v,
         loc: loc,
-        platform: S16_platform
+        platform: S16_RUN_ENV
     }
     logMsg (JSON.stringify (reqInfo));
 //    console.log (`launching ${raw_v}->${v} at location ${loc}`)
@@ -546,7 +546,7 @@ app.get('/sigma16/build/:version/Sigma16/examples/:a/:b/:c.asm.txt', (req, res) 
         raw_v: raw_v,
         v: v,
         loc: loc,
-        platform: S16_platform
+        platform: S16_RUN_ENV
     }
     logMsg (JSON.stringify (reqInfo));
 //    console.log (`example a=${a} b=${b} c=${c} v=${v} loc=${loc}`)
@@ -576,7 +576,7 @@ app.get('/sigma16/build/:version/Sigma16/examples/:a/:b/:c/:d.asm.txt', (req, re
         raw_v: raw_v,
         v: v,
         loc: loc,
-        platform: S16_platform
+        platform: S16_RUN_ENV
     }
     const xs = JSON.stringify (reqInfo);
     logMsg (xs)
@@ -739,7 +739,7 @@ function testWrite (txt) {
 
 // Write txt as a line of html into persistent file pfp
 function logPersistent (txt) {
-    if (S16_platform === 'Render') {
+    if (S16_RUN_ENV === 'Render') {
         try {
             // replace < with &lt;
             // replace > with &gt;  (not essentual, just for symmetry)
@@ -778,7 +778,7 @@ function clearPersistent () {
 
 export function logMsg (txt) {
     //    console.log (logPrefix + txt);
-    if (S16_platform === 'Render') {
+    if (S16_RUN_ENV === 'Render') {
         logPersistent (txt);
     } else {
         console.log (txt);
@@ -800,11 +800,11 @@ async function appendToFile(filePath, data) {
 
 // Test findBuild
 console.log ('Test findBuild')
-if (S16_platform === 'Render') {
+if (S16_RUN_ENV === 'Render') {
     console.log ('Testing findBuild on Render')
     console.log (`release - ${findBuild ('release')}`);
     console.log (`dev     - ${findBuild ('dev')}`);
-} else if (S16_platform === 'Local') {
+} else if (S16_RUN_ENV === 'Local') {
     console.log ('Testing findBuild on Local')
     console.log (`release - ${findBuild ('release')}`);
     console.log (`dev     - ${findBuild ('dev')}`);
@@ -908,20 +908,20 @@ console.log ('*** Finished loading sigserver.mjs')
 // let platform = 'unknown' // for logging, set below
 // HEROKU
 //    platform = 'Heroku'
-//    console.log ('Running on Heroku Internet S16_platform')
+//    console.log ('Running on Heroku Internet S16_RUN_ENV')
     // Find the directory this program is running in and use that to
     // find the build directory
 //    S16_BUILD_DIR = path.join (S16_SERVER_DIR, '..', '..',
 //                               'Sigma16', 'build')
 // RENDER
-//    console.log ('Running on Render Internet S16_platform')
+//    console.log ('Running on Render Internet S16_RUN_ENV')
 //    platform = 'Render'
     // express.static.mime.define doesn't work on Render
     //    express.static.mime.define({'application/javascript': ['js']});
     //    express.static.mime.define({'text/css': ['css']});
     //    express.static.mime.define({'text/html': ['html']});
 // LOCAL
-//    console.log ('Running on local S16_platform')
+//    console.log ('Running on local S16_RUN_ENV')
 //    platform = 'Local'
 //    S16_BUILD_DIR = appRoot;
 //    console.log (`in loca, S16_BUILD_DIR = ${S16_BUILD_DIR}`);
@@ -936,7 +936,7 @@ console.log ('*** Finished loading sigserver.mjs')
     //    console.log (`S16_LOCAL_BUILD_DIR = ${S16_LOCAL_BUILD_DIR}`)
 //    console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 
-// console.log (`*** StartServer: S16_platform = ${S16_platform}`)
+// console.log (`*** StartServer: S16_RUN_ENV = ${S16_RUN_ENV}`)
 
 // console.log (`S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 
