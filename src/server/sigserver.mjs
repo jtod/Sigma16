@@ -238,7 +238,8 @@ console.log (`platform=${S16_platform} appRoot=${appRoot}`);
 
 if (S16_platform === 'Render') {    
     console.log ('Configure Render')
-    S16_BUILD_DIR = path.join (appRoot, 'data', 'Sigma16', 'build')
+    //    S16_BUILD_DIR = path.join (appRoot, 'data', 'Sigma16', 'build')
+    S16_BUILD_DIR = path.join (appRoot)
     console.log (`Render S16_BUILD_DIR = ${S16_BUILD_DIR}`)
 } else if (S16_platform === 'Local') {
     console.log ('Configure Local')
