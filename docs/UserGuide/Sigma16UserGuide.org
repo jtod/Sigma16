@@ -9139,9 +9139,7 @@ loop  lea  R3,42     ; R3 := 42
   with the program
 - Ctl.asm.txt check execution
 
-** Heroku and papertrail
 
-- M-x json-pretty-print-buffer
 
 ** How to support Sigma16 :noexport:
 
