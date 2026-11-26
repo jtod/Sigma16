@@ -246,7 +246,7 @@
 # "1.2.3".  VERSION is used for building the top level index and
 # the user guide.
 
-VERSION:=$(shell cat src/package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
+VERSION:=$(shell cat package.json | grep version | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,\",]//g' | tr -d '[[:space:]]')
 
 # Define the date in several formats for inclusion in the app and
 # user guide
