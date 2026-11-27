@@ -414,55 +414,23 @@ app.get ('/sigma16/status/latest/:callerversion/:callerplatform', (req,res) => {
 // theURL used to launch the app.  findBuild maps the S16_RUN_ENV and
 // version to the file path.
 
-function findBuild (v) {
-    //    console.log (`this is findBuild v=${v}`)
-
-    let loc = 'findBuild error: Unknown_build_path'
-    if (S16_RUN_ENV === 'Render') {
-        if (v === 'release') {
-            loc = path.join (appRoot, 'data', 'Sigma16',
-                             'build', S16_RELEASE_VERSION, 'Sigma16')
-        } else if (v === 'dev') {
+function findBuild (v) { // v is no longer needed, deprecated
+    let loc;
+    if (S16_RUN_ENV === 'Render') { // Internet server
             loc = appRoot;
-//            loc = path.join (appRoot, 'data', 'Sigma16',
-//                             'build', S16_DEV_VERSION, 'Sigma16')
-        } else {
-            console.log (`findBuild error ${S16_RUN_ENV} v=${v}`)
-        }
     } else if (S16_RUN_ENV === 'Local') { // Source on local machine
-        if (v === 'src') { // use current source development
-            //            loc = path.join (SIGMASYSTEM, 'Sigma16',
-            loc = path.join (appRoot,"src",
-                             'build', 'dev', 'Sigma16')
-        } else if (v === 'release') { // get release version in server
-            //            loc = path.join (SIGMASYSTEM, 'SigServer',
-            loc = path.join (appRoot, "src", 'SigServer',            
-                             'data','Sigma16', 'build',
-                             S16_RELEASE_VERSION, 'Sigma16')
-        } else if (v === 'dev') { // get dev version in serverr
-            console.log ('findBuild Local dev');
             console.log (`appRoot = ${appRoot}`); // This is correct
             loc = appRoot;
-        } else { // look up any numbered version v
-//            loc = path.join (SIGMASYSTEM, 'SigServer',
-//                             'data','Sigma16', 'build',
-//                             v, 'Sigma16')
-        }
     }  else {
-        console.log (`findBuild S16_RUN_ENV error ${S16_RUN_ENV} v=${v}`)
+        console.log (`findBuild S16_RUN_ENV error ${S16_RUN_ENV}`)
     }
-    console.log (`findBuild RUN_ENV=${S16_RUN_ENV} v=${v} loc=${loc}`)
+    console.log (`findBuild RUN_ENV=${S16_RUN_ENV} return loc=${loc}`)
     return loc;
 }
 
-function substituteVersion (v) {
-    return v === 'release' ? S16_RELEASE_VERSION
-        : v === 'test' ? S16_DEV_VERSION
-    //        : v === 'dev' ?  S16_DEV_VERSION
-        : v === 'dev' ? 'dev'
-        : v
-}
-    //        : v === 'dev' ? 'dev'
+// dummy, should eliminate calls to this
+function substituteVersion (v) { return v }
+
 
 // Provide response headers and send the file
 
@@ -797,23 +765,8 @@ async function appendToFile(filePath, data) {
     }
 }
 
-//------------------------------------------------------------------
-
-// Test findBuild
-console.log ('Test findBuild')
-if (S16_RUN_ENV === 'Render') {
-    console.log ('Testing findBuild on Render')
-    console.log (`release - ${findBuild ('release')}`);
-    console.log (`dev     - ${findBuild ('dev')}`);
-} else if (S16_RUN_ENV === 'Local') {
-    console.log ('Testing findBuild on Local')
-    console.log (`release - ${findBuild ('release')}`);
-    console.log (`dev     - ${findBuild ('dev')}`);
-    console.log (`3.5.0   - ${findBuild ('3.5.0')}`);
-    console.log (`src     - ${findBuild ('src')}`);
-}
-
 console.log ('*** Finished loading sigserver.mjs')
+
 
 //------------------------------------------------------------------
 // 2026-11-18 simplify environment variables.  if S16_RUN_ENV is
@@ -831,6 +784,8 @@ console.log ('*** Finished loading sigserver.mjs')
 
 //------------------------------------------------------------------
 // Deprecated
+//------------------------------------------------------------------
+
 //------------------------------------------------------------------
 
 //------------------------------------------------------------------
@@ -958,3 +913,65 @@ console.log ('*** Finished loading sigserver.mjs')
 //    express.static.mime.define({'text/html': ['html']});
 // } else if (S16_platform === 'Render')
 //    if
+
+// findbuild render...
+        //        if (v === 'release') {
+//            loc = path.join (appRoot, 'data', 'Sigma16',
+//                             'build', S16_RELEASE_VERSION, 'Sigma16')
+//        } else if (v === 'dev') {
+//            loc = path.join (appRoot, 'data', 'Sigma16',
+//                             'build', S16_DEV_VERSION, 'Sigma16')
+//        } else {
+//            console.log (`findBuild error ${S16_RUN_ENV} v=${v}`)
+
+    //    console.log (`this is findBuild v=${v}`)
+
+// findBuild Local
+        //        if (v === 'src') { // use current source development
+//            //            loc = path.join (SIGMASYSTEM, 'Sigma16',
+//            loc = path.join (appRoot,"src",
+//                             'build', 'dev', 'Sigma16')
+//        } else if (v === 'release') { // get release version in server
+//            //            loc = path.join (SIGMASYSTEM, 'SigServer',
+//            loc = path.join (appRoot, "src", 'SigServer',            
+//                             'data','Sigma16', 'build',
+//                             S16_RELEASE_VERSION, 'Sigma16')
+//        } else if (v === 'dev') { // get dev version in serverr
+//            console.log ('findBuild Local dev');
+
+//    let loc = 'findBuild error: Unknown_build_path'
+
+                                                                                                                         // findbuild redundant
+    //        } else { // look up any numbered version v
+//            loc = path.join (SIGMASYSTEM, 'SigServer',
+//                             'data','Sigma16', 'build',
+//                             v, 'Sigma16')
+//        }
+
+
+
+// redundant    
+// function substituteVersion (v) {
+//     return v === 'release' ? S16_RELEASE_VERSION
+//         : v === 'test' ? S16_DEV_VERSION
+//     //        : v === 'dev' ?  S16_DEV_VERSION
+//         : v === 'dev' ? 'dev'
+//         : v
+// }
+    //        : v === 'dev' ? 'dev'
+
+
+// Test findBuild deprecated
+// console.log ('Test findBuild')
+// if (S16_RUN_ENV === 'Render') {
+//     console.log ('Testing findBuild on Render')
+//     console.log (`release - ${findBuild ('release')}`);
+//     console.log (`dev     - ${findBuild ('dev')}`);
+// } else if (S16_RUN_ENV === 'Local') {
+//     console.log ('Testing findBuild on Local')
+//     console.log (`release - ${findBuild ('release')}`);
+//     console.log (`dev     - ${findBuild ('dev')}`);
+//     console.log (`3.5.0   - ${findBuild ('3.5.0')}`);
+//     console.log (`src     - ${findBuild ('src')}`);
+// }
+
